@@ -2,17 +2,16 @@ import React, { useCallback, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-import { geneMapAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
 import type { AnalysisResult, Gene, PeptideWarning } from 'src/algorithms/types'
+import { geneMapAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
-import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
 
@@ -96,12 +95,10 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { seqName, unknownAaRanges, frameShifts } = sequence
+  const { seqName, unknownAaRanges, frameShifts, aaChangesGroups } = sequence
   const geneLength = gene.end - gene.start
   const pixelsPerAa = width / Math.round(geneLength / 3)
-  const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
-  const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
-  const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
+  const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
 

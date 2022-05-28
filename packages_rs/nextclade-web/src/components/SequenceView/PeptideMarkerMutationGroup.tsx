@@ -1,13 +1,12 @@
 import React, { SVGProps, useCallback, useState } from 'react'
-
 import { Row, Col } from 'reactstrap'
 
+import type { AminoacidChange, AminoacidChangesGroup } from 'src/algorithms/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'

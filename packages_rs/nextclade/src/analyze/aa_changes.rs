@@ -1,5 +1,9 @@
+use crate::analyze::aa_changes_group::AaChangeGroup;
 use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::nuc_del::NucDel;
+use crate::analyze::nuc_sub::NucSub;
 use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::aa::{from_aa, Aa};
 use crate::io::gene_map::GeneMap;
@@ -11,7 +15,7 @@ use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
 use eyre::Report;
-use itertools::{assert_equal, Itertools};
+use itertools::{assert_equal, merge, Itertools};
 use num::clamp;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -121,6 +125,88 @@ impl PartialOrd for AaDel {
   }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum AaChangeType {
+  #[serde(rename = "substitution")]
+  Sub,
+
+  #[serde(rename = "deletion")]
+  Del,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AaChange {
+  #[serde(rename = "type")]
+  pub change_type: AaChangeType,
+
+  pub gene: String,
+  #[serde(rename = "refAA")]
+  pub reff: Aa,
+
+  #[serde(rename = "codon")]
+  pub pos: usize,
+
+  #[serde(rename = "queryAA")]
+  pub qry: Aa,
+
+  pub codon_nuc_range: Range,
+  pub ref_context: String,
+  pub query_context: String,
+  pub context_nuc_range: Range,
+  pub nuc_substitutions: Vec<NucSub>,
+  pub nuc_deletions: Vec<NucDel>,
+}
+
+impl From<AaSubFull> for AaChange {
+  fn from(sub: AaSubFull) -> Self {
+    Self {
+      change_type: AaChangeType::Sub,
+      gene: sub.sub.gene,
+      reff: sub.sub.reff,
+      pos: sub.sub.pos,
+      qry: sub.sub.qry,
+      codon_nuc_range: sub.sub.codon_nuc_range,
+      ref_context: sub.sub.ref_context,
+      query_context: sub.sub.query_context,
+      context_nuc_range: sub.sub.context_nuc_range,
+      nuc_substitutions: sub.nuc_substitutions,
+      nuc_deletions: sub.nuc_deletions,
+    }
+  }
+}
+
+impl From<AaDelFull> for AaChange {
+  fn from(del: AaDelFull) -> Self {
+    Self {
+      change_type: AaChangeType::Del,
+      gene: del.del.gene,
+      reff: del.del.reff,
+      pos: del.del.pos,
+      qry: Aa::Gap,
+      codon_nuc_range: del.del.codon_nuc_range,
+      ref_context: del.del.ref_context,
+      query_context: del.del.query_context,
+      context_nuc_range: del.del.context_nuc_range,
+      nuc_substitutions: del.nuc_substitutions,
+      nuc_deletions: del.nuc_deletions,
+    }
+  }
+}
+
+impl Ord for AaChange {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
+  }
+}
+
+impl PartialOrd for AaChange {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FindAaChangesOutput {
@@ -140,7 +226,7 @@ pub fn find_aa_changes(
   alignment_range: &Range,
   gene_map: &GeneMap,
 ) -> Result<FindAaChangesOutput, Report> {
-  let changes = translations
+  let mut changes = translations
     .iter()
     .map(
       |Translation {
@@ -176,9 +262,8 @@ pub fn find_aa_changes(
       output
     });
 
-  // TODO: sort by gene and position
-  // changes.aa_substitutions.sort_by_key(|sub| sub.pos);
-  // changes.aa_deletions.sort_by_key(|del| del.pos);
+  changes.aa_substitutions.sort_by_key(|sub| sub.pos);
+  changes.aa_deletions.sort_by_key(|del| del.pos);
 
   Ok(changes)
 }

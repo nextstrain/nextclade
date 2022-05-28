@@ -3,12 +3,11 @@ import React, { useMemo } from 'react'
 import styled, { useTheme } from 'styled-components'
 import { Table as ReactstrapTable } from 'reactstrap'
 
+import type { Aminoacid, AminoacidChange, AminoacidChangesGroup, Nucleotide } from 'src/algorithms/types'
 import { safeZip, safeZip3 } from 'src/helpers/safeZip'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
 import { first, isNil, last } from 'lodash'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
-import { Aminoacid, Nucleotide } from 'src/algorithms/types'
 
 import { desaturate, lighten } from 'polished'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
