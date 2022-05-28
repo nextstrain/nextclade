@@ -98,7 +98,7 @@ export function InsertedFragmentTruncated({ insertion, isAminoacid }: InsertedFr
     let ins = insertion
     let truncatedText: string | undefined
     if (ins.length > targetLength) {
-      ins = insertion.slice(0, targetLength).concat(TRUNCATED_TEXT)
+      ins = insertion.slice(0, targetLength)
       truncatedText = TRUNCATED_TEXT
     }
     return { ins, truncatedText }
