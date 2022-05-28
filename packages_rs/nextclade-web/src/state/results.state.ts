@@ -181,6 +181,16 @@ export const geneNamesAtom = selector<string[]>({
   get: ({ get }) => get(geneMapAtom).map((gene) => gene.geneName),
 })
 
+export const geneAtom = selectorFamily<Gene | undefined, string>({
+  key: 'gene',
+  get:
+    (geneName) =>
+    ({ get }) => {
+      const geneMap = get(geneMapAtom)
+      return geneMap.find((gene) => gene.geneName === geneName)
+    },
+})
+
 export const treeAtom = atom<AuspiceJsonV2 | undefined>({
   key: 'tree',
   default: undefined,

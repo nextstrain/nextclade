@@ -1,5 +1,6 @@
-import React, { SVGProps, useCallback, useState } from 'react'
+import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
 
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/algorithms/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
@@ -10,6 +11,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
+import { geneAtom } from 'src/state/results.state'
 import { PeptideContext } from './PeptideContext'
 
 export interface PeptideMarkerMutationProps {
@@ -46,8 +48,35 @@ function PeptideMarkerMutationGroupUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
-  const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
+  const { gene: geneName, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
+
+  const gene = useRecoilValue(geneAtom(geneName))
+
+  const contextTitle = useMemo(() => {
+    if (gene?.strand === '-') {
+      return 'Context (reverse strand*)'
+    }
+    return 'Context'
+  }, [gene?.strand])
+
+  const footerNote = useMemo(() => {
+    if (gene?.strand === '-') {
+      return (
+        <Row noGutters>
+          <Col>
+            <p className="small">
+              {t('* - note that for reverse strands Nextclade chooses to display amino acid context')}
+              <br />
+              {t('in forward direction, and nucleotide context in reverse direction')}
+            </p>
+          </Col>
+        </Row>
+      )
+    }
+    return null
+  }, [gene?.strand, t])
+
+  const id = getSafeId('aa-mutation-group-marker', { seqName, geneName, begin: codonAaRange.begin })
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
   const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
@@ -148,7 +177,7 @@ function PeptideMarkerMutationGroupUnmemoed({
                   <td colSpan={2}>
                     <Row noGutters className="mt-3">
                       <Col>
-                        <h6>{'Context'}</h6>
+                        <h6>{contextTitle}</h6>
                       </Col>
                     </Row>
 
@@ -161,6 +190,8 @@ function PeptideMarkerMutationGroupUnmemoed({
                 </tr>
               </tbody>
             </TableSlim>
+
+            {footerNote}
           </Tooltip>
         </g>
       </svg>
