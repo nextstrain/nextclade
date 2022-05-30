@@ -12,6 +12,7 @@ import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
+import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
@@ -38,7 +39,7 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
+  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts, insertions } = sequence
 
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
@@ -83,6 +84,17 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     )
   })
 
+  const insertionViews = insertions.map((insertion) => {
+    return (
+      <SequenceMarkerInsertion
+        key={insertion.pos}
+        seqName={seqName}
+        insertion={insertion}
+        pixelsPerBase={pixelsPerBase}
+      />
+    )
+  })
+
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
       key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
@@ -119,6 +131,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         {mutationViews}
         {missingViews}
         {deletionViews}
+        {insertionViews}
         <SequenceMarkerUnsequencedEnd
           seqName={seqName}
           genomeSize={genomeSize}
