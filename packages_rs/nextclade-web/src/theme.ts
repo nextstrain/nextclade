@@ -162,6 +162,15 @@ export const theme = {
   shadows,
   filePicker,
   uploadZone,
+
+  seqView: {
+    markers: {
+      insertions: {
+        background: '#ff0000',
+        outline: '#ffff00',
+      },
+    },
+  },
 }
 
 export type Theme = typeof theme

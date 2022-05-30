@@ -1,4 +1,5 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
+import { useTheme } from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import type { NucleotideInsertion } from 'src/algorithms/types'
@@ -14,6 +15,14 @@ export interface MissingViewProps extends SVGProps<SVGPolygonElement> {
 }
 
 function SequenceMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerBase, ...rest }: MissingViewProps) {
+  const {
+    seqView: {
+      markers: {
+        insertions: { background, outline },
+      },
+    },
+  } = useTheme()
+
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
@@ -31,8 +40,8 @@ function SequenceMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerBase, ..
 
   return (
     <g id={id} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <polygon points={pointsOutline} fill={'#ffff00'} {...rest} />
-      <polygon points={pointsMain} fill={'#ff0000'} {...rest} />
+      <polygon points={pointsOutline} fill={outline} {...rest} />
+      <polygon points={pointsMain} fill={background} {...rest} />
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
         <h6>{t('Nucleotide insertion')}</h6>
         <ListOfInsertionsNuc insertions={insertions} totalInsertions={1} />
