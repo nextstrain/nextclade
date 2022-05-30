@@ -113,7 +113,10 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
             "Markers are the colored rectangles which represent mutations, deletions etc. There is a technical limit of how many of those can be displayed at a time, depending on how fast your computer is. You can tune the threshold in the 'Settings' dialog, accessible with the button on the top panel.",
           )}
         >
-          {t('Too many markers to display. The threshold can be increased in "Settings" dialog')}
+          {t(
+            'Too many markers to display ({{totalMarkers}}). The threshold ({{maxNucMarkers}}) can be increased in "Settings" dialog',
+            { totalMarkers, maxNucMarkers },
+          )}
         </SequenceViewText>
       </SequenceViewWrapper>
     )
