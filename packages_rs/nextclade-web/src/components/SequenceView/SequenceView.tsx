@@ -104,7 +104,8 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     />
   ))
 
-  const totalMarkers = mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length
+  const totalMarkers =
+    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
   if (totalMarkers > maxNucMarkers) {
     return (
       <SequenceViewWrapper>
