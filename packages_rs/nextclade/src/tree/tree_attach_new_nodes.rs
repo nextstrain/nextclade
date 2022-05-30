@@ -1,3 +1,6 @@
+use crate::analyze::aa_del::AaDelMinimal;
+use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
@@ -60,7 +63,7 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
 }
 
 fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  let mutations = convert_mutations_to_node_branch_attrs(&result.private_nuc_mutations);
+  let mutations = convert_mutations_to_node_branch_attrs(&result);
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",
@@ -113,22 +116,52 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
   );
 }
 
-fn convert_mutations_to_node_branch_attrs(nuc_muts: &PrivateNucMutations) -> BTreeMap<String, Vec<String>> {
+fn convert_mutations_to_node_branch_attrs(result: &NextcladeOutputs) -> BTreeMap<String, Vec<String>> {
+  let NextcladeOutputs {
+    private_nuc_mutations,
+    private_aa_mutations,
+    ..
+  } = result;
+
   let mut mutations = BTreeMap::<String, Vec<String>>::new();
 
-  let dels_as_subs = nuc_muts
+  mutations.insert(
+    "nuc".to_owned(),
+    convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations),
+  );
+
+  for (gene_name, aa_mutations) in private_aa_mutations {
+    mutations.insert(
+      gene_name.clone(),
+      convert_aa_mutations_to_node_branch_attrs(aa_mutations),
+    );
+  }
+
+  mutations
+}
+
+fn convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations: &PrivateNucMutations) -> Vec<String> {
+  let dels_as_subs = private_nuc_mutations
     .private_deletions
     .iter()
     .map(NucDelMinimal::to_sub)
     .collect_vec();
 
-  let mut subs = concat_to_vec(&nuc_muts.private_substitutions, &dels_as_subs);
+  let mut subs = concat_to_vec(&private_nuc_mutations.private_substitutions, &dels_as_subs);
   subs.sort();
-  let sub_strs = subs.iter().map(NucSub::to_string).collect_vec();
 
-  mutations.insert("nuc".to_owned(), sub_strs);
+  subs.iter().map(NucSub::to_string).collect_vec()
+}
 
-  // TODO: convert aa mutations
+fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMutations) -> Vec<String> {
+  let dels_as_subs = private_aa_mutations
+    .private_deletions
+    .iter()
+    .map(AaDelMinimal::to_sub)
+    .collect_vec();
 
-  mutations
+  let mut subs = concat_to_vec(&private_aa_mutations.private_substitutions, &dels_as_subs);
+  subs.sort();
+
+  subs.iter().map(AaSubMinimal::to_string_without_gene).collect_vec()
 }
