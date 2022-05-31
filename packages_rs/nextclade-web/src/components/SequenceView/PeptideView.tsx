@@ -4,6 +4,7 @@ import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
+import { geneMapAtom } from 'src/state/results.state'
 import type { AnalysisResult, Gene, PeptideWarning } from 'src/algorithms/types'
 import { geneMapAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -14,6 +15,7 @@ import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
+import { PeptideMarkerInsertion } from './PeptideMarkerInsertion'
 
 const MissingRow = styled.div`
   background-color: ${(props) => props.theme.gray650};
@@ -95,7 +97,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { seqName, unknownAaRanges, frameShifts, aaChangesGroups } = sequence
+  const { seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions } = sequence
   const geneLength = gene.end - gene.start
   const pixelsPerAa = width / Math.round(geneLength / 3)
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
@@ -112,6 +114,14 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         pixelsPerAa={pixelsPerAa}
       />
     ))
+
+  const insertionMarkers = aaInsertions
+    .filter((ins) => ins.gene === viewedGene)
+    .map((insertion) => {
+      return (
+        <PeptideMarkerInsertion key={insertion.pos} seqName={seqName} insertion={insertion} pixelsPerAa={pixelsPerAa} />
+      )
+    })
 
   return (
     <SequenceViewWrapper>
@@ -134,6 +144,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
           )
         })}
         {frameShiftMarkers}
+        {insertionMarkers}
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

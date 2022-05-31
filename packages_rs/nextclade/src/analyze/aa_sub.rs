@@ -1,4 +1,4 @@
-use crate::io::aa::Aa;
+use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::io::parse_pos::parse_pos;
@@ -30,6 +30,11 @@ impl AaSubMinimal {
   /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
   pub fn is_del(&self) -> bool {
     self.qry.is_gap()
+  }
+
+  pub fn to_string_without_gene(&self) -> String {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    return format!("{}{}{}", from_aa(self.reff), self.pos + 1, from_aa(self.qry));
   }
 }
 

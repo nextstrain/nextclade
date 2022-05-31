@@ -4,9 +4,9 @@ use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::{AaRange, GeneAaRange};
 use crate::analyze::virus_properties::{LabelMap, MutationLabelMaps, VirusProperties};
-use crate::io::gene_map::GeneMap;
 use crate::gene::genotype::{Genotype, GenotypeLabeled};
 use crate::io::aa::Aa;
+use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::make_internal_report;
 use crate::translate::translate_genes::{Translation, TranslationMap};
@@ -43,6 +43,7 @@ pub fn find_private_aa_mutations(
   gene_map
     .iter()
     .filter_map(|(gene, _)| match node.tmp.aa_mutations.get(gene) {
+      //node.tmp contains mutations accumulated from root
       None => None,
       Some(node_mut_map) => {
         let ref_peptide = ref_peptides
@@ -122,8 +123,6 @@ pub fn find_private_aa_mutations_for_one_gene(
 }
 
 /// Iterates over sequence substitutions, compares sequence and node substitutions and finds the private ones.
-///
-/// This function is generic and is suitable for both nucleotide and aminoacid substitutions.
 fn process_seq_substitutions(
   node_mut_map: &BTreeMap<usize, Aa>,
   substitutions: &[&AaSub],

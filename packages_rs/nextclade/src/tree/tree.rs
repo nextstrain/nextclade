@@ -71,7 +71,7 @@ pub struct TreeNodeAttrs {
   pub missing: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  #[serde(rename = "Missing")]
+  #[serde(rename = "Gaps")]
   pub gaps: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
