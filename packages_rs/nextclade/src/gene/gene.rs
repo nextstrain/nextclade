@@ -39,4 +39,13 @@ impl Gene {
   pub const fn is_empty(&self) -> bool {
     self.len() == 0
   }
+
+  #[inline]
+  pub fn codon_to_nuc(&self, codon: usize) -> usize {
+    if self.strand == GeneStrand::Reverse {
+      self.end - (codon + 1) * 3
+    } else {
+      self.start + codon * 3
+    }
+  }
 }

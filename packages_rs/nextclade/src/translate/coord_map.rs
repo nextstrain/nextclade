@@ -75,6 +75,26 @@ impl CoordMap {
     self.ref_to_aln_table[reff]
   }
 
+  /// Converts relative position inside a feature (e.g. gene) to absolute position in the reference
+  pub fn feature_aln_to_ref_scalar(&self, feature: &Gene, aln_pos_rel: usize) -> usize {
+    let aln_pos = if feature.strand == GeneStrand::Reverse {
+      self.ref_to_aln_scalar(feature.end) - aln_pos_rel
+    } else {
+      self.ref_to_aln_scalar(feature.start) + aln_pos_rel
+    };
+    self.aln_to_ref_scalar(aln_pos)
+  }
+
+  /// Converts relative position inside a feature (e.g. gene) to absolute position in the alignment
+  pub fn feature_ref_to_aln_scalar(&self, feature: &Gene, ref_pos_rel: usize) -> usize {
+    let ref_pos = if feature.strand == GeneStrand::Reverse {
+      self.aln_to_ref_scalar(feature.end) - ref_pos_rel
+    } else {
+      self.aln_to_ref_scalar(feature.start) + ref_pos_rel
+    };
+    self.ref_to_aln_scalar(ref_pos)
+  }
+
   pub fn aln_to_ref(&self, aln_range: &Range) -> Range {
     Range {
       begin: self.aln_to_ref_table[aln_range.begin],
@@ -86,6 +106,20 @@ impl CoordMap {
     Range {
       begin: self.ref_to_aln_table[ref_range.begin],
       end: self.ref_to_aln_table[ref_range.end - 1] + 1,
+    }
+  }
+
+  pub fn feature_aln_to_ref(&self, feature: &Gene, aln_range: &Range) -> Range {
+    Range {
+      begin: self.feature_aln_to_ref_scalar(feature, aln_range.begin),
+      end: self.feature_aln_to_ref_scalar(feature, aln_range.end - 1) + 1,
+    }
+  }
+
+  pub fn feature_ref_to_aln(&self, feature: &Gene, ref_range: &Range) -> Range {
+    Range {
+      begin: self.feature_ref_to_aln_scalar(feature, ref_range.begin),
+      end: self.feature_ref_to_aln_scalar(feature, ref_range.end - 1) + 1,
     }
   }
 
