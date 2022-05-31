@@ -1,3 +1,4 @@
+use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -41,11 +42,20 @@ impl Gene {
   }
 
   #[inline]
-  pub fn codon_to_nuc(&self, codon: usize) -> usize {
+  pub fn codon_to_nuc_scalar(&self, codon: usize) -> usize {
     if self.strand == GeneStrand::Reverse {
       self.end - (codon + 1) * 3
     } else {
       self.start + codon * 3
+    }
+  }
+
+  #[inline]
+  pub const fn codon_to_nuc(&self, range: &Range) -> Range {
+    Range {
+      begin: range.begin / 3,
+      // Make sure the right boundary is aligned to codon boundary
+      end: (range.end + (3 - range.end % 3) % 3) / 3,
     }
   }
 }
