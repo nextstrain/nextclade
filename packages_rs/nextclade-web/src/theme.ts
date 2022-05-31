@@ -166,8 +166,8 @@ export const theme = {
   seqView: {
     markers: {
       insertions: {
-        background: '#000000',
-        outline: '#ff0000',
+        background: '#7123de',
+        outline: '#f7f416',
       },
     },
   },
