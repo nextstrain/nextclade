@@ -44,33 +44,22 @@ pub fn find_nuc_mask_range(query: &[Nuc], frame_shift_nuc_range_rel: &Range) -> 
 
 /// Finds codon range to be masked. The aminoacids belonging to frame shift need to be masked, because they are not
 /// biological and can produce a lot of noisy mutations that don't exist.
-pub fn find_codon_mask_range(
-  nuc_rel_aln: &Range,
-  query: &[Nuc],
-  coord_map: &CoordMap,
-  gene_start_ref: usize,
-  gene_start_aln: usize,
-  gene_length: usize,
-) -> Range {
+pub fn find_codon_mask_range(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &CoordMap, gene: &Gene) -> Range {
+  // let gene_start_ref = gene.start;
+  // let gene_start_aln = coord_map.ref_to_aln_scalar(gene.start); // Gene start in alignment coordinates
+  // let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
+  // let mask_nuc_abs_aln = mask_nuc_rel_aln + gene_start_aln;
+  // let mask_nuc_abs_ref = coord_map.aln_to_ref(&mask_nuc_abs_aln);
+  // let mask_nuc_rel_ref = mask_nuc_abs_ref - gene_start_ref;
+  // let mut mask_codon_range = nuc_range_to_codon_range(&mask_nuc_rel_ref);
   let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
-  let mask_nuc_abs_aln = mask_nuc_rel_aln + gene_start_aln;
-  let mask_nuc_abs_ref = coord_map.aln_to_ref(&mask_nuc_abs_aln);
-  let mask_nuc_rel_ref = mask_nuc_abs_ref - gene_start_ref;
-  let mut mask_codon = nuc_range_to_codon_range(&mask_nuc_rel_ref);
+  let mask_nuc_rel_ref = coord_map.feature_aln_to_ref(gene, &mask_nuc_rel_aln);
+  let mut mask_codon_range = gene.codon_to_nuc(&mask_nuc_rel_ref);
 
   // Nuc mask can span beyond the gene. Prevent peptide mask overflow.
-  mask_codon.end = mask_codon.end.min(gene_length);
+  mask_codon_range.end = mask_codon_range.end.min(gene.len());
 
-  mask_codon
-}
-
-#[inline]
-pub const fn nuc_range_to_codon_range(range: &Range) -> Range {
-  Range {
-    begin: range.begin / 3,
-    // Make sure the right boundary is aligned to codon boundary
-    end: (range.end + (3 - range.end % 3) % 3) / 3,
-  }
+  mask_codon_range
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -97,22 +86,16 @@ pub fn frame_shift_translate(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &Coo
   // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
   // (as in the original reference coordinates, with gaps stripped).
 
-  let gene_start_ref = gene.start;
-  let gene_start_aln = coord_map.ref_to_aln_scalar(gene.start); // Gene start in alignment coordinates
+  // let gene_start_ref = gene.start;
+  // let gene_start_aln = coord_map.ref_to_aln_scalar(gene.start); // Gene start in alignment coordinates
+  // let nuc_abs_aln = nuc_rel_aln + gene_start_aln;
+  // let nuc_abs_ref = coord_map.aln_to_ref(&nuc_abs_aln);
+  // let nuc_rel_ref = &nuc_abs_ref - gene_start_ref;
+  // let codon_range = nuc_range_to_codon_range(&nuc_rel_ref);
+  let nuc_abs_ref = coord_map.feature_aln_to_ref(gene, nuc_rel_aln);
+  let codon = gene.nuc_to_codon(&nuc_abs_ref);
 
-  let nuc_abs_aln = nuc_rel_aln + gene_start_aln;
-  let nuc_abs_ref = coord_map.aln_to_ref(&nuc_abs_aln);
-  let nuc_rel_ref = &nuc_abs_ref - gene_start_ref;
-  let codon = nuc_range_to_codon_range(&nuc_rel_ref);
-
-  let codon_mask = find_codon_mask_range(
-    nuc_rel_aln,
-    query,
-    coord_map,
-    gene_start_ref,
-    gene_start_aln,
-    gene.len(),
-  );
+  let codon_mask = find_codon_mask_range(nuc_rel_aln, query, coord_map, gene);
 
   let gaps_leading = FrameShiftContext {
     codon: Range {

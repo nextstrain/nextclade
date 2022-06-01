@@ -1,6 +1,5 @@
 use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 pub enum GeneStrand {
@@ -33,14 +32,49 @@ pub struct Gene {
 }
 
 impl Gene {
+  #[inline]
   pub const fn len(&self) -> usize {
     self.end - self.start
   }
 
+  #[inline]
   pub const fn is_empty(&self) -> bool {
     self.len() == 0
   }
 
+  /// Converts relative nucleotide position inside gene (relative to gene start) to absolute position in the
+  /// reference nucleotide sequence
+  #[inline]
+  pub fn nuc_rel_to_abs(&self, nuc_ref_rel: usize) -> usize {
+    debug_assert!(
+      nuc_ref_rel < self.len(),
+      "Position should be within the gene:\nnuc_ref_rel={nuc_ref_rel:},\ngene.len()={self:#?}"
+    );
+
+    if self.strand == GeneStrand::Reverse {
+      self.end - nuc_ref_rel
+    } else {
+      self.start + nuc_ref_rel
+    }
+  }
+
+  /// Converts absolute position in the reference nucleotide sequence to relative nucleotide position inside gene
+  /// (relative to gene start)
+  #[inline]
+  pub fn nuc_abs_to_rel(&self, nuc_abs_ref: usize) -> usize {
+    debug_assert!(
+      self.start <= nuc_abs_ref && nuc_abs_ref < self.end,
+      "Position should be within the gene:\nnuc_abs_ref={nuc_abs_ref:}\ngene={self:#?}"
+    );
+
+    if self.strand == GeneStrand::Reverse {
+      nuc_abs_ref + self.end
+    } else {
+      nuc_abs_ref - self.start
+    }
+  }
+
+  /// Converts codon index into absolute position in the reference nucleotide sequence
   #[inline]
   pub fn codon_to_nuc_scalar(&self, codon: usize) -> usize {
     if self.strand == GeneStrand::Reverse {
@@ -50,12 +84,35 @@ impl Gene {
     }
   }
 
+  /// Converts a range of codon indices into absolute range in the reference nucleotide sequence
   #[inline]
-  pub const fn codon_to_nuc(&self, range: &Range) -> Range {
+  pub fn codon_to_nuc(&self, codon_range: &Range) -> Range {
+    let &Range { begin, end } = codon_range;
     Range {
-      begin: range.begin / 3,
-      // Make sure the right boundary is aligned to codon boundary
-      end: (range.end + (3 - range.end % 3) % 3) / 3,
+      begin: self.codon_to_nuc_scalar(begin),
+      end: self.codon_to_nuc_scalar(end - 1) + 1,
+    }
+  }
+
+  /// Converts absolute position in the reference nucleotide sequence to codon index
+  #[inline]
+  pub fn nuc_to_codon_scalar(&self, nuc_abs_ref: usize) -> usize {
+    let nuc_rel_ref = self.nuc_abs_to_rel(nuc_abs_ref);
+
+    // Make sure the nucleotide position is adjusted to codon boundary before the division
+    // TODO: ensure that adjustment direction is correct for reverse strands
+    let nuc_rel_ref_adj = nuc_rel_ref + (3 - nuc_rel_ref % 3) % 3;
+
+    nuc_rel_ref_adj / 3
+  }
+
+  /// Converts absolute range in the reference nucleotide sequence to a range of codon indices
+  #[inline]
+  pub fn nuc_to_codon(&self, nuc_abs_ref: &Range) -> Range {
+    let &Range { begin, end } = nuc_abs_ref;
+    Range {
+      begin: self.nuc_to_codon_scalar(begin),
+      end: self.nuc_to_codon_scalar(end - 1) + 1,
     }
   }
 }
