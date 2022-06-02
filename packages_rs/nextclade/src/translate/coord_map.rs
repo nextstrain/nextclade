@@ -66,60 +66,68 @@ impl CoordMap {
     }
   }
 
-  pub fn aln_to_ref_scalar(&self, aln: usize) -> usize {
+  pub fn aln_to_ref_position(&self, aln: usize) -> usize {
     self.aln_to_ref_table[aln]
   }
 
   // Reff is used because `ref` is magic word in Rust
-  pub fn ref_to_aln_scalar(&self, reff: usize) -> usize {
+  pub fn ref_to_aln_position(&self, reff: usize) -> usize {
     self.ref_to_aln_table[reff]
   }
 
-  /// Converts relative position inside a feature (e.g. gene) to absolute position in the reference
-  pub fn feature_aln_to_ref_scalar(&self, feature: &Gene, aln_pos_rel: usize) -> usize {
+  /// Converts relative position inside an aligned feature (e.g. gene) to absolute position in the reference
+  pub fn feature_aln_to_ref_position(&self, feature: &Gene, aln_pos_rel: usize) -> usize {
     let aln_pos = if feature.strand == GeneStrand::Reverse {
-      self.ref_to_aln_scalar(feature.end) - aln_pos_rel
+      self.ref_to_aln_position(feature.end - 1) - aln_pos_rel //feature.end points to the nuc after the feature, hence - 1
     } else {
-      self.ref_to_aln_scalar(feature.start) + aln_pos_rel
+      self.ref_to_aln_position(feature.start) + aln_pos_rel
     };
-    self.aln_to_ref_scalar(aln_pos)
+    self.aln_to_ref_position(aln_pos)
   }
 
   /// Converts relative position inside a feature (e.g. gene) to absolute position in the alignment
-  pub fn feature_ref_to_aln_scalar(&self, feature: &Gene, ref_pos_rel: usize) -> usize {
+  pub fn feature_ref_to_aln_position(&self, feature: &Gene, ref_pos_rel: usize) -> usize {
     let ref_pos = if feature.strand == GeneStrand::Reverse {
-      self.aln_to_ref_scalar(feature.end) - ref_pos_rel
+      feature.end - 1 - ref_pos_rel // the feature end is one past the last character, hence -1
     } else {
-      self.aln_to_ref_scalar(feature.start) + ref_pos_rel
+      feature.start + ref_pos_rel
     };
-    self.ref_to_aln_scalar(ref_pos)
+    self.ref_to_aln_position(ref_pos)
   }
 
-  pub fn aln_to_ref(&self, aln_range: &Range) -> Range {
+  pub fn aln_to_ref_range(&self, aln_range: &Range) -> Range {
     Range {
       begin: self.aln_to_ref_table[aln_range.begin],
       end: self.aln_to_ref_table[aln_range.end - 1] + 1,
     }
   }
 
-  pub fn ref_to_aln(&self, ref_range: &Range) -> Range {
+  pub fn ref_to_aln_range(&self, ref_range: &Range) -> Range {
     Range {
       begin: self.ref_to_aln_table[ref_range.begin],
       end: self.ref_to_aln_table[ref_range.end - 1] + 1,
     }
   }
 
-  pub fn feature_aln_to_ref(&self, feature: &Gene, aln_range: &Range) -> Range {
-    Range {
-      begin: self.feature_aln_to_ref_scalar(feature, aln_range.begin),
-      end: self.feature_aln_to_ref_scalar(feature, aln_range.end - 1) + 1,
-    }
+  pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
+    let ref_range = if feature.strand == GeneStrand::Reverse {
+      Range {
+        begin: self.feature_aln_to_ref_position(feature, aln_range.end - 1),
+        end: self.feature_aln_to_ref_position(feature, aln_range.begin) + 1,
+      }
+    } else {
+      Range {
+        begin: self.feature_aln_to_ref_position(feature, aln_range.begin),
+        end: self.feature_aln_to_ref_position(feature, aln_range.end - 1) + 1,
+      }
+    };
+    return ref_range;
   }
 
-  pub fn feature_ref_to_aln(&self, feature: &Gene, ref_range: &Range) -> Range {
+  pub fn feature_ref_to_aln_range(&self, feature: &Gene, ref_range: &Range) -> Range {
     Range {
-      begin: self.feature_ref_to_aln_scalar(feature, ref_range.begin),
-      end: self.feature_ref_to_aln_scalar(feature, ref_range.end - 1) + 1,
+      begin: self.feature_ref_to_aln_position(feature, ref_range.begin),
+      end: self.feature_ref_to_aln_position(feature, ref_range.end - 1) + 1,
     }
   }
 
@@ -131,7 +139,7 @@ impl CoordMap {
     let gene_range_ref = Range { begin: start, end };
 
     // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
-    let gene_range_aln = self.ref_to_aln(&gene_range_ref);
+    let gene_range_aln = self.ref_to_aln_range(&gene_range_ref);
     let mut gene_nucs = full_aln_seq[StdRange::from(gene_range_aln)].to_vec();
 
     // Reverse strands should be reverse-complemented
@@ -202,7 +210,7 @@ mod coord_map_tests {
   fn maps_range_ref_to_aln_simple() -> Result<(), Report> {
     let coord_map = CoordMap::new(&to_nuc_seq("ACTC---CGTG---A")?);
     assert_eq!(
-      coord_map.ref_to_aln(&Range { begin: 3, end: 6 }),
+      coord_map.ref_to_aln_range(&Range { begin: 3, end: 6 }),
       Range { begin: 3, end: 9 }
     );
     Ok(())
@@ -212,7 +220,7 @@ mod coord_map_tests {
   fn maps_range_aln_to_ref_simple() -> Result<(), Report> {
     let coord_map = CoordMap::new(&to_nuc_seq("ACTC---CGTG---A")?);
     assert_eq!(
-      coord_map.aln_to_ref(&Range { begin: 3, end: 9 }),
+      coord_map.aln_to_ref_range(&Range { begin: 3, end: 9 }),
       Range { begin: 3, end: 6 }
     );
     Ok(())
@@ -222,7 +230,7 @@ mod coord_map_tests {
   fn maps_range_ref_to_aln_with_leading_insertions() -> Result<(), Report> {
     let coord_map = CoordMap::new(&to_nuc_seq("--ACTC---CGTG---A")?);
     assert_eq!(
-      coord_map.ref_to_aln(&Range { begin: 3, end: 6 }),
+      coord_map.ref_to_aln_range(&Range { begin: 3, end: 6 }),
       Range { begin: 5, end: 11 }
     );
     Ok(())
@@ -232,7 +240,7 @@ mod coord_map_tests {
   fn maps_range_aln_to_ref_with_leading_insertions() -> Result<(), Report> {
     let coord_map = CoordMap::new(&to_nuc_seq("--ACTC---CGTG---A")?);
     assert_eq!(
-      coord_map.aln_to_ref(&Range { begin: 5, end: 11 }),
+      coord_map.aln_to_ref_range(&Range { begin: 5, end: 11 }),
       Range { begin: 3, end: 6 }
     );
     Ok(())
@@ -287,6 +295,126 @@ mod coord_map_tests {
     assert_eq!(
       from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
       "CG--CCGCACGG"
+    );
+    Ok(())
+  }
+
+  #[rstest]
+  fn ref_feature_pos_to_aln_fwd() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Forward,
+      frame: 0,
+    };
+    //                0..    |7
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //                5         |15
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    assert_eq!(coord_map.feature_ref_to_aln_position(&gene, 7), 15);
+    Ok(())
+  }
+
+  #[rstest]
+  fn ref_feature_pos_to_aln_rev() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Reverse,
+      frame: 0,
+    };
+    //                 |7      |0
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //                 |6
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    assert_eq!(coord_map.feature_ref_to_aln_position(&gene, 7), 6);
+    Ok(())
+  }
+
+  #[rstest]
+  fn aln_feature_pos_to_ref_fwd() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Forward,
+      frame: 0,
+    };
+    //               |3    |8
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //               |        |8
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    assert_eq!(coord_map.feature_aln_to_ref_position(&gene, 8), 8);
+    Ok(())
+  }
+
+  #[rstest]
+  fn aln_feature_pos_to_ref_rev() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Reverse,
+      frame: 0,
+    };
+    //               |3 |5
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //               |  |9       |0
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    assert_eq!(coord_map.feature_aln_to_ref_position(&gene, 9), 5);
+    Ok(())
+  }
+
+  #[rstest]
+  fn aln_feature_range_to_ref_fwd() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Forward,
+      frame: 0,
+    };
+    //               |   |3 |6
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //               |   |     |9
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    assert_eq!(
+      coord_map.feature_aln_to_ref_range(&gene, &Range { begin: 3, end: 9 }),
+      Range { begin: 6, end: 9 }
+    );
+    Ok(())
+  }
+
+  #[rstest]
+  fn aln_feature_range_to_ref_rev() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Reverse,
+      frame: 0,
+    };
+    //               |   |6 |9
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //               |  9|   3|
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    assert_eq!(
+      coord_map.feature_aln_to_ref_range(&gene, &Range { begin: 3, end: 9 }),
+      Range { begin: 6, end: 9 }
     );
     Ok(())
   }

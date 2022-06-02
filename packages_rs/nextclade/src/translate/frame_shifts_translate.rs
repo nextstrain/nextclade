@@ -46,14 +46,14 @@ pub fn find_nuc_mask_range(query: &[Nuc], frame_shift_nuc_range_rel: &Range) -> 
 /// biological and can produce a lot of noisy mutations that don't exist.
 pub fn find_codon_mask_range(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &CoordMap, gene: &Gene) -> Range {
   // let gene_start_ref = gene.start;
-  // let gene_start_aln = coord_map.ref_to_aln_scalar(gene.start); // Gene start in alignment coordinates
+  // let gene_start_aln = coord_map.ref_to_aln_position(gene.start); // Gene start in alignment coordinates
   // let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
   // let mask_nuc_abs_aln = mask_nuc_rel_aln + gene_start_aln;
-  // let mask_nuc_abs_ref = coord_map.aln_to_ref(&mask_nuc_abs_aln);
+  // let mask_nuc_abs_ref = coord_map.aln_to_ref_range(&mask_nuc_abs_aln);
   // let mask_nuc_rel_ref = mask_nuc_abs_ref - gene_start_ref;
   // let mut mask_codon_range = nuc_range_to_codon_range(&mask_nuc_rel_ref);
   let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
-  let mask_nuc_rel_ref = coord_map.feature_aln_to_ref(gene, &mask_nuc_rel_aln);
+  let mask_nuc_rel_ref = coord_map.feature_aln_to_ref_range(gene, &mask_nuc_rel_aln);
   let mut mask_codon_range = gene.codon_to_nuc(&mask_nuc_rel_ref);
 
   // Nuc mask can span beyond the gene. Prevent peptide mask overflow.
@@ -87,12 +87,12 @@ pub fn frame_shift_translate(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &Coo
   // (as in the original reference coordinates, with gaps stripped).
 
   // let gene_start_ref = gene.start;
-  // let gene_start_aln = coord_map.ref_to_aln_scalar(gene.start); // Gene start in alignment coordinates
+  // let gene_start_aln = coord_map.ref_to_aln_position(gene.start); // Gene start in alignment coordinates
   // let nuc_abs_aln = nuc_rel_aln + gene_start_aln;
-  // let nuc_abs_ref = coord_map.aln_to_ref(&nuc_abs_aln);
+  // let nuc_abs_ref = coord_map.aln_to_ref_range(&nuc_abs_aln);
   // let nuc_rel_ref = &nuc_abs_ref - gene_start_ref;
   // let codon_range = nuc_range_to_codon_range(&nuc_rel_ref);
-  let nuc_abs_ref = coord_map.feature_aln_to_ref(gene, nuc_rel_aln);
+  let nuc_abs_ref = coord_map.feature_aln_to_ref_range(gene, nuc_rel_aln);
   let codon = gene.nuc_to_codon(&nuc_abs_ref);
 
   let codon_mask = find_codon_mask_range(nuc_rel_aln, query, coord_map, gene);
