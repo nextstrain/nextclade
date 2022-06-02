@@ -132,7 +132,6 @@ impl CoordMap {
 
     // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
     let gene_range_aln = self.ref_to_aln(&gene_range_ref);
-
     let mut gene_nucs = full_aln_seq[StdRange::from(gene_range_aln)].to_vec();
 
     // Reverse strands should be reverse-complemented
@@ -147,6 +146,7 @@ impl CoordMap {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
+  use crate::io::nuc::from_nuc_seq;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
@@ -234,6 +234,59 @@ mod coord_map_tests {
     assert_eq!(
       coord_map.aln_to_ref(&Range { begin: 5, end: 11 }),
       Range { begin: 3, end: 6 }
+    );
+    Ok(())
+  }
+
+  #[rstest]
+  fn extract_gene_plus_strand() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Forward,
+      frame: 0,
+    };
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //                5           |17
+    // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    println!(
+      "{}",
+      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene))
+    );
+    assert_eq!(
+      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
+      "CCGTGCGG--CG"
+    );
+    Ok(())
+  }
+
+  #[rstest]
+  fn extract_gene_minus_strand() -> Result<(), Report> {
+    let gene = Gene {
+      gene_name: "g1".to_string(),
+      start: 3,
+      end: 12,
+      strand: GeneStrand::Reverse,
+      frame: 0,
+    };
+    // reference: ACT|CCGTGACCG|CGT
+    // ref_aln: A--CT|CCGT---GACCG|--CGT
+    //                5           |17
+    // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
+    // rev comp       CG--CCGCACGG
+
+    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+    println!(
+      "{}",
+      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene))
+    );
+    assert_eq!(
+      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
+      "CG--CCGCACGG"
     );
     Ok(())
   }
