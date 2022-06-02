@@ -7,11 +7,12 @@ use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::io::nuc::from_nuc_seq;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
-use crate::translate::frame_shifts_translate::{frame_shifts_translate, FrameShift};
+use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
 use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
@@ -153,9 +154,13 @@ pub fn translate_gene(
   protect_first_codon_in_place(&mut ref_gene_seq);
   protect_first_codon_in_place(&mut qry_gene_seq);
 
+  // make sequence coordinate map to translate coordinates of the frame shifts to nucleotides and codons in the reference sequence
+  let gene_coord_map = CoordMap::new(&ref_gene_seq);
+
   // NOTE: frame shift detection should be performed on unstripped genes
   let nuc_rel_frame_shifts = frame_shifts_detect(&qry_gene_seq, &ref_gene_seq);
-  let frame_shifts = frame_shifts_translate(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, gene);
+  let frame_shifts =
+    frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, &gene_coord_map, gene);
 
   mask_nuc_frame_shifts_in_place(&mut qry_gene_seq, &frame_shifts);
 
