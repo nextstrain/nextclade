@@ -131,6 +131,21 @@ impl CoordMap {
     }
   }
 
+  pub fn feature_aln_to_feature_ref_position(&self, feature: &Gene, aln_position: usize) -> usize {
+    if feature.strand == GeneStrand::Reverse {
+      feature.end - 1 - self.feature_aln_to_ref_position(feature, aln_position)
+    } else {
+      self.feature_aln_to_ref_position(feature, aln_position) - feature.start
+    }
+  }
+
+  pub fn feature_aln_to_feature_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
+    Range {
+      begin: self.feature_aln_to_feature_ref_position(feature, aln_range.begin),
+      end: self.feature_aln_to_feature_ref_position(feature, aln_range.end - 1) + 1,
+    }
+  }
+
   /// Extracts nucleotide sequence of a gene
   pub fn extract_gene(&self, full_aln_seq: &[Nuc], gene: &Gene) -> Vec<Nuc> {
     let &Gene { start, end, .. } = gene;

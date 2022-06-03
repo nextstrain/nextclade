@@ -154,13 +154,9 @@ pub fn translate_gene(
   protect_first_codon_in_place(&mut ref_gene_seq);
   protect_first_codon_in_place(&mut qry_gene_seq);
 
-  // make sequence coordinate map to translate coordinates of the frame shifts to nucleotides and codons in the reference sequence
-  let gene_coord_map = CoordMap::new(&ref_gene_seq);
-
   // NOTE: frame shift detection should be performed on unstripped genes
   let nuc_rel_frame_shifts = frame_shifts_detect(&qry_gene_seq, &ref_gene_seq);
-  let frame_shifts =
-    frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, &gene_coord_map, gene);
+  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, gene);
 
   mask_nuc_frame_shifts_in_place(&mut qry_gene_seq, &frame_shifts);
 
