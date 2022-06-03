@@ -54,10 +54,18 @@ impl AaChangeGroup {
     self.changes.push(change.clone());
 
     self.codon_aa_range.end = change.pos + 1;
-    self.codon_nuc_range.end = change.codon_nuc_range.end;
-    self.ref_context = merge_context(&self.ref_context, &change.ref_context);
-    self.query_context = merge_context(&self.query_context, &change.query_context);
-    self.context_nuc_range.end = change.context_nuc_range.end;
+    // check what strand the gene is on
+    if self.codon_nuc_range.begin < change.codon_nuc_range.begin {
+      self.codon_nuc_range.begin = change.codon_nuc_range.begin;
+      self.context_nuc_range.begin = change.context_nuc_range.begin;
+      self.ref_context = merge_context(&change.ref_context, &self.ref_context);
+      self.query_context = merge_context(&change.query_context, &self.query_context);
+    } else {
+      self.codon_nuc_range.end = change.codon_nuc_range.end;
+      self.context_nuc_range.end = change.context_nuc_range.end;
+      self.ref_context = merge_context(&self.ref_context, &change.ref_context);
+      self.query_context = merge_context(&self.query_context, &change.query_context);
+    }
 
     self.nuc_substitutions = merge(&self.nuc_substitutions, &change.nuc_substitutions)
       .cloned()
