@@ -18,6 +18,7 @@ import { viewedGeneAtom } from 'src/state/settings.state'
 
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
+export const GENE_STRAND_SHIFT = 5
 export const geneMapY = -GENE_MAP_HEIGHT_PX / 2
 
 export const GeneMapWrapper = styled.div`
@@ -82,7 +83,7 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
   const id = getSafeId('gene', { ...gene })
-
+  const strand = gene.strand == '-' ? 0 : 1
   const stroke = hovered ? '#222' : undefined
 
   const onClick = useCallback(() => {
@@ -96,9 +97,9 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
       id={id}
       fill={color}
       x={x}
-      y={-10 + 7.5 * frame}
+      y={-10 + 7.5 * frame + GENE_STRAND_SHIFT * strand}
       width={width}
-      height={GENE_HEIGHT_PX}
+      height={GENE_HEIGHT_PX - GENE_STRAND_SHIFT}
       onMouseEnter={openTooltip}
       onMouseLeave={closeTooltip}
       onClick={onClick}
