@@ -105,9 +105,8 @@ pub fn group_adjacent_aa_subs_and_dels(
   for i in 1..changes.len() {
     let prev = &changes[i - 1];
     let curr = &changes[i];
-
     let group = groups.last_mut().unwrap();
-    if curr.pos - prev.pos == 1 {
+    if (curr.gene == prev.gene) && (curr.pos - prev.pos == 1) {
       group.insert(curr)
     } else {
       groups.push(AaChangeGroup::new(&curr))

@@ -197,7 +197,7 @@ impl From<AaDelFull> for AaChange {
 
 impl Ord for AaChange {
   fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
+    (&self.gene, self.pos, self.reff, self.qry).cmp(&(&other.gene, other.pos, other.reff, other.qry))
   }
 }
 
