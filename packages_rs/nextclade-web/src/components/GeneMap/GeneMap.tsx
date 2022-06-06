@@ -83,7 +83,7 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
   const id = getSafeId('gene', { ...gene })
-  const strand = gene.strand == '-' ? 0 : 1
+  const strand = gene.strand === '+' ? 0 : 1
   const stroke = hovered ? '#222' : undefined
 
   const onClick = useCallback(() => {
@@ -117,6 +117,11 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
                 <ColoredSquare color={color} size="1rem" />
                 <span className="ml-2">{geneName}</span>
               </td>
+            </tr>
+
+            <tr>
+              <td>{t('Strand:')}</td>
+              <td>{gene.strand}</td>
             </tr>
 
             <tr>
