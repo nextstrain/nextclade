@@ -51,9 +51,10 @@ function PeptideMarkerMutationGroupUnmemoed({
   const { gene: geneName, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
 
   const gene = useRecoilValue(geneAtom(geneName))
+  const strand = gene?.strand
 
   const contextTitle = useMemo(() => {
-    if (gene?.strand === '-') {
+    if (strand === '-') {
       return 'Context (reverse strand*)'
     }
     return 'Context'
@@ -183,7 +184,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                     <Row noGutters>
                       <Col>
-                        <PeptideContext group={group} />
+                        <PeptideContext group={group} strand={strand} />
                       </Col>
                     </Row>
                   </td>

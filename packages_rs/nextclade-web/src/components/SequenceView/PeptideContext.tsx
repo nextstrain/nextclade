@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import styled, { useTheme } from 'styled-components'
 import { Table as ReactstrapTable } from 'reactstrap'
 
-import type { Aminoacid, AminoacidChange, AminoacidChangesGroup, Nucleotide } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidChange, AminoacidChangesGroup, Gene, Nucleotide } from 'src/algorithms/types'
 import { safeZip, safeZip3 } from 'src/helpers/safeZip'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { first, isNil, last } from 'lodash'
@@ -15,7 +15,7 @@ import { getTextColor } from 'src/helpers/getTextColor'
 
 const pastel = (c: string) => lighten(0.25)(desaturate(0.33)(c))
 
-export const Table = styled(ReactstrapTable)<{ $width: number }>`
+export const Table = styled(ReactstrapTable) <{ $width: number }>`
   table-layout: fixed;
   text-align: center;
   font-size: 0.8rem;
@@ -153,7 +153,7 @@ export interface PeptideContextCodonProps {
 export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBegin }: PeptideContextCodonProps) {
   const refAA = change?.refAA
   const queryAA = change?.queryAA
-
+  const strand = change?.codonNucRange.begin
   const highlight: boolean[] = safeZip(refCodon.split(''), queryCodon.split('')).map(([ref, query]) => ref !== query)
 
   const codonOneBased = useMemo(() => {
@@ -214,6 +214,8 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
 }
 
 export function renderCodons([change, refCodon, queryCodon]: [AminoacidChange, string, string]) {
+  const nucBegin = change.codonNucRange.begin
+  // const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
   return (
     <PeptideContextCodon
       key={change.codon}
@@ -221,7 +223,7 @@ export function renderCodons([change, refCodon, queryCodon]: [AminoacidChange, s
       queryCodon={queryCodon}
       change={change}
       codon={change.codon}
-      nucBegin={change.codonNucRange.begin}
+      nucBegin={nucBegin}
     />
   )
 }
@@ -247,9 +249,10 @@ export function PeptideContextEllipsis() {
 
 export interface PeptideContextProps {
   group: AminoacidChangesGroup
+  strand?: String
 }
 
-export function PeptideContext({ group }: PeptideContextProps) {
+export function PeptideContext({ group, strand }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
   const { changes, contextNucRange, codonAaRange, refContext, queryContext } = group
@@ -277,7 +280,6 @@ export function PeptideContext({ group }: PeptideContextProps) {
   ) {
     return null
   }
-
   const changesAndCodons = safeZip3(changes, refCodons.slice(1, -1), queryCodons.slice(1, -1))
 
   let itemsBegin = changesAndCodons
@@ -288,6 +290,9 @@ export function PeptideContext({ group }: PeptideContextProps) {
   }
 
   const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
+  const leftCodonPos = strand === '+' ? contextNucRange.begin : contextNucRange.end - 1
+  const rightCodonPos = strand === '+' ? contextNucRange.end - 3 : contextNucRange.begin + 2
+
 
   return (
     <Table borderless className="mb-1 mx-2" $width={width}>
@@ -322,7 +327,7 @@ export function PeptideContext({ group }: PeptideContextProps) {
             refCodon={firstRefCodon}
             queryCodon={firstQryCodon}
             codon={codonAaRange.begin - 1}
-            nucBegin={contextNucRange.begin}
+            nucBegin={leftCodonPos}
           />
 
           {itemsBegin.map(renderCodons)}
@@ -333,7 +338,7 @@ export function PeptideContext({ group }: PeptideContextProps) {
             refCodon={lastRefCodon}
             queryCodon={lastQryCodon}
             codon={codonAaRange.end}
-            nucBegin={contextNucRange.end - 3}
+            nucBegin={rightCodonPos}
           />
         </tr>
       </tbody>
