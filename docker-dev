@@ -398,6 +398,7 @@ ${NICE} docker run -it --rm \
   --env="RUST_LOG=${RUST_LOG}" \
   --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
   --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
+  --env-file="${PROJECT_ROOT_DIR}/.env" \
   ${PORTS} \
   "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
   bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"

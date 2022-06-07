@@ -265,6 +265,7 @@ jobs:
       - run:
           name: " [ web ] | Build WebAssembly module (branch << pipeline.git.branch >>)"
           command: |
+            cp .env.example .env
             ./docker-dev wasm-release
 
       - save_cache:
