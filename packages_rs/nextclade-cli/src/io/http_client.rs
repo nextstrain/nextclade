@@ -1,5 +1,6 @@
 use clap::{Parser, ValueHint};
 use eyre::Report;
+use log::info;
 use reqwest::blocking::Client;
 use reqwest::{IntoUrl, Method, Proxy};
 use url::Url;
@@ -88,6 +89,7 @@ impl HttpClient {
 
   pub fn request<U: IntoUrl + ?Sized>(&self, method: Method, url: &U) -> Result<String, Report> {
     let abs_url = self.root.join(url.as_str())?;
+    info!("HTTP '{method}' request to '{abs_url}'");
     let content = self.client.request(method, abs_url).send()?.text()?;
     Ok(content)
   }
