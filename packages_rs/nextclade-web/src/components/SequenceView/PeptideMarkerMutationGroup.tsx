@@ -58,7 +58,7 @@ function PeptideMarkerMutationGroupUnmemoed({
       return 'Context (reverse strand*)'
     }
     return 'Context'
-  }, [gene?.strand])
+  }, [strand])
 
   const footerNote = useMemo(() => {
     if (gene?.strand === '-') {
