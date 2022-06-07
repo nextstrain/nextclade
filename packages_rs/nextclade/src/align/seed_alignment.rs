@@ -327,8 +327,6 @@ mod tests {
       max_indel,
     );
 
-    println!("{:?}", result);
-
     Ok(())
   }
 }

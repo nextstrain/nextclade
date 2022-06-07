@@ -276,10 +276,6 @@ mod coord_map_tests {
     // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
 
     let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    println!(
-      "{}",
-      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene))
-    );
     assert_eq!(
       from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
       "CCGTGCGG--CG"
@@ -303,10 +299,6 @@ mod coord_map_tests {
     // rev comp       CG--CCGCACGG
 
     let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    println!(
-      "{}",
-      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene))
-    );
     assert_eq!(
       from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
       "CG--CCGCACGG"
