@@ -95,7 +95,7 @@ export function GeneView({ gene, single, pixelsPerBase, geneFrameOffset, geneStr
         setHovered(true)
         timeout = setInterval(() => {
           setShowTooltip(true)
-        }, 2000)
+        }, 500)
 
         setTimeoutId(timeout as unknown as number)
       } else {
