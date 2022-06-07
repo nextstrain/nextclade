@@ -51,11 +51,15 @@ pub fn get_seed_matches<L: Letter<L>>(
 
   // get list of valid k-mer start positions
   let map_to_good_positions = get_map_to_good_positions(qry_seq, params.seed_length);
-  let n_good_positions = map_to_good_positions.len() as i32;
+  let n_good_positions = map_to_good_positions.len();
+  if n_good_positions < params.seed_length {
+    return seed_matches;
+  }
 
   // Generate kmers equally spaced on the query
-  let seed_cover = n_good_positions - 2 * margin;
-  let kmer_spacing = ((seed_cover as f32) - 1.0) / ((n_seeds - 1) as f32);
+  let effective_margin = (margin as f32).min(n_good_positions as f32 / 4.0);
+  let seed_cover = n_good_positions as f32 - 2.0 * effective_margin;
+  let kmer_spacing = (seed_cover - 1.0) / ((n_seeds - 1) as f32);
 
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0; // start position of ref search
@@ -64,7 +68,7 @@ pub fn get_seed_matches<L: Letter<L>>(
 
   for ni in 0..n_seeds {
     // pick index of of seed in map
-    let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
+    let good_position_index = (effective_margin + (kmer_spacing * ni as f32)).round() as usize;
     // get new query kmer-position
     let qry_pos_old = qry_pos;
     let qry_pos = map_to_good_positions[good_position_index];
