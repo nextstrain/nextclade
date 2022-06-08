@@ -48,6 +48,7 @@ import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
+import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
 
@@ -187,6 +188,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                     </Suspense>
                     <Suspense fallback={fallback}>
                       <SEO />
+                      <PreviewWarning />
                       <Component {...pageProps} />
                       <ErrorPopup />
                       <ReactQueryDevtools initialIsOpen={false} />
