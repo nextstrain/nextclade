@@ -240,9 +240,9 @@ export interface PeptideContextProps {
 export function PeptideContext({ group, strand }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
-  const { changes, contextNucRange, codonAaRange, refContext, queryContext } = group
+  const { width, codonsBefore, codonsBegin, ellipsis, codonsEnd, codonsAfter } = useMemo(() => {
+    const { changes, contextNucRange, codonAaRange, refContext, queryContext } = group
 
-  const { firstRefCodon, lastRefCodon, firstQryCodon, lastQryCodon, itemsBegin, itemsEnd, width } = useMemo(() => {
     const refCodons = refContext.match(/.{1,3}/g)!
     const queryCodons = queryContext.match(/.{1,3}/g)!
 
@@ -262,12 +262,9 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
     }
 
     const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
-    return { firstRefCodon, lastRefCodon, firstQryCodon, lastQryCodon, itemsBegin, itemsEnd, width }
-  }, [changes, queryContext, refContext])
 
-  const codonsBefore = useMemo(() => {
     const leftCodonPos = strand === '+' ? contextNucRange.begin : contextNucRange.end - 1
-    return (
+    const codonsBefore = (
       <PeptideContextCodon
         refCodon={firstRefCodon}
         queryCodon={firstQryCodon}
@@ -275,11 +272,9 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
         nucBegin={leftCodonPos}
       />
     )
-  }, [codonAaRange.begin, contextNucRange.begin, contextNucRange.end, firstQryCodon, firstRefCodon, strand])
 
-  const codonsAfter = useMemo(() => {
     const rightCodonPos = strand === '+' ? contextNucRange.end - 3 : contextNucRange.begin + 2
-    return (
+    const codonsAfter = (
       <PeptideContextCodon
         refCodon={lastRefCodon}
         queryCodon={lastQryCodon}
@@ -287,45 +282,46 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
         nucBegin={rightCodonPos}
       />
     )
-  }, [codonAaRange.end, contextNucRange.begin, contextNucRange.end, lastQryCodon, lastRefCodon, strand])
 
-  const ellipsis = itemsEnd.length > 0 ? <PeptideContextEllipsis /> : null
+    const ellipsis = itemsEnd.length > 0 ? <PeptideContextEllipsis /> : null
 
-  const codonsBegin = useMemo(
-    () =>
-      itemsBegin.map(([change, refCodon, queryCodon]) => {
-        const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
-        return (
-          <PeptideContextCodon
-            key={change.codon}
-            refCodon={refCodon}
-            queryCodon={queryCodon}
-            change={change}
-            codon={change.codon}
-            nucBegin={nucBegin}
-          />
-        )
-      }),
-    [itemsBegin, strand],
-  )
+    const codonsBegin = itemsBegin.map(([change, refCodon, queryCodon]) => {
+      const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
+      return (
+        <PeptideContextCodon
+          key={change.codon}
+          refCodon={refCodon}
+          queryCodon={queryCodon}
+          change={change}
+          codon={change.codon}
+          nucBegin={nucBegin}
+        />
+      )
+    })
 
-  const codonsEnd = useMemo(
-    () =>
-      itemsEnd.map(([change, refCodon, queryCodon]) => {
-        const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
-        return (
-          <PeptideContextCodon
-            key={change.codon}
-            refCodon={refCodon}
-            queryCodon={queryCodon}
-            change={change}
-            codon={change.codon}
-            nucBegin={nucBegin}
-          />
-        )
-      }),
-    [itemsEnd, strand],
-  )
+    const codonsEnd = itemsEnd.map(([change, refCodon, queryCodon]) => {
+      const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
+      return (
+        <PeptideContextCodon
+          key={change.codon}
+          refCodon={refCodon}
+          queryCodon={queryCodon}
+          change={change}
+          codon={change.codon}
+          nucBegin={nucBegin}
+        />
+      )
+    })
+
+    return {
+      width,
+      codonsBefore,
+      codonsBegin,
+      ellipsis,
+      codonsEnd,
+      codonsAfter,
+    }
+  }, [group, strand])
 
   return (
     <Table borderless className="mb-1 mx-2" $width={width}>
