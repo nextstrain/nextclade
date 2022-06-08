@@ -40,13 +40,7 @@ pub struct SeedMatch {
 /// match k-mers without ambiguous characters. Search is performed via a left-to-right
 /// search starting and the previous valid seed and extending at most to the maximally
 /// allowed insertion/deletion (shift) distance.
-pub fn get_seed_matches<L: Letter<L>>(
-  qry_seq: &[L],
-  ref_seq: &[L],
-  params: &AlignPairwiseParams,
-  n_seeds: i32,
-  margin: i32,
-) -> Vec<SeedMatch> {
+pub fn get_seed_matches<L: Letter<L>>(qry_seq: &[L], ref_seq: &[L], params: &AlignPairwiseParams) -> Vec<SeedMatch> {
   let mut seed_matches = Vec::<SeedMatch>::new();
 
   // get list of valid k-mer start positions
@@ -55,6 +49,16 @@ pub fn get_seed_matches<L: Letter<L>>(
   if n_good_positions < params.seed_length {
     return seed_matches;
   }
+
+  // use 1/seed_spacing for long sequences, min_seeds otherwise
+  let n_seeds = if ref_seq.len() > (params.min_seeds * params.seed_spacing) as usize {
+    (ref_seq.len() as f32 / params.seed_spacing as f32) as i32
+  } else {
+    params.min_seeds
+  };
+
+  // distance of first seed from the end of the sequence (third of seed spacing)
+  let margin = (ref_seq.len() as f32 / (n_seeds * 3) as f32).round() as i32;
 
   // Generate kmers equally spaced on the query
   let effective_margin = (margin as f32).min(n_good_positions as f32 / 4.0);
@@ -130,18 +134,6 @@ pub fn seed_alignment<L: Letter<L>>(
   let ref_len_u = ref_seq.len();
   let qry_len_i = qry_len_u as i32;
   let ref_len_i = ref_len_u as i32;
-  let qry_len_f = qry_len_u as f32;
-  let ref_len_f = ref_len_u as f32;
-
-  // use 1/seed_spacing for long sequences, min_seeds otherwise
-  let n_seeds = if ref_len_i > (params.min_seeds * params.seed_spacing) {
-    (ref_len_f / params.seed_spacing as f32) as i32
-  } else {
-    params.min_seeds
-  };
-
-  // distance of first seed from the end of the sequence (third of seed spacing)
-  let margin = (ref_len_f / (n_seeds * 3) as f32).round() as i32;
 
   // for very short sequences, use full square
   if ref_len_u + qry_len_u < (5 * params.seed_length) {
@@ -151,7 +143,7 @@ pub fn seed_alignment<L: Letter<L>>(
   };
 
   // otherwise, determine seed matches roughly regularly spaced along the query sequence
-  let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
+  let seed_matches = get_seed_matches(qry_seq, ref_seq, params);
 
   let num_seed_matches = seed_matches.len();
   if num_seed_matches < 2 {
