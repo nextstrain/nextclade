@@ -1,6 +1,6 @@
 ## Nextclade 2.0.0
 
- - Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++). 
+ - Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++).
 
    Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases.
    It should provide a serious productivity boost for the dev team.
@@ -14,10 +14,15 @@
 - **Performance** is improved for sequences with indels
 - **Fix**: Terminal alignment errors, particularly common in BA.2, are fixed due to wider default band width between terminal seed matches and sequence ends (fixes [#746](https://github.com/nextstrain/nextclade/issues/746)
 - **Fix**: More robust seed matching allows some previously unalignable sequences to be aligned
-- **Fix**: Terminal indels for amino acid alignments are no longer free. This leads to more parsimonious alignment results.
-- **Feature**: Alignment parameters can now be tuned through CLI parameters. `--excess-bandwidth` controls the extra band width that is necessary for correct alignment if both deletions and insertions occur between two seed matches. `--terminal-bandwidth` controls the extra band width that is necessary for correct alignment if terminal indels occur.
-- TBD: Reduced number of terminal nucleotide query insertions, because now penalized (due to different boundary conditions, can revert to previous behaviour if wanted)
+- **Fix**: Terminal indels for amino acid alignments are only free if the nucleotide alignment indicates a gap. Otherwise, they are penalized like internal gaps. This leads to more parsimonious alignment results.
+- **Feature**: Additional alignment parameters can now be tuned through CLI parameters. `--excess-bandwidth` controls the extra band width that is necessary for correct alignment if both deletions and insertions occur between two seed matches. `--terminal-bandwidth` controls the extra band width that is necessary for correct alignment if terminal indels occur. In addition, alignment parameters can be specified via the `virus_properties.json` file in Nextclade data sets. This allows the web version to use different parameters for different viruses.
 - **Fixed** a bug where 3' terminal insertions were not properly detected
+
+### Web interface
+ - **Feature**: support for genes on the reverse strand
+ - **Feature**: display insertions on the sequence/alignment view
+ - **Fixed**: prevent double clade annotation in tree view.
+
 
 ### Planned features
 
@@ -225,9 +230,9 @@ Nextclade Web now dynamically adjusts width of AA mutation markers in sequence v
 
 ### [Feature] Reduce probability of WebWorker timeout errors
 
-On low-end computers, computers with slow internet connection or computers under heavy background resource utilization Nextclade Web could sometimes produce WebWorker timeout errors. This has been addressed by increasing the timeout interval from 10 seconds to 1 minute. 
+On low-end computers, computers with slow internet connection or computers under heavy background resource utilization Nextclade Web could sometimes produce WebWorker timeout errors. This has been addressed by increasing the timeout interval from 10 seconds to 1 minute.
 
-If this is not enough, consider freeing up system memory and CPU resources by closing unused applications and browser tabs, processing sequences in smaller batches, or using Nextclade CLI. 
+If this is not enough, consider freeing up system memory and CPU resources by closing unused applications and browser tabs, processing sequences in smaller batches, or using Nextclade CLI.
 
 ### [Fix] Fix off-by-one errors in insertion positions
 
@@ -399,7 +404,7 @@ The dropdown menu in **Nextclade Web** now allows user to chose between availabl
 
 **Nextclade CLI** gained new commands and flags to manage datasets:
 
- - `nextclade dataset list` command allows to list available datasets 
+ - `nextclade dataset list` command allows to list available datasets
  - `nextclade dataset get` command allows to download a dataset to a directory
  - `nextclade run` command runs the analysis (for compatibility with old version the word `run` can be omitted) and the new `--input-dataset` flag allows to specify the directory of the previously downloaded dataset
 
@@ -424,7 +429,7 @@ Note, data updates and additions are now decoupled from Nextclade releases. The 
 
 ### [Feature] Flu datasets in Nextclade
 
-With this release, additionally to the previously available SARS-CoV-2 dataset, we introduce 4 new Influenza datasets: 
+With this release, additionally to the previously available SARS-CoV-2 dataset, we introduce 4 new Influenza datasets:
 
  - Influenza A H1N1pdm (rooted at "A/California/07/2009")
  - Influenza A H3N2 (rooted at "A/Wisconsin/67/2005")
@@ -436,9 +441,9 @@ These datasets allow Nextclade to analyze sequences for these pathogens.
 Nextclade Datasets feature simplifies adding new pathogens in Nextclade and we hope to add new datasets in the future.
 
 
-### [Deprecation] Data files in Nextclade GitHub repository are deprecated 
+### [Deprecation] Data files in Nextclade GitHub repository are deprecated
 
-The files in [`/data`](https://github.com/nextstrain/nextclade/tree/37f07156118cbff252b5784fe2261bccdb580943/data/) directory of the Nextclade GitHub repository are now deprecated in favor of Nextclade Datasets feature. 
+The files in [`/data`](https://github.com/nextstrain/nextclade/tree/37f07156118cbff252b5784fe2261bccdb580943/data/) directory of the Nextclade GitHub repository are now deprecated in favor of Nextclade Datasets feature.
 
 These files will be deleted from repository on October 31st 2021, but will be still available in git history. We do not recommend to use these files, as they will no longer be updated.
 
@@ -456,7 +461,7 @@ This release only affects docker images. There are no actual changes in Nextclad
 
 #### [Change] Add `ca-certificates` package into Debian docker images
 
-For better compatibility with workflows, this adds CA certificates into the Debian docker images. They are necessary for SSL/TLS to be working, in particular when fetching data.  
+For better compatibility with workflows, this adds CA certificates into the Debian docker images. They are necessary for SSL/TLS to be working, in particular when fetching data.
 
 These are the default images when you pull `nextstrain/nextclade` and `nextstrain/nextalign` without specifying a tag or specifying one of the `debian` tags. Issue `docker pull nextstrain/nextclade` to refresh the local image to the latest version.
 
@@ -467,7 +472,7 @@ This release only affects docker images. There are no actual changes in Nextclad
 
 #### [Change] Add `ps` utility into Debian docker images
 
-This adds `ps` utility into the Debian docker images. For better compatibility with nextflow workflows. 
+This adds `ps` utility into the Debian docker images. For better compatibility with nextflow workflows.
 
 These are the default images when you pull `nextstrain/nextclade` and `nextstrain/nextalign` without specifying a tag or specifying one of the `debian` tags.
 
@@ -495,7 +500,7 @@ Improved wording of the message in the "Private mutations" QC rule tooltip.
 
 New Docker images are available based on Debian 10 and Alpine 3.14. Debian images contain a set of basic utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows.
 
-You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:1.2.1`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (`:1.2.1-debian`), or mix and match. 
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:1.2.1`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (`:1.2.1-debian`), or mix and match.
 
 Tag `:latest` now points to `:debian`. For previous behavior, where `:latest` tag pointed to `FROM scratch` image, use tag `:scratch`.
 
@@ -543,7 +548,7 @@ nextstrain/nextclade:1.2.1-scratch
 The following problems are addressed:
 
  - crash due to Safari requiring incorrect Content Security Policy when using WebAssembly modules (see issue [#476](https://github.com/nextstrain/nextclade/issues/476))
- - results table and tree not being displayed correctly or at all, due to flexbox layout bugs in older versions of Safari 
+ - results table and tree not being displayed correctly or at all, due to flexbox layout bugs in older versions of Safari
 
 These patches only affect users of Safari web browser, and should not affect other users.
 
@@ -585,7 +590,7 @@ We fixed a bug where the empty unsequenced regions on either ends of a fully seq
 
 We have added two additional QC rules designed to flag sequences that likely do not correspond to functional viruses.
 
-##### "Stop codons" rule (S) 
+##### "Stop codons" rule (S)
 
 Checks if any of genes have premature stop codons. A stop codon within a gene will now result in a QC warning, unless it is one of the very common stop codons in ORF8 at positions 27 or 68. This list of ignored stop codons is defined in [the `stopCodons.ignoredStopCodons` property of the QC configuration file (`qc.json`)](https://github.com/nextstrain/nextclade/blob/e885faa1d605742e2d546b286caa3eafe6e76b7d/data/sars-cov-2/qc.json#L28-L31) and can be adjusted. The default list might be extended in the future.
 
@@ -610,7 +615,7 @@ All QC checks are now optional: a rule that has no corresponding config object i
 #### [Bug fix] CSV/TSV output files corrected
 
 This release corrects a few issues with CSV/TSV output files:
- 
+
  - quotation marks are now escaped correctly
  - special characters are now surrounded with quotes
  - line breaks are now encoded as `CR LF` for better compatibility and consistency with Nextclade 0.x
@@ -622,7 +627,7 @@ This release corrects a few issues with CSV/TSV output files:
 
 #### [Bug fix] Ranges displayed off-by-one in GUI
 
-Ranges displayed in Nextclade Web were off-by-one due to a front-end bug. Ends of ranges (right boundaries) were extending one unit too far. This means that alignment ranges, missing nucleotide ranges, ranges of gaps, not-sequenced ranges, were all displayed 1 unit longer than they should have been be. This release fixes this problem. 
+Ranges displayed in Nextclade Web were off-by-one due to a front-end bug. Ends of ranges (right boundaries) were extending one unit too far. This means that alignment ranges, missing nucleotide ranges, ranges of gaps, not-sequenced ranges, were all displayed 1 unit longer than they should have been be. This release fixes this problem.
 
 Only the display in the results table of Nextclade Web is affected. None of the output files, either produced by Nextclade CLI or by Nextclade Web are affected.
 
@@ -705,11 +710,11 @@ Changes that affect all tools:
 
  - 💥 **BREAKING CHANGE:** JSON results file format has changed. It now contains an object instead of an array as a root element. The array of results is now attached to the `results` property of the root object. Migration path: instead of using `output` array directly use `output.results` now.
 
- - 💥 **BREAKING CHANGE:** JSON fields and CSV/TSV columns `totalMutations` and `totalGaps` were renamed to `totalSubstitutions` and `totalDeletions`, for consistency. Migration path: use new JSON property or column names. 
+ - 💥 **BREAKING CHANGE:** JSON fields and CSV/TSV columns `totalMutations` and `totalGaps` were renamed to `totalSubstitutions` and `totalDeletions`, for consistency. Migration path: use new JSON property or column names.
 
 ### Nextclade web application v1
 
-Web application mostly maintains it previous interface, with small improvements and with adjustments to the new underlying algorithm implementation. 
+Web application mostly maintains it previous interface, with small improvements and with adjustments to the new underlying algorithm implementation.
 
  - New "Download" dialog was introduced, which replaces the old "Export" dropdown menu. It can be toggled by clicking on "Download" button on "results" page.
 
@@ -831,7 +836,7 @@ In other news, Nextalign 0.2.0 is now available. See Nextalign [changelog on Git
 This release of Nextclade adjusts the default Quality Control configuration to account for ever-increasing diversity of circulating SARS-CoV-2. The following default QC parameters have been changed:
 
 Rule "Private mutations":
- 
+
  - "typical" (expected number of mutations) increased from 5 to 8
  - "cutoff" (number of mutations to trigger QC warning) increased from 15 to 24
 
@@ -839,7 +844,7 @@ Rule "Mutation clusters":
 
  - "clusterCutOff" (number of mutations within window to trigger a warning) increased from 4 to 6
 
-As always, users can provide their own QC configuration, to override the defaults, if these changes are not desirable. 
+As always, users can provide their own QC configuration, to override the defaults, if these changes are not desirable.
 
 
 Additionally, [Nextalign 0.1.7](https://github.com/nextstrain/nextclade/releases) is now available, which fixes rare crash in peptide alignment, when a low-quality sequence has not enough seed positions.
@@ -860,11 +865,11 @@ Misc:
 
 # [0.14.0](https://github.com/nextstrain/nextclade/compare/0.13.0...0.14.0) (2021-03-08)
 
-This is a maintenance release which updates the default reference tree with more recent genomes and increases the number of sequences in it to better reflect circulating diversity. 
+This is a maintenance release which updates the default reference tree with more recent genomes and increases the number of sequences in it to better reflect circulating diversity.
 
 Additionally, we extend our list of partial codon patches (first introduced in version 0.12.0), in order to correctly detect deletions involving spike protein positions 141 and 142.
 
-There are also some small improvements in the user interface. 
+There are also some small improvements in the user interface.
 
 As always, don't hesitate to provide feedback, report issues and share ideas on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose).
 
@@ -889,7 +894,7 @@ Nextalign is based on the alignment algorithm used in Nextclade, ported to C++ a
 
 There are 2 ways of using Nextalign:
 
- - Download Nextalign on [Nextclade Github Releases page](https://github.com/nextstrain/nextclade/releases) to run natively 
+ - Download Nextalign on [Nextclade Github Releases page](https://github.com/nextstrain/nextclade/releases) to run natively
 
  - Use Docker container image: [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign)
 
