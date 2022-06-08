@@ -12,7 +12,6 @@ import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
-import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
 import { PeptideMarkerInsertion } from './PeptideMarkerInsertion'
@@ -97,12 +96,10 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { seqName, unknownAaRanges, frameShifts, aaInsertions } = sequence
+  const { seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions } = sequence
   const geneLength = gene.end - gene.start
   const pixelsPerAa = width / Math.round(geneLength / 3)
-  const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
-  const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
-  const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
+  const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
 

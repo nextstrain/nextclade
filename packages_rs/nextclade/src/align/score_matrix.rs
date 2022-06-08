@@ -251,9 +251,6 @@ mod tests {
       2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12, 17,
     ];
 
-    // println!("{:?}", result.scores.data);
-    // println!("{:?}", result.paths.data);
-
     assert_eq!(expected_scores, result.scores);
     assert_eq!(expected_paths, result.paths);
 

@@ -7,11 +7,12 @@ use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::io::nuc::from_nuc_seq;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
-use crate::translate::frame_shifts_translate::{frame_shifts_translate, FrameShift};
+use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
 use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
@@ -36,19 +37,6 @@ pub struct Translation {
 }
 
 pub type TranslationMap = BTreeMap<String, Translation>;
-
-/// Extracts nucleotide sequence of a gene
-pub fn extract_gene(full_aln_seq: &[Nuc], gene: &Gene, coord_map: &CoordMap) -> Vec<Nuc> {
-  let &Gene { start, end, .. } = gene;
-
-  // Gene map contains gene range in reference coordinates (like in ref sequence)
-  let gene_range_ref = Range { begin: start, end };
-
-  // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
-  let gene_range_aln = coord_map.ref_to_aln(&gene_range_ref);
-
-  full_aln_seq[StdRange::from(gene_range_aln)].to_vec()
-}
 
 /// Results of the aminoacid alignment parameters estimation
 pub struct PeptideAlignmentParams {
@@ -140,14 +128,8 @@ pub fn translate_gene(
   coord_map: &CoordMap,
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
-  let mut ref_gene_seq = extract_gene(ref_seq, gene, coord_map);
-  let mut qry_gene_seq = extract_gene(qry_seq, gene, coord_map);
-
-  // Reverse strands should be reverse-complemented first
-  if gene.strand == GeneStrand::Reverse {
-    reverse_complement_in_place(&mut ref_gene_seq);
-    reverse_complement_in_place(&mut qry_gene_seq);
-  }
+  let mut ref_gene_seq = coord_map.extract_gene(ref_seq, gene);
+  let mut qry_gene_seq = coord_map.extract_gene(qry_seq, gene);
 
   let ref_gaps = GapCounts::new(&ref_gene_seq);
   let qry_gaps = GapCounts::new(&qry_gene_seq);
@@ -174,7 +156,7 @@ pub fn translate_gene(
 
   // NOTE: frame shift detection should be performed on unstripped genes
   let nuc_rel_frame_shifts = frame_shifts_detect(&qry_gene_seq, &ref_gene_seq);
-  let frame_shifts = frame_shifts_translate(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, gene);
+  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, gene);
 
   mask_nuc_frame_shifts_in_place(&mut qry_gene_seq, &frame_shifts);
 
