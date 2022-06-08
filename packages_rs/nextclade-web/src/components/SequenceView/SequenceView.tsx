@@ -1,6 +1,8 @@
 import React from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue } from 'recoil'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
 import type { AnalysisResult } from 'src/algorithms/types'
@@ -10,6 +12,7 @@ import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
+import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
@@ -27,12 +30,19 @@ export const SequenceViewSVG = styled.svg`
   height: 100%;
 `
 
+export const SequenceViewText = styled.p`
+  margin: auto;
+`
+
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
+  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts, insertions } = sequence
+
+  const { t } = useTranslationSafe()
+  const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
 
   const genomeSize = useRecoilValue(genomeSizeAtom)
 
@@ -74,6 +84,17 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     )
   })
 
+  const insertionViews = insertions.map((insertion) => {
+    return (
+      <SequenceMarkerInsertion
+        key={insertion.pos}
+        seqName={seqName}
+        insertion={insertion}
+        pixelsPerBase={pixelsPerBase}
+      />
+    )
+  })
+
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
       key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
@@ -82,6 +103,25 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
       pixelsPerBase={pixelsPerBase}
     />
   ))
+
+  const totalMarkers =
+    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
+  if (totalMarkers > maxNucMarkers) {
+    return (
+      <SequenceViewWrapper>
+        <SequenceViewText
+          title={t(
+            "Markers are the colored rectangles which represent mutations, deletions etc. There is a technical limit of how many of those can be displayed at a time, depending on how fast your computer is. You can tune the threshold in the 'Settings' dialog, accessible with the button on the top panel.",
+          )}
+        >
+          {t(
+            'Too many markers to display ({{totalMarkers}}). The threshold ({{maxNucMarkers}}) can be increased in "Settings" dialog',
+            { totalMarkers, maxNucMarkers },
+          )}
+        </SequenceViewText>
+      </SequenceViewWrapper>
+    )
+  }
 
   return (
     <SequenceViewWrapper>
@@ -95,6 +135,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         {mutationViews}
         {missingViews}
         {deletionViews}
+        {insertionViews}
         <SequenceMarkerUnsequencedEnd
           seqName={seqName}
           genomeSize={genomeSize}

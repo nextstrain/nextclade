@@ -8,6 +8,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::basename;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
@@ -39,7 +40,7 @@ lazy_static! {
 /// Publication:   https://doi.org/10.21105/joss.03773
 pub struct NextcladeArgs {
   #[clap(subcommand)]
-  pub command: Option<NextcladeCommands>,
+  pub command: NextcladeCommands,
 
   /// Set verbosity level [default: warn]
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
@@ -81,7 +82,7 @@ pub enum NextcladeCommands {
 #[derive(Parser, Debug)]
 pub struct NextcladeDatasetArgs {
   #[clap(subcommand)]
-  pub command: Option<NextcladeDatasetCommands>,
+  pub command: NextcladeDatasetCommands,
 }
 
 #[derive(Subcommand, Debug)]
@@ -211,7 +212,7 @@ pub struct NextcladeRunArgs {
   pub in_order: bool,
 
   /// Path to a FASTA file with input sequences
-  #[clap(long, short = 'i', alias("sequences"))]
+  #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fasta: PathBuf,
 
@@ -232,7 +233,7 @@ pub struct NextcladeRunArgs {
   /// Path to a FASTA file containing reference sequence. This file is expected to contain exactly 1 sequence.
   ///
   /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
-  #[clap(long, short = 'r', alias("reference"), alias("input-root-seq"))]
+  #[clap(long, short = 'r', visible_alias("reference"), visible_alias("input-root-seq"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
 
@@ -386,7 +387,7 @@ pub struct NextcladeRunArgs {
   pub output_errors: Option<PathBuf>,
 
   #[clap(flatten)]
-  pub alignment_params: AlignPairwiseParams,
+  pub alignment_params: AlignPairwiseParamsOptional,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
@@ -515,10 +516,10 @@ pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
   setup_logger(filter_level);
 
   match &mut args.command {
-    Some(NextcladeCommands::Completions { shell }) => {
+    NextcladeCommands::Completions { shell } => {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
-    Some(NextcladeCommands::Run { 0: ref mut run_args }) => {
+    NextcladeCommands::Run(ref mut run_args) => {
       nextclade_get_input_filenames(run_args)?;
       nextclade_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }

@@ -2,14 +2,7 @@ import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { AlgorithmGlobalStatus } from 'src/algorithms/types'
 
-import type {
-  AlgorithmInput,
-  DatasetFiles,
-  DatasetFlat,
-  FastaRecordId,
-  Gene,
-  NextcladeResult,
-} from 'src/algorithms/types'
+import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
@@ -43,19 +36,19 @@ export interface LaunchAnalysisCallbacks {
 
 /** Maps input field names to the dataset field names, so that we know which one to take */
 const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, keyof DatasetFiles> = {
-  ref_seq_str: 'reference',
-  gene_map_str: 'geneMap',
-  tree_str: 'tree',
-  qc_config_str: 'qc',
-  virus_properties_str: 'virusPropertiesJson',
-  pcr_primers_str: 'primers',
+  ref_seq_str: 'reference.fasta',
+  gene_map_str: 'genemap.gff',
+  tree_str: 'tree.json',
+  qc_config_str: 'qc.json',
+  virus_properties_str: 'virus_properties.json',
+  pcr_primers_str: 'primers.csv',
 }
 
 export async function launchAnalysis(
   qryFastaInput: Promise<AlgorithmInput | undefined>,
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
-  datasetPromise: Promise<DatasetFlat | undefined>,
+  datasetPromise: Promise<Dataset | undefined>,
   numThreads: Promise<number>,
 ) {
   const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
@@ -114,7 +107,7 @@ type Entry<T, V> = [keyof T, V]
 type LaunchAnalysisInputsEntry = Entry<LaunchAnalysisInputs, Promise<AlgorithmInput | undefined>>
 
 /** Resolves all param inputs into strings */
-async function getParams(paramInputs: LaunchAnalysisInputs, dataset: DatasetFlat): Promise<NextcladeParamsPojo> {
+async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsPojo> {
   const paramInputsEntries = Object.entries(paramInputs) as LaunchAnalysisInputsEntry[]
 
   return Object.fromEntries(

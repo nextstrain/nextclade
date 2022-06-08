@@ -1,7 +1,7 @@
 [package]
 name = "nextclade"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
-version = "2.0.0"
+version = "2.0.0-alpha.5"
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
 homepage = "https://clades.nextstrain.org/"
@@ -33,6 +33,9 @@ itertools = "0.10.3"
 lazy_static = "1.4.0"
 log = "0.4.16"
 num = "0.4.0"
+num-traits = "0.2.14"
+num_cpus = "1.13.1"
+optfield = "0.2.0"
 owo-colors = "3.3.0"
 pretty_assertions = "1.2.1"
 rayon = "1.5.2"
@@ -61,3 +64,6 @@ harness = false
 name = "bench_seed_match"
 harness = false
 
+[[bench]]
+name = "bench_seed_alignment"
+harness = false

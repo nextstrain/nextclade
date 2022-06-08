@@ -25,18 +25,25 @@ pub struct DatasetCompatibility {
 pub struct DatasetAttributeValue {
   pub is_default: bool,
   pub value: String,
+  pub value_friendly: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetAttributes {
   pub name: DatasetAttributeValue,
-  pub name_friendly: DatasetAttributeValue,
   pub reference: DatasetAttributeValue,
   pub tag: DatasetAttributeValue,
 
   #[serde(flatten)]
   pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetParams {
+  pub default_gene: Option<String>,
+  pub gene_order_preference: Option<Vec<String>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -47,6 +54,7 @@ pub struct Dataset {
   pub comment: String,
   pub compatibility: DatasetCompatibility,
   pub files: BTreeMap<String, String>,
+  pub params: Option<DatasetParams>,
 }
 
 impl Dataset {
@@ -89,7 +97,7 @@ pub struct DatasetsIndexJson {
 impl DatasetsIndexJson {
   #[inline]
   pub fn download(http: &mut HttpClient) -> Result<Self, Report> {
-    Self::from_str(&http.get(&"/index.json").wrap_err("When downloading dataset index")?)
+    Self::from_str(&http.get(&"/index_v2.json").wrap_err("When downloading dataset index")?)
   }
 }
 

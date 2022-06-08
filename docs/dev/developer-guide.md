@@ -157,3 +157,88 @@ cargo fmt --all
 cd packages_rs/nextclade-web
 yarn format:fix
 ```
+
+
+
+## Trying custom datasets locally
+
+### Prepare and serve datasets locally
+
+- Build a fresh dataset directory as described in the [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data) repo. At the time of writing it simply means to run `./scripts/rebuild` and to observe the `data_output/` created, containing the dataset files and associated index files
+- Serve datasets directory locally using any static file server. For example, using `serve` package from NPM:
+  ```bash
+  npx serve --cors --listen=tcp://0.0.0.0:27722 data_output/
+  ```
+  In this example, files should be available at
+  ```
+  http://localhost:27722/
+  ````
+  in particular, you should be able to download `index_v2.json` using
+
+  ```bash
+  curl http://localhost:27722/index_v2.json
+  ```
+  or when navigating to this address in the browser.
+
+### Temporarily use custom dataset server with Nextclade CLI
+
+Run the usual `dataset list` and dataset `get commands`, with an additional flag:
+
+```
+--server=http://localhost:27722
+```
+
+This will tell Nextclade to use the local server for dataset queries.
+
+### Permanently configure Nextclade CLI and Nextclade Web to use custom dataset server
+
+Open `.env` file in the root of the project (if you don't have it, create it based on `.env.example`) and set the `DATA_FULL_DOMAIN` variable to the address of your local dataset server. In the example above it would be:
+
+```
+DATA_FULL_DOMAIN=http://localhost:27722
+```
+
+Rebuild Nextclade CLI and it will use this address by default for all dataset requests (without need for the additional `--server` flag).
+
+Rebuild Nextclade Web and it will use this address by default for all dataset requests.
+
+Note that this address will be baked into the CLI binaries or into the Web app permanently. Switch to the default value and rebuild to use the default dataset server deployment again.
+
+Any network location can be used, not only localhost.
+
+The same mechanism is used during CI builds for master/staging/production environments, to ensure they use their corresponding dedicated dataset server.
+
+
+## Maintenance
+
+There are 2 release targets, which are released and versioned separately:
+
+- CLI (Nextclade CLI and Nextalign CLI are released together)
+- Web application
+
+### Versioning
+
+Nextclade project tries hard to adhere to [Semantic Versioning 2.0.0](https://semver.org/)
+
+### Releasing new CLI version
+
+- Checkout the branch and commit you want to release. Theoretically, you can release any commit, but be nice and stick to releases from master.
+- If you are making a stable release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
+- Make sure there are no uncommitted changes.
+- Follow comments in the script `./scripts/releases` on how to install dependencies for this script.
+- Run `./scripts/releases cli <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. Note that `rc`, `beta` and `alpha` will make a prerelease, that is - marked as "prerelease" on GitHub Releases and not overwriting "latest" tags on DockerHub.
+- Verify the changes the script applied:
+  - versions are bumped as you expect in all Cargo.toml and Cargo.lock files.
+  - a local commit created on branch `release-cli` with a message containing the version number that you expect
+- The script will ask if you want to push the changes. This is the last step. If you agree, then the changes will be pushed to GitHub and CI will start a build. You can track it [here](https://app.circleci.com/pipelines/github/nextstrain/nextclade). If you refuse this step, you can still push later.
+
+### Releasing new Web version
+
+- There are 3 websites exist, for master, staging and release environments. They map to master, staging and release git branches. Pick an environment you want to deploy the new version to and checkout the corresponding branch.
+- If you are deploying to release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
+- Make sure there are no uncommitted changes.
+- Follow comments in the script `./scripts/releases` on how to install dependencies for this script.
+- Run `./scripts/releases web <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. It is advised against releasing `rc`, `beta`, `alpha` to release environment.
+
+
+If you want to deploy the same version to multiple environments, then release to one environment (on one branch) and then promote it to other environments: manually fast-forward other branch(es) to this commit and push.

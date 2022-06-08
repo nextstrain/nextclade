@@ -6,6 +6,7 @@
 /docs/build/
 /e2e/cli/snapshots/
 /e2e/cli/tmp/
+/example-data/
 /packages_rs/*/target/
 /packages_rs/nextclade-web/src/gen
 /paper/paper.pdf
@@ -27,7 +28,8 @@
 \.temp
 \.tmp
 \.Trashes
-\.vscode
+\.vscode/*
+!.vscode/settings.json
 ehthumbs.db
 node_modules/
 Thumbs.db

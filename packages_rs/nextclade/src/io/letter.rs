@@ -13,6 +13,8 @@ pub trait Letter<L>: Copy + Eq + Ord + ScoreMatrixLookup<L> {
 
   fn is_gap(&self) -> bool;
 
+  fn is_unknown(&self) -> bool;
+
   fn from_string(s: &str) -> Result<L, Report>;
 
   fn from_seq(seq: &[L]) -> String;

@@ -1,14 +1,16 @@
-import React, { SVGProps, useCallback, useState } from 'react'
+import React, { SVGProps, useCallback, useMemo, useState } from 'react'
+import { useRecoilValue } from 'recoil'
 
-import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
 import type { NucleotideDeletion } from 'src/algorithms/types'
-import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
-import { Tooltip } from 'src/components/Results/Tooltip'
 import { TableSlim } from 'src/components/Common/TableSlim'
+import { Tooltip } from 'src/components/Results/Tooltip'
+import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
+import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { getSeqMarkerDims, seqMarkerGapHeightStateAtom, SeqMarkerHeightState } from 'src/state/seqViewSettings.state'
+import { ListOfAaChangesFlatTruncated } from 'src/components/SequenceView/ListOfAaChangesFlatTruncated'
 
 const gapColor = getNucleotideColor(GAP)
 
@@ -24,6 +26,9 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
 
+  const seqMarkerGapHeightState = useRecoilValue(seqMarkerGapHeightStateAtom)
+  const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerGapHeightState), [seqMarkerGapHeightState])
+
   const { start: begin, length, aaSubstitutions, aaDeletions } = deletion
   const end = begin + length
 
@@ -38,14 +43,18 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
 
   const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 
+  if (seqMarkerGapHeightState === SeqMarkerHeightState.Off) {
+    return null
+  }
+
   return (
     <rect
       id={id}
       fill={gapColor}
       x={x}
-      y={-10}
+      y={y}
       width={width}
-      height="30"
+      height={height}
       {...rest}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -68,23 +77,7 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
               </tr>
             )}
 
-            {aaSubstitutions.map((mut) => (
-              <tr key={mut.codon}>
-                <td>{t('Aminoacid substitution')}</td>
-                <td>
-                  <AminoacidMutationBadge mutation={mut} />
-                </td>
-              </tr>
-            ))}
-
-            {aaDeletions.map((del) => (
-              <tr key={del.queryContext}>
-                <td>{t('Aminoacid deletion')}</td>
-                <td>
-                  <AminoacidMutationBadge mutation={del} />
-                </td>
-              </tr>
-            ))}
+            <ListOfAaChangesFlatTruncated aaSubstitutions={aaSubstitutions} aaDeletions={aaDeletions} maxRows={10} />
           </tbody>
         </TableSlim>
       </Tooltip>

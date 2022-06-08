@@ -1,3 +1,4 @@
+use crate::align::params::AlignPairwiseParamsOptional;
 use crate::gene::genotype::{Genotype, GenotypeLabeled};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
@@ -15,6 +16,7 @@ use validator::Validate;
 #[serde(rename_all = "camelCase")]
 struct VirusPropertiesRaw {
   pub schema_version: String,
+  pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
 }
 
@@ -23,6 +25,7 @@ struct VirusPropertiesRaw {
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
   pub schema_version: String,
+  pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
 }
 
@@ -53,6 +56,7 @@ impl FromStr for VirusProperties {
 
     Ok(Self {
       schema_version: raw.schema_version,
+      alignment_params: raw.alignment_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
     })
   }

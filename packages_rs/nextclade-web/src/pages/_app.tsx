@@ -48,15 +48,20 @@ import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
+import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
 
 if (process.env.NODE_ENV === 'development') {
   // Ignore recoil warning messages in browser console
   // https://github.com/facebookexperimental/Recoil/issues/733
+  const shouldFilter = (args: (string | undefined)[]) =>
+    args[0] && typeof args[0].includes === 'function' && args[0].includes('Duplicate atom key')
+
   const mutedConsole = memoize((console: Console) => ({
     ...console,
-    warn: (...args: string[]) => (args[0].includes('Duplicate atom key') ? null : console.warn(...args)),
+    warn: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.warn(...args)),
+    error: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.error(...args)),
   }))
   global.console = mutedConsole(global.console)
 }
@@ -100,7 +105,7 @@ export function RecoilStateInitializer() {
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        set(datasetCurrentNameAtom, (previous) => previous ?? currentDatasetName)
+        set(datasetCurrentNameAtom, (previous) => currentDatasetName ?? previous)
 
         return undefined
       })
@@ -183,6 +188,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                     </Suspense>
                     <Suspense fallback={fallback}>
                       <SEO />
+                      <PreviewWarning />
                       <Component {...pageProps} />
                       <ErrorPopup />
                       <ReactQueryDevtools initialIsOpen={false} />

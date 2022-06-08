@@ -1,4 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { isNil } from 'lodash'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export class HttpRequestError extends Error {
@@ -12,7 +14,15 @@ export class HttpRequestError extends Error {
   }
 }
 
-export async function axiosFetch<TData = unknown>(url: string, options?: AxiosRequestConfig): Promise<TData> {
+export async function axiosFetch<TData = unknown>(
+  url: string | undefined,
+  options?: AxiosRequestConfig,
+): Promise<TData> {
+  if (isNil(url)) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    throw new ErrorInternal(`Attempted to fetch from an invalid URL: '${url}'`)
+  }
+
   let res
   try {
     res = await axios.get(url, options)
@@ -37,7 +47,7 @@ export async function axiosFetchMaybe(url?: string): Promise<string | undefined>
 /**
  * This version skips any transforms (such as JSON parsing) and returns plain string
  */
-export async function axiosFetchRaw(url: string, options?: AxiosRequestConfig): Promise<string> {
+export async function axiosFetchRaw(url: string | undefined, options?: AxiosRequestConfig): Promise<string> {
   return axiosFetch(url, { ...options, transformResponse: [] })
 }
 

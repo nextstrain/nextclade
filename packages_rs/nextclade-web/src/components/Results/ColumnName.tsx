@@ -6,7 +6,7 @@ import styled from 'styled-components'
 import { analysisResultAtom } from 'src/state/results.state'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
+import { ColumnNameErrorTooltip, ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getStatusIconAndText } from 'src/components/Results/getStatusIconAndText'
 
@@ -37,19 +37,27 @@ export function ColumnName({ seqName }: ColumnNameProps) {
     [error, result?.analysisResult.warnings, t],
   )
 
-  if (!result?.analysisResult) {
-    return null
-  }
+  const tooltip = useMemo(() => {
+    if (error) {
+      return (
+        <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
+          <ColumnNameErrorTooltip seqName={seqName} error={error} />
+        </Tooltip>
+      )
+    }
+
+    return (
+      <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
+        <ColumnNameTooltip seqName={seqName} />
+      </Tooltip>
+    )
+  }, [error, id, seqName, showTooltip])
 
   return (
     <SequenceName id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <StatusIcon />
       {seqName}
-      {
-        <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
-          <ColumnNameTooltip seqName={seqName} />
-        </Tooltip>
-      }
+      {tooltip}
     </SequenceName>
   )
 }

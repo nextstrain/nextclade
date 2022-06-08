@@ -43,3 +43,18 @@ export const hasRequiredInputsAtom = selector({
     return !isNil(get(qrySeqInputAtom))
   },
 })
+
+/** Resets all inputs (e.g. when switching datasets) */
+export const inputResetAtom = selector<undefined>({
+  key: 'inputReset',
+  get: () => undefined,
+  set({ reset }) {
+    reset(qrySeqInputAtom)
+    reset(refSeqInputAtom)
+    reset(geneMapInputAtom)
+    reset(refTreeInputAtom)
+    reset(qcConfigInputAtom)
+    reset(virusPropertiesInputAtom)
+    reset(primersCsvInputAtom)
+  },
+})

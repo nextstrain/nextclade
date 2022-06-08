@@ -98,7 +98,7 @@ export function InsertedFragmentTruncated({ insertion, isAminoacid }: InsertedFr
     let ins = insertion
     let truncatedText: string | undefined
     if (ins.length > targetLength) {
-      ins = insertion.slice(0, targetLength).concat(TRUNCATED_TEXT)
+      ins = insertion.slice(0, targetLength)
       truncatedText = TRUNCATED_TEXT
     }
     return { ins, truncatedText }
@@ -129,7 +129,8 @@ export function ListOfInsertionsNuc({ insertions }: ListOfInsertionsNucProps) {
       </tr>
     )
 
-    const tbody = insertions.map(({ pos, ins }) => (
+    const insertionsTruncated = insertions.slice(0, 20)
+    const tbody = insertionsTruncated.map(({ pos, ins }) => (
       <tr key={pos}>
         <TdNormal className="text-center">{pos + 1}</TdNormal>
         <TdNormal className="text-center">{ins.length}</TdNormal>
@@ -138,6 +139,16 @@ export function ListOfInsertionsNuc({ insertions }: ListOfInsertionsNucProps) {
         </TdFragment>
       </tr>
     ))
+
+    if (insertionsTruncated.length < insertions.length) {
+      tbody.push(
+        <tr key="trunc">
+          <td colSpan={3} className="text-center">
+            {'...truncated'}
+          </td>
+        </tr>,
+      )
+    }
 
     return { thead, tbody }
   }, [insertions, t])
@@ -173,7 +184,8 @@ export function ListOfInsertionsAa({ insertions }: ListOfInsertionsAaProps) {
       </tr>
     )
 
-    const tbody = insertions.map(({ pos, ins, gene }) => (
+    const insertionsTruncated = insertions.slice(0, 20)
+    const tbody = insertionsTruncated.map(({ pos, ins, gene }) => (
       <tr key={pos}>
         <TdNormal className="text-center">{gene}</TdNormal>
         <TdNormal className="text-center">{pos + 1}</TdNormal>
@@ -183,6 +195,16 @@ export function ListOfInsertionsAa({ insertions }: ListOfInsertionsAaProps) {
         </TdFragment>
       </tr>
     ))
+
+    if (insertionsTruncated.length < insertions.length) {
+      tbody.push(
+        <tr key="trunc">
+          <td colSpan={3} className="text-center">
+            {'...truncated'}
+          </td>
+        </tr>,
+      )
+    }
 
     return { thead, tbody }
   }, [insertions, t])

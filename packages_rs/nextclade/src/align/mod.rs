@@ -1,5 +1,6 @@
 pub mod align;
 pub mod backtrace;
+pub mod band_2d;
 pub mod gap_open;
 pub mod insertions_strip;
 pub mod params;

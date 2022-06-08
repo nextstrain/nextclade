@@ -11,6 +11,7 @@ use crate::utils::collections::concat_to_vec;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
+use log::{debug, trace};
 use num::Float;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -35,6 +36,7 @@ pub fn tree_preprocess_in_place(
 
   // TODO: Avoid second full tree iteration by merging it into the one that is just above
   tree.tmp.max_divergence = get_max_divergence_recursively(&tree.tree);
+  // TODO: Use auspice extension field to pass info on divergence units, rather than guess
   tree.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(tree.tmp.max_divergence);
 
   tree_add_metadata(tree);
@@ -101,26 +103,24 @@ fn map_nuc_muts(
   }
 }
 
+/// Takes a node, and adds that nodes aa mutations to the mutations from the parent
+/// This function is necessary as there are many genes
+// TODO: Treat "nuc" just as another gene, thus reduce duplicate
 fn map_aa_muts(
   node: &AuspiceTreeNode,
   ref_peptides: &BTreeMap<String, Translation>,
   parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
 ) -> BTreeMap<String, BTreeMap<usize, Aa>> {
-  node
-    .branch_attrs
-    .mutations
+  ref_peptides
     .iter()
-    .filter_map(|(gene_name, mut_strs)| {
-      let ref_peptide = ref_peptides.get(gene_name);
-      let empty = BTreeMap::<usize, Aa>::new();
-      let aa_muts = parent_aa_muts.get(gene_name).unwrap_or(&empty);
-      match ref_peptide {
-        Some(ref_peptide) => {
-          let aa_mut_map = map_aa_muts_for_one_gene(gene_name, node, &ref_peptide.seq, aa_muts);
-          Some((gene_name.clone(), aa_mut_map))
-        }
-        _ => None,
-      }
+    //We iterate over all genes that we have ref_peptides for
+    .filter_map(|(gene_name, ref_peptide)| match parent_aa_muts.get(gene_name) {
+      Some(aa_muts) => Some((
+        gene_name.clone(),
+        map_aa_muts_for_one_gene(gene_name, node, &ref_peptide.seq, &aa_muts),
+      )),
+      // Initialize aa_muts, default dictionary style
+      None => Some((gene_name.clone(), BTreeMap::new())),
     })
     .collect()
 }
@@ -156,9 +156,7 @@ fn get_max_divergence_recursively(node: &AuspiceTreeNode) -> f64 {
 
   let mut child_div = -f64::infinity();
   node.children.iter().for_each(|child| {
-    if let Some(div) = child.node_attrs.div {
-      child_div = child_div.max(div);
-    }
+    child_div = child_div.max(get_max_divergence_recursively(child));
   });
 
   div.max(child_div)
