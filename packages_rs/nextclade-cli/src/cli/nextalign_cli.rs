@@ -1,4 +1,4 @@
-use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
@@ -73,6 +73,7 @@ pub enum NextalignCommands {
 }
 
 #[derive(Parser, Debug)]
+#[clap(group(ArgGroup::new("output").required(true)))]
 pub struct NextalignRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', visible_alias("sequences"))]
@@ -122,6 +123,7 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'd')]
   #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(group = "output")]
   pub output_dir: Option<PathBuf>,
 
   /// Set the base filename to use for output files.
@@ -141,6 +143,7 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(group = "output")]
   pub output_fasta: Option<PathBuf>,
 
   /// Path to output CSV file that contain insertions stripped from the reference alignment.
@@ -150,6 +153,7 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.",
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(group = "output")]
   pub output_insertions: Option<PathBuf>,
 
   /// Path to output CSV file containing errors and warnings occurred during processing
@@ -159,6 +163,7 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(group = "output")]
   pub output_errors: Option<PathBuf>,
 
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
