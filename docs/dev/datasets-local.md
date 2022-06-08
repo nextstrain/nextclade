@@ -45,7 +45,7 @@ In order to run and use the server:
 
    ```bash
    cd <root of the project>
-   make serve-data
+   npx serve --cors --listen=tcp://0.0.0.0:27722 data_output/
    ```
   The server then can be reached from
 
