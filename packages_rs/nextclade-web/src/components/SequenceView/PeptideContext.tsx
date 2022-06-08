@@ -212,21 +212,6 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
   )
 }
 
-export function renderCodons([change, refCodon, queryCodon]: [AminoacidChange, string, string]) {
-  const nucBegin = change.codonNucRange.begin
-  // const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
-  return (
-    <PeptideContextCodon
-      key={change.codon}
-      refCodon={refCodon}
-      queryCodon={queryCodon}
-      change={change}
-      codon={change.codon}
-      nucBegin={nucBegin}
-    />
-  )
-}
-
 export function PeptideContextEllipsis() {
   return (
     <td>
@@ -251,46 +236,96 @@ export interface PeptideContextProps {
   strand?: string
 }
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion, sonarjs/no-identical-functions */
 export function PeptideContext({ group, strand }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
   const { changes, contextNucRange, codonAaRange, refContext, queryContext } = group
-  const refCodons = refContext.match(/.{1,3}/g)
-  const queryCodons = queryContext.match(/.{1,3}/g)
 
-  const firstChange = first(queryCodons)
-  const lastChange = last(refCodons)
+  const { firstRefCodon, lastRefCodon, firstQryCodon, lastQryCodon, itemsBegin, itemsEnd, width } = useMemo(() => {
+    const refCodons = refContext.match(/.{1,3}/g)!
+    const queryCodons = queryContext.match(/.{1,3}/g)!
 
-  const firstRefCodon = first(refCodons)
-  const lastRefCodon = last(refCodons)
+    const firstRefCodon = first(refCodons)!
+    const lastRefCodon = last(refCodons)!
 
-  const firstQryCodon = first(queryCodons)
-  const lastQryCodon = last(queryCodons)
+    const firstQryCodon = first(queryCodons)!
+    const lastQryCodon = last(queryCodons)!
 
-  if (
-    !refCodons ||
-    !queryCodons ||
-    !firstChange ||
-    !lastChange ||
-    !firstRefCodon ||
-    !firstQryCodon ||
-    !lastRefCodon ||
-    !lastQryCodon
-  ) {
-    return null
-  }
-  const changesAndCodons = safeZip3(changes, refCodons.slice(1, -1), queryCodons.slice(1, -1))
+    const changesAndCodons = safeZip3(changes, refCodons.slice(1, -1), queryCodons.slice(1, -1))
 
-  let itemsBegin = changesAndCodons
-  let itemsEnd: typeof changesAndCodons = []
-  if (changesAndCodons.length > 6) {
-    itemsBegin = changesAndCodons.slice(0, 3)
-    itemsEnd = changesAndCodons.slice(-3)
-  }
+    let itemsBegin = changesAndCodons
+    let itemsEnd: typeof changesAndCodons = []
+    if (changesAndCodons.length > 6) {
+      itemsBegin = changesAndCodons.slice(0, 3)
+      itemsEnd = changesAndCodons.slice(-3)
+    }
 
-  const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
-  const leftCodonPos = strand === '+' ? contextNucRange.begin : contextNucRange.end - 1
-  const rightCodonPos = strand === '+' ? contextNucRange.end - 3 : contextNucRange.begin + 2
+    const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
+    return { firstRefCodon, lastRefCodon, firstQryCodon, lastQryCodon, itemsBegin, itemsEnd, width }
+  }, [changes, queryContext, refContext])
+
+  const codonsBefore = useMemo(() => {
+    const leftCodonPos = strand === '+' ? contextNucRange.begin : contextNucRange.end - 1
+    return (
+      <PeptideContextCodon
+        refCodon={firstRefCodon}
+        queryCodon={firstQryCodon}
+        codon={codonAaRange.begin - 1}
+        nucBegin={leftCodonPos}
+      />
+    )
+  }, [codonAaRange.begin, contextNucRange.begin, contextNucRange.end, firstQryCodon, firstRefCodon, strand])
+
+  const codonsAfter = useMemo(() => {
+    const rightCodonPos = strand === '+' ? contextNucRange.end - 3 : contextNucRange.begin + 2
+    return (
+      <PeptideContextCodon
+        refCodon={lastRefCodon}
+        queryCodon={lastQryCodon}
+        codon={codonAaRange.end}
+        nucBegin={rightCodonPos}
+      />
+    )
+  }, [codonAaRange.end, contextNucRange.begin, contextNucRange.end, lastQryCodon, lastRefCodon, strand])
+
+  const ellipsis = itemsEnd.length > 0 ? <PeptideContextEllipsis /> : null
+
+  const codonsBegin = useMemo(
+    () =>
+      itemsBegin.map(([change, refCodon, queryCodon]) => {
+        const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
+        return (
+          <PeptideContextCodon
+            key={change.codon}
+            refCodon={refCodon}
+            queryCodon={queryCodon}
+            change={change}
+            codon={change.codon}
+            nucBegin={nucBegin}
+          />
+        )
+      }),
+    [itemsBegin, strand],
+  )
+
+  const codonsEnd = useMemo(
+    () =>
+      itemsEnd.map(([change, refCodon, queryCodon]) => {
+        const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
+        return (
+          <PeptideContextCodon
+            key={change.codon}
+            refCodon={refCodon}
+            queryCodon={queryCodon}
+            change={change}
+            codon={change.codon}
+            nucBegin={nucBegin}
+          />
+        )
+      }),
+    [itemsEnd, strand],
+  )
 
   return (
     <Table borderless className="mb-1 mx-2" $width={width}>
@@ -321,23 +356,11 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
             </TableNuc>
           </td>
 
-          <PeptideContextCodon
-            refCodon={firstRefCodon}
-            queryCodon={firstQryCodon}
-            codon={codonAaRange.begin - 1}
-            nucBegin={leftCodonPos}
-          />
-
-          {itemsBegin.map(renderCodons)}
-          {itemsEnd.length > 0 && <PeptideContextEllipsis />}
-          {itemsEnd.length > 0 && itemsEnd.map(renderCodons)}
-
-          <PeptideContextCodon
-            refCodon={lastRefCodon}
-            queryCodon={lastQryCodon}
-            codon={codonAaRange.end}
-            nucBegin={rightCodonPos}
-          />
+          {codonsBefore}
+          {codonsBegin}
+          {ellipsis}
+          {codonsEnd}
+          {codonsAfter}
         </tr>
       </tbody>
     </Table>
