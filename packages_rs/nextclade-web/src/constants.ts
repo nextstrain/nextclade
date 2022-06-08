@@ -5,6 +5,7 @@ export const PROJECT_NAME = 'Nextclade' as const
 export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and sequence quality checks' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain developers' as const
+export const RELEASE_URL = 'https://clades.nextstrain.org' as const
 
 export const DOMAIN = process.env.DOMAIN ?? ''
 export const DOMAIN_STRIPPED = process.env.DOMAIN_STRIPPED ?? ''
