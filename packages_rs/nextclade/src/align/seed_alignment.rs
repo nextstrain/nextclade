@@ -110,11 +110,11 @@ pub fn get_seed_matches<L: Letter<L>>(qry_seq: &[L], ref_seq: &[L], params: &Ali
       {
         //ensure seed positions increase strictly monotonically
         seed_matches.push(seed_match);
-      } else {
-        warn!(
-          "Seed not used because of identical ref_pos with previous seed: {:?}",
-          seed_match
-        );
+        // } else {
+        //   warn!(
+        //     "Seed not used because of identical ref_pos with previous seed: {:?}",
+        //     seed_match
+        //   );
       }
       // increment the "reference search end-pos" as the current reference + maximally allowed indel
       end_pos = tmp_match.ref_pos + params.max_indel;
