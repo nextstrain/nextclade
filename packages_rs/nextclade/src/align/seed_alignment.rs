@@ -91,7 +91,7 @@ pub fn get_seed_matches<L: Letter<L>>(qry_seq: &[L], ref_seq: &[L], params: &Ali
         if tmp_match.ref_pos > prev_match.ref_pos {
           start_pos = prev_match.ref_pos;
         } else {
-          warn!("Crossed over seed removed. {:?}", prev_match);
+          // warn!("Crossed over seed removed. {:?}", prev_match);
           seed_matches.pop();
         }
       }
