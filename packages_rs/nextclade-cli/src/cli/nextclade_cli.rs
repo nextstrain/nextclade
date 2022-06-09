@@ -301,9 +301,13 @@ pub struct NextcladeRunArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
 
-  /// Write all output files to this directory. Convenient when you want to receive all or most output files.
+  /// Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames.
   ///
-  /// The list of output files can be optionally restricted using `--output-selection` flag. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags.
+  /// Output files can be optionally included or excluded using `--output-selection` flag.
+  /// The base filename can be set using `--output-basename` flag.
+  ///
+  /// If both the `--output-all` and individual `--output-*` flags are provided, each
+  //  individual flag overrides the corresponding default output path.
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
@@ -313,16 +317,20 @@ pub struct NextcladeRunArgs {
 
   /// Set the base filename to use for output files.
   ///
-  /// To be used together with `--output-all` flag. By default uses the filename of the sequences file (provided with `--input-fasta`). The paths can be overridden on a per-file basis using `--output-*` flags.
+  /// By default the base filename is extracted from the input sequences file (provided with `--input-fasta`).
+  ///
+  /// Only valid together with `--output-all` flag.
   #[clap(long, short = 'n')]
   #[clap(requires = "output-all")]
   pub output_basename: Option<String>,
 
-  /// Restricts outputs for `--output-all` flag
+  /// Restricts outputs for `--output-all` flag.
   ///
-  /// Should contain one or multiple of List of comma-separated strings which
+  /// Should contain a comma-separated list of names of output files to produce.
   ///
-  /// To be used together with `--output-all` flag.
+  /// If 'all' is present in the list, then all other entries are ignored and all outputs are produced.
+  ///
+  /// Only valid together with `--output-all` flag.
   #[clap(
     long,
     short = 's',
@@ -362,7 +370,7 @@ pub struct NextcladeRunArgs {
 
   /// Path to output Newline-delimited JSON (NDJSON) results file.
   ///
-  /// This file format is most suitable for further machine processing of the results.
+  /// This file format is most suitable for further machine processing of the results. By contrast to plain json, it can be streamed line-by line, so much bigger outputs are feasible.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
