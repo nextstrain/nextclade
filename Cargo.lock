@@ -1363,6 +1363,7 @@ dependencies = [
  "rstest_reuse",
  "serde",
  "serde_json",
+ "tinytemplate",
  "traversal",
  "validator",
 ]
@@ -1401,6 +1402,8 @@ dependencies = [
  "rstest_reuse",
  "semver 1.0.9",
  "serde",
+ "strum 0.24.0",
+ "strum_macros 0.24.0",
  "url",
 ]
 
