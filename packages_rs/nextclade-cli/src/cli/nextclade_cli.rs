@@ -208,7 +208,6 @@ pub enum NextcladeOutputSelection {
 }
 
 #[derive(Parser, Debug)]
-#[clap(group(ArgGroup::new("output").required(true).multiple(true)))]
 pub struct NextcladeRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', visible_alias("sequences"))]
@@ -309,10 +308,11 @@ pub struct NextcladeRunArgs {
   /// If both the `--output-all` and individual `--output-*` flags are provided, each
   //  individual flag overrides the corresponding default output path.
   ///
+  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-insertions`, `--output-errors`
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
   #[clap(value_hint = ValueHint::DirPath)]
-  #[clap(group = "output")]
   pub output_all: Option<PathBuf>,
 
   /// Set the base filename to use for output files.
@@ -349,7 +349,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_fasta: Option<PathBuf>,
 
   /// Template string for path to output fasta files containing translated and aligned peptides. A separate file will be generated for every gene.
@@ -365,7 +364,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_translations: Option<String>,
 
   /// Path to output Newline-delimited JSON (NDJSON) results file.
@@ -377,7 +375,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'N')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_ndjson: Option<PathBuf>,
 
   /// Path to output JSON results file.
@@ -389,7 +386,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'J')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_json: Option<PathBuf>,
 
   /// Path to output CSV results file.
@@ -403,7 +399,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'c')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_csv: Option<PathBuf>,
 
   /// Path to output TSV results file.
@@ -417,7 +412,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_tsv: Option<PathBuf>,
 
   /// Path to output phylogenetic tree with input sequences placed onto it, in Auspice JSON V2 format.
@@ -432,7 +426,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'T')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_tree: Option<PathBuf>,
 
   /// Path to output CSV file that contain insertions stripped from the reference alignment.
@@ -442,7 +435,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_insertions: Option<PathBuf>,
 
   /// Path to output CSV file containing errors and warnings occurred during processing
@@ -452,7 +444,6 @@ pub struct NextcladeRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_errors: Option<PathBuf>,
 
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
@@ -592,6 +583,39 @@ Example for bash shell:
       "#
       );
     }
+  }
+
+  let all_outputs_are_missing = [
+    output_all,
+    output_fasta,
+    output_ndjson,
+    output_json,
+    output_csv,
+    output_tsv,
+    output_tree,
+    output_insertions,
+    output_errors,
+  ]
+  .iter()
+  .all(|o| o.is_none())
+    && output_translations.is_none();
+
+  if all_outputs_are_missing {
+    return make_error!(
+      r#"No output flags provided.
+
+At least one of the following flags is required:
+  --output-all
+  --output-fasta
+  --output-ndjson
+  --output-json
+  --output-csv
+  --output-tsv
+  --output-tree
+  --output-translations
+  --output-insertions
+  --output-errors"#
+    );
   }
 
   Ok(())

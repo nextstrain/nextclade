@@ -81,7 +81,6 @@ pub enum NextalignOutputSelection {
 }
 
 #[derive(Parser, Debug)]
-#[clap(group(ArgGroup::new("output").required(true).multiple(true)))]
 pub struct NextalignRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', visible_alias("sequences"))]
@@ -134,10 +133,11 @@ pub struct NextalignRunArgs {
   /// If both the `--output-all` and individual `--output-*` flags are provided, each
   //  individual flag overrides the corresponding default output path.
   ///
+  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-translations`, `--output-insertions`, `--output-errors`
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
   #[clap(value_hint = ValueHint::DirPath)]
-  #[clap(group = "output")]
   pub output_all: Option<PathBuf>,
 
   /// Set the base filename to use for output files.
@@ -174,7 +174,6 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_fasta: Option<PathBuf>,
 
   /// Template string for path to output fasta files containing translated and aligned peptides. A separate file will be generated for every gene.
@@ -190,7 +189,6 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_translations: Option<String>,
 
   /// Path to output CSV file that contain insertions stripped from the reference alignment.
@@ -200,7 +198,6 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_insertions: Option<PathBuf>,
 
   /// Path to output CSV file containing errors and warnings occurred during processing
@@ -210,7 +207,6 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
-  #[clap(group = "output")]
   pub output_errors: Option<PathBuf>,
 
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
@@ -328,6 +324,24 @@ Example for bash shell:
       "#
       );
     }
+  }
+
+  let all_outputs_are_missing = [output_all, output_fasta, output_insertions, output_errors]
+    .iter()
+    .all(|o| o.is_none())
+    && output_translations.is_none();
+
+  if all_outputs_are_missing {
+    return make_error!(
+      r#"No output flags provided.
+
+At least one of the following flags is required:
+  --output-all
+  --output-fasta
+  --output-translations
+  --output-insertions
+  --output-errors"#
+    );
   }
 
   Ok(())
