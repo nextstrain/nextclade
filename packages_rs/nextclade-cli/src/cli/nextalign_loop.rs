@@ -39,16 +39,10 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     alignment_params: alignment_params_from_cli,
   } = args;
 
-  // let output_fasta = option_get_some!(output_fasta)?;
-  // let output_basename = option_get_some!(output_basename)?;
-  // let output_dir = option_get_some!(output_dir)?;
-  // let output_insertions = option_get_some!(output_insertions)?;
-  // let output_errors = option_get_some!(output_errors)?;
-
   let mut alignment_params = AlignPairwiseParams::default();
 
   // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(alignment_params_from_cli.clone());
+  alignment_params.merge_opt(alignment_params_from_cli);
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
@@ -129,7 +123,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
 
     s.spawn(move |_| {
       let mut output_writer = NextalignOrderedWriter::new(
-        &gene_map,
+        gene_map,
         &output_fasta,
         &output_translations,
         &output_insertions,

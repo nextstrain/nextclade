@@ -80,7 +80,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   }
 
   // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(alignment_params_from_cli.clone());
+  alignment_params.merge_opt(alignment_params_from_cli);
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
 
@@ -179,7 +179,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
     let writer = s.spawn(move |_| {
       let mut output_writer = NextcladeOrderedWriter::new(
-        &gene_map,
+        gene_map,
         clade_node_attrs,
         &output_fasta,
         &output_json,

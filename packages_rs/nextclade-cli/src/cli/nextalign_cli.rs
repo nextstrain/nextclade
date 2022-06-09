@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::basename;
+use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
 use std::io;
@@ -80,7 +81,7 @@ pub enum NextalignOutputSelection {
 }
 
 #[derive(Parser, Debug)]
-#[clap(group(ArgGroup::new("output").required(true)))]
+#[clap(group(ArgGroup::new("output").required(true).multiple(true)))]
 pub struct NextalignRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', visible_alias("sequences"))]
@@ -139,6 +140,7 @@ pub struct NextalignRunArgs {
   ///
   /// To be used together with `--output-all` flag. By default uses the filename of the sequences file (provided with `--input-fasta`). The paths can be overridden on a per-file basis using `--output-*` flags.
   #[clap(long, short = 'n')]
+  #[clap(requires = "output-all")]
   pub output_basename: Option<String>,
 
   /// Restricts outputs for `--output-all` flag
@@ -173,7 +175,9 @@ pub struct NextalignRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// Example: `--output-translations='output_dir/{gene}.translation.fasta'`
+  /// Example for bash shell:
+  ///
+  ///   --output-translations='output_dir/gene_{{gene}}.translation.fasta'
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
@@ -297,6 +301,24 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
 
         output_translations.get_or_insert(output_translations_template)
       };
+    }
+  }
+
+  if let Some(output_translations) = output_translations {
+    if !output_translations.contains("{gene}") {
+      return make_error!(
+        r#"
+Expected `--output-translations` argument to contain a template string containing template variable {{gene}} (with curly braces), but received:
+
+  {output_translations}
+
+Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
+Example for bash shell:
+
+  --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+
+      "#
+      );
     }
   }
 

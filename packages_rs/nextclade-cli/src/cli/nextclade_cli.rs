@@ -1,5 +1,5 @@
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
@@ -208,6 +208,7 @@ pub enum NextcladeOutputSelection {
 }
 
 #[derive(Parser, Debug)]
+#[clap(group(ArgGroup::new("output").required(true).multiple(true)))]
 pub struct NextcladeRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', visible_alias("sequences"))]
@@ -256,7 +257,7 @@ pub struct NextcladeRunArgs {
   /// Path to a JSON file containing configuration and data specific to a pathogen.
   ///
   /// Overrides path to `virus_properties.json` in the dataset (`--input-dataset`).
-  #[clap(long, short = 's')]
+  #[clap(long, short = 'R')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_virus_properties: Option<PathBuf>,
 
@@ -314,6 +315,7 @@ pub struct NextcladeRunArgs {
   ///
   /// To be used together with `--output-all` flag. By default uses the filename of the sequences file (provided with `--input-fasta`). The paths can be overridden on a per-file basis using `--output-*` flags.
   #[clap(long, short = 'n')]
+  #[clap(requires = "output-all")]
   pub output_basename: Option<String>,
 
   /// Restricts outputs for `--output-all` flag
@@ -328,7 +330,7 @@ pub struct NextcladeRunArgs {
     multiple_values = true,
     use_value_delimiter = true
   )]
-  #[clap(requires = "output_all")]
+  #[clap(requires = "output-all")]
   #[clap(arg_enum)]
   pub output_selection: Vec<NextcladeOutputSelection>,
 
@@ -348,7 +350,9 @@ pub struct NextcladeRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// Example: `--output-translations='output_dir/{gene}.translation.fasta'`
+  /// Example for bash shell:
+  ///
+  ///   --output-translations='output_dir/gene_{{gene}}.translation.fasta'
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
@@ -544,23 +548,41 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Ndjson) {
-      output_ndjson.get_or_insert(default_output_file_path.with_extension(".ndjson"));
+      output_ndjson.get_or_insert(default_output_file_path.with_extension("ndjson"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Json) {
-      output_json.get_or_insert(default_output_file_path.with_extension(".json"));
+      output_json.get_or_insert(default_output_file_path.with_extension("json"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Csv) {
-      output_csv.get_or_insert(default_output_file_path.with_extension(".csv"));
+      output_csv.get_or_insert(default_output_file_path.with_extension("csv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Tsv) {
-      output_tsv.get_or_insert(default_output_file_path.with_extension(".tsv"));
+      output_tsv.get_or_insert(default_output_file_path.with_extension("tsv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Tree) {
-      output_tree.get_or_insert(default_output_file_path.with_extension(".auspice.json"));
+      output_tree.get_or_insert(default_output_file_path.with_extension("auspice.json"));
+    }
+  }
+
+  if let Some(output_translations) = output_translations {
+    if !output_translations.contains("{gene}") {
+      return make_error!(
+        r#"
+Expected `--output-translations` argument to contain a template string containing template variable {{gene}} (with curly braces), but received:
+
+  {output_translations}
+
+Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
+Example for bash shell:
+
+  --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+
+      "#
+      );
     }
   }
 
