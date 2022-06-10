@@ -27,7 +27,7 @@ const DatasetSelectorTitle = styled.h4`
 const DatasetSelectorListContainer = styled.section`
   display: flex;
   width: 100%;
-  height: 300px;
+  height: 600px;
 `
 
 const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
@@ -103,24 +103,26 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
       </Row>
 
       <Row noGutters className="mt-2">
-        <DatasetSelectorListContainer>
-          {!isBusy && (
-            <DatasetSelectorList
-              datasets={datasets}
-              datasetHighlighted={datasetHighlighted}
-              searchTerm={searchTerm}
-              onDatasetHighlighted={setDatasetHighlighted}
-            />
-          )}
+        <Col>
+          <DatasetSelectorListContainer>
+            {!isBusy && (
+              <DatasetSelectorList
+                datasets={datasets}
+                datasetHighlighted={datasetHighlighted}
+                searchTerm={searchTerm}
+                onDatasetHighlighted={setDatasetHighlighted}
+              />
+            )}
 
-          {isBusy && (
-            <SpinnerWrapper>
-              <SpinnerWrapperInternal>
-                <Spinner color="#aaa" width={20} height={20} />
-              </SpinnerWrapperInternal>
-            </SpinnerWrapper>
-          )}
-        </DatasetSelectorListContainer>
+            {isBusy && (
+              <SpinnerWrapper>
+                <SpinnerWrapperInternal>
+                  <Spinner color="#aaa" width={20} height={20} />
+                </SpinnerWrapperInternal>
+              </SpinnerWrapper>
+            )}
+          </DatasetSelectorListContainer>
+        </Col>
       </Row>
 
       <Row noGutters>
