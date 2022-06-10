@@ -40,15 +40,17 @@ export const CurrentDatasetInfoBody = styled.section`
 `
 
 export const Left = styled.section`
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   display: flex;
+  margin-right: 0.25rem;
 `
 
 export const Right = styled.section`
-  flex: 0 0 250px;
+  flex: 0 0 100px;
   display: flex;
   flex-direction: column;
   height: 100%;
+  margin-left: 0.25rem;
 `
 
 export const ChangeButton = styled(Button)`
@@ -59,7 +61,7 @@ export const ChangeButton = styled(Button)`
 `
 
 export const AdvancedModeExplanationWrapper = styled.div`
-  max-width: 550px;
+  //max-width: 550px;
   margin-top: 0.5rem;
 
   > p {

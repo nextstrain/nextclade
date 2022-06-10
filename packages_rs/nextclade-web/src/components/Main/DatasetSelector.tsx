@@ -27,7 +27,7 @@ const DatasetSelectorTitle = styled.h4`
 const DatasetSelectorListContainer = styled.section`
   display: flex;
   width: 100%;
-  height: 300px;
+  height: 500px;
 `
 
 const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
