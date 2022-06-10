@@ -41,6 +41,18 @@ pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
   )
 }
 
+pub fn extension(filepath: impl AsRef<Path>) -> Result<String, Report> {
+  let filepath = filepath.as_ref();
+  Ok(
+    filepath
+      .extension()
+      .ok_or_else(|| eyre!("Cannot get extension of path {filepath:#?}"))?
+      .to_str()
+      .ok_or_else(|| eyre!("Cannot convert extension to string when getting extension of path {filepath:#?}"))?
+      .to_owned(),
+  )
+}
+
 /// Reads entire file into a string.
 /// Compared to `std::fs::read_to_string` uses buffered reader
 pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {
