@@ -82,8 +82,8 @@ export function UploadBox({ onUpload, children, ...props }: PropsWithChildren<Up
   const normal = useMemo(
     () => (
       <UploadZoneTextContainer>
-        <UploadZoneText>{t('Drag & drop a file ')}</UploadZoneText>
-        <UploadZoneButton color="primary">{t('Select a file')}</UploadZoneButton>
+        <UploadZoneText>{t('Drag & drop files')}</UploadZoneText>
+        <UploadZoneButton color="primary">{t('Select files')}</UploadZoneButton>
       </UploadZoneTextContainer>
     ),
     [t],
@@ -99,7 +99,7 @@ export function UploadBox({ onUpload, children, ...props }: PropsWithChildren<Up
   )
 
   return (
-    <UploadZoneWrapper {...getRootProps()} {...props} title={t('Drag & drop or select a file')}>
+    <UploadZoneWrapper {...getRootProps()} {...props} title={t('Drag & drop or select files')}>
       <UploadZoneInput type="file" {...getInputProps()} />
       <UploadZone state={state}>
         <UploadZoneLeft>{<FileIconsContainer>{children}</FileIconsContainer>}</UploadZoneLeft>
