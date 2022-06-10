@@ -77,9 +77,9 @@ export function FilePicker({
   const { t } = useTranslationSafe()
   const [activeTab, setActiveTab] = useState<string>('file')
 
-  const onFile = useCallback(
-    (file: File) => {
-      onInput(new AlgorithmInputFile(file))
+  const onFiles = useCallback(
+    (files: File[]) => {
+      onInput(new AlgorithmInputFile(files))
     },
     [onInput],
   )
@@ -111,9 +111,9 @@ export function FilePicker({
         name: 'file',
         title: t('File'),
         body: compact ? (
-          <UploadBoxCompact onUpload={onFile}>{icon}</UploadBoxCompact>
+          <UploadBoxCompact onUpload={onFiles}>{icon}</UploadBoxCompact>
         ) : (
-          <UploadBox onUpload={onFile}>{icon}</UploadBox>
+          <UploadBox onUpload={onFiles}>{icon}</UploadBox>
         ),
       },
       {
@@ -127,7 +127,7 @@ export function FilePicker({
         body: <TabPanelPaste onConfirm={onPaste} instructions={pasteInstructions} inputRef={inputRef} />,
       },
     ],
-    [compact, exampleUrl, icon, inputRef, onFile, onPaste, onUrl, pasteInstructions, t],
+    [compact, exampleUrl, icon, inputRef, onFiles, onPaste, onUrl, pasteInstructions, t],
   )
 
   const FileUploadOrFileInfo = useMemo(() => {
