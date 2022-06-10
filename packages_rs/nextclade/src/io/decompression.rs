@@ -61,7 +61,7 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> Result<(Co
 
   let ext = extension(filepath)?;
 
-  let compression_type: CompressionType = match ext.as_str() {
+  let compression_type: CompressionType = match ext.to_lowercase().as_str() {
     "gz" => CompressionType::Gzip,
     "bz2" => CompressionType::Bzip2,
     "xz" => CompressionType::Xz,
