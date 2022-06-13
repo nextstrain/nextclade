@@ -8,7 +8,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
-use nextclade::io::fs::basename;
+use nextclade::io::fs::{basename, extension};
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -510,7 +510,13 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   // while taking care to preserve values of any individual `--output-*` flags,
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
-    let output_basename = output_basename.get_or_insert(basename(&input_fasta)?);
+    let mut base_name = basename(&input_fasta)?;
+    if extension(&base_name)?.to_lowercase() == "fasta" {
+      // Additionally handle cases like `.fasta.gz`
+      base_name = basename(&base_name)?;
+    }
+
+    let output_basename = output_basename.get_or_insert(base_name);
     let default_output_file_path = output_all.join(&output_basename);
 
     // If `--output-selection` is empty or contains `all`, then fill it with all possible variants
