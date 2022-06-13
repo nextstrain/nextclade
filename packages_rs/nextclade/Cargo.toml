@@ -1,7 +1,7 @@
 [package]
 name = "nextclade"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
-version = "2.0.0-alpha.6"
+version = "2.0.0-alpha.9"
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
 homepage = "https://clades.nextstrain.org/"
@@ -42,9 +42,9 @@ rayon = "1.5.2"
 regex = "1.5.5"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+tinytemplate = "1.2.1"
 traversal = "0.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
-
 
 [target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
 mimalloc = { version = "0.1.28", default-features = false, optional = true }
