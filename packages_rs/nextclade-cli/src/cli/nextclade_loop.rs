@@ -9,8 +9,7 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use nextclade::io::gene_map::{read_gene_map, GeneMap};
-use nextclade::io::gff3::read_gff3_file;
+use nextclade::io::gene_map::read_gene_map;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::option_get_some;
@@ -22,7 +21,6 @@ use nextclade::tree::tree::AuspiceTree;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use serde::{Deserialize, Serialize};
 
 pub struct NextcladeRecord {
   pub index: usize,
@@ -35,6 +33,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
   let NextcladeRunArgs {
     input_fasta,
+    input_dataset,
     input_ref,
     input_tree,
     input_qc_config,
@@ -42,8 +41,10 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     input_pcr_primers,
     input_gene_map,
     genes,
-    output_dir,
+    output_all,
     output_basename,
+    output_selection,
+    output_translations,
     include_reference,
     output_fasta,
     output_ndjson,
@@ -56,7 +57,6 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     jobs,
     in_order,
     alignment_params: alignment_params_from_cli,
-    ..
   } = args;
 
   let input_ref = option_get_some!(input_ref)?;
@@ -64,16 +64,6 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let input_qc_config = option_get_some!(input_qc_config)?;
   let input_virus_properties = option_get_some!(input_virus_properties)?;
   let input_pcr_primers = option_get_some!(input_pcr_primers)?;
-
-  let output_fasta = option_get_some!(output_fasta)?;
-  let output_basename = option_get_some!(output_basename)?;
-  let output_dir = option_get_some!(output_dir)?;
-  let output_insertions = option_get_some!(output_insertions)?;
-  let output_errors = option_get_some!(output_errors)?;
-  let output_json = option_get_some!(output_json)?;
-  let output_ndjson = option_get_some!(output_ndjson)?;
-  let output_csv = option_get_some!(output_csv)?;
-  let output_tsv = option_get_some!(output_tsv)?;
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
@@ -90,7 +80,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   }
 
   // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(alignment_params_from_cli.clone());
+  alignment_params.merge_opt(alignment_params_from_cli);
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
 
@@ -198,8 +188,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
         &output_tsv,
         &output_insertions,
         &output_errors,
-        &output_dir,
-        &output_basename,
+        &output_translations,
         in_order,
       )
       .wrap_err("When creating output writer")
