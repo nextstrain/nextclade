@@ -35,8 +35,7 @@ pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
 
   Ok(
     filepath
-      .with_extension("")
-      .file_name()
+      .file_stem()
       .ok_or_else(|| eyre!("Cannot get filename of path {filepath:#?}"))?
       .to_str()
       .ok_or_else(|| eyre!("Cannot get basename of path {filepath:#?}"))?
