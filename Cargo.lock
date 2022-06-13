@@ -1400,8 +1400,8 @@ dependencies = [
  "rstest_reuse",
  "semver 1.0.10",
  "serde",
- "strum 0.24.0",
- "strum_macros 0.24.0",
+ "strum 0.24.1",
+ "strum_macros 0.24.1",
  "url",
 ]
 
