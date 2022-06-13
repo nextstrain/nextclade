@@ -32,11 +32,26 @@ pub fn ensure_dir(filepath: impl AsRef<Path>) -> Result<(), Report> {
 
 pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
   let filepath = filepath.as_ref();
+
   Ok(
     filepath
       .with_extension("")
+      .file_name()
+      .ok_or_else(|| eyre!("Cannot get filename of path {filepath:#?}"))?
       .to_str()
-      .ok_or_else(|| eyre!("Cannot get base name of path {filepath:#?}"))?
+      .ok_or_else(|| eyre!("Cannot get basename of path {filepath:#?}"))?
+      .to_owned(),
+  )
+}
+
+pub fn extension(filepath: impl AsRef<Path>) -> Result<String, Report> {
+  let filepath = filepath.as_ref();
+  Ok(
+    filepath
+      .extension()
+      .ok_or_else(|| eyre!("Cannot get extension of path {filepath:#?}"))?
+      .to_str()
+      .ok_or_else(|| eyre!("Cannot convert extension to string when getting extension of path {filepath:#?}"))?
       .to_owned(),
   )
 }

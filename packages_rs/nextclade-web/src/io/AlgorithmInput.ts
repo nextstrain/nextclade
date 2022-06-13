@@ -1,8 +1,10 @@
+import { concurrent } from 'fasy'
 import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/algorithms/types'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 import { readFile } from 'src/helpers/readFile'
 import { numbro } from 'src/i18n/i18n'
+import { sumBy } from 'lodash'
 
 function formatBytes(bytes: number) {
   let mantissa = 1
@@ -18,22 +20,28 @@ function formatBytes(bytes: number) {
 export class AlgorithmInputFile implements AlgorithmInput {
   public readonly type: AlgorithmInputType = AlgorithmInputType.File as const
 
-  private readonly file: File
+  private readonly files: File[]
 
-  constructor(file: File) {
-    this.file = file
+  constructor(files: File[]) {
+    this.files = files
   }
 
   public get name(): string {
-    return this.file.name
+    return this.files.map((file) => file.name).join(', ')
   }
 
   public get description(): string {
-    return `${this.name} (${formatBytes(this.file.size)})`
+    if (this.files.length === 1) {
+      return `${this.name} (${formatBytes(this.files[0].size)})`
+    }
+
+    const size = sumBy(this.files, (file) => file.size)
+    return `${this.files.length} files (total ${formatBytes(size)})`
   }
 
   public async getContent(): Promise<string> {
-    return readFile(this.file)
+    const strs = await concurrent.map(async (file) => readFile(file), this.files)
+    return strs.join('\n')
   }
 }
 
