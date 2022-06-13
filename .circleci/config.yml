@@ -53,6 +53,16 @@ jobs:
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
 
+
+            DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org"
+            if [ "$CIRCLE_BRANCH" == "release-cli" ]; then
+              DATA_FULL_DOMAIN="https://data.clades.nextstrain.org"
+            elif [ "$CIRCLE_BRANCH" == "staging-cli" ]; then
+              DATA_FULL_DOMAIN="https://data.staging.clades.nextstrain.org"
+            fi
+
+            sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+
             ./docker-dev docker-image-build-push
 
             declare -a TARGETS=(
