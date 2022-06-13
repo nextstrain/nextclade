@@ -135,6 +135,14 @@ jobs:
             export CROSS="<< parameters.target_arch >>"
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+
+            export DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org"
+            if [ "$CIRCLE_BRANCH" == "release-cli" ]; then
+              export DATA_FULL_DOMAIN="https://data.clades.nextstrain.org"
+            elif [ "$CIRCLE_BRANCH" == "staging-cli" ]; then
+              export DATA_FULL_DOMAIN="https://data.staging.clades.nextstrain.org"
+            fi
+
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
 
             CROSS=${CROSS} ./docker-dev build-release
