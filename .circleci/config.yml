@@ -428,7 +428,6 @@ workflows:
 
           context:
             - nextclade_macos
-            - nextclade_cli_<< pipeline.git.branch >>
 
           matrix:
             parameters:
