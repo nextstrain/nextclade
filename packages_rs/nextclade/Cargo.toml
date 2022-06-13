@@ -27,6 +27,7 @@ csv = "1.1.6"
 ctor = "0.1.22"
 env_logger = "0.9.0"
 eyre = "0.6.8"
+flate2 = "1.0.24"
 getrandom = "0.2.6"
 indexmap = { version = "1.8.1", features = ["serde"] }
 itertools = "0.10.3"
@@ -42,12 +43,19 @@ rayon = "1.5.2"
 regex = "1.5.5"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+strum = "0.24.0"
+strum_macros = "0.24.0"
 tinytemplate = "1.2.1"
 traversal = "0.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
 
 [target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
 mimalloc = { version = "0.1.28", default-features = false, optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+bzip2 = "0.4.3"
+xz2 = "0.1.7"
+zstd = { version = "0.11.2+zstd.1.5.2", features = ["zstdmt"] }
 
 [dev-dependencies]
 assert2 = "0.3.6"

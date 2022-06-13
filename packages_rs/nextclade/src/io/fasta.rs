@@ -1,10 +1,11 @@
 use crate::io::aa::from_aa_seq;
+use crate::io::decompression::Decompressor;
 use crate::io::fs::ensure_dir;
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
-use log::{trace, warn};
+use log::trace;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -61,10 +62,17 @@ impl<'a> FastaReader<'a> {
     Ok(Self::new(Box::new(reader)))
   }
 
+  pub fn from_str_and_path(contents: &'static str, filepath: impl AsRef<Path>) -> Result<Self, Report> {
+    let decompressor = Decompressor::from_str_and_path(contents, filepath)?;
+    let buf_reader = BufReader::new(decompressor);
+    Ok(Self::new(Box::new(buf_reader)))
+  }
+
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
-    let reader = BufReader::with_capacity(32 * 1024, file);
+    let decompressor = Decompressor::from_path(file, &filepath)?;
+    let reader = BufReader::with_capacity(32 * 1024, decompressor);
     Ok(Self::new(Box::new(reader)))
   }
 
