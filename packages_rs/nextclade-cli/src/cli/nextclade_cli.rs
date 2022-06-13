@@ -1,5 +1,5 @@
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
@@ -147,6 +147,7 @@ pub struct NextcladeDatasetListArgs {
 
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
+#[clap(group(ArgGroup::new("outputs").required(true).multiple(false)))]
 pub struct NextcladeDatasetGetArgs {
   /// Name of the dataset to download. Equivalent to `--attribute='name=<value>'`. Use `dataset list` command to view available datasets.
   #[clap(long, short = 'n')]
@@ -184,10 +185,21 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
   pub server: Url,
 
-  /// Path to directory to write dataset files to. If the target directory tree does not exist, it will be created.
+  /// Path to directory to write dataset files to.
+  ///
+  /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::DirPath)]
-  pub output_dir: PathBuf,
+  #[clap(group = "outputs")]
+  pub output_dir: Option<PathBuf>,
+
+  /// Path to resulting dataset zip file.
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long, short = 'z')]
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(group = "outputs")]
+  pub output_zip: Option<PathBuf>,
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,

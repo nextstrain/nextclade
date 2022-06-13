@@ -21,5 +21,17 @@ pub fn dataset_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &P
       Ok(())
     })
     .collect::<Result<(), Report>>()
-    .wrap_err_with(|| format!("When downloading dataset: {dataset:#?}"))
+    .wrap_err_with(|| format!("When downloading dataset {dataset:#?}"))
+}
+
+pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
+  if let Some(parent_dir) = output_file_path.parent() {
+    let parent_dir = &absolute_path(parent_dir)?;
+    fs::create_dir_all(&parent_dir)
+      .wrap_err_with(|| format!("When creating parent directory '{parent_dir:#?}' for file '{output_file_path:#?}'"))?;
+  }
+
+  let content = http.get(&dataset.zip_bundle)?;
+  fs::write(&output_file_path, content)
+    .wrap_err_with(|| format!("When writing downloaded dataset zip file to {output_file_path:#?}"))
 }

@@ -10,6 +10,11 @@ pub fn json_parse<T: for<'de> Deserialize<'de>>(s: &str) -> Result<T, Report> {
   Ok(obj)
 }
 
+pub fn json_parse_bytes<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> Result<T, Report> {
+  let obj = serde_json::from_slice::<T>(bytes).wrap_err("When parsing JSON")?;
+  Ok(obj)
+}
+
 pub fn json_stringify<T: Serialize>(obj: &T) -> Result<String, Report> {
   serde_json::to_string_pretty(obj).wrap_err("When converting an entry to JSON string")
 }

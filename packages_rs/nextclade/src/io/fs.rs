@@ -30,6 +30,18 @@ pub fn ensure_dir(filepath: impl AsRef<Path>) -> Result<(), Report> {
   .wrap_err_with(|| format!("When ensuring parent directory for '{filepath:#?}'"))
 }
 
+pub fn filename(filepath: impl AsRef<Path>) -> Result<String, Report> {
+  let filepath = filepath.as_ref();
+  Ok(
+    filepath
+      .file_name()
+      .ok_or_else(|| eyre!("Cannot get file name of {filepath:#?}"))?
+      .to_str()
+      .ok_or_else(|| eyre!("Cannot convert file name to string, when getting file name of {filepath:#?}"))?
+      .to_owned(),
+  )
+}
+
 pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
   let filepath = filepath.as_ref();
   Ok(
