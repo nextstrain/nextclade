@@ -67,6 +67,10 @@ pub fn extension(filepath: impl AsRef<Path>) -> Result<String, Report> {
   )
 }
 
+pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> Result<bool, Report> {
+  Ok(extension(filepath.as_ref())?.eq_ignore_ascii_case(ext.as_ref()))
+}
+
 /// Reads entire file into a string.
 /// Compared to `std::fs::read_to_string` uses buffered reader
 pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {

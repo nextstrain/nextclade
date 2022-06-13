@@ -1,26 +1,26 @@
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
+use crate::dataset::dataset_download::{
+  dataset_dir_load, dataset_individual_files_load, dataset_zip_load, DatasetFiles,
+};
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
-use nextclade::analyze::pcr_primers::PcrPrimer;
-use nextclade::analyze::virus_properties::VirusProperties;
-use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use nextclade::io::gene_map::read_gene_map;
+use nextclade::io::fasta::{FastaReader, FastaRecord};
+use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
-use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
-use nextclade::option_get_some;
-use nextclade::qc::qc_config::QcConfig;
+use nextclade::io::nuc::{to_nuc_seq, Nuc};
+use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree::AuspiceTree;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use std::path::PathBuf;
 
 pub struct NextcladeRecord {
   pub index: usize,
@@ -28,19 +28,37 @@ pub struct NextcladeRecord {
   pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report>,
 }
 
+pub struct DatasetFilePaths {
+  input_ref: PathBuf,
+  input_tree: PathBuf,
+  input_qc_config: PathBuf,
+  input_virus_properties: PathBuf,
+  input_pcr_primers: PathBuf,
+  input_gene_map: PathBuf,
+}
+
+pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<String>>) -> Result<DatasetFiles, Report> {
+  if let Some(input_dataset) = run_args.input_dataset.as_ref() {
+    if input_dataset.is_file() && has_extension(input_dataset, "zip")? {
+      dataset_zip_load(input_dataset, genes)
+    } else if input_dataset.is_dir() {
+      dataset_dir_load(run_args.clone(), input_dataset, genes)
+    } else {
+      make_error!(
+        "--input-dataset: path is invalid. \
+        Expected a directory path of a zip archive file path, but got: '{input_dataset:#?}'"
+      )
+    }
+  } else {
+    dataset_individual_files_load(run_args, genes)
+  }
+}
+
 pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");
 
   let NextcladeRunArgs {
     input_fasta,
-    input_dataset,
-    input_ref,
-    input_tree,
-    input_qc_config,
-    input_virus_properties,
-    input_pcr_primers,
-    input_gene_map,
-    genes,
     output_all,
     output_basename,
     output_selection,
@@ -56,21 +74,20 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
-    alignment_params: alignment_params_from_cli,
-  } = args;
+    genes,
+    ..
+  } = args.clone();
 
-  let input_ref = option_get_some!(input_ref)?;
-  let input_tree = option_get_some!(input_tree)?;
-  let input_qc_config = option_get_some!(input_qc_config)?;
-  let input_virus_properties = option_get_some!(input_virus_properties)?;
-  let input_pcr_primers = option_get_some!(input_pcr_primers)?;
+  let DatasetFiles {
+    ref_record,
+    virus_properties,
+    mut tree,
+    ref gene_map,
+    qc_config,
+    primers,
+  } = nextclade_get_inputs(&args, genes)?;
 
-  let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
-
-  let gene_map = &read_gene_map(&input_gene_map, &genes)?;
-
-  let virus_properties = &VirusProperties::from_path(&input_virus_properties)?;
 
   let mut alignment_params = AlignPairwiseParams::default();
 
@@ -80,7 +97,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   }
 
   // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(alignment_params_from_cli);
+  alignment_params.merge_opt(args.alignment_params);
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
 
@@ -88,13 +105,6 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
   let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
-
-  let tree = &mut AuspiceTree::from_path(&input_tree)?;
-
-  let qc_config = &QcConfig::from_path(&input_qc_config)?;
-
-  let ref_seq_str = from_nuc_seq(ref_seq);
-  let primers = &PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
 
   let should_keep_outputs = output_tree.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
@@ -104,7 +114,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
-    tree_preprocess_in_place(tree, ref_seq, ref_peptides).unwrap();
+    tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides).unwrap();
     let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
@@ -131,7 +141,10 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
       let gap_open_close_nuc = &gap_open_close_nuc;
       let gap_open_close_aa = &gap_open_close_aa;
       let alignment_params = &alignment_params;
+      let primers = &primers;
       let tree = &tree;
+      let qc_config = &qc_config;
+      let virus_properties = &virus_properties;
 
       s.spawn(move |_| {
         let result_sender = result_sender.clone();
@@ -196,7 +209,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
       if include_reference {
         output_writer
-          .write_ref(ref_record, ref_peptides)
+          .write_ref(&ref_record, ref_peptides)
           .wrap_err("When writing output record for ref sequence")
           .unwrap();
       }
@@ -218,8 +231,8 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   .unwrap();
 
   if let Some(output_tree) = output_tree {
-    tree_attach_new_nodes_in_place(tree, &outputs);
-    json_write(output_tree, tree)?;
+    tree_attach_new_nodes_in_place(&mut tree, &outputs);
+    json_write(output_tree, &tree)?;
   }
 
   Ok(())
