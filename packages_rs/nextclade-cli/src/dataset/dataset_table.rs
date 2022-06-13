@@ -1,11 +1,17 @@
 use crate::dataset::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
+use comfy_table::modifiers::{UTF8_ROUND_CORNERS, UTF8_SOLID_INNER_BORDERS};
+use comfy_table::presets::UTF8_FULL;
 use comfy_table::{ContentArrangement, Table};
 use indexmap::IndexMap;
 use itertools::Itertools;
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
-  table.set_content_arrangement(ContentArrangement::Dynamic);
+  table
+    .load_preset(UTF8_FULL)
+    .apply_modifier(UTF8_ROUND_CORNERS)
+    .apply_modifier(UTF8_SOLID_INNER_BORDERS)
+    .set_content_arrangement(ContentArrangement::Dynamic);
 
   table.set_header([
     "name".to_owned(),
