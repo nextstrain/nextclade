@@ -1,23 +1,24 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
-use nextclade::io::gene_map::GeneMap;
+use log::warn;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::nuc::from_nuc_seq;
 use nextclade::translate::translate_genes::TranslationMap;
 use nextclade::types::outputs::NextalignOutputs;
 use nextclade::utils::error::report_to_string;
-use log::warn;
+use nextclade::utils::option::OptionMapRefFallible;
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::PathBuf;
 
 /// Writes output files, potentially preserving the initial order of records (same as in the inputs)
 pub struct NextalignOrderedWriter<'a> {
-  fasta_writer: FastaWriter,
-  fasta_peptide_writer: FastaPeptideWriter,
-  insertions_csv_writer: InsertionsCsvWriter,
-  errors_csv_writer: ErrorsCsvWriter<'a>,
+  fasta_writer: Option<FastaWriter>,
+  fasta_peptide_writer: Option<FastaPeptideWriter>,
+  insertions_csv_writer: Option<InsertionsCsvWriter>,
+  errors_csv_writer: Option<ErrorsCsvWriter<'a>>,
   expected_index: usize,
   queue: HashMap<usize, NextalignRecord>,
   in_order: bool,
@@ -26,17 +27,22 @@ pub struct NextalignOrderedWriter<'a> {
 impl<'a> NextalignOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
-    output_fasta: &Path,
-    output_insertions: &Path,
-    output_errors: &Path,
-    output_dir: &Path,
-    output_basename: &str,
+    output_fasta: &Option<PathBuf>,
+    output_translations: &Option<String>,
+    output_insertions: &Option<PathBuf>,
+    output_errors: &Option<PathBuf>,
     in_order: bool,
   ) -> Result<Self, Report> {
-    let fasta_writer = FastaWriter::from_path(&output_fasta)?;
-    let fasta_peptide_writer = FastaPeptideWriter::new(gene_map, &output_dir, &output_basename)?;
-    let insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
-    let errors_csv_writer = ErrorsCsvWriter::new(gene_map, &output_errors)?;
+    let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
+
+    let fasta_peptide_writer = output_translations
+      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, &output_translations))?;
+
+    let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
+
+    let errors_csv_writer =
+      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, &output_errors))?;
+
     Ok(Self {
       fasta_writer,
       fasta_peptide_writer,
@@ -51,11 +57,18 @@ impl<'a> NextalignOrderedWriter<'a> {
   pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_peptides: &TranslationMap) -> Result<(), Report> {
     let FastaRecord { seq_name, seq, .. } = &ref_record;
 
-    self.fasta_writer.write(seq_name, seq)?;
+    if let Some(fasta_writer) = &mut self.fasta_writer {
+      fasta_writer.write(seq_name, seq)?;
+    }
 
-    ref_peptides
-      .iter()
-      .try_for_each(|(_, peptide)| self.fasta_peptide_writer.write(seq_name, peptide))
+    ref_peptides.iter().try_for_each(|(_, peptide)| {
+      if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
+        fasta_peptide_writer.write(seq_name, peptide)?;
+      }
+      Result::<(), Report>::Ok(())
+    })?;
+
+    Ok(())
   }
 
   /// Writes output record into output files
@@ -76,19 +89,23 @@ impl<'a> NextalignOrderedWriter<'a> {
           missing_genes,
         } = output;
 
-        self.fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
-
-        for translation in translations {
-          self.fasta_peptide_writer.write(seq_name, translation)?;
+        if let Some(fasta_writer) = &mut self.fasta_writer {
+          fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
         }
 
-        self
-          .insertions_csv_writer
-          .write(seq_name, &stripped.insertions, translations)?;
+        if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
+          for translation in translations {
+            fasta_peptide_writer.write(seq_name, translation)?;
+          }
+        }
 
-        self
-          .errors_csv_writer
-          .write_aa_errors(seq_name, warnings, missing_genes)?;
+        if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
+          insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
+        }
+
+        if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
+          errors_csv_writer.write_aa_errors(seq_name, warnings, missing_genes)?;
+        }
       }
       Err(report) => {
         let cause = report_to_string(report);
@@ -96,7 +113,9 @@ impl<'a> NextalignOrderedWriter<'a> {
           "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
         );
         warn!("{message}");
-        self.errors_csv_writer.write_nuc_error(seq_name, &message)?;
+        if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
+          errors_csv_writer.write_nuc_error(seq_name, &message)?;
+        }
       }
     }
 

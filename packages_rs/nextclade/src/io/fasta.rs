@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+use tinytemplate::TinyTemplate;
 
 pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
@@ -160,6 +162,11 @@ impl FastaWriter {
   }
 }
 
+#[derive(Clone, Debug, Serialize)]
+struct OutputTranslationsTemplateContext<'a> {
+  gene: &'a str,
+}
+
 pub type FastaPeptideWritersMap = BTreeMap<String, FastaWriter>;
 
 /// Writes peptides, each into a separate fasta file
@@ -168,18 +175,21 @@ pub struct FastaPeptideWriter {
 }
 
 impl FastaPeptideWriter {
-  pub fn new(
-    gene_map: &GeneMap,
-    output_dir: impl AsRef<Path>,
-    output_basename: impl AsRef<str>,
-  ) -> Result<Self, Report> {
-    let output_dir = output_dir.as_ref();
-    let output_basename = output_basename.as_ref();
+  pub fn new(gene_map: &GeneMap, output_translations: impl AsRef<str>) -> Result<Self, Report> {
+    let output_translations = output_translations.as_ref();
+
+    let mut tt = TinyTemplate::new();
+    tt.add_template("output_translations", output_translations)
+      .wrap_err_with(|| format!("When parsing template: {output_translations}"))?;
 
     let writers = gene_map
       .iter()
       .map(|(gene_name, _)| -> Result<_, Report> {
-        let out_gene_fasta_path = output_dir.join(format!("{output_basename}.gene.{gene_name}.fasta"));
+        let template_context = OutputTranslationsTemplateContext { gene: gene_name };
+        let rendered_path = tt
+          .render("output_translations", &template_context)
+          .wrap_err_with(|| format!("When rendering output translations path template: '{output_translations}', using context: {template_context:?}"))?;
+        let out_gene_fasta_path = PathBuf::from_str(&rendered_path).wrap_err_with(|| format!("Invalid output translations path: '{rendered_path}'"))?;
         trace!("Creating fasta writer to file {out_gene_fasta_path:#?}");
         let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
         Ok((gene_name.clone(), writer))
