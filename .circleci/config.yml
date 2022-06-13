@@ -53,16 +53,6 @@ jobs:
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
 
-
-            export DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org"
-            if [ "$CIRCLE_BRANCH" == "release-cli" ]; then
-              export DATA_FULL_DOMAIN="https://data.clades.nextstrain.org"
-            elif [ "$CIRCLE_BRANCH" == "staging-cli" ]; then
-              export DATA_FULL_DOMAIN="https://data.staging.clades.nextstrain.org"
-            fi
-
-            sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
-
             ./docker-dev docker-image-build-push
 
             declare -a TARGETS=(
@@ -130,20 +120,17 @@ jobs:
             - cache-v14-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
+          name: " [ << parameters.target_arch >> ] | Download dependencies fo CLI build"
+          command: |
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+
+      - run:
           name: " [ << parameters.target_arch >> ] | Build CLI"
           command: |
             export CROSS="<< parameters.target_arch >>"
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
-
-            export DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org"
-            if [ "$CIRCLE_BRANCH" == "release-cli" ]; then
-              export DATA_FULL_DOMAIN="https://data.clades.nextstrain.org"
-            elif [ "$CIRCLE_BRANCH" == "staging-cli" ]; then
-              export DATA_FULL_DOMAIN="https://data.staging.clades.nextstrain.org"
-            fi
-
-            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
+            echo "DATA_FULL_DOMAIN=$(./scripts/cli_get_data_full_domain.sh $CIRCLE_BRANCH)"
 
             CROSS=${CROSS} ./docker-dev build-release
 

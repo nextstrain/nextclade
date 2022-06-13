@@ -1,5 +1,6 @@
 pub mod aa;
 pub mod csv;
+pub mod decompression;
 pub mod errors_csv;
 pub mod fasta;
 pub mod fs;
