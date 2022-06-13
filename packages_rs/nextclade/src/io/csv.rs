@@ -100,8 +100,7 @@ impl CsvVecFileWriter {
     ensure_dir(&filepath)?;
     let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
     let buf_file = BufWriter::with_capacity(32 * 1024, file);
-    let mut writer = CsvVecWriter::new(buf_file, delimiter, headers)?;
-    writer.write(headers)?;
+    let writer = CsvVecWriter::new(buf_file, delimiter, headers)?;
     Ok(Self {
       filepath: filepath.to_owned(),
       headers: headers.to_owned(),
