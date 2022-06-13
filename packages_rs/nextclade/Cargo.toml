@@ -17,7 +17,6 @@ assert2 = "0.3.6"
 auto_ops = "0.3.0"
 bio = "0.41.0"
 bio-types = "0.12.1"
-bzip2 = "0.4.3"
 chrono = { version = "0.4.19", default-features = false, features = ["clock", "std", "wasmbind"] }
 clap = { version = "3.1.8", features = ["derive"] }
 clap-verbosity-flag = "1.0.0"
@@ -48,11 +47,14 @@ strum = "0.24.0"
 strum_macros = "0.24.0"
 traversal = "0.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
-xz2 = "0.1.7"
-zstd = { version = "0.11.2+zstd.1.5.2", features = ["zstdmt"] }
 
 [target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
 mimalloc = { version = "0.1.28", default-features = false, optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+bzip2 = "0.4.3"
+xz2 = "0.1.7"
+zstd = { version = "0.11.2+zstd.1.5.2", features = ["zstdmt"] }
 
 [dev-dependencies]
 assert2 = "0.3.6"

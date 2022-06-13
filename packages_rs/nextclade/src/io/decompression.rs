@@ -1,21 +1,34 @@
 use crate::io::fs::extension;
 use crate::utils::error::report_to_string;
-use bzip2::read::MultiBzDecoder;
 use color_eyre::{Help, SectionExt};
-use eyre::{eyre, Report, WrapErr};
+use eyre::{Report, WrapErr};
 use flate2::read::GzDecoder;
 use log::debug;
 use std::io::{ErrorKind, Read};
 use std::path::Path;
+
+// NOTE: crates `bzip2`, `xz2` and `zstd` depend on corresponding C libraries and require libc in order to build.
+// libc is not present for `wasm32-unknown-unknown` target, so we disable these crates.
+// TODO: keep an eye on alternative crates that don't rely on C, and replace when they are stable enough.
+// TODO: keep an eye on efforts of bringing (pieces of) libc to `wasm32-unknown-unknown`, and enable `bzip2`, `xz2`
+// and `zstd` crates for wasm builds when it's compatible enough: https://github.com/rustwasm/team/issues/291
+#[cfg(not(target_arch = "wasm32"))]
+use bzip2::read::MultiBzDecoder;
+#[cfg(not(target_arch = "wasm32"))]
 use xz2::read::XzDecoder;
+#[cfg(not(target_arch = "wasm32"))]
 use zstd::Decoder as ZstdDecoder;
 
 #[derive(strum_macros::Display, Clone)]
 pub enum CompressionType {
-  Gzip,
+  #[cfg(not(target_arch = "wasm32"))]
   Bzip2,
+  #[cfg(not(target_arch = "wasm32"))]
   Xz,
+  #[cfg(not(target_arch = "wasm32"))]
   Zstandard,
+
+  Gzip,
   None,
 }
 
@@ -28,10 +41,13 @@ pub struct Decompressor<'r> {
 impl<'r> Decompressor<'r> {
   pub fn new<R: 'r + Read>(reader: R, compression_type: &CompressionType) -> Result<Self, Report> {
     let decompressor: Box<dyn Read> = match compression_type {
-      CompressionType::Gzip => Box::new(GzDecoder::new(reader)),
+      #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Bzip2 => Box::new(MultiBzDecoder::new(reader)),
+      #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Xz => Box::new(XzDecoder::new(reader)),
+      #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Zstandard => Box::new(ZstdDecoder::new(reader)?),
+      CompressionType::Gzip => Box::new(GzDecoder::new(reader)),
       CompressionType::None => Box::new(reader),
     };
 
@@ -62,10 +78,13 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> Result<(Co
   let ext = extension(filepath)?;
 
   let compression_type: CompressionType = match ext.to_lowercase().as_str() {
-    "gz" => CompressionType::Gzip,
+    #[cfg(not(target_arch = "wasm32"))]
     "bz2" => CompressionType::Bzip2,
+    #[cfg(not(target_arch = "wasm32"))]
     "xz" => CompressionType::Xz,
+    #[cfg(not(target_arch = "wasm32"))]
     "zst" => CompressionType::Zstandard,
+    "gz" => CompressionType::Gzip,
     _ => CompressionType::None,
   };
 
