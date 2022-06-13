@@ -1,11 +1,12 @@
 ## Nextclade 2.0.0
 
- - Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++).
+### Rust
 
-   Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases.
-   It should provide a serious productivity boost for the dev team.
+Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++ implementation).
 
-   Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but were scared off by the complexity of C++, then give it another try - the Rust version is much more enjoyable! Check our [developer guide](TODO) for getting started. We are always open for contributions, review and ideas!
+Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases. It should provide a serious productivity boost for the dev team.
+
+Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but were scared off by the complexity of C++, then give it another try - the Rust version is much more enjoyable! Check our [developer guide](https://github.com/nextstrain/nextclade/blob/master/docs/dev/developer-guide.md) for getting started. We are always open for contributions, review and ideas!
 
 
 ### Alignment algorithm rewritten with adaptive bands
@@ -18,19 +19,86 @@
 - **Feature**: Additional alignment parameters can now be tuned through CLI parameters. `--excess-bandwidth` controls the extra band width that is necessary for correct alignment if both deletions and insertions occur between two seed matches. `--terminal-bandwidth` controls the extra band width that is necessary for correct alignment if terminal indels occur. In addition, alignment parameters can be specified via the `virus_properties.json` file in Nextclade data sets. This allows the web version to use different parameters for different viruses.
 - **Fixed** a bug where 3' terminal insertions were not properly detected
 
-### Web interface
- - **Feature**: support for genes on the reverse strand
- - **Feature**: display insertions on the sequence/alignment view
- - **Fixed**: prevent double clade annotation in tree view.
+### Genes on reverse (negative) strand
+
+Nextclade now correctly handles genes on reverse (negative) strand, which is particularly important for Monkeypox virus.
 
 
-### Planned features
+### Nextclade Web
 
-- Unify `nextclade` and `nextalign` CLI parameters
-- User friendly CLI parameters with minimal parameter requirements:
-  - If no output files specified, put output into standard directory in current working directory
-  - Download and use dataset at runtime with a single parameter: `nextclade INPUT_FASTA --download-dataset sars-cov-2`
-  - Take input fasta from stdin
+ - **Feature**: Nextclade Web is now substantially faster, both to startup and when analysing sequences, due to general algorithmic improvements.
+ - **Feature**: Drag&drop box for fasta files now supports multiple files. The files are concatenated in this case.
+ - **Feature**: Sequence view and peptide views now show insertions. They are denoted as purple triangles.
+ - **Fix**: Tree view now longer shows duplicate clade annotations
+
+
+### Input files
+
+ - **Fix**: gene map GFF3 file now correctly accepts "gene" and "locus_tag" attributes. This should allow to use genome annotations from GeneBank with little or no modifications.
+
+ - **Feature**: Nextclade now reads virus-specific alignment parameters from `virus_properties.json` file from the dataset. It is equivalent to passing alignment tweaks using command-line flags, but is more convenient. If a  parameter is provided in both `virus_properties.json` and as a flag, then the flag takes precedence.
+
+
+### Nextclade CLI
+
+ - **Feature**: **BREAKING CHANGE** Command-line interface was redesigned to make it more consistent and ergonomic. The following invocation should be sufficient for most users:
+ 
+   ```bash
+   nextclade run \
+     --input-fasta='sequences.fasta' \
+     --input-dataset='dataset/' \
+     --output-all='outputs/
+   ```
+
+   - Nextalign CLI and Nextclade CLI now require a command as the first argument. To reproduce the behavior of Nextclade v1, use `nextalign run` instead of `nextalign` and `nextclade run` instead of `nextclade`. See `nextalign --help` or `nextclade --help` for the full list of commands. Each command has it own `--help` menu, e.g. `nextclade run --help`.
+
+   - The flag `--output-all` replaces `--output-dir` flag and allows to conveniently output all files with a single flag.
+
+   - The new flag `--output-selection` allows to restrict what's being output by the `--output-all` flag.
+
+   - The new flag `--output-translations` is a dedicated flag to provide a file path template which will be used to output translated gene fasta files. This flag accepts a template string with a template variable `{{gene}}`, which will be substituted with a gene name. Each gene therefore receives it's own path. Additionally, the translations are now independent from output directory and can be omitted if they are not necessary.
+
+    Example: 
+ 
+    If the following is provided:
+
+    ```bash
+    --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+    ```
+
+    then for SARS-CoV-2 Nextclade will write the following files:
+   
+    ```
+    output_dir/gene_ORF1a.translation.fasta
+    output_dir/gene_ORF1b.translation.fasta
+    ...
+    output_dir/gene_S.translation.fasta
+    ```
+   
+   Make sure you properly quote and/or escape the curly braces in the variable `{{gene}}`, so that your shell, programming language or pipeline manager does not attempt to substitute the variable.
+
+
+ - **Feature**: Nextclade CLI and Nextalign CLI now accept compressed input files. For example, if a gzip-compressed fasta file is passed to `--input-fasta=seqeuences.fasta.gz`, it will be transparently extracted. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`.
+
+ - **Feature**: Nextclade can now write outputs in newline-delimited JSON format . Use `--output-ndjson` flag for that. NDJSON output is equivalent to JSON output, but is not hierarchical, so it can be easily streamed and parsed one entry at a time.
+
+ - **Feature**: `dataset get` and `dataset list` commands now can fetch dataset index from a custom server. The root URL of the dataset server can be set using `--server=<URL>` flag.
+
+ - **Feature**: Nextalign CLI and Nextclade CLI provide a command for generating shell completions: see `nextclade completions --help` for details.
+
+ - **Feature**: Verbosity of can be tuned using wither `--verbosity=<severity>` flag or one or multiple occurences of `-v` and `-q` flags. By default Nextclade and Nextalign show messages with severity "warn" or above (i.e. only warning and errors). Flag `-v` increases and flag `-q` decreases verbosity one step, `-vv` and `-qq` - two steps, etc.
+
+
+### Feedback
+
+If you found a bug or have a suggestion, feel free to:
+
+ - submit a new issue on GitHub: [nextstrain/nextclade](https://github.com/nextstrain/nextclade/issues)
+ - [fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the Nextclade GitHub repository [nextstrain/nextclade](https://github.com/nextstrain/nextclade) and contribute a bugfix or an improvement (see [dev guide](https://github.com/nextstrain/nextclade/blob/master/docs/dev/developer-guide.md))
+ - join Nextstrain discussion forum: [discussion.nextstrain.org](https://discussion.nextstrain.org) for a free-form discussion
+
+We hope you enjoy using Nextclade 2.0.0 as much as we enjoyed building it!
+
 
 ## Nextclade Web 1.14.1
 
