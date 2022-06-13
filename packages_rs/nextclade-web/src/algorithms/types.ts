@@ -98,6 +98,24 @@ export interface AminoacidDeletion {
   nucDeletions: NucleotideDeletion[]
 }
 
+export interface AminoacidChange extends AminoacidSubstitution {
+  type: 'substitution' | 'deletion'
+}
+
+export interface AminoacidChangesGroup {
+  gene: string
+  codonAaRange: Range
+  codonNucRange: Range
+  changes: AminoacidChange[]
+  nucSubstitutions: NucleotideSubstitution[]
+  nucDeletions: NucleotideDeletion[]
+  refContext: string
+  queryContext: string
+  contextNucRange: Range
+  numSubstitutions: number
+  numDeletions: number
+}
+
 export interface PcrPrimer {
   name: string
   target: string
@@ -348,6 +366,7 @@ export interface AnalysisResult {
   totalAminoacidInsertions: number
   unknownAaRanges: GeneAminoacidRange[]
   totalUnknownAa: number
+  aaChangesGroups: AminoacidChangesGroup[]
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number

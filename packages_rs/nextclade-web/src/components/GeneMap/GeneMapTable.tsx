@@ -12,7 +12,7 @@ import {
   switchToNucleotideViewAtom,
 } from 'src/state/settings.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
+import { GeneMap } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { ButtonHelpSimple } from 'src/components/Results/ButtonHelp'
@@ -25,7 +25,6 @@ export const GeneMapTableContent = styled(Table)`
 `
 
 export const GeneMapTableRow = styled(TableRow)`
-  height: ${GENE_MAP_HEIGHT_PX}px;
   background-color: #dadfe5;
 `
 

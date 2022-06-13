@@ -21,7 +21,6 @@ use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use log::info;
 use typescript_definitions::TypescriptDefinition;
 use wasm_bindgen::prelude::*;
 
@@ -172,8 +171,6 @@ impl Nextclade {
     if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
       alignment_params.merge_opt(alignment_params_from_file.clone());
     }
-
-    info!("{alignment_params:#?}");
 
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;

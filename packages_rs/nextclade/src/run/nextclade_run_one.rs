@@ -1,6 +1,7 @@
 use crate::align::insertions_strip::{get_aa_insertions, NucIns};
 use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
+use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
@@ -11,8 +12,8 @@ use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
-use crate::io::gene_map::GeneMap;
 use crate::io::aa::Aa;
+use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
@@ -142,6 +143,8 @@ pub fn nextclade_run_one(
     aa_deletions,
   } = link_nuc_and_aa_changes(&substitutions, &deletions, &aa_substitutions, &aa_deletions);
 
+  let aa_changes_groups = group_adjacent_aa_subs_and_dels(&aa_substitutions, &aa_deletions);
+
   let qc = qc_run(
     &private_nuc_mutations,
     &nucleotide_composition,
@@ -177,6 +180,7 @@ pub fn nextclade_run_one(
       total_aminoacid_insertions,
       unknown_aa_ranges,
       total_unknown_aa,
+      aa_changes_groups,
       alignment_start,
       alignment_end,
       alignment_score,
