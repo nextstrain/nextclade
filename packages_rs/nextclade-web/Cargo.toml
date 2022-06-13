@@ -1,7 +1,7 @@
 [package]
 name = "nextclade-web"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. WebAssembly module."
-version = "2.0.0-alpha.10"
+version = "2.0.0-alpha.11"
 edition = "2021"
 license = "MIT"
 publish = false
