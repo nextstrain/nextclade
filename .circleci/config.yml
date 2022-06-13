@@ -130,7 +130,7 @@ jobs:
             export CROSS="<< parameters.target_arch >>"
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
-            echo "DATA_FULL_DOMAIN=$(./scripts/cli_get_data_full_domain.sh $CIRCLE_BRANCH)"
+            echo "DATA_FULL_DOMAIN=$(./scripts/cli_get_data_full_domain.sh $CIRCLE_BRANCH)" > ".env"
 
             CROSS=${CROSS} ./docker-dev build-release
 
