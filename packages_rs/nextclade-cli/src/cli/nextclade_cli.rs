@@ -187,6 +187,9 @@ pub struct NextcladeDatasetGetArgs {
 
   /// Path to directory to write dataset files to.
   ///
+  /// This flag is mutually exclusive with `--output-zip`, and provides the equivalent output, but in the form of
+  /// a directory with files, instead of a compressed zip archive.
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::DirPath)]
@@ -194,6 +197,9 @@ pub struct NextcladeDatasetGetArgs {
   pub output_dir: Option<PathBuf>,
 
   /// Path to resulting dataset zip file.
+  ///
+  /// This flag is mutually exclusive with `--output-dir`, and provides the equivalent output, but in the form of
+  /// compressed zip archive instead of a directory with files.
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'z')]
