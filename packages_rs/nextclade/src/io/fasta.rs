@@ -1,4 +1,5 @@
 use crate::io::aa::from_aa_seq;
+use crate::io::concat::concat;
 use crate::io::decompression::Decompressor;
 use crate::io::fs::ensure_dir;
 use crate::io::gene_map::GeneMap;
@@ -64,16 +65,31 @@ impl<'a> FastaReader<'a> {
 
   pub fn from_str_and_path(contents: &'static str, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let decompressor = Decompressor::from_str_and_path(contents, filepath)?;
-    let buf_reader = BufReader::new(decompressor);
-    Ok(Self::new(Box::new(buf_reader)))
+    let reader = BufReader::new(decompressor);
+    Ok(Self::new(Box::new(reader)))
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
-    let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
-    let decompressor = Decompressor::from_path(file, &filepath)?;
-    let reader = BufReader::with_capacity(32 * 1024, decompressor);
-    Ok(Self::new(Box::new(reader)))
+    Self::from_paths(&[filepath])
+  }
+
+  /// Reads multiple files sequentially given a set of paths
+  pub fn from_paths<P: AsRef<Path>>(filepaths: &[P]) -> Result<Self, Report> {
+    let readers: Vec<Box<dyn BufRead + 'a>> = filepaths
+      .iter()
+      .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> {
+        let filepath = filepath.as_ref();
+        let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
+        let decompressor = Decompressor::from_path(file, &filepath)?;
+        let reader = BufReader::with_capacity(32 * 1024, decompressor);
+        Ok(Box::new(reader))
+      })
+      .collect::<Result<Vec<Box<dyn BufRead + 'a>>, Report>>()?;
+
+    let concat = concat(readers.into_iter());
+    let concat_buf = BufReader::new(concat);
+
+    Ok(Self::new(Box::new(concat_buf)))
   }
 
   #[allow(clippy::string_slice)]

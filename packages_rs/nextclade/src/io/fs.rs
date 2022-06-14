@@ -31,17 +31,8 @@ pub fn ensure_dir(filepath: impl AsRef<Path>) -> Result<(), Report> {
   .wrap_err_with(|| format!("When ensuring parent directory for '{filepath:#?}'"))
 }
 
-pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
-  let filepath = filepath.as_ref();
-
-  Ok(
-    filepath
-      .file_stem()
-      .ok_or_else(|| eyre!("Cannot get filename of path {filepath:#?}"))?
-      .to_str()
-      .ok_or_else(|| eyre!("Cannot get basename of path {filepath:#?}"))?
-      .to_owned(),
-  )
+pub fn basename_maybe(filepath: impl AsRef<Path>) -> Option<String> {
+  filepath.as_ref().file_stem()?.to_str()?.to_owned().into()
 }
 
 pub fn extension(filepath: impl AsRef<Path>) -> Option<String> {
