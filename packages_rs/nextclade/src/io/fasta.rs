@@ -6,11 +6,11 @@ use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
-use log::trace;
+use log::{info, trace};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Read};
+use std::io::{stdin, BufRead, BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
@@ -75,6 +75,11 @@ impl<'a> FastaReader<'a> {
 
   /// Reads multiple files sequentially given a set of paths
   pub fn from_paths<P: AsRef<Path>>(filepaths: &[P]) -> Result<Self, Report> {
+    if filepaths.is_empty() {
+      info!("Reading input fasta from standard input");
+      return Ok(Self::new(Box::new(BufReader::new(stdin()))));
+    }
+
     let readers: Vec<Box<dyn BufRead + 'a>> = filepaths
       .iter()
       .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> {
