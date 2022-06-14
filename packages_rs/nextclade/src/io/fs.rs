@@ -53,8 +53,8 @@ pub fn extension(filepath: impl AsRef<Path>) -> Option<String> {
   filepath.extension().map(OsStr::to_str).flatten().map(str::to_owned)
 }
 
-pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> Result<bool, Report> {
-  Ok(extension(filepath.as_ref())?.eq_ignore_ascii_case(ext.as_ref()))
+pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> bool {
+  extension(filepath.as_ref()).map_or(false, |fext| fext.eq_ignore_ascii_case(ext.as_ref()))
 }
 
 /// Reads entire file into a string.
