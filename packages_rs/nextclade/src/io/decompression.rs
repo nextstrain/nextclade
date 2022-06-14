@@ -61,39 +61,42 @@ impl<'r> Decompressor<'r> {
   pub fn from_str_and_path(content: &'r str, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let reader = content.as_bytes();
-    let (compression_type, ext) = guess_compression_from_filepath(filepath)?;
+    let (compression_type, ext) = guess_compression_from_filepath(filepath);
     Self::new(reader, &compression_type)
   }
 
   pub fn from_path<R: 'static + Read>(reader: R, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let (compression_type, ext) = guess_compression_from_filepath(filepath)?;
+    let (compression_type, ext) = guess_compression_from_filepath(filepath);
     Self::new(reader, &compression_type)
   }
 }
 
-pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> Result<(CompressionType, String), Report> {
+pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (CompressionType, String) {
   let filepath = filepath.as_ref();
 
-  let ext = extension(filepath)?;
+  match extension(filepath).map(|ext|ext.to_lowercase()) {
+    None => (CompressionType::None, "".to_owned()),
+    Some(ext) => {
+      let compression_type: CompressionType = match ext.as_str() {
+        #[cfg(not(target_arch = "wasm32"))]
+        "bz2" => CompressionType::Bzip2,
+        #[cfg(not(target_arch = "wasm32"))]
+        "xz" => CompressionType::Xz,
+        #[cfg(not(target_arch = "wasm32"))]
+        "zst" => CompressionType::Zstandard,
+        "gz" => CompressionType::Gzip,
+        _ => CompressionType::None,
+      };
 
-  let compression_type: CompressionType = match ext.to_lowercase().as_str() {
-    #[cfg(not(target_arch = "wasm32"))]
-    "bz2" => CompressionType::Bzip2,
-    #[cfg(not(target_arch = "wasm32"))]
-    "xz" => CompressionType::Xz,
-    #[cfg(not(target_arch = "wasm32"))]
-    "zst" => CompressionType::Zstandard,
-    "gz" => CompressionType::Gzip,
-    _ => CompressionType::None,
-  };
+      debug!(
+        "When processing '{filepath:#?}': Decompressor detected file extension '{ext}'. \
+        It will be using decompression algorithm: '{compression_type}'"
+      );
 
-  debug!(
-    "When processing '{filepath:#?}': Decompressor detected file extension '{ext}'. \
-    It will be using decompression algorithm: '{compression_type}'"
-  );
-
-  Ok((compression_type, ext))
+      (compression_type, ext)
+    }
+  }
 }
 
 impl<'r> Read for Decompressor<'r> {
