@@ -226,7 +226,7 @@ pub struct NextcladeRunArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fasta: PathBuf,
 
-  /// Path to a directory containing a dataset.
+  /// Path to a directory or a zip file containing a dataset.
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
@@ -237,7 +237,7 @@ pub struct NextcladeRunArgs {
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
   #[clap(long, short = 'D')]
-  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(value_hint = ValueHint::AnyPath)]
   pub input_dataset: Option<PathBuf>,
 
   /// Path to a FASTA file containing reference sequence.
