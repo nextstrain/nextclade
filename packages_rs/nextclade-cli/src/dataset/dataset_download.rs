@@ -64,18 +64,49 @@ pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Resu
   Ok(s)
 }
 
-pub fn dataset_zip_load(filepath: impl AsRef<Path>, genes: Option<Vec<String>>) -> Result<DatasetFiles, Report> {
-  let file = File::open(filepath)?;
+pub fn dataset_zip_load(
+  run_args: &NextcladeRunArgs,
+  dataset_zip: impl AsRef<Path>,
+  genes: Option<Vec<String>>,
+) -> Result<DatasetFiles, Report> {
+  let file = File::open(dataset_zip)?;
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
 
-  let ref_record = read_one_fasta_str(&zip_read_str(&mut zip, "reference.fasta")?)?;
-  let virus_properties = VirusProperties::from_str(&zip_read_str(&mut zip, "virus_properties.json")?)?;
-  let tree = AuspiceTree::from_str(&zip_read_str(&mut zip, "tree.json")?)?;
-  let gene_map = read_gff3_str(&zip_read_str(&mut zip, "genemap.gff")?)?;
-  let gene_map = filter_gene_map(Some(gene_map), genes)?;
-  let qc_config = QcConfig::from_str(&zip_read_str(&mut zip, "qc.json")?)?;
-  let primers = PcrPrimer::from_str(&zip_read_str(&mut zip, "primers.csv")?, &ref_record.seq)?;
+  let ref_record = run_args.input_ref.as_ref().map_or_else(
+    || read_one_fasta_str(&zip_read_str(&mut zip, "reference.fasta")?),
+    |input_ref| read_one_fasta(input_ref),
+  )?;
+
+  let tree = run_args.input_tree.as_ref().map_or_else(
+    || AuspiceTree::from_str(&zip_read_str(&mut zip, "tree.json")?),
+    |input_tree| AuspiceTree::from_path(&input_tree),
+  )?;
+
+  let qc_config = run_args.input_qc_config.as_ref().map_or_else(
+    || QcConfig::from_str(&zip_read_str(&mut zip, "qc.json")?),
+    |input_qc_config| QcConfig::from_path(&input_qc_config),
+  )?;
+
+  let virus_properties = run_args.input_virus_properties.as_ref().map_or_else(
+    || VirusProperties::from_str(&zip_read_str(&mut zip, "virus_properties.json")?),
+    |input_virus_properties| VirusProperties::from_path(&input_virus_properties),
+  )?;
+
+  let primers = run_args.input_pcr_primers.as_ref().map_or_else(
+    || PcrPrimer::from_str(&zip_read_str(&mut zip, "primers.csv")?, &ref_record.seq),
+    |input_pcr_primers| PcrPrimer::from_path(&input_pcr_primers, &ref_record.seq),
+  )?;
+
+  let gene_map = run_args.input_gene_map.as_ref().map_or_else(
+    || {
+      filter_gene_map(
+        Some(read_gff3_str(&zip_read_str(&mut zip, "genemap.gff")?)?),
+        genes.clone(),
+      )
+    },
+    |input_gene_map| filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes.clone()),
+  )?;
 
   Ok(DatasetFiles {
     ref_record,

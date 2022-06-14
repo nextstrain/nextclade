@@ -40,7 +40,7 @@ pub struct DatasetFilePaths {
 pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<String>>) -> Result<DatasetFiles, Report> {
   if let Some(input_dataset) = run_args.input_dataset.as_ref() {
     if input_dataset.is_file() && has_extension(input_dataset, "zip")? {
-      dataset_zip_load(input_dataset, genes)
+      dataset_zip_load(run_args, input_dataset, genes)
     } else if input_dataset.is_dir() {
       dataset_dir_load(run_args.clone(), input_dataset, genes)
     } else {
