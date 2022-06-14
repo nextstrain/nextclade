@@ -31,6 +31,10 @@ pub fn ensure_dir(filepath: impl AsRef<Path>) -> Result<(), Report> {
   .wrap_err_with(|| format!("When ensuring parent directory for '{filepath:#?}'"))
 }
 
+pub fn filename_maybe(filepath: impl AsRef<Path>) -> Option<String> {
+  filepath.as_ref().file_name()?.to_str()?.to_owned().into()
+}
+
 pub fn basename_maybe(filepath: impl AsRef<Path>) -> Option<String> {
   filepath.as_ref().file_stem()?.to_str()?.to_owned().into()
 }
