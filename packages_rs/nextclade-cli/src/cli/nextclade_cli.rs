@@ -1,5 +1,5 @@
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
