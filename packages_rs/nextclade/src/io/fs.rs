@@ -1,4 +1,5 @@
 use eyre::{eyre, Report, WrapErr};
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
@@ -55,16 +56,9 @@ pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
   )
 }
 
-pub fn extension(filepath: impl AsRef<Path>) -> Result<String, Report> {
+pub fn extension(filepath: impl AsRef<Path>) -> Option<String> {
   let filepath = filepath.as_ref();
-  Ok(
-    filepath
-      .extension()
-      .ok_or_else(|| eyre!("Cannot get extension of path {filepath:#?}"))?
-      .to_str()
-      .ok_or_else(|| eyre!("Cannot convert extension to string when getting extension of path {filepath:#?}"))?
-      .to_owned(),
-  )
+  filepath.extension().map(OsStr::to_str).flatten().map(str::to_owned)
 }
 
 pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> Result<bool, Report> {

@@ -1,5 +1,5 @@
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
@@ -529,7 +529,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
     let mut base_name = basename(&input_fasta)?;
-    if extension(&base_name)?.to_lowercase() == "fasta" {
+    if extension(&base_name).map(|ext| ext.to_lowercase()) == Some("fasta".to_owned()) {
       // Additionally handle cases like `.fasta.gz`
       base_name = basename(&base_name)?;
     }
