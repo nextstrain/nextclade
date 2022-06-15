@@ -14,7 +14,8 @@ import {
   seqMarkerGapHeightStateAtom,
   seqMarkerMutationHeightStateAtom,
   seqMarkerUnsequencedHeightStateAtom,
-  maxNucMarkersAtom,
+  maxNumNucMarkersAtom,
+  maxTotalNucMarkersAtom,
 } from 'src/state/seqViewSettings.state'
 
 /** Adapts Recoil state  `enum` to `string` */
@@ -47,7 +48,8 @@ export function useSeqMarkerState(state: RecoilState<SeqMarkerHeightState>) {
 export function SeqViewSettings() {
   const { t } = useTranslationSafe()
 
-  const [maxNucMarkers, setMaxNucMarkers] = useRecoilStateDeferred(maxNucMarkersAtom)
+  const [maxNumNucMarkers, setMaxNumNucMarkers] = useRecoilStateDeferred(maxNumNucMarkersAtom)
+  const [maxTotalNucMarkers, setMaxTotalNucMarkers] = useRecoilStateDeferred(maxTotalNucMarkersAtom)
 
   const [seqMarkerMissingHeightState, setSeqMarkerMissingHeightState] = useSeqMarkerState(
     seqMarkerMissingHeightStateAtom,
@@ -70,14 +72,26 @@ export function SeqViewSettings() {
           <Form>
             <NumericField
               identifier="max-nuc-markers"
-              label={t('Maximum number of nucleotide sequence view markers')}
+              label={t('Max number of nucleotide sequence view markers per sequence')}
               title={t(
-                'Sets threshold on maximum number of markers (mutations, deletions etc.) to display in nucleotide views. Reducing this number increases performance. If the threshold is reached, then the nucleotide sequence view will be disabled.',
+                'Sets threshold on maximum number of markers (mutations, deletions etc.) to display in nucleotide views, for an individual sequence. Reducing this number increases performance. If the threshold is reached, then the nucleotide sequence view will be disabled.',
               )}
               min={0}
               max={1_000_000}
-              value={maxNucMarkers}
-              onValueChanged={setMaxNucMarkers}
+              value={maxNumNucMarkers}
+              onValueChanged={setMaxNumNucMarkers}
+            />
+
+            <NumericField
+              identifier="total-nuc-markers"
+              label={t('Max total nucleotide sequence view markers (globally)')}
+              title={t(
+                'Sets threshold on maximum number of markers (mutations, deletions etc.) to display in nucleotide views overall. Reducing this number increases performance. If the threshold is reached, then the nucleotide sequence view will be disabled.',
+              )}
+              min={0}
+              max={1_000_000}
+              value={maxTotalNucMarkers}
+              onValueChanged={setMaxTotalNucMarkers}
             />
 
             <FormGroup>
