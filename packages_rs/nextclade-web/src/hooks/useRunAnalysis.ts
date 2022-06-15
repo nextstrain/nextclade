@@ -22,18 +22,19 @@ import {
 import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
 import {
-  qrySeqInputAtom,
   refSeqInputAtom,
   geneMapInputAtom,
   refTreeInputAtom,
   qcConfigInputAtom,
   virusPropertiesInputAtom,
   primersCsvInputAtom,
+  useQuerySeqInputs,
 } from 'src/state/inputs.state'
 
 export function useRunAnalysis() {
   const router = useRouter()
   const dispatch = useDispatch()
+  const { qryInputs } = useQuerySeqInputs()
 
   return useRecoilCallback(
     ({ set, reset, snapshot: { getPromise } }) =>
@@ -45,7 +46,6 @@ export function useRunAnalysis() {
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
-        const qrySeq = getPromise(qrySeqInputAtom)
 
         const inputs: LaunchAnalysisInputs = {
           ref_seq_str: getPromise(refSeqInputAtom),
@@ -91,13 +91,13 @@ export function useRunAnalysis() {
           .push('/results', '/results')
           .then(async () => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.initWorkers)
-            return launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads)
+            return launchAnalysis(qryInputs, inputs, callbacks, datasetCurrent, numThreads)
           })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch],
+    [router, dispatch, qryInputs],
   )
 }

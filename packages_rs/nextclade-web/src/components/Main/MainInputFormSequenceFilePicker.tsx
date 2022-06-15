@@ -1,6 +1,8 @@
+import { noop } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
-import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { MainInputFormSequencesCurrent } from 'src/components/Main/MainInputFormSequencesCurrent'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 
@@ -15,7 +17,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
-import { qrySeqInputAtom, hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { hasRequiredInputsAtom, useQuerySeqInputs } from 'src/state/inputs.state'
 
 const SequenceFilePickerContainer = styled.section`
   display: flex;
@@ -34,8 +36,7 @@ export function MainInputFormSequenceFilePicker() {
   const { t } = useTranslationSafe()
 
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const [qrySeq, setQrySeq] = useRecoilState(qrySeqInputAtom)
-  const removeQrySeq = useResetRecoilState(qrySeqInputAtom)
+  const { qryInputs, addQryInputs } = useQuerySeqInputs()
   const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
   const canRun = useRecoilValue(canRunAtom)
@@ -48,25 +49,25 @@ export function MainInputFormSequenceFilePicker() {
   const run = useRunAnalysis()
 
   const setSequences = useCallback(
-    (input: AlgorithmInput) => {
-      setQrySeq(input)
+    (inputs: AlgorithmInput[]) => {
+      addQryInputs(inputs)
 
       if (shouldRunAutomatically) {
         run()
       }
     },
-    [run, setQrySeq, shouldRunAutomatically],
+    [addQryInputs, run, shouldRunAutomatically],
   )
 
   const setExampleSequences = useCallback(() => {
     if (datasetCurrent) {
-      setQrySeq(new AlgorithmInputDefault(datasetCurrent))
+      addQryInputs([new AlgorithmInputDefault(datasetCurrent)])
 
       if (shouldRunAutomatically) {
         run()
       }
     }
-  }, [datasetCurrent, run, setQrySeq, shouldRunAutomatically])
+  }, [addQryInputs, datasetCurrent, run, shouldRunAutomatically])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
     const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasInputErrors
@@ -80,30 +81,41 @@ export function MainInputFormSequenceFilePicker() {
   }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
-    const cannotLoadExample = hasRequiredInputs || hasInputErrors || !datasetCurrent
+    const cannotLoadExample = hasInputErrors || !datasetCurrent
     return (
       <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
         {t('Load example')}
       </Button>
     )
-  }, [datasetCurrent, hasInputErrors, hasRequiredInputs, setExampleSequences, t])
+  }, [datasetCurrent, hasInputErrors, setExampleSequences, t])
 
   const onToggleRunAutomatically = useCallback(() => {
     setShouldRunAutomatically((shouldRunAutomatically) => !shouldRunAutomatically)
   }, [setShouldRunAutomatically])
 
+  const headerText = useMemo(() => {
+    if (qryInputs.length > 0) {
+      return t('Add more sequence data')
+    }
+    return t('Provide sequence data')
+  }, [qryInputs.length, t])
+
   return (
     <SequenceFilePickerContainer>
+      <MainInputFormSequencesCurrent />
+
       <FilePicker
-        title={t('Provide sequence data')}
+        className="my-3"
+        title={headerText}
         icon={icon}
         exampleUrl="https://example.com/sequences.fasta"
         pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
-        input={qrySeq}
+        input={undefined}
         error={qrySeqError}
         isInProgress={false}
-        onRemove={removeQrySeq}
-        onInput={setSequences}
+        onRemove={noop}
+        onInputs={setSequences}
+        multiple
       />
 
       <Row noGutters className="mt-2">
