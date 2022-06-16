@@ -1,6 +1,9 @@
 export function formatRange(begin: number, end: number) {
   if (begin > end) {
     console.warn(`formatRange: Attempted to format an invalid range: \`[${begin}; ${end})\`. This is probably a bug.`)
+  }
+
+  if (begin >= end) {
     return 'empty range'
   }
 
