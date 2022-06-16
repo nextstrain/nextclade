@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
 import { AlgorithmInput } from 'src/algorithms/types'
 
-const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
+export const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
   key: 'qrySeqInputsStorage',
   default: [],
 })

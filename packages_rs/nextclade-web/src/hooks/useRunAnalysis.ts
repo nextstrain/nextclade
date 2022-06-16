@@ -22,19 +22,18 @@ import {
 import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
 import {
+  qrySeqInputsStorageAtom,
   refSeqInputAtom,
   geneMapInputAtom,
   refTreeInputAtom,
   qcConfigInputAtom,
   virusPropertiesInputAtom,
   primersCsvInputAtom,
-  useQuerySeqInputs,
 } from 'src/state/inputs.state'
 
 export function useRunAnalysis() {
   const router = useRouter()
   const dispatch = useDispatch()
-  const { qryInputs } = useQuerySeqInputs()
 
   return useRecoilCallback(
     ({ set, reset, snapshot: { getPromise } }) =>
@@ -46,6 +45,8 @@ export function useRunAnalysis() {
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
+
+        const qryInputs = getPromise(qrySeqInputsStorageAtom)
 
         const inputs: LaunchAnalysisInputs = {
           ref_seq_str: getPromise(refSeqInputAtom),
@@ -98,6 +99,6 @@ export function useRunAnalysis() {
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch, qryInputs],
+    [router, dispatch],
   )
 }
