@@ -46,7 +46,7 @@ const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, keyof Datase
 }
 
 export async function launchAnalysis(
-  qryFastaInputs: AlgorithmInput[],
+  qryFastaInputs: Promise<AlgorithmInput[]>,
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
   datasetPromise: Promise<Dataset | undefined>,
@@ -55,7 +55,7 @@ export async function launchAnalysis(
   const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
-  const qryFastaStr = await getQueryFasta(qryFastaInputs)
+  const qryFastaStr = await getQueryFasta(await qryFastaInputs)
 
   const dataset = await datasetPromise
   if (!dataset) {
