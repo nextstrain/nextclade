@@ -89,9 +89,12 @@ pub fn results_to_json_string(
 }
 
 pub fn results_to_ndjson_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
-  let mut writer = NdjsonWriter::new(Vec::<u8>::new())?;
-  for output in outputs {
-    writer.write(output)?;
+  let mut buf = Vec::<u8>::new();
+  {
+    let mut writer = NdjsonWriter::new(&mut buf)?;
+    for output in outputs {
+      writer.write(output)?;
+    }
   }
-  Ok(String::from_utf8(writer.into_inner()?)?)
+  Ok(String::from_utf8(buf)?)
 }

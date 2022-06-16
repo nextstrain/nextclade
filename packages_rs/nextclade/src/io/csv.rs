@@ -1,3 +1,4 @@
+use crate::io::file::create_file;
 use crate::io::fs::{ensure_dir, read_file_to_string};
 use crate::utils::error::to_eyre_error;
 use csv::{ReaderBuilder as CsvReaderBuilder, Writer as CsvWriterImpl, WriterBuilder as CsvWriterBuilder};
@@ -32,16 +33,14 @@ impl<W: 'static + Write + Sync + Send> CsvStructWriter<W> {
 /// Writes CSV files. Each row is a serde-annotated struct.
 pub struct CsvStructFileWriter {
   pub filepath: PathBuf,
-  pub writer: CsvStructWriter<BufWriter<File>>,
+  pub writer: CsvStructWriter<Box<dyn Write + Sync + Send>>,
 }
 
 impl CsvStructFileWriter {
   pub fn new(filepath: impl AsRef<Path>, delimiter: u8) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    ensure_dir(&filepath)?;
-    let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
-    let buf_file = BufWriter::with_capacity(32 * 1024, file);
-    let writer = CsvStructWriter::new(buf_file, delimiter)?;
+    let file = create_file(filepath)?;
+    let writer = CsvStructWriter::new(file, delimiter)?;
     Ok(Self {
       filepath: filepath.to_owned(),
       writer,
@@ -91,16 +90,14 @@ impl<W: 'static + Write + Send + Sync> VecWriter for CsvVecWriter<W> {
 pub struct CsvVecFileWriter {
   pub filepath: PathBuf,
   pub headers: Vec<String>,
-  pub writer: CsvVecWriter<BufWriter<File>>,
+  pub writer: CsvVecWriter<Box<dyn Write + Sync + Send>>,
 }
 
 impl CsvVecFileWriter {
   pub fn new(filepath: impl AsRef<Path>, delimiter: u8, headers: &[String]) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    ensure_dir(&filepath)?;
-    let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
-    let buf_file = BufWriter::with_capacity(32 * 1024, file);
-    let writer = CsvVecWriter::new(buf_file, delimiter, headers)?;
+    let file = create_file(filepath)?;
+    let writer = CsvVecWriter::new(file, delimiter, headers)?;
     Ok(Self {
       filepath: filepath.to_owned(),
       headers: headers.to_owned(),

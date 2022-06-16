@@ -120,7 +120,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let outputs = &mut outputs;
 
     s.spawn(|_| {
-      let mut reader = FastaReader::from_path(&input_fasta).unwrap();
+      let mut reader = FastaReader::from_paths(&input_fasta).unwrap();
       loop {
         let mut record = FastaRecord::default();
         reader.read(&mut record).unwrap();

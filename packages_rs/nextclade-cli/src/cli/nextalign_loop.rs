@@ -67,7 +67,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextalignRecord>(CHANNEL_SIZE);
 
     s.spawn(|_| {
-      let mut reader = FastaReader::from_path(&input_fasta).unwrap();
+      let mut reader = FastaReader::from_paths(&input_fasta).unwrap();
       loop {
         let mut record = FastaRecord::default();
         reader.read(&mut record).unwrap();

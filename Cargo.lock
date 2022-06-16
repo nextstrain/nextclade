@@ -1464,6 +1464,7 @@ name = "nextclade"
 version = "2.0.0-alpha.12"
 dependencies = [
  "assert2",
+ "atty",
  "auto_ops",
  "bio",
  "bio-types",

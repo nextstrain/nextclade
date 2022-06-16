@@ -1,18 +1,34 @@
 use crate::io::aa::from_aa_seq;
+use crate::io::concat::concat;
 use crate::io::decompression::Decompressor;
 use crate::io::fs::ensure_dir;
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
-use log::trace;
+use log::{info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Read};
+use std::io::{stdin, BufRead, BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
+
+use crate::io::file::create_file;
+#[cfg(not(target_arch = "wasm32"))]
+use atty::{is as is_tty, Stream};
+
+const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
+
+ - if you want to read fasta from the output of another program, try:
+
+    cat sequences.fasta | nextclade <your other flags>
+
+ - if you want to read fasta from file(s), try:
+
+    nextclade sequences.fasta sequences2.fasta <your other flags>
+"#;
 
 pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
@@ -64,16 +80,42 @@ impl<'a> FastaReader<'a> {
 
   pub fn from_str_and_path(contents: &'static str, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let decompressor = Decompressor::from_str_and_path(contents, filepath)?;
-    let buf_reader = BufReader::new(decompressor);
-    Ok(Self::new(Box::new(buf_reader)))
+    let reader = BufReader::new(decompressor);
+    Ok(Self::new(Box::new(reader)))
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
-    let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
-    let decompressor = Decompressor::from_path(file, &filepath)?;
-    let reader = BufReader::with_capacity(32 * 1024, decompressor);
-    Ok(Self::new(Box::new(reader)))
+    Self::from_paths(&[filepath])
+  }
+
+  /// Reads multiple files sequentially given a set of paths
+  pub fn from_paths<P: AsRef<Path>>(filepaths: &[P]) -> Result<Self, Report> {
+    if filepaths.is_empty() {
+      info!("Reading input fasta from standard input");
+
+      #[cfg(not(target_arch = "wasm32"))]
+      if is_tty(Stream::Stdin) {
+        warn!("{TTY_WARNING}");
+      }
+
+      return Ok(Self::new(Box::new(BufReader::new(stdin()))));
+    }
+
+    let readers: Vec<Box<dyn BufRead + 'a>> = filepaths
+      .iter()
+      .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> {
+        let filepath = filepath.as_ref();
+        let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
+        let decompressor = Decompressor::from_path(file, &filepath)?;
+        let reader = BufReader::with_capacity(32 * 1024, decompressor);
+        Ok(Box::new(reader))
+      })
+      .collect::<Result<Vec<Box<dyn BufRead + 'a>>, Report>>()?;
+
+    let concat = concat(readers.into_iter());
+    let concat_buf = BufReader::new(concat);
+
+    Ok(Self::new(Box::new(concat_buf)))
   }
 
   #[allow(clippy::string_slice)]
@@ -144,11 +186,7 @@ impl FastaWriter {
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
-    ensure_dir(&filepath)?;
-    let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
-    let writer = BufWriter::with_capacity(32 * 1024, file);
-    Ok(Self::new(Box::new(writer)))
+    Ok(Self::new(create_file(filepath)?))
   }
 
   pub fn write(&mut self, name: &str, seq: &str) -> Result<(), Report> {

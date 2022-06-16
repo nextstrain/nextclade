@@ -1,3 +1,4 @@
+use crate::cli::common::get_fasta_basename;
 use crate::io::http_client::ProxyConfig;
 use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
@@ -8,7 +9,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
-use nextclade::io::fs::{basename, extension};
+use nextclade::io::fs::{basename_maybe, extension};
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -228,9 +229,8 @@ pub enum NextcladeOutputSelection {
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunArgs {
   /// Path to a FASTA file with input sequences
-  #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_fasta: PathBuf,
+  pub input_fasta: Vec<PathBuf>,
 
   /// Path to a directory or a zip file containing a dataset.
   ///
@@ -510,17 +510,17 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   let NextcladeRunArgs {
     input_fasta,
     output_all,
-    ref mut output_basename,
-    ref mut output_ndjson,
-    ref mut output_json,
-    ref mut output_csv,
-    ref mut output_tsv,
-    ref mut output_tree,
-    ref mut output_errors,
-    ref mut output_fasta,
-    ref mut output_insertions,
-    ref mut output_translations,
-    ref mut output_selection,
+    output_basename,
+    output_ndjson,
+    output_json,
+    output_csv,
+    output_tsv,
+    output_tree,
+    output_errors,
+    output_fasta,
+    output_insertions,
+    output_translations,
+    output_selection,
     ..
   } = run_args;
 
@@ -528,13 +528,10 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   // while taking care to preserve values of any individual `--output-*` flags,
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
-    let mut base_name = basename(&input_fasta)?;
-    if extension(&base_name).map(|ext| ext.to_lowercase()) == Some("fasta".to_owned()) {
-      // Additionally handle cases like `.fasta.gz`
-      base_name = basename(&base_name)?;
-    }
+    let output_basename = output_basename
+      .clone()
+      .unwrap_or_else(|| get_fasta_basename(input_fasta).unwrap_or_else(|| "nextclade".to_owned()));
 
-    let output_basename = output_basename.get_or_insert(base_name);
     let default_output_file_path = output_all.join(&output_basename);
 
     // If `--output-selection` is empty or contains `all`, then fill it with all possible variants

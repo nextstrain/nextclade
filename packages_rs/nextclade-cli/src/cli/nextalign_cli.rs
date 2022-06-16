@@ -1,4 +1,5 @@
-use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
+use crate::cli::common::get_fasta_basename;
+use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
@@ -7,7 +8,6 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
-use nextclade::io::fs::basename;
 use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
@@ -83,9 +83,8 @@ pub enum NextalignOutputSelection {
 #[derive(Parser, Debug)]
 pub struct NextalignRunArgs {
   /// Path to a FASTA file with input sequences
-  #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_fasta: PathBuf,
+  pub input_fasta: Vec<PathBuf>,
 
   /// Path to a FASTA file containing reference sequence.
   ///
@@ -268,7 +267,10 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
   // while taking care to preserve values of any individual `--output-*` flags,
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
-    let output_basename = output_basename.get_or_insert(basename(&input_fasta)?);
+    let output_basename = output_basename
+      .clone()
+      .unwrap_or_else(|| get_fasta_basename(input_fasta).unwrap_or_else(|| "nextalign".to_owned()));
+
     let default_output_file_path = output_all.join(&output_basename);
 
     // If `--output-selection` is empty or contains `all`, then fill it with all possible variants
