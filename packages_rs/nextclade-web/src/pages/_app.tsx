@@ -167,7 +167,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
   const fallback = useMemo(() => <Loading />, [])
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'development' && router.pathname === '/results') {
+    if (process.env.NODE_ENV !== 'development' && router.pathname !== '/') {
       void router.replace('/') // eslint-disable-line no-void
     }
 
