@@ -5,8 +5,9 @@ use crate::io::fs::ensure_dir;
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
+use atty::{is as is_tty, Stream};
 use eyre::{Report, WrapErr};
-use log::{info, trace};
+use log::{info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -14,6 +15,17 @@ use std::io::{stdin, BufRead, BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
+
+const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
+
+ - if you want to read fasta from the output of another program, try:
+
+    cat sequences.fasta | nextclade <your other flags>
+
+ - if you want to read fasta from file(s), try:
+
+    nextclade sequences.fasta sequences2.fasta <your other flags>
+"#;
 
 pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
@@ -77,6 +89,11 @@ impl<'a> FastaReader<'a> {
   pub fn from_paths<P: AsRef<Path>>(filepaths: &[P]) -> Result<Self, Report> {
     if filepaths.is_empty() {
       info!("Reading input fasta from standard input");
+
+      if is_tty(Stream::Stdin) {
+        warn!("{TTY_WARNING}");
+      }
+
       return Ok(Self::new(Box::new(BufReader::new(stdin()))));
     }
 
