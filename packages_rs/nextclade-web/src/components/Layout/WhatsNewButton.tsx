@@ -88,6 +88,8 @@ export const Modal = styled(ReactstrapModal)`
 `
 
 export const ModalBody = styled(ReactstrapModalBody)`
+  max-width: 100%;
+
   @media (min-width: 991.98px) {
     max-height: 66vh;
     margin: auto;
@@ -117,12 +119,16 @@ export const ModalBody = styled(ReactstrapModalBody)`
     padding: 2px;
     background-color: #eaeaea;
     border-radius: 2px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
   }
 
   pre {
     padding: 2px;
     background-color: #eaeaea;
     border-radius: 2px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
   }
 `
 
