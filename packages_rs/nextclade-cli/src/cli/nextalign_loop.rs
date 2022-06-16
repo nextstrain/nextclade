@@ -6,7 +6,8 @@ use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use nextclade::io::gene_map::read_gene_map;
+use nextclade::io::gene_map::{filter_gene_map, GeneMap};
+use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::to_nuc_seq;
 use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
@@ -47,12 +48,18 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
-  let gene_map = &read_gene_map(&input_gene_map, &genes)?;
+  let gene_map = match input_gene_map {
+    Some(input_gene_map) => {
+      let gene_map = read_gff3_file(&input_gene_map)?;
+      filter_gene_map(Some(gene_map), genes)?
+    }
+    None => GeneMap::new(),
+  };
 
-  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
+  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, &gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
+  let ref_peptides = &translate_genes_ref(ref_seq, &gene_map, &alignment_params)?;
 
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -75,6 +82,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
       drop(fasta_sender);
     });
 
+    let gene_map = &gene_map;
     for _ in 0..jobs {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
@@ -123,7 +131,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
 
     s.spawn(move |_| {
       let mut output_writer = NextalignOrderedWriter::new(
-        gene_map,
+        &gene_map,
         &output_fasta,
         &output_translations,
         &output_insertions,

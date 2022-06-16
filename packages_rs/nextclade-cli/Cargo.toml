@@ -39,6 +39,7 @@ serde = { version = "1.0.136", features = ["derive"] }
 strum = "0.24.0"
 strum_macros = "0.24"
 url = { version = "2.2.2", features = ["serde"] }
+zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 
 [target.'cfg(all(target_os="linux", target_arch="x86_64"))'.dependencies]
 mimalloc = { version = "0.1.28", default-features = false, optional = true }

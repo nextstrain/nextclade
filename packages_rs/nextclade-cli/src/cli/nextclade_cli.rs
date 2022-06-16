@@ -1,5 +1,5 @@
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
@@ -147,6 +147,7 @@ pub struct NextcladeDatasetListArgs {
 
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
+#[clap(group(ArgGroup::new("outputs").required(true).multiple(false)))]
 pub struct NextcladeDatasetGetArgs {
   /// Name of the dataset to download. Equivalent to `--attribute='name=<value>'`. Use `dataset list` command to view available datasets.
   #[clap(long, short = 'n')]
@@ -184,10 +185,27 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
   pub server: Url,
 
-  /// Path to directory to write dataset files to. If the target directory tree does not exist, it will be created.
+  /// Path to directory to write dataset files to.
+  ///
+  /// This flag is mutually exclusive with `--output-zip`, and provides the equivalent output, but in the form of
+  /// a directory with files, instead of a compressed zip archive.
+  ///
+  /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::DirPath)]
-  pub output_dir: PathBuf,
+  #[clap(group = "outputs")]
+  pub output_dir: Option<PathBuf>,
+
+  /// Path to resulting dataset zip file.
+  ///
+  /// This flag is mutually exclusive with `--output-dir`, and provides the equivalent output, but in the form of
+  /// compressed zip archive instead of a directory with files.
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long, short = 'z')]
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(group = "outputs")]
+  pub output_zip: Option<PathBuf>,
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
@@ -207,14 +225,14 @@ pub enum NextcladeOutputSelection {
   Errors,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fasta: PathBuf,
 
-  /// Path to a directory containing a dataset.
+  /// Path to a directory or a zip file containing a dataset.
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
@@ -225,7 +243,7 @@ pub struct NextcladeRunArgs {
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
   #[clap(long, short = 'D')]
-  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(value_hint = ValueHint::AnyPath)]
   pub input_dataset: Option<PathBuf>,
 
   /// Path to a FASTA file containing reference sequence.
@@ -627,57 +645,6 @@ At least one of the following flags is required:
   Ok(())
 }
 
-/// Get input filenames provided by user or, if not provided, deduce them from the dataset
-pub fn nextclade_get_input_filenames(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
-  let NextcladeRunArgs {
-    input_dataset,
-    input_ref,
-    input_tree,
-    input_qc_config,
-    input_virus_properties,
-    input_pcr_primers,
-    input_gene_map,
-    ..
-  } = run_args;
-
-  match input_dataset {
-    None => {
-      // If `--input-dataset` is not present, then check if the required individual input flags are provided
-      let missing_args = &[
-        (String::from("--input_ref"), input_ref),
-        (String::from("--input_tree"), input_tree),
-        (String::from("--input_qc_config"), input_qc_config),
-        (String::from("--input_virus_properties"), input_virus_properties),
-      ]
-      .into_iter()
-      .filter_map(|(key, val)| match val {
-        None => Some(key),
-        Some(_) => None,
-      })
-      .collect_vec();
-
-      if !missing_args.is_empty() {
-        let missing_args_str = missing_args.join("  \n");
-        return make_error!(
-          "When `--input-dataset` is not specified, the following arguments are required:\n{missing_args_str}"
-        );
-      }
-
-      Ok(())
-    }
-    Some(input_dataset) => {
-      // If `--input-dataset` is present, take input paths from it, unless individual input flags are provided
-      input_ref.get_or_insert(input_dataset.join("reference.fasta"));
-      input_tree.get_or_insert(input_dataset.join("tree.json"));
-      input_qc_config.get_or_insert(input_dataset.join("qc.json"));
-      input_virus_properties.get_or_insert(input_dataset.join("virus_properties.json"));
-      input_pcr_primers.get_or_insert(input_dataset.join("primers.csv"));
-      input_gene_map.get_or_insert(input_dataset.join("genemap.gff"));
-      Ok(())
-    }
-  }
-}
-
 pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
   let mut args = NextcladeArgs::parse();
 
@@ -698,7 +665,6 @@ pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
     NextcladeCommands::Run(ref mut run_args) => {
-      nextclade_get_input_filenames(run_args)?;
       nextclade_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
     _ => {}
