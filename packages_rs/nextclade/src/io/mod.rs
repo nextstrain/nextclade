@@ -4,6 +4,7 @@ pub mod csv;
 pub mod decompression;
 pub mod errors_csv;
 pub mod fasta;
+pub mod file;
 pub mod fs;
 pub mod gene_map;
 pub mod gff3;

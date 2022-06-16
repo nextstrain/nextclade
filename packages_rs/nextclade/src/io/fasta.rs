@@ -5,7 +5,6 @@ use crate::io::fs::ensure_dir;
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
-use atty::{is as is_tty, Stream};
 use eyre::{Report, WrapErr};
 use log::{info, trace, warn};
 use serde::{Deserialize, Serialize};
@@ -15,6 +14,10 @@ use std::io::{stdin, BufRead, BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
+
+use crate::io::file::create_file;
+#[cfg(not(target_arch = "wasm32"))]
+use atty::{is as is_tty, Stream};
 
 const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
 
@@ -90,6 +93,7 @@ impl<'a> FastaReader<'a> {
     if filepaths.is_empty() {
       info!("Reading input fasta from standard input");
 
+      #[cfg(not(target_arch = "wasm32"))]
       if is_tty(Stream::Stdin) {
         warn!("{TTY_WARNING}");
       }
@@ -182,11 +186,7 @@ impl FastaWriter {
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
-    ensure_dir(&filepath)?;
-    let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
-    let writer = BufWriter::with_capacity(32 * 1024, file);
-    Ok(Self::new(Box::new(writer)))
+    Ok(Self::new(create_file(filepath)?))
   }
 
   pub fn write(&mut self, name: &str, seq: &str) -> Result<(), Report> {
