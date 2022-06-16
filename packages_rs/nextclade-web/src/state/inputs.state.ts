@@ -1,11 +1,33 @@
-import { isNil } from 'lodash'
-import { atom, selector } from 'recoil'
+import { isEmpty } from 'lodash'
+import { useCallback } from 'react'
+import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
 import { AlgorithmInput } from 'src/algorithms/types'
 
-export const qrySeqInputAtom = atom<AlgorithmInput | undefined>({
-  key: 'qrySeqInput',
-  default: undefined,
+const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
+  key: 'qrySeqInputsStorage',
+  default: [],
 })
+
+export function useQuerySeqInputs() {
+  const [qryInputs, setQryInputs] = useRecoilState(qrySeqInputsStorageAtom)
+  const clearQryInputs = useResetRecoilState(qrySeqInputsStorageAtom)
+
+  const addQryInputs = useCallback(
+    (newInputs: AlgorithmInput[]) => {
+      setQryInputs((inputs) => [...inputs, ...newInputs])
+    },
+    [setQryInputs],
+  )
+
+  const removeQryInput = useCallback(
+    (index: number) => {
+      setQryInputs((inputs) => inputs.filter((_, i) => i !== index))
+    },
+    [setQryInputs],
+  )
+
+  return { qryInputs, addQryInputs, removeQryInput, clearQryInputs }
+}
 
 export const refSeqInputAtom = atom<AlgorithmInput | undefined>({
   key: 'refSeqInput',
@@ -40,7 +62,7 @@ export const primersCsvInputAtom = atom<AlgorithmInput | undefined>({
 export const hasRequiredInputsAtom = selector({
   key: 'hasRequiredInputs',
   get({ get }) {
-    return !isNil(get(qrySeqInputAtom))
+    return !isEmpty(get(qrySeqInputsStorageAtom))
   },
 })
 
@@ -49,7 +71,7 @@ export const inputResetAtom = selector<undefined>({
   key: 'inputReset',
   get: () => undefined,
   set({ reset }) {
-    reset(qrySeqInputAtom)
+    reset(qrySeqInputsStorageAtom)
     reset(refSeqInputAtom)
     reset(geneMapInputAtom)
     reset(refTreeInputAtom)

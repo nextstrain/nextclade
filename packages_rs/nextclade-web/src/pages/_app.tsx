@@ -16,9 +16,9 @@ import {
   geneMapInputAtom,
   primersCsvInputAtom,
   qcConfigInputAtom,
-  qrySeqInputAtom,
   refSeqInputAtom,
   refTreeInputAtom,
+  useQuerySeqInputs,
   virusPropertiesInputAtom,
 } from 'src/state/inputs.state'
 import {
@@ -79,6 +79,7 @@ export function RecoilStateInitializer() {
   const { query: urlQuery } = useMemo(() => parseUrl(router.asPath), [router.asPath])
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
+  const { addQryInputs } = useQuerySeqInputs()
 
   const run = useRunAnalysis()
 
@@ -111,7 +112,9 @@ export function RecoilStateInitializer() {
       })
       .then(() => {
         const qrySeqInput = createInputFromUrlParamMaybe(urlQuery, 'input-fasta')
-        set(qrySeqInputAtom, qrySeqInput)
+        if (qrySeqInput) {
+          addQryInputs([qrySeqInput])
+        }
 
         set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
         set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))

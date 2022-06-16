@@ -1,5 +1,6 @@
 import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import { isEmpty } from 'lodash'
 import { AlgorithmGlobalStatus } from 'src/algorithms/types'
 
 import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/algorithms/types'
@@ -45,7 +46,7 @@ const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, keyof Datase
 }
 
 export async function launchAnalysis(
-  qryFastaInput: Promise<AlgorithmInput | undefined>,
+  qryFastaInputs: AlgorithmInput[],
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
   datasetPromise: Promise<Dataset | undefined>,
@@ -54,7 +55,7 @@ export async function launchAnalysis(
   const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
-  const qryFastaStr = await getQueryFasta(await qryFastaInput)
+  const qryFastaStr = await getQueryFasta(qryFastaInputs)
 
   const dataset = await datasetPromise
   if (!dataset) {
@@ -93,12 +94,13 @@ export async function launchAnalysis(
   }
 }
 
-async function getQueryFasta(input: AlgorithmInput | undefined) {
-  // If sequence data is provided explicitly, load it
-  if (input) {
-    return input.getContent()
+async function getQueryFasta(inputs: AlgorithmInput[]) {
+  if (isEmpty(inputs)) {
+    throw new Error('Sequence fasta data is not available, but required')
   }
-  throw new Error('Sequence fasta data is not available, but required')
+
+  const contents = await concurrent.map(async (input) => input.getContent(), inputs)
+  return contents.join('\n')
 }
 
 /** Typed output of Object.entries(), assuming all fields have the same type */
