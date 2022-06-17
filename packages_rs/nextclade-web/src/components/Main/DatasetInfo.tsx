@@ -41,6 +41,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
         })}
       </DatasetInfoLine>
       <DatasetInfoLine>{t('Updated: {{updated}}', { updated: tagFormatted })}</DatasetInfoLine>
+      <DatasetInfoLine>{t('Dataset name: {{name}}', { name: name.value })}</DatasetInfoLine>
     </DatasetinfoContainer>
   )
 }
