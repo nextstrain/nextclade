@@ -84,7 +84,15 @@ pub enum NextalignOutputSelection {
 pub struct NextalignRunArgs {
   /// Path to a FASTA file with input sequences
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_fasta: Vec<PathBuf>,
+  pub input_fastas: Vec<PathBuf>,
+
+  /// REMOVED. Use positional arguments instead.
+  ///
+  /// Example: nextalign run -D dataset/ -O out/ seq1.fasta seq2.fasta
+  #[clap(long, short = 'i', visible_alias("sequences"))]
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_fasta: Option<PathBuf>,
 
   /// Path to a FASTA file containing reference sequence.
   ///
@@ -123,6 +131,12 @@ pub struct NextalignRunArgs {
   )]
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
+
+  /// REMOVED. Use `--output-all` instead
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub output_dir: Option<PathBuf>,
 
   /// Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames.
   ///
@@ -252,7 +266,7 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
 pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
   let NextalignRunArgs {
-    input_fasta,
+    input_fastas: input_fasta,
     output_all,
     ref mut output_basename,
     ref mut output_errors,
@@ -349,6 +363,47 @@ At least one of the following flags is required:
   Ok(())
 }
 
+const ERROR_MSG_INPUT_FASTA_REMOVED: &str = r#"The argument `--input-fasta` (alias: `--sequences`, `-i`) is removed in favor of positional arguments.
+
+Try:
+
+  nextalign run -r ref.fasta -m genemap.gff -O out/ seq1.fasta seq2.fasta
+
+                                                       ^          ^
+                                              one or multiple positional arguments
+                                                with paths to input fasta files
+
+
+When positional arguments are not provided, nextalign will read input fasta from standard input.
+
+For more information, type
+
+  nextalign run --help"#;
+
+const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
+
+When provided, `--output-all` allows to write all possible outputs into a directory.
+
+The defaut base name of the files can be overriden with `--output-basename` argument.
+
+The set of output files can be restricted with `--output-selection` argument.
+
+For more information, type:
+
+  nextalign run --help"#;
+
+pub fn nextalign_check_removed_args(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
+  if run_args.input_fasta.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
+  }
+
+  if run_args.output_dir.is_some() {
+    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
+  }
+
+  Ok(())
+}
+
 pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
   let mut args = NextalignArgs::parse();
 
@@ -369,6 +424,7 @@ pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
     NextalignCommands::Run(ref mut run_args) => {
+      nextalign_check_removed_args(run_args)?;
       nextalign_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
   }

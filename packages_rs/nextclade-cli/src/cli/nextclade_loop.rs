@@ -58,7 +58,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");
 
   let NextcladeRunArgs {
-    input_fasta,
+    input_fastas: input_fasta,
     output_all,
     output_basename,
     output_selection,
