@@ -8,6 +8,7 @@ import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'r
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
+import { BrowserWarning } from 'src/components/Common/BrowserWarning'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
@@ -191,6 +192,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                     <Suspense fallback={fallback}>
                       <SEO />
                       <PreviewWarning />
+                      <BrowserWarning />
                       <Component {...pageProps} />
                       <ErrorPopup />
                       <ReactQueryDevtools initialIsOpen={false} />
