@@ -23,7 +23,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");
 
   let NextalignRunArgs {
-    input_fasta,
+    input_fastas: input_fasta,
     input_ref,
     genes,
     input_gene_map,
@@ -38,6 +38,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     jobs,
     in_order,
     alignment_params: alignment_params_from_cli,
+    ..
   } = args;
 
   let mut alignment_params = AlignPairwiseParams::default();
