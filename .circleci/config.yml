@@ -292,6 +292,7 @@ jobs:
             cp .env.example .env
 
             sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+            sed -i -e "s|FULL_DOMAIN=autodetect|FULL_DOMAIN=${FULL_DOMAIN}|g" .env
 
             ./docker-dev web yarn install
             ./docker-dev web yarn lint
