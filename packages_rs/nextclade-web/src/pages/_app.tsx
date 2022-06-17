@@ -98,6 +98,7 @@ export function RecoilStateInitializer() {
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary
         setInitialized(false)
+        set(globalErrorAtom, sanitizeError(error))
         throw error
       })
       .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
