@@ -42,7 +42,6 @@ RUN set -euxo pipefail >/dev/null \
   lldb-${CLANG_VERSION} \
   llvm-${CLANG_VERSION} \
   llvm-${CLANG_VERSION}-dev \
-  llvm-${CLANG_VERSION}-linker-tools \
   llvm-${CLANG_VERSION}-tools \
 >/dev/null \
 && apt-get clean autoclean >/dev/null \
@@ -64,7 +63,7 @@ ENV CARGO_HOME="${HOME}/.cargo"
 ENV CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
 ENV RUSTUP_HOME="${HOME}/.rustup"
 ENV NODE_DIR="/opt/node"
-ENV PATH="/usr/lib/llvm-13/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
+ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
 
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \

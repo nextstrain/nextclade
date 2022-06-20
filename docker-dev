@@ -269,11 +269,13 @@ if [ "${WASM}" == "1" ]; then
 fi
 
 DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04}"
+CLANG_VERSION=${CLANG_VERSION:=13}
 DOCKER_TARGET="dev"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   if [[ "${CROSS}" == *-gnu ]]; then
     DOCKER_BASE_IMAGE="debian:8.11"
+    CLANG_VERSION="8"
   fi
 
   DOCKER_TARGET="cross-${CROSS}"
@@ -306,6 +308,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
     --network=host \
     --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
+    --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
     --build-arg="UID=$(id -u)" \
     --build-arg="GID=$(id -g)" \
     --build-arg="USER=user" \
