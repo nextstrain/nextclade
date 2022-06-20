@@ -1,7 +1,7 @@
 [package]
 name = "nextclade"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
-version = "2.0.0-beta.3"
+version = "2.0.0-beta.4"
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
 homepage = "https://clades.nextstrain.org/"
