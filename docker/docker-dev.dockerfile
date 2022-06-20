@@ -1,7 +1,6 @@
-# Freeze base image version to
-# ubuntu:20.04 (pushed 2022-04-21T23:04:30.548037Z)
-# https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-7b3e30a1f373b0621681f13b92feb928129c1c38977481ee788a793fcae64fb9
-FROM ubuntu@sha256:7b3e30a1f373b0621681f13b92feb928129c1c38977481ee788a793fcae64fb9 as base
+ARG DOCKER_BASE_IMAGE
+
+FROM $DOCKER_BASE_IMAGE as base
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
@@ -15,6 +14,7 @@ RUN set -euxo pipefail >/dev/null \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
+  apt-transport-https \
   bash \
   bash-completion \
   build-essential \
@@ -163,7 +163,6 @@ RUN set -euxo pipefail >/dev/null \
 && cargo quickinstall cargo-audit \
 && cargo quickinstall cargo-deny \
 && cargo quickinstall cargo-edit \
-&& cargo quickinstall cargo-generate \
 && cargo quickinstall cargo-watch \
 && cargo quickinstall wasm-pack \
 && cargo quickinstall xargo
