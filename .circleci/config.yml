@@ -58,6 +58,7 @@ jobs:
             declare -a TARGETS=(
               "aarch64-apple-darwin"
               "aarch64-unknown-linux-gnu"
+              "aarch64-unknown-linux-musl"
               "wasm32-unknown-unknown"
               "x86_64-apple-darwin"
               "x86_64-pc-windows-gnu"
@@ -428,11 +429,12 @@ workflows:
           matrix:
             parameters:
               target_arch:
-                - x86_64-apple-darwin
                 - aarch64-apple-darwin
-                - x86_64-unknown-linux-gnu
-                - x86_64-pc-windows-gnu
                 - aarch64-unknown-linux-gnu
+                - aarch64-unknown-linux-musl
+                - x86_64-apple-darwin
+                - x86_64-pc-windows-gnu
+                - x86_64-unknown-linux-gnu
                 - x86_64-unknown-linux-musl
 
       - Release-Cli-Github:
@@ -442,11 +444,12 @@ workflows:
             - nextclade_github
 
           requires:
-            - Build-Cli-x86_64-apple-darwin
             - Build-Cli-aarch64-apple-darwin
-            - Build-Cli-x86_64-unknown-linux-gnu
-            - Build-Cli-x86_64-pc-windows-gnu
             - Build-Cli-aarch64-unknown-linux-gnu
+            - Build-Cli-aarch64-unknown-linux-musl
+            - Build-Cli-x86_64-apple-darwin
+            - Build-Cli-x86_64-pc-windows-gnu
+            - Build-Cli-x86_64-unknown-linux-gnu
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Release-Cli-Docker:
