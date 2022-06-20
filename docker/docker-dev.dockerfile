@@ -1,16 +1,20 @@
 ARG DOCKER_BASE_IMAGE
+ARG CLANG_VERSION
 
 FROM $DOCKER_BASE_IMAGE as base
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
-ARG CLANG_VERSION="13"
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
 ARG NODEMON_VERSION="2.0.15"
 ARG YARN_VERSION="1.22.18"
+ARG CLANG_VERSION=$CLANG_VERSION
 
 RUN set -euxo pipefail >/dev/null \
+&& if grep wheezy /etc/apt/sources.list; then export IS_DEBIAN_WHEEZY=1; else export IS_DEBIAN_WHEEZY=0; fi \
+&& if [ ${IS_DEBIAN_WHEEZY} == 1 ]; then printf "deb http://archive.debian.org/debian wheezy main non-free contrib\ndeb http://archive.debian.org/debian-security wheezy/updates main non-free contrib\n" > "/etc/apt/sources.list"; fi \
+&& if [ ${IS_DEBIAN_WHEEZY} == 1 ]; then echo "Acquire::Check-Valid-Until false;" >> "/etc/apt/apt.conf.d/10-nocheckvalid"; fi \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
@@ -24,26 +28,35 @@ RUN set -euxo pipefail >/dev/null \
   gnupg \
   libssl-dev \
   lsb-release \
-  pigz \
-  pixz \
   pkg-config \
   sudo \
   time \
   xz-utils \
 >/dev/null \
-&& echo "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
+&& \
+  if [ "$(lsb_release -cs)" == "wheezy" ]; then \
+    echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs) main" >> "/etc/apt/sources.list.d/llvm.list"; \
+  else \
+    echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list"; \
+  fi \
 && curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
   clang-${CLANG_VERSION} \
-  clang-tools-${CLANG_VERSION} \
-  lld-${CLANG_VERSION} \
   lldb-${CLANG_VERSION} \
   llvm-${CLANG_VERSION} \
   llvm-${CLANG_VERSION}-dev \
   llvm-${CLANG_VERSION}-tools \
->/dev/null \
+  >/dev/null \
+&& if [ "$(lsb_release -cs)" != "wheezy" ]; then \
+    apt-get install -qq --no-install-recommends --yes \
+      clang-tools-${CLANG_VERSION} \
+      lld-${CLANG_VERSION} \
+      pigz \
+      pixz \
+    >/dev/null; \
+  fi \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
@@ -80,18 +93,20 @@ RUN set -euxo pipefail >/dev/null \
 # Install Node.js
 COPY .nvmrc /
 RUN set -eux >dev/null \
-&& mkdir -p "${NODE_DIR}" \
-&& cd "${NODE_DIR}" \
-&& NODE_VERSION=$(cat /.nvmrc) \
-&& curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
-&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
-&& npm config set scripts-prepend-node-path auto
+&& if [ "$(lsb_release -cs)" != "wheezy" ]; then \
+  mkdir -p "${NODE_DIR}" \
+  && cd "${NODE_DIR}" \
+  && NODE_VERSION=$(cat /.nvmrc) \
+  && curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
+  && npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
+  && npm config set scripts-prepend-node-path auto \
+;fi
 
 # Make a user and group
 RUN set -euxo pipefail >/dev/null \
 && \
   if [ -z "$(getent group ${GID})" ]; then \
-    addgroup --system --gid ${GID} ${GROUP}; \
+    groupadd --system --gid ${GID} ${GROUP}; \
   else \
     groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
   fi \
@@ -121,7 +136,7 @@ COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
 && RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
-&& curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init \
+&& curl --proto '=https' -sSf https://sh.rustup.rs > rustup-init \
 && chmod +x rustup-init \
 && ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}" \
 && rm rustup-init
