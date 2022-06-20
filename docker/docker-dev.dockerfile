@@ -205,20 +205,16 @@ USER 0
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& export DEBIAN_FRONTEND=noninteractive \
-&& apt-get update -qq --yes \
-&& apt-get install -qq --no-install-recommends --yes \
-  musl-dev \
-  musl-tools \
->/dev/null \
-&& apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null \
-&& rm -rf /var/lib/apt/lists/*
+&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
 
 USER ${USER}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add x86_64-unknown-linux-musl
+
+ENV CC_x86_64_unknown_linux_musl=x86_64-linux-musl-gcc
+ENV CXX_x86_64_unknown_linux_musl=x86_64-linux-musl-g++
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=x86_64-linux-musl-gcc
 
 
 # Cross-compilation to WebAssembly
@@ -256,6 +252,26 @@ RUN set -euxo pipefail >/dev/null \
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+
+
+# Cross-compilation for Linux ARM64 with libmusl
+FROM base as cross-aarch64-unknown-linux-musl
+
+USER 0
+
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
+
+USER ${USER}
+
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add aarch64-unknown-linux-musl
+
+ENV CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc
+ENV CXX_aarch64_unknown_linux_musl=aarch64-linux-musl-g++
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
 
 
 # Cross-compilation for Windows x86_64
