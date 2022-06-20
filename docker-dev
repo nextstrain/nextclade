@@ -274,8 +274,15 @@ DOCKER_TARGET="dev"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   if [[ "${CROSS}" == *-gnu ]]; then
-    DOCKER_BASE_IMAGE="debian:8.11"
-    CLANG_VERSION="8"
+
+    if [[ "${CROSS}" == x86_64-* ]]; then
+      DOCKER_BASE_IMAGE="debian:8.11"
+      CLANG_VERSION="8"
+    else
+      DOCKER_BASE_IMAGE="debian:9.13"
+      CLANG_VERSION="13"
+    fi
+
   fi
 
   DOCKER_TARGET="cross-${CROSS}"
