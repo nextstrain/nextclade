@@ -228,7 +228,15 @@ pub enum NextcladeOutputSelection {
 
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunArgs {
-  /// Path to a FASTA file with input sequences
+  /// Path to one or multiple FASTA files with input sequences
+  /// 
+  /// Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently 
+  /// decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file 
+  /// extension. If there's multiple input files, then different files can have different compression formats.
+  /// 
+  /// If no input files provided, the plain fasta input is read from standard input (stdin).
+  /// 
+  /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fastas: Vec<PathBuf>,
 
