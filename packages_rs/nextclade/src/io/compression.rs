@@ -75,7 +75,7 @@ impl<'r> Decompressor<'r> {
 pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (CompressionType, String) {
   let filepath = filepath.as_ref();
 
-  match extension(filepath).map(|ext|ext.to_lowercase()) {
+  match extension(filepath).map(|ext| ext.to_lowercase()) {
     None => (CompressionType::None, "".to_owned()),
     Some(ext) => {
       let compression_type: CompressionType = match ext.as_str() {
