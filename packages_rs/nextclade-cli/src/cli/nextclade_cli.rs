@@ -41,7 +41,7 @@ pub struct NextcladeArgs {
   pub command: NextcladeCommands,
 
   /// Make output more quiet or more verbose
-  #[clap(flatten)]
+  #[clap(flatten, next_help_heading = "  Verbosity")]
   pub verbosity: Verbosity<WarnLevel>,
 }
 
@@ -216,7 +216,7 @@ pub enum NextcladeOutputSelection {
 }
 
 #[derive(Parser, Debug, Clone)]
-pub struct NextcladeRunArgs {
+pub struct NextcladeRunInputArgs {
   /// Path to one or multiple FASTA files with input sequences
   ///
   /// Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently
@@ -227,6 +227,7 @@ pub struct NextcladeRunArgs {
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(display_order = 1)]
   pub input_fastas: Vec<PathBuf>,
 
   /// REMOVED. Use positional arguments instead.
@@ -322,7 +323,10 @@ pub struct NextcladeRunArgs {
   )]
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
+}
 
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunOutputArgs {
   /// REMOVED. Use `--output-all` instead
   #[clap(long)]
   #[clap(value_hint = ValueHint::DirPath)]
@@ -515,13 +519,28 @@ pub struct NextcladeRunArgs {
   /// Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.
   #[clap(long)]
   pub in_order: bool,
+}
 
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunOtherArgs {
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
-  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get() )]
+  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
   pub jobs: usize,
+}
 
-  #[clap(flatten)]
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunArgs {
+  #[clap(flatten, next_help_heading = "  Inputs")]
+  pub inputs: NextcladeRunInputArgs,
+
+  #[clap(flatten, next_help_heading = "  Outputs")]
+  pub outputs: NextcladeRunOutputArgs,
+
+  #[clap(flatten, next_help_heading = "  Alignment parameters")]
   pub alignment_params: AlignPairwiseParamsOptional,
+
+  #[clap(flatten, next_help_heading = "  Other")]
+  pub other: NextcladeRunOtherArgs,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
@@ -545,20 +564,39 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
 pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
   let NextcladeRunArgs {
-    input_fastas: input_fasta,
-    output_all,
-    output_basename,
-    output_ndjson,
-    output_json,
-    output_csv,
-    output_tsv,
-    output_tree,
-    output_errors,
-    output_fasta,
-    output_insertions,
-    output_translations,
-    output_selection,
-    ..
+    inputs:
+      NextcladeRunInputArgs {
+        input_fastas,
+        input_dataset,
+        input_ref,
+        input_tree,
+        input_qc_config,
+        input_virus_properties,
+        input_pcr_primers,
+        input_gene_map,
+        genes,
+        ..
+      },
+    outputs:
+      NextcladeRunOutputArgs {
+        output_all,
+        output_basename,
+        output_selection,
+        output_fasta,
+        output_translations,
+        output_ndjson,
+        output_json,
+        output_csv,
+        output_tsv,
+        output_tree,
+        output_insertions,
+        output_errors,
+        include_reference,
+        in_order,
+        ..
+      },
+    other: NextcladeRunOtherArgs { jobs },
+    alignment_params,
   } = run_args;
 
   // If `--output-all` is provided, then we need to deduce default output filenames,
@@ -567,7 +605,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   if let Some(output_all) = output_all {
     let output_basename = output_basename
       .clone()
-      .unwrap_or_else(|| get_fasta_basename(input_fasta).unwrap_or_else(|| "nextclade".to_owned()));
+      .unwrap_or_else(|| get_fasta_basename(input_fastas).unwrap_or_else(|| "nextclade".to_owned()));
 
     let default_output_file_path = output_all.join(&output_basename);
 
@@ -708,11 +746,11 @@ For more information, type
   nextclade run --help"#;
 
 pub fn nextclade_check_removed_args(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
-  if run_args.input_fasta.is_some() {
+  if run_args.inputs.input_fasta.is_some() {
     return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
   }
 
-  if run_args.output_dir.is_some() {
+  if run_args.outputs.output_dir.is_some() {
     return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
   }
 

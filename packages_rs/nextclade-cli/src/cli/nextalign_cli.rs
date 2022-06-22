@@ -36,7 +36,7 @@ pub struct NextalignArgs {
   pub command: NextalignCommands,
 
   /// Make output more quiet or more verbose
-  #[clap(flatten)]
+  #[clap(flatten, next_help_heading = "  Verbosity")]
   pub verbosity: Verbosity<WarnLevel>,
 }
 
@@ -71,7 +71,7 @@ pub enum NextalignOutputSelection {
 }
 
 #[derive(Parser, Debug)]
-pub struct NextalignRunArgs {
+pub struct NextalignRunInputArgs {
   /// Path to one or multiple FASTA files with input sequences
   ///
   /// Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently
@@ -82,6 +82,7 @@ pub struct NextalignRunArgs {
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(display_order = 1)]
   pub input_fastas: Vec<PathBuf>,
 
   /// REMOVED. Use positional arguments instead.
@@ -129,7 +130,10 @@ pub struct NextalignRunArgs {
   )]
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
+}
 
+#[derive(Parser, Debug)]
+pub struct NextalignRunOutputArgs {
   /// REMOVED. Use `--output-all` instead
   #[clap(long)]
   #[clap(value_hint = ValueHint::DirPath)]
@@ -245,13 +249,28 @@ pub struct NextalignRunArgs {
   /// Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.
   #[clap(long)]
   pub in_order: bool,
+}
 
+#[derive(Parser, Debug)]
+pub struct NextalignRunOtherArgs {
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
-  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get() )]
+  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
   pub jobs: usize,
+}
 
-  #[clap(flatten)]
+#[derive(Parser, Debug)]
+pub struct NextalignRunArgs {
+  #[clap(flatten, next_help_heading = "  Inputs")]
+  pub inputs: NextalignRunInputArgs,
+
+  #[clap(flatten, next_help_heading = "  Outputs")]
+  pub outputs: NextalignRunOutputArgs,
+
+  #[clap(flatten, next_help_heading = "  Alignment parameters")]
   pub alignment_params: AlignPairwiseParamsOptional,
+
+  #[clap(flatten, next_help_heading = "  Other")]
+  pub other: NextalignRunOtherArgs,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
@@ -275,15 +294,29 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
 pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
   let NextalignRunArgs {
-    input_fastas: input_fasta,
-    output_all,
-    ref mut output_basename,
-    ref mut output_errors,
-    ref mut output_fasta,
-    ref mut output_insertions,
-    ref mut output_translations,
-    ref mut output_selection,
-    ..
+    inputs:
+      NextalignRunInputArgs {
+        input_fastas,
+        input_ref,
+        input_gene_map,
+        genes,
+        ..
+      },
+    outputs:
+      NextalignRunOutputArgs {
+        output_all,
+        output_basename,
+        output_selection,
+        output_fasta,
+        output_translations,
+        output_insertions,
+        output_errors,
+        include_reference,
+        in_order,
+        ..
+      },
+    other: NextalignRunOtherArgs { jobs },
+    alignment_params,
   } = run_args;
 
   // If `--output-all` is provided, then we need to deduce default output filenames,
@@ -292,7 +325,7 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
   if let Some(output_all) = output_all {
     let output_basename = output_basename
       .clone()
-      .unwrap_or_else(|| get_fasta_basename(input_fasta).unwrap_or_else(|| "nextalign".to_owned()));
+      .unwrap_or_else(|| get_fasta_basename(input_fastas).unwrap_or_else(|| "nextalign".to_owned()));
 
     let default_output_file_path = output_all.join(&output_basename);
 
@@ -402,11 +435,11 @@ For more information, type:
   nextalign run --help"#;
 
 pub fn nextalign_check_removed_args(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
-  if run_args.input_fasta.is_some() {
+  if run_args.inputs.input_fasta.is_some() {
     return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
   }
 
-  if run_args.output_dir.is_some() {
+  if run_args.outputs.output_dir.is_some() {
     return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
   }
 

@@ -73,32 +73,32 @@ pub fn dataset_zip_load(
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
 
-  let ref_record = run_args.input_ref.as_ref().map_or_else(
+  let ref_record = run_args.inputs.input_ref.as_ref().map_or_else(
     || read_one_fasta_str(&zip_read_str(&mut zip, "reference.fasta")?),
     |input_ref| read_one_fasta(input_ref),
   )?;
 
-  let tree = run_args.input_tree.as_ref().map_or_else(
+  let tree = run_args.inputs.input_tree.as_ref().map_or_else(
     || AuspiceTree::from_str(&zip_read_str(&mut zip, "tree.json")?),
     |input_tree| AuspiceTree::from_path(&input_tree),
   )?;
 
-  let qc_config = run_args.input_qc_config.as_ref().map_or_else(
+  let qc_config = run_args.inputs.input_qc_config.as_ref().map_or_else(
     || QcConfig::from_str(&zip_read_str(&mut zip, "qc.json")?),
     |input_qc_config| QcConfig::from_path(&input_qc_config),
   )?;
 
-  let virus_properties = run_args.input_virus_properties.as_ref().map_or_else(
+  let virus_properties = run_args.inputs.input_virus_properties.as_ref().map_or_else(
     || VirusProperties::from_str(&zip_read_str(&mut zip, "virus_properties.json")?),
     |input_virus_properties| VirusProperties::from_path(&input_virus_properties),
   )?;
 
-  let primers = run_args.input_pcr_primers.as_ref().map_or_else(
+  let primers = run_args.inputs.input_pcr_primers.as_ref().map_or_else(
     || PcrPrimer::from_str(&zip_read_str(&mut zip, "primers.csv")?, &ref_record.seq),
     |input_pcr_primers| PcrPrimer::from_path(&input_pcr_primers, &ref_record.seq),
   )?;
 
-  let gene_map = run_args.input_gene_map.as_ref().map_or_else(
+  let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
     || {
       filter_gene_map(
         Some(read_gff3_str(&zip_read_str(&mut zip, "genemap.gff")?)?),
@@ -126,12 +126,12 @@ pub fn dataset_dir_load(
 ) -> Result<DatasetFiles, Report> {
   let input_dataset = dataset_dir.as_ref();
   dataset_load_files(DatasetFilePaths {
-    input_ref: &run_args.input_ref.unwrap_or_else(|| input_dataset.join("reference.fasta")),
-    input_tree: &run_args.input_tree.unwrap_or_else(|| input_dataset.join("tree.json")),
-    input_qc_config: &run_args.input_qc_config.unwrap_or_else(|| input_dataset.join("qc.json")),
-    input_virus_properties: &run_args.input_virus_properties.unwrap_or_else(|| input_dataset.join("virus_properties.json")),
-    input_pcr_primers: &run_args.input_pcr_primers.unwrap_or_else(|| input_dataset.join("primers.csv")),
-    input_gene_map: &run_args.input_gene_map.unwrap_or_else(|| input_dataset.join("genemap.gff")),
+    input_ref: &run_args.inputs.input_ref.unwrap_or_else(|| input_dataset.join("reference.fasta")),
+    input_tree: &run_args.inputs.input_tree.unwrap_or_else(|| input_dataset.join("tree.json")),
+    input_qc_config: &run_args.inputs.input_qc_config.unwrap_or_else(|| input_dataset.join("qc.json")),
+    input_virus_properties: &run_args.inputs.input_virus_properties.unwrap_or_else(|| input_dataset.join("virus_properties.json")),
+    input_pcr_primers: &run_args.inputs.input_pcr_primers.unwrap_or_else(|| input_dataset.join("primers.csv")),
+    input_gene_map: &run_args.inputs.input_gene_map.unwrap_or_else(|| input_dataset.join("genemap.gff")),
   }, genes)
 }
 
@@ -141,12 +141,12 @@ pub fn dataset_individual_files_load(
 ) -> Result<DatasetFiles, Report> {
   #[rustfmt::skip]
   let required_args = &[
-    (String::from("--input-ref"), &run_args.input_ref),
-    (String::from("--input-tree"), &run_args.input_tree),
-    (String::from("--input-gene-map"), &run_args.input_gene_map),
-    (String::from("--input-qc-config"), &run_args.input_qc_config),
-    (String::from("--input-pcr-primers"), &run_args.input_pcr_primers),
-    (String::from("--input-virus-properties"), &run_args.input_virus_properties),
+    (String::from("--input-ref"), &run_args.inputs.input_ref),
+    (String::from("--input-tree"), &run_args.inputs.input_tree),
+    (String::from("--input-gene-map"), &run_args.inputs.input_gene_map),
+    (String::from("--input-qc-config"), &run_args.inputs.input_qc_config),
+    (String::from("--input-pcr-primers"), &run_args.inputs.input_pcr_primers),
+    (String::from("--input-virus-properties"), &run_args.inputs.input_virus_properties),
   ];
 
   #[allow(clippy::single_match_else)]

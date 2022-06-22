@@ -1,4 +1,6 @@
-use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_cli::{
+  NextalignRunArgs, NextalignRunInputArgs, NextalignRunOtherArgs, NextalignRunOutputArgs,
+};
 use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
@@ -19,27 +21,34 @@ pub struct NextalignRecord {
   pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
 
-pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
-  info!("Command-line arguments:\n{args:#?}");
+pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
+  info!("Command-line arguments:\n{run_args:#?}");
 
   let NextalignRunArgs {
-    input_fastas: input_fasta,
-    input_ref,
-    genes,
-    input_gene_map,
-    output_all,
-    output_basename,
-    output_selection,
-    include_reference,
-    output_fasta,
-    output_translations,
-    output_insertions,
-    output_errors,
-    jobs,
-    in_order,
+    inputs:
+      NextalignRunInputArgs {
+        input_fastas,
+        input_ref,
+        input_gene_map,
+        genes,
+        ..
+      },
+    outputs:
+      NextalignRunOutputArgs {
+        output_all,
+        output_basename,
+        output_selection,
+        output_fasta,
+        output_translations,
+        output_insertions,
+        output_errors,
+        include_reference,
+        in_order,
+        ..
+      },
+    other: NextalignRunOtherArgs { jobs },
     alignment_params: alignment_params_from_cli,
-    ..
-  } = args;
+  } = run_args;
 
   let mut alignment_params = AlignPairwiseParams::default();
 
@@ -68,7 +77,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextalignRecord>(CHANNEL_SIZE);
 
     s.spawn(|_| {
-      let mut reader = FastaReader::from_paths(&input_fasta).unwrap();
+      let mut reader = FastaReader::from_paths(&input_fastas).unwrap();
       loop {
         let mut record = FastaRecord::default();
         reader.read(&mut record).unwrap();
