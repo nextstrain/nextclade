@@ -151,8 +151,7 @@ pub struct NextalignRunArgs {
   /// Output files can be optionally included or excluded using `--output-selection` flag.
   /// The base filename can be set using `--output-basename` flag.
   ///
-  /// If both the `--output-all` and individual `--output-*` flags are provided, each
-  //  individual flag overrides the corresponding default output path.
+  /// If both the `--output-all` and individual `--output-*` flags are provided, each individual flag overrides the corresponding default output path.
   ///
   /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-translations`, `--output-insertions`, `--output-errors`
   ///
@@ -192,6 +191,9 @@ pub struct NextalignRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -202,6 +204,9 @@ pub struct NextalignRunArgs {
   /// Make sure you properly quote and/or escape the curly braces, so that your shell, programming language or pipeline manager does not attempt to substitute the variables.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
   ///
   /// Example for bash shell:
   ///
@@ -216,6 +221,9 @@ pub struct NextalignRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -224,6 +232,9 @@ pub struct NextalignRunArgs {
   /// Path to output CSV file containing errors and warnings occurred during processing
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'e')]
