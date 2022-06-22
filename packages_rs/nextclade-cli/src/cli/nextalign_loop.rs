@@ -8,7 +8,7 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::gff3::read_gff3_file;
-use nextclade::io::nuc::to_nuc_seq;
+use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing};
 use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::types::outputs::NextalignOutputs;
@@ -37,6 +37,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
+    replace_unknown,
     alignment_params: alignment_params_from_cli,
     ..
   } = args;
@@ -97,19 +98,23 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
 
-          let outputs_or_err = to_nuc_seq(&seq)
-            .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
-            .and_then(|qry_seq| {
-              nextalign_run_one(
-                &qry_seq,
-                ref_seq,
-                ref_peptides,
-                gene_map,
-                gap_open_close_nuc,
-                gap_open_close_aa,
-                alignment_params,
-              )
-            });
+          let outputs_or_err = if replace_unknown {
+            Ok(to_nuc_seq_replacing(&seq))
+          } else {
+            to_nuc_seq(&seq)
+          }
+          .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
+          .and_then(|qry_seq| {
+            nextalign_run_one(
+              &qry_seq,
+              ref_seq,
+              ref_peptides,
+              gene_map,
+              gap_open_close_nuc,
+              gap_open_close_aa,
+              alignment_params,
+            )
+          });
 
           let record = NextalignRecord {
             index,

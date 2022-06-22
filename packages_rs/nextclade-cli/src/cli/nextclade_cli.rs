@@ -493,6 +493,16 @@ pub struct NextcladeRunArgs {
   #[clap(long)]
   pub in_order: bool,
 
+  /// Replace unknown nucleotide characters with 'N'
+  ///
+  /// By default, the sequences containing unknown nucleotide nucleotide characters are skipped with a warning - they
+  /// are not analyzed and not included into results. If this flag is provided, then before the alignment,
+  /// all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences.
+  ///
+  /// The following characters are considered known:  '-', 'A', 'B', 'C', 'D', 'G', 'H', 'K', 'M', 'N', 'R', 'S', 'T', 'V', 'W', 'Y'
+  #[clap(long)]
+  pub replace_unknown: bool,
+
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
   #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get() )]
   pub jobs: usize,
