@@ -400,7 +400,7 @@ pub struct NextcladeRunArgs {
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
   /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// compressed.
   ///
   /// Example for bash shell:
   ///
