@@ -1,15 +1,13 @@
 use crate::cli::common::get_fasta_basename;
+use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
 use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
-use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
-use nextclade::io::fs::{basename_maybe, extension};
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -24,7 +22,6 @@ const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
 lazy_static! {
   static ref SHELLS: &'static [&'static str] = &["bash", "elvish", "fish", "fig", "powershell", "zsh"];
-  static ref VERBOSITIES: &'static [&'static str] = &["off", "error", "warn", "info", "debug", "trace"];
 }
 
 #[derive(Parser, Debug)]
@@ -43,17 +40,9 @@ pub struct NextcladeArgs {
   #[clap(subcommand)]
   pub command: NextcladeCommands,
 
-  /// Set verbosity level [default: warn]
-  #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
-  pub verbosity: Option<LevelFilter>,
-
-  /// Disable all console output. Same as --verbosity=off
-  #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "verbosity")]
-  pub silent: bool,
-
   /// Make output more quiet or more verbose
   #[clap(flatten)]
-  pub verbose: Verbosity<WarnLevel>,
+  pub verbosity: Verbosity<WarnLevel>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -733,17 +722,7 @@ pub fn nextclade_check_removed_args(run_args: &mut NextcladeRunArgs) -> Result<(
 pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
   let mut args = NextcladeArgs::parse();
 
-  // --verbosity=<level> and --silent take priority over -v and -q
-  let filter_level = if args.silent {
-    LevelFilter::Off
-  } else {
-    match args.verbosity {
-      None => args.verbose.log_level_filter(),
-      Some(verbosity) => verbosity,
-    }
-  };
-
-  setup_logger(filter_level);
+  setup_logger(args.verbosity.get_filter_level());
 
   match &mut args.command {
     NextcladeCommands::Completions { shell } => {

@@ -1515,7 +1515,6 @@ version = "2.0.0-beta.6"
 dependencies = [
  "assert2",
  "clap 3.1.18",
- "clap-verbosity-flag",
  "clap_complete",
  "clap_complete_fig",
  "color-eyre",
