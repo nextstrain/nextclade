@@ -98,6 +98,8 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
 
  - **Feature**: Nextclade CLI and Nextalign CLI now accept compressed input files. If a compressed fasta file is provided, it will be transparently decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file extension.
 
+ - **Feature**: Nextclade CLI and Nextalign CLI can now write compressed output files. If output path contains one of the supported file extensions, it will be transparently compressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`.
+
  - **Feature**: Nextclade can now write outputs in newline-delimited JSON format . Use `--output-ndjson` flag for that. NDJSON output is equivalent to JSON output, but is not hierarchical, so it can be easily streamed and parsed one entry at a time.
 
  - **Feature**: Nextclade `dataset get` and `dataset list` commands now can fetch dataset index from a custom server. The root URL of the dataset server can be set using `--server=<URL>` flag.
