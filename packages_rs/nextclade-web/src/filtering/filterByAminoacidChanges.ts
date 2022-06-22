@@ -27,7 +27,10 @@ export function filterByAminoacidChanges(aaFilter: string) {
     const { aaSubstitutions, aaDeletions } = result.result.analysisResult
 
     // Make deletions look like substitutions
-    const aaDeletionsLikeSubstitutions = aaDeletions.map((del) => ({ ...del, queryAa: AMINOACID_GAP }))
+    const aaDeletionsLikeSubstitutions: AminoacidSubstitution[] = aaDeletions.map((del) => ({
+      ...del,
+      queryAA: AMINOACID_GAP,
+    }))
 
     // We want to search for both, the substitutions and deletions
     const aaChanges = [...aaSubstitutions, ...aaDeletionsLikeSubstitutions]
