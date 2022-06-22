@@ -1,12 +1,11 @@
 use crate::cli::common::get_fasta_basename;
+use crate::cli::verbosity::{Verbosity, WarnLevel};
 use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
-use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
@@ -18,7 +17,6 @@ use strum_macros::EnumIter;
 
 lazy_static! {
   static ref SHELLS: &'static [&'static str] = &["bash", "elvish", "fish", "fig", "powershell", "zsh"];
-  static ref VERBOSITIES: &'static [&'static str] = &["off", "error", "warn", "info", "debug", "trace"];
 }
 
 #[derive(Parser, Debug)]
@@ -37,17 +35,9 @@ pub struct NextalignArgs {
   #[clap(subcommand)]
   pub command: NextalignCommands,
 
-  /// Set verbosity level [default: warn]
-  #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
-  pub verbosity: Option<LevelFilter>,
-
-  /// Disable all console output. Same as --verbosity=off
-  #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "verbosity")]
-  pub silent: bool,
-
   /// Make output more quiet or more verbose
   #[clap(flatten)]
-  pub verbose: Verbosity<WarnLevel>,
+  pub verbosity: Verbosity<WarnLevel>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -426,17 +416,7 @@ pub fn nextalign_check_removed_args(run_args: &mut NextalignRunArgs) -> Result<(
 pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
   let mut args = NextalignArgs::parse();
 
-  // --verbosity=<level> and --silent take priority over -v and -q
-  let filter_level = if args.silent {
-    LevelFilter::Off
-  } else {
-    match args.verbosity {
-      None => args.verbose.log_level_filter(),
-      Some(verbosity) => verbosity,
-    }
-  };
-
-  setup_logger(filter_level);
+  setup_logger(args.verbosity.get_filter_level());
 
   match &mut args.command {
     NextalignCommands::Completions { shell } => {
