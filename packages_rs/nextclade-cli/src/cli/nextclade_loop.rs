@@ -151,24 +151,25 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
-          let qry_seq = to_nuc_seq(&seq)
-            .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
-            .unwrap();
 
-          let outputs_or_err = nextclade_run_one(
-            &seq_name,
-            &qry_seq,
-            ref_seq,
-            ref_peptides,
-            gene_map,
-            primers,
-            tree,
-            qc_config,
-            virus_properties,
-            gap_open_close_nuc,
-            gap_open_close_aa,
-            alignment_params,
-          );
+          let outputs_or_err = to_nuc_seq(&seq)
+            .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
+            .and_then(|qry_seq| {
+              nextclade_run_one(
+                &seq_name,
+                &qry_seq,
+                ref_seq,
+                ref_peptides,
+                gene_map,
+                primers,
+                tree,
+                qc_config,
+                virus_properties,
+                gap_open_close_nuc,
+                gap_open_close_aa,
+                alignment_params,
+              )
+            });
 
           let record = NextcladeRecord {
             index,
