@@ -1,4 +1,4 @@
-use clap::{ArgEnum, Parser, ValueHint};
+use clap::{ArgEnum, Parser};
 use optfield::optfield;
 use serde::{Deserialize, Serialize};
 
@@ -62,6 +62,10 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub min_seeds: i32,
 
+  /// Minimum seed mathing rate (a ratio of seed matches to total number of attempted seeds)
+  #[clap(long)]
+  pub min_match_rate: f64,
+
   /// Spacing between seeds during nucleotide alignment.
   #[clap(long)]
   pub seed_spacing: i32,
@@ -105,6 +109,7 @@ impl Default for AlignPairwiseParams {
       max_indel: 400,
       seed_length: 21,
       min_seeds: 10,
+      min_match_rate: 0.3,
       seed_spacing: 100,
       mismatches_allowed: 3,
       no_translate_past_stop: false,
