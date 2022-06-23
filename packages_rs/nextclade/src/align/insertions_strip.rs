@@ -32,7 +32,7 @@ impl<T: Letter<T>> Insertion<T> {
 
 pub type NucIns = Insertion<Nuc>;
 
-/// Order amino acid insertions by gene, position, then length
+/// Order nuc insertions by position, then length
 impl<T: Letter<T>> Ord for Insertion<T> {
   fn cmp(&self, other: &Self) -> Ordering {
     (self.pos, self.ins.len()).cmp(&(other.pos, other.ins.len()))
