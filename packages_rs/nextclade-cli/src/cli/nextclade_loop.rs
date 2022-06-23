@@ -14,7 +14,7 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
-use nextclade::io::nuc::{to_nuc_seq, Nuc};
+use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
@@ -89,6 +89,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_errors,
         include_reference,
         in_order,
+        replace_unknown,
         ..
       },
     other: NextcladeRunOtherArgs { jobs },
@@ -169,24 +170,28 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
 
-          let outputs_or_err = to_nuc_seq(&seq)
-            .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
-            .and_then(|qry_seq| {
-              nextclade_run_one(
-                &seq_name,
-                &qry_seq,
-                ref_seq,
-                ref_peptides,
-                gene_map,
-                primers,
-                tree,
-                qc_config,
-                virus_properties,
-                gap_open_close_nuc,
-                gap_open_close_aa,
-                alignment_params,
-              )
-            });
+          let outputs_or_err = if replace_unknown {
+            Ok(to_nuc_seq_replacing(&seq))
+          } else {
+            to_nuc_seq(&seq)
+          }
+          .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
+          .and_then(|qry_seq| {
+            nextclade_run_one(
+              &seq_name,
+              &qry_seq,
+              ref_seq,
+              ref_peptides,
+              gene_map,
+              primers,
+              tree,
+              qc_config,
+              virus_properties,
+              gap_open_close_nuc,
+              gap_open_close_aa,
+              alignment_params,
+            )
+          });
 
           let record = NextcladeRecord {
             index,
