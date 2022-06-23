@@ -40,14 +40,18 @@ pub struct SeedMatch {
 /// match k-mers without ambiguous characters. Search is performed via a left-to-right
 /// search starting and the previous valid seed and extending at most to the maximally
 /// allowed insertion/deletion (shift) distance.
-pub fn get_seed_matches<L: Letter<L>>(qry_seq: &[L], ref_seq: &[L], params: &AlignPairwiseParams) -> Vec<SeedMatch> {
+pub fn get_seed_matches<L: Letter<L>>(
+  qry_seq: &[L],
+  ref_seq: &[L],
+  params: &AlignPairwiseParams,
+) -> (Vec<SeedMatch>, i32) {
   let mut seed_matches = Vec::<SeedMatch>::new();
 
   // get list of valid k-mer start positions
   let map_to_good_positions = get_map_to_good_positions(qry_seq, params.seed_length);
   let n_good_positions = map_to_good_positions.len();
   if n_good_positions < params.seed_length {
-    return seed_matches;
+    return (seed_matches, 0);
   }
 
   // use 1/seed_spacing for long sequences, min_seeds otherwise
@@ -120,7 +124,7 @@ pub fn get_seed_matches<L: Letter<L>>(qry_seq: &[L], ref_seq: &[L], params: &Ali
       end_pos = tmp_match.ref_pos + params.max_indel;
     }
   }
-  seed_matches
+  (seed_matches, n_seeds)
 }
 
 /// Determine rough positioning of qry to reference sequence by approximate seed matching
@@ -143,11 +147,27 @@ pub fn seed_alignment<L: Letter<L>>(
   };
 
   // otherwise, determine seed matches roughly regularly spaced along the query sequence
-  let seed_matches = get_seed_matches(qry_seq, ref_seq, params);
+  let (seed_matches, num_seeds) = get_seed_matches(qry_seq, ref_seq, params);
 
   let num_seed_matches = seed_matches.len();
+
   if num_seed_matches < 2 {
     return make_error!("Unable to align: no seed matches. Details: number of seed matches: {num_seed_matches}");
+  }
+
+  let match_rate = if num_seeds != 0 {
+    (num_seed_matches as f64) / (num_seeds as f64)
+  } else {
+    0.0
+  };
+
+  if params.min_match_rate > match_rate  {
+    return make_error!(
+      "Unable to align: low seed matching rate. \
+    Details: number of seeds: {num_seeds}, number of seed matches: {num_seed_matches}, \
+    matching rate: {match_rate:5.3}, required matching rate: {:5.3}",
+      params.min_match_rate
+    );
   }
 
   let stripes = create_stripes(

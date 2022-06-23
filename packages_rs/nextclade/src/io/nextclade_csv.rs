@@ -19,7 +19,6 @@ use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
 use regex::internal::Input;
-use serde::Serializer;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
@@ -624,13 +623,17 @@ pub fn results_to_csv_string(
   clade_attr_keys: &[String],
   delimiter: u8,
 ) -> Result<String, Report> {
-  let headers: Vec<String> = prepare_headers(clade_attr_keys);
-  let csv_writer = CsvVecWriter::new(Vec::<u8>::new(), delimiter, &headers)?;
-  let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
+  let mut buf = Vec::<u8>::new();
 
-  for output in outputs {
-    writer.write(output)?;
+  {
+    let headers: Vec<String> = prepare_headers(clade_attr_keys);
+    let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
+    let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
+
+    for output in outputs {
+      writer.write(output)?;
+    }
   }
 
-  Ok(String::from_utf8(writer.into_inner().into_inner()?)?)
+  Ok(String::from_utf8(buf)?)
 }
