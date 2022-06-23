@@ -8,8 +8,9 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
+use crate::translate::complement::reverse_complement_in_place;
 use eyre::Report;
-use log::trace;
+use log::{info, trace};
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -17,14 +18,14 @@ fn align_pairwise<T: Letter<T>>(
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
   stripes: &[Stripe],
-) -> Result<AlignmentOutput<T>, Report> {
+) -> AlignmentOutput<T> {
   trace!("Align pairwise: started. Params: {params:?}");
 
   let max_indel = params.max_indel;
 
   let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
-  Ok(backtrace(qry_seq, ref_seq, &scores, &paths))
+  backtrace(qry_seq, ref_seq, &scores, &paths)
 }
 
 /// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
@@ -42,13 +43,21 @@ pub fn align_nuc(
     );
   }
 
-  let stripes = seed_alignment(qry_seq, ref_seq, params)?;
-
-  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)?;
-
-  trace!("Score: {}", result.alignment_score);
-
-  Ok(result)
+  #[allow(clippy::map_err_ignore)]
+  match seed_alignment(qry_seq, ref_seq, params) {
+    Ok(stripes) => Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)),
+    Err(report) => {
+      if params.retry_reverse_complement {
+        info!("Seed matching failed. Retrying reverse complement"); // TODO: would be nice to have sequence index and name here
+        let mut qry_seq = qry_seq.to_owned();
+        reverse_complement_in_place(&mut qry_seq);
+        let stripes = seed_alignment(&qry_seq, ref_seq, params).map_err(|_| report)?;
+        Ok(align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes))
+      } else {
+        Err(report)
+      }
+    }
+  }
 }
 
 /// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
@@ -59,7 +68,7 @@ pub fn align_aa(
   params: &AlignPairwiseParams,
   band_width: usize,
   mean_shift: i32,
-) -> Result<AlignmentOutput<Aa>, Report> {
+) -> AlignmentOutput<Aa> {
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
   align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
