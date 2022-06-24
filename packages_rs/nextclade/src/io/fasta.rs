@@ -1,7 +1,6 @@
 use crate::io::aa::from_aa_seq;
+use crate::io::compression::Decompressor;
 use crate::io::concat::concat;
-use crate::io::decompression::Decompressor;
-use crate::io::fs::ensure_dir;
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
@@ -10,7 +9,7 @@ use log::{info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{stdin, BufRead, BufReader, BufWriter, Read};
+use std::io::{stdin, BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;

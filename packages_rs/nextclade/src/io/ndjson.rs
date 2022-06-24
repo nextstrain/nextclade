@@ -4,11 +4,11 @@ use std::fmt::Debug;
 use std::io::{LineWriter, Write};
 use std::path::{Path, PathBuf};
 
-pub struct NdjsonWriter<W: Write + Send + Sync> {
+pub struct NdjsonWriter<W: Write + Send> {
   line_writer: LineWriter<W>,
 }
 
-impl<W: Write + Send + Sync> NdjsonWriter<W> {
+impl<W: Write + Send> NdjsonWriter<W> {
   pub fn new(writer: W) -> Result<Self, Report> {
     let line_writer = LineWriter::new(writer);
     Ok(Self { line_writer })
@@ -23,7 +23,7 @@ impl<W: Write + Send + Sync> NdjsonWriter<W> {
 
 pub struct NdjsonFileWriter {
   filepath: PathBuf,
-  ndjson_writer: NdjsonWriter<Box<dyn Write + Sync + Send>>,
+  ndjson_writer: NdjsonWriter<Box<dyn Write + Send>>,
 }
 
 impl NdjsonFileWriter {

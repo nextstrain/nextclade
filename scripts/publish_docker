@@ -73,14 +73,9 @@ for base_image in "${BASE_IMAGES[@]}"; do
     fi
 
     if [ "${base_image}" == "debian" ]; then
-      TAGS="${TAGS:-} \
-        ${DOCKER_ORG}/${project_name}:${release_type} \
-        "
-
       if [ "${release_type}" == "latest" ]; then
         TAGS="${TAGS:-} \
           ${DOCKER_ORG}/${project_name}:${version_major} \
-          ${DOCKER_ORG}/${project_name}:${version} \
           "
       else
         TAGS="${TAGS:-} \
@@ -88,6 +83,11 @@ for base_image in "${BASE_IMAGES[@]}"; do
           ${DOCKER_ORG}/${project_name}:prerelease-${version_major} \
         "
       fi
+
+      TAGS="${TAGS:-} \
+        ${DOCKER_ORG}/${project_name}:${release_type} \
+        ${DOCKER_ORG}/${project_name}:${version} \
+        "
     fi
 
     # Make a string containing of tags for `docker build` command
