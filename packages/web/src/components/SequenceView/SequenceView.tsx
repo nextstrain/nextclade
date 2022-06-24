@@ -1,3 +1,4 @@
+import { clamp } from 'lodash'
 import React, { useCallback } from 'react'
 
 import { connect } from 'react-redux'
@@ -67,14 +68,16 @@ export function SequenceViewUnsizedDisconnected({
 
   const handleScroll = useCallback(
     (delta: number) => {
-      setSequenceViewPan(pan - 0.001 * delta)
+      const newPan = clamp(pan - 0.001 * delta, -1, 1)
+      setSequenceViewPan(newPan)
     },
     [pan, setSequenceViewPan],
   )
 
   const handleWheel = useCallback(
     (delta: number) => {
-      setSequenceViewZoom(zoom - 0.0005 * delta)
+      const newZoom = clamp(zoom - 0.01 * delta, 1, 5)
+      setSequenceViewZoom(newZoom)
     },
     [zoom, setSequenceViewZoom],
   )
@@ -87,9 +90,9 @@ export function SequenceViewUnsizedDisconnected({
     )
   }
 
-  const zoomedWidth = width * zoom
-  const pixelPan = pan * width
   const pixelsPerBase = width / genomeSize
+  const zoomedWidth = width * (1 / zoom)
+  const pixelPan = pan * zoomedWidth * (1 / zoom)
 
   const mutationViews = substitutions.map((substitution) => {
     return (

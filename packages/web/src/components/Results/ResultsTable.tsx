@@ -501,8 +501,8 @@ export function ResultsTableDisconnected({
               <input
                 type="range"
                 style={{ margin: '20px', width: '200px' }}
-                min={0}
-                max={100}
+                min={100}
+                max={500}
                 value={sequenceViewZoom * 100}
                 onChange={handleZoomChange}
                 onAuxClick={() => setSequenceViewZoom(1)}
