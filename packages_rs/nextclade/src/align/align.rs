@@ -52,7 +52,9 @@ pub fn align_nuc(
         let mut qry_seq = qry_seq.to_owned();
         reverse_complement_in_place(&mut qry_seq);
         let stripes = seed_alignment(&qry_seq, ref_seq, params).map_err(|_| report)?;
-        Ok(align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes))
+        let mut result = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+        result.is_reverse_complement = true;
+        Ok(result)
       } else {
         Err(report)
       }

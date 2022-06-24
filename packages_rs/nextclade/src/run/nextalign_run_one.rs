@@ -51,12 +51,15 @@ pub fn nextalign_run_one(
         .cloned()
         .collect_vec();
 
+      let is_reverse_complement = alignment.is_reverse_complement;
+
       Ok(NextalignOutputs {
         stripped,
         alignment,
         translations,
         warnings,
         missing_genes,
+        is_reverse_complement,
       })
     }
   }
