@@ -19,6 +19,8 @@ opt-level = 3
 opt-level = 3
 [profile.dev.package.tracing-subscriber]
 opt-level = 3
+[profile.dev.package.pretty_assertions]
+opt-level = 3
 
 [profile.release]
 codegen-units = 1
@@ -37,6 +39,22 @@ strip = true
 
 [profile.test]
 debug = true
+
+[profile.test.package."*"]
+opt-level = 2
+[profile.test.package.backtrace]
+opt-level = 3
+[profile.test.package.color-spantrace]
+opt-level = 3
+[profile.test.package.tracing]
+opt-level = 3
+[profile.test.package.tracing-error]
+opt-level = 3
+[profile.test.package.tracing-subscriber]
+opt-level = 3
+[profile.test.package.pretty_assertions]
+opt-level = 3
+
 
 [target.'cfg(all())']
 rustflags = [
