@@ -44,15 +44,17 @@ impl InsertionsCsvWriter {
 }
 
 pub fn insertions_to_csv_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
-  let mut writer = CsvStructWriter::new(Vec::<u8>::new(), b',')?;
+  let mut buf = Vec::<u8>::new();
+  {
+    let mut writer = CsvStructWriter::new(&mut buf, b',')?;
 
-  for output in outputs {
-    writer.write(&InsertionCsvEntry {
-      seq_name: &output.seq_name,
-      insertions: format_nuc_insertions(&output.insertions, ";"),
-      aa_insertions: format_aa_insertions(&output.aa_insertions, ";"),
-    })?;
+    for output in outputs {
+      writer.write(&InsertionCsvEntry {
+        seq_name: &output.seq_name,
+        insertions: format_nuc_insertions(&output.insertions, ";"),
+        aa_insertions: format_aa_insertions(&output.aa_insertions, ";"),
+      })?;
+    }
   }
-
-  Ok(String::from_utf8(writer.into_inner()?)?)
+  Ok(String::from_utf8(buf)?)
 }

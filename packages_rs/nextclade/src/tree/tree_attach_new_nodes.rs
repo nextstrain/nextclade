@@ -13,6 +13,7 @@ use crate::tree::tree::{
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
+use serde_json::json;
 use std::collections::BTreeMap;
 
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
@@ -82,6 +83,15 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
     )
   };
 
+  #[allow(clippy::from_iter_instead_of_collect)]
+  let other = serde_json::Value::from_iter(
+    result
+      .custom_node_attributes
+      .clone()
+      .into_iter()
+      .map(|(key, val)| (key, json!({ "value": val }))),
+  );
+
   node.children.insert(
     0,
     AuspiceTreeNode {
@@ -104,10 +114,8 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
         has_pcr_primer_changes,
         pcr_primer_changes,
         missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
-        other: serde_json::Value::default(),
-
-        // TODO
-        qc_status: None,
+        qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
+        other,
       },
       children: vec![],
       tmp: TreeNodeTempData::default(),

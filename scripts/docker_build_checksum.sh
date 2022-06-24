@@ -13,6 +13,7 @@ cat \
   .dockerignore \
   .gitignore \
   .nvmrc \
+  docker-dev \
   docker/docker-dev.dockerfile \
   rust-toolchain.toml \
   scripts/docker_build_checksum.sh \

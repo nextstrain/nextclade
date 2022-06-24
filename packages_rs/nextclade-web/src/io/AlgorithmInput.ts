@@ -93,7 +93,8 @@ export class AlgorithmInputDefault implements AlgorithmInput {
   }
 
   public get name(): string {
-    return `${this.dataset.attributes.name.value} example`
+    const { value, valueFriendly } = this.dataset.attributes.name
+    return `${valueFriendly ?? value} example sequences`
   }
 
   public get description(): string {

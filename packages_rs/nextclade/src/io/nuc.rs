@@ -146,6 +146,11 @@ pub fn to_nuc_seq(str: &str) -> Result<Vec<Nuc>, Report> {
   str.chars().map(to_nuc).collect()
 }
 
+/// Converts string characters to `Nuc`s, replacing unknown characters with `N`
+pub fn to_nuc_seq_replacing(str: &str) -> Vec<Nuc> {
+  str.chars().map(|c| to_nuc(c).unwrap_or(Nuc::N)).collect()
+}
+
 pub fn from_nuc_seq(seq: &[Nuc]) -> String {
   seq.iter().map(|nuc| from_nuc(*nuc)).collect()
 }

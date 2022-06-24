@@ -2,9 +2,9 @@ import { Button, ButtonProps } from 'reactstrap'
 import styled from 'styled-components'
 
 export interface ButtonTransparentProps extends ButtonProps {
-  height: string
+  height?: string
   width?: string
-  fontSize: string
+  fontSize?: string
 }
 
 export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`

@@ -87,11 +87,7 @@ elif [ "$1" == "web" ]; then
 
   git add -A >/dev/null
 
-  if [ "$branch" == "release" ]; then
-    git commit -q -m "chore: release ${1} ${version}" >/dev/null
-  else
-    git commit -q -m "chore: pre-release ${1} ${version}" >/dev/null
-  fi
+  git commit -q -m "chore: release ${1} ${version}" >/dev/null
 
   popd
 

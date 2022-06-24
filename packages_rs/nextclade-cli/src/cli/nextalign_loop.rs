@@ -1,25 +1,19 @@
-use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_cli::{
+  NextalignRunArgs, NextalignRunInputArgs, NextalignRunOtherArgs, NextalignRunOutputArgs,
+};
 use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
-use itertools::{Either, Itertools};
 use log::info;
-use nextclade::align::align::align_nuc;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use nextclade::align::insertions_strip::insertions_strip;
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use nextclade::io::gene_map::{read_gene_map, GeneMap};
+use nextclade::io::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::gff3::read_gff3_file;
-use nextclade::io::nuc::{to_nuc_seq, Nuc};
+use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing};
 use nextclade::run::nextalign_run_one::nextalign_run_one;
-use nextclade::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::types::outputs::NextalignOutputs;
-use nextclade::utils::error::report_to_string;
-use nextclade::{make_error, option_get_some};
-use std::collections::HashSet;
-use std::path::PathBuf;
 
 pub struct NextalignRecord {
   pub index: usize,
@@ -27,45 +21,56 @@ pub struct NextalignRecord {
   pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
 
-pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
-  info!("Command-line arguments:\n{args:#?}");
+pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
+  info!("Command-line arguments:\n{run_args:#?}");
 
   let NextalignRunArgs {
-    input_fasta,
-    input_ref,
-    genes,
-    input_gene_map,
-    output_dir,
-    output_basename,
-    include_reference,
-    output_fasta,
-    output_insertions,
-    output_errors,
-    jobs,
-    in_order,
+    inputs:
+      NextalignRunInputArgs {
+        input_fastas,
+        input_ref,
+        input_gene_map,
+        genes,
+        ..
+      },
+    outputs:
+      NextalignRunOutputArgs {
+        output_all,
+        output_basename,
+        output_selection,
+        output_fasta,
+        output_translations,
+        output_insertions,
+        output_errors,
+        include_reference,
+        replace_unknown,
+        in_order,
+        ..
+      },
+    other: NextalignRunOtherArgs { jobs },
     alignment_params: alignment_params_from_cli,
-  } = args;
-
-  let output_fasta = option_get_some!(output_fasta)?;
-  let output_basename = option_get_some!(output_basename)?;
-  let output_dir = option_get_some!(output_dir)?;
-  let output_insertions = option_get_some!(output_insertions)?;
-  let output_errors = option_get_some!(output_errors)?;
+  } = run_args;
 
   let mut alignment_params = AlignPairwiseParams::default();
 
   // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(alignment_params_from_cli.clone());
+  alignment_params.merge_opt(alignment_params_from_cli);
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
-  let gene_map = &read_gene_map(&input_gene_map, &genes)?;
+  let gene_map = match input_gene_map {
+    Some(input_gene_map) => {
+      let gene_map = read_gff3_file(&input_gene_map)?;
+      filter_gene_map(Some(gene_map), genes)?
+    }
+    None => GeneMap::new(),
+  };
 
-  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
+  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, &gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
+  let ref_peptides = &translate_genes_ref(ref_seq, &gene_map, &alignment_params)?;
 
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -73,7 +78,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextalignRecord>(CHANNEL_SIZE);
 
     s.spawn(|_| {
-      let mut reader = FastaReader::from_path(&input_fasta).unwrap();
+      let mut reader = FastaReader::from_paths(&input_fastas).unwrap();
       loop {
         let mut record = FastaRecord::default();
         reader.read(&mut record).unwrap();
@@ -88,6 +93,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
       drop(fasta_sender);
     });
 
+    let gene_map = &gene_map;
     for _ in 0..jobs {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
@@ -100,19 +106,24 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
-          let qry_seq = to_nuc_seq(&seq)
-            .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
-            .unwrap();
 
-          let outputs_or_err = nextalign_run_one(
-            &qry_seq,
-            ref_seq,
-            ref_peptides,
-            gene_map,
-            gap_open_close_nuc,
-            gap_open_close_aa,
-            alignment_params,
-          );
+          let outputs_or_err = if replace_unknown {
+            Ok(to_nuc_seq_replacing(&seq))
+          } else {
+            to_nuc_seq(&seq)
+          }
+          .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
+          .and_then(|qry_seq| {
+            nextalign_run_one(
+              &qry_seq,
+              ref_seq,
+              ref_peptides,
+              gene_map,
+              gap_open_close_nuc,
+              gap_open_close_aa,
+              alignment_params,
+            )
+          });
 
           let record = NextalignRecord {
             index,
@@ -136,12 +147,11 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
 
     s.spawn(move |_| {
       let mut output_writer = NextalignOrderedWriter::new(
-        gene_map,
+        &gene_map,
         &output_fasta,
+        &output_translations,
         &output_insertions,
         &output_errors,
-        &output_dir,
-        &output_basename,
         in_order,
       )
       .wrap_err("When creating output writer")
