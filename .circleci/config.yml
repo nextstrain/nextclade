@@ -26,7 +26,7 @@ jobs:
       - restore_cache:
           name: "Restore previous docker build checksum from cache"
           keys:
-            - cache-v14-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v15-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: "Compare current and previous checksum, halt if no changes"
@@ -58,6 +58,7 @@ jobs:
             declare -a TARGETS=(
               "aarch64-apple-darwin"
               "aarch64-unknown-linux-gnu"
+              "aarch64-unknown-linux-musl"
               "wasm32-unknown-unknown"
               "x86_64-apple-darwin"
               "x86_64-pc-windows-gnu"
@@ -78,7 +79,7 @@ jobs:
 
       - save_cache:
           name: "Save new checksum.txt to cache"
-          key: cache-v14-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v15-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -117,7 +118,7 @@ jobs:
       - restore_cache:
           name: " [ << parameters.target_arch >> ] | Restore build cache"
           keys:
-            - cache-v14-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+            - cache-v15-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
           name: " [ << parameters.target_arch >> ] | Download dependencies fo CLI build"
@@ -136,7 +137,7 @@ jobs:
 
       - save_cache:
           name: " [ << parameters.target_arch >> ] | Save build cache"
-          key: cache-v14-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+          key: cache-v15-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
           paths:
             - .build
             - .cache
@@ -292,6 +293,7 @@ jobs:
             cp .env.example .env
 
             sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+            sed -i -e "s|FULL_DOMAIN=autodetect|FULL_DOMAIN=${FULL_DOMAIN}|g" .env
 
             ./docker-dev web yarn install
             ./docker-dev web yarn lint
@@ -427,11 +429,12 @@ workflows:
           matrix:
             parameters:
               target_arch:
-                - x86_64-apple-darwin
                 - aarch64-apple-darwin
-                - x86_64-unknown-linux-gnu
-                - x86_64-pc-windows-gnu
                 - aarch64-unknown-linux-gnu
+                - aarch64-unknown-linux-musl
+                - x86_64-apple-darwin
+                - x86_64-pc-windows-gnu
+                - x86_64-unknown-linux-gnu
                 - x86_64-unknown-linux-musl
 
       - Release-Cli-Github:
@@ -441,11 +444,12 @@ workflows:
             - nextclade_github
 
           requires:
-            - Build-Cli-x86_64-apple-darwin
             - Build-Cli-aarch64-apple-darwin
-            - Build-Cli-x86_64-unknown-linux-gnu
-            - Build-Cli-x86_64-pc-windows-gnu
             - Build-Cli-aarch64-unknown-linux-gnu
+            - Build-Cli-aarch64-unknown-linux-musl
+            - Build-Cli-x86_64-apple-darwin
+            - Build-Cli-x86_64-pc-windows-gnu
+            - Build-Cli-x86_64-unknown-linux-gnu
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Release-Cli-Docker:

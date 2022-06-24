@@ -1,20 +1,24 @@
-# Freeze base image version to
-# ubuntu:20.04 (pushed 2022-04-21T23:04:30.548037Z)
-# https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-7b3e30a1f373b0621681f13b92feb928129c1c38977481ee788a793fcae64fb9
-FROM ubuntu@sha256:7b3e30a1f373b0621681f13b92feb928129c1c38977481ee788a793fcae64fb9 as base
+ARG DOCKER_BASE_IMAGE
+ARG CLANG_VERSION
+
+FROM $DOCKER_BASE_IMAGE as base
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
-ARG CLANG_VERSION="13"
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
 ARG NODEMON_VERSION="2.0.15"
 ARG YARN_VERSION="1.22.18"
+ARG CLANG_VERSION=$CLANG_VERSION
 
 RUN set -euxo pipefail >/dev/null \
+&& if grep wheezy /etc/apt/sources.list; then export IS_DEBIAN_WHEEZY=1; else export IS_DEBIAN_WHEEZY=0; fi \
+&& if [ ${IS_DEBIAN_WHEEZY} == 1 ]; then printf "deb http://archive.debian.org/debian wheezy main non-free contrib\ndeb http://archive.debian.org/debian-security wheezy/updates main non-free contrib\n" > "/etc/apt/sources.list"; fi \
+&& if [ ${IS_DEBIAN_WHEEZY} == 1 ]; then echo "Acquire::Check-Valid-Until false;" >> "/etc/apt/apt.conf.d/10-nocheckvalid"; fi \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
+  apt-transport-https \
   bash \
   bash-completion \
   build-essential \
@@ -24,27 +28,35 @@ RUN set -euxo pipefail >/dev/null \
   gnupg \
   libssl-dev \
   lsb-release \
-  pigz \
-  pixz \
   pkg-config \
   sudo \
   time \
   xz-utils \
 >/dev/null \
-&& echo "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
+&& \
+  if [ "$(lsb_release -cs)" == "wheezy" ]; then \
+    echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs) main" >> "/etc/apt/sources.list.d/llvm.list"; \
+  else \
+    echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list"; \
+  fi \
 && curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
   clang-${CLANG_VERSION} \
-  clang-tools-${CLANG_VERSION} \
-  lld-${CLANG_VERSION} \
   lldb-${CLANG_VERSION} \
   llvm-${CLANG_VERSION} \
   llvm-${CLANG_VERSION}-dev \
-  llvm-${CLANG_VERSION}-linker-tools \
   llvm-${CLANG_VERSION}-tools \
->/dev/null \
+  >/dev/null \
+&& if [ "$(lsb_release -cs)" != "wheezy" ]; then \
+    apt-get install -qq --no-install-recommends --yes \
+      clang-tools-${CLANG_VERSION} \
+      lld-${CLANG_VERSION} \
+      pigz \
+      pixz \
+    >/dev/null; \
+  fi \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
@@ -64,7 +76,7 @@ ENV CARGO_HOME="${HOME}/.cargo"
 ENV CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
 ENV RUSTUP_HOME="${HOME}/.rustup"
 ENV NODE_DIR="/opt/node"
-ENV PATH="/usr/lib/llvm-13/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
+ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
 
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
@@ -81,18 +93,20 @@ RUN set -euxo pipefail >/dev/null \
 # Install Node.js
 COPY .nvmrc /
 RUN set -eux >dev/null \
-&& mkdir -p "${NODE_DIR}" \
-&& cd "${NODE_DIR}" \
-&& NODE_VERSION=$(cat /.nvmrc) \
-&& curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
-&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
-&& npm config set scripts-prepend-node-path auto
+&& if [ "$(lsb_release -cs)" != "wheezy" ]; then \
+  mkdir -p "${NODE_DIR}" \
+  && cd "${NODE_DIR}" \
+  && NODE_VERSION=$(cat /.nvmrc) \
+  && curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
+  && npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
+  && npm config set scripts-prepend-node-path auto \
+;fi
 
 # Make a user and group
 RUN set -euxo pipefail >/dev/null \
 && \
   if [ -z "$(getent group ${GID})" ]; then \
-    addgroup --system --gid ${GID} ${GROUP}; \
+    groupadd --system --gid ${GID} ${GROUP}; \
   else \
     groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
   fi \
@@ -122,7 +136,7 @@ COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
 && RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
-&& curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init \
+&& curl --proto '=https' -sSf https://sh.rustup.rs > rustup-init \
 && chmod +x rustup-init \
 && ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}" \
 && rm rustup-init
@@ -163,7 +177,6 @@ RUN set -euxo pipefail >/dev/null \
 && cargo quickinstall cargo-audit \
 && cargo quickinstall cargo-deny \
 && cargo quickinstall cargo-edit \
-&& cargo quickinstall cargo-generate \
 && cargo quickinstall cargo-watch \
 && cargo quickinstall wasm-pack \
 && cargo quickinstall xargo
@@ -206,20 +219,16 @@ USER 0
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& export DEBIAN_FRONTEND=noninteractive \
-&& apt-get update -qq --yes \
-&& apt-get install -qq --no-install-recommends --yes \
-  musl-dev \
-  musl-tools \
->/dev/null \
-&& apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null \
-&& rm -rf /var/lib/apt/lists/*
+&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
 
 USER ${USER}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add x86_64-unknown-linux-musl
+
+ENV CC_x86_64_unknown_linux_musl=x86_64-linux-musl-gcc
+ENV CXX_x86_64_unknown_linux_musl=x86_64-linux-musl-g++
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=x86_64-linux-musl-gcc
 
 
 # Cross-compilation to WebAssembly
@@ -257,6 +266,26 @@ RUN set -euxo pipefail >/dev/null \
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+
+
+# Cross-compilation for Linux ARM64 with libmusl
+FROM base as cross-aarch64-unknown-linux-musl
+
+USER 0
+
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
+
+USER ${USER}
+
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add aarch64-unknown-linux-musl
+
+ENV CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc
+ENV CXX_aarch64_unknown_linux_musl=aarch64-linux-musl-g++
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
 
 
 # Cross-compilation for Windows x86_64

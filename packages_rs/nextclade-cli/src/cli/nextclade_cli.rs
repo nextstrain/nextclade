@@ -1,14 +1,13 @@
+use crate::cli::common::get_fasta_basename;
+use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
-use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
-use nextclade::io::fs::{basename, extension};
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -23,7 +22,6 @@ const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
 lazy_static! {
   static ref SHELLS: &'static [&'static str] = &["bash", "elvish", "fish", "fig", "powershell", "zsh"];
-  static ref VERBOSITIES: &'static [&'static str] = &["off", "error", "warn", "info", "debug", "trace"];
 }
 
 #[derive(Parser, Debug)]
@@ -42,17 +40,9 @@ pub struct NextcladeArgs {
   #[clap(subcommand)]
   pub command: NextcladeCommands,
 
-  /// Set verbosity level [default: warn]
-  #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
-  pub verbosity: Option<LevelFilter>,
-
-  /// Disable all console output. Same as --verbosity=off
-  #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "verbosity")]
-  pub silent: bool,
-
   /// Make output more quiet or more verbose
-  #[clap(flatten)]
-  pub verbose: Verbosity<WarnLevel>,
+  #[clap(flatten, next_help_heading = "  Verbosity")]
+  pub verbosity: Verbosity<WarnLevel>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -147,6 +137,7 @@ pub struct NextcladeDatasetListArgs {
 
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
+#[clap(group(ArgGroup::new("outputs").required(true).multiple(false)))]
 pub struct NextcladeDatasetGetArgs {
   /// Name of the dataset to download. Equivalent to `--attribute='name=<value>'`. Use `dataset list` command to view available datasets.
   #[clap(long, short = 'n')]
@@ -184,10 +175,27 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
   pub server: Url,
 
-  /// Path to directory to write dataset files to. If the target directory tree does not exist, it will be created.
+  /// Path to directory to write dataset files to.
+  ///
+  /// This flag is mutually exclusive with `--output-zip`, and provides the equivalent output, but in the form of
+  /// a directory with files, instead of a compressed zip archive.
+  ///
+  /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::DirPath)]
-  pub output_dir: PathBuf,
+  #[clap(group = "outputs")]
+  pub output_dir: Option<PathBuf>,
+
+  /// Path to resulting dataset zip file.
+  ///
+  /// This flag is mutually exclusive with `--output-dir`, and provides the equivalent output, but in the form of
+  /// compressed zip archive instead of a directory with files.
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long, short = 'z')]
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(group = "outputs")]
+  pub output_zip: Option<PathBuf>,
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
@@ -207,14 +215,30 @@ pub enum NextcladeOutputSelection {
   Errors,
 }
 
-#[derive(Parser, Debug)]
-pub struct NextcladeRunArgs {
-  /// Path to a FASTA file with input sequences
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunInputArgs {
+  /// Path to one or multiple FASTA files with input sequences
+  ///
+  /// Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently
+  /// decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file
+  /// extension. If there's multiple input files, then different files can have different compression formats.
+  ///
+  /// If no input files provided, the plain fasta input is read from standard input (stdin).
+  ///
+  /// See: https://en.wikipedia.org/wiki/FASTA_format
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(display_order = 1)]
+  pub input_fastas: Vec<PathBuf>,
+
+  /// REMOVED. Use positional arguments instead.
+  ///
+  /// Example: nextclade run -D dataset/ -O out/ seq1.fasta seq2.fasta
   #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_fasta: PathBuf,
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_fasta: Option<PathBuf>,
 
-  /// Path to a directory containing a dataset.
+  /// Path to a directory or a zip file containing a dataset.
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
@@ -225,7 +249,7 @@ pub struct NextcladeRunArgs {
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
   #[clap(long, short = 'D')]
-  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(value_hint = ValueHint::AnyPath)]
   pub input_dataset: Option<PathBuf>,
 
   /// Path to a FASTA file containing reference sequence.
@@ -299,14 +323,22 @@ pub struct NextcladeRunArgs {
   )]
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunOutputArgs {
+  /// REMOVED. Use `--output-all` instead
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub output_dir: Option<PathBuf>,
 
   /// Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames.
   ///
   /// Output files can be optionally included or excluded using `--output-selection` flag.
   /// The base filename can be set using `--output-basename` flag.
   ///
-  /// If both the `--output-all` and individual `--output-*` flags are provided, each
-  //  individual flag overrides the corresponding default output path.
+  /// If both the `--output-all` and individual `--output-*` flags are provided, each individual flag overrides the corresponding default output path.
   ///
   /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-insertions`, `--output-errors`
   ///
@@ -346,6 +378,9 @@ pub struct NextcladeRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -356,6 +391,9 @@ pub struct NextcladeRunArgs {
   /// Make sure you properly quote and/or escape the curly braces, so that your shell, programming language or pipeline manager does not attempt to substitute the variables.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed.
   ///
   /// Example for bash shell:
   ///
@@ -372,6 +410,9 @@ pub struct NextcladeRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'N')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -382,6 +423,9 @@ pub struct NextcladeRunArgs {
   /// This file format is most suitable for further machine processing of the results.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'J')]
@@ -396,6 +440,9 @@ pub struct NextcladeRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'c')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -408,6 +455,9 @@ pub struct NextcladeRunArgs {
   /// CSV and TSV output files are equivalent and only differ in the column delimiters.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 't')]
@@ -423,6 +473,9 @@ pub struct NextcladeRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'T')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -432,6 +485,9 @@ pub struct NextcladeRunArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
@@ -440,6 +496,9 @@ pub struct NextcladeRunArgs {
   /// Path to output CSV file containing errors and warnings occurred during processing
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'e')]
@@ -461,12 +520,37 @@ pub struct NextcladeRunArgs {
   #[clap(long)]
   pub in_order: bool,
 
-  /// Number of processing jobs. If not specified, all available CPU threads will be used.
-  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get() )]
-  pub jobs: usize,
+  /// Replace unknown nucleotide characters with 'N'
+  ///
+  /// By default, the sequences containing unknown nucleotide nucleotide characters are skipped with a warning - they
+  /// are not analyzed and not included into results. If this flag is provided, then before the alignment,
+  /// all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences.
+  ///
+  /// The following characters are considered known:  '-', 'A', 'B', 'C', 'D', 'G', 'H', 'K', 'M', 'N', 'R', 'S', 'T', 'V', 'W', 'Y'
+  #[clap(long)]
+  pub replace_unknown: bool,
+}
 
-  #[clap(flatten)]
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunOtherArgs {
+  /// Number of processing jobs. If not specified, all available CPU threads will be used.
+  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
+  pub jobs: usize,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct NextcladeRunArgs {
+  #[clap(flatten, next_help_heading = "  Inputs")]
+  pub inputs: NextcladeRunInputArgs,
+
+  #[clap(flatten, next_help_heading = "  Outputs")]
+  pub outputs: NextcladeRunOutputArgs,
+
+  #[clap(flatten, next_help_heading = "  Alignment parameters")]
   pub alignment_params: AlignPairwiseParamsOptional,
+
+  #[clap(flatten, next_help_heading = "  Other")]
+  pub other: NextcladeRunOtherArgs,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
@@ -490,33 +574,49 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
 pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
   let NextcladeRunArgs {
-    input_fasta,
-    output_all,
-    ref mut output_basename,
-    ref mut output_ndjson,
-    ref mut output_json,
-    ref mut output_csv,
-    ref mut output_tsv,
-    ref mut output_tree,
-    ref mut output_errors,
-    ref mut output_fasta,
-    ref mut output_insertions,
-    ref mut output_translations,
-    ref mut output_selection,
-    ..
+    inputs:
+      NextcladeRunInputArgs {
+        input_fastas,
+        input_dataset,
+        input_ref,
+        input_tree,
+        input_qc_config,
+        input_virus_properties,
+        input_pcr_primers,
+        input_gene_map,
+        genes,
+        ..
+      },
+    outputs:
+      NextcladeRunOutputArgs {
+        output_all,
+        output_basename,
+        output_selection,
+        output_fasta,
+        output_translations,
+        output_ndjson,
+        output_json,
+        output_csv,
+        output_tsv,
+        output_tree,
+        output_insertions,
+        output_errors,
+        include_reference,
+        in_order,
+        ..
+      },
+    other: NextcladeRunOtherArgs { jobs },
+    alignment_params,
   } = run_args;
 
   // If `--output-all` is provided, then we need to deduce default output filenames,
   // while taking care to preserve values of any individual `--output-*` flags,
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
-    let mut base_name = basename(&input_fasta)?;
-    if extension(&base_name).map(|ext| ext.to_lowercase()) == Some("fasta".to_owned()) {
-      // Additionally handle cases like `.fasta.gz`
-      base_name = basename(&base_name)?;
-    }
+    let output_basename = output_basename
+      .clone()
+      .unwrap_or_else(|| get_fasta_basename(input_fastas).unwrap_or_else(|| "nextclade".to_owned()));
 
-    let output_basename = output_basename.get_or_insert(base_name);
     let default_output_file_path = output_all.join(&output_basename);
 
     // If `--output-selection` is empty or contains `all`, then fill it with all possible variants
@@ -627,78 +727,57 @@ At least one of the following flags is required:
   Ok(())
 }
 
-/// Get input filenames provided by user or, if not provided, deduce them from the dataset
-pub fn nextclade_get_input_filenames(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
-  let NextcladeRunArgs {
-    input_dataset,
-    input_ref,
-    input_tree,
-    input_qc_config,
-    input_virus_properties,
-    input_pcr_primers,
-    input_gene_map,
-    ..
-  } = run_args;
+const ERROR_MSG_INPUT_FASTA_REMOVED: &str = r#"The argument `--input-fasta` (alias: `--sequences`, `-i`) is removed in favor of positional arguments.
 
-  match input_dataset {
-    None => {
-      // If `--input-dataset` is not present, then check if the required individual input flags are provided
-      let missing_args = &[
-        (String::from("--input_ref"), input_ref),
-        (String::from("--input_tree"), input_tree),
-        (String::from("--input_qc_config"), input_qc_config),
-        (String::from("--input_virus_properties"), input_virus_properties),
-      ]
-      .into_iter()
-      .filter_map(|(key, val)| match val {
-        None => Some(key),
-        Some(_) => None,
-      })
-      .collect_vec();
+Try:
 
-      if !missing_args.is_empty() {
-        let missing_args_str = missing_args.join("  \n");
-        return make_error!(
-          "When `--input-dataset` is not specified, the following arguments are required:\n{missing_args_str}"
-        );
-      }
+  nextclade run -D dataset/ -O out/ seq1.fasta seq2.fasta
 
-      Ok(())
-    }
-    Some(input_dataset) => {
-      // If `--input-dataset` is present, take input paths from it, unless individual input flags are provided
-      input_ref.get_or_insert(input_dataset.join("reference.fasta"));
-      input_tree.get_or_insert(input_dataset.join("tree.json"));
-      input_qc_config.get_or_insert(input_dataset.join("qc.json"));
-      input_virus_properties.get_or_insert(input_dataset.join("virus_properties.json"));
-      input_pcr_primers.get_or_insert(input_dataset.join("primers.csv"));
-      input_gene_map.get_or_insert(input_dataset.join("genemap.gff"));
-      Ok(())
-    }
+                                        ^          ^
+                               one or multiple positional arguments
+                                 with paths to input fasta files
+
+When positional arguments are not provided, nextclade will read input fasta from standard input.
+
+For more information, type:
+
+  nextclade run --help"#;
+
+const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
+
+When provided, `--output-all` allows to write all possible outputs into a directory.
+
+The defaut base name of the files can be overriden with `--output-basename` argument.
+
+The set of output files can be restricted with `--output-selection` argument.
+
+For more information, type
+
+  nextclade run --help"#;
+
+pub fn nextclade_check_removed_args(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
+  if run_args.inputs.input_fasta.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
   }
+
+  if run_args.outputs.output_dir.is_some() {
+    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
+  }
+
+  Ok(())
 }
 
 pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
   let mut args = NextcladeArgs::parse();
 
-  // --verbosity=<level> and --silent take priority over -v and -q
-  let filter_level = if args.silent {
-    LevelFilter::Off
-  } else {
-    match args.verbosity {
-      None => args.verbose.log_level_filter(),
-      Some(verbosity) => verbosity,
-    }
-  };
-
-  setup_logger(filter_level);
+  setup_logger(args.verbosity.get_filter_level());
 
   match &mut args.command {
     NextcladeCommands::Completions { shell } => {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
     NextcladeCommands::Run(ref mut run_args) => {
-      nextclade_get_input_filenames(run_args)?;
+      nextclade_check_removed_args(run_args)?;
       nextclade_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
     _ => {}

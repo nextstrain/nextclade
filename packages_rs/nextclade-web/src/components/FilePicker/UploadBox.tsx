@@ -64,15 +64,16 @@ export const UploadZoneButton = styled(Button)`
   min-height: 50px;
 `
 
-export interface UploaderGenericProps {
+export interface UploadBoxProps {
   onUpload(files: File[]): void
+  multiple?: boolean
 }
 
-export function UploadBox({ onUpload, children, ...props }: PropsWithChildren<UploaderGenericProps>) {
+export function UploadBox({ onUpload, children, multiple = false, ...props }: PropsWithChildren<UploadBoxProps>) {
   const { t } = useTranslation()
   const { state, errors, hasErrors, getRootProps, getInputProps, isDragActive } = useUploadZone({
     onUpload,
-    multiple: true,
+    multiple,
   })
 
   if (hasErrors) {

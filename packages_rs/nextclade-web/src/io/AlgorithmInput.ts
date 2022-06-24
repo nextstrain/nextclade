@@ -1,10 +1,8 @@
-import { concurrent } from 'fasy'
 import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/algorithms/types'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 import { readFile } from 'src/helpers/readFile'
 import { numbro } from 'src/i18n/i18n'
-import { sumBy } from 'lodash'
 
 function formatBytes(bytes: number) {
   let mantissa = 1
@@ -20,28 +18,22 @@ function formatBytes(bytes: number) {
 export class AlgorithmInputFile implements AlgorithmInput {
   public readonly type: AlgorithmInputType = AlgorithmInputType.File as const
 
-  private readonly files: File[]
+  private readonly file: File
 
-  constructor(files: File[]) {
-    this.files = files
+  constructor(file: File) {
+    this.file = file
   }
 
   public get name(): string {
-    return this.files.map((file) => file.name).join(', ')
+    return this.file.name
   }
 
   public get description(): string {
-    if (this.files.length === 1) {
-      return `${this.name} (${formatBytes(this.files[0].size)})`
-    }
-
-    const size = sumBy(this.files, (file) => file.size)
-    return `${this.files.length} files (total ${formatBytes(size)})`
+    return `${this.name} (${formatBytes(this.file.size)})`
   }
 
   public async getContent(): Promise<string> {
-    const strs = await concurrent.map(async (file) => readFile(file), this.files)
-    return strs.join('\n')
+    return readFile(this.file)
   }
 }
 
@@ -101,7 +93,8 @@ export class AlgorithmInputDefault implements AlgorithmInput {
   }
 
   public get name(): string {
-    return `${this.dataset.attributes.name.value} example`
+    const { value, valueFriendly } = this.dataset.attributes.name
+    return `${valueFriendly ?? value} example sequences`
   }
 
   public get description(): string {

@@ -44,15 +44,34 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
  - **Feature**: **BREAKING CHANGE** Command-line interface was redesigned to make it more consistent and ergonomic. The following invocation should be sufficient for most users:
  
    ```bash
-   nextclade run \
-     --input-fasta='sequences.fasta' \
-     --input-dataset='dataset/' \
-     --output-all='outputs/
+   nextclade run --input-dataset=dataset/ --output-all=out/ sequences.fasta
+   ```
+
+   short version:
+
+   ```bash
+   nextclade run -D dataset/  -O out/ sequences.fasta
    ```
 
    - Nextalign CLI and Nextclade CLI now require a command as the first argument. To reproduce the behavior of Nextclade v1, use `nextalign run` instead of `nextalign` and `nextclade run` instead of `nextclade`. See `nextalign --help` or `nextclade --help` for the full list of commands. Each command has it own `--help` menu, e.g. `nextclade run --help`.
 
-   - The flag `--output-all` replaces `--output-dir` flag and allows to conveniently output all files with a single flag.
+   - `--input-fasta` flag is removed in favor of providing input sequence file names as positional arguments. Multiple input fasta files can be provided. Different compression formats are allowed:
+
+     ```bash
+     nextclade run -D dataset/ -O out/ 1.fasta 2.fasta.gz 3.fasta.xz 4.fasta.bz2 5.fasta.zst
+     ```
+
+   - If no fasta files provided, it will be read from standard input (stdin). Reading from stdin does not support compression.
+
+   - If a special filename (`-`) is provided for one of the individual output file flags (`--output-*`), the corresponded output will be printed to standard output (stdout). This allows integration into Unix-style pipelines. For example:
+
+     ```bash
+     curl $fasta_gz_url | gzip -cd | nextclade run -D dataset/ --output-tsv=- | my_nextclade_tsv_processor
+     
+     xzcat *.fasta.xz | nextalign run -r ref.fasta -m genemap.gff -o - | process_aligned_fasta
+     ```
+
+   - The flag `--output-all` (`-O`) replaces `--output-dir` flag and allows to conveniently output all files with a single flag.
 
    - The new flag `--output-selection` allows to restrict what's being output by the `--output-all` flag.
 
@@ -74,15 +93,18 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
     ...
     output_dir/gene_S.translation.fasta
     ```
-   
+
    Make sure you properly quote and/or escape the curly braces in the variable `{{gene}}`, so that your shell, programming language or pipeline manager does not attempt to substitute the variable.
 
+ - **Feature**: Nextclade CLI and Nextalign CLI now accept compressed input files. If a compressed fasta file is provided, it will be transparently decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file extension.
 
- - **Feature**: Nextclade CLI and Nextalign CLI now accept compressed input files. For example, if a gzip-compressed fasta file is passed to `--input-fasta=seqeuences.fasta.gz`, it will be transparently extracted. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`.
+ - **Feature**: Nextclade CLI and Nextalign CLI can now write compressed output files. If output path contains one of the supported file extensions, it will be transparently compressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`.
 
  - **Feature**: Nextclade can now write outputs in newline-delimited JSON format . Use `--output-ndjson` flag for that. NDJSON output is equivalent to JSON output, but is not hierarchical, so it can be easily streamed and parsed one entry at a time.
 
- - **Feature**: `dataset get` and `dataset list` commands now can fetch dataset index from a custom server. The root URL of the dataset server can be set using `--server=<URL>` flag.
+ - **Feature**: Nextclade `dataset get` and `dataset list` commands now can fetch dataset index from a custom server. The root URL of the dataset server can be set using `--server=<URL>` flag.
+
+ - **Feature**: Nextclade `dataset get` command can output downloaded dataset in the form of a zip archive, using `--output-zip` flag. The dataset zip is simply the dataset directory, but compressed, and it can be used as a replacement in the `--input-dataset` flag of the `run` command.
 
  - **Feature**: Nextalign CLI and Nextclade CLI provide a command for generating shell completions: see `nextclade completions --help` for details.
 

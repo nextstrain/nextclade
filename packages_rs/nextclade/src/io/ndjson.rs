@@ -1,15 +1,14 @@
-use crate::io::fs::ensure_dir;
+use crate::io::file::create_file;
 use eyre::{Report, WrapErr};
 use std::fmt::Debug;
-use std::fs::File;
-use std::io::{BufReader, BufWriter, LineWriter, Write};
+use std::io::{LineWriter, Write};
 use std::path::{Path, PathBuf};
 
-pub struct NdjsonWriter<W: Write + Debug + Send + Sync> {
+pub struct NdjsonWriter<W: Write + Send> {
   line_writer: LineWriter<W>,
 }
 
-impl<W: 'static + Write + Debug + Send + Sync> NdjsonWriter<W> {
+impl<W: Write + Send> NdjsonWriter<W> {
   pub fn new(writer: W) -> Result<Self, Report> {
     let line_writer = LineWriter::new(writer);
     Ok(Self { line_writer })
@@ -20,33 +19,20 @@ impl<W: 'static + Write + Debug + Send + Sync> NdjsonWriter<W> {
     self.line_writer.write_all(b"\n")?;
     Ok(())
   }
-
-  pub fn into_inner(self) -> Result<W, Report> {
-    let inner = self.line_writer.into_inner()?;
-    Ok(inner)
-  }
 }
 
 pub struct NdjsonFileWriter {
   filepath: PathBuf,
-  ndjson_writer: NdjsonWriter<BufWriter<File>>,
+  ndjson_writer: NdjsonWriter<Box<dyn Write + Send>>,
 }
 
 impl NdjsonFileWriter {
   pub fn new(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    const BUF_SIZE: usize = 2 * 1024 * 1024;
-
-    let filepath = filepath.as_ref().to_owned();
-
-    ensure_dir(&filepath)?;
-
-    let file = File::create(&filepath).wrap_err_with(|| format!("When writing file: {filepath:#?}"))?;
-    let buf_writer = BufWriter::with_capacity(BUF_SIZE, file);
-
-    let line_writer = NdjsonWriter::new(buf_writer)?;
-
+    let filepath = filepath.as_ref();
+    let file = create_file(filepath)?;
+    let line_writer = NdjsonWriter::new(file)?;
     Ok(Self {
-      filepath,
+      filepath: filepath.to_owned(),
       ndjson_writer: line_writer,
     })
   }
