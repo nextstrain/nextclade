@@ -27,6 +27,8 @@ Also, it is now much simpler to contribute to Nextclade. If you wanted to contri
 
    - "Terminal band width" controls the extra band width that is necessary for correct alignment if terminal indels occur.
 
+- **Feature**: "Min match rate" parameter is added, which sets required rage of seed matches in a sequence (number of matched seeds divided by total number of attempted seeds). If the measured rate is below required, alignment will not be attempted, as for such sequences, there is a high chance of infeasible memory and computational requirements. The default value is 0.3.
+
 - **Fix**: 3' terminal insertions are now properly detected
 
 ### Genes on reverse (negative) strand
@@ -90,7 +92,7 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
 
    - The new flag `--output-translations` is a dedicated flag to provide a file path template which will be used to output translated gene fasta files. This flag accepts a template string with a template variable `{{gene}}`, which will be substituted with a gene name. Each gene therefore receives it's own path. Additionally, the translations are now independent from output directory and can be omitted if they are not necessary.
 
-   - **Feature**: `--excess-bandwidth` and `--terminal-bandwidth` arguments are added (see "Alignment algorithm rewritten with adaptive bands" section for details)
+   - **Feature**: New `--excess-bandwidth`, `--terminal-bandwidth`, `--min-match-rate` arguments are added (see "Alignment algorithm rewritten with adaptive bands" section for details)
 
     Example: 
  
