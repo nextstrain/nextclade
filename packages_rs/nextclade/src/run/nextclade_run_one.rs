@@ -28,6 +28,7 @@ use crate::types::outputs::{NextalignOutputs, NextcladeOutputs};
 use eyre::Report;
 
 pub fn nextclade_run_one(
+  index: usize,
   seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
@@ -49,6 +50,8 @@ pub fn nextclade_run_one(
     missing_genes,
     is_reverse_complement,
   } = nextalign_run_one(
+    index,
+    seq_name,
     qry_seq,
     ref_seq,
     ref_peptides,
@@ -166,6 +169,7 @@ pub fn nextclade_run_one(
     stripped.qry_seq,
     translations,
     NextcladeOutputs {
+      index,
       seq_name,
       substitutions,
       total_substitutions,

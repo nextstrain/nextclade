@@ -11,6 +11,8 @@ use itertools::{Either, Itertools};
 use std::collections::HashSet;
 
 pub fn nextalign_run_one(
+  index: usize,
+  seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
@@ -19,7 +21,7 @@ pub fn nextalign_run_one(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<NextalignOutputs, Report> {
-  match align_nuc(qry_seq, ref_seq, gap_open_close_nuc, params) {
+  match align_nuc(index, seq_name, qry_seq, ref_seq, gap_open_close_nuc, params) {
     Err(report) => Err(report),
 
     Ok(alignment) => {

@@ -10,7 +10,7 @@ use crate::io::nuc::Nuc;
 use crate::make_error;
 use crate::translate::complement::reverse_complement_in_place;
 use eyre::Report;
-use log::{info, trace};
+use log::{info, trace, warn};
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -30,6 +30,8 @@ fn align_pairwise<T: Letter<T>>(
 
 /// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
 pub fn align_nuc(
+  index: usize,
+  seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   gap_open_close: &[i32],
@@ -48,12 +50,13 @@ pub fn align_nuc(
     Ok(stripes) => Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)),
     Err(report) => {
       if params.retry_reverse_complement {
-        info!("Seed matching failed. Retrying reverse complement"); // TODO: would be nice to have sequence index and name here
+        info!("When processing sequence #{index} '{seq_name}': Seed matching failed. Retrying reverse complement");
         let mut qry_seq = qry_seq.to_owned();
         reverse_complement_in_place(&mut qry_seq);
         let stripes = seed_alignment(&qry_seq, ref_seq, params).map_err(|_| report)?;
         let mut result = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
         result.is_reverse_complement = true;
+        warn!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.");
         Ok(result)
       } else {
         Err(report)
@@ -131,7 +134,7 @@ mod tests {
     let qry_seq = to_nuc_seq("ACGCTCGCT")?;
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -145,7 +148,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
     let qry_aln = to_nuc_seq("-CGCTCGCT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -159,7 +162,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
     let qry_aln = to_nuc_seq("---CTCGCT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -174,7 +177,7 @@ mod tests {
     let qry_aln = to_nuc_seq("-----TCCAATCA")?;
     //                                  ^
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -189,7 +192,7 @@ mod tests {
     let qry_aln = to_nuc_seq("-----TGTTACCTGCGC")?;
     //                              ^^
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -203,7 +206,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
     let qry_aln = to_nuc_seq("ACGCTC---")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -218,7 +221,7 @@ mod tests {
     let qry_aln = to_nuc_seq("CCAATCAT-----")?;
     //                             ^
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -233,7 +236,7 @@ mod tests {
     let qry_aln = to_nuc_seq("CCGATCAT-----")?;
     //                            ^  ^
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -247,7 +250,7 @@ mod tests {
     let ref_seq = to_nuc_seq("GCCACGCTCGCT")?;
     let qry_aln = to_nuc_seq("---ACGCTC---")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -261,7 +264,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTC")?;
     let ref_aln = to_nuc_seq("---ACGCTC---")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -275,7 +278,7 @@ mod tests {
     let ref_seq = to_nuc_seq("GCCACGCTCGCT")?;
     let qry_aln = to_nuc_seq("GCCA--CTCCCT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     // assert_eq!(18, result.alignment_score);
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
@@ -290,7 +293,7 @@ mod tests {
     let ref_seq = to_nuc_seq("GCCACTCGCT")?;
     let ref_aln = to_nuc_seq("GCCA--CTCGCT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -304,7 +307,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACATATACTTC")?;
     let qry_aln = to_nuc_seq("ACAT---CTTC")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -318,7 +321,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACATCTTG")?;
     let ref_aln = to_nuc_seq("ACAT---CTTG")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -333,7 +336,7 @@ mod tests {
     let qry_aln = to_nuc_seq("AAAAAAAAAAAA----------")?;
     let ref_aln = to_nuc_seq("---------AAATTTTTTTTTT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -348,7 +351,7 @@ mod tests {
     let ref_aln = to_nuc_seq("AAAAAAAAAAAA----------")?;
     let qry_aln = to_nuc_seq("---------AAATTTTTTTTTT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -363,7 +366,7 @@ mod tests {
     let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTG----GCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
     let qry_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT")?;
 
-    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));

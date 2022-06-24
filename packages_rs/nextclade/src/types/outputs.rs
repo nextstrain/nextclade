@@ -37,6 +37,7 @@ pub struct NextalignOutputs {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
+  pub index: usize,
   pub seq_name: String,
   pub substitutions: Vec<NucSubFull>,
   pub total_substitutions: usize,
