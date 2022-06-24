@@ -1461,7 +1461,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade"
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.7"
 dependencies = [
  "assert2",
  "atty",
@@ -1511,11 +1511,10 @@ dependencies = [
 
 [[package]]
 name = "nextclade-cli"
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.7"
 dependencies = [
  "assert2",
  "clap 3.1.18",
- "clap-verbosity-flag",
  "clap_complete",
  "clap_complete_fig",
  "color-eyre",
@@ -1551,7 +1550,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-web"
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.7"
 dependencies = [
  "assert2",
  "console_error_panic_hook",

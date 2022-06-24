@@ -30,7 +30,7 @@ export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
 export USER=user
 export GROUP=user
 
-export BUILD_DIR_REL=".build/docker/${PACKAGE_DIR_REL}"
+export BUILD_DIR_REL=".build/docker${CROSS:+-$CROSS}/${PACKAGE_DIR_REL}"
 export BUILD_DIR="$(abspath "${PACKAGE_DIR}/${BUILD_DIR_REL}")"
 export BUILD_DIR_TEST="${BUILD_DIR}/test"
 
@@ -268,9 +268,23 @@ if [ "${WASM}" == "1" ]; then
   CROSS="wasm32-unknown-unknown"
 fi
 
+DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04}"
+CLANG_VERSION="${CLANG_VERSION:=13}"
 DOCKER_TARGET="dev"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
+  if [[ "${CROSS}" == *linux-gnu ]]; then
+
+    if [[ "${CROSS}" == x86_64-* ]]; then
+      DOCKER_BASE_IMAGE="debian:7.11"
+      CLANG_VERSION="3.5"
+    else
+      DOCKER_BASE_IMAGE="debian:9.13"
+      CLANG_VERSION="13"
+    fi
+
+  fi
+
   DOCKER_TARGET="cross-${CROSS}"
   RUST_TARGET="--target=${CROSS}"
 fi
@@ -300,6 +314,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
     --network=host \
+    --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
+    --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
     --build-arg="UID=$(id -u)" \
     --build-arg="GID=$(id -g)" \
     --build-arg="USER=user" \

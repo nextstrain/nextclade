@@ -1,4 +1,6 @@
-use crate::cli::nextclade_cli::NextcladeRunArgs;
+use crate::cli::nextclade_cli::{
+  NextcladeRunArgs, NextcladeRunInputArgs, NextcladeRunOtherArgs, NextcladeRunOutputArgs,
+};
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::{
   dataset_dir_load, dataset_individual_files_load, dataset_zip_load, DatasetFiles,
@@ -12,7 +14,7 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
-use nextclade::io::nuc::{to_nuc_seq, Nuc};
+use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
@@ -38,7 +40,7 @@ pub struct DatasetFilePaths {
 }
 
 pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<String>>) -> Result<DatasetFiles, Report> {
-  if let Some(input_dataset) = run_args.input_dataset.as_ref() {
+  if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
     if input_dataset.is_file() && has_extension(input_dataset, "zip") {
       dataset_zip_load(run_args, input_dataset, genes)
     } else if input_dataset.is_dir() {
@@ -54,29 +56,45 @@ pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<Strin
   }
 }
 
-pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
-  info!("Command-line arguments:\n{args:#?}");
+pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
+  info!("Command-line arguments:\n{run_args:#?}");
 
   let NextcladeRunArgs {
-    input_fastas: input_fasta,
-    output_all,
-    output_basename,
-    output_selection,
-    output_translations,
-    include_reference,
-    output_fasta,
-    output_ndjson,
-    output_json,
-    output_csv,
-    output_tsv,
-    output_tree,
-    output_insertions,
-    output_errors,
-    jobs,
-    in_order,
-    genes,
-    ..
-  } = args.clone();
+    inputs:
+      NextcladeRunInputArgs {
+        input_fastas,
+        input_dataset,
+        input_ref,
+        input_tree,
+        input_qc_config,
+        input_virus_properties,
+        input_pcr_primers,
+        input_gene_map,
+        genes,
+        ..
+      },
+    outputs:
+      NextcladeRunOutputArgs {
+        output_all,
+        output_basename,
+        output_selection,
+        output_fasta,
+        output_translations,
+        output_ndjson,
+        output_json,
+        output_csv,
+        output_tsv,
+        output_tree,
+        output_insertions,
+        output_errors,
+        include_reference,
+        in_order,
+        replace_unknown,
+        ..
+      },
+    other: NextcladeRunOtherArgs { jobs },
+    alignment_params,
+  } = run_args.clone();
 
   let DatasetFiles {
     ref_record,
@@ -85,7 +103,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     ref gene_map,
     qc_config,
     primers,
-  } = nextclade_get_inputs(&args, genes)?;
+  } = nextclade_get_inputs(&run_args, genes)?;
 
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
@@ -97,7 +115,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   }
 
   // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(args.alignment_params);
+  alignment_params.merge_opt(run_args.alignment_params);
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
 
@@ -120,7 +138,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let outputs = &mut outputs;
 
     s.spawn(|_| {
-      let mut reader = FastaReader::from_paths(&input_fasta).unwrap();
+      let mut reader = FastaReader::from_paths(&input_fastas).unwrap();
       loop {
         let mut record = FastaRecord::default();
         reader.read(&mut record).unwrap();
@@ -151,24 +169,29 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
-          let qry_seq = to_nuc_seq(&seq)
-            .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
-            .unwrap();
 
-          let outputs_or_err = nextclade_run_one(
-            &seq_name,
-            &qry_seq,
-            ref_seq,
-            ref_peptides,
-            gene_map,
-            primers,
-            tree,
-            qc_config,
-            virus_properties,
-            gap_open_close_nuc,
-            gap_open_close_aa,
-            alignment_params,
-          );
+          let outputs_or_err = if replace_unknown {
+            Ok(to_nuc_seq_replacing(&seq))
+          } else {
+            to_nuc_seq(&seq)
+          }
+          .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
+          .and_then(|qry_seq| {
+            nextclade_run_one(
+              &seq_name,
+              &qry_seq,
+              ref_seq,
+              ref_peptides,
+              gene_map,
+              primers,
+              tree,
+              qc_config,
+              virus_properties,
+              gap_open_close_nuc,
+              gap_open_close_aa,
+              alignment_params,
+            )
+          });
 
           let record = NextcladeRecord {
             index,
