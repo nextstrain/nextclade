@@ -59,6 +59,9 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
     }
   }
 
+  substitutions.sort();
+  deletions.sort();
+
   FindNucChangesOutput {
     substitutions,
     deletions,

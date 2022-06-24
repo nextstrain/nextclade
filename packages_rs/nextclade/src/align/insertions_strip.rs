@@ -8,9 +8,10 @@ use eyre::Report;
 use itertools::Itertools;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::cmp::Ordering;
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
 
@@ -30,6 +31,19 @@ impl<T: Letter<T>> Insertion<T> {
 }
 
 pub type NucIns = Insertion<Nuc>;
+
+/// Order nuc insertions by position, then length
+impl<T: Letter<T>> Ord for Insertion<T> {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.ins.len()).cmp(&(other.pos, other.ins.len()))
+  }
+}
+
+impl<T: Letter<T>> PartialOrd for Insertion<T> {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StripInsertionsResult<T: Letter<T>> {
@@ -81,6 +95,7 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
 
   qry_stripped.shrink_to_fit();
   insertions.shrink_to_fit();
+  insertions.sort();
 
   // Remove gaps from ref
   let mut ref_stripped = ref_seq.to_vec();
@@ -93,7 +108,7 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
   }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AaIns {
   pub gene: String,
@@ -102,6 +117,19 @@ pub struct AaIns {
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<Aa>,
+}
+
+/// Order amino acid insertions by gene, position, then length
+impl Ord for AaIns {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (&self.gene, self.pos, self.ins.len()).cmp(&(&other.gene, other.pos, other.ins.len()))
+  }
+}
+
+impl PartialOrd for AaIns {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
 }
 
 pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
@@ -114,6 +142,7 @@ pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
         ins,
       })
     })
+    .sorted()
     .collect_vec()
 }
 
