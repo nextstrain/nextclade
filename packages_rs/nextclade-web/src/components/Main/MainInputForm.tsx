@@ -18,6 +18,7 @@ export const Centered = styled.section`
   margin: auto;
 
   @media (min-width: 768px) {
+    width: 1000px;
     min-width: 600px;
   }
 
@@ -26,7 +27,7 @@ export const Centered = styled.section`
     width: 100%;
   }
 
-  max-width: 800px;
+  max-width: 1000px;
 `
 
 export function MainInputForm() {
