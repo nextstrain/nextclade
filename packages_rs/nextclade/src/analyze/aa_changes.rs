@@ -67,10 +67,10 @@ impl ToString for AaSub {
   }
 }
 
-/// Order substitutions by position, then ref character, then query character
+/// Order amino acid substitutions by gene, position, then ref character, then query character
 impl Ord for AaSub {
   fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
+    (&self.gene, self.pos, self.reff, self.qry).cmp(&(&other.gene, other.pos, other.reff, other.qry))
   }
 }
 
@@ -112,10 +112,10 @@ impl ToString for AaDel {
   }
 }
 
-/// Order substitutions by position, then ref character, then query character
+/// Order amino acid deletions by gene, position, then ref character, then query character
 impl Ord for AaDel {
   fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff).cmp(&(other.pos, other.reff))
+    (&self.gene, self.pos, self.reff).cmp(&(&other.gene, other.pos, other.reff))
   }
 }
 
@@ -262,8 +262,8 @@ pub fn find_aa_changes(
       output
     });
 
-  changes.aa_substitutions.sort_by_key(|sub| sub.pos);
-  changes.aa_deletions.sort_by_key(|del| del.pos);
+  changes.aa_substitutions.sort();
+  changes.aa_deletions.sort();
 
   Ok(changes)
 }

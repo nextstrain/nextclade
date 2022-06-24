@@ -22,7 +22,7 @@ import {
 import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
 import {
-  qrySeqInputAtom,
+  qrySeqInputsStorageAtom,
   refSeqInputAtom,
   geneMapInputAtom,
   refTreeInputAtom,
@@ -45,7 +45,8 @@ export function useRunAnalysis() {
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
-        const qrySeq = getPromise(qrySeqInputAtom)
+
+        const qryInputs = getPromise(qrySeqInputsStorageAtom)
 
         const inputs: LaunchAnalysisInputs = {
           ref_seq_str: getPromise(refSeqInputAtom),
@@ -91,7 +92,7 @@ export function useRunAnalysis() {
           .push('/results', '/results')
           .then(async () => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.initWorkers)
-            return launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads)
+            return launchAnalysis(qryInputs, inputs, callbacks, datasetCurrent, numThreads)
           })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)

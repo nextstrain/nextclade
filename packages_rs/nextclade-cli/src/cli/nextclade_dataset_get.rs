@@ -1,7 +1,7 @@
 use crate::cli::nextclade_cli::NextcladeDatasetGetArgs;
 use crate::dataset::dataset::DatasetsIndexJson;
 use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_attributes};
-use crate::dataset::dataset_download::dataset_download;
+use crate::dataset::dataset_download::{dataset_download, dataset_zip_download};
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
 use eyre::Report;
@@ -19,6 +19,7 @@ pub fn nextclade_dataset_get(
     attribute,
     server,
     output_dir,
+    output_zip,
     proxy_config,
   }: NextcladeDatasetGetArgs,
 ) -> Result<(), Report> {
@@ -98,7 +99,17 @@ pub fn nextclade_dataset_get(
 
   match filtered.len() {
     0 => make_error!("No datasets found{attributes_fmt}. Use `datasets list` command to show available datasets."),
-    1 => dataset_download(&mut http, &filtered[0], &output_dir),
+    1 => {
+      if let Some(output_dir) = output_dir {
+        return dataset_download(&mut http, &filtered[0], &output_dir);
+      }
+
+      if let Some(output_zip) = output_zip {
+        return dataset_zip_download(&mut http, &filtered[0], &output_zip);
+      }
+
+      Ok(())
+    }
     _ => {
       let table = format_dataset_table(&filtered);
       make_error!("Can download only a single dataset, but multiple datasets found{attributes_fmt}. Add more specific attributes to select one of them. Given current attributes, the candidates are:\n{table}")

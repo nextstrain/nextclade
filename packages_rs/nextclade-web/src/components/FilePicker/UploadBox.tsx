@@ -1,93 +1,10 @@
-import React, { PropsWithChildren, useMemo, useState } from 'react'
-
-import type { TFunction } from 'i18next'
+import React, { PropsWithChildren, useMemo } from 'react'
 import { Button } from 'reactstrap'
-import { sanitizeError } from 'src/helpers/sanitizeError'
-import styled, { DefaultTheme } from 'styled-components'
-import { FileRejection, useDropzone } from 'react-dropzone'
+import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 
-import { theme } from 'src/theme'
+import { getUploadZoneTheme, UploadZoneState, useUploadZone } from 'src/components/FilePicker/useUploadZone'
 import { appendDash } from 'src/helpers/appendDash'
-
-export type UpdateErrorsFunction = (prevErrors: string[]) => string[]
-
-export interface MakeOnDropParams {
-  t: TFunction
-
-  onUpload(file: File): void
-
-  setErrors(updateErrors: string[] | UpdateErrorsFunction): void
-}
-
-export function makeOnDrop({ t, onUpload, setErrors }: MakeOnDropParams) {
-  function handleError(error: Error) {
-    if (error instanceof UploadErrorTooManyFiles) {
-      setErrors((prevErrors) => [...prevErrors, t('Only one file is expected')])
-    } else if (error instanceof UploadErrorUnknown) {
-      setErrors((prevErrors) => [...prevErrors, t('Unknown error')])
-    } else {
-      throw error
-    }
-  }
-
-  async function processFiles(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
-    const nFiles = acceptedFiles.length + rejectedFiles.length
-
-    if (nFiles > 1) {
-      throw new UploadErrorTooManyFiles(nFiles)
-    }
-
-    if (acceptedFiles.length !== 1) {
-      throw new UploadErrorTooManyFiles(acceptedFiles.length)
-    }
-
-    const file = acceptedFiles[0]
-    onUpload(file)
-  }
-
-  async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
-    setErrors([])
-    try {
-      await processFiles(acceptedFiles, rejectedFiles)
-    } catch (error: unknown) {
-      handleError(sanitizeError(error))
-    }
-  }
-
-  return (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    // eslint-disable-next-line no-void
-    void onDrop(acceptedFiles, rejectedFiles)
-  }
-}
-
-export enum UploadZoneState {
-  normal = 'normal',
-  accept = 'accept',
-  reject = 'reject',
-  hover = 'hover',
-}
-
-class UploadErrorTooManyFiles extends Error {
-  public readonly nFiles: number
-
-  constructor(nFiles: number) {
-    super(`when uploading: one file is expected, but got ${nFiles}`)
-    this.nFiles = nFiles
-  }
-}
-
-class UploadErrorUnknown extends Error {
-  constructor() {
-    super(`when uploading: unknown error`)
-  }
-}
-
-export type UploadZoneElems = keyof typeof theme.uploadZone
-
-export function getUploadZoneTheme(props: { state: UploadZoneState; theme: DefaultTheme }, elem: UploadZoneElems) {
-  return props.theme.uploadZone[elem][props.state]
-}
 
 export const UploadZoneWrapper = styled.div`
   width: 100%;
@@ -101,15 +18,15 @@ export const UploadZoneWrapper = styled.div`
 
 export const UploadZone = styled.div<{ state: UploadZoneState }>`
   display: flex;
-  height: 100%;
   width: 100%;
+  height: 100%;
   cursor: pointer;
-  border: ${(props) => getUploadZoneTheme(props, 'border')};
+  min-height: ${(props) => props.theme.filePicker.minHeight};
   border-radius: ${(props) => props.theme.filePicker.borderRadius};
+  border: ${(props) => getUploadZoneTheme(props, 'border')};
   color: ${(props) => getUploadZoneTheme(props, 'color')};
   background-color: ${(props) => getUploadZoneTheme(props, 'background')};
   box-shadow: ${(props) => getUploadZoneTheme(props, 'box-shadow')};
-  min-height: ${(props) => props.theme.filePicker.minHeight};
 `
 
 export const UploadZoneInput = styled.input``
@@ -141,48 +58,33 @@ export const UploadZoneText = styled.div`
   text-align: center;
 `
 
-export const UploadZoneTextOr = styled.div`
-  margin-top: 10px;
-  font-size: 0.9rem;
-  font-weight: lighter;
-  text-align: center;
-`
-
 export const UploadZoneButton = styled(Button)`
   margin-top: 10px;
   min-width: 160px;
   min-height: 50px;
 `
 
-export interface UploaderGenericProps {
-  onUpload(file: File): void
+export interface UploadBoxProps {
+  onUpload(files: File[]): void
+  multiple?: boolean
 }
 
-export function UploadBox({ onUpload, children, ...props }: PropsWithChildren<UploaderGenericProps>) {
+export function UploadBox({ onUpload, children, multiple = false, ...props }: PropsWithChildren<UploadBoxProps>) {
   const { t } = useTranslation()
-  const [errors, setErrors] = useState<string[]>([])
-
-  const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
-    onDrop: makeOnDrop({ t, onUpload, setErrors }),
-    multiple: false,
+  const { state, errors, hasErrors, getRootProps, getInputProps, isDragActive } = useUploadZone({
+    onUpload,
+    multiple,
   })
-
-  const hasErrors = errors.length > 0
 
   if (hasErrors) {
     console.warn(`Errors when uploading:\n${errors.map(appendDash).join('\n')}`)
   }
 
-  let state = UploadZoneState.normal
-  if (isDragAccept) state = UploadZoneState.accept
-  else if (isDragReject) state = UploadZoneState.reject
-
   const normal = useMemo(
     () => (
       <UploadZoneTextContainer>
-        <UploadZoneText>{t('Drag & Drop a file here')}</UploadZoneText>
-        <UploadZoneTextOr>{t('or')}</UploadZoneTextOr>
-        <UploadZoneButton color="primary">{t('Select a file')}</UploadZoneButton>
+        <UploadZoneText>{t('Drag & drop files')}</UploadZoneText>
+        <UploadZoneButton color="primary">{t('Select files')}</UploadZoneButton>
       </UploadZoneTextContainer>
     ),
     [t],
@@ -198,7 +100,7 @@ export function UploadBox({ onUpload, children, ...props }: PropsWithChildren<Up
   )
 
   return (
-    <UploadZoneWrapper {...props} {...getRootProps()}>
+    <UploadZoneWrapper {...getRootProps()} {...props} title={t('Drag & drop or select files')}>
       <UploadZoneInput type="file" {...getInputProps()} />
       <UploadZone state={state}>
         <UploadZoneLeft>{<FileIconsContainer>{children}</FileIconsContainer>}</UploadZoneLeft>

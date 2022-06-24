@@ -1,7 +1,7 @@
 [package]
 name = "nextclade-cli"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. CLI module."
-version = "2.0.0-alpha.6"
+version = "2.0.0-beta.7"
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
 homepage = "https://clades.nextstrain.org/"
@@ -12,7 +12,6 @@ publish = false
 [dependencies]
 assert2 = "0.3.6"
 clap = { version = "3.1.8", features = ["derive"] }
-clap-verbosity-flag = "1.0.0"
 clap_complete = "3.1.1"
 clap_complete_fig = "3.1.4"
 color-eyre = "0.6.1"
@@ -33,10 +32,13 @@ owo-colors = "3.3.0"
 pretty_assertions = "1.2.1"
 rayon = "1.5.2"
 regex = "1.5.5"
-reqwest = { version = "0.11.10", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"]}
+reqwest = { version = "0.11.10", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"] }
 semver = "1.0.9"
 serde = { version = "1.0.136", features = ["derive"] }
+strum = "0.24.0"
+strum_macros = "0.24"
 url = { version = "2.2.2", features = ["serde"] }
+zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 
 [target.'cfg(all(target_os="linux", target_arch="x86_64"))'.dependencies]
 mimalloc = { version = "0.1.28", default-features = false, optional = true }

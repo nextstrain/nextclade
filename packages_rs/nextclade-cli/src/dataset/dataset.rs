@@ -1,6 +1,6 @@
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
-use nextclade::io::json::json_parse;
+use nextclade::io::json::{json_parse, json_parse_bytes};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -55,6 +55,7 @@ pub struct Dataset {
   pub compatibility: DatasetCompatibility,
   pub files: BTreeMap<String, String>,
   pub params: Option<DatasetParams>,
+  pub zip_bundle: String,
 }
 
 impl Dataset {
@@ -94,10 +95,19 @@ pub struct DatasetsIndexJson {
   pub datasets: Vec<Dataset>,
 }
 
+impl TryFrom<&[u8]> for DatasetsIndexJson {
+  type Error = Report;
+
+  #[inline]
+  fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+    json_parse_bytes(bytes).wrap_err("When parsing dataset index JSON")
+  }
+}
+
 impl DatasetsIndexJson {
   #[inline]
   pub fn download(http: &mut HttpClient) -> Result<Self, Report> {
-    Self::from_str(&http.get(&"/index_v2.json").wrap_err("When downloading dataset index")?)
+    Self::try_from(http.get(&"/index_v2.json")?.as_slice())
   }
 }
 
@@ -106,6 +116,6 @@ impl FromStr for DatasetsIndexJson {
 
   #[inline]
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s).wrap_err("When parsing dataset index")
+    json_parse(s).wrap_err("When parsing dataset index JSON")
   }
 }

@@ -1,4 +1,5 @@
 use eyre::{eyre, Report, WrapErr};
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
@@ -30,15 +31,21 @@ pub fn ensure_dir(filepath: impl AsRef<Path>) -> Result<(), Report> {
   .wrap_err_with(|| format!("When ensuring parent directory for '{filepath:#?}'"))
 }
 
-pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
+pub fn filename_maybe(filepath: impl AsRef<Path>) -> Option<String> {
+  filepath.as_ref().file_name()?.to_str()?.to_owned().into()
+}
+
+pub fn basename_maybe(filepath: impl AsRef<Path>) -> Option<String> {
+  filepath.as_ref().file_stem()?.to_str()?.to_owned().into()
+}
+
+pub fn extension(filepath: impl AsRef<Path>) -> Option<String> {
   let filepath = filepath.as_ref();
-  Ok(
-    filepath
-      .with_extension("")
-      .to_str()
-      .ok_or_else(|| eyre!("Cannot get base name of path {filepath:#?}"))?
-      .to_owned(),
-  )
+  filepath.extension().map(OsStr::to_str).flatten().map(str::to_owned)
+}
+
+pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> bool {
+  extension(filepath.as_ref()).map_or(false, |fext| fext.eq_ignore_ascii_case(ext.as_ref()))
 }
 
 /// Reads entire file into a string.

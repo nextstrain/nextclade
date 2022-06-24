@@ -45,6 +45,7 @@ const TabsContentStyled = styled(TabsContent)`
 `
 
 export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'onInput' | 'onError' | 'as' | 'ref'> {
+  multiple?: boolean
   compact?: boolean
   title: string
   icon: ReactNode
@@ -54,12 +55,14 @@ export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, '
   error?: string
   isInProgress?: boolean
   inputRef?: Ref<HTMLInputElement | null>
-  onInput(input: AlgorithmInput): void
-  onRemove(_0: unknown): void
+  onInput?(input: AlgorithmInput): void
+  onInputs?(inputs: AlgorithmInput[]): void
+  onRemove?(_0: unknown): void
   onError?(error: string): void
 }
 
 export function FilePicker({
+  multiple = false,
   compact,
   title,
   icon,
@@ -69,6 +72,7 @@ export function FilePicker({
   error,
   isInProgress,
   onInput,
+  onInputs,
   onRemove,
   onError,
   inputRef,
@@ -77,32 +81,44 @@ export function FilePicker({
   const { t } = useTranslationSafe()
   const [activeTab, setActiveTab] = useState<string>('file')
 
-  const onFile = useCallback(
-    (file: File) => {
-      onInput(new AlgorithmInputFile(file))
+  const onFiles = useCallback(
+    (files: File[]) => {
+      if (multiple) {
+        onInputs?.(files.map((file) => new AlgorithmInputFile(file)))
+      } else if (files.length > 0) {
+        onInput?.(new AlgorithmInputFile(files[0]))
+      }
     },
-    [onInput],
+    [multiple, onInput, onInputs],
   )
 
   const onUrl = useCallback(
     (url: string) => {
-      onInput(new AlgorithmInputUrl(url))
+      if (multiple) {
+        onInputs?.([new AlgorithmInputUrl(url)])
+      } else {
+        onInput?.(new AlgorithmInputUrl(url))
+      }
     },
-    [onInput],
+    [multiple, onInput, onInputs],
   )
 
   const onPaste = useCallback(
     (content: string) => {
-      onInput(new AlgorithmInputString(content))
+      if (multiple) {
+        onInputs?.([new AlgorithmInputString(content)])
+      } else {
+        onInput?.(new AlgorithmInputString(content))
+      }
     },
-    [onInput],
+    [multiple, onInput, onInputs],
   )
 
   // eslint-disable-next-line no-void
   void onError
 
   const clearAndRemove = useCallback(() => {
-    onRemove([])
+    onRemove?.([])
   }, [onRemove])
 
   const tabs = useMemo(
@@ -111,9 +127,11 @@ export function FilePicker({
         name: 'file',
         title: t('File'),
         body: compact ? (
-          <UploadBoxCompact onUpload={onFile}>{icon}</UploadBoxCompact>
+          <UploadBoxCompact onUpload={onFiles}>{icon}</UploadBoxCompact>
         ) : (
-          <UploadBox onUpload={onFile}>{icon}</UploadBox>
+          <UploadBox onUpload={onFiles} multiple>
+            {icon}
+          </UploadBox>
         ),
       },
       {
@@ -127,7 +145,7 @@ export function FilePicker({
         body: <TabPanelPaste onConfirm={onPaste} instructions={pasteInstructions} inputRef={inputRef} />,
       },
     ],
-    [compact, exampleUrl, icon, inputRef, onFile, onPaste, onUrl, pasteInstructions, t],
+    [compact, exampleUrl, icon, inputRef, onFiles, onPaste, onUrl, pasteInstructions, t],
   )
 
   const FileUploadOrFileInfo = useMemo(() => {
