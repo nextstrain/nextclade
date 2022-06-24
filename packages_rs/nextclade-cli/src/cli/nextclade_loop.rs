@@ -48,7 +48,7 @@ pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<Strin
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
-        Expected a directory path of a zip archive file path, but got: '{input_dataset:#?}'"
+        Expected a directory path or a zip archive file path, but got: '{input_dataset:#?}'"
       )
     }
   } else {
