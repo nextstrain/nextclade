@@ -115,6 +115,8 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
           .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
           .and_then(|qry_seq| {
             nextalign_run_one(
+              index,
+              &seq_name,
               &qry_seq,
               ref_seq,
               ref_peptides,

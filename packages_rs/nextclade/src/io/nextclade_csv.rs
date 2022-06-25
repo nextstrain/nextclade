@@ -86,6 +86,7 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "qc.stopCodons.totalStopCodons",
   "qc.stopCodons.score",
   "qc.stopCodons.status",
+  "isReverseComplement",
   // "failedGenes",
   // "warnings",
   "errors",
@@ -169,6 +170,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       // divergence,
       qc,
       custom_node_attributes,
+      is_reverse_complement,
       ..
     } = nextclade_outputs;
 
@@ -365,6 +367,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       "qc.stopCodons.status",
       qc.stop_codons.as_ref().map(|sc| sc.status.to_string()),
     )?;
+    self.add_entry("isReverseComplement", &is_reverse_complement.to_string())?;
     // self.add_entry("failedGenes", &format_failed_genes(missing_genes, ARRAY_ITEM_DELIMITER))?;
     // self.add_entry("warnings", &format_aa_warnings(translations, ARRAY_ITEM_DELIMITER))?;
     self.add_entry("errors", &"")?;

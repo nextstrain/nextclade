@@ -14,6 +14,7 @@ pub struct AlignmentOutput<T> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
   pub alignment_score: i32,
+  pub is_reverse_complement: bool,
 }
 
 pub fn backtrace<T: Letter<T>>(
@@ -89,6 +90,7 @@ pub fn backtrace<T: Letter<T>>(
     qry_seq: aln_qry,
     ref_seq: aln_ref,
     alignment_score: scores[(num_rows - 1, num_cols - 1)],
+    is_reverse_complement: false,
   }
 }
 
@@ -156,6 +158,7 @@ mod tests {
       qry_seq: to_nuc_seq("---CTCGCT")?,
       ref_seq: to_nuc_seq("ACGCTCGCT")?,
       alignment_score: 18,
+      is_reverse_complement: false
     };
 
     let output = backtrace(&qry_seq, &ref_seq, &scores, &paths);

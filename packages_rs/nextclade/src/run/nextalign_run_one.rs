@@ -9,8 +9,11 @@ use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::{Either, Itertools};
 use std::collections::HashSet;
+use std::fmt::format;
 
 pub fn nextalign_run_one(
+  index: usize,
+  seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
@@ -19,7 +22,7 @@ pub fn nextalign_run_one(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<NextalignOutputs, Report> {
-  match align_nuc(qry_seq, ref_seq, gap_open_close_nuc, params) {
+  match align_nuc(index, seq_name, qry_seq, ref_seq, gap_open_close_nuc, params) {
     Err(report) => Err(report),
 
     Ok(alignment) => {
@@ -34,7 +37,7 @@ pub fn nextalign_run_one(
 
       let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
-      let (translations, warnings): (Vec<Translation>, Vec<PeptideWarning>) =
+      let (translations, mut warnings): (Vec<Translation>, Vec<PeptideWarning>) =
         translations.into_iter().partition_map(|(gene_name, res)| match res {
           Ok(tr) => Either::Left(tr),
           Err(err) => Either::Right(PeptideWarning {
@@ -51,12 +54,22 @@ pub fn nextalign_run_one(
         .cloned()
         .collect_vec();
 
+      let is_reverse_complement = alignment.is_reverse_complement;
+
+      if is_reverse_complement {
+        warnings.push(PeptideWarning {
+          gene_name: "nuc".to_owned(),
+          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
+        });
+      }
+
       Ok(NextalignOutputs {
         stripped,
         alignment,
         translations,
         warnings,
         missing_genes,
+        is_reverse_complement,
       })
     }
   }

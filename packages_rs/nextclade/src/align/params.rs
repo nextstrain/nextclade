@@ -13,6 +13,7 @@ pub enum GapAlignmentSide {
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
 // into self (mutably).
 
+#[allow(clippy::struct_excessive_bools)]
 #[optfield(pub AlignPairwiseParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
 #[derive(Parser, Debug, Clone, Serialize, Deserialize)]
 pub struct AlignPairwiseParams {
@@ -70,8 +71,12 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub seed_spacing: i32,
 
+  /// Retry seed matching step with a reverse complement if the first attempt failed
+  #[clap(long, takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
+  pub retry_reverse_complement: bool,
+
   /// If this flag is present, the amino acid sequences will be truncated at the first stop codon, if mutations or sequencing errors cause premature stop codons to be present. No amino acid mutations in the truncated region will be recorded.
-  #[clap(long)]
+  #[clap(long, takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
   pub no_translate_past_stop: bool,
 
   // Internal alignment parameter
@@ -112,6 +117,7 @@ impl Default for AlignPairwiseParams {
       min_match_rate: 0.3,
       seed_spacing: 100,
       mismatches_allowed: 3,
+      retry_reverse_complement: false,
       no_translate_past_stop: false,
       left_terminal_gaps_free: true,
       right_terminal_gaps_free: true,

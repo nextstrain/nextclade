@@ -1,6 +1,7 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
 use log::warn;
+use nextclade::constants::REVERSE_COMPLEMENT_SUFFIX;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
@@ -87,24 +88,31 @@ impl<'a> NextalignOrderedWriter<'a> {
           translations,
           warnings,
           missing_genes,
+          is_reverse_complement,
         } = output;
 
+        let seq_name = if *is_reverse_complement {
+          format!("{seq_name}{REVERSE_COMPLEMENT_SUFFIX}")
+        } else {
+          seq_name.clone()
+        };
+
         if let Some(fasta_writer) = &mut self.fasta_writer {
-          fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+          fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq))?;
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
           for translation in translations {
-            fasta_peptide_writer.write(seq_name, translation)?;
+            fasta_peptide_writer.write(&seq_name, translation)?;
           }
         }
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
-          insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
+          insertions_csv_writer.write(&seq_name, &stripped.insertions, translations)?;
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
-          errors_csv_writer.write_aa_errors(seq_name, warnings, missing_genes)?;
+          errors_csv_writer.write_aa_errors(&seq_name, warnings, missing_genes)?;
         }
       }
       Err(report) => {
