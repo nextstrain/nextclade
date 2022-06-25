@@ -1,4 +1,3 @@
-use crate::cli::common::get_fasta_basename;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
@@ -333,9 +332,7 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
   // while taking care to preserve values of any individual `--output-*` flags,
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
-    let output_basename = output_basename
-      .clone()
-      .unwrap_or_else(|| get_fasta_basename(input_fastas).unwrap_or_else(|| "nextalign".to_owned()));
+    let output_basename = output_basename.clone().unwrap_or_else(|| "nextalign".to_owned());
 
     let default_output_file_path = output_all.join(&output_basename);
 
