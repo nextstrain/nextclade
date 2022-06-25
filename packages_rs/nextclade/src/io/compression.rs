@@ -6,8 +6,12 @@ use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression as GzCompressionLevel;
 use log::debug;
+use num::Integer;
+use num_traits::NumCast;
+use std::env;
 use std::io::{ErrorKind, Read, Write};
 use std::path::Path;
+use std::str::FromStr;
 
 // NOTE: crates `bzip2`, `xz2` and `zstd` depend on corresponding C libraries and require libc in order to build.
 // libc is not present for `wasm32-unknown-unknown` target, so we disable these crates.
@@ -26,14 +30,10 @@ use xz2::read::XzDecoder;
 #[cfg(not(target_arch = "wasm32"))]
 use xz2::write::XzEncoder;
 #[cfg(not(target_arch = "wasm32"))]
-const XZ_DEFAULT_COMPRESSION_LEVEL: u32 = 6;
-
 #[cfg(not(target_arch = "wasm32"))]
 use zstd::Decoder as ZstdDecoder;
 #[cfg(not(target_arch = "wasm32"))]
 use zstd::Encoder as ZstdEncoder;
-#[cfg(not(target_arch = "wasm32"))]
-use zstd::DEFAULT_COMPRESSION_LEVEL as ZSTD_DEFAULT_COMPRESSION_LEVEL;
 
 #[derive(strum_macros::Display, Clone)]
 pub enum CompressionType {
@@ -133,6 +133,14 @@ impl<'r> Read for Decompressor<'r> {
   }
 }
 
+fn get_comp_level<I: FromStr + Integer + NumCast>(ext: &str) -> I {
+  let var_name = format!("{}_COMPRESSION", ext.to_uppercase());
+  env::var(var_name)
+    .ok()
+    .and_then(|val| val.parse::<I>().ok())
+    .unwrap_or_else(|| NumCast::from(2).unwrap())
+}
+
 pub struct Compressor<'w> {
   compressor: Box<dyn Write + Send + 'w>,
   compression_type: CompressionType,
@@ -143,12 +151,12 @@ impl<'w> Compressor<'w> {
   pub fn new<W: 'w + Write + Send>(writer: W, compression_type: &CompressionType) -> Result<Self, Report> {
     let compressor: Box<dyn Write + Send + 'w> = match compression_type {
       #[cfg(not(target_arch = "wasm32"))]
-      CompressionType::Bzip2 => Box::new(BzEncoder::new(writer, BzCompressionLevel::default())),
+      CompressionType::Bzip2 => Box::new(BzEncoder::new(writer, BzCompressionLevel::new(get_comp_level("BZ2")))),
       #[cfg(not(target_arch = "wasm32"))]
-      CompressionType::Xz => Box::new(XzEncoder::new(writer, XZ_DEFAULT_COMPRESSION_LEVEL)),
+      CompressionType::Xz => Box::new(XzEncoder::new(writer, get_comp_level("XZ"))),
       #[cfg(not(target_arch = "wasm32"))]
-      CompressionType::Zstandard => Box::new(ZstdEncoder::new(writer, ZSTD_DEFAULT_COMPRESSION_LEVEL)?.auto_finish()),
-      CompressionType::Gzip => Box::new(GzEncoder::new(writer, GzCompressionLevel::default())),
+      CompressionType::Zstandard => Box::new(ZstdEncoder::new(writer, get_comp_level("ZST"))?.auto_finish()),
+      CompressionType::Gzip => Box::new(GzEncoder::new(writer, GzCompressionLevel::new(get_comp_level("GZ")))),
       CompressionType::None => Box::new(writer),
     };
 
