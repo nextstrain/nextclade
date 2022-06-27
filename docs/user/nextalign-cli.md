@@ -137,14 +137,13 @@ NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 Download latest version:
 
 ```
-Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-x86_64-pc-windows-gnu.exe -O nextalign
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-x86_64-pc-windows-gnu.exe -O nextalign.exe
 ```
 
 Download specific version:
 
 ```
-$NEXTALIGN_VERSION=2.0.0
-Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextalign-$NEXTALIGN_VERSION/nextalign-x86_64-pc-windows-gnu.exe -O nextalign
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextalign-2.0.0/nextalign-x86_64-pc-windows-gnu.exe -O nextalign.exe
 ```
 
 </details>

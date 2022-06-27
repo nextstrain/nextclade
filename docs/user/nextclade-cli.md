@@ -137,14 +137,13 @@ NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 Download latest version:
 
 ```
-Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe -O nextclade
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
 ```
 
 Download specific version:
 
 ```
-$NEXTCLADE_VERSION=2.0.0
-Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextclade-$NEXTCLADE_VERSION/nextclade-x86_64-pc-windows-gnu.exe -O nextclade
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextclade-2.0.0/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
 ```
 
 </details>
