@@ -59,6 +59,8 @@ These executables are self-contained and don't require any dependencies. They ca
 > macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
 > Security settings</a>. Refer to the latest macOS documentation if none of this works.
 
+> ⚠️ **GNU vs musl.** Nextclade has two flavors of executables for Linux: "gnu" and "musl", depending on what libc is used. We recommend "gnu" flavor by default - it is typically faster. However, if for some reason "gnu" flavor does not work, try "musl".
+
 ### Download from command line
 
 The following commands can be used to download Nextclade from command line, from shell scripts and inside dockerfiles:
