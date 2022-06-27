@@ -396,7 +396,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Example for bash shell:
   ///
-  ///   --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+  ///   --output-translations='output_dir/gene_{gene}.translation.fasta'
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
