@@ -59,12 +59,6 @@ These executables are self-contained and don't require any dependencies. They ca
 > macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
 > Security settings</a>. Refer to the latest macOS documentation if none of this works.
 
-> ⚠️ Native Windows executables are not available at this time. Windows users can try one of the following:
->
-> - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-> - Use [Docker container image](#installation-with-docker)
-> - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
-
 ### Download from command line
 
 The following commands can be used to download Nextclade from command line, from shell scripts and inside dockerfiles:
