@@ -24,10 +24,20 @@ docker run -it --rm nextstrain/nextalign:latest nextalign --help
 Pull and run a specific version with:
 
 ```bash
-docker run -it --rm nextstrain/nextalign:1.0.0 nextalign --help
+docker run -it --rm nextstrain/nextalign:2.0.0 nextalign --help
 ```
 
-Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
+> ⚠️Don't forget to mount necessary [docker volumes](https://docs.docker.com/storage/volumes/) to be able to supply the data into the container and to access the results. You may want to also add [`--user` argument](https://docs.docker.com/engine/reference/commandline/run/) to docker command, to run on behalf of a non-root user and group. This is not specific to Nextclade. Please refer to Docker documentation for more details.
+
+Docker images are available based on:
+
+- `debian` (default): Nextclade executable + a set of basic Linux utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows
+- `alpine`: pure Alpine + Nextclade executable
+- `scratch`: empty image + Nextclade executable
+
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:2.0.0`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:2.0.0-debian`), or mix and match.
+
+Tag `:latest` points to `:debian`.
 
 ## Installation (local)
 
@@ -61,8 +71,6 @@ Security settings</a>. Refer to the latest macOS documentation if none of this w
 > - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 > - Use [Docker container image](#installation-with-docker)
 > - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
->
-
 
 ### Download from command line
 
@@ -83,7 +91,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -104,7 +112,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -125,17 +133,11 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
 </p>
-
-Native Windows executables are not available at this time. Windows users can try one of the following:
-
-- Downloading and running Linux executable from [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-- Running docker container (see below)
-- Renting a Linux machine, for example at any cloud compute provider
 
 ## Usage
 
@@ -143,6 +145,7 @@ Refer to help prompt for usage of Nextalign:
 
 ```bash
 nextalign --help
+nextalign run --help
 ```
 
 ## Quick Example
@@ -154,20 +157,18 @@ nextalign --help
 
    ```bash
    nextalign \
-    --sequences data/sars-cov-2/sequences.fasta \
-    --reference data/sars-cov-2/reference.fasta \
-    --genemap data/sars-cov-2/genemap.gff \
-    --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-    --output-dir output/ \
-    --output-basename nextalign
+     --input-ref=data/sars-cov-2/reference.fasta \
+     --genemap=data/sars-cov-2/genemap.gff \
+     --output-all=output/ \
+     data/sars-cov-2/sequences.fasta
    ```
 
-   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
+   Add `-v` to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
 
 3. Find the output files in the `output/` directory:
 
     - `nextalign.aligned.fasta` - aligned input sequences
-    - `nextalign.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene
+    - `nextalign.gene_<gene_name>.translation.fasta` - aligned peptides corresponding to each gene
 
 ## What's next?
 

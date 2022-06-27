@@ -2,16 +2,20 @@
 
 Nextclade dataset is a set of input data files required for Nextclade to run the analysis:
 
-- reference (root) sequence
-- reference tree
-- quality control configuration
-- gene map
-- PCR primers
-- virus properties (since CLI `v1.10.0` / web `v1.13.0`)
+- reference (root) sequence (`reference.fasta`)
+- reference tree (`tree.json`)
+- quality control configuration (`qc.json`)
+- gene map (`genemap.gff`)
+- PCR primers (`primers.csv`)
+- virus properties (`virus_properties.json`)
 
-Dataset might also include example sequence data (to be analyzed).
+See also: [Input files](input-files)
 
-An instance of a dataset is a directory containing the dataset files.
+Dataset might also include example sequence data (`sequences.fasta`) - typically a diverse set of query sequences that represents major clades, used for demonstration and highlights analysis features of Nextclade. Most of the time you want to analyze your own sequence data.
+
+Dataset also includes a file `tag.json` which contains version tag and other properties of the dataset. This file is currently not used by Nextclade and serves only for informational purposes.
+
+An instance of a dataset is a directory containing the dataset files or an equivalent zip archive.
 
 ## Datasets names, reference sequences and version tags
 
@@ -71,9 +75,12 @@ If using this commands, repeated downloads may produce updated files in the futu
 
 > ⚠️ We recommend to give descriptive names to dataset directories to avoid confusion. Currently Nextclade cannot verify that a given batch of user-provided sequences is compatible with a given dataset, and it will silently produce incorrect results.
 
+> 💡️ Instead of `--output-dir` you can use `--output-zip` argument to download datasets in the form of a zip archive. The dataset directories and zip archives are equivalent and can be used interchangeably in Nextclade.
+
+
 ##### Dataset with a specific reference sequence and version tag
 
-You can set a version tag explicitly. For example to always use the SARS-CoV-2 dataset based on reference sequence `MN908947 (Wuhan-Hu-1/2019)` and a version released on June 25th 2021 (`2021-06-25T00:00:00Z`):
+You can set a version tag explicitly. For example, to always use the SARS-CoV-2 dataset based on reference sequence `MN908947 (Wuhan-Hu-1/2019)` and a version released on June 25th 2021 (`2021-06-25T00:00:00Z`):
 
 ```bash
 nextclade dataset get \
@@ -98,11 +105,12 @@ The flag `--input-dataset` can be used to point Nextclade CLI to a dataset direc
 ```bash
 nextclade run \
   --input-dataset 'data/sars-cov-2' \
-  --input-fasta 'my_sequences.fasta' \
   --output-tsv 'output/nextclade.tsv' \
   --output-tree 'output/tree.json' \
-  --output-dir 'output/'
+  my_sequences.fasta
 ```
+
+> 💡️ The `--input-dataset` can also accept a path to a zip version of the dataset if you downloaded it with `--output-zip`.
 
 This will use all the required files from the dataset, so that the individual paths don't need to be specified explicitly.
 
@@ -113,11 +121,10 @@ For example, to use a downloaded dataset but to override the reference tree file
 ```bash
 nextclade run \
   --input-dataset 'datasets/sars-cov-2' \
-  --input-fasta 'my_sequences.fasta' \
   --input-tree 'my_tree.json' \
   --output-tsv 'output/nextclade.tsv' \
   --output-tree 'output/tree.json' \
-  --output-dir 'output/'
+  my_sequences.fasta
 ```
 
 > ⚠️ When overriding dataset files make sure that the individual files are compatible with the dataset (in particular the pathogen and the reference sequence)
