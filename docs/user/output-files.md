@@ -48,8 +48,8 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | qc.overallStatus                                | Overall [quality control](algorithm/07-quality-control) status                                             |
 | totalSubstitutions                              | Total number of detected nucleotide substitutions                                                          |
 | totalDeletions                                  | Total number of detected nucleotide deletions                                                              |
-| totalInsertions                                 | Total number of detected frame shifts                                                                      |
-| totalFrameShifts                                | Total number of detected nucleotide insertions                                                             |
+| totalInsertions                                 | Total number of detected nucleotide insertions                                                             |
+| totalFrameShifts                                | Total number of detected frame shifts                                                                      |
 | totalAminoacidSubstitutions                     | Total number of detected aminoacid substitutions                                                           |
 | totalAminoacidDeletions                         | Total number of detected aminoacid deletions                                                               |
 | totalAminoacidInsertions                        | Total number of detected aminoacid insertions                                                              |
