@@ -5,13 +5,24 @@ use comfy_table::{ContentArrangement, Table};
 use indexmap::IndexMap;
 use itertools::Itertools;
 
-pub fn format_dataset_table(filtered: &[Dataset]) -> String {
+pub fn get_table() -> Table {
+  #[allow(unused_mut)]
   let mut table = Table::new();
+
+  #[cfg(unix)]
+  {
+    table
+      .load_preset(UTF8_FULL)
+      .apply_modifier(UTF8_ROUND_CORNERS)
+      .apply_modifier(UTF8_SOLID_INNER_BORDERS)
+      .set_content_arrangement(ContentArrangement::Dynamic);
+  }
+
   table
-    .load_preset(UTF8_FULL)
-    .apply_modifier(UTF8_ROUND_CORNERS)
-    .apply_modifier(UTF8_SOLID_INNER_BORDERS)
-    .set_content_arrangement(ContentArrangement::Dynamic);
+}
+
+pub fn format_dataset_table(filtered: &[Dataset]) -> String {
+  let mut table = get_table();
 
   table.set_header([
     "name".to_owned(),
