@@ -2,7 +2,7 @@
 
 Nextalign CLI is a viral genome sequence alignment tool for command line. It uses the same algorithm that is used in [Nextclade Web](nextclade-web) and [Nextclade CLI](nextclade-cli).
 
-You can learn more about the algorithm in the [Algorithm: Sequence alignment](algorithm.html#sequence-alignment) section.
+You can learn more about the algorithm in the [Algorithm](algorithm) section (Nextalign algorithms is limited to alignment and translation steps).
 
 This section describes:
 
