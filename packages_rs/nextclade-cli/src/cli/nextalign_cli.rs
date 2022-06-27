@@ -1,3 +1,4 @@
+use crate::cli::nextalign_loop::nextalign_run;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
@@ -453,20 +454,19 @@ pub fn nextalign_check_removed_args(run_args: &mut NextalignRunArgs) -> Result<(
   Ok(())
 }
 
-pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
-  let mut args = NextalignArgs::parse();
+pub fn nextalign_handle_cli_args() -> Result<(), Report> {
+  let args = NextalignArgs::parse();
 
   setup_logger(args.verbosity.get_filter_level());
 
-  match &mut args.command {
+  match args.command {
     NextalignCommands::Completions { shell } => {
-      generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
+      generate_completions(&shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))
     }
-    NextalignCommands::Run(ref mut run_args) => {
-      nextalign_check_removed_args(run_args)?;
-      nextalign_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
+    NextalignCommands::Run(mut run_args) => {
+      nextalign_check_removed_args(&mut run_args)?;
+      nextalign_get_output_filenames(&mut run_args).wrap_err("When deducing output filenames")?;
+      nextalign_run(*run_args)
     }
   }
-
-  Ok(args)
 }
