@@ -35,27 +35,20 @@ Docker images are available based on:
 - `alpine`: pure Alpine + Nextclade executable
 - `scratch`: empty image + Nextclade executable
 
-You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:2.0.0`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:2.0.0-debian`), or mix and match.
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:2.0.0`) or only major version (e.g. `:2`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:2.0.0-debian`), or mix and match.
 
 Tag `:latest` points to `:debian`.
 
 ## Installation (local)
 
-### Using conda
-
-A [Nextalign conda package]((https://anaconda.org/bioconda/nextalign)) is available for Linux and macOS from the `conda` channel `bioconda`:
-
-```bash
-conda install -c bioconda nextalign
-```
-
 ### Download manually
 
 You can download the latest version of Nextalign CLI for your platform using one of these direct links:
 
-- ⬇️ [Nextalign for Linux (x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-Linux-x86_64)
-- ⬇️ [Nextalign for macOS (Intel, x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-MacOS-x86_64)
-- ⬇️ [Nextalign for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-MacOS-arm64)
+- ⬇️ [Nextalign for Linux (x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-x86_64-unknown-linux-gnu)
+- ⬇️ [Nextalign for macOS (Intel, x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-x86_64-apple-darwin)
+- ⬇️ [Nextalign for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-aarch64-apple-darwin)
+- ⬇️ [Nextalign for Windows (x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe)
 
 All versions and their release notes are available on 🐈 [Github Releases](https://github.com/nextstrain/nextclade/releases).
 
@@ -63,14 +56,8 @@ These executables are self-contained and don't require any dependencies. They ca
 
 > ⚠️ Note that macOS executables are not currently signed with a developer certificate (it requires maintaining a paid Apple developer account). Recent versions of macOS might refuse to run the executable. Before invoking Nextalign on command line, follow these steps to add Nextalign to the exclude list:
 > <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
-macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
-Security settings</a>. Refer to the latest macOS documentation if none of this works.
-
-> ⚠️ Native Windows executables are not available at this time. Windows users can try one of the following:
->
-> - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-> - Use [Docker container image](#installation-with-docker)
-> - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
+> macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
+> Security settings</a>. Refer to the latest macOS documentation if none of this works.
 
 ### Download from command line
 
@@ -85,13 +72,13 @@ The following commands can be used to download Nextalign from command line, from
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-x86_64-unknown-linux-gnu" -o "nextalign" && chmod +x nextalign
 ```
 
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-x86_64-unknown-linux-gnu" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -106,13 +93,13 @@ NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-x86_64-apple-darwin" -o "nextalign" && chmod +x nextalign
 ```
 
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-x86_64-apple-darwin" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -127,17 +114,49 @@ NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-aarch64-apple-darwin" -o "nextalign" && chmod +x nextalign
 ```
 
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-aarch64-apple-darwin" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
 </p>
+
+<p>
+<details>
+<summary>
+🪟 Windows x86_64 PowerShell (click to expand)
+</summary>
+
+Download latest version:
+
+```
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-x86_64-pc-windows-gnu.exe -O nextalign
+```
+
+Download specific version:
+
+```
+$NEXTALIGN_VERSION=2.0.0
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextalign-$NEXTALIGN_VERSION/nextalign-x86_64-pc-windows-gnu.exe -O nextalign
+```
+
+</details>
+</p>
+
+### Using conda
+
+> ⚠️Note that new versions may appear on bioconda with some delay (hours to weeks)
+
+A [Nextalign conda package]((https://anaconda.org/bioconda/nextalign)) is available for Linux and macOS from the `conda` channel `bioconda`:
+
+```bash
+conda install -c bioconda nextalign
+```
 
 ## Usage
 
@@ -151,7 +170,7 @@ nextalign run --help
 ## Quick Example
 
 1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2021-10-11T19:00:32Z/files)
-    (You can also try other viruses in the `data/` directory)
+   (You can also try other viruses in the `data/` directory)
 
 2. Run:
 
@@ -167,8 +186,8 @@ nextalign run --help
 
 3. Find the output files in the `output/` directory:
 
-    - `nextalign.aligned.fasta` - aligned input sequences
-    - `nextalign.gene_<gene_name>.translation.fasta` - aligned peptides corresponding to each gene
+- `nextalign.aligned.fasta` - aligned input sequences
+- `nextalign.gene_<gene_name>.translation.fasta` - aligned peptides corresponding to each gene
 
 ## What's next?
 
