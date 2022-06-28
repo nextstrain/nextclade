@@ -49,7 +49,6 @@ if [ "$1" == "cli" ]; then
   branch="release-cli"
 
   cargo set-version --workspace --bump="${2:-}" >/dev/null
-  cargo update --quiet --offline >/dev/null
 
   version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
 
