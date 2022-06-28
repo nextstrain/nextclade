@@ -176,7 +176,7 @@ pub fn translate_gene(
     &aa_params,
     band_width,
     mean_shift,
-  )?;
+  );
 
   let mut stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 

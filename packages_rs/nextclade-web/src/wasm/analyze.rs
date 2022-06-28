@@ -77,6 +77,9 @@ impl NextcladeParams {
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug)]
 pub struct AnalysisInput {
   #[wasm_bindgen(getter_with_clone)]
+  pub qry_index: usize,
+  
+  #[wasm_bindgen(getter_with_clone)]
   pub qry_seq_name: String,
 
   #[wasm_bindgen(getter_with_clone)]
@@ -218,6 +221,7 @@ impl Nextclade {
 
   pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, Report> {
     let AnalysisInput {
+      qry_index,
       qry_seq_name,
       qry_seq_str,
     } = input;
@@ -225,6 +229,7 @@ impl Nextclade {
     let qry_seq = &to_nuc_seq(qry_seq_str).wrap_err("When converting query sequence")?;
 
     match nextclade_run_one(
+      *qry_index,
       qry_seq_name,
       qry_seq,
       &self.ref_seq,

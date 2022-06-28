@@ -48,7 +48,7 @@ pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<Strin
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
-        Expected a directory path of a zip archive file path, but got: '{input_dataset:#?}'"
+        Expected a directory path or a zip archive file path, but got: '{input_dataset:#?}'"
       )
     }
   } else {
@@ -178,6 +178,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
           .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
           .and_then(|qry_seq| {
             nextclade_run_one(
+              index,
               &seq_name,
               &qry_seq,
               ref_seq,

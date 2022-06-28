@@ -31,11 +31,13 @@ pub struct NextalignOutputs {
   pub translations: Vec<Translation>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
+  pub is_reverse_complement: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
+  pub index: usize,
   pub seq_name: String,
   pub substitutions: Vec<NucSubFull>,
   pub total_substitutions: usize,
@@ -75,6 +77,7 @@ pub struct NextcladeOutputs {
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: usize,
+  pub is_reverse_complement: bool,
 }
 
 impl NextcladeOutputs {

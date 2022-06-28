@@ -24,10 +24,10 @@ docker run -it --rm nextstrain/nextclade:latest nextclade --help
 Pull and run a specific version with:
 
 ```bash
-docker run -it --rm nextstrain/nextclade:1.2.1 nextclade --help
+docker run -it --rm nextstrain/nextclade:2.0.0 nextclade --help
 ```
 
-> ⚠️ You need to mount or bind necessary volumes to be able to use your files in the container and to access the results (see [Docker documentation on storage](https://docs.docker.com/storage/)).
+> ⚠️Don't forget to mount necessary [docker volumes](https://docs.docker.com/storage/volumes/) to be able to supply the data into the container and to access the results. You may want to also add [`--user` argument](https://docs.docker.com/engine/reference/commandline/run/) to docker command, to run on behalf of a non-root user and group. This is not specific to Nextclade. Please refer to Docker documentation for more details.
 
 Docker images are available based on:
 
@@ -35,27 +35,20 @@ Docker images are available based on:
 - `alpine`: pure Alpine + Nextclade executable
 - `scratch`: empty image + Nextclade executable
 
-You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:1.2.1`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:1.2.1-debian`), or mix and match.
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:2.0.0`) or only major version (e.g. `:2`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:2.0.0-debian`), or mix and match.
 
 Tag `:latest` points to `:debian`.
 
 ## Installation (local)
 
-### Using conda
-
-A [Nextclade conda package]((https://anaconda.org/bioconda/nextclade)) is available for Linux and macOS from the `conda` channel `bioconda`:
-
-```bash
-conda install -c bioconda nextclade
-```
-
 ### Download manually
 
 You can download the latest version of Nextclade CLI for your platform using one of these direct links:
 
-- ⬇️ [Nextclade for Linux (x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-Linux-x86_64)
-- ⬇️ [Nextclade for macOS (Intel, x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-x86_64)
-- ⬇️ [Nextclade for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-arm64)
+- ⬇️ [nextclade for Linux (x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu)
+- ⬇️ [nextclade for macOS (Intel, x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-apple-darwin)
+- ⬇️ [nextclade for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-apple-darwin)
+- ⬇️ [nextclade for Windows (x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe)
 
 All versions and their release notes are available on 🐈 [Github Releases](https://github.com/nextstrain/nextclade/releases).
 
@@ -63,35 +56,31 @@ These executables are self-contained and don't require any dependencies. They ca
 
 > ⚠️ Note that macOS executables are not currently signed with a developer certificate (it requires maintaining a paid Apple developer account). Recent versions of macOS might refuse to run the executable. Before invoking Nextclade on command line, follow these steps to add Nextclade to the exclude list:
 > <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
-macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
-Security settings</a>. Refer to the latest macOS documentation if none of this works.
+> macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
+> Security settings</a>. Refer to the latest macOS documentation if none of this works.
 
-> ⚠️ Native Windows executables are not available at this time. Windows users can try one of the following:
->
-> - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-> - Use [Docker container image](#installation-with-docker)
-> - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
+> ⚠️ **GNU vs musl.** Nextclade has two flavors of executables for Linux: "gnu" and "musl", depending on what libc is used. We recommend "gnu" flavor by default - it is typically faster. However, if for some reason "gnu" flavor does not work, try "musl".
 
 ### Download from command line
 
-The following commands can be used to download nextclade from command line, from shell scripts and inside dockerfiles:
+The following commands can be used to download Nextclade from command line, from shell scripts and inside dockerfiles:
 
 <p>
 <details>
 <summary>
-🐧 Linux (x86_64) (click to expand)
+🐧 Linux x86_64 (click to expand)
 </summary>
 
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-Linux-x86_64" -o "nextclade" && chmod +x nextclade
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu" -o "nextclade" && chmod +x nextclade
 ```
 
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-Linux-x86_64" -o "nextclade" && chmod +x nextclade
+NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-x86_64-unknown-linux-gnu" -o "nextclade" && chmod +x nextclade
 ```
 
 </details>
@@ -100,19 +89,19 @@ NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 <p>
 <details>
 <summary>
-🍏 macOS (Intel, x86_64) (click to expand)
+🍏 macOS Intel (click to expand)
 </summary>
 
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-x86_64" -o "nextclade" && chmod +x nextclade
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-apple-darwin" -o "nextclade" && chmod +x nextclade
 ```
 
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-x86_64" -o "nextclade" && chmod +x nextclade
+NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-x86_64-apple-darwin" -o "nextclade" && chmod +x nextclade
 ```
 
 </details>
@@ -121,23 +110,53 @@ NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 <p>
 <details>
 <summary>
-🍎 macOS (Apple Silicon, ARM64) (click to expand)
+🍎 macOS Apple Silicon (click to expand)
 </summary>
 
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-arm64" -o "nextclade" && chmod +x nextclade
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-apple-darwin" -o "nextclade" && chmod +x nextclade
 ```
 
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-arm64" -o "nextclade" && chmod +x nextclade
+NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-aarch64-apple-darwin" -o "nextclade" && chmod +x nextclade
 ```
 
 </details>
 </p>
+
+<p>
+<details>
+<summary>
+🪟 Windows x86_64 PowerShell (click to expand)
+</summary>
+
+Download latest version:
+
+```
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
+```
+
+Download specific version:
+
+```
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextclade-2.0.0/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
+```
+
+</details>
+</p>
+### Using conda
+
+> ⚠️Note that new versions may appear on bioconda with some delay (hours to weeks)
+
+A [Nextclade conda package]((https://anaconda.org/bioconda/nextclade)) is available for Linux and macOS from the `conda` channel `bioconda`:
+
+```bash
+conda install -c bioconda nextclade
+```
 
 ## Usage
 
@@ -174,53 +193,54 @@ nextclade run --help
 
    ```bash
    nextclade \
-      --in-order \
-      --input-fasta data/sars-cov-2/sequences.fasta \
       --input-dataset data/sars-cov-2 \
-      --output-tsv output/nextclade.tsv \
-      --output-tree output/nextclade.auspice.json \
-      --output-dir output/ \
-      --output-basename nextclade
+      --output-all=output/ \
+      data/sars-cov-2/sequences.fasta
    ```
 
-   To run the analysis on our own sequences, provide `--input-fasta` flag with a path to your fasta file.
+   Try to provide your own data instead of `data/sars-cov-2/sequences.fasta`.
 
    For more controls, specify input files explicitly and/or add more flags for output files:
 
    ```bash
    nextclade \
       --in-order \
-      --input-fasta data/sars-cov-2/sequences.fasta \
-      --input-dataset data/sars-cov-2 \
-      --input-root-seq data/sars-cov-2/reference.fasta \
-      --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-      --input-gene-map data/sars-cov-2/genemap.gff \
-      --input-tree data/sars-cov-2/tree.json \
-      --input-qc-config data/sars-cov-2/qc.json \
-      --input-pcr-primers data/sars-cov-2/primers.csv \
-      --output-json output/nextclade.json \
-      --output-csv output/nextclade.csv \
-      --output-tsv output/nextclade.tsv \
-      --output-tree output/nextclade.auspice.json \
-      --output-dir output/ \
-      --output-basename nextclade
+      --input-dataset=data/sars-cov-2 \
+      --input-root-seq=data/sars-cov-2/reference.fasta \
+      --input-gene-map=data/sars-cov-2/genemap.gff \
+      --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+      --input-tree=data/sars-cov-2/tree.json \
+      --input-qc-config=data/sars-cov-2/qc.json \
+      --input-pcr-primers=data/sars-cov-2/primers.csv \
+      --output-fasta=output/nextclade.aligned.fasta.gz \
+      --output-json=output/nextclade.json \
+      --output-ndjson=output/nextclade.ndjson \
+      --output-csv=output/nextclade.csv \
+      --output-tsv=output/nextclade.tsv \
+      --output-tree=output/nextclade.auspice.json \
+      --output-translations=output/gene_{gene}.translation.fasta.gz \
+      sars-cov-2/sequences1.fasta \
+      my_sequences1.fasta.gz \
+      my_sequences2.fasta.xz
    ```
 
-   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs.
+   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs. Add `--in-order` to preserve the same order of results in output files as in input fasta (has runtime performance cost).
 
    The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
 
    You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each flag.
 
-3. Find the output files in the `output/` directory:
+4. Find the output files in the `output/` directory:
 
-  - `nextclade.aligned.fasta` - aligned input sequences
-  - `nextclade.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene
-  - `nextclade.insertions.csv` - list of stripped insertions, for each input sequence
-  - `nextclade.tsv` - results of the analysis in TSV format
-  - `nextclade.csv` - same results, but in CSV format
-  - `nextclade.json` - detailed results of the analysis in JSON format
-  - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it
+- `nextclade.aligned.fasta` - aligned input sequences
+- `nextclade_gene_<gene_name>.translation.fasta` - aligned peptides corresponding to each gene
+- `nextclade.insertions.csv` - list of stripped insertions, for each input sequence
+- `nextclade.tsv` - results of the analysis in TSV format
+- `nextclade.csv` - same results, but in CSV format
+- `nextclade.json` - detailed results of the analysis in JSON format
+- `nextclade.ndjson` - detailed results of the analysis in newline-delimited JSON format
+- `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it
+- `nextclade.errors.csv` - list of errors, warnings and failed genes
 
 ## What's next?
 

@@ -4,9 +4,15 @@ This section describes the files produced by Nextclade.
 
 You can download these files from Nextclade Web using the "Download" dialog.
 
-![Download output](assets/web_download-options.png)
+[![Download output](assets/web_download-options.png)](../_images/web_download-options.png)
 
 Nextclade CLI writes these files into paths specified with a family of `--output*` flags.
+
+## All outputs
+
+Nextclade CLI, Nextalign CLI flags: `--output-all`
+
+All possible outputs can be produced using `--output-all` flag. The default base file name is either "nextalign" or "nextclade" depending on which tool you use. It can be changed using `--output-basename` flag. A list of outputs can be restricted using `--output-selection` flag.
 
 ## Aligned nucleotide sequences
 
@@ -16,9 +22,11 @@ Aligned sequences are produced as a result of the [Sequence alignment](algorithm
 
 ## Aligned peptides
 
-Nextclade CLI, Nextalign CLI flags: `--output-dir`
+Nextclade CLI, Nextalign CLI flags: `--output-translations`
 
 Aligned peptides are produced as a result of the [Translation and peptide alignment](algorithm/02-translation) step and are being output in FASTA format. There are multiple files, one for each gene. If the CLI flag `--include-reference` is set, the reference sequence peptide is included as the first entry.
+
+This flag accepts a **template** string which *must* contain template argument `{gene}`.
 
 ## Analysis results
 
@@ -33,16 +41,18 @@ TSV and CSV files are equivalent and only differ in the column delimiter (tabs v
 Every row in tabular output corresponds to 1 input sequence. The meaning of columns is described below:
 
 | Column name                                     | Meaning                                                                                                    |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+|-------------------------------------------------|------------------------------------------------------------------------------------------------------------|
 | seqName                                         | Name of the sequence (as provided in the input file)                                                       |
 | clade                                           | Assigned clade                                                                                             |
-| qc.overallScore                                 | Overall [quality control](algorithm/07-quality-control.html) score                                         |
-| qc.overallStatus                                | Overall [quality control](algorithm/07-quality-control.html) status                                        |
+| qc.overallScore                                 | Overall [quality control](algorithm/07-quality-control) score                                              |
+| qc.overallStatus                                | Overall [quality control](algorithm/07-quality-control) status                                             |
 | totalSubstitutions                              | Total number of detected nucleotide substitutions                                                          |
 | totalDeletions                                  | Total number of detected nucleotide deletions                                                              |
 | totalInsertions                                 | Total number of detected nucleotide insertions                                                             |
+| totalFrameShifts                                | Total number of detected frame shifts                                                                      |
 | totalAminoacidSubstitutions                     | Total number of detected aminoacid substitutions                                                           |
 | totalAminoacidDeletions                         | Total number of detected aminoacid deletions                                                               |
+| totalAminoacidInsertions                        | Total number of detected aminoacid insertions                                                              |
 | totalMissing                                    | Total number of detected missing nucleotides                                                               |
 | totalNonACGTNs                                  | Total number of detected ambiguous nucleotides                                                             |
 | totalPcrPrimerChanges                           | Total number of nucleotide mutations detected in PCR primer regions                                        |
@@ -59,6 +69,7 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | frameShifts                                     | List of detected frame shifts                                                                              |
 | aaSubstitutions                                 | List of detected aminoacid substitutions                                                                   |
 | aaDeletions                                     | List of detected aminoacid deletions                                                                       |
+| aaInsertions                                    | List of detected aminoacid insertions                                                                      | 
 | missing                                         | List of detected nucleotide insertions                                                                     |
 | nonACGTNs                                       | List of detected ambiguous nucleotides                                                                     |
 | pcrPrimerChanges                                | List of detected PCR primer changes                                                                        |
@@ -82,15 +93,20 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | qc.snpClusters.score                            | Score for "SNP clusters" QC rule                                                                           |
 | qc.snpClusters.status                           | Status for "SNP clusters" QC rule                                                                          |
 | qc.snpClusters.totalSNPs                        | Total number of SNPs for "SNP clusters" QC rule                                                            |
-| qc.frameShifts.frameShifts                      | List of detected frame shifts in "Frame shifts" QC rule                                                    |
-| qc.frameShifts.totalFrameShifts                 | Total number of detected frame shifts in for "Frame shifts" QC rule                                        |
+| qc.frameShifts.frameShifts                      | List of detected frame shifts in "Frame shifts" QC rule (excluding ignored)                                |
+| qc.frameShifts.totalFrameShifts                 | Total number of detected frame shifts in for "Frame shifts" QC rule  (excluding ignored)                   |
+| qc.frameShifts.frameShiftsIgnored               | List of frame shifts detected, but ignored due to ignore list                                              |
+| qc.frameShifts.totalFrameShiftsIgnored          | Total number of frame shifts detected, but ignored due to ignore list                                      |
 | qc.frameShifts.score                            | Score for "Frame shifts" QC rule                                                                           |
 | qc.frameShifts.status                           | Status for "Frame shifts" QC rule                                                                          |
 | qc.stopCodons.stopCodons                        | List of detected stop codons in "Stop codons" QC rule                                                      |
 | qc.stopCodons.totalStopCodons                   | Total number of detected stop codons in "Stop codons" QC rule                                              |
 | qc.stopCodons.score                             | Score for "Stop codons" QC rule                                                                            |
 | qc.stopCodons.status                            | Status for "Stop codons" QC rule                                                                           |
+| isReverseComplement                             | Whether query sequences were transformed using reverse complement operation before alignment               | 
 | errors                                          | List of errors during processing                                                                           |
+
+The table can contain additional columns for every clade-like attributes defined in reference tree in `meta.extensions.clade_node_attrs` and in the node attributes. For example, the default SARS-CoV-2 datasets define `Nextclade_pango` attribute which signifies a PANGO lineage assigned by Nextclade (see [Nextclade as pango lineage classifier: Methods and Validation](algorithm/nextclade-pango)).
 
 ### JSON results
 

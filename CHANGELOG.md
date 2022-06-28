@@ -4,20 +4,41 @@
 
 Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++ implementation).
 
-Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases. It should provide a serious productivity boost for the dev team.
+[Rust is a modern, high performance programming language](https://www.rust-lang.org/) that is pleasant to read and write. Rust programs have comparable runtime performance with C++, while easier to write. It should provide a serious productivity boost for the dev team.
 
-Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but were scared off by the complexity of C++, then give it another try - the Rust version is much more enjoyable! Check our [developer guide](https://github.com/nextstrain/nextclade/blob/master/docs/dev/developer-guide.md) for getting started. We are always open for contributions, review and ideas!
+Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but were scared off by the complexity of C++, then give it another try - the Rust version is much more enjoyable! Check our [developer guide](https://github.com/nextstrain/nextclade/blob/master/docs/dev/developer-guide.md) for getting started. We are always open for contributions, reviews and ideas!
 
 
 ### Alignment algorithm rewritten with adaptive bands
 
-- Previously, the alignment band width was constant throughout a given sequence. Now, band width is adaptive: narrow where seed matches indicate no indels, wide where seed matches indicate indels.
+- **Feature**: Previously, the alignment band width was constant throughout a given sequence. Now, band width is adaptive: narrow where seed matches indicate no indels, wide where seed matches indicate indels.
+
 - **Performance** is improved for sequences with indels
-- **Fix**: Terminal alignment errors, particularly common in BA.2, are fixed due to wider default band width between terminal seed matches and sequence ends (fixes [#746](https://github.com/nextstrain/nextclade/issues/746)
+
+- **Fix**: Terminal alignment errors, particularly common in BA.2, are fixed due to wider default band width between terminal seed matches and sequence ends
+
 - **Fix**: More robust seed matching allows some previously unalignable sequences to be aligned
+
 - **Fix**: Terminal indels for amino acid alignments are only free if the nucleotide alignment indicates a gap. Otherwise, they are penalized like internal gaps. This leads to more parsimonious alignment results.
-- **Feature**: Additional alignment parameters can now be tuned through CLI parameters. `--excess-bandwidth` controls the extra band width that is necessary for correct alignment if both deletions and insertions occur between two seed matches. `--terminal-bandwidth` controls the extra band width that is necessary for correct alignment if terminal indels occur. In addition, alignment parameters can be specified via the `virus_properties.json` file in Nextclade data sets. This allows the web version to use different parameters for different viruses.
-- **Fixed** a bug where 3' terminal insertions were not properly detected
+  
+- **Feature**: Additional alignment parameters can now be tuned:
+
+   - "Excess band width" parameter controls the extra band width that is necessary for correct alignment if both deletions and insertions occur between two seed matches.
+
+   - "Terminal band width" controls the extra band width that is necessary for correct alignment if terminal indels occur.
+
+- **Feature**: "Min match rate" parameter is added, which sets required rage of seed matches in a sequence (number of matched seeds divided by total number of attempted seeds). If the measured rate is below required, alignment will not be attempted, as for such sequences, there is a high chance of infeasible memory and computational requirements. The default value is 0.3.
+
+- **Fix**: 3' terminal insertions are now properly detected
+
+- **Feature**: "Retry reverse complement" alignment parameter is added. When enabled, an additional attempt of seed matching is made after initial attempt fails. The second attempt is performed on reverse-complemented sequence.
+
+  As a consequence:
+   - the output alignment, peptides and analysis results correspond to this modified sequence and not to the original
+   - sequence name gets a suffix appended to it for all output files (fasta, seqName column, node name on the tree etc.)
+   - in output files, there is a new field/column: `isReverseComplement`, which contains `true` if the corresponding sequence underwent reverse-complement transformation
+
+  This functionality is opt-in and the default behavior is unchanged: skip sequence and emit a warning.
 
 ### Genes on reverse (negative) strand
 
@@ -27,8 +48,11 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
 ### Nextclade Web
 
  - **Feature**: Nextclade Web is now substantially faster, both to startup and when analysing sequences, due to general algorithmic improvements.
+
  - **Feature**: Drag&drop box for fasta files now supports multiple files. The files are concatenated in this case.
+
  - **Feature**: Sequence view and peptide views now show insertions. They are denoted as purple triangles.
+
  - **Fix**: Tree view now longer shows duplicate clade annotations
 
 
@@ -75,14 +99,16 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
 
    - The new flag `--output-selection` allows to restrict what's being output by the `--output-all` flag.
 
-   - The new flag `--output-translations` is a dedicated flag to provide a file path template which will be used to output translated gene fasta files. This flag accepts a template string with a template variable `{{gene}}`, which will be substituted with a gene name. Each gene therefore receives it's own path. Additionally, the translations are now independent from output directory and can be omitted if they are not necessary.
+   - If the `--output-basename` flag is not provided, the base name of output files will default to "nextclade" or "nextalign" respectively for Nextclade CLI and Nextalign CLI. They will no longer attempt to guess base file name from the input fasta.
 
-    Example: 
+   - The new flag `--output-translations` is a dedicated flag to provide a file path template which will be used to output translated gene fasta files. This flag accepts a template string with a template variable `{gene}`, which will be substituted with a gene name. Each gene therefore receives it's own path. Additionally, the translations are now independent from output directory and can be omitted if they are not necessary.
+
+   Example: 
  
     If the following is provided:
 
     ```bash
-    --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+    --output-translations='output_dir/gene_{gene}.translation.fasta'
     ```
 
     then for SARS-CoV-2 Nextclade will write the following files:
@@ -94,7 +120,13 @@ Nextclade now correctly handles genes on reverse (negative) strand, which is par
     output_dir/gene_S.translation.fasta
     ```
 
-   Make sure you properly quote and/or escape the curly braces in the variable `{{gene}}`, so that your shell, programming language or pipeline manager does not attempt to substitute the variable.
+   Make sure you properly quote and/or escape the curly braces in the variable `{gene}`, so that your shell, programming language or pipeline manager does not attempt to substitute the variable.
+
+
+
+ - **Feature**: New `--excess-bandwidth`, `--terminal-bandwidth`, `--min-match-rate`, `--retry-reverse-complement` arguments are added (see "Alignment algorithm rewritten with adaptive bands" section for details)
+
+
 
  - **Feature**: Nextclade CLI and Nextalign CLI now accept compressed input files. If a compressed fasta file is provided, it will be transparently decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file extension.
 

@@ -90,6 +90,7 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   const { index, seqName, seq } = record
 
   const input = AnalysisInput.from_js({
+    qry_index: index,
     qry_seq_name: seqName,
     qry_seq_str: seq,
   })

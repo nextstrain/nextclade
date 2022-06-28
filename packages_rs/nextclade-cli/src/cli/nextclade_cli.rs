@@ -1,4 +1,6 @@
-use crate::cli::common::get_fasta_basename;
+use crate::cli::nextclade_dataset_get::nextclade_dataset_get;
+use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
+use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
 use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
@@ -63,10 +65,10 @@ pub enum NextcladeCommands {
   },
 
   /// Run alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
-  Run(NextcladeRunArgs),
+  Run(Box<NextcladeRunArgs>),
 
   /// List and download available Nextclade datasets
-  Dataset(NextcladeDatasetArgs),
+  Dataset(Box<NextcladeDatasetArgs>),
 }
 
 #[derive(Parser, Debug)]
@@ -397,7 +399,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Example for bash shell:
   ///
-  ///   --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+  ///   --output-translations='output_dir/gene_{gene}.translation.fasta'
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
@@ -613,9 +615,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   // while taking care to preserve values of any individual `--output-*` flags,
   // as well as to honor restrictions put by the `--output-selection` flag, if provided.
   if let Some(output_all) = output_all {
-    let output_basename = output_basename
-      .clone()
-      .unwrap_or_else(|| get_fasta_basename(input_fastas).unwrap_or_else(|| "nextclade".to_owned()));
+    let output_basename = output_basename.clone().unwrap_or_else(|| "nextclade".to_owned());
 
     let default_output_file_path = output_all.join(&output_basename);
 
@@ -755,7 +755,7 @@ For more information, type
 
   nextclade run --help"#;
 
-pub fn nextclade_check_removed_args(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
+pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
     return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
   }
@@ -767,21 +767,23 @@ pub fn nextclade_check_removed_args(run_args: &mut NextcladeRunArgs) -> Result<(
   Ok(())
 }
 
-pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
-  let mut args = NextcladeArgs::parse();
+pub fn nextclade_parse_cli_args() -> Result<(), Report> {
+  let args = NextcladeArgs::parse();
 
   setup_logger(args.verbosity.get_filter_level());
 
-  match &mut args.command {
+  match args.command {
     NextcladeCommands::Completions { shell } => {
-      generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
+      generate_completions(&shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))
     }
-    NextcladeCommands::Run(ref mut run_args) => {
-      nextclade_check_removed_args(run_args)?;
-      nextclade_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
+    NextcladeCommands::Run(mut run_args) => {
+      nextclade_check_removed_args(&run_args)?;
+      nextclade_get_output_filenames(&mut run_args).wrap_err("When deducing output filenames")?;
+      nextclade_run(*run_args)
     }
-    _ => {}
+    NextcladeCommands::Dataset(dataset_command) => match dataset_command.command {
+      NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
+      NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(dataset_get_args),
+    },
   }
-
-  Ok(args)
 }
