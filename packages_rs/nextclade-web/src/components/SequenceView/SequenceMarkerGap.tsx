@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
@@ -85,4 +86,4 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
   )
 }
 
-export const SequenceMarkerGap = React.memo(SequenceMarkerGapUnmemoed)
+export const SequenceMarkerGap = React.memo(SequenceMarkerGapUnmemoed, isEqual)

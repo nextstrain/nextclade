@@ -1,5 +1,6 @@
+import isEqual from 'react-fast-compare'
 import { mix } from 'polished'
-import React, { ReactNode, Suspense, useMemo } from 'react'
+import React, { memo, ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { QcStatus } from 'src/algorithms/types'
@@ -68,7 +69,9 @@ export function TableRowColored({
   )
 }
 
-export function ResultsTableRowResult({
+export const ResultsTableRowResult = memo(ResultsTableRowResultUnmemoed, isEqual)
+
+export function ResultsTableRowResultUnmemoed({
   seqName,
   viewedGene,
   cladeNodeAttrKeys,
@@ -78,12 +81,45 @@ export function ResultsTableRowResult({
 }: ResultsTableRowResultProps) {
   const { index, result } = useRecoilValue(analysisResultAtom(seqName))
 
+  const sequenceView = useMemo(() => {
+    if (!result) {
+      return null
+    }
+
+    const { analysisResult } = result
+    const { warnings } = analysisResult
+
+    return (
+      <Suspense fallback={null}>
+        {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
+          <SequenceView key={seqName} sequence={analysisResult} />
+        ) : (
+          <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
+        )}
+      </Suspense>
+    )
+  }, [result, seqName, viewedGene])
+
+  const dynamicColumns = useMemo(() => {
+    if (!result) {
+      return null
+    }
+
+    const { analysisResult } = result
+
+    return cladeNodeAttrKeys.map((attrKey) => (
+      <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+        <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
+      </TableCellAlignedLeft>
+    ))
+  }, [cladeNodeAttrKeys, dynamicColumnWidthPx, result])
+
   if (!result) {
     return null
   }
 
   const { analysisResult } = result
-  const { qc, warnings } = analysisResult
+  const { qc } = analysisResult
 
   return (
     <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
@@ -103,11 +139,7 @@ export function ResultsTableRowResult({
         <ColumnClade analysisResult={analysisResult} />
       </TableCellAlignedLeft>
 
-      {cladeNodeAttrKeys.map((attrKey) => (
-        <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
-          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
-        </TableCellAlignedLeft>
-      ))}
+      {dynamicColumns}
 
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
         <ColumnMutations analysisResult={analysisResult} />
@@ -138,13 +170,7 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
-        <Suspense fallback={null}>
-          {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
-            <SequenceView key={seqName} sequence={analysisResult} />
-          ) : (
-            <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
-          )}
-        </Suspense>
+        {sequenceView}
       </TableCell>
     </TableRowColored>
   )

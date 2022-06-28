@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTheme } from 'styled-components'
 
@@ -50,4 +51,4 @@ function PeptideMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerAa, ...re
   )
 }
 
-export const PeptideMarkerInsertion = React.memo(PeptideMarkerInsertionUnmemoed)
+export const PeptideMarkerInsertion = React.memo(PeptideMarkerInsertionUnmemoed, isEqual)

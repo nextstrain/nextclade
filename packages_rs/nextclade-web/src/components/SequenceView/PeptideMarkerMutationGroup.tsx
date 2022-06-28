@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
@@ -200,4 +201,4 @@ function PeptideMarkerMutationGroupUnmemoed({
   )
 }
 
-export const PeptideMarkerMutationGroup = React.memo(PeptideMarkerMutationGroupUnmemoed)
+export const PeptideMarkerMutationGroup = React.memo(PeptideMarkerMutationGroupUnmemoed, isEqual)

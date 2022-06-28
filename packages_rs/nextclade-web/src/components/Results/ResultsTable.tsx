@@ -1,7 +1,7 @@
-import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
+import React, { CSSProperties, useCallback, useDeferredValue, useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
+import { FixedSizeList as FixedSizeListBase, ListOnItemsRenderedProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
@@ -47,13 +47,9 @@ import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
 import { SequenceSelector } from '../SequenceView/SequenceSelector'
 
-const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
+const LIST_STYLE: CSSProperties = { overflowY: 'scroll', overflowX: 'hidden' }
 
 export const AutoSizer = styled(AutoSizerBase)``
-
-export const FixedSizeList = styled(FixedSizeListBase)<FixedSizeListProps>`
-  overflow-x: hidden !important;
-`
 
 export function ResultsTable() {
   const { t } = useTranslation()
@@ -124,6 +120,23 @@ export function ResultsTable() {
       )
     })
   }, [cladeNodeAttrDescs, dynamicColumnWidthPx, sortByKey])
+
+  const onItemsRendered = useCallback(
+    ({ overscanStartIndex, overscanStopIndex, visibleStartIndex, visibleStopIndex }: ListOnItemsRenderedProps) => {
+      console.log({
+        overscanStartIndex,
+        overscanStopIndex,
+        visibleStartIndex,
+        visibleStopIndex,
+      })
+    },
+    [],
+  )
+
+  const itemKey = useCallback((index: number, data: TableRowDatum[]): string => {
+    const item = (data as unknown as TableRowDatum[])[index]
+    return item.seqName
+  }, [])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
@@ -253,19 +266,21 @@ export function ResultsTable() {
       <AutoSizer>
         {({ width, height }) => {
           return (
-            <FixedSizeList
-              overscanCount={10}
+            <FixedSizeListBase<TableRowDatum[]>
+              overscanCount={3}
               style={LIST_STYLE}
               width={width}
               height={height - HEADER_ROW_HEIGHT}
               itemCount={rowData.length}
               itemSize={ROW_HEIGHT}
               itemData={rowData}
+              onItemsRendered={onItemsRendered}
+              itemKey={itemKey}
             >
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {ResultsTableRow}
-            </FixedSizeList>
+            </FixedSizeListBase>
           )
         }}
       </AutoSizer>

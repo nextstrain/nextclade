@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { useCallback, useMemo } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
@@ -241,4 +242,4 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
 
 export const SequenceViewUnmemoed = withResizeDetector(SequenceViewUnsized)
 
-export const SequenceView = React.memo(SequenceViewUnmemoed)
+export const SequenceView = React.memo(SequenceViewUnmemoed, isEqual)

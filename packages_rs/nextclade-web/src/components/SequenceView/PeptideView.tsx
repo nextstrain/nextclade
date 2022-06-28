@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { useCallback, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
@@ -151,4 +152,4 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
 
 export const PeptideViewUnmemoed = withResizeDetector(PeptideViewUnsized)
 
-export const PeptideView = React.memo(PeptideViewUnmemoed)
+export const PeptideView = React.memo(PeptideViewUnmemoed, isEqual)
