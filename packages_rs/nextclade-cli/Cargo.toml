@@ -11,40 +11,40 @@ publish = false
 
 [dependencies]
 assert2 = "0.3.6"
-clap = { version = "3.2.7", features = ["derive"] }
-clap_complete = "3.2.3"
-clap_complete_fig = "3.2.3"
+clap = { version = "3.1.8", features = ["derive"] }
+clap_complete = "3.1.1"
+clap_complete_fig = "3.1.4"
 color-eyre = "0.6.1"
-comfy-table = "6.0.0"
+comfy-table = "6.0.0-rc.1"
 crossbeam = "0.8.1"
-crossbeam-channel = "0.5.5"
+crossbeam-channel = "0.5.4"
 ctor = "0.1.22"
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
 eyre = "0.6.8"
-indexmap = { version = "1.9.1", features = ["serde"] }
+indexmap = { version = "1.8.1", features = ["serde"] }
 itertools = "0.10.3"
 lazy_static = "1.4.0"
-log = "0.4.17"
+log = "0.4.16"
 nextclade = { path = "../nextclade" }
 num_cpus = "1.13.1"
-owo-colors = "3.4.0"
+owo-colors = "3.3.0"
 pretty_assertions = "1.2.1"
-rayon = "1.5.3"
-regex = "1.5.6"
-reqwest = { version = "0.11.11", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"] }
-semver = "1.0.10"
-serde = { version = "1.0.137", features = ["derive"] }
-strum = "0.24.1"
-strum_macros = "0.24.2"
+rayon = "1.5.2"
+regex = "1.5.5"
+reqwest = { version = "0.11.10", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"] }
+semver = "1.0.9"
+serde = { version = "1.0.136", features = ["derive"] }
+strum = "0.24.0"
+strum_macros = "0.24"
 url = { version = "2.2.2", features = ["serde"] }
 zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 
 [target.'cfg(all(target_os="linux", target_arch="x86_64"))'.dependencies]
-mimalloc = { version = "0.1.29", default-features = false, optional = true }
+mimalloc = { version = "0.1.28", default-features = false, optional = true }
 
 [dev-dependencies]
 assert2 = "0.3.6"
 criterion = { version = "0.3.5", features = ["html_reports"] }
-rstest = "0.15.0"
+rstest = "0.12.0"
 rstest_reuse = "0.3.0"
