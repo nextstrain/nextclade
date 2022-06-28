@@ -80,7 +80,7 @@ curl -fsSL "https://github.com/nextstrain/nextalign/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-x86_64-unknown-linux-gnu" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextalign-x86_64-unknown-linux-gnu" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -101,7 +101,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-x86_64-apple-darwin" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextalign-x86_64-apple-darwin" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -122,7 +122,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-aarch64-apple-darwin" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextalign-aarch64-apple-darwin" -o "nextalign" && chmod +x nextalign
 ```
 
 </details>
@@ -143,7 +143,7 @@ Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/downlo
 Download specific version:
 
 ```
-Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextalign-2.0.0/nextalign-x86_64-pc-windows-gnu.exe -O nextalign.exe
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextalign-x86_64-pc-windows-gnu.exe -O nextalign.exe
 ```
 
 </details>

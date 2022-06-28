@@ -80,7 +80,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-x86_64-unknown-linux-gnu" -o "nextclade" && chmod +x nextclade
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextclade-x86_64-unknown-linux-gnu" -o "nextclade" && chmod +x nextclade
 ```
 
 </details>
@@ -101,7 +101,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-x86_64-apple-darwin" -o "nextclade" && chmod +x nextclade
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextclade-x86_64-apple-darwin" -o "nextclade" && chmod +x nextclade
 ```
 
 </details>
@@ -122,7 +122,7 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=2.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-aarch64-apple-darwin" -o "nextclade" && chmod +x nextclade
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextclade-aarch64-apple-darwin" -o "nextclade" && chmod +x nextclade
 ```
 
 </details>
@@ -143,7 +143,7 @@ Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/downlo
 Download specific version:
 
 ```
-Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/nextclade-2.0.0/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
+Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
 ```
 
 </details>
