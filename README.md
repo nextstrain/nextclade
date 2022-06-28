@@ -214,7 +214,7 @@ If you use results obtained with Nextclade in a publication, please
 🧑‍💻 Development
 </h2>
 
-Curious about how Nextclade and Nextalign work, want to modify it or contribute new features or fixes, check out developer guide in [docs/dev/developer-guide.md](docs/dev/developer-guide.md)!
+Read developer guide here: [docs/dev/developer-guide.md](docs/dev/developer-guide.md)
 
 <h2 id="team" align="center">
  ✨ Team
