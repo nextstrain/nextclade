@@ -1,3 +1,9 @@
+# CHANGELOG
+
+## NEXT
+
+- **Fix** [[#908](https://github.com/nextstrain/nextclade/issues/908): Files passed as `--input-virus-properties` were interpreted like passed to `--input-pcr-primers` and vice versa (report: @BCArg, fix: @CorneliusRoemer)
+
 ## Nextclade 2.0.0
 
 ### Rust
