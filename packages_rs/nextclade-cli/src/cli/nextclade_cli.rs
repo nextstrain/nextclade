@@ -10,6 +10,7 @@ use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use nextclade::align::params::AlignPairwiseParamsOptional;
+use nextclade::io::fs::add_extension;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -628,21 +629,21 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     // to set default output filenames only if they are not provided.
 
     if output_selection.contains(&NextcladeOutputSelection::Fasta) {
-      output_fasta.get_or_insert(default_output_file_path.with_extension("aligned.fasta"));
+      output_fasta.get_or_insert(add_extension(&default_output_file_path, "aligned.fasta"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Insertions) {
-      output_insertions.get_or_insert(default_output_file_path.with_extension("insertions.csv"));
+      output_insertions.get_or_insert(add_extension(&default_output_file_path, "insertions.csv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Errors) {
-      output_errors.get_or_insert(default_output_file_path.with_extension("errors.csv"));
+      output_errors.get_or_insert(add_extension(&default_output_file_path, "errors.csv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Translations) {
-      let output_translations_path = default_output_file_path
-        .with_file_name(format!("{output_basename}_gene_{{gene}}"))
-        .with_extension("translation.fasta");
+      let output_translations_path =
+        default_output_file_path.with_file_name(format!("{output_basename}_gene_{{gene}}"));
+      let output_translations_path = add_extension(&output_translations_path, "translation.fasta");
 
       let output_translations_template = output_translations_path
         .to_str()
@@ -653,23 +654,23 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Ndjson) {
-      output_ndjson.get_or_insert(default_output_file_path.with_extension("ndjson"));
+      output_ndjson.get_or_insert(add_extension(&default_output_file_path, "ndjson"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Json) {
-      output_json.get_or_insert(default_output_file_path.with_extension("json"));
+      output_json.get_or_insert(add_extension(&default_output_file_path, "json"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Csv) {
-      output_csv.get_or_insert(default_output_file_path.with_extension("csv"));
+      output_csv.get_or_insert(add_extension(&default_output_file_path, "csv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Tsv) {
-      output_tsv.get_or_insert(default_output_file_path.with_extension("tsv"));
+      output_tsv.get_or_insert(add_extension(&default_output_file_path, "tsv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Tree) {
-      output_tree.get_or_insert(default_output_file_path.with_extension("auspice.json"));
+      output_tree.get_or_insert(add_extension(&default_output_file_path, "auspice.json"));
     }
   }
 
