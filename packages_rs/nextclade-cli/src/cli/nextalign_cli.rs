@@ -7,6 +7,7 @@ use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use nextclade::align::params::AlignPairwiseParamsOptional;
+use nextclade::io::fs::add_extension;
 use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
@@ -346,23 +347,23 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
     // to set default output filenames only if they are not provided.
 
     if output_selection.contains(&NextalignOutputSelection::Fasta) {
-      output_fasta.get_or_insert(default_output_file_path.with_extension("aligned.fasta"));
+      output_fasta.get_or_insert(add_extension(&default_output_file_path, "aligned.fasta"));
     }
 
     if output_selection.contains(&NextalignOutputSelection::Insertions) {
       let output_insertions =
-        output_insertions.get_or_insert(default_output_file_path.with_extension("insertions.csv"));
+        output_insertions.get_or_insert(add_extension(&default_output_file_path, "insertions.csv"));
     }
 
     if output_selection.contains(&NextalignOutputSelection::Errors) {
-      let output_errors = output_errors.get_or_insert(default_output_file_path.with_extension("errors.csv"));
+      let output_errors = output_errors.get_or_insert(add_extension(&default_output_file_path, "errors.csv"));
     }
 
     if output_selection.contains(&NextalignOutputSelection::Translations) {
       let output_translations = {
-        let output_translations_path = default_output_file_path
-          .with_file_name(format!("{output_basename}_gene_{{gene}}"))
-          .with_extension("translation.fasta");
+        let output_translations_path =
+          default_output_file_path.with_file_name(format!("{output_basename}_gene_{{gene}}"));
+        let output_translations_path = add_extension(&output_translations_path, "translation.fasta");
 
         let output_translations_template = output_translations_path
           .to_str()
