@@ -2,7 +2,7 @@
 
 ## Nextclade CLI 2.1.0
 
-- **Fix** [#907](https://github.com/nextstrain/nextclade/issues/907): If `--ouput-basename` contains dots, the last component is no longer omitted
+- **Fix** [#907](https://github.com/nextstrain/nextclade/issues/907): If `--ouput-basename` contains dots, the last component is no longer omitted (report: @KatSteinke, fix: @ivan-aksamentov)
 
 - **Fix** [#908](https://github.com/nextstrain/nextclade/issues/908): Files passed as `--input-virus-properties` were interpreted like passed to `--input-pcr-primers` and vice versa (report: @BCArg, fix: @CorneliusRoemer)
 
