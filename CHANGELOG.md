@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Nextclade CLI 2.0.1
+## Nextclade CLI 2.1.0
 
 - **Fix** [#907](https://github.com/nextstrain/nextclade/issues/907): If `--ouput-basename` contains dots, the last component is no longer omitted
 
