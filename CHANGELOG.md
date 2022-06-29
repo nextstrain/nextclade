@@ -2,9 +2,28 @@
 
 ## Nextclade CLI 2.0.1
 
-- **Fix** [[#907]]](https://github.com/nextstrain/nextclade/issues/907): If `--ouput-basename` contains dots, the last component is no longer omitted
+- **Fix** [#907](https://github.com/nextstrain/nextclade/issues/907): If `--ouput-basename` contains dots, the last component is no longer omitted
 
-- **Fix** [[#908](https://github.com/nextstrain/nextclade/issues/908): Files passed as `--input-virus-properties` were interpreted like passed to `--input-pcr-primers` and vice versa (report: @BCArg, fix: @CorneliusRoemer)
+- **Fix** [#908](https://github.com/nextstrain/nextclade/issues/908): Files passed as `--input-virus-properties` were interpreted like passed to `--input-pcr-primers` and vice versa (report: @BCArg, fix: @CorneliusRoemer)
+
+
+## Nextclade Web 2.2.0
+
+- **Feature**: Display lineage in the info boxes on the Tree page
+
+- **Fix**: Add missing QC status in the info boxes on the Tree page
+
+- **Fix**: Prevent excessive memory consumption by leveraging "Min match rate" alignment parameter (see changes in version 2.0.0)
+  
+- **Fix**: Prevent crash when using certain filter queries on Results page
+
+
+## Nextclade Web 2.1.0
+
+- **Feature**: Display a warning when unsupported browser is used
+  
+- **Fix**: Display correct favicon
+
 
 ## Nextclade 2.0.0
 
