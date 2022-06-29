@@ -157,8 +157,8 @@ pub fn dataset_individual_files_load(
       (_, Some(input_tree)),
       (_, Some(input_gene_map)),
       (_, Some(input_qc_config)),
-      (_, Some(input_virus_properties)),
       (_, Some(input_pcr_primers)),
+      (_, Some(input_virus_properties)),
     ] => {
       dataset_load_files(DatasetFilePaths {
         input_ref,
