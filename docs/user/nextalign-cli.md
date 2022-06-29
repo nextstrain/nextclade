@@ -153,7 +153,7 @@ Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/2.0.
 
 > ⚠️Note that new versions may appear on bioconda with some delay (hours to weeks)
 
-A [Nextalign conda package]((https://anaconda.org/bioconda/nextalign)) is available for Linux and macOS from the `conda` channel `bioconda`:
+A [Nextalign conda package](https://anaconda.org/bioconda/nextalign) is available for Linux and macOS from the `conda` channel `bioconda`:
 
 ```bash
 conda install -c bioconda nextalign
