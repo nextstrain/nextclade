@@ -1,5 +1,5 @@
 use eyre::{eyre, Report, WrapErr};
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
@@ -46,6 +46,27 @@ pub fn extension(filepath: impl AsRef<Path>) -> Option<String> {
 
 pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> bool {
   extension(filepath.as_ref()).map_or(false, |fext| fext.eq_ignore_ascii_case(ext.as_ref()))
+}
+
+pub fn add_extension(filepath: impl AsRef<Path>, extension: impl AsRef<OsStr>) -> PathBuf {
+  let filepath = filepath.as_ref();
+  let extension = extension.as_ref();
+
+  if filepath.file_name().is_none() {
+    return filepath.to_owned();
+  }
+
+  let mut stem = match filepath.file_name() {
+    Some(stem) => stem.to_os_string(),
+    None => OsString::new(),
+  };
+
+  if !extension.is_empty() {
+    stem.push(".");
+    stem.push(extension);
+  }
+
+  filepath.to_owned().with_file_name(&stem)
 }
 
 /// Reads entire file into a string.
