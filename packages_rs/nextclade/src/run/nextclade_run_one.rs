@@ -12,7 +12,6 @@ use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
-use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
@@ -159,18 +158,12 @@ pub fn nextclade_run_one(
     qc_config,
   );
 
-  let seq_name = if is_reverse_complement {
-    format!("{seq_name}{REVERSE_COMPLEMENT_SUFFIX}")
-  } else {
-    seq_name.to_owned()
-  };
-
   Ok((
     stripped.qry_seq,
     translations,
     NextcladeOutputs {
       index,
-      seq_name,
+      seq_name: seq_name.to_owned(),
       substitutions,
       total_substitutions,
       deletions,

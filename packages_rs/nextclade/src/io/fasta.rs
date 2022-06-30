@@ -1,3 +1,4 @@
+use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
 use crate::io::aa::from_aa_seq;
 use crate::io::compression::Decompressor;
 use crate::io::concat::concat;
@@ -188,8 +189,14 @@ impl FastaWriter {
     Ok(Self::new(create_file(filepath)?))
   }
 
-  pub fn write(&mut self, name: &str, seq: &str) -> Result<(), Report> {
-    write!(self.writer, ">{name}\n{seq}\n")?;
+  pub fn write(&mut self, seq_name: &str, seq: &str, is_reverse_complement: bool) -> Result<(), Report> {
+    let seq_name = if is_reverse_complement {
+      format!("{seq_name}{REVERSE_COMPLEMENT_SUFFIX}")
+    } else {
+      seq_name.to_owned()
+    };
+
+    write!(self.writer, ">{seq_name}\n{seq}\n")?;
     Ok(())
   }
 
@@ -239,7 +246,7 @@ impl FastaPeptideWriter {
   pub fn write(&mut self, seq_name: &str, translation: &Translation) -> Result<(), Report> {
     match self.writers.get_mut(&translation.gene_name) {
       None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.gene_name),
-      Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq)),
+      Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq), false),
     }
   }
 }
