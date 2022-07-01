@@ -1,7 +1,7 @@
 [package]
 name = "nextclade-cli"
-description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. CLI module."
 version = "2.1.0"
+description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. CLI module."
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
 homepage = "https://clades.nextstrain.org/"
