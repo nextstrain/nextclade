@@ -2,7 +2,7 @@
 
 ## Nextclade CLI 2.2.0
 
-- **Feature** When `--retry-reverse-complement` argument is used, and reverse complement transform is applied to a sequence, only the fasta header in the nucleotide alignment is changed, not in all output files. Other output files signal this transformation with a boolean property or a column `isReverseComplement`.
+- **Feature** When `--retry-reverse-complement` argument is used, and reverse complement transform is applied to a sequence, only the fasta header in the nucleotide alignment is changed by addition of ` |(reverse complement)` to the sequence name, not in all output files. Other output files signal this transformation with a boolean property or a column `isReverseComplement`.
 
 ## Nextclade CLI 2.1.0
 
