@@ -56,7 +56,7 @@ pub fn align_nuc(
         let stripes = seed_alignment(&qry_seq, ref_seq, params).map_err(|_| report)?;
         let mut result = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
         result.is_reverse_complement = true;
-        warn!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.");
+        warn!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to the fasta header in the nucleotide alignment.");
         Ok(result)
       } else {
         Err(report)
