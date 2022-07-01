@@ -1508,7 +1508,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "assert2",
  "atty",
@@ -1558,7 +1558,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-cli"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "assert2",
  "clap 3.2.7",
@@ -1597,7 +1597,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-web"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "assert2",
  "console_error_panic_hook",
