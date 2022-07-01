@@ -48,6 +48,17 @@ branch=
 if [ "$1" == "cli" ]; then
   branch="release-cli"
 
+  git checkout -q master
+
+  echo "Running \`cargo build\` to simulate CI build."
+  cargo build --quiet --frozen >/dev/null
+  if [ -n "$(git status -s)" ]; then
+    echo "After running \`cargo build\`, your local 'Cargo.lock' is not identical to the committed 'Cargo.lock.'"
+    echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."
+    echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."
+    exit 1
+  fi
+
   cargo set-version --workspace --bump="${2:-}" >/dev/null
 
   version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
