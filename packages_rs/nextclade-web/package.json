@@ -77,8 +77,8 @@
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && yarn run:node tools/monkeyPatch.ts",
     "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
     "serve-data": "babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\" ./tools/server/dataServer.ts",
-    "wasm-dev": "wasm-pack --quiet --log-level=error build --dev --target=bundler --out-dir=.build/wasm-dev/ --out-name=nextclade-wasm -- --package=nextclade-web && mkdir -p src/gen/ && cp .build/wasm-dev/* src/gen/",
-    "wasm-prod": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/"
+    "wasm-dev": "wasm-pack --quiet --log-level=error build --dev --target=bundler --out-dir=.build/wasm-dev/ --out-name=nextclade-wasm -- --package=nextclade-web --frozen && mkdir -p src/gen/ && cp .build/wasm-dev/* src/gen/",
+    "wasm-prod": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web --frozen && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/"
   },
   "dependencies": {
     "animate.css": "4.1.1",

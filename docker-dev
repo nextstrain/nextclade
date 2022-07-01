@@ -50,6 +50,8 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   . "${PROJECT_ROOT_DIR}/.env"
 fi
 
+. "${THIS_DIR}/scripts/is_ci.sh"
+
 export EXTENSIONS_TO_WATCH="rs,toml,lock"
 
 export FILES_TO_WATCH="\
@@ -338,7 +340,7 @@ export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then
   export RUSTC_FORCE_INCREMENTAL=1
 fi
-
+CI=1
 PARAMS=""
 COMMAND=${*:-}
 PORTS=
@@ -347,14 +349,27 @@ if [ "${RUN}" == "1" ]; then
   if [ -n "${PARAMS}" ]; then
     PARAMS="--bin=${PARAMS}"
   fi
+  if [ "$(is_ci)" == "1" ]; then
+    PARAMS=" --frozen ${PARAMS}"
+  fi
   COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${EXAMPLE}" == "1" ]; then
   PARAMS="$(echo "${@:-}" | xargs)"
   if [ -n "${PARAMS}" ]; then
     PARAMS="--example=${PARAMS}"
   fi
+  if [ "$(is_ci)" == "1" ]; then
+    PARAMS=" --frozen ${PARAMS}"
+  fi
   COMMAND="cargo run -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
+  PARAMS="$(echo "${@:-}" | xargs)"
+  if [ -n "${PARAMS}" ]; then
+    PARAMS="--bin=${PARAMS}"
+  fi
+  if [ "$(is_ci)" == "1" ]; then
+    PARAMS=" --frozen ${PARAMS}"
+  fi
   COMMAND="cargo build -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${WASM}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn wasm-${RELEASE}\""
