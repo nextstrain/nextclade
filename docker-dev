@@ -350,7 +350,7 @@ if [ "${RUN}" == "1" ]; then
     PARAMS="--bin=${PARAMS}"
   fi
   if [ "$(is_ci)" == "1" ]; then
-    PARAMS=" --frozen ${PARAMS}"
+    PARAMS=" --locked ${PARAMS}"
   fi
   COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${EXAMPLE}" == "1" ]; then
@@ -359,7 +359,7 @@ elif [ "${EXAMPLE}" == "1" ]; then
     PARAMS="--example=${PARAMS}"
   fi
   if [ "$(is_ci)" == "1" ]; then
-    PARAMS=" --frozen ${PARAMS}"
+    PARAMS=" --locked ${PARAMS}"
   fi
   COMMAND="cargo run -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
@@ -368,7 +368,7 @@ elif [ "${BUILD}" == "1" ]; then
     PARAMS="--bin=${PARAMS}"
   fi
   if [ "$(is_ci)" == "1" ]; then
-    PARAMS=" --frozen ${PARAMS}"
+    PARAMS=" --locked ${PARAMS}"
   fi
   COMMAND="cargo build -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${WASM}" == "1" ]; then

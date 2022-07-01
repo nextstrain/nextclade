@@ -72,7 +72,7 @@ if [ "$1" == "cli" ]; then
   fi
 
   echo "Running \`cargo build\` to simulate CI build."
-  cargo build --quiet --frozen >/dev/null
+  cargo build --quiet --locked >/dev/null
   if [ -n "$(git status -s)" ]; then
     echo "After running \`cargo build\`, your local 'Cargo.lock' is not identical to the committed 'Cargo.lock.'"  >/dev/stderr
     echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."  >/dev/stderr
