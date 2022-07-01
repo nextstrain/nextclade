@@ -29,6 +29,8 @@ RUN set -euxo pipefail >/dev/null \
   libssl-dev \
   lsb-release \
   pkg-config \
+  python3 \
+  python3-pip \
   sudo \
   time \
   xz-utils \
@@ -190,6 +192,9 @@ RUN set -euxo pipefail >/dev/null \
 && rustup completions bash >> ~/.bash_completion \
 && rustup completions bash cargo >>  ~/.bash_completion \
 && echo "source ~/.bash_completion" >> ~/.bashrc
+
+RUN set -euxo pipefail >/dev/null \
+&& pip3 install --user --upgrade cram
 
 USER ${USER}
 
