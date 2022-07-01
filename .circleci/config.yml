@@ -26,7 +26,7 @@ jobs:
       - restore_cache:
           name: "Restore previous docker build checksum from cache"
           keys:
-            - cache-v15-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v16-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: "Compare current and previous checksum, halt if no changes"
@@ -79,7 +79,7 @@ jobs:
 
       - save_cache:
           name: "Save new checksum.txt to cache"
-          key: cache-v15-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v16-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -118,7 +118,7 @@ jobs:
       - restore_cache:
           name: " [ << parameters.target_arch >> ] | Restore build cache"
           keys:
-            - cache-v15-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+            - cache-v16-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
           name: " [ << parameters.target_arch >> ] | Download dependencies fo CLI build"
@@ -137,7 +137,7 @@ jobs:
 
       - save_cache:
           name: " [ << parameters.target_arch >> ] | Save build cache"
-          key: cache-v15-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+          key: cache-v16-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
           paths:
             - .build
             - .cache
@@ -266,7 +266,7 @@ jobs:
       - restore_cache:
           name: " [ web ] | Restore build cache (branch << pipeline.git.branch >>)"
           keys:
-            - cache-v15-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+            - cache-v16-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
 
       - run:
           name: " [ web ] | Build WebAssembly module (branch << pipeline.git.branch >>)"
@@ -276,7 +276,7 @@ jobs:
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
-          key: cache-v15-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+          key: cache-v16-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
           paths:
             - .build
             - .cache
@@ -285,7 +285,7 @@ jobs:
       - restore_cache:
           name: " [ web ] | Restore build cache (branch << pipeline.git.branch >>)"
           keys:
-            - cache-v15-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+            - cache-v16-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
 
       - run:
           name: " [ web ] | Build web application (branch << pipeline.git.branch >>)"
@@ -301,7 +301,7 @@ jobs:
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
-          key: cache-v15-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+          key: cache-v16-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
           paths:
             - packages_rs/nextclade-web/.build/production/tmp/cache
             - packages_rs/nextclade-web/.cache
