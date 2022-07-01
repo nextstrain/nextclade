@@ -80,6 +80,15 @@ ENV RUSTUP_HOME="${HOME}/.rustup"
 ENV NODE_DIR="/opt/node"
 ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
 
+# Install Python dependencies
+RUN set -euxo pipefail >/dev/null \
+&& if [ "$(lsb_release -cs)" == "wheezy" ]; then \
+     curl -fsSL https://bootstrap.pypa.io/pip/3.2/get-pip.py | python3 \
+   ;fi
+
+RUN set -euxo pipefail >/dev/null \
+&& pip3 install --user --upgrade cram
+
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
@@ -192,9 +201,6 @@ RUN set -euxo pipefail >/dev/null \
 && rustup completions bash >> ~/.bash_completion \
 && rustup completions bash cargo >>  ~/.bash_completion \
 && echo "source ~/.bash_completion" >> ~/.bashrc
-
-RUN set -euxo pipefail >/dev/null \
-&& pip3 install --user --upgrade cram
 
 USER ${USER}
 
