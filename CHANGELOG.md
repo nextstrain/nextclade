@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Nextclade CLI 2.2.0
+
+- **Feature** When `--retry-reverse-complement` argument is used, and reverse complement transform is applied to a sequence, only the fasta header in the nucleotide alignment is changed, not in all output files. Other output files signal this transformation with a boolean property or a column `isReverseComplement`.
+
 ## Nextclade CLI 2.1.0
 
 - **Fix** [#907](https://github.com/nextstrain/nextclade/issues/907): If `--ouput-basename` contains dots, the last component is no longer omitted (report: @KatSteinke, fix: @ivan-aksamentov)
