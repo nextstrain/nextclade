@@ -27,58 +27,88 @@ set -euo pipefail
 : "${1:?Release target is required. Specify one of: cli, web.}"
 : "${2:?Release target and type are required.\nFor target, specify one of: cli, web.\nFor type, one of: major, minor, release, rc, beta, alpha.}"
 
+function ask_confirmation_or_exit() {
+  choice=
+  while [ "$choice" != "y" ]; do
+    read -r -p "${1} | Type 'y' or 'n' >> " choice
+    case "$choice" in
+    y | Y)
+      break
+      ;;
+    n | N)
+      echo "Aborted by user."
+      exit 0
+      ;;
+    *)
+      echo "Invalid answer. Type 'y' or 'n' (without quotation marks), or hit Ctrl+C to exit forcefully." >/dev/stderr
+      ;;
+    esac
+  done
+}
+
 if ! [[ "$1" =~ ^(cli|web)$ ]]; then
-  echo "Unknown release target: '$1'. Specify one of: cli, web."
+  echo "Unknown release target: '$1'. Specify one of: cli, web." >/dev/stderr
   exit 1
 fi
 
 if ! [[ "$2" =~ ^(major|minor|patch|rc|beta|alpha)$ ]]; then
-  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, rc, beta, alpha."
+  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, rc, beta, alpha." >/dev/stderr
   exit 1
 fi
 
 if [ -n "$(git status -s)" ]; then
-  echo "Uncommitted changes detected. Refusing to proceed."
-  echo "Stash or commit the changes and retry."
+  echo "Uncommitted changes detected. Refusing to proceed." >/dev/stderr
+  echo "Stash or commit the changes and retry."  >/dev/stderr
   exit 1
 fi
 
-branch=
-
 if [ "$1" == "cli" ]; then
-  branch="release-cli"
+  src_branch=$(git rev-parse --abbrev-ref HEAD)
+  dst_branch="release-cli"
 
-  git checkout -q master
+  if [ "${src_branch}" != "master" ]; then
+    ask_confirmation_or_exit "You are trying to make a CLI release from branch '${src_branch}'. Releases from non-'master' branches are discouraged. Consider discussing with the team first. Do you want to proceed anyway?"
+    echo "Proceeding to releasing from non-master branch '${src_branch}'."
+  fi
 
   echo "Running \`cargo build\` to simulate CI build."
   cargo build --quiet --frozen >/dev/null
   if [ -n "$(git status -s)" ]; then
-    echo "After running \`cargo build\`, your local 'Cargo.lock' is not identical to the committed 'Cargo.lock.'"
-    echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."
-    echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."
+    echo "After running \`cargo build\`, your local 'Cargo.lock' is not identical to the committed 'Cargo.lock.'"  >/dev/stderr
+    echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."  >/dev/stderr
+    echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."  >/dev/stderr
     exit 1
   fi
 
+  echo "Bumping package versions in 'Cargo.toml' files"
   cargo set-version --workspace --bump="${2:-}" >/dev/null
-
   version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
 
-  printf "\n\n-----------------------------------\n\n"
-  git --no-pager diff
+  echo "Running \`cargo build\` to update 'Cargo.lock' file"
+  cargo build --quiet >/dev/null
+
+  printf "\n\nThe following changes were made. Please check them thoroughly:\n-----------------------------------\n\n"
+  git --no-pager diff --unified=0 --no-prefix --no-commit-id
   printf "\n\n-----------------------------------\n\n"
 
+  echo "Committing changes locally"
   git add -A >/dev/null
-
   git commit -q -m "chore: release cli ${version}" >/dev/null
+  git checkout -q -B "${dst_branch}" >/dev/null
+  git checkout -q "${src_branch}" >/dev/null
+  echo "CLI release ($2) created successfully. The changes listed above are now committed to your local branches '${src_branch}', '${dst_branch}'."
 
-  git checkout -q -B ${branch} >/dev/null
-  echo "$1 release ($2) created successfully. The changes listed above are now committed to your local branch '${branch}'."
+  ask_confirmation_or_exit "Do you want to push these changes to GitHub (branches '${src_branch}', '${dst_branch}')? The push will trigger CI build and publishing of the new CLI release."
+
+  echo "Pushing new CLI release to GitHub, branches '${src_branch}', '${dst_branch}'"
+  git push -q origin "${dst_branch}"
+  git push -q origin "${src_branch}"
 
 elif [ "$1" == "web" ]; then
-  branch=$(git rev-parse --abbrev-ref HEAD)
+  dst_branch=$(git rev-parse --abbrev-ref HEAD)
 
-  if ! [[ "$branch" =~ ^(master|staging|release)$ ]]; then
-    echo "You are on branch '$branch', which is not one of the major branches suitable for web release." >/dev/stderr
+  if ! [[ "${dst_branch}" =~ ^(master|staging|release)$ ]]; then
+    echo "You are on branch '${dst_branch}', which is not one of the major branches suitable for Web release." >/dev/stderr
     echo "There are 3 web environments corresponding to master, staging, and release branches. Checkout one of these branches, depending on where you want to deploy the new release. Refusing to proceed." >/dev/stderr
     exit 1
   fi
@@ -91,30 +121,20 @@ elif [ "$1" == "web" ]; then
     version=$(npm version prerelease --preid="$2")
   fi
 
-  printf "\n\n-----------------------------------\n\n"
-  git --no-pager diff
+  printf "\n\nThe following changes were made. Please check them thoroughly:\n-----------------------------------\n\n"
+  git --no-pager diff --unified=0 --no-prefix --no-commit-id
   printf "\n\n-----------------------------------\n\n"
 
+  echo "Committing changes locally"
   git add -A >/dev/null
-
   git commit -q -m "chore: release ${1} ${version}" >/dev/null
+
+  ask_confirmation_or_exit "Do you want to push this to GitHub? The push will trigger CI build and publishing."
+  echo "Pushing new Web release to GitHub, branch '${dst_branch}'"
+  git push -q origin "${dst_branch}"
 
   popd
 
 else
   echo "Invalid release target ${1}"
 fi
-
-read -r -p "Do you want to push this to GitHub? The push will trigger CI build and publishing. Type 'y' or 'n'." choice
-case "$choice" in
-y | Y)
-  echo "Pushing to GitHub, branch '${branch}'"
-  git push -q origin "${branch}"
-  ;;
-n | N)
-  echo "Will exit now. Bit if you want to push later, type 'git push origin ${branch}'"
-  ;;
-*)
-  echo "Invalid answer. Type 'y' or 'n'."
-  ;;
-esac
