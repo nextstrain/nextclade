@@ -1,7 +1,6 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
 use log::warn;
-use nextclade::constants::REVERSE_COMPLEMENT_SUFFIX;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
@@ -59,7 +58,7 @@ impl<'a> NextalignOrderedWriter<'a> {
     let FastaRecord { seq_name, seq, .. } = &ref_record;
 
     if let Some(fasta_writer) = &mut self.fasta_writer {
-      fasta_writer.write(seq_name, seq)?;
+      fasta_writer.write(seq_name, seq, false)?;
     }
 
     ref_peptides.iter().try_for_each(|(_, peptide)| {
@@ -91,14 +90,8 @@ impl<'a> NextalignOrderedWriter<'a> {
           is_reverse_complement,
         } = output;
 
-        let seq_name = if *is_reverse_complement {
-          format!("{seq_name}{REVERSE_COMPLEMENT_SUFFIX}")
-        } else {
-          seq_name.clone()
-        };
-
         if let Some(fasta_writer) = &mut self.fasta_writer {
-          fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+          fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq), *is_reverse_complement)?;
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
