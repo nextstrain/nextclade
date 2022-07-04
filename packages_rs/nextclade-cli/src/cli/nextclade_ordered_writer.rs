@@ -165,6 +165,12 @@ impl<'a> NextcladeOrderedWriter<'a> {
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
           errors_csv_writer.write_nuc_error(&seq_name, &message)?;
         }
+        if let Some(output_csv_writer) = &mut self.output_csv_writer {
+          output_csv_writer.write_nuc_error(&seq_name, &message)?;
+        }
+        if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
+          output_tsv_writer.write_nuc_error(&seq_name, &message)?;
+        }
       }
     }
 
