@@ -340,7 +340,7 @@ export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then
   export RUSTC_FORCE_INCREMENTAL=1
 fi
-CI=1
+
 PARAMS=""
 COMMAND=${*:-}
 PORTS=
