@@ -77,9 +77,9 @@ For each sequence, prediction and truth are compared and classified as on of the
 - Parent, one level too generic (e.g. Nextclade says `B.1` but truth is `B.1.3`)
 - Child, that is one level too specific (e.g. Nextclade says `B.1.3` but truth is `B.1`)
 - None, an output by pangolin if sequences are shorter than 25,000 bp or contain more than 30% ambiguous bases
-- Other (e.g. multiple levels too generic, or cousin relationsships like Nextclade says `B.2` but truth is `B.1`).
+- Other (e.g. multiple levels too generic, or cousin relationships like Nextclade says `B.2` but truth is `B.1`).
 
-Since the share of sequences per lineage that is contained in the designation dataset is not represantative of the frequency the lineage appears in GISAID, (e.g. of the 13 `AQ.1` in all of GISAID's sequences, 9 are designated, whereas of about 500k `BA.1.1` only ~400 are designated) we weight results based on how common a lineage is in all of GISAID's sequences, instead of how often a lineage is in the designation dataset.
+Since the share of sequences per lineage that is contained in the designation dataset is not representative of the frequency the lineage appears in GISAID, (e.g. of the 13 `AQ.1` in all of GISAID's sequences, 9 are designated, whereas of about 500k `BA.1.1` only ~400 are designated) we weight results based on how common a lineage is in all of GISAID's sequences, instead of how often a lineage is in the designation dataset.
 
 The results are shown in the table below:
 
@@ -97,7 +97,7 @@ For more recent lineages, Nextclade is more accurate, because the tree contains 
 When Nextclade errs, it tends to be too general.
 
 On this dataset, pangoLEARN has a tendency to be over-specific, i.e. to call lineages too deep in the tree.
-This behaviour has been noticed, anectodally, in the past.
+This behaviour has been noticed, anecdotally, in the past.
 
 UShER errs only very rarely, about a factor of 10 less frequently than the other two methods.
 This may be partially a result of overfitting, due to the fact that UShER's tree is used to designate lineages.
