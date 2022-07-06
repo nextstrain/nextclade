@@ -1,7 +1,7 @@
 use crate::io::json::{json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
-use crate::types::outputs::NextcladeOutputs;
+use crate::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use crate::utils::datetime::date_iso_now;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
@@ -22,6 +22,8 @@ pub struct ResultsJson {
   pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
 
   pub results: Vec<NextcladeOutputs>,
+
+  pub errors: Vec<NextcladeErrorOutputs>,
 }
 
 impl ResultsJson {
@@ -35,6 +37,7 @@ impl ResultsJson {
       created_at: date_iso_now(),
       clade_node_attr_keys: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
       results: vec![],
+      errors: vec![],
     }
   }
 
@@ -65,6 +68,14 @@ impl ResultsJsonWriter {
 
   pub fn write(&mut self, entry: NextcladeOutputs) {
     self.result.results.push(entry);
+  }
+
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, message: &str) {
+    self.result.errors.push(NextcladeErrorOutputs {
+      index,
+      seq_name: seq_name.to_owned(),
+      message: message.to_owned(),
+    });
   }
 
   pub fn finish(&self) -> Result<(), Report> {

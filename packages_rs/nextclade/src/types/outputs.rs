@@ -89,3 +89,11 @@ impl NextcladeOutputs {
     json_parse(s)
   }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NextcladeErrorOutputs {
+  pub index: usize,
+  pub seq_name: String,
+  pub message: String,
+}

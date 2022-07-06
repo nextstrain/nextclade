@@ -1,4 +1,5 @@
 use crate::io::file::create_file;
+use crate::types::outputs::NextcladeErrorOutputs;
 use eyre::{Report, WrapErr};
 use std::fmt::Debug;
 use std::io::{LineWriter, Write};
@@ -42,5 +43,13 @@ impl NdjsonFileWriter {
       .ndjson_writer
       .write(entry)
       .wrap_err_with(|| format!("When writing ndjson entry to file {:#?}", &self.filepath))
+  }
+
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, message: &str) -> Result<(), Report> {
+    self.write(&NextcladeErrorOutputs {
+      index,
+      seq_name: seq_name.to_owned(),
+      message: message.to_owned(),
+    })
   }
 }

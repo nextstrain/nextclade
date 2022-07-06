@@ -171,6 +171,12 @@ impl<'a> NextcladeOrderedWriter<'a> {
         if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
           output_tsv_writer.write_nuc_error(&seq_name, &message)?;
         }
+        if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
+          output_ndjson_writer.write_nuc_error(index, &seq_name, &message)?;
+        }
+        if let Some(output_json_writer) = &mut self.output_json_writer {
+          output_json_writer.write_nuc_error(index, &seq_name, &message);
+        }
       }
     }
 
