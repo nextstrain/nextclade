@@ -197,17 +197,17 @@ export function ExportDialogButton() {
                   <ExportFileElement
                     Icon={FileIconJson}
                     filename={exportParams.filenameTree}
-                    HelpMain={t('Phylogenetic tree with sequenced placed onto it.')}
+                    HelpMain={t('Phylogenetic tree with sequences placed onto it.')}
                     HelpDetails={
                       <>
                         {t('The tree is in Nextstrain format.')}{' '}
-                        {t('Can be viewed locally with Nextstrain Auspice or in {{auspice_us}}')}
+                        {t('Can be viewed locally with Nextstrain Auspice or in ')}
                         <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
                         {'.'}
                       </>
                     }
                     HelpDownload={t(
-                      'Download phylogenetic tree with sequenced placed onto it, in Auspice JSON v2 format.',
+                      'Download phylogenetic tree with sequences placed onto it, in Auspice JSON v2 format.',
                     )}
                     onDownload={exportTree}
                   />
