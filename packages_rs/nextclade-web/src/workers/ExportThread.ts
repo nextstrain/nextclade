@@ -1,5 +1,5 @@
 import { CladeNodeAttrDesc } from 'auspice'
-import type { AnalysisResult, ErrorsFromWeb } from 'src/algorithms/types'
+import type { AnalysisError, AnalysisResult, ErrorsFromWeb } from 'src/algorithms/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 
@@ -25,22 +25,24 @@ export class ExportWorker {
 
   public async serializeResultsJson(
     outputs: AnalysisResult[],
+    errors: AnalysisError[],
     cladeNodeAttrsJson: CladeNodeAttrDesc[],
     nextcladeWebVersion: string,
   ): Promise<string> {
-    return this.thread.serializeResultsJson(outputs, cladeNodeAttrsJson, nextcladeWebVersion)
+    return this.thread.serializeResultsJson(outputs, errors, cladeNodeAttrsJson, nextcladeWebVersion)
   }
 
   public async serializeResultsCsv(
     results: AnalysisResult[],
+    errors: AnalysisError[],
     cladeNodeAttrsJson: CladeNodeAttrDesc[],
     delimiter: string,
   ) {
-    return this.thread.serializeResultsCsv(results, cladeNodeAttrsJson, delimiter)
+    return this.thread.serializeResultsCsv(results, errors, cladeNodeAttrsJson, delimiter)
   }
 
-  public async serializeResultsNdjson(results: AnalysisResult[]) {
-    return this.thread.serializeResultsNdjson(results)
+  public async serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {
+    return this.thread.serializeResultsNdjson(results, errors)
   }
 
   public async serializeInsertionsCsv(results: AnalysisResult[]) {

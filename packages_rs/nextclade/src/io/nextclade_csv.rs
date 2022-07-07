@@ -12,7 +12,9 @@ use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use crate::types::outputs::{NextcladeOutputs, PeptideWarning};
+use crate::types::outputs::{
+  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
+};
 use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
 use crate::utils::range::Range;
@@ -372,10 +374,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("failedGenes", &format_failed_genes(missing_genes, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
       "warnings",
-      &warnings
-        .iter()
-        .map(|PeptideWarning { warning, .. }| warning)
-        .join(";"),
+      &warnings.iter().map(|PeptideWarning { warning, .. }| warning).join(";"),
     )?;
     self.add_entry("errors", &"")?;
 
@@ -630,6 +629,8 @@ pub fn format_qc_score(score: f64) -> String {
 
 pub fn results_to_csv_string(
   outputs: &[NextcladeOutputs],
+  errors: &[NextcladeErrorOutputs],
+
   clade_attr_keys: &[String],
   delimiter: u8,
 ) -> Result<String, Report> {
@@ -640,8 +641,12 @@ pub fn results_to_csv_string(
     let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
     let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
 
-    for output in outputs {
-      writer.write(output)?;
+    let outputs_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
+    for (_, output_or_error) in outputs_or_errors {
+      match output_or_error {
+        NextcladeOutputOrError::Outputs(output) => writer.write(&output)?,
+        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(&error.seq_name, &error.message)?,
+      };
     }
   }
 

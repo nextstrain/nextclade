@@ -6,7 +6,14 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type { AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Translation } from 'src/algorithms/types'
+import type {
+  AnalysisError,
+  AnalysisResult,
+  ErrorsFromWeb,
+  FastaRecord,
+  NextcladeResult,
+  Translation,
+} from 'src/algorithms/types'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
@@ -183,26 +190,34 @@ export async function parseVirusJsonString(virusJsonStr: string) {
 
 export async function serializeResultsJson(
   outputs: AnalysisResult[],
+  errors: AnalysisError[],
   cladeNodeAttrsJson: CladeNodeAttrDesc[],
   nextcladeWebVersion: string,
 ) {
   return NextcladeWasm.serialize_results_json(
     JSON.stringify(outputs),
+    JSON.stringify(errors),
     JSON.stringify(cladeNodeAttrsJson),
     nextcladeWebVersion,
   )
 }
 
-export async function serializeResultsNdjson(results: AnalysisResult[]) {
-  return NextcladeWasm.serialize_results_ndjson(JSON.stringify(results))
+export async function serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {
+  return NextcladeWasm.serialize_results_ndjson(JSON.stringify(results), JSON.stringify(errors))
 }
 
 export async function serializeResultsCsv(
   results: AnalysisResult[],
+  errors: AnalysisError[],
   cladeNodeAttrsJson: CladeNodeAttrDesc[],
   delimiter: string,
 ) {
-  return NextcladeWasm.serialize_results_csv(JSON.stringify(results), JSON.stringify(cladeNodeAttrsJson), delimiter)
+  return NextcladeWasm.serialize_results_csv(
+    JSON.stringify(results),
+    JSON.stringify(errors),
+    JSON.stringify(cladeNodeAttrsJson),
+    delimiter,
+  )
 }
 
 async function serializeInsertionsCsv(results: AnalysisResult[]) {
