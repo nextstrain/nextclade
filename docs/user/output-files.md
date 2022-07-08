@@ -14,6 +14,8 @@ Nextclade CLI, Nextalign CLI flags: `--output-all`
 
 All possible outputs can be produced using `--output-all` flag. The default base file name is either "nextalign" or "nextclade" depending on which tool you use. It can be changed using `--output-basename` flag. A list of outputs can be restricted using `--output-selection` flag.
 
+> ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the JSON results output or tree output is requested (through `--output-json`, `--output-tree` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing these outputs for large input data, running on a machine with more RAM, or processing data in smaller chunks.
+
 ## Aligned nucleotide sequences
 
 Nextclade CLI, Nextalign CLI flags: `--output-fasta`
@@ -112,13 +114,26 @@ The table can contain additional columns for every clade-like attributes defined
 
 ### JSON results
 
-Nextclade CLI flag: `--output-json`, filename `nextclade.json`
+Nextclade CLI flag: `--output-json`, filename `nextclade.json`.
 
 JSON results file is best for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
 
-> ⚠️ Beware that JSON results use 0-indexed nucleotide and codon positions, whereas csv and tsv files use 1-indexed positions. The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
+> ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the JSON output is requested (through `--output-json` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing this output for large input data, running on a machine with more RAM, or processing data in smaller chunks.
+
+> ⚠️ Beware that JSON results reflect internal state of Nextclade, and use 0-indexed nucleotide and codon positions, whereas CSV and TSV files use 1-indexed positions (widely used in bioinformatics). The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
 >
->Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in csv/tsv results.
+>Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in CSV/TSV results.
+
+### NDJSON results
+
+Nextclade CLI flag: `--output-ndjson`, filename `nextclade.ndjson`,
+
+NDJSON results are similar to the JSON results - it combines `results` and `errors` arrays from it, and similarly suited well for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format. Compared to JSON format, NDJSON can be streamed and piped one line at a time, and does not cause increased memory consumption for large input data.
+
+
+> ⚠️ Beware that NDJSON results reflect internal state of Nextclade, and use 0-indexed nucleotide and codon positions, whereas CSV and TSV files use 1-indexed positions (widely used in bioinformatics). The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
+>
+>Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in NDJSON results corresponds to `missing: 705-726` in CSV/TSV results.
 
 ## Output phylogenetic tree
 
@@ -126,9 +141,11 @@ Nextclade CLI flags: `--output-tree`
 
 Output phylogenetic tree. This is the input [reference tree](terminology.html#reference-tree-concept), with [Query Sequences](terminology.html#query-sequence) placed onto it.
 
-Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain. And the same as for the input [reference tree](terminology.html#reference-tree-concept).
+The tree if Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain. And the same as for the input [reference tree](terminology.html#reference-tree-concept).
 
-The tree can be viewed in [auspice.us](https://auspice.us).
+The tree can be visualized online in [auspice.us](https://auspice.us) or in a local instance of [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/index.html).
+
+> ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the tree output is requested (through `--output-tree` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing this output for large input data, running on a machine with more RAM, or processing data in smaller chunks.
 
 ## Stripped insertions
 
