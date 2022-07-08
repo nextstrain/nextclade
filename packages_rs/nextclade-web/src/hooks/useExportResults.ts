@@ -1,7 +1,7 @@
 /* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops,sonarjs/no-duplicate-string */
 import { Snapshot, useRecoilCallback } from 'recoil'
 
-import type { AnalysisOutput, ErrorsFromWeb } from 'src/algorithms/types'
+import type { AnalysisError, AnalysisOutput, ErrorsFromWeb } from 'src/algorithms/types'
 import type { ExportParams } from 'src/components/Results/ExportDialogButton'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefined } from 'src/helpers/notUndefined'
@@ -58,6 +58,19 @@ async function mapGoodResults<T>(snapshot: Snapshot, mapFn: (result: AnalysisOut
     })
 }
 
+async function mapErrors<T>(snapshot: Snapshot, mapFn: (result: AnalysisError) => T) {
+  const results = await snapshot.getPromise(analysisResultsAtom)
+
+  return results
+    .filter((result) => notUndefined(result.error))
+    .map(({ error, seqName, index }) => {
+      if (!error) {
+        throw new ErrorInternal('When preparing analysis errors for export: expected error to be non-nil')
+      }
+      return mapFn({ index, seqName, errors: [error] })
+    })
+}
+
 async function prepareOutputFasta(snapshot: Snapshot) {
   let fastaStr = (
     await mapGoodResults(snapshot, (result) => `>${result.analysisResult.seqName}\n${result.query}`)
@@ -75,8 +88,9 @@ export function useExportFasta() {
 
 async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delimiter: string) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
+  const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
-  return worker.serializeResultsCsv(results, cladeNodeAttrDescs, delimiter)
+  return worker.serializeResultsCsv(results, errors, cladeNodeAttrDescs, delimiter)
 }
 
 export function useExportCsv() {
@@ -95,8 +109,9 @@ export function useExportTsv() {
 
 async function prepareResultsJson(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
+  const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
-  return worker.serializeResultsJson(results, cladeNodeAttrDescs, PACKAGE_VERSION)
+  return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, PACKAGE_VERSION)
 }
 
 export function useExportJson() {
@@ -108,7 +123,8 @@ export function useExportJson() {
 
 async function prepareResultsNdjson(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
-  return worker.serializeResultsNdjson(results)
+  const errors = await mapErrors(snapshot, (err) => err)
+  return worker.serializeResultsNdjson(results, errors)
 }
 
 export function useExportNdjson() {
@@ -135,7 +151,8 @@ export function useExportTree() {
 
 async function prepareInsertionsCsv(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
-  return worker.serializeInsertionsCsv(results)
+  const errors = await mapErrors(snapshot, (err) => err)
+  return worker.serializeInsertionsCsv(results, errors)
 }
 
 export function useExportInsertionsCsv() {

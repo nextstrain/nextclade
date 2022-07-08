@@ -1,7 +1,9 @@
 use crate::io::json::{json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
-use crate::types::outputs::NextcladeOutputs;
+use crate::types::outputs::{
+  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
+};
 use crate::utils::datetime::date_iso_now;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
@@ -22,6 +24,8 @@ pub struct ResultsJson {
   pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
 
   pub results: Vec<NextcladeOutputs>,
+
+  pub errors: Vec<NextcladeErrorOutputs>,
 }
 
 impl ResultsJson {
@@ -35,16 +39,19 @@ impl ResultsJson {
       created_at: date_iso_now(),
       clade_node_attr_keys: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
       results: vec![],
+      errors: vec![],
     }
   }
 
   pub fn from_outputs(
     outputs: &[NextcladeOutputs],
+    errors: &[NextcladeErrorOutputs],
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     nextclade_web_version: &Option<String>,
   ) -> Self {
     let mut this = Self::new(clade_node_attrs);
     this.results = outputs.to_vec();
+    this.errors = errors.to_vec();
     this.nextclade_web_version = nextclade_web_version.clone();
     this
   }
@@ -67,6 +74,14 @@ impl ResultsJsonWriter {
     self.result.results.push(entry);
   }
 
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) {
+    self.result.errors.push(NextcladeErrorOutputs {
+      index,
+      seq_name: seq_name.to_owned(),
+      errors: errors.to_vec(),
+    });
+  }
+
   pub fn finish(&self) -> Result<(), Report> {
     json_write(&self.filepath, &self.result)
   }
@@ -81,19 +96,29 @@ impl Drop for ResultsJsonWriter {
 
 pub fn results_to_json_string(
   outputs: &[NextcladeOutputs],
+  errors: &[NextcladeErrorOutputs],
   clade_node_attrs: &[CladeNodeAttrKeyDesc],
   nextclade_web_version: &Option<String>,
 ) -> Result<String, Report> {
-  let results_json = ResultsJson::from_outputs(outputs, clade_node_attrs, nextclade_web_version);
+  let results_json = ResultsJson::from_outputs(outputs, errors, clade_node_attrs, nextclade_web_version);
   json_stringify(&results_json)
 }
 
-pub fn results_to_ndjson_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
+pub fn results_to_ndjson_string(
+  outputs: &[NextcladeOutputs],
+  errors: &[NextcladeErrorOutputs],
+) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
   {
     let mut writer = NdjsonWriter::new(&mut buf)?;
-    for output in outputs {
-      writer.write(output)?;
+
+    let output_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
+
+    for (i, output_or_error) in output_or_errors {
+      match output_or_error {
+        NextcladeOutputOrError::Outputs(output) => writer.write(&output),
+        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(error.index, &error.seq_name, &error.errors),
+      }?;
     }
   }
   Ok(String::from_utf8(buf)?)

@@ -89,3 +89,37 @@ impl NextcladeOutputs {
     json_parse(s)
   }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NextcladeErrorOutputs {
+  pub index: usize,
+  pub seq_name: String,
+  pub errors: Vec<String>,
+}
+
+pub enum NextcladeOutputOrError {
+  Outputs(Box<NextcladeOutputs>),
+  Error(NextcladeErrorOutputs),
+}
+
+/// Merges an array of outputs with an array of errors into an array of variants
+/// and sorts them by output/error index
+pub fn combine_outputs_and_errors_sorted(
+  outputs: &[NextcladeOutputs],
+  errors: &[NextcladeErrorOutputs],
+) -> Vec<(usize, NextcladeOutputOrError)> {
+  let mut outputs_or_errors = Vec::<(usize, NextcladeOutputOrError)>::new();
+
+  for output in outputs {
+    outputs_or_errors.push((output.index, NextcladeOutputOrError::Outputs(Box::new(output.clone()))));
+  }
+
+  for error in errors {
+    outputs_or_errors.push((error.index, NextcladeOutputOrError::Error(error.clone())));
+  }
+
+  outputs_or_errors.sort_by_key(|o| o.0);
+
+  outputs_or_errors
+}

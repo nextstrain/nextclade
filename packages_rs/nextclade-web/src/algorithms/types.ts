@@ -383,6 +383,12 @@ export interface AnalysisResult {
   missingGenes: string[]
 }
 
+export interface AnalysisError {
+  index: number
+  seqName: string
+  errors: string[]
+}
+
 export interface ErrorsFromWeb {
   seqName: string
   errors: string

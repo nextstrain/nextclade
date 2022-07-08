@@ -12,7 +12,7 @@ use nextclade::io::nextclade_csv::results_to_csv_string;
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
-use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
 use std::io::Read;
 use std::str::FromStr;
@@ -117,37 +117,54 @@ impl NextcladeWasm {
   #[allow(clippy::needless_pass_by_value)]
   pub fn serialize_results_json(
     outputs_json_str: &str,
+    errors_json_str: &str,
     clade_node_attrs_json_str: &str,
     nextclade_web_version: Option<String>,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
       json_parse(outputs_json_str).wrap_err("When serializing results into JSON: When parsing outputs JSON internally"),
     )?;
+
+    let errors: Vec<NextcladeErrorOutputs> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing results into JSON: When parsing errors JSON internally"),
+    )?;
+
     let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
       json_parse(clade_node_attrs_json_str)
         .wrap_err("When serializing results JSON: When parsing clade node attrs JSON internally"),
     )?;
+
     jserr(
-      results_to_json_string(&outputs, &clade_node_attrs, &nextclade_web_version)
+      results_to_json_string(&outputs, &errors, &clade_node_attrs, &nextclade_web_version)
         .wrap_err("When serializing results JSON"),
     )
   }
 
-  pub fn serialize_results_ndjson(outputs_json_str: &str) -> Result<String, JsError> {
+  pub fn serialize_results_ndjson(outputs_json_str: &str, errors_json_str: &str) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
       json_parse(outputs_json_str)
         .wrap_err("When serializing results into NDJSON: When parsing outputs JSON internally"),
     )?;
-    jserr(results_to_ndjson_string(&outputs))
+
+    let errors: Vec<NextcladeErrorOutputs> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing results into NDJSON: When parsing errors JSON internally"),
+    )?;
+
+    jserr(results_to_ndjson_string(&outputs, &errors))
   }
 
   pub fn serialize_results_csv(
     outputs_json_str: &str,
+    errors_json_str: &str,
     clade_node_attrs_json_str: &str,
     delimiter: char,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
       json_parse(outputs_json_str).wrap_err("When serializing results into CSV: When parsing outputs JSON internally"),
+    )?;
+
+    let errors: Vec<NextcladeErrorOutputs> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
     )?;
 
     let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
@@ -157,16 +174,25 @@ impl NextcladeWasm {
 
     let clade_node_attr_keys = clade_node_attrs.into_iter().map(|attr| attr.name).collect_vec();
 
-    jserr(results_to_csv_string(&outputs, &clade_node_attr_keys, delimiter as u8))
+    jserr(results_to_csv_string(
+      &outputs,
+      &errors,
+      &clade_node_attr_keys,
+      delimiter as u8,
+    ))
   }
 
-  pub fn serialize_insertions_csv(outputs_json_str: &str) -> Result<String, JsError> {
+  pub fn serialize_insertions_csv(outputs_json_str: &str, errors_json_str: &str) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
       json_parse(outputs_json_str)
         .wrap_err("When serializing insertions into CSV: When parsing outputs JSON internally"),
     )?;
 
-    jserr(insertions_to_csv_string(&outputs))
+    let errors: Vec<NextcladeErrorOutputs> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
+    )?;
+
+    jserr(insertions_to_csv_string(&outputs, &errors))
   }
 
   pub fn serialize_errors_csv(errors_json_str: &str) -> Result<String, JsError> {

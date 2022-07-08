@@ -1,4 +1,5 @@
 use crate::io::file::create_file;
+use crate::types::outputs::NextcladeErrorOutputs;
 use eyre::{Report, WrapErr};
 use std::fmt::Debug;
 use std::io::{LineWriter, Write};
@@ -18,6 +19,14 @@ impl<W: Write + Send> NdjsonWriter<W> {
     serde_json::to_writer(&mut self.line_writer, &entry).wrap_err("When serializing an entry to ndjson")?;
     self.line_writer.write_all(b"\n")?;
     Ok(())
+  }
+
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) -> Result<(), Report> {
+    self.write(&NextcladeErrorOutputs {
+      index,
+      seq_name: seq_name.to_owned(),
+      errors: errors.to_vec(),
+    })
   }
 }
 
@@ -41,6 +50,13 @@ impl NdjsonFileWriter {
     self
       .ndjson_writer
       .write(entry)
-      .wrap_err_with(|| format!("When writing ndjson entry to file {:#?}", &self.filepath))
+      .wrap_err_with(|| format!("When writing ndjson output entry to file {:#?}", &self.filepath))
+  }
+
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) -> Result<(), Report> {
+    self
+      .ndjson_writer
+      .write_nuc_error(index, seq_name, errors)
+      .wrap_err_with(|| format!("When writing ndjson error entry to file {:#?}", &self.filepath))
   }
 }
