@@ -162,6 +162,9 @@ impl<'a> NextcladeOrderedWriter<'a> {
           "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
         );
         warn!("{message}");
+        if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
+          insertions_csv_writer.write(&seq_name, &[], &[])?;
+        }
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
           errors_csv_writer.write_nuc_error(&seq_name, &message)?;
         }

@@ -45,8 +45,8 @@ export class ExportWorker {
     return this.thread.serializeResultsNdjson(results, errors)
   }
 
-  public async serializeInsertionsCsv(results: AnalysisResult[]) {
-    return this.thread.serializeInsertionsCsv(results)
+  public async serializeInsertionsCsv(results: AnalysisResult[], errors: AnalysisError[]) {
+    return this.thread.serializeInsertionsCsv(results, errors)
   }
 
   public async serializeErrorsCsv(errors: ErrorsFromWeb[]) {

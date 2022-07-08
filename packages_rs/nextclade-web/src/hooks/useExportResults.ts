@@ -151,7 +151,8 @@ export function useExportTree() {
 
 async function prepareInsertionsCsv(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
-  return worker.serializeInsertionsCsv(results)
+  const errors = await mapErrors(snapshot, (err) => err)
+  return worker.serializeInsertionsCsv(results, errors)
 }
 
 export function useExportInsertionsCsv() {
