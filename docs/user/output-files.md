@@ -14,11 +14,15 @@ Nextclade CLI, Nextalign CLI flags: `--output-all`
 
 All possible outputs can be produced using `--output-all` flag. The default base file name is either "nextalign" or "nextclade" depending on which tool you use. It can be changed using `--output-basename` flag. A list of outputs can be restricted using `--output-selection` flag.
 
+> ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the JSON results output or tree output is requested (through `--output-json`, `--output-tree` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing these outputs for large input data, running on a machine with more RAM, or processing data in smaller chunks.
+
 ## Aligned nucleotide sequences
 
 Nextclade CLI, Nextalign CLI flags: `--output-fasta`
 
 Aligned sequences are produced as a result of the [Sequence alignment](algorithm/01-sequence-alignment) step and are being output in FASTA format. If the CLI flag `--include-reference` is set, the reference sequence is included as the first entry.
+
+> ⚠️Note that if alignment or analysis of an individual sequence fails, it is omitted from the output alignment file.
 
 ## Aligned peptides
 
@@ -28,15 +32,36 @@ Aligned peptides are produced as a result of the [Translation and peptide alignm
 
 This flag accepts a **template** string which *must* contain template argument `{gene}`.
 
+> ⚠️ Note that if translation, alignment or analysis of an individual gene fails, the corresponding peptide is omitted from the output translation file.
+
+> ⚠️ Note that if alignment or analysis of an individual sequence fails, all genes are omitted from the output translation files.
+
 ## Analysis results
 
-The results of mutation calling, clade assignment, quality control and PCR primer changes can be obtained in either TSV, CSV, or JSON format.
+The results of mutation calling, clade assignment, quality control and PCR primer changes can be obtained in either TSV, CSV, JSON, or NDJSON format.
+
+> ⚠️Note that if alignment or analysis of an individual sequence fails, the alignment and translation it is omitted from the output fasta files (see above), but the corresponding entry is still present in most of the other output files. In this case `errors` column/field contain details about why the processing failed.
+>
+> <br/>
+>
+> If translation, alignment or analysis of an individual gene fails, the corresponding peptide cannot be analyzed, and therefore no details about aminoacid mutations, deletions, insertions, frame shifts etc. will be available. In this case `warning` and `failiedGenes` columns/fields contain details about which genes failed and why.
+>
+> <br/>
+>
+> Care should be taken to check for `errors`, `warnings` and `failedGenes` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
+>
+> <br/>
+>
+> See descriptions of individual outputs and "Outputs for failed sequences" section below for more details.
+
+
+The next sections describe each analysis output in more details.
 
 ### Tabular (CSV/TSV) results
 
 Nextclade CLI flags: `--output-csv`, `--output-tsv`
 
-TSV and CSV files are equivalent and only differ in the column delimiter (tabs vs semicolons), for better compatibility with spreadsheet software and data-science packages. Tabular format of TSV/CSV files are somewhat more human-friendly, are convenient for the immediate inspection and for simple automated processing.
+TSV and CSV files are equivalent and only differ in the column delimiter (tabs vs semicolons), for better compatibility with spreadsheet software and data-science packages. Tabular format of TSV/CSV files is somewhat human-friendly and convenient for the immediate inspection and for simple automated processing.
 
 Every row in tabular output corresponds to 1 input sequence. The meaning of columns is described below:
 
@@ -108,33 +133,52 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | warnings                                        | List of warnings during processing                                                                         |
 | failedGenes                                     | List of genes that failed translation                                                                      |
 
-The table can contain additional columns for every clade-like attributes defined in reference tree in `meta.extensions.clade_node_attrs` and in the node attributes. For example, the default SARS-CoV-2 datasets define `Nextclade_pango` attribute which signifies a PANGO lineage assigned by Nextclade (see [Nextclade as pango lineage classifier: Methods and Validation](algorithm/nextclade-pango)).
+The table can contain additional columns for every clade-like attribute defined in reference tree in `meta.extensions.clade_node_attrs` and in the node attributes. For example, the default SARS-CoV-2 datasets define `Nextclade_pango` attribute which signifies a PANGO lineage assigned by Nextclade (see [Nextclade as pango lineage classifier: Methods and Validation](algorithm/nextclade-pango)).
 
 ### JSON results
 
-Nextclade CLI flag: `--output-json`, filename `nextclade.json`
+Nextclade CLI flag: `--output-json`, filename `nextclade.json`.
 
 JSON results file is best for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
 
-> ⚠️ Beware that JSON results use 0-indexed nucleotide and codon positions, whereas csv and tsv files use 1-indexed positions. The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
+> ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the JSON output is requested (through `--output-json` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing this output for large input data, running on a machine with more RAM, or processing data in smaller chunks.
+
+> ⚠️ Beware that JSON results reflect internal state of Nextclade, and use 0-indexed nucleotide and codon positions, whereas CSV and TSV files use 1-indexed positions (widely used in bioinformatics). The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
 >
->Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in csv/tsv results.
+>Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in CSV/TSV results.
+
+### NDJSON results
+
+Nextclade CLI flag: `--output-ndjson`, filename `nextclade.ndjson`,
+
+NDJSON results are similar to the JSON results - it combines `results` and `errors` arrays from it, and similarly suited well for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format. Compared to JSON format, NDJSON can be streamed and piped one line at a time, and does not cause increased memory consumption for large input data.
+
+
+> ⚠️ Beware that NDJSON results reflect internal state of Nextclade, and use 0-indexed nucleotide and codon positions, whereas CSV and TSV files use 1-indexed positions (widely used in bioinformatics). The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
+>
+>Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in NDJSON results corresponds to `missing: 705-726` in CSV/TSV results.
 
 ## Output phylogenetic tree
 
-Nextclade CLI flags: `--output-tree`
+Nextclade CLI flags: `--output-tree`, filename: `nextclade.auspice.json`.
 
 Output phylogenetic tree. This is the input [reference tree](terminology.html#reference-tree-concept), with [Query Sequences](terminology.html#query-sequence) placed onto it.
 
-Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain. And the same as for the input [reference tree](terminology.html#reference-tree-concept).
+The tree if Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain. And the same as for the input [reference tree](terminology.html#reference-tree-concept).
 
-The tree can be viewed in [auspice.us](https://auspice.us).
+The tree can be visualized online in [auspice.us](https://auspice.us) or in a local instance of [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/index.html).
+
+> ⚠️ Note that if alignment or analysis of an individual sequence fails, it cannot participate in phylogenetic placement and is omitted from the output tree.
+
+> ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the tree output is requested (through `--output-tree` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing this output for large input data, running on a machine with more RAM, or processing data in smaller chunks.
 
 ## Stripped insertions
 
-Nextclade CLI flag: `--output-insertions`
+CLI flag: `--output-insertions`, filename: `nextclade.insertions.csv`.
 
-Nextclade strips insertions relative to the reference from aligned query sequences, so that they no longer appear in the output sequences. It outputs information about these insertions in CSV format.
+Nextclade strips insertions relative to the reference from aligned query sequences, so that inserted fragments no longer appear in the output sequences. This file contains information about the insertions, in CSV format.
+
+> ⚠️ This flag is deprecated for Nextclade CLI and exist for compatibility with Nextalign CLI. All information in this file is also available in Nextclade CSV, TSV, JSON and NDJSON outputs.
 
 The file contains the following columns (delimited by commas):
 
@@ -144,9 +188,11 @@ The file contains the following columns (delimited by commas):
 
 ## List of errors and warnings
 
-Nextclade CLI flag: `--output-errors`
+CLI flag: `--output-errors`, filename: `nextclade.errors.csv`.
 
-A table that, for each sequence, contains a list of warnings, errors as well as a list of genes affected by error. The genes listed in this table are omitted from translation, analysis and FASTA outputs.
+A table that, for each sequence, contains a list of warnings (column `warnings`), errors (column `errors`) as well as a list of genes affected by error (column `failedGenes`). The genes listed in this table are omitted from translation, analysis and FASTA outputs.
+
+> ⚠️ This flag is deprecated for Nextclade CLI and exist for compatibility with Nextalign CLI. All information in this file is also available in Nextclade CSV, TSV, JSON and NDJSON outputs.
 
 ## Outputs for failed sequences
 
@@ -163,3 +209,23 @@ When processing of a sequence fails for various reasons, not all output files wi
 | Analysis results JSON        | `--output-json`         | yes              |
 | Insertions CSV               | `--output-insertions`   | yes              |
 | Errors CSV                   | `--output-errors`       | yes              |
+
+## Compression of output files and writing to standard output (stdout)
+
+If any of the output filenames ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently compressed. Low compression level is used (roughly corresponds to level "2" for most formats).
+
+If output filename is "-" then the output will be written uncompressed to standard output (stdout).
+
+If a custom compression or other form of post-processing is needed, then you could tell Nextclade/Nextalign to write to stdout and then pipe the stdout to another program. For example:
+
+```bash
+xzcat input.fasta.xz |
+nextalign run -r reference.fasta -m genemap.gff -o - |
+xz -9 > aligned.slowly.but.heavily.compressed.fasta.xz
+```
+
+```bash
+xzcat *.fasta.xz |
+nextclade run -D dataset/ --output-tsv=- |
+process_nextclade_tsv_further > processed.tsv
+```
