@@ -105,6 +105,8 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | qc.stopCodons.status                            | Status for "Stop codons" QC rule                                                                           |
 | isReverseComplement                             | Whether query sequences were transformed using reverse complement operation before alignment               | 
 | errors                                          | List of errors during processing                                                                           |
+| warnings                                        | List of warnings during processing                                                                         |
+| failedGenes                                     | List of genes that failed translation                                                                      |
 
 The table can contain additional columns for every clade-like attributes defined in reference tree in `meta.extensions.clade_node_attrs` and in the node attributes. For example, the default SARS-CoV-2 datasets define `Nextclade_pango` attribute which signifies a PANGO lineage assigned by Nextclade (see [Nextclade as pango lineage classifier: Methods and Validation](algorithm/nextclade-pango)).
 
@@ -145,3 +147,19 @@ The file contains the following columns (delimited by commas):
 Nextclade CLI flag: `--output-errors`
 
 A table that, for each sequence, contains a list of warnings, errors as well as a list of genes affected by error. The genes listed in this table are omitted from translation, analysis and FASTA outputs.
+
+## Outputs for failed sequences
+
+When processing of a sequence fails for various reasons, not all output files will contain the corresponding entry (due to limitations of file formats):
+
+| Output file                  | CLI arg                 | Failed entries?  |
+|------------------------------|:------------------------|:-----------------|
+| Aligned nucleotide sequences | `--output-fasta`        | no               |
+| Aligned peptides             | `--output-translations` | no               |
+| Auspice tree JSON            | `--output-tree`         | no               |
+| Analysis results CSV         | `--output-csv`          | yes              |
+| Analysis results TSV         | `--output-tsv`          | yes              |
+| Analysis results NDJSON      | `--output-ndjson`       | yes              |
+| Analysis results JSON        | `--output-json`         | yes              |
+| Insertions CSV               | `--output-insertions`   | yes              |
+| Errors CSV                   | `--output-errors`       | yes              |
