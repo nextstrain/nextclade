@@ -21,11 +21,11 @@ impl<W: Write + Send> NdjsonWriter<W> {
     Ok(())
   }
 
-  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, message: &str) -> Result<(), Report> {
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) -> Result<(), Report> {
     self.write(&NextcladeErrorOutputs {
       index,
       seq_name: seq_name.to_owned(),
-      message: message.to_owned(),
+      errors: errors.to_vec(),
     })
   }
 }
@@ -53,10 +53,10 @@ impl NdjsonFileWriter {
       .wrap_err_with(|| format!("When writing ndjson output entry to file {:#?}", &self.filepath))
   }
 
-  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, message: &str) -> Result<(), Report> {
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) -> Result<(), Report> {
     self
       .ndjson_writer
-      .write_nuc_error(index, seq_name, message)
+      .write_nuc_error(index, seq_name, errors)
       .wrap_err_with(|| format!("When writing ndjson error entry to file {:#?}", &self.filepath))
   }
 }

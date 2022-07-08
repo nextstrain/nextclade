@@ -74,11 +74,11 @@ impl ResultsJsonWriter {
     self.result.results.push(entry);
   }
 
-  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, message: &str) {
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) {
     self.result.errors.push(NextcladeErrorOutputs {
       index,
       seq_name: seq_name.to_owned(),
-      message: message.to_owned(),
+      errors: errors.to_vec(),
     });
   }
 
@@ -117,7 +117,7 @@ pub fn results_to_ndjson_string(
     for (i, output_or_error) in output_or_errors {
       match output_or_error {
         NextcladeOutputOrError::Outputs(output) => writer.write(&output),
-        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(error.index, &error.seq_name, &error.message),
+        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(error.index, &error.seq_name, &error.errors),
       }?;
     }
   }

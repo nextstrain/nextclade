@@ -645,7 +645,7 @@ pub fn results_to_csv_string(
     for (_, output_or_error) in outputs_or_errors {
       match output_or_error {
         NextcladeOutputOrError::Outputs(output) => writer.write(&output)?,
-        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(&error.seq_name, &error.message)?,
+        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(&error.seq_name, &error.errors.join(";"))?,
       };
     }
   }

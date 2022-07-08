@@ -386,7 +386,7 @@ export interface AnalysisResult {
 export interface AnalysisError {
   index: number
   seqName: string
-  message: string
+  errors: string[]
 }
 
 export interface ErrorsFromWeb {

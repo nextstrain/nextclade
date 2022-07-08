@@ -95,7 +95,7 @@ impl NextcladeOutputs {
 pub struct NextcladeErrorOutputs {
   pub index: usize,
   pub seq_name: String,
-  pub message: String,
+  pub errors: Vec<String>,
 }
 
 pub enum NextcladeOutputOrError {

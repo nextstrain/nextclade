@@ -67,7 +67,7 @@ async function mapErrors<T>(snapshot: Snapshot, mapFn: (result: AnalysisError) =
       if (!error) {
         throw new ErrorInternal('When preparing analysis errors for export: expected error to be non-nil')
       }
-      return mapFn({ index, seqName, message: error })
+      return mapFn({ index, seqName, errors: [error] })
     })
 }
 

@@ -158,27 +158,26 @@ impl<'a> NextcladeOrderedWriter<'a> {
       }
       Err(report) => {
         let cause = report_to_string(&report);
-        let message = format!(
+        warn!(
           "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
         );
-        warn!("{message}");
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
           insertions_csv_writer.write(&seq_name, &[], &[])?;
         }
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
-          errors_csv_writer.write_nuc_error(&seq_name, &message)?;
+          errors_csv_writer.write_nuc_error(&seq_name, &cause)?;
         }
         if let Some(output_csv_writer) = &mut self.output_csv_writer {
-          output_csv_writer.write_nuc_error(&seq_name, &message)?;
+          output_csv_writer.write_nuc_error(&seq_name, &cause)?;
         }
         if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
-          output_tsv_writer.write_nuc_error(&seq_name, &message)?;
+          output_tsv_writer.write_nuc_error(&seq_name, &cause)?;
         }
         if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
-          output_ndjson_writer.write_nuc_error(index, &seq_name, &message)?;
+          output_ndjson_writer.write_nuc_error(index, &seq_name, &[cause.clone()])?;
         }
         if let Some(output_json_writer) = &mut self.output_json_writer {
-          output_json_writer.write_nuc_error(index, &seq_name, &message);
+          output_json_writer.write_nuc_error(index, &seq_name, &[cause]);
         }
       }
     }
