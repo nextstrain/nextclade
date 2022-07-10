@@ -6,7 +6,11 @@ import urljoin from 'url-join'
 import { Dataset, DatasetsIndexV2Json } from 'src/algorithms/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
+var DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
+// Add HTTP Origin if DATA_FULL_DOMAIN is a relative path (start with '/')
+if (typeof window !== 'undefined' && DATA_FULL_DOMAIN.slice(0) == '/') {
+  DATA_FULL_DOMAIN = urljoin(window.location.origin, DATA_FULL_DOMAIN)
+}
 const DATA_INDEX_FILE = 'index_v2.json'
 export const DATA_INDEX_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_INDEX_FILE)
 const thisVersion = process.env.PACKAGE_VERSION ?? ''
