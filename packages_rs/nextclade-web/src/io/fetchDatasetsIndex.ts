@@ -6,7 +6,7 @@ import urljoin from 'url-join'
 import { Dataset, DatasetsIndexV2Json } from 'src/algorithms/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-var DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
+let DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
 // Add HTTP Origin if DATA_FULL_DOMAIN is a relative path (start with '/')
 if (typeof window !== 'undefined' && DATA_FULL_DOMAIN.slice(0) == '/') {
   DATA_FULL_DOMAIN = urljoin(window.location.origin, DATA_FULL_DOMAIN)
