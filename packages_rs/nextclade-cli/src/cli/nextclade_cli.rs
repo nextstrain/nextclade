@@ -435,7 +435,7 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_json: Option<PathBuf>,
 
-  /// Path to output CSV results file.
+  /// Path to output CSV results file (delimiter: semicolon)
   ///
   /// This file format is most suitable for human inspection as well as for limited further machine processing of the results.
   ///
@@ -451,7 +451,7 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_csv: Option<PathBuf>,
 
-  /// Path to output TSV results file.
+  /// Path to output TSV results file (delimiter: tab)
   ///
   /// This file format is most suitable for human inspection as well as for limited further machine processing of the results.
   ///
