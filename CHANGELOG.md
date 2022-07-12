@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## Nextclade CLI 2.3.0, Nextclade Web 2.3.0
+
+
+This release brings back entries for failed sequences into output files.
+
+It was reported by @tseemann that in Nextclade v2 CSV and TSV rows are not written for failed sequences. While in v1 they were. This was unintended.
+
+In this release:
+
+ - CSV, TSV, NDJSON rows for failed entries are now also written (only `seqName` and `errors` columns are populated). Note, it's important to check for `errors` column and disregard other columns if there are errors. For example, in case of an error, the `substitutions` column will be empty, but it does not mean that the failed sequence has no substitutions.
+ - JSON output now has a separate `errors` field at the root of the object, with all failed entries
+ - NDJSON rows are also written for failed entries. They only contain index, seqName and errors fields.
+ - new columns are written into CSV and TSV outputs: warnings and failedGenes, which include any warnings emitted for a sequence as well as a list of genes that failed translation. Now all columns of the "errors.csv" file are also in the CSV and TSV results files
+
+
+
 ## Nextclade CLI 2.2.0
 
 - **Feature** When `--retry-reverse-complement` argument is used, and reverse complement transform is applied to a sequence, only the fasta header in the nucleotide alignment is changed by addition of ` |(reverse complement)` to the sequence name, not in all output files. Other output files signal this transformation with a boolean property or a column `isReverseComplement`.
