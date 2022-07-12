@@ -217,12 +217,6 @@ export const canDownloadAtom = selector<boolean>({
   key: 'canDownload',
   get({ get }) {
     const globalStatus = get(analysisStatusGlobalAtom)
-    const resultStatuses = get(analysisResultStatusesAtom)
-    const tree = get(treeAtom)
-    return (
-      globalStatus === AlgorithmGlobalStatus.done &&
-      resultStatuses.includes(AlgorithmSequenceStatus.done) &&
-      !isNil(tree)
-    )
+    return globalStatus === AlgorithmGlobalStatus.done
   },
 })
