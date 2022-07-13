@@ -3,7 +3,7 @@ use crate::cli::nextclade_cli::{
 };
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::{
-  dataset_dir_load, dataset_individual_files_load, dataset_zip_load, DatasetFiles,
+  dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFiles,
 };
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
@@ -39,12 +39,15 @@ pub struct DatasetFilePaths {
   input_gene_map: PathBuf,
 }
 
-pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<String>>) -> Result<DatasetFiles, Report> {
-  if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
+pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<String>>) -> Result<DatasetFiles, Report> {
+  if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
+    dataset_str_download_and_load(run_args, dataset_name, &genes)
+      .wrap_err_with(|| format!("When downloading dataset '{}'", dataset_name))
+  } else if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
     if input_dataset.is_file() && has_extension(input_dataset, "zip") {
-      dataset_zip_load(run_args, input_dataset, genes)
+      dataset_zip_load(run_args, input_dataset, &genes)
     } else if input_dataset.is_dir() {
-      dataset_dir_load(run_args.clone(), input_dataset, genes)
+      dataset_dir_load(run_args.clone(), input_dataset, &genes)
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
@@ -52,7 +55,7 @@ pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: Option<Vec<Strin
       )
     }
   } else {
-    dataset_individual_files_load(run_args, genes)
+    dataset_individual_files_load(run_args, &genes)
   }
 }
 
@@ -103,7 +106,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     ref gene_map,
     qc_config,
     primers,
-  } = nextclade_get_inputs(&run_args, genes)?;
+  } = nextclade_get_inputs(&run_args, &genes)?;
 
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 

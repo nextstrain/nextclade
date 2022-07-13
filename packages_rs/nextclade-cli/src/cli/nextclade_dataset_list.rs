@@ -25,7 +25,7 @@ pub fn nextclade_dataset_list(
   }: NextcladeDatasetListArgs,
 ) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
-  let mut http = HttpClient::new(server, proxy_config, verbose)?;
+  let mut http = HttpClient::new(&server, &proxy_config, verbose)?;
   let DatasetsIndexJson { datasets, .. } = DatasetsIndexJson::download(&mut http)?;
 
   // Parse attribute key-value pairs
