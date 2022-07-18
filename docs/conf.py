@@ -38,7 +38,8 @@ extensions = [
     'sphinx_markdown_tables',
     'sphinxarg.ext',
     'sphinx.ext.autodoc',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    'nextstrain.sphinx.theme',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
