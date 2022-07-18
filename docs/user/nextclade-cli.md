@@ -192,7 +192,7 @@ nextclade run --help
 2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
    ```bash
-   nextclade \
+   nextclade run \
       --input-dataset data/sars-cov-2 \
       --output-all=output/ \
       data/sars-cov-2/sequences.fasta
@@ -203,15 +203,16 @@ nextclade run --help
    For more controls, specify input files explicitly and/or add more flags for output files:
 
    ```bash
-   nextclade \
+   nextclade run \
       --in-order \
       --input-dataset=data/sars-cov-2 \
-      --input-root-seq=data/sars-cov-2/reference.fasta \
+      --input-ref=data/sars-cov-2/reference.fasta \
       --input-gene-map=data/sars-cov-2/genemap.gff \
       --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
       --input-tree=data/sars-cov-2/tree.json \
       --input-qc-config=data/sars-cov-2/qc.json \
       --input-pcr-primers=data/sars-cov-2/primers.csv \
+      --input-virus-properties=data/sars-cov-2/virus_properties.json \
       --output-fasta=output/nextclade.aligned.fasta.gz \
       --output-json=output/nextclade.json \
       --output-ndjson=output/nextclade.ndjson \
@@ -219,7 +220,7 @@ nextclade run --help
       --output-tsv=output/nextclade.tsv \
       --output-tree=output/nextclade.auspice.json \
       --output-translations=output/gene_{gene}.translation.fasta.gz \
-      sars-cov-2/sequences1.fasta \
+      data/sars-cov-2/sequences.fasta \
       my_sequences1.fasta.gz \
       my_sequences2.fasta.xz
    ```
@@ -228,7 +229,11 @@ nextclade run --help
 
    The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
 
-   You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each flag.
+   If `--output-all` is used, you can set the `--output-basename` to control filenames and `--output-selection=all,fasta,json,ndjson,csv,tsv,tree,translations,insertions,errors` to control which files are emitted.
+
+   There is even more advanced flags to control alignment and other parts of the algorithm. Refer to `nextclade run --help` for more details.
+
+   You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each subcommand and each flag.
 
 4. Find the output files in the `output/` directory:
 

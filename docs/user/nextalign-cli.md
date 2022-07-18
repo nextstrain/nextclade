@@ -176,7 +176,7 @@ nextalign run --help
 2. Run:
 
    ```bash
-   nextalign \
+   nextalign run \
      --input-ref=data/sars-cov-2/reference.fasta \
      --genemap=data/sars-cov-2/genemap.gff \
      --output-all=output/ \
@@ -184,6 +184,8 @@ nextalign run --help
    ```
 
    Add `-v` to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
+
+   There is even more advanced flags to control alignment algorithm. Refer to `nextalign run --help` for more details.
 
 3. Find the output files in the `output/` directory:
 
