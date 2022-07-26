@@ -9,9 +9,10 @@ import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
-import { TableSlim } from 'src/components/Common/TableSlim'
+import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { geneAtom } from 'src/state/results.state'
+import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
 import { PeptideContext } from './PeptideContext'
 
 export interface PeptideMarkerMutationProps {
@@ -32,12 +33,14 @@ export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...res
 }
 
 export interface PeptideMarkerMutationGroupProps extends SVGProps<SVGSVGElement> {
+  index: number
   seqName: string
   group: AminoacidChangesGroup
   pixelsPerAa: number
 }
 
 function PeptideMarkerMutationGroupUnmemoed({
+  index,
   seqName,
   group,
   pixelsPerAa,
@@ -77,7 +80,7 @@ function PeptideMarkerMutationGroupUnmemoed({
     return null
   }, [gene?.strand, t])
 
-  const id = getSafeId('aa-mutation-group-marker', { seqName, geneName, begin: codonAaRange.begin })
+  const id = getSafeId('aa-mutation-group-marker', { index, seqName, geneName, begin: codonAaRange.begin })
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
   const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
@@ -116,9 +119,16 @@ function PeptideMarkerMutationGroupUnmemoed({
               <tbody>
                 <tr>
                   <td colSpan={2}>
-                    <h5>{seqName}</h5>
+                    <SeqNameHeading>{seqName}</SeqNameHeading>
                   </td>
                 </tr>
+
+                <tr className="mb-2">
+                  <td>{t('Sequence index')}</td>
+                  <td>{index}</td>
+                </tr>
+
+                <TableRowSpacer />
 
                 <tr className="mb-2">
                   <td colSpan={2}>

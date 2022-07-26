@@ -16,7 +16,7 @@ import {
 import {
   cladeNodeAttrDescsAtom,
   cladeNodeAttrKeysAtom,
-  seqNamesFilteredAtom,
+  seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
 } from 'src/state/results.state'
@@ -58,8 +58,8 @@ export const FixedSizeList = styled(FixedSizeListBase)<FixedSizeListProps>`
 export function ResultsTable() {
   const { t } = useTranslation()
 
-  const seqNamesImmediate = useRecoilValue(seqNamesFilteredAtom)
-  const seqNames = useDeferredValue(seqNamesImmediate)
+  const seqIndicesImmediate = useRecoilValue(seqIndicesFilteredAtom)
+  const seqIndices = useDeferredValue(seqIndicesImmediate)
 
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
   const dynamicColumnWidthPx = useRecoilValue(resultsTableDynamicColumnWidthPxAtom)
@@ -69,14 +69,14 @@ export function ResultsTable() {
   const viewedGene = useRecoilValue(viewedGeneAtom)
 
   const rowData: TableRowDatum[] = useMemo(() => {
-    return seqNames.map((seqName) => ({
-      seqName,
+    return seqIndices.map((seqIndex) => ({
+      seqIndex,
       viewedGene,
       columnWidthsPx,
       dynamicColumnWidthPx,
       cladeNodeAttrKeys,
     }))
-  }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, seqNames, viewedGene])
+  }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, seqIndices, viewedGene])
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered

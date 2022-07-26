@@ -9,7 +9,7 @@ import { ResultsTableRowPending } from './ResultsTableRowPending'
 import { ResultsTableRowResult } from './ResultsTableRowResult'
 
 export interface TableRowDatum {
-  seqName: string
+  seqIndex: number
   viewedGene: string
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
@@ -23,22 +23,22 @@ export interface RowProps extends ListChildComponentProps {
 export const ResultsTableRow = memo(ResultsTableRowUnmemoed, areEqual)
 
 function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
-  const { seqName, viewedGene, columnWidthsPx, dynamicColumnWidthPx, cladeNodeAttrKeys } = useMemo(
+  const { seqIndex, viewedGene, columnWidthsPx, dynamicColumnWidthPx, cladeNodeAttrKeys } = useMemo(
     () => data[index],
     [data, index],
   )
 
-  const { result, error } = useRecoilValue(analysisResultAtom(seqName))
+  const { result, error } = useRecoilValue(analysisResultAtom(seqIndex))
 
   if (error) {
-    return <ResultsTableRowError {...restProps} seqName={seqName} columnWidthsPx={columnWidthsPx} />
+    return <ResultsTableRowError {...restProps} index={seqIndex} columnWidthsPx={columnWidthsPx} />
   }
 
   if (result) {
     return (
       <ResultsTableRowResult
         {...restProps}
-        seqName={seqName}
+        index={seqIndex}
         columnWidthsPx={columnWidthsPx}
         dynamicColumnWidthPx={dynamicColumnWidthPx}
         cladeNodeAttrKeys={cladeNodeAttrKeys}
@@ -47,5 +47,5 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     )
   }
 
-  return <ResultsTableRowPending seqName={seqName} columnWidthsPx={columnWidthsPx} />
+  return <ResultsTableRowPending index={seqIndex} columnWidthsPx={columnWidthsPx} />
 }

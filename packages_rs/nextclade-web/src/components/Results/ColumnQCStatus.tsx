@@ -16,10 +16,10 @@ export function ColumnQCStatus({ analysisResult }: ColumnQCStatusProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { seqName, qc } = analysisResult
+  const { index, seqName, qc } = analysisResult
   const { missingData, privateMutations, mixedSites, snpClusters, frameShifts, stopCodons } = qc
 
-  const id = getSafeId('qc-label', { seqName })
+  const id = getSafeId('qc-label', { index, seqName })
 
   const rules = [
     { value: missingData, name: 'N' },

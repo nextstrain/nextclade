@@ -14,8 +14,8 @@ export function ColumnNonACGTNs({ analysisResult }: ColumnNonACGTNsProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { seqName, nonACGTNs, totalNonACGTNs } = analysisResult
-  const id = getSafeId('col-nonacgtn', { seqName })
+  const { index, seqName, nonACGTNs, totalNonACGTNs } = analysisResult
+  const id = getSafeId('col-nonacgtn', { index, seqName })
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>

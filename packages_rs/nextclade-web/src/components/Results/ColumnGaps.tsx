@@ -18,8 +18,8 @@ export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { deletions, aaDeletions, seqName } = analysisResult
-  const id = getSafeId('col-gaps', { seqName })
+  const { index, deletions, aaDeletions, seqName } = analysisResult
+  const id = getSafeId('col-gaps', { index, seqName })
 
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
 

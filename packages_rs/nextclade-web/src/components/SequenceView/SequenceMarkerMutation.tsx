@@ -16,12 +16,14 @@ import {
 } from 'src/state/seqViewSettings.state'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
+  index: number
   seqName: string
   substitution: NucleotideSubstitution
   pixelsPerBase: number
 }
 
 function SequenceMarkerMutationUnmemoed({
+  index,
   seqName,
   substitution,
   pixelsPerBase,
@@ -40,7 +42,7 @@ function SequenceMarkerMutationUnmemoed({
   }
 
   const { pos, queryNuc, aaSubstitutions, aaDeletions } = substitution
-  const id = getSafeId('mutation-marker', { seqName, ...substitution })
+  const id = getSafeId('mutation-marker', { index, seqName, ...substitution })
 
   const fill = getNucleotideColor(queryNuc)
   const width = Math.max(BASE_MIN_WIDTH_PX, pixelsPerBase)

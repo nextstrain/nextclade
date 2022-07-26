@@ -13,14 +13,14 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowPendingProps {
-  seqName: string
+  index: number
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
 }
 
-export function ResultsTableRowPending({ seqName, columnWidthsPx, ...restProps }: ResultsTableRowPendingProps) {
+export function ResultsTableRowPending({ index, columnWidthsPx, ...restProps }: ResultsTableRowPendingProps) {
   const { t } = useTranslationSafe()
   const text = useMemo(() => t('Analyzing...'), [t])
-  const { index } = useRecoilValue(analysisResultAtom(seqName))
+  const { seqName } = useRecoilValue(analysisResultAtom(index))
 
   return (
     <TableRowPending {...restProps}>
@@ -29,7 +29,7 @@ export function ResultsTableRowPending({ seqName, columnWidthsPx, ...restProps }
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName seqName={seqName} />
+        <ColumnName index={index} seqName={seqName} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>

@@ -14,8 +14,8 @@ export function ColumnMissing({ analysisResult }: ColumnMissingProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { missing, seqName, totalMissing } = analysisResult
-  const id = getSafeId('col-missing', { seqName })
+  const { index, missing, seqName, totalMissing } = analysisResult
+  const id = getSafeId('col-missing', { index, seqName })
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>

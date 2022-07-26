@@ -14,19 +14,26 @@ const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
 
 export interface PeptideMarkerFrameShiftProps extends SVGProps<SVGRectElement> {
+  index: number
   seqName: string
   frameShift: FrameShift
   pixelsPerAa: number
 }
 
-function PeptideMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerAa, ...rest }: PeptideMarkerFrameShiftProps) {
+function PeptideMarkerFrameShiftUnmemoed({
+  index,
+  seqName,
+  frameShift,
+  pixelsPerAa,
+  ...rest
+}: PeptideMarkerFrameShiftProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { geneName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
-  const id = getSafeId('frame-shift-aa-marker', { seqName, ...frameShift })
+  const id = getSafeId('frame-shift-aa-marker', { index, seqName, ...frameShift })
 
   const geneMap = useRecoilValue(geneMapAtom)
 

@@ -24,39 +24,39 @@ export function isDefaultValue(candidate: unknown): candidate is DefaultValue {
 
 // Stores analysis result for a single sequence (defined by sequence name)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
-const analysisResultInternalAtom = atomFamily<NextcladeResult, string>({
+const analysisResultInternalAtom = atomFamily<NextcladeResult, number>({
   key: 'analysisResultSingle',
 })
 
 // Stores sequence names as they come from fasta
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
-export const seqNamesAtom = atom<string[]>({
-  key: 'seqName',
+export const seqIndicesAtom = atom<number[]>({
+  key: 'seqIndices',
   default: [],
 })
 
-// Synchronizes states of `analysisResultAtom` and `seqNamesAtom`
-// Use it to set `analysisResultInternalAtom` and `seqNamesAtom`
-export const analysisResultAtom = selectorFamily<NextcladeResult, string>({
+// Synchronizes states of `analysisResultAtom` and `seqIndicesAtom`
+// Use it to set `analysisResultInternalAtom` and `seqIndicesAtom`
+export const analysisResultAtom = selectorFamily<NextcladeResult, number>({
   key: 'analysisResult',
 
   get:
-    (seqName: string) =>
+    (index: number) =>
     ({ get }): NextcladeResult => {
-      return get(analysisResultInternalAtom(seqName))
+      return get(analysisResultInternalAtom(index))
     },
 
   set:
-    (seqName) =>
+    (index) =>
     ({ set, reset }, result: NextcladeResult | DefaultValue) => {
       if (isDefaultValue(result)) {
-        reset(analysisResultInternalAtom(seqName))
-        reset(seqNamesAtom)
+        reset(analysisResultInternalAtom(index))
+        reset(seqIndicesAtom)
       } else {
-        set(analysisResultInternalAtom(seqName), result)
-        set(seqNamesAtom, (prev) => {
-          if (result && !prev.includes(result.seqName)) {
-            return [...prev, result.seqName]
+        set(analysisResultInternalAtom(index), result)
+        set(seqIndicesAtom, (prev) => {
+          if (result && !prev.includes(result.index)) {
+            return [...prev, result.index]
           }
           return prev
         })
@@ -64,8 +64,8 @@ export const analysisResultAtom = selectorFamily<NextcladeResult, string>({
     },
 })
 
-export const seqNamesFilteredAtom = selector<string[]>({
-  key: 'seqNamesFiltered',
+export const seqIndicesFilteredAtom = selector<number[]>({
+  key: 'seqIndicesFiltered',
 
   get: ({ get }) => {
     const results = get(analysisResultsAtom)
@@ -83,7 +83,7 @@ export const seqNamesFilteredAtom = selector<string[]>({
 
     const resultsFiltered = runFilters(results, filters)
 
-    return resultsFiltered.map(({ seqName }) => seqName)
+    return resultsFiltered.map(({ index }) => index)
   },
 })
 
@@ -103,9 +103,9 @@ export const sortAnalysisResultsAtom = selectorFamily<undefined, { category: Sor
       }
 
       const resultsSorted = sortResults(results, { category: sortCategory, direction })
-      const seqNamesSorted = resultsSorted.map((result) => result.seqName)
+      const seqIndicesSorted = resultsSorted.map((result) => result.index)
 
-      set(seqNamesAtom, seqNamesSorted)
+      set(seqIndicesAtom, seqIndicesSorted)
     },
 })
 
@@ -123,8 +123,8 @@ export const sortAnalysisResultsByKeyAtom = selectorFamily<undefined, { key: str
         ? sortResults(results, { category: SortCategory.index, direction })
         : sortResultsByKey(results, { key, direction })
 
-      const seqNamesSorted = resultsSorted.map((result) => result.seqName)
-      set(seqNamesAtom, seqNamesSorted)
+      const seqIndicesSorted = resultsSorted.map((result) => result.index)
+      set(seqIndicesAtom, seqIndicesSorted)
     },
 })
 
@@ -136,21 +136,21 @@ export const analysisResultsAtom = selector<NextcladeResult[]>({
   key: 'analysisResults',
 
   get({ get }): NextcladeResult[] {
-    const seqNames = get(seqNamesAtom)
-    return seqNames.map((seqName) => get(analysisResultAtom(seqName)))
+    const seqIndices = get(seqIndicesAtom)
+    return seqIndices.map((index) => get(analysisResultAtom(index)))
   },
 
   set({ get, set, reset }, results: NextcladeResult[] | DefaultValue) {
-    const seqNames = get(seqNamesAtom)
+    const seqIndices = get(seqIndicesAtom)
 
     // Remove all results
-    seqNames.forEach((seqName) => {
-      reset(analysisResultAtom(seqName))
+    seqIndices.forEach((index) => {
+      reset(analysisResultAtom(index))
     })
 
     // If the operation is not 'reset', add the new items
     if (!isDefaultValue(results)) {
-      results.forEach((result) => set(analysisResultAtom(result.seqName), result))
+      results.forEach((result) => set(analysisResultAtom(result.index), result))
     }
   },
 })
@@ -159,9 +159,9 @@ export const analysisResultsAtom = selector<NextcladeResult[]>({
 export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
   key: 'analysisResultStatuses',
   get: ({ get }) => {
-    const seqNames = get(seqNamesAtom)
-    return seqNames.map((seqName) => {
-      const result = get(analysisResultInternalAtom(seqName))
+    const seqIndices = get(seqIndicesAtom)
+    return seqIndices.map((index) => {
+      const result = get(analysisResultInternalAtom(index))
       return getResultStatus(result)
     })
   },

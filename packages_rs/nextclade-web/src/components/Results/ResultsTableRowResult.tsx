@@ -28,7 +28,7 @@ import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowResultProps {
-  seqName: string
+  index: number
   viewedGene: string
   cladeNodeAttrKeys: string[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
@@ -69,14 +69,14 @@ export function TableRowColored({
 }
 
 export function ResultsTableRowResult({
-  seqName,
+  index,
   viewedGene,
   cladeNodeAttrKeys,
   columnWidthsPx,
   dynamicColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
-  const { index, result } = useRecoilValue(analysisResultAtom(seqName))
+  const { seqName, result } = useRecoilValue(analysisResultAtom(index))
 
   if (!result) {
     return null
@@ -92,7 +92,7 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName seqName={seqName} />
+        <ColumnName index={index} seqName={seqName} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.qc} grow={0} shrink={0}>

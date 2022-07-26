@@ -16,8 +16,8 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { seqName, substitutions, aaSubstitutions, privateNucMutations } = analysisResult
-  const id = getSafeId('mutations-label', { seqName })
+  const { index, seqName, substitutions, aaSubstitutions, privateNucMutations } = analysisResult
+  const id = getSafeId('mutations-label', { index, seqName })
 
   const privateNucMutationsInternal = useMemo(() => convertPrivateMutations(privateNucMutations), [privateNucMutations])
 

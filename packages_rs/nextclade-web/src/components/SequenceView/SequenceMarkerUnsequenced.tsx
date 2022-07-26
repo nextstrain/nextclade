@@ -76,6 +76,7 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
 })
 
 export interface SequenceMarkerUnsequencedStartProps {
+  index: number
   seqName: string
   alignmentStart: number
   pixelsPerBase: number
@@ -83,10 +84,10 @@ export interface SequenceMarkerUnsequencedStartProps {
 
 // eslint-disable-next-line react/display-name
 export const SequenceMarkerUnsequencedStart = memo(
-  ({ seqName, alignmentStart, pixelsPerBase }: SequenceMarkerUnsequencedStartProps) => {
+  ({ index, seqName, alignmentStart, pixelsPerBase }: SequenceMarkerUnsequencedStartProps) => {
     const { t } = useTranslation()
 
-    const id = getSafeId('sequence-marker-unsequenced-start', { seqName, alignmentStart })
+    const id = getSafeId('sequence-marker-unsequenced-start', { index, seqName, alignmentStart })
 
     const begin = 0
     const end = begin + alignmentStart
@@ -104,6 +105,7 @@ export const SequenceMarkerUnsequencedStart = memo(
 )
 
 export interface SequenceMarkerUnsequencedEndProps {
+  index: number
   seqName: string
   genomeSize: number
   alignmentEnd: number
@@ -112,10 +114,10 @@ export interface SequenceMarkerUnsequencedEndProps {
 
 // eslint-disable-next-line react/display-name
 export const SequenceMarkerUnsequencedEnd = memo(
-  ({ seqName, genomeSize, alignmentEnd, pixelsPerBase }: SequenceMarkerUnsequencedEndProps) => {
+  ({ index, seqName, genomeSize, alignmentEnd, pixelsPerBase }: SequenceMarkerUnsequencedEndProps) => {
     const { t } = useTranslation()
 
-    const id = getSafeId('sequence-marker-unsequenced-end', { seqName, alignmentEnd })
+    const id = getSafeId('sequence-marker-unsequenced-end', { index, seqName, alignmentEnd })
 
     const begin = alignmentEnd
     const length = genomeSize - alignmentEnd

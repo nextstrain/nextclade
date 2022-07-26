@@ -10,13 +10,13 @@ export function ColumnFrameShifts({ analysisResult }: ColumnCladeProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { seqName, qc } = analysisResult
+  const { index, seqName, qc } = analysisResult
 
   if (!qc.frameShifts) {
     return null
   }
 
-  const id = getSafeId('frame-shifts-label', { seqName })
+  const id = getSafeId('frame-shifts-label', { index, seqName })
 
   const { totalFrameShifts, totalFrameShiftsIgnored } = qc.frameShifts
   const grandTotal = totalFrameShiftsIgnored + totalFrameShifts

@@ -11,10 +11,10 @@ export interface ColumnCustomNodeAttrProps {
 }
 
 export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttrProps) {
-  const { seqName, customNodeAttributes } = sequence
+  const { index, seqName, customNodeAttributes } = sequence
   const attrValue = get(customNodeAttributes, attrKey, '')
 
-  const id = getSafeId('col-custom-attr', { seqName, attrKey })
+  const id = getSafeId('col-custom-attr', { index, seqName, attrKey })
 
   return (
     <div id={id} className="w-100">
