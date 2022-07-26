@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Nextclade CLI 2.3.1, Nextclade Web 2.3.1
+
+- **Fix** [#947](https://github.com/nextstrain/nextclade/issues/907): In datasets where genes started right at the beginning of the reference sequence, Nextclade version 2.0.0 until 2.3.0 will crash due to underflow. This is now fixed. The only Nextclade provided dataset that was affected by this bug is Influenza Yamagate HA. That dataset had a further bug in the tree so there is now a corresponding dataset bug fix release available. (report: @mcroxen)
+
 ## Nextclade CLI 2.3.0, Nextclade Web 2.3.0
 
 
