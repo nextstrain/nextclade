@@ -16,7 +16,7 @@ use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::{assert_equal, merge, Itertools};
-use num::clamp;
+use num_traits::{clamp_max, clamp_min};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -316,8 +316,9 @@ fn find_aa_changes_for_gene(
     }
 
     // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
-    let context_begin = clamp(codon_begin - 3, 0, num_nucs);
-    let context_end = clamp(codon_end + 3, 0, num_nucs);
+    // Avoid underflow bug when codon_begin <=2
+    let context_begin = clamp_min(codon_begin, 3) - 3;
+    let context_end = clamp_max(codon_end + 3, num_nucs);
     let mut ref_context = (&ref_seq[context_begin..context_end]).to_vec();
     let mut query_context = (&qry_seq[context_begin..context_end]).to_vec();
     if gene.strand == GeneStrand::Reverse {
