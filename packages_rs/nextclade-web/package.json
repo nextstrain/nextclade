@@ -121,6 +121,7 @@
     "react-awesome-popover": "6.1.1",
     "react-dom": "18.1.0",
     "react-error-boundary": "3.1.4",
+    "react-fast-compare": "3.2.0",
     "react-file-icon": "1.1.0",
     "react-helmet": "6.1.0",
     "react-i18next": "11.16.7",

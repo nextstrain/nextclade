@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useState } from 'react'
 
 import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX, BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -73,4 +74,4 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
   )
 }
 
-export const PeptideMarkerUnknown = React.memo(PeptideMarkerUnknownUnmemoed)
+export const PeptideMarkerUnknown = React.memo(PeptideMarkerUnknownUnmemoed, isEqual)

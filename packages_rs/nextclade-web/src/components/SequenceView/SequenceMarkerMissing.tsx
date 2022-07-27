@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
@@ -64,4 +65,4 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
     </rect>
   )
 }
-export const SequenceMarkerMissing = React.memo(SequenceMarkerMissingUnmemoed)
+export const SequenceMarkerMissing = React.memo(SequenceMarkerMissingUnmemoed, isEqual)

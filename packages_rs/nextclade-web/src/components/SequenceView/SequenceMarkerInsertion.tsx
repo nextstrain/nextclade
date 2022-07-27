@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTheme } from 'styled-components'
 
@@ -50,4 +51,4 @@ function SequenceMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerBase, ..
   )
 }
 
-export const SequenceMarkerInsertion = React.memo(SequenceMarkerInsertionUnmemoed)
+export const SequenceMarkerInsertion = React.memo(SequenceMarkerInsertionUnmemoed, isEqual)

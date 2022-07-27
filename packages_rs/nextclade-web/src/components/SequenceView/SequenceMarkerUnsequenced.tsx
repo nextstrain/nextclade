@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { memo, PropsWithChildren, SVGProps, useCallback, useMemo, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
@@ -73,7 +74,8 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
       </Tooltip>
     </rect>
   )
-})
+},
+isEqual)
 
 export interface SequenceMarkerUnsequencedStartProps {
   seqName: string
@@ -101,6 +103,7 @@ export const SequenceMarkerUnsequencedStart = memo(
       </SequenceMarker>
     )
   },
+  isEqual,
 )
 
 export interface SequenceMarkerUnsequencedEndProps {
@@ -131,4 +134,5 @@ export const SequenceMarkerUnsequencedEnd = memo(
       </SequenceMarker>
     )
   },
+  isEqual,
 )

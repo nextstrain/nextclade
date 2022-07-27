@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
@@ -118,4 +119,4 @@ function PeptideMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerAa, ...
   )
 }
 
-export const PeptideMarkerFrameShift = React.memo(PeptideMarkerFrameShiftUnmemoed)
+export const PeptideMarkerFrameShift = React.memo(PeptideMarkerFrameShiftUnmemoed, isEqual)

@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecoilValue } from 'recoil'
@@ -125,4 +126,4 @@ function SequenceMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerBase, 
   )
 }
 
-export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed)
+export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed, isEqual)

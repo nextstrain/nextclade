@@ -1,3 +1,4 @@
+import isEqual from 'react-fast-compare'
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecoilValue } from 'recoil'
@@ -121,4 +122,4 @@ function SequenceMarkerMutationUnmemoed({
   )
 }
 
-export const SequenceMarkerMutation = React.memo(SequenceMarkerMutationUnmemoed)
+export const SequenceMarkerMutation = React.memo(SequenceMarkerMutationUnmemoed, isEqual)

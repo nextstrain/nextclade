@@ -167,6 +167,35 @@ export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
   },
 })
 
+export const numNucMarkersAtom = selectorFamily<number, string>({
+  key: 'numNucMarkers',
+  get:
+    (seqName: string) =>
+    ({ get }): number => {
+      const { result } = get(analysisResultAtom(seqName))
+      if (isNil(result)) {
+        return 0
+      }
+
+      const {
+        analysisResult: { totalSubstitutions, totalDeletions, totalMissing, totalFrameShifts, totalInsertions },
+      } = result
+
+      return totalSubstitutions + totalDeletions + totalMissing + totalFrameShifts + totalInsertions
+    },
+})
+
+export const totalNucMarkersAtom = selector<number>({
+  key: 'totalNucMarkers',
+  get: ({ get }): number => {
+    const seqNames = get(seqNamesAtom)
+    return seqNames.reduce((total, seqName) => {
+      const current = get(numNucMarkersAtom(seqName))
+      return current + total
+    }, 0)
+  },
+})
+
 export const genomeSizeAtom = atom<number>({
   key: 'genomeSize',
 })
