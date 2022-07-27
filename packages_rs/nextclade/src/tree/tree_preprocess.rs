@@ -138,6 +138,17 @@ fn map_aa_muts_for_one_gene(
     Some(mutations) => {
       for mutation_str in mutations {
         let mutation = AaSubMinimal::from_str(mutation_str).unwrap();
+
+        assert!(
+          mutation.pos < ref_peptide.len(),
+          "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and gene map in the Nextclade dataset",
+          node.name,
+          gene_name,
+          mutation.to_string_without_gene(),
+          gene_name,
+          ref_peptide.len(),
+        );
+
         // If mutation reverts amino acid back to what reference had, remove it from the map
         let ref_nuc = ref_peptide[mutation.pos];
         if ref_nuc == mutation.qry {
