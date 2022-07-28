@@ -3479,10 +3479,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.37.2:
-  version "2.37.2"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.37.2.tgz#c5c4edcb71ff956a558fd38ca32a24edcfe03c34"
-  integrity sha512-MG/iy65HlyQwz63MUMnvGaP6uNBWHPdRI684iknNqoDjgEzB5rVLDRku0TbJVu12dR69E8bfgbdOQW6/+scSUA==
+auspice@2.37.3:
+  version "2.37.3"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.37.3.tgz#273d194b15a387d19c979b23b35765f12b9c2475"
+  integrity sha512-o8xls1JJtUcdiYkTFLQscXBLc/i6T15mEuv0/zOe0a3x7LDzz97gclpzQjglXTHXQ40kiJQRkwc3VSbljgWgtw==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -11928,7 +11928,20 @@ react-resize-detector@^6.6.3:
     lodash "^4.17.21"
     resize-observer-polyfill "^1.5.1"
 
-react-select@*, react-select@5.3.0:
+react-select@*, react-select@^5.2.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.3.2.tgz#ecee0d5c59ed4acb7f567f7de3c75a488d93dacb"
+  integrity sha512-W6Irh7U6Ha7p5uQQ2ZnemoCQ8mcfgOtHfw3wuMzG6FAu0P+CYicgofSLOq97BhjMx8jS+h+wwWdCBeVVZ9VqlQ==
+  dependencies:
+    "@babel/runtime" "^7.12.0"
+    "@emotion/cache" "^11.4.0"
+    "@emotion/react" "^11.8.1"
+    "@types/react-transition-group" "^4.4.0"
+    memoize-one "^5.0.0"
+    prop-types "^15.6.0"
+    react-transition-group "^4.3.0"
+
+react-select@5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.3.0.tgz#dc77c1f95e1037ec4cb01c5e5d6272d80be8d3f6"
   integrity sha512-GM6Fbv1+X+kb3e5Fc4oNeyOJkCIesY/D4NBiReKlGY4RxoeztFYm3J0KREgwMaIKQqwTiuLqTlpUBY3SYw5goQ==
@@ -11949,19 +11962,6 @@ react-select@^1.0.0-rc.2:
     classnames "^2.2.4"
     prop-types "^15.5.8"
     react-input-autosize "^2.1.2"
-
-react-select@^5.2.2:
-  version "5.3.2"
-  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.3.2.tgz#ecee0d5c59ed4acb7f567f7de3c75a488d93dacb"
-  integrity sha512-W6Irh7U6Ha7p5uQQ2ZnemoCQ8mcfgOtHfw3wuMzG6FAu0P+CYicgofSLOq97BhjMx8jS+h+wwWdCBeVVZ9VqlQ==
-  dependencies:
-    "@babel/runtime" "^7.12.0"
-    "@emotion/cache" "^11.4.0"
-    "@emotion/react" "^11.8.1"
-    "@types/react-transition-group" "^4.4.0"
-    memoize-one "^5.0.0"
-    prop-types "^15.6.0"
-    react-transition-group "^4.3.0"
 
 react-side-effect@^1.1.0:
   version "1.2.0"
