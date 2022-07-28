@@ -345,6 +345,7 @@ export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
 }
 
 export interface AnalysisResult {
+  index: number
   seqName: string
   substitutions: NucleotideSubstitution[]
   totalSubstitutions: number

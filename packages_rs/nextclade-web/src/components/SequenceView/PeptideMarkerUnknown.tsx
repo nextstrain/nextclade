@@ -13,12 +13,19 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 const unknownAaColor = getAminoacidColor(AMINOACID_UNKNOWN)
 
 export interface PeptideMarkerUnknownProps extends SVGProps<SVGRectElement> {
+  index: number
   seqName: string
   range: AminoacidRange
   pixelsPerAa: number
 }
 
-export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...rest }: PeptideMarkerUnknownProps) {
+export function PeptideMarkerUnknownUnmemoed({
+  index,
+  seqName,
+  range,
+  pixelsPerAa,
+  ...rest
+}: PeptideMarkerUnknownProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
@@ -26,7 +33,7 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
 
   const { begin, end } = range // prettier-ignore
 
-  const id = getSafeId('unknown-marker', { seqName, ...range })
+  const id = getSafeId('unknown-marker', { index, seqName, ...range })
   let width = (end - begin) * pixelsPerAa
   width = Math.max(width, AA_MIN_WIDTH_PX)
   const halfAa = Math.max(pixelsPerAa, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first AA

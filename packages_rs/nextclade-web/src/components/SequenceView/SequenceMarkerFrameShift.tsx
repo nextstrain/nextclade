@@ -15,12 +15,13 @@ const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
 
 export interface MissingViewProps extends SVGProps<SVGRectElement> {
+  index: number
   seqName: string
   frameShift: FrameShift
   pixelsPerBase: number
 }
 
-function SequenceMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerBase, ...rest }: MissingViewProps) {
+function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPerBase, ...rest }: MissingViewProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
@@ -35,7 +36,7 @@ function SequenceMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerBase, 
   }
 
   const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
-  const id = getSafeId('frame-shift-nuc-marker', { seqName, ...frameShift })
+  const id = getSafeId('frame-shift-nuc-marker', { index, seqName, ...frameShift })
 
   const gene = geneMap.find((gene) => geneName === gene.geneName)
   if (!gene) {

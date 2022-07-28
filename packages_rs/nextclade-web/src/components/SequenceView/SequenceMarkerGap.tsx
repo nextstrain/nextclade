@@ -15,12 +15,13 @@ import { ListOfAaChangesFlatTruncated } from 'src/components/SequenceView/ListOf
 const gapColor = getNucleotideColor(GAP)
 
 export interface MissingViewProps extends SVGProps<SVGRectElement> {
+  index: number
   seqName: string
   deletion: NucleotideDeletion
   pixelsPerBase: number
 }
 
-function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }: MissingViewProps) {
+function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ...rest }: MissingViewProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
@@ -32,7 +33,7 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
   const { start: begin, length, aaSubstitutions, aaDeletions } = deletion
   const end = begin + length
 
-  const id = getSafeId('gap-marker', { seqName, ...deletion })
+  const id = getSafeId('gap-marker', { index, seqName, ...deletion })
 
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
@@ -77,7 +78,15 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
               </tr>
             )}
 
-            <ListOfAaChangesFlatTruncated aaSubstitutions={aaSubstitutions} aaDeletions={aaDeletions} maxRows={10} />
+            <tr>
+              <td colSpan={2}>
+                <ListOfAaChangesFlatTruncated
+                  aaSubstitutions={aaSubstitutions}
+                  aaDeletions={aaDeletions}
+                  maxRows={10}
+                />
+              </td>
+            </tr>
           </tbody>
         </TableSlim>
       </Tooltip>

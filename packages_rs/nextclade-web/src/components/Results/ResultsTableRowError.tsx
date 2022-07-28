@@ -12,12 +12,12 @@ import {
 import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowErrorProps {
-  seqName: string
+  index: number
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
 }
 
-export function ResultsTableRowError({ seqName, columnWidthsPx, ...restProps }: ResultsTableRowErrorProps) {
-  const { index, error } = useRecoilValue(analysisResultAtom(seqName))
+export function ResultsTableRowError({ index, columnWidthsPx, ...restProps }: ResultsTableRowErrorProps) {
+  const { seqName, error } = useRecoilValue(analysisResultAtom(index))
 
   return (
     <TableRowError {...restProps}>
@@ -26,7 +26,7 @@ export function ResultsTableRowError({ seqName, columnWidthsPx, ...restProps }: 
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName seqName={seqName} />
+        <ColumnName index={index} seqName={seqName} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>

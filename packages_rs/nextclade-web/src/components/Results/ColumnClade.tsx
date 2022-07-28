@@ -13,8 +13,8 @@ export function ColumnClade({ analysisResult }: ColumnCladeProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { clade, seqName } = analysisResult
-  const id = getSafeId('col-clade', { seqName })
+  const { clade, seqName, index } = analysisResult
+  const id = getSafeId('col-clade', { index, seqName })
   const cladeText = clade ?? t('Pending...')
 
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])

@@ -72,7 +72,7 @@ export function useRunAnalysis() {
             // set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
           },
           onAnalysisResult(result) {
-            set(analysisResultAtom(result.seqName), result)
+            set(analysisResultAtom(result.index), result)
           },
           onError(error) {
             set(globalErrorAtom, error)

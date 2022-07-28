@@ -10,6 +10,7 @@ import { formatRange } from 'src/helpers/formatRange'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ErrorIcon, getStatusIconAndText, WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { TableSlim as TableSlimBase } from 'src/components/Common/TableSlim'
+import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
 
 const Alert = styled(ReactstrapAlert)`
   box-shadow: ${(props) => props.theme.shadows.slight};
@@ -21,12 +22,12 @@ const TableSlim = styled(TableSlimBase)`
 `
 
 export interface ColumnNameTooltipProps {
-  seqName: string
+  index: number
 }
 
-export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
+export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
   const { t } = useTranslationSafe()
-  const { result, error } = useRecoilValue(analysisResultAtom(seqName))
+  const { result, error } = useRecoilValue(analysisResultAtom(index))
 
   const { StatusIcon, statusText } = useMemo(
     () =>
@@ -51,7 +52,7 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
     return null
   }
 
-  const { clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } =
+  const { seqName, clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } =
     result.analysisResult
 
   return (
@@ -60,7 +61,7 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
       <tbody>
         <tr>
           <td colSpan={2}>
-            <h5 className="mb-2">{seqName}</h5>
+            <SeqNameHeading className="mb-2">{seqName}</SeqNameHeading>
           </td>
         </tr>
 
@@ -106,11 +107,12 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
 }
 
 export interface ColumnNameErrorTooltipProps {
+  index: number
   seqName: string
   error: string
 }
 
-export function ColumnNameErrorTooltip({ seqName, error }: ColumnNameErrorTooltipProps) {
+export function ColumnNameErrorTooltip({ index, seqName, error }: ColumnNameErrorTooltipProps) {
   const { t } = useTranslationSafe()
 
   return (
@@ -119,8 +121,13 @@ export function ColumnNameErrorTooltip({ seqName, error }: ColumnNameErrorToolti
       <tbody>
         <tr>
           <td colSpan={2}>
-            <h5 className="mb-2">{seqName}</h5>
+            <SeqNameHeading className="mb-2">{seqName}</SeqNameHeading>
           </td>
+        </tr>
+
+        <tr className="mb-2">
+          <td>{t('Sequence index')} </td>
+          <td>{index}</td>
         </tr>
 
         <tr>

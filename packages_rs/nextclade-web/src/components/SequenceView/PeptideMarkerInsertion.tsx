@@ -9,12 +9,13 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ListOfInsertionsAa } from 'src/components/Results/ListOfInsertions'
 
 export interface MissingViewProps extends SVGProps<SVGPolygonElement> {
+  index: number
   seqName: string
   insertion: AminoacidInsertion
   pixelsPerAa: number
 }
 
-function PeptideMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerAa, ...rest }: MissingViewProps) {
+function PeptideMarkerInsertionUnmemoed({ index, seqName, insertion, pixelsPerAa, ...rest }: MissingViewProps) {
   const {
     seqView: {
       markers: {
@@ -28,7 +29,7 @@ function PeptideMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerAa, ...re
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
 
-  const id = getSafeId('insertion-marker', { seqName, ...insertion })
+  const id = getSafeId('insertion-marker', { index, seqName, ...insertion })
 
   const { pos } = insertion
   const halfNuc = Math.max(pixelsPerAa, AA_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc

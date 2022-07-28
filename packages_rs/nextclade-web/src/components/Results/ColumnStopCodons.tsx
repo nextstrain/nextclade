@@ -11,6 +11,7 @@ export function ColumnStopCodons({ analysisResult }: ColumnCladeProps) {
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const {
+    index,
     seqName,
     qc: { stopCodons },
   } = analysisResult
@@ -19,7 +20,7 @@ export function ColumnStopCodons({ analysisResult }: ColumnCladeProps) {
     return null
   }
 
-  const id = getSafeId('stop-codons-label', { seqName })
+  const id = getSafeId('stop-codons-label', { index, seqName })
 
   const { totalStopCodons, totalStopCodonsIgnored } = stopCodons
   const grandTotal = totalStopCodons + totalStopCodonsIgnored

@@ -96,7 +96,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions } = sequence
+  const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions } = sequence
   const geneLength = gene.end - gene.start
   const pixelsPerAa = width / Math.round(geneLength / 3)
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
@@ -108,6 +108,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     .map((frameShift) => (
       <PeptideMarkerFrameShift
         key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
+        index={index}
         seqName={seqName}
         frameShift={frameShift}
         pixelsPerAa={pixelsPerAa}
@@ -118,7 +119,13 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     .filter((ins) => ins.gene === viewedGene)
     .map((insertion) => {
       return (
-        <PeptideMarkerInsertion key={insertion.pos} seqName={seqName} insertion={insertion} pixelsPerAa={pixelsPerAa} />
+        <PeptideMarkerInsertion
+          key={insertion.pos}
+          index={index}
+          seqName={seqName}
+          insertion={insertion}
+          pixelsPerAa={pixelsPerAa}
+        />
       )
     })
 
@@ -129,13 +136,20 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
 
         {unknownAaRangesForGene &&
           unknownAaRangesForGene.ranges.map((range) => (
-            <PeptideMarkerUnknown key={range.begin} seqName={seqName} range={range} pixelsPerAa={pixelsPerAa} />
+            <PeptideMarkerUnknown
+              key={range.begin}
+              index={index}
+              seqName={seqName}
+              range={range}
+              pixelsPerAa={pixelsPerAa}
+            />
           ))}
 
         {groups.map((group) => {
           return (
             <PeptideMarkerMutationGroup
               key={group.codonAaRange.begin}
+              index={index}
               seqName={seqName}
               group={group}
               pixelsPerAa={pixelsPerAa}

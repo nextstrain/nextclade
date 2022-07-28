@@ -9,12 +9,13 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ListOfInsertionsNuc } from 'src/components/Results/ListOfInsertions'
 
 export interface MissingViewProps extends SVGProps<SVGPolygonElement> {
+  index: number
   seqName: string
   insertion: NucleotideInsertion
   pixelsPerBase: number
 }
 
-function SequenceMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerBase, ...rest }: MissingViewProps) {
+function SequenceMarkerInsertionUnmemoed({ index, seqName, insertion, pixelsPerBase, ...rest }: MissingViewProps) {
   const {
     seqView: {
       markers: {
@@ -28,7 +29,7 @@ function SequenceMarkerInsertionUnmemoed({ seqName, insertion, pixelsPerBase, ..
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
 
-  const id = getSafeId('insertion-marker', { seqName, ...insertion })
+  const id = getSafeId('insertion-marker', { index, seqName, ...insertion })
 
   const { pos } = insertion
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc

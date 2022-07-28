@@ -16,16 +16,17 @@ export const SequenceName = styled.div`
 `
 
 export interface ColumnNameProps {
+  index: number
   seqName: string
 }
 
-export function ColumnName({ seqName }: ColumnNameProps) {
+export function ColumnName({ index, seqName }: ColumnNameProps) {
   const { t } = useTranslationSafe()
-  const { result, error } = useRecoilValue(analysisResultAtom(seqName))
+  const { result, error } = useRecoilValue(analysisResultAtom(index))
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
-  const id = useMemo(() => getSafeId('sequence-label', { seqName }), [seqName])
+  const id = useMemo(() => getSafeId('sequence-label', { index }), [index])
 
   const { StatusIcon } = useMemo(
     () =>
@@ -41,17 +42,17 @@ export function ColumnName({ seqName }: ColumnNameProps) {
     if (error) {
       return (
         <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
-          <ColumnNameErrorTooltip seqName={seqName} error={error} />
+          <ColumnNameErrorTooltip index={index} seqName={seqName} error={error} />
         </Tooltip>
       )
     }
 
     return (
       <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
-        <ColumnNameTooltip seqName={seqName} />
+        <ColumnNameTooltip index={index} />
       </Tooltip>
     )
-  }, [error, id, seqName, showTooltip])
+  }, [error, id, index, seqName, showTooltip])
 
   return (
     <SequenceName id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
