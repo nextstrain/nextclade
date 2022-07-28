@@ -123,11 +123,6 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </td>
                 </tr>
 
-                <tr className="mb-2">
-                  <td>{t('Sequence index')}</td>
-                  <td>{index}</td>
-                </tr>
-
                 <TableRowSpacer />
 
                 <tr className="mb-2">

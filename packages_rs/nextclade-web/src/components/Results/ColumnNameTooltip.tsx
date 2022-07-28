@@ -65,11 +65,6 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
           </td>
         </tr>
 
-        <tr className="mb-2">
-          <td>{t('Sequence index')} </td>
-          <td>{index}</td>
-        </tr>
-
         <tr>
           <td>{t('Analysis status')}</td>
           <td>
