@@ -1,10 +1,11 @@
 import { isEmpty, isNil } from 'lodash'
 import React, { useMemo } from 'react'
+import { IoDuplicateSharp } from 'react-icons/io5'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
-import { analysisResultAtom } from 'src/state/results.state'
+import { analysisResultAtom, seqNameDuplicatesAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatRange } from 'src/helpers/formatRange'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
@@ -19,6 +20,14 @@ const Alert = styled(ReactstrapAlert)`
 
 const TableSlim = styled(TableSlimBase)`
   width: 400px;
+`
+
+export const DuplicateIcon = styled(IoDuplicateSharp)`
+  width: 1rem;
+  height: 1rem;
+  color: ${(props) => props.theme.warning};
+  padding-right: 2px;
+  filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 
 export interface ColumnNameTooltipProps {
@@ -38,6 +47,24 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
       }),
     [error, result?.analysisResult.warnings, t],
   )
+
+  const duplicateIndices = useRecoilValue(seqNameDuplicatesAtom(result?.analysisResult.seqName ?? ''))
+  const duplicatedNamesRow = useMemo(() => {
+    const hasDuplicates = duplicateIndices.length > 1
+    if (hasDuplicates) {
+      const indices = duplicateIndices.join(', ')
+      return (
+        <tr>
+          <td>{t('Duplicate sequence names')}</td>
+          <td>
+            <DuplicateIcon />
+            {`sequences # ${indices}`}
+          </td>
+        </tr>
+      )
+    }
+    return undefined
+  }, [duplicateIndices, t])
 
   const warningComponents = useMemo(() => {
     return (result?.analysisResult?.warnings ?? []).map((warning) => (
@@ -72,6 +99,8 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
             {statusText}
           </td>
         </tr>
+
+        {duplicatedNamesRow}
 
         <tr>
           <td>{t('Clade')}</td>

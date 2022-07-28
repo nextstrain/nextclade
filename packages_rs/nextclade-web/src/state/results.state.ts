@@ -35,6 +35,12 @@ export const seqIndicesAtom = atom<number[]>({
   default: [],
 })
 
+// Stores a map from sequence index to an array od sequences with the same name
+export const seqNameDuplicatesAtom = atomFamily<number[], string>({
+  key: 'seqNameDuplicates',
+  default: [],
+})
+
 // Synchronizes states of `analysisResultAtom` and `seqIndicesAtom`
 // Use it to set `analysisResultInternalAtom` and `seqIndicesAtom`
 export const analysisResultAtom = selectorFamily<NextcladeResult, number>({
@@ -48,18 +54,24 @@ export const analysisResultAtom = selectorFamily<NextcladeResult, number>({
 
   set:
     (index) =>
-    ({ set, reset }, result: NextcladeResult | DefaultValue) => {
+    ({ get, set, reset }, result: NextcladeResult | DefaultValue) => {
       if (isDefaultValue(result)) {
         reset(analysisResultInternalAtom(index))
         reset(seqIndicesAtom)
       } else {
         set(analysisResultInternalAtom(index), result)
+
+        // Add to the list of indices
         set(seqIndicesAtom, (prev) => {
           if (result && !prev.includes(result.index)) {
             return [...prev, result.index]
           }
           return prev
         })
+
+        // Add to the duplicate names map
+        const indices = get(seqNameDuplicatesAtom(result.seqName))
+        set(seqNameDuplicatesAtom(result.seqName), [...indices, result.index])
       }
     },
 })
