@@ -1,12 +1,12 @@
 use clap::{Parser, ValueHint};
 use eyre::Report;
 use log::info;
+use nextclade::{getenv, make_internal_error};
 use reqwest::blocking::Client;
 use reqwest::{IntoUrl, Method, Proxy};
 use url::Url;
-use nextclade::{getenv, make_internal_error};
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[clap(verbatim_doc_comment)]
 pub struct ProxyConfig {
   /// Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported.
@@ -31,17 +31,17 @@ pub struct HttpClient {
 }
 
 impl HttpClient {
-  pub fn new(root: Url, proxy_conf: ProxyConfig, verbose: bool) -> Result<Self, Report> {
+  pub fn new(root: &Url, proxy_conf: &ProxyConfig, verbose: bool) -> Result<Self, Report> {
     let mut client_builder = Client::builder();
 
-    client_builder = if let Some(proxy_url) = proxy_conf.proxy {
-      let proxy = match (proxy_conf.proxy_user, proxy_conf.proxy_pass) {
+    client_builder = if let Some(proxy_url) = &proxy_conf.proxy {
+      let proxy = match (&proxy_conf.proxy_user, &proxy_conf.proxy_pass) {
         (Some(proxy_user), Some(proxy_pass)) => {
-          let proxy = Proxy::all(proxy_url)?.basic_auth(&proxy_user, &proxy_pass);
+          let proxy = Proxy::all(proxy_url.clone())?.basic_auth(proxy_user, proxy_pass);
           Ok(proxy)
         }
         (None, None) => {
-          let proxy = Proxy::all(proxy_url)?;
+          let proxy = Proxy::all(proxy_url.clone())?;
           Ok(proxy)
         }
         _ => make_internal_error!("`--proxy-user` and `--proxy-pass` must be either both specified or both omitted"),
@@ -60,7 +60,10 @@ impl HttpClient {
       .user_agent(user_agent)
       .build()?;
 
-    Ok(Self { client, root })
+    Ok(Self {
+      client,
+      root: root.clone(),
+    })
   }
 
   pub fn get<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {

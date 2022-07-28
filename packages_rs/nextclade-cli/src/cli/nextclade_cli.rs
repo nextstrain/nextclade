@@ -255,6 +255,18 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub input_dataset: Option<PathBuf>,
 
+  /// Name of the dataset to download and use during the run
+  ///
+  /// This is a convenience shortcut to first downloading a dataset and then immediately running with it. Providing this flag is equivalent to running 2 commands: `dataset get` followed by `run`, with the difference that the dataset files from the first command are not saved to disk and cannot be reused later. The default parameters are used for the dataset (e.g. default reference name and latest version tag).
+  ///
+  /// See `dataset get --help` and `dataset list --help` for more details.
+  ///
+  /// Note that when using this flag, the dataset will be downloaded on every run. If a new version of the dataset is released between two runs, they will use different versions of the dataset and may produce different results. For the most reproducible runs, and for more control, use the usual 2-step flow with `dataset get` followed by `run`.
+  ///
+  /// This flag is mutually exclusive with `--input_dataset`
+  #[clap(long, short = 'd')]
+  pub dataset_name: Option<String>,
+
   /// Path to a FASTA file containing reference sequence.
   ///
   /// This file should contain exactly 1 sequence.
@@ -326,6 +338,12 @@ pub struct NextcladeRunInputArgs {
   )]
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
+
+  /// Use custom dataset server
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::Url)]
+  #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
+  pub server: Url,
 }
 
 #[derive(Parser, Debug, Clone)]

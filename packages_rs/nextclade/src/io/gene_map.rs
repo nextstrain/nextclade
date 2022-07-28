@@ -24,7 +24,7 @@ fn get_requested_genes_not_in_genemap(gene_map: &GeneMap, genes: &[String]) -> S
 /// |     +      |         | Take all genes                             |
 /// |            |    +    | Error                                      |
 /// |            |         | Skip translation and codon penalties       |
-pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: Option<Vec<String>>) -> Result<GeneMap, Report> {
+pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -> Result<GeneMap, Report> {
   match (gene_map, genes) {
     // Both gene map and list of genes are provided. Retain only requested genes.
     (Some(gene_map), Some(genes)) => {
@@ -33,7 +33,7 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: Option<Vec<String>>) ->
         .filter(|(gene_name, ..)| genes.contains(gene_name))
         .collect();
 
-      let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, &genes);
+      let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
       if !requested_genes_not_in_genemap.is_empty() {
         warn!(
           "The following genes were requested through `--genes` \

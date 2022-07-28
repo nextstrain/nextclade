@@ -1,47 +1,52 @@
 use crate::cli::nextclade_cli::NextcladeDatasetGetArgs;
-use crate::dataset::dataset::DatasetsIndexJson;
+use crate::dataset::dataset::{Dataset, DatasetsIndexJson};
 use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_attributes};
-use crate::dataset::dataset_download::{dataset_download, dataset_zip_download};
+use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_download};
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
-use eyre::Report;
+use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
-use nextclade::{getenv, make_error};
 use log::{info, LevelFilter};
+use nextclade::{getenv, make_error};
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
 
-pub fn nextclade_dataset_get(
-  NextcladeDatasetGetArgs {
-    mut name,
-    mut reference,
-    mut tag,
-    attribute,
-    server,
-    output_dir,
-    output_zip,
-    proxy_config,
-  }: NextcladeDatasetGetArgs,
-) -> Result<(), Report> {
-  let verbose = log::max_level() > LevelFilter::Info;
-  let mut http = HttpClient::new(server, proxy_config, verbose)?;
-  let DatasetsIndexJson { datasets, .. } = DatasetsIndexJson::download(&mut http)?;
+pub struct DatasetHttpGetParams<'s> {
+  pub name: &'s str,
+  pub reference: &'s str,
+  pub tag: &'s str,
+}
+
+pub fn nextclade_dataset_http_get(
+  http: &mut HttpClient,
+  DatasetHttpGetParams { name, reference, tag }: DatasetHttpGetParams,
+  attributes: &[String],
+) -> Result<Dataset, Report> {
+  let DatasetsIndexJson { datasets, .. } = DatasetsIndexJson::download(http)?;
 
   // Parse attribute key-value pairs
-  let mut attributes = parse_dataset_attributes(&attribute)?;
+  let mut attributes = parse_dataset_attributes(attributes)?;
 
   // Handle special attributes differently
-  if let Some(attr_name) = attributes.remove("name") {
-    name = attr_name;
-  }
-  if let Some(attr_reference) = attributes.remove("reference") {
-    reference = attr_reference;
-  }
-  if let Some(attr_tag) = attributes.remove("tag") {
-    tag = attr_tag;
-  }
+  let name = if let Some(attr_name) = attributes.remove("name") {
+    attr_name
+  } else {
+    name.to_owned()
+  };
 
-  let filtered = datasets
+  if let Some(attr_reference) = attributes.remove("reference") {
+    attr_reference
+  } else {
+    reference.to_owned()
+  };
+
+  if let Some(attr_tag) = attributes.remove("tag") {
+    attr_tag
+  } else {
+    tag.to_owned()
+  };
+
+  let mut filtered = datasets
     .into_iter()
     .filter(|dataset| dataset.enabled)
     .filter(|dataset| -> bool  {
@@ -87,7 +92,7 @@ pub fn nextclade_dataset_get(
     .collect_vec();
 
   let attributes_fmt = {
-    let attributes_fmt = format_attribute_list(&Some(name), &reference, &tag, &attributes);
+    let attributes_fmt = format_attribute_list(&Some(name), reference, tag, &attributes);
     if attributes_fmt.is_empty() {
       "".to_owned()
     } else {
@@ -97,22 +102,52 @@ pub fn nextclade_dataset_get(
 
   info!("Searching for datasets{attributes_fmt}");
 
-  match filtered.len() {
+  match &filtered.len() {
     0 => make_error!("No datasets found{attributes_fmt}. Use `datasets list` command to show available datasets."),
-    1 => {
-      if let Some(output_dir) = output_dir {
-        return dataset_download(&mut http, &filtered[0], &output_dir);
-      }
-
-      if let Some(output_zip) = output_zip {
-        return dataset_zip_download(&mut http, &filtered[0], &output_zip);
-      }
-
-      Ok(())
-    }
+    1 => Ok(filtered.remove(0)),
     _ => {
       let table = format_dataset_table(&filtered);
       make_error!("Can download only a single dataset, but multiple datasets found{attributes_fmt}. Add more specific attributes to select one of them. Given current attributes, the candidates are:\n{table}")
     }
   }
+}
+
+pub fn nextclade_dataset_get(args: NextcladeDatasetGetArgs) -> Result<(), Report> {
+  let verbose = log::max_level() > LevelFilter::Info;
+  let mut http = HttpClient::new(&args.server, &args.proxy_config, verbose)?;
+
+  let dataset = nextclade_dataset_http_get(
+    &mut http,
+    DatasetHttpGetParams {
+      name: &args.name,
+      reference: &args.reference,
+      tag: &args.tag,
+    },
+    &args.attribute,
+  )?;
+
+  if let Some(output_dir) = &args.output_dir {
+    dataset_dir_download(&mut http, &dataset, output_dir)?;
+  }
+
+  if let Some(output_zip) = &args.output_zip {
+    dataset_zip_download(&mut http, &dataset, output_zip)?;
+  }
+
+  Ok(())
+}
+
+pub fn dataset_file_http_get(http: &mut HttpClient, dataset: &Dataset, filename: &str) -> Result<String, Report> {
+  let url = dataset
+    .files
+    .get(filename)
+    .ok_or_else(|| eyre!("File not found in the dataset: '{}'", filename))?;
+
+  let content = http
+    .get(&url)
+    .wrap_err_with(|| format!("Dataset file download failed: '{}'", url))?;
+
+  let content_string = String::from_utf8(content)?;
+
+  Ok(content_string)
 }
