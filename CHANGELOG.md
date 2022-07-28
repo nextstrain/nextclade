@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## Nextclade CLI 2.4.0, Nextclade Web 2.4.0
+
+### **Fix (Web)**: use indices to identify sequences uniquely in Nextclade Web
+
+Previously, Nextclade used sequence names to identify sequences. However, sequence names proven to be unreliable - they are often duplicated. This caused various problems where results with the same names could have been overwritten.
+
+Since this version, Nextclade Web is using sequence indices (order of sequences in the input file or files), to tell the sequences apart, uniquely. This should ensure correct handling of duplicate names. This change only affects results table in the Web application. CLI is not affected.
+
+### **Feature (CLI)**: add "download dataset and run" shortcut"
+
+In this version we added `--dataset-name` (`-d`) argument to `run` command, which allows to download a dataset with default parameters and run with it immediately, all in one command.
+
+For example this command.
+
+```bash
+nextclade run --output-all=out --dataset-name=sars-cov-2 sequences.fasta
+```
+or, the same, but shorter
+
+```bash
+nextclade run -O out -d sars-cov-2 sequences.fasta
+```
+
+will download the latest default SARS-CoV-2 dataset into memory and will run analysis with these dataset files. This is a convenience shortcut for the usual combination of `nextclade dataset get` + `nextclade run`. The dataset is not persisted on disk and downloaded on every run.
+
+
 ## Nextclade CLI 2.3.1, Nextclade Web 2.3.1
 
 - **Fix** [#947](https://github.com/nextstrain/nextclade/pull/947): In datasets where genes started right at the beginning of the reference sequence, Nextclade version 2.0.0 until 2.3.0 will crash due to underflow. This is now fixed. The only Nextclade provided dataset that was affected by this bug is Influenza Yamagate HA. That dataset had a further bug in the tree so there is now a corresponding dataset bug fix release available. (report: @mcroxen)
