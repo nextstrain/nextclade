@@ -56,6 +56,8 @@ export const analysisResultAtom = selectorFamily<NextcladeResult, number>({
     (index) =>
     ({ get, set, reset }, result: NextcladeResult | DefaultValue) => {
       if (isDefaultValue(result)) {
+        const result = get(analysisResultInternalAtom(index))
+        reset(seqNameDuplicatesAtom(result.seqName))
         reset(analysisResultInternalAtom(index))
         reset(seqIndicesAtom)
       } else {
