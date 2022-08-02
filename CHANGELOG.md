@@ -1,12 +1,22 @@
 # CHANGELOG
 
-## Nextclade CLI 2.4.0, Nextclade Web 2.4.0
+## Nextclade CLI 2.4.0, Nextclade Web 2.4.0 (2022-08-02)
 
 ### **Fix (Web)**: use indices to identify sequences uniquely in Nextclade Web
 
 Previously, Nextclade used sequence names to identify sequences. However, sequence names proven to be unreliable - they are often duplicated. This caused various problems where results with the same names could have been overwritten.
 
 Since this version, Nextclade Web is using sequence indices (order of sequences in the input file or files), to tell the sequences apart, uniquely. This should ensure correct handling of duplicate names. This change only affects results table in the Web application. CLI is not affected.
+
+
+### **Feature (Web)**: warn about duplicate sequence names
+
+Nextclade Web now reports duplicate sequence names. Duplicate sequence names often confuse bioinformatics tools, databases and bioinformaticians themselves, so we are trying to encourage the community to be more thoughtful about naming of their samples.
+
+When duplicate names are detected during analysis in Nextclade Web, the "Sequence name" column of the results table now displays a yellow "duplicates" warning icon, and its tooltip contains a list of indices of sequences (serial numbers of the sequences in the input fasta file or files) having the same name.
+
+Note that Nextclade compares only names, not sequence data themselves.
+
 
 ### **Feature (CLI)**: add "download dataset and run" shortcut"
 
@@ -24,6 +34,11 @@ nextclade run -O out -d sars-cov-2 sequences.fasta
 ```
 
 will download the latest default SARS-CoV-2 dataset into memory and will run analysis with these dataset files. This is a convenience shortcut for the usual combination of `nextclade dataset get` + `nextclade run`. The dataset is not persisted on disk and downloaded on every run.
+
+
+### **Feature (CLI)**: Upgrade Auspice from version 2.37.2 to 2.37.3
+
+This release includes a routine upgrade of Auspice tree view. You can read the [changelog in the Auspice GitHub repository](https://github.com/nextstrain/auspice/releases/tag/v2.37.3)
 
 
 ## Nextclade CLI 2.3.1, Nextclade Web 2.3.1
