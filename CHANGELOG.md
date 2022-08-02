@@ -1,5 +1,13 @@
 # CHANGELOG
 
+
+## Nextclade Web 2.4.1 (2022-08-02)
+
+### **Fix (Web)**: reset detected sequence name duplicate when starting new run
+
+Nextclade Web 2.4.0 was incorrectly retaining sequence name duplicates info across runs. This is now fixed.
+
+
 ## Nextclade CLI 2.4.0, Nextclade Web 2.4.0 (2022-08-02)
 
 ### **Fix (Web)**: use indices to identify sequences uniquely in Nextclade Web
