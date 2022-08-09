@@ -61,6 +61,9 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "alignmentScore",
   "alignmentStart",
   "alignmentEnd",
+  "qc.coverage.coverage",
+  "qc.coverage.score",
+  "qc.coverage.status",
   "qc.missingData.missingDataThreshold",
   "qc.missingData.score",
   "qc.missingData.status",
@@ -252,6 +255,18 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("alignmentScore", &alignment_score)?;
     self.add_entry("alignmentStart", &alignment_start.to_string())?;
     self.add_entry("alignmentEnd", &alignment_end.to_string())?;
+    self.add_entry_maybe(
+      "qc.coverage.coverage",
+      qc.coverage.as_ref().map(|cov| cov.coverage.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.coverage.score",
+      qc.coverage.as_ref().map(|cov| format_qc_score(cov.score)),
+    )?;
+    self.add_entry_maybe(
+      "qc.coverage.status",
+      qc.coverage.as_ref().map(|cov| cov.status.to_string()),
+    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
