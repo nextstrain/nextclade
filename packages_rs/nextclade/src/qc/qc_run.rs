@@ -1,7 +1,7 @@
-use crate::align::backtrace::AlignmentOutput;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
+use crate::qc::qc_rule_coverage::{rule_coverage, QcResultCoverage};
 use crate::qc::qc_rule_frame_shifts::{rule_frame_shifts, QcResultFrameShifts};
 use crate::qc::qc_rule_missing_data::{rule_missing_data, QcResultMissingData};
 use crate::qc::qc_rule_mixed_sites::{rule_mixed_sites, QcResultMixedSites};
@@ -10,7 +10,6 @@ use crate::qc::qc_rule_snp_clusters::{rule_snp_clusters, QcResultSnpClusters};
 use crate::qc::qc_rule_stop_codons::{rule_stop_codons, QcResultStopCodons};
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use eyre::Report;
 use num::traits::Pow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -60,6 +59,7 @@ pub struct QcResult {
   pub snp_clusters: Option<QcResultSnpClusters>,
   pub frame_shifts: Option<QcResultFrameShifts>,
   pub stop_codons: Option<QcResultStopCodons>,
+  pub coverage: Option<QcResultCoverage>,
   pub overall_score: f64,
   pub overall_status: QcStatus,
 }
@@ -74,6 +74,7 @@ pub fn qc_run(
   total_missing: usize,
   translations: &[Translation],
   frame_shifts: &[FrameShift],
+  coverage: f64,
   config: &QcConfig,
 ) -> QcResult {
   let mut result = QcResult {
@@ -83,6 +84,7 @@ pub fn qc_run(
     snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
     stop_codons: rule_stop_codons(translations, &config.stop_codons),
+    coverage: rule_coverage(coverage, &config.coverage),
     overall_score: 0.0,
     overall_status: QcStatus::Good,
   };
@@ -93,6 +95,7 @@ pub fn qc_run(
   result.overall_score += add_score(&result.snp_clusters);
   result.overall_score += add_score(&result.frame_shifts);
   result.overall_score += add_score(&result.stop_codons);
+  result.overall_score += add_score(&result.coverage);
 
   result.overall_status = QcStatus::from_score(result.overall_score);
 

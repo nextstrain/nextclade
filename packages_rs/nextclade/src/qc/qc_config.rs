@@ -103,6 +103,25 @@ impl Default for QcRulesConfigStopCodons {
   }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct QcRulesConfigCoverage {
+  pub enabled: bool,
+  pub score_bias: f64,
+  pub score_threshold: f64,
+}
+
+impl Default for QcRulesConfigCoverage {
+  fn default() -> Self {
+    Self {
+      enabled: true,
+      score_bias: 0.0,
+      score_threshold: 100.0,
+    }
+  }
+}
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
@@ -114,6 +133,7 @@ pub struct QcConfig {
   pub snp_clusters: QcRulesConfigSnpClusters,
   pub frame_shifts: QcRulesConfigFrameShifts,
   pub stop_codons: QcRulesConfigStopCodons,
+  pub coverage: QcRulesConfigCoverage,
 }
 
 impl FromStr for QcConfig {
