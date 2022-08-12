@@ -1,25 +1,37 @@
 import React, { HTMLProps, ReactNode } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { FaApple, FaBook, FaDocker, FaGithub, FaGlobeAmericas, FaLinux } from 'react-icons/fa'
+import { FaBook, FaDocker, FaDownload, FaGithub, FaGlobeAmericas } from 'react-icons/fa'
 import {
   Card as ReactstrapCard,
   CardBody as ReactstrapCardBody,
-  CardFooter as ReactstrapCardFooter,
   CardHeader as ReactstrapCardHeader,
   Col,
   Row,
 } from 'reactstrap'
 import styled from 'styled-components'
 
-import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { LinkExternal as LinkExternalBase } from 'src/components/Link/LinkExternal'
 
 const DownloadLinkList = styled.ul`
-  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
   list-style: none;
+  padding: 0;
 `
 
-const DownloadLinkListItem = styled.li``
+const DownloadLinkListItem = styled.li`
+  display: flex;
+  flex: 1;
+  margin: auto;
+`
+
+const LinkExternal = styled(LinkExternalBase)`
+  width: 200px;
+  height: 55px;
+  margin: 0.25rem;
+  padding: 1rem;
+`
 
 const Card = styled(ReactstrapCard)`
   margin: 5px;
@@ -27,25 +39,18 @@ const Card = styled(ReactstrapCard)`
 `
 
 const CardBody = styled(ReactstrapCardBody)`
-  padding: 0.75rem;
-`
-
-const CardFooter = styled(ReactstrapCardFooter)`
-  min-height: 185px;
-  background: transparent;
+  padding: 0.5rem;
 `
 
 const CardHeader = styled(ReactstrapCardHeader)`
-  padding-top: 2rem;
-  background: transparent;
+  padding: 1rem;
 `
 
-const iconLinux = <FaLinux color="#653F12" size={20} />
-const iconApple = <FaApple color="666" size={20} />
-const iconGithub = <FaGithub color="444" size={18} />
+const iconDownload = <FaDownload color="#653F12" size={20} />
+const iconGithub = <FaGithub color="444" size={20} />
 const iconDocker = <FaDocker color="#369cec" size={20} />
 const iconBook = <FaBook color="#777777" size={20} />
-const iconGlobe = <FaGlobeAmericas color="#4f88b0" size={20} />
+const iconGlobe = <FaGlobeAmericas color="#5862dc" size={20} />
 
 export interface DownloadLinkProps extends HTMLProps<HTMLAnchorElement> {
   Icon: ReactNode
@@ -53,12 +58,12 @@ export interface DownloadLinkProps extends HTMLProps<HTMLAnchorElement> {
   url: string
 }
 
-export function DownloadLink({ Icon, text, url, ...restProps }: DownloadLinkProps) {
+export function DownloadLink({ Icon, text, url }: DownloadLinkProps) {
   return (
     <DownloadLinkListItem>
-      <LinkExternal href={url} {...restProps}>
-        <span className="mb-1">{Icon}</span>
-        <span className="ml-2">{text}</span>
+      <LinkExternal href={url} className="btn btn-secondary d-flex" role="button">
+        <span className="my-auto">{Icon}</span>
+        <span className="my-auto ml-2">{text}</span>
       </LinkExternal>
     </DownloadLinkListItem>
   )
@@ -80,53 +85,20 @@ export function Downloads() {
           <Col lg={4}>
             <Card>
               <CardHeader>
-                <h4 className="text-center">
-                  <span>
-                    <span>{t('Nextclade CLI')}</span>
-                  </span>
-                </h4>
+                <h4 className="text-center">{t('Nextclade CLI')}</h4>
+                <p className="text-center">{t('command-line version of this application')}</p>
               </CardHeader>
 
               <CardBody>
-                <p className="text-justify mx-2">
-                  {t('Nextclade CLI is a command line version of this web application.')}
-                </p>
-
-                <p className="text-justify mx-2">
-                  {t(
-                    'It is a single-file, standalone executable, consumes the same inputs and the same outputs as this web application, but is faster, more configurable and more convenient for scripting, automation, and integration into bioinformatics pipelines. Nextclade CLI is available for as a single-file download for different platforms and as a Docker container image. After download, type "nextclade --help" to get started.',
-                  )}
-                </p>
-              </CardBody>
-
-              <CardFooter>
                 <DownloadLinkList>
                   <DownloadLink
-                    Icon={iconLinux}
-                    text={t('Linux')}
-                    url="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-Linux-x86_64"
-                    download
-                  />
-                  <DownloadLink
-                    Icon={iconApple}
-                    text={t('macOS (Intel)')}
-                    url="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-x86_64"
-                    download
-                  />
-                  <DownloadLink
-                    Icon={iconApple}
-                    text={t('macOS (Apple Silicon)')}
-                    url="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-arm64"
-                    download
-                  />
-                  <DownloadLink
-                    Icon={iconGithub}
-                    text={t('All versions')}
+                    Icon={iconDownload}
+                    text={t('Downloads')}
                     url="https://github.com/nextstrain/nextclade/releases"
                   />
                   <DownloadLink
                     Icon={iconDocker}
-                    text={t('nextstrain/nextclade')}
+                    text={t('Docker')}
                     url="https://hub.docker.com/r/nextstrain/nextclade"
                   />
                   <DownloadLink
@@ -135,58 +107,27 @@ export function Downloads() {
                     url="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html"
                   />
                 </DownloadLinkList>
-              </CardFooter>
+              </CardBody>
             </Card>
           </Col>
 
           <Col lg={4}>
             <Card>
               <CardHeader>
-                <h4 className="text-center">
-                  <span>
-                    <span>{t('Nextalign CLI')}</span>
-                  </span>
-                </h4>
+                <h4 className="text-center">{t('Nextalign CLI')}</h4>
+                <p className="text-center">{t('sequence reference alignment tool')}</p>
               </CardHeader>
 
               <CardBody>
-                <p className="text-justify mx-2">{t('Nextalign CLI is a sequence reference alignment tool.')}</p>
-
-                <p className="text-justify mx-2">
-                  {t(
-                    'It uses the same alignment algorithm as Nextclade. Useful if you only need sequence alignment and translated peptides, without full analysis and quality control features. It is available as a set of static executables for different platforms and as a Docker container image. After download, type "nextalign --help" to get started.',
-                  )}
-                </p>
-              </CardBody>
-
-              <CardFooter>
                 <DownloadLinkList>
                   <DownloadLink
-                    Icon={iconLinux}
-                    text={t('Linux')}
-                    url="https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-Linux-x86_64"
-                    download
-                  />
-                  <DownloadLink
-                    Icon={iconApple}
-                    text={t('macOS (Intel)')}
-                    url="https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-x86_64"
-                    download
-                  />
-                  <DownloadLink
-                    Icon={iconApple}
-                    text={t('macOS (Apple Silicon)')}
-                    url="https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-arm64"
-                    download
-                  />
-                  <DownloadLink
-                    Icon={iconGithub}
-                    text={t('All versions')}
+                    Icon={iconDownload}
+                    text={t('Downloads')}
                     url="https://github.com/nextstrain/nextclade/releases"
                   />
                   <DownloadLink
                     Icon={iconDocker}
-                    text={t('nextstrain/nextalign')}
+                    text={t('Docker')}
                     url="https://hub.docker.com/r/nextstrain/nextalign"
                   />
                   <DownloadLink
@@ -195,57 +136,25 @@ export function Downloads() {
                     url="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html"
                   />
                 </DownloadLinkList>
-              </CardFooter>
+              </CardBody>
             </Card>
           </Col>
 
           <Col lg={4}>
             <Card>
               <CardHeader>
-                <h4 className="text-center">
-                  <span>
-                    <span>{t('Nextstrain')}</span>
-                  </span>
-                </h4>
+                <h4 className="text-center">{t('Nextstrain')}</h4>
+                <p className="text-center">{t('parent project')}</p>
               </CardHeader>
 
               <CardBody>
-                <p className="text-justify mx-2">{t('Nextclade is part of Nextstrain.')}</p>
-
-                <p className="text-justify mx-2">
-                  {t(
-                    'Nextstrain is an open-source project to harness the scientific and public health potential of pathogen genome data. It provides continually-updated view of publicly available data with powerful analyses and visualizations showing pathogen evolution and epidemic spread. The goal is to aid epidemiological understanding and improve outbreak response.',
-                  )}
-                </p>
-
-                <p className="text-justify mx-2">
-                  {t('Learn more about Nextstrain project as a whole, and about its subprojects.')}
-                </p>
-              </CardBody>
-
-              <CardFooter>
                 <DownloadLinkList>
-                  <DownloadLink Icon={iconLinux} text={t('nextstrain.org')} url="https://nextstrain.org/" />
-                  <DownloadLink Icon={iconApple} text={t('Source code')} url="https://github.com/nextstrain" />
-                  <DownloadLink Icon={iconApple} text={t('Documentation: Home')} url="https://docs.nextstrain.org/" />
-                  <DownloadLink
-                    Icon={iconGithub}
-                    text={t('Documentation: Augur')}
-                    url="https://docs.nextstrain.org/projects/augur"
-                  />
-                  <DownloadLink
-                    Icon={iconDocker}
-                    text={t('Documentation: Auspice')}
-                    url="https://docs.nextstrain.org/projects/auspice"
-                  />
-                  <DownloadLink
-                    Icon={iconBook}
-                    text={t('Documentation: Nextstrain CLI')}
-                    url="https://docs.nextstrain.org/projects/cli"
-                  />
+                  <DownloadLink Icon={iconGlobe} text={t('nextstrain.org')} url="https://nextstrain.org/" />
+                  <DownloadLink Icon={iconGithub} text={t('Source code')} url="https://github.com/nextstrain" />
+                  <DownloadLink Icon={iconBook} text={t('Documentation')} url="https://docs.nextstrain.org/" />
                   <DownloadLink Icon={iconGlobe} text={t('auspice.us')} url="https://auspice.us/" />
                 </DownloadLinkList>
-              </CardFooter>
+              </CardBody>
             </Card>
           </Col>
         </Row>
