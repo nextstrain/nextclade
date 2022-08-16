@@ -86,7 +86,7 @@ export function Downloads() {
             <Card>
               <CardHeader>
                 <h4 className="text-center">{t('Nextclade CLI')}</h4>
-                <p className="text-center">{t('command-line version of this application')}</p>
+                <p className="text-center">{t('faster, more configurable command-line version of this application')}</p>
               </CardHeader>
 
               <CardBody>
@@ -115,7 +115,9 @@ export function Downloads() {
             <Card>
               <CardHeader>
                 <h4 className="text-center">{t('Nextalign CLI')}</h4>
-                <p className="text-center">{t('sequence reference alignment tool')}</p>
+                <p className="text-center">
+                  {t('sequence reference alignment and quality control tool used by Nextclade')}
+                </p>
               </CardHeader>
 
               <CardBody>
@@ -144,7 +146,9 @@ export function Downloads() {
             <Card>
               <CardHeader>
                 <h4 className="text-center">{t('Nextstrain')}</h4>
-                <p className="text-center">{t('parent project')}</p>
+                <p className="text-center">
+                  {t('our parent project, an open-source initiative to harness the potential of pathogen genome data')}
+                </p>
               </CardHeader>
 
               <CardBody>
