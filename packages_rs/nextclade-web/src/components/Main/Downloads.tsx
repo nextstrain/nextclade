@@ -116,7 +116,7 @@ export function Downloads() {
               <CardHeader>
                 <h4 className="text-center">{t('Nextalign CLI')}</h4>
                 <p className="text-center">
-                  {t('sequence reference alignment and quality control tool used by Nextclade')}
+                  {t('pairwise reference alignment and translation tool used by Nextclade')}
                 </p>
               </CardHeader>
 
