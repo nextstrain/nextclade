@@ -159,7 +159,6 @@ pub fn nextclade_run_one(
     total_missing,
     &translations,
     &frame_shifts,
-    coverage,
     qc_config,
   );
 
@@ -202,6 +201,7 @@ pub fn nextclade_run_one(
       warnings,
       missing_genes,
       divergence,
+      coverage,
       qc,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,
