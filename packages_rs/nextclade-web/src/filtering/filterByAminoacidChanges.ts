@@ -1,4 +1,4 @@
-import { intersectionWith } from 'lodash'
+import { intersectionWith, isNil } from 'lodash'
 
 import { AMINOACID_GAP } from 'src/constants'
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
@@ -7,13 +7,11 @@ import type { AminoacidSubstitution, NextcladeResult } from 'src/algorithms/type
 import { splitFilterString } from './splitFilterString'
 
 export function aminoacidChangesAreEqual(filter: Partial<AminoacidSubstitution>, actual: AminoacidSubstitution) {
-  const geneMatch = filter.gene === undefined || filter.gene.toLowerCase() === actual.gene.toLowerCase()
-  const posMatch = filter.codon === undefined || filter.codon === actual.codon
-  const refNucMatch =
-    filter.refAA === undefined || (filter.refAA as string).toLowerCase() === (actual.refAA as string).toLowerCase()
+  const geneMatch = isNil(filter.gene) || (filter.gene ?? '').toLowerCase() === actual.gene.toLowerCase()
+  const posMatch = isNil(filter.codon) || (filter.codon ?? -1) === actual.codon
+  const refNucMatch = isNil(filter.refAA) || (filter.refAA ?? '').toLowerCase() === (actual.refAA ?? '').toLowerCase()
   const queryNucMatch =
-    filter.queryAA === undefined ||
-    (filter.queryAA as string).toLowerCase() === (actual.queryAA as string).toLowerCase()
+    isNil(filter.queryAA) || (filter.queryAA ?? '').toLowerCase() === (actual.queryAA ?? '').toLowerCase()
   return geneMatch && posMatch && refNucMatch && queryNucMatch
 }
 
