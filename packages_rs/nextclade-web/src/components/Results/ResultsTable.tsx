@@ -38,6 +38,7 @@ import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
 import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
 import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
+import HelpTipsCoverage from './HelpTips/HelpTipsColumnCoverage.mdx'
 import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
 import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
 import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
@@ -80,30 +81,80 @@ export function ResultsTable() {
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
-  const sortByIndexAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByIndexDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByNameAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByNameDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByQcIssuesAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByQcIssuesDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByCladeAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByCladeDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalMutationsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalMutationsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalNonAcgtnAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalNonAcgtnDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalNsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalNsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalGapsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalGapsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalInsertionsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalInsertionsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalFrameShiftsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalFrameShiftsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalStopCodonsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
-  const sortByTotalStopCodonsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByIndexAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByIndexDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByNameAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByNameDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByQcIssuesAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByQcIssuesDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByCladeAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByCladeDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByCoverageAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.coverage, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByCoverageDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.coverage, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalMutationsAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalMutationsDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalNonAcgtnAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalNonAcgtnDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalNsAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalNsDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalGapsAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalGapsDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalInsertionsAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalInsertionsDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalFrameShiftsAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalFrameShiftsDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalStopCodonsAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByTotalStopCodonsDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
   const sortByKey = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
-    set(sortAnalysisResultsByKeyAtom({ key, direction  }), undefined)
+    set(sortAnalysisResultsByKeyAtom({ key, direction }), undefined)
   }, []) // prettier-ignore
 
   const dynamicColumns = useMemo(() => {
@@ -169,6 +220,16 @@ export function ResultsTable() {
         </TableHeaderCell>
 
         {dynamicColumns}
+
+        <TableHeaderCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{t('Cov.')}</TableCellText>
+            <ResultsControlsSort sortAsc={sortByCoverageAsc} sortDesc={sortByCoverageDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-mut">
+            <HelpTipsCoverage />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
 
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>
