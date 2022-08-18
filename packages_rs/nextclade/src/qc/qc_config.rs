@@ -117,7 +117,7 @@ impl Default for QcRulesConfigCoverage {
     Self {
       enabled: true,
       score_bias: 0.0,
-      score_threshold: 0.8, # If it misses >80% it's bad
+      score_threshold: 0.8, // If it misses >80% it's bad
     }
   }
 }
