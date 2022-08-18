@@ -17,7 +17,7 @@ export function ColumnQCStatus({ analysisResult }: ColumnQCStatusProps) {
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { index, seqName, qc } = analysisResult
-  const { missingData, privateMutations, mixedSites, snpClusters, frameShifts, stopCodons, coverage } = qc
+  const { missingData, privateMutations, mixedSites, snpClusters, frameShifts, stopCodons } = qc
 
   const id = getSafeId('qc-label', { index, seqName })
 
@@ -28,7 +28,6 @@ export function ColumnQCStatus({ analysisResult }: ColumnQCStatusProps) {
     { value: snpClusters, name: 'C' },
     { value: frameShifts, name: 'F' },
     { value: stopCodons, name: 'S' },
-    { value: coverage, name: 'c' },
   ].filter((value) => notUndefined(value))
 
   const icons = rules.map(({ name, value }, i) => {

@@ -260,12 +260,6 @@ export interface QcResultStopCodons {
   totalStopCodonsIgnored: number
 }
 
-export interface QcResultCoverage {
-  score: number
-  status: QcStatus
-  coverage: number
-}
-
 export interface QcResult {
   missingData?: QcResultMissingData
   mixedSites?: QcResultMixedSites
@@ -273,7 +267,6 @@ export interface QcResult {
   snpClusters?: QcResultSnpClusters
   frameShifts?: QcResultFrameShifts
   stopCodons?: QcResultStopCodons
-  coverage?: QcResultCoverage
   overallScore: number
   overallStatus: QcStatus
 }
@@ -385,6 +378,7 @@ export interface AnalysisResult {
   clade: string
   privateNucMutations: PrivateMutations
   privateAaMutations: Record<string, PrivateMutations>
+  coverage: number,
   qc: QcResult
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]

@@ -14,8 +14,9 @@ export const DYNAMIC_COLUMN_WIDTH = 100
 export const COLUMN_WIDTHS = {
   id: 50,
   seqName: 300,
-  qc: 145,
+  qc: 130,
   clade: 125,
+  coverage: 60,
   mut: 60,
   nonACGTN: 70,
   ns: 60,
