@@ -61,6 +61,8 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "alignmentScore",
   "alignmentStart",
   "alignmentEnd",
+  "refLength",
+  "totalCoveredNucs",
   "coverage",
   "qc.missingData.missingDataThreshold",
   "qc.missingData.score",
@@ -171,6 +173,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       // private_aa_mutations,
       missing_genes,
       // divergence,
+      ref_length,
+      total_covered_nucs,
       coverage,
       qc,
       custom_node_attributes,
@@ -254,6 +258,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("alignmentScore", &alignment_score)?;
     self.add_entry("alignmentStart", &alignment_start.to_string())?;
     self.add_entry("alignmentEnd", &alignment_end.to_string())?;
+    self.add_entry("refLength", ref_length)?;
+    self.add_entry("totalCoveredNucs", total_covered_nucs)?;
     self.add_entry("coverage", coverage)?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",

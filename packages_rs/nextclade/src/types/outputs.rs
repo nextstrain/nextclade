@@ -74,6 +74,8 @@ pub struct NextcladeOutputs {
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub divergence: f64,
+  pub ref_length: usize,
+  pub total_covered_nucs: usize,
   pub coverage: f64,
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
