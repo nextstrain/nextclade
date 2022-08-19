@@ -155,7 +155,7 @@ Nextclade team hosts a public file server containing all the dataset file themse
 
 At this time we do not support the usage of the dataset repository outside of Nextclade. We cannot guarantee stability of the index file format or of the filesystem structure. They can change without notice.
 
-The code and source data for datasets generation is in the GitHub repository: [nextstrain/nextclade_data_workflows](https://github.com/nextstrain/nextclade_data_workflows)
+The code and source data for datasets generation is in the GitHub repository: [neherlab/nextclade_data_workflows](https://github.com/neherlab/nextclade_data_workflows)
 
 ## Dataset updates
 
