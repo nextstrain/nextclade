@@ -45,10 +45,10 @@ Tag `:latest` points to `:debian`.
 
 You can download the latest version of Nextalign CLI for your platform using one of these direct links:
 
-- ⬇️ [Nextalign for Linux (x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-x86_64-unknown-linux-gnu)
-- ⬇️ [Nextalign for macOS (Intel, x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-x86_64-apple-darwin)
-- ⬇️ [Nextalign for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-aarch64-apple-darwin)
-- ⬇️ [Nextalign for Windows (x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe)
+- ⬇️ [Nextalign for Linux (x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-x86_64-unknown-linux-gnu)
+- ⬇️ [Nextalign for macOS (Intel, x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-x86_64-apple-darwin)
+- ⬇️ [Nextalign for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-aarch64-apple-darwin)
+- ⬇️ [Nextalign for Windows (x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe)
 
 All versions and their release notes are available on 🐈 [Github Releases](https://github.com/nextstrain/nextclade/releases).
 
