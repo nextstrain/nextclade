@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import React, { PropsWithChildren, HTMLProps, useCallback } from 'react'
 import { useRecoilValue } from 'recoil'
-import { hasRanAtom } from 'src/state/analysisStatusGlobal.state'
+import { hasRanAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 import { Button, Container as ContainerBase } from 'reactstrap'
 import { useTranslation } from 'react-i18next'

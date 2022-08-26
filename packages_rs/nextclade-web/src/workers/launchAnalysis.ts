@@ -49,6 +49,7 @@ export async function launchAnalysis(
   qryFastaInputs: Promise<AlgorithmInput[]>,
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
+  datasetNamePromise: Promise<string | undefined>,
   datasetPromise: Promise<Dataset | undefined>,
   numThreads: Promise<number>,
 ) {
@@ -57,8 +58,8 @@ export async function launchAnalysis(
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(await qryFastaInputs)
 
-  const dataset = await datasetPromise
-  if (!dataset) {
+  const [dataset, datasetName] = await Promise.all([datasetPromise, datasetNamePromise])
+  if (!dataset || !datasetName) {
     throw new ErrorInternal('Dataset is required but not found')
   }
 

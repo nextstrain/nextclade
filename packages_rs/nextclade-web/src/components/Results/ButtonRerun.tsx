@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { canRunAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 import { MdRefresh } from 'react-icons/md'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { canRunAtom } from 'src/state/analysisStatusGlobal.state'
 import { PanelButton } from 'src/components/Results/PanelButton'
 
 export const RefreshIcon = styled(MdRefresh)`

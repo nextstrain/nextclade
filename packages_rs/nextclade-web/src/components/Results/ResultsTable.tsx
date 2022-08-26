@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
   resultsTableColumnWidthsPxAtom,
   resultsTableDynamicColumnWidthPxAtom,
-  viewedGeneAtom,
   isResultsFilterPanelCollapsedAtom,
 } from 'src/state/settings.state'
 import {

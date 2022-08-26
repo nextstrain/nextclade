@@ -5,7 +5,7 @@
  * By 4lejandrito
  */
 
-import React from 'react'
+import React, { useCallback } from 'react'
 import Head from 'next/head'
 import { get, noop } from 'lodash'
 
@@ -30,8 +30,18 @@ export function Plausible({ domain, plausibleDomain = PLAUSIBLE_DOMAIN_DEFAULT }
   )
 }
 
-export type PlausibleHookResult = (event: string) => void
+export interface EventOptions {
+  props?: Record<string, unknown>
+  callback?: VoidFunction
+}
 
-export function usePlausible() {
-  return get(window, 'plausible', noop) as PlausibleHookResult
+export type PlausibleFunction = (event: string, options?: EventOptions) => void
+
+export function plausible(event: string, options?: EventOptions) {
+  const plausibleFunction = get(window, 'plausible', noop) as PlausibleFunction
+  plausibleFunction(event, options)
+}
+
+export function usePlausible(): PlausibleFunction {
+  return useCallback((event: string, options?: EventOptions) => plausible(event, options), [])
 }

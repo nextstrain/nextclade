@@ -1,6 +1,7 @@
-import React, { HTMLProps, PropsWithChildren } from 'react'
+import React, { HTMLProps, PropsWithChildren, useCallback } from 'react'
 import styled from 'styled-components'
 import { StrictOmit } from 'ts-essentials'
+import { usePlausible } from 'src/components/Common/Plausible'
 
 const A = styled.a`
   overflow-wrap: break-word;
@@ -14,6 +15,12 @@ export interface LinkExternalProps extends StrictOmit<HTMLProps<HTMLAnchorElemen
 }
 
 export function LinkExternal({ url, href, children, download, ...restProps }: PropsWithChildren<LinkExternalProps>) {
+  const plausible = usePlausible()
+  const onLinkClicked = useCallback(
+    () => plausible('Outbound link click', { props: { href: url ?? href } }),
+    [href, plausible, url],
+  )
+
   let target: string | undefined = '_blank'
   let rel: string | undefined = 'noopener noreferrer'
   if (download) {
@@ -22,7 +29,7 @@ export function LinkExternal({ url, href, children, download, ...restProps }: Pr
   }
 
   return (
-    <A target={target} rel={rel} href={url ?? href} download={download} {...restProps}>
+    <A target={target} rel={rel} href={url ?? href} download={download} onClick={onLinkClicked} {...restProps}>
       {children}
     </A>
   )

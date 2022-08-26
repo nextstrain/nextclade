@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import { canRunAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 import {
   Col,
@@ -12,7 +13,6 @@ import {
 import { FaFile } from 'react-icons/fa'
 
 import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
-import { canRunAtom } from 'src/state/analysisStatusGlobal.state'
 import { isNewRunPopupShownAtom } from 'src/state/settings.state'
 import { PanelButton } from 'src/components/Results/PanelButton'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
