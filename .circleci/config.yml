@@ -366,7 +366,7 @@ jobs:
               --content-type "text/html" \
               --cache-control "no-cache" \
               --metadata-directive REPLACE \
-              "public/" "s3://${AWS_S3_BUCKET}/"
+              "./" "s3://${AWS_S3_BUCKET}/"
 
       - run:
           name: " [ web ] | Invalidate AWS Cloudfront cache (branch << pipeline.git.branch >>)"
