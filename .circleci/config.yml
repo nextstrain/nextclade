@@ -315,6 +315,8 @@ jobs:
       - run:
           name: " [ web ] | Pre-compress web root (branch << pipeline.git.branch >>)"
           command: |
+            sudo apt-get install brotli pigz parallel --yes -qq >/dev/null
+
             cd packages_rs/nextclade-web/.build/production/web
 
             pigz -kfrq .
