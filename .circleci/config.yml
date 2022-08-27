@@ -368,6 +368,8 @@ jobs:
               --content-type "text/html" \
               --cache-control "no-cache" \
               --metadata-directive REPLACE \
+              --exclude "_next" \
+              --exclude "*.*" \
               "./" "s3://${AWS_S3_BUCKET}/"
 
       - run:
