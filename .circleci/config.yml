@@ -325,62 +325,9 @@ jobs:
             aws --version
 
       - run:
-          name: " [ web ] | Pre-compress web root (branch << pipeline.git.branch >>)"
+          name: " [ web ] | Deploy web app (branch << pipeline.git.branch >>)"
           command: |
-            cd packages_rs/nextclade-web/.build/production/web
-
-            pigz -kfrq .
-            find . -type f \( ! -iname "*.gz" -a ! -iname "*.br" \) | parallel brotli -kf || true
-
-      - run:
-          name: " [ web ] | Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)"
-          command: |
-            cd packages_rs/nextclade-web/.build/production/web
-
-            aws s3 sync --delete --only-show-errors \
-            --cache-control "max-age=2592000, public" \
-            --metadata-directive REPLACE \
-            --exclude "*.html*" \
-            "_next/" "s3://${AWS_S3_BUCKET}/_next/"
-
-      - run:
-          name: " [ web ] | Deploy web root to AWS S3 (branch << pipeline.git.branch >>)"
-          command: |
-            cd packages_rs/nextclade-web/.build/production/web
-
-            aws s3 sync --delete --only-show-errors \
-            --cache-control "no-cache" \
-            --metadata-directive REPLACE \
-            --exclude "_next" \
-            --exclude "*.html*" \
-            "./" "s3://${AWS_S3_BUCKET}/"
-
-      - run:
-          name: " [ web ] | Deploy html files to AWS S3 (branch << pipeline.git.branch >>)"
-          command: |
-
-            cd packages_rs/nextclade-web/.build/production/web
-
-            # Remove non-HTML files
-            find . -type f \( ! -iname "*.html" -a ! -iname "*.html.gz" -a ! -iname "*.html.br" \) -exec rm {} \+
-
-            # Remove .html extensions
-            shopt -s globstar
-            rename --filename 's/\.html//' **/*.html || true
-            rename --filename 's/\.html//' **/*.html.gz || true
-            rename --filename 's/\.html//' **/*.html.br || true
-
-            # Remove a buggy file (https://github.com/vercel/next.js/issues/36855)
-            rm -f 404.html.html
-
-            # Upload extensionless html files, plus their compressed versions
-            aws s3 sync --delete --only-show-errors \
-              --content-type "text/html" \
-              --cache-control "no-cache" \
-              --metadata-directive REPLACE \
-              --exclude "_next" \
-              --exclude "*.*" \
-              "./" "s3://${AWS_S3_BUCKET}/"
+            ./scripts/deploy_web.sh
 
       - run:
           name: " [ web ] | Invalidate AWS Cloudfront cache (branch << pipeline.git.branch >>)"
