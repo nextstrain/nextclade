@@ -5,8 +5,8 @@ import type { Dataset } from 'src/algorithms/types'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { viewedGeneAtom } from 'src/state/settings.state'
-import { isDefaultValue } from './results.state'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
+import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
 export interface Datasets {
   datasets: Dataset[]

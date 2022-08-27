@@ -4,7 +4,7 @@ import { XAxis, ComposedChart, ResponsiveContainer } from 'recharts'
 import { useRecoilValue } from 'recoil'
 
 import { geneMapAtom, genomeSizeAtom } from 'src/state/results.state'
-import { viewedGeneAtom } from 'src/state/settings.state'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { getAxisLength } from './getAxisLength'
 
 const MARGIN = {}

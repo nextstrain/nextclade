@@ -1,16 +1,12 @@
 import React, { useMemo } from 'react'
 
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { isInNucleotideViewAtom, switchToNucleotideViewAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 import { rgba } from 'polished'
 import { BsArrowReturnLeft } from 'react-icons/bs'
 
-import {
-  geneMapNameColumnWidthPxAtom,
-  isInNucleotideViewAtom,
-  resultsTableColumnWidthsPxAtom,
-  switchToNucleotideViewAtom,
-} from 'src/state/settings.state'
+import { geneMapNameColumnWidthPxAtom, resultsTableColumnWidthsPxAtom } from 'src/state/settings.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { GeneMap } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'

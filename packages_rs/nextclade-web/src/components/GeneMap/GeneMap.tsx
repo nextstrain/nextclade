@@ -3,6 +3,7 @@ import React, { SVGProps, useCallback, useEffect, useMemo, useState } from 'reac
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { geneLength } from 'src/algorithms/types'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX, GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
@@ -15,7 +16,6 @@ import { TableSlim } from 'src/components/Common/TableSlim'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColoredSquare } from 'src/components/Common/ColoredSquare'
 import { geneMapAtom, genomeSizeAtom } from 'src/state/results.state'
-import { viewedGeneAtom } from 'src/state/settings.state'
 
 const GENE_MAP_MARGIN = 5
 const GENE_HEIGHT_PX = 15

@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { geneNamesAtom } from 'src/state/results.state'
-import { viewedGeneAtom } from 'src/state/settings.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 const Select = styled.select`

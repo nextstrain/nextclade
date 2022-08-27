@@ -1,12 +1,13 @@
+/* eslint-disable no-void,promise/always-return */
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/algorithms/types'
-
 import type { Gene, NextcladeResult } from 'src/algorithms/types'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/algorithms/types'
+import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
 import { SortCategory, SortDirection, sortResults, sortResultsByKey } from 'src/helpers/sortResults'
-import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
+import { datasetCurrentNameAtom } from 'src/state/dataset.state'
 import {
   aaFilterAtom,
   cladesFilterAtom,
@@ -17,10 +18,7 @@ import {
   showGoodFilterAtom,
   showMediocreFilterAtom,
 } from 'src/state/resultFilters.state'
-
-export function isDefaultValue(candidate: unknown): candidate is DefaultValue {
-  return candidate instanceof DefaultValue
-}
+import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
 // Stores analysis result for a single sequence (defined by sequence name)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
@@ -227,6 +225,53 @@ export const cladeNodeAttrKeysAtom = selector<string[]>({
   get: ({ get }) => get(cladeNodeAttrDescsAtom).map((desc) => desc.name),
 })
 
+export const analysisStatusGlobalAtom = atom({
+  key: 'analysisStatusGlobal',
+  default: AlgorithmGlobalStatus.idle,
+  effects: [
+    ({ getPromise, onSet }) => {
+      onSet((status) => {
+        switch (status) {
+          case AlgorithmGlobalStatus.started:
+            void getPromise(datasetCurrentNameAtom).then((datasetName) => {
+              plausible('Run started', { props: { dataset: datasetName } })
+            })
+            break
+
+          case AlgorithmGlobalStatus.done:
+            void Promise.all([getPromise(analysisResultStatusesAtom), getPromise(datasetCurrentNameAtom)]).then(
+              ([results, datasetName]) => {
+                plausible('Run completed', { props: { sequences: results.length, dataset: datasetName } })
+              },
+            )
+            break
+
+          case AlgorithmGlobalStatus.failed:
+            plausible('Run failed')
+            break
+        }
+      })
+    },
+  ],
+})
+export const canRunAtom = selector({
+  key: 'canRun',
+  get({ get }) {
+    const status = get(analysisStatusGlobalAtom)
+    return (
+      status === AlgorithmGlobalStatus.idle ||
+      status === AlgorithmGlobalStatus.done ||
+      status === AlgorithmGlobalStatus.failed
+    )
+  },
+})
+export const hasRanAtom = selector({
+  key: 'hasRan',
+  get({ get }) {
+    const status = get(analysisStatusGlobalAtom)
+    return status !== AlgorithmGlobalStatus.idle
+  },
+})
 export const canDownloadAtom = selector<boolean>({
   key: 'canDownload',
   get({ get }) {

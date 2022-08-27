@@ -1,5 +1,6 @@
 import { isNil } from 'lodash'
 import { atom, selector } from 'recoil'
+import { plausible } from 'src/components/Common/Plausible'
 
 export const globalErrorAtom = atom<Error | undefined>({
   key: 'globalError',
@@ -8,6 +9,7 @@ export const globalErrorAtom = atom<Error | undefined>({
     ({ onSet }) => {
       onSet((error, _1, isReset) => {
         if (error && !isReset) {
+          plausible('Global error', { props: { name: error.name, message: error.message } })
           console.error(error)
         }
       })

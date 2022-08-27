@@ -1,11 +1,9 @@
 import { mapValues, sum } from 'lodash'
 import { atom, selector } from 'recoil'
-
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { COLUMN_WIDTHS, DYNAMIC_COLUMN_WIDTH } from 'src/components/Results/ResultsTableStyle'
-import { cladeNodeAttrKeysAtom } from 'src/state/results.state'
+import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { persistAtom } from 'src/state/persist/localStorage'
+import { cladeNodeAttrKeysAtom } from 'src/state/results.state'
 
 export const isInitializedAtom = atom<boolean>({
   key: 'isInitialized',
@@ -79,22 +77,6 @@ export const resultsTableDynamicColumnWidthAtom = atom<number>({
 export const resultsTableDynamicColumnWidthPxAtom = selector<string>({
   key: 'dynamicColumnWidthPx',
   get: ({ get }) => `${get(resultsTableDynamicColumnWidthAtom)}px`,
-})
-
-export const viewedGeneAtom = atom<string>({
-  key: 'viewedGene',
-  default: GENE_OPTION_NUC_SEQUENCE,
-})
-
-export const isInNucleotideViewAtom = selector<boolean>({
-  key: 'isInNucleotideView',
-  get: ({ get }) => get(viewedGeneAtom) === GENE_OPTION_NUC_SEQUENCE,
-})
-
-export const switchToNucleotideViewAtom = selector({
-  key: 'switchToNucleotideView',
-  get: () => undefined,
-  set: ({ set }) => set(viewedGeneAtom, GENE_OPTION_NUC_SEQUENCE),
 })
 
 export const resultsTableTotalWidthAtom = selector<number>({
