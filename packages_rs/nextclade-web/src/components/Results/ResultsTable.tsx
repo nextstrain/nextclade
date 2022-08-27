@@ -220,17 +220,7 @@ export function ResultsTable() {
         </TableHeaderCell>
 
         {dynamicColumns}
-
-        <TableHeaderCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
-          <TableHeaderCellContent>
-            <TableCellText>{t('Cov.')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByCoverageAsc} sortDesc={sortByCoverageDesc} />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-mut">
-            <HelpTipsCoverage />
-          </ButtonHelpStyled>
-        </TableHeaderCell>
-
+        
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{t('Mut.')}</TableCellText>
@@ -258,6 +248,16 @@ export function ResultsTable() {
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-missing">
             <HelpTipsColumnMissing />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+        
+        <TableHeaderCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{t('Cov.')}</TableCellText>
+            <ResultsControlsSort sortAsc={sortByCoverageAsc} sortDesc={sortByCoverageDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-mut">
+            <HelpTipsCoverage />
           </ButtonHelpStyled>
         </TableHeaderCell>
 
