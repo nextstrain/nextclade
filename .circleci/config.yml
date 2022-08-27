@@ -317,6 +317,13 @@ jobs:
           command: |
             sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
 
+            pushd /tmp >/dev/null
+              curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -oqq awscliv2.zip
+              sudo ./aws/install --update
+            popd >/dev/null
+            aws --version
+
       - run:
           name: " [ web ] | Pre-compress web root (branch << pipeline.git.branch >>)"
           command: |
