@@ -28,6 +28,7 @@ RUN set -euxo pipefail >/dev/null \
   gnupg \
   libssl-dev \
   lsb-release \
+  parallel \
   pkg-config \
   python3 \
   python3-pip \
@@ -53,10 +54,12 @@ RUN set -euxo pipefail >/dev/null \
   >/dev/null \
 && if [ "$(lsb_release -cs)" != "wheezy" ]; then \
     apt-get install -qq --no-install-recommends --yes \
+      brotli \
       clang-tools-${CLANG_VERSION} \
       lld-${CLANG_VERSION} \
       pigz \
       pixz \
+      rename \
     >/dev/null; \
   fi \
 && apt-get clean autoclean >/dev/null \
