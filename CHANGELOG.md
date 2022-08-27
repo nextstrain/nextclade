@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Nextclade Web 2.4.2 (2022-08-27)
+
+### **Fix (Web)**: download links on main page
+
+Dowmload links on main page have been fixed.
+
+### **Fix (Web)**: "About" text on main page
+
+Text on main page have been updated according to the current knowledge.
+
 
 ## Nextclade Web 2.4.1 (2022-08-02)
 
