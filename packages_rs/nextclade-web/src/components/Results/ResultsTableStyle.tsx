@@ -9,22 +9,22 @@ export const HEADER_ROW_HEIGHT = 75
 
 export const HEADER_ROW_CONTENT_HEIGHT = 60
 
-export const DYNAMIC_COLUMN_WIDTH = 100
+export const DYNAMIC_COLUMN_WIDTH = 80
 
 export const COLUMN_WIDTHS = {
-  id: 50,
-  seqName: 300,
+  id: 45,
+  seqName: 250,
   qc: 130,
   clade: 125,
-  coverage: 60,
-  mut: 60,
-  nonACGTN: 70,
-  ns: 60,
-  gaps: 60,
-  insertions: 60,
-  frameShifts: 60,
-  stopCodons: 60,
-  sequenceView: 600,
+  coverage: 55,
+  mut: 55,
+  nonACGTN: 55,
+  ns: 55,
+  gaps: 55,
+  insertions: 55,
+  frameShifts: 55,
+  stopCodons: 55,
+  sequenceView: 550,
 } as const
 
 export const Table = styled.div<{ rounded?: boolean }>`
