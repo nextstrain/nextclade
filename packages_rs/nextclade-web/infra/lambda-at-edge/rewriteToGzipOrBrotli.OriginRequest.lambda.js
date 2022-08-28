@@ -30,7 +30,7 @@ function handler(event, context, callback) {
 
   // If not an archive file (which are not precompressed), rewrite the URL to
   // get the corresponding .gz file
-  if (!ARCHIVE_EXTS.every((ext) => request.uri.endsWith(ext))) {
+  if (ARCHIVE_EXTS.every((ext) => !request.uri.endsWith(ext))) {
     if (acceptsEncoding(headers, 'br')) {
       request.uri += '.br'
     } else if (acceptsEncoding(headers, 'gzip')) {
