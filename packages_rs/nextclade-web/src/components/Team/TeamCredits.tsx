@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { shuffle } from 'lodash'
 import React, { useMemo } from 'react'
+import dynamic from 'next/dynamic'
 
 import { Col, Row } from 'reactstrap'
 import { Maintainer } from 'src/components/Team/TeamCreditsMaintainer'
@@ -81,7 +82,7 @@ const maintainers: MaintainerInfo[] = [
 
 export const contributors = getContributors()
 
-export function TeamCredits() {
+function TeamCreditsAsync() {
   const maintainerComponents = useMemo(
     () => shuffle(maintainers).map((maintainer) => <Maintainer key={maintainer.name} maintainer={maintainer} />),
     [],
@@ -125,3 +126,5 @@ export function TeamCredits() {
     </Row>
   )
 }
+
+export const TeamCredits = dynamic(() => Promise.resolve(TeamCreditsAsync), { ssr: false })

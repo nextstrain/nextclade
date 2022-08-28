@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
@@ -59,7 +60,7 @@ const Footer = styled.footer`
   flex-shrink: 0;
 `
 
-export function ResultsPage() {
+function ResultsPageAsync() {
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
 
   return (
@@ -106,3 +107,5 @@ export function ResultsPage() {
     </LayoutResults>
   )
 }
+
+export const ResultsPage = dynamic(() => Promise.resolve(ResultsPageAsync), { ssr: false })
