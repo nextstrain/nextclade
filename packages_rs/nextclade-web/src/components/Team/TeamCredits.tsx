@@ -14,7 +14,7 @@ import { getContributors } from 'src/io/getContributors'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import type { MaintainerInfo } from 'src/components/Team/TeamCreditsMaintainer'
 import { TeamCreditsContributor } from 'src/components/Team/TeamCreditsContributor'
-import NextstrainLogo from 'src/assets/img/nextstrain_logo.svg'
+import { ReactComponent as NextstrainLogo } from 'src/assets/img/nextstrain_logo.svg'
 import { FlexCol, FlexContributors, TeamCreditsH1 } from './TeamCreditsStyles'
 
 const maintainers: MaintainerInfo[] = [

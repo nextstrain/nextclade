@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useTranslation } from 'react-i18next'
 
-import LogoNextstrain from 'src/assets/img/nextstrain_logo.svg'
+import { ReactComponent as LogoNextstrain } from 'src/assets/img/nextstrain_logo.svg'
 import styled from 'styled-components'
 
 const Container = styled.div`
