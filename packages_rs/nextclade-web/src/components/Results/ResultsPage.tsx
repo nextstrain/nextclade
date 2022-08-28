@@ -60,7 +60,7 @@ const Footer = styled.footer`
   flex-shrink: 0;
 `
 
-function ResultsPageAsync() {
+export default function ResultsPage() {
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
 
   return (
@@ -107,5 +107,3 @@ function ResultsPageAsync() {
     </LayoutResults>
   )
 }
-
-export const ResultsPage = dynamic(() => Promise.resolve(ResultsPageAsync), { ssr: false })

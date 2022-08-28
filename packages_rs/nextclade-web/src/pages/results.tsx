@@ -1,1 +1,5 @@
-export { ResultsPage as default } from 'src/components/Results/ResultsPage'
+import dynamic from 'next/dynamic'
+
+const ResultsPage = dynamic(() => import('src/components/Results/ResultsPage'), { ssr: false })
+
+export default ResultsPage
