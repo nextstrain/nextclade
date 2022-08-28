@@ -12,7 +12,7 @@ const MainInputForm = dynamic(() => import('src/components/Main/MainInputForm'),
 
 const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
   width: 100%;
-  height: 100%;
+  height: 822px;
   display: flex;
 `
 
