@@ -43,10 +43,10 @@ export function MainPage() {
     <LayoutMain>
       <MainSectionTitle />
       <Suspense fallback={fallback}>
+        <MainSectionInfo />
+        <TeamCredits />
         <MainInputForm />
       </Suspense>
-      <MainSectionInfo />
-      <TeamCredits />
     </LayoutMain>
   )
 }
