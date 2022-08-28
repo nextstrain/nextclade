@@ -35,8 +35,7 @@ const LinkExternal = styled(LinkExternalBase)`
 
 const Portrait = styled.img`
   margin: auto;
-  width: 66px;
-  border-radius: 50px;
+  border-radius: ${(props) => props.width}px;
 `
 
 const NameText = styled.h2`
@@ -54,7 +53,7 @@ export function TeamCreditsContributor({ contributor }: ContributorProps) {
     <FlexOuter>
       <FlexInner>
         <LinkExternal title={contributor.name} href={contributor.profile} alt={contributor.profile}>
-          <Portrait src={contributor.avatar_url} />
+          <Portrait src={contributor.avatar_url} loading="lazy" width={66} height={66} />
           <NameText>{contributor.name}</NameText>
         </LinkExternal>
       </FlexInner>
