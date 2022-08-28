@@ -7,7 +7,7 @@ import { LayoutMain } from 'src/components/Layout/LayoutMain'
 import { MainSectionInfo } from 'src/components/Main/MainSectionInfo'
 
 const MainInputForm = dynamic(() => import('src/components/Main/MainInputForm'), { ssr: false })
-const SectionInfo = dynamic(() => import('src/components/Main/MainSectionTitle'), { ssr: false })
+const MainSectionTitle = dynamic(() => import('src/components/Main/MainSectionTitle'), { ssr: false })
 const TeamCredits = dynamic(() => import('src/components/Team/TeamCredits'), { ssr: false })
 
 const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
