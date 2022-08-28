@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
