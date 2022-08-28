@@ -6,7 +6,7 @@ import { notUndefined } from 'src/helpers/notUndefined'
 import type { AminoacidSubstitution, NextcladeResult } from 'src/algorithms/types'
 import { splitFilterString } from './splitFilterString'
 
-export function aminoacidChangesAreEqual(filter: Partial<AminoacidSubstitution>, actual: AminoacidSubstitution) {
+export function aminoacidChangesAreEqual(actual: AminoacidSubstitution, filter: Partial<AminoacidSubstitution>) {
   const geneMatch = isNil(filter.gene) || (filter.gene ?? '').toLowerCase() === actual.gene.toLowerCase()
   const posMatch = isNil(filter.codon) || (filter.codon ?? -1) === actual.codon
   const refNucMatch = isNil(filter.refAA) || (filter.refAA ?? '').toLowerCase() === (actual.refAA ?? '').toLowerCase()
@@ -33,6 +33,6 @@ export function filterByAminoacidChanges(aaFilter: string) {
     // We want to search for both, the substitutions and deletions
     const aaChanges = [...aaSubstitutions, ...aaDeletionsLikeSubstitutions]
 
-    return intersectionWith(aaFilters, aaChanges, aminoacidChangesAreEqual).length > 0
+    return intersectionWith(aaChanges, aaFilters, aminoacidChangesAreEqual).length > 0
   }
 }
