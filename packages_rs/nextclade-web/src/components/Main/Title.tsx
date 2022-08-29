@@ -73,7 +73,7 @@ const LetterSpan = styled.span<{ pos: number }>`
 
 export function Title() {
   return (
-    <span>
+    <span className="mx-auto">
       <TitleH1>
         {'Nextclade'.split('').map((letter, i) => (
           // eslint-disable-next-line react/no-array-index-key

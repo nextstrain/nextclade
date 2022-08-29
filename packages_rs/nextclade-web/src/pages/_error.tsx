@@ -5,7 +5,7 @@ import get from 'lodash/get'
 
 import { ErrorContent } from 'src/components/Error/ErrorContent'
 import { ErrorContentExplanation } from 'src/components/Error/ErrorContentExplanation'
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { useReloadPage } from 'src/hooks/useReloadPage'
@@ -74,7 +74,7 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
   }, [error])
 
   return (
-    <LayoutResults>
+    <Layout>
       <MainContent>
         <MainSectionTitle />
 
@@ -106,7 +106,7 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
           </Col>
         </Row>
       </MainContent>
-    </LayoutResults>
+    </Layout>
   )
 }
 

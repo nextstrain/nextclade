@@ -1,52 +1,34 @@
-import React, { HTMLProps, Suspense, useMemo } from 'react'
+import React, { Suspense, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { ThreeDots } from 'react-loader-spinner'
 
-import { LayoutMain } from 'src/components/Layout/LayoutMain'
-import { MainSectionInfo } from 'src/components/Main/MainSectionInfo'
-import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
-import { TeamCredits } from 'src/components/Team/TeamCredits'
+import { Layout } from 'src/components/Layout/Layout'
+import Loading from 'src/components/Loading/Loading'
 
 const MainInputForm = dynamic(() => import('src/components/Main/MainInputForm'), { ssr: false })
 
-const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
-  width: 100%;
-  height: 100%;
+const SpinnerWrapper = styled.div`
   display: flex;
-`
-
-const SpinnerWrapperInternal = styled.div`
+  flex-direction: row;
   margin: auto;
 `
 
-const Spinner = styled(ThreeDots)`
-  flex: 1;
-  margin: auto;
-  height: 100%;
-`
-
-function Loading() {
+function SuspenseFallback() {
   return (
     <SpinnerWrapper>
-      <SpinnerWrapperInternal>
-        <Spinner color="#aaa" width={20} height={20} />
-      </SpinnerWrapperInternal>
+      <Loading />
     </SpinnerWrapper>
   )
 }
 
 export function MainPage() {
-  const fallback = useMemo(() => <Loading />, [])
+  const fallback = useMemo(() => <SuspenseFallback />, [])
 
   return (
-    <LayoutMain>
-      <MainSectionTitle />
+    <Layout>
       <Suspense fallback={fallback}>
         <MainInputForm />
       </Suspense>
-      <MainSectionInfo />
-      <TeamCredits />
-    </LayoutMain>
+    </Layout>
   )
 }
