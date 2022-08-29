@@ -6,32 +6,30 @@ import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 
 export const LayoutContainer = styled.div`
-  max-width: 100vw;
-  max-height: 100vh;
-  margin: 0;
-  width: 100%;
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
 `
 
 const Header = styled.header`
-  flex-shrink: 0;
+  flex: 0;
+  width: 100%;
 `
 
 const MainContent = styled.main`
-  flex-grow: 1;
-  flex-basis: 100%;
-  overflow: auto;
-  min-height: 2em;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 `
 
 const Footer = styled.footer`
-  flex-shrink: 0;
+  flex: 0;
+  width: 100%;
 `
 
-export function LayoutResults({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
+export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
     <LayoutContainer>
       <Header>

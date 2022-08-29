@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useState } from 'react'
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, DropdownProps } from 'reactstrap'
 import { useRecoilState } from 'recoil'
@@ -33,10 +34,10 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
 }
 
 export function LanguageSwitcherItem({ locale }: { locale: Locale }) {
-  const { Flag, name } = locale
+  const { flagIconUrl, name } = locale
   return (
     <>
-      <Flag className="language-switcher-flag" />
+      <img src={flagIconUrl} alt={name} className="language-switcher-flag" />
       <span className="pl-2">{name}</span>
     </>
   )

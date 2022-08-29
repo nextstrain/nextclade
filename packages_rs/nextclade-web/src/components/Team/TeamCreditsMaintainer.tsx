@@ -32,7 +32,7 @@ export function Maintainer({ maintainer }: MaintainerProps) {
   )
   return (
     <Flex>
-      <Portrait src={portraitUrl} alt={alt} />
+      <Portrait src={portraitUrl} alt={alt} loading="lazy" width={100} height={100} />
       <NameText>{name}</NameText>
       <AffiliationText>{title}</AffiliationText>
       {affiliationComponents}

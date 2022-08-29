@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { shuffle } from 'lodash'
 import React, { useMemo } from 'react'
+import dynamic from 'next/dynamic'
 
 import { Col, Row } from 'reactstrap'
 import { Maintainer } from 'src/components/Team/TeamCreditsMaintainer'
@@ -13,13 +14,13 @@ import { getContributors } from 'src/io/getContributors'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import type { MaintainerInfo } from 'src/components/Team/TeamCreditsMaintainer'
 import { TeamCreditsContributor } from 'src/components/Team/TeamCreditsContributor'
-import NextstrainLogo from 'src/assets/img/nextstrain_logo.svg'
+import { ReactComponent as NextstrainLogo } from 'src/assets/img/nextstrain_logo.svg'
 import { FlexCol, FlexContributors, TeamCreditsH1 } from './TeamCreditsStyles'
 
 const maintainers: MaintainerInfo[] = [
   {
     name: 'Ivan Aksamentov',
-    portraitUrl: 'https://avatars3.githubusercontent.com/u/9403403?s=400',
+    portraitUrl: 'https://avatars3.githubusercontent.com/u/9403403?v=4&s=100',
     title: 'Senior Software Engineer',
     affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
@@ -33,7 +34,7 @@ const maintainers: MaintainerInfo[] = [
   },
   {
     name: 'Richard Neher',
-    portraitUrl: 'https://avatars3.githubusercontent.com/u/8379168?s=400',
+    portraitUrl: 'https://avatars3.githubusercontent.com/u/8379168?v=4&s=100',
     title: 'Principal Investigator',
     affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
@@ -59,7 +60,7 @@ const maintainers: MaintainerInfo[] = [
   },
   {
     name: 'Cornelius Roemer',
-    portraitUrl: 'https://avatars1.githubusercontent.com/u/25161793?v=4',
+    portraitUrl: 'https://avatars1.githubusercontent.com/u/25161793?v=4&s=100',
     title: 'Staff Scientist',
     affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
@@ -81,7 +82,7 @@ const maintainers: MaintainerInfo[] = [
 
 export const contributors = getContributors()
 
-export function TeamCredits() {
+function TeamCreditsAsync() {
   const maintainerComponents = useMemo(
     () => shuffle(maintainers).map((maintainer) => <Maintainer key={maintainer.name} maintainer={maintainer} />),
     [],
@@ -125,3 +126,5 @@ export function TeamCredits() {
     </Row>
   )
 }
+
+export const TeamCredits = dynamic(() => Promise.resolve(TeamCreditsAsync), { ssr: false })

@@ -140,6 +140,7 @@ module.exports = {
     'security/detect-non-literal-fs-filename': 'off',
     'security/detect-object-injection': 'off',
     'sonarjs/cognitive-complexity': ['warn', 20],
+    'spaced-comment': 'off',
     'unicorn/consistent-function-scoping': 'off',
     'unicorn/escape-case': 'off',
     'unicorn/filename-case': 'off',

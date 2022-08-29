@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
@@ -7,7 +8,7 @@ import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 
 import type { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 import { ButtonBack } from 'src/components/Results/ButtonBack'
 import { Tree } from './Tree'
@@ -85,6 +86,7 @@ const LogoGisaid = styled(LogoGisaidBase)`
 
 export interface TreePageProps {
   treeMeta?: AuspiceMetadata
+  loaded?: boolean
 }
 
 const mapStateToProps = (state: State) => ({
@@ -94,13 +96,20 @@ const mapStateToProps = (state: State) => ({
 export const TreePage = connect(mapStateToProps, null)(TreePageDisconnected)
 
 function TreePageDisconnected({ treeMeta }: TreePageProps) {
+  const router = useRouter()
+  const hasData = useMemo(() => treeMeta?.loaded, [treeMeta])
   const isDataFromGisaid = useMemo(
     () => treeMeta?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
     [treeMeta],
   )
 
+  if (!hasData) {
+    void router.replace('/') // eslint-disable-line no-void
+    return null
+  }
+
   return (
-    <LayoutResults>
+    <Layout>
       <Container>
         <Header>
           <HeaderLeft>
@@ -133,7 +142,7 @@ function TreePageDisconnected({ treeMeta }: TreePageProps) {
           </AuspiceContainer>
         </MainContent>
       </Container>
-    </LayoutResults>
+    </Layout>
   )
 }
 

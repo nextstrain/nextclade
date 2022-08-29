@@ -1,4 +1,4 @@
-@use "sass:map";
+@use 'sass:map';
 
 @import '~typeface-lato/index.css';
 @import './font-family-system';
@@ -18,10 +18,6 @@
 html,
 body {
   height: 100%;
-}
-
-html {
-  overflow-y: auto;
 }
 
 body {

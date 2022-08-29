@@ -1,5 +1,3 @@
-import { ElementType, FC } from 'react'
-
 import type { StrictOmit } from 'ts-essentials'
 import { mapValues } from 'lodash'
 
@@ -50,20 +48,20 @@ export interface Locale {
   readonly key: LocaleKey
   readonly full: string
   readonly name: string
-  readonly Flag: ElementType
+  readonly flagIconUrl: string
 }
 
 export const locales: Record<LocaleKey, Locale> = {
-  en: { key: 'en', full: 'en-US', name: languages.en.native, Flag: GB as FC },
-  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.native, Flag: SA as FC },
-  de: { key: 'de', full: 'de-DE', name: languages.de.native, Flag: DE as FC },
-  es: { key: 'es', full: 'es-ES', name: languages.es.native, Flag: ES as FC },
-  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, Flag: FR as FC },
-  it: { key: 'it', full: 'it-IT', name: languages.it.native, Flag: IT as FC },
-  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, Flag: KR as FC },
-  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, Flag: PT as FC },
-  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, Flag: RU as FC },
-  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.native, Flag: CN as FC },
+  en: { key: 'en', full: 'en-US', name: languages.en.native, flagIconUrl: GB as string },
+  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.native, flagIconUrl: SA as string },
+  de: { key: 'de', full: 'de-DE', name: languages.de.native, flagIconUrl: DE as string },
+  es: { key: 'es', full: 'es-ES', name: languages.es.native, flagIconUrl: ES as string },
+  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, flagIconUrl: FR as string },
+  it: { key: 'it', full: 'it-IT', name: languages.it.native, flagIconUrl: IT as string },
+  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, flagIconUrl: KR as string },
+  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, flagIconUrl: PT as string },
+  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, flagIconUrl: RU as string },
+  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.native, flagIconUrl: CN as string },
 } as const
 
 export const localeKeys = Object.keys(locales)

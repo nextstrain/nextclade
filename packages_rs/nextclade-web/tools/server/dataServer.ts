@@ -14,7 +14,7 @@ import type { ServerResponse } from 'http'
 import path from 'path'
 
 import express from 'express'
-
+import compression from 'compression'
 import allowMethods from 'allow-methods'
 import history from 'connect-history-api-fallback'
 import expressStaticGzip from 'express-static-gzip'
@@ -35,6 +35,8 @@ export interface NewHeaders {
 
 function main() {
   const app = express()
+
+  app.use(compression())
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     const newHeaders = modifyHeaders({ request: req, response: res }) as NewHeaders

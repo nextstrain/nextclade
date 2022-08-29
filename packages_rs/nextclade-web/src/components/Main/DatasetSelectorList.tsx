@@ -7,7 +7,7 @@ import type { Dataset } from 'src/algorithms/types'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
-export const DatasetSelectorContainer = styled.div`
+export const DatasetSelectorListContainer = styled.div`
   flex: 1 0 100%;
   display: flex;
   flex-direction: column;
@@ -18,23 +18,11 @@ export const DatasetSelectorContainer = styled.div`
 `
 
 export const DatasetSelectorUl = styled(ListGroup)`
-  flex: 1;
-  overflow-y: scroll;
-
-  // prettier-ignore
-  background:
-    linear-gradient(#eaeaea 25%, rgba(255,255,255, 0)),
-    linear-gradient(rgba(255,255,255, 0), #eaeaea 90%) 0 100%,
-    radial-gradient(farthest-side at 50% 0, rgba(100,100,100, 0.25), rgba(0,0,0,0)),
-    radial-gradient(farthest-side at 50% 100%, rgba(100,100,100, 0.25), rgba(0,0,0,0)) 0 100%;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-attachment: local, local, scroll, scroll;
-  background-size: 100% 70px, 100% 70px, 100% 30px, 100% 30px;
+  flex: 0 1 100%;
+  overflow-y: auto;
 `
 
 export const DatasetSelectorLi = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
-  list-style: none;
   margin: 0;
   padding: 0.5rem;
   cursor: pointer;
@@ -88,31 +76,29 @@ export function DatasetSelectorList({
   }, [datasets, searchTerm])
 
   return (
-    <DatasetSelectorContainer>
-      <DatasetSelectorUl>
-        {[itemsStartWith, itemsInclude].map((datasets) =>
-          datasets.map((dataset) => (
-            <DatasetSelectorListItem
-              key={dataset.attributes.name.value}
-              dataset={dataset}
-              onClick={onItemClick(dataset)}
-              isCurrent={dataset.attributes.name.value === datasetHighlighted}
-            />
-          )),
-        )}
+    <DatasetSelectorUl>
+      {[itemsStartWith, itemsInclude].map((datasets) =>
+        datasets.map((dataset) => (
+          <DatasetSelectorListItem
+            key={dataset.attributes.name.value}
+            dataset={dataset}
+            onClick={onItemClick(dataset)}
+            isCurrent={dataset.attributes.name.value === datasetHighlighted}
+          />
+        )),
+      )}
 
-        {[itemsNotInclude].map((datasets) =>
-          datasets.map((dataset) => (
-            <DatasetSelectorListItem
-              key={dataset.attributes.name.value}
-              dataset={dataset}
-              onClick={onItemClick(dataset)}
-              isCurrent={dataset.attributes.name.value === datasetHighlighted}
-              isDimmed
-            />
-          )),
-        )}
-      </DatasetSelectorUl>
-    </DatasetSelectorContainer>
+      {[itemsNotInclude].map((datasets) =>
+        datasets.map((dataset) => (
+          <DatasetSelectorListItem
+            key={dataset.attributes.name.value}
+            dataset={dataset}
+            onClick={onItemClick(dataset)}
+            isCurrent={dataset.attributes.name.value === datasetHighlighted}
+            isDimmed
+          />
+        )),
+      )}
+    </DatasetSelectorUl>
   )
 }

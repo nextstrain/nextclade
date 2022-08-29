@@ -72,8 +72,7 @@ export const AffiliationText = styled.small`
 
 export const Portrait = styled.img`
   margin: 0 auto;
-  width: 100px;
-  border-radius: 100px;
+  border-radius: ${(props) => props.width}px;
 `
 
 export const FlexContributors = styled.section`

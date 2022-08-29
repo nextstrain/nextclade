@@ -11,9 +11,10 @@ export default function withSvg(nextConfig: NextConfig) {
         loader: '@svgr/webpack',
         options: {
           removeViewbox: false,
-          typescript: false,
+          typescript: true,
         },
       },
+      'url-loader',
     ],
   }))
 }

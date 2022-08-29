@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react'
 
 import styled from 'styled-components'
 
-import GisaidLogoBase from 'src/assets/img/gisaid-logo.svg'
+import { ReactComponent as GisaidLogoBase } from 'src/assets/img/gisaid-logo.svg'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
 export interface LogoGisaidProps {

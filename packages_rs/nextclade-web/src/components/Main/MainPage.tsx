@@ -1,19 +1,34 @@
-import React from 'react'
+import React, { Suspense, useMemo } from 'react'
+import dynamic from 'next/dynamic'
+import styled from 'styled-components'
 
-import { LayoutMain } from 'src/components/Layout/LayoutMain'
+import { Layout } from 'src/components/Layout/Layout'
+import Loading from 'src/components/Loading/Loading'
 
-import { MainInputForm } from 'src/components/Main/MainInputForm'
-import { MainSectionInfo } from 'src/components/Main/MainSectionInfo'
-import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
-import { TeamCredits } from 'src/components/Team/TeamCredits'
+const MainInputForm = dynamic(() => import('src/components/Main/MainInputForm'), { ssr: false })
+
+const SpinnerWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  margin: auto;
+`
+
+function SuspenseFallback() {
+  return (
+    <SpinnerWrapper>
+      <Loading />
+    </SpinnerWrapper>
+  )
+}
 
 export function MainPage() {
+  const fallback = useMemo(() => <SuspenseFallback />, [])
+
   return (
-    <LayoutMain>
-      <MainSectionTitle />
-      <MainInputForm />
-      <MainSectionInfo />
-      <TeamCredits />
-    </LayoutMain>
+    <Layout>
+      <Suspense fallback={fallback}>
+        <MainInputForm />
+      </Suspense>
+    </Layout>
   )
 }

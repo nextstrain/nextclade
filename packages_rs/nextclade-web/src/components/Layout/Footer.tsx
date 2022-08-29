@@ -9,14 +9,12 @@ import { getCopyrightYearRange } from 'src/helpers/getCopyrightYearRange'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { getVersionString } from 'src/helpers/getVersionString'
 
-import LogoBedfordlab from 'src/assets/img/bedfordlab.svg'
-import LogoBiozentrum from 'src/assets/img/biozentrum_square.svg'
-import LogoSib from 'src/assets/img/sib.logo.svg'
-import LogoFredHutch from 'src/assets/img/fred_hutch.svg'
-import LogoNeherlab from 'src/assets/img/neherlab.svg'
-// impoas from from 'src/assets/img/nextstrain_logo.svg'
-// impoas from from 'src/assets/img/unibas.svg'
-import LogoVercel from 'src/assets/img/powered-by-vercel.svg'
+import { ReactComponent as LogoBedfordlab } from 'src/assets/img/bedfordlab.svg'
+import { ReactComponent as LogoBiozentrum } from 'src/assets/img/biozentrum_square.svg'
+import { ReactComponent as LogoSib } from 'src/assets/img/sib.logo.svg'
+import { ReactComponent as LogoFredHutch } from 'src/assets/img/fred_hutch.svg'
+import { ReactComponent as LogoNeherlab } from 'src/assets/img/neherlab.svg'
+import { ReactComponent as LogoVercel } from 'src/assets/img/powered-by-vercel.svg'
 
 const FooterContainer = styled(Container)`
   background-color: #2a2a2a;
