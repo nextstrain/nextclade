@@ -9,22 +9,23 @@ import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { useReloadPage } from 'src/hooks/useReloadPage'
+import { device } from 'src/theme'
 import styled from 'styled-components'
 
 export const Container = styled(ContainerBase)`
   max-height: 100vh;
   height: 100%;
-  max-width: ${(props) => props.theme.xl};
+  max-width: ${device.laptopL};
   margin: 0 auto;
   display: flex;
   flex-direction: column;
 
-  @media (max-width: 991.98px) {
+  @media ${device.laptop} {
     padding-left: 10px;
     padding-right: 10px;
   }
 
-  @media (max-width: 767.98px) {
+  @media ${device.tablet} {
     padding-left: 5px;
     padding-right: 5px;
   }

@@ -2,21 +2,22 @@ import { rgba } from 'polished'
 
 import { sidebarTheme as auspiceSidebarTheme } from 'auspice/src/components/main/styles'
 
-const gridBreakpoints = {
-  xs: '0',
-  sm: '576px',
-  md: '768px',
-  lg: '992px',
-  xl: '1200px',
-  xxl: '2000px',
+const deviceWidth = {
+  /* xs  */ mobile: '575.98px',
+  /* sm  */ tablet: '767.98px',
+  /* md  */ laptop: '1023.98px',
+  /* lg  */ laptopL: '1439.98px',
+  /* xl  */ desktop: '1919.98px',
+  /* xxl */ desktopL: '2559.98px',
 }
 
-const containerMaxWidths = {
-  sm: '540px',
-  md: '720px',
-  lg: '960px',
-  xl: '1140px',
-  xxl: '1950px',
+export const device = {
+  mobile: `(max-width: ${deviceWidth.mobile})`,
+  tablet: `(max-width: ${deviceWidth.tablet})`,
+  laptop: `(max-width: ${deviceWidth.laptop})`,
+  laptopL: `(max-width: ${deviceWidth.laptopL})`,
+  desktop: `(max-width: ${deviceWidth.desktop})`,
+  desktopL: `(max-width: ${deviceWidth.desktopL})`,
 }
 
 export const transparent = '#ffffff00'
@@ -156,8 +157,7 @@ export const theme = {
   ...auspiceSidebarTheme,
   ...basicColors,
   ...themeColors,
-  ...gridBreakpoints,
-  containerMaxWidths,
+  ...device,
   font,
   shadows,
   filePicker,

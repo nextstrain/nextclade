@@ -1,4 +1,5 @@
 import React from 'react'
+import { device } from 'src/theme'
 
 import styled from 'styled-components'
 
@@ -16,14 +17,30 @@ const TitleH1 = styled.h1`
   margin-bottom: 0px;
   font-weight: 300;
   letter-spacing: -1px;
-  font-size: 6rem;
+  font-size: 5rem;
 
-  @media (max-width: 767.98px) {
-    font-size: 5rem;
+  @media ${device.desktopL} {
+    font-size: 4.5rem;
   }
 
-  @media (max-width: 576px) {
+  @media ${device.desktop} {
+    font-size: 3.75rem;
+  }
+
+  @media ${device.laptopL} {
     font-size: 3.5rem;
+  }
+
+  @media ${device.laptop} {
+    font-size: 3.25rem;
+  }
+
+  @media ${device.tablet} {
+    font-size: 3rem;
+  }
+
+  @media ${device.mobile} {
+    font-size: 2.75rem;
   }
 `
 
@@ -31,15 +48,22 @@ const VersionNumberBadge = styled.p`
   display: inline;
   font-size: 0.85rem;
   color: #7b838a;
+  left: -35px;
 
-  @media (max-width: 767.98px) {
-    left: -35px;
+  @media ${device.desktop} {
     font-size: 0.8rem;
   }
 
-  @media (max-width: 576px) {
-    left: -30px;
-    font-size: 0.75rem;
+  @media ${device.laptop} {
+    font-size: 0.7rem;
+  }
+
+  @media ${device.tablet} {
+    font-size: 0.6rem;
+  }
+
+  @media ${device.mobile} {
+    font-size: 0.5rem;
   }
 `
 
@@ -68,15 +92,27 @@ export const Subtitle = styled.p`
   font-size: 2rem;
   font-weight: 300;
 
-  @media (max-width: 991.98px) {
+  @media ${device.desktopL} {
     font-size: 1.5rem;
   }
 
-  @media (max-width: 767.98px) {
+  @media ${device.desktop} {
+    font-size: 1.33rem;
+  }
+
+  @media ${device.laptopL} {
+    font-size: 1.25rem;
+  }
+
+  @media ${device.laptop} {
     font-size: 1.2rem;
   }
 
-  @media (max-width: 576px) {
+  @media ${device.tablet} {
+    font-size: 1.1rem;
+  }
+
+  @media ${device.mobile} {
     font-size: 1rem;
   }
 `
