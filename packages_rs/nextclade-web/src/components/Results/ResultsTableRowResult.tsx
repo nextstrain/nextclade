@@ -26,6 +26,7 @@ import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
+import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 
 export interface ResultsTableRowResultProps {
   index: number
@@ -119,6 +120,10 @@ export function ResultsTableRowResult({
 
       <TableCell basis={columnWidthsPx.ns} grow={0} shrink={0}>
         <ColumnMissing analysisResult={analysisResult} />
+      </TableCell>
+
+      <TableCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
+        <ColumnCoverage analysisResult={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.gaps} grow={0} shrink={0}>

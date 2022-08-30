@@ -6,6 +6,7 @@ export enum SortCategory {
   seqName = 'seqName',
   clade = 'clade',
   qcIssues = 'qcIssues',
+  coverage = 'coverage',
   totalMutations = 'totalMutations',
   totalNonACGTNs = 'totalNonACGTNs',
   totalMissing = 'totalMissing',
@@ -69,6 +70,10 @@ export function sortByClade(results: NextcladeResult[], direction: SortDirection
   const [succeeded, rest] = partition(results, (result) => !!result.result)
   const succeededSorted = orderBy(succeeded, getClade, direction)
   return [...succeededSorted, ...rest]
+}
+
+export function sortByCoverage(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(results, (result) => result.result?.analysisResult.coverage ?? defaultNumber(direction), direction)
 }
 
 export function sortByMutations(results: NextcladeResult[], direction: SortDirection) {
@@ -150,6 +155,9 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
 
     case SortCategory.clade:
       return sortByClade(results, direction)
+
+    case SortCategory.coverage:
+      return sortByCoverage(results, direction)
 
     case SortCategory.totalMutations:
       return sortByMutations(results, direction)

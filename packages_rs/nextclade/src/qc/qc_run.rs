@@ -1,4 +1,3 @@
-use crate::align::backtrace::AlignmentOutput;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
@@ -10,7 +9,6 @@ use crate::qc::qc_rule_snp_clusters::{rule_snp_clusters, QcResultSnpClusters};
 use crate::qc::qc_rule_stop_codons::{rule_stop_codons, QcResultStopCodons};
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use eyre::Report;
 use num::traits::Pow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
