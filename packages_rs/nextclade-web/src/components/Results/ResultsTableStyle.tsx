@@ -9,7 +9,7 @@ export const HEADER_ROW_HEIGHT = 75
 
 export const HEADER_ROW_CONTENT_HEIGHT = 60
 
-export const DYNAMIC_COLUMN_WIDTH = 70
+export const DYNAMIC_COLUMN_WIDTH = 85
 
 export const COLUMN_WIDTHS = {
   id: 45,
@@ -18,7 +18,7 @@ export const COLUMN_WIDTHS = {
   clade: 110,
   coverage: 50,
   mut: 50,
-  nonACGTN: 55,
+  nonACGTN: 60,
   ns: 50,
   gaps: 50,
   insertions: 50,
