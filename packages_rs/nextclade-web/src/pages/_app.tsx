@@ -1,4 +1,5 @@
-import 'reflect-metadata'
+import 'core-js/features/object/from-entries'
+import 'core-js/features/object/has-own'
 
 import 'css.escape'
 

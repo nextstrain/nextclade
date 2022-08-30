@@ -4,7 +4,6 @@ import path from 'path'
 import { uniq } from 'lodash'
 
 import getWithMDX from '@next/mdx'
-import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
 import intercept from 'intercept-stdout'
 
@@ -17,7 +16,6 @@ import { getEnvVars } from './lib/getEnvVars'
 
 import getWithExtraWatch from './withExtraWatch'
 import getWithFriendlyConsole from './withFriendlyConsole'
-import getWithLodash from './withLodash'
 import withRaw from './withRaw'
 import { getWithRobotsTxt } from './withRobotsTxt'
 import getWithTypeChecking from './withTypeChecking'
@@ -75,12 +73,16 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 60 * 1000,
     pagesBufferLength: 2,
   },
-  modern: false,
   reactStrictMode: false,
-  reactRoot: true,
   experimental: {
-    reactRoot: true,
+    legacyBrowsers: false,
+    browsersListForSwc: true,
     scrollRestoration: true,
+    modularizeImports: {
+      lodash: {
+        transform: 'lodash/{{member}}',
+      },
+    },
   },
   swcMinify: true,
   productionBrowserSourceMaps: ENABLE_SOURCE_MAPS,
@@ -144,8 +146,6 @@ const withExtraWatch = getWithExtraWatch({
   dirs: [],
 })
 
-const withLodash = getWithLodash({ unicode: false })
-
 const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
   eslint: ENABLE_ESLINT,
@@ -162,34 +162,35 @@ const transpilationListProd = uniq([
   // prettier-ignore
   ...transpilationListDev,
   'debug',
-  'lodash',
+  'fasy',
+  'recoil',
   'semver',
+  'threads',
+  // 'lodash',
 ])
 
 const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
 
 const withRobotsTxt = getWithRobotsTxt(`User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`)
 
-const config = withPlugins(
-  [
-    [withIgnore],
-    [withExtraWatch],
-    [withSvg],
-    [withFriendlyConsole],
-    [withMDX],
-    [withLodash],
-    [withTypeChecking],
-    [withTranspileModules],
-    PROFILE && [withoutMinification],
-    [withFriendlyChunkNames],
-    [withRaw],
-    [withResolve],
-    [withRobotsTxt],
-    [withUrlAsset],
-    [withWasm],
-    PRODUCTION && [withoutDebugPackage],
-  ].filter(Boolean),
-  nextConfig,
-)
-
-export default config
+export default function config() {
+  const plugins = [
+    withIgnore,
+    withExtraWatch,
+    withSvg,
+    withFriendlyConsole,
+    withMDX,
+    withTypeChecking,
+    withTranspileModules,
+    // PROFILE &&
+    withoutMinification,
+    withFriendlyChunkNames,
+    withRaw,
+    withResolve,
+    withRobotsTxt,
+    withUrlAsset,
+    withWasm,
+    PRODUCTION && withoutDebugPackage,
+  ].filter(Boolean)
+  return plugins.reduce((acc, plugin) => plugin(acc), { ...nextConfig })
+}

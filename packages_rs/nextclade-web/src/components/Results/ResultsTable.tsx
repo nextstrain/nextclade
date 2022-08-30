@@ -220,7 +220,7 @@ export function ResultsTable() {
         </TableHeaderCell>
 
         {dynamicColumns}
-        
+
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{t('Mut.')}</TableCellText>
@@ -250,7 +250,7 @@ export function ResultsTable() {
             <HelpTipsColumnMissing />
           </ButtonHelpStyled>
         </TableHeaderCell>
-        
+
         <TableHeaderCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{t('Cov.')}</TableCellText>
