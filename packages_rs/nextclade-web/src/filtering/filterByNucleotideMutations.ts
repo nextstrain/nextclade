@@ -1,4 +1,4 @@
-import { intersectionWith } from 'lodash'
+import { intersectionWith, isNil } from 'lodash'
 
 import type { NextcladeResult } from 'src/algorithms/types'
 import { parseMutation } from 'src/helpers/parseMutation'
@@ -8,9 +8,10 @@ import { NucleotideSubstitution } from 'src/algorithms/types'
 import { splitFilterString } from './splitFilterString'
 
 export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actual: NucleotideSubstitution) {
-  const posMatch = filter.pos === undefined || filter.pos === actual.pos
-  const refNucMatch = filter.refNuc === undefined || filter.refNuc.toLowerCase() === actual.refNuc.toLowerCase()
-  const queryNucMatch = filter.queryNuc === undefined || filter.queryNuc.toLowerCase() === actual.queryNuc.toLowerCase()
+  const posMatch = isNil(filter.pos) || (filter.pos ?? -1) === actual.pos
+  const refNucMatch = isNil(filter.refNuc) || (filter.refNuc ?? '').toLowerCase() === actual.refNuc.toLowerCase()
+  const queryNucMatch =
+    isNil(filter.queryNuc) || (filter.queryNuc ?? '').toLowerCase() === actual.queryNuc.toLowerCase()
   return posMatch && refNucMatch && queryNucMatch
 }
 
