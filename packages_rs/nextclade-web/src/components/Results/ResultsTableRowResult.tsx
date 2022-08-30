@@ -110,10 +110,6 @@ export function ResultsTableRowResult({
         </TableCellAlignedLeft>
       ))}
 
-      <TableCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
-        <ColumnCoverage analysisResult={analysisResult} />
-      </TableCell>
-
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
         <ColumnMutations analysisResult={analysisResult} />
       </TableCell>
@@ -124,6 +120,10 @@ export function ResultsTableRowResult({
 
       <TableCell basis={columnWidthsPx.ns} grow={0} shrink={0}>
         <ColumnMissing analysisResult={analysisResult} />
+      </TableCell>
+
+      <TableCell basis={columnWidthsPx.coverage} grow={0} shrink={0}>
+        <ColumnCoverage analysisResult={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.gaps} grow={0} shrink={0}>
