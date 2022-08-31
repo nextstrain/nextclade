@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## Nextclade CLI 2.5.0, Nextclade Web 2.5.0 (2022-08-31)
+
+### **Feature (CLI, Web)**: Coverage analysis
+
+Nextclade now emits "coverage" metric which shows the portion of nucleotides in the alignment range being non-N and non-ambiguous, compared to the length of the reference sequence:
+
+```
+coverage = ((alignment_end - alignment_start) - total_missing - total_non_acgtns) / ref_len;
+```
+
+The metric is displayed as a percentage in the "Cov." column of Nextclade Web, and emitted into JSON, NDJSON, CSV and TSV outputs of Nextclade CLI and Web in the "coverage" field or column.
+
+### **Feature (Web)**: Display machine-readable dataset names
+
+Dataset selector on the main page of Nextclade Web now additionally shows machine-readable dataset name. This can help advanced Web users to put correct dataset name into the URL parameters, and CLI users to find the correct dataset name for downloads.
+
+### **Feat (Web)**: Compact results table
+
+We made some of the columns in results table of Nextclade Web narowwer to make user experience a little better on laptops. When possible, for optimal experience, we still recommend to use 1080p displays or larger.
+
+### **Fix (Web)**: Crashes when using filtering panel
+
+Users reported intermittent crashes of Nextclade Web when entering values in the filtering panel on results page of Nextclade Web. This have been fixed now. If you stil have problems, please submit an issue in our GitHub repository.
+
+
 ## Nextclade Web 2.4.2 (2022-08-27)
 
 ### **Fix (Web)**: download links on main page
