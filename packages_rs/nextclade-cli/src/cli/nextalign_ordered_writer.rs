@@ -85,6 +85,7 @@ impl<'a> NextalignOrderedWriter<'a> {
           stripped,
           alignment,
           translations,
+          gene_ranges_qry,
           warnings,
           missing_genes,
           is_reverse_complement,

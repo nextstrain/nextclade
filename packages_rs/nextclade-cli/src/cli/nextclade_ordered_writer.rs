@@ -113,7 +113,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
     } = record;
 
     match outputs_or_err {
-      Ok((qry_seq_stripped, translations, nextclade_outputs)) => {
+      Ok((qry_seq_stripped, translations, gene_ranges_qry, nextclade_outputs)) => {
         let NextcladeOutputs {
           warnings,
           insertions,

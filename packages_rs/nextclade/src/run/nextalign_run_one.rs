@@ -3,13 +3,13 @@ use crate::align::insertions_strip::insertions_strip;
 use crate::align::params::AlignPairwiseParams;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
+use crate::translate::coord_map::CoordMap;
+use crate::translate::translate_genes::{get_gene_ranges_qry, translate_genes, Translation, TranslationMap};
 use crate::types::outputs::{NextalignOutputs, PeptideWarning};
 use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::{Either, Itertools};
 use std::collections::HashSet;
-use std::fmt::format;
 
 pub fn nextalign_run_one(
   index: usize,
@@ -26,11 +26,14 @@ pub fn nextalign_run_one(
     Err(report) => Err(report),
 
     Ok(alignment) => {
+      let coord_map_ref = CoordMap::new(ref_seq);
+
       let translations = translate_genes(
         &alignment.qry_seq,
         &alignment.ref_seq,
         ref_peptides,
         gene_map,
+        &coord_map_ref,
         gap_open_close_aa,
         params,
       )?;
@@ -54,6 +57,8 @@ pub fn nextalign_run_one(
         .cloned()
         .collect_vec();
 
+      let gene_ranges_qry = get_gene_ranges_qry(qry_seq, gene_map, &coord_map_ref);
+
       let is_reverse_complement = alignment.is_reverse_complement;
 
       if is_reverse_complement {
@@ -67,6 +72,7 @@ pub fn nextalign_run_one(
         stripped,
         alignment,
         translations,
+        gene_ranges_qry,
         warnings,
         missing_genes,
         is_reverse_complement,

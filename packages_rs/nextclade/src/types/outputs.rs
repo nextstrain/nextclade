@@ -12,7 +12,9 @@ use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
+use crate::utils::range::Range;
 use eyre::Report;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -29,6 +31,7 @@ pub struct NextalignOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
   pub translations: Vec<Translation>,
+  pub gene_ranges_qry: IndexMap<String, Range>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,

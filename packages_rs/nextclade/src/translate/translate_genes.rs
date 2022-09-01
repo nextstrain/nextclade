@@ -3,26 +3,22 @@ use crate::align::insertions_strip::{insertions_strip, Insertion};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
-use crate::gene::gene::{Gene, GeneStrand};
+use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::from_nuc_seq;
 use crate::io::nuc::Nuc;
-use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
-use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashSet};
-use std::ops::Range as StdRange;
+use std::collections::BTreeMap;
 
 /// Results of the translation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -198,11 +194,10 @@ pub fn translate_genes(
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
   gene_map: &GeneMap,
+  coord_map_ref: &CoordMap,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<IndexMap<String, Result<Translation, Report>>, Report> {
-  let coord_map_ref = CoordMap::new(ref_seq);
-
   gene_map
     .iter()
     .map(
@@ -218,7 +213,7 @@ pub fn translate_genes(
           gene,
           ref_peptide,
           gap_open_close_aa,
-          &coord_map_ref,
+          coord_map_ref,
           params,
         );
 
@@ -226,4 +221,25 @@ pub fn translate_genes(
       },
     )
     .collect::<Result<IndexMap<String, Result<Translation, Report>>, Report>>()
+}
+
+/// Retrieves gene ranges in query coordinates (as they appear in the original sequence)
+pub fn get_gene_ranges_qry(qry_seq: &[Nuc], gene_map: &GeneMap, coord_map_ref: &CoordMap) -> IndexMap<String, Range> {
+  let coord_map_qry = CoordMap::new(qry_seq);
+
+  gene_map
+    .iter()
+    .map(|(gene_name, gene)| {
+      let &Gene { start, end, .. } = gene;
+
+      // Gene map contains gene range in reference coordinates (like in ref sequence)
+      let gene_range_ref = Range { begin: start, end };
+      // ...we convert it to alignment coordinates (like in aligned sequences)
+      let gene_range_aln = coord_map_ref.ref_to_aln_range(&gene_range_ref);
+      // ...and then to query coordinates (like in original query sequence)
+      let gene_range_qry = coord_map_qry.aln_to_ref_range(&gene_range_aln);
+
+      (gene_name.clone(), gene_range_qry)
+    })
+    .collect()
 }

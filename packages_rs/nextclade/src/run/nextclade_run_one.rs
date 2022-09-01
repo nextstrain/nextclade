@@ -24,7 +24,9 @@ use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs};
+use crate::utils::range::Range;
 use eyre::Report;
+use indexmap::IndexMap;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -40,11 +42,12 @@ pub fn nextclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report> {
+) -> Result<(Vec<Nuc>, Vec<Translation>, IndexMap<String, Range>, NextcladeOutputs), Report> {
   let NextalignOutputs {
     stripped,
     alignment,
     translations,
+    gene_ranges_qry,
     warnings,
     missing_genes,
     is_reverse_complement,
@@ -165,6 +168,7 @@ pub fn nextclade_run_one(
   Ok((
     stripped.qry_seq,
     translations,
+    gene_ranges_qry,
     NextcladeOutputs {
       index,
       seq_name: seq_name.to_owned(),

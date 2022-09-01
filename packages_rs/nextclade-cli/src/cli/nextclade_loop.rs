@@ -7,6 +7,7 @@ use crate::dataset::dataset_download::{
 };
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
+use indexmap::IndexMap;
 use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
@@ -22,12 +23,13 @@ use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::utils::range::Range;
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
-  pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report>,
+  pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, IndexMap<String, Range>, NextcladeOutputs), Report>,
 }
 
 pub struct DatasetFilePaths {
@@ -243,7 +245,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
       for record in result_receiver {
         if should_keep_outputs {
-          if let Ok((_, _, nextclade_outputs)) = &record.outputs_or_err {
+          if let Ok((_, _, _, nextclade_outputs)) = &record.outputs_or_err {
             outputs.push(nextclade_outputs.clone());
           }
         }

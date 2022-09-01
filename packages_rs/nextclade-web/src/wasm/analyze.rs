@@ -78,7 +78,7 @@ impl NextcladeParams {
 pub struct AnalysisInput {
   #[wasm_bindgen(getter_with_clone)]
   pub qry_index: usize,
-  
+
   #[wasm_bindgen(getter_with_clone)]
   pub qry_seq_name: String,
 
@@ -243,7 +243,7 @@ impl Nextclade {
       &self.gap_open_close_aa,
       &self.aln_params,
     ) {
-      Ok((qry_seq_aligned_stripped, translations, nextclade_outputs)) => {
+      Ok((qry_seq_aligned_stripped, translations, gene_ranges_qry, nextclade_outputs)) => {
         let nextclade_outputs_str =
           json_stringify(&nextclade_outputs).wrap_err("When serializing output results of Nextclade")?;
 
