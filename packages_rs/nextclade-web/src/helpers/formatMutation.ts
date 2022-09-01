@@ -4,7 +4,7 @@ import type {
   AminoacidSubstitution,
   NucleotideSubstitution,
   StopCodonLocation,
-} from 'src/algorithms/types'
+} from 'src/types'
 import { AMINOACID_GAP } from 'src/constants'
 
 export function formatMutation({ pos, queryNuc, refNuc }: NucleotideSubstitution) {

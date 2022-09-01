@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 
-import type { NextcladeResult } from 'src/algorithms/types'
-import { QcStatus } from 'src/algorithms/types'
+import type { NextcladeResult } from 'src/types'
+import { QcStatus } from 'src/types'
 
 export interface QCFilters {
   showGood: boolean

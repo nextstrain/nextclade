@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTheme } from 'styled-components'
 
-import type { AminoacidInsertion } from 'src/algorithms/types'
+import type { AminoacidInsertion } from 'src/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'

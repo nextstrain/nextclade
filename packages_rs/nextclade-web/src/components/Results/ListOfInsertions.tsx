@@ -4,7 +4,7 @@ import { shade } from 'polished'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import type { Aminoacid, AminoacidInsertion, Nucleotide, NucleotideInsertion } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidInsertion, Nucleotide, NucleotideInsertion } from 'src/types'
 import { getTextColor } from 'src/helpers/getTextColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'

@@ -1,4 +1,4 @@
-import type { Aminoacid, AminoacidSubstitution } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidSubstitution } from 'src/types'
 import { ANY } from 'src/constants'
 import { parsePosition } from './parsePosition'
 

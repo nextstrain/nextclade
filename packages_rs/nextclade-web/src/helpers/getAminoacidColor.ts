@@ -1,6 +1,6 @@
 import { get } from 'lodash'
 
-import { Aminoacid } from 'src/algorithms/types'
+import { Aminoacid } from 'src/types'
 
 // Borrowed from http://ugene.net/forum/YaBB.pl?num=1337064665
 export const AMINOACID_COLORS: Record<string, string> = {

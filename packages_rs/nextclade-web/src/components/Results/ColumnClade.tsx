@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslation } from 'react-i18next'
 import { Tooltip } from 'src/components/Results/Tooltip'

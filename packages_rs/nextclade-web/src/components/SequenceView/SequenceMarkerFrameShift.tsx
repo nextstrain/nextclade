@@ -2,7 +2,7 @@ import React, { SVGProps, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecoilValue } from 'recoil'
 
-import type { FrameShift } from 'src/algorithms/types'
+import type { FrameShift } from 'src/types'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'

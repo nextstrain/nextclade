@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { NucleotideSubstitution } from 'src/algorithms/types'
+import type { NucleotideSubstitution } from 'src/types'
 import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'

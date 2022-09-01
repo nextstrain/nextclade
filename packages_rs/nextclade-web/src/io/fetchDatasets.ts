@@ -1,5 +1,5 @@
 import type { ParsedUrlQuery } from 'querystring'
-import { Dataset } from 'src/algorithms/types'
+import { Dataset } from 'src/types'
 
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'

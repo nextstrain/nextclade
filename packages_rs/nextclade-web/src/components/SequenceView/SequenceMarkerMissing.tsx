@@ -3,7 +3,7 @@ import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecoilValue } from 'recoil'
 
-import type { NucleotideMissing } from 'src/algorithms/types'
+import type { NucleotideMissing } from 'src/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX, N } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'

@@ -1,7 +1,7 @@
 import { isEmpty } from 'lodash'
 import { useCallback } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
-import { AlgorithmInput } from 'src/algorithms/types'
+import { AlgorithmInput } from 'src/types'
 
 export const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
   key: 'qrySeqInputsStorage',

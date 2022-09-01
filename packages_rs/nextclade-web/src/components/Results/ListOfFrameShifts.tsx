@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { FrameShift, QcResultFrameShifts } from 'src/algorithms/types'
+import type { FrameShift, QcResultFrameShifts } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatFrameShift } from 'src/helpers/formatFrameShift'
 

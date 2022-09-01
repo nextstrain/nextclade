@@ -1,5 +1,5 @@
-import type { Gene } from 'src/algorithms/types'
-import { geneLength } from 'src/algorithms/types'
+import type { Gene } from 'src/types'
+import { geneLength } from 'src/types'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 
 /** Retrieves length of the axis to draw: Genome size in case of nuc sequence, or gene length on case of gene */

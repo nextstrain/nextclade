@@ -1,4 +1,4 @@
-import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/algorithms/types'
+import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/types'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 import { readFile } from 'src/helpers/readFile'

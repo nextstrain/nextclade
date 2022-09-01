@@ -1,4 +1,4 @@
-import type { FrameShift } from 'src/algorithms/types'
+import type { FrameShift } from 'src/types'
 import { formatRange } from 'src/helpers/formatRange'
 
 export function formatFrameShift(frameShift: FrameShift) {

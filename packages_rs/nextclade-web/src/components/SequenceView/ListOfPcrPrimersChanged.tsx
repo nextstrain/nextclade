@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { PcrPrimer } from 'src/algorithms/types'
+import type { PcrPrimer } from 'src/types'
 import { Li, Ul } from 'src/components/Common/List'
 
 export interface ListOfPcrPrimersChangedProps {

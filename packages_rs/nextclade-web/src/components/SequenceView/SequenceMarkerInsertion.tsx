@@ -2,7 +2,7 @@ import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTheme } from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type { NucleotideInsertion } from 'src/algorithms/types'
+import type { NucleotideInsertion } from 'src/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'

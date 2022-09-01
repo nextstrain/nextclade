@@ -1,7 +1,7 @@
 import { round } from 'lodash'
 import React, { useMemo } from 'react'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 export interface ColumnCoverageProps {

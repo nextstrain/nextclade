@@ -3,7 +3,7 @@ import semver from 'semver'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import urljoin from 'url-join'
 
-import { Dataset, DatasetsIndexV2Json } from 'src/algorithms/types'
+import { Dataset, DatasetsIndexV2Json } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
 let DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'

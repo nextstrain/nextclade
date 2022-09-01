@@ -1,6 +1,6 @@
 import { get } from 'lodash'
 
-import { Nucleotide } from 'src/algorithms/types'
+import { Nucleotide } from 'src/types'
 
 export const NUCLEOTIDE_COLORS: Record<string, string> = {
   'A': '#B54330',

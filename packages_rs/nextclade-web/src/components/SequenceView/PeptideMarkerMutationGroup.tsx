@@ -2,7 +2,7 @@ import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 
-import type { AminoacidChange, AminoacidChangesGroup } from 'src/algorithms/types'
+import type { AminoacidChange, AminoacidChangesGroup } from 'src/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { formatRange } from 'src/helpers/formatRange'

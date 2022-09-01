@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { PrivateMutationsInternal } from 'src/algorithms/types'
+import { PrivateMutationsInternal } from 'src/types'
 import { LiInvisible, UlInvisible } from 'src/components/Common/List'
 
 import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'

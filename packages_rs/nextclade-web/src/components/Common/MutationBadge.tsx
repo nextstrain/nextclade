@@ -5,7 +5,7 @@ import styled, { useTheme } from 'styled-components'
 import { shade } from 'polished'
 
 import { AMINOACID_GAP } from 'src/constants'
-import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSubstitution } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSubstitution } from 'src/types'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'

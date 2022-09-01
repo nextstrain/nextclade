@@ -2,7 +2,7 @@ import React from 'react'
 import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
 
-import type { AminoacidDeletion } from 'src/algorithms/types'
+import type { AminoacidDeletion } from 'src/types'
 import { formatAADeletion } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
