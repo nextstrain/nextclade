@@ -6,14 +6,7 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type {
-  AnalysisError,
-  AnalysisResult,
-  ErrorsFromWeb,
-  FastaRecord,
-  NextcladeResult,
-  Translation,
-} from 'src/types'
+import type { AnalysisError, AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Translation } from 'src/types'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
