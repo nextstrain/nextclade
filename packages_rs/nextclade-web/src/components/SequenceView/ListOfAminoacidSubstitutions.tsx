@@ -2,7 +2,7 @@ import React from 'react'
 import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
 
-import type { AminoacidSubstitution } from 'src/algorithms/types'
+import type { AminoacidSubstitution } from 'src/types'
 import { geneOrderPreferenceAtom } from 'src/state/dataset.state'
 import { formatAAMutation } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'

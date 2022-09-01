@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 
 import styled from 'styled-components'
 
-import type { Dataset } from 'src/algorithms/types'
+import type { Dataset } from 'src/types'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 

@@ -2,7 +2,7 @@ import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
-import { QcStatus } from 'src/algorithms/types'
+import { QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'

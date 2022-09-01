@@ -2,7 +2,7 @@ import React, { SVGProps, useCallback, useState } from 'react'
 
 import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX, BASE_MIN_WIDTH_PX } from 'src/constants'
 
-import type { AminoacidRange } from 'src/algorithms/types'
+import type { AminoacidRange } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'

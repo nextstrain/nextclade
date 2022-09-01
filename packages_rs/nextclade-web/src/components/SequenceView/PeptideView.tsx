@@ -5,7 +5,7 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
 import { geneMapAtom } from 'src/state/results.state'
-import type { AnalysisResult, Gene, PeptideWarning } from 'src/algorithms/types'
+import type { AnalysisResult, Gene, PeptideWarning } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'

@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useTranslation } from 'react-i18next'
 
-import type { PcrPrimerChange } from 'src/algorithms/types'
+import type { PcrPrimerChange } from 'src/types'
 import { Li, Ul } from 'src/components/Common/List'
 import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { formatMutation } from 'src/helpers/formatMutation'

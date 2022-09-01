@@ -1,4 +1,4 @@
-import type { ClusteredSNPs } from 'src/algorithms/types'
+import type { ClusteredSNPs } from 'src/types'
 import { formatRange } from 'src/helpers/formatRange'
 
 export function formatSnpCluster(cluster: ClusteredSNPs) {

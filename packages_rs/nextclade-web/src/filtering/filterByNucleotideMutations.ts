@@ -1,9 +1,9 @@
 import { intersectionWith, isNil } from 'lodash'
 
-import type { NextcladeResult } from 'src/algorithms/types'
+import type { NextcladeResult } from 'src/types'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { NucleotideSubstitution } from 'src/algorithms/types'
+import { NucleotideSubstitution } from 'src/types'
 
 import { splitFilterString } from './splitFilterString'
 

@@ -1,6 +1,6 @@
 import type { AuspiceJsonV2 } from 'auspice'
 
-import type { AnalysisResult, FastaRecord } from 'src/algorithms/types'
+import type { AnalysisResult, FastaRecord } from 'src/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'

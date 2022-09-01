@@ -1,13 +1,13 @@
 import 'regenerator-runtime'
 
 import type { AuspiceJsonV2 } from 'auspice'
-import { AlgorithmGlobalStatus } from 'src/algorithms/types'
+import { AlgorithmGlobalStatus } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { omit } from 'lodash'
 
-import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
+import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'

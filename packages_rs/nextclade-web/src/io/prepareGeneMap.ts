@@ -1,4 +1,4 @@
-import { Gene } from 'src/algorithms/types'
+import { Gene } from 'src/types'
 import { GENOTYPE_COLORS } from 'src/constants'
 
 export function prepareGeneMap(geneMapUnsafe: unknown) {

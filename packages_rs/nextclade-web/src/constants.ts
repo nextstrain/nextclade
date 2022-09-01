@@ -1,5 +1,5 @@
-import type { Nucleotide } from 'src/algorithms/types'
-import { Aminoacid } from 'src/algorithms/types'
+import type { Nucleotide } from 'src/types'
+import { Aminoacid } from 'src/types'
 
 export const PROJECT_NAME = 'Nextclade' as const
 export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and sequence quality checks' as const

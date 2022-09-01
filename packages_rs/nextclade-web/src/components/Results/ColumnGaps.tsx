@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
 import { getSafeId } from 'src/helpers/getSafeId'

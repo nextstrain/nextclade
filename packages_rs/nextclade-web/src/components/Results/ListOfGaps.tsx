@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { DeepReadonly } from 'ts-essentials'
 
 import { formatRange } from 'src/helpers/formatRange'
-import type { NucleotideDeletion } from 'src/algorithms/types'
+import type { NucleotideDeletion } from 'src/types'
 import { truncateList } from 'src/components/Results/truncateList'
 import { Li, Ul } from 'src/components/Common/List'
 

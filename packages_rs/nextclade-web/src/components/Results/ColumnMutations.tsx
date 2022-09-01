@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react'
 
-import { convertPrivateMutations } from 'src/algorithms/types'
+import { convertPrivateMutations } from 'src/types'
 import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { TableSlim } from 'src/components/Common/TableSlim'

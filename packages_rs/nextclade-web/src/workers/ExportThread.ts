@@ -1,5 +1,5 @@
 import { CladeNodeAttrDesc } from 'auspice'
-import type { AnalysisError, AnalysisResult, ErrorsFromWeb } from 'src/algorithms/types'
+import type { AnalysisError, AnalysisResult, ErrorsFromWeb } from 'src/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 

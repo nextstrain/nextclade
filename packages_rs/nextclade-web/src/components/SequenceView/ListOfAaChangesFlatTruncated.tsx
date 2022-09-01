@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { AminoacidDeletion, AminoacidSubstitution } from 'src/algorithms/types'
+import { AminoacidDeletion, AminoacidSubstitution } from 'src/types'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'

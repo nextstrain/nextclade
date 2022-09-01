@@ -3,7 +3,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { NucleotideMissing } from 'src/algorithms/types'
+import type { NucleotideMissing } from 'src/types'
 import { formatRange } from 'src/helpers/formatRange'
 import { truncateList } from 'src/components/Results/truncateList'
 import { Li, Ul } from 'src/components/Common/List'

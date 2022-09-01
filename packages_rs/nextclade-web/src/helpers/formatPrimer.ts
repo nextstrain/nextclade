@@ -1,4 +1,4 @@
-import type { PcrPrimerChange } from 'src/algorithms/types'
+import type { PcrPrimerChange } from 'src/types'
 import { formatMutation } from 'src/helpers/formatMutation'
 
 export function formatPrimer(primerChange: PcrPrimerChange) {

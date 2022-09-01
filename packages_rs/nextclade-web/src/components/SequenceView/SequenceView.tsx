@@ -5,7 +5,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/types'
 import { genomeSizeAtom } from 'src/state/results.state'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'

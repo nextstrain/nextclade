@@ -1,6 +1,6 @@
 import type { Subscription } from 'observable-fns'
 
-import type { FastaRecord } from 'src/algorithms/types'
+import type { FastaRecord } from 'src/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 

@@ -1,7 +1,7 @@
 /* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops,sonarjs/no-duplicate-string */
 import { Snapshot, useRecoilCallback } from 'recoil'
 
-import type { AnalysisError, AnalysisOutput, ErrorsFromWeb } from 'src/algorithms/types'
+import type { AnalysisError, AnalysisOutput, ErrorsFromWeb } from 'src/types'
 import type { ExportParams } from 'src/components/Results/ExportDialogButton'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefined } from 'src/helpers/notUndefined'

@@ -1,4 +1,4 @@
-import type { NextcladeResult } from 'src/algorithms/types'
+import type { NextcladeResult } from 'src/types'
 
 import { splitFilterString } from './splitFilterString'
 

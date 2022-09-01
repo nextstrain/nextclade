@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ListGroup, ListGroupItem } from 'reactstrap'
 import styled from 'styled-components'
 
-import type { Dataset } from 'src/algorithms/types'
+import type { Dataset } from 'src/types'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 

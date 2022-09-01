@@ -1,4 +1,4 @@
-import type { QcResultFrameShifts } from 'src/algorithms/types'
+import type { QcResultFrameShifts } from 'src/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
 import { formatFrameShift } from 'src/helpers/formatFrameShift'

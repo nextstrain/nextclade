@@ -1,9 +1,9 @@
 import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isEmpty } from 'lodash'
-import { AlgorithmGlobalStatus } from 'src/algorithms/types'
+import { AlgorithmGlobalStatus } from 'src/types'
 
-import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/algorithms/types'
+import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/types'
 import type { NextcladeParamsPojo } from 'src/gen'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'

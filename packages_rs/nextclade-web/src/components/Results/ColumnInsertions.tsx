@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfInsertionsNuc, ListOfInsertionsAa } from 'src/components/Results/ListOfInsertions'

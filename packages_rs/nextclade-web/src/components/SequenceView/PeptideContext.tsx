@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import styled, { useTheme } from 'styled-components'
 import { Table as ReactstrapTable } from 'reactstrap'
 
-import type { Aminoacid, AminoacidChange, AminoacidChangesGroup, Nucleotide } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidChange, AminoacidChangesGroup, Nucleotide } from 'src/types'
 import { safeZip, safeZip3 } from 'src/helpers/safeZip'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { first, isNil, last } from 'lodash'

@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { QcStatus } from 'src/algorithms/types'
+import { QcStatus } from 'src/types'
 import React from 'react'
 
 const CIRCLE_SZE_PX = 20

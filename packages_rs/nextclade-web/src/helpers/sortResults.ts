@@ -1,5 +1,5 @@
 import { isNil, orderBy, partition } from 'lodash'
-import type { NextcladeResult } from 'src/algorithms/types'
+import type { NextcladeResult } from 'src/types'
 
 export enum SortCategory {
   index = 'index',

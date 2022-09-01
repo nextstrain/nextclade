@@ -2,7 +2,7 @@ import React from 'react'
 
 import { get } from 'lodash'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 export interface ColumnCustomNodeAttrProps {

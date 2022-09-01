@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { QcResultStopCodons, StopCodonLocation } from 'src/algorithms/types'
+import type { QcResultStopCodons, StopCodonLocation } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatStopCodon } from 'src/helpers/formatMutation'
 

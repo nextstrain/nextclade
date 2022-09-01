@@ -3,7 +3,7 @@ import { intersectionWith, isNil } from 'lodash'
 import { AMINOACID_GAP } from 'src/constants'
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
-import type { AminoacidSubstitution, NextcladeResult } from 'src/algorithms/types'
+import type { AminoacidSubstitution, NextcladeResult } from 'src/types'
 import { splitFilterString } from './splitFilterString'
 
 export function aminoacidChangesAreEqual(actual: AminoacidSubstitution, filter: Partial<AminoacidSubstitution>) {

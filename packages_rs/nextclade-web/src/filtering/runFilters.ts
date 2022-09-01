@@ -1,6 +1,6 @@
 import type { DeepWritable } from 'ts-essentials'
 
-import type { NextcladeResult, ResultsFilters } from 'src/algorithms/types'
+import type { NextcladeResult, ResultsFilters } from 'src/types'
 import { filterByAminoacidChanges } from './filterByAminoacidChanges'
 import { filterByClades } from './filterByClades'
 import { filterByNucleotideMutations } from './filterByNucleotideMutations'

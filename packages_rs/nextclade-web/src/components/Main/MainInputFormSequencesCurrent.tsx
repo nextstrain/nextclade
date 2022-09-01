@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { ImCross } from 'react-icons/im'
 import { rgba } from 'polished'
 
-import { AlgorithmInput } from 'src/algorithms/types'
+import { AlgorithmInput } from 'src/types'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
