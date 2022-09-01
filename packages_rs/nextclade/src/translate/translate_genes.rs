@@ -125,11 +125,11 @@ pub fn translate_gene(
   gene: &Gene,
   ref_peptide: &Translation,
   gap_open_close_aa: &[i32],
-  coord_map: &CoordMap,
+  coord_map_ref: &CoordMap,
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
-  let mut ref_gene_seq = coord_map.extract_gene(ref_seq, gene);
-  let mut qry_gene_seq = coord_map.extract_gene(qry_seq, gene);
+  let mut ref_gene_seq = coord_map_ref.extract_gene(ref_seq, gene);
+  let mut qry_gene_seq = coord_map_ref.extract_gene(qry_seq, gene);
 
   let ref_gaps = GapCounts::new(&ref_gene_seq);
   let qry_gaps = GapCounts::new(&qry_gene_seq);
@@ -156,7 +156,7 @@ pub fn translate_gene(
 
   // NOTE: frame shift detection should be performed on unstripped genes
   let nuc_rel_frame_shifts = frame_shifts_detect(&qry_gene_seq, &ref_gene_seq);
-  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, gene);
+  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map_ref, gene);
 
   mask_nuc_frame_shifts_in_place(&mut qry_gene_seq, &frame_shifts);
 
@@ -201,7 +201,7 @@ pub fn translate_genes(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<IndexMap<String, Result<Translation, Report>>, Report> {
-  let coord_map = CoordMap::new(ref_seq);
+  let coord_map_ref = CoordMap::new(ref_seq);
 
   gene_map
     .iter()
@@ -218,7 +218,7 @@ pub fn translate_genes(
           gene,
           ref_peptide,
           gap_open_close_aa,
-          &coord_map,
+          &coord_map_ref,
           params,
         );
 
