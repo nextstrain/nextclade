@@ -17,6 +17,7 @@ use crate::{make_error, make_internal_report};
 use eyre::Report;
 use indexmap::IndexMap;
 use itertools::Itertools;
+use num_traits::clamp;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -235,8 +236,12 @@ pub fn get_gene_ranges_qry(qry_seq: &[Nuc], gene_map: &GeneMap, coord_map_ref: &
       // Gene map contains gene range in reference coordinates (like in ref sequence)
       let gene_range_ref = Range { begin: start, end };
       // ...we convert it to alignment coordinates (like in aligned sequences)
-      let gene_range_aln = coord_map_ref.ref_to_aln_range(&gene_range_ref);
+      let mut gene_range_aln = coord_map_ref.ref_to_aln_range(&gene_range_ref);
       // ...and then to query coordinates (like in original query sequence)
+
+      gene_range_aln.begin = clamp(gene_range_aln.begin, 0, qry_seq.len());
+      gene_range_aln.end = clamp(gene_range_aln.end, 0, qry_seq.len());
+
       let gene_range_qry = coord_map_qry.aln_to_ref_range(&gene_range_aln);
 
       (gene_name.clone(), gene_range_qry)
