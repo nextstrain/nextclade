@@ -85,6 +85,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_selection,
         output_fasta,
         output_translations,
+        output_feature_table,
         output_ndjson,
         output_json,
         output_csv,
@@ -231,6 +232,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         &output_insertions,
         &output_errors,
         &output_translations,
+        &output_feature_table,
         in_order,
       )
       .wrap_err("When creating output writer")

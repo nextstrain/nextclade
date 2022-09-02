@@ -4,6 +4,7 @@ use itertools::Itertools;
 use log::warn;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
+use nextclade::io::genbank_feature_table::{GenbankFeatureTableEntry, GenbankFeatureTableFileWriter};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
@@ -23,6 +24,7 @@ use std::path::PathBuf;
 pub struct NextcladeOrderedWriter<'a> {
   fasta_writer: Option<FastaWriter>,
   fasta_peptide_writer: Option<FastaPeptideWriter>,
+  feature_table_writer: Option<GenbankFeatureTableFileWriter<'a>>,
   output_json_writer: Option<ResultsJsonWriter>,
   output_ndjson_writer: Option<NdjsonFileWriter>,
   output_csv_writer: Option<NextcladeResultsCsvFileWriter>,
@@ -46,12 +48,16 @@ impl<'a> NextcladeOrderedWriter<'a> {
     output_insertions: &Option<PathBuf>,
     output_errors: &Option<PathBuf>,
     output_translations: &Option<String>,
+    output_feature_table: &Option<PathBuf>,
     in_order: bool,
   ) -> Result<Self, Report> {
     let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
 
     let fasta_peptide_writer = output_translations
       .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, &output_translations))?;
+
+    let feature_table_writer = output_feature_table
+      .map_ref_fallible(|output_feature_table| GenbankFeatureTableFileWriter::new(output_feature_table, gene_map))?;
 
     let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
 
@@ -75,6 +81,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
     Ok(Self {
       fasta_writer,
       fasta_peptide_writer,
+      feature_table_writer,
       output_json_writer,
       output_ndjson_writer,
       output_csv_writer,
@@ -130,6 +137,13 @@ impl<'a> NextcladeOrderedWriter<'a> {
           for translation in &translations {
             fasta_peptide_writer.write(&seq_name, translation)?;
           }
+        }
+
+        if let Some(feature_table_writer) = &mut self.feature_table_writer {
+          feature_table_writer.write(&GenbankFeatureTableEntry {
+            seq_name: seq_name.clone(),
+            gene_ranges_qry: gene_ranges_qry.clone(),
+          })?;
         }
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {

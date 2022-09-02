@@ -29,7 +29,7 @@ env_logger = "0.9.0"
 eyre = "0.6.8"
 flate2 = "1.0.24"
 getrandom = "0.2.6"
-indexmap = { version = "1.8.1", features = ["serde"] }
+indexmap = { version = "1.8.1", features = ["serde-1", "rayon"] }
 itertools = "0.10.3"
 lazy_static = "1.4.0"
 log = "0.4.16"

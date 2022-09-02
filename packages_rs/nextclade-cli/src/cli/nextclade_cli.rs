@@ -214,6 +214,7 @@ pub enum NextcladeOutputSelection {
   Tsv,
   Tree,
   Translations,
+  FeatureTable,
   Insertions,
   Errors,
 }
@@ -361,7 +362,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// If both the `--output-all` and individual `--output-*` flags are provided, each individual flag overrides the corresponding default output path.
   ///
-  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-insertions`, `--output-errors`
+  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-feature-table`, `--output-insertions`, `--output-errors`
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
@@ -424,6 +425,22 @@ pub struct NextcladeRunOutputArgs {
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
+
+  /// Path to output Genbank Feature Table file (.tbl).
+  ///
+  /// Writes Feature Table in Genbank file format, which can be used to facilitate submissions to Genbank database.
+  ///
+  /// See: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
+  ///
+  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long, short = 'F')]
+  #[clap(value_hint = ValueHint::AnyPath)]
+  pub output_feature_table: Option<PathBuf>,
 
   /// Path to output Newline-delimited JSON (NDJSON) results file.
   ///
@@ -615,6 +632,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         output_selection,
         output_fasta,
         output_translations,
+        output_feature_table,
         output_ndjson,
         output_json,
         output_csv,
@@ -669,6 +687,10 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         .to_owned();
 
       output_translations.get_or_insert(output_translations_template);
+    }
+
+    if output_selection.contains(&NextcladeOutputSelection::FeatureTable) {
+      let output_feature_table = output_feature_table.get_or_insert(add_extension(&default_output_file_path, "tbl"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Ndjson) {
