@@ -1,13 +1,13 @@
-use crate::gene::gene::{Gene, GeneStrand};
+use crate::gene::gene::{FeatureKind, Gene, GeneStrand};
 use crate::io::gene_map::GeneMap;
 use crate::utils::error::to_eyre_error;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
-use bio_types::strand::Strand;
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
 use log::warn;
 use std::fmt::Debug;
 use std::path::Path;
+use std::str::FromStr;
 
 /// Parses `frame` column of the GFF3 record.
 /// Note: If `frame` cannot be parsed to an integer, then it is deduced from gene `start`.
@@ -22,11 +22,13 @@ pub fn parse_gff3_frame(frame: &str, gene_start: usize) -> i32 {
 pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result<Gene, Report> {
   let start = (*record.start() - 1) as usize; // Convert to 0-based indices
   Ok(Gene {
+    kind: FeatureKind::from_str(record.feature_type())?,
     gene_name: gene_name.to_owned(),
     start,
     end: *record.end() as usize,
     strand: record.strand().map_or(GeneStrand::Unknown, |s| s.into()),
     frame: parse_gff3_frame(record.frame(), start),
+    attributes: record.attributes().clone(),
   })
 }
 

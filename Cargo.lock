@@ -1487,6 +1487,7 @@ dependencies = [
  "lazy_static",
  "log",
  "mimalloc",
+ "multimap",
  "num",
  "num-traits",
  "num_cpus",

@@ -1,5 +1,21 @@
 use crate::utils::range::Range;
+use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+use strum_macros::{EnumString, Display as EnumDisplay};
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, EnumString, EnumDisplay)]
+pub enum FeatureKind {
+  #[strum(serialize = "gene")]
+  #[serde(rename = "gene")]
+  Gene,
+
+  CDS,
+
+  #[strum(serialize = "unknown")]
+  #[serde(rename = "unknown")]
+  Unknown,
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 pub enum GeneStrand {
@@ -24,11 +40,13 @@ impl From<bio_types::strand::Strand> for GeneStrand {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Gene {
+  pub kind: FeatureKind,
   pub gene_name: String,
   pub start: usize,
   pub end: usize,
   pub strand: GeneStrand,
   pub frame: i32,
+  pub attributes: MultiMap<String, String>,
 }
 
 impl Gene {
