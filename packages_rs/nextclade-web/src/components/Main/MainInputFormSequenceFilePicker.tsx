@@ -109,7 +109,7 @@ export function MainInputFormSequenceFilePicker() {
         title={headerText}
         icon={icon}
         exampleUrl="https://example.com/sequences.fasta"
-        pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
+        pasteInstructions={t('Enter sequence data in FASTA format')}
         input={undefined}
         error={qrySeqError}
         isInProgress={false}

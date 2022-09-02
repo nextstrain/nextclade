@@ -78,7 +78,7 @@ export function FilePickerAdvanced() {
           icon={iconFasta}
           title={t('Root sequence')}
           exampleUrl="https://example.com/root_seq.fasta"
-          pasteInstructions={t('Enter root sequence data in FASTA or plain text format')}
+          pasteInstructions={t('Enter root sequence data in FASTA format')}
           input={refSeq}
           error={refSeqError}
           onRemove={resetRefSeq}
