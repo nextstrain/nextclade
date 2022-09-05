@@ -46,6 +46,7 @@ pub struct SecondaryCustomNodeAttrValue {
 #[serde(rename_all = "camelCase")]
 pub struct CustomNodeAttr {
   pub key: String,
+  pub display_name: String,
   pub value: String,
   pub secondary_values: BTreeMap<String, SecondaryCustomNodeAttrValue>,
 }

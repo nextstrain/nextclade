@@ -174,6 +174,7 @@ impl AuspiceTreeNode {
         key.clone(),
         CustomNodeAttr {
           key: key.clone(),
+          display_name: meta_attr.display_name.clone(),
           value,
           secondary_values,
         },

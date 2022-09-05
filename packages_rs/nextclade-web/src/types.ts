@@ -393,6 +393,7 @@ export interface SecondaryCustomNodeAttrValue {
 
 export interface CustomNodeAttrValue {
   key: string
+  displayName: string
   value: string
   secondaryValues: Record<string, SecondaryCustomNodeAttrValue>
 }

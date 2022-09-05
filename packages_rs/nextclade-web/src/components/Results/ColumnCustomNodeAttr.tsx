@@ -32,6 +32,15 @@ export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttr
       </tr>
     ))
 
+    if (attr) {
+      secondaryValues.unshift(
+        <tr key={attr.key}>
+          <td>{attr.displayName}</td>
+          <td>{attr.value}</td>
+        </tr>,
+      )
+    }
+
     const id = getSafeId('col-custom-attr', { index, seqName, attrKey })
 
     return { id, attrValue: attr?.value, secondaryValues }
