@@ -117,7 +117,7 @@ pub fn nextclade_run_one(
   let clade = node.clade();
 
   let clade_node_attr_keys = tree.clade_node_attr_descs();
-  let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
+  let custom_node_attributes = node.get_clade_node_attrs(clade_node_attr_keys);
 
   let private_nuc_mutations = find_private_nuc_mutations(
     node,
@@ -203,7 +203,7 @@ pub fn nextclade_run_one(
       divergence,
       coverage,
       qc,
-      custom_node_attributes: clade_node_attrs,
+      custom_node_attributes,
       nearest_node_id,
       is_reverse_complement,
     },

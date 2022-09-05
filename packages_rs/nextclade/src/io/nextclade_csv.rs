@@ -182,7 +182,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     custom_node_attributes
       .clone()
       .into_iter()
-      .try_for_each(|(key, val)| self.add_entry(&key, &val))?;
+      .try_for_each(|(key, attr)| self.add_entry(&key, &attr.value))?;
 
     self.add_entry("seqName", seq_name)?;
     self.add_entry("clade", clade)?;
