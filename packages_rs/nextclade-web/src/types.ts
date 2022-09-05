@@ -387,6 +387,7 @@ export interface AnalysisResult {
 
 export interface SecondaryCustomNodeAttrValue {
   key: string
+  displayName: string
   value: string
 }
 

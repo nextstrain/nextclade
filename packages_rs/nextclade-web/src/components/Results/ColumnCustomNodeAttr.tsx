@@ -25,9 +25,9 @@ export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttr
     const { index, seqName, customNodeAttributes } = sequence
     const attr = get(customNodeAttributes, attrKey, undefined)
 
-    const secondaryValues = values(attr?.secondaryValues ?? {}).map(({ key, value }) => (
+    const secondaryValues = values(attr?.secondaryValues ?? {}).map(({ key, displayName, value }) => (
       <tr key={key}>
-        <td>{key}</td>
+        <td>{displayName}</td>
         <td>{value}</td>
       </tr>
     ))

@@ -38,6 +38,7 @@ pub struct NextalignOutputs {
 #[serde(rename_all = "camelCase")]
 pub struct SecondaryCustomNodeAttrValue {
   pub key: String,
+  pub display_name: String,
   pub value: String,
 }
 

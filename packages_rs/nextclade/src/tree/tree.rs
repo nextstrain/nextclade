@@ -160,6 +160,7 @@ impl AuspiceTreeNode {
             sec_attr.name.clone(),
             SecondaryCustomNodeAttrValue {
               key: sec_attr.name.clone(),
+              display_name: sec_attr.display_name.clone(),
               value,
             },
           )
