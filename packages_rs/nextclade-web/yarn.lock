@@ -4340,6 +4340,11 @@ charcodes@^0.2.0:
   resolved "https://registry.yarnpkg.com/charcodes/-/charcodes-0.2.0.tgz#5208d327e6cc05f99eb80ffc814707572d1f14e4"
   integrity sha512-Y4kiDb+AM4Ecy58YkuZrrSRJBDQdQ2L+NyS1vHHFtNtUjgutcZfx3yp1dAONI/oPaPmyGfCLx5CxL+zauIMyKQ==
 
+chardet@1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/chardet/-/chardet-1.4.0.tgz#278748f260219990fb2167dbfb1b253ca26b41ea"
+  integrity sha512-NpwMDdSIprbYx1CLnfbxEIarI0Z+s9MssEgggMNheGM+WD68yOhV7IEA/3r6tr0yTRgQD0HuZJDw32s99i6L+A==
+
 chardet@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
