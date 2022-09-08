@@ -7,9 +7,9 @@ export class FileReaderError extends Error {
   public readonly file: File
 
   constructor(file: File, message?: string) {
-    let err = `File cannot be read: "${file.name}" (size: ${file?.size ?? 0} bytes)`
+    let err = `File cannot be read: "${file.name}" (size: ${file.size ?? 0} bytes)`
     if (message) {
-      err = `File cannot be read: ${message}: "${file.name}" (size: ${file?.size ?? 0} bytes)`
+      err = `File cannot be read: ${message}: "${file.name}" (size: ${file.size ?? 0} bytes)`
     }
     super(err)
     this.file = file
@@ -57,7 +57,7 @@ export function readFile(file: File): Promise<string> {
           const decoder = new TextDecoder(encoding)
           const content = decoder.decode(bytes)
 
-          if (!content || !content?.length) {
+          if (!content || content.length === 0) {
             return reject(new FileReaderEncodingError(file, 'File contents is empty'))
           }
 
