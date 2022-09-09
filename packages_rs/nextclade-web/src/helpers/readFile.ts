@@ -1,6 +1,6 @@
 /* eslint-disable no-loops/no-loops */
-import chardet from 'chardet'
-import { sortBy } from 'lodash'
+import chardet from 'jschardet'
+import { isString, sortBy } from 'lodash'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export class FileReaderError extends Error {
@@ -41,18 +41,21 @@ export function readFile(file: File): Promise<string> {
 
     reader.addEventListener('load', (event) => {
       const buf = event?.target?.result
-      const isArrayBuffer = buf instanceof ArrayBuffer
-      if (!buf || !isArrayBuffer) {
+      if (!buf) {
         return reject(new FileReaderError(file, 'Result is empty'))
       }
-      const bytes = new Uint8Array(buf)
-      const encodings = sortBy(chardet.analyse(bytes), (enc) => -enc.confidence)
+      if (!isString(buf)) {
+        return reject(new FileReaderError(file, 'Result is not a string'))
+      }
+
+      const bytes = Uint8Array.from(buf, (x) => x.charCodeAt(0)) // eslint-disable-line unicorn/prefer-code-point
+      const encodings = sortBy(chardet.detectAll(buf), (enc) => -enc.confidence)
 
       if (encodings.length === 0) {
         return reject(new FileReaderEncodingError(file, 'Unable detect file encoding'))
       }
 
-      for (const { name: encoding } of encodings) {
+      for (const { encoding } of encodings) {
         try {
           const decoder = new TextDecoder(encoding)
           const content = decoder.decode(bytes)
@@ -68,7 +71,7 @@ export function readFile(file: File): Promise<string> {
         }
       }
 
-      const encodingsList = encodings.map((enc) => enc.name).join(', ')
+      const encodingsList = encodings.map((enc) => enc.encoding).join(', ')
       return reject(
         new FileReaderEncodingError(
           file,
@@ -77,6 +80,6 @@ export function readFile(file: File): Promise<string> {
       )
     })
 
-    reader.readAsArrayBuffer(file)
+    reader.readAsBinaryString(file)
   })
 }
