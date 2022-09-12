@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
@@ -85,6 +86,7 @@ const LogoGisaid = styled(LogoGisaidBase)`
 
 export interface TreePageProps {
   treeMeta?: AuspiceMetadata
+  loaded?: boolean
 }
 
 const mapStateToProps = (state: State) => ({
@@ -94,10 +96,17 @@ const mapStateToProps = (state: State) => ({
 export const TreePage = connect(mapStateToProps, null)(TreePageDisconnected)
 
 function TreePageDisconnected({ treeMeta }: TreePageProps) {
+  const router = useRouter()
+  const hasData = useMemo(() => treeMeta?.loaded, [treeMeta])
   const isDataFromGisaid = useMemo(
     () => treeMeta?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
     [treeMeta],
   )
+
+  if (!hasData) {
+    void router.replace('/') // eslint-disable-line no-void
+    return null
+  }
 
   return (
     <LayoutResults>

@@ -59,7 +59,7 @@ const Footer = styled.footer`
   flex-shrink: 0;
 `
 
-export function ResultsPage() {
+export default function ResultsPage() {
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
 
   return (

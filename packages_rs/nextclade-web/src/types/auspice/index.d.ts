@@ -206,6 +206,7 @@ declare module 'auspice' {
   }
 
   export declare interface AuspiceMetadata {
+    loaded?: boolean
     title?: string
     description?: string
     buildUrl?: string

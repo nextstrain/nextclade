@@ -29,7 +29,7 @@ export const Centered = styled.section`
   max-width: 800px;
 `
 
-export function MainInputForm() {
+export default function MainInputForm() {
   const [searchTerm, setSearchTerm] = useState('')
   const currentDataset = useRecoilValue(datasetCurrentAtom)
 

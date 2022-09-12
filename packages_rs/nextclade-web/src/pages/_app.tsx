@@ -7,7 +7,6 @@ import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-import dynamic from 'next/dynamic'
 import { BrowserWarning } from 'src/components/Common/BrowserWarning'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -163,7 +162,7 @@ export function RecoilStateInitializer() {
 
 const mdxComponents = { a: LinkExternal }
 
-export function MyApp({ Component, pageProps, router }: AppProps) {
+export default function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
   const { store } = useMemo(() => configureStore(), [])
   const fallback = useMemo(() => <Loading />, [])
@@ -208,29 +207,3 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
     </Suspense>
   )
 }
-
-// NOTE: This disables server-side rendering (SSR) entirely, to avoid fatal error
-// 'Hydration failed because the initial UI does not match what was rendered on the server'.
-// This is probably a bug in React 18, or in Next.js, or in the app. There's been reports that improper
-// nesting of HTML and SVG elements can cause the mismatch.
-//
-// See:
-//  - https://github.com/facebook/react/issues/22833
-//  - https://github.com/facebook/react/issues/24519
-//  - https://github.com/vercel/next.js/discussions/35773
-//  - https://nextjs.org/docs/messages/react-hydration-error
-//  - https://stackoverflow.com/questions/71706064/react-18-hydration-failed-because-the-initial-ui-does-not-match-what-was-render
-//
-//
-// NOTE: <Suspense /> does not seem to be working properly when SSR is enabled. The server hangs forever
-// on the first unresolved Recoil atom, i.e. an atom without a default value. Such atoms, if accessed
-// before they are initialized, trigger Suspense. However the server hangs, failing to make any progress past this
-// point, even if this atom is initialized shortly after by another component. One example is the dataset atom. It is
-// initially in suspended state, and unlocks after the dataset is fetched. However server stops at the dataset selector
-// component and does not proceed further. We might not be handling the initialization of Recoil atoms properly,
-// or it is simply not yet implemented well in Next.js or Recoil.
-//
-//
-// TODO: When the hydration error, and the loading of Recoil atoms are sorted out we may want to remove this line,
-// exporting the app component directly, reenabling SSR.
-export default dynamic(() => Promise.resolve(MyApp), { ssr: false })

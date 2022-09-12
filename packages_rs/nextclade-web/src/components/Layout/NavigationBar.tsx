@@ -10,7 +10,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Link } from 'src/components/Link/Link'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-import BrandLogo from 'src/assets/img/nextstrain_logo.svg'
+import { ReactComponent as BrandLogo } from 'src/assets/img/nextstrain_logo.svg'
 
 import { CitationButton } from 'src/components/Citation/CitationButton'
 import { WhatsNewButton } from './WhatsNewButton'

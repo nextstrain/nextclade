@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react'
 
 import { useTranslation } from 'react-i18next'
@@ -27,7 +28,7 @@ export function CladeSchema() {
   return (
     <CladeSchemaFigure className="figure w-100 text-center">
       <CladeSchemaPicture className="w-100 figure-img">
-        <CladeSchemaSvg />
+        <img loading="lazy" src={CladeSchemaSvg as string} alt="Clade schema" />
       </CladeSchemaPicture>
       <CladeSchemaFigcaption>
         <small>

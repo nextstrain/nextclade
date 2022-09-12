@@ -1,7 +1,7 @@
 import React from 'react'
 
 import styled from 'styled-components'
-import LogoAuspiceSvg from 'src/assets/img/auspice-logo.svg'
+import { ReactComponent as LogoAuspiceSvg } from 'src/assets/img/auspice-logo.svg'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
 export const LogoPoweredByAuspiceContainer = styled(LinkExternal)`
