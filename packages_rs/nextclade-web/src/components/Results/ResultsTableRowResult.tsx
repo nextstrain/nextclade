@@ -28,6 +28,7 @@ import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnEscape } from './ColumnEscape'
+import { isEmpty } from 'lodash'
 
 export interface ResultsTableRowResultProps {
   index: number
@@ -80,12 +81,31 @@ export function ResultsTableRowResult({
 }: ResultsTableRowResultProps) {
   const { seqName, result } = useRecoilValue(analysisResultAtom(index))
 
-  if (!result) {
+  const data = useMemo(() => {
+    if (!result) {
+      return null
+    }
+
+    const { analysisResult } = result
+    const { escape, qc, warnings } = analysisResult
+
+    let escapeCell = null
+    if (!isEmpty(escape)) {
+      escapeCell = (
+        <TableCell basis={columnWidthsPx.escape} grow={0} shrink={0}>
+          <ColumnEscape analysisResult={analysisResult} />
+        </TableCell>
+      )
+    }
+
+    return { analysisResult, qc, warnings, escapeCell }
+  }, [columnWidthsPx.escape, result])
+
+  if (!data) {
     return null
   }
 
-  const { analysisResult } = result
-  const { qc, warnings } = analysisResult
+  const { analysisResult, qc, warnings, escapeCell } = data
 
   return (
     <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
@@ -115,9 +135,7 @@ export function ResultsTableRowResult({
         <ColumnMutations analysisResult={analysisResult} />
       </TableCell>
 
-      <TableCell basis={columnWidthsPx.escape} grow={0} shrink={0}>
-        <ColumnEscape analysisResult={analysisResult} />
-      </TableCell>
+      {escapeCell}
 
       <TableCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
         <ColumnNonACGTNs analysisResult={analysisResult} />

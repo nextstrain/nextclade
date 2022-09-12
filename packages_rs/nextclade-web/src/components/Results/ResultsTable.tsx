@@ -14,6 +14,7 @@ import {
   isResultsFilterPanelCollapsedAtom,
 } from 'src/state/settings.state'
 import {
+  analysisResultsAtom,
   cladeNodeAttrDescsAtom,
   cladeNodeAttrKeysAtom,
   seqIndicesFilteredAtom,
@@ -48,6 +49,7 @@ import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
 import { SequenceSelector } from '../SequenceView/SequenceSelector'
+import { isEmpty } from 'lodash'
 
 const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
 
@@ -238,15 +240,12 @@ export function ResultsTable() {
           </ButtonHelpStyled>
         </TableHeaderCell>
 
-        <TableHeaderCell basis={columnWidthsPx.escape} grow={0} shrink={0}>
-          <TableHeaderCellContent>
-            <TableCellText>{t('Escape')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByEscapeAsc} sortDesc={sortByEscapeDesc} />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-esc">
-            <HelpTipsEscape />
-          </ButtonHelpStyled>
-        </TableHeaderCell>
+        <EscapeColumnHeader
+          basis={columnWidthsPx.escape}
+          text={t('Escape')}
+          sortByEscapeAsc={sortByEscapeAsc}
+          sortByEscapeDesc={sortByEscapeDesc}
+        />
 
         <TableHeaderCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
           <TableHeaderCellContent>
@@ -348,5 +347,38 @@ export function ResultsTable() {
         }}
       </AutoSizer>
     </Table>
+  )
+}
+
+export interface EscapeColumnValueProps {
+  basis: string
+  text: string
+
+  sortByEscapeAsc(): void
+
+  sortByEscapeDesc(): void
+}
+
+function EscapeColumnHeader({ basis, text, sortByEscapeAsc, sortByEscapeDesc }: EscapeColumnValueProps) {
+  const results = useRecoilValue(analysisResultsAtom)
+
+  const shouldShow = useMemo(() => {
+    return results.some((result) => !isEmpty(result.result?.analysisResult.escape))
+  }, [results])
+
+  if (!shouldShow) {
+    return null
+  }
+
+  return (
+    <TableHeaderCell basis={basis} grow={0} shrink={0}>
+      <TableHeaderCellContent>
+        <TableCellText>{text}</TableCellText>
+        <ResultsControlsSort sortAsc={sortByEscapeAsc} sortDesc={sortByEscapeDesc} />
+      </TableHeaderCellContent>
+      <ButtonHelpStyled identifier="btn-help-col-esc">
+        <HelpTipsEscape />
+      </ButtonHelpStyled>
+    </TableHeaderCell>
   )
 }
