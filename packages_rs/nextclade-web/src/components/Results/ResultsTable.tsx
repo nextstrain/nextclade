@@ -6,6 +6,7 @@ import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
+import { isEmpty } from 'lodash'
 
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
@@ -49,7 +50,6 @@ import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
 import { SequenceSelector } from '../SequenceView/SequenceSelector'
-import { isEmpty } from 'lodash'
 
 const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
 

@@ -1,6 +1,7 @@
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { isEmpty } from 'lodash'
 
 import { QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
@@ -28,7 +29,6 @@ import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnEscape } from './ColumnEscape'
-import { isEmpty } from 'lodash'
 
 export interface ResultsTableRowResultProps {
   index: number
