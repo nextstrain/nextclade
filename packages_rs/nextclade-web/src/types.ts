@@ -379,6 +379,7 @@ export interface AnalysisResult {
   privateNucMutations: PrivateMutations
   privateAaMutations: Record<string, PrivateMutations>
   coverage: number
+  escape: Record<string, number>
   qc: QcResult
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]

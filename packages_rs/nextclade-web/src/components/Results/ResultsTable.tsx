@@ -39,6 +39,7 @@ import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
 import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsCoverage from './HelpTips/HelpTipsColumnCoverage.mdx'
+import HelpTipsEscape from './HelpTips/HelpTipsColumnEscape.mdx'
 import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
 import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
 import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
@@ -104,6 +105,12 @@ export function ResultsTable() {
   }, []) // prettier-ignore
   const sortByCladeDesc = useRecoilCallback(({ set }) => () => {
     set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.desc }), undefined)
+  }, []) // prettier-ignore
+  const sortByEscapeAsc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.escape, direction: SortDirection.asc }), undefined)
+  }, []) // prettier-ignore
+  const sortByEscapeDesc = useRecoilCallback(({ set }) => () => {
+    set(sortAnalysisResultsAtom({ category: SortCategory.escape, direction: SortDirection.desc }), undefined)
   }, []) // prettier-ignore
   const sortByCoverageAsc = useRecoilCallback(({ set }) => () => {
     set(sortAnalysisResultsAtom({ category: SortCategory.coverage, direction: SortDirection.asc }), undefined)
@@ -231,6 +238,16 @@ export function ResultsTable() {
           </ButtonHelpStyled>
         </TableHeaderCell>
 
+        <TableHeaderCell basis={columnWidthsPx.escape} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{t('Escape')}</TableCellText>
+            <ResultsControlsSort sortAsc={sortByEscapeAsc} sortDesc={sortByEscapeDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-esc">
+            <HelpTipsEscape />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+
         <TableHeaderCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{t('non-ACGTN')}</TableCellText>
@@ -256,7 +273,7 @@ export function ResultsTable() {
             <TableCellText>{t('Cov.')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByCoverageAsc} sortDesc={sortByCoverageDesc} />
           </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-mut">
+          <ButtonHelpStyled identifier="btn-help-col-coverage">
             <HelpTipsCoverage />
           </ButtonHelpStyled>
         </TableHeaderCell>

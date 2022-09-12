@@ -7,6 +7,7 @@ export enum SortCategory {
   clade = 'clade',
   qcIssues = 'qcIssues',
   coverage = 'coverage',
+  escape = 'escape',
   totalMutations = 'totalMutations',
   totalNonACGTNs = 'totalNonACGTNs',
   totalMissing = 'totalMissing',
@@ -74,6 +75,10 @@ export function sortByClade(results: NextcladeResult[], direction: SortDirection
 
 export function sortByCoverage(results: NextcladeResult[], direction: SortDirection) {
   return orderBy(results, (result) => result.result?.analysisResult.coverage ?? defaultNumber(direction), direction)
+}
+
+export function sortByEscape(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(results, (result) => result.result?.analysisResult.escape ?? defaultNumber(direction), direction)
 }
 
 export function sortByMutations(results: NextcladeResult[], direction: SortDirection) {
@@ -158,6 +163,9 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
 
     case SortCategory.coverage:
       return sortByCoverage(results, direction)
+
+    case SortCategory.escape:
+      return sortByEscape(results, direction)
 
     case SortCategory.totalMutations:
       return sortByMutations(results, direction)
