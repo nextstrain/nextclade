@@ -79,6 +79,7 @@ pub struct NextcladeOutputs {
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: usize,
   pub is_reverse_complement: bool,
+  pub escape: BTreeMap<String, f64>,
 }
 
 impl NextcladeOutputs {

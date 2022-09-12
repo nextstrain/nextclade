@@ -1,9 +1,10 @@
 use crate::align::params::AlignPairwiseParamsOptional;
-use crate::gene::genotype::{Genotype, GenotypeLabeled};
+use crate::gene::genotype::Genotype;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::utils::range::Range;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -18,6 +19,8 @@ struct VirusPropertiesRaw {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
+  #[serde(default)]
+  pub escape_data: Vec<EscapeData>,
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -27,6 +30,8 @@ pub struct VirusProperties {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
+  #[serde(default)]
+  pub escape_data: Vec<EscapeData>,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -38,6 +43,15 @@ pub type NucLabelMap = LabelMap<Nuc>;
 #[serde(rename_all = "camelCase")]
 pub struct MutationLabelMaps<L: Letter<L>> {
   pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeData {
+  pub gene: String,
+  pub rbd_range: Range,
+  pub weights: BTreeMap<String, f64>,
+  pub coefficients: BTreeMap<usize, BTreeMap<String, f64>>,
 }
 
 impl FromStr for VirusProperties {
@@ -58,6 +72,7 @@ impl FromStr for VirusProperties {
       schema_version: raw.schema_version,
       alignment_params: raw.alignment_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
+      escape_data: raw.escape_data,
     })
   }
 }
