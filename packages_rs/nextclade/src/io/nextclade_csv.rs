@@ -21,6 +21,7 @@ use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
 use regex::internal::Input;
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
@@ -62,6 +63,7 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "alignmentStart",
   "alignmentEnd",
   "coverage",
+  "escape",
   "qc.missingData.missingDataThreshold",
   "qc.missingData.score",
   "qc.missingData.status",
@@ -172,6 +174,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       missing_genes,
       // divergence,
       coverage,
+      escape,
       qc,
       custom_node_attributes,
       is_reverse_complement,
@@ -255,6 +258,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("alignmentStart", &alignment_start.to_string())?;
     self.add_entry("alignmentEnd", &alignment_end.to_string())?;
     self.add_entry("coverage", coverage)?;
+    self.add_entry("escape", &format_escape(escape))?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -628,6 +632,11 @@ pub fn format_qc_score(score: f64) -> String {
     return format!("{score:.6}");
   }
   score.to_string()
+}
+
+#[inline]
+pub fn format_escape(escape: &BTreeMap<String, f64>) -> String {
+  escape.iter().map(|(name, value)| format!("{name}:{value}")).join(";")
 }
 
 pub fn results_to_csv_string(
