@@ -6,6 +6,10 @@ import { usePlausible } from 'src/components/Common/Plausible'
 const A = styled.a`
   overflow-wrap: break-word;
   word-wrap: break-word;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 `
 
 export interface LinkExternalProps extends StrictOmit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'download'> {
