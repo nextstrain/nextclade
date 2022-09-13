@@ -30,7 +30,7 @@ Error message: ${error.name}: ${error.message}
 
 ${PROJECT_NAME} ${getVersionString()}
 
-Memory available: ${getMemoryMegabytesAvailableString() ?? 'unknown'}
+Memory available: ${getMemoryMegabytesAvailableString()}
 
 User agent: ${typeof window !== 'undefined' ? window?.navigator?.userAgent : 'unknown'}
 
