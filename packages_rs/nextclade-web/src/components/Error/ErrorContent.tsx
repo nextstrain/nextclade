@@ -1,13 +1,41 @@
 /* eslint-disable react/destructuring-assignment */
-import React, { useMemo } from 'react'
-import { Col, Row } from 'reactstrap'
+import React, { useCallback, useMemo, useState } from 'react'
+import { Button, Col, Row } from 'reactstrap'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import styled from 'styled-components'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { FaClipboardCheck, FaClipboardList } from 'react-icons/fa'
 
 import { ErrorGeneric } from 'src/components/Error/error-types/ErrorGeneric'
 import { ErrorNetworkConnectionFailure } from 'src/components/Error/error-types/ErrorNetworkConnectionFailure'
 import { ErrorNetworkRequestFailure } from 'src/components/Error/error-types/ErrorNetworkRequestFailure'
+import { ErrorContentExplanation, getErrorReportText } from 'src/components/Error/ErrorContentExplanation'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { HttpRequestError } from 'src/io/axiosFetch'
-import { ErrorStack } from './ErrorStyles'
+import { ErrorMessageMonospace } from './ErrorStyles'
+
+export const Summary = styled.summary`
+  margin: 0;
+  padding: 0.7rem;
+  border: 1px #ccc9 solid;
+  border-radius: 5px;
+  background-color: ${(props) => props.theme.gray200};
+`
+
+export const Details = styled.details`
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+  border: 1px #ccc9 solid;
+  border-radius: 5px;
+  background-color: ${(props) => props.theme.gray100};
+  transition: width linear 0.5s;
+`
+
+export const DetailsBody = styled.section`
+  margin: 0;
+  padding: 0 1rem;
+`
 
 export function ErrorContentMessage({ error }: { error: Error }) {
   if (error instanceof HttpRequestError) {
@@ -22,16 +50,7 @@ export function ErrorContentMessage({ error }: { error: Error }) {
   return <ErrorGeneric error={error} />
 }
 
-export function ErrorContentStack({ error }: { error: Error }) {
-  const stackText = error?.stack?.replace(/webpack-internal:\/{3}\.\//g, '')?.replace(/https?:\/\/(.+):\d+\//g, '')
-  if (!stackText) {
-    return null
-  }
-
-  return <ErrorStack>{stackText}</ErrorStack>
-}
-
-export function ErrorContent(props: { error?: unknown }) {
+export function ErrorContent(props: { error?: unknown; detailed?: boolean }) {
   const error = useMemo(() => sanitizeError(props.error), [props.error])
 
   if (!props.error) {
@@ -47,12 +66,60 @@ export function ErrorContent(props: { error?: unknown }) {
           </Col>
         </Row>
 
-        <Row noGutters>
-          <Col>
-            <ErrorContentStack error={error} />
-          </Col>
-        </Row>
+        {props.detailed && (
+          <>
+            <Row noGutters>
+              <Col>
+                <ErrorContentExplanation error={error} />
+              </Col>
+            </Row>
+
+            <Row noGutters className="my-4">
+              <Col>
+                <Details>
+                  <Summary className="d-flex">
+                    <span className="my-auto">{'> Additional information for developers (click to expand)'}</span>
+                    <span className="my-auto ml-auto">
+                      <ButtonCopyToClipboard text={getErrorReportText(error)} />
+                    </span>
+                  </Summary>
+
+                  <DetailsBody>
+                    {getErrorReportText(error)
+                      .split('\n\n')
+                      .map((line) => (
+                        <ErrorMessageMonospace key={line}>{line}</ErrorMessageMonospace>
+                      ))}
+                  </DetailsBody>
+                </Details>
+              </Col>
+            </Row>
+          </>
+        )}
       </Col>
     </Row>
+  )
+}
+
+const ButtonCopyToClipboardBase = styled(Button)`
+  display: flex;
+  width: 100px;
+`
+
+export function ButtonCopyToClipboard({ text }: { text: string }) {
+  const { t } = useTranslationSafe()
+  const [isCopied, setIsCopied] = useState(false)
+  const setCopied = useCallback(() => {
+    setIsCopied(true)
+  }, [])
+  return (
+    <CopyToClipboard text={text} onCopy={setCopied}>
+      <ButtonCopyToClipboardBase color={isCopied ? 'success' : 'primary'}>
+        <span className="my-auto mr-auto">
+          {isCopied ? <FaClipboardCheck size={15} /> : <FaClipboardList size={15} />}
+        </span>
+        <span className="my-auto mx-auto">{isCopied ? t('Copied!') : t('Copy')}</span>
+      </ButtonCopyToClipboardBase>
+    </CopyToClipboard>
   )
 }

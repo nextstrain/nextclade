@@ -28,6 +28,14 @@ export function getMemoryBytesAvailable(): number | undefined {
   return undefined
 }
 
+export function getMemoryMegabytesAvailableString() {
+  const bytes = getMemoryBytesAvailable()
+  if (!bytes) {
+    return 'unknown'
+  }
+  return `${(bytes / 1024 / 1024).toFixed(0)} MBytes`
+}
+
 export function guessNumThreads() {
   const memoryBytesAvailable = getMemoryBytesAvailable()
   if (memoryBytesAvailable && Number.isFinite(memoryBytesAvailable)) {
