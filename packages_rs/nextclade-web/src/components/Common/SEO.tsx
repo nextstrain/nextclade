@@ -6,11 +6,12 @@ import { Helmet } from 'react-helmet'
 import { useRecoilValue } from 'recoil'
 
 import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, URL_SOCIAL_IMAGE, TWITTER_USERNAME_FRIENDLY } from 'src/constants'
+import { getLocaleWithKey } from 'src/i18n/i18n'
 
 import { localeAtom } from 'src/state/locale.state'
 
 export function SEO() {
-  const locale = useRecoilValue(localeAtom)
+  const locale = getLocaleWithKey(useRecoilValue(localeAtom))
   const htmlAttributes = useMemo(() => ({ lang: locale.full }), [locale])
   return (
     <>

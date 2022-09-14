@@ -1,7 +1,7 @@
 import i18nOriginal, { i18n as I18N } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-import { DEFAULT_LOCALE_KEY, LocaleKey, localeKeys } from 'src/i18n/i18n'
+import { DEFAULT_LOCALE_KEY, localeKeys } from 'src/i18n/i18n'
 
 import enSidebar from 'auspice/src/locales/en/sidebar.json'
 import arSidebar from 'auspice/src/locales/ar/sidebar.json'
@@ -54,7 +54,7 @@ export function i18nAuspiceInit() {
   return i18nAuspice
 }
 
-export async function changeAuspiceLocale(i18nAuspice: I18N, localeKey: LocaleKey) {
+export async function changeAuspiceLocale(i18nAuspice: I18N, localeKey: string) {
   if (localeKeys.includes(localeKey)) {
     await i18nAuspice.changeLanguage(localeKey)
     return true
