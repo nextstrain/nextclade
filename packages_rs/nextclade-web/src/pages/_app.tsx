@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic'
 import { BrowserWarning } from 'src/components/Common/BrowserWarning'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
 import { createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
@@ -22,6 +23,7 @@ import {
   refTreeInputAtom,
   virusPropertiesInputAtom,
 } from 'src/state/inputs.state'
+import { localeAtom } from 'src/state/locale.state'
 import {
   changelogIsShownAtom,
   changelogLastVersionSeenAtom,
@@ -45,7 +47,7 @@ import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
-import i18n from 'src/i18n/i18n'
+import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
@@ -94,7 +96,18 @@ export function RecoilStateInitializer() {
     const { getPromise } = snapshot
 
     // eslint-disable-next-line no-void
-    void initializeDatasets(urlQuery)
+    void Promise.resolve()
+      // eslint-disable-next-line promise/always-return
+      .then(async () => {
+        const localeKey = await getPromise(localeAtom)
+        const locale = getLocaleWithKey(localeKey)
+        await changeLocale(i18n, locale.key)
+        await changeAuspiceLocale(i18nAuspice, locale.key)
+        set(localeAtom, locale.key)
+      })
+      .then(() => {
+        return initializeDatasets(urlQuery)
+      })
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary
         setInitialized(false)

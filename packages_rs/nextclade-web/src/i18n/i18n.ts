@@ -1,7 +1,7 @@
 import { ElementType, FC } from 'react'
 
 import type { StrictOmit } from 'ts-essentials'
-import { mapValues } from 'lodash'
+import { get, isNil, mapValues } from 'lodash'
 
 import i18nOriginal, { i18n as I18N, Resource } from 'i18next'
 import { initReactI18next } from 'react-i18next'
@@ -136,10 +136,10 @@ export interface I18NInitParams {
 export type PrettyBytesOptions = StrictOmit<PrettyBytesOptionsOriginal, 'locale'>
 
 export class PrettyBytes {
-  private localeKey: LocaleKey = DEFAULT_LOCALE_KEY
+  private localeKey: string = DEFAULT_LOCALE_KEY as string
 
-  public setLocale(localeKey: LocaleKey) {
-    this.localeKey = localeKey
+  public setLocale(localeKey: string) {
+    this.localeKey = getLocaleWithKey(localeKey).key
   }
 
   public format(numBytes: number, options?: PrettyBytesOptions) {
@@ -159,7 +159,7 @@ export function i18nInit({ localeKey }: I18NInitParams) {
 
   const i18n = i18nOriginal.use(initReactI18next).createInstance({
     resources,
-    lng: DEFAULT_LOCALE_KEY,
+    lng: localeKey,
     fallbackLng: DEFAULT_LOCALE_KEY,
     debug: process.env.DEV_ENABLE_I18N_DEBUG === '1',
     keySeparator: false, // Disable dots as key separators as we use dots in keys
@@ -177,13 +177,17 @@ export function i18nInit({ localeKey }: I18NInitParams) {
   return i18n
 }
 
-export function getLocaleWithKey(key: LocaleKey) {
-  return { ...locales[key], key }
+export function getLocaleWithKey(key: string) {
+  const locale = get(locales, key) as Locale
+  if (isNil(locale)) {
+    return { ...locales[DEFAULT_LOCALE_KEY], key: DEFAULT_LOCALE_KEY }
+  }
+  return locale
 }
 
-export async function changeLocale(i18n: I18N, localeKey: LocaleKey) {
+export async function changeLocale(i18n: I18N, localeKey: string) {
   if (localeKeys.includes(localeKey)) {
-    const locale = locales[localeKey]
+    const locale = getLocaleWithKey(localeKey)
     LuxonSettings.defaultLocale = localeKey
     numbro.setLanguage(locale.full)
     await i18n.changeLanguage(localeKey)
