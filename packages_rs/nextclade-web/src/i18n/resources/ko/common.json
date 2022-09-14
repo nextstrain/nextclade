@@ -25,8 +25,6 @@
   "Alignment score": "정렬 점수",
   "All files in a zip archive.": "zip 아카이브의 모든 파일",
   "Amino acid insertion": "아미노산 삽입",
-  "Aminoacid changes ({{count}})_one": "아미노산 변화 ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "아미노산 변화 ({{count}}) _기타",
   "Aminoacid deletion": "아미노산 결실",
   "Aminoacid deletions ({{n}})": "아미노산 결실 ({{n}})",
   "Aminoacid insertions ({{n}})": "아미노산 삽입물 ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "시퀀싱되지 않음:{{range}}",
   "Ns": "Ns",
   "Nuc. range": "핵도 범위",
-  "Nucleotide changes nearby ({{count}})_one": "근처에서 뉴클레오티드 변화 ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "근처에서 뉴클레오티드 변화 ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "뉴클레오티드 결실 ({{n}})",
   "Nucleotide insertion": "뉴클레오티드 삽입",
   "Nucleotide insertions ({{n}})": "뉴클레오티드 삽입 ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "경고",
   "We tried to download the file from": "에서 파일을 다운로드하려고 했습니다.",
   "What's new": "새로워진 내용",
-  "you are connected to the internet": "인터넷에 연결되어 있는 경우"
+  "you are connected to the internet": "인터넷에 연결되어 있는 경우",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}개발자를 위한 추가 정보 (확장하려면 클릭)",
+  " or writing an email to ": " 또는 다음 주소로 이메일 작성 ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "다음 위치에서 요청 (소위{{issue}}) 을 생성하여 개발자에게 보고할 수 있습니다. ",
+  "Aminoacid changes ({{count}})": "아미노산 변화 ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "근처의 뉴클레오티드 변화 ({{count}})"
 }

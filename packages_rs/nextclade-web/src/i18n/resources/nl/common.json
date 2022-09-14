@@ -25,8 +25,6 @@
   "Alignment score": "Uitlijningsscore",
   "All files in a zip archive.": "Alle bestanden in een zip-archief.",
   "Amino acid insertion": "Inbrengen van aminozuren",
-  "Aminoacid changes ({{count}})_one": "Veranderingen in het aminozuur ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "Veranderingen in aminozuur ({{count}}) _overige",
   "Aminoacid deletion": "Verwijdering van aminozuren",
   "Aminoacid deletions ({{n}})": "Aminozuurdeleties ({{n}})",
   "Aminoacid insertions ({{n}})": "Aminozuur-inserties ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "Niet gesequentieerd:{{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. assortiment",
-  "Nucleotide changes nearby ({{count}})_one": "Nucleotide-veranderingen in de buurt ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Nucleotide-veranderingen in de buurt ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Nucleotide-deleties ({{n}})",
   "Nucleotide insertion": "Nucleotide-insertie",
   "Nucleotide insertions ({{n}})": "Nucleotide-invoegingen ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "Waarschuwing",
   "We tried to download the file from": "We hebben geprobeerd het bestand te downloaden",
   "What's new": "Wat is er nieuw",
-  "you are connected to the internet": "je bent verbonden met het internet"
+  "you are connected to the internet": "je bent verbonden met het internet",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}Aanvullende informatie voor ontwikkelaars (klik om uit te vouwen)",
+  " or writing an email to ": " of een e-mail schrijven naar ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Je kunt het rapporteren aan ontwikkelaars door een verzoek (zogenaamd{{issue}}) aan te maken op: ",
+  "Aminoacid changes ({{count}})": "Veranderingen in aminozuur ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Nucleotide-veranderingen in de buurt ({{count}})"
 }

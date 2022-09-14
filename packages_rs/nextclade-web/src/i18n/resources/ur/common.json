@@ -25,8 +25,6 @@
   "Alignment score": "سیدھ کا سکور",
   "All files in a zip archive.": "زپ آرکائیو میں تمام فائلیں.",
   "Amino acid insertion": "امینو ایسڈ اندراج",
-  "Aminoacid changes ({{count}})_one": "امینوایسڈ تبدیلیاں ({{count}}) _ایک",
-  "Aminoacid changes ({{count}})_other": "امینوایسڈ تبدیلیاں ({{count}}) _دیگر",
   "Aminoacid deletion": "امینو ایسڈ کا خاتمہ",
   "Aminoacid deletions ({{n}})": "امینوایسڈ حذف کرنا ({{n}})",
   "Aminoacid insertions ({{n}})": "امینوایسڈ اندراج ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "ترتیب نہیں: {{range}}",
   "Ns": "این ایس",
   "Nuc. range": "نیوک. رینج",
-  "Nucleotide changes nearby ({{count}})_one": "نیوکلیوٹائڈ قریبی تبدیلیاں ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "نیوکلیوٹائڈ تبدیلیاں قریبی ({{count}}) _دیگر",
   "Nucleotide deletions ({{n}})": "نیوکلیوٹائڈ حذف کرنا ({{n}})",
   "Nucleotide insertion": "نیوکلیوٹائڈ اندراج",
   "Nucleotide insertions ({{n}})": "نیوکلیوٹائڈ اندراج ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "انتباہ",
   "We tried to download the file from": "ہم نے فائل کو ڈاؤن لوڈ کرنے کی کوشش کی",
   "What's new": "نیا کیا ہے",
-  "you are connected to the internet": "آپ انٹرنیٹ سے منسلک ہیں"
+  "you are connected to the internet": "آپ انٹرنیٹ سے منسلک ہیں",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ڈویلپرز کے لئے اضافی معلومات (توسیع کرنے کے لئے کلک کریں)",
+  " or writing an email to ": " یا ایک ای میل لکھنے کے لئے ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "آپ اس کی درخواست (نام نہاد {{issue}}) کی تخلیق کرکے ڈویلپرز کو رپورٹ کرسکتے ہیں: ",
+  "Aminoacid changes ({{count}})": "امینوایسڈ تبدیلیاں ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "نیوکلیوٹائڈ قریبی تبدیلیاں ({{count}})"
 }

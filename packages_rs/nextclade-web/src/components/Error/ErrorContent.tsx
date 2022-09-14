@@ -51,6 +51,7 @@ export function ErrorContentMessage({ error }: { error: Error }) {
 }
 
 export function ErrorContent(props: { error?: unknown; detailed?: boolean }) {
+  const { t } = useTranslationSafe()
   const error = useMemo(() => sanitizeError(props.error), [props.error])
 
   if (!props.error) {
@@ -78,7 +79,9 @@ export function ErrorContent(props: { error?: unknown; detailed?: boolean }) {
               <Col>
                 <Details>
                   <Summary className="d-flex">
-                    <span className="my-auto">{'> Additional information for developers (click to expand)'}</span>
+                    <span className="my-auto">
+                      {t('{{symbol}} Additional information for developers (click to expand)', { symbol: '>' })}
+                    </span>
                     <span className="my-auto ml-auto">
                       <ButtonCopyToClipboard text={getErrorReportText(error)} />
                     </span>

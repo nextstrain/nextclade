@@ -25,8 +25,6 @@
   "Alignment score": "ציון יישור",
   "All files in a zip archive.": "כל הקבצים בארכיון zip.",
   "Amino acid insertion": "החדרת חומצות אמינו",
-  "Aminoacid changes ({{count}})_one": "שינויים אמינו-חומצה ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "שינויים אמינואסיד ({{count}}) _other",
   "Aminoacid deletion": "מחיקת אמינואסיד",
   "Aminoacid deletions ({{n}})": "מחיקות אמינואסיד ({{n}})",
   "Aminoacid insertions ({{n}})": "הוספות אמינואסיד ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "לא רצף: {{range}}",
   "Ns": "NS",
   "Nuc. range": "Nuc. טווח",
-  "Nucleotide changes nearby ({{count}})_one": "נוקליאוטידים משתנה בקרבת מקום ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "נוקליאוטידים שינויים בקרבת מקום ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "מחיקות נוקליאוטידים ({{n}})",
   "Nucleotide insertion": "הכנסת נוקליאוטידים",
   "Nucleotide insertions ({{n}})": "הוספות נוקליאוטידים ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "אזהרה",
   "We tried to download the file from": "ניסינו להוריד את הקובץ",
   "What's new": "מה חדש",
-  "you are connected to the internet": "אתה מחובר לאינטרנט"
+  "you are connected to the internet": "אתה מחובר לאינטרנט",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} מידע נוסף למפתחים (לחץ כדי להרחיב)",
+  " or writing an email to ": " או כתיבת דוא\"ל אל ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "אתה יכול לדווח על כך למפתחים על ידי יצירת בקשה (שנקראה {{issue}}) בכתובת: ",
+  "Aminoacid changes ({{count}})": "שינויים אמינו-חומצה ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "נוקלאוטיד משתנה בקרבת מקום ({{count}})"
 }

@@ -25,8 +25,6 @@
   "Alignment score": "Skor penyelarasan",
   "All files in a zip archive.": "Semua file dalam arsip zip.",
   "Amino acid insertion": "Penyisipan asam amino",
-  "Aminoacid changes ({{count}})_one": "Perubahan aminoacid ({{count}}) _satu",
-  "Aminoacid changes ({{count}})_other": "Perubahan aminoacid ({{count}}) _other",
   "Aminoacid deletion": "Penghapusan aminoacid",
   "Aminoacid deletions ({{n}})": "Penghapusan aminoacid ({{n}})",
   "Aminoacid insertions ({{n}})": "Aminoacid sisipan ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "Tidak diurutkan: {{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. jangkauan",
-  "Nucleotide changes nearby ({{count}})_one": "Perubahan nukleotida di dekatnya ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Perubahan nukleotida di dekatnya ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Penghapusan nukleotida ({{n}})",
   "Nucleotide insertion": "Penyisipan nukleotida",
   "Nucleotide insertions ({{n}})": "sisipan nukleotida ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "Peringatan",
   "We tried to download the file from": "Kami mencoba mengunduh file dari",
   "What's new": "Apa yang baru",
-  "you are connected to the internet": "Anda terhubung ke internet"
+  "you are connected to the internet": "Anda terhubung ke internet",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informasi tambahan untuk pengembang (klik untuk memperluas)",
+  " or writing an email to ": " atau menulis email ke ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Anda dapat melaporkannya ke pengembang dengan membuat permintaan (disebut {{issue}}) di: ",
+  "Aminoacid changes ({{count}})": "Perubahan aminoacid ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Perubahan nukleotida di dekatnya ({{count}})"
 }

@@ -25,8 +25,6 @@
   "Alignment score": "คะแนนการจัดตำแหน่ง",
   "All files in a zip archive.": "ไฟล์ทั้งหมดในไฟล์ซิป",
   "Amino acid insertion": "การใส่กรดอะมิโน",
-  "Aminoacid changes ({{count}})_one": "การเปลี่ยนแปลงของกรดอะมิโนกรด ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "การเปลี่ยนแปลงของกรดอะมิโนกรด ({{count}}) _other",
   "Aminoacid deletion": "การลบอะมิโนกรด",
   "Aminoacid deletions ({{n}})": "การลบอะมิโนแอซิด ({{n}})",
   "Aminoacid insertions ({{n}})": "การใส่กรดอะมิโนแอด ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "ไม่เรียงลำดับ: {{range}}",
   "Ns": "เอ็นเอส",
   "Nuc. range": "ช่วงนุค",
-  "Nucleotide changes nearby ({{count}})_one": "นิวคลีโอไทด์เปลี่ยนแปลงในบริเวณใกล้เคียง ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "นิวคลีโอไทด์เปลี่ยนแปลงบริเวณใกล้เคียง ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "การลบนิวคลีโอไทด์ ({{n}})",
   "Nucleotide insertion": "การแทรกนิวคลีโอไทด์",
   "Nucleotide insertions ({{n}})": "การแทรกนิวคลีโอไทด์ ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "คำเตือน",
   "We tried to download the file from": "เราพยายามดาวน์โหลดไฟล์จาก",
   "What's new": "มีอะไรใหม่",
-  "you are connected to the internet": "คุณเชื่อมต่อกับอินเทอร์เน็ต"
+  "you are connected to the internet": "คุณเชื่อมต่อกับอินเทอร์เน็ต",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}ข้อมูลเพิ่มเติมสำหรับนักพัฒนา (คลิกเพื่อขยาย)",
+  " or writing an email to ": " หรือเขียนอีเมลไปที่ ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "คุณสามารถรายงานไปยังนักพัฒนาโดยการสร้างคำขอ (เรียกว่า {{issue}}) ที่: ",
+  "Aminoacid changes ({{count}})": "การเปลี่ยนแปลงของกรดอะมิโนกรด ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "นิวคลีโอไทด์เปลี่ยนแปลงในบริเวณใกล้เคียง ({{count}})"
 }

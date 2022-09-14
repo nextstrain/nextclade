@@ -25,8 +25,6 @@
   "Alignment score": "Hizalama puanı",
   "All files in a zip archive.": "Bir zip arşivindeki tüm dosyalar.",
   "Amino acid insertion": "Amino asit ekleme",
-  "Aminoacid changes ({{count}})_one": "Aminoasit değişiklikleri ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "Aminoasit değişiklikleri ({{count}}) _diğer",
   "Aminoacid deletion": "Aminoasit silme",
   "Aminoacid deletions ({{n}})": "Aminoasit silme ({{n}})",
   "Aminoacid insertions ({{n}})": "Aminoasit eklemeler ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "Sıralı değil: {{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. menzil",
-  "Nucleotide changes nearby ({{count}})_one": "Yakınlarda nükleotid değişiklikleri ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Yakınlarda nükleotid değişiklikleri ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Nükleotid silme ({{n}})",
   "Nucleotide insertion": "Nükleotid yerleştirme",
   "Nucleotide insertions ({{n}})": "Nükleotid eklemeleri ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "Uyarı",
   "We tried to download the file from": "Dosyayı indirmeye çalıştık",
   "What's new": "Yenilikler",
-  "you are connected to the internet": "internete bağlıysanız"
+  "you are connected to the internet": "internete bağlıysanız",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Geliştiriciler için ek bilgiler (genişletmek için tıklayın)",
+  " or writing an email to ": " veya bir e-posta yazarak ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bunu geliştiricilere şu adresten bir istek oluşturarak (sözde {{issue}}) bildirebilirsiniz: ",
+  "Aminoacid changes ({{count}})": "Aminoasit değişiklikleri ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Yakınlarda nükleotid değişiklikleri ({{count}})"
 }

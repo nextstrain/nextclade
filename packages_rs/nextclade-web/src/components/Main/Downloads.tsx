@@ -85,7 +85,7 @@ export function Downloads() {
           <Col lg={4}>
             <Card>
               <CardHeader>
-                <h4 className="text-center">{t('Nextclade CLI')}</h4>
+                <h4 className="text-center">{'Nextclade CLI'}</h4>
                 <p className="text-center">{t('faster, more configurable command-line version of this application')}</p>
               </CardHeader>
 
@@ -114,7 +114,7 @@ export function Downloads() {
           <Col lg={4}>
             <Card>
               <CardHeader>
-                <h4 className="text-center">{t('Nextalign CLI')}</h4>
+                <h4 className="text-center">{'Nextalign CLI'}</h4>
                 <p className="text-center">
                   {t('pairwise reference alignment and translation tool used by Nextclade')}
                 </p>
@@ -145,7 +145,7 @@ export function Downloads() {
           <Col lg={4}>
             <Card>
               <CardHeader>
-                <h4 className="text-center">{t('Nextstrain')}</h4>
+                <h4 className="text-center">{'Nextstrain'}</h4>
                 <p className="text-center">
                   {t('our parent project, an open-source initiative to harness the potential of pathogen genome data')}
                 </p>
@@ -153,10 +153,10 @@ export function Downloads() {
 
               <CardBody>
                 <DownloadLinkList>
-                  <DownloadLink Icon={iconGlobe} text={t('nextstrain.org')} url="https://nextstrain.org/" />
+                  <DownloadLink Icon={iconGlobe} text={'nextstrain.org'} url="https://nextstrain.org/" />
                   <DownloadLink Icon={iconGithub} text={t('Source code')} url="https://github.com/nextstrain" />
                   <DownloadLink Icon={iconBook} text={t('Documentation')} url="https://docs.nextstrain.org/" />
-                  <DownloadLink Icon={iconGlobe} text={t('auspice.us')} url="https://auspice.us/" />
+                  <DownloadLink Icon={iconGlobe} text={'auspice.us'} url="https://auspice.us/" />
                 </DownloadLinkList>
               </CardBody>
             </Card>

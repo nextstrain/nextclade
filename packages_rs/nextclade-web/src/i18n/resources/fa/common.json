@@ -25,8 +25,6 @@
   "Alignment score": "نمره هم ترازی",
   "All files in a zip archive.": "تمام فایل ها در یک آرشیو فایل های فشرده.",
   "Amino acid insertion": "درج اسید آمینه",
-  "Aminoacid changes ({{count}})_one": "تغییرات آمینواسید ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "تغییرات آمینواسید ({{count}}) _سایر",
   "Aminoacid deletion": "حذف آمینواسید",
   "Aminoacid deletions ({{n}})": "حذف آمینواسید ({{n}})",
   "Aminoacid insertions ({{n}})": "درج آمینواسید ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "توالی یابی نشده است: {{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc.range",
-  "Nucleotide changes nearby ({{count}})_one": "تغییرات نوکلئوتیدی در نزدیکی ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "تغییرات نوکلئوتیدی در نزدیکی ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "حذف نوکلئوتیدی ({{n}})",
   "Nucleotide insertion": "درج نوکلئوتیدی",
   "Nucleotide insertions ({{n}})": "درج نوکلئوتیدی ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "هشدار",
   "We tried to download the file from": "ما سعی کردیم فایل را از",
   "What's new": "تازه چه خبر",
-  "you are connected to the internet": "شما به اینترنت متصل"
+  "you are connected to the internet": "شما به اینترنت متصل",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} اطلاعات اضافی برای توسعه دهندگان (برای گسترش کلیک کنید)",
+  " or writing an email to ": " و یا نوشتن یک ایمیل به ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "شما می توانید آن را به توسعه دهندگان با ایجاد یک درخواست (به اصطلاح {{issue}}) در: ",
+  "Aminoacid changes ({{count}})": "تغییرات آمینواسید ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "تغییرات نوکلئوتیدی در نزدیکی ({{count}})"
 }

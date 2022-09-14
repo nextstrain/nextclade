@@ -25,8 +25,6 @@
   "Alignment score": "एलाइनमेंट स्कोर",
   "All files in a zip archive.": "एक ज़िप संग्रह में सभी फ़ाइलें।",
   "Amino acid insertion": "एमिनो एसिड सम्मिलन",
-  "Aminoacid changes ({{count}})_one": "अमीनोसिड परिवर्तन ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "अमीनोसिड परिवर्तन ({{count}}) _other",
   "Aminoacid deletion": "अमीनोसिड विलोपन",
   "Aminoacid deletions ({{n}})": "अमीनोसिड विलोपन ({{n}})",
   "Aminoacid insertions ({{n}})": "अमीनोसिड सम्मिलन ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "अनुक्रमित नहीं:{{range}}",
   "Ns": "एनएस",
   "Nuc. range": "नुक। रेंज",
-  "Nucleotide changes nearby ({{count}})_one": "न्यूक्लियोटाइड के आस-पास के परिवर्तन ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "न्यूक्लियोटाइड के आस-पास के परिवर्तन ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "न्यूक्लियोटाइड विलोपन ({{n}})",
   "Nucleotide insertion": "न्यूक्लियोटाइड सम्मिलन",
   "Nucleotide insertions ({{n}})": "न्यूक्लियोटाइड सम्मिलन ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "चेतावनी",
   "We tried to download the file from": "हमने फ़ाइल को डाउनलोड करने का प्रयास किया",
   "What's new": "नया क्या है",
-  "you are connected to the internet": "आप इंटरनेट से जुड़े हैं"
+  "you are connected to the internet": "आप इंटरनेट से जुड़े हैं",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}डेवलपर्स के लिए अतिरिक्त जानकारी (विस्तार करने के लिए क्लिक करें)",
+  " or writing an email to ": " या एक ईमेल लिखने के लिए ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "आप इसे एक अनुरोध (तथाकथित{{issue}}) बनाकर डेवलपर्स को रिपोर्ट कर सकते हैं: ",
+  "Aminoacid changes ({{count}})": "अमीनोसिड परिवर्तन ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "न्यूक्लियोटाइड के आस-पास परिवर्तन ({{count}})"
 }

@@ -25,8 +25,6 @@
   "Alignment score": "Điểm căn chỉnh",
   "All files in a zip archive.": "Tất cả các tệp trong kho lưu trữ zip.",
   "Amino acid insertion": "Chèn axit amin",
-  "Aminoacid changes ({{count}})_one": "Aminoacid thay đổi ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "Aminoacid thay đổi ({{count}}) _other",
   "Aminoacid deletion": "Xoá aminoacid",
   "Aminoacid deletions ({{n}})": "Xóa aminoacid ({{n}})",
   "Aminoacid insertions ({{n}})": "Chèn aminoacid ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "Không được sắp xếp trình tự: {{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. phạm vi",
-  "Nucleotide changes nearby ({{count}})_one": "Nucleotide thay đổi gần đó ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Nucleotide thay đổi gần đó ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Deletions nucleotide ({{n}})",
   "Nucleotide insertion": "Chèn nucleotide",
   "Nucleotide insertions ({{n}})": "Chèn nucleotide ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "Cảnh báo",
   "We tried to download the file from": "Chúng tôi đã cố gắng tải xuống tệp từ",
   "What's new": "Có gì mới",
-  "you are connected to the internet": "bạn đang kết nối với internet"
+  "you are connected to the internet": "bạn đang kết nối với internet",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}Thông tin bổ sung cho các nhà phát triển (bấm để mở rộng)",
+  " or writing an email to ": " hoặc viết email tới ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bạn có thể báo cáo nó cho nhà phát triển bằng cách tạo một yêu cầu (được gọi là {{issue}}) tại: ",
+  "Aminoacid changes ({{count}})": "Aminoacid thay đổi ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Nucleotide thay đổi gần đó ({{count}})"
 }

@@ -25,8 +25,6 @@
   "Alignment score": "对齐得分",
   "All files in a zip archive.": "zip 存档中的所有文件。",
   "Amino acid insertion": "氨基酸插入",
-  "Aminoacid changes ({{count}})_one": "氨基酸改变 ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "氨基酸变化 ({{count}}) _other",
   "Aminoacid deletion": "氨基酸缺失",
   "Aminoacid deletions ({{n}})": "氨基酸缺失 ({{n}})",
   "Aminoacid insertions ({{n}})": "氨基酸插入 ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "未排序：{{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. 范围",
-  "Nucleotide changes nearby ({{count}})_one": "附近有核苷酸变化 ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "附近有核苷酸变化 ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "核苷酸缺失 ({{n}})",
   "Nucleotide insertion": "核苷酸插入",
   "Nucleotide insertions ({{n}})": "核苷酸插入 ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "警告",
   "We tried to download the file from": "我们尝试从以下位置下载文件",
   "What's new": "有什么新内容",
-  "you are connected to the internet": "你已连接到互联网"
+  "you are connected to the internet": "你已连接到互联网",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}面向开发者的其他信息（点击展开）",
+  " or writing an email to ": " 或者写一封电子邮件给 ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "您可以通过在以下位置创建请求（所谓的{{issue}}）向开发人员报告： ",
+  "Aminoacid changes ({{count}})": "氨基酸变化 ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "附近有核苷酸发生变化 ({{count}})"
 }

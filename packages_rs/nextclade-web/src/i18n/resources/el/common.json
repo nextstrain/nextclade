@@ -25,8 +25,6 @@
   "Alignment score": "Βαθμολογία στοίχισης",
   "All files in a zip archive.": "Όλα τα αρχεία σε ένα αρχείο zip.",
   "Amino acid insertion": "Εισαγωγή αμινοξέων",
-  "Aminoacid changes ({{count}})_one": "Μεταβολές των αμινοξέων ({{count}}) _όνη",
-  "Aminoacid changes ({{count}})_other": "Μεταβολές των αμινοξέων ({{count}}) _λοιπά",
   "Aminoacid deletion": "Διαγραφή αμινοξέων",
   "Aminoacid deletions ({{n}})": "διαγραφές αμινοξέων ({{n}})",
   "Aminoacid insertions ({{n}})": "Εισαγωγές αμινοξέων ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "Χωρίς αλληλουχία: {{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. εύρος",
-  "Nucleotide changes nearby ({{count}})_one": "Κοντινές νουκλεοτιδίων αλλαγές ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Κοντινές νουκλεοτιδικών αλλαγών ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Διαγραφές νουκλεοτιδίων ({{n}})",
   "Nucleotide insertion": "Εισαγωγή νουκλεοτιδίων",
   "Nucleotide insertions ({{n}})": "Εισαγωγή νουκλεοτιδίων ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "Προειδοποίηση",
   "We tried to download the file from": "Προσπαθήσαμε να κατεβάσουμε το αρχείο από",
   "What's new": "Τι νέο υπάρχει",
-  "you are connected to the internet": "είστε συνδεδεμένοι στο διαδίκτυο"
+  "you are connected to the internet": "είστε συνδεδεμένοι στο διαδίκτυο",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Πρόσθετες πληροφορίες για προγραμματιστές (κάντε κλικ για ανάπτυξη)",
+  " or writing an email to ": " ή γράφοντας ένα email στο ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Μπορείτε να το αναφέρετε στους προγραμματιστές δημιουργώντας ένα αίτημα (το λεγόμενο {{issue}}) στη διεύθυνση: ",
+  "Aminoacid changes ({{count}})": "Μεταβολές των αμινοξέων ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Νουκλεοτιδίων αλλαγές σε κοντινή απόσταση ({{count}})"
 }

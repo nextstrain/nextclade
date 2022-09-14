@@ -25,8 +25,6 @@
   "Alignment score": "சீரமைப்பு மதிப்பெண்",
   "All files in a zip archive.": "ஒரு ஜிப் காப்பகத்தில் அனைத்து கோப்புகளை.",
   "Amino acid insertion": "அமினோ அமில செருகும்",
-  "Aminoacid changes ({{count}})_one": "அமினோஅமில மாற்றங்கள் ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "அமினோஅமில மாற்றங்கள் ({{count}}) _மற்ற",
   "Aminoacid deletion": "அமினோஅமில நீக்கல்",
   "Aminoacid deletions ({{n}})": "அமினோஅமில நீக்கங்கள் ({{n}})",
   "Aminoacid insertions ({{n}})": "அமினோஅமிலச் செருகல்கள் ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "வரிசைப்படுத்தப்படவில்லை: {{range}}",
   "Ns": "NS",
   "Nuc. range": "Nuc. வீச்சு",
-  "Nucleotide changes nearby ({{count}})_one": "நியூக்ளியோடைடு அருகில் மாறுகிறது ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "நியூக்ளியோடைடு அருகில் மாறுகிறது ({{count}}) _மற்ற",
   "Nucleotide deletions ({{n}})": "நியூக்ளியோடைடு நீக்கங்கள் ({{n}})",
   "Nucleotide insertion": "நியூக்கிளியோடைடு செருகும்",
   "Nucleotide insertions ({{n}})": "நியூக்ளியோடைடு செருகல்கள் ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "எச்சரிக்கை",
   "We tried to download the file from": "நாங்கள் கோப்பை பதிவிறக்க முயற்சித்தோம்",
   "What's new": "புதியது என்ன",
-  "you are connected to the internet": "நீங்கள் இணையத்துடன் இணைக்கப்பட்டுள்ளீர்கள்"
+  "you are connected to the internet": "நீங்கள் இணையத்துடன் இணைக்கப்பட்டுள்ளீர்கள்",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} டெவலப்பர்களுக்கான கூடுதல் தகவல் (விரிவாக்க கிளிக் செய்யவும்)",
+  " or writing an email to ": " அல்லது ஒரு மின்னஞ்சலை எழுதுதல் ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "ஒரு கோரிக்கையை உருவாக்குவதன் மூலம் டெவலப்பர்களிடம் அதை நீங்கள் {{issue}}தெரிவிக்கலாம்: ",
+  "Aminoacid changes ({{count}})": "அமினோஅமில மாற்றங்கள் ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "நியூக்ளியோடைடு அருகில் மாறுகிறது ({{count}})"
 }

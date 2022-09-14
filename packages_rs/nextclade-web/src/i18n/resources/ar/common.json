@@ -25,8 +25,6 @@
   "Alignment score": "نقاط المحاذاة",
   "All files in a zip archive.": "جميع الملفات في أرشيف مضغوط.",
   "Amino acid insertion": "إدخال الأحماض الأمينية",
-  "Aminoacid changes ({{count}})_one": "تغييرات الأحماض الأمينية ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "تغييرات الأحماض الأمينية ({{count}}) _other",
   "Aminoacid deletion": "حذف الأحماض الأمينية",
   "Aminoacid deletions ({{n}})": "حذف الأحماض الأمينية (1{{n}})",
   "Aminoacid insertions ({{n}})": "إدخالات الأحماض الأمينية ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "غير متسلسلة:{{range}}",
   "Ns": "Ns",
   "Nuc. range": "NuC. نطاق",
-  "Nucleotide changes nearby ({{count}})_one": "تغييرات النوكليوتيدات القريبة ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "تغييرات النوكليوتيدات القريبة ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "حذف النوكليوتيدات (1{{n}})",
   "Nucleotide insertion": "إدخال النوكليوتيدات",
   "Nucleotide insertions ({{n}})": "إدراج النوكليوتيدات ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "تحذير",
   "We tried to download the file from": "حاولنا تنزيل الملف من",
   "What's new": "ما الجديد",
-  "you are connected to the internet": "أنت متصل بالإنترنت"
+  "you are connected to the internet": "أنت متصل بالإنترنت",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}معلومات إضافية للمطورين (انقر للتوسيع)",
+  " or writing an email to ": " أو كتابة بريد إلكتروني إلى ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "يمكنك الإبلاغ عن ذلك للمطورين عن طريق إنشاء طلب (ما يسمى{{issue}}) على: ",
+  "Aminoacid changes ({{count}})": "تغييرات الأحماض الأمينية ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "تغييرات النوكليوتيدات القريبة ({{count}})"
 }

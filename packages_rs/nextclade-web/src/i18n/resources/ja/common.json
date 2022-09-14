@@ -25,8 +25,6 @@
   "Alignment score": "アライメントスコア",
   "All files in a zip archive.": "Zip アーカイブ内のすべてのファイル。",
   "Amino acid insertion": "アミノ酸挿入",
-  "Aminoacid changes ({{count}})_one": "アミノ酸変化 ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "アミノ酸の変化 ({{count}}) _other",
   "Aminoacid deletion": "アミノ酸欠失",
   "Aminoacid deletions ({{n}})": "アミノ酸欠失 ({{n}})",
   "Aminoacid insertions ({{n}})": "アミノ酸挿入 ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "順序付けなし:{{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. レンジ",
-  "Nucleotide changes nearby ({{count}})_one": "近くでヌクレオチドが変化する ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "近くでヌクレオチドが変化する ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "ヌクレオチド欠失 ({{n}})",
   "Nucleotide insertion": "ヌクレオチド挿入",
   "Nucleotide insertions ({{n}})": "ヌクレオチド挿入 ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "警告",
   "We tried to download the file from": "からファイルをダウンロードしようとしました",
   "What's new": "新機能は何ですか",
-  "you are connected to the internet": "インターネットに接続してる"
+  "you are connected to the internet": "インターネットに接続してる",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}開発者向けの追加情報 (クリックして展開)",
+  " or writing an email to ": " またはにメールを書く ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "次の場所でリクエスト (いわゆる{{issue}}) を作成すると、開発者に報告できます。 ",
+  "Aminoacid changes ({{count}})": "アミノ酸の変化 ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "近くのヌクレオチド変化 ({{count}})"
 }

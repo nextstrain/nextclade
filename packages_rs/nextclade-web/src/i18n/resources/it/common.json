@@ -25,8 +25,6 @@
   "Alignment score": "Punteggio di allineamento",
   "All files in a zip archive.": "Tutti i file in un archivio zip.",
   "Amino acid insertion": "Inserimento di amminoacidi",
-  "Aminoacid changes ({{count}})_one": "Modifiche degli amminoacidi ({{count}}) _one",
-  "Aminoacid changes ({{count}})_other": "Modifiche degli amminoacidi ({{count}}) _altro",
   "Aminoacid deletion": "Eliminazione degli aminoacidi",
   "Aminoacid deletions ({{n}})": "Delezioni degli amminoacidi ({{n}})",
   "Aminoacid insertions ({{n}})": "Inserimenti di amminoacidi ({{n}})",
@@ -198,8 +196,6 @@
   "Not sequenced: {{range}}": "Non sequenziato:{{range}}",
   "Ns": "Ns",
   "Nuc. range": "Gamma Nuc.",
-  "Nucleotide changes nearby ({{count}})_one": "Cambiamenti nucleotidici nelle vicinanze ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Cambiamenti nucleotidici nelle vicinanze ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Delezioni nucleotidiche ({{n}})",
   "Nucleotide insertion": "Inserimento nucleotidico",
   "Nucleotide insertions ({{n}})": "Inserimenti nucleotidici ({{n}})",
@@ -323,5 +319,10 @@
   "Warning": "Avviso",
   "We tried to download the file from": "Abbiamo provato a scaricare il file da",
   "What's new": "Cosa c'è di nuovo",
-  "you are connected to the internet": "sei connesso a Internet"
+  "you are connected to the internet": "sei connesso a Internet",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}Informazioni aggiuntive per gli sviluppatori (fare clic per espandere)",
+  " or writing an email to ": " o scrivendo una mail a ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Puoi segnalarlo agli sviluppatori creando una richiesta (cosiddetta{{issue}}) all'indirizzo: ",
+  "Aminoacid changes ({{count}})": "Cambiamenti degli amminoacidi ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Cambiamenti nucleotidici nelle vicinanze ({{count}})"
 }

@@ -25,8 +25,6 @@
   "Alignment score": "Ausrichtungs-Score",
   "All files in a zip archive.": "Alle Dateien in einem Zip-Archiv.",
   "Amino acid insertion": "Einfügung von Aminosäuren",
-  "Aminoacid changes ({{count}})_one": "Veränderungen der Aminosäure ({{count}}) _eins",
-  "Aminoacid changes ({{count}})_other": "Veränderungen der Aminosäure ({{count}}) _andere",
   "Aminoacid deletion": "Aminosäure-Deletion",
   "Aminoacid deletions ({{n}})": "Aminosäure-Deletionen ({{n}})",
   "Aminoacid insertions ({{n}})": "Aminosäure-Insertionen ({{n}})",
@@ -197,8 +195,6 @@
   "Not sequenced: {{range}}": "Nicht sequenziert:{{range}}",
   "Ns": "Ns",
   "Nuc. range": "Nuc. Serie",
-  "Nucleotide changes nearby ({{count}})_one": "Nukleotidveränderungen in der Nähe von ({{count}}) _one",
-  "Nucleotide changes nearby ({{count}})_other": "Nukleotidveränderungen in der Nähe ({{count}}) _other",
   "Nucleotide deletions ({{n}})": "Nukleotiddeletionen ({{n}})",
   "Nucleotide insertion": "Nukleotid-Insertion",
   "Nucleotide insertions ({{n}})": "Nukleotid-Insertionen ({{n}})",
@@ -323,5 +319,10 @@
   "We tried to download the file from": "Wir haben versucht, die Datei herunterzuladen von",
   "What's new": "Was ist neu",
   "you are connected to the internet": "du bist mit dem Internet verbunden",
-  "Drop it!": "Lass es fallen!"
+  "Drop it!": "Lass es fallen!",
+  "{{symbol}} Additional information for developers (click to expand)": "{{symbol}}Zusätzliche Informationen für Entwickler (zum Erweitern klicken)",
+  " or writing an email to ": " oder schreiben Sie eine E-Mail an ",
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Sie können es Entwicklern melden, indem Sie eine Anfrage (so genannt{{issue}}) erstellen unter: ",
+  "Aminoacid changes ({{count}})": "Veränderungen der Aminosäure ({{count}})",
+  "Nucleotide changes nearby ({{count}})": "Nukleotidveränderungen in der Nähe ({{count}})"
 }
