@@ -15,30 +15,47 @@ import prettyBytesOriginal, { Options as PrettyBytesOptionsOriginal } from 'pret
 // @ts-ignore
 import numbroLanguages from 'numbro/dist/languages.min'
 
-import GB from 'flag-icon-css/flags/1x1/gb.svg'
-import SA from 'flag-icon-css/flags/1x1/sa.svg'
+import CN from 'flag-icon-css/flags/1x1/cn.svg'
 import DE from 'flag-icon-css/flags/1x1/de.svg'
 import ES from 'flag-icon-css/flags/1x1/es.svg'
 import FR from 'flag-icon-css/flags/1x1/fr.svg'
+import GB from 'flag-icon-css/flags/1x1/gb.svg'
+import IN from 'flag-icon-css/flags/1x1/in.svg'
 import IT from 'flag-icon-css/flags/1x1/it.svg'
+import JP from 'flag-icon-css/flags/1x1/jp.svg'
 import KR from 'flag-icon-css/flags/1x1/kr.svg'
 import PT from 'flag-icon-css/flags/1x1/pt.svg'
 import RU from 'flag-icon-css/flags/1x1/ru.svg'
-import CN from 'flag-icon-css/flags/1x1/cn.svg'
+import SA from 'flag-icon-css/flags/1x1/sa.svg'
 
-import en from './resources/en/common.json'
 import ar from './resources/ar/common.json'
 import de from './resources/de/common.json'
+import en from './resources/en/common.json'
 import es from './resources/es/common.json'
 import fr from './resources/fr/common.json'
+import hi from './resources/hi/common.json'
 import it from './resources/it/common.json'
+import ja from './resources/ja/common.json'
 import ko from './resources/ko/common.json'
 import pt from './resources/pt/common.json'
 import ru from './resources/ru/common.json'
 import zh from './resources/zh/common.json'
 
 export const localized = { number: '{{value, localizedNumber}}' } as const
-export const translations = { en, ar, de, es, fr, it, ko, pt, ru, zh }
+export const translations = {
+  en,
+  ar,
+  de,
+  es,
+  fr,
+  hi,
+  it,
+  ja,
+  ko,
+  pt,
+  ru,
+  zh,
+}
 export const flags = new Map()
 
 export type LocaleKey = keyof typeof translations
@@ -59,7 +76,9 @@ export const locales: Record<LocaleKey, Locale> = {
   de: { key: 'de', full: 'de-DE', name: languages.de.native, Flag: DE as FC },
   es: { key: 'es', full: 'es-ES', name: languages.es.native, Flag: ES as FC },
   fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, Flag: FR as FC },
+  hi: { key: 'hi', full: 'hi-IN', name: languages.hi.native, Flag: IN as FC },
   it: { key: 'it', full: 'it-IT', name: languages.it.native, Flag: IT as FC },
+  ja: { key: 'ja', full: 'ja-JP', name: languages.ja.native, Flag: JP as FC },
   ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, Flag: KR as FC },
   pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, Flag: PT as FC },
   ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, Flag: RU as FC },
