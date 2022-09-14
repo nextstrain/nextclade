@@ -20,40 +20,69 @@ import DE from 'flag-icon-css/flags/1x1/de.svg'
 import ES from 'flag-icon-css/flags/1x1/es.svg'
 import FR from 'flag-icon-css/flags/1x1/fr.svg'
 import GB from 'flag-icon-css/flags/1x1/gb.svg'
+import GR from 'flag-icon-css/flags/1x1/gr.svg'
+import ID from 'flag-icon-css/flags/1x1/id.svg'
+import IL from 'flag-icon-css/flags/1x1/il.svg'
 import IN from 'flag-icon-css/flags/1x1/in.svg'
+import IR from 'flag-icon-css/flags/1x1/ir.svg'
 import IT from 'flag-icon-css/flags/1x1/it.svg'
 import JP from 'flag-icon-css/flags/1x1/jp.svg'
 import KR from 'flag-icon-css/flags/1x1/kr.svg'
+import NL from 'flag-icon-css/flags/1x1/nl.svg'
+import PK from 'flag-icon-css/flags/1x1/pk.svg'
 import PT from 'flag-icon-css/flags/1x1/pt.svg'
 import RU from 'flag-icon-css/flags/1x1/ru.svg'
 import SA from 'flag-icon-css/flags/1x1/sa.svg'
+import TH from 'flag-icon-css/flags/1x1/th.svg'
+import TR from 'flag-icon-css/flags/1x1/tr.svg'
+import VN from 'flag-icon-css/flags/1x1/vn.svg'
 
 import ar from './resources/ar/common.json'
 import de from './resources/de/common.json'
+import el from './resources/el/common.json'
 import en from './resources/en/common.json'
 import es from './resources/es/common.json'
+import fa from './resources/fa/common.json'
 import fr from './resources/fr/common.json'
+import he from './resources/he/common.json'
 import hi from './resources/hi/common.json'
+import id from './resources/id/common.json'
 import it from './resources/it/common.json'
 import ja from './resources/ja/common.json'
 import ko from './resources/ko/common.json'
+import nl from './resources/nl/common.json'
 import pt from './resources/pt/common.json'
 import ru from './resources/ru/common.json'
+import ta from './resources/ta/common.json'
+import th from './resources/th/common.json'
+import tr from './resources/tr/common.json'
+import ur from './resources/ur/common.json'
+import vi from './resources/vi/common.json'
 import zh from './resources/zh/common.json'
 
 export const localized = { number: '{{value, localizedNumber}}' } as const
 export const translations = {
-  en,
   ar,
   de,
+  el,
+  en,
   es,
+  fa,
   fr,
+  he,
   hi,
+  id,
   it,
   ja,
   ko,
+  nl,
   pt,
   ru,
+  ta,
+  th,
+  tr,
+  ur,
+  vi,
   zh,
 }
 export const flags = new Map()
@@ -67,22 +96,33 @@ export interface Locale {
   readonly key: LocaleKey
   readonly full: string
   readonly name: string
+  readonly native: string
   readonly Flag: ElementType
 }
 
 export const locales: Record<LocaleKey, Locale> = {
-  en: { key: 'en', full: 'en-US', name: languages.en.native, Flag: GB as FC },
-  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.native, Flag: SA as FC },
-  de: { key: 'de', full: 'de-DE', name: languages.de.native, Flag: DE as FC },
-  es: { key: 'es', full: 'es-ES', name: languages.es.native, Flag: ES as FC },
-  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, Flag: FR as FC },
-  hi: { key: 'hi', full: 'hi-IN', name: languages.hi.native, Flag: IN as FC },
-  it: { key: 'it', full: 'it-IT', name: languages.it.native, Flag: IT as FC },
-  ja: { key: 'ja', full: 'ja-JP', name: languages.ja.native, Flag: JP as FC },
-  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, Flag: KR as FC },
-  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, Flag: PT as FC },
-  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, Flag: RU as FC },
-  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.native, Flag: CN as FC },
+  en: { key: 'en', full: 'en-US', name: languages.en.name, native: languages.en.native, Flag: GB as FC },
+  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.name, native: languages.ar.native, Flag: SA as FC },
+  de: { key: 'de', full: 'de-DE', name: languages.de.name, native: languages.de.native, Flag: DE as FC },
+  es: { key: 'es', full: 'es-ES', name: languages.es.name, native: languages.es.native, Flag: ES as FC },
+  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.name, native: languages.fr.native, Flag: FR as FC },
+  hi: { key: 'hi', full: 'hi-IN', name: languages.hi.name, native: languages.hi.native, Flag: IN as FC },
+  it: { key: 'it', full: 'it-IT', name: languages.it.name, native: languages.it.native, Flag: IT as FC },
+  ja: { key: 'ja', full: 'ja-JP', name: languages.ja.name, native: languages.ja.native, Flag: JP as FC },
+  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.name, native: languages.ko.native, Flag: KR as FC },
+  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.name, native: languages.pt.native, Flag: PT as FC },
+  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.name, native: languages.ru.native, Flag: RU as FC },
+  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.name, native: languages.zh.native, Flag: CN as FC },
+  fa: { key: 'fa', full: 'fa-IR', name: languages.fa.name, native: languages.fa.native, Flag: IR as FC },
+  ta: { key: 'ta', full: 'ta-IN', name: languages.ta.name, native: languages.ta.native, Flag: IN as FC },
+  vi: { key: 'vi', full: 'vi-VN', name: languages.vi.name, native: languages.vi.native, Flag: VN as FC },
+  ur: { key: 'ur', full: 'ur-PK', name: languages.ur.name, native: languages.ur.native, Flag: PK as FC },
+  tr: { key: 'tr', full: 'tr-TR', name: languages.tr.name, native: languages.tr.native, Flag: TR as FC },
+  el: { key: 'el', full: 'el-GR', name: languages.el.name, native: languages.el.native, Flag: GR as FC },
+  he: { key: 'he', full: 'he-IL', name: languages.he.name, native: languages.he.native, Flag: IL as FC },
+  id: { key: 'id', full: 'id-ID', name: languages.id.name, native: languages.id.native, Flag: ID as FC },
+  nl: { key: 'nl', full: 'nl-NL', name: languages.nl.name, native: languages.nl.native, Flag: NL as FC },
+  th: { key: 'th', full: 'th-TH', name: languages.th.name, native: languages.th.native, Flag: TH as FC },
 } as const
 
 export const localeKeys = Object.keys(locales)

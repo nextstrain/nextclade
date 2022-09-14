@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, DropdownProps } from 'reactstrap'
 import { useRecoilState } from 'recoil'
 
@@ -33,11 +33,20 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
 }
 
 export function LanguageSwitcherItem({ locale }: { locale: Locale }) {
-  const { Flag, name } = locale
+  const { Flag, name, native } = locale
+
+  const label = useMemo(() => {
+    if (name === native) {
+      return name
+    }
+
+    return `${native} (${name})`
+  }, [name, native])
+
   return (
     <>
       <Flag className="language-switcher-flag" />
-      <span className="pl-2">{name}</span>
+      <span className="pl-2">{label}</span>
     </>
   )
 }
