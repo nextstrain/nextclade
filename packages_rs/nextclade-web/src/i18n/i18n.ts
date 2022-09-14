@@ -3,7 +3,7 @@ import { ElementType, FC } from 'react'
 import type { StrictOmit } from 'ts-essentials'
 import { mapValues } from 'lodash'
 
-import i18nOriginal, { i18n as I18N } from 'i18next'
+import i18nOriginal, { i18n as I18N, Resource } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 import { Settings as LuxonSettings } from 'luxon'
@@ -90,7 +90,7 @@ export const flags = new Map()
 export type LocaleKey = keyof typeof translations
 
 export const DEFAULT_LOCALE_KEY: LocaleKey = 'en'
-export const resources = mapValues(translations, (value) => ({ translation: value }))
+export const resources: Record<LocaleKey, Resource> = mapValues(translations, (value) => ({ translation: value }))
 
 export interface Locale {
   readonly key: LocaleKey
