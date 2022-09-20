@@ -78,7 +78,20 @@ export function sortByCoverage(results: NextcladeResult[], direction: SortDirect
 }
 
 export function sortByEscape(results: NextcladeResult[], direction: SortDirection) {
-  return orderBy(results, (result) => result.result?.analysisResult.escape ?? defaultNumber(direction), direction)
+  return orderBy(
+    results,
+    (result) => {
+      const escape = result.result?.analysisResult.escape
+      if (escape) {
+        const entries = Object.entries(escape)
+        if (entries.length > 0) {
+          return entries[0][1]
+        }
+      }
+      return defaultNumber(direction)
+    },
+    direction,
+  )
 }
 
 export function sortByMutations(results: NextcladeResult[], direction: SortDirection) {
