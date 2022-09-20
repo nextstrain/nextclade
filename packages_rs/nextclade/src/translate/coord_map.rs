@@ -169,9 +169,11 @@ impl CoordMap {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
+  use crate::gene::gene::FeatureKind;
   use crate::io::nuc::from_nuc_seq;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
+  use multimap::MultiMap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -264,11 +266,13 @@ mod coord_map_tests {
   #[rstest]
   fn extract_gene_plus_strand() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     // reference: ACT|CCGTGACCG|CGT
     // ref_aln: A--CT|CCGT---GACCG|--CGT
@@ -286,11 +290,13 @@ mod coord_map_tests {
   #[rstest]
   fn extract_gene_minus_strand() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     // reference: ACT|CCGTGACCG|CGT
     // ref_aln: A--CT|CCGT---GACCG|--CGT
@@ -309,11 +315,13 @@ mod coord_map_tests {
   #[rstest]
   fn ref_feature_pos_to_aln_fwd() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     //                0..    |7
     // reference: ACT|CCGTGACCG|CGT
@@ -328,11 +336,13 @@ mod coord_map_tests {
   #[rstest]
   fn ref_feature_pos_to_aln_rev() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     //                 |7      |0
     // reference: ACT|CCGTGACCG|CGT
@@ -347,11 +357,13 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_pos_to_ref_fwd() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     //               |3    |8
     // reference: ACT|CCGTGACCG|CGT
@@ -366,11 +378,13 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_pos_to_ref_rev() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     //               |3 |5
     // reference: ACT|CCGTGACCG|CGT
@@ -385,11 +399,13 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_range_to_ref_fwd() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     //               |   |3 |6
     // reference: ACT|CCGTGACCG|CGT
@@ -407,11 +423,13 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_range_to_ref_rev() -> Result<(), Report> {
     let gene = Gene {
+      kind: FeatureKind::Gene,
       gene_name: "g1".to_string(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      attributes: MultiMap::default(),
     };
     //               |   |6 |9
     // reference: ACT|CCGTGACCG|CGT

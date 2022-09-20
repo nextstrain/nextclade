@@ -67,6 +67,7 @@ pub enum NextalignOutputSelection {
   All,
   Fasta,
   Translations,
+  FeatureTable,
   Insertions,
   Errors,
 }
@@ -148,7 +149,7 @@ pub struct NextalignRunOutputArgs {
   ///
   /// If both the `--output-all` and individual `--output-*` flags are provided, each individual flag overrides the corresponding default output path.
   ///
-  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-translations`, `--output-insertions`, `--output-errors`
+  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-translations`, `--output-feature-table`, `--output-insertions`, `--output-errors`
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
@@ -211,6 +212,22 @@ pub struct NextalignRunOutputArgs {
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
+
+  /// Path to output Genbank Feature Table file (.tbl).
+  ///
+  /// Writes Feature Table in Genbank file format, which can be used to facilitate submissions to Genbank database.
+  ///
+  /// See: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
+  ///
+  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
+  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long, short = 'F')]
+  #[clap(value_hint = ValueHint::AnyPath)]
+  pub output_feature_table: Option<PathBuf>,
 
   /// Path to output CSV file that contain insertions stripped from the reference alignment.
   ///
@@ -320,6 +337,7 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
         output_selection,
         output_fasta,
         output_translations,
+        output_feature_table,
         output_insertions,
         output_errors,
         include_reference,
@@ -372,6 +390,10 @@ pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result
 
         output_translations.get_or_insert(output_translations_template)
       };
+    }
+
+    if output_selection.contains(&NextalignOutputSelection::FeatureTable) {
+      let output_feature_table = output_feature_table.get_or_insert(add_extension(&default_output_file_path, "tbl"));
     }
   }
 
