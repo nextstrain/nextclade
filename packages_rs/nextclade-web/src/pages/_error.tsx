@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react'
 import type { NextPageContext } from 'next'
-import { Button, Col, Container as ContainerBase, Row } from 'reactstrap'
+import { Col, Container as ContainerBase, Row } from 'reactstrap'
 import get from 'lodash/get'
 
 import { ErrorContent } from 'src/components/Error/ErrorContent'
-import { ErrorContentExplanation } from 'src/components/Error/ErrorContentExplanation'
+import { RestartButton } from 'src/components/Error/ErrorStyles'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
-import { useReloadPage } from 'src/hooks/useReloadPage'
 import styled from 'styled-components'
 
 export const Container = styled(ContainerBase)`
@@ -45,8 +44,6 @@ export interface ErrorPageProps {
 function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
   const { t } = useTranslationSafe()
 
-  const reload = useReloadPage('/')
-
   const titleText = useMemo(() => {
     const statusCodes: { [code: number]: string } = {
       400: t('Bad Request'),
@@ -66,7 +63,7 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
     return (
       <Row noGutters>
         <Col>
-          <ErrorContent error={error} />
+          <ErrorContent error={error} detailed />
         </Col>
       </Row>
     )
@@ -86,22 +83,8 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
         {errorContent}
 
         <Row noGutters>
-          <Col>
-            <ErrorContentExplanation />
-          </Col>
-        </Row>
-
-        <Row noGutters>
           <Col className="w-100 d-flex">
-            <Button
-              className="ml-auto"
-              type="button"
-              color="danger"
-              title={t('Reload the page and start Nextclade fresh')}
-              onClick={reload}
-            >
-              {t('Restart Nextclade')}
-            </Button>
+            <RestartButton />
           </Col>
         </Row>
       </MainContent>

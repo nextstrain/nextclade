@@ -6,7 +6,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 export function ErrorGeneric({ error }: { error: Error }) {
   const { t } = useTranslationSafe()
 
-  const { errorTitle, message } = useMemo(() => {
+  const { message } = useMemo(() => {
     const { name, message } = error
 
     let errorTitle = t('An error has occurred: {{errorName}}', { errorName: name })
@@ -19,7 +19,6 @@ export function ErrorGeneric({ error }: { error: Error }) {
 
   return (
     <ErrorContainer>
-      <h5>{errorTitle}</h5>
       <ErrorMessage>{message}</ErrorMessage>
     </ErrorContainer>
   )

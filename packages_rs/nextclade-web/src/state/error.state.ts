@@ -1,3 +1,4 @@
+import copy from 'fast-copy'
 import { isNil } from 'lodash'
 import { atom, selector } from 'recoil'
 import { plausible } from 'src/components/Common/Plausible'
@@ -9,7 +10,12 @@ export const globalErrorAtom = atom<Error | undefined>({
     ({ onSet }) => {
       onSet((error, _1, isReset) => {
         if (error && !isReset) {
-          plausible('Global error', { props: { name: error.name, message: error.message } })
+          let message = copy(error.message)
+          if (message.includes('Cannot read file')) {
+            message = 'Cannot read file'
+          }
+          message = `${error.name}: ${message}`
+          plausible('Global error v2', { props: { message } })
           console.error(error)
         }
       })
