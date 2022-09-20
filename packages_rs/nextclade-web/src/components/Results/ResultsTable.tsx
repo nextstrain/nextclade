@@ -376,7 +376,7 @@ function EscapeColumnHeader({ basis, text, sortByEscapeAsc, sortByEscapeDesc }: 
         <TableCellText>{text}</TableCellText>
         <ResultsControlsSort sortAsc={sortByEscapeAsc} sortDesc={sortByEscapeDesc} />
       </TableHeaderCellContent>
-      <ButtonHelpStyled identifier="btn-help-col-esc">
+      <ButtonHelpStyled identifier="btn-help-col-esc" tooltipWidth="600px">
         <HelpTipsEscape />
       </ButtonHelpStyled>
     </TableHeaderCell>
