@@ -51,7 +51,7 @@ pub struct EscapeData {
   pub gene: String,
   pub rbd_range: Range,
   pub weights: BTreeMap<String, f64>,
-  pub coefficients: BTreeMap<usize, BTreeMap<String, f64>>,
+  pub coefficients: BTreeMap<String, BTreeMap<usize, f64>>,
 }
 
 impl FromStr for VirusProperties {
