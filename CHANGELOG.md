@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## Nextclade Web 2.5.1 (2022-09-20)
+
+### Ensure files with non-UTF-8 encoding are accepted
+
+Previously, input files with encodings other than UTF-8 were causing a crash in Nextclade Web. Now Nextclade tries to detect encoding and process the files. Error messages and error dialogs were improved.
+
+### Improve user interface internationalization
+
+We translated user interface of Nextclade Web to more languages, and translated some of the previously untranslated elements for existing languages. The language can be selected using a dropdown on the top panel.
+
+### Upgrade Auspice to 2.38.0
+
+Auspice tree view was updated to the latest version.
+
+
 ## Nextclade CLI 2.5.0, Nextclade Web 2.5.0 (2022-08-31)
 
 ### **Feature (CLI, Web)**: Coverage analysis
