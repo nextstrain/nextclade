@@ -81,12 +81,9 @@ export function sortByEscape(results: NextcladeResult[], direction: SortDirectio
   return orderBy(
     results,
     (result) => {
-      const escape = result.result?.analysisResult.escape
-      if (escape) {
-        const entries = Object.entries(escape)
-        if (entries.length > 0) {
-          return entries[0][1]
-        }
+      const escapes = result.result?.analysisResult.escape
+      if (escapes && escapes.length > 0) {
+        return escapes[0].escape
       }
       return defaultNumber(direction)
     },
