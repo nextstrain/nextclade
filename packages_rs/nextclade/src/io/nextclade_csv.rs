@@ -13,7 +13,8 @@ use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
 use crate::types::outputs::{
-  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
+  combine_outputs_and_errors_sorted, Escape, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
+  PeptideWarning,
 };
 use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
@@ -21,7 +22,6 @@ use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
 use regex::internal::Input;
-use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
@@ -258,7 +258,12 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("alignmentStart", &alignment_start.to_string())?;
     self.add_entry("alignmentEnd", &alignment_end.to_string())?;
     self.add_entry("coverage", coverage)?;
-    self.add_entry("escape", &format_escape(escape))?;
+    self.add_entry(
+      "escape",
+      &escape
+        .as_ref()
+        .map_or_else(|| "".to_owned(), |escape| format_escape(&escape)),
+    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -635,8 +640,11 @@ pub fn format_qc_score(score: f64) -> String {
 }
 
 #[inline]
-pub fn format_escape(escape: &BTreeMap<String, f64>) -> String {
-  escape.iter().map(|(name, value)| format!("{name}:{value}")).join(";")
+pub fn format_escape(escape: &[Escape]) -> String {
+  escape
+    .iter()
+    .map(|Escape { name, escape, .. }| format!("{name}:{escape}"))
+    .join(";")
 }
 
 pub fn results_to_csv_string(

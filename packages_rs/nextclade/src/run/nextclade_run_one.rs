@@ -24,8 +24,9 @@ use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
-use crate::types::outputs::{NextalignOutputs, NextcladeOutputs};
+use crate::types::outputs::{Escape, NextalignOutputs, NextcladeOutputs};
 use eyre::Report;
+use itertools::Itertools;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -154,16 +155,25 @@ pub fn nextclade_run_one(
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
-  let escape = virus_properties
-    .escape_data
-    .iter()
-    .map(|escape_data| {
-      let EscapeData { name, gene, .. } = escape_data;
-      let escape = calculate_escape(escape_data, &aa_substitutions);
-      let name = name.as_ref().map_or_else(|| gene.clone(), String::clone);
-      (name, escape)
-    })
-    .collect();
+  let escape = virus_properties.escape_data.as_ref().map(|escape_data| {
+    if clade == "outgroup" {
+      vec![]
+    } else {
+      escape_data
+        .iter()
+        .map(|escape_data| {
+          let EscapeData { name, gene, .. } = escape_data;
+          let name = name.as_ref().map_or_else(|| gene.clone(), String::clone);
+          let escape = calculate_escape(escape_data, &aa_substitutions);
+          Escape {
+            name,
+            gene: gene.clone(),
+            escape,
+          }
+        })
+        .collect_vec()
+    }
+  });
 
   let qc = qc_run(
     &private_nuc_mutations,

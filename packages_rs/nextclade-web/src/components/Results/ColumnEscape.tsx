@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { Col, Row } from 'reactstrap'
 
-import type { AnalysisResult } from 'src/types'
+import type { AnalysisResult, Escape } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -19,9 +19,12 @@ export function ColumnEscape({ analysisResult }: ColumnEscapeProps) {
   const id = getSafeId('col-escape', { index, seqName })
 
   const escapePercentage = useMemo(() => {
-    const entries = Object.entries(escape)
-    if (entries.length > 0) {
-      return formatEscapeValue(entries[0][1])
+    if (escape) {
+      const escapes = Object.values(escape)
+      if (escapes.length === 0) {
+        return []
+      }
+      return formatEscapeValue(escapes[0].escape)
     }
     return undefined
   }, [escape])
@@ -31,9 +34,7 @@ export function ColumnEscape({ analysisResult }: ColumnEscapeProps) {
       {escapePercentage}
       <Tooltip id={id} isOpen={showTooltip} target={id} wide fullWidth>
         <Row noGutters>
-          <Col>
-            <ListOfEscapes escapes={escape} />
-          </Col>
+          <Col>{escape && <ListOfEscapes escapes={escape} />}</Col>
         </Row>
       </Tooltip>
     </div>
@@ -45,7 +46,7 @@ function formatEscapeValue(escape: number) {
 }
 
 export interface ListOfEscapesProps {
-  escapes: Record<string, number>
+  escapes: Escape[]
 }
 
 export function ListOfEscapes({ escapes }: ListOfEscapesProps) {
@@ -59,7 +60,7 @@ export function ListOfEscapes({ escapes }: ListOfEscapesProps) {
       </tr>
     )
 
-    const tbody = Object.entries(escapes).map(([name, escape]) => (
+    const tbody = escapes.map(({ name, escape }) => (
       <tr key={name}>
         <td className="text-center">{name}</td>
         <td className="text-center">{formatEscapeValue(escape)}</td>

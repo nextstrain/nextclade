@@ -19,8 +19,7 @@ struct VirusPropertiesRaw {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
-  #[serde(default)]
-  pub escape_data: Vec<EscapeData>,
+  pub escape_data: Option<Vec<EscapeData>>,
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -30,8 +29,7 @@ pub struct VirusProperties {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
-  #[serde(default)]
-  pub escape_data: Vec<EscapeData>,
+  pub escape_data: Option<Vec<EscapeData>>,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels

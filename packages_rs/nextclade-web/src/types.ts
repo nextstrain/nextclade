@@ -344,6 +344,12 @@ export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
   return { reversions, labeled, unlabeled, totalMutations }
 }
 
+export interface Escape {
+  name: string
+  gene: string
+  escape: number
+}
+
 export interface AnalysisResult {
   index: number
   seqName: string
@@ -379,7 +385,7 @@ export interface AnalysisResult {
   privateNucMutations: PrivateMutations
   privateAaMutations: Record<string, PrivateMutations>
   coverage: number
-  escape: Record<string, number>
+  escape?: Escape[]
   qc: QcResult
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]

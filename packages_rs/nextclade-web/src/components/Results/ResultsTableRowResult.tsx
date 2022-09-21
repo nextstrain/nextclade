@@ -1,7 +1,7 @@
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
-import { isEmpty } from 'lodash'
+import { isNil } from 'lodash'
 
 import { QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
@@ -90,7 +90,7 @@ export function ResultsTableRowResult({
     const { escape, qc, warnings } = analysisResult
 
     let escapeCell = null
-    if (!isEmpty(escape)) {
+    if (!isNil(escape)) {
       escapeCell = (
         <TableCell basis={columnWidthsPx.escape} grow={0} shrink={0}>
           <ColumnEscape analysisResult={analysisResult} />
