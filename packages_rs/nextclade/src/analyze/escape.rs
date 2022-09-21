@@ -3,10 +3,10 @@ use crate::analyze::virus_properties::EscapeData;
 use itertools::Itertools;
 
 pub fn calculate_escape(escape_data: &EscapeData, aa_substitutions: &[AaSubFull]) -> f64 {
-  let positions = aa_substitutions
+  let substitutions = aa_substitutions
     .iter()
     .filter_map(|AaSubFull { sub, .. }| {
-      (sub.gene == escape_data.gene && escape_data.rbd_range.contains(sub.pos)).then(|| sub.pos)
+      (sub.gene == escape_data.gene && escape_data.rbd_range.contains(sub.pos)).then(|| (sub.pos, sub.qry))
     })
     .collect_vec();
 
@@ -14,10 +14,12 @@ pub fn calculate_escape(escape_data: &EscapeData, aa_substitutions: &[AaSubFull]
   for (antibody, coefficients) in &escape_data.coefficients {
     if let Some(weight) = escape_data.weights.get(antibody) {
       let mut escape_for_antibody = 0.0;
-      for position in &positions {
+      for (position, aa) in &substitutions {
         if let Some(coefficients) = escape_data.coefficients.get(antibody) {
-          if let Some(coefficient) = coefficients.get(position) {
-            escape_for_antibody += coefficient;
+          if let Some(coefficient) = coefficients.get(&(position + 1)) {
+            if let Some(delta) = coefficient.get(&aa.to_string()) {
+              escape_for_antibody += delta;
+            }
           }
         }
       }
