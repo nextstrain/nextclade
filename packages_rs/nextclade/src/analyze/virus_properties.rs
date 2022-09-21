@@ -48,6 +48,7 @@ pub struct MutationLabelMaps<L: Letter<L>> {
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct EscapeData {
+  pub name: Option<String>,
   pub gene: String,
   pub rbd_range: Range,
   pub weights: BTreeMap<String, f64>,

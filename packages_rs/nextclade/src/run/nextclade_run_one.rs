@@ -12,7 +12,7 @@ use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNuc
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
-use crate::analyze::virus_properties::VirusProperties;
+use crate::analyze::virus_properties::{EscapeData, VirusProperties};
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
@@ -158,8 +158,10 @@ pub fn nextclade_run_one(
     .escape_data
     .iter()
     .map(|escape_data| {
+      let EscapeData { name, gene, .. } = escape_data;
       let escape = calculate_escape(escape_data, &aa_substitutions);
-      (escape_data.gene.clone(), escape)
+      let name = name.as_ref().map_or_else(|| gene.clone(), String::clone);
+      (name, escape)
     })
     .collect();
 
