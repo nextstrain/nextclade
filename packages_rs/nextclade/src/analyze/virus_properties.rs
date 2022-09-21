@@ -43,11 +43,20 @@ pub struct MutationLabelMaps<L: Letter<L>> {
   pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
 }
 
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeDataIgnore {
+  #[serde(default)]
+  pub clades: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct EscapeData {
   pub name: Option<String>,
   pub gene: String,
+  #[serde(default)]
+  pub ignore: EscapeDataIgnore,
   pub rbd_range: Range,
   pub weights: BTreeMap<String, f64>,
   pub coefficients: BTreeMap<String, BTreeMap<usize, f64>>,

@@ -156,23 +156,22 @@ pub fn nextclade_run_one(
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
   let escape = virus_properties.escape_data.as_ref().map(|escape_data| {
-    if clade == "outgroup" {
-      vec![]
-    } else {
-      escape_data
-        .iter()
-        .map(|escape_data| {
-          let EscapeData { name, gene, .. } = escape_data;
-          let name = name.as_ref().map_or_else(|| gene.clone(), String::clone);
-          let escape = calculate_escape(escape_data, &aa_substitutions);
-          Escape {
-            name,
-            gene: gene.clone(),
-            escape,
-          }
+    escape_data
+      .iter()
+      .filter_map(|escape_data| {
+        let EscapeData { name, gene, ignore, .. } = escape_data;
+        if ignore.clades.contains(&clade) {
+          return None;
+        }
+        let name = name.as_ref().map_or_else(|| gene.clone(), String::clone);
+        let escape = calculate_escape(escape_data, &aa_substitutions);
+        Some(Escape {
+          name,
+          gene: gene.clone(),
+          escape,
         })
-        .collect_vec()
-    }
+      })
+      .collect_vec()
   });
 
   let qc = qc_run(
