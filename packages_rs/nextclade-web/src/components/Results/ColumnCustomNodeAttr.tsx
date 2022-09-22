@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { get } from 'lodash'
 
@@ -11,10 +11,14 @@ export interface ColumnCustomNodeAttrProps {
 }
 
 export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttrProps) {
-  const { index, seqName, customNodeAttributes } = sequence
-  const attrValue = get(customNodeAttributes, attrKey, '')
-
-  const id = getSafeId('col-custom-attr', { index, seqName, attrKey })
+  const { index, seqName, customNodeAttributes, phenotypeValues } = sequence
+  const { id, attrValue } = useMemo(() => {
+    const customCladeValue = get(customNodeAttributes, attrKey)
+    const phenotypeValue = phenotypeValues?.find((ph) => ph.name === attrKey)?.value.toFixed(4)
+    const id = getSafeId('col-custom-attr', { index, seqName, attrKey })
+    const attrValue = customCladeValue ?? phenotypeValue ?? ''
+    return { id, attrValue }
+  }, [attrKey, customNodeAttributes, index, phenotypeValues, seqName])
 
   return (
     <div id={id} className="w-100">

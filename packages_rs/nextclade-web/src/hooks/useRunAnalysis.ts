@@ -26,6 +26,7 @@ import {
   cladeNodeAttrDescsAtom,
   geneMapAtom,
   genomeSizeAtom,
+  phenotypeAttrDescsAtom,
   treeAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
@@ -64,10 +65,11 @@ export function useRunAnalysis() {
           onGlobalStatus(status) {
             set(analysisStatusGlobalAtom, status)
           },
-          onInitialData({ geneMap, genomeSize, cladeNodeAttrKeyDescs }) {
+          onInitialData({ geneMap, genomeSize, cladeNodeAttrKeyDescs, phenotypeAttrDescs }) {
             set(geneMapAtom, geneMap)
             set(genomeSizeAtom, genomeSize)
             set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs)
+            set(phenotypeAttrDescsAtom, phenotypeAttrDescs)
           },
           onParsedFasta(/* record */) {
             // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.

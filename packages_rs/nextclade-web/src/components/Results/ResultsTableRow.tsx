@@ -14,6 +14,7 @@ export interface TableRowDatum {
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
   cladeNodeAttrKeys: string[]
+  phenotypeAttrKeys: string[]
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -23,7 +24,7 @@ export interface RowProps extends ListChildComponentProps {
 export const ResultsTableRow = memo(ResultsTableRowUnmemoed, areEqual)
 
 function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
-  const { seqIndex, viewedGene, columnWidthsPx, dynamicColumnWidthPx, cladeNodeAttrKeys } = useMemo(
+  const { seqIndex, viewedGene, columnWidthsPx, dynamicColumnWidthPx, cladeNodeAttrKeys, phenotypeAttrKeys } = useMemo(
     () => data[index],
     [data, index],
   )
@@ -42,6 +43,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         columnWidthsPx={columnWidthsPx}
         dynamicColumnWidthPx={dynamicColumnWidthPx}
         cladeNodeAttrKeys={cladeNodeAttrKeys}
+        phenotypeAttrKeys={phenotypeAttrKeys}
         viewedGene={viewedGene}
       />
     )

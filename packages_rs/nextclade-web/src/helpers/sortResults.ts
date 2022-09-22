@@ -1,4 +1,4 @@
-import { isNil, orderBy, partition } from 'lodash'
+import { get, isNil, orderBy, partition } from 'lodash'
 import type { NextcladeResult } from 'src/types'
 
 export enum SortCategory {
@@ -7,7 +7,6 @@ export enum SortCategory {
   clade = 'clade',
   qcIssues = 'qcIssues',
   coverage = 'coverage',
-  escape = 'escape',
   totalMutations = 'totalMutations',
   totalNonACGTNs = 'totalNonACGTNs',
   totalMissing = 'totalMissing',
@@ -75,20 +74,6 @@ export function sortByClade(results: NextcladeResult[], direction: SortDirection
 
 export function sortByCoverage(results: NextcladeResult[], direction: SortDirection) {
   return orderBy(results, (result) => result.result?.analysisResult.coverage ?? defaultNumber(direction), direction)
-}
-
-export function sortByEscape(results: NextcladeResult[], direction: SortDirection) {
-  return orderBy(
-    results,
-    (result) => {
-      const escapes = result.result?.analysisResult.escape
-      if (escapes && escapes.length > 0) {
-        return escapes[0].escape
-      }
-      return defaultNumber(direction)
-    },
-    direction,
-  )
 }
 
 export function sortByMutations(results: NextcladeResult[], direction: SortDirection) {
@@ -174,9 +159,6 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
     case SortCategory.coverage:
       return sortByCoverage(results, direction)
 
-    case SortCategory.escape:
-      return sortByEscape(results, direction)
-
     case SortCategory.totalMutations:
       return sortByMutations(results, direction)
 
@@ -204,5 +186,11 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
 
 export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKeyBased) {
   const { key, direction } = sorting
-  return orderBy(results, (result) => result.result?.analysisResult.customNodeAttributes[key], direction)
+  return orderBy(
+    results,
+    (result) =>
+      get(result.result?.analysisResult?.customNodeAttributes ?? {}, key) ??
+      get(result.result?.analysisResult?.phenotypeValues ?? {}, key),
+    direction,
+  )
 }

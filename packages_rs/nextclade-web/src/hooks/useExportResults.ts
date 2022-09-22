@@ -7,7 +7,7 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
 import { globalErrorAtom } from 'src/state/error.state'
-import { analysisResultsAtom, cladeNodeAttrDescsAtom, treeAtom } from 'src/state/results.state'
+import { analysisResultsAtom, cladeNodeAttrDescsAtom, phenotypeAttrDescsAtom, treeAtom } from 'src/state/results.state'
 import { ExportWorker } from 'src/workers/ExportThread'
 
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? 'unknown'
@@ -90,7 +90,8 @@ async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delim
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
   const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
-  return worker.serializeResultsCsv(results, errors, cladeNodeAttrDescs, delimiter)
+  const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
+  return worker.serializeResultsCsv(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, delimiter)
 }
 
 export function useExportCsv() {

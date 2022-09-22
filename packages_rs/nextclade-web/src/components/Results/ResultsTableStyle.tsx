@@ -17,7 +17,6 @@ export const COLUMN_WIDTHS = {
   qc: 130,
   clade: 110,
   coverage: 50,
-  escape: 70,
   mut: 50,
   nonACGTN: 60,
   ns: 50,

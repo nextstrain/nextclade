@@ -36,10 +36,12 @@ pub struct NextalignOutputs {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Escape {
+pub struct PhenotypeValue {
   pub name: String,
   pub gene: String,
-  pub escape: f64,
+  pub name_friendly: String,
+  pub description: String,
+  pub value: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,7 +89,7 @@ pub struct NextcladeOutputs {
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: usize,
   pub is_reverse_complement: bool,
-  pub escape: Option<Vec<Escape>>,
+  pub phenotype_values: Option<Vec<PhenotypeValue>>,
 }
 
 impl NextcladeOutputs {

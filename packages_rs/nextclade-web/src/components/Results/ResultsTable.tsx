@@ -6,7 +6,6 @@ import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
-import { isEmpty } from 'lodash'
 
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
@@ -15,9 +14,10 @@ import {
   isResultsFilterPanelCollapsedAtom,
 } from 'src/state/settings.state'
 import {
-  analysisResultsAtom,
   cladeNodeAttrDescsAtom,
   cladeNodeAttrKeysAtom,
+  phenotypeAttrDescsAtom,
+  phenotypeAttrKeysAtom,
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
@@ -41,7 +41,6 @@ import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
 import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsCoverage from './HelpTips/HelpTipsColumnCoverage.mdx'
-import HelpTipsEscape from './HelpTips/HelpTipsColumnEscape.mdx'
 import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
 import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
 import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
@@ -69,6 +68,9 @@ export function ResultsTable() {
   const dynamicColumnWidthPx = useRecoilValue(resultsTableDynamicColumnWidthPxAtom)
   const cladeNodeAttrKeys = useRecoilValue(cladeNodeAttrKeysAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
+  const phenotypeAttrKeys = useRecoilValue(phenotypeAttrKeysAtom)
+  const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
+
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
 
@@ -79,8 +81,9 @@ export function ResultsTable() {
       columnWidthsPx,
       dynamicColumnWidthPx,
       cladeNodeAttrKeys,
+      phenotypeAttrKeys,
     }))
-  }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, seqIndices, viewedGene])
+  }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, phenotypeAttrKeys, seqIndices, viewedGene])
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
@@ -107,12 +110,6 @@ export function ResultsTable() {
   }, []) // prettier-ignore
   const sortByCladeDesc = useRecoilCallback(({ set }) => () => {
     set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByEscapeAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.escape, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByEscapeDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.escape, direction: SortDirection.desc }), undefined)
   }, []) // prettier-ignore
   const sortByCoverageAsc = useRecoilCallback(({ set }) => () => {
     set(sortAnalysisResultsAtom({ category: SortCategory.coverage, direction: SortDirection.asc }), undefined)
@@ -166,7 +163,7 @@ export function ResultsTable() {
     set(sortAnalysisResultsByKeyAtom({ key, direction }), undefined)
   }, []) // prettier-ignore
 
-  const dynamicColumns = useMemo(() => {
+  const dynamicCladeColumns = useMemo(() => {
     return cladeNodeAttrDescs.map(({ name: attrKey, displayName, description }) => {
       const sortAsc = sortByKey(attrKey, SortDirection.asc)
       const sortDesc = sortByKey(attrKey, SortDirection.desc)
@@ -176,7 +173,7 @@ export function ResultsTable() {
             <TableCellText>{displayName}</TableCellText>
             <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
           </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-clade" wide>
+          <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
             <h5>{`Column: ${displayName}`}</h5>
             <p>{description}</p>
           </ButtonHelpStyled>
@@ -184,6 +181,25 @@ export function ResultsTable() {
       )
     })
   }, [cladeNodeAttrDescs, dynamicColumnWidthPx, sortByKey])
+
+  const dynamicPhenotypeColumns = useMemo(() => {
+    return phenotypeAttrDescs.map(({ name, nameFriendly, description }) => {
+      const sortAsc = sortByKey(name, SortDirection.asc)
+      const sortDesc = sortByKey(name, SortDirection.desc)
+      return (
+        <TableHeaderCell key={name} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{nameFriendly}</TableCellText>
+            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
+            <h5>{`Column: ${nameFriendly}`}</h5>
+            <p>{description}</p>
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+      )
+    })
+  }, [dynamicColumnWidthPx, phenotypeAttrDescs, sortByKey])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
@@ -228,7 +244,9 @@ export function ResultsTable() {
           </ButtonHelpStyled>
         </TableHeaderCell>
 
-        {dynamicColumns}
+        {dynamicCladeColumns}
+
+        {dynamicPhenotypeColumns}
 
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>
@@ -239,13 +257,6 @@ export function ResultsTable() {
             <HelpTipsColumnMut />
           </ButtonHelpStyled>
         </TableHeaderCell>
-
-        <EscapeColumnHeader
-          basis={columnWidthsPx.escape}
-          text={t('Escape')}
-          sortByEscapeAsc={sortByEscapeAsc}
-          sortByEscapeDesc={sortByEscapeDesc}
-        />
 
         <TableHeaderCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
           <TableHeaderCellContent>
@@ -347,38 +358,5 @@ export function ResultsTable() {
         }}
       </AutoSizer>
     </Table>
-  )
-}
-
-export interface EscapeColumnValueProps {
-  basis: string
-  text: string
-
-  sortByEscapeAsc(): void
-
-  sortByEscapeDesc(): void
-}
-
-function EscapeColumnHeader({ basis, text, sortByEscapeAsc, sortByEscapeDesc }: EscapeColumnValueProps) {
-  const results = useRecoilValue(analysisResultsAtom)
-
-  const shouldShow = useMemo(() => {
-    return results.some((result) => !isEmpty(result.result?.analysisResult.escape))
-  }, [results])
-
-  if (!shouldShow) {
-    return null
-  }
-
-  return (
-    <TableHeaderCell basis={basis} grow={0} shrink={0}>
-      <TableHeaderCellContent>
-        <TableCellText>{text}</TableCellText>
-        <ResultsControlsSort sortAsc={sortByEscapeAsc} sortDesc={sortByEscapeDesc} />
-      </TableHeaderCellContent>
-      <ButtonHelpStyled identifier="btn-help-col-esc" tooltipWidth="600px">
-        <HelpTipsEscape />
-      </ButtonHelpStyled>
-    </TableHeaderCell>
   )
 }

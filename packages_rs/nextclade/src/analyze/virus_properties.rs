@@ -20,7 +20,7 @@ struct VirusPropertiesRaw {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
-  pub escape_data: Option<Vec<EscapeData>>,
+  pub phenotype_data: Option<Vec<PhenotypeData>>,
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -30,7 +30,7 @@ pub struct VirusProperties {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
-  pub escape_data: Option<Vec<EscapeData>>,
+  pub phenotype_data: Option<Vec<PhenotypeData>>,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -46,7 +46,7 @@ pub struct MutationLabelMaps<L: Letter<L>> {
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct EscapeDataIgnore {
+pub struct PhenotypeDataIgnore {
   #[serde(default)]
   pub clades: Vec<String>,
 }
@@ -54,18 +54,18 @@ pub struct EscapeDataIgnore {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
-pub enum EscapeCoeff {
+pub enum PhenotypeCoeff {
   ByPosition(f64),
   ByPositionAndAa(BTreeMap<Aa, f64>),
   Other(serde_json::Value),
 }
 
-impl EscapeCoeff {
+impl PhenotypeCoeff {
   pub fn get_coeff(&self, aa: Aa) -> f64 {
     match self {
-      EscapeCoeff::ByPosition(coeff) => Some(coeff),
-      EscapeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map.get(&aa),
-      EscapeCoeff::Other(_) => None,
+      PhenotypeCoeff::ByPosition(coeff) => Some(coeff),
+      PhenotypeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map.get(&aa),
+      PhenotypeCoeff::Other(_) => None,
     }
     .unwrap_or(&0.0)
     .to_owned()
@@ -74,13 +74,13 @@ impl EscapeCoeff {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct EscapeDataEntry {
+pub struct PhenotypeDataEntry {
   pub name: String,
   pub weight: f64,
-  pub locations: BTreeMap<usize, EscapeCoeff>,
+  pub locations: BTreeMap<usize, PhenotypeCoeff>,
 }
 
-impl EscapeDataEntry {
+impl PhenotypeDataEntry {
   pub fn get_coeff(&self, pos: usize, aa: Aa) -> f64 {
     self.locations.get(&pos).map_or(0.0, |location| location.get_coeff(aa))
   }
@@ -88,13 +88,23 @@ impl EscapeDataEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct EscapeData {
-  pub name: Option<String>,
+pub struct PhenotypeData {
+  pub name: String,
+  pub name_friendly: String,
+  pub description: String,
   pub gene: String,
-  #[serde(default)]
-  pub ignore: EscapeDataIgnore,
   pub aa_range: Range,
-  pub data: Vec<EscapeDataEntry>,
+  #[serde(default)]
+  pub ignore: PhenotypeDataIgnore,
+  pub data: Vec<PhenotypeDataEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PhenotypeAttrDesc {
+  pub name: String,
+  pub name_friendly: String,
+  pub description: String,
 }
 
 impl FromStr for VirusProperties {
@@ -115,7 +125,7 @@ impl FromStr for VirusProperties {
       schema_version: raw.schema_version,
       alignment_params: raw.alignment_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
-      escape_data: raw.escape_data,
+      phenotype_data: raw.phenotype_data,
     })
   }
 }

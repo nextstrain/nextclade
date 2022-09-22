@@ -38,6 +38,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
+    phenotype_attr_keys: &[String],
     output_fasta: &Option<PathBuf>,
     output_json: &Option<PathBuf>,
     output_ndjson: &Option<PathBuf>,
@@ -67,10 +68,14 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .iter()
       .map(|desc| desc.name.clone())
       .collect_vec();
-    let output_csv_writer = output_csv
-      .map_ref_fallible(|output_csv| NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys))?;
-    let output_tsv_writer = output_tsv
-      .map_ref_fallible(|output_tsv| NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys))?;
+
+    let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
+      NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys, phenotype_attr_keys)
+    })?;
+
+    let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
+      NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys, phenotype_attr_keys)
+    })?;
 
     Ok(Self {
       fasta_writer,

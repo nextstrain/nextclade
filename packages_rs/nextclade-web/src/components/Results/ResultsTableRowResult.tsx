@@ -1,7 +1,6 @@
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
-import { isNil } from 'lodash'
 
 import { QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
@@ -28,12 +27,12 @@ import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
-import { ColumnEscape } from './ColumnEscape'
 
 export interface ResultsTableRowResultProps {
   index: number
   viewedGene: string
   cladeNodeAttrKeys: string[]
+  phenotypeAttrKeys: string[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
 }
@@ -75,6 +74,7 @@ export function ResultsTableRowResult({
   index,
   viewedGene,
   cladeNodeAttrKeys,
+  phenotypeAttrKeys,
   columnWidthsPx,
   dynamicColumnWidthPx,
   ...restProps
@@ -87,25 +87,16 @@ export function ResultsTableRowResult({
     }
 
     const { analysisResult } = result
-    const { escape, qc, warnings } = analysisResult
+    const { qc, warnings } = analysisResult
 
-    let escapeCell = null
-    if (!isNil(escape)) {
-      escapeCell = (
-        <TableCell basis={columnWidthsPx.escape} grow={0} shrink={0}>
-          <ColumnEscape analysisResult={analysisResult} />
-        </TableCell>
-      )
-    }
-
-    return { analysisResult, qc, warnings, escapeCell }
-  }, [columnWidthsPx.escape, result])
+    return { analysisResult, qc, warnings, customAttrKeys: [...cladeNodeAttrKeys, ...phenotypeAttrKeys] }
+  }, [cladeNodeAttrKeys, phenotypeAttrKeys, result])
 
   if (!data) {
     return null
   }
 
-  const { analysisResult, qc, warnings, escapeCell } = data
+  const { analysisResult, qc, warnings, customAttrKeys } = data
 
   return (
     <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
@@ -125,7 +116,7 @@ export function ResultsTableRowResult({
         <ColumnClade analysisResult={analysisResult} />
       </TableCellAlignedLeft>
 
-      {cladeNodeAttrKeys.map((attrKey) => (
+      {customAttrKeys.map((attrKey) => (
         <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
           <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
         </TableCellAlignedLeft>
@@ -134,8 +125,6 @@ export function ResultsTableRowResult({
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
         <ColumnMutations analysisResult={analysisResult} />
       </TableCell>
-
-      {escapeCell}
 
       <TableCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
         <ColumnNonACGTNs analysisResult={analysisResult} />
