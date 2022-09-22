@@ -1,28 +1,28 @@
+use crate::analyze::aa_changes::AaSub;
 use crate::analyze::aa_sub_full::AaSubFull;
-use crate::analyze::virus_properties::EscapeData;
+use crate::analyze::virus_properties::{EscapeData, EscapeDataEntry};
 use itertools::Itertools;
+use num_traits::real::Real;
 
 pub fn calculate_escape(escape_data: &EscapeData, aa_substitutions: &[AaSubFull]) -> f64 {
-  let positions = aa_substitutions
+  let aa_substitutions = aa_substitutions
     .iter()
     .filter_map(|AaSubFull { sub, .. }| {
-      (sub.gene == escape_data.gene && escape_data.rbd_range.contains(sub.pos)).then(|| sub.pos)
+      (sub.gene == escape_data.gene && escape_data.aa_range.contains(sub.pos)).then(|| sub)
     })
     .collect_vec();
 
-  let mut escape = 0.0;
-  for (antibody, coefficients) in &escape_data.coefficients {
-    if let Some(weight) = escape_data.weights.get(antibody) {
-      let mut escape_for_antibody = 0.0;
-      for position in &positions {
-        if let Some(coefficients) = escape_data.coefficients.get(antibody) {
-          if let Some(coefficient) = coefficients.get(position) {
-            escape_for_antibody += coefficient;
-          }
-        }
-      }
-      escape += weight * (-escape_for_antibody).exp();
-    }
-  }
+  let escape: f64 = escape_data
+    .data
+    .iter()
+    .map(|escape_data| {
+      let escape_for_antibody: f64 = aa_substitutions
+        .iter()
+        .map(|AaSub { pos, qry, .. }| escape_data.get_coeff(*pos, *qry))
+        .sum();
+      escape_data.weight * (-escape_for_antibody).exp()
+    })
+    .sum();
+
   -escape.ln()
 }

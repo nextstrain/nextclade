@@ -1,5 +1,6 @@
 use crate::align::params::AlignPairwiseParamsOptional;
 use crate::gene::genotype::Genotype;
+use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::letter::Letter;
@@ -50,6 +51,41 @@ pub struct EscapeDataIgnore {
   pub clades: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
+pub enum EscapeCoeff {
+  PositionOnly(f64),
+  PositionAndAa(BTreeMap<Aa, f64>),
+  Other(serde_json::Value),
+}
+
+impl EscapeCoeff {
+  pub fn get_coeff(&self, aa: Aa) -> f64 {
+    match self {
+      EscapeCoeff::PositionOnly(coeff) => Some(coeff),
+      EscapeCoeff::PositionAndAa(aa_coeff) => aa_coeff.get(&aa),
+      _ => None,
+    }
+    .unwrap_or(&0.0)
+    .to_owned()
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeDataEntry {
+  pub name: String,
+  pub weight: f64,
+  pub locations: BTreeMap<usize, EscapeCoeff>,
+}
+
+impl EscapeDataEntry {
+  pub fn get_coeff(&self, pos: usize, aa: Aa) -> f64 {
+    self.locations.get(&pos).map_or(0.0, |location| location.get_coeff(aa))
+  }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct EscapeData {
@@ -57,9 +93,8 @@ pub struct EscapeData {
   pub gene: String,
   #[serde(default)]
   pub ignore: EscapeDataIgnore,
-  pub rbd_range: Range,
-  pub weights: BTreeMap<String, f64>,
-  pub coefficients: BTreeMap<String, BTreeMap<usize, f64>>,
+  pub aa_range: Range,
+  pub data: Vec<EscapeDataEntry>,
 }
 
 impl FromStr for VirusProperties {
