@@ -32,7 +32,7 @@ export interface SortingKeyBased {
 }
 
 export function defaultNumber(direction: SortDirection) {
-  return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : 0
+  return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
 }
 
 export function getClade(result: NextcladeResult) {
@@ -188,9 +188,13 @@ export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKey
   const { key, direction } = sorting
   return orderBy(
     results,
-    (result) =>
-      get(result.result?.analysisResult?.customNodeAttributes ?? {}, key) ??
-      get(result.result?.analysisResult?.phenotypeValues ?? {}, key),
+    (result) => {
+      return (
+        get(result.result?.analysisResult?.customNodeAttributes ?? {}, key) ??
+        result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ??
+        defaultNumber(direction)
+      )
+    },
     direction,
   )
 }
