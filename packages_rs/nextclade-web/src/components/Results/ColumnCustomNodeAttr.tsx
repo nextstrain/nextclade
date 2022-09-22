@@ -14,7 +14,7 @@ export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttr
   const { index, seqName, customNodeAttributes, phenotypeValues } = sequence
   const { id, attrValue, className } = useMemo(() => {
     const customCladeValue = get(customNodeAttributes, attrKey)
-    const phenotypeValue = phenotypeValues?.find((ph) => ph.name === attrKey)?.value.toFixed(2)
+    const phenotypeValue = phenotypeValues?.find((ph) => ph.name === attrKey)?.value?.toFixed(2)
     const id = getSafeId('col-custom-attr', { index, seqName, attrKey })
     const attrValue = customCladeValue ?? phenotypeValue ?? ''
     const className = phenotypeValue ? 'mx-auto' : ''
