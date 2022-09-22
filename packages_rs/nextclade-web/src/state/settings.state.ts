@@ -1,9 +1,13 @@
 import { mapValues, sum } from 'lodash'
 import { atom, selector } from 'recoil'
-import { COLUMN_WIDTHS, DYNAMIC_COLUMN_WIDTH } from 'src/components/Results/ResultsTableStyle'
+import {
+  COLUMN_WIDTHS,
+  DYNAMIC_CLADE_COLUMN_WIDTH,
+  DYNAMIC_PHENOTYPE_COLUMN_WIDTH,
+} from 'src/components/Results/ResultsTableStyle'
 import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { cladeNodeAttrKeysAtom } from 'src/state/results.state'
+import { cladeNodeAttrKeysAtom, phenotypeAttrKeysAtom } from 'src/state/results.state'
 
 export const isInitializedAtom = atom<boolean>({
   key: 'isInitialized',
@@ -69,21 +73,36 @@ export const resultsTableColumnWidthsPxAtom = selector<Record<keyof typeof COLUM
   get: ({ get }) => mapValues(get(resultsTableColumnWidthsAtom), (width) => `${width}px`),
 })
 
-export const resultsTableDynamicColumnWidthAtom = atom<number>({
-  key: 'dynamicColumnWidth',
-  default: DYNAMIC_COLUMN_WIDTH,
+export const resultsTableDynamicCladeColumnWidthAtom = atom<number>({
+  key: 'dynamicCladeColumnWidth',
+  default: DYNAMIC_CLADE_COLUMN_WIDTH,
 })
 
-export const resultsTableDynamicColumnWidthPxAtom = selector<string>({
-  key: 'dynamicColumnWidthPx',
-  get: ({ get }) => `${get(resultsTableDynamicColumnWidthAtom)}px`,
+export const resultsTableDynamicCladeColumnWidthPxAtom = selector<string>({
+  key: 'dynamicCladeColumnWidthPx',
+  get: ({ get }) => `${get(resultsTableDynamicCladeColumnWidthAtom)}px`,
+})
+
+export const resultsTableDynamicPhenotypeColumnWidthAtom = atom<number>({
+  key: 'dynamicPhenotypeColumnWidth',
+  default: DYNAMIC_PHENOTYPE_COLUMN_WIDTH,
+})
+
+export const resultsTableDynamicPhenotypeColumnWidthPxAtom = selector<string>({
+  key: 'dynamicPhenotypeColumnWidthPx',
+  get: ({ get }) => `${get(resultsTableDynamicPhenotypeColumnWidthAtom)}px`,
 })
 
 export const resultsTableTotalWidthAtom = selector<number>({
   key: 'resultsTableTotalWidth',
   get({ get }) {
-    const dynamicColumnsWidthTotal = get(cladeNodeAttrKeysAtom).length * get(resultsTableDynamicColumnWidthAtom)
-    return sum(Object.values(COLUMN_WIDTHS)) + dynamicColumnsWidthTotal
+    const dynamicCladeColumnsWidthTotal =
+      get(cladeNodeAttrKeysAtom).length * get(resultsTableDynamicCladeColumnWidthAtom)
+
+    const dynamicPhenotypeColumnsWidthTotal =
+      get(phenotypeAttrKeysAtom).length * get(resultsTableDynamicPhenotypeColumnWidthAtom)
+
+    return sum(Object.values(COLUMN_WIDTHS)) + dynamicCladeColumnsWidthTotal + dynamicPhenotypeColumnsWidthTotal
   },
 })
 

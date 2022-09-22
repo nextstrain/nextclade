@@ -10,8 +10,9 @@ import styled from 'styled-components'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
   resultsTableColumnWidthsPxAtom,
-  resultsTableDynamicColumnWidthPxAtom,
+  resultsTableDynamicCladeColumnWidthPxAtom,
   isResultsFilterPanelCollapsedAtom,
+  resultsTableDynamicPhenotypeColumnWidthPxAtom,
 } from 'src/state/settings.state'
 import {
   cladeNodeAttrDescsAtom,
@@ -65,7 +66,8 @@ export function ResultsTable() {
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
-  const dynamicColumnWidthPx = useRecoilValue(resultsTableDynamicColumnWidthPxAtom)
+  const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom)
+  const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
   const cladeNodeAttrKeys = useRecoilValue(cladeNodeAttrKeysAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
   const phenotypeAttrKeys = useRecoilValue(phenotypeAttrKeysAtom)
@@ -79,11 +81,20 @@ export function ResultsTable() {
       seqIndex,
       viewedGene,
       columnWidthsPx,
-      dynamicColumnWidthPx,
+      dynamicCladeColumnWidthPx,
+      dynamicPhenotypeColumnWidthPx,
       cladeNodeAttrKeys,
       phenotypeAttrKeys,
     }))
-  }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, phenotypeAttrKeys, seqIndices, viewedGene])
+  }, [
+    cladeNodeAttrKeys,
+    columnWidthsPx,
+    dynamicCladeColumnWidthPx,
+    dynamicPhenotypeColumnWidthPx,
+    phenotypeAttrKeys,
+    seqIndices,
+    viewedGene,
+  ])
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
@@ -168,7 +179,7 @@ export function ResultsTable() {
       const sortAsc = sortByKey(attrKey, SortDirection.asc)
       const sortDesc = sortByKey(attrKey, SortDirection.desc)
       return (
-        <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+        <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{displayName}</TableCellText>
             <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
@@ -180,14 +191,14 @@ export function ResultsTable() {
         </TableHeaderCell>
       )
     })
-  }, [cladeNodeAttrDescs, dynamicColumnWidthPx, sortByKey])
+  }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByKey])
 
   const dynamicPhenotypeColumns = useMemo(() => {
     return phenotypeAttrDescs.map(({ name, nameFriendly, description }) => {
       const sortAsc = sortByKey(name, SortDirection.asc)
       const sortDesc = sortByKey(name, SortDirection.desc)
       return (
-        <TableHeaderCell key={name} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+        <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{nameFriendly}</TableCellText>
             <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
@@ -199,7 +210,7 @@ export function ResultsTable() {
         </TableHeaderCell>
       )
     })
-  }, [dynamicColumnWidthPx, phenotypeAttrDescs, sortByKey])
+  }, [phenotypeAttrDescs, dynamicPhenotypeColumnWidthPx, sortByKey])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>

@@ -34,7 +34,8 @@ export interface ResultsTableRowResultProps {
   cladeNodeAttrKeys: string[]
   phenotypeAttrKeys: string[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
-  dynamicColumnWidthPx: string
+  dynamicCladeColumnWidthPx: string
+  dynamicPhenotypeColumnWidthPx: string
 }
 
 export function getQcRowColor(qcStatus: QcStatus) {
@@ -76,7 +77,8 @@ export function ResultsTableRowResult({
   cladeNodeAttrKeys,
   phenotypeAttrKeys,
   columnWidthsPx,
-  dynamicColumnWidthPx,
+  dynamicCladeColumnWidthPx,
+  dynamicPhenotypeColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
   const { seqName, result } = useRecoilValue(analysisResultAtom(index))
@@ -89,14 +91,14 @@ export function ResultsTableRowResult({
     const { analysisResult } = result
     const { qc, warnings } = analysisResult
 
-    return { analysisResult, qc, warnings, customAttrKeys: [...cladeNodeAttrKeys, ...phenotypeAttrKeys] }
-  }, [cladeNodeAttrKeys, phenotypeAttrKeys, result])
+    return { analysisResult, qc, warnings }
+  }, [result])
 
   if (!data) {
     return null
   }
 
-  const { analysisResult, qc, warnings, customAttrKeys } = data
+  const { analysisResult, qc, warnings } = data
 
   return (
     <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
@@ -116,8 +118,14 @@ export function ResultsTableRowResult({
         <ColumnClade analysisResult={analysisResult} />
       </TableCellAlignedLeft>
 
-      {customAttrKeys.map((attrKey) => (
-        <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+      {cladeNodeAttrKeys.map((attrKey) => (
+        <TableCellAlignedLeft key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
+          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
+        </TableCellAlignedLeft>
+      ))}
+
+      {phenotypeAttrKeys.map((attrKey) => (
+        <TableCellAlignedLeft key={attrKey} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
         </TableCellAlignedLeft>
       ))}
