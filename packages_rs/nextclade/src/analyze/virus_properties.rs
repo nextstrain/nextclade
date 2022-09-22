@@ -55,16 +55,16 @@ pub struct EscapeDataIgnore {
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum EscapeCoeff {
-  PositionOnly(f64),
-  PositionAndAa(BTreeMap<Aa, f64>),
+  ByPosition(f64),
+  ByPositionAndAa(BTreeMap<Aa, f64>),
   Other(serde_json::Value),
 }
 
 impl EscapeCoeff {
   pub fn get_coeff(&self, aa: Aa) -> f64 {
     match self {
-      EscapeCoeff::PositionOnly(coeff) => Some(coeff),
-      EscapeCoeff::PositionAndAa(aa_coeff) => aa_coeff.get(&aa),
+      EscapeCoeff::ByPosition(coeff) => Some(coeff),
+      EscapeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map.get(&aa),
       _ => None,
     }
     .unwrap_or(&0.0)
