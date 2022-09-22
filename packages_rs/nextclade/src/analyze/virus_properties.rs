@@ -56,7 +56,7 @@ pub struct PhenotypeDataIgnore {
 #[serde(untagged)]
 pub enum PhenotypeCoeff {
   ByPosition(f64),
-  ByPositionAndAa(BTreeMap<Aa, f64>),
+  ByPositionAndAa(BTreeMap<String, f64>),
   Other(serde_json::Value),
 }
 
@@ -64,7 +64,9 @@ impl PhenotypeCoeff {
   pub fn get_coeff(&self, aa: Aa) -> f64 {
     match self {
       PhenotypeCoeff::ByPosition(coeff) => Some(coeff),
-      PhenotypeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map.get(&aa),
+      PhenotypeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map
+        .get(&aa.to_string())
+        .or_else(|| aa_coeff_map.get("default")),
       PhenotypeCoeff::Other(_) => None,
     }
     .unwrap_or(&0.0)
