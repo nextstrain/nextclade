@@ -65,7 +65,7 @@ impl EscapeCoeff {
     match self {
       EscapeCoeff::ByPosition(coeff) => Some(coeff),
       EscapeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map.get(&aa),
-      _ => None,
+      EscapeCoeff::Other(_) => None,
     }
     .unwrap_or(&0.0)
     .to_owned()

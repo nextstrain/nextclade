@@ -262,7 +262,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       "escape",
       &escape
         .as_ref()
-        .map_or_else(|| "".to_owned(), |escape| format_escape(&escape)),
+        .map_or_else(|| "".to_owned(), |escape| format_escape(escape)),
     )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
