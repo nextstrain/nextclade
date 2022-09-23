@@ -3,17 +3,15 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
   AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
-use crate::{make_error, make_internal_report};
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{debug, trace};
 use num::Float;
-use serde_json::Value;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -52,10 +50,10 @@ fn tree_preprocess_in_place_impl_recursive(
   ref_seq: &[Nuc],
   ref_peptides: &BTreeMap<String, Translation>,
 ) -> Result<(), Report> {
-  let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts);
+  let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
   let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(node, ref_peptides, parent_aa_muts);
+  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(node, ref_peptides, parent_aa_muts)?;
   let aa_subs: BTreeMap<String, BTreeMap<usize, Aa>> = aa_muts
     .clone()
     .into_iter()
@@ -83,13 +81,21 @@ fn map_nuc_muts(
   node: &AuspiceTreeNode,
   ref_seq: &[Nuc],
   parent_nuc_muts: &BTreeMap<usize, Nuc>,
-) -> BTreeMap<usize, Nuc> {
+) -> Result<BTreeMap<usize, Nuc>, Report> {
   let mut nuc_muts = parent_nuc_muts.clone();
   match node.branch_attrs.mutations.get("nuc") {
-    None => nuc_muts,
+    None => Ok(nuc_muts),
     Some(mutations) => {
       for mutation_str in mutations {
-        let mutation = NucSub::from_str(mutation_str).unwrap();
+        let mutation = NucSub::from_str(mutation_str)
+          .wrap_err_with(|| format!("When parsing nucleotide mutation {mutation_str}"))?;
+
+        if ref_seq.len() < mutation.pos {
+          return make_error!(
+            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the position is outside of reference sequence length ({}). This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Check that you are using a correct dataset.", ref_seq.len()
+          );
+        }
+
         // If mutation reverts nucleotide back to what reference had, remove it from the map
         let ref_nuc = ref_seq[mutation.pos];
         if ref_nuc == mutation.qry {
@@ -98,7 +104,7 @@ fn map_nuc_muts(
           nuc_muts.insert(mutation.pos, mutation.qry);
         }
       }
-      nuc_muts
+      Ok(nuc_muts)
     }
   }
 }
@@ -110,17 +116,20 @@ fn map_aa_muts(
   node: &AuspiceTreeNode,
   ref_peptides: &BTreeMap<String, Translation>,
   parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
-) -> BTreeMap<String, BTreeMap<usize, Aa>> {
+) -> Result<BTreeMap<String, BTreeMap<usize, Aa>>, Report> {
   ref_peptides
     .iter()
     //We iterate over all genes that we have ref_peptides for
-    .filter_map(|(gene_name, ref_peptide)| match parent_aa_muts.get(gene_name) {
-      Some(aa_muts) => Some((
+    .map(|(gene_name, ref_peptide)| match parent_aa_muts.get(gene_name) {
+      Some(aa_muts) => (
         gene_name.clone(),
-        map_aa_muts_for_one_gene(gene_name, node, &ref_peptide.seq, &aa_muts),
-      )),
+        map_aa_muts_for_one_gene(gene_name, node, &ref_peptide.seq, aa_muts),
+      ),
       // Initialize aa_muts, default dictionary style
-      None => Some((gene_name.clone(), BTreeMap::new())),
+      None => (gene_name.clone(), Ok(BTreeMap::new())),
+    })
+    .map(|(name, muts)| -> Result<_, Report>  {
+      Ok((name, muts?))
     })
     .collect()
 }
@@ -130,17 +139,17 @@ fn map_aa_muts_for_one_gene(
   node: &AuspiceTreeNode,
   ref_peptide: &[Aa],
   parent_aa_muts: &BTreeMap<usize, Aa>,
-) -> BTreeMap<usize, Aa> {
+) -> Result<BTreeMap<usize, Aa>, Report> {
   let mut aa_muts = parent_aa_muts.clone();
 
   match node.branch_attrs.mutations.get(gene_name) {
-    None => aa_muts,
+    None => Ok(aa_muts),
     Some(mutations) => {
       for mutation_str in mutations {
-        let mutation = AaSubMinimal::from_str(mutation_str).unwrap();
+        let mutation = AaSubMinimal::from_str(mutation_str)?;
 
-        assert!(
-          mutation.pos < ref_peptide.len(),
+        if ref_peptide.len() < mutation.pos {
+          return make_error!(
           "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and gene map in the Nextclade dataset",
           node.name,
           gene_name,
@@ -148,6 +157,7 @@ fn map_aa_muts_for_one_gene(
           gene_name,
           ref_peptide.len(),
         );
+        }
 
         // If mutation reverts amino acid back to what reference had, remove it from the map
         let ref_nuc = ref_peptide[mutation.pos];
@@ -157,7 +167,7 @@ fn map_aa_muts_for_one_gene(
           aa_muts.insert(mutation.pos, mutation.qry);
         }
       }
-      aa_muts
+      Ok(aa_muts)
     }
   }
 }
