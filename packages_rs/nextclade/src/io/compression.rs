@@ -7,7 +7,7 @@ use flate2::write::GzEncoder;
 use flate2::Compression as GzCompressionLevel;
 use log::debug;
 use num::Integer;
-use num_traits::NumCast;
+use num_traits::{FromPrimitive, NumCast, ToPrimitive};
 use std::env;
 use std::io::{ErrorKind, Read, Write};
 use std::path::Path;
@@ -133,12 +133,12 @@ impl<'r> Read for Decompressor<'r> {
   }
 }
 
-fn get_comp_level<I: FromStr + Integer + NumCast>(ext: &str) -> I {
+fn get_comp_level<I: FromStr + From<u8>>(ext: &str) -> I {
   let var_name = format!("{}_COMPRESSION", ext.to_uppercase());
   env::var(var_name)
     .ok()
     .and_then(|val| val.parse::<I>().ok())
-    .unwrap_or_else(|| NumCast::from(2).unwrap())
+    .unwrap_or_else(|| I::from(2))
 }
 
 pub struct Compressor<'w> {
