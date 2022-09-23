@@ -5,22 +5,11 @@ import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } f
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: Dataset[]) {
-  const inputFastaUrl = getQueryParamMaybe(urlQuery, 'input-fasta')
-
-  // If there are no input sequences, we are not going to run, so skip the rest
-  if (!inputFastaUrl) {
-    return undefined
-  }
-
   // Retrieve dataset-related URL params and try to find a dataset based on these params
   const datasetName = getQueryParamMaybe(urlQuery, 'dataset-name')
 
   if (!datasetName) {
-    throw new Error(
-      "Incorrect URL parameters: 'input-fasta' is set, but 'dataset-name' is not. " +
-        "Nextclade won't run to avoid producing incorrect results. " +
-        "Please set 'dataset-name' explicitly in the URL parameters",
-    )
+    return undefined
   }
 
   const datasetRef = getQueryParamMaybe(urlQuery, 'dataset-reference')

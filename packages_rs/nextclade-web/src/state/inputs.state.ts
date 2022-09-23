@@ -2,6 +2,7 @@ import { isEmpty } from 'lodash'
 import { useCallback } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
 import { AlgorithmInput } from 'src/types'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 
 export const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
   key: 'qrySeqInputsStorage',
@@ -63,6 +64,21 @@ export const hasRequiredInputsAtom = selector({
   key: 'hasRequiredInputs',
   get({ get }) {
     return !isEmpty(get(qrySeqInputsStorageAtom))
+  },
+})
+
+/** Counts how many custom inputs are set */
+export const inputCustomizationCounterAtom = selector<number>({
+  key: 'inputCustomizationCounterAtom',
+  get: ({ get }) => {
+    return [
+      get(refSeqInputAtom),
+      get(geneMapInputAtom),
+      get(refTreeInputAtom),
+      get(qcConfigInputAtom),
+      get(virusPropertiesInputAtom),
+      get(primersCsvInputAtom),
+    ].filter(notUndefinedOrNull).length
   },
 })
 
