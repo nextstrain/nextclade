@@ -2,7 +2,6 @@ use crate::cli::nextalign_cli::{
   NextalignRunArgs, NextalignRunInputArgs, NextalignRunOtherArgs, NextalignRunOutputArgs,
 };
 use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
-use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
@@ -72,12 +71,12 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
   let ref_peptides = &translate_genes_ref(ref_seq, &gene_map, &alignment_params)?;
 
-  thread::scope(|s| {
+  std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextalignRecord>(CHANNEL_SIZE);
 
-    s.spawn(|_| {
+    s.spawn(|| {
       let mut reader = FastaReader::from_paths(&input_fastas).unwrap();
       loop {
         let mut record = FastaRecord::default();
@@ -101,7 +100,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
       let gap_open_close_aa = &gap_open_close_aa;
       let alignment_params = &alignment_params;
 
-      s.spawn(move |_| {
+      s.spawn(move || {
         let result_sender = result_sender.clone();
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
@@ -147,7 +146,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
       });
     }
 
-    s.spawn(move |_| {
+    s.spawn(move || {
       let mut output_writer = NextalignOrderedWriter::new(
         &gene_map,
         &output_fasta,
@@ -173,8 +172,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
           .unwrap();
       }
     });
-  })
-  .unwrap();
+  });
 
   Ok(())
 }

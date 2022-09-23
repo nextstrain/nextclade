@@ -5,7 +5,6 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::{
   dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFiles,
 };
-use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
@@ -130,7 +129,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let should_keep_outputs = output_tree.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
-  thread::scope(|s| {
+  std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
@@ -140,7 +139,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
     let outputs = &mut outputs;
 
-    s.spawn(|_| {
+    s.spawn(|| {
       let mut reader = FastaReader::from_paths(&input_fastas).unwrap();
       loop {
         let mut record = FastaRecord::default();
@@ -167,7 +166,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       let qc_config = &qc_config;
       let virus_properties = &virus_properties;
 
-      s.spawn(move |_| {
+      s.spawn(move || {
         let result_sender = result_sender.clone();
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
@@ -217,7 +216,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       });
     }
 
-    let writer = s.spawn(move |_| {
+    let writer = s.spawn(move || {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
         clade_node_attrs,
@@ -254,8 +253,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
           .unwrap();
       }
     });
-  })
-  .unwrap();
+  });
 
   if let Some(output_tree) = output_tree {
     tree_attach_new_nodes_in_place(&mut tree, &outputs);
