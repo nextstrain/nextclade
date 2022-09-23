@@ -35,7 +35,7 @@ pub struct NextcladeWasm {
 impl NextcladeWasm {
   #[wasm_bindgen(constructor)]
   pub fn new(params: &NextcladeParams) -> Result<NextcladeWasm, JsError> {
-    let nextclade = jserr(Nextclade::new(params))?;
+    let nextclade = jserr(Nextclade::new(params).wrap_err_with(|| "When initializing Nextclade runner"))?;
     Ok(Self { nextclade })
   }
 

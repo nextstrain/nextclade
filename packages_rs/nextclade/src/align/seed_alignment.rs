@@ -4,6 +4,7 @@ use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
 use crate::io::letter::Letter;
 use crate::make_error;
+use crate::utils::collections::last;
 use eyre::Report;
 use log::{trace, warn};
 use num_traits::{clamp, clamp_max, clamp_min};
@@ -228,7 +229,7 @@ pub fn create_stripes(
     if width as usize > max_indel {
       return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications.");
     }
-    robust_shifts.push((min, max));
+    robust_shifts.push((*min, *max));
   }
 
   let mut robust_stripes = Vec::with_capacity(robust_shifts.len());
@@ -239,7 +240,7 @@ pub fn create_stripes(
     0,
     seed_matches[0].ref_pos as i32,
     qry_len,
-    robust_shifts[0],
+    &robust_shifts[0],
     terminal_bandwidth,
   );
 
@@ -250,7 +251,7 @@ pub fn create_stripes(
       seed_matches[i - 1].ref_pos as i32,
       seed_matches[i].ref_pos as i32,
       qry_len,
-      robust_shifts[i],
+      &robust_shifts[i],
       excess_bandwidth,
     );
   }
@@ -258,10 +259,10 @@ pub fn create_stripes(
   // Add stripes after the last seed match
   robust_stripes = add_robust_stripes(
     robust_stripes,
-    seed_matches.last().unwrap().ref_pos as i32,
+    last(&seed_matches)?.ref_pos as i32,
     ref_len + 1,
     qry_len,
-    *robust_shifts.last().unwrap(),
+    last(&robust_shifts)?,
     terminal_bandwidth,
   );
 
@@ -296,7 +297,7 @@ fn add_robust_stripes(
   ref_start: i32,
   ref_end: i32,
   qry_len: i32,
-  shift: (&i32, &i32),
+  shift: &(i32, i32),
   extra_bandwidth: i32,
 ) -> Vec<Stripe> {
   for i in ref_start..ref_end {

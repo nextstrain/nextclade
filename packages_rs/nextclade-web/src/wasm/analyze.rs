@@ -78,7 +78,7 @@ impl NextcladeParams {
 pub struct AnalysisInput {
   #[wasm_bindgen(getter_with_clone)]
   pub qry_index: usize,
-  
+
   #[wasm_bindgen(getter_with_clone)]
   pub qry_seq_name: String,
 
@@ -188,7 +188,7 @@ impl Nextclade {
       translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
-    tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides).unwrap();
+    tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
     let qc_config = QcConfig::from_str(qc_config_str).wrap_err("When parsing QC config JSON")?;
