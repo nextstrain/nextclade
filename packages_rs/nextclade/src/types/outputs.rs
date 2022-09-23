@@ -34,6 +34,23 @@ pub struct NextalignOutputs {
   pub is_reverse_complement: bool,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SecondaryCustomNodeAttrValue {
+  pub key: String,
+  pub display_name: String,
+  pub value: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CustomNodeAttr {
+  pub key: String,
+  pub display_name: String,
+  pub value: String,
+  pub secondary_values: BTreeMap<String, SecondaryCustomNodeAttrValue>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
@@ -76,7 +93,7 @@ pub struct NextcladeOutputs {
   pub divergence: f64,
   pub coverage: f64,
   pub qc: QcResult,
-  pub custom_node_attributes: BTreeMap<String, String>,
+  pub custom_node_attributes: BTreeMap<String, CustomNodeAttr>,
   pub nearest_node_id: usize,
   pub is_reverse_complement: bool,
 }

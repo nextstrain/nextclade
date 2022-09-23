@@ -380,9 +380,22 @@ export interface AnalysisResult {
   privateAaMutations: Record<string, PrivateMutations>
   coverage: number
   qc: QcResult
-  customNodeAttributes: Record<string, string>
+  customNodeAttributes: Record<string, CustomNodeAttrValue>
   warnings: PeptideWarning[]
   missingGenes: string[]
+}
+
+export interface SecondaryCustomNodeAttrValue {
+  key: string
+  displayName: string
+  value: string
+}
+
+export interface CustomNodeAttrValue {
+  key: string
+  displayName: string
+  value: string
+  secondaryValues: Record<string, SecondaryCustomNodeAttrValue>
 }
 
 export interface AnalysisError {

@@ -2,10 +2,9 @@ use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
+use crate::types::outputs::{CustomNodeAttr, SecondaryCustomNodeAttrValue};
 use eyre::{Report, WrapErr};
-use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::any::Any;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
@@ -144,21 +143,63 @@ impl AuspiceTreeNode {
     self.node_attrs.clade_membership.value.clone()
   }
 
-  /// Extracts clade-like node attributes, given a list of key descriptions
-  pub fn get_clade_node_attrs(&self, clade_node_attr_keys: &[CladeNodeAttrKeyDesc]) -> BTreeMap<String, String> {
-    clade_node_attr_keys
+  fn _extract_clade_node_attr(&self, key: &str) -> Option<String> {
+    match self.node_attrs.other.get(key) {
+      Some(attr) => attr.get("value").and_then(|value| value.as_str().map(str::to_owned)),
+      None => None,
+    }
+  }
+
+  fn _extract_clade_node_attrs(&self, meta_attr: &CladeNodeAttrKeyDesc) -> Option<(String, CustomNodeAttr)> {
+    let secondary_values: BTreeMap<String, SecondaryCustomNodeAttrValue> = meta_attr
+      .secondary_attrs
       .iter()
-      .filter_map(|attr| {
-        let key = &attr.name;
-        let attr_obj = self.node_attrs.other.get(key);
-        match attr_obj {
-          Some(attr) => attr.get("value"),
-          None => None,
-        }
-        .and_then(|val| val.as_str().map(|val| (key.clone(), val.to_owned())))
+      .filter_map(|sec_attr| {
+        self._extract_clade_node_attr(&sec_attr.name).map(|value| {
+          (
+            sec_attr.name.clone(),
+            SecondaryCustomNodeAttrValue {
+              key: sec_attr.name.clone(),
+              display_name: sec_attr.display_name.clone(),
+              value,
+            },
+          )
+        })
       })
+      .collect();
+
+    let key = &meta_attr.name;
+    self._extract_clade_node_attr(key).map(|value| {
+      (
+        key.clone(),
+        CustomNodeAttr {
+          key: key.clone(),
+          display_name: meta_attr.display_name.clone(),
+          value,
+          secondary_values,
+        },
+      )
+    })
+  }
+
+  /// Extracts clade-like node attribute values, given a list of key descriptions from tree meta
+  pub fn get_clade_node_attrs(
+    &self,
+    clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
+  ) -> BTreeMap<String, CustomNodeAttr> {
+    clade_node_attr_key_descs
+      .iter()
+      .filter_map(|meta_attr| self._extract_clade_node_attrs(meta_attr))
       .collect()
   }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SecondaryCustomNodeAttr {
+  name: String,
+  display_name: String,
+  description: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -167,6 +208,10 @@ pub struct CladeNodeAttrKeyDesc {
   pub name: String,
   pub display_name: String,
   pub description: String,
+
+  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default)]
+  pub secondary_attrs: Vec<SecondaryCustomNodeAttr>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
