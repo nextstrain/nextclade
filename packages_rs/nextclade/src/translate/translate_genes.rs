@@ -14,10 +14,11 @@ use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
+use crate::utils::collections::{first, last};
 use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
-use eyre::Report;
+use eyre::{eyre, Report};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -145,8 +146,8 @@ pub fn translate_gene(
   // TODO: Think about qry insertions, they will also be free?
   let aa_params = AlignPairwiseParams {
     // Set to false for internal genes
-    left_terminal_gaps_free: qry_gene_seq.first().unwrap().is_gap(),
-    right_terminal_gaps_free: qry_gene_seq.last().unwrap().is_gap(),
+    left_terminal_gaps_free: first(&qry_gene_seq)?.is_gap(),
+    right_terminal_gaps_free: last(&qry_gene_seq)?.is_gap(),
     ..*params
   };
 
