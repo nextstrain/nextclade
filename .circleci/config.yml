@@ -164,7 +164,7 @@ jobs:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
 
-    resource_class: small
+    resource_class: medium
 
     steps:
       - checkout
@@ -207,7 +207,7 @@ jobs:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
 
-    resource_class: small
+    resource_class: medium
 
     steps:
       - checkout
