@@ -1,9 +1,11 @@
 use crate::align::params::AlignPairwiseParamsOptional;
-use crate::gene::genotype::{Genotype, GenotypeLabeled};
+use crate::gene::genotype::Genotype;
+use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::utils::range::Range;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -18,6 +20,7 @@ struct VirusPropertiesRaw {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
+  pub phenotype_data: Option<Vec<PhenotypeData>>,
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -27,6 +30,7 @@ pub struct VirusProperties {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
+  pub phenotype_data: Option<Vec<PhenotypeData>>,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -38,6 +42,71 @@ pub type NucLabelMap = LabelMap<Nuc>;
 #[serde(rename_all = "camelCase")]
 pub struct MutationLabelMaps<L: Letter<L>> {
   pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PhenotypeDataIgnore {
+  #[serde(default)]
+  pub clades: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
+pub enum PhenotypeCoeff {
+  ByPosition(f64),
+  ByPositionAndAa(BTreeMap<String, f64>),
+  Other(serde_json::Value),
+}
+
+impl PhenotypeCoeff {
+  pub fn get_coeff(&self, aa: Aa) -> f64 {
+    match self {
+      PhenotypeCoeff::ByPosition(coeff) => Some(coeff),
+      PhenotypeCoeff::ByPositionAndAa(aa_coeff_map) => aa_coeff_map
+        .get(&aa.to_string())
+        .or_else(|| aa_coeff_map.get("default")),
+      PhenotypeCoeff::Other(_) => None,
+    }
+    .unwrap_or(&0.0)
+    .to_owned()
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PhenotypeDataEntry {
+  pub name: String,
+  pub weight: f64,
+  pub locations: BTreeMap<usize, PhenotypeCoeff>,
+}
+
+impl PhenotypeDataEntry {
+  pub fn get_coeff(&self, pos: usize, aa: Aa) -> f64 {
+    self.locations.get(&pos).map_or(0.0, |location| location.get_coeff(aa))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PhenotypeData {
+  pub name: String,
+  pub name_friendly: String,
+  pub description: String,
+  pub gene: String,
+  pub aa_range: Range,
+  #[serde(default)]
+  pub ignore: PhenotypeDataIgnore,
+  pub data: Vec<PhenotypeDataEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PhenotypeAttrDesc {
+  pub name: String,
+  pub name_friendly: String,
+  pub description: String,
 }
 
 impl FromStr for VirusProperties {
@@ -58,6 +127,7 @@ impl FromStr for VirusProperties {
       schema_version: raw.schema_version,
       alignment_params: raw.alignment_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
+      phenotype_data: raw.phenotype_data,
     })
   }
 }

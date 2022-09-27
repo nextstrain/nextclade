@@ -14,6 +14,7 @@ use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
+  PhenotypeValue,
 };
 use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
@@ -95,20 +96,26 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "errors",
 ];
 
-fn prepare_headers(custom_node_attr_keys: &[String]) -> Vec<String> {
+fn prepare_headers(custom_node_attr_keys: &[String], phenotype_attr_keys: &[String]) -> Vec<String> {
   let mut headers: Vec<String> = NEXTCLADE_CSV_HEADERS
     .iter()
     .copied()
     .map(ToOwned::to_owned)
     .collect_vec();
 
-  let index_of_clade_col = headers
+  let mut insert_custom_cols_at_index = headers
     .iter()
     .position(|header| header == "clade")
     .unwrap_or(headers.len());
 
   custom_node_attr_keys.iter().rev().for_each(|key| {
-    headers.insert(index_of_clade_col + 1, key.clone());
+    headers.insert(insert_custom_cols_at_index + 1, key.clone());
+  });
+
+  insert_custom_cols_at_index += custom_node_attr_keys.len();
+
+  phenotype_attr_keys.iter().rev().for_each(|key| {
+    headers.insert(insert_custom_cols_at_index + 1, key.clone());
   });
 
   headers
@@ -172,6 +179,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       missing_genes,
       // divergence,
       coverage,
+      phenotype_values,
       qc,
       custom_node_attributes,
       is_reverse_complement,
@@ -180,9 +188,14 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     } = nextclade_outputs;
 
     custom_node_attributes
-      .clone()
-      .into_iter()
+      .iter()
       .try_for_each(|(key, val)| self.add_entry(&key, &val))?;
+
+    if let Some(phenotype_values) = phenotype_values {
+      phenotype_values
+        .iter()
+        .try_for_each(|PhenotypeValue { name, value, .. }| self.add_entry(&name, &value))?;
+    }
 
     self.add_entry("seqName", seq_name)?;
     self.add_entry("clade", clade)?;
@@ -436,8 +449,13 @@ pub struct NextcladeResultsCsvFileWriter {
 }
 
 impl NextcladeResultsCsvFileWriter {
-  pub fn new(filepath: impl AsRef<Path>, delimiter: u8, clade_attr_keys: &[String]) -> Result<Self, Report> {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys);
+  pub fn new(
+    filepath: impl AsRef<Path>,
+    delimiter: u8,
+    clade_attr_keys: &[String],
+    phenotype_attr_keys: &[String],
+  ) -> Result<Self, Report> {
+    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys);
     let csv_writer = CsvVecFileWriter::new(filepath, delimiter, &headers)?;
     let writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
     Ok(Self { writer })
@@ -630,17 +648,29 @@ pub fn format_qc_score(score: f64) -> String {
   score.to_string()
 }
 
+#[inline]
+pub fn format_escape(escape: &[PhenotypeValue]) -> String {
+  escape
+    .iter()
+    .map(
+      |PhenotypeValue {
+         name, value: escape, ..
+       }| format!("{name}:{escape}"),
+    )
+    .join(";")
+}
+
 pub fn results_to_csv_string(
   outputs: &[NextcladeOutputs],
   errors: &[NextcladeErrorOutputs],
-
   clade_attr_keys: &[String],
+  phenotype_attr_keys: &[String],
   delimiter: u8,
 ) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
 
   {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys);
+    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys);
     let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
     let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
 

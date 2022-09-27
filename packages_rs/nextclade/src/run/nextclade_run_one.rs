@@ -11,7 +11,8 @@ use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNuc
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
-use crate::analyze::virus_properties::VirusProperties;
+use crate::analyze::phenotype::calculate_phenotype;
+use crate::analyze::virus_properties::{PhenotypeData, VirusProperties};
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
@@ -23,8 +24,9 @@ use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
-use crate::types::outputs::{NextalignOutputs, NextcladeOutputs};
+use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use eyre::Report;
+use itertools::Itertools;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -153,6 +155,34 @@ pub fn nextclade_run_one(
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
+  let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
+    phenotype_data
+      .iter()
+      .filter_map(|phenotype_data| {
+        let PhenotypeData {
+          name,
+          name_friendly,
+          description,
+          gene,
+          data,
+          ignore,
+          ..
+        } = phenotype_data;
+        if ignore.clades.contains(&clade) {
+          return None;
+        }
+        let phenotype = calculate_phenotype(phenotype_data, &aa_substitutions);
+        Some(PhenotypeValue {
+          name: name.clone(),
+          gene: gene.clone(),
+          name_friendly: name_friendly.clone(),
+          description: description.clone(),
+          value: phenotype,
+        })
+      })
+      .collect_vec()
+  });
+
   let qc = qc_run(
     &private_nuc_mutations,
     &nucleotide_composition,
@@ -202,6 +232,7 @@ pub fn nextclade_run_one(
       missing_genes,
       divergence,
       coverage,
+      phenotype_values,
       qc,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,

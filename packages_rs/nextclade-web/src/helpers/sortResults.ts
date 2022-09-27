@@ -1,4 +1,4 @@
-import { isNil, orderBy, partition } from 'lodash'
+import { get, isNil, orderBy, partition } from 'lodash'
 import type { NextcladeResult } from 'src/types'
 
 export enum SortCategory {
@@ -32,7 +32,7 @@ export interface SortingKeyBased {
 }
 
 export function defaultNumber(direction: SortDirection) {
-  return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : 0
+  return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
 }
 
 export function getClade(result: NextcladeResult) {
@@ -186,5 +186,15 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
 
 export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKeyBased) {
   const { key, direction } = sorting
-  return orderBy(results, (result) => result.result?.analysisResult.customNodeAttributes[key], direction)
+  return orderBy(
+    results,
+    (result) => {
+      return (
+        get(result.result?.analysisResult?.customNodeAttributes ?? {}, key) ??
+        result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ??
+        defaultNumber(direction)
+      )
+    },
+    direction,
+  )
 }

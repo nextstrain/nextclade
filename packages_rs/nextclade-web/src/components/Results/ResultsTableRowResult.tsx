@@ -32,8 +32,10 @@ export interface ResultsTableRowResultProps {
   index: number
   viewedGene: string
   cladeNodeAttrKeys: string[]
+  phenotypeAttrKeys: string[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
-  dynamicColumnWidthPx: string
+  dynamicCladeColumnWidthPx: string
+  dynamicPhenotypeColumnWidthPx: string
 }
 
 export function getQcRowColor(qcStatus: QcStatus) {
@@ -73,18 +75,30 @@ export function ResultsTableRowResult({
   index,
   viewedGene,
   cladeNodeAttrKeys,
+  phenotypeAttrKeys,
   columnWidthsPx,
-  dynamicColumnWidthPx,
+  dynamicCladeColumnWidthPx,
+  dynamicPhenotypeColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
   const { seqName, result } = useRecoilValue(analysisResultAtom(index))
 
-  if (!result) {
+  const data = useMemo(() => {
+    if (!result) {
+      return null
+    }
+
+    const { analysisResult } = result
+    const { qc, warnings } = analysisResult
+
+    return { analysisResult, qc, warnings }
+  }, [result])
+
+  if (!data) {
     return null
   }
 
-  const { analysisResult } = result
-  const { qc, warnings } = analysisResult
+  const { analysisResult, qc, warnings } = data
 
   return (
     <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
@@ -105,7 +119,13 @@ export function ResultsTableRowResult({
       </TableCellAlignedLeft>
 
       {cladeNodeAttrKeys.map((attrKey) => (
-        <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+        <TableCellAlignedLeft key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
+          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
+        </TableCellAlignedLeft>
+      ))}
+
+      {phenotypeAttrKeys.map((attrKey) => (
+        <TableCellAlignedLeft key={attrKey} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
         </TableCellAlignedLeft>
       ))}

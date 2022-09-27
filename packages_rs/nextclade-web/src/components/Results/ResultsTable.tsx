@@ -10,12 +10,15 @@ import styled from 'styled-components'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
   resultsTableColumnWidthsPxAtom,
-  resultsTableDynamicColumnWidthPxAtom,
+  resultsTableDynamicCladeColumnWidthPxAtom,
   isResultsFilterPanelCollapsedAtom,
+  resultsTableDynamicPhenotypeColumnWidthPxAtom,
 } from 'src/state/settings.state'
 import {
   cladeNodeAttrDescsAtom,
   cladeNodeAttrKeysAtom,
+  phenotypeAttrDescsAtom,
+  phenotypeAttrKeysAtom,
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
@@ -63,9 +66,13 @@ export function ResultsTable() {
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
-  const dynamicColumnWidthPx = useRecoilValue(resultsTableDynamicColumnWidthPxAtom)
+  const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom)
+  const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
   const cladeNodeAttrKeys = useRecoilValue(cladeNodeAttrKeysAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
+  const phenotypeAttrKeys = useRecoilValue(phenotypeAttrKeysAtom)
+  const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
+
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
 
@@ -74,10 +81,20 @@ export function ResultsTable() {
       seqIndex,
       viewedGene,
       columnWidthsPx,
-      dynamicColumnWidthPx,
+      dynamicCladeColumnWidthPx,
+      dynamicPhenotypeColumnWidthPx,
       cladeNodeAttrKeys,
+      phenotypeAttrKeys,
     }))
-  }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, seqIndices, viewedGene])
+  }, [
+    cladeNodeAttrKeys,
+    columnWidthsPx,
+    dynamicCladeColumnWidthPx,
+    dynamicPhenotypeColumnWidthPx,
+    phenotypeAttrKeys,
+    seqIndices,
+    viewedGene,
+  ])
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
@@ -157,24 +174,43 @@ export function ResultsTable() {
     set(sortAnalysisResultsByKeyAtom({ key, direction }), undefined)
   }, []) // prettier-ignore
 
-  const dynamicColumns = useMemo(() => {
+  const dynamicCladeColumns = useMemo(() => {
     return cladeNodeAttrDescs.map(({ name: attrKey, displayName, description }) => {
       const sortAsc = sortByKey(attrKey, SortDirection.asc)
       const sortDesc = sortByKey(attrKey, SortDirection.desc)
       return (
-        <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+        <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{displayName}</TableCellText>
             <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
           </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-clade" wide>
+          <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
             <h5>{`Column: ${displayName}`}</h5>
             <p>{description}</p>
           </ButtonHelpStyled>
         </TableHeaderCell>
       )
     })
-  }, [cladeNodeAttrDescs, dynamicColumnWidthPx, sortByKey])
+  }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByKey])
+
+  const dynamicPhenotypeColumns = useMemo(() => {
+    return phenotypeAttrDescs.map(({ name, nameFriendly, description }) => {
+      const sortAsc = sortByKey(name, SortDirection.asc)
+      const sortDesc = sortByKey(name, SortDirection.desc)
+      return (
+        <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{nameFriendly}</TableCellText>
+            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
+            <h5>{`Column: ${nameFriendly}`}</h5>
+            <p>{description}</p>
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+      )
+    })
+  }, [phenotypeAttrDescs, dynamicPhenotypeColumnWidthPx, sortByKey])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
@@ -219,7 +255,9 @@ export function ResultsTable() {
           </ButtonHelpStyled>
         </TableHeaderCell>
 
-        {dynamicColumns}
+        {dynamicCladeColumns}
+
+        {dynamicPhenotypeColumns}
 
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>
@@ -256,7 +294,7 @@ export function ResultsTable() {
             <TableCellText>{t('Cov.')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByCoverageAsc} sortDesc={sortByCoverageDesc} />
           </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-mut">
+          <ButtonHelpStyled identifier="btn-help-col-coverage">
             <HelpTipsCoverage />
           </ButtonHelpStyled>
         </TableHeaderCell>

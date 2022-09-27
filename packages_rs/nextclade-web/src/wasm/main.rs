@@ -2,7 +2,7 @@ use crate::wasm::analyze::{AnalysisInitialData, AnalysisInput, AnalysisResult, N
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::pcr_primers::PcrPrimer;
-use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_str;
@@ -157,6 +157,7 @@ impl NextcladeWasm {
     outputs_json_str: &str,
     errors_json_str: &str,
     clade_node_attrs_json_str: &str,
+    phenotype_attrs_json_str: &str,
     delimiter: char,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
@@ -172,12 +173,19 @@ impl NextcladeWasm {
         .wrap_err("When serializing results JSON: When parsing clade node attrs JSON internally"),
     )?;
 
+    let phenotype_attrs: Vec<PhenotypeAttrDesc> = jserr(
+      json_parse(phenotype_attrs_json_str)
+        .wrap_err("When serializing results JSON: When parsing phenotypes attr keys JSON internally"),
+    )?;
+
     let clade_node_attr_keys = clade_node_attrs.into_iter().map(|attr| attr.name).collect_vec();
+    let phenotype_attr_keys = phenotype_attrs.into_iter().map(|attr| attr.name).collect_vec();
 
     jserr(results_to_csv_string(
       &outputs,
       &errors,
       &clade_node_attr_keys,
+      &phenotype_attr_keys,
       delimiter as u8,
     ))
   }

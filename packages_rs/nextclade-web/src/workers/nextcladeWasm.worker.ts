@@ -6,7 +6,15 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type { AnalysisError, AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Translation } from 'src/types'
+import type {
+  AnalysisError,
+  AnalysisResult,
+  ErrorsFromWeb,
+  FastaRecord,
+  NextcladeResult,
+  PhenotypeAttrDesc,
+  Translation,
+} from 'src/types'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
@@ -71,13 +79,14 @@ async function getInitialData(): Promise<LaunchAnalysisInitialData> {
     throw new ErrorModuleNotInitialized('getInitialData')
   }
   const initialData = nextcladeWasm.get_initial_data()
-  const { gene_map, genome_size, clade_node_attr_key_descs } = initialData.to_js()
+  const { gene_map, genome_size, clade_node_attr_key_descs, phenotype_attr_descs } = initialData.to_js()
   initialData.free()
 
   return {
     geneMap: prepareGeneMap(gene_map),
     genomeSize: Number(genome_size),
     cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
+    phenotypeAttrDescs: JSON.parse(phenotype_attr_descs) as PhenotypeAttrDesc[],
   }
 }
 
@@ -203,12 +212,14 @@ export async function serializeResultsCsv(
   results: AnalysisResult[],
   errors: AnalysisError[],
   cladeNodeAttrsJson: CladeNodeAttrDesc[],
+  phenotypeAttrsJson: PhenotypeAttrDesc[],
   delimiter: string,
 ) {
   return NextcladeWasm.serialize_results_csv(
     JSON.stringify(results),
     JSON.stringify(errors),
     JSON.stringify(cladeNodeAttrsJson),
+    JSON.stringify(phenotypeAttrsJson),
     delimiter,
   )
 }

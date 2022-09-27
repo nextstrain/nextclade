@@ -344,6 +344,12 @@ export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
   return { reversions, labeled, unlabeled, totalMutations }
 }
 
+export interface PhenotypeValue {
+  name: string
+  gene: string
+  value: number
+}
+
 export interface AnalysisResult {
   index: number
   seqName: string
@@ -379,6 +385,7 @@ export interface AnalysisResult {
   privateNucMutations: PrivateMutations
   privateAaMutations: Record<string, PrivateMutations>
   coverage: number
+  phenotypeValues?: PhenotypeValue[]
   qc: QcResult
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]
@@ -559,4 +566,10 @@ export interface Dataset {
 export interface DatasetsIndexV2Json {
   schema: string
   datasets: Dataset[]
+}
+
+export interface PhenotypeAttrDesc {
+  name: string
+  nameFriendly: string
+  description: string
 }

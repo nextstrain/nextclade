@@ -12,8 +12,10 @@ export interface TableRowDatum {
   seqIndex: number
   viewedGene: string
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
-  dynamicColumnWidthPx: string
+  dynamicCladeColumnWidthPx: string
+  dynamicPhenotypeColumnWidthPx: string
   cladeNodeAttrKeys: string[]
+  phenotypeAttrKeys: string[]
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -23,10 +25,15 @@ export interface RowProps extends ListChildComponentProps {
 export const ResultsTableRow = memo(ResultsTableRowUnmemoed, areEqual)
 
 function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
-  const { seqIndex, viewedGene, columnWidthsPx, dynamicColumnWidthPx, cladeNodeAttrKeys } = useMemo(
-    () => data[index],
-    [data, index],
-  )
+  const {
+    seqIndex,
+    viewedGene,
+    columnWidthsPx,
+    dynamicCladeColumnWidthPx,
+    dynamicPhenotypeColumnWidthPx,
+    cladeNodeAttrKeys,
+    phenotypeAttrKeys,
+  } = useMemo(() => data[index], [data, index])
 
   const { result, error } = useRecoilValue(analysisResultAtom(seqIndex))
 
@@ -40,8 +47,10 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         {...restProps}
         index={seqIndex}
         columnWidthsPx={columnWidthsPx}
-        dynamicColumnWidthPx={dynamicColumnWidthPx}
+        dynamicCladeColumnWidthPx={dynamicCladeColumnWidthPx}
+        dynamicPhenotypeColumnWidthPx={dynamicPhenotypeColumnWidthPx}
         cladeNodeAttrKeys={cladeNodeAttrKeys}
+        phenotypeAttrKeys={phenotypeAttrKeys}
         viewedGene={viewedGene}
       />
     )

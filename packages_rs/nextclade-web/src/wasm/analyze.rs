@@ -3,7 +3,8 @@ use eyre::{Report, WrapErr};
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
-use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::analyze::phenotype::get_phenotype_attr_descs;
+use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene::Gene;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
@@ -100,6 +101,7 @@ pub struct AnalysisInitialData {
   gene_map: String,
   genome_size: usize,
   clade_node_attr_key_descs: String,
+  phenotype_attr_descs: String,
 }
 
 #[wasm_bindgen]
@@ -151,6 +153,7 @@ pub struct Nextclade {
   gap_open_close_nuc: Vec<i32>,
   gap_open_close_aa: Vec<i32>,
   clade_node_attr_key_descs: Vec<CladeNodeAttrKeyDesc>,
+  phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   aln_params: AlignPairwiseParams,
 }
 
@@ -191,6 +194,8 @@ impl Nextclade {
     tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
+    let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);
+
     let qc_config = QcConfig::from_str(qc_config_str).wrap_err("When parsing QC config JSON")?;
 
     let primers = PcrPrimer::from_str(pcr_primers_str, &from_nuc_seq(&ref_seq)).wrap_err("When parsing PCR primers")?;
@@ -206,6 +211,7 @@ impl Nextclade {
       gap_open_close_nuc,
       gap_open_close_aa,
       clade_node_attr_key_descs,
+      phenotype_attr_descs,
       aln_params: alignment_params,
     })
   }
@@ -216,6 +222,7 @@ impl Nextclade {
       gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.values().cloned().collect())?,
       genome_size: self.ref_seq.len(),
       clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
+      phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,
     })
   }
 
