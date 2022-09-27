@@ -72,11 +72,13 @@ pub struct AlignPairwiseParams {
   pub seed_spacing: i32,
 
   /// Retry seed matching step with a reverse complement if the first attempt failed
-  #[clap(long, takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
+  #[clap(long)]
+  #[clap(takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
   pub retry_reverse_complement: bool,
 
   /// If this flag is present, the amino acid sequences will be truncated at the first stop codon, if mutations or sequencing errors cause premature stop codons to be present. No amino acid mutations in the truncated region will be recorded.
-  #[clap(long, takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
+  #[clap(long)]
+  #[clap(takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
   pub no_translate_past_stop: bool,
 
   // Internal alignment parameter

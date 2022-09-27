@@ -81,10 +81,9 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
   let n_dels = dels.len();
 
   // if no gaps, return empty list of ranges
-  if n_dels==0{
-    return ranges
+  if n_dels == 0 {
+    return ranges;
   }
-
 
   // init current range with length 1 and previous position at the first deletion
   let mut pos_prev = dels[0].pos as i64;
