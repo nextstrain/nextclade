@@ -1,4 +1,21 @@
-# CHANGELOG
+## Nextclade Web 2.6.0, Nextclade CLI 2.6.0 (2022-09-27)
+
+### New metrics: Immune escape and ACE-2 binding
+
+We added software support for the new custom metrics in Nextclade CLI and nextclade Web. The dataset "sars-cov-2-21L" with the data required for these metrics to appear will be released in the coming days. Stay tuned.
+
+### The `dataset-name` URL parameter is now properly applied in Nextclade Web, even when `input-fasta` is not provided
+
+Previously `dataset-name` URL parameter was ignored, unless `input-fasta` is also set. Now the `dataset-name` will make Nextclade Web to preselect the requested dataset, regardless of whether the `input-fasta` URL parameter is also provided. This allows to create URLs which preconfigure Nextclade Web with a certain dataset and dataset customizations, with intent to provide fasta and to run manually.
+
+### Better error handling
+
+We improved error handling, such that some of the errors in Nextclade Web now have better error messages. Some of the errors that previously caused hard crash in in Nextclade CLI are now handled more gracefully and with better error messages.
+
+### Internal changes
+
+We upgraded Rust to 1.63.0 and Nextclade CLI and Nextalign CLI are now using `std::thread::scope` for better multithreading support.
+
 
 ## Nextclade Web 2.5.1 (2022-09-20)
 
