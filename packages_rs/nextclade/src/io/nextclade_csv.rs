@@ -138,10 +138,6 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     })
   }
 
-  pub fn into_inner(self) -> W {
-    self.writer
-  }
-
   /// Writes one row into nextclade.csv or .tsv file
   pub fn write(&mut self, nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
     const ARRAY_ITEM_DELIMITER: &str = ",";

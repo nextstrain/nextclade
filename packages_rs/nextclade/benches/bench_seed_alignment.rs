@@ -1,10 +1,9 @@
-use std::fs::{self, read_to_string};
+use std::fs;
 use std::path::PathBuf;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
-use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nextclade::align::params::AlignPairwiseParams;
-use nextclade::align::seed_alignment::{self, seed_alignment};
+use nextclade::align::seed_alignment::seed_alignment;
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::nuc::to_nuc_seq;
 
@@ -23,7 +22,7 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
   group.bench_function("seed_match", |b| {
     b.iter(|| {
       seed_alignment(&qry_seq, &ref_seq, &params).unwrap();
-    })
+    });
   });
   group.finish();
 }

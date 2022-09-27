@@ -13,7 +13,7 @@ pub fn bench_seed_match(c: &mut Criterion) {
   group.bench_function("seed_match", |b| {
     b.iter(|| {
       seed_match(&kmer, &ref_seq, start_pos, ref_seq.len(), mismatches_allowed);
-    })
+    });
   });
   group.finish();
 }

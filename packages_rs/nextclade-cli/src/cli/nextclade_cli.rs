@@ -802,7 +802,7 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     }
     NextcladeCommands::Dataset(dataset_command) => match dataset_command.command {
       NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
-      NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(dataset_get_args),
+      NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
     },
   }
 }

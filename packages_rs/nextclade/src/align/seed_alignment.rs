@@ -162,7 +162,7 @@ pub fn seed_alignment<L: Letter<L>>(
     0.0
   };
 
-  if params.min_match_rate > match_rate  {
+  if params.min_match_rate > match_rate {
     return make_error!(
       "Unable to align: low seed matching rate. \
     Details: number of seeds: {num_seeds}, number of seed matches: {num_seed_matches}, \
@@ -170,8 +170,6 @@ pub fn seed_alignment<L: Letter<L>>(
       params.min_match_rate
     );
   }
-
-  
 
   create_stripes(
     &seed_matches,
@@ -240,7 +238,7 @@ pub fn create_stripes(
     0,
     seed_matches[0].ref_pos as i32,
     qry_len,
-    &robust_shifts[0],
+    robust_shifts[0],
     terminal_bandwidth,
   );
 
@@ -251,7 +249,7 @@ pub fn create_stripes(
       seed_matches[i - 1].ref_pos as i32,
       seed_matches[i].ref_pos as i32,
       qry_len,
-      &robust_shifts[i],
+      robust_shifts[i],
       excess_bandwidth,
     );
   }
@@ -262,7 +260,7 @@ pub fn create_stripes(
     last(&seed_matches)?.ref_pos as i32,
     ref_len + 1,
     qry_len,
-    last(&robust_shifts)?,
+    *last(&robust_shifts)?,
     terminal_bandwidth,
   );
 
@@ -297,7 +295,7 @@ fn add_robust_stripes(
   ref_start: i32,
   ref_end: i32,
   qry_len: i32,
-  shift: &(i32, i32),
+  shift: (i32, i32),
   extra_bandwidth: i32,
 ) -> Vec<Stripe> {
   for i in ref_start..ref_end {
@@ -317,17 +315,18 @@ mod tests {
 
   #[rstest]
   fn test_create_stripes_basic() -> Result<(), Report> {
-    let mut seed_matches = vec![];
-    seed_matches.push(SeedMatch {
-      qry_pos: 5,
-      ref_pos: 10,
-      score: 0,
-    });
-    seed_matches.push(SeedMatch {
-      qry_pos: 20,
-      ref_pos: 30,
-      score: 0,
-    });
+    let seed_matches = vec![
+      SeedMatch {
+        qry_pos: 5,
+        ref_pos: 10,
+        score: 0,
+      },
+      SeedMatch {
+        qry_pos: 20,
+        ref_pos: 30,
+        score: 0,
+      },
+    ];
 
     let terminal_bandwidth = 5;
     let excess_bandwidth = 2;

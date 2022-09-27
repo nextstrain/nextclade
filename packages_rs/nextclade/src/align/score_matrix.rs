@@ -12,6 +12,8 @@ pub const QRY_GAP_MATRIX: i8 = 1 << 2;
 pub const REF_GAP_EXTEND: i8 = 1 << 3;
 pub const QRY_GAP_EXTEND: i8 = 1 << 4;
 
+const NO_ALIGN: i32 = -1_000_000_000; //very negative to be able to process unalignable seqs
+
 pub struct ScoreMatrixResult {
   pub scores: Band2d<i32>,
   pub paths: Band2d<i8>,
@@ -52,8 +54,6 @@ pub fn score_matrix<T: Letter<T>>(
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-
-  const NO_ALIGN: i32 = -1_000_000_000; //very negative to be able to process unalignable seqs
 
   paths[(0, 0)] = 0;
   scores[(0, 0)] = 0;
@@ -162,7 +162,7 @@ pub fn score_matrix<T: Letter<T>>(
           } else {
             //end of query sequence make right terminal gap free
             q_gap_extend = qry_gaps[qpos];
-            q_gap_open = scores[(ri - 1, qpos)]
+            q_gap_open = scores[(ri - 1, qpos)];
           }
           if q_gap_extend >= q_gap_open && qpos < stripes[ri - 2].end {
             // extension better than opening (and ^ extension allowed positionally)

@@ -1,6 +1,4 @@
-use num::clamp;
-use num::ToPrimitive;
-use num_traits::{cast, NumCast};
+use num_traits::{NumCast, ToPrimitive};
 use std::fmt::{self, Display};
 use std::ops::{Index, IndexMut};
 
@@ -12,31 +10,32 @@ pub struct Stripe {
 }
 
 impl Stripe {
+  #[inline]
   pub fn new<T, U>(begin: T, end: U) -> Stripe
   where
-    T: NumCast,
-    U: NumCast,
+    T: NumCast + Copy,
+    U: NumCast + Copy,
   {
     Stripe {
       begin: begin.to_usize().unwrap(),
       end: end.to_usize().unwrap(),
     }
   }
-}
 
-impl Stripe {
-  pub fn len(&self) -> usize {
+  #[inline]
+  pub const fn len(&self) -> usize {
     self.end - self.begin
   }
 
-  pub fn is_empty(&self) -> bool {
+  #[inline]
+  pub const fn is_empty(&self) -> bool {
     self.end == self.begin
   }
 }
 
 pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_len: usize, qry_len: usize) -> Vec<Stripe> {
-  //Begin runs diagonally, with max(0, mean_shift - band_width + i)
-  //End runs diagnoally, with min(qry_len, mean_shift + band_width + i)
+  // Begin runs diagonally, with max(0, mean_shift - band_width + i)
+  // End runs diagonally, with min(qry_len, mean_shift + band_width + i)
 
   // TODO: Increase by start/end bands
   let mut stripes = Vec::<Stripe>::with_capacity(ref_len + 1);
@@ -63,7 +62,6 @@ pub fn full_matrix(ref_len: usize, qry_len: usize) -> Vec<Stripe> {
   }
   stripes
 }
-
 
 /// Represents a diagonal band in a matrix.
 ///
@@ -110,17 +108,17 @@ where
   }
 
   #[inline]
-  pub fn num_rows(&self) -> usize {
+  pub const fn num_rows(&self) -> usize {
     self.n_rows
   }
 
   #[inline]
-  pub fn num_cols(&self) -> usize {
+  pub const fn num_cols(&self) -> usize {
     self.n_cols
   }
 
   #[inline]
-  fn get_index<I: NumCast, J: NumCast>(&self, index2d: (I, J)) -> usize {
+  fn get_index<I: NumCast + Copy, J: NumCast + Copy>(&self, index2d: (I, J)) -> usize {
     let row = index2d.0.to_usize().unwrap();
     let col = index2d.1.to_usize().unwrap();
     let stripe = &self.stripes[row];
@@ -136,7 +134,7 @@ where
 }
 
 /// Allows 2-dimensional indexing using a tuple
-impl<T: Default + Clone, I: NumCast, J: NumCast> Index<(I, J)> for Band2d<T> {
+impl<T: Default + Clone, I: NumCast + Copy, J: NumCast + Copy> Index<(I, J)> for Band2d<T> {
   type Output = T;
 
   #[inline]
@@ -146,7 +144,7 @@ impl<T: Default + Clone, I: NumCast, J: NumCast> Index<(I, J)> for Band2d<T> {
 }
 
 /// Allows 2-dimensional mutable indexing using a tuple
-impl<T: Default + Clone, I: NumCast, J: NumCast> IndexMut<(I, J)> for Band2d<T> {
+impl<T: Default + Clone, I: NumCast + Copy, J: NumCast + Copy> IndexMut<(I, J)> for Band2d<T> {
   #[inline]
   fn index_mut(&mut self, index2d: (I, J)) -> &mut Self::Output {
     self.data.index_mut(self.get_index(index2d))
@@ -173,7 +171,6 @@ impl<T: Default + Clone + Display> fmt::Debug for Band2d<T> {
 mod tests {
   use super::*;
   use eyre::Report;
-  use itertools::assert_equal;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 

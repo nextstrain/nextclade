@@ -112,7 +112,7 @@ pub fn nextclade_dataset_http_get(
   }
 }
 
-pub fn nextclade_dataset_get(args: NextcladeDatasetGetArgs) -> Result<(), Report> {
+pub fn nextclade_dataset_get(args: &NextcladeDatasetGetArgs) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
   let mut http = HttpClient::new(&args.server, &args.proxy_config, verbose)?;
 

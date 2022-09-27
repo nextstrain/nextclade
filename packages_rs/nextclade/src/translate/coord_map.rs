@@ -110,7 +110,6 @@ impl CoordMap {
   }
 
   pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
-    
     if feature.strand == GeneStrand::Reverse {
       Range {
         begin: self.feature_aln_to_ref_position(feature, aln_range.end - 1),
@@ -264,7 +263,7 @@ mod coord_map_tests {
   #[rstest]
   fn extract_gene_plus_strand() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
@@ -286,7 +285,7 @@ mod coord_map_tests {
   #[rstest]
   fn extract_gene_minus_strand() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
@@ -309,7 +308,7 @@ mod coord_map_tests {
   #[rstest]
   fn ref_feature_pos_to_aln_fwd() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
@@ -328,7 +327,7 @@ mod coord_map_tests {
   #[rstest]
   fn ref_feature_pos_to_aln_rev() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
@@ -347,7 +346,7 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_pos_to_ref_fwd() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
@@ -366,7 +365,7 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_pos_to_ref_rev() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,
@@ -385,7 +384,7 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_range_to_ref_fwd() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Forward,
@@ -407,7 +406,7 @@ mod coord_map_tests {
   #[rstest]
   fn aln_feature_range_to_ref_rev() -> Result<(), Report> {
     let gene = Gene {
-      gene_name: "g1".to_string(),
+      gene_name: "g1".to_owned(),
       start: 3,
       end: 12,
       strand: GeneStrand::Reverse,

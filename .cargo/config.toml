@@ -191,6 +191,8 @@ rustflags = [
   "-Aclippy::pattern_type_mismatch",
   "-Aclippy::print_stderr",
   "-Aclippy::print_stdout",
+  "-Aclippy::pub-use",
+  "-Aclippy::self-named-module-files",
   "-Aclippy::separated_literal_suffix",
   "-Aclippy::shadow_reuse",
   "-Aclippy::shadow_same",
