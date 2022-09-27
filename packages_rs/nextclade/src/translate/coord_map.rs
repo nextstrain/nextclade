@@ -110,7 +110,8 @@ impl CoordMap {
   }
 
   pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
-    let ref_range = if feature.strand == GeneStrand::Reverse {
+    
+    if feature.strand == GeneStrand::Reverse {
       Range {
         begin: self.feature_aln_to_ref_position(feature, aln_range.end - 1),
         end: self.feature_aln_to_ref_position(feature, aln_range.begin) + 1,
@@ -120,8 +121,7 @@ impl CoordMap {
         begin: self.feature_aln_to_ref_position(feature, aln_range.begin),
         end: self.feature_aln_to_ref_position(feature, aln_range.end - 1) + 1,
       }
-    };
-    return ref_range;
+    }
   }
 
   pub fn feature_ref_to_aln_range(&self, feature: &Gene, ref_range: &Range) -> Range {

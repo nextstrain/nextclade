@@ -57,13 +57,13 @@ impl AaSub {
 impl ToString for AaSub {
   fn to_string(&self) -> String {
     // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
-    return format!(
+    format!(
       "{}:{}{}{}",
       self.gene,
       from_aa(self.reff),
       self.pos + 1,
       from_aa(self.qry)
-    );
+    )
   }
 }
 
@@ -108,7 +108,7 @@ impl AaDel {
 impl ToString for AaDel {
   fn to_string(&self) -> String {
     // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
-    return format!("{}:{}{}-", self.gene, from_aa(self.reff), self.pos + 1,);
+    format!("{}:{}{}-", self.gene, from_aa(self.reff), self.pos + 1,)
   }
 }
 

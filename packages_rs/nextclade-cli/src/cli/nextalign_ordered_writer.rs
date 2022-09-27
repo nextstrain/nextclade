@@ -91,21 +91,21 @@ impl<'a> NextalignOrderedWriter<'a> {
         } = output;
 
         if let Some(fasta_writer) = &mut self.fasta_writer {
-          fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq), *is_reverse_complement)?;
+          fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq), *is_reverse_complement)?;
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
           for translation in translations {
-            fasta_peptide_writer.write(&seq_name, translation)?;
+            fasta_peptide_writer.write(seq_name, translation)?;
           }
         }
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
-          insertions_csv_writer.write(&seq_name, &stripped.insertions, translations)?;
+          insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
-          errors_csv_writer.write_aa_errors(&seq_name, warnings, missing_genes)?;
+          errors_csv_writer.write_aa_errors(seq_name, warnings, missing_genes)?;
         }
       }
       Err(report) => {

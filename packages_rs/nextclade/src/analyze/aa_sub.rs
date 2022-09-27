@@ -34,7 +34,7 @@ impl AaSubMinimal {
 
   pub fn to_string_without_gene(&self) -> String {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    return format!("{}{}{}", from_aa(self.reff), self.pos + 1, from_aa(self.qry));
+    format!("{}{}{}", from_aa(self.reff), self.pos + 1, from_aa(self.qry))
   }
 }
 

@@ -60,12 +60,12 @@ pub fn format_attr_value_short(attr: &DatasetAttributeValue) -> String {
   if *is_default {
     format!("{value} (*)")
   } else {
-    value.to_owned()
+    value.clone()
   }
 }
 
 pub fn format_attr_value(attr: &DatasetAttributeValue) -> String {
-  let value_str = format_attr_value_short(&attr);
+  let value_str = format_attr_value_short(attr);
   if let Some(value_friendly) = &attr.value_friendly {
     format!("{value_str}\n'{value_friendly}'")
   } else {

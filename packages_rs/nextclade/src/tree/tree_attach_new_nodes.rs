@@ -64,7 +64,7 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
 }
 
 fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  let mutations = convert_mutations_to_node_branch_attrs(&result);
+  let mutations = convert_mutations_to_node_branch_attrs(result);
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",

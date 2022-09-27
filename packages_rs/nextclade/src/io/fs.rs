@@ -41,7 +41,7 @@ pub fn basename_maybe(filepath: impl AsRef<Path>) -> Option<String> {
 
 pub fn extension(filepath: impl AsRef<Path>) -> Option<String> {
   let filepath = filepath.as_ref();
-  filepath.extension().map(OsStr::to_str).flatten().map(str::to_owned)
+  filepath.extension().and_then(OsStr::to_str).map(str::to_owned)
 }
 
 pub fn has_extension(filepath: impl AsRef<Path>, ext: impl AsRef<str>) -> bool {

@@ -11,7 +11,7 @@ pub fn merge_context(left: &str, right: &str) -> String {
   // left:    aaa bbb ccc
   // right:       bbb ccc ddd
   // result:  aaa bbb ccc ddd
-  left[0..left.len() - 3].to_owned() + &right[3..9].to_owned()
+  left[0..left.len() - 3].to_owned() + &right[3..9]
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -109,7 +109,7 @@ pub fn group_adjacent_aa_subs_and_dels(
     if (curr.gene == prev.gene) && (curr.pos - prev.pos == 1) {
       group.insert(curr)
     } else {
-      groups.push(AaChangeGroup::new(&curr))
+      groups.push(AaChangeGroup::new(curr))
     }
   }
 

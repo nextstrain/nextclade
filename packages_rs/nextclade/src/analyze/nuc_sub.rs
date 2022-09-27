@@ -65,7 +65,7 @@ impl FromStr for NucSub {
 impl ToString for NucSub {
   fn to_string(&self) -> String {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    return format!("{}{}{}", from_nuc(self.reff), self.pos + 1, from_nuc(self.qry));
+    format!("{}{}{}", from_nuc(self.reff), self.pos + 1, from_nuc(self.qry))
   }
 }
 

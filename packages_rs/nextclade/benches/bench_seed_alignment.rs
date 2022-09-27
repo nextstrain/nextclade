@@ -29,7 +29,7 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
 }
 
 fn sequence_from_path(path: PathBuf) -> Vec<nextclade::io::nuc::Nuc> {
-  black_box(to_nuc_seq(&fs::read_to_string(path).unwrap().trim()).unwrap())
+  black_box(to_nuc_seq(fs::read_to_string(path).unwrap().trim()).unwrap())
 }
 
 criterion_group!(benches, bench_seed_alignment);

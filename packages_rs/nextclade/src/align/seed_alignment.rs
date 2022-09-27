@@ -171,16 +171,16 @@ pub fn seed_alignment<L: Letter<L>>(
     );
   }
 
-  let stripes = create_stripes(
+  
+
+  create_stripes(
     &seed_matches,
     qry_len_i,
     ref_len_i,
     params.terminal_bandwidth,
     params.excess_bandwidth,
     params.max_indel,
-  );
-
-  stripes
+  )
 }
 
 /// construct the band in the alignment matrix. this band is organized as "stripes"

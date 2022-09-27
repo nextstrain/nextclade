@@ -77,7 +77,7 @@ pub fn score_matrix<T: Letter<T>>(
   let mut qry_gaps = vec![NO_ALIGN; n_cols];
 
   // Iterate over rows
-  for ri in 1..ref_len + 1 {
+  for ri in 1..=ref_len {
     let mut ref_gaps = NO_ALIGN;
 
     for qpos in stripes[ri].begin..stripes[ri].end {
@@ -112,7 +112,7 @@ pub fn score_matrix<T: Letter<T>>(
         // no gap -- match case
 
         // TODO: Double bounds check -> wasteful, make better
-        if qpos - 1 >= stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
+        if qpos > stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
           // ^ If stripes allow to move up diagonally to upper left
           if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
             score = scores[(ri - 1, qpos - 1)] + params.score_match;
