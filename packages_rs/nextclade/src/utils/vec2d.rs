@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 
 /// Row-major, 2-dimensional container with contiguous, flat underlying storage
 /// and 2-dimensional indexing.
-#[derive(Default, PartialEq)]
+#[derive(Default, PartialEq, Eq)]
 pub struct Vec2d<T: Default + Clone> {
   data: Vec<T>,
   n_rows: usize,
@@ -25,23 +25,23 @@ impl<T: Default + Clone> Vec2d<T> {
   }
 
   #[inline]
-  pub fn num_rows(&self) -> usize {
+  pub const fn num_rows(&self) -> usize {
     self.n_rows
   }
 
   #[inline]
-  pub fn num_cols(&self) -> usize {
+  pub const fn num_cols(&self) -> usize {
     self.n_cols
   }
 
   #[inline]
-  fn get_index(&self, index2d: (usize, usize)) -> usize {
+  pub const fn get_index(&self, index2d: (usize, usize)) -> usize {
     let (row, col) = index2d;
     row * self.n_cols + col
   }
 
   #[inline]
-  fn get_index_i32(&self, index2d: (i32, i32)) -> usize {
+  pub const fn get_index_i32(&self, index2d: (i32, i32)) -> usize {
     let (row, col) = index2d;
     (row * self.n_cols as i32 + col) as usize
   }

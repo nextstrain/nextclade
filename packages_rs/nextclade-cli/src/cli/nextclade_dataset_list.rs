@@ -5,8 +5,8 @@ use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
 use eyre::Report;
 use itertools::Itertools;
-use nextclade::getenv;
 use log::LevelFilter;
+use nextclade::getenv;
 use nextclade::io::json::json_stringify;
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");

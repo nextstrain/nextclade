@@ -1,17 +1,19 @@
-use crate::analyze::aa_changes::{AaChange, AaChangeType, AaDel, AaSub};
+use crate::analyze::aa_changes::{AaChange, AaChangeType};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
-use crate::io::nuc::Nuc;
 use crate::utils::range::Range;
 use itertools::{merge, Itertools};
 use serde::{Deserialize, Serialize};
 
+#[allow(clippy::string_slice)]
 pub fn merge_context(left: &str, right: &str) -> String {
   // left:    aaa bbb ccc
   // right:       bbb ccc ddd
   // result:  aaa bbb ccc ddd
-  left[0..left.len() - 3].to_owned() + &right[3..9].to_owned()
+  let mut result = left[0..left.len() - 3].to_owned();
+  result.push_str(&right[3..9]);
+  result
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -107,9 +109,9 @@ pub fn group_adjacent_aa_subs_and_dels(
     let curr = &changes[i];
     let group = groups.last_mut().unwrap();
     if (curr.gene == prev.gene) && (curr.pos - prev.pos == 1) {
-      group.insert(curr)
+      group.insert(curr);
     } else {
-      groups.push(AaChangeGroup::new(&curr))
+      groups.push(AaChangeGroup::new(curr));
     }
   }
 

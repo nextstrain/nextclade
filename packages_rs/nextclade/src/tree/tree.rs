@@ -363,8 +363,7 @@ impl AuspiceTree {
     self.meta
       .extensions.as_ref()?
       .nextclade.as_ref()?
-      .clade_node_attrs.as_ref()
-      .map(|clade_node_attrs| clade_node_attrs.as_slice())
+      .clade_node_attrs.as_deref()
   }
 
   /// Extracts a list of descriptions of clade-like node attributes.

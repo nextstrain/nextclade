@@ -41,13 +41,13 @@ pub struct DatasetFilePaths {
 
 pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<String>>) -> Result<DatasetFiles, Report> {
   if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
-    dataset_str_download_and_load(run_args, dataset_name, &genes)
+    dataset_str_download_and_load(run_args, dataset_name, genes)
       .wrap_err_with(|| format!("When downloading dataset '{}'", dataset_name))
   } else if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
     if input_dataset.is_file() && has_extension(input_dataset, "zip") {
-      dataset_zip_load(run_args, input_dataset, &genes)
+      dataset_zip_load(run_args, input_dataset, genes)
     } else if input_dataset.is_dir() {
-      dataset_dir_load(run_args.clone(), input_dataset, &genes)
+      dataset_dir_load(run_args.clone(), input_dataset, genes)
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
@@ -55,7 +55,7 @@ pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<Stri
       )
     }
   } else {
-    dataset_individual_files_load(run_args, &genes)
+    dataset_individual_files_load(run_args, genes)
   }
 }
 

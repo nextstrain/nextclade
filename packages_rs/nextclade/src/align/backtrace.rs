@@ -158,7 +158,7 @@ mod tests {
       qry_seq: to_nuc_seq("---CTCGCT")?,
       ref_seq: to_nuc_seq("ACGCTCGCT")?,
       alignment_score: 18,
-      is_reverse_complement: false
+      is_reverse_complement: false,
     };
 
     let output = backtrace(&qry_seq, &ref_seq, &scores, &paths);

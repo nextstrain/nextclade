@@ -2,9 +2,7 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
-use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
-use eyre::Report;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -17,24 +15,23 @@ pub struct LetterRange<L: Letter<L>> {
 }
 
 impl<L: Letter<L>> LetterRange<L> {
-  pub fn contains_pos(&self, x: usize) -> bool {
+  #[inline]
+  pub const fn contains_pos(&self, x: usize) -> bool {
     x >= self.begin && x < self.end
   }
-}
 
-impl<L: Letter<L>> LetterRange<L> {
   #[inline]
-  pub fn len(&self) -> usize {
+  pub const fn len(&self) -> usize {
     self.end - self.begin
   }
 
   #[inline]
-  pub fn is_empty(&self) -> bool {
+  pub const fn is_empty(&self) -> bool {
     self.len() == 0
   }
 
   #[inline]
-  pub fn to_range(&self) -> Range {
+  pub const fn to_range(&self) -> Range {
     Range {
       begin: self.begin,
       end: self.end,

@@ -33,7 +33,7 @@ pub fn bench_create_stripes(c: &mut Criterion) {
         excess_bandwidth,
         max_indel,
       )
-    })
+    });
   });
   group.finish();
 }

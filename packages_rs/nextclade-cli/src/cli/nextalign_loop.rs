@@ -148,7 +148,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
     s.spawn(move || {
       let mut output_writer = NextalignOrderedWriter::new(
-        &gene_map,
+        gene_map,
         &output_fasta,
         &output_translations,
         &output_insertions,

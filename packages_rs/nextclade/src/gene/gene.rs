@@ -65,13 +65,13 @@ impl Gene {
 
   /// Converts codon index into absolute position in the reference nucleotide sequence
   #[inline]
-  pub fn codon_to_nuc_position(&self, codon: usize) -> usize {
+  pub const fn codon_to_nuc_position(&self, codon: usize) -> usize {
     codon * 3
   }
 
   /// Converts a range of codon indices into a range of nucleotides within the gene
   #[inline]
-  pub fn codon_to_nuc_range(&self, codon_range: &Range) -> Range {
+  pub const fn codon_to_nuc_range(&self, codon_range: &Range) -> Range {
     let &Range { begin, end } = codon_range;
     Range {
       begin: self.codon_to_nuc_position(begin),
@@ -81,7 +81,7 @@ impl Gene {
 
   /// Converts nucleotide position to codon index
   #[inline]
-  pub fn nuc_to_codon_position(&self, nuc_rel_ref: usize) -> usize {
+  pub const fn nuc_to_codon_position(&self, nuc_rel_ref: usize) -> usize {
     // Make sure the nucleotide position is adjusted to codon boundary before the division
     // TODO: ensure that adjustment direction is correct for reverse strands
     let nuc_rel_ref_adj = nuc_rel_ref + (3 - nuc_rel_ref % 3) % 3;
@@ -91,7 +91,7 @@ impl Gene {
 
   /// Converts a nucleotide range within the gene to a range of codon indices
   #[inline]
-  pub fn nuc_to_codon_range(&self, nuc_rel_ref: &Range) -> Range {
+  pub const fn nuc_to_codon_range(&self, nuc_rel_ref: &Range) -> Range {
     let &Range { begin, end } = nuc_rel_ref;
     Range {
       begin: self.nuc_to_codon_position(begin),

@@ -25,7 +25,7 @@ pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result
     gene_name: gene_name.to_owned(),
     start,
     end: *record.end() as usize,
-    strand: record.strand().map_or(GeneStrand::Unknown, |s| s.into()),
+    strand: record.strand().map_or(GeneStrand::Unknown, Strand::into),
     frame: parse_gff3_frame(record.frame(), start),
   })
 }
@@ -75,7 +75,7 @@ fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> 
     .filter_map(convert_gff_record_to_gene_map_record)
     .collect::<Result<GeneMap, Report>>()?;
 
-  if genemap.len() == 0 && records.len() != 0 {
+  if genemap.is_empty() && !records.is_empty() {
     warn!(
       "No valid gene entries found in genemap with {} records. No genes will be used.",
       records.len()

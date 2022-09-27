@@ -2,9 +2,9 @@ use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::nuc::Nuc;
 
+use crate::align::params::AlignPairwiseParams;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
-use crate::align::params::AlignPairwiseParams;
 
 pub const fn decode(triplet: &[Nuc]) -> Aa {
   match *triplet {

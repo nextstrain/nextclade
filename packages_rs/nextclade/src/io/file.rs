@@ -19,7 +19,7 @@ pub fn create_file(filepath: impl AsRef<Path>) -> Result<Box<dyn Write + Send>, 
   };
 
   let buf_file = BufWriter::with_capacity(32 * 1024, file);
-  
+
   let compressor = Compressor::from_path(buf_file, filepath)?;
 
   let writer = BufWriter::with_capacity(32 * 1024, compressor);

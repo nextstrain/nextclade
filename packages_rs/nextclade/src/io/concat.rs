@@ -36,7 +36,8 @@ where
   ///
   /// This is useful for error handling and reporting: if a read operation fails, the reference
   /// returned will point to the item which caused the the error.
-  pub fn current(&self) -> Option<&<I as Iterator>::Item> {
+  #[inline]
+  pub const fn current(&self) -> Option<&<I as Iterator>::Item> {
     self.curr.as_ref()
   }
 }
