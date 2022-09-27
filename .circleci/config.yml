@@ -369,43 +369,29 @@ jobs:
             git tag "web-${version}"
             git push origin "web-${version}"
 
-cli_branches: &cli_branches
-  filters:
-    branches:
-      only:
-        - staging-cli
-        - release-cli
-
-web_branches: &web_branches
-  filters:
-    branches:
-      only:
-        - master
-        - staging
-        - release
-
-web_branches_and_cli_branches: &web_branches_and_cli_branches
-  filters:
-    branches:
-      only:
-        - master
-        - staging
-        - release
-        - release-cli
-        - staging-cli
-
 workflows:
   version: 2
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *web_branches_and_cli_branches
+          filters:
+            branches:
+              only:
+                - master
+                - staging
+                - release
+                - release-cli
+                - staging-cli
 
           context:
             - nextclade_macos
 
       - Build-Cli:
-          <<: *cli_branches
+          filters:
+            branches:
+              only:
+                - staging-cli
+                - release-cli
 
           requires:
             - Update-Builder-Container
@@ -425,7 +411,10 @@ workflows:
                 - x86_64-unknown-linux-musl
 
       - Release-Cli-Github:
-          <<: *cli_branches
+          filters:
+            branches:
+              only:
+                - release-cli
 
           context:
             - nextclade_github
@@ -440,7 +429,10 @@ workflows:
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Release-Cli-Docker:
-          <<: *cli_branches
+          filters:
+            branches:
+              only:
+                - release-cli
 
           context:
             - nextclade_github
@@ -450,7 +442,12 @@ workflows:
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Build-And-Deploy-Web:
-          <<: *web_branches
+          filters:
+            branches:
+              only:
+                - master
+                - staging
+                - release
 
           context:
             - nextclade_github
