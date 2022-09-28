@@ -23,6 +23,7 @@ import {
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
 } from 'src/state/results.state'
+import { FormattedText } from 'src/components/Common/FormattedText'
 import type { TableRowDatum } from './ResultsTableRow'
 import { ResultsTableRow } from './ResultsTableRow'
 import {
@@ -205,7 +206,7 @@ export function ResultsTable() {
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
             <h5>{`Column: ${nameFriendly}`}</h5>
-            <p>{description}</p>
+            <FormattedText text={description} />
           </ButtonHelpStyled>
         </TableHeaderCell>
       )
