@@ -1,3 +1,14 @@
+## Nextclade Web 2.6.1 (2022-09-28)
+
+### Prettier tooltips
+
+Improved help text formatting in the new "Immune escape" and "ACE-2 binding" columns (available for "SARS-CoV-2 relative to BA.2"), for better readability.
+
+### Correct links to datasets changelog
+
+The links to datasets changes now correctly point to the page on release branch of the dataset GitHub repo, as opposed to the development branch.
+
+
 ## Nextclade Web 2.6.0, Nextclade CLI 2.6.0 (2022-09-27)
 
 ### New metrics: Immune escape and ACE-2 binding
