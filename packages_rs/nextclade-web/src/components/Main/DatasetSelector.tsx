@@ -125,7 +125,7 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
 
       <Row noGutters>
         <Col className="py-1">
-          <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md">
+          <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md">
             <small>{t('Recent dataset updates')}</small>
           </LinkExternal>
         </Col>

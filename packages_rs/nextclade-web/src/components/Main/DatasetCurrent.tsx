@@ -102,7 +102,7 @@ export function DatasetCurrent() {
               </ChangeButton>
               <LinkExternal
                 className="ml-auto mt-auto"
-                href="https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md"
+                href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md"
               >
                 <small>{t('Recent dataset updates')}</small>
               </LinkExternal>
