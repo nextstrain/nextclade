@@ -168,7 +168,7 @@ pub struct CladeNodeAttrKeyDesc {
   pub display_name: String,
   pub description: String,
   #[serde(default)]
-  pub show_in_web: bool,
+  pub hide_in_web: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]

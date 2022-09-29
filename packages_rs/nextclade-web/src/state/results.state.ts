@@ -223,7 +223,7 @@ const cladeNodeAttrDescsStorageAtom = atom<CladeNodeAttrDesc[]>({
 export const cladeNodeAttrDescsAtom = selector<CladeNodeAttrDesc[]>({
   key: 'cladeNodeAttrDescs',
   get({ get }): CladeNodeAttrDesc[] {
-    return get(cladeNodeAttrDescsStorageAtom).filter(({ showInWeb }) => showInWeb)
+    return get(cladeNodeAttrDescsStorageAtom).filter(({ hideInWeb }) => !hideInWeb)
   },
 
   set({ set, reset }, descs: CladeNodeAttrDesc[] | DefaultValue) {
