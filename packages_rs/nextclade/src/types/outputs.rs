@@ -39,8 +39,6 @@ pub struct NextalignOutputs {
 pub struct PhenotypeValue {
   pub name: String,
   pub gene: String,
-  pub name_friendly: String,
-  pub description: String,
   pub value: f64,
 }
 
