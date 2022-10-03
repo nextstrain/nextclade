@@ -228,7 +228,7 @@ export const cladeNodeAttrDescsAtom = selector<CladeNodeAttrDesc[]>({
 
   set({ set, reset }, descs: CladeNodeAttrDesc[] | DefaultValue) {
     set(cladeNodeAttrDescsStorageAtom, descs)
-    if (!isDefaultValue(descs)) {
+    if (isDefaultValue(descs)) {
       reset(cladeNodeAttrDescsStorageAtom)
     }
   },
