@@ -2,6 +2,7 @@ use crate::cli::nextclade_loop::NextcladeRecord;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
+use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
@@ -38,7 +39,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
-    phenotype_attr_keys: &[String],
+    phenotype_attr_key_desc: &[PhenotypeAttrDesc],
     output_fasta: &Option<PathBuf>,
     output_json: &Option<PathBuf>,
     output_ndjson: &Option<PathBuf>,
@@ -59,8 +60,9 @@ impl<'a> NextcladeOrderedWriter<'a> {
     let errors_csv_writer =
       output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, &output_errors))?;
 
-    let output_json_writer =
-      output_json.map_ref_fallible(|output_json| ResultsJsonWriter::new(&output_json, clade_node_attr_key_descs))?;
+    let output_json_writer = output_json.map_ref_fallible(|output_json| {
+      ResultsJsonWriter::new(&output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
+    })?;
 
     let output_ndjson_writer = output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;
 
@@ -69,12 +71,17 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .map(|desc| desc.name.clone())
       .collect_vec();
 
+    let phenotype_attr_keys = phenotype_attr_key_desc
+      .iter()
+      .map(|desc| desc.name.clone())
+      .collect_vec();
+
     let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
-      NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys, phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys, &phenotype_attr_keys)
     })?;
 
     let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
-      NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys, phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys, &phenotype_attr_keys)
     })?;
 
     Ok(Self {

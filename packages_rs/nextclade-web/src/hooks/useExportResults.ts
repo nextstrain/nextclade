@@ -112,7 +112,8 @@ async function prepareResultsJson(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
   const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
-  return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, PACKAGE_VERSION)
+  const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
+  return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, PACKAGE_VERSION)
 }
 
 export function useExportJson() {
