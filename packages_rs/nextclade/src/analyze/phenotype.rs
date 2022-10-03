@@ -28,7 +28,7 @@ pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[A
 }
 
 pub fn get_phenotype_attr_descs(virus_properties: &VirusProperties) -> Vec<PhenotypeAttrDesc> {
-  virus_properties
+  let mut descs = virus_properties
     .phenotype_data
     .as_ref()
     .map_or(vec![], |phenotype_data| {
@@ -40,7 +40,21 @@ pub fn get_phenotype_attr_descs(virus_properties: &VirusProperties) -> Vec<Pheno
           description: ph.description.clone(),
         })
         .collect_vec()
-    })
+    });
+
+  if let Some(phenotype_data) = &virus_properties.phenotype_data {
+    let binding = phenotype_data.iter().find(|&ph| ph.name.contains("binding"));
+    let escape = phenotype_data.iter().find(|&ph| ph.name.contains("escape"));
+    if let (Some(binding), Some(escape)) = (binding, escape) {
+      descs.push(PhenotypeAttrDesc {
+        name: "composite_fitness".to_owned(),
+        name_friendly: "Composite fitness".to_owned(),
+        description: "".to_owned(),
+      });
+    }
+  }
+
+  descs
 }
 
 pub fn get_phenotype_attr_keys(virus_properties: &VirusProperties) -> Vec<String> {
