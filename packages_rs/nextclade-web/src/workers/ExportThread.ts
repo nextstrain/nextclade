@@ -27,9 +27,16 @@ export class ExportWorker {
     outputs: AnalysisResult[],
     errors: AnalysisError[],
     cladeNodeAttrsJson: CladeNodeAttrDesc[],
+    phenotypeAttrsJson: PhenotypeAttrDesc[],
     nextcladeWebVersion: string,
   ): Promise<string> {
-    return this.thread.serializeResultsJson(outputs, errors, cladeNodeAttrsJson, nextcladeWebVersion)
+    return this.thread.serializeResultsJson(
+      outputs,
+      errors,
+      cladeNodeAttrsJson,
+      phenotypeAttrsJson,
+      nextcladeWebVersion,
+    )
   }
 
   public async serializeResultsCsv(

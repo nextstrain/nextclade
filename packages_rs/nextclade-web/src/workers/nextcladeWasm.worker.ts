@@ -194,12 +194,14 @@ export async function serializeResultsJson(
   outputs: AnalysisResult[],
   errors: AnalysisError[],
   cladeNodeAttrsJson: CladeNodeAttrDesc[],
+  phenotypeAttrsJson: PhenotypeAttrDesc[],
   nextcladeWebVersion: string,
 ) {
   return NextcladeWasm.serialize_results_json(
     JSON.stringify(outputs),
     JSON.stringify(errors),
     JSON.stringify(cladeNodeAttrsJson),
+    JSON.stringify(phenotypeAttrsJson),
     nextcladeWebVersion,
   )
 }

@@ -1,3 +1,4 @@
+use crate::analyze::virus_properties::PhenotypeAttrDesc;
 use crate::io::json::{json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
@@ -23,13 +24,15 @@ pub struct ResultsJson {
 
   pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
 
+  pub phenotype_attr_keys: Vec<PhenotypeAttrDesc>,
+
   pub results: Vec<NextcladeOutputs>,
 
   pub errors: Vec<NextcladeErrorOutputs>,
 }
 
 impl ResultsJson {
-  pub fn new(clade_node_attrs: &[CladeNodeAttrKeyDesc]) -> Self {
+  pub fn new(clade_node_attrs: &[CladeNodeAttrKeyDesc], phenotype_attr_keys: &[PhenotypeAttrDesc]) -> Self {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
 
     Self {
@@ -37,7 +40,8 @@ impl ResultsJson {
       nextclade_algo_version: VERSION.to_owned(),
       nextclade_web_version: None,
       created_at: date_iso_now(),
-      clade_node_attr_keys: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
+      clade_node_attr_keys: clade_node_attrs.to_vec(),
+      phenotype_attr_keys: phenotype_attr_keys.to_vec(),
       results: vec![],
       errors: vec![],
     }
@@ -47,9 +51,10 @@ impl ResultsJson {
     outputs: &[NextcladeOutputs],
     errors: &[NextcladeErrorOutputs],
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
+    phenotype_attr_keys: &[PhenotypeAttrDesc],
     nextclade_web_version: &Option<String>,
   ) -> Self {
-    let mut this = Self::new(clade_node_attrs);
+    let mut this = Self::new(clade_node_attrs, phenotype_attr_keys);
     this.results = outputs.to_vec();
     this.errors = errors.to_vec();
     this.nextclade_web_version = nextclade_web_version.clone();
@@ -63,10 +68,14 @@ pub struct ResultsJsonWriter {
 }
 
 impl ResultsJsonWriter {
-  pub fn new(filepath: impl AsRef<Path>, clade_node_attrs: &[CladeNodeAttrKeyDesc]) -> Result<Self, Report> {
+  pub fn new(
+    filepath: impl AsRef<Path>,
+    clade_node_attrs: &[CladeNodeAttrKeyDesc],
+    phenotype_attr_keys: &[PhenotypeAttrDesc],
+  ) -> Result<Self, Report> {
     Ok(Self {
       filepath: filepath.as_ref().to_owned(),
-      result: ResultsJson::new(clade_node_attrs),
+      result: ResultsJson::new(clade_node_attrs, phenotype_attr_keys),
     })
   }
 
@@ -98,9 +107,16 @@ pub fn results_to_json_string(
   outputs: &[NextcladeOutputs],
   errors: &[NextcladeErrorOutputs],
   clade_node_attrs: &[CladeNodeAttrKeyDesc],
+  phenotype_attr_keys: &[PhenotypeAttrDesc],
   nextclade_web_version: &Option<String>,
 ) -> Result<String, Report> {
-  let results_json = ResultsJson::from_outputs(outputs, errors, clade_node_attrs, nextclade_web_version);
+  let results_json = ResultsJson::from_outputs(
+    outputs,
+    errors,
+    clade_node_attrs,
+    phenotype_attr_keys,
+    nextclade_web_version,
+  );
   json_stringify(&results_json)
 }
 
