@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Runs bulk cross-compilation of CLI binaries for all supported platforms
+
 set -euo pipefail
 
 function abspath() {

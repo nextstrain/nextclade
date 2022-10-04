@@ -1,5 +1,60 @@
 #!/usr/bin/env bash
 
+# Runs various day-to-day dev commands inside dev docker container.
+#
+# The container includes all the tools required for maintaining the project. But this container and script exist
+# for convenience only and are not required for operations. The usual `cargo` and `yarn` workflows can still be used
+# (see dev guide).
+#
+# See the full list of possible commands in the long `case` block halfway through the script.
+# Here are some of the most useful ones:
+#
+# * Build nextclade binary in debug mode:
+#   ./docker-dev b nextclade
+#
+# * Build nextclade binary in release mode:
+#   ./docker-dev br nextclade
+#
+# * Build and run nextclade binary in debug mode, with arguments:
+#   ./docker-dev r nextclade -- dataset list --help
+#
+# * Build and run nextclade binary in release mode, with arguments:
+#   ./docker-dev rr nextclade -- dataset list --help
+#
+# * Cross-compile nextclade binary for Windows in release mode:
+#   CROSS=x86_64-pc-windows-gnu ./docker-dev br
+#
+# * Build WebAssembly module in debug mode:
+#   ./docker-dev W
+#
+# * Build WebAssembly module in release mode:
+#   ./docker-dev Wr
+#
+# * Build and run web application in debug mode:
+#   ./docker-dev a
+#
+# * Build and run web application in release mode:
+#   ./docker-dev war
+#
+# * Lint Rust code:
+#   ./docker-dev l
+#
+# * Lint Rust code, apply automatic fixes:
+#   ./docker-dev lf
+#
+# * Format Rust code:
+#   ./docker-dev f
+#
+# * Shell into the container:
+#   ./docker-dev bash
+#
+# * Run arbitrary command inside the container:
+#   ./docker-dev cargo --version
+#
+# * Run arbitrary yarn command, in the context of web app, inside the container:
+#   ./docker-dev a yarn add --dev react
+#
+
 set -euo pipefail
 
 function abspath() {
