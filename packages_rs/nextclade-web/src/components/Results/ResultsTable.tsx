@@ -16,9 +16,7 @@ import {
 } from 'src/state/settings.state'
 import {
   cladeNodeAttrDescsAtom,
-  cladeNodeAttrKeysAtom,
   phenotypeAttrDescsAtom,
-  phenotypeAttrKeysAtom,
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
@@ -69,9 +67,7 @@ export function ResultsTable() {
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
   const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom)
   const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
-  const cladeNodeAttrKeys = useRecoilValue(cladeNodeAttrKeysAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
-  const phenotypeAttrKeys = useRecoilValue(phenotypeAttrKeysAtom)
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
 
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
@@ -84,15 +80,15 @@ export function ResultsTable() {
       columnWidthsPx,
       dynamicCladeColumnWidthPx,
       dynamicPhenotypeColumnWidthPx,
-      cladeNodeAttrKeys,
-      phenotypeAttrKeys,
+      cladeNodeAttrDescs,
+      phenotypeAttrDescs,
     }))
   }, [
-    cladeNodeAttrKeys,
+    cladeNodeAttrDescs,
     columnWidthsPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
-    phenotypeAttrKeys,
+    phenotypeAttrDescs,
     seqIndices,
     viewedGene,
   ])
@@ -176,22 +172,24 @@ export function ResultsTable() {
   }, []) // prettier-ignore
 
   const dynamicCladeColumns = useMemo(() => {
-    return cladeNodeAttrDescs.map(({ name: attrKey, displayName, description }) => {
-      const sortAsc = sortByKey(attrKey, SortDirection.asc)
-      const sortDesc = sortByKey(attrKey, SortDirection.desc)
-      return (
-        <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
-          <TableHeaderCellContent>
-            <TableCellText>{displayName}</TableCellText>
-            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
-            <h5>{`Column: ${displayName}`}</h5>
-            <p>{description}</p>
-          </ButtonHelpStyled>
-        </TableHeaderCell>
-      )
-    })
+    return cladeNodeAttrDescs
+      .filter((attr) => !attr.hideInWeb)
+      .map(({ name: attrKey, displayName, description }) => {
+        const sortAsc = sortByKey(attrKey, SortDirection.asc)
+        const sortDesc = sortByKey(attrKey, SortDirection.desc)
+        return (
+          <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{displayName}</TableCellText>
+              <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
+              <h5>{`Column: ${displayName}`}</h5>
+              <p>{description}</p>
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+        )
+      })
   }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByKey])
 
   const dynamicPhenotypeColumns = useMemo(() => {
