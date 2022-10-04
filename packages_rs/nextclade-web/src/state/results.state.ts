@@ -215,23 +215,9 @@ export const hasTreeAtom = selector<boolean>({
   },
 })
 
-const cladeNodeAttrDescsStorageAtom = atom<CladeNodeAttrDesc[]>({
-  key: 'cladeNodeAttrDescsStorage',
-  default: [],
-})
-
-export const cladeNodeAttrDescsAtom = selector<CladeNodeAttrDesc[]>({
+export const cladeNodeAttrDescsAtom = atom<CladeNodeAttrDesc[]>({
   key: 'cladeNodeAttrDescs',
-  get({ get }): CladeNodeAttrDesc[] {
-    return get(cladeNodeAttrDescsStorageAtom).filter(({ hideInWeb }) => !hideInWeb)
-  },
-
-  set({ set, reset }, descs: CladeNodeAttrDesc[] | DefaultValue) {
-    set(cladeNodeAttrDescsStorageAtom, descs)
-    if (isDefaultValue(descs)) {
-      reset(cladeNodeAttrDescsStorageAtom)
-    }
-  },
+  default: [],
 })
 
 export const cladeNodeAttrKeysAtom = selector<string[]>({

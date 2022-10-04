@@ -2,7 +2,7 @@ import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
-import { QcStatus } from 'src/types'
+import { PhenotypeAttrDesc, QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
@@ -27,12 +27,13 @@ import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
+import { CladeNodeAttrDesc } from 'auspice'
 
 export interface ResultsTableRowResultProps {
   index: number
   viewedGene: string
-  cladeNodeAttrKeys: string[]
-  phenotypeAttrKeys: string[]
+  cladeNodeAttrDescs: CladeNodeAttrDesc[]
+  phenotypeAttrDescs: PhenotypeAttrDesc[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
@@ -74,8 +75,8 @@ export function TableRowColored({
 export function ResultsTableRowResult({
   index,
   viewedGene,
-  cladeNodeAttrKeys,
-  phenotypeAttrKeys,
+  cladeNodeAttrDescs,
+  phenotypeAttrDescs,
   columnWidthsPx,
   dynamicCladeColumnWidthPx,
   dynamicPhenotypeColumnWidthPx,
@@ -118,15 +119,17 @@ export function ResultsTableRowResult({
         <ColumnClade analysisResult={analysisResult} />
       </TableCellAlignedLeft>
 
-      {cladeNodeAttrKeys.map((attrKey) => (
-        <TableCellAlignedLeft key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
-          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
-        </TableCellAlignedLeft>
-      ))}
+      {cladeNodeAttrDescs
+        .filter((attr) => !attr.hideInWeb)
+        .map(({ name }) => (
+          <TableCellAlignedLeft key={name} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
+            <ColumnCustomNodeAttr sequence={analysisResult} attrKey={name} />
+          </TableCellAlignedLeft>
+        ))}
 
-      {phenotypeAttrKeys.map((attrKey) => (
-        <TableCellAlignedLeft key={attrKey} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
-          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
+      {phenotypeAttrDescs.map(({ name }) => (
+        <TableCellAlignedLeft key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={name} />
         </TableCellAlignedLeft>
       ))}
 
