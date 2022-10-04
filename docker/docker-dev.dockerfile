@@ -186,6 +186,11 @@ RUN set -euxo pipefail >/dev/null \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
+RUN set -euxo pipefail >/dev/null \
+&& export BINARYEN_VERSION="110" \
+&& curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz "binaryen-version_${BINARYEN_VERSION}/bin/wasm-opt" \
+&& chmod +x "${CARGO_HOME}/bin/wasm-opt"
+
 # Install executable dependencies
 RUN set -euxo pipefail >/dev/null \
 && cargo quickinstall cargo-audit \
