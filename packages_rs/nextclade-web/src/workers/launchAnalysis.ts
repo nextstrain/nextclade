@@ -4,7 +4,7 @@ import { isEmpty } from 'lodash'
 import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
 
 import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/types'
-import type { NextcladeParamsPojo } from 'src/gen'
+import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
