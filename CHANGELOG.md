@@ -1,3 +1,14 @@
+## Nextclade Web 2.7.0 (2022-10-05)
+
+### Hide custom clade columns
+
+We added ability to mark certain custom clade columns as hidden. In this case they are not shown in Nextclade Web. This prepares the web application for the upcoming reorganization of clade columns. It should not affect current users.
+
+### Remove unused fields from output files, add custom phenotype key list
+
+We removed extra repetitive fields related to custom phenotype columns (e.g. "Immune escape" and "ACE-2 binding") entries from JSON and NDJSON output files. We also added keys for custom phenotype columns to the header section of output JSON, for symmetry with custom clade columns. These changes should not affect most users.
+
+
 ## Nextclade Web 2.6.1 (2022-09-28)
 
 ### Prettier tooltips
