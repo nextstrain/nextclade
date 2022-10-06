@@ -45,7 +45,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
 
-  const genomeSize = useRecoilValue(genomeSizeAtom)
+  const genomeSize = 30000 //useRecoilValue(genomeSizeAtom)
 
   if (!width) {
     return (

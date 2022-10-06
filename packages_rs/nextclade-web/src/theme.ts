@@ -149,6 +149,10 @@ export const uploadZone = {
   },
 }
 
+export const outline = {
+  drop: `2px dashed ${primary}`,
+}
+
 export const theme = {
   bodyColor: basicColors.gray700,
   bodyBg: basicColors.white,
@@ -160,6 +164,7 @@ export const theme = {
   containerMaxWidths,
   font,
   shadows,
+  outline,
   filePicker,
   uploadZone,
 

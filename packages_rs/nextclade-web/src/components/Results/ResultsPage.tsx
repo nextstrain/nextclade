@@ -62,47 +62,45 @@ const Footer = styled.footer`
 export function ResultsPage() {
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
 
-  return (
-    <LayoutResults>
-      <Container $minWidth={totalWidth}>
-        <Header>
-          <HeaderLeft>
-            <ButtonBack />
-          </HeaderLeft>
-          <HeaderCenter>
-            <ResultsStatus />
-          </HeaderCenter>
-          <HeaderRight>
-            <HeaderRightContainer>
-              <ButtonRerun />
-            </HeaderRightContainer>
-            <HeaderRightContainer>
-              <ButtonNewRun />
-            </HeaderRightContainer>
-            <HeaderRightContainer>
-              <ButtonFilter />
-            </HeaderRightContainer>
-            <HeaderRightContainer>
-              <ExportDialogButton />
-            </HeaderRightContainer>
-            <HeaderRightContainer>
-              <ButtonTree />
-            </HeaderRightContainer>
-          </HeaderRight>
-        </Header>
+  // <LayoutResults>
+  //   <Container $minWidth={totalWidth}>
+  //     {/*<Header>*/}
+  //     {/*  <HeaderLeft>*/}
+  //     {/*    <ButtonBack />*/}
+  //     {/*  </HeaderLeft>*/}
+  //     {/*  <HeaderCenter>*/}
+  //     {/*    <ResultsStatus />*/}
+  //     {/*  </HeaderCenter>*/}
+  //     {/*  <HeaderRight>*/}
+  //     {/*    <HeaderRightContainer>*/}
+  //     {/*      <ButtonRerun />*/}
+  //     {/*    </HeaderRightContainer>*/}
+  //     {/*    <HeaderRightContainer>*/}
+  //     {/*      <ButtonNewRun />*/}
+  //     {/*    </HeaderRightContainer>*/}
+  //     {/*    <HeaderRightContainer>*/}
+  //     {/*      <ButtonFilter />*/}
+  //     {/*    </HeaderRightContainer>*/}
+  //     {/*    <HeaderRightContainer>*/}
+  //     {/*      <ExportDialogButton />*/}
+  //     {/*    </HeaderRightContainer>*/}
+  //     {/*    <HeaderRightContainer>*/}
+  //     {/*      <ButtonTree />*/}
+  //     {/*    </HeaderRightContainer>*/}
+  //     {/*  </HeaderRight>*/}
+  //     {/*</Header>*/}
+  //     <ResultsFilter />
+  //
+  //     <MainContent>
 
-        <ResultsFilter />
-
-        <MainContent>
-          <ResultsTable />
-        </MainContent>
-
-        <Footer>
-          <Suspense fallback={null}>
-            <GeneMapTable />
-          </Suspense>
-        </Footer>
-      </Container>
-    </LayoutResults>
-  )
+  //     </MainContent>
+  //
+  //     <Footer>
+  //       <Suspense fallback={null}>
+  //         <GeneMapTable />
+  //       </Suspense>
+  //     </Footer>
+  //   </Container>
+  // </LayoutResults>
+  return <ResultsTable />
 }

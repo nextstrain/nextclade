@@ -38,6 +38,8 @@ import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
@@ -182,10 +184,6 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
   const fallback = useMemo(() => <Loading />, [])
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'development' && router.pathname !== '/') {
-      void router.replace('/') // eslint-disable-line no-void
-    }
-
     void router.prefetch('/') // eslint-disable-line no-void
     void router.prefetch('/results') // eslint-disable-line no-void
   }, [router])
@@ -200,17 +198,19 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
               <QueryClientProvider client={queryClient}>
                 <I18nextProvider i18n={i18n}>
                   <ErrorBoundary>
-                    <Suspense>
-                      <RecoilStateInitializer />
-                    </Suspense>
-                    <Suspense fallback={fallback}>
-                      <SEO />
-                      <PreviewWarning />
-                      <BrowserWarning />
-                      <Component {...pageProps} />
-                      <ErrorPopup />
-                      <ReactQueryDevtools initialIsOpen={false} />
-                    </Suspense>
+                    <DndProvider backend={HTML5Backend}>
+                      <Suspense>
+                        <RecoilStateInitializer />
+                      </Suspense>
+                      <Suspense fallback={fallback}>
+                        <SEO />
+                        <PreviewWarning />
+                        <BrowserWarning />
+                        <Component {...pageProps} />
+                        <ErrorPopup />
+                        <ReactQueryDevtools initialIsOpen={false} />
+                      </Suspense>
+                    </DndProvider>
                   </ErrorBoundary>
                 </I18nextProvider>
               </QueryClientProvider>

@@ -5,7 +5,7 @@
 // Create an AWS Lambda function and attach it to "Viewer Request" event of a
 // Cloudfront distribution
 
-const PAGES_TO_REDIRECT = ['/results', '/tree']
+const PAGES_TO_REDIRECT = ['/tree']
 
 async function handler(event) {
   const request = event.Records[0].cf.request

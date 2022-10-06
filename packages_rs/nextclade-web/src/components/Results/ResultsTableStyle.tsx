@@ -3,10 +3,6 @@ import { rgba } from 'polished'
 
 import { ButtonHelp } from 'src/components/Results/ButtonHelp'
 
-export const ROW_HEIGHT = 30
-
-export const HEADER_ROW_HEIGHT = 75
-
 export const HEADER_ROW_CONTENT_HEIGHT = 60
 
 export const DYNAMIC_CLADE_COLUMN_WIDTH = 85
@@ -38,10 +34,10 @@ export const Table = styled.div<{ rounded?: boolean }>`
   transition: border-radius 250ms linear;
 `
 
+/* height: ${HEADER_ROW_HEIGHT}px; */
 export const TableHeaderRow = styled.div`
   display: flex;
   align-items: stretch;
-  height: ${HEADER_ROW_HEIGHT}px;
   overflow-y: scroll;
   overflow-x: hidden;
   background-color: #495057;
