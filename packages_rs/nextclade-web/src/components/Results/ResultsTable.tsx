@@ -1,4 +1,4 @@
-import React, { ForwardedRef, forwardRef, ReactNode, Suspense, useCallback, useMemo, useState } from 'react'
+import React, { ForwardedRef, forwardRef, ReactNode, Suspense, useCallback, useMemo, useState, memo } from 'react'
 import styled from 'styled-components'
 import {
   Row as ReactTableRow,
@@ -9,13 +9,13 @@ import {
   useReactTable,
   ColumnOrderState,
 } from '@tanstack/react-table'
-import { FixedSizeList as FixedSizeListBase, ListChildComponentProps } from 'react-window'
+import { areEqual, FixedSizeList as FixedSizeListBase, ListChildComponentProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import copy from 'fast-copy'
 import type { AnalysisResult, NextcladeResult } from 'src/types'
 import { getColumnDefNames } from 'src/components/Table/helpers'
 import { TableRow } from 'src/components/Table/TableRow'
-import { ROW_HEIGHT, Table, TableMain, Trf, Trh } from 'src/components/Table/TableStyles'
+import { ROW_HEIGHT, Table, TableMain, Trh } from 'src/components/Table/TableStyles'
 import { TableColumnHeader } from 'src/components/Table/TableColumnHeader'
 import { ColumnQCStatus } from 'src/components/Results/ColumnQCStatus'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
@@ -32,6 +32,8 @@ import { ColumnListDropdown } from 'src/components/Table/TableColumnList'
 import { GeneMapTable } from '../GeneMap/GeneMapTable'
 import { analysisResultsAtom } from 'src/state/results.state'
 import { useRecoilValue } from 'recoil'
+import { getData } from '../Table/getData'
+import { omit, sum } from 'lodash'
 
 const TABLE_COLUMNS: ColumnDef<NextcladeResult>[] = [
   {
@@ -161,7 +163,9 @@ export function ResultsTable() {
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => copy(TABLE_COLUMN_ORDER))
   const [columnVisibility, setColumnVisibility] = useState({})
 
-  const initialData = useRecoilValue(analysisResultsAtom) //getData()
+  const initialData =
+    // getData()
+    useRecoilValue(analysisResultsAtom)
 
   // const [initialData, setInitialData] = useState(data)
 
@@ -203,11 +207,6 @@ export function ResultsTable() {
           <Table ref={ref} {...rest}>
             {headerComponents}
             <TableMain>{children}</TableMain>
-            <Trf>
-              <Suspense fallback={null}>
-                <GeneMapTable />
-              </Suspense>
-            </Trf>
           </Table>
         )
       }),
@@ -236,6 +235,11 @@ export function ResultsTable() {
           )}
         </AutoSizer>
       </FlexRowFull>
+      <FlexRow>
+        <Suspense fallback={null}>
+          <GeneMapTable />
+        </Suspense>
+      </FlexRow>
     </Flex>
   )
 }
@@ -245,9 +249,9 @@ export interface ResultsTableRowDatum {
   onRowReorder: (srcRowIndex: number, dstRowIndex: number) => void
 }
 
-// const ResultsTableRow = memo(ResultsTableRowUnmemoed, areEqual)
+const ResultsTableRow = memo(ResultsTableRowUnmemoed, areEqual)
 
-function ResultsTableRow({ index, data, style }: ListChildComponentProps<ResultsTableRowDatum[]>) {
+function ResultsTableRowUnmemoed({ index, data, style }: ListChildComponentProps<ResultsTableRowDatum[]>) {
   const { row, onRowReorder } = data[index]
   const rowId = row.original.index
   return <TableRow<NextcladeResult> key={rowId} rowIndex={index} style={style} row={row} onRowReorder={onRowReorder} />

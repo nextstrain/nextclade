@@ -6,7 +6,9 @@ export const ROW_HEIGHT = 30
 
 export const HEADER_ROW_HEIGHT = 75
 
-export const Table = styled.div``
+export const Table = styled.div`
+  overflow: hidden;
+`
 
 export const Trh = styled.div<{
   $isDragging?: boolean
@@ -20,6 +22,8 @@ export const Trh = styled.div<{
 
   display: flex;
   flex: 1;
+
+  overflow: hidden;
 `
 
 export const Th = styled.div<{
@@ -31,9 +35,11 @@ export const Th = styled.div<{
 }>`
   flex: ${(props) => (props.$fullWidth ? `1` : `0 0 ${props.$width}px`)};
   width: ${(props) => props.$width}px;
+
   color: ${(props) => props.theme.gray100};
   background-color: ${({ $isDragOver, theme }) => ($isDragOver ? theme.gray600 : theme.gray700)};
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1.0)};
+
   font-weight: normal;
   font-size: 0.85rem;
 
@@ -59,7 +65,6 @@ export const Tr = styled.div<{
   display: flex;
   height: ${ROW_HEIGHT}px;
 
-  //outline: ${({ $isDragOver, theme }) => $isDragOver && theme.outline.drop};
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1.0)};
 
   background-color: ${({ $isEven, theme }) => ($isEven ? theme.gray250 : theme.gray100)};
