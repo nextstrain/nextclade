@@ -1,6 +1,6 @@
 {
   "name": "@nextstrain/nextclade-web",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -84,7 +84,7 @@
   "dependencies": {
     "@tanstack/react-table": "8.5.15",
     "animate.css": "4.1.1",
-    "auspice": "2.38.0",
+    "auspice": "2.39.0",
     "autoprefixer": "10.4.5",
     "awesomplete": "1.1.5",
     "axios": "0.27.1",

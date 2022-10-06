@@ -1,4 +1,15 @@
-## Nextclade Web 2.7.0 (2022-10-05)
+## Nextclade Web 2.7.1 (2022-10-06)
+
+### Update clade schema
+
+We updated [SARS-CoV-2 clade schema](https://github.com/nextstrain/ncov-clades-schema) on main page. 
+
+### Upgrade Auspice
+
+We upgraded Auspice tree view to version [2.39.0](https://github.com/nextstrain/auspice/releases/tag/v2.39.0)
+
+
+## Nextclade CLI 2.7.0, Nextclade Web 2.7.0 (2022-10-05)
 
 ### Hide custom clade columns
 
