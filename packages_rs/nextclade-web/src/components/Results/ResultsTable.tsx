@@ -12,7 +12,10 @@ import {
 import { areEqual, FixedSizeList as FixedSizeListBase, ListChildComponentProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import copy from 'fast-copy'
+import { useRecoilValue } from 'recoil'
+
 import type { AnalysisResult, NextcladeResult } from 'src/types'
+import { analysisResultsAtom } from 'src/state/results.state'
 import { getColumnDefNames } from 'src/components/Table/helpers'
 import { TableRow } from 'src/components/Table/TableRow'
 import { ROW_HEIGHT, Table, TableMain, Trh } from 'src/components/Table/TableStyles'
@@ -29,11 +32,7 @@ import { ColumnMissing } from 'src/components/Results/ColumnMissing'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnListDropdown } from 'src/components/Table/TableColumnList'
-import { GeneMapTable } from '../GeneMap/GeneMapTable'
-import { analysisResultsAtom } from 'src/state/results.state'
-import { useRecoilValue } from 'recoil'
-import { getData } from '../Table/getData'
-import { omit, sum } from 'lodash'
+import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 
 const TABLE_COLUMNS: ColumnDef<NextcladeResult>[] = [
   {

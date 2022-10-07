@@ -89,20 +89,6 @@ export const Td = styled.div<{
   font-size: 0.85rem;
 `
 
-export const Trf = styled.div<{
-  $isDragging?: boolean
-  $canDrop?: boolean
-  $isDragOver?: boolean
-}>`
-  position: sticky !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  z-index: 999 !important;
-
-  display: flex;
-  flex: 1;
-`
-
 export const TextLeft = styled.div`
   text-align: left;
   vertical-align: middle;
