@@ -31,8 +31,10 @@ import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
 import { ColumnMissing } from 'src/components/Results/ColumnMissing'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
-import { ColumnListDropdown } from 'src/components/Table/TableColumnList'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
+import { ResultsTableControls } from 'src/components/Results/ResultsTableControls'
+import { ResultsFilter } from 'src/components/Results/ResultsFilter'
+import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 
 const TABLE_COLUMNS: ColumnDef<NextcladeResult>[] = [
   {
@@ -131,30 +133,62 @@ const TABLE_COLUMNS: ColumnDef<NextcladeResult>[] = [
 
 const TABLE_COLUMN_ORDER = getColumnDefNames(TABLE_COLUMNS)
 
+export const Container = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+
+  overflow: hidden;
+`
+
+const Header = styled.header`
+  flex-shrink: 0;
+  display: flex;
+`
+
+const MainContent = styled.main`
+  width: 100%;
+  height: 100%;
+
+  background-color: ${(props) => props.theme.gray300};
+
+  flex: 1;
+  overflow: hidden;
+`
+
 const AutoSizer = styled(AutoSizerBase)`
   flex: 1 0 100%;
 `
 
 const FixedSizeList = styled(FixedSizeListBase)`
-  overflow-y: scroll;
+  overflow: scroll;
 `
 
-const Flex = styled.div`
+const MainContentInner = styled.div<{ $minWidth: number }>`
+  flex: 0;
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  //min-width: 2000px;
+  //overflow-x: scroll;
 `
 
 const FlexRow = styled.div`
   flex: 0;
+  width: 100%;
 `
 
 const FlexRowFull = styled.div`
   flex: 1;
+  width: 100%;
 `
 
 export function ResultsTable() {
+  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
+
   const [sorting, setSorting] = useState<SortingState>([])
 
   const columns = useMemo(() => TABLE_COLUMNS, [])
@@ -213,33 +247,40 @@ export function ResultsTable() {
   )
 
   return (
-    <Flex>
-      <FlexRow>
-        <ColumnListDropdown table={table} initialColumnOrder={TABLE_COLUMN_ORDER} />
-      </FlexRow>
-      <FlexRowFull>
-        <AutoSizer>
-          {({ width, height }) => (
-            <FixedSizeList
-              overscanCount={5}
-              width={width}
-              height={height}
-              itemSize={ROW_HEIGHT}
-              itemCount={rowData.length}
-              innerElementType={innerElementType}
-              itemData={rowData}
-            >
-              {ResultsTableRow}
-            </FixedSizeList>
-          )}
-        </AutoSizer>
-      </FlexRowFull>
-      <FlexRow>
-        <Suspense fallback={null}>
-          <GeneMapTable />
-        </Suspense>
-      </FlexRow>
-    </Flex>
+    <Container>
+      <Header>
+        <ResultsTableControls table={table} initialColumnOrder={TABLE_COLUMN_ORDER} />
+      </Header>
+
+      <ResultsFilter />
+
+      <MainContent>
+        <MainContentInner $minWidth={totalWidth}>
+          <FlexRowFull>
+            <AutoSizer>
+              {({ width, height }) => (
+                <FixedSizeList
+                  overscanCount={5}
+                  width={width}
+                  height={height}
+                  itemSize={ROW_HEIGHT}
+                  itemCount={rowData.length}
+                  innerElementType={innerElementType}
+                  itemData={rowData}
+                >
+                  {ResultsTableRow}
+                </FixedSizeList>
+              )}
+            </AutoSizer>
+          </FlexRowFull>
+          <FlexRow>
+            <Suspense fallback={null}>
+              <GeneMapTable />
+            </Suspense>
+          </FlexRow>
+        </MainContentInner>
+      </MainContent>
+    </Container>
   )
 }
 
