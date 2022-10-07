@@ -6,9 +6,7 @@ export const ROW_HEIGHT = 30
 
 export const HEADER_ROW_HEIGHT = 75
 
-export const Table = styled.div`
-  overflow: hidden;
-`
+export const Table = styled.div``
 
 export const Trh = styled.div<{
   $isDragging?: boolean
