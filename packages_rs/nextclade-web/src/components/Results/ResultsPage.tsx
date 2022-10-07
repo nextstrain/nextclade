@@ -62,45 +62,41 @@ const Footer = styled.footer`
 export function ResultsPage() {
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
 
-  // <LayoutResults>
-  //   <Container $minWidth={totalWidth}>
-  //     {/*<Header>*/}
-  //     {/*  <HeaderLeft>*/}
-  //     {/*    <ButtonBack />*/}
-  //     {/*  </HeaderLeft>*/}
-  //     {/*  <HeaderCenter>*/}
-  //     {/*    <ResultsStatus />*/}
-  //     {/*  </HeaderCenter>*/}
-  //     {/*  <HeaderRight>*/}
-  //     {/*    <HeaderRightContainer>*/}
-  //     {/*      <ButtonRerun />*/}
-  //     {/*    </HeaderRightContainer>*/}
-  //     {/*    <HeaderRightContainer>*/}
-  //     {/*      <ButtonNewRun />*/}
-  //     {/*    </HeaderRightContainer>*/}
-  //     {/*    <HeaderRightContainer>*/}
-  //     {/*      <ButtonFilter />*/}
-  //     {/*    </HeaderRightContainer>*/}
-  //     {/*    <HeaderRightContainer>*/}
-  //     {/*      <ExportDialogButton />*/}
-  //     {/*    </HeaderRightContainer>*/}
-  //     {/*    <HeaderRightContainer>*/}
-  //     {/*      <ButtonTree />*/}
-  //     {/*    </HeaderRightContainer>*/}
-  //     {/*  </HeaderRight>*/}
-  //     {/*</Header>*/}
-  //     <ResultsFilter />
-  //
-  //     <MainContent>
+  return (
+    <LayoutResults>
+      <Container $minWidth={totalWidth}>
+        <Header>
+          <HeaderLeft>
+            <ButtonBack />
+          </HeaderLeft>
+          <HeaderCenter>
+            <ResultsStatus />
+          </HeaderCenter>
+          <HeaderRight>
+            <HeaderRightContainer>
+              <ButtonRerun />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonNewRun />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonFilter />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ExportDialogButton />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonTree />
+            </HeaderRightContainer>
+          </HeaderRight>
+        </Header>
 
-  //     </MainContent>
-  //
-  //     <Footer>
-  //       <Suspense fallback={null}>
-  //         <GeneMapTable />
-  //       </Suspense>
-  //     </Footer>
-  //   </Container>
-  // </LayoutResults>
-  return <ResultsTable />
+        <ResultsFilter />
+
+        <MainContent>
+          <ResultsTable />
+        </MainContent>
+      </Container>
+    </LayoutResults>
+  )
 }
