@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import 'css.escape'
 
 import { isNil, memoize } from 'lodash'
-import React, { useEffect, Suspense, useMemo } from 'react'
+import React, { useEffect, Suspense, useMemo, useState, useRef, ReactNode } from 'react'
 import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
@@ -48,7 +48,7 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
-import { theme } from 'src/theme'
+import { darkTheme, lightTheme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
@@ -176,10 +176,81 @@ export function RecoilStateInitializer() {
 
 const mdxComponents = { a: LinkExternal }
 
+function usePrefersColorScheme() {
+  const [reactDarkState, setReactDarkState] = useState<'dark' | 'light' | null>(null)
+
+  useEffect(() => {
+    function detectDarkMode() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+
+    setReactDarkState(detectDarkMode())
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      const newColorScheme = event.matches ? 'dark' : 'light'
+
+      setReactDarkState(newColorScheme)
+    })
+  }, [])
+
+  return reactDarkState
+}
+
+export function ThemeProviderWithDark({ children }: { children: ReactNode }) {
+  const preferredColorScheme = usePrefersColorScheme()
+
+  const ref = useRef<HTMLDivElement>(null)
+
+  const style = useMemo(
+    () => ({
+      display: 'none',
+      backgroundColor: 'canvas',
+      colorScheme: 'only light',
+    }),
+    [],
+  )
+
+  // Check if the browser is automatically darkening elements
+  // https://developer.chrome.com/blog/auto-dark-theme/#detecting-auto-dark-theme
+  // If the computed style is not white then the page is in Auto Dark Theme.
+  const isAutoDark = ref.current && getComputedStyle(ref.current).backgroundColor !== 'rgb(255, 255, 255)'
+
+  const darkReaderTheme = useMemo(() => {
+    const mode = document.querySelector('html[data-darkreader-mode]')?.attributes['data-darkreader-mode']?.nodeValue
+    const scheme =
+      document.querySelector('html[data-darkreader-scheme]')?.attributes['data-darkreader-scheme']?.nodeValue
+    if ((mode === 'dynamic' && scheme === 'dark') || (mode && mode !== 'dynamic')) {
+      return 'dark'
+    }
+    return 'light'
+  }, [])
+
+  console.log({ darkReaderTheme })
+
+  const theme = useMemo(() => {
+    if (preferredColorScheme === 'dark' || isAutoDark || darkReaderTheme) {
+      return darkTheme
+    }
+    return lightTheme
+  }, [preferredColorScheme, isAutoDark, darkReaderTheme])
+
+  console.log({ theme })
+
+  return (
+    <>
+      <div ref={ref} style={style} />
+      <ThemeProvider theme={theme}>{children}</ThemeProvider>
+    </>
+  )
+}
+
 export function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
   const { store } = useMemo(() => configureStore(), [])
   const fallback = useMemo(() => <Loading />, [])
+
+  const mode = usePrefersColorScheme()
+  console.log({ mode })
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development' && router.pathname !== '/') {
@@ -194,7 +265,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
     <Suspense fallback={fallback}>
       <ReactReduxProvider store={store}>
         <RecoilRoot>
-          <ThemeProvider theme={theme}>
+          <ThemeProviderWithDark>
             <MDXProvider components={mdxComponents}>
               <Plausible domain={DOMAIN_STRIPPED} />
               <QueryClientProvider client={queryClient}>
@@ -215,7 +286,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                 </I18nextProvider>
               </QueryClientProvider>
             </MDXProvider>
-          </ThemeProvider>
+          </ThemeProviderWithDark>
         </RecoilRoot>
       </ReactReduxProvider>
     </Suspense>

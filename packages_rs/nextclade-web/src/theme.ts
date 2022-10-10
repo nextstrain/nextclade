@@ -149,7 +149,7 @@ export const uploadZone = {
   },
 }
 
-export const theme = {
+export const lightTheme = {
   bodyColor: basicColors.gray700,
   bodyBg: basicColors.white,
 
@@ -173,4 +173,10 @@ export const theme = {
   },
 }
 
-export type Theme = typeof theme
+export const darkTheme = {
+  ...lightTheme,
+  bodyColor: basicColors.gray200,
+  bodyBg: basicColors.black,
+}
+
+export type Theme = typeof lightTheme
