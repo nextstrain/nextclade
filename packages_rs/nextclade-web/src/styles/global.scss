@@ -9,9 +9,7 @@
 
 @import './auspice';
 
-@import './components/About';
 @import './components/LanguageSwitcher';
-@import './components/MdxWrapper';
 @import './components/NavigationBar';
 @import './components/Results';
 
@@ -38,11 +36,6 @@ body {
     font-size: 8px;
     line-height: 8px;
   }
-}
-
-p {
-  text-align: justify;
-  text-justify: inter-word;
 }
 
 .blockquote {
