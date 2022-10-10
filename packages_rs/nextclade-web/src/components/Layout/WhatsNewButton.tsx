@@ -87,6 +87,7 @@ export const Modal = styled(ReactstrapModal)`
   }
 `
 
+// noinspection CssReplaceWithShorthandSafely
 export const ModalBody = styled(ReactstrapModalBody)`
   max-width: 100%;
 
@@ -98,38 +99,12 @@ export const ModalBody = styled(ReactstrapModalBody)`
   overflow-y: auto;
 
   // prettier-ignore
-  background:
-    linear-gradient(#ffffff 33%, rgba(255,255,255, 0)),
-    linear-gradient(rgba(255,255,255, 0), #ffffff 66%) 0 100%,
-    radial-gradient(farthest-side at 50% 0, rgba(119,119,119, 0.5), rgba(0,0,0,0)),
-    radial-gradient(farthest-side at 50% 100%, rgba(119,119,119, 0.5), rgba(0,0,0,0)) 0 100%;
-  background-color: #ffffff;
+  background: linear-gradient(${(props) =>
+    props.theme.bodyBg}, transparent), linear-gradient(transparent, #ffffff 66%) 0 100%,
+  radial-gradient(farthest-side at 50% 0, #7778, transparent), radial-gradient(farthest-side at 50% 100%, #7778, transparent) 0 100%;
   background-repeat: no-repeat;
   background-attachment: local, local, scroll, scroll;
   background-size: 100% 24px, 100% 24px, 100% 8px, 100% 8px;
-
-  h1:first-child,
-  h2:first-child {
-    border-top: none;
-    padding-top: 0;
-    margin-top: 0;
-  }
-
-  code {
-    padding: 2px;
-    background-color: #eaeaea;
-    border-radius: 2px;
-    overflow-wrap: break-word;
-    white-space: pre-wrap;
-  }
-
-  pre {
-    padding: 2px;
-    background-color: #eaeaea;
-    border-radius: 2px;
-    overflow-wrap: break-word;
-    white-space: pre-wrap;
-  }
 `
 
 export const ModalFooter = styled(ReactstrapModalFooter)`
@@ -138,42 +113,53 @@ export const ModalFooter = styled(ReactstrapModalFooter)`
 `
 
 export const H1 = styled.h1`
-  font-size: 2.5rem;
   font-weight: bold;
-
-  @media (max-width: 992px) {
-    font-size: 2rem;
-  }
+  font-size: 2.1rem;
 `
 
 export const H2 = styled.h2`
-  border-top: #ccc solid 1px;
-  padding-top: 1rem;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  margin-top: 2rem;
 
-  @media (max-width: 992px) {
-    font-size: 1.75rem;
-    margin-top: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.66rem;
+
+  :first-child {
+    margin-top: 0;
   }
+
+  color: ${(props) => props.theme.gray300};
+  background-color: ${(props) => props.theme.gray700};
+  border-radius: 5px;
 `
 
 export const H3 = styled.h3`
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: bold;
-  margin-top: 2.5rem;
 
-  @media (max-width: 992px) {
-    font-size: 1.5rem;
-    margin-top: 1.5rem;
+  padding: 0.3rem 0.8rem;
+  margin: 0 !important;
+
+  code {
+    font-size: 1.1rem;
+    padding: 1px 5px;
+    background-color: #eaeaea;
+    border-radius: 5px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+
+    @media (max-width: 992px) {
+      font-size: 1.1rem;
+    }
   }
 `
 
 export const H4 = styled.h4`
   font-size: 1.33rem;
   font-weight: bold;
-  margin-top: 2rem;
+
+  padding: 0.3rem 0.8rem;
 
   @media (max-width: 992px) {
     font-size: 1.2rem;
@@ -185,6 +171,8 @@ export const H5 = styled.h5`
   font-size: 1.1rem;
   font-weight: bold;
   margin-top: 1.1rem;
+
+  padding: 0.3rem 0.8rem;
 
   @media (max-width: 992px) {
     font-size: 1rem;
@@ -203,7 +191,62 @@ export const Blockquote = styled.blockquote`
   background-color: #f4ebbd;
 `
 
-const components = { h1: H1, h2: H2, h3: H3, h4: H4, h5: H5, h6: H6, a: LinkExternal, blockquote: Blockquote }
+export const P = styled.p`
+  margin: 0.3rem 0.8rem;
+
+  code {
+    font-size: 0.8rem;
+    padding: 1px 5px;
+    background-color: #eaeaea;
+    border-radius: 5px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+`
+
+export const Pre = styled.pre`
+  margin: 0.3rem 0.8rem;
+  padding: 0.7rem 0.5rem;
+
+  background-color: #eaeaea;
+  border-radius: 5px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.33rem;
+  font-size: 0.8rem;
+`
+
+export const Code = styled.code`
+  font-size: 0.8rem;
+  padding: 1px 5px;
+  background-color: #eaeaea;
+  border-radius: 5px;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+`
+
+export const Li = styled.li`
+  & > p {
+    margin: 0;
+    padding: 0;
+  }
+`
+
+const components = {
+  h1: H1,
+  h2: H2,
+  h3: H3,
+  h4: H4,
+  h5: H5,
+  h6: H6,
+  a: LinkExternal,
+  blockquote: Blockquote,
+  p: P,
+  li: Li,
+  pre: Pre,
+  code: Code,
+}
 
 export function WhatsNewButton() {
   const { t } = useTranslation()

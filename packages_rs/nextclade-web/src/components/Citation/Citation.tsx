@@ -11,7 +11,7 @@ import CitationMd from './CitationContent.md'
 export const Container = styled(ContainerBase)``
 
 export const Paragraph = styled.p`
-  margin-bottom: 0rem;
+  margin-bottom: 0;
 `
 
 export const Ul = styled.ul`
@@ -33,16 +33,11 @@ export const Blockquote = styled.blockquote`
   }
 `
 
-export const MarkdownWrapper = styled.article`
-  text-align: justify;
-`
-
 const components = {
   a: LinkExternal,
   p: Paragraph,
   ul: Ul,
   blockquote: Blockquote,
-  wrapper: MarkdownWrapper,
 }
 
 export function Citation() {
