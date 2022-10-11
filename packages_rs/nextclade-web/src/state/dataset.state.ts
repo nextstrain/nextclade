@@ -1,5 +1,6 @@
 import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
+import urljoin from 'url-join'
 
 import type { Dataset } from 'src/types'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
@@ -7,6 +8,20 @@ import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
+
+export function getDefaultDatasetServer(): string {
+  let datasetServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+  // Add HTTP Origin if datasetServerUrl is a relative path (start with '/')
+  if (typeof window !== 'undefined' && datasetServerUrl.slice(0) === '/') {
+    datasetServerUrl = urljoin(window.location.origin, datasetServerUrl)
+  }
+  return datasetServerUrl
+}
+
+export const datasetServerUrlAtom = atom<string>({
+  key: 'datasetServerUrl',
+  default: getDefaultDatasetServer(),
+})
 
 export interface Datasets {
   datasets: Dataset[]
