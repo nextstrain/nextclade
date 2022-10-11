@@ -6,13 +6,7 @@ import urljoin from 'url-join'
 import { Dataset, DatasetsIndexV2Json } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-let DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
-// Add HTTP Origin if DATA_FULL_DOMAIN is a relative path (start with '/')
-if (typeof window !== 'undefined' && DATA_FULL_DOMAIN.slice(0) === '/') {
-  DATA_FULL_DOMAIN = urljoin(window.location.origin, DATA_FULL_DOMAIN)
-}
 const DATA_INDEX_FILE = 'index_v2.json'
-export const DATA_INDEX_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_INDEX_FILE)
 const thisVersion = process.env.PACKAGE_VERSION ?? ''
 
 export function isEnabled(dataset: Dataset) {
@@ -32,8 +26,8 @@ export function areAllAttributesDefault(dataset: Dataset) {
   return Object.values(dataset.attributes).every((attr) => attr.isDefault)
 }
 
-export function fileUrlsToAbsolute(dataset: Dataset): Dataset {
-  const files = mapValues(dataset.files, (file) => urljoin(DATA_FULL_DOMAIN, file))
+export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): Dataset {
+  const files = mapValues(dataset.files, (file) => urljoin(datasetServerUrl, file))
   return { ...dataset, files }
 }
 
@@ -47,12 +41,12 @@ export function getDefaultDataset(datasets: Dataset[]) {
   return datasets[0]
 }
 
-export function getLatestCompatibleEnabledDatasets(datasetsIndexJson: DatasetsIndexV2Json) {
+export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {
   const datasets = datasetsIndexJson.datasets
     .filter(isEnabled)
     .filter(isCompatible)
     .filter(isLatest)
-    .map((dataset) => fileUrlsToAbsolute(dataset))
+    .map((dataset) => fileUrlsToAbsolute(datasetServerUrl, dataset))
 
   const defaultDataset = getDefaultDataset(datasets)
 
@@ -81,6 +75,6 @@ export function findDataset(datasets: Dataset[], name?: string, refAccession?: s
   })
 }
 
-export async function fetchDatasetsIndex() {
-  return axiosFetch<DatasetsIndexV2Json>(DATA_INDEX_FILE_FULL_URL)
+export async function fetchDatasetsIndex(datasetServerUrl: string) {
+  return axiosFetch<DatasetsIndexV2Json>(urljoin(datasetServerUrl, DATA_INDEX_FILE))
 }

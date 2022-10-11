@@ -49,7 +49,7 @@ import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
-import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
+import { datasetCurrentNameAtom, datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
@@ -105,8 +105,9 @@ export function RecoilStateInitializer() {
         await changeAuspiceLocale(i18nAuspice, locale.key)
         set(localeAtom, locale.key)
       })
-      .then(() => {
-        return initializeDatasets(urlQuery)
+      .then(async () => {
+        const datasetServerUrlDefault = await getPromise(datasetServerUrlAtom)
+        return initializeDatasets(urlQuery, datasetServerUrlDefault)
       })
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary

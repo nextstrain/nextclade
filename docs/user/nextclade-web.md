@@ -163,6 +163,7 @@ All parameters are optional.
 | dataset-name           | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                              |
 | dataset-reference      | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.        |
 | dataset-tag            | Version tag of the dataset to use.                                                                  |
+| dataset-server         | URL to the custom dataset server (to the path where `index_v2.json` is, without filename).          |
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 
@@ -202,6 +203,19 @@ https://clades.nextstrain.org
     &dataset-reference=CY034116
     &input-fasta=https://example.com/flu_sequences.fasta
 ```
+
+A custom dataset server can be specified using `dataset-server` param. In this case the dataset list (index) will be downloaded from this server instead of the default. Example:
+
+```url
+https://clades.nextstrain.org?dataset-server=http://example.com
+```
+
+Local URLs should also work:
+
+```url
+https://clades.nextstrain.org?dataset-server=http://localhost:27722
+```
+
 
 > 💡 Nextclade is a client-side-only, single-page web application, hosted on a static server. We do not set any usage limits for the analyses triggered. Note that all the computation will happen on the end-user machine.
 

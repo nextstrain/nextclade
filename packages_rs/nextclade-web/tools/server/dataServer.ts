@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-process-exit,unicorn/prefer-module */
 /**
  * Serves production build artifacts.
  *
@@ -20,20 +21,21 @@ import history from 'connect-history-api-fallback'
 import expressStaticGzip from 'express-static-gzip'
 
 import { getenv } from '../../lib/getenv'
-import { findModuleRoot } from '../../lib/findModuleRoot'
-
-import { modifyHeaders } from '../../infra/lambda-at-edge/modifyOutgoingHeaders.lambda'
-
-const { moduleRoot } = findModuleRoot()
-
-const DATA_OUTPUT_DIR_RELATIVE = getenv('DATA_OUTPUT_DIR_RELATIVE')
-const DATA_OUTPUT_DIR = path.join(moduleRoot, '..', '..', DATA_OUTPUT_DIR_RELATIVE)
+import { modifyHeaders } from '../../infra/lambda-at-edge/modifyOutgoingHeadersForApi.lambda'
 
 export interface NewHeaders {
   [key: string]: { key: string; value: string }[]
 }
 
 function main() {
+  if (process.argv.length < 3) {
+    console.error('Error: Positional argument is required: path to a data directory')
+    console.error(`Usage:\n  ${process.argv[0]} ${path.basename(__filename)} <path_to_data_dir>`)
+    process.exit(0)
+  }
+
+  const dataDir = process.argv[2]
+
   const app = express()
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -52,7 +54,7 @@ function main() {
   app.use(history())
   app.get(
     '*',
-    expressStaticGzip(DATA_OUTPUT_DIR, {
+    expressStaticGzip(dataDir, {
       enableBrotli: false,
       serveStatic: {
         setHeaders: (res: ServerResponse) => {
@@ -67,7 +69,7 @@ function main() {
 
   const port = getenv('DATA_LOCAL_PORT')
   app.listen(port, () => {
-    console.info(`Serving ${DATA_OUTPUT_DIR} on http://localhost:${port}`)
+    console.info(`Serving ${dataDir} on http://localhost:${port}`)
   })
 }
 
