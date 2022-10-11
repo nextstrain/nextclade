@@ -190,6 +190,25 @@ Run the usual `dataset list` and dataset `get commands`, with an additional flag
 
 This will tell Nextclade to use the local server for dataset queries.
 
+### Temporarily use custom dataset server with Nextclade Web
+
+Add the `dataset-server` URL parameter with value set to URL of the custom dataset server:
+
+```url
+https://clades.nextstrain.org?dataset-server=http://example.com
+```
+
+Local URLs should also work:
+
+```url
+https://clades.nextstrain.org?dataset-server=http://localhost:27722
+```
+
+> ⚠️The linked resources should be available for fetching by a web browser on the client machine. Make sure [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled on your file server as well as that all required authentication (if any) is included into the file URL itself.
+
+> ⚠️The URLs might get quite complex, so don't forget to [encode the special characters](https://en.wikipedia.org/wiki/Percent-encoding), to keep the URLs valid.
+
+
 ### Permanently configure Nextclade CLI and Nextclade Web to use custom dataset server
 
 Open `.env` file in the root of the project (if you don't have it, create it based on `.env.example`) and set the `DATA_FULL_DOMAIN` variable to the address of your local dataset server. In the example above it would be:
@@ -200,7 +219,7 @@ DATA_FULL_DOMAIN=http://localhost:27722
 
 Rebuild Nextclade CLI and it will use this address by default for all dataset requests (without need for the additional `--server` flag).
 
-Rebuild Nextclade Web and it will use this address by default for all dataset requests.
+Rebuild Nextclade Web and it will use this address by default for all dataset requests (without need for the additional `dataset-server` URL parameter).
 
 Note that this address will be baked into the CLI binaries or into the Web app permanently. Switch to the default value and rebuild to use the default dataset server deployment again.
 
