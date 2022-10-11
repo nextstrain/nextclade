@@ -1,9 +1,9 @@
 import { clamp } from 'lodash'
 import { useEffect, useState } from 'react'
 
-export const DEFAULT_NUM_THREADS = 4
-export const MINIMUM_NUM_THREADS = 2
-export const MAXIMUM_NUM_THREADS = 8
+export const DEFAULT_NUM_THREADS = 2
+export const MINIMUM_NUM_THREADS = 1
+export const MAXIMUM_NUM_THREADS = 3
 export const MEMORY_BYTES_PER_THREAD_MINIMUM = 200 * 1024 * 1024
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
