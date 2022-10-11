@@ -4,12 +4,18 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 pub fn json_parse<T: for<'de> Deserialize<'de>>(s: &str) -> Result<T, Report> {
-  let obj = serde_json::from_str::<T>(s).wrap_err("When parsing JSON")?;
+  let mut de = serde_json::Deserializer::from_str(s);
+  de.disable_recursion_limit();
+  let de = serde_stacker::Deserializer::new(&mut de);
+  let obj = T::deserialize(de).wrap_err("When parsing JSON")?;
   Ok(obj)
 }
 
 pub fn json_parse_bytes<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> Result<T, Report> {
-  let obj = serde_json::from_slice::<T>(bytes).wrap_err("When parsing JSON")?;
+  let mut de = serde_json::Deserializer::from_slice(bytes);
+  de.disable_recursion_limit();
+  let de = serde_stacker::Deserializer::new(&mut de);
+  let obj = T::deserialize(de).wrap_err("When parsing JSON")?;
   Ok(obj)
 }
 

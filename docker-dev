@@ -407,6 +407,11 @@ if [ "${RUN}" == "1" ]; then
   if [ "$(is_ci)" == "1" ]; then
     PARAMS=" --locked ${PARAMS}"
   fi
+
+  if [ -z "${RELEASE}" ]; then
+    RELEASE='--profile=opt-dev'
+  fi
+
   COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${EXAMPLE}" == "1" ]; then
   PARAMS="$(echo "${@:-}" | xargs)"
