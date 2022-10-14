@@ -1,6 +1,6 @@
+use crate::io::file::open_file_or_stdin;
 use eyre::{eyre, Report, WrapErr};
 use std::ffi::{OsStr, OsString};
-use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
@@ -72,17 +72,21 @@ pub fn add_extension(filepath: impl AsRef<Path>, extension: impl AsRef<OsStr>) -
 /// Reads entire file into a string.
 /// Compared to `std::fs::read_to_string` uses buffered reader
 pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {
-  const BUF_SIZE: usize = 2 * 1024 * 1024;
-
   let filepath = filepath.as_ref();
-
-  let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:#?}"))?;
-  let mut reader = BufReader::with_capacity(BUF_SIZE, file);
-
+  let mut file = open_file_or_stdin(&Some(filepath))?;
   let mut data = String::new();
-  reader
+  file
     .read_to_string(&mut data)
     .wrap_err_with(|| format!("When reading file: {filepath:#?}"))?;
+  Ok(data)
+}
 
+/// Reads entire reader into a string.
+/// Compared to `std::fs::read_to_string` uses buffered reader
+pub fn read_reader_to_string(reader: impl Read) -> Result<String, Report> {
+  const BUF_SIZE: usize = 2 * 1024 * 1024;
+  let mut reader = BufReader::with_capacity(BUF_SIZE, reader);
+  let mut data = String::new();
+  reader.read_to_string(&mut data)?;
   Ok(data)
 }

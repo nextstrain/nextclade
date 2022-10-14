@@ -2,33 +2,19 @@ use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
 use crate::io::aa::from_aa_seq;
 use crate::io::compression::Decompressor;
 use crate::io::concat::concat;
+use crate::io::file::{create_file, open_file_or_stdin, open_stdin};
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
-use log::{info, trace, warn};
+use log::{info, trace};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::fs::File;
-use std::io::{stdin, BufRead, BufReader, Read};
+use std::fmt::Display;
+use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
-
-use crate::io::file::create_file;
-#[cfg(not(target_arch = "wasm32"))]
-use atty::{is as is_tty, Stream};
-
-const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
-
- - if you want to read fasta from the output of another program, try:
-
-    cat sequences.fasta | nextclade <your other flags>
-
- - if you want to read fasta from file(s), try:
-
-    nextclade sequences.fasta sequences2.fasta <your other flags>
-"#;
 
 pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
@@ -92,24 +78,12 @@ impl<'a> FastaReader<'a> {
   pub fn from_paths<P: AsRef<Path>>(filepaths: &[P]) -> Result<Self, Report> {
     if filepaths.is_empty() {
       info!("Reading input fasta from standard input");
-
-      #[cfg(not(target_arch = "wasm32"))]
-      if is_tty(Stream::Stdin) {
-        warn!("{TTY_WARNING}");
-      }
-
-      return Ok(Self::new(Box::new(BufReader::new(stdin()))));
+      return Ok(Self::new(open_stdin()?));
     }
 
     let readers: Vec<Box<dyn BufRead + 'a>> = filepaths
       .iter()
-      .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> {
-        let filepath = filepath.as_ref();
-        let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
-        let decompressor = Decompressor::from_path(file, &filepath)?;
-        let reader = BufReader::with_capacity(32 * 1024, decompressor);
-        Ok(Box::new(reader))
-      })
+      .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> { open_file_or_stdin(&Some(filepath)) })
       .collect::<Result<Vec<Box<dyn BufRead + 'a>>, Report>>()?;
 
     let concat = concat(readers.into_iter());
@@ -166,6 +140,22 @@ pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report>
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record)
+}
+
+pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecord>, Report> {
+  let mut reader = FastaReader::from_paths(filepaths)?;
+  let mut fasta_records = Vec::<FastaRecord>::new();
+
+  loop {
+    let mut record = FastaRecord::default();
+    reader.read(&mut record).unwrap();
+    if record.is_empty() {
+      break;
+    }
+    fasta_records.push(record);
+  }
+
+  Ok(fasta_records)
 }
 
 pub fn read_one_fasta_str(contents: &str) -> Result<FastaRecord, Report> {
