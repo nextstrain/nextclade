@@ -553,6 +553,17 @@ export interface DatasetParams {
   geneOrderPreference?: string[]
 }
 
+export interface DatasetTag {
+  enabled?: boolean
+  attributes?: DatasetAttributes
+  comment?: string
+  compatibility?: DatasetCompatibility
+  files?: DatasetFiles
+  params?: DatasetParams
+  zipBundle?: string
+  metadata?: Record<string, unknown>
+}
+
 export interface Dataset {
   enabled: boolean
   attributes: DatasetAttributes

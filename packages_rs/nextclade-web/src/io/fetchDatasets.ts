@@ -1,10 +1,13 @@
 import { isEmpty, isNil } from 'lodash'
 import urljoin from 'url-join'
 import type { ParsedUrlQuery } from 'querystring'
-import { Dataset } from 'src/types'
+import { Dataset, DatasetTag } from 'src/types'
+import { concurrent } from 'fasy'
 
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
+import { axiosFetch, axiosFetchMaybe, axiosFetchOrUndefined, axiosHead } from './axiosFetch'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: Dataset[]) {
   // Retrieve dataset-related URL params and try to find a dataset based on these params
@@ -71,27 +74,29 @@ export async function initializeGithubDataset(urlQuery: ParsedUrlQuery) {
 
   const datasetBase = `https://raw.githubusercontent.com/${org}/${repo}/${branch}/${path}`
 
+  const tag = await axiosFetchOrUndefined<DatasetTag>(urljoin(datasetBase, 'tag.json'))
+
   const currentDataset: Dataset = {
     enabled: true,
     attributes: {
       name: {
-        value: `${org}/${repo}/${branch}/${path}`,
-        valueFriendly: `${org}/${repo}/${branch}/${path}`,
+        value: tag?.attributes?.name.value ?? `${org}/${repo}/${branch}/${path}`,
+        valueFriendly: tag?.attributes?.name.valueFriendly ?? `${org}/${repo}/${branch}/${path}`,
         isDefault: true,
       },
       reference: {
-        value: 'unknown',
-        valueFriendly: 'Unknown',
+        value: tag?.attributes?.reference.value ?? 'unknown',
+        valueFriendly: tag?.attributes?.reference.valueFriendly ?? 'unknown',
         isDefault: true,
       },
       tag: {
-        value: 'unknown',
-        valueFriendly: 'unknown',
+        value: tag?.attributes?.tag.value ?? 'unknown',
+        valueFriendly: tag?.attributes?.tag.valueFriendly ?? 'unknown',
         isDefault: true,
       },
     },
-    comment: '',
-    compatibility: {
+    comment: tag?.comment ?? '',
+    compatibility: tag?.compatibility ?? {
       nextcladeCli: {
         min: '1.10.0',
       },
@@ -112,10 +117,23 @@ export async function initializeGithubDataset(urlQuery: ParsedUrlQuery) {
     params: { defaultGene: undefined, geneOrderPreference: undefined },
     zipBundle: urljoin(datasetBase, 'dataset.zip'),
   }
+
   const datasets = [currentDataset]
   const currentDatasetName = currentDataset.attributes.name.value
   const defaultDatasetName = currentDatasetName
   const defaultDatasetNameFriendly = currentDataset.attributes.name.valueFriendly ?? currentDatasetName
+
+  await concurrent.forEach(
+    async ([filename, url]) => {
+      try {
+        await axiosHead(url)
+      } catch (error_: unknown) {
+        const error = sanitizeError(error_)
+        throw new ErrorDatasetGithubFileMissing(filename, error)
+      }
+    },
+    Object.entries(currentDataset.files).filter(([filename, _]) => filename !== 'tag.json'),
+  )
 
   return { datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }
 }
@@ -124,9 +142,22 @@ const GITHUB_URL_EXAMPLE =
   'https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/flu_yam_ha/references/JN993010/versions/2022-07-27T12%3A00%3A00Z/files'
 
 export class ErrorDatasetGithubUrlInvalid extends Error {
+  public readonly datasetGithubUrl: string
+
   constructor(datasetGithubUrl: string) {
     super(
       `Dataset GitHub URL (provided using 'dataset-github' URL parameter) is invalid: '${datasetGithubUrl}'. Check the correctness of the URL. If you don't intend to use custom dataset, remove the parameter from the address or restart the application. An example of a correct URL: '${GITHUB_URL_EXAMPLE}'`,
     )
+    this.datasetGithubUrl = datasetGithubUrl
+  }
+}
+
+export class ErrorDatasetGithubFileMissing extends Error {
+  public readonly filename: string
+
+  constructor(filename: string, error: Error) {
+    super(`Custom dataset is invalid: the file ${filename} cannot be retrieved: ${error.message}`)
+    this.cause = error
+    this.filename = filename
   }
 }
