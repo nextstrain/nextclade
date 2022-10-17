@@ -4,10 +4,10 @@ import type { ParsedUrlQuery } from 'querystring'
 import { Dataset, DatasetTag } from 'src/types'
 import { concurrent } from 'fasy'
 
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
-import { axiosFetch, axiosFetchMaybe, axiosFetchOrUndefined, axiosHead } from './axiosFetch'
-import { sanitizeError } from 'src/helpers/sanitizeError'
+import { axiosFetchOrUndefined, axiosHead } from './axiosFetch'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: Dataset[]) {
   // Retrieve dataset-related URL params and try to find a dataset based on these params

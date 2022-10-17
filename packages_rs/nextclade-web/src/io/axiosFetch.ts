@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { isNil } from 'lodash'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { DatasetTag } from 'src/types'
 
 export class HttpRequestError extends Error {
   public readonly request: AxiosRequestConfig
