@@ -4,6 +4,7 @@ use crate::io::nuc::Nuc;
 use crate::translate::coord_map::CoordMap;
 use crate::utils::range::Range;
 use itertools::Itertools;
+use num_traits::clamp;
 use serde::{Deserialize, Serialize};
 
 /// Find beginning nucleotide position of a deletion that immediately proceeds and adjacent to the frame shift
@@ -76,6 +77,8 @@ pub struct FrameShift {
 }
 
 pub fn frame_shift_transform(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &CoordMap, gene: &Gene) -> FrameShift {
+  let num_codons = gene.len() / 3;
+
   // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
   // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
   // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
@@ -84,24 +87,27 @@ pub fn frame_shift_transform(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &Coo
   // convert frameshift in the nucleotide gene alignment to positions in the reference gene sequence
   let nuc_rel_ref = coord_map.feature_aln_to_feature_ref_range(gene, nuc_rel_aln);
   // calculate the codon range of the frame shift in gene reference coordinates
-  let codon = gene.nuc_to_codon_range(&nuc_rel_ref);
+  let codon = gene.nuc_to_codon_range(&nuc_rel_ref).clamped(0, num_codons);
+
   // determine the range of the frame shift in the reference nucleotide sequence
   let nuc_abs_ref = coord_map.feature_aln_to_ref_range(gene, nuc_rel_aln);
   // determine reference codons mapping to frame shifted region including trailing/leading gaps
-  let codon_mask = find_codon_mask_range(nuc_rel_aln, query, coord_map, gene);
+  let codon_mask = find_codon_mask_range(nuc_rel_aln, query, coord_map, gene).clamped(0, num_codons);
 
   let gaps_leading = FrameShiftContext {
     codon: Range {
       begin: codon_mask.begin,
       end: codon.begin,
-    },
+    }
+    .clamped(0, num_codons),
   };
 
   let gaps_trailing = FrameShiftContext {
     codon: Range {
       begin: codon.end,
       end: codon_mask.end,
-    },
+    }
+    .clamped(0, num_codons),
   };
 
   FrameShift {

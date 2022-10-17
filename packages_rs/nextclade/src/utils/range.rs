@@ -1,4 +1,5 @@
 use auto_ops::impl_op_ex;
+use num_traits::clamp;
 use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
 
@@ -17,6 +18,20 @@ impl Range {
   #[inline]
   pub const fn contains(&self, x: usize) -> bool {
     x >= self.begin && x < self.end
+  }
+
+  #[inline]
+  pub fn clamp(&mut self, from: usize, to: usize) {
+    self.begin = clamp(self.begin, from, to);
+    self.end = clamp(self.end, self.begin, to);
+  }
+
+  #[must_use]
+  #[inline]
+  pub fn clamped(&self, from: usize, to: usize) -> Range {
+    let mut result = self.clone();
+    result.clamp(from, to);
+    result
   }
 }
 
