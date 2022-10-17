@@ -41,7 +41,7 @@ import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
-import { initializeDatasets } from 'src/io/fetchDatasets'
+import { initializeDatasets, initializeGithubDataset } from 'src/io/fetchDatasets'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -106,6 +106,11 @@ export function RecoilStateInitializer() {
         set(localeAtom, locale.key)
       })
       .then(async () => {
+        const githubDatasetInfo = await initializeGithubDataset(urlQuery)
+        if (!isNil(githubDatasetInfo)) {
+          return githubDatasetInfo
+        }
+
         const datasetServerUrlDefault = await getPromise(datasetServerUrlAtom)
         return initializeDatasets(urlQuery, datasetServerUrlDefault)
       })
