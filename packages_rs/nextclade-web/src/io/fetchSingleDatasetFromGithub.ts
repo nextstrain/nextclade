@@ -96,7 +96,7 @@ export function isGithubUrlOrShortcut(url: string): boolean {
 }
 
 const GITHUB_URL_EXAMPLE =
-  'https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/flu_yam_ha/references/JN993010/versions/2022-07-27T12:00:00Z/files'
+  'https://github.com/nextstrain/nextclade_data/tree/6ab9560b86e3384792235fa72d1c3eaf30e71213/data/datasets/flu_yam_ha/references/JN993010/versions/2022-07-27T12:00:00Z/files/'
 
 const GITHUB_URL_ERROR_HINTS = ` Check the correctness of the URL. If you don't intend to use custom dataset, remove the parameter from the address or restart the application. An example of a correct URL: '${GITHUB_URL_EXAMPLE}'`
 
