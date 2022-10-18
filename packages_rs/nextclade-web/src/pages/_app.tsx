@@ -42,7 +42,7 @@ import { ReactQueryDevtools } from 'react-query/devtools'
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { initializeDatasets } from 'src/io/fetchDatasets'
-import { initializeGithubDataset } from 'src/io/fetchDatasetFromGithub'
+import { fetchSingleDatasetFromGithubRepo } from 'src/io/fetchSingleDatasetFromGithubRepo'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -55,6 +55,7 @@ import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
+import { fetchSingleDatasetFromUrlWithQuery } from 'src/io/fetchSingleDatasetFromUrl'
 
 if (process.env.NODE_ENV === 'development') {
   // Ignore recoil warning messages in browser console
@@ -107,9 +108,11 @@ export function RecoilStateInitializer() {
         set(localeAtom, locale.key)
       })
       .then(async () => {
-        const githubDatasetInfo = await initializeGithubDataset(urlQuery)
-        if (!isNil(githubDatasetInfo)) {
-          return githubDatasetInfo
+        const datasetInfo =
+          (await fetchSingleDatasetFromGithubRepo(urlQuery)) ?? (await fetchSingleDatasetFromUrlWithQuery(urlQuery))
+
+        if (!isNil(datasetInfo)) {
+          return datasetInfo
         }
 
         const datasetServerUrlDefault = await getPromise(datasetServerUrlAtom)
