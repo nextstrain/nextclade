@@ -59,7 +59,7 @@ export async function parseGitHubRepoShortcut(datasetGithubUrl_: string): Promis
 
   const GITHUB_URL_REGEX =
     // eslint-disable-next-line security/detect-unsafe-regex
-    /^github:(?<owner>[^/@]+)\/(?<repo>[^/@]+)(?<branch>@.+?@)?(?<path>\/.*)?$/
+    /^(github|gh):(?<owner>[^/@]+)\/(?<repo>[^/@]+)(?<branch>@.+?@)?(?<path>\/.*)?$/
 
   const match = GITHUB_URL_REGEX.exec(datasetGithubUrl)
   if (!match?.groups) {
