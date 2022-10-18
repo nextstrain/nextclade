@@ -555,7 +555,7 @@ export interface DatasetParams {
 
 export interface DatasetTag {
   enabled?: boolean
-  attributes?: DatasetAttributes
+  attributes?: Partial<DatasetAttributes>
   comment?: string
   compatibility?: DatasetCompatibility
   files?: DatasetFiles
