@@ -93,7 +93,7 @@ export async function fetchSingleDatasetFromUrl(
         })
       }
     },
-    Object.entries(currentDataset.files).filter(([filename, _]) => filename !== 'tag.json'),
+    Object.entries(currentDataset.files).filter(([filename, _]) => !['tag.json', 'sequences.fasta'].includes(filename)),
   )
 
   return { datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }
