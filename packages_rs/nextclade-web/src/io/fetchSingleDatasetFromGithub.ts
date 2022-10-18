@@ -1,10 +1,8 @@
 /* eslint-disable prefer-template */
-import type { ParsedUrlQuery } from 'querystring'
+import { isNil } from 'lodash'
 import pMemoize from 'p-memoize'
 
-import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { removeLeadingAndTrailing, removeTrailingSlash } from 'src/io/url'
-import { fetchSingleDatasetFromUrl } from 'src/io/fetchSingleDatasetFromUrl'
 import { axiosFetch } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
@@ -93,18 +91,8 @@ export async function parseGitHubRepoUrlOrShortcut(datasetGithubUrl_: string): P
   return urlComponents
 }
 
-export async function fetchSingleDatasetFromGithubRepo(urlQuery: ParsedUrlQuery) {
-  const datasetGithubUrl = getQueryParamMaybe(urlQuery, 'dataset-github')
-
-  if (!datasetGithubUrl) {
-    return undefined
-  }
-
-  const { owner, repo, branch, path } = await parseGitHubRepoUrlOrShortcut(datasetGithubUrl)
-
-  const datasetGithubRawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
-
-  return fetchSingleDatasetFromUrl(datasetGithubRawUrl, { datasetOriginalUrl: datasetGithubUrl })
+export function isGithubUrlOrShortcut(url: string): boolean {
+  return !isNil(/^(github:|gh:|https?:\/\/github.com).*/.exec(url))
 }
 
 const GITHUB_URL_EXAMPLE =
@@ -117,7 +105,7 @@ export class ErrorDatasetGithubUrlPatternInvalid extends Error {
 
   constructor(datasetGithubUrl: string) {
     super(
-      `Dataset GitHub URL (provided using 'dataset-github' URL parameter) is invalid: '${datasetGithubUrl}'.` +
+      `Dataset GitHub URL (provided using 'dataset-url' URL parameter) is invalid: '${datasetGithubUrl}'.` +
         GITHUB_URL_ERROR_HINTS,
     )
     this.datasetGithubUrl = datasetGithubUrl
@@ -134,7 +122,7 @@ export class ErrorDatasetGithubUrlComponentsInvalid extends Error {
       .join(',')
 
     super(
-      `Dataset GitHub URL (provided using 'dataset-github' URL parameter) is invalid: '${datasetGithubUrl}'.` +
+      `Dataset GitHub URL (provided using 'dataset-url' URL parameter) is invalid: '${datasetGithubUrl}'.` +
         ` Detected the following components ${componentsListStr}.` +
         GITHUB_URL_ERROR_HINTS,
     )

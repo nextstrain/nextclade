@@ -1,22 +1,10 @@
-import type { ParsedUrlQuery } from 'querystring'
 import urljoin from 'url-join'
 import { concurrent } from 'fasy'
 
 import { Dataset, DatasetTag } from 'src/types'
-import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetchOrUndefined, axiosHead } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-
-export async function fetchSingleDatasetFromUrlWithQuery(urlQuery: ParsedUrlQuery) {
-  const datasetRootUrl = getQueryParamMaybe(urlQuery, 'dataset-url')
-
-  if (!datasetRootUrl) {
-    return undefined
-  }
-
-  return fetchSingleDatasetFromUrl(datasetRootUrl)
-}
 
 export async function fetchSingleDatasetFromUrl(
   datasetRootUrl_: string,
@@ -120,7 +108,7 @@ export class ErrorDatasetFileMissing extends Error {
     },
   ) {
     super(
-      `Custom dataset (provided using 'dataset-github' URL parameter) is invalid:` +
+      `Custom dataset (provided using 'dataset-url' URL parameter) is invalid:` +
         ` the required dataset file '${filename}' cannot be retrieved: ${cause.message}.` +
         ` Additional details: provided URL was: '${datasetOriginalUrl ?? datasetRootUrl}';` +
         ` deduced raw root URL was: '${datasetRootUrl}';` +
