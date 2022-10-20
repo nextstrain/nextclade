@@ -140,6 +140,7 @@ export const H3 = styled.h3`
 
   padding: 0.3rem 0.8rem;
   margin: 0 !important;
+  margin-top: 1rem !important;
 
   code {
     font-size: 1.1rem;
