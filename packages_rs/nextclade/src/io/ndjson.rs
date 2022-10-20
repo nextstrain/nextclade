@@ -1,4 +1,4 @@
-use crate::io::file::create_file;
+use crate::io::file::create_file_or_stdout;
 use crate::types::outputs::NextcladeErrorOutputs;
 use eyre::{Report, WrapErr};
 use std::fmt::Debug;
@@ -38,7 +38,7 @@ pub struct NdjsonFileWriter {
 impl NdjsonFileWriter {
   pub fn new(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let file = create_file(filepath)?;
+    let file = create_file_or_stdout(filepath)?;
     let line_writer = NdjsonWriter::new(file)?;
     Ok(Self {
       filepath: filepath.to_owned(),
