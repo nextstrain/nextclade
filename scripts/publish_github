@@ -81,6 +81,7 @@ gh auth status >/dev/null
     cat docs/assets/prerelease-warning.md
   fi
   git cliff --unreleased
+  cat docs/assets/release-instructions.md
 ) |
   gh release create \
     "${version}" \
