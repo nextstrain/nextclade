@@ -40,9 +40,6 @@ strum_macros = "0.24"
 url = { version = "2.2.2", features = ["serde"] }
 zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 
-[target.'cfg(all(target_os="linux", target_arch="x86_64"))'.dependencies]
-mimalloc = { version = "0.1.28", default-features = false, optional = true }
-
 [dev-dependencies]
 assert2 = "0.3.6"
 criterion = { version = "0.3.5", features = ["html_reports"] }
