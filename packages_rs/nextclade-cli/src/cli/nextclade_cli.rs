@@ -39,6 +39,8 @@ lazy_static! {
 /// Documentation: https://docs.nextstrain.org/projects/nextclade
 /// Nextclade Web: https://clades.nextstrain.org
 /// Publication:   https://doi.org/10.21105/joss.03773
+///
+/// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
 pub struct NextcladeArgs {
   #[clap(subcommand)]
   pub command: NextcladeCommands,
@@ -66,9 +68,13 @@ pub enum NextcladeCommands {
   },
 
   /// Run alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   Run(Box<NextcladeRunArgs>),
 
   /// List and download available Nextclade datasets
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   Dataset(Box<NextcladeDatasetArgs>),
 }
 
@@ -82,9 +88,13 @@ pub struct NextcladeDatasetArgs {
 #[clap(verbatim_doc_comment)]
 pub enum NextcladeDatasetCommands {
   /// List available Nextclade datasets
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   List(NextcladeDatasetListArgs),
 
   /// Download available Nextclade datasets
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   Get(NextcladeDatasetGetArgs),
 }
 
@@ -222,11 +232,7 @@ pub enum NextcladeOutputSelection {
 pub struct NextcladeRunInputArgs {
   /// Path to one or multiple FASTA files with input sequences
   ///
-  /// Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently
-  /// decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file
-  /// extension. If there's multiple input files, then different files can have different compression formats.
-  ///
-  /// If no input files provided, the plain fasta input is read from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". If no files provided, the plain fasta input is read from standard input (stdin).
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
@@ -267,11 +273,11 @@ pub struct NextcladeRunInputArgs {
   #[clap(long, short = 'd')]
   pub dataset_name: Option<String>,
 
-  /// Path to a FASTA file containing reference sequence.
-  ///
-  /// This file should contain exactly 1 sequence.
+  /// Path to a FASTA file containing reference sequence. This file should contain exactly 1 sequence.
   ///
   /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'r', visible_alias("reference"), visible_alias("input-root-seq"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
@@ -281,6 +287,8 @@ pub struct NextcladeRunInputArgs {
   /// See https://nextstrain.org/docs/bioinformatics/data-formats.
   ///
   /// Overrides path to `tree.json` in the dataset (`--input-dataset`).
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'a')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_tree: Option<PathBuf>,
@@ -288,6 +296,8 @@ pub struct NextcladeRunInputArgs {
   /// Path to a JSON file containing configuration of Quality Control rules.
   ///
   /// Overrides path to `qc.json` in the dataset (`--input-dataset`).
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'Q')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_qc_config: Option<PathBuf>,
@@ -295,6 +305,8 @@ pub struct NextcladeRunInputArgs {
   /// Path to a JSON file containing configuration and data specific to a pathogen.
   ///
   /// Overrides path to `virus_properties.json` in the dataset (`--input-dataset`).
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'R')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_virus_properties: Option<PathBuf>,
@@ -302,6 +314,8 @@ pub struct NextcladeRunInputArgs {
   /// Path to a CSV file containing a list of custom PCR primer sites. This information is used to report mutations in these sites.
   ///
   /// Overrides path to `primers.csv` in the dataset (`--input-dataset`).
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'p')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_pcr_primers: Option<PathBuf>,
@@ -317,7 +331,9 @@ pub struct NextcladeRunInputArgs {
   /// Overrides path to `genemap.gff` provided by `--input-dataset`.
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
-  /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md",
+  /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm', alias = "genemap")]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_gene_map: Option<PathBuf>,
@@ -399,8 +415,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
@@ -408,19 +423,19 @@ pub struct NextcladeRunOutputArgs {
   pub output_fasta: Option<PathBuf>,
 
   /// Template string for path to output fasta files containing translated and aligned peptides. A separate file will be generated for every gene.
+  ///
   /// The string should contain template variable `{gene}`, where the gene name will be substituted.
   /// Make sure you properly quote and/or escape the curly braces, so that your shell, programming language or pipeline manager does not attempt to substitute the variables.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed.
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
   ///
   /// Example for bash shell:
   ///
   ///   --output-translations='output_dir/gene_{gene}.translation.fasta'
-  ///
-  /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
@@ -431,8 +446,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'N')]
@@ -445,8 +459,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'J')]
@@ -461,8 +474,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'c')]
@@ -477,8 +489,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 't')]
@@ -494,8 +505,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'T')]
@@ -506,8 +516,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'I')]
@@ -518,8 +527,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'e')]
@@ -543,7 +551,7 @@ pub struct NextcladeRunOutputArgs {
 
   /// Replace unknown nucleotide characters with 'N'
   ///
-  /// By default, the sequences containing unknown nucleotide nucleotide characters are skipped with a warning - they
+  /// By default, the sequences containing unknown nucleotide characters are skipped with a warning - they
   /// are not analyzed and not included into results. If this flag is provided, then before the alignment,
   /// all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences.
   ///
