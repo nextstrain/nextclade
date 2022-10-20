@@ -1486,7 +1486,6 @@ dependencies = [
  "itertools",
  "lazy_static",
  "log",
- "mimalloc",
  "num",
  "num-traits",
  "num_cpus",
