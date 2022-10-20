@@ -2,7 +2,7 @@ use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
 use crate::io::aa::from_aa_seq;
 use crate::io::compression::Decompressor;
 use crate::io::concat::concat;
-use crate::io::file::{create_file, open_file_or_stdin, open_stdin};
+use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};
 use crate::io::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::{make_error, make_internal_error};
@@ -176,7 +176,7 @@ impl FastaWriter {
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    Ok(Self::new(create_file(filepath)?))
+    Ok(Self::new(create_file_or_stdout(filepath)?))
   }
 
   pub fn write(&mut self, seq_name: &str, seq: &str, is_reverse_complement: bool) -> Result<(), Report> {

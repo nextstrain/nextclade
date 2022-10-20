@@ -1,4 +1,4 @@
-use crate::io::file::open_file_or_stdin;
+use crate::io::file::{open_file_or_stdin, DEFAULT_FILE_BUF_SIZE};
 use eyre::{eyre, Report, WrapErr};
 use std::ffi::{OsStr, OsString};
 use std::io::{BufReader, Read};
@@ -84,8 +84,7 @@ pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report>
 /// Reads entire reader into a string.
 /// Compared to `std::fs::read_to_string` uses buffered reader
 pub fn read_reader_to_string(reader: impl Read) -> Result<String, Report> {
-  const BUF_SIZE: usize = 2 * 1024 * 1024;
-  let mut reader = BufReader::with_capacity(BUF_SIZE, reader);
+  let mut reader = BufReader::with_capacity(DEFAULT_FILE_BUF_SIZE, reader);
   let mut data = String::new();
   reader.read_to_string(&mut data)?;
   Ok(data)

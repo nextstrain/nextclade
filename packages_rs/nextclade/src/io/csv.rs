@@ -1,4 +1,4 @@
-use crate::io::file::create_file;
+use crate::io::file::create_file_or_stdout;
 use crate::io::fs::read_file_to_string;
 use crate::utils::error::to_eyre_error;
 use csv::{ReaderBuilder as CsvReaderBuilder, Writer as CsvWriterImpl, WriterBuilder as CsvWriterBuilder};
@@ -33,7 +33,7 @@ pub struct CsvStructFileWriter {
 impl CsvStructFileWriter {
   pub fn new(filepath: impl AsRef<Path>, delimiter: u8) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let file = create_file(filepath)?;
+    let file = create_file_or_stdout(filepath)?;
     let writer = CsvStructWriter::new(file, delimiter)?;
     Ok(Self {
       filepath: filepath.to_owned(),
@@ -85,7 +85,7 @@ pub struct CsvVecFileWriter {
 impl CsvVecFileWriter {
   pub fn new(filepath: impl AsRef<Path>, delimiter: u8, headers: &[String]) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let file = create_file(filepath)?;
+    let file = create_file_or_stdout(filepath)?;
     let writer = CsvVecWriter::new(file, delimiter, headers)?;
     Ok(Self {
       filepath: filepath.to_owned(),
