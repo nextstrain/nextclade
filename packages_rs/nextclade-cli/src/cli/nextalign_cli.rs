@@ -32,6 +32,8 @@ lazy_static! {
 /// Documentation: https://docs.nextstrain.org/projects/nextclade
 /// Nextclade Web: https://clades.nextstrain.org
 /// Publication:   https://doi.org/10.21105/joss.03773
+///
+/// Please read short help with `nextalign -h` and extended help with `nextalign --help`. Each subcommand has its own help, for example: `nextclade run --help`.
 pub struct NextalignArgs {
   #[clap(subcommand)]
   pub command: NextalignCommands,
@@ -59,6 +61,8 @@ pub enum NextalignCommands {
   },
 
   /// Run alignment and translation.
+  /// 
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   Run(Box<NextalignRunArgs>),
 }
 
@@ -75,11 +79,7 @@ pub enum NextalignOutputSelection {
 pub struct NextalignRunInputArgs {
   /// Path to one or multiple FASTA files with input sequences
   ///
-  /// Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently
-  /// decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file
-  /// extension. If there's multiple input files, then different files can have different compression formats.
-  ///
-  /// If no input files provided, the plain fasta input is read from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". If no files provided, the plain fasta input is read from standard input (stdin).
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
@@ -94,9 +94,9 @@ pub struct NextalignRunInputArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_fasta: Option<PathBuf>,
 
-  /// Path to a FASTA file containing reference sequence.
+  /// Path to a FASTA file containing reference sequence. This file should contain exactly 1 sequence.
   ///
-  /// This file should contain exactly 1 sequence.
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'r', visible_alias("reference"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: PathBuf,
@@ -110,7 +110,9 @@ pub struct NextalignRunInputArgs {
   /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the gene map will be used.
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
-  /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md",
+  /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm', alias = "genemap")]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_gene_map: Option<PathBuf>,
@@ -186,8 +188,7 @@ pub struct NextalignRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
@@ -200,14 +201,13 @@ pub struct NextalignRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed.
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
   ///
   /// Example for bash shell:
   ///
   ///   --output-translations='output_dir/gene_{gene}.translation.fasta'
-  ///
-  /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
@@ -216,8 +216,7 @@ pub struct NextalignRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'I')]
@@ -228,8 +227,7 @@ pub struct NextalignRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If filename ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently
-  /// compressed. If a filename is "-" then the output will be written uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'e')]
