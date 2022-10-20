@@ -1,3 +1,59 @@
+## Nextclade Web 2.8.0, Nextclade CLI 2.8.0 (2022-10-20)
+
+### Community datasets in Nextclade Web
+
+This release adds support for fetching custom datasets from a remote location. This can be used for testing datasets introducing support for new pathogens, as well as for sharing these datasets with the community.
+
+For that, we added the `dataset-url` URL query parameter, where you can specify either a direct URL to the directory of your custom dataset:
+
+```
+https://clades.nextstrain.org?dataset-url=http://example.com/path/to/dataset-dir
+```
+
+or a URL to a GitHub repository:
+
+```
+https://clades.nextstrain.org?dataset-url=https://github.com/my-name/my-repo/tree/my-branch/path/to/dataset-dir
+```
+
+or a special shortcut to a GitHub repository:
+
+```
+https://clades.nextstrain.org?dataset-url=github:my-name/my-repo@my-branch@/path/to/dataset-dir
+```
+
+If a branch name is not specified, the default branch name is queried from GitHub. If a path is omitted, then the files are fetched from the root of the repository.
+
+When `dataset-url` parameter is specified, instead of loading a list of default datasets, a single custom dataset is loaded from the provided address. Note that this should be publicly accessible and have [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) enabled. GitHub public repositories already comply with these requirements, so if you are using a GitHub URL or a shortcut, then no additional action is needed.
+
+For more information, refer to:
+ - PR [#1026](https://github.com/nextstrain/nextclade/pull/1026) 
+ - [Nextclade documentation on datasets](https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html)
+ - [Nextclade data repo](https://github.com/nextstrain/nextclade_data)
+ - [Nextclade developers guide](https://github.com/nextstrain/nextclade/blob/f4f54c0fd7273c7fd4bfc55b9f6140490c20ddc9/docs/dev/developer-guide.md#trying-custom-datasets-locally)
+
+### Compression of all input and output files in Nextclade CLI and Nextalign CLI
+
+Previously, only FASTA files could be compressed and decompressed on the fly. Now Nextclade CLI and Nextalign CLI can read all input and write all output files in compressed formats. Simply add one of the supported file extensions: "gz", "bz2", "xz", "zstd", and the files will be compressed or decompressed transparently.
+
+
+### Decrease default number of threads in Nextclade Web
+
+Some users have observed long startup times of the analysis in Nextclade Web. In this release we decreased the default number of processing threads from 8 to 3, such that startup time is now a little faster.
+
+If you want to speedup the analysis of large batches of sequences, at the expense of longer startup time, you can tune the number of threads in the "Settings" dialog.
+
+
+### Improve readability of text fragments in Nextclade Web
+
+We've made text paragraphs on main page and some other places a little prettier and hopefully more readable.
+
+
+### Fix crash when reading large, highly-nested tree files
+
+We improved handling of Auspice JSON format, such that it no longer crashes when large trees and trees with large number of deep branches are provided.
+
+
 ## Nextclade Web 2.7.1 (2022-10-06)
 
 ### Update clade schema
