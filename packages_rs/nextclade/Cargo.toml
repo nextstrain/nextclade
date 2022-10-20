@@ -43,15 +43,13 @@ rayon = "1.5.2"
 regex = "1.5.5"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+serde_stacker = { version = "0.1.6" }
 strum = "0.24.0"
 strum_macros = "0.24.0"
 tinytemplate = "1.2.1"
 traversal = "0.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
 zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "deflate", "time"] }
-
-[target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
-mimalloc = { version = "0.1.28", default-features = false, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 atty = "0.2.14"
