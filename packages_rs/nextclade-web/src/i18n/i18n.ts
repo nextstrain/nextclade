@@ -165,6 +165,7 @@ export function i18nInit({ localeKey }: I18NInitParams) {
     keySeparator: false, // Disable dots as key separators as we use dots in keys
     nsSeparator: false,
     interpolation: { escapeValue: false },
+    initImmediate: true,
   })
 
   // eslint-disable-next-line no-void
