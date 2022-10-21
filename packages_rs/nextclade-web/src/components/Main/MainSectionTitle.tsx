@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { Col, Row } from 'reactstrap'
 
 import { Subtitle, Title } from 'src/components/Main/Title'

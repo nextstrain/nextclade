@@ -1,7 +1,7 @@
 import { MDXProvider } from '@mdx-js/react'
 import React, { useCallback } from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import {
   Button,
   ButtonProps,

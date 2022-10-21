@@ -1,6 +1,6 @@
 import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'

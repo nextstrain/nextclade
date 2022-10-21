@@ -1,5 +1,5 @@
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
 import type { PcrPrimer } from 'src/types'
 import { Li, Ul } from 'src/components/Common/List'

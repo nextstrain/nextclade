@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { isNil } from 'lodash'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 import styled from 'styled-components'

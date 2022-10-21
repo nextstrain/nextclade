@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import qs from 'querystring'
 import Bowser from 'bowser'
 import { LinkExternal } from 'src/components/Link/LinkExternal'

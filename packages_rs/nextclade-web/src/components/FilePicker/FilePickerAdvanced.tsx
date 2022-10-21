@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 

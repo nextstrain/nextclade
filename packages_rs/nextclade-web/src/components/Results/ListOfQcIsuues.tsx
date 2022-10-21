@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { round } from 'lodash'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
 import type { QcResult } from 'src/types'

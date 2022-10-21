@@ -1,6 +1,6 @@
 import Bowser from 'bowser'
 import React, { useCallback, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { Button, Modal, ModalBody, ModalFooter } from 'reactstrap'
 import { ModalHeader } from 'src/components/Error/ErrorPopup'
 import { LinkExternal } from 'src/components/Link/LinkExternal'

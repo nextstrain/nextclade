@@ -206,6 +206,8 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
             <MDXProvider components={mdxComponents}>
               <Plausible domain={DOMAIN_STRIPPED} />
               <QueryClientProvider client={queryClient}>
+                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                {/* @ts-ignore */}
                 <I18nextProvider i18n={i18n}>
                   <ErrorBoundary>
                     <Suspense>

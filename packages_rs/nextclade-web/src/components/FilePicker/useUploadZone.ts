@@ -1,7 +1,7 @@
 import { TFunction } from 'i18next'
 import { useState } from 'react'
 import { FileRejection, useDropzone } from 'react-dropzone'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { theme } from 'src/theme'
 import { DefaultTheme } from 'styled-components'

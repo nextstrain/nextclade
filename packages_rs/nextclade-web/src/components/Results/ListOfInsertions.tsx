@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 
 import { shade } from 'polished'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
 import type { Aminoacid, AminoacidInsertion, Nucleotide, NucleotideInsertion } from 'src/types'

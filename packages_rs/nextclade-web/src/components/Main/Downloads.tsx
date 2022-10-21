@@ -1,6 +1,6 @@
 import React, { HTMLProps, ReactNode } from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FaBook, FaDocker, FaDownload, FaGithub, FaGlobeAmericas } from 'react-icons/fa'
 import {
   Card as ReactstrapCard,

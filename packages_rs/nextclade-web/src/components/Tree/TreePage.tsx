@@ -112,6 +112,8 @@ function TreePageDisconnected({ treeMeta }: TreePageProps) {
 
         <MainContent>
           <AuspiceContainer>
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore */}
             <I18nextProvider i18n={i18nAuspice}>
               <SidebarContainer>
                 <Sidebar />

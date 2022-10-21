@@ -1,5 +1,5 @@
 import React, { SVGProps, useCallback, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
 
 import type { FrameShift } from 'src/types'
