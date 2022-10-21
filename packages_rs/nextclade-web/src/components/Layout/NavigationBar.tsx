@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
 import { FaDocker, FaGithub, FaTwitter } from 'react-icons/fa'
 import { IoMdBook } from 'react-icons/io'
@@ -59,7 +58,7 @@ export function DocsLink() {
 }
 
 export function NavigationBar() {
-  const { t } = useTranslation()
+  const { t } = useTranslationSafe()
 
   const navLinksRight = useMemo(
     () => [
