@@ -4,7 +4,7 @@ import { useRecoilValue } from 'recoil'
 import { hasRanAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 import { Button, Container as ContainerBase } from 'reactstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FaCaretRight } from 'react-icons/fa'
 
 import { NavigationBar } from './NavigationBar'

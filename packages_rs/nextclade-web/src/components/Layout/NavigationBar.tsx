@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
 import { FaDocker, FaGithub, FaTwitter } from 'react-icons/fa'
 import { IoMdBook } from 'react-icons/io'

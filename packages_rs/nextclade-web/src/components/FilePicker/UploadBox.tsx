@@ -1,7 +1,7 @@
 import React, { PropsWithChildren, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
 import { getUploadZoneTheme, UploadZoneState, useUploadZone } from 'src/components/FilePicker/useUploadZone'
 import { appendDash } from 'src/helpers/appendDash'

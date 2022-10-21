@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
 import ColorBy from 'auspice/src/components/controls/color-by'
 import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch-labelling'

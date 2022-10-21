@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
 import CladeSchemaSvg from 'src/assets/img/clades.svg'

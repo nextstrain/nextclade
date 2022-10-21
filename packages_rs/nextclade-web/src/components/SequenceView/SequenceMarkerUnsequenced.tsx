@@ -1,6 +1,6 @@
 import React, { memo, PropsWithChildren, SVGProps, useCallback, useMemo, useState } from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
