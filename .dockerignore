@@ -3,4 +3,4 @@
 !/\.nvmrc
 !/\.downloads
 !/\.out
-
+!/tools/glibc/out/glibc-2.17.tar.xz

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export DOCKER_BUILDKIT=1
+export BUILDKIT_PROGRESS=plain
+export PROGRESS_NO_TRUNC=1
+
+docker build \
+  --tag="build-libc" \
+  --network=host \
+  .
+
+
+rm -rf "out"
+
+mkdir "out"
+
+docker run -it --rm \
+  --init \
+  --name="build-libc-$(date +%s)" \
+  --user="$(id -u):$(id -g)" \
+  --volume="$(pwd):/workdir" \
+  --workdir="/workdir" \
+  build-libc \
+  bash -c "set -euxo pipefail \
+    && mkdir -p '/tmp/glibc-build/glibc-2.17/build' \
+    && cd '/tmp/glibc-build' \
+    && curl -k -fsSL 'https://ftp.gnu.org/gnu/glibc/glibc-2.17.tar.xz' | tar -xJ \
+    && cd '/tmp/glibc-build/glibc-2.17/build' \
+    && AUTOCONF=false ../configure \
+      --prefix=/workdir/out/glibc-2.17 \
+      --libdir=/workdir/out/glibc-2.17/lib/x86_64-linux-gnu \
+      --disable-sanity-checks \
+      --enable-multi-arch \
+      --host=x86_64-linux-gnu \
+      --enable-stackguard-randomization \
+      --without-cvs \
+      --without-selinux \
+    && make -j $(nproc) \
+    && make install \
+    && cd /workdir/out/glibc-2.17 \
+    && tar c * | xz -T0 -k > /workdir/out/glibc-2.17.tar.xz \
+  "
+
