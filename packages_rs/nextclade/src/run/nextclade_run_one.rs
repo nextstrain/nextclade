@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::align::insertions_strip::{get_aa_insertions, NucIns};
 use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
@@ -27,6 +29,7 @@ use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNeares
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use eyre::Report;
 use itertools::Itertools;
+use ordered_float::OrderedFloat;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -113,10 +116,12 @@ pub fn nextclade_run_one(
   let unknown_aa_ranges = find_aa_letter_ranges(&translations, Aa::X);
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
+  // TODO: Ignore ends for placement -> more robust
   let TreeFindNearestNodeOutput { node, distance } =
     tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
   let nearest_node_id = node.tmp.id;
-  let clade = node.clade();
+
+  let clade = node.node_attrs.clade_membership.value.clone();
 
   let clade_node_attr_keys = tree.clade_node_attr_descs();
   let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);

@@ -94,6 +94,9 @@ pub struct TreeNodeAttrs {
   #[serde(rename = "Missing genes")]
   pub missing_genes: Option<TreeNodeAttr>,
 
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub placement_bias: Option<TreeNodeAttr>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }

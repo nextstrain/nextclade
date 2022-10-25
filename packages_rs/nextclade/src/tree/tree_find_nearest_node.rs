@@ -3,10 +3,13 @@ use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
 use crate::utils::range::Range;
+use itertools::Itertools;
+use num_traits::clamp_min;
+use ordered_float::OrderedFloat;
 
 pub struct TreeFindNearestNodeOutput<'node> {
   pub node: &'node AuspiceTreeNode,
-  pub distance: i64,
+  pub distance: OrderedFloat<f64>,
 }
 
 /// For a given query sample, finds nearest node on the reference tree (according to the distance metric)
@@ -30,7 +33,7 @@ pub fn tree_find_nearest_node<'node>(
     // If none can be found, return default (e.g. if tree is empty, which is unlikely)
     .unwrap_or(TreeFindNearestNodeOutput {
       node: &tree.tree,
-      distance: 0,
+      distance: ordered_float::OrderedFloat(0.0),
     })
 }
 
@@ -40,7 +43,7 @@ pub fn tree_calculate_node_distance(
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &Range,
-) -> i64 {
+) -> OrderedFloat<f64> {
   let mut shared_differences = 0_i64;
   let mut shared_sites = 0_i64;
 
@@ -68,6 +71,15 @@ pub fn tree_calculate_node_distance(
   let total_node_muts = node.tmp.substitutions.len() as i64;
   let total_seq_muts = qry_nuc_subs.len() as i64;
 
+  let placement_bias = match &node.node_attrs.placement_bias {
+    Some(i) => i.value.parse::<f64>().unwrap_or(0.0),
+    None => 0.0,
+  };
+
+  let bias = clamp_min(placement_bias, 1000_f64 * f64::EPSILON);
+
   // calculate distance from set overlaps.
-  total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites
+  let raw_distance = total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites;
+
+  OrderedFloat(raw_distance as f64 + 1.0 - bias)
 }

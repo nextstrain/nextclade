@@ -115,6 +115,7 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
         pcr_primer_changes,
         missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
         qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
+        placement_bias: Some(TreeNodeAttr::new("0.0")),
         other,
       },
       children: vec![],
