@@ -120,7 +120,6 @@ pub fn nextclade_run_one(
   let TreeFindNearestNodeOutput { node, distance } =
     tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
   let nearest_node_id = node.tmp.id;
-
   let clade = node.clade();
 
   let clade_node_attr_keys = tree.clade_node_attr_descs();
