@@ -1,64 +1,23 @@
+use crate::gene::cds::Cds;
 use crate::gene::gene::{Gene, GeneStrand};
+use crate::io::container::get_first_of;
 use crate::io::gene_map::GeneMap;
+use crate::make_error;
 use crate::utils::error::to_eyre_error;
-use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
+use crate::utils::string::surround_with_quotes;
+use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord, Writer as GffWriter};
 use bio_types::strand::Strand;
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
+use itertools::Itertools;
 use log::warn;
 use std::fmt::Debug;
+use std::hash::Hash;
 use std::path::Path;
 
-/// Parses `frame` column of the GFF3 record.
-/// Note: If `frame` cannot be parsed to an integer, then it is deduced from gene `start`.
-pub fn parse_gff3_frame(frame: &str, gene_start: usize) -> i32 {
-  match frame.parse::<i32>() {
-    Ok(frame) => frame,
-    Err(_) => (gene_start % 3) as i32,
-  }
-}
-
-/// Converts GFF3 record to the internal `Gene` representation
-pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result<Gene, Report> {
-  let start = (*record.start() - 1) as usize; // Convert to 0-based indices
-  Ok(Gene {
-    gene_name: gene_name.to_owned(),
-    start,
-    end: *record.end() as usize,
-    strand: record.strand().map_or(GeneStrand::Unknown, Strand::into),
-    frame: parse_gff3_frame(record.frame(), start),
-  })
-}
-
-pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Result<(String, Gene), Report>> {
-  if record.feature_type().to_lowercase() == "gene" {
-    let attributes = record.attributes();
-    let gene_name_opt = attributes
-      .get("gene_name")
-      .or_else(|| attributes.get("gene"))
-      .or_else(|| attributes.get("locus_tag"));
-    if gene_name_opt.is_none() {
-      warn!(
-        "Genemap record could not be parsed as it contains neither a 'gene_name' nor 'locus_tag' attribute ({:?})",
-        record
-      );
-      return None;
-    };
-    let gene_name = gene_name_opt.unwrap();
-    return Some(match convert_gff_record_to_gene(gene_name, record) {
-      Ok(gene) => Ok((gene_name.clone(), gene)),
-      Err(report) => Err(report)
-        .wrap_err("When parsing a GFF3 record")
-        .with_section(|| format!("{:#?}", record).header("record:")),
-    });
-  }
-  // Could warn like this, but should test first if `source` is not present. We could read `source` at some point.
-  // We should not warn in that case
-  // warn!(
-  //   "Genemap record could not be parsed as it contains neither a 'gene_name' nor 'locus_tag' attribute ({:?})",
-  //   record
-  // );
-  None
+pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
+  let filename = filename.as_ref();
+  read_gff3_file_impl(&filename).wrap_err_with(|| format!("When reading GFF3 file '{filename:?}'"))
 }
 
 fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
@@ -70,24 +29,11 @@ fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> 
     .map(to_eyre_error)
     .collect::<Result<Vec<GffRecord>, Report>>()?;
 
-  let genemap: GeneMap = records
-    .iter()
-    .filter_map(convert_gff_record_to_gene_map_record)
-    .collect::<Result<GeneMap, Report>>()?;
-
-  if genemap.is_empty() && !records.is_empty() {
-    warn!(
-      "No valid gene entries found in genemap with {} records. No genes will be used.",
-      records.len()
-    );
-  }
-
-  Ok(genemap)
+  process_gff_records(&records)
 }
 
-pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
-  let filename = filename.as_ref();
-  read_gff3_file_impl(&filename).wrap_err_with(|| format!("When reading GFF3 file '{filename:#?}'"))
+pub fn read_gff3_str(content: &str) -> Result<GeneMap, Report> {
+  read_gff3_str_impl(content).wrap_err("When reading GFF3 file")
 }
 
 fn read_gff3_str_impl(content: &str) -> Result<GeneMap, Report> {
@@ -98,12 +44,176 @@ fn read_gff3_str_impl(content: &str) -> Result<GeneMap, Report> {
     .map(to_eyre_error)
     .collect::<Result<Vec<GffRecord>, Report>>()?;
 
-  records
-    .iter()
-    .filter_map(convert_gff_record_to_gene_map_record)
-    .collect::<Result<GeneMap, Report>>()
+  process_gff_records(&records)
 }
 
-pub fn read_gff3_str(content: &str) -> Result<GeneMap, Report> {
-  read_gff3_str_impl(content).wrap_err("When reading GFF3 file")
+/// Converts GFF3 records into the internal representation
+fn process_gff_records(records: &[GffRecord]) -> Result<GeneMap, Report> {
+  if records.is_empty() {
+    return make_error!("Gene map is empty. This is not allowed.");
+  }
+
+  let gene_records = get_records_by_feature_type(records, "gene");
+  let cds_records = get_records_by_feature_type(records, "cds");
+
+  let genes = extract_hierarchy_of_genes_and_cdses(&gene_records, &cds_records)?;
+
+  if genes.is_empty() {
+    warn!(
+      "No valid genes and/or CDSes found in genemap, among {} records. No genes will be used.",
+      records.len()
+    );
+  }
+
+  // Collect array of genes into the map of names to genes
+  Ok(genes.into_iter().map(|gene| (gene.gene_name.clone(), gene)).collect())
+}
+
+/// Convert gene and CDS GFF3 records into the internal data structure, with CDS nested under genes
+fn extract_hierarchy_of_genes_and_cdses(
+  gene_records: &[(usize, &GffRecord)],
+  cds_records: &[(usize, &GffRecord)],
+) -> Result<Vec<Gene>, Report> {
+  // HACK: COMPATIBILITY: If there are no gene records, then pretend that CDS records describe genes
+  let gene_records = if gene_records.is_empty() {
+    cds_records
+  } else {
+    gene_records
+  };
+
+  // Convert every gene record
+  gene_records
+    .iter()
+    .map(|(i, gene_record)| {
+      convert_gff_record_to_gene(gene_record, cds_records).wrap_err_with(|| format!("When processing GFF row {i}"))
+    })
+    .collect::<Result<Vec<Gene>, Report>>()
+    .wrap_err_with(|| "When reading genes and CDSes of a gene map")
+}
+
+/// Retrieve GFF records of a certain "feature_type"
+fn get_records_by_feature_type<'r>(records: &'r [GffRecord], record_type: &str) -> Vec<(usize, &'r GffRecord)> {
+  records
+    .iter()
+    .enumerate()
+    .filter(|(i, record)| record.feature_type().to_lowercase() == record_type.to_lowercase())
+    .collect_vec()
+}
+
+/// Converts a GFF3 record to the internal `Gene` representation, with the corresponding CDS entries nested in it
+pub fn convert_gff_record_to_gene(
+  gene_record: &GffRecord,
+  cds_records: &[(usize, &GffRecord)],
+) -> Result<Gene, Report> {
+  // HACK: COMPATIBILITY: The canonical attribute for name is "Name" (case sensitive), however here we also query a
+  // few other possible attributes, for backwards compatibility
+  let gene_name = get_one_of_attributes_required(gene_record, &["Name", "name", "gene_name", "locus_tag", "gene"])?;
+
+  // HACK: COMPATIBILITY: If a gene has no 'ID' attribute, then there is no way to link CDSes with it.
+  // Therefore we treat the gene itself as CDS.
+  let cdses = match get_attribute_optional(gene_record, "ID") {
+    Some(gene_id) => convert_gff_records_to_cdses(cds_records, &gene_id),
+    None => Ok(vec![convert_gff_record_to_cds(gene_record)?]),
+  }?;
+
+  // HACK: COMPATIBILITY: If there are no CDS records associated with this gene, then treat the gene itself as one CDS
+  let cdses = vec![convert_gff_record_to_cds(gene_record)?];
+
+  let start = (*gene_record.start() - 1) as usize; // Convert to 0-based indices
+
+  Ok(Gene {
+    gene_name,
+    start,
+    end: *gene_record.end() as usize,
+    strand: gene_record.strand().map_or(GeneStrand::Unknown, Strand::into),
+    frame: parse_gff3_frame(gene_record.frame(), start),
+    cdses,
+    attributes: gene_record.attributes().clone(),
+  })
+}
+
+/// Converts GFF3 records to the internal `Cds` representation
+fn convert_gff_records_to_cdses(cds_records: &[(usize, &GffRecord)], gene_id: &str) -> Result<Vec<Cds>, Report> {
+  cds_records
+    .iter()
+    .map(|(i, cds_record)| -> Result<_, Report> {
+      let parent_id =
+        get_attribute_required(cds_record, "Parent").wrap_err_with(|| format!("When processing GFF row {i}"))?;
+      Ok((*i, parent_id, *cds_record))
+    })
+    .filter_map_ok(|(i, parent_id, cds_record)| {
+      (parent_id == gene_id)
+        .then_some(convert_gff_record_to_cds(cds_record).wrap_err_with(|| format!("When processing GFF row {i}")))
+    })
+    .flatten()
+    .collect()
+}
+
+/// Converts one GFF3 record to the internal `Cds` representation
+fn convert_gff_record_to_cds(cds_record: &GffRecord) -> Result<Cds, Report> {
+  // HACK: COMPATIBILITY: The canonical attribute for name is "Name" (case sensitive), however here we also query a
+  // few other possible attributes, for backwards compatibility
+  let name = get_one_of_attributes_required(cds_record, &["Name", "name", "gene_name", "locus_tag", "gene"])?;
+
+  let start = (*cds_record.start() - 1) as usize; // Convert to 0-based indices
+  Ok(Cds {
+    name,
+    start,
+    end: *cds_record.end() as usize,
+    strand: cds_record.strand().map_or(GeneStrand::Unknown, Strand::into),
+    frame: parse_gff3_frame(cds_record.frame(), start),
+    attributes: cds_record.attributes().clone(),
+  })
+}
+
+/// Retrieve an attribute from a GFF record given a name. Return None if not found.
+fn get_attribute_optional(record: &GffRecord, attr_name: &str) -> Option<String> {
+  record.attributes().get(attr_name).cloned()
+}
+
+/// Retrieve an attribute from a GFF record given a name. Fail if not found.
+fn get_attribute_required(record: &GffRecord, attr_name: &str) -> Result<String, Report> {
+  get_attribute_optional(record, attr_name).ok_or_else(|| {
+    eyre!(
+      "The \"{}\" entry has no required attribute \"{attr_name}\":\n  {}",
+      record.feature_type(),
+      gff_record_to_string(record).unwrap()
+    )
+  })
+}
+
+/// Retrieve an attribute from a GFF record, given one of the possible names. Return None if not found.
+fn get_one_of_attributes_optional(record: &GffRecord, attr_names: &[&str]) -> Option<String> {
+  get_first_of(record.attributes(), attr_names)
+}
+
+/// Retrieve an attribute from a GFF record, given one of the possible names. Fail if not found.
+fn get_one_of_attributes_required(record: &GffRecord, attr_names: &[&str]) -> Result<String, Report> {
+  get_one_of_attributes_optional(record, attr_names).ok_or_else(|| {
+    eyre!(
+      "The \"{}\" entry has none of the attributes: {}, but at least one is required",
+      record.feature_type(),
+      attr_names.iter().map(surround_with_quotes).join(", ")
+    )
+    .with_section(|| gff_record_to_string(record).unwrap().header("Failed entry:"))
+  })
+}
+
+/// Parses `frame` column of the GFF3 record.
+/// If `frame` cannot be parsed to an integer, then it is deduced from feature `start`.
+fn parse_gff3_frame(frame: &str, start: usize) -> i32 {
+  match frame.parse::<i32>() {
+    Ok(frame) => frame,
+    Err(_) => (start % 3) as i32,
+  }
+}
+
+/// Prints GFF record as it is in the input file
+fn gff_record_to_string(record: &GffRecord) -> Result<String, Report> {
+  let mut buf = Vec::<u8>::new();
+  {
+    let mut writer = GffWriter::new(&mut buf, GffType::GFF3);
+    writer.write(record)?;
+  }
+  Ok(String::from_utf8(buf)?)
 }

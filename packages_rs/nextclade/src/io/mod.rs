@@ -1,6 +1,7 @@
 pub mod aa;
 pub mod compression;
 pub mod concat;
+pub mod container;
 pub mod csv;
 pub mod errors_csv;
 pub mod fasta;

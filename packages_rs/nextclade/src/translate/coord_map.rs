@@ -171,6 +171,7 @@ mod coord_map_tests {
   use crate::io::nuc::from_nuc_seq;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
+  use multimap::multimap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -268,6 +269,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     // reference: ACT|CCGTGACCG|CGT
     // ref_aln: A--CT|CCGT---GACCG|--CGT
@@ -290,6 +293,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     // reference: ACT|CCGTGACCG|CGT
     // ref_aln: A--CT|CCGT---GACCG|--CGT
@@ -313,6 +318,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     //                0..    |7
     // reference: ACT|CCGTGACCG|CGT
@@ -332,6 +339,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     //                 |7      |0
     // reference: ACT|CCGTGACCG|CGT
@@ -351,6 +360,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     //               |3    |8
     // reference: ACT|CCGTGACCG|CGT
@@ -370,6 +381,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     //               |3 |5
     // reference: ACT|CCGTGACCG|CGT
@@ -389,6 +402,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Forward,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     //               |   |3 |6
     // reference: ACT|CCGTGACCG|CGT
@@ -411,6 +426,8 @@ mod coord_map_tests {
       end: 12,
       strand: GeneStrand::Reverse,
       frame: 0,
+      cdses: vec![],
+      attributes: multimap!(),
     };
     //               |   |6 |9
     // reference: ACT|CCGTGACCG|CGT

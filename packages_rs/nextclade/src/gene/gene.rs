@@ -1,4 +1,6 @@
+use crate::gene::cds::Cds;
 use crate::utils::range::Range;
+use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -29,6 +31,8 @@ pub struct Gene {
   pub end: usize,
   pub strand: GeneStrand,
   pub frame: i32,
+  pub cdses: Vec<Cds>,
+  pub attributes: MultiMap<String, String>,
 }
 
 impl Gene {

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Runs bulk cross-compilation of CLI binaries for all supported platforms
+
+set -euo pipefail
+trap "exit" INT
+
+viruses=(
+  'ebola-zaire'
+  'flu_yam_ha'
+  'hbv-ayw'
+  'hcv'
+  'hiv-1'
+  'rsv'
+  'sc2'
+  'sc2-full'
+  'sc2_omicron'
+  'zika'
+)
+
+for virus in "${viruses[@]}"; do
+  export virus
+  ./docker-dev r nextalign -- run \
+    -r "data_dev/${virus}/reference.fasta" \
+    -m "data_dev/${virus}/genemap.gff" \
+    -O "tmp_/${virus}" \
+    "data_dev/${virus}/reference.fasta" \
+    -v -j1
+done
