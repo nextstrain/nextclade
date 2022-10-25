@@ -121,7 +121,7 @@ pub fn nextclade_run_one(
     tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
   let nearest_node_id = node.tmp.id;
 
-  let clade = node.node_attrs.clade_membership.value.clone();
+  let clade = node.clade();
 
   let clade_node_attr_keys = tree.clade_node_attr_descs();
   let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
