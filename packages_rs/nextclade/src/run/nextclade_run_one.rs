@@ -123,7 +123,11 @@ pub fn nextclade_run_one(
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
   let nearest_node_candidates = tree_find_nearest_nodes(tree, &substitutions, &missing, &alignment_range);
-  let TreeFindNearestNodeOutput { node, distance } = nearest_node_candidates[0];
+  let TreeFindNearestNodeOutput {
+    node,
+    distance,
+    confidence,
+  } = nearest_node_candidates[0];
 
   let nearest_node_id = node.tmp.id;
   let clade = node.clade();
