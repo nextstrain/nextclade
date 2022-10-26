@@ -68,6 +68,8 @@ pub fn tree_calculate_node_distance(
   let total_node_muts = node.tmp.substitutions.len() as i64;
   let total_seq_muts = qry_nuc_subs.len() as i64;
 
+  let placement_bias = node.node_attrs.placement_bias.map_or(0.999, |pb| pb.value);
+
   // calculate distance from set overlaps.
   total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites
 }
