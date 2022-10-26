@@ -9,6 +9,7 @@ use itertools::Itertools;
 pub struct TreeFindNearestNodeOutput<'node> {
   pub node: &'node AuspiceTreeNode,
   pub distance: i64,
+  pub confidence: f64,
 }
 
 /// For a given query sample, finds nearest node on the reference tree (according to the distance metric)
@@ -23,7 +24,11 @@ pub fn tree_find_nearest_nodes<'node>(
     .iter_depth_first_preorder()
     .map(|(_, node)| {
       let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range);
-      TreeFindNearestNodeOutput { node, distance }
+      TreeFindNearestNodeOutput {
+        node,
+        distance,
+        confidence: 0.0,
+      }
     })
     .sorted_by_key(|out| out.distance)
     .collect_vec();
@@ -46,6 +51,7 @@ pub fn tree_find_nearest_nodes<'node>(
     None => vec![TreeFindNearestNodeOutput {
       node: &tree.tree,
       distance: 0,
+      confidence: 1.0,
     }],
   }
 }
@@ -56,7 +62,7 @@ pub fn tree_find_nearest_nodes<'node>(
 fn tree_sort_nearest_nodes<'node>(
   nearest_node_candidates: &[TreeFindNearestNodeOutput<'node>],
 ) -> Vec<TreeFindNearestNodeOutput<'node>> {
-  // TODO: actually reorder the list or create a new one
+  // TODO: actually reorder the list or create a new one, and calculate placement confidence for each node
   nearest_node_candidates.to_vec()
 }
 
