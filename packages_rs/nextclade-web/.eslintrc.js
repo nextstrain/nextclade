@@ -71,6 +71,7 @@ module.exports = {
   ],
   reportUnusedDisableDirectives: true,
   rules: {
+    '@next/next/no-img-element': 'off',
     '@next/next/no-title-in-document-head': 'off',
     '@typescript-eslint/array-type': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',

@@ -1,9 +1,9 @@
 import React from 'react'
-
-import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
-import CladeSchemaSvg from 'src/assets/img/clades.svg'
+import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
+import { URL_CLADE_SCHEMA_REPO, URL_CLADE_SCHEMA_SVG } from 'src/constants'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 
 const CladeSchemaFigure = styled.figure`
   display: flex;
@@ -11,6 +11,7 @@ const CladeSchemaFigure = styled.figure`
   max-width: 850px;
   flex-direction: column;
   margin: 0 auto;
+  margin-bottom: 2rem;
 `
 
 const CladeSchemaPicture = styled.picture`
@@ -27,11 +28,17 @@ export function CladeSchema() {
   return (
     <CladeSchemaFigure className="figure w-100 text-center">
       <CladeSchemaPicture className="w-100 figure-img">
-        <CladeSchemaSvg />
+        <img
+          src={URL_CLADE_SCHEMA_SVG}
+          alt="Illustration of phylogenetic relationships of SARS-CoV-2 clades, as defined by Nextstrain"
+        />
       </CladeSchemaPicture>
       <CladeSchemaFigcaption>
         <small>
           {t('Fig.1. Illustration of phylogenetic relationships of SARS-CoV-2 clades, as defined by Nextstrain')}
+          {' ('}
+          <LinkExternal url={URL_CLADE_SCHEMA_REPO}>{t('source')}</LinkExternal>
+          {')'}
         </small>
       </CladeSchemaFigcaption>
     </CladeSchemaFigure>
