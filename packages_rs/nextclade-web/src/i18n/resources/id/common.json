@@ -324,5 +324,6 @@
   " or writing an email to ": " atau menulis email ke ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Anda dapat melaporkannya ke pengembang dengan membuat permintaan (disebut {{issue}}) di: ",
   "Aminoacid changes ({{count}})": "Perubahan aminoacid ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Perubahan nukleotida di dekatnya ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Perubahan nukleotida di dekatnya ({{count}})",
+  "source": "sumber"
 }

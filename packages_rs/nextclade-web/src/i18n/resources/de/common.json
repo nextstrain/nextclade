@@ -324,5 +324,6 @@
   " or writing an email to ": " oder schreiben Sie eine E-Mail an ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Sie können es Entwicklern melden, indem Sie eine Anfrage (so genannt{{issue}}) erstellen unter: ",
   "Aminoacid changes ({{count}})": "Veränderungen der Aminosäure ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Nukleotidveränderungen in der Nähe ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Nukleotidveränderungen in der Nähe ({{count}})",
+  "source": "Quelle"
 }

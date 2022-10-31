@@ -324,5 +324,6 @@
   " or writing an email to ": " またはにメールを書く ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "次の場所でリクエスト (いわゆる{{issue}}) を作成すると、開発者に報告できます。 ",
   "Aminoacid changes ({{count}})": "アミノ酸の変化 ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "近くのヌクレオチド変化 ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "近くのヌクレオチド変化 ({{count}})",
+  "source": "ソース"
 }

@@ -324,5 +324,6 @@
   " or writing an email to ": " veya bir e-posta yazarak ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bunu geliştiricilere şu adresten bir istek oluşturarak (sözde {{issue}}) bildirebilirsiniz: ",
   "Aminoacid changes ({{count}})": "Aminoasit değişiklikleri ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Yakınlarda nükleotid değişiklikleri ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Yakınlarda nükleotid değişiklikleri ({{count}})",
+  "source": "kaynak"
 }

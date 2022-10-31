@@ -324,5 +324,6 @@
   " or writing an email to ": " அல்லது ஒரு மின்னஞ்சலை எழுதுதல் ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "ஒரு கோரிக்கையை உருவாக்குவதன் மூலம் டெவலப்பர்களிடம் அதை நீங்கள் {{issue}}தெரிவிக்கலாம்: ",
   "Aminoacid changes ({{count}})": "அமினோஅமில மாற்றங்கள் ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "நியூக்ளியோடைடு அருகில் மாறுகிறது ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "நியூக்ளியோடைடு அருகில் மாறுகிறது ({{count}})",
+  "source": "மூலம்"
 }

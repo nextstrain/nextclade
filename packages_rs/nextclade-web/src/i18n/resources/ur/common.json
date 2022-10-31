@@ -324,5 +324,6 @@
   " or writing an email to ": " یا ایک ای میل لکھنے کے لئے ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "آپ اس کی درخواست (نام نہاد {{issue}}) کی تخلیق کرکے ڈویلپرز کو رپورٹ کرسکتے ہیں: ",
   "Aminoacid changes ({{count}})": "امینوایسڈ تبدیلیاں ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "نیوکلیوٹائڈ قریبی تبدیلیاں ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "نیوکلیوٹائڈ قریبی تبدیلیاں ({{count}})",
+  "source": "ذریعہ"
 }

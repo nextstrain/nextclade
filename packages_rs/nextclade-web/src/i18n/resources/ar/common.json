@@ -324,5 +324,6 @@
   " or writing an email to ": " أو كتابة بريد إلكتروني إلى ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "يمكنك الإبلاغ عن ذلك للمطورين عن طريق إنشاء طلب (ما يسمى{{issue}}) على: ",
   "Aminoacid changes ({{count}})": "تغييرات الأحماض الأمينية ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "تغييرات النوكليوتيدات القريبة ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "تغييرات النوكليوتيدات القريبة ({{count}})",
+  "source": "مصدر"
 }

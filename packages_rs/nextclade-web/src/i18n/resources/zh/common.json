@@ -324,5 +324,6 @@
   " or writing an email to ": " 或者写一封电子邮件给 ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "您可以通过在以下位置创建请求（所谓的{{issue}}）向开发人员报告： ",
   "Aminoacid changes ({{count}})": "氨基酸变化 ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "附近有核苷酸发生变化 ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "附近有核苷酸发生变化 ({{count}})",
+  "source": "资源"
 }

@@ -324,5 +324,6 @@
   " or writing an email to ": " hoặc viết email tới ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bạn có thể báo cáo nó cho nhà phát triển bằng cách tạo một yêu cầu (được gọi là {{issue}}) tại: ",
   "Aminoacid changes ({{count}})": "Aminoacid thay đổi ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Nucleotide thay đổi gần đó ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Nucleotide thay đổi gần đó ({{count}})",
+  "source": "nguồn"
 }
