@@ -27,12 +27,14 @@ export function CladeSchema() {
 
   return (
     <CladeSchemaFigure className="figure w-100 text-center">
-      <CladeSchemaPicture className="w-100 figure-img">
-        <img
-          src={URL_CLADE_SCHEMA_SVG}
-          alt="Illustration of phylogenetic relationships of SARS-CoV-2 clades, as defined by Nextstrain"
-        />
-      </CladeSchemaPicture>
+      <LinkExternal url={URL_CLADE_SCHEMA_SVG}>
+        <CladeSchemaPicture className="w-100 figure-img">
+          <img
+            src={URL_CLADE_SCHEMA_SVG}
+            alt="Illustration of phylogenetic relationships of SARS-CoV-2 clades, as defined by Nextstrain"
+          />
+        </CladeSchemaPicture>
+      </LinkExternal>
       <CladeSchemaFigcaption>
         <small>
           {t('Fig.1. Illustration of phylogenetic relationships of SARS-CoV-2 clades, as defined by Nextstrain')}
