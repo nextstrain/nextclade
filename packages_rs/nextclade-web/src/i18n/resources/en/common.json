@@ -280,6 +280,7 @@
   "sidebar:Filter Data": "sidebar:Filter Data",
   "sidebar:Tree Options": "sidebar:Tree Options",
   "Some of the adblocking browser extensions (AdBlock, uBlock, Privacy Badger and others) and privacy-oriented browsers (such as Brave) are known to prevent {{appName}} from making network requests to other servers. {{appName}} respects your privacy, does not serve ads or collects personal data. All computation is done inside your browser. You can safely disable adblockers on {{domain}} and/or allow {{domain}} to make network requests to your data source server.": "Some of the adblocking browser extensions (AdBlock, uBlock, Privacy Badger and others) and privacy-oriented browsers (such as Brave) are known to prevent {{appName}} from making network requests to other servers. {{appName}} respects your privacy, does not serve ads or collects personal data. All computation is done inside your browser. You can safely disable adblockers on {{domain}} and/or allow {{domain}} to make network requests to your data source server.",
+  "source": "source",
   "Source code": "Source code",
   "Starting {{numWorkers}} threads...": "Starting {{numWorkers}} threads...",
   "Stop codons": "Stop codons",

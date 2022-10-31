@@ -324,5 +324,6 @@
   " or writing an email to ": " of een e-mail schrijven naar ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Je kunt het rapporteren aan ontwikkelaars door een verzoek (zogenaamd{{issue}}) aan te maken op: ",
   "Aminoacid changes ({{count}})": "Veranderingen in aminozuur ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Nucleotide-veranderingen in de buurt ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Nucleotide-veranderingen in de buurt ({{count}})",
+  "source": "bron"
 }

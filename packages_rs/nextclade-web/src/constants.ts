@@ -27,6 +27,9 @@ export const URL_GITHUB_ISSUES_FRIENDLY = 'github.com/nextstrain/nextclade/issue
 export const URL_GITHUB_CHANGELOG = 'https://github.com/nextstrain/nextclade/blob/release/packages/web/CHANGELOG.md'
 export const URL_GITHUB_COMMITS = 'https://github.com/nextstrain/nextclade/commits/release'
 
+export const URL_CLADE_SCHEMA_REPO = 'https://github.com/nextstrain/ncov-clades-schema/'
+export const URL_CLADE_SCHEMA_SVG = 'https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg'
+
 export const SUPPORT_EMAIL = 'hello@nextstrain.org'
 
 export const TWITTER_USERNAME_RAW = 'nextstrain' as const

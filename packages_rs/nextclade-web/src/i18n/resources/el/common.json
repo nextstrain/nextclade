@@ -324,5 +324,6 @@
   " or writing an email to ": " ή γράφοντας ένα email στο ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Μπορείτε να το αναφέρετε στους προγραμματιστές δημιουργώντας ένα αίτημα (το λεγόμενο {{issue}}) στη διεύθυνση: ",
   "Aminoacid changes ({{count}})": "Μεταβολές των αμινοξέων ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Νουκλεοτιδίων αλλαγές σε κοντινή απόσταση ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Νουκλεοτιδίων αλλαγές σε κοντινή απόσταση ({{count}})",
+  "source": "πηγής"
 }

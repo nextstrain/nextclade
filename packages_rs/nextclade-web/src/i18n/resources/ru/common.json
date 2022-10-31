@@ -324,5 +324,6 @@
   " or writing an email to ": " или написав электронное письмо ",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "Вы можете сообщить об этом разработчикам, создав запрос (так называемый{{issue}}) по адресу: ",
   "Aminoacid changes ({{count}})": "Аминокислотные изменения ({{count}})",
-  "Nucleotide changes nearby ({{count}})": "Нуклеотидные изменения поблизости ({{count}})"
+  "Nucleotide changes nearby ({{count}})": "Нуклеотидные изменения поблизости ({{count}})",
+  "source": "источник"
 }
