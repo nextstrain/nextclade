@@ -13,48 +13,35 @@ use itertools::Itertools;
 use log::warn;
 use std::fmt::Debug;
 use std::hash::Hash;
+use std::io::Read;
 use std::path::Path;
 
-pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
-  let filename = filename.as_ref();
-  read_gff3_file_impl(&filename).wrap_err_with(|| format!("When reading GFF3 file '{filename:?}'"))
-}
-
-fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
+/// Read GFF3 records given a file
+pub fn read_gff3_file<P: AsRef<Path>>(filename: P) -> Result<GeneMap, Report> {
   let filename = filename.as_ref();
   let mut reader = GffReader::from_file(&filename, GffType::GFF3).map_err(|report| eyre!(report))?;
-
-  let records = reader
-    .records()
-    .map(to_eyre_error)
-    .collect::<Result<Vec<GffRecord>, Report>>()?;
-
-  process_gff_records(&records)
+  process_gff_records(&mut reader).wrap_err_with(|| format!("When reading GFF3 file '{filename:?}'"))
 }
 
+/// Read GFF3 records given a string
 pub fn read_gff3_str(content: &str) -> Result<GeneMap, Report> {
-  read_gff3_str_impl(content).wrap_err("When reading GFF3 file")
+  let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
+  process_gff_records(&mut reader).wrap_err("When reading GFF3 file")
 }
 
-fn read_gff3_str_impl(content: &str) -> Result<GeneMap, Report> {
-  let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
-
+/// Read GFF3 records and convert them into the internal representation
+fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<GeneMap, Report> {
   let records = reader
     .records()
     .map(to_eyre_error)
     .collect::<Result<Vec<GffRecord>, Report>>()?;
 
-  process_gff_records(&records)
-}
-
-/// Converts GFF3 records into the internal representation
-fn process_gff_records(records: &[GffRecord]) -> Result<GeneMap, Report> {
   if records.is_empty() {
     return make_error!("Gene map is empty. This is not allowed.");
   }
 
-  let gene_records = get_records_by_feature_type(records, "gene");
-  let cds_records = get_records_by_feature_type(records, "cds");
+  let gene_records = get_records_by_feature_type(&records, "gene");
+  let cds_records = get_records_by_feature_type(&records, "cds");
 
   let genes = extract_hierarchy_of_genes_and_cdses(&gene_records, &cds_records)?;
 
