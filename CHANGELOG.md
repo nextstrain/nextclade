@@ -1,3 +1,15 @@
+## Nextclade Web 2.8.1 (2022-11-01)
+
+### Fix translated (internationalized) text on Tree page
+
+We fixed some of the text labels on Tree page in Nextclade Web. Additionally, the page is now translated to more languages.
+
+
+### Hotlink clade schema
+
+The Nextstrain clade schema for SARS-CoV-2 on main page is now taken directly from [ncov-clades-schema](https://github.com/nextstrain/ncov-clades-schema) project and is updated automatically whenever the source updates.
+
+
 ## Nextclade Web 2.8.0, Nextclade CLI 2.8.0 (2022-10-20)
 
 ### Community datasets in Nextclade Web
