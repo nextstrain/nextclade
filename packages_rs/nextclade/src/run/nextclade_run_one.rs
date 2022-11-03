@@ -175,6 +175,8 @@ pub fn nextclade_run_one(
         Some(PhenotypeValue {
           name: name.clone(),
           gene: gene.clone(),
+          name_friendly: name_friendly.clone(),
+          description: description.clone(),
           value: phenotype,
         })
       })
