@@ -175,8 +175,6 @@ pub fn nextclade_run_one(
         Some(PhenotypeValue {
           name: name.clone(),
           gene: gene.clone(),
-          name_friendly: name_friendly.clone(),
-          description: description.clone(),
           value: phenotype,
         })
       })
@@ -192,7 +190,7 @@ pub fn nextclade_run_one(
         name_friendly: "Composite fitness".to_owned(),
         description: "".to_owned(),
         gene: binding.gene.clone(),
-        value: 1.2 * escape.value + 0.5 * binding.value,
+        value: 1.0 * escape.value + 0.15 * binding.value,
       });
     }
   }
