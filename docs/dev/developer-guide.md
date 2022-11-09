@@ -83,6 +83,9 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # Add Rust tools to the $PATH
 export PATH="$PATH:$HOME/.cargo/bin"
 
+# Prepare dotenv file with default values
+cp .env.example .env
+
 # Install wasm-pack
 cargo install wasm-pack
 
