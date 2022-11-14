@@ -329,6 +329,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c676a478f63e9fa2dd5368a42f28bba0d6c560b775f38583c8bbaa7fcd67c9c"
 
 [[package]]
+name = "bytemuck"
+version = "1.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aaa3a8d9a1ca92e282c96a32d6511b695d7d994d1d102ba85d279f9b2756947f"
+
+[[package]]
 name = "byteorder"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1404,7 +1410,23 @@ dependencies = [
  "num-traits",
  "rand",
  "rand_distr",
- "simba",
+ "simba 0.5.1",
+ "typenum",
+]
+
+[[package]]
+name = "nalgebra"
+version = "0.31.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0eef2ccf9aefdae3334ad5911b5414724b9047bfe145b3353d5878732cc7b86b"
+dependencies = [
+ "approx",
+ "matrixmultiply",
+ "nalgebra-macros",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "simba 0.7.3",
  "typenum",
 ]
 
@@ -1468,6 +1490,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "log",
+ "nalgebra 0.31.3",
  "num",
  "num-traits",
  "num_cpus",
@@ -2210,6 +2233,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3f6f92acf49d1b98f7a81226834412ada05458b7364277387724a237f062695"
 
 [[package]]
+name = "safe_arch"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "794821e4ccb0d9f979512f9c1973480123f9bd62a90d74ab0f9426fcf8f4a529"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2412,6 +2444,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "simba"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f3fd720c48c53cace224ae62bef1bbff363a70c68c4802a78b5cc6159618176"
+dependencies = [
+ "approx",
+ "num-complex",
+ "num-traits",
+ "paste",
+ "wide",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2460,7 +2505,7 @@ checksum = "05bdbb8e4e78216a85785a85d3ec3183144f98d0097b9281802c019bb07a6f05"
 dependencies = [
  "approx",
  "lazy_static",
- "nalgebra",
+ "nalgebra 0.27.1",
  "num-traits",
  "rand",
 ]
@@ -3106,6 +3151,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44d8de8415c823c8abd270ad483c6feeac771fad964890779f9a8cb24fbbc1bf"
 dependencies = [
  "webpki",
+]
+
+[[package]]
+name = "wide"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae41ecad2489a1655c8ef8489444b0b113c0a0c795944a3572a0931cf7d2525c"
+dependencies = [
+ "bytemuck",
+ "safe_arch",
 ]
 
 [[package]]

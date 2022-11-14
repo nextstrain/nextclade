@@ -90,68 +90,68 @@ pub fn calculate_distance(
   total_muts_1 + total_muts_2 - 2 * shared_differences - shared_sites - undetermined_sites
 }
 
-pub fn calculate_distance_matrix(
-  fasta : &FastaRecord, 
-  ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
-  gene_map: &GeneMap,
-  primers: &[PcrPrimer],
-  tree: &AuspiceTree,
-  qc_config: &QcConfig,
-  virus_properties: &VirusProperties,
-  gap_open_close_nuc: &[i32],
-  gap_open_close_aa: &[i32],
-  params: &AlignPairwiseParams,
-) -> Result<DMatrix<i64>, Report> {
+// pub fn calculate_distance_matrix(
+//   fasta : &FastaRecord, 
+//   ref_seq: &[Nuc],
+//   ref_peptides: &TranslationMap,
+//   gene_map: &GeneMap,
+//   primers: &[PcrPrimer],
+//   tree: &AuspiceTree,
+//   qc_config: &QcConfig,
+//   virus_properties: &VirusProperties,
+//   gap_open_close_nuc: &[i32],
+//   gap_open_close_aa: &[i32],
+//   params: &AlignPairwiseParams,
+// ) -> Result<DMatrix<i64>, Report> {
 
-  let mut record_values = HashMap::new();
-  let mut reader = FastaReader::from_paths(fasta).unwrap();
-  let mut k = 0;
-  loop {
-    let mut record = FastaRecord::default();
-    reader.read(&mut record).unwrap();
-    if record.is_empty() {
-      break;
-    }
-    let qry_seq = to_nuc_seq(&record.seq).expect("tree builder: failed");
-    let nao = nextalign_run_one(
-      record.index,
-      &record.seq_name,
-      &qry_seq,
-      ref_seq,
-      ref_peptides,
-      gene_map,
-      gap_open_close_nuc,
-      gap_open_close_aa,
-      params,
-    ).expect("tree builder: alignment failed");
+//   let mut record_values = HashMap::new();
+//   let mut reader = FastaReader::from_paths(fasta).unwrap();
+//   let mut k = 0;
+//   loop {
+//     let mut record = FastaRecord::default();
+//     reader.read(&mut record).unwrap();
+//     if record.is_empty() {
+//       break;
+//     }
+//     let qry_seq = to_nuc_seq(&record.seq).expect("tree builder: failed");
+//     let nao = nextalign_run_one(
+//       record.index,
+//       &record.seq_name,
+//       &qry_seq,
+//       ref_seq,
+//       ref_peptides,
+//       gene_map,
+//       gap_open_close_nuc,
+//       gap_open_close_aa,
+//       params,
+//     ).expect("tree builder: alignment failed");
 
-    let nuc_changes = find_nuc_changes(&nao.stripped.qry_seq, &nao.stripped.ref_seq);
+//     let nuc_changes = find_nuc_changes(&nao.stripped.qry_seq, &nao.stripped.ref_seq);
     
-    let missing = find_letter_ranges(&nao.stripped.qry_seq, Nuc::N);
-    record_values.insert(k, (nuc_changes.substitutions, missing, nuc_changes.alignment_range));
-    k += 1;
-  }
-  let mut distance_matrix = DMatrix::zeros(record_values.keys().len(), record_values.keys().len());
-  for i in 0..record_values.keys().len() {
-    for j in 0..record_values.keys().len() {
-      if i == j {
-        distance_matrix[(i, j)] = 0;
-        continue;
-      }
-      if i >j{
-        continue;
-      }
+//     let missing = find_letter_ranges(&nao.stripped.qry_seq, Nuc::N);
+//     record_values.insert(k, (nuc_changes.substitutions, missing, nuc_changes.alignment_range));
+//     k += 1;
+//   }
+//   let mut distance_matrix = DMatrix::zeros(record_values.keys().len(), record_values.keys().len());
+//   for i in 0..record_values.keys().len() {
+//     for j in 0..record_values.keys().len() {
+//       if i == j {
+//         distance_matrix[(i, j)] = 0;
+//         continue;
+//       }
+//       if i >j{
+//         continue;
+//       }
 
-      let dist = calculate_distance(&record_values[i][0], &record_values[i][1],&record_values[j][0],
-        &record_values[j][1], &record_values[j][2]);
+//       let dist = calculate_distance(&record_values[i][0], &record_values[i][1],&record_values[j][0],
+//         &record_values[j][1], &record_values[j][2]);
 
-      distance_matrix[(i, j)] = dist;
-      distance_matrix[(j, i)] = dist;
-    }
-  }
-  Ok(distance_matrix)
-}
+//       distance_matrix[(i, j)] = dist;
+//       distance_matrix[(j, i)] = dist;
+//     }
+//   }
+//   Ok(distance_matrix)
+// }
 
 pub fn tree_builder_run_one(
   index: usize,
@@ -204,3 +204,4 @@ pub fn tree_builder_run_one(
   
   dist
 }
+

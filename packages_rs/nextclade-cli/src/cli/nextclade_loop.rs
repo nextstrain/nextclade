@@ -10,7 +10,7 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional};
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
@@ -295,3 +295,5 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   Ok(())
 }
+
+
