@@ -95,7 +95,7 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | aaSubstitutions                                 | List of detected aminoacid substitutions                                                                   |
 | aaDeletions                                     | List of detected aminoacid deletions                                                                       |
 | aaInsertions                                    | List of detected aminoacid insertions                                                                      | 
-| missing                                         | List of detected nucleotide insertions                                                                     |
+| missing                                         | List of detected N nucleotides                                                                             |
 | nonACGTNs                                       | List of detected ambiguous nucleotides                                                                     |
 | pcrPrimerChanges                                | List of detected PCR primer changes                                                                        |
 | alignmentScore                                  | Alignment score                                                                                            |
