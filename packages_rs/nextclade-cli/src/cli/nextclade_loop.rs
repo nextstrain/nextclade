@@ -22,7 +22,6 @@ use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
-use nextclade::tree::tree_builder::tree_builder_run_one;
 use nextclade::types::outputs::NextcladeOutputs;
 use serde::de::value::SeqAccessDeserializer;
 use std::path::PathBuf;
@@ -202,31 +201,6 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
             )
           });
 
-          //just to check output
-          let seq_name1 = seq_name.clone();
-          let seq1 = seq.clone();
-          let qry_seq1 = to_nuc_seq(&seq1).expect("tree builder: failed");
-          for FastaRecord { seq_name, seq, index } in &fasta_receiver {
-            let seq2 = to_nuc_seq(&seq).expect("tree builder: failed");
-            let dist = tree_builder_run_one(
-              index,
-              &seq_name1,
-              &seq_name,
-              &qry_seq1,
-              &seq2,
-              ref_seq,
-              ref_peptides,
-              gene_map,
-              primers,
-              tree,
-              qc_config,
-              virus_properties,
-              gap_open_close_nuc,
-              gap_open_close_aa,
-              alignment_params,
-            );
-            println!("{}", dist);
-          }
 
           let record = NextcladeRecord {
             index,
