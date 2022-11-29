@@ -14,7 +14,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
 use serde_json::json;
-use crate::tree::tree_builder::{calculate_distance_matrix, calculate_q};
+use crate::tree::tree_builder::{calculate_distance_matrix, build_subtree};
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
@@ -58,8 +58,8 @@ fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, res
 
 fn attach_new_nodes(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs], positions: &Vec<usize>) {
   //compute subtree
-  let dist_matrix = calculate_distance_matrix(node, results, positions);
-  let q = calculate_q(&dist_matrix); 
+  let mut dist_matrix = calculate_distance_matrix(node, results, positions);
+  dist_matrix = build_subtree(dist_matrix);
   //attach subtree to node
   for v in positions{
     let pos = if let Some(pos) = results.get(*v) { pos } else { todo!() };

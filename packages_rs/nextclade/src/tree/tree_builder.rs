@@ -36,13 +36,15 @@ use eyre::Report;
 use itertools::Itertools;
 use nalgebra::{DMatrix, DVector};
 //use ndarray::prelude::*;
+use rand::Rng;
+use std::cmp;
 use crate::tree::tree_find_nearest_node::tree_calculate_node_distance;
 
 /// Calculates distance metric between two query samples
 pub fn calculate_distance_results(
   seq1: &NextcladeOutputs,
   seq2: &NextcladeOutputs,
-) -> i64 {
+) -> f64 {
   let total_mut_1 = (seq1.total_substitutions) as i64;
   let total_mut_2 = (seq2.total_substitutions) as i64;
   let mut shared_differences = 0_i64;
@@ -78,12 +80,12 @@ pub fn calculate_distance_results(
     //   }
     // }
   }
-  let dist = total_mut_1 + total_mut_2 -2*shared_differences - shared_sites -undetermined_sites;
+  let dist = (total_mut_1 + total_mut_2 -2*shared_differences - shared_sites -undetermined_sites) as f64;
 
   dist
 }
 
-pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[NextcladeOutputs], positions : &Vec<usize>) -> DMatrix<i64>
+pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[NextcladeOutputs], positions : &Vec<usize>) -> DMatrix<f64>
 {
   let size = positions.len();
   // TODO: add ancestor and children to the distance matrix
@@ -98,7 +100,7 @@ pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[Nextcla
     let results1 = if let Some(pos) = results.get(v1) { pos } else { todo!() };
     let arr = results1.substitutions.iter().map(|x| x.sub.clone()).collect::<Vec<NucSub>>();
     let dist_to_node = tree_calculate_node_distance(
-      node, &arr, &results1.missing, &Range::new(results1.alignment_start, results1.alignment_end));
+      node, &arr, &results1.missing, &Range::new(results1.alignment_start, results1.alignment_end)) as f64;
     distance_matrix[(i+1, 0)] = dist_to_node;
     distance_matrix[(0, i+1)] = dist_to_node;
     //distance_matrix[[i+1, 0]] = dist_to_node;
@@ -133,13 +135,113 @@ pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[Nextcla
 //   q
 // }
 
-pub fn calculate_q(distance_matrix: &DMatrix<i64>) -> DMatrix<i64>
+pub fn calculate_q(distance_matrix: &DMatrix<f64>) -> DMatrix<f64>
 {
   let n = distance_matrix.nrows();
-  let scalar = (n-2) as i64;
-  let col_sum_matrix = distance_matrix.row_sum_tr()*DMatrix::from_element(1,n, 1);
+  let scalar = (n-2) as f64;
+  let col_sum_matrix = distance_matrix.row_sum_tr()*DMatrix::from_element(1,n, 1.0);
   let row_sum_matrix = col_sum_matrix.transpose();
   let q = scalar*distance_matrix - row_sum_matrix - col_sum_matrix;
 
   q
+}
+
+#[derive(Eq, PartialEq, Hash)]
+#[derive(Clone, Copy)]
+pub enum NodeType<'a>{
+    TreeNode(&'a str),
+    NewSeqNode(&'a usize),
+    NewInternalNode(&'a usize),
+}
+
+
+pub fn argmin(q : &DMatrix<f64>) -> (usize, usize){
+  let min_val = q.min();
+  let mut j : usize = 0;
+  let mut i = 0;
+  for n in q.column_iter(){
+    let min_i = n.argmin();
+    if min_val == min_i.1{
+      i = min_i.0;
+      break;
+    }
+    j +=1;
+  }
+
+  (i,j)
+}
+
+// pub fn build_subtree(distance_matrix: &mut DMatrix<i64>, element_order: &mut Vec<NodeType>){
+//   let n = distance_matrix.nrows();
+//   if n>2{
+//     let mut q = calculate_q(&distance_matrix); 
+//     let big_number = i64::MAX;
+//     q.fill_diagonal(big_number);
+//     // get location and value of minimum -> which nodes to be joined
+//     let min_val = q.min();
+//     let pos = argmin(&q, min_val);
+
+//     //let mut rng = rand::thread_rng();
+//     //let rand_usize = rng.gen();
+//     let new_node_index = NodeType::NewInternalNode(&1);
+//     //let new_entry = new_internal_nodes.entry(&new_node_index).or_default();
+//     //new_entry.push(&element_order[pos[0]]);
+
+//     // calculate distance of other nodes to new node 
+//     let d1=  distance_matrix.row(cmp::min(pos[0], pos[1]));
+//     let d2 =  distance_matrix.row(cmp::max(pos[0], pos[1])); 
+//     let d_new = min_val*DMatrix::from_element(1,n, 1);
+//     let dist_new_node = (1/2)*(d1 + d2- d_new);
+
+//     // calculate first node to be replaced with new node
+//     for row in 0..n {
+//       *distance_matrix.index_mut((row, cmp::min(pos[0], pos[1]))) = dist_new_node[row];
+//       *distance_matrix.index_mut((cmp::min(pos[0], pos[1]), row)) = dist_new_node[row];
+//     }
+//     *distance_matrix.index_mut((cmp::min(pos[0], pos[1]), cmp::min(pos[0], pos[1]))) = 0;
+    
+//     // remove second node from distance matrix
+//     //distance_matrix.remove_row(cmp::max(pos[0], pos[1]));
+//     //distance_matrix.remove_column(cmp::max(pos[0], pos[1]));
+
+//     // change element_order
+//     element_order.insert(cmp::min(pos[0], pos[1]), new_node_index);
+//     element_order.remove(cmp::max(pos[0], pos[1]));
+
+//     build_subtree(distance_matrix, element_order)
+//   }
+// }
+
+pub fn build_subtree(mut distance_matrix: DMatrix<f64>) -> DMatrix<f64>{
+  let n = distance_matrix.nrows();
+  if n>2{
+    let mut q = calculate_q(&distance_matrix); 
+    let big_number = f64::MAX;
+    q.fill_diagonal(big_number);
+    // get location and value of minimum -> which nodes to be joined
+    let pos = argmin(&q);
+
+    // calculate distance of other nodes to new node 
+    let d1=  distance_matrix.row(cmp::min(pos.0, pos.1)).clone();
+    let d2 =  distance_matrix.row(cmp::max(pos.0, pos.1)).clone(); 
+    let min_pos = cmp::min(pos.0, pos.1);
+    let min_d_val = distance_matrix[pos].clone();
+    let d_new = min_d_val*DMatrix::from_element(1,n, 1.0);
+    let scalar = 0.5;
+    let dist_new_node = scalar*(d1 + d2- d_new.clone());
+    let dist_new_node_col = scalar*(d1.transpose() + d2.transpose()- d_new.transpose()); 
+
+    // calculate first node to be replaced with new node
+    distance_matrix.set_row(cmp::min(pos.0, pos.1), &dist_new_node);
+    distance_matrix.set_column(cmp::min(pos.0, pos.1), &dist_new_node_col);
+    
+    // remove second node from distance matrix
+    distance_matrix = distance_matrix.remove_row(cmp::max(pos.0, pos.1));
+    distance_matrix = distance_matrix.remove_column(cmp::max(pos.0, pos.1));
+
+    build_subtree(distance_matrix)
+  }
+  else{
+    return distance_matrix;
+  }
 }
