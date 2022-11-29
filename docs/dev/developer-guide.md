@@ -64,6 +64,38 @@ cargo build --release --bin=nextclade
 
 ```
 
+### Notes on debugging Nextclade rust packages in VSCode
+
+VSCode for rust is still in development, https://code.visualstudio.com/docs/languages/rust gives an overview of basic debugging in VSCode and all requirements.
+
+When debugging in `nextclade` it is very useful to be able to run nextclade CLI commands with breakpoints in the code. 
+In order to do this you need to add a configuration to your `launch.json` file (opened when you click the `add configuration` option in your `Run and Debug` drop-down menu) - below is an example configuration of the `run` command from above. Add breakpoints in the script, build `nextclade` and then choose the "debug nextclade run" option and press the green "start debugging" arrow. 
+
+```
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug nextclade run",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/target/debug/nextclade",
+            "args": [
+                "run",
+                "data/sars-cov-2/sequences.fasta",
+                "--input-dataset=data/sars-cov-2",
+                "--output-fasta=out/nextclade.aligned.fasta",
+                "--output-tsv=out/nextclade.tsv",
+                "--output-tree=out/nextclade.tree.json",
+                "--in-order",
+                "--include-reference",
+            ],
+            "cwd": "${workspaceRoot}",
+        }
+    ]
+}
+```
+
 ### Nextclade Web
 
 Nextclade Web is a React Typescript application, which relies on Nextclade WebAssembly (wasm) module to perform the computation.
