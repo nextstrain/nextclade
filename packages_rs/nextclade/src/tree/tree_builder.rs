@@ -36,9 +36,16 @@ use eyre::Report;
 use itertools::Itertools;
 use nalgebra::{DMatrix, DVector};
 //use ndarray::prelude::*;
-use rand::Rng;
+//use rand::{distributions::Alphanumeric, Rng};
+use rand::distributions::{Alphanumeric, DistString};
 use std::cmp;
 use crate::tree::tree_find_nearest_node::tree_calculate_node_distance;
+use std::{
+  sync::atomic::{AtomicUsize, Ordering},
+  thread,
+};
+
+static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 /// Calculates distance metric between two query samples
 pub fn calculate_distance_results(
@@ -146,14 +153,39 @@ pub fn calculate_q(distance_matrix: &DMatrix<f64>) -> DMatrix<f64>
   q
 }
 
-#[derive(Eq, PartialEq, Hash)]
-#[derive(Clone, Copy)]
-pub enum NodeType<'a>{
-    TreeNode(&'a str),
-    NewSeqNode(&'a usize),
-    NewInternalNode(&'a usize),
+
+#[derive(Debug)]
+pub struct NewInternalNode(usize);
+
+impl NewInternalNode {
+    pub fn new() -> Self {
+      NewInternalNode(OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst))
+    }
 }
 
+#[derive(Debug)]
+pub struct NewSeqNode(usize);
+
+impl NewSeqNode {
+    pub fn new(pos: usize) -> Self {
+      NewSeqNode(pos)
+    }
+}
+
+#[derive(Debug)]
+pub struct TreeNode(usize);
+
+impl TreeNode {
+    pub fn new(pos: usize) -> Self {
+      TreeNode(pos)
+    }
+}
+
+pub enum NodeType{
+  TreeNode(TreeNode),
+  NewSeqNode(NewSeqNode),
+  NewInternalNode(NewInternalNode),
+}
 
 pub fn argmin(q : &DMatrix<f64>) -> (usize, usize){
   let min_val = q.min();
@@ -171,48 +203,7 @@ pub fn argmin(q : &DMatrix<f64>) -> (usize, usize){
   (i,j)
 }
 
-// pub fn build_subtree(distance_matrix: &mut DMatrix<i64>, element_order: &mut Vec<NodeType>){
-//   let n = distance_matrix.nrows();
-//   if n>2{
-//     let mut q = calculate_q(&distance_matrix); 
-//     let big_number = i64::MAX;
-//     q.fill_diagonal(big_number);
-//     // get location and value of minimum -> which nodes to be joined
-//     let min_val = q.min();
-//     let pos = argmin(&q, min_val);
-
-//     //let mut rng = rand::thread_rng();
-//     //let rand_usize = rng.gen();
-//     let new_node_index = NodeType::NewInternalNode(&1);
-//     //let new_entry = new_internal_nodes.entry(&new_node_index).or_default();
-//     //new_entry.push(&element_order[pos[0]]);
-
-//     // calculate distance of other nodes to new node 
-//     let d1=  distance_matrix.row(cmp::min(pos[0], pos[1]));
-//     let d2 =  distance_matrix.row(cmp::max(pos[0], pos[1])); 
-//     let d_new = min_val*DMatrix::from_element(1,n, 1);
-//     let dist_new_node = (1/2)*(d1 + d2- d_new);
-
-//     // calculate first node to be replaced with new node
-//     for row in 0..n {
-//       *distance_matrix.index_mut((row, cmp::min(pos[0], pos[1]))) = dist_new_node[row];
-//       *distance_matrix.index_mut((cmp::min(pos[0], pos[1]), row)) = dist_new_node[row];
-//     }
-//     *distance_matrix.index_mut((cmp::min(pos[0], pos[1]), cmp::min(pos[0], pos[1]))) = 0;
-    
-//     // remove second node from distance matrix
-//     //distance_matrix.remove_row(cmp::max(pos[0], pos[1]));
-//     //distance_matrix.remove_column(cmp::max(pos[0], pos[1]));
-
-//     // change element_order
-//     element_order.insert(cmp::min(pos[0], pos[1]), new_node_index);
-//     element_order.remove(cmp::max(pos[0], pos[1]));
-
-//     build_subtree(distance_matrix, element_order)
-//   }
-// }
-
-pub fn build_subtree(mut distance_matrix: DMatrix<f64>) -> DMatrix<f64>{
+pub fn build_subtree(mut distance_matrix: DMatrix<f64>, mut element_order: Vec<NodeType>) -> (DMatrix<f64>, Vec<NodeType>){
   let n = distance_matrix.nrows();
   if n>2{
     let mut q = calculate_q(&distance_matrix); 
@@ -239,9 +230,20 @@ pub fn build_subtree(mut distance_matrix: DMatrix<f64>) -> DMatrix<f64>{
     distance_matrix = distance_matrix.remove_row(cmp::max(pos.0, pos.1));
     distance_matrix = distance_matrix.remove_column(cmp::max(pos.0, pos.1));
 
-    build_subtree(distance_matrix)
+    // change element_order
+    //let mut rng = rand::thread_rng();
+    //let rand_usize = rng.gen();
+    //let new_node_index = NodeType::NewInternalNode(&rand_usize);
+    let o1 = NewInternalNode::new();
+    //let new_node_index = NodeType::NewInternalNode(&o1.0);
+    element_order.insert(cmp::min(pos.0, pos.1), NodeType::NewInternalNode(o1));
+    let pos_to_remove = cmp::max(pos.0, pos.1);
+    element_order.remove(cmp::min(pos.0, pos.1)+1);
+    element_order.remove(cmp::max(pos.0, pos.1));
+
+    build_subtree(distance_matrix, element_order)
   }
   else{
-    return distance_matrix;
+    return (distance_matrix, element_order);
   }
 }
