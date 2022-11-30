@@ -39,6 +39,7 @@ use nalgebra::{DMatrix, DVector};
 //use rand::{distributions::Alphanumeric, Rng};
 use rand::distributions::{Alphanumeric, DistString};
 use std::cmp;
+use std::hash::Hash;
 use crate::tree::tree_find_nearest_node::tree_calculate_node_distance;
 use std::{
   sync::atomic::{AtomicUsize, Ordering},
@@ -92,8 +93,15 @@ pub fn calculate_distance_results(
   dist
 }
 
-pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[NextcladeOutputs], positions : &Vec<usize>) -> DMatrix<f64>
+pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[NextcladeOutputs], positions : &Vec<usize>) -> (DMatrix<f64>, Vec<NodeType>)
 {
+  // compute element order vector
+  let new_internal = TreeNode::new(node.tmp.id);
+  let mut element_order = vec![NodeType::TreeNode(new_internal)];
+  for v in positions{
+    let new_internal = NewSeqNode::new(*v);
+    element_order.push(NodeType::NewSeqNode(new_internal));
+  }
   let size = positions.len();
   // TODO: add ancestor and children to the distance matrix
   // let mut size = positions.len() + node.children.len() +1;
@@ -128,7 +136,7 @@ pub fn calculate_distance_matrix(node: &mut AuspiceTreeNode, results : &[Nextcla
       }
     }
   }
-  distance_matrix
+  (distance_matrix, element_order)
 }
 
 // pub fn calculate_q(distance_matrix: &Array2<i64>) -> Array2<i64>
@@ -153,8 +161,8 @@ pub fn calculate_q(distance_matrix: &DMatrix<f64>) -> DMatrix<f64>
   q
 }
 
-
-#[derive(Debug)]
+#[derive(Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy)]
 pub struct NewInternalNode(usize);
 
 impl NewInternalNode {
@@ -163,7 +171,8 @@ impl NewInternalNode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy)]
 pub struct NewSeqNode(usize);
 
 impl NewSeqNode {
@@ -172,7 +181,8 @@ impl NewSeqNode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy)]
 pub struct TreeNode(usize);
 
 impl TreeNode {
@@ -181,10 +191,30 @@ impl TreeNode {
     }
 }
 
+#[derive(Clone)]
+#[derive(Eq, Hash, PartialEq, Copy)]
 pub enum NodeType{
   TreeNode(TreeNode),
   NewSeqNode(NewSeqNode),
   NewInternalNode(NewInternalNode),
+}
+
+pub struct Graph<VId, E = ()>{
+  pub adjacency: HashMap<VId, Vec<(VId, E)>>
+}
+
+impl<VId, E> Graph<VId, E>
+where VId: Eq + Hash,
+{
+  pub fn new() -> Graph<VId, E>{
+      Graph { 
+          adjacency: HashMap::new() 
+      }
+  }
+  pub fn push_edge(self : &mut Graph<VId, E>, from:VId, to: VId, edge: E){
+      let adjacent_to_from = self.adjacency.entry(from).or_default();
+      adjacent_to_from.push((to, edge));
+  }
 }
 
 pub fn argmin(q : &DMatrix<f64>) -> (usize, usize){
@@ -203,7 +233,15 @@ pub fn argmin(q : &DMatrix<f64>) -> (usize, usize){
   (i,j)
 }
 
-pub fn build_subtree(mut distance_matrix: DMatrix<f64>, mut element_order: Vec<NodeType>) -> (DMatrix<f64>, Vec<NodeType>){
+pub fn build_undirected_graph(mut distance_matrix: DMatrix<f64>, mut element_order: Vec<NodeType>) -> Graph::<NodeType, f64>{
+
+  let mut g = Graph::<NodeType, f64> {
+    adjacency : HashMap::new(),};
+
+  build_undirected_graph_recursive(distance_matrix, element_order, g)
+}
+
+pub fn build_undirected_graph_recursive(mut distance_matrix: DMatrix<f64>, mut element_order: Vec<NodeType>, mut  g: Graph::<NodeType, f64>) -> Graph::<NodeType, f64>{
   let n = distance_matrix.nrows();
   if n>2{
     let mut q = calculate_q(&distance_matrix); 
@@ -229,21 +267,26 @@ pub fn build_subtree(mut distance_matrix: DMatrix<f64>, mut element_order: Vec<N
     // remove second node from distance matrix
     distance_matrix = distance_matrix.remove_row(cmp::max(pos.0, pos.1));
     distance_matrix = distance_matrix.remove_column(cmp::max(pos.0, pos.1));
-
-    // change element_order
-    //let mut rng = rand::thread_rng();
-    //let rand_usize = rng.gen();
-    //let new_node_index = NodeType::NewInternalNode(&rand_usize);
+    
+    //add to undirected tree (graph)
     let o1 = NewInternalNode::new();
-    //let new_node_index = NodeType::NewInternalNode(&o1.0);
+    g.push_edge(element_order[pos.0], NodeType::NewInternalNode(o1), 2.0);
+    g.push_edge(NodeType::NewInternalNode(o1), element_order[pos.0], 2.0);
+    g.push_edge(element_order[pos.1], NodeType::NewInternalNode(o1), 2.0);
+    g.push_edge(NodeType::NewInternalNode(o1), element_order[pos.1], 2.0);
+
+    // modify element list
     element_order.insert(cmp::min(pos.0, pos.1), NodeType::NewInternalNode(o1));
     let pos_to_remove = cmp::max(pos.0, pos.1);
     element_order.remove(cmp::min(pos.0, pos.1)+1);
     element_order.remove(cmp::max(pos.0, pos.1));
 
-    build_subtree(distance_matrix, element_order)
+    build_undirected_graph_recursive(distance_matrix, element_order, g)
   }
   else{
-    return (distance_matrix, element_order);
+    g.push_edge(element_order[1], element_order[0], 2.0);
+    g.push_edge(element_order[0], element_order[1], 2.0);
+
+    return g;
   }
 }
