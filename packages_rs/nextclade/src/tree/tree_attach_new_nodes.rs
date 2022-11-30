@@ -12,12 +12,14 @@ use crate::tree::tree::{
 };
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
+use assert2::__assert2_impl::print;
 use itertools::Itertools;
 use serde_json::json;
-use crate::tree::tree_builder::{calculate_distance_matrix, build_undirected_graph};
-use crate::tree::tree_builder::{NodeType, NewInternalNode, NewSeqNode, TreeNode, Graph};
+use crate::tree::tree_builder::{calculate_distance_matrix, build_undirected_subtree};
+use crate::{extract_enum_value, tree::tree_builder::{NodeType, NewInternalNode, NewSeqNode, TreeNode, Graph}};
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
   let mut pos_to_attach = HashMap::<usize,Vec<usize>>::new();
@@ -46,7 +48,7 @@ fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, res
   let vec = attachment_positions.get(&node.tmp.id);
   if vec.is_some(){
     let unwrapped_vec = vec.unwrap();
-    if unwrapped_vec.len() >1{
+    if unwrapped_vec.len() >2{
       attach_new_nodes(node, results, unwrapped_vec);
     }else{
       for v in unwrapped_vec{
@@ -62,13 +64,50 @@ fn attach_new_nodes(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs], po
   let dist_results = calculate_distance_matrix(node, results, positions);
   let mut dist_matrix = dist_results.0;
   let mut element_order = dist_results.1;
-  let mut g = build_undirected_graph(dist_matrix, element_order);
+  let mut g = build_undirected_subtree(dist_matrix, element_order);
   //attach subtree to node
-  for v in positions{
-    let pos = if let Some(pos) = results.get(*v) { pos } else { todo!() };
-    attach_new_node(node, pos);
+  let parent_node = NodeType::TreeNode(TreeNode::new(node.tmp.id));
+  let mut seen_elements = HashSet::from([parent_node]);
+  attach_undirected_subtree(node, &parent_node, &g, results, &mut seen_elements);
+}
+
+//attach subtree to node
+fn attach_undirected_subtree(auspice_node: &mut AuspiceTreeNode, graph_node: &NodeType, subtree: &Graph::<NodeType, f64>, results: &[NextcladeOutputs], seen_nodes: &mut HashSet<NodeType>) {
+
+  let nodes_to_attach = subtree.adjacency.get(graph_node);
+
+  for v in nodes_to_attach.unwrap(){
+    let t_n = (*v).0;
+    if seen_nodes.contains(&t_n){
+      continue;
+    }
+    let mut internal_node = auspice_node.clone();
+    if let NodeType::NewSeqNode(_) = t_n {
+      seen_nodes.insert(t_n);
+      let index = extract_enum_value!(t_n, NodeType::NewSeqNode(c) => c);
+      let result = if let Some(pos) = results.get(index.0) { pos } else { todo!() };
+      //add node TODO: add node information
+      internal_node.name= format!("{}_new_subtree", result.seq_name);
+      internal_node.branch_attrs.mutations.clear();
+      internal_node.children.clear();
+      internal_node.node_attrs.div = Some(internal_node.node_attrs.div.unwrap() + 1.0);
+      // Remove other branch attrs like labels to prevent duplication
+      internal_node.branch_attrs.other = serde_json::Value::default();
+    }else if let NodeType::NewInternalNode(_) = t_n {
+      seen_nodes.insert(t_n);
+      let index = extract_enum_value!(t_n, NodeType::NewInternalNode(c) => c);
+      internal_node.name= format!("{}_new_subtree", index.0);
+      internal_node.branch_attrs.mutations.clear();
+      internal_node.children.clear();
+      internal_node.node_attrs.div = Some(internal_node.node_attrs.div.unwrap() + 1.0);
+      // Remove other branch attrs like labels to prevent duplication
+      internal_node.branch_attrs.other = serde_json::Value::default();
+      attach_undirected_subtree(&mut internal_node, &t_n, subtree, results, seen_nodes);
+    }
+    auspice_node.children.push(internal_node);
   }
 }
+
 /// Attaches a new node to the reference tree
 fn attach_new_node(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
   debug_assert!(node.is_ref_node());
@@ -202,4 +241,70 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
   subs.sort();
 
   subs.iter().map(AaSubMinimal::to_string_without_gene).collect_vec()
+}
+
+fn compute_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) -> AuspiceTreeNode {
+  let mutations = convert_mutations_to_node_branch_attrs(result);
+
+  let alignment = format!(
+    "start: {}, end: {} (score: {})",
+    result.alignment_start, result.alignment_end, result.alignment_score
+  );
+
+  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
+    (Some(TreeNodeAttr::new("No")), None)
+  } else {
+    (
+      Some(TreeNodeAttr::new("Yes")),
+      Some(TreeNodeAttr::new(&format_pcr_primer_changes(
+        &result.pcr_primer_changes,
+        ", ",
+      ))),
+    )
+  };
+
+  #[allow(clippy::from_iter_instead_of_collect)]
+  let other = serde_json::Value::from_iter(
+    result
+      .custom_node_attributes
+      .clone()
+      .into_iter()
+      .map(|(key, val)| (key, json!({ "value": val }))),
+  );
+
+  
+  let new_node =   AuspiceTreeNode {
+      name: format!("{}_new", result.seq_name),
+      branch_attrs: TreeBranchAttrs {
+        mutations,
+        other: serde_json::Value::default(),
+      },
+      node_attrs: TreeNodeAttrs {
+        div: Some(result.divergence),
+        clade_membership: TreeNodeAttr::new(&result.clade),
+        node_type: Some(TreeNodeAttr::new("New")),
+        region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        alignment: Some(TreeNodeAttr::new(&alignment)),
+        missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
+        gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
+        non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
+        has_pcr_primer_changes,
+        pcr_primer_changes,
+        missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
+        qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
+        other,
+      },
+      children: vec![],
+      tmp: TreeNodeTempData::default(),
+      other: serde_json::Value::default(),
+    };
+  
+  new_node
+}
+
+fn add_computed_child(node: &mut AuspiceTreeNode, new_node: AuspiceTreeNode){
+  node.children.insert(
+    0, new_node);
 }
