@@ -20,7 +20,7 @@ use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::tree_attach_new_nodes::{tree_attach_new_nodes_in_place, tree_attach_new_nodes_in_place_subtree};
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use serde::de::value::SeqAccessDeserializer;
@@ -263,7 +263,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   });
 
   if let Some(output_tree) = output_tree {
-    tree_attach_new_nodes_in_place(&mut tree, &outputs);
+    tree_attach_new_nodes_in_place_subtree(&mut tree, &outputs, ref_seq, ref_peptides, gene_map, &virus_properties);
     json_write(output_tree, &tree)?;
   }
 
