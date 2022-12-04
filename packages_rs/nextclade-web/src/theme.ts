@@ -112,7 +112,7 @@ export const shadows = {
   },
 }
 
-const uploadZoneBxoShadow = `1px 1px 3px 3px ${rgba(gray700, 0.25)}`
+const uploadZoneBoxShadow = `1px 1px 3px 3px ${rgba(gray700, 0.25)}`
 
 const filePicker = {
   minHeight: '200px',
@@ -143,9 +143,9 @@ export const uploadZone = {
   },
   'box-shadow': {
     normal: 'none',
-    accept: uploadZoneBxoShadow,
-    reject: uploadZoneBxoShadow,
-    hover: uploadZoneBxoShadow,
+    accept: uploadZoneBoxShadow,
+    reject: uploadZoneBoxShadow,
+    hover: uploadZoneBoxShadow,
   },
 }
 
