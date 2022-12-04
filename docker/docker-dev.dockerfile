@@ -120,7 +120,7 @@ RUN set -eux >dev/null \
 RUN set -euxo pipefail >/dev/null \
 && \
   if [ -z "$(getent group ${GID})" ]; then \
-    groupadd --system --gid ${GID} ${GROUP}; \
+    addgroup --system --gid ${GID} ${GROUP}; \
   else \
     groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
   fi \
@@ -135,10 +135,11 @@ RUN set -euxo pipefail >/dev/null \
       --uid ${UID} \
       ${USER}; \
   fi \
-&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
-&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
+&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g' \
+&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD:ALL/g' \
 && sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
-&& echo "foo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+&& echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 && touch ${HOME}/.hushlogin \
 && chown -R ${UID}:${GID} "${HOME}"
 
