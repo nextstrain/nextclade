@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/builder-docker-image.yml
     secrets: inherit
     concurrency:
-      group: builder-docker-image-workflow_call-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+      group: cli-builder-docker-image-workflow_call-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
       cancel-in-progress: true
 
   build-cli:
@@ -58,33 +58,24 @@ jobs:
         run: |
           echo "ENVIRONMENT=release" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "PLAUSIBLE_IO_DOMAIN=clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
         if: endsWith(github.ref, '/staging')
         run: |
           echo "ENVIRONMENT=staging" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "PLAUSIBLE_IO_DOMAIN=staging.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
         if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
         run: |
           echo "ENVIRONMENT=master" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "PLAUSIBLE_IO_DOMAIN=master.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Checkout code"
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
           submodules: true
-
-      - name: "Install dependencies"
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update -qq --yes >/dev/null
-          sudo apt-get install -qq --yes bash >/dev/null
 
       - name: "Get docker build checksum"
         id: docker-build-checksum
@@ -109,11 +100,14 @@ jobs:
           restore-keys: |
             cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-
 
-      - name: "Build CLI (${{ matrix.arch }})"
+      - name: "Prepare .env file"
         run: |
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
           sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+
+      - name: "Build CLI (${{ matrix.arch }})"
+        run: |
           CROSS="${{ matrix.arch }}" ./docker-dev build-release
 
       - name: "Upload artifacts (${{ matrix.arch }})"

@@ -1,0 +1,155 @@
+# Build web app and deploy it
+name: web
+
+on:
+  push:
+    tags:
+    branches:
+
+  pull_request:
+    branches:
+
+  repository_dispatch:
+    types: build
+
+  workflow_dispatch:
+
+  workflow_call:
+
+concurrency:
+  group: web-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+
+jobs:
+
+  builder-docker-image:
+    name: "Run 'builder-docker-image.yml' workflow"
+    uses: ./.github/workflows/builder-docker-image.yml
+    secrets: inherit
+    concurrency:
+      group: web-builder-docker-image-workflow_call-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+      cancel-in-progress: true
+
+  build-web:
+    name: "Build Web"
+    needs: [ builder-docker-image ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Setup environment (release)"
+        if: endsWith(github.ref, '/release')
+        run: |
+          echo "ENVIRONMENT=release" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Setup environment (staging)"
+        if: endsWith(github.ref, '/staging')
+        run: |
+          echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=staging.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Setup environment (master)"
+        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
+        run: |
+          echo "ENVIRONMENT=master" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=master.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-wasm32-unknown-unknown-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-buildx-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .build/
+            .cache/docker/.cargo
+            packages_rs/nextclade-web/.build/docker
+          key: cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-
+
+      - name: "Setup cache for web app"
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages_rs/nextclade-web/.build/production/tmp/cache
+            packages_rs/nextclade-web/.cache
+            packages_rs/nextclade-web/node_modules
+          key: cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|FULL_DOMAIN=autodetect|FULL_DOMAIN=${FULL_DOMAIN}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+
+      - name: "Install Node.js packages"
+        run: |
+          ./docker-dev web yarn install
+
+      - name: "Lint web app code"
+        run: |
+          ./docker-dev web yarn lint
+
+      - name: "Lint Rust code"
+        run: |
+          ./docker-dev lint
+
+      - name: "Build WebAssembly module"
+        run: |
+          ./docker-dev wasm-release
+
+      - name: "Build web app"
+        run: |
+          ./docker-dev web-release
+
+      - name: "Install deploy dependencies"
+#        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+        run: |
+          sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
+
+          pushd /tmp >/dev/null
+            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -oqq awscliv2.zip
+            sudo ./aws/install --update
+          popd >/dev/null
+          aws --version
+
+      - name: "Deploy web app"
+#        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+        run: |
+          ls -al .out/
+#          ./scripts/deploy_web.sh
+
+#      - name: "Invalidate Cloudfront cache"
+#        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+#        run: |
+#          aws cloudfront create-invalidation \
+#            --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
+#            --paths "/*"
