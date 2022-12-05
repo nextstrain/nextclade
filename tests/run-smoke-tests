@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NEXTCLADE=${1:=nextclade}
+export NEXTCLADE
+
+THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+export THIS_DIR
+
+pathogens=(
+  'sars-cov-2'
+  'sars-cov-2-21L'
+  'sars-cov-2-no-recomb'
+  'flu_h1n1pdm_ha'
+  'flu_h3n2_ha'
+  'flu_vic_ha'
+  'flu_yam_ha'
+  'MPXV'
+  'hMPXV'
+  'hMPXV_B1'
+)
+
+export DATASET_DIR="$THIS_DIR/../data_dev"
+export OUT_DIR="$THIS_DIR/../tmp"
+
+${NEXTCLADE} dataset list --quiet >/dev/null
+
+function run_one() {
+  pathogen=$1
+
+  echo "Running '${NEXTCLADE}' for '${pathogen}'"
+
+  ${NEXTCLADE} dataset get --name="$pathogen" --output-dir="$DATASET_DIR/$pathogen"
+
+  ${NEXTCLADE} run --quiet --in-order \
+    --output-all="$OUT_DIR/$pathogen" \
+    --input-dataset="$DATASET_DIR/$pathogen" \
+    "$DATASET_DIR/$pathogen/sequences.fasta"
+}
+export -f run_one
+
+for pathogen in "${pathogens[@]}"; do
+  echo "$pathogen"
+done | parallel --jobs="${#pathogens[@]}" run_one
