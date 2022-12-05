@@ -55,6 +55,24 @@ export function getReferenceKeys() {
 
 const referenceKeys = getReferenceKeys()
 
+export function fixSpaces(s: string) {
+  let fixed = s.replace(/([^ !#$%&()*,.;=_`{}~-]){{/gim, '$1 {{')
+  fixed = fixed.replace(/}}([^ !#$%&()*,./:;=_`{}~-])/gim, '}} $1')
+  fixed = fixed.replace(/ +/gim, ' ')
+  fixed = fixed.replace(/" (.*) "/gim, '"$1"')
+  fixed = fixed.replace(/" (.*)"/gim, '"$1"')
+  fixed = fixed.replace(/"(.*) "/gim, '"$1"')
+  fixed = fixed.replace(/ :/gim, ':')
+  return fixed
+}
+
+const FIXUPS = {
+  '{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}':
+    '{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}',
+  'ID': 'ID',
+  'OK': 'OK',
+}
+
 filepaths.forEach((filepath) => {
   const { json } = readJson(filepath)
   const results = parseLocale(json)
@@ -87,10 +105,17 @@ filepaths.forEach((filepath) => {
 
   const contentFixed = resultsFixed.reduce(
     (result, { reference, localized, localizedFixed }) => {
+      Object.entries(FIXUPS).forEach(([ref, qry]) => {
+        if (reference === ref) {
+          // eslint-disable-next-line no-param-reassign
+          localizedFixed = qry
+        }
+      })
+
       return {
         result: {
           ...result.result,
-          [reference]: localizedFixed ?? localized,
+          [reference]: fixSpaces(localizedFixed ?? localized),
         },
         total: localizedFixed ? result.total + 1 : result.total,
       }
