@@ -93,7 +93,7 @@ export CACHE_DIR_REL=".cache/docker/${PACKAGE_DIR_REL}"
 export CACHE_DIR="$(abspath "${PACKAGE_DIR}/${CACHE_DIR_REL}")"
 
 export NICE="nice -14 ionice -c2 -n3"
-export TIME="/usr/bin/time --quiet -f \"Cmd : %C\nTime: %E\nMem : %M KB\n\""
+export TIME="/usr/bin/time -f \"Cmd : %C\nTime: %E\nMem : %M KB\n\""
 
 export RUST_BACKTRACE="full"
 export COLORBT_SHOW_HIDDEN="0"
@@ -343,15 +343,15 @@ DOCKER_TARGET="dev"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   if [[ "${CROSS}" == *linux-gnu ]]; then
-
     if [[ "${CROSS}" == x86_64-* ]]; then
-      DOCKER_BASE_IMAGE="debian:7.11"
-      CLANG_VERSION="3.5"
+      # 'manylinux2014_x86_64' image is based on 'centos:7.9.2009' and offers build environment with
+      # the best compatibility across target Linux distros
+      DOCKER_BASE_IMAGE="quay.io/pypa/manylinux2014_x86_64"
+      CLANG_VERSION="3.4"
     else
       DOCKER_BASE_IMAGE="debian:9.13"
       CLANG_VERSION="13"
     fi
-
   fi
 
   DOCKER_TARGET="cross-${CROSS}"
@@ -378,6 +378,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="${DOCKER_REPO}" \
     --cache-from="${DOCKER_REPO}:dev" \
     --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
