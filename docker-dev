@@ -490,8 +490,15 @@ fi
 
 mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
+
+ADDITIONAL_DOCKER_RUN_ARGS=""
+if [ -t 1 ]; then
+  ADDITIONAL_DOCKER_RUN_ARGS="${ADDITIONAL_DOCKER_RUN_ARGS} -it"
+fi
+
 # shellcheck disable=SC2086
-${NICE} docker run -it --rm \
+${NICE} docker run --rm \
+  ${ADDITIONAL_DOCKER_RUN_ARGS} \
   --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
