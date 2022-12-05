@@ -52,12 +52,6 @@ jobs:
       - name: "Build image: base"
         run: |
           echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
-
-          DOCKER_IMAGE_VERSION="${{ steps.docker-build-checksum.outputs.checksum }}"
-
-          docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
-
           ./docker-dev docker-image-build-push
 
   build-cross-image:
@@ -109,15 +103,5 @@ jobs:
 
       - name: "Build image (${{ matrix.arch }})"
         run: |
-          CROSS="${{ matrix.arch }}"
-
           echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
-
-          DOCKER_IMAGE_VERSION="${{ steps.docker-build-checksum.outputs.checksum }}"
-
-          docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
-
-          CROSS=${CROSS} ./docker-dev docker-image-build-push
+          CROSS="${{ matrix.arch }}" ./docker-dev docker-image-build-push

@@ -111,19 +111,9 @@ jobs:
 
       - name: "Build CLI (${{ matrix.arch }})"
         run: |
-          CROSS="${{ matrix.arch }}"
-
-          DOCKER_IMAGE_VERSION="${{ steps.docker-build-checksum.outputs.checksum }}"
-
-          docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}" >/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
-
           echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
           echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
-
-          CROSS=${CROSS} ./docker-dev build-release
+          CROSS="${{ matrix.arch }}" ./docker-dev build-release
 
       - name: "Upload artifacts (${{ matrix.arch }})"
         uses: actions/upload-artifact@v3
