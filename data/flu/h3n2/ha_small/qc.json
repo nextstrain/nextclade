@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.2.0",
+  "privateMutations": {
+    "enabled": true,
+    "typical": 5,
+    "cutoff": 15
+  },
+  "missingData": {
+    "enabled": false,
+    "missingDataThreshold": 100,
+    "scoreBias": 10 
+  },
+  "snpClusters": {
+    "enabled": false,
+    "windowSize": 100,
+    "clusterCutOff": 5,
+    "scoreWeight": 50
+  },
+  "mixedSites": {
+    "enabled": true,
+    "mixedSitesThreshold": 4
+  },
+  "frameShifts": {
+    "enabled": true
+  },
+  "stopCodons": {
+    "enabled": true,
+    "ignoredStopCodons": []
+  }
+}
+  

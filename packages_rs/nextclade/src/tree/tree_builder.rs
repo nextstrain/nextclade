@@ -52,29 +52,16 @@ use std::{
 static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 /// Calculates distance metric between two query samples
-pub fn calculate_distance_results(seq1: &NextcladeOutputs, seq2: &NextcladeOutputs) -> f64 {
-  let total_mut_1 = (seq1.total_substitutions) as i64;
-  let total_mut_2 = (seq2.total_substitutions) as i64;
+pub fn calculate_distance_results(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> f64 {
+  let total_mut_1 = subst1.len() as i64;
+  let total_mut_2 = subst2.len() as i64;
   let mut shared_differences = 0_i64;
   let mut shared_sites = 0_i64;
-  let mut undetermined_sites = 0_i64;
-  for qmut1 in &seq1.substitutions {
-    if !is_nuc_sequenced(
-      qmut1.sub.pos,
-      &seq2.missing,
-      &Range::new(seq2.alignment_start, seq2.alignment_end),
-    ) {
-      undetermined_sites += 1;
-    }
-    // for del2 in &seq2.deletions{
-    //   if qmut1.sub.pos >= del2.del.start && qmut1.sub.pos - del2.del.start<= del2.del.length {
-    //     shared_sites += 1;
-    //   }
-    // }
-    for qmut2 in &seq2.substitutions {
-      if qmut1.sub.pos == qmut2.sub.pos {
+  for qmut1 in subst1 {
+    for qmut2 in subst2 {
+      if qmut1.pos == qmut2.pos {
         // position is also mutated in node
-        if qmut1.sub.qry == qmut2.sub.qry {
+        if qmut1.qry == qmut2.qry {
           shared_differences += 1; // the exact mutation is shared between node and seq
         } else {
           shared_sites += 1; // the same position is mutated, but the states are different
@@ -82,21 +69,7 @@ pub fn calculate_distance_results(seq1: &NextcladeOutputs, seq2: &NextcladeOutpu
       }
     }
   }
-  for qmut2 in &seq2.substitutions {
-    if !is_nuc_sequenced(
-      qmut2.sub.pos,
-      &seq1.missing,
-      &Range::new(seq1.alignment_start, seq1.alignment_end),
-    ) {
-      undetermined_sites += 1;
-    }
-    // for del1 in &seq1.deletions{
-    //   if qmut2.sub.pos >= del1.del.start && qmut2.sub.pos - del1.del.start<= del1.del.length {
-    //     shared_sites += 1;
-    //   }
-    // }
-  }
-  let dist = (total_mut_1 + total_mut_2 - 2 * shared_differences - shared_sites - undetermined_sites) as f64;
+  let dist = (total_mut_1 + total_mut_2 - 2 * shared_differences - shared_sites) as f64;
 
   dist
 }
@@ -139,14 +112,15 @@ pub fn calculate_distance_matrix(
     distance_matrix[(0, i + 1)] = dist_to_node;
     //distance_matrix[[i+1, 0]] = dist_to_node;
     //distance_matrix[[0, i+1]] = dist_to_node;
+    let subst1 = &results1.private_nuc_mutations.private_substitutions;
     for j in 0..size {
       if i >= j {
         continue;
       } else {
         let v2 = positions[j];
         let results2 = if let Some(pos) = results.get(v2) { pos } else { todo!() };
-
-        let dist = calculate_distance_results(results1, results2);
+        let subst2 = &results2.private_nuc_mutations.private_substitutions;
+        let dist = calculate_distance_results(subst1, subst2);
         distance_matrix[(i + 1, j + 1)] = dist;
         distance_matrix[(j + 1, i + 1)] = dist;
         //distance_matrix[[i+1, j+1]] = dist;
@@ -171,9 +145,10 @@ pub fn calculate_distance_matrix(
 pub fn calculate_q(distance_matrix: &DMatrix<f64>) -> DMatrix<f64> {
   let n = distance_matrix.nrows();
   let scalar = (n - 2) as f64;
+  let factor: f64 = 0.5;
   let col_sum_matrix = distance_matrix.row_sum_tr() * DMatrix::from_element(1, n, 1.0);
   let row_sum_matrix = col_sum_matrix.transpose();
-  let q = scalar * distance_matrix - row_sum_matrix - col_sum_matrix;
+  let q = scalar * distance_matrix - factor*row_sum_matrix - factor*col_sum_matrix;
 
   q
 }
@@ -189,29 +164,29 @@ macro_rules! extract_enum_value {
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Copy)]
-pub struct NewInternalNode(pub usize);
+pub struct NewInternalNode(pub usize, pub usize);
 
 impl NewInternalNode {
   pub fn new() -> Self {
-    NewInternalNode(OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst))
+    NewInternalNode(OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst), 1)
   }
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Copy)]
-pub struct NewSeqNode(pub usize);
+pub struct NewSeqNode(pub usize, pub usize);
 
 impl NewSeqNode {
   pub fn new(pos: usize) -> Self {
-    NewSeqNode(pos)
+    NewSeqNode(pos, 2)
   }
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Copy)]
-pub struct TreeNode(pub usize);
+pub struct TreeNode(pub usize, pub usize);
 
 impl TreeNode {
   pub fn new(pos: usize) -> Self {
-    TreeNode(pos)
+    TreeNode(pos, 0)
   }
 }
 
@@ -306,6 +281,7 @@ pub fn build_undirected_subtree_recursive(
     q.fill_diagonal(big_number);
     // get location and value of minimum -> which nodes to be joined
     let pos = argmin(&q);
+    println!("{}", q[pos]);
 
     // calculate distance of other nodes to new node
     let d1 = distance_matrix.row(cmp::min(pos.0, pos.1)).clone();
@@ -467,4 +443,14 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
     alignment_score: child_vertices.get(1).unwrap().alignment_score,
   };
   vert
+}
+
+#[test]
+fn test_distance_metric() {
+    let seq1 = vec![NucSub{reff: Nuc::T, pos: 13, qry: Nuc::A}, NucSub{reff: Nuc::T, pos: 14, qry: Nuc::A}];
+    let seq2 = vec![NucSub{reff: Nuc::T, pos: 14, qry: Nuc::A}, NucSub{reff: Nuc::T, pos: 18, qry: Nuc::A}];
+
+    let dist = calculate_distance_results(&seq1, &seq2);
+    assert_eq!(dist, 2.0);
+
 }

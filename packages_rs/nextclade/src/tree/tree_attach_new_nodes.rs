@@ -28,8 +28,11 @@ use crate::utils::range::Range;
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::divergence::calculate_divergence;
-
+use crate::tree::tree_preprocess::{map_aa_muts, map_nuc_muts};
 use super::tree::DivergenceUnits;
+use crate::io::aa::Aa;
+use crate::io::letter::Letter;
+
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
   tree_attach_new_nodes_impl_in_place_recursive(&mut tree.tree, results);
 }
@@ -338,7 +341,7 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
   );
 
   
-  let new_node =   AuspiceTreeNode {
+  let mut new_node =   AuspiceTreeNode {
       name: format!("{}_new_subtree", index),
       branch_attrs: TreeBranchAttrs {
         mutations,
@@ -365,6 +368,20 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
       tmp: TreeNodeTempData::default(),
       other: serde_json::Value::default(),
     };
+  let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(&new_node, ref_seq, &node.tmp.mutations).unwrap();
+  let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
+  
+  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(&new_node, ref_peptides, &node.tmp.aa_mutations).unwrap();
+  let aa_subs: BTreeMap<String, BTreeMap<usize, Aa>> = aa_muts
+    .clone()
+    .into_iter()
+    .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
+    .collect();
+  
+  new_node.tmp.mutations = nuc_muts.clone();
+  new_node.tmp.substitutions = nuc_subs;
+  new_node.tmp.aa_mutations = aa_muts.clone();
+  new_node.tmp.aa_substitutions = aa_subs;
   
   new_node
 }

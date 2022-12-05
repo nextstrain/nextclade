@@ -42,7 +42,7 @@ pub fn tree_preprocess_in_place(
   Ok(())
 }
 
-fn tree_preprocess_in_place_impl_recursive(
+pub fn tree_preprocess_in_place_impl_recursive(
   id: &mut usize,
   node: &mut AuspiceTreeNode,
   parent_nuc_muts: &mut BTreeMap<usize, Nuc>,
@@ -77,7 +77,7 @@ fn tree_preprocess_in_place_impl_recursive(
   Ok(())
 }
 
-fn map_nuc_muts(
+pub fn map_nuc_muts(
   node: &AuspiceTreeNode,
   ref_seq: &[Nuc],
   parent_nuc_muts: &BTreeMap<usize, Nuc>,
@@ -112,7 +112,7 @@ fn map_nuc_muts(
 /// Takes a node, and adds that nodes aa mutations to the mutations from the parent
 /// This function is necessary as there are many genes
 // TODO: Treat "nuc" just as another gene, thus reduce duplicate
-fn map_aa_muts(
+pub fn map_aa_muts(
   node: &AuspiceTreeNode,
   ref_peptides: &BTreeMap<String, Translation>,
   parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
