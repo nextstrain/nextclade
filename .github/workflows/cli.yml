@@ -68,7 +68,7 @@ jobs:
           echo "PLAUSIBLE_IO_DOMAIN=staging.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
-        if: endsWith(github.ref, '/master')
+        if: !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release')
         run: |
           echo "ENVIRONMENT=master" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
