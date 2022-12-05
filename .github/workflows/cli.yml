@@ -86,12 +86,17 @@ jobs:
           sudo apt-get update -qq --yes >/dev/null
           sudo apt-get install -qq --yes bash >/dev/null
 
-      - name: "Setup cache for Docker buildx"
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "::set-output name=checksum::$(./scripts/docker_build_checksum.sh)"
+
+      - name: "Setup cache for Docker buildx (${{ matrix.arch }})"
         uses: actions/cache@v3
         with:
           path: .cache/docker/buildx
-          key: cache-v1-buildx-${{ runner.os }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
           restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
             cache-v1-buildx-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
@@ -108,7 +113,7 @@ jobs:
         run: |
           CROSS="${{ matrix.arch }}"
 
-          DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+          DOCKER_IMAGE_VERSION="${{ steps.docker-build-checksum.outputs.checksum }}"
 
           docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
           docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
