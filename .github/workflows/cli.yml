@@ -111,8 +111,9 @@ jobs:
 
       - name: "Build CLI (${{ matrix.arch }})"
         run: |
-          echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
-          echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
           CROSS="${{ matrix.arch }}" ./docker-dev build-release
 
       - name: "Upload artifacts (${{ matrix.arch }})"

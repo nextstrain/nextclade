@@ -51,5 +51,6 @@ jobs:
 
       - name: "Build image: base"
         run: |
-          echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
           ./docker-dev docker-image-build-push
