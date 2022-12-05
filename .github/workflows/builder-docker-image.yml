@@ -40,8 +40,8 @@ jobs:
 
           DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 
-          docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
 
           ./docker-dev docker-image-build-push
 
@@ -87,9 +87,9 @@ jobs:
 
           DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 
-          docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:${CROSS}" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
 
           CROSS=${CROSS} ./docker-dev docker-image-build-push

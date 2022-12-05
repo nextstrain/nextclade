@@ -92,10 +92,10 @@ jobs:
 
           DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 
-          docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
-          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:${CROSS}" >/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null || true >/dev/null
 
           echo "DATA_FULL_DOMAIN="${DATA_FULL_DOMAIN}" > ".env"
           echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
