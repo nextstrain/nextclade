@@ -22,6 +22,6 @@ declare -a TARGETS=(
 
 for target in "${TARGETS[@]}"; do
   printf "\nBuilding for %s\n" "${target}"
-  CROSS=${target} ./docker-dev br nextalign
+  CROSS=${target} ./docker-dev br
 done
 
