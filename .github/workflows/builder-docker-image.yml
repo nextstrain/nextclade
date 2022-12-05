@@ -41,9 +41,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .cache/docker/buildx
-          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.arch }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: cache-v1-buildx-${{ runner.os }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
-            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
+            cache-v1-buildx-${{ runner.os }}-
 
       - name: "Build image: base"
         run: |
@@ -94,9 +94,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .cache/docker/buildx
-          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.arch }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
+          key: cache-v1-buildx-${{ runner.os }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
-            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
+            cache-v1-buildx-${{ runner.os }}-
 
       - name: "Build image"
         run: |
