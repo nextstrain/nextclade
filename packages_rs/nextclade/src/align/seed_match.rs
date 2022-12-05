@@ -90,7 +90,7 @@ mod tests {
   #[rstest]
   fn test_accept_suboptimal_match() -> Result<(), Report> {
     let kmer = to_nuc_seq("ACG")?;
-    let ref_seq = to_nuc_seq("AACTACGAA")?;
+    let ref_seq = to_nuc_seq("AACTGCAA")?;
 
     let mismatches_allowed = 1;
     let start_pos = 0;
