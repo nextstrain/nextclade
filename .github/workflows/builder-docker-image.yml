@@ -39,7 +39,7 @@ jobs:
 
       - name: "Get docker build checksum"
         id: docker-build-checksum
-        run: echo "::set-output name=checksum::$(./scripts/docker_build_checksum.sh)"
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
         uses: actions/cache@v3
@@ -96,7 +96,7 @@ jobs:
 
       - name: "Get docker build checksum"
         id: docker-build-checksum
-        run: echo "::set-output name=checksum::$(./scripts/docker_build_checksum.sh)"
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx (${{ matrix.arch }})"
         uses: actions/cache@v3
