@@ -373,7 +373,10 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-  ${NICE} docker build -q \
+  BRANCH="$(git rev-parse --abbrev-ref HEAD || echo "${GITHUB_REF_NAME:=}")"
+  CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
+
+  ${NICE} docker buildx build -q \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
@@ -383,6 +386,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="type=gha,scope=${CACHE_SCOPE}" \
+    --cache-to="type=gha,mode=max,compression=zstd,scope=${CACHE_SCOPE}" \
     --network=host \
     --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
     --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
