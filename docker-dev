@@ -373,6 +373,19 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
+  if [ "$(is_ci)" == "1" ]; then
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
+    if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
+      docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container --driver-opt network=host
+    fi
+  fi
+
+  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --push"
+  else
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --load"
+  fi
+
   BRANCH="$(git rev-parse --abbrev-ref HEAD || echo "${GITHUB_REF_NAME:=}")"
   CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
 
@@ -398,11 +411,6 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ${ADDITIONAL_DOCKER_BUILD_ARGS} \
     . \
     >/dev/null
-
-  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
-    docker push "${DOCKER_REPO}:${DOCKER_TARGET}"
-    docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}"
-  fi
 
   if [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
     exit 0;

@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build-base-image:
-    name: "Build base docker image"
+    name: "Build base image"
 
     runs-on: ubuntu-22.04
 
@@ -53,7 +53,7 @@ jobs:
           ./docker-dev docker-image-build-push
 
   build-cross-image:
-    name: "Build image: (${{ matrix.arch }})"
+    name: "Build image ${{ matrix.arch }}"
 
     needs: [ build-base-image ]
 
