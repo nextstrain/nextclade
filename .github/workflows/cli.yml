@@ -112,7 +112,7 @@ jobs:
   publish-to-github-releases:
     name: "Publish to GitHub Releases"
     needs: [ build-cli ]
-    if: endsWith(github.ref, '/release')
+    # if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 
     steps:
