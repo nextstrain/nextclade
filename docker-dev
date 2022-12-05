@@ -373,11 +373,9 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-  if [ "$(is_ci)" == "1" ]; then
-    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
-    if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
-      docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container --driver-opt network=host
-    fi
+  ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
+  if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
+    docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container --driver-opt network=host >/dev/null
   fi
 
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
@@ -388,6 +386,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
 
   BRANCH="$(git rev-parse --abbrev-ref HEAD || echo "${GITHUB_REF_NAME:=}")"
   CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
+  BUILDX_CACHE_DIR="${CACHE_DIR}/buildx"
 
   ${NICE} docker buildx build -q \
     --file="docker/docker-dev.dockerfile" \
@@ -399,8 +398,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
-    --cache-from="type=gha,scope=${CACHE_SCOPE}" \
-    --cache-to="type=gha,mode=max,compression=zstd,scope=${CACHE_SCOPE}" \
+    --cache-from="type=local,src=${BUILDX_CACHE_DIR},scope=${CACHE_SCOPE}" \
+    --cache-to="type=local,dest=${BUILDX_CACHE_DIR},mode=max,compression=zstd,scope=${CACHE_SCOPE}" \
     --network=host \
     --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
     --build-arg="CLANG_VERSION=${CLANG_VERSION}" \

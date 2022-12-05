@@ -36,7 +36,7 @@ jobs:
       cancel-in-progress: true
 
   build-cli:
-    name: "Build CLI (${{ matrix.os }})"
+    name: "Build CLI (${{ matrix.arch }})"
     needs: [ builder-docker-image ]
     runs-on: ubuntu-22.04
 
@@ -86,6 +86,24 @@ jobs:
           sudo apt-get update -qq --yes >/dev/null
           sudo apt-get install -qq --yes bash >/dev/null
 
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.arch }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .cache/docker/.cargo
+            .build/
+          key: cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-
+
       - name: "Build CLI (${{ matrix.arch }})"
         run: |
           CROSS="${{ matrix.arch }}"
@@ -102,7 +120,7 @@ jobs:
 
           CROSS=${CROSS} ./docker-dev build-release
 
-      - name: "Upload build artifacts (${{ matrix.os }}, py${{ matrix.python-version }})"
+      - name: "Upload artifacts (${{ matrix.arch }})"
         uses: actions/upload-artifact@v3
         with:
           name: out

@@ -13,6 +13,9 @@ concurrency:
   group: builder-docker-image-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
 
 jobs:
   build-base-image:
@@ -34,9 +37,17 @@ jobs:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.arch }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
+
       - name: "Build image: base"
         run: |
-          echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+          echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
 
           DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 
@@ -78,6 +89,14 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.arch }}-${{ hashFiles('docker/docker-dev.dockerfile') }}-${{ hashFiles('.nvmrc') }}-${{ hashFiles('rust-toolchain.toml') }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: "Build image"
         run: |
