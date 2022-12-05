@@ -1,0 +1,102 @@
+# Build 'nextstrain/nextclade_builder' docker image and push it to DockerHub
+name: builder-docker-image
+
+on:
+  push:
+    tags:
+    branches:
+
+  pull_request:
+    branches:
+
+  repository_dispatch:
+    types: build
+
+  workflow_dispatch:
+
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+
+jobs:
+  build-base-image:
+    name: "Build base docker image"
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: "Build image: base"
+        run: |
+          echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+
+          DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+          docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+
+          ./docker-dev docker-image-build-push
+
+  build-cross-image:
+    name: "Build image: (${{ matrix.arch }})"
+
+    needs: [ build-base-image ]
+
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - aarch64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - wasm32-unknown-unknown
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-gnu
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: "Build image"
+        run: |
+          CROSS="${{ matrix.arch }}"
+
+          echo "OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}" > ".env"
+
+          DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+          docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
+          docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+
+          CROSS=${CROSS} ./docker-dev docker-image-build-push
