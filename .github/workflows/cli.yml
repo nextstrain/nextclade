@@ -86,7 +86,7 @@ jobs:
           sudo apt-get update -qq --yes >/dev/null
           sudo apt-get install -qq --yes bash >/dev/null
 
-      - name: "Build CLI (${{ matrix.os }})"
+      - name: "Build CLI (${{ matrix.arch }})"
         run: |
           CROSS="${{ matrix.arch }}"
 
