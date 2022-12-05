@@ -1,3 +1,10 @@
+## UNRELEASED (20xx-xx-xx)
+
+### Add gene length validation in GFF3 parser
+
+Nextclade will now check if genes have length divisible by 3 in gene maps and will fail with an error if it's not the case.
+
+
 ## Nextclade Web 2.8.1 (2022-11-01)
 
 ### Fix translated (internationalized) text on Tree page
