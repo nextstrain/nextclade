@@ -221,7 +221,6 @@ jobs:
       - name: "Run lints"
         run: |
           ./docker-dev lint
-          ./docker-dev format-check
 
 
   run-smoke-tests:
@@ -307,7 +306,7 @@ jobs:
 
   publish-to-docker-hub:
     name: "Publish to Docker Hub"
-    needs: [ build-cli, run-smoke-tests, run-linux-distros-test ]
+    needs: [ build-cli, run-unit-tests, run-smoke-tests, run-linux-distros-test ]
     if: endsWith(github.ref, '/release-cli')
     runs-on: ubuntu-22.04
 
