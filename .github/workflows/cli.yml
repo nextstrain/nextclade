@@ -122,7 +122,7 @@ jobs:
         run: |
           CROSS="${{ matrix.arch }}" ./docker-dev build-release
 
-      - name: "Upload artifacts (${{ matrix.arch }})"
+      - name: "Upload build artifacts (${{ matrix.arch }})"
         uses: actions/upload-artifact@v3
         with:
           name: out
@@ -227,6 +227,29 @@ jobs:
     name: "Run smoke tests"
     needs: [ build-cli ]
     runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: "out"
+          path: ".out"
+
+      - name: "Run smoke tests"
+        run: |
+          chmod +x ./.out/nextclade-x86_64-unknown-linux-gnu
+          ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
+
+  run-smoke-tests-mac:
+    name: "Run smoke tests"
+    needs: [ build-cli ]
+    runs-on: macos-latest
 
     steps:
       - name: "Checkout code"
