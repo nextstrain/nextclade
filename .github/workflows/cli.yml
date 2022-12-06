@@ -84,7 +84,9 @@ jobs:
           path: .cache/docker/buildx
           key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
           restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
             cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
+            cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
             cache-v1-buildx-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
@@ -95,6 +97,7 @@ jobs:
             .build/
           key: cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
+            cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
             cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-
             cache-v1-cargo-${{ runner.os }}-
 

@@ -47,6 +47,7 @@ jobs:
           path: .cache/docker/buildx
           key: cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
           restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
             cache-v1-buildx-${{ runner.os }}-
 
       - name: "Build image: base"
