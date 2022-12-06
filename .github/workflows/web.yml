@@ -220,10 +220,7 @@ jobs:
 
           pushd packages_rs/nextclade-web  >/dev/null
 
-          npm install -g semver
-
           export version=$(node -e "\
-            const semver = require('semver'); \
             const pkg = require('./package.json'); \
             console.log(pkg.version) \
           ")
