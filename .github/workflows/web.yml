@@ -26,18 +26,8 @@ defaults:
 
 
 jobs:
-
-  builder-docker-image:
-    name: "Run 'builder-docker-image.yml' workflow"
-    uses: ./.github/workflows/builder-docker-image.yml
-    secrets: inherit
-    concurrency:
-      group: web-builder-docker-image-workflow_call-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
-      cancel-in-progress: true
-
-  build-web:
+  build-and-deploy-web:
     name: "Build Web"
-    needs: [ builder-docker-image ]
     runs-on: ubuntu-22.04
 
     steps:
