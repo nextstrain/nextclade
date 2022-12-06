@@ -319,8 +319,8 @@ fn find_aa_changes_for_gene(
     // Avoid underflow bug when codon_begin <=2
     let context_begin = clamp_min(codon_begin, 3) - 3;
     let context_end = clamp_max(codon_end + 3, num_nucs);
-    let mut ref_context = (&ref_seq[context_begin..context_end]).to_vec();
-    let mut query_context = (&qry_seq[context_begin..context_end]).to_vec();
+    let mut ref_context = ref_seq[context_begin..context_end].to_vec();
+    let mut query_context = qry_seq[context_begin..context_end].to_vec();
     if gene.strand == GeneStrand::Reverse {
       reverse_complement_in_place(&mut ref_context);
       reverse_complement_in_place(&mut query_context);

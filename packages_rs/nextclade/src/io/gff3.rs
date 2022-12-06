@@ -69,7 +69,7 @@ pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Resul
 
 fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
   let filename = filename.as_ref();
-  let mut reader = GffReader::from_file(&filename, GffType::GFF3).map_err(|report| eyre!(report))?;
+  let mut reader = GffReader::from_file(filename, GffType::GFF3).map_err(|report| eyre!(report))?;
 
   let records = reader
     .records()
