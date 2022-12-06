@@ -39,7 +39,7 @@ function main() {
   const app = express()
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const newHeaders = modifyHeaders({ request: req, response: res }) as NewHeaders
+    const newHeaders = modifyHeaders({ /* request: req, */ response: res }) as NewHeaders
     Object.entries(newHeaders).forEach(([header, arr]) => {
       const [{ value }] = arr
       if (header.toLowerCase() === 'strict-transport-security') {
