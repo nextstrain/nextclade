@@ -1,8 +1,22 @@
-## UNRELEASED (20xx-xx-xx)
+## Nextclade Web 2.9.0, Nextclade CLI 2.9.0 (2022-12-06)
+
+### Increase requirements for supported Linux distributions for GNU flavor of Nextclade CLI
+
+Due to malfunction of package repositories of Debian 7, we had to switch automated builds of the "gnu" flavor of Nextclade CLI from Debian 7 to CentOS 7. This increases minimum required version of glibc to 2.17. The list or Linux distributions we tested the new version of Nextclade on is [here](https://github.com/nextstrain/nextclade/blob/9f2b9a620a7bc9a068909634a4fc3f29757c059f/tests/test-linux-distros#L18-L62). For users of older Linux distributions (with glibc < 2.17) we suggest to use "musl" flavor of Nextclade CLI, which does not depend on glibc, but might be substantially slower. Users of Nextclade CLI on macOS and Windows and users of Nextclade Web are not affected.
 
 ### Add gene length validation in GFF3 parser
 
 Nextclade will now check if genes have length divisible by 3 in gene maps and will fail with an error if it's not the case.
+
+### Fix translated (internationalized) strings in Nextclade Web
+
+We fixed missing spaces between words in some of the languages and fixes some of the translations.
+
+### Internal changes
+
+ - build Linux binaries on CentOS 7
+ - migrate CI to GitHub Actions
+ - upgrade Rust to 1.65.0
 
 
 ## Nextclade Web 2.8.1 (2022-11-01)
