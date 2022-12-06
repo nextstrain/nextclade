@@ -54,17 +54,17 @@ jobs:
 
     steps:
       - name: "Setup environment (release)"
-        if: endsWith(github.ref, '/release')
+        if: endsWith(github.ref, '/release-cli')
         run: |
           echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
-        if: endsWith(github.ref, '/staging')
+        if: endsWith(github.ref, '/staging-cli')
         run: |
           echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
-        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
+        if: ${{ !endsWith(github.ref, '/staging-cli') && !endsWith(github.ref, '/release-cli') }}
         run: |
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
 
@@ -122,7 +122,7 @@ jobs:
   publish-to-github-releases:
     name: "Publish to GitHub Releases"
     needs: [ build-cli ]
-    # if: endsWith(github.ref, '/release')
+    # if: endsWith(github.ref, '/release-cli')
     runs-on: ubuntu-22.04
 
     steps:
