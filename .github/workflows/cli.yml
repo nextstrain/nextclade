@@ -129,6 +129,101 @@ jobs:
           path: ./.out/*
 
 
+  run-unit-tests:
+    name: "Run unit tests"
+    needs: [ builder-docker-image ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-unit-tests-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-unit-tests-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-unit-tests-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .cache/docker/.cargo
+            .build/
+          key: cache-v1-cargo-unit-tests-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-unit-tests-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            cache-v1-cargo-unit-tests-${{ runner.os }}-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|g" .env
+
+      - name: "Run unit tests"
+        run: |
+          ./docker-dev test
+
+
+  run-lints:
+    name: "Run lints"
+    needs: [ builder-docker-image ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-lints-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-lints-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-lints-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .cache/docker/.cargo
+            .build/
+          key: cache-v1-cargo-lints-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-lints-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            cache-v1-cargo-lints-${{ runner.os }}-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|g" .env
+
+      - name: "Run lints"
+        run: |
+          ./docker-dev lint
+          ./docker-dev format-check
+
+
   run-smoke-tests:
     name: "Run smoke tests"
     needs: [ build-cli ]
@@ -179,7 +274,7 @@ jobs:
 
   publish-to-github-releases:
     name: "Publish to GitHub Releases"
-    needs: [ build-cli, run-smoke-tests, run-linux-distros-test ]
+    needs: [ build-cli, run-unit-tests, run-smoke-tests, run-linux-distros-test ]
     if: endsWith(github.ref, '/release-cli')
     runs-on: ubuntu-22.04
 
