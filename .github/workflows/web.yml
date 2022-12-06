@@ -147,7 +147,7 @@ jobs:
 
 
   deploy-web:
-    name: "Build Web"
+    name: "Deploy Web"
     if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
     needs: [ build-web ]
     runs-on: ubuntu-22.04
