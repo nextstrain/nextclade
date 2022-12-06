@@ -246,28 +246,28 @@ jobs:
           chmod +x ./.out/*
           ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
 
-  run-smoke-tests-mac:
-    name: "Run smoke tests (mac)"
-    needs: [ build-cli ]
-    runs-on: macos-latest
-
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
-          submodules: true
-
-      - name: "Download build artifacts"
-        uses: actions/download-artifact@v3
-        with:
-          name: "out"
-          path: ".out"
-
-      - name: "Run smoke tests (mac)"
-        run: |
-          chmod +x ./.out/*
-          ./tests/run-smoke-tests ./.out/x86_64-apple-darwin
+#  run-smoke-tests-mac:
+#    name: "Run smoke tests (mac)"
+#    needs: [ build-cli ]
+#    runs-on: macos-latest
+#
+#    steps:
+#      - name: "Checkout code"
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 1
+#          submodules: true
+#
+#      - name: "Download build artifacts"
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: "out"
+#          path: ".out"
+#
+#      - name: "Run smoke tests (mac)"
+#        run: |
+#          chmod +x ./.out/*
+#          ./tests/run-smoke-tests ./.out/nextclade-x86_64-apple-darwin
 
 
   run-linux-distros-test:
