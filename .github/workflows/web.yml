@@ -127,14 +127,6 @@ jobs:
         run: |
           ./docker-dev web yarn install
 
-      - name: "Lint web app code"
-        run: |
-          ./docker-dev web yarn lint
-
-      - name: "Lint Rust code"
-        run: |
-          ./docker-dev lint
-
       - name: "Build WebAssembly module"
         run: |
           ./docker-dev wasm-release
@@ -142,6 +134,14 @@ jobs:
       - name: "Build web app"
         run: |
           ./docker-dev web-release
+
+      - name: "Lint web app code"
+        run: |
+          ./docker-dev web yarn lint
+
+      - name: "Lint Rust code"
+        run: |
+          ./docker-dev lint
 
       - name: "Install deploy dependencies"
 #        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
