@@ -109,7 +109,8 @@ jobs:
             packages_rs/nextclade-web/node_modules
           key: cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-web-${{ runner.os }}-
 
       - name: "Prepare .env file"
         run: |
