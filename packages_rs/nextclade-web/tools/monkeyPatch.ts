@@ -78,7 +78,7 @@ export async function main() {
           'https://github.com/browserslist/browserslist#browsers-data-updating'
       )`,
         ),
-      ['node_modules/browserslist/node.js', 'node_modules/next/dist/compiled/cssnano-simple/index.js'],
+      ['node_modules/browserslist/node.js'],
     ),
 
     concurrent.forEach(
