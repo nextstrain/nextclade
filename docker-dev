@@ -324,7 +324,7 @@ case "${1:-}" in
 "format-check" | "fc")
   shift
   FORMAT=1
-  WATCH=1
+  WATCH=0
   FIX="--check"
   ;;
 "exec" | "e")
@@ -373,7 +373,22 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-  ${NICE} docker build -q \
+  ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
+  if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
+    docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container --driver-opt network=host >/dev/null
+  fi
+
+  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --push"
+  else
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --load"
+  fi
+
+  BRANCH="$(git rev-parse --abbrev-ref HEAD || echo "${GITHUB_REF_NAME:=}")"
+  CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
+  BUILDX_CACHE_DIR="${CACHE_DIR}/buildx"
+
+  ${NICE} docker buildx build -q \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
@@ -383,6 +398,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="type=local,src=${BUILDX_CACHE_DIR},scope=${CACHE_SCOPE}" \
+    --cache-to="type=local,dest=${BUILDX_CACHE_DIR},mode=max,compression=zstd,scope=${CACHE_SCOPE}" \
     --network=host \
     --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
     --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
@@ -393,11 +410,6 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ${ADDITIONAL_DOCKER_BUILD_ARGS} \
     . \
     >/dev/null
-
-  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
-    docker push "${DOCKER_REPO}:${DOCKER_TARGET}"
-    docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}"
-  fi
 
   if [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
     exit 0;
@@ -456,7 +468,10 @@ elif [ "${BENCH}" == "1" ]; then
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
 elif [ "${FORMAT}" == "1" ]; then
-  COMMAND="cargo fmt -q --all ${FIX:-}"
+  if [ -z "${FIX}" ]; then
+    FIX="-q"
+  fi
+  COMMAND="cargo fmt --all ${FIX:-}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
@@ -478,8 +493,15 @@ fi
 
 mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
+
+ADDITIONAL_DOCKER_RUN_ARGS=""
+if [ -t 1 ]; then
+  ADDITIONAL_DOCKER_RUN_ARGS="${ADDITIONAL_DOCKER_RUN_ARGS} -it"
+fi
+
 # shellcheck disable=SC2086
-${NICE} docker run -it --rm \
+${NICE} docker run --rm \
+  ${ADDITIONAL_DOCKER_RUN_ARGS} \
   --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
