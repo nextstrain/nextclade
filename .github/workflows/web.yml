@@ -119,6 +119,10 @@ jobs:
           sed -i -e "s|FULL_DOMAIN=autodetect|FULL_DOMAIN=${FULL_DOMAIN}|g" .env
           sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
+      - name: "Build docker image"
+        run: |
+          CROSS="wasm32-unknown-unknown" ./docker-dev docker-image-build-push
+
       - name: "Install Node.js packages"
         run: |
           ./docker-dev web yarn install

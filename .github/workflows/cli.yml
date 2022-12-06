@@ -104,6 +104,10 @@ jobs:
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
           sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
+      - name: "Build docker image (${{ matrix.arch }})"
+        run: |
+          CROSS="${{ matrix.arch }}" ./docker-dev docker-image-build-push
+
       - name: "Build CLI (${{ matrix.arch }})"
         run: |
           CROSS="${{ matrix.arch }}" ./docker-dev build-release
