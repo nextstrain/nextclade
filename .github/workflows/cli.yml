@@ -56,19 +56,16 @@ jobs:
       - name: "Setup environment (release)"
         if: endsWith(github.ref, '/release')
         run: |
-          echo "ENVIRONMENT=release" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
         if: endsWith(github.ref, '/staging')
         run: |
-          echo "ENVIRONMENT=staging" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
         if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
         run: |
-          echo "ENVIRONMENT=master" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Checkout code"
