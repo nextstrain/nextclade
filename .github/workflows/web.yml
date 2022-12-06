@@ -194,6 +194,9 @@ jobs:
 
       - name: "Install deploy dependencies"
         run: |
+          mkdir -p "${HOME}/bin"
+          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+
           sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
 
           pushd /tmp >/dev/null
@@ -209,7 +212,6 @@ jobs:
 
       - name: "Create and push git tag"
         run: |
-          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
 
           git config user.email "${{ secrets.GIT_USER_EMAIL }}"
           git config user.name "${{ secrets.GIT_USER_NAME }}"
