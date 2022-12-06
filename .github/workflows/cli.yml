@@ -96,6 +96,7 @@ jobs:
           key: cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-
+            cache-v1-cargo-${{ runner.os }}-
 
       - name: "Prepare .env file"
         run: |

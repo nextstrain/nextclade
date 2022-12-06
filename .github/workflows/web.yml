@@ -99,6 +99,7 @@ jobs:
           key: cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-cargo-${{ runner.os }}-
 
       - name: "Setup cache for web app"
         uses: actions/cache@v3
