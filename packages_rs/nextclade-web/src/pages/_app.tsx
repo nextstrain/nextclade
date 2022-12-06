@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import 'css.escape'
 
-import { isNil, memoize } from 'lodash'
+import { isNil } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
@@ -55,20 +55,6 @@ import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
-
-if (process.env.NODE_ENV === 'development') {
-  // Ignore recoil warning messages in browser console
-  // https://github.com/facebookexperimental/Recoil/issues/733
-  const shouldFilter = (args: (string | undefined)[]) =>
-    args[0] && typeof args[0].includes === 'function' && args[0].includes('Duplicate atom key')
-
-  const mutedConsole = memoize((console: Console) => ({
-    ...console,
-    warn: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.warn(...args)),
-    error: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.error(...args)),
-  }))
-  global.console = mutedConsole(global.console)
-}
 
 /**
  * Dummy component that allows to set recoil state asynchronously. Needed because RecoilRoot's initializeState
