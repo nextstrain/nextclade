@@ -324,7 +324,7 @@ case "${1:-}" in
 "format-check" | "fc")
   shift
   FORMAT=1
-  WATCH=1
+  WATCH=0
   FIX="--check"
   ;;
 "exec" | "e")
@@ -468,7 +468,10 @@ elif [ "${BENCH}" == "1" ]; then
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
 elif [ "${FORMAT}" == "1" ]; then
-  COMMAND="cargo fmt -q --all ${FIX:-}"
+  if [ -z "${FIX}" ]; then
+    FIX="-q"
+  fi
+  COMMAND="cargo fmt --all ${FIX:-}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
