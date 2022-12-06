@@ -6,7 +6,6 @@ import { uniq } from 'lodash'
 import getWithMDX from '@next/mdx'
 import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
-import intercept from 'intercept-stdout'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getGitBranch } from '../../lib/getGitBranch'
@@ -29,12 +28,6 @@ import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withResolve from './withResolve'
 import withUrlAsset from './withUrlAsset'
 import withWasm from './withWasm'
-
-// Ignore recoil warning messages in stdout
-// https://github.com/facebookexperimental/Recoil/issues/733
-if (process.env.NODE_ENV === 'development') {
-  intercept((text: string) => (text.includes('Duplicate atom key') ? '' : text))
-}
 
 const {
   // BABEL_ENV,
@@ -65,8 +58,6 @@ const clientEnv = {
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
 }
-
-console.info(`Client-side Environment:\n${JSON.stringify(clientEnv, null, 2)}`)
 
 const nextConfig: NextConfig = {
   distDir: `.build/${process.env.NODE_ENV}/tmp`,
