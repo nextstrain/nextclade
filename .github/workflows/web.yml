@@ -155,7 +155,7 @@ jobs:
           ./docker-dev lint
 
       - name: "Install deploy dependencies"
-#        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
         run: |
           sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
 
@@ -167,25 +167,24 @@ jobs:
           aws --version
 
       - name: "Deploy web app"
-#        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
         run: |
-          ls -al packages_rs/nextclade-web/.build/production/web/
-#          ./scripts/deploy_web.sh
+          ./scripts/deploy_web.sh
 
-#      - name: "Invalidate Cloudfront cache"
-#        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
-#        run: |
-#          aws cloudfront create-invalidation \
-#            --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
-#            --paths "/*"
+      - name: "Invalidate Cloudfront cache"
+        if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
+            --paths "/*"
 
       - name: "Create and push git tag"
         if: ${{ endsWith(github.ref, '/release') }}
         run: |
           curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
 
-          git config user.email "nextstrainbot@nextstrain.org"
-          git config user.name "nextstrain-bot"
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
 
           pushd packages_rs/nextclade-web  >/dev/null
 
