@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 #
 # Runs smoke tests - basic use-case checks with default data
