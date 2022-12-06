@@ -5,6 +5,7 @@ on:
   push:
     tags:
     branches:
+    branches-ignore: [ 'staging-cli', 'release-cli' ]
 
   pull_request:
     branches:
