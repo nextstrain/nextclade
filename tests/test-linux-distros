@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-
-#
-# Run nextclade on different Linux distros
-#
-
-set -euo pipefail
+set -euxo pipefail
 trap "exit 0" INT
+
+#
+# Run Nextclade on different Linux distros, to ensure compatibility.
+# We are mostly concerned about old distros with old glibc, libgcc and kernel.
+#
 
 function abspath() {
   readlink -m "$1"
 }
 
-export NEXTCLADE_BIN="${1:-$(pwd)/.out/nextclade-x86_64-unknown-linux-gnu}"
+export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade>"}"
 export VOLUME="$(abspath "${NEXTCLADE_BIN}"):/nextclade"
 export RUN_COMMAND="/nextclade dataset list >/dev/null"
 
@@ -71,6 +71,4 @@ function run_one_distro() {
 }
 export -f run_one_distro
 
-for distro in "${distros[@]}"; do
-  echo "$distro"
-done | parallel run_one_distro
+parallel --jobs="${#distros[@]}" run_one_distro ::: "${distros[@]}"

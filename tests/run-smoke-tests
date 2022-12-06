@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
-NEXTCLADE=${1:=nextclade}
-export NEXTCLADE
+#
+# Runs smoke tests - basic use-case checks with default data
+# https://en.wikipedia.org/wiki/Smoke_testing_(software)
+#
+
+export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade>"}"
+export NEXTCLADE_BIN
 
 THIS_DIR=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -26,22 +31,20 @@ pathogens=(
 export DATASET_DIR="$THIS_DIR/../data_dev"
 export OUT_DIR="$THIS_DIR/../tmp"
 
-${NEXTCLADE} dataset list --quiet >/dev/null
+${NEXTCLADE_BIN} dataset list --quiet >/dev/null
 
-function run_one() {
+function run_one_test() {
   pathogen=$1
 
-  echo "Running '${NEXTCLADE}' for '${pathogen}'"
+  echo "Running '${NEXTCLADE_BIN}' for '${pathogen}'"
 
-  ${NEXTCLADE} dataset get --name="$pathogen" --output-dir="$DATASET_DIR/$pathogen"
+  ${NEXTCLADE_BIN} dataset get --name="$pathogen" --output-dir="$DATASET_DIR/$pathogen"
 
-  ${NEXTCLADE} run --quiet --in-order \
+  ${NEXTCLADE_BIN} run --quiet --in-order \
     --output-all="$OUT_DIR/$pathogen" \
     --input-dataset="$DATASET_DIR/$pathogen" \
     "$DATASET_DIR/$pathogen/sequences.fasta"
 }
-export -f run_one
+export -f run_one_test
 
-for pathogen in "${pathogens[@]}"; do
-  echo "$pathogen"
-done | parallel --jobs="${#pathogens[@]}" run_one
+parallel --jobs="${#pathogens[@]}" run_one_test ::: "${pathogens[@]}"
