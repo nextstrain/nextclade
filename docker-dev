@@ -80,7 +80,7 @@ export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
 export DOCKER_REPO="nextstrain/nextclade_builder"
 export DOCKER_IMAGE_NAME_SAFE="${DOCKER_REPO//\//-}"
-export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
+export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date -u "+%Y-%m-%d_%H-%M-%S_%3NZ")"
 
 export USER=user
 export GROUP=user
