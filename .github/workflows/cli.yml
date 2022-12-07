@@ -325,7 +325,7 @@ jobs:
       - name: "Publish build artifacts to GitHub releases"
         run: |
           export PATH="${PATH}:${HOME}/bin"
-          export GITHUB_TOKEN="${{ secrets.NEXTSTRAIN_BOT_GITHUB_TOKEN }}"
+          export GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
           ./scripts/publish_github \
             --artifacts_dir ".out" \
             --repo "${{ github.repository }}" \
