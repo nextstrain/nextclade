@@ -52,6 +52,9 @@ chmod +x "${artifacts_dir}"/*
 # Check auth
 gh auth status >/dev/null
 
+# Setup git identity
+gh auth setup-git >/dev/null
+
 # Get the version string and validate it
 version="$("${artifacts_dir}/nextclade-x86_64-unknown-linux-gnu" --version | awk '{ print $2 }')"
 if [ "$("${THIS_DIR}/semver" validate "${version}")" != "valid" ]; then
