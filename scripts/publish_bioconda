@@ -97,7 +97,6 @@ git clean --quiet -dfx
 
 home=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".about.home" | jq -r)
 summary=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".about.summary" | jq -r)
-maintainers=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".extra.recipe-maintainers" | jq -r 'join(",")')
 maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".extra.recipe-maintainers" | jq -r '[ .[] | "@" + . ] | join(", ")')
 
 # Create PR body. This is what goes to the first message.
@@ -135,7 +134,6 @@ Note: this pull request is submitted automatically, triggered by a release in [n
 pr_body | gh pr create \
   --title "Update nextclade and nextalign to ${version}" \
   --body-file - \
-  --reviewer "${maintainers}" \
   --repo "bioconda/bioconda-recipes"
 
 
