@@ -57,7 +57,9 @@ pub fn nextclade_dataset_list(
     })
     // Filter by reference sequence
     .filter(|dataset| {
-      if reference == "default" {
+      if reference == "all" {
+        true
+      } else if reference == "default" {
         dataset.attributes.reference.is_default
       } else {
         dataset.attributes.reference.value == reference
@@ -85,6 +87,14 @@ pub fn nextclade_dataset_list(
       }
       should_include
     })
+    .sorted_by_key(|dataset| (
+      !dataset.attributes.name.is_default,
+      dataset.attributes.name.value.to_ascii_lowercase(),
+      !dataset.attributes.reference.is_default,
+      dataset.attributes.reference.value.to_ascii_lowercase(),
+      !dataset.attributes.tag.is_default,
+      dataset.attributes.tag.value.to_ascii_lowercase(),
+    ))
     .collect_vec();
 
   if json {
