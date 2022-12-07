@@ -107,9 +107,8 @@ pub struct NextcladeDatasetListArgs {
   pub name: Option<String>,
 
   /// Restrict list to datasets based on this reference sequence (given its accession ID). Equivalent to `--attribute='reference=<value>'`.
-  /// Special values:
-  ///  - "all" show datasets with any reference sequences
-  ///  - "default" show datasets with any reference sequences
+  ///
+  /// Special values: "all" - shows datasets with any reference sequences; "default" - show only datasets with default reference sequence (as defined by the author of a given dataset).
   #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "all")]
