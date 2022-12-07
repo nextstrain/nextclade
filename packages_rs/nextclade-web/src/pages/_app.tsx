@@ -50,7 +50,7 @@ import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
-import { datasetCurrentNameAtom, datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom, datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
@@ -108,13 +108,14 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
+      .then(({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
         set(datasetsAtom, {
           datasets,
+          defaultDataset,
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        set(datasetCurrentNameAtom, (previous) => currentDatasetName ?? previous)
+        set(datasetCurrentAtom, (previous) => currentDataset ?? previous)
 
         return undefined
       })

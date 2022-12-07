@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { Tagged } from 'src/helpers/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
+import { isEqual, isNil } from 'lodash'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -565,6 +566,7 @@ export interface DatasetTag {
 }
 
 export interface Dataset {
+  id: string
   enabled: boolean
   attributes: DatasetAttributes
   comment: string
@@ -572,6 +574,10 @@ export interface Dataset {
   files: DatasetFiles
   params: DatasetParams
   zipBundle: string
+}
+
+export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
+  return !isNil(left) && !isNil(right) && isEqual(left.attributes, right.attributes)
 }
 
 export interface DatasetsIndexV2Json {
