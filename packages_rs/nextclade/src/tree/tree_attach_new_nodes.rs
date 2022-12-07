@@ -132,6 +132,10 @@ fn attach_new_nodes(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs], po
 fn attach_subtree(auspice_node: &mut AuspiceTreeNode, graph_node: &NodeType, subtree: &Graph::<NodeType, f64>, results: &[NextcladeOutputs], vertices: &HashMap::<NodeType, InternalMutations>, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits){
 
   let nodes_to_attach = subtree.adjacency.get(graph_node);
+  // //check if node is a singleton
+  // if len(nodes_to_attach.unwrap())==1{
+  //   let nodes_to_attach = subtree.adjacency.get(t_n);
+  // }
 
   for v in nodes_to_attach.unwrap(){
     let t_n = (*v).0;
