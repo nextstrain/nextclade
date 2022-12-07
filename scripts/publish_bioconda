@@ -14,7 +14,7 @@
 #  git config user.email "${{ secrets.GIT_USER_EMAIL }}"
 #  git config user.name "${{ secrets.GIT_USER_NAME }}"
 
-set -euo pipefail
+set -euxo pipefail
 trap 'exit' INT
 
 # Directory where this script resides
@@ -67,7 +67,7 @@ pushd bioconda-recipes >/dev/null
 version_old=$(sed -n 's|.*version = "\(.*\)".*|\1|p' "recipes/nextclade/meta.yaml")
 
 ## Add Nextstrain fork (https://github.com/nextstrain/bioconda-recipes) as a remote
-git remote add nextstrain "git@github.com:nextstrain/bioconda-recipes.git" >/dev/null
+git remote add nextstrain "https://github.com/nextstrain/bioconda-recipes" >/dev/null
 
 # Create a new branch
 git switch --quiet --create "bump/nextclade-${version}"
