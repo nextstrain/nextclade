@@ -38,7 +38,7 @@ jobs:
         id: bump-version
         shell: bash
         run: |
-          export GITHUB_TOKEN="${{ secrets.NEXTSTRAIN_BOT_GITHUB_TOKEN }}"
+          export GITHUB_TOKEN="${{ secrets.GH_TOKEN_NEXTSTRAIN_BOT_REPO }}"
 
           mkdir -p "${HOME}/bin"
           export PATH="${HOME}/bin:${PATH}"
