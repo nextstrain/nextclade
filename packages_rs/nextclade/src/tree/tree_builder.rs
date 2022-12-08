@@ -15,6 +15,7 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::{PhenotypeData, VirusProperties};
+use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::fasta::{FastaReader, FastaRecord};
 use crate::io::gene_map::GeneMap;
@@ -31,7 +32,7 @@ use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNeares
 use crate::analyze::nuc_sub_full::{NucSubFull, NucDelFull};
 use crate::analyze::aa_sub_full::{AaSubFull, AaDelFull};
 use crate::analyze::nuc_del::NucDel;
-use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
+use crate::analyze::letter_ranges::{GeneAaRange, NucRange, AaRange};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use crate::utils::range::Range;
 use eyre::Report;
@@ -201,7 +202,6 @@ pub struct InternalMutations{
   pub unknown_aa_ranges: Vec<GeneAaRange>,
   pub alignment_start: usize,
   pub alignment_end: usize,
-  pub alignment_score: i32,
 }
 
 
@@ -248,10 +248,10 @@ pub fn argmin(q: &DMatrix<f64>) -> (usize, usize) {
 }
 
 pub fn build_undirected_subtree(
-  mut distance_matrix: DMatrix<f64>,
-  mut element_order: Vec<NodeType>,
+  distance_matrix: DMatrix<f64>,
+  element_order: Vec<NodeType>,
 ) -> Graph<NodeType, f64> {
-  let mut g = Graph::<NodeType, f64> {
+  let g = Graph::<NodeType, f64> {
     adjacency: HashMap::new(),
   };
 
@@ -355,7 +355,6 @@ pub fn add_mutations_to_vertices(graph_node: &NodeType, directed_subtree: &Graph
         unknown_aa_ranges,
         alignment_start,
         alignment_end,
-        alignment_score,
         ..
       } = result;
       let substitutions_ = substitutions.to_vec();
@@ -373,7 +372,6 @@ pub fn add_mutations_to_vertices(graph_node: &NodeType, directed_subtree: &Graph
         unknown_aa_ranges: unknown_aa_ranges_,
         alignment_start: *alignment_start,
         alignment_end: *alignment_end,
-        alignment_score: *alignment_score,
       };
       vertices.insert(t_n, vert);
     }else if let NodeType::NewInternalNode(_) = t_n {
@@ -460,8 +458,41 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
         shared_missings.push(NucRange{
           begin : potential_start,
           end : potential_end,
-          letter : Nuc::Gap,
+          letter : Nuc::N,
         });
+      }
+    }
+  }
+
+  let mut shared_unknown_aa_ranges = Vec::<GeneAaRange>::new();
+  for mis1 in &child_vertices.get(1).unwrap().unknown_aa_ranges {
+    for mis2 in &child_vertices.get(0).unwrap().unknown_aa_ranges{
+      if mis1.gene_name == mis2.gene_name {
+        let mut shared_missings_per_gene = Vec::<AaRange>::new();
+        let mut shared_length_per_gene = 0;
+        for range1 in &mis1.ranges{
+          for range2 in &mis2.ranges{
+            let potential_start = cmp::max(range1.begin, range2.begin);
+            let potential_end = cmp::min(range1.end, range2.end);
+            if potential_start < potential_end {
+              // missings overlap
+              shared_missings_per_gene.push(AaRange{
+                begin : potential_start,
+                end : potential_end,
+                letter : Aa::X,
+              });
+              shared_length_per_gene += potential_end - potential_start;
+            }
+          }
+        }
+        if shared_missings_per_gene.len() > 0 {
+          shared_unknown_aa_ranges.push(GeneAaRange{
+            gene_name : mis1.gene_name.clone(),
+            letter : Aa::X,
+            ranges : shared_missings_per_gene,
+            length : shared_length_per_gene,
+          });
+        }
       }
     }
   }
@@ -472,10 +503,9 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
     missing: shared_missings,
     aa_substitutions: shared_aa_substitutions,
     aa_deletions: shared_aa_deletions,
-    unknown_aa_ranges: child_vertices.get(1).unwrap().unknown_aa_ranges.clone(),
+    unknown_aa_ranges: shared_unknown_aa_ranges,
     alignment_start: cmp::max(child_vertices.get(1).unwrap().alignment_start, child_vertices.get(0).unwrap().alignment_start),
     alignment_end: cmp::min(child_vertices.get(1).unwrap().alignment_end, child_vertices.get(0).unwrap().alignment_end),
-    alignment_score: child_vertices.get(1).unwrap().alignment_score,
   };
   vert
 }

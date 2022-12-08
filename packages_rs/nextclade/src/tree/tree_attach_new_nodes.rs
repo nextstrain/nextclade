@@ -91,7 +91,7 @@ fn tree_attach_new_nodes_impl_in_place_recursive_subtree(node: &mut AuspiceTreeN
         let pos = if let Some(pos) = results.get(*v) { pos } else { todo!() };
         let subst = pos.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
         let dels = pos.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
-        let mut private_nuc_mut = find_private_nuc_mutations(
+        let private_nuc_mut = find_private_nuc_mutations(
           node,
           &subst,
           &dels,
@@ -116,9 +116,9 @@ fn tree_attach_new_nodes_impl_in_place_recursive_subtree(node: &mut AuspiceTreeN
 fn attach_new_nodes(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs], positions: &Vec<usize>, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits) {
   //compute subtree
   let dist_results = calculate_distance_matrix(node, results, positions);
-  let mut dist_matrix = dist_results.0;
-  let mut element_order = dist_results.1;
-  let mut g = build_undirected_subtree(dist_matrix, element_order);
+  let dist_matrix = dist_results.0;
+  let element_order = dist_results.1;
+  let g = build_undirected_subtree(dist_matrix, element_order);
   let parent_node = NodeType::TreeNode(TreeNode::new(node.tmp.id));
   let directed_g = build_directed_subtree(&parent_node, &g);
   //compute vertices mutations
@@ -320,7 +320,7 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
 fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties) -> BTreeMap<String, Vec<String>>{
   let subst = result.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
   let dels = result.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
-  let mut private_nuc_mut = find_private_nuc_mutations(
+  let private_nuc_mut = find_private_nuc_mutations(
     node,
     &subst,
     &dels,
@@ -331,7 +331,7 @@ fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMu
   );
   let aa_subst = result.aa_substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
   let aa_dels = result.aa_deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
-  let mut private_aa_mut = find_private_aa_mutations(
+  let private_aa_mut = find_private_aa_mutations(
     node,
     &aa_subst,
     &aa_dels,
@@ -358,17 +358,14 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
     ref_seq,
     virus_properties,
   );
-  private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
+  //if reversions should not count to length
+  //private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
   let divergence = calculate_divergence(
     node,
     &private_nuc_mut,
     div_units, 
     ref_seq.len()
-  );
-  let alignment = format!(
-    "start: {}, end: {} (score: {})",
-    result.alignment_start, result.alignment_end, result.alignment_score
   );
  
   let mut new_node =   AuspiceTreeNode {
@@ -384,7 +381,7 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
         region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-        alignment: Some(TreeNodeAttr::new(&alignment)),
+        alignment: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
         gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
         non_acgtns: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
@@ -398,10 +395,10 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
       tmp: TreeNodeTempData::default(),
       other: serde_json::Value::default(),
     };
-  let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(&new_node, ref_seq, &node.tmp.mutations).unwrap();
+  let nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(&new_node, ref_seq, &node.tmp.mutations).unwrap();
   let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
   
-  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(&new_node, ref_peptides, &node.tmp.aa_mutations).unwrap();
+  let aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(&new_node, ref_peptides, &node.tmp.aa_mutations).unwrap();
   let aa_subs: BTreeMap<String, BTreeMap<usize, Aa>> = aa_muts
     .clone()
     .into_iter()
