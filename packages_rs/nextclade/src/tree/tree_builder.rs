@@ -7,7 +7,6 @@ use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_composition::get_letter_composition;
-use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::letter_ranges::{find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by};
 use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
@@ -32,7 +31,7 @@ use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNeares
 use crate::analyze::nuc_sub_full::{NucSubFull, NucDelFull};
 use crate::analyze::aa_sub_full::{AaSubFull, AaDelFull};
 use crate::analyze::nuc_del::NucDel;
-use crate::analyze::letter_ranges::GeneAaRange;
+use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use crate::utils::range::Range;
 use eyre::Report;
@@ -398,11 +397,8 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
   let mut shared_substitutions = Vec::<NucSubFull>::new();
   for qmut1 in &child_vertices.get(0).unwrap().substitutions {
     for qmut2 in &child_vertices.get(1).unwrap().substitutions {
-      if qmut1.sub.pos == qmut2.sub.pos {
-        // position is also mutated in node
-        if qmut1.sub.qry == qmut2.sub.qry {
-          shared_substitutions.push(qmut1.clone()); // the exact mutation is shared between node and seq
-        }
+      if qmut1.sub == qmut2.sub {
+        shared_substitutions.push(qmut1.clone()); // the exact mutation is shared between node and seq
       }
     }
   }
@@ -410,7 +406,7 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
   let mut shared_aa_substitutions = Vec::<AaSubFull>::new();
   for qmut1 in &child_vertices.get(1).unwrap().aa_substitutions {
     for qmut2 in &child_vertices.get(0).unwrap().aa_substitutions {
-      if qmut1.sub.pos == qmut2.sub.pos {
+      if qmut1.sub.gene == qmut2.sub.gene && qmut1.sub.pos == qmut2.sub.pos {
         // position is also mutated in node
         if qmut1.sub.qry == qmut2.sub.qry {
           shared_aa_substitutions.push(qmut1.clone()); // the exact mutation is shared between node and seq
@@ -418,6 +414,16 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
       }
     }
   }
+
+  // this should work but it doesn't
+  // let mut shared_aa_substitutions = Vec::<AaSubFull>::new();
+  // for qmut1 in &child_vertices.get(1).unwrap().aa_substitutions {
+  //   for qmut2 in &child_vertices.get(0).unwrap().aa_substitutions {
+  //     if qmut1.sub == qmut2.sub {
+  //       shared_aa_substitutions.push(qmut1.clone()); // the exact mutation is shared between node and seq
+  //     }
+  //   }
+  // }
 
   let mut shared_deletions = Vec::<NucDelFull>::new();
   for del1 in &child_vertices.get(1).unwrap().deletions {
@@ -434,30 +440,38 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
     }
   }
 
-  // let mut shared_aa_deletions = Vec::<AaDelFull>::new();
-  // for del1 in &child_vertices.get(1).unwrap().aa_deletions {
-  //   for del2 in &child_vertices.get(0).unwrap().aa_deletions {
-  //     let potential_start = cmp::max(del1.del.pos, del2.del.pos);
-  //     let potential_end = cmp::min(del1.del.pos + del1.del.codon_nuc_range, del2.del.pos + del2.del.codon_nuc_range);
-  //     if potential_start < potential_end {
-  //       // del1 and del2 overlap
-  //       shared_aa_deletions.push(AaDelFull::from_aa_del(&AaDel {
-  //         pos: potential_start,
-  //         codon_nuc_range: (potential_end - potential_start),
-  //       }));
-  //     }
-  //   }
-  // }
+  let mut shared_aa_deletions = Vec::<AaDelFull>::new();
+  for del1 in &child_vertices.get(1).unwrap().aa_deletions {
+    for del2 in &child_vertices.get(0).unwrap().aa_deletions {
+      if del1.del == del2.del {
+        // del1 and del2 overlap
+        shared_aa_deletions.push(AaDelFull::from_aa_del(&del1.del));
+      }
+    }
+  }
+
+  let mut shared_missings = Vec::<NucRange>::new();
+  for mis1 in &child_vertices.get(1).unwrap().missing {
+    for mis2 in &child_vertices.get(0).unwrap().missing{
+      let potential_start = cmp::max(mis1.begin, mis2.begin);
+      let potential_end = cmp::min(mis1.end, mis2.end);
+      if potential_start < potential_end {
+        // missings overlap
+        shared_missings.push(NucRange{
+          begin : potential_start,
+          end : potential_end,
+          letter : Nuc::Gap,
+        });
+      }
+    }
+  }
 
   let vert = InternalMutations{
     substitutions: shared_substitutions,
     deletions: shared_deletions,
-    //deletions: Vec::<NucDelFull>::new(),
-    missing: child_vertices.get(1).unwrap().missing.clone(),
+    missing: shared_missings,
     aa_substitutions: shared_aa_substitutions,
-    //aa_substitutions: Vec::<AaSubFull>::new(),
-    aa_deletions: child_vertices.get(1).unwrap().aa_deletions.clone(),
-    //aa_deletions: Vec::<AaDelFull>::new(),
+    aa_deletions: shared_aa_deletions,
     unknown_aa_ranges: child_vertices.get(1).unwrap().unknown_aa_ranges.clone(),
     alignment_start: cmp::max(child_vertices.get(1).unwrap().alignment_start, child_vertices.get(0).unwrap().alignment_start),
     alignment_end: cmp::min(child_vertices.get(1).unwrap().alignment_end, child_vertices.get(0).unwrap().alignment_end),

@@ -23,7 +23,7 @@ use std::collections::HashSet;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::TranslationMap;
 use crate::io::gene_map::GeneMap;
-use crate::analyze::virus_properties::VirusProperties;
+use crate::analyze::virus_properties::{VirusProperties, MutationLabelMaps};
 use crate::utils::range::Range;
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
@@ -131,23 +131,28 @@ fn attach_new_nodes(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs], po
 //attach subtree to node
 fn attach_subtree(auspice_node: &mut AuspiceTreeNode, graph_node: &NodeType, subtree: &Graph::<NodeType, f64>, results: &[NextcladeOutputs], vertices: &HashMap::<NodeType, InternalMutations>, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits){
 
-  let nodes_to_attach = subtree.adjacency.get(graph_node);
-  // //check if node is a singleton
-  // if len(nodes_to_attach.unwrap())==1{
-  //   let nodes_to_attach = subtree.adjacency.get(t_n);
-  // }
+  let mut pre_nodes_to_attach = subtree.adjacency.get(graph_node).unwrap();
+  //check if node is a singleton
+  if pre_nodes_to_attach.len()==1{
+    let t_n = (pre_nodes_to_attach[0]).0;
+    let nodes_to_attach_test = subtree.adjacency.get(&t_n).unwrap();
+    if nodes_to_attach_test.len()>0{
+      pre_nodes_to_attach = nodes_to_attach_test;
+    }
+  }
+  let nodes_to_attach = pre_nodes_to_attach;
 
-  for v in nodes_to_attach.unwrap(){
+  for v in nodes_to_attach{
     let t_n = (*v).0;
+    let vertex_result = vertices.get(&t_n).unwrap();
     if let NodeType::NewSeqNode(_) = t_n {
       let index = extract_enum_value!(t_n, NodeType::NewSeqNode(c) => c);
       let result = if let Some(pos) = results.get(index.0) { pos } else { todo!() };
-      //add node TODO: add node information
-      add_child(auspice_node, result);
+      let new_mutations = recalculate_private_mutations(auspice_node, vertex_result, ref_seq, ref_peptides, gene_map, virus_properties);
+      add_child(auspice_node, result, Some(new_mutations));
     }else if let NodeType::NewInternalNode(_) = t_n {
       let index = extract_enum_value!(t_n, NodeType::NewInternalNode(c) => c);
-      let result = vertices.get(&t_n).unwrap();
-      let mut vert = compute_child(auspice_node, &index.0, result, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
+      let mut vert = compute_child(auspice_node, &index.0, vertex_result, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
       attach_subtree(&mut vert, &t_n, subtree, results, vertices, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
       add_computed_child(auspice_node, vert)
     }
@@ -163,7 +168,7 @@ fn attach_new_node(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
     add_aux_node(node);
   }
 
-  add_child(node, result);
+  add_child(node, result, None);
 }
 
 fn add_aux_node(node: &mut AuspiceTreeNode) {
@@ -178,8 +183,12 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
   node.name = format!("{}_parent", node.name);
 }
 
-fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  let mutations = convert_mutations_to_node_branch_attrs(result);
+fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs, new_mutations: Option<BTreeMap<String, Vec<String>>>) {
+  
+  let mutations = match new_mutations {
+    None => convert_mutations_to_node_branch_attrs(result),
+    Some(ref x) =>  new_mutations.unwrap(),
+  };
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",
@@ -308,7 +317,36 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
   subs.iter().map(AaSubMinimal::to_string_without_gene).collect_vec()
 }
 
+fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties) -> BTreeMap<String, Vec<String>>{
+  let subst = result.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
+  let dels = result.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
+  let mut private_nuc_mut = find_private_nuc_mutations(
+    node,
+    &subst,
+    &dels,
+    &result.missing,
+    &Range::new(result.alignment_start, result.alignment_end),
+    ref_seq,
+    virus_properties,
+  );
+  let aa_subst = result.aa_substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
+  let aa_dels = result.aa_deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
+  let mut private_aa_mut = find_private_aa_mutations(
+    node,
+    &aa_subst,
+    &aa_dels,
+    &result.unknown_aa_ranges,
+    ref_peptides,
+    gene_map,
+  );
+  let mutations = convert_private_mutations_to_node_branch_attrs(&private_nuc_mut, &private_aa_mut);
+  
+  mutations
+}
+
 fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits) -> AuspiceTreeNode {
+
+  let mutations = recalculate_private_mutations(node, result, ref_seq, ref_peptides, gene_map, virus_properties);
   let subst = result.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
   let dels = result.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
   let mut private_nuc_mut = find_private_nuc_mutations(
@@ -321,17 +359,6 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
     virus_properties,
   );
   private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
-  let aa_subst = result.aa_substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
-  let aa_dels = result.aa_deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
-  let mut private_aa_mut = find_private_aa_mutations(
-    node,
-    &aa_subst,
-    &aa_dels,
-    &result.unknown_aa_ranges,
-    ref_peptides,
-    gene_map,
-  );
-  let mutations = convert_private_mutations_to_node_branch_attrs(&private_nuc_mut, &private_aa_mut);
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
   let divergence = calculate_divergence(
     node,
@@ -343,8 +370,7 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
     "start: {}, end: {} (score: {})",
     result.alignment_start, result.alignment_end, result.alignment_score
   );
-
-  
+ 
   let mut new_node =   AuspiceTreeNode {
       name: format!("{}_new_subtree", index),
       branch_attrs: TreeBranchAttrs {
