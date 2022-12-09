@@ -49,9 +49,6 @@ parallel --jobs="${#artifacts[@]}" download_artifact ::: "${artifacts[@]}"
 
 chmod +x "${artifacts_dir}"/*
 
-# Check auth
-gh auth status >/dev/null
-
 # Setup git identity
 gh auth setup-git >/dev/null
 
