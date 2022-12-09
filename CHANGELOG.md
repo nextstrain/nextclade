@@ -1,3 +1,35 @@
+## Nextclade Web 2.9.1, Nextclade CLI 2.9.1 (2022-12-09)
+
+### Set default weights in "private mutations" QC check to 1
+
+This fixes the bug when the QC score is 0 (good) when the following QC fields are missing from `qc.json`:
+
+```
+.privateMutations.weightLabeledSubstitutions
+.privateMutations.weightReversionSubstitutions
+.privateMutations.weightUnlabeledSubstitutions
+```
+
+In this case Nextclade assumed value of 0, which lead to QC score of 0 always. Not all datasets were adjusted for the new `qc.json` format in time and some had these fields missing - notably the flu datasets. So these datasets were erroneously showing perfect QC score for the "private mutations" rule. 
+
+In this version we set these weights to 1.0 if they are missing, which fixes the incorrect QC scores. Some of the sequences will now correctly show worse QC scores.
+
+
+### Fix dataset selector in Nextclade Web when there are datasets with the same name, but different reference sequences
+
+The dataset selector on the main page on nextclade Web did not allow selecting datasets with the same name, but different reference sequences. This did not affect users so far, but we are about to release new Influenza datasets, which were affected. In this version we resolve the problem by keeping track of datasets not just by name, but by a combination of all attribute values (the `.attributes[]` entries in the datasets index JSON file).
+
+
+### Ensure non-default references in "dataset list" command of Nextclade CLI are shown
+
+This introduces special value `all` for `--reference` argument of `nextclade dataset list` command. And it is now set as default. When it's in force, datasets with all reference sequences are included into the displayed list. This resolves the problem where non-default references are not show in the list.
+
+
+### Internal changes
+
+ - We are now submitting PRs to bioconda automatically, which should reduce the delay of updates there
+
+
 ## Nextclade Web 2.9.0, Nextclade CLI 2.9.0 (2022-12-06)
 
 ### Increase requirements for supported Linux distributions for GNU flavor of Nextclade CLI
