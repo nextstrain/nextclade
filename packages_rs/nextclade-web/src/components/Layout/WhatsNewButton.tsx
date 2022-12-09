@@ -138,13 +138,11 @@ export const H3 = styled.h3`
   font-size: 1.25rem;
   font-weight: bold;
 
-  padding: 0.3rem 0.8rem;
   margin: 0 !important;
   margin-top: 1rem !important;
 
   code {
     font-size: 1.1rem;
-    padding: 1px 5px;
     background-color: #eaeaea;
     border-radius: 5px;
     overflow-wrap: break-word;
@@ -220,7 +218,7 @@ export const Pre = styled.pre`
 
 export const Code = styled.code`
   font-size: 0.8rem;
-  padding: 1px 5px;
+  padding: 1px 0;
   background-color: #eaeaea;
   border-radius: 5px;
   overflow-wrap: break-word;
