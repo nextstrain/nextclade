@@ -5,10 +5,11 @@ header = """
   <summary><h3>Commit history</h3> (click to expand)</summary>
 """
 
-# https://tera.netlify.app/docs/#introduction
+# This uses "Tera" template language.
+# Docs: https://tera.netlify.app/docs/#introduction
 body = """
 {% for commit in commits %}
-  - [[`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/{{ get_env(name="CIRCLE_PROJECT_USERNAME") }}/{{ get_env(name="CIRCLE_PROJECT_REPONAME") }}/commit/{{ commit.id }})] {{ commit.message }}
+ - [[`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/{{ get_env(name="GITHUB_REPOSITORY") }}/commit/{{ commit.id }})] {{ commit.message }}
 {% endfor %}
 """
 
