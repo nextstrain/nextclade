@@ -69,6 +69,12 @@ version_old=$(sed -n 's|.*version = "\(.*\)".*|\1|p' "recipes/nextclade/meta.yam
 ## Add Nextstrain fork (https://github.com/nextstrain/bioconda-recipes) as a remote
 git remote add nextstrain "https://github.com/nextstrain/bioconda-recipes" >/dev/null
 
+# Delete branch if already exists locally
+git branch --delete --force "bump/nextclade-${version}" || true
+
+# Delete branch if already exists in the fork
+git push nextstrain --delete "bump/nextclade-${version}" || true
+
 # Create a new branch
 git switch --quiet --create "bump/nextclade-${version}"
 
@@ -122,17 +128,51 @@ Update [nextclade](https://bioconda.github.io/recipes/nextclade/README.html) and
 
 @BiocondaBot please fetch artifacts
 
-Note: this pull request is submitted automatically, triggered by a release in [nextstrain/nextclade](https://github.com/nextstrain/nextclade) repo. If you want to get in touch, please ping recipe maintainers and/or someone from [\`@nextstrain/core\`](https://github.com/orgs/nextstrain/teams/core/members) team.
+Note: this pull request is submitted [automatically](https://github.com/nextstrain/nextclade/blob/master/.github/workflows/bioconda.yml), triggered by [a release](https://github.com/nextstrain/nextclade/releases) in [nextstrain/nextclade](https://github.com/nextstrain/nextclade) repo. If you want to get in touch, please ping recipe maintainers and/or someone from [\`@nextstrain/core\`](https://github.com/orgs/nextstrain/teams/core/members) team.
 
 ~~
 }
 
 # Submit the PR, reading message body from stdin
-pr_body | gh pr create \
-  --title "Update nextclade and nextalign to ${version}" \
-  --body-file - \
-  --repo "bioconda/bioconda-recipes"
+function submit_pr() {
+  pr_body | gh pr create \
+    --title "Update nextclade and nextalign to ${version}" \
+    --body-file - \
+    --repo "bioconda/bioconda-recipes"
+}
 
+# Get PR number from the output of gh command
+function get_pr_number() {
+  # The message from gh command typically ends with a URL to the PR and PR number is the last component of the path.
+  # Split the string on '/' and take the last component.
+  echo "${1##*/}"
+}
+
+# Close PR given its number
+function close_pr() {
+  gh pr close "${1:?}" --delete-branch --repo "bioconda/bioconda-recipes"
+}
+
+# Comment on PR given its number and a message from stdin
+function comment_on_pr() {
+  gh pr comment "${1:?}" --body-file -
+}
+
+if ! result=$(submit_pr 2>&1); then
+  echo "${result}" >&2
+  if [[ "${result}" == *"already exists"* ]]; then
+    # Failed because PR already exists. Close and resubmit.
+    pr_number=$(get_pr_number "${result}")
+    close_pr "${pr_number}"
+    submit_pr
+  else
+    exit 1
+  fi
+else
+  echo "${result}"
+  pr_number=$(get_pr_number "${result}")
+  echo "@BiocondaBot please add label" | comment_on_pr "${pr_number}"
+fi
 
 popd >/dev/null
 
