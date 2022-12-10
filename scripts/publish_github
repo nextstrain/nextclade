@@ -123,8 +123,4 @@ react_to_release() {
   fi
 }
 
-for emotion in '+1' 'laugh' 'heart' 'hooray' 'rocket'; do
-  react_to_release "$emotion" || true
-  sleep 1
-done
-
+react_to_release 'hooray'
