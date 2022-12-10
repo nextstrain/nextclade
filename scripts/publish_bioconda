@@ -128,7 +128,7 @@ Update [nextclade](https://bioconda.github.io/recipes/nextclade/README.html) and
 
 @BiocondaBot please fetch artifacts
 
-Note: this pull request is submitted automatically, triggered by a release in [nextstrain/nextclade](https://github.com/nextstrain/nextclade) repo. If you want to get in touch, please ping recipe maintainers and/or someone from [\`@nextstrain/core\`](https://github.com/orgs/nextstrain/teams/core/members) team.
+Note: this pull request is submitted [automatically](https://github.com/nextstrain/nextclade/blob/master/.github/workflows/bioconda.yml), triggered by [a release](https://github.com/nextstrain/nextclade/releases) in [nextstrain/nextclade](https://github.com/nextstrain/nextclade) repo. If you want to get in touch, please ping recipe maintainers and/or someone from [\`@nextstrain/core\`](https://github.com/orgs/nextstrain/teams/core/members) team.
 
 ~~
 }
