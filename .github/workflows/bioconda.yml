@@ -1,10 +1,14 @@
 # Submit new version to Bioconda (https://github.com/bioconda/bioconda-recipes)
 name: bioconda
 
+# This workflow is not being triggered on releases despite `on.release` is set.
+# Let's blanket-enable all activity types which resemble what we want here to see if any of these work as we think.
+# See also:
+#  - https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
+#  - https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#release
 on:
   release:
-    types:
-      - published
+    types: [created, published, released]
 
   repository_dispatch:
     types: bioconda
