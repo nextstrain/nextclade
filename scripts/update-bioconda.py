@@ -31,8 +31,13 @@ if __name__ == '__main__':
   with open(meta_yml_path, "r") as f:
     meta_yaml = f.read()
 
+  # Bump version variable
   meta_yaml = re.sub(r'version = "(.+)"', rf'version = "{version}"', meta_yaml)
 
+  # Reset build number to 0
+  meta_yaml = re.sub(r'build:\n(\s+)number:\s+\d+', r'build:\n\1number: 0', meta_yaml)
+
+  # Update file hashes of executables
   for selector, arch in archs.items():
       with open(join(bin_dir, f"{name}-{arch}"), "rb") as f:
         digest = sha256(f.read()).hexdigest()
