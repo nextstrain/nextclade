@@ -297,7 +297,7 @@ jobs:
 
   publish-to-github-releases:
     name: "Publish to GitHub Releases"
-    needs: [ build-cli, run-unit-tests, run-smoke-tests, run-linux-distros-test ]
+    needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test ]
     if: endsWith(github.ref, '/release-cli')
     runs-on: ubuntu-22.04
 
@@ -333,7 +333,7 @@ jobs:
 
   publish-to-docker-hub:
     name: "Publish to Docker Hub"
-    needs: [ build-cli, run-unit-tests, run-smoke-tests, run-linux-distros-test ]
+    needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test ]
     if: endsWith(github.ref, '/release-cli')
     runs-on: ubuntu-22.04
 
