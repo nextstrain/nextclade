@@ -5,7 +5,7 @@ use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::nextclade_csv::{
-  format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
+  format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions,  format_nuc_deletions_small, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
   AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
@@ -84,7 +84,7 @@ fn tree_attach_new_nodes_impl_in_place_recursive_subtree(node: &mut AuspiceTreeN
   let vec = attachment_positions.get(&node.tmp.id);
   if vec.is_some(){
     let unwrapped_vec = vec.unwrap();
-    if unwrapped_vec.len() >2{
+    if unwrapped_vec.len() >1{
       attach_new_nodes(node, results, unwrapped_vec, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
     }else{
       for v in unwrapped_vec{
@@ -318,12 +318,11 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
 }
 
 fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties) -> BTreeMap<String, Vec<String>>{
-  let subst = result.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
-  let dels = result.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
+
   let private_nuc_mut = find_private_nuc_mutations(
     node,
-    &subst,
-    &dels,
+    &result.substitutions,
+    &result.deletions,
     &result.missing,
     &Range::new(result.alignment_start, result.alignment_end),
     ref_seq,
@@ -347,12 +346,10 @@ fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMu
 fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits) -> AuspiceTreeNode {
 
   let mutations = recalculate_private_mutations(node, result, ref_seq, ref_peptides, gene_map, virus_properties);
-  let subst = result.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
-  let dels = result.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
-  let mut private_nuc_mut = find_private_nuc_mutations(
+  let private_nuc_mut = find_private_nuc_mutations(
     node,
-    &subst,
-    &dels,
+    &result.substitutions,
+    &result.deletions,
     &result.missing,
     &Range::new(result.alignment_start, result.alignment_end),
     ref_seq,
@@ -383,7 +380,7 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
         division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         alignment: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
-        gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
+        gaps: Some(TreeNodeAttr::new(&format_nuc_deletions_small(&result.deletions, ", "))),
         non_acgtns: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         has_pcr_primer_changes: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         pcr_primer_changes: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
