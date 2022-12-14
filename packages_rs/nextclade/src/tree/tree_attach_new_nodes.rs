@@ -358,6 +358,7 @@ fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMut
   //if reversions should not count to length
   //private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
+  println!("{}", parent_div);
   let divergence = calculate_divergence(
     node,
     &private_nuc_mut,

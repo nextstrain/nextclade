@@ -7,7 +7,7 @@ use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_composition::get_letter_composition;
-use crate::analyze::letter_ranges::{find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by};
+use crate::analyze::letter_ranges::{find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, LetterRange};
 use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_sub::NucSub;
@@ -56,7 +56,7 @@ use std::{
 static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 /// Calculates distance metric between two query samples -> should be sorted
-pub fn calculate_distance_results(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, del1: &Vec<NucDelMinimal>, del2: &Vec<NucDelMinimal>) -> f64 {
+pub fn calculate_distance_results(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, del1: &Vec<NucDelMinimal>, del2: &Vec<NucDelMinimal>, missings1: &Vec<LetterRange<Nuc>>, missings2: &Vec<LetterRange<Nuc>>, aln_range1 : &Range, aln_range2 : &Range) -> f64 {
   let total_mut_1 = subst1.len() as i64;
   let total_mut_2 = subst2.len() as i64;
   let mut shared_differences = 0_i64;
@@ -77,11 +77,24 @@ pub fn calculate_distance_results(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, de
     }
     else if subst1[i].pos < subst2[j].pos {
       i +=1;
-    }else{
+    }else if subst1[i].pos > subst2[j].pos{
       j +=1;
     }
   }
-  let dist = (total_mut_1 + total_mut_2 - 2 * shared_differences - shared_sites) as f64;
+  // determine the number of sites that are mutated in the node but missing in seq.
+  // for these we can't tell whether the node agrees with seq
+  let mut undetermined_sites = 0_i64;
+  // for sub1 in subst1 {
+  //   if !is_nuc_sequenced(sub1.pos, missings2, aln_range2) {
+  //     undetermined_sites += 1;
+  //   }
+  // }
+  // for sub2 in subst2 {
+  //   if !is_nuc_sequenced(sub2.pos, missings1, aln_range1) {
+  //     undetermined_sites += 1;
+  //   }
+  // }
+  let dist = (total_mut_1 + total_mut_2 - 2 * shared_differences - shared_sites - undetermined_sites) as f64;
 
   dist
 }
@@ -123,6 +136,8 @@ pub fn calculate_distance_matrix(
     distance_matrix[(0, i + 1)] = dist_to_node;
     let subst1 = &results1.private_nuc_mutations.private_substitutions;
     let del1 = &results1.private_nuc_mutations.private_deletions;
+    let missings1 = &results1.missing;
+    let aln_range1 = &Range{begin: results1.alignment_start, end: results1.alignment_end};
     for j in 0..size {
       if i >= j {
         continue;
@@ -131,7 +146,9 @@ pub fn calculate_distance_matrix(
         let results2 = if let Some(pos) = results.get(v2) { pos } else { todo!() };
         let subst2 = &results2.private_nuc_mutations.private_substitutions;
         let del2 = &results2.private_nuc_mutations.private_deletions;
-        let dist = calculate_distance_results(subst1, subst2, del1, del2);
+        let missings2 = &results2.missing;
+        let aln_range2 = &Range{begin: results2.alignment_start, end: results2.alignment_end};
+        let dist = calculate_distance_results(subst1, subst2, del1, del2, missings1, missings2, aln_range1, aln_range2);
         distance_matrix[(i + 1, j + 1)] = dist;
         distance_matrix[(j + 1, i + 1)] = dist;
       }
@@ -380,14 +397,22 @@ pub fn add_mutations_to_vertices(graph_node: &NodeType, directed_subtree: &Graph
   }
 }
 
-fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> Vec<NucSub> {
+fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, range1:&Vec::<NucRange>, range2:&Vec::<NucRange>, aln_range1 : &Range, aln_range2 : &Range) -> Vec<NucSub> {
   let mut shared_substitutions = Vec::<NucSub>::new();
   let mut i = 0;
   let mut j = 0;
   while (i < subst1.len()) && (j < subst2.len()) {
-    if subst1[i].pos == subst2[j].pos {
+    if !is_nuc_sequenced(i, range2, aln_range2){
+      shared_substitutions.push(subst1[i].clone());
+      i +=1;
+    }
+    else if !is_nuc_sequenced(j, range1, aln_range1){
+      shared_substitutions.push(subst2[j].clone());
+      j +=1;
+    }
+    else if subst1[i].pos == subst2[j].pos {
       // position is also mutated in node
-      if subst1[i].qry == subst2[j].qry {
+      if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
         shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
       }
       i +=1;
@@ -396,6 +421,28 @@ fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> Vec<NucSub> {
     else if subst1[i].pos < subst2[j].pos {
       i +=1;
     }else{
+      j +=1;
+    }
+  }
+  shared_substitutions
+}
+
+fn join_nuc_sub_small(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> Vec<NucSub> {
+  let mut shared_substitutions = Vec::<NucSub>::new();
+  let mut i = 0;
+  let mut j = 0;
+  while (i < subst1.len()) && (j < subst2.len()) {
+    if subst1[i].pos == subst2[j].pos {
+      // position is also mutated in node
+      if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
+        shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
+      }
+      i +=1;
+      j +=1;
+    }
+    else if subst1[i].pos < subst2[j].pos {
+      i +=1;
+    }else if subst1[i].pos > subst2[j].pos{
       j +=1;
     }
   }
@@ -428,13 +475,20 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
     let ch = vertices.get(&index).unwrap();
     child_vertices.push(ch);
   }
+  if child_vertices.len() == 1 {
+    println!("child_vertices.len() == 1");
+  }
 
-  let shared_substitutions = join_nuc_sub(&child_vertices.get(0).unwrap().substitutions, &child_vertices.get(1).unwrap().substitutions);
+  let shared_substitutions = join_nuc_sub(&child_vertices.get(0).unwrap().substitutions, &child_vertices.get(1).unwrap().substitutions,
+  &child_vertices.get(0).unwrap().missing, &child_vertices.get(1).unwrap().missing, 
+  &Range{begin: child_vertices.get(0).unwrap().alignment_start, end: child_vertices.get(0).unwrap().alignment_end},
+  &Range{begin: child_vertices.get(1).unwrap().alignment_start, end: child_vertices.get(1).unwrap().alignment_end});
 
+  //let shared_substitutions = join_nuc_sub_small(&child_vertices.get(0).unwrap().substitutions, &child_vertices.get(1).unwrap().substitutions);
   let mut shared_aa_substitutions = Vec::<AaSubFull>::new();
   for qmut1 in &child_vertices.get(1).unwrap().aa_substitutions {
     for qmut2 in &child_vertices.get(0).unwrap().aa_substitutions {
-      let join_shared_nuc_subst = join_nuc_sub(&qmut1.nuc_substitutions, &qmut2.nuc_substitutions);
+      let join_shared_nuc_subst = join_nuc_sub_small(&qmut1.nuc_substitutions, &qmut2.nuc_substitutions);
       let join_shared_nuc_del = join_nuc_del(&qmut1.nuc_deletions, &qmut2.nuc_deletions);
       if qmut1.sub.gene == qmut2.sub.gene && qmut1.sub.pos == qmut2.sub.pos {
         // position is also mutated in node
@@ -450,6 +504,7 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
             shared_aa_substitutions.push(qmut2.clone());
           }
           else{
+            println!("entering special case");
             let mut new_aa = AaSubFull{sub: qmut1.sub.clone(),
               nuc_substitutions:join_shared_nuc_subst,
               nuc_deletions:join_shared_nuc_del};
