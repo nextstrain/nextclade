@@ -221,7 +221,7 @@ jobs:
 
       - name: "Run lints"
         run: |
-          ./docker-dev lint
+          ./docker-dev lint-ci
 
 
   run-smoke-tests:

@@ -147,6 +147,7 @@ EXAMPLE=0
 LINT=0
 FORMAT=0
 FIX=
+LINT_DENY=
 
 case "${1:-}" in
 "docker-image-build" | "d")
@@ -315,6 +316,13 @@ case "${1:-}" in
   WATCH=1
   FIX="${LINT_FIX}"
   ;;
+"lint-ci" | "lc")
+  shift
+  LINT=1
+  WATCH=0
+  FIX=
+  LINT_DENY='-- -Dwarnings' # Fail if there's warnings
+  ;;
 "format" | "f")
   shift
   FORMAT=1
@@ -466,7 +474,7 @@ elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"
   COMMAND="cargo bench --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
 elif [ "${LINT}" == "1" ]; then
-  COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
+  COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-} ${LINT_DENY}"
 elif [ "${FORMAT}" == "1" ]; then
   if [ -z "${FIX}" ]; then
     FIX="-q"
