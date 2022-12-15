@@ -134,11 +134,11 @@ jobs:
 
       - name: "Lint web app code"
         run: |
-          ./docker-dev web yarn lint
+          ./docker-dev web yarn lint:ci
 
       - name: "Lint Rust code"
         run: |
-          ./docker-dev lint
+          ./docker-dev lint-ci
 
       - name: "Upload build artifacts"
         uses: actions/upload-artifact@v3
