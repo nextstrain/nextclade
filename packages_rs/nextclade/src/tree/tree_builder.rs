@@ -84,16 +84,16 @@ pub fn calculate_distance_results(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, de
   // determine the number of sites that are mutated in the node but missing in seq.
   // for these we can't tell whether the node agrees with seq
   let mut undetermined_sites = 0_i64;
-  // for sub1 in subst1 {
-  //   if !is_nuc_sequenced(sub1.pos, missings2, aln_range2) {
-  //     undetermined_sites += 1;
-  //   }
-  // }
-  // for sub2 in subst2 {
-  //   if !is_nuc_sequenced(sub2.pos, missings1, aln_range1) {
-  //     undetermined_sites += 1;
-  //   }
-  // }
+  for sub1 in subst1 {
+    if !is_nuc_sequenced(sub1.pos, missings2, aln_range2) {
+      undetermined_sites += 1;
+    }
+  }
+  for sub2 in subst2 {
+    if !is_nuc_sequenced(sub2.pos, missings1, aln_range1) {
+      undetermined_sites += 1;
+    }
+  }
   let dist = (total_mut_1 + total_mut_2 - 2 * shared_differences - shared_sites - undetermined_sites) as f64;
 
   dist
@@ -284,7 +284,6 @@ pub fn build_undirected_subtree_recursive(
     q.fill_diagonal(big_number);
     // get location and value of minimum -> which nodes to be joined
     let pos = argmin(&q);
-    println!("{}", q[pos]);
 
     // calculate distance of other nodes to new node
     let d1 = distance_matrix.row(cmp::min(pos.0, pos.1)).clone();
@@ -402,15 +401,7 @@ fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, range1:&Vec::<NucRan
   let mut i = 0;
   let mut j = 0;
   while (i < subst1.len()) && (j < subst2.len()) {
-    if !is_nuc_sequenced(i, range2, aln_range2){
-      shared_substitutions.push(subst1[i].clone());
-      i +=1;
-    }
-    else if !is_nuc_sequenced(j, range1, aln_range1){
-      shared_substitutions.push(subst2[j].clone());
-      j +=1;
-    }
-    else if subst1[i].pos == subst2[j].pos {
+    if subst1[i].pos == subst2[j].pos {
       // position is also mutated in node
       if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
         shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
@@ -419,8 +410,14 @@ fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>, range1:&Vec::<NucRan
       j +=1;
     }
     else if subst1[i].pos < subst2[j].pos {
+      if !is_nuc_sequenced(subst1[i].pos, range2, aln_range2){
+        shared_substitutions.push(subst1[i].clone());
+      }
       i +=1;
-    }else{
+    }else {
+      if !is_nuc_sequenced(subst2[j].pos, range1, aln_range1){
+        shared_substitutions.push(subst2[j].clone());
+      }
       j +=1;
     }
   }
@@ -599,8 +596,12 @@ pub fn compute_vertex_mutations(graph_node: &NodeType, directed_subtree: &Graph:
 fn test_distance_metric() {
     let seq1 = vec![NucSub{reff: Nuc::T, pos: 13, qry: Nuc::A}, NucSub{reff: Nuc::T, pos: 14, qry: Nuc::A}];
     let seq2 = vec![NucSub{reff: Nuc::T, pos: 13, qry: Nuc::T}, NucSub{reff: Nuc::T, pos: 14, qry: Nuc::A}, NucSub{reff: Nuc::T, pos: 18, qry: Nuc::A}];
-
-    let dist = calculate_distance_results(&seq1, &seq2);
+    let del1 = Vec::<NucDelMinimal>::new();
+    let del2= Vec::<NucDelMinimal>::new();
+    let missings1 = Vec::<LetterRange<Nuc>>::new();
+    let missings2 = Vec::<LetterRange<Nuc>>::new();
+    let aln_range1 = Range{begin: 0, end:100};
+    let aln_range2 = Range{begin: 0, end:100};
+    let dist = calculate_distance_results(&seq1, &seq2, &del1, &del2, &missings1, &missings2, &aln_range1, &aln_range2);
     assert_eq!(dist, 2.0);
-
 }

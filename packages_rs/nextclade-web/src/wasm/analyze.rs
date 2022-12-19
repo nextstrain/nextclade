@@ -16,7 +16,7 @@ use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::TranslationMap;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
-use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::tree_attach_new_nodes::{tree_attach_new_nodes_in_place, tree_attach_new_nodes_in_place_subtree};
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
@@ -278,7 +278,7 @@ impl Nextclade {
   }
 
   pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {
-    tree_attach_new_nodes_in_place(&mut self.tree, nextclade_outputs);
+    tree_attach_new_nodes_in_place_subtree(&mut self.tree, nextclade_outputs, &self.ref_seq, &self.ref_peptides, &self.gene_map, &self.virus_properties);
     &self.tree
   }
 }

@@ -148,8 +148,8 @@ fn attach_subtree(auspice_node: &mut AuspiceTreeNode, graph_node: &NodeType, sub
     if let NodeType::NewSeqNode(_) = t_n {
       let index = extract_enum_value!(t_n, NodeType::NewSeqNode(c) => c);
       let result = if let Some(pos) = results.get(index.0) { pos } else { todo!() };
-      let new_mutations = recalculate_private_mutations(auspice_node, vertex_result, ref_seq, ref_peptides, gene_map, virus_properties);
-      add_child(auspice_node, result, Some(new_mutations));
+      let (new_mutations, new_divergence)= recalculate_private_mutations(auspice_node, vertex_result, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
+      add_child(auspice_node, result, Some((new_mutations, new_divergence)));
     }else if let NodeType::NewInternalNode(_) = t_n {
       let index = extract_enum_value!(t_n, NodeType::NewInternalNode(c) => c);
       let mut vert = compute_child(auspice_node, &index.0, vertex_result, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
@@ -183,11 +183,11 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
   node.name = format!("{}_parent", node.name);
 }
 
-fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs, new_mutations: Option<BTreeMap<String, Vec<String>>>) {
+fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs, new_values: Option<(BTreeMap<String, Vec<String>>, f64)>) {
   
-  let mutations = match new_mutations {
-    None => convert_mutations_to_node_branch_attrs(result),
-    Some(ref x) =>  new_mutations.unwrap(),
+  let (mutations, divergence) = match new_values {
+    None => (convert_mutations_to_node_branch_attrs(result), result.divergence),
+    Some(ref x) =>  new_values.unwrap(),
   };
 
   let alignment = format!(
@@ -225,7 +225,7 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs, new_mutation
         other: serde_json::Value::default(),
       },
       node_attrs: TreeNodeAttrs {
-        div: Some(result.divergence),
+        div: Some(divergence),
         clade_membership: TreeNodeAttr::new(&result.clade),
         node_type: Some(TreeNodeAttr::new("New")),
         region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
@@ -317,7 +317,7 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
   subs.iter().map(AaSubMinimal::to_string_without_gene).collect_vec()
 }
 
-fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties) -> BTreeMap<String, Vec<String>>{
+fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits) -> (BTreeMap<String, Vec<String>>, f64){
 
   let private_nuc_mut = find_private_nuc_mutations(
     node,
@@ -340,30 +340,21 @@ fn recalculate_private_mutations(node: &mut AuspiceTreeNode, result: &InternalMu
   );
   let mutations = convert_private_mutations_to_node_branch_attrs(&private_nuc_mut, &private_aa_mut);
   
-  mutations
-}
-
-fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits) -> AuspiceTreeNode {
-
-  let mutations = recalculate_private_mutations(node, result, ref_seq, ref_peptides, gene_map, virus_properties);
-  let private_nuc_mut = find_private_nuc_mutations(
-    node,
-    &result.substitutions,
-    &result.deletions,
-    &result.missing,
-    &Range::new(result.alignment_start, result.alignment_end),
-    ref_seq,
-    virus_properties,
-  );
-  //if reversions should not count to length
-  //private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
-  let parent_div = node.node_attrs.div.unwrap_or(0.0);
   let divergence = calculate_divergence(
     node,
     &private_nuc_mut,
     div_units, 
     ref_seq.len()
   );
+  
+  (mutations, divergence)
+}
+
+fn compute_child(node: &mut AuspiceTreeNode, index: &usize, result: &InternalMutations, ref_seq: &[Nuc], ref_peptides: &TranslationMap, gene_map: &GeneMap, virus_properties: &VirusProperties, div_units: &DivergenceUnits) -> AuspiceTreeNode {
+
+  let (mutations, divergence) = recalculate_private_mutations(node, result, ref_seq, ref_peptides, gene_map, virus_properties, div_units);
+  //if reversions should not count to length
+  //private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
  
   let mut new_node =   AuspiceTreeNode {
       name: format!("{}_new_subtree", index),
