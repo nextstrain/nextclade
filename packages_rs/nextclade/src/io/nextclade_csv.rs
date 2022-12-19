@@ -1,8 +1,8 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_del::NucDel;
+use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::aa::{from_aa_seq, Aa};
@@ -499,10 +499,7 @@ pub fn format_nuc_deletions(deletions: &[NucDelFull], delimiter: &str) -> String
 }
 
 pub fn format_nuc_deletions_small(deletions: &[NucDel], delimiter: &str) -> String {
-  deletions
-    .iter()
-    .map(|del| del.to_range().to_string())
-    .join(delimiter)
+  deletions.iter().map(|del| del.to_range().to_string()).join(delimiter)
 }
 
 #[inline]

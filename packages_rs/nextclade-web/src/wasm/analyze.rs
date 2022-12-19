@@ -278,7 +278,14 @@ impl Nextclade {
   }
 
   pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {
-    tree_attach_new_nodes_in_place_subtree(&mut self.tree, nextclade_outputs, &self.ref_seq, &self.ref_peptides, &self.gene_map, &self.virus_properties);
+    tree_attach_new_nodes_in_place_subtree(
+      &mut self.tree,
+      nextclade_outputs,
+      &self.ref_seq,
+      &self.ref_peptides,
+      &self.gene_map,
+      &self.virus_properties,
+    );
     &self.tree
   }
 }
