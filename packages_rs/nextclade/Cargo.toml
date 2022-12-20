@@ -55,7 +55,7 @@ zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "
 atty = "0.2.14"
 bzip2 = "0.4.3"
 xz2 = "0.1.7"
-zstd = { version = "0.11.2+zstd.1.5.2", features = ["zstdmt"] }
+zstd = { version = "0.11.2", features = ["zstdmt"] }
 
 [dev-dependencies]
 assert2 = "0.3.6"
