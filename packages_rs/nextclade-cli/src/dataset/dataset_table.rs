@@ -81,5 +81,5 @@ pub fn format_attributes(attrs: &IndexMap<String, &DatasetAttributeValue>) -> St
 }
 
 pub fn format_attr_key_value(key: &str, attr: &DatasetAttributeValue) -> String {
-  format!("{}={}", key, format_attr_value_short(attr))
+  format!("{key}={}", format_attr_value_short(attr))
 }

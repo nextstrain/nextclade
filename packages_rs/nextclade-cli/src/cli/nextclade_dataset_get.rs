@@ -145,7 +145,7 @@ pub fn dataset_file_http_get(http: &mut HttpClient, dataset: &Dataset, filename:
 
   let content = http
     .get(&url)
-    .wrap_err_with(|| format!("Dataset file download failed: '{}'", url))?;
+    .wrap_err_with(|| format!("Dataset file download failed: '{url}'"))?;
 
   let content_string = String::from_utf8(content)?;
 
