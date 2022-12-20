@@ -28,16 +28,16 @@ pub struct Verbosity<L: LogLevel = ErrorLevel> {
   #[clap(long, short = 'v', parse(from_occurrences), global = true)]
   #[clap(conflicts_with = "quiet", conflicts_with = "verbosity", conflicts_with = "silent")]
   #[clap(display_order = 902)]
-  verbose: i8,
+  pub verbose: i8,
 
   /// Make console output more quiet. Add multiple occurrences to make output even more quiet.
   #[clap(long, short = 'q', parse(from_occurrences), global = true)]
   #[clap(conflicts_with = "verbose", conflicts_with = "verbosity")]
   #[clap(display_order = 903)]
-  quiet: i8,
+  pub quiet: i8,
 
   #[clap(skip)]
-  phantom: PhantomData<L>,
+  pub phantom: PhantomData<L>,
 }
 
 impl<L: LogLevel> Verbosity<L> {

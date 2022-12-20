@@ -55,7 +55,7 @@ pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Resul
       Ok(gene) => Ok((gene_name.clone(), gene)),
       Err(report) => Err(report)
         .wrap_err("When parsing a GFF3 record")
-        .with_section(|| format!("{:#?}", record).header("record:")),
+        .with_section(|| format!("{record:#?}").header("record:")),
     });
   }
   // Could warn like this, but should test first if `source` is not present. We could read `source` at some point.

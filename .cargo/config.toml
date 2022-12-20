@@ -179,6 +179,7 @@ rustflags = [
   # Disable some of the clippy lints
   "-Aclippy::arithmetic-side-effects",
   "-Aclippy::as_conversions",
+  "-Aclippy::assign_op_pattern",
   "-Aclippy::bool-to-int-with-if",
   "-Aclippy::cast_lossless",
   "-Aclippy::cast_possible_truncation",
@@ -186,6 +187,7 @@ rustflags = [
   "-Aclippy::cast_precision_loss",
   "-Aclippy::cast_sign_loss",
   "-Aclippy::cognitive_complexity",
+  "-Aclippy::comparison-chain",
   "-Aclippy::default_numeric_fallback",
   "-Aclippy::doc_markdown",
   "-Aclippy::else_if_without_else",
@@ -209,6 +211,7 @@ rustflags = [
   "-Aclippy::missing_errors_doc",
   "-Aclippy::missing_inline_in_public_items",
   "-Aclippy::missing_panics_doc",
+  "-Aclippy::missing_trait_methods",
   "-Aclippy::mod_module_files",
   "-Aclippy::module_inception",
   "-Aclippy::module_name_repetitions",
