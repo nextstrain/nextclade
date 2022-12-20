@@ -6,6 +6,8 @@ trap "exit 0" INT
 # Run Nextclade on different Linux distros, to ensure compatibility.
 # We are mostly concerned about old distros with old glibc, libgcc and kernel.
 #
+# Dependencies:
+#   sudo apt-get install -y bash parallel
 
 function abspath() {
   readlink -m "$1"

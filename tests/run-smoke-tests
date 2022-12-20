@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap "exit 0" INT
 
-#
 # Runs smoke tests - basic use-case checks with default data
 # https://en.wikipedia.org/wiki/Smoke_testing_(software)
 #
+# Dependencies:
+#   sudo apt-get install -y bash curl parallel
+#   mkdir -p "${HOME}/bin"
+#   export PATH="${HOME}/bin:${PATH}"
+#   curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
-export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade>"}"
+export NEXTCLADE_BIN="${1:? "Usage: ${0} path_to_nextclade"}"
 export NEXTCLADE_BIN
 
 THIS_DIR=$(
@@ -15,36 +20,29 @@ THIS_DIR=$(
 )
 export THIS_DIR
 
-pathogens=(
-  'sars-cov-2'
-  'sars-cov-2-21L'
-  'sars-cov-2-no-recomb'
-  'flu_h1n1pdm_ha'
-  'flu_h3n2_ha'
-  'flu_vic_ha'
-  'flu_yam_ha'
-  'MPXV'
-  'hMPXV'
-  'hMPXV_B1'
-)
+export DATASET_DIR="$THIS_DIR/../tmp/smoke-tests/dataset"
+export OUT_DIR="$THIS_DIR/../tmp/smoke-tests/result"
 
-export DATASET_DIR="$THIS_DIR/../data_dev"
-export OUT_DIR="$THIS_DIR/../tmp"
-
-${NEXTCLADE_BIN} dataset list --quiet >/dev/null
+dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value')
+num_dataset_names_and_refs=$(echo "${dataset_names_and_refs}" | wc -l)
 
 function run_one_test() {
-  pathogen=$1
+  name_and_ref=$1
 
-  echo "Running '${NEXTCLADE_BIN}' for '${pathogen}'"
+  # shellcheck disable=SC2206
+  arr=(${name_and_ref//;/ })
+  name="${arr[0]}"
+  reference="${arr[1]}"
 
-  ${NEXTCLADE_BIN} dataset get --name="$pathogen" --output-dir="$DATASET_DIR/$pathogen"
+  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference}'"
+
+  ${NEXTCLADE_BIN} dataset get --name="${name}" --reference="${reference}" --output-dir="$DATASET_DIR/${name}-${reference}"
 
   ${NEXTCLADE_BIN} run --quiet --in-order \
-    --output-all="$OUT_DIR/$pathogen" \
-    --input-dataset="$DATASET_DIR/$pathogen" \
-    "$DATASET_DIR/$pathogen/sequences.fasta"
+    --output-all="$OUT_DIR/${name}-${reference}" \
+    --input-dataset="$DATASET_DIR/${name}-${reference}" \
+    "$DATASET_DIR/${name}-${reference}/sequences.fasta"
 }
 export -f run_one_test
 
-parallel --jobs="${#pathogens[@]}" run_one_test ::: "${pathogens[@]}"
+parallel --jobs="${num_dataset_names_and_refs}" run_one_test ::: "${dataset_names_and_refs}"
