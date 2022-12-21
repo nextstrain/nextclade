@@ -19,7 +19,7 @@ use std::path::Path;
 /// Read GFF3 records given a file
 pub fn read_gff3_file<P: AsRef<Path>>(filename: P) -> Result<GeneMap, Report> {
   let filename = filename.as_ref();
-  let mut reader = GffReader::from_file(&filename, GffType::GFF3).map_err(|report| eyre!(report))?;
+  let mut reader = GffReader::from_file(filename, GffType::GFF3).map_err(|report| eyre!(report))?;
   process_gff_records(&mut reader).wrap_err_with(|| format!("When reading GFF3 file '{filename:?}'"))
 }
 
@@ -203,4 +203,34 @@ fn gff_record_to_string(record: &GffRecord) -> Result<String, Report> {
     writer.write(record)?;
   }
   Ok(String::from_utf8(buf)?)
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::utils::error::report_to_string;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  #[rstest]
+  fn gff3_checks_feature_length() -> Result<(), Report> {
+    let result = read_gff3_str(
+      r#"##gff-version 3
+##sequence-region EPI1857216 1 1718
+EPI1857216	feature	gene	1	47	.	+	.	gene_name="SigPep"
+EPI1857216	feature	gene	48	1035	.	+	.	gene_name="HA1"
+EPI1857216	feature	gene	1036	1698	.	+	.	gene_name="HA2"
+"#,
+    );
+
+    let report = eyre!("GFF3 record is invalid: feature length must be divisible by 3, but the length is 47")
+      .wrap_err(eyre!("When reading GFF3 file"));
+
+    assert_eq!(
+      report_to_string(&result.unwrap_err()),
+      "When reading GFF3 file: When parsing a GFF3 record: GFF3 record is invalid: feature length must be divisible by 3, but the length is 47"
+    );
+
+    Ok(())
+  }
 }

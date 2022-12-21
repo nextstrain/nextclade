@@ -8,7 +8,7 @@ pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[A
   let aa_substitutions = aa_substitutions
     .iter()
     .filter_map(|AaSubFull { sub, .. }| {
-      (sub.gene == phenotype_data.gene && phenotype_data.aa_range.contains(sub.pos)).then(|| sub)
+      (sub.gene == phenotype_data.gene && phenotype_data.aa_range.contains(sub.pos)).then_some(sub)
     })
     .collect_vec();
 

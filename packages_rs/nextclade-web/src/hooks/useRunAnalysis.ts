@@ -8,7 +8,7 @@ import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { datasetCurrentAtom, datasetCurrentNameAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
@@ -47,7 +47,6 @@ export function useRunAnalysis() {
         reset(analysisResultsAtom)
 
         const numThreads = getPromise(numThreadsAtom)
-        const datasetCurrentName = getPromise(datasetCurrentNameAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
 
         const qryInputs = getPromise(qrySeqInputsStorageAtom)
@@ -97,7 +96,7 @@ export function useRunAnalysis() {
           .push('/results', '/results')
           .then(async () => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.initWorkers)
-            return launchAnalysis(qryInputs, inputs, callbacks, datasetCurrentName, datasetCurrent, numThreads)
+            return launchAnalysis(qryInputs, inputs, callbacks, datasetCurrent, numThreads)
           })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)

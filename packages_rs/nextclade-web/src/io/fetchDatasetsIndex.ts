@@ -54,6 +54,7 @@ export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, dat
 
   return {
     datasets,
+    defaultDataset,
     defaultDatasetName: value,
     defaultDatasetNameFriendly: valueFriendly ?? value,
   }

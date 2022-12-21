@@ -107,9 +107,11 @@ pub struct NextcladeDatasetListArgs {
   pub name: Option<String>,
 
   /// Restrict list to datasets based on this reference sequence (given its accession ID). Equivalent to `--attribute='reference=<value>'`.
+  ///
+  /// Special values: "all" - shows datasets with any reference sequences; "default" - show only datasets with default reference sequence (as defined by the author of a given dataset).
   #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::Other)]
-  #[clap(default_value = "default")]
+  #[clap(default_value = "all")]
   pub reference: String,
 
   /// Restrict list to datasets with this version tag. Equivalent to `--attribute='tag=<value>'`.
@@ -669,7 +671,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     if output_selection.contains(&NextcladeOutputSelection::Translations) {
       let output_translations_path =
         default_output_file_path.with_file_name(format!("{output_basename}_gene_{{gene}}"));
-      let output_translations_path = add_extension(&output_translations_path, "translation.fasta");
+      let output_translations_path = add_extension(output_translations_path, "translation.fasta");
 
       let output_translations_template = output_translations_path
         .to_str()

@@ -7,7 +7,7 @@ import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
 import { SortCategory, SortDirection, sortResults, sortResultsByKey } from 'src/helpers/sortResults'
-import { datasetCurrentNameAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 import {
   aaFilterAtom,
   cladesFilterAtom,
@@ -243,15 +243,20 @@ export const analysisStatusGlobalAtom = atom({
       onSet((status) => {
         switch (status) {
           case AlgorithmGlobalStatus.started:
-            void getPromise(datasetCurrentNameAtom).then((datasetName) => {
-              plausible('Run started', { props: { dataset: datasetName } })
+            void getPromise(datasetCurrentAtom).then((dataset) => {
+              plausible('Run started', { props: { dataset: dataset?.attributes.name.value ?? 'unknown' } })
             })
             break
 
           case AlgorithmGlobalStatus.done:
-            void Promise.all([getPromise(analysisResultStatusesAtom), getPromise(datasetCurrentNameAtom)]).then(
-              ([results, datasetName]) => {
-                plausible('Run completed', { props: { sequences: results.length, dataset: datasetName } })
+            void Promise.all([getPromise(analysisResultStatusesAtom), getPromise(datasetCurrentAtom)]).then(
+              ([results, dataset]) => {
+                plausible('Run completed', {
+                  props: {
+                    sequences: results.length,
+                    dataset: dataset?.attributes.name.value ?? 'unknown',
+                  },
+                })
               },
             )
             break

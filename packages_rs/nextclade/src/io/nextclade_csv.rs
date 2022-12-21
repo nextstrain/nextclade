@@ -185,12 +185,12 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
 
     custom_node_attributes
       .iter()
-      .try_for_each(|(key, val)| self.add_entry(&key, &val))?;
+      .try_for_each(|(key, val)| self.add_entry(key, &val))?;
 
     if let Some(phenotype_values) = phenotype_values {
       phenotype_values
         .iter()
-        .try_for_each(|PhenotypeValue { name, value, .. }| self.add_entry(&name, &value))?;
+        .try_for_each(|PhenotypeValue { name, value, .. }| self.add_entry(name, &value))?;
     }
 
     self.add_entry("seqName", seq_name)?;

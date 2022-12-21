@@ -1,3 +1,68 @@
+## Nextclade Web 2.9.1, Nextclade CLI 2.9.1 (2022-12-09)
+
+### Set default weights in "private mutations" QC check to 1
+
+This fixes the bug when the QC score is 0 (good) when the following QC fields are missing from `qc.json`:
+
+```
+.privateMutations.weightLabeledSubstitutions
+.privateMutations.weightReversionSubstitutions
+.privateMutations.weightUnlabeledSubstitutions
+```
+
+In this case Nextclade assumed value of 0, which lead to QC score of 0 always. Not all datasets were adjusted for the new `qc.json` format in time and some had these fields missing - notably the flu datasets. So these datasets were erroneously showing perfect QC score for the "private mutations" rule. 
+
+In this version we set these weights to 1.0 if they are missing, which fixes the incorrect QC scores. Some of the sequences will now correctly show worse QC scores.
+
+
+### Fix dataset selector in Nextclade Web when there are datasets with the same name, but different reference sequences
+
+The dataset selector on the main page on nextclade Web did not allow selecting datasets with the same name, but different reference sequences. This did not affect users so far, but we are about to release new Influenza datasets, which were affected. In this version we resolve the problem by keeping track of datasets not just by name, but by a combination of all attribute values (the `.attributes[]` entries in the datasets index JSON file).
+
+
+### Ensure non-default references in "dataset list" command of Nextclade CLI are shown
+
+This introduces special value `all` for `--reference` argument of `nextclade dataset list` command. And it is now set as default. When it's in force, datasets with all reference sequences are included into the displayed list. This resolves the problem where non-default references are not show in the list.
+
+
+### Internal changes
+
+ - We are now submitting PRs to bioconda automatically, which should reduce the delay of updates there
+
+
+## Nextclade Web 2.9.0, Nextclade CLI 2.9.0 (2022-12-06)
+
+### Increase requirements for supported Linux distributions for GNU flavor of Nextclade CLI
+
+Due to malfunction of package repositories of Debian 7, we had to switch automated builds of the "gnu" flavor of Nextclade CLI from Debian 7 to CentOS 7. This increases minimum required version of glibc to 2.17. The list or Linux distributions we tested the new version of Nextclade on is [here](https://github.com/nextstrain/nextclade/blob/9f2b9a620a7bc9a068909634a4fc3f29757c059f/tests/test-linux-distros#L18-L62). For users of older Linux distributions (with glibc < 2.17) we suggest to use "musl" flavor of Nextclade CLI, which does not depend on glibc, but might be substantially slower. Users of Nextclade CLI on macOS and Windows and users of Nextclade Web are not affected.
+
+### Add gene length validation in GFF3 parser
+
+Nextclade will now check if genes have length divisible by 3 in gene maps and will fail with an error if it's not the case.
+
+### Fix translated (internationalized) strings in Nextclade Web
+
+We fixed missing spaces between words in some of the languages and fixes some of the translations.
+
+### Internal changes
+
+ - build Linux binaries on CentOS 7
+ - migrate CI to GitHub Actions
+ - upgrade Rust to 1.65.0
+
+
+## Nextclade Web 2.8.1 (2022-11-01)
+
+### Fix translated (internationalized) text on Tree page
+
+We fixed some of the text labels on Tree page in Nextclade Web. Additionally, the page is now translated to more languages.
+
+
+### Hotlink clade schema
+
+The Nextstrain clade schema for SARS-CoV-2 on main page is now taken directly from [ncov-clades-schema](https://github.com/nextstrain/ncov-clades-schema) project and is updated automatically whenever the source updates.
+
+
 ## Nextclade Web 2.8.0, Nextclade CLI 2.8.0 (2022-10-20)
 
 ### Community datasets in Nextclade Web

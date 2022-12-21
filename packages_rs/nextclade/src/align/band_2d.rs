@@ -75,7 +75,7 @@ pub struct Band2d<T>
 where
   T: Default + Clone,
 {
-  pub data: Vec<T>,
+  data: Vec<T>,
   stripes: Vec<Stripe>,
   row_start_points: Vec<usize>,
   n_rows: usize,
@@ -87,19 +87,15 @@ where
   T: Default + Clone,
 {
   pub fn new(stripes: &[Stripe]) -> Self {
-    let n_rows = stripes.len();
-
-    let mut row_start_points = vec![0_usize; n_rows + 1];
-    let mut n_cols = 0_usize;
-    row_start_points[0] = 0;
-    for (i, stripe) in stripes.iter().enumerate() {
-      row_start_points[i + 1] = row_start_points[i] + stripe.len();
-      n_cols = n_cols.max(stripe.end);
-    }
-
+    let (n_rows, _, row_start_points) = calculate_dimensions(stripes);
     let data: Vec<T> = vec![T::default(); row_start_points[n_rows]];
+    Self::with_data(stripes, &data)
+  }
+
+  pub fn with_data(stripes: &[Stripe], data: &[T]) -> Self {
+    let (n_rows, n_cols, row_start_points) = calculate_dimensions(stripes);
     Self {
-      data,
+      data: data.to_vec(),
       stripes: stripes.to_vec(),
       row_start_points,
       n_rows,
@@ -118,6 +114,11 @@ where
   }
 
   #[inline]
+  pub fn data_len(&self) -> usize {
+    self.data.len()
+  }
+
+  #[inline]
   fn get_index<I: NumCast + Copy, J: NumCast + Copy>(&self, index2d: (I, J)) -> usize {
     let row = index2d.0.to_usize().unwrap();
     let col = index2d.1.to_usize().unwrap();
@@ -131,6 +132,18 @@ where
     );
     self.row_start_points[row] + (col - stripe.begin)
   }
+}
+
+fn calculate_dimensions(stripes: &[Stripe]) -> (usize, usize, Vec<usize>) {
+  let n_rows = stripes.len();
+  let mut row_start_points = vec![0_usize; n_rows + 1];
+  let mut n_cols = 0_usize;
+  row_start_points[0] = 0;
+  for (i, stripe) in stripes.iter().enumerate() {
+    row_start_points[i + 1] = row_start_points[i] + stripe.len();
+    n_cols = n_cols.max(stripe.end);
+  }
+  (n_rows, n_cols, row_start_points)
 }
 
 /// Allows 2-dimensional indexing using a tuple

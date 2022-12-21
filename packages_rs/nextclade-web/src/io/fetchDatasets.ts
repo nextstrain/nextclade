@@ -32,15 +32,11 @@ export async function initializeDatasets(urlQuery: ParsedUrlQuery, datasetServer
 
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
-  const { datasets, defaultDatasetName, defaultDatasetNameFriendly } = getLatestCompatibleEnabledDatasets(
-    datasetServerUrl,
-    datasetsIndexJson,
-  )
+  const { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly } =
+    getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
 
   // Check if URL params specify dataset params and try to find the corresponding dataset
   const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
 
-  const currentDatasetName = currentDataset?.attributes.name.value
-
-  return { datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }
+  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
 }

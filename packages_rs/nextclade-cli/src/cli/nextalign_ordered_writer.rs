@@ -36,12 +36,12 @@ impl<'a> NextalignOrderedWriter<'a> {
     let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
 
     let fasta_peptide_writer = output_translations
-      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, &output_translations))?;
+      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
     let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
 
     let errors_csv_writer =
-      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, &output_errors))?;
+      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
 
     Ok(Self {
       fasta_writer,

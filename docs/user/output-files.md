@@ -63,6 +63,10 @@ Nextclade CLI flags: `--output-csv`, `--output-tsv`
 
 TSV and CSV files are equivalent and only differ in the column delimiter (tabs vs semicolons), for better compatibility with spreadsheet software and data-science packages. Tabular format of TSV/CSV files is somewhat human-friendly and convenient for the immediate inspection and for simple automated processing.
 
+> ⚠️ Note, in CSV and TSV outputs, all positions are 1-based, and all ranges are closed (they include both left and right boundaries).
+
+> ⚠️ Note, all positions are in alignment coordinates and after all the insertions are stripped.
+
 Every row in tabular output corresponds to 1 input sequence. The meaning of columns is described below:
 
 | Column name                                     | Meaning                                                                                                    |
@@ -95,7 +99,7 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | aaSubstitutions                                 | List of detected aminoacid substitutions                                                                   |
 | aaDeletions                                     | List of detected aminoacid deletions                                                                       |
 | aaInsertions                                    | List of detected aminoacid insertions                                                                      | 
-| missing                                         | List of detected nucleotide insertions                                                                     |
+| missing                                         | List of detected N nucleotides                                                                             |
 | nonACGTNs                                       | List of detected ambiguous nucleotides                                                                     |
 | pcrPrimerChanges                                | List of detected PCR primer changes                                                                        |
 | alignmentScore                                  | Alignment score                                                                                            |
@@ -147,6 +151,8 @@ JSON results file is best for in-depth automated processing of results. It conta
 >
 >Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in CSV/TSV results.
 
+> ⚠️ Note, all positions are in alignment coordinates and after all the insertions stripped.
+
 ### NDJSON results
 
 Nextclade CLI flag: `--output-ndjson`, filename `nextclade.ndjson`,
@@ -157,6 +163,8 @@ NDJSON results are similar to the JSON results - it combines `results` and `erro
 > ⚠️ Beware that NDJSON results reflect internal state of Nextclade, and use 0-indexed nucleotide and codon positions, whereas CSV and TSV files use 1-indexed positions (widely used in bioinformatics). The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
 >
 >Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in NDJSON results corresponds to `missing: 705-726` in CSV/TSV results.
+
+> ⚠️ Note, all positions are in alignment coordinates and after all the insertions stripped.
 
 ## Output phylogenetic tree
 
@@ -171,6 +179,8 @@ The tree can be visualized online in [auspice.us](https://auspice.us) or in a lo
 > ⚠️ Note that if alignment or analysis of an individual sequence fails, it cannot participate in phylogenetic placement and is omitted from the output tree.
 
 > ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the tree output is requested (through `--output-tree` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing this output for large input data, running on a machine with more RAM, or processing data in smaller chunks.
+
+> ⚠️ Note, all positions are in alignment coordinates and after all the insertions stripped.
 
 ## Stripped insertions
 

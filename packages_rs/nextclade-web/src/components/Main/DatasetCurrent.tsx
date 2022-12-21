@@ -2,9 +2,9 @@ import React, { useCallback, useState } from 'react'
 
 import { Button, Col, Collapse, Row } from 'reactstrap'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
-import { datasetCurrentAtom, datasetCurrentNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ButtonCustomize } from 'src/components/Main/ButtonCustomize'
 import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
@@ -71,7 +71,7 @@ export function DatasetCurrent() {
   const { t } = useTranslationSafe()
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const resetDatasetCurrent = useResetRecoilState(datasetCurrentNameAtom)
+  const resetDatasetCurrent = useResetRecoilState(datasetCurrentAtom)
 
   const onChangeClicked = useCallback(() => {
     resetDatasetCurrent()

@@ -4267,10 +4267,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.40.0:
-  version "2.40.0"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.40.0.tgz#cfea4b37f9af9dcd793e32ce038f8a92156dc88e"
-  integrity sha512-9MoE14jHR46MPrSg6CA6/GUsPKV+zJzX8H2S/34KbKwKCyttPwdHOndE1tqawwa7+jMcja194iFP8EMFkExerQ==
+auspice@2.41.0:
+  version "2.41.0"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.41.0.tgz#7239f97228d0c767ed9834a31e64d86a30099670"
+  integrity sha512-RFwmQeywHSI980PLoyFbss4AxH1CsjGuaNJ8qZJKKFDyPnLsS5BOu/NCpqfSjW3lhaUdiEuQY56JVgHQjXITaw==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -13346,15 +13346,15 @@ rechoir@^0.7.0:
   dependencies:
     resolve "^1.9.0"
 
-recoil-persist@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/recoil-persist/-/recoil-persist-4.1.0.tgz#7406ce14f448783fbff9f9011da8235c84838249"
-  integrity sha512-7ruOsLhrEqBpl8EM6j5OITSKJXvH7BfSDxO5m1Heb3dJo6mnCJ3t4ln1KDJhZrvFOkqyO37Ufv3VB1wU06tfCA==
+recoil-persist@4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/recoil-persist/-/recoil-persist-4.2.0.tgz#9fbb4a8c158cbb83ceb9dedf795aee24ed15395d"
+  integrity sha512-MHVfML9GxJP3RpkKR4F5rp7DtvzIvjWhowtMao/b7h2k4afMio/4sMAdUtltIrDaeVegH0Iga8Sx5XQ3oD7CzA==
 
-recoil@0.7.2:
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.7.2.tgz#37aafc9e0674abae639263354a11c910e71bf78a"
-  integrity sha512-OT4pI7FOUHcIoRtjsL5Lqq+lFFzQfir4MIbUkqyJ3nqv3WfBP1pHepyurqTsK5gw+T+I2R8+uOD28yH+Lg5o4g==
+recoil@0.7.6:
+  version "0.7.6"
+  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.7.6.tgz#75297ecd70bbfeeb72e861aa6141a86bb6dfcd5e"
+  integrity sha512-hsBEw7jFdpBCY/tu2GweiyaqHKxVj6EqF2/SfrglbKvJHhpN57SANWvPW+gE90i3Awi+A5gssOd3u+vWlT+g7g==
   dependencies:
     hamt_plus "1.0.2"
 

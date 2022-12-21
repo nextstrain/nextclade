@@ -53,15 +53,15 @@ impl<'a> NextcladeOrderedWriter<'a> {
     let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
 
     let fasta_peptide_writer = output_translations
-      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, &output_translations))?;
+      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
     let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
 
     let errors_csv_writer =
-      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, &output_errors))?;
+      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
 
     let output_json_writer = output_json.map_ref_fallible(|output_json| {
-      ResultsJsonWriter::new(&output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
+      ResultsJsonWriter::new(output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
     })?;
 
     let output_ndjson_writer = output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;
@@ -77,11 +77,11 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .collect_vec();
 
     let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
-      NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(output_csv, b';', &clade_node_attr_keys, &phenotype_attr_keys)
     })?;
 
     let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
-      NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(output_tsv, b'\t', &clade_node_attr_keys, &phenotype_attr_keys)
     })?;
 
     Ok(Self {

@@ -50,7 +50,7 @@ pub fn nextalign_run_one(
 
       let missing_genes = gene_map
         .iter()
-        .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then(|| gene_name))
+        .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then_some(gene_name))
         .cloned()
         .collect_vec();
 

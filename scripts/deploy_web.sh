@@ -6,6 +6,7 @@ trap "exit" INT
 : "${AWS_S3_BUCKET:?The environment variable is required}"
 : "${AWS_CLOUDFRONT_DISTRIBUTION_ID:?The environment variable is required}"
 
+export AWS_MAX_ATTEMPTS=10
 
 pushd "packages_rs/nextclade-web/.build/production/web" >/dev/null
 
