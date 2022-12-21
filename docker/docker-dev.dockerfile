@@ -119,6 +119,12 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
+&& curl -fsSL -o "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
+&& chmod +x "/usr/bin/jq" \
+&& jq --version
+
+# Install dasel, a tool to query TOML files
+RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
 && chmod +x "/usr/bin/dasel" \
 && dasel --version
