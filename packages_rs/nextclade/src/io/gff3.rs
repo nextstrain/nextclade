@@ -1,4 +1,4 @@
-use crate::gene::cds::Cds;
+use crate::gene::cds::{Cds, MatureProteinRegion};
 use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::container::get_first_of;
 use crate::io::gene_map::GeneMap;
@@ -42,8 +42,9 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<GeneMap, Re
 
   let gene_records = get_records_by_feature_type(&records, "gene");
   let cds_records = get_records_by_feature_type(&records, "cds");
+  let mpr_records = get_records_by_feature_type(&records, "mature_protein_region_of_CDS");
 
-  let genes = extract_hierarchy_of_genes_and_cdses(&gene_records, &cds_records)?;
+  let genes = extract_hierarchy_of_genes_and_cdses(&gene_records, &cds_records, &mpr_records)?;
 
   if genes.is_empty() {
     warn!(
@@ -60,6 +61,7 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<GeneMap, Re
 fn extract_hierarchy_of_genes_and_cdses(
   gene_records: &[(usize, &GffRecord)],
   cds_records: &[(usize, &GffRecord)],
+  mpr_records: &[(usize, &GffRecord)],
 ) -> Result<Vec<Gene>, Report> {
   // HACK: COMPATIBILITY: If there are no gene records, then pretend that CDS records describe genes
   let gene_records = if gene_records.is_empty() {
@@ -73,7 +75,8 @@ fn extract_hierarchy_of_genes_and_cdses(
   gene_records
     .iter()
     .map(|(i, gene_record)| {
-      convert_gff_record_to_gene(gene_record, cds_records).wrap_err_with(|| format!("When processing GFF row {i}"))
+      convert_gff_record_to_gene(gene_record, cds_records, mpr_records)
+        .wrap_err_with(|| format!("When processing GFF row {i}"))
     })
     .collect::<Result<Vec<Gene>, Report>>()
     .wrap_err_with(|| "When reading genes and CDSes of a gene map")
@@ -92,6 +95,7 @@ fn get_records_by_feature_type<'r>(records: &'r [GffRecord], record_type: &str) 
 pub fn convert_gff_record_to_gene(
   gene_record: &GffRecord,
   cds_records: &[(usize, &GffRecord)],
+  mpr_records: &[(usize, &GffRecord)],
 ) -> Result<Gene, Report> {
   // If true, this is not a real gene, but rather a CDS, treated as gene as a fallback (because there are no genes)
   let compat_is_cds = gene_record.feature_type().to_lowercase() == "cds";
@@ -111,12 +115,12 @@ pub fn convert_gff_record_to_gene(
     // Therefore we treat the gene itself as CDS.
     let cdses = {
       let cdses = if let Some(gene_id) = get_attribute_optional(gene_record, "ID") {
-        convert_gff_records_to_cdses(cds_records, &gene_id)
+        convert_gff_records_to_cdses(cds_records, mpr_records, &gene_id)
       } else {
         let record_str = gff_record_to_string(gene_record).unwrap();
         warn!("Gene map: the gene record does not contain 'ID' attribute, so it's impossible to find associated CDSes. Treating the gene itself as a CDS. This behavior is for backwards compatibility only and will be removed in future versions. Make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes. Affected record:\n{record_str}");
 
-        let mut cds = convert_gff_record_to_cds(gene_record)?;
+        let mut cds = convert_gff_record_to_cds(gene_record, mpr_records)?;
         cds.compat_is_gene = true;
         Ok(vec![cds])
       }?;
@@ -127,7 +131,7 @@ pub fn convert_gff_record_to_gene(
           let record_str = gff_record_to_string(gene_record).unwrap();
           warn!("Gene map: the gene record has no associated CDSes. Treating the gene itself as a CDS. This behavior is for backwards compatibility only and will be removed in future versions. Make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes. Affected record:\n{record_str}");
         }
-        vec![convert_gff_record_to_cds(gene_record)?]
+        vec![convert_gff_record_to_cds(gene_record, mpr_records)?]
       } else {
         cdses
       }
@@ -163,7 +167,11 @@ pub fn convert_gff_record_to_gene(
 }
 
 /// Converts GFF3 records to the internal `Cds` representation
-fn convert_gff_records_to_cdses(cds_records: &[(usize, &GffRecord)], gene_id: &str) -> Result<Vec<Cds>, Report> {
+fn convert_gff_records_to_cdses(
+  cds_records: &[(usize, &GffRecord)],
+  mpr_records: &[(usize, &GffRecord)],
+  gene_id: &str,
+) -> Result<Vec<Cds>, Report> {
   cds_records
     .iter()
     .map(|(i, cds_record)| -> Result<_, Report> {
@@ -172,18 +180,25 @@ fn convert_gff_records_to_cdses(cds_records: &[(usize, &GffRecord)], gene_id: &s
       Ok((*i, parent_id, *cds_record))
     })
     .filter_map_ok(|(i, parent_id, cds_record)| {
-      (parent_id == gene_id)
-        .then_some(convert_gff_record_to_cds(cds_record).wrap_err_with(|| format!("When processing GFF row {i}")))
+      (parent_id == gene_id).then_some(
+        convert_gff_record_to_cds(cds_record, mpr_records).wrap_err_with(|| format!("When processing GFF row {i}")),
+      )
     })
     .flatten()
     .collect()
 }
 
 /// Converts one GFF3 record to the internal `Cds` representation
-fn convert_gff_record_to_cds(cds_record: &GffRecord) -> Result<Cds, Report> {
+fn convert_gff_record_to_cds(cds_record: &GffRecord, mpr_records: &[(usize, &GffRecord)]) -> Result<Cds, Report> {
   // HACK: COMPATIBILITY: The canonical attribute for name is "Name" (case sensitive), however here we also query a
   // few other possible attributes, for backwards compatibility
   let name = get_one_of_attributes_required(cds_record, &["Name", "name", "gene_name", "locus_tag", "gene"])?;
+
+  dbg!(&cds_record);
+
+  let mprs = get_attribute_optional(cds_record, "ID")
+    .map(|id| convert_gff_records_to_mprs(mpr_records, &id).unwrap())
+    .unwrap_or_default();
 
   let start = (*cds_record.start() - 1) as usize; // Convert to 0-based indices
 
@@ -203,9 +218,64 @@ fn convert_gff_record_to_cds(cds_record: &GffRecord) -> Result<Cds, Report> {
     end: *cds_record.end() as usize,
     strand: cds_record.strand().map_or(GeneStrand::Unknown, Strand::into),
     frame: parse_gff3_frame(cds_record.frame(), start),
+    mprs,
     exceptions,
     attributes: cds_record.attributes().clone(),
     compat_is_gene: false,
+  })
+}
+
+/// Converts GFF3 records to the internal `MatureProteinRegion` representation
+fn convert_gff_records_to_mprs(
+  mpr_records: &[(usize, &GffRecord)],
+  cds_id: &str,
+) -> Result<Vec<MatureProteinRegion>, Report> {
+  mpr_records
+    .iter()
+    .map(|(i, mpr_record)| -> Result<_, Report> {
+      let parent_id =
+        get_attribute_required(mpr_record, "Parent").wrap_err_with(|| format!("When processing GFF row {i}"))?;
+      Ok((*i, parent_id, *mpr_record))
+    })
+    .filter_map_ok(|(i, parent_id, mpr_record)| {
+      (parent_id == cds_id)
+        .then_some(convert_gff_record_to_mpr(mpr_record).wrap_err_with(|| format!("When processing GFF row {i}")))
+    })
+    .flatten()
+    .collect()
+}
+
+/// Converts one GFF3 record to the internal `MatureProteinRegion` representation
+fn convert_gff_record_to_mpr(mpr_record: &GffRecord) -> Result<MatureProteinRegion, Report> {
+  // HACK: COMPATIBILITY: The canonical attribute for name is "Name" (case sensitive), however here we also query a
+  // few other possible attributes, for backwards compatibility
+  let name = get_one_of_attributes_required(
+    mpr_record,
+    &["Name", "name", "gene_name", "locus_tag", "gene", "product", "ID"],
+  )?
+  .trim_start_matches("id-")
+  .to_owned();
+
+  let start = (*mpr_record.start() - 1) as usize; // Convert to 0-based indices
+
+  let exceptions = mpr_record
+    .attributes()
+    .get_vec("exception")
+    .cloned()
+    .unwrap_or_default()
+    .into_iter()
+    .sorted()
+    .unique()
+    .collect_vec();
+
+  Ok(MatureProteinRegion {
+    name,
+    start,
+    end: *mpr_record.end() as usize,
+    strand: mpr_record.strand().map_or(GeneStrand::Unknown, Strand::into),
+    frame: parse_gff3_frame(mpr_record.frame(), start),
+    exceptions,
+    attributes: mpr_record.attributes().clone(),
   })
 }
 

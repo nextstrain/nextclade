@@ -1,13 +1,12 @@
-use crate::gene::cds::Cds;
+use crate::gene::cds::{Cds, MatureProteinRegion};
 use crate::gene::gene::Gene;
 use crate::make_error;
 use crate::utils::string::{surround_with_quotes, truncate_with_ellipsis};
 use eyre::Report;
-use itertools::Itertools;
+use itertools::{max, Itertools};
 use log::warn;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
-use std::cmp::max;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
@@ -77,21 +76,33 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
   let max_gene_name_len = gene_map
     .iter()
     .max_by_key(|(_, gene)| gene.gene_name.len())
-    .map(|(_, gene)| gene.gene_name.len().saturating_sub(4))
+    .map(|(_, gene)| gene.gene_name.len().saturating_sub(8))
     .unwrap_or_default();
 
   let max_cds_name_len = gene_map
     .iter()
     .flat_map(|(_, gene)| &gene.cdses)
-    .max_by_key(|cds| cds.name.len())
+    .max_by_key(|cds| cds.name.len().saturating_sub(4))
     .map(|cds| cds.name.len())
     .unwrap_or_default();
 
-  let max_name_len = clamp(max(max_gene_name_len, max_cds_name_len), 0, 50);
+  let max_mpr_name_len = gene_map
+    .iter()
+    .flat_map(|(_, gene)| &gene.cdses)
+    .flat_map(|cds| &cds.mprs)
+    .max_by_key(|mpr| mpr.name.len())
+    .map(|mpr| mpr.name.len())
+    .unwrap_or_default();
+
+  let max_name_len = clamp(
+    max([max_gene_name_len, max_cds_name_len, max_mpr_name_len]).unwrap_or_default(),
+    0,
+    50,
+  );
 
   writeln!(
     w,
-    "Genome {:n$} │ s │ f │  start  │   end   │   nucs  │    codons   │",
+    "Genome {:n$}     │ s │ f │  start  │   end   │   nucs  │    codons   │",
     "",
     n = max_name_len + 1
   )?;
@@ -115,21 +126,23 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
       ..
     } = gene;
 
-    let max_name_len = max_name_len + 4;
-    let gene_name = truncate_with_ellipsis(gene_name, max_name_len);
-    let gene_icon = if i == gene_map.len() - 1 {
-      IMPASSE_ICON
-    } else {
-      FORK_ICON
-    };
-    let nuc_len = end - start;
-    let codon_len = format_codon_length(nuc_len);
-    let exceptions = exceptions.join(", ");
-    writeln!(
-      w,
-      "{gene_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-      gene_name.bright_green()
-    )?;
+    {
+      let max_name_len = max_name_len + 8;
+      let gene_name = truncate_with_ellipsis(gene_name, max_name_len);
+      let gene_icon = if i == gene_map.len() - 1 {
+        IMPASSE_ICON
+      } else {
+        FORK_ICON
+      };
+      let nuc_len = end - start;
+      let codon_len = format_codon_length(nuc_len);
+      let exceptions = exceptions.join(", ");
+      writeln!(
+        w,
+        "{gene_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+        gene_name.bright_green()
+      )?;
+    }
 
     for (j, cds) in cdses
       .iter()
@@ -142,23 +155,57 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
         end,
         frame,
         strand,
+        mprs,
         exceptions,
         attributes,
         ..
       } = cds;
 
-      let max_name_len = max_name_len.saturating_sub(4);
-      let name = truncate_with_ellipsis(name, max_name_len);
-      let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
-      let cds_icon = if j == cdses.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
-      let nuc_len = end - start;
-      let codon_len = format_codon_length(nuc_len);
-      let exceptions = exceptions.join(", ");
-      writeln!(
-        w,
-        "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-        name.bright_blue()
-      )?;
+      {
+        let max_name_len = max_name_len + 4;
+        let name = truncate_with_ellipsis(name, max_name_len);
+        let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
+        let cds_icon = if j == cdses.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
+        let nuc_len = end - start;
+        let codon_len = format_codon_length(nuc_len);
+        let exceptions = exceptions.join(", ");
+        writeln!(
+          w,
+          "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+          name.bright_blue()
+        )?;
+      }
+
+      for (k, mpr) in mprs
+        .iter()
+        .sorted_by_key(|mpr| (mpr.start, mpr.end, &mpr.name))
+        .enumerate()
+      {
+        let MatureProteinRegion {
+          name,
+          start,
+          end,
+          strand,
+          frame,
+          exceptions,
+          attributes,
+        } = mpr;
+
+        {
+          let name = truncate_with_ellipsis(name, max_name_len);
+          let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
+          let cds_icon = if j == cdses.len() - 1 { "   " } else { PASS_ICON };
+          let mpr_icon = if k == mprs.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
+          let nuc_len = end - start;
+          let codon_len = format_codon_length(nuc_len);
+          let exceptions = exceptions.join(", ");
+          writeln!(
+            w,
+            "{gene_icon} {cds_icon} {mpr_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+            name.dimmed()
+          )?;
+        }
+      }
     }
 
     if i != gene_map.len() - 1 {
@@ -169,6 +216,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
   writeln!(w, "\nLegend:")?;
   writeln!(w, "  {} - gene", "█".bright_green())?;
   writeln!(w, "  {} - CDS", "█".bright_blue())?;
+  writeln!(w, "  {} - Mature protein region of CDS", "█".dimmed())?;
   Ok(())
 }
 
