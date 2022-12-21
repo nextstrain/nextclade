@@ -236,6 +236,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - name: "Install dependencies"
+        run: |
+          mkdir -p "${HOME}/bin"
+          export PATH="${HOME}/bin:${PATH}"
+          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+
       - name: "Download build artifacts"
         uses: actions/download-artifact@v3
         with:

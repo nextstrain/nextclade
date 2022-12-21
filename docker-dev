@@ -82,6 +82,10 @@ export DOCKER_REPO="nextstrain/nextclade_builder"
 export DOCKER_IMAGE_NAME_SAFE="${DOCKER_REPO//\//-}"
 export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date -u "+%Y-%m-%d_%H-%M-%S_%3NZ")"
 
+if [ -n "${CROSS:-}" ]; then
+  export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-${CROSS}-$(date -u "+%Y-%m-%d_%H-%M-%S_%3NZ")"
+fi
+
 export USER=user
 export GROUP=user
 
