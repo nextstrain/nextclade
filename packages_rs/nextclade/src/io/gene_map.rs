@@ -1,9 +1,13 @@
 use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
 use crate::make_error;
+use crate::utils::string::truncate_with_ellipsis;
 use eyre::Report;
 use itertools::Itertools;
 use log::warn;
+use num_traits::clamp;
+use owo_colors::OwoColorize;
+use std::cmp::max;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
@@ -70,7 +74,29 @@ const FORK_ICON: &str = "├──";
 const IMPASSE_ICON: &str = "└──";
 
 pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Report> {
-  writeln!(w, "Genome")?;
+  let max_gene_name_len = gene_map
+    .iter()
+    .max_by_key(|(_, gene)| gene.gene_name.len())
+    .map(|(_, gene)| gene.gene_name.len().saturating_sub(4))
+    .unwrap_or_default();
+
+  let max_cds_name_len = gene_map
+    .iter()
+    .flat_map(|(_, gene)| &gene.cdses)
+    .max_by_key(|cds| cds.name.len())
+    .map(|cds| cds.name.len())
+    .unwrap_or_default();
+
+  let max_name_len = clamp(max(max_gene_name_len, max_cds_name_len), 0, 50);
+
+  writeln!(
+    w,
+    "Genome {:n$} │ f │  start  │   end   │   nucs  │    codons   │",
+    "",
+    n = max_name_len + 1
+  )?;
+
+  writeln!(w, "{PASS_ICON}")?;
 
   for (i, (gene_name, gene)) in gene_map
     .iter()
@@ -85,15 +111,23 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
       strand,
       cdses,
       attributes,
+      ..
     } = gene;
 
-    gene_name.clone().truncate(13);
+    let max_name_len = max_name_len + 4;
+    let gene_name = truncate_with_ellipsis(gene_name, max_name_len);
     let gene_icon = if i == gene_map.len() - 1 {
       IMPASSE_ICON
     } else {
       FORK_ICON
     };
-    writeln!(w, "{gene_icon} Gene {gene_name:13} │ {strand:} │ {start:>7} │ {end:>7} │")?;
+    let nuc_len = end - start;
+    let codon_len = format_codon_length(nuc_len);
+    writeln!(
+      w,
+      "{gene_icon} {:max_name_len$} │ {strand:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │",
+      gene_name.bright_green()
+    )?;
 
     for (j, cds) in cdses
       .iter()
@@ -107,14 +141,30 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
         frame,
         strand,
         attributes,
+        ..
       } = cds;
 
-      name.clone().truncate(10);
+      let max_name_len = max_name_len.saturating_sub(4);
+      let name = truncate_with_ellipsis(name, max_name_len);
       let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
       let cds_icon = if j == cdses.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
-      writeln!(w, "{gene_icon} {cds_icon} CDS {name:10} │ {strand:} │ {start:>7} │ {end:>7} │")?;
+      let nuc_len = end - start;
+      let codon_len = format_codon_length(nuc_len);
+      writeln!(
+        w,
+        "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │",
+        name.bright_blue()
+      )?;
+    }
+
+    if i != gene_map.len() - 1 {
+      writeln!(w, "{PASS_ICON}")?;
     }
   }
+
+  writeln!(w, "\nLegend:")?;
+  writeln!(w, "  {} - gene", "█".bright_green())?;
+  writeln!(w, "  {} - CDS", "█".bright_blue())?;
   Ok(())
 }
 
@@ -124,4 +174,15 @@ pub fn gene_map_to_string(gene_map: &GeneMap) -> Result<String, Report> {
     format_gene_map(&mut buf, gene_map)?;
   }
   Ok(String::from_utf8(buf)?)
+}
+
+fn format_codon_length(nuc_len: usize) -> String {
+  let codons = nuc_len / 3;
+  let codons_decimal = match nuc_len % 3 {
+    0 => "     ",
+    1 => " +1/3",
+    2 => " +2/3",
+    _ => unreachable!(),
+  };
+  format!("{codons}{codons_decimal}")
 }

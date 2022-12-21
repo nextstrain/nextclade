@@ -47,7 +47,7 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<GeneMap, Re
 
   if genes.is_empty() {
     warn!(
-      "No valid genes and/or CDSes found in genemap, among {} records. No genes will be used.",
+      "Gene map: no valid genes or CDSes found among {} records. Without gene information some of the alignment and analysis stages cannot run, which may produce limited and less accurate results. in order to fix that, make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes",
       records.len()
     );
   }
@@ -63,6 +63,7 @@ fn extract_hierarchy_of_genes_and_cdses(
 ) -> Result<Vec<Gene>, Report> {
   // HACK: COMPATIBILITY: If there are no gene records, then pretend that CDS records describe genes
   let gene_records = if gene_records.is_empty() {
+    warn!("Gene map: No gene records found. Treating CDS records as genes. This behavior is for backwards compatibility only and will be removed in future versions. Make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes.");
     cds_records
   } else {
     gene_records
@@ -92,31 +93,62 @@ pub fn convert_gff_record_to_gene(
   gene_record: &GffRecord,
   cds_records: &[(usize, &GffRecord)],
 ) -> Result<Gene, Report> {
+  // If true, this is not a real gene, but rather a CDS, treated as gene as a fallback (because there are no genes)
+  let compat_is_cds = gene_record.feature_type().to_lowercase() == "cds";
+
   // HACK: COMPATIBILITY: The canonical attribute for name is "Name" (case sensitive), however here we also query a
   // few other possible attributes, for backwards compatibility
-  let gene_name = get_one_of_attributes_required(gene_record, &["Name", "name", "gene_name", "locus_tag", "gene"])?;
+  let gene_name = get_attribute_optional(gene_record, "Name").or_else(|| {
+    const ATTR_NAMES: &[&str] = &["name", "gene_name", "locus_tag", "gene"];
+    let attr_names_str = ATTR_NAMES.iter().map(surround_with_quotes).join(", ");
+    let record_str = gff_record_to_string(gene_record).unwrap();
+    warn!("Gene map: the gene record does not contain 'Name' attribute. Retrying with other possible attribute names: {attr_names_str}. This behavior is for backwards compatibility only and will be removed in future versions. Make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes. Affected record:\n{record_str}");
+    get_one_of_attributes_optional(gene_record, ATTR_NAMES)
+  });
 
-  // HACK: COMPATIBILITY: If a gene has no 'ID' attribute, then there is no way to link CDSes with it.
-  // Therefore we treat the gene itself as CDS.
-  let cdses = match get_attribute_optional(gene_record, "ID") {
-    Some(gene_id) => convert_gff_records_to_cdses(cds_records, &gene_id),
-    None => Ok(vec![convert_gff_record_to_cds(gene_record)?]),
-  }?;
+  if let Some(gene_name) = gene_name {
+    // HACK: COMPATIBILITY: If a gene has no 'ID' attribute, then there is no way to link CDSes with it.
+    // Therefore we treat the gene itself as CDS.
+    let cdses = {
+      let cdses = if let Some(gene_id) = get_attribute_optional(gene_record, "ID") {
+        convert_gff_records_to_cdses(cds_records, &gene_id)
+      } else {
+        let record_str = gff_record_to_string(gene_record).unwrap();
+        warn!("Gene map: the gene record does not contain 'ID' attribute, so it's impossible to find associated CDSes. Treating the gene itself as a CDS. This behavior is for backwards compatibility only and will be removed in future versions. Make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes. Affected record:\n{record_str}");
 
-  // HACK: COMPATIBILITY: If there are no CDS records associated with this gene, then treat the gene itself as one CDS
-  let cdses = vec![convert_gff_record_to_cds(gene_record)?];
+        let mut cds = convert_gff_record_to_cds(gene_record)?;
+        cds.compat_is_gene = true;
+        Ok(vec![cds])
+      }?;
 
-  let start = (*gene_record.start() - 1) as usize; // Convert to 0-based indices
+      // HACK: COMPATIBILITY: If there are no CDS records associated with this gene, then treat the gene itself as one CDS
+      if cdses.is_empty() {
+        if !compat_is_cds {
+          let record_str = gff_record_to_string(gene_record).unwrap();
+          warn!("Gene map: the gene record has no associated CDSes. Treating the gene itself as a CDS. This behavior is for backwards compatibility only and will be removed in future versions. Make sure you provide a valid gene map (genome annotation), containing information about genes and CDSes. Affected record:\n{record_str}");
+        }
+        vec![convert_gff_record_to_cds(gene_record)?]
+      } else {
+        cdses
+      }
+    };
 
-  Ok(Gene {
-    gene_name,
-    start,
-    end: *gene_record.end() as usize,
-    strand: gene_record.strand().map_or(GeneStrand::Unknown, Strand::into),
-    frame: parse_gff3_frame(gene_record.frame(), start),
-    cdses,
-    attributes: gene_record.attributes().clone(),
-  })
+    let start = (*gene_record.start() - 1) as usize; // Convert to 0-based indices
+
+    Ok(Gene {
+      gene_name,
+      start,
+      end: *gene_record.end() as usize,
+      strand: gene_record.strand().map_or(GeneStrand::Unknown, Strand::into),
+      frame: parse_gff3_frame(gene_record.frame(), start),
+      cdses,
+      attributes: gene_record.attributes().clone(),
+      compat_is_cds,
+    })
+  } else {
+    make_error!("Gene map: unable to name of a gene")
+      .with_section(|| gff_record_to_string(gene_record).unwrap().header("Failed entry:"))
+  }
 }
 
 /// Converts GFF3 records to the internal `Cds` representation
@@ -150,6 +182,7 @@ fn convert_gff_record_to_cds(cds_record: &GffRecord) -> Result<Cds, Report> {
     strand: cds_record.strand().map_or(GeneStrand::Unknown, Strand::into),
     frame: parse_gff3_frame(cds_record.frame(), start),
     attributes: cds_record.attributes().clone(),
+    compat_is_gene: false,
   })
 }
 

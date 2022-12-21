@@ -11,4 +11,5 @@ pub struct Cds {
   pub strand: GeneStrand,
   pub frame: i32,
   pub attributes: MultiMap<String, String>,
+  pub compat_is_gene: bool,
 }
