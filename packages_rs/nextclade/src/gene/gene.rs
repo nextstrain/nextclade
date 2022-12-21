@@ -2,6 +2,7 @@ use crate::gene::cds::Cds;
 use crate::utils::range::Range;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 pub enum GeneStrand {
@@ -11,6 +12,12 @@ pub enum GeneStrand {
   Reverse,
   #[serde(rename = ".")]
   Unknown,
+}
+
+impl Display for GeneStrand {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    self.serialize(f)
+  }
 }
 
 impl From<bio_types::strand::Strand> for GeneStrand {

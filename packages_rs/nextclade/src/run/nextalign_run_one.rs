@@ -9,7 +9,6 @@ use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::{Either, Itertools};
 use std::collections::HashSet;
-use std::fmt::format;
 
 pub fn nextalign_run_one(
   index: usize,
