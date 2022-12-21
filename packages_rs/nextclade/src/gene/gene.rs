@@ -39,6 +39,7 @@ pub struct Gene {
   pub strand: GeneStrand,
   pub frame: i32,
   pub cdses: Vec<Cds>,
+  pub exceptions: Vec<String>,
   pub attributes: MultiMap<String, String>,
   pub compat_is_cds: bool,
 }

@@ -135,6 +135,16 @@ pub fn convert_gff_record_to_gene(
 
     let start = (*gene_record.start() - 1) as usize; // Convert to 0-based indices
 
+    let exceptions = gene_record
+      .attributes()
+      .get_vec("exception")
+      .cloned()
+      .unwrap_or_default()
+      .into_iter()
+      .sorted()
+      .unique()
+      .collect_vec();
+
     Ok(Gene {
       gene_name,
       start,
@@ -142,6 +152,7 @@ pub fn convert_gff_record_to_gene(
       strand: gene_record.strand().map_or(GeneStrand::Unknown, Strand::into),
       frame: parse_gff3_frame(gene_record.frame(), start),
       cdses,
+      exceptions,
       attributes: gene_record.attributes().clone(),
       compat_is_cds,
     })
@@ -175,12 +186,24 @@ fn convert_gff_record_to_cds(cds_record: &GffRecord) -> Result<Cds, Report> {
   let name = get_one_of_attributes_required(cds_record, &["Name", "name", "gene_name", "locus_tag", "gene"])?;
 
   let start = (*cds_record.start() - 1) as usize; // Convert to 0-based indices
+
+  let exceptions = cds_record
+    .attributes()
+    .get_vec("exception")
+    .cloned()
+    .unwrap_or_default()
+    .into_iter()
+    .sorted()
+    .unique()
+    .collect_vec();
+
   Ok(Cds {
     name,
     start,
     end: *cds_record.end() as usize,
     strand: cds_record.strand().map_or(GeneStrand::Unknown, Strand::into),
     frame: parse_gff3_frame(cds_record.frame(), start),
+    exceptions,
     attributes: cds_record.attributes().clone(),
     compat_is_gene: false,
   })

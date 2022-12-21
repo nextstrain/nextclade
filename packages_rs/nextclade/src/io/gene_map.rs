@@ -1,7 +1,7 @@
 use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
 use crate::make_error;
-use crate::utils::string::truncate_with_ellipsis;
+use crate::utils::string::{surround_with_quotes, truncate_with_ellipsis};
 use eyre::Report;
 use itertools::Itertools;
 use log::warn;
@@ -91,7 +91,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   writeln!(
     w,
-    "Genome {:n$} │ f │  start  │   end   │   nucs  │    codons   │",
+    "Genome {:n$} │ s │ f │  start  │   end   │   nucs  │    codons   │",
     "",
     n = max_name_len + 1
   )?;
@@ -110,6 +110,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
       frame,
       strand,
       cdses,
+      exceptions,
       attributes,
       ..
     } = gene;
@@ -123,9 +124,10 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     };
     let nuc_len = end - start;
     let codon_len = format_codon_length(nuc_len);
+    let exceptions = exceptions.join(", ");
     writeln!(
       w,
-      "{gene_icon} {:max_name_len$} │ {strand:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │",
+      "{gene_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
       gene_name.bright_green()
     )?;
 
@@ -140,6 +142,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
         end,
         frame,
         strand,
+        exceptions,
         attributes,
         ..
       } = cds;
@@ -150,9 +153,10 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
       let cds_icon = if j == cdses.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
       let nuc_len = end - start;
       let codon_len = format_codon_length(nuc_len);
+      let exceptions = exceptions.join(", ");
       writeln!(
         w,
-        "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │",
+        "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
         name.bright_blue()
       )?;
     }
