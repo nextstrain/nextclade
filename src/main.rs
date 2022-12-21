@@ -45,24 +45,24 @@ struct SeedMatch {
 
 impl Index {
     /// Creates a new FMindex from a reference sequence
-    fn from_sequence(reference: &[u8]) -> Self {
+    fn from_sequence(mut reference: Vec<u8>) -> Self {
         let alphabet = alphabets::dna::iupac_alphabet();
-
-        let mut reference_owned = reference.to_owned();
 
         //Need to end the sequence that's indexed with the special/magic character `$`
         //otherwise the index doesn't work
-        reference_owned.push(b'$');
+        reference.push(b'$');
 
-        let suffix_array = suffix_array(&reference_owned);
-        let burrow_wheeler_transform = bwt(&reference_owned, &suffix_array);
+        let suffix_array = suffix_array(&reference);
+        let burrow_wheeler_transform = bwt(&reference, &suffix_array);
         let less = less(&burrow_wheeler_transform, &alphabet);
         let occ = Occ::new(&burrow_wheeler_transform, 1, &alphabet);
         let fm_index = FMIndex::new(burrow_wheeler_transform, less, occ);
 
+        reference.pop();
+
         Self {
             fm_index,
-            ref_seq: reference.to_owned(),
+            ref_seq: reference,
             suffix_array,
         }
     }
@@ -168,6 +168,61 @@ impl Index {
     }
 }
 
+struct CodonSpacedIndex {
+    indexes: [Index; 3],
+    ref_seq: Vec<u8>,
+}
+
+// every third position of reference
+
+impl CodonSpacedIndex {
+    fn from_sequence(reference: Vec<u8>) -> Self {
+        let indexes = [
+            Index::from_sequence(reference.iter().step_by(3).copied().collect()),
+            Index::from_sequence(reference.iter().skip(1).step_by(3).copied().collect()),
+            Index::from_sequence(reference.iter().skip(2).step_by(3).copied().collect()),
+        ];
+
+        Self {
+            indexes,
+            ref_seq: reference,
+        }
+    }
+
+    fn extended_matches(&self, qry_seq: &[u8], config: &SeedMatchConfig) -> Vec<SeedMatch> {
+        let mut matches = Vec::<SeedMatch>::new();
+
+        let spaced_queries: [Vec<u8>; 3] = [
+            qry_seq.iter().step_by(3).copied().collect(),
+            qry_seq.iter().skip(1).step_by(3).copied().collect(),
+            qry_seq.iter().skip(2).step_by(3).copied().collect(),
+        ];
+
+        for (i, qry_seq) in spaced_queries.iter().enumerate() {
+            for (j, index) in self.indexes.iter().enumerate() {
+                let mut qry_index = 0;
+                while qry_index < qry_seq.len() {
+                    if let Some(seed_match) =
+                        index.single_extended_match(qry_seq, qry_index, config)
+                    {
+                        if seed_match.length > config.min_match_length {
+                            matches.push(SeedMatch {
+                                qry_index: seed_match.qry_index * 3 + i,
+                                ref_index: seed_match.ref_index * 3 + j,
+                                length: 3 * seed_match.length,
+                                mismatches: seed_match.mismatches,
+                            });
+                            qry_index += seed_match.length;
+                        }
+                    }
+                    qry_index += 1;
+                }
+            }
+        }
+        matches
+    }
+}
+
 fn main() {
     // Should be abstracted away for our purposes into a class/structure
     // Allow initialization with one of:
@@ -186,39 +241,30 @@ fn main() {
     let reference = read_fasta(REFERENCE_PATH).next().unwrap().unwrap();
     let query = read_fasta(QUERY_PATH);
 
-    let index = Index::from_sequence(reference.seq());
+    let index = CodonSpacedIndex::from_sequence(reference.seq().to_vec());
 
     for record in query {
         let record = record.expect("Problem parsing sequence");
         println!("Processing sequence: {}", record.id());
 
-        let mut qry_index = 0;
+        let matches = index.extended_matches(record.seq(), &SEED_MATCH_CONFIG);
 
-        while qry_index < record.seq().len() {
-            // extend matches till first mismatch
-            if let Some(seed_match) =
-                index.single_extended_match(record.seq(), qry_index, &SEED_MATCH_CONFIG)
-            {
-                if seed_match.length > SEED_MATCH_CONFIG.min_match_length {
-                    println!(
-                        "diff:{:>5} len:{:>7} ref_index:{:>7} qry_index:{:>7}",
-                        seed_match.ref_index as isize - seed_match.qry_index as isize,
-                        seed_match.length,
-                        seed_match.ref_index,
-                        seed_match.qry_index,
-                        // qry_left,
-                        // qry_right,
-                        // ref_left,
-                        // ref_right,
-                        // reference.seq()[ref_left..ref_right]
-                        //     .iter()
-                        //     .map(|&x| x as char)
-                        //     .collect::<String>()
-                    );
-                    qry_index += seed_match.length;
-                }
-            }
-            qry_index += 1;
+        for seed_match in matches {
+            println!(
+                "diff:{:>5} len:{:>7} ref_index:{:>7} qry_index:{:>7}",
+                seed_match.ref_index as isize - seed_match.qry_index as isize,
+                seed_match.length,
+                seed_match.ref_index,
+                seed_match.qry_index,
+                // qry_left,
+                // qry_right,
+                // ref_left,
+                // ref_right,
+                // reference.seq()[ref_left..ref_right]
+                //     .iter()
+                //     .map(|&x| x as char)
+                //     .collect::<String>()
+            );
         }
         // Post process matches: join overlapping, remove short ones, remove outliers
         // Design windows based on joined matches, allowing bands, somewhat into the matches where there are gaps
