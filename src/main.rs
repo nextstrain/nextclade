@@ -4,11 +4,16 @@ use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::{suffix_array, RawSuffixArray};
 use bio::io::fasta;
 use bio::io::fasta::Records;
+use std::cmp::max;
 use std::fs::File;
 use std::io::BufReader;
+use std::thread::current;
 
-const REFERENCE_PATH: &str = "data/sc2_reference.fasta";
-const QUERY_PATH: &str = "data/sc2_query_long.fasta";
+// const REFERENCE_PATH: &str = "data/sc2_reference.fasta";
+// const QUERY_PATH: &str = "data/sc2_query_long.fasta";
+
+const REFERENCE_PATH: &str = "/Users/corneliusromer/code/nextclade_data/data/datasets/rsv_a/references/EPI_ISL_412866/versions/2022-12-20T22:00:12Z/files/reference.fasta";
+const QUERY_PATH: &str = "//Users/corneliusromer/code/nextclade_data/data/datasets/rsv_b/references/EPI_ISL_1653999/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 
 const SEED_MATCH_CONFIG: SeedMatchConfig = SeedMatchConfig {
     kmer_length: 14,
@@ -41,6 +46,20 @@ struct SeedMatch {
     qry_index: usize,
     length: usize,
     mismatches: usize,
+}
+
+impl SeedMatch {
+    fn offset(&self) -> isize {
+        self.ref_index as isize - self.qry_index as isize
+    }
+
+    fn shift(&self, other: &SeedMatch) -> isize {
+        self.offset() - other.offset()
+    }
+
+    fn qry_shift(&self, other: &SeedMatch) -> isize {
+        self.qry_index as isize - other.qry_index as isize
+    }
 }
 
 impl Index {
@@ -223,6 +242,39 @@ impl CodonSpacedIndex {
     }
 }
 
+/// Combine overlapping seed matches that have the same offset
+fn combine_seeds(mut matches: Vec<SeedMatch>) -> Vec<SeedMatch> {
+    matches.sort_by(|a, b| a.qry_index.cmp(&b.qry_index));
+
+    let mut combined_matches = Vec::<SeedMatch>::with_capacity(matches.len());
+
+    for i in 0..matches.len() {
+        let mut current_match = matches[i].clone();
+        let next_match = matches.get(i + 1);
+        for next_match in matches.iter().skip(i + 1) {
+            if next_match.qry_index > current_match.qry_index + current_match.length {
+                break;
+            }
+            if next_match.shift(&current_match) != 0 {
+                continue;
+            }
+            current_match.length = max(
+                current_match.length,
+                next_match.qry_shift(&current_match) as usize + next_match.length,
+            );
+        }
+        if current_match.qry_index
+            > combined_matches
+                .last()
+                .map(|m| m.qry_index + m.length)
+                .unwrap_or(0)
+        {
+            combined_matches.push(current_match);
+        }
+    }
+    combined_matches
+}
+
 fn main() {
     // Should be abstracted away for our purposes into a class/structure
     // Allow initialization with one of:
@@ -247,9 +299,11 @@ fn main() {
         let record = record.expect("Problem parsing sequence");
         println!("Processing sequence: {}", record.id());
 
-        let matches = index.extended_matches(record.seq(), &SEED_MATCH_CONFIG);
+        let mut matches = index.extended_matches(record.seq(), &SEED_MATCH_CONFIG);
 
-        for seed_match in matches {
+        matches = combine_seeds(matches);
+
+        for seed_match in matches.iter() {
             println!(
                 "diff:{:>5} len:{:>7} ref_index:{:>7} qry_index:{:>7}",
                 seed_match.ref_index as isize - seed_match.qry_index as isize,
@@ -266,6 +320,12 @@ fn main() {
                 //     .collect::<String>()
             );
         }
+
+        println!(
+            "Covered: {}",
+            matches.iter().fold(0, |acc, m| acc + m.length)
+        );
+        // Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
         // Post process matches: join overlapping, remove short ones, remove outliers
         // Design windows based on joined matches, allowing bands, somewhat into the matches where there are gaps
     }
