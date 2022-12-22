@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 use log::warn;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
+use std::borrow::BorrowMut;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::io::Read;
@@ -98,14 +99,21 @@ fn build_hierarchy_of_features(
   mprs: Vec<MatureProteinRegion>,
 ) -> Result<Vec<Gene>, Report> {
   // HACK: COMPATIBILITY: If there are no gene records, then pretend that CDS records describe genes
-  let mut genes = if genes.is_empty() {
+  let (mut genes, cdses) = if genes.is_empty() {
     warn!("Gene map: No gene records found. Treating CDS records as genes. This behavior is for backwards compatibility only and will be removed in future versions. To remove this warning, make sure you provide a valid gene map (genome annotation), containing information about both the genes and the CDSes.");
-    cdses
+
+    // Create a gene from each CDS
+    let genes = cdses
       .iter()
       .map(Gene::from_cds)
-      .collect::<Result<Vec<Gene>, Report>>()?
+      .collect::<Result<Vec<Gene>, Report>>()?;
+
+    // Include gene as parent of a corresponding CDS
+    let mut cdses = cdses;
+    cdses.iter_mut().for_each(|cds| cds.parent_ids.push(cds.id.clone()));
+    (genes, cdses)
   } else {
-    genes
+    (genes, cdses)
   };
 
   // HACK: COMPATIBILITY: If there are no CDS records, then pretend that every gene record describes a CDS
