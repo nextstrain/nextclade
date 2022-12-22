@@ -129,7 +129,7 @@ fn build_hierarchy_of_features(
   genes.iter_mut().try_for_each(|gene| {
     gene.cdses = cdses
       .iter()
-      .filter(|cds| cds.parent_ids.contains(&cds.id))
+      .filter(|cds| cds.parent_ids.contains(&gene.id))
       .cloned()
       .sorted_by_key(|cds| {
         let first_start = cds.mprs.first().map(|mpr| mpr.start).unwrap_or_default();
