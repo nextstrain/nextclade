@@ -128,143 +128,32 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .sorted_by_key(|(_, gene)| (gene.start, gene.end, &gene.gene_name))
     .enumerate()
   {
-    let Gene {
-      index,
-      id,
-      gene_name,
-      start,
-      end,
-      frame,
-      strand,
-      cdses,
-      exceptions,
-      attributes,
-      source_record,
-      compat_is_cds,
-    } = gene;
+    write_gene(w, gene_map, max_name_len, i, gene)?;
 
-    {
-      let max_name_len = max_name_len + 8;
-      let gene_name = truncate_with_ellipsis(gene_name, max_name_len);
-      let gene_icon = if i == gene_map.len() - 1 {
-        IMPASSE_ICON
-      } else {
-        FORK_ICON
-      };
-      let nuc_len = end - start;
-      let codon_len = format_codon_length(nuc_len);
-      let exceptions = exceptions.join(", ");
-      writeln!(
-        w,
-        "{gene_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-        gene_name.bright_green()
-      )?;
-    }
+    for (j, cds) in gene.cdses.iter().enumerate() {
+      write_cds(w, gene_map, max_name_len, i, gene, j, cds)?;
 
-    for (j, cds) in cdses.iter().enumerate() {
-      let Cds {
-        id,
-        name,
-        segments,
-        parent_ids,
-        mprs,
-        compat_is_gene,
-      } = cds;
-
-      {
-        let max_name_len = max_name_len + 4;
-        let name = truncate_with_ellipsis(name, max_name_len);
-        let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
-        let cds_icon = if j == cdses.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
-        let nuc_len = end - start;
-        let codon_len = format_codon_length(nuc_len);
-        let exceptions = exceptions.join(", ");
-        writeln!(
-          w,
-          "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-          name.bright_cyan()
-        )?;
+      for (s, cds_segment) in cds.segments.iter().enumerate() {
+        write_cds_segment(w, gene_map, max_name_len, i, gene, j, cds, s, cds_segment)?;
       }
 
-      for (s, cds_segment) in segments.iter().enumerate() {
-        let CdsSegment {
-          index,
-          id,
-          name,
-          start,
-          end,
-          strand,
-          frame,
-          mprs,
-          exceptions,
-          attributes,
-          source_record,
-          compat_is_gene,
-        } = cds_segment;
-
-        {
-          let name = truncate_with_ellipsis(name, max_name_len);
-          let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
-          let cds_icon = if j == cdses.len() - 1 { "   " } else { PASS_ICON };
-          let seg_icon = if s == segments.len() - 1 {
-            IMPASSE_ICON
-          } else {
-            FORK_ICON
-          };
-          let nuc_len = end - start;
-          let codon_len = format_codon_length(nuc_len);
-          let exceptions = exceptions.join(", ");
-          writeln!(
-            w,
-            "{gene_icon} {cds_icon} {seg_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-            name.bright_blue()
-          )?;
-        }
-      }
-
-      if !mprs.is_empty() {
+      if !cds.mprs.is_empty() {
         if i != gene_map.len() - 1 {
           write!(w, "{PASS_ICON} ")?;
-          if j != cdses.len() - 1 {
+          if j != gene.cdses.len() - 1 {
             write!(w, "{PASS_ICON} ")?;
           }
         }
         writeln!(w)?;
       }
 
-      for (k, mpr) in mprs.iter().enumerate() {
-        let MatureProteinRegion {
-          id,
-          name,
-          start,
-          end,
-          strand,
-          frame,
-          parent_ids,
-          exceptions,
-          attributes,
-          source_record,
-        } = mpr;
-
-        {
-          let name = truncate_with_ellipsis(name, max_name_len);
-          let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
-          let cds_icon = if j == cdses.len() - 1 { "   " } else { PASS_ICON };
-          let mpr_icon = if k == mprs.len() - 1 { IMPASSE_ICON } else { FORK_ICON };
-          let nuc_len = end - start;
-          let codon_len = format_codon_length(nuc_len);
-          let exceptions = exceptions.join(", ");
-          writeln!(
-            w,
-            "{gene_icon} {cds_icon} {mpr_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-            name.dimmed()
-          )?;
-        }
+      for (k, mpr) in cds.mprs.iter().enumerate() {
+        write_mpr(w, gene_map, max_name_len, i, gene, j, cds, k, mpr)?;
       }
 
       if i != gene_map.len() - 1 {
         write!(w, "{PASS_ICON} ")?;
-        if j != cdses.len() - 1 {
+        if j != gene.cdses.len() - 1 {
           write!(w, "{PASS_ICON} ")?;
         }
       }
@@ -277,6 +166,159 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
   writeln!(w, "  {} - CDS", "█".bright_cyan())?;
   writeln!(w, "  {} - CDS segment", "█".bright_blue())?;
   writeln!(w, "  {} - Mature protein region of CDS", "█".dimmed())?;
+  Ok(())
+}
+
+fn write_mpr<W: Write>(
+  w: &mut W,
+  gene_map: &GeneMap,
+  max_name_len: usize,
+  i: usize,
+  gene: &Gene,
+  j: usize,
+  cds: &Cds,
+  k: usize,
+  mpr: &MatureProteinRegion,
+) -> Result<(), Report> {
+  let MatureProteinRegion {
+    id,
+    name,
+    start,
+    end,
+    strand,
+    frame,
+    parent_ids,
+    exceptions,
+    attributes,
+    source_record,
+  } = mpr;
+  let name = truncate_with_ellipsis(name, max_name_len);
+  let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
+  let cds_icon = if j == gene.cdses.len() - 1 { "   " } else { PASS_ICON };
+  let mpr_icon = if k == cds.mprs.len() - 1 {
+    IMPASSE_ICON
+  } else {
+    FORK_ICON
+  };
+  let nuc_len = end - start;
+  let codon_len = format_codon_length(nuc_len);
+  let exceptions = exceptions.join(", ");
+  writeln!(w, "{gene_icon} {cds_icon} {mpr_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}", name.dimmed())?;
+
+  Ok(())
+}
+
+fn write_cds_segment<W: Write>(
+  w: &mut W,
+  gene_map: &GeneMap,
+  max_name_len: usize,
+  i: usize,
+  gene: &Gene,
+  j: usize,
+  cds: &Cds,
+  s: usize,
+  cds_segment: &CdsSegment,
+) -> Result<(), Report> {
+  let CdsSegment {
+    index,
+    id,
+    name,
+    start,
+    end,
+    strand,
+    frame,
+    mprs,
+    exceptions,
+    attributes,
+    source_record,
+    compat_is_gene,
+  } = cds_segment;
+
+  let name = truncate_with_ellipsis(name, max_name_len);
+  let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
+  let cds_icon = if j == gene.cdses.len() - 1 { "   " } else { PASS_ICON };
+  let seg_icon = if s == cds.segments.len() - 1 {
+    IMPASSE_ICON
+  } else {
+    FORK_ICON
+  };
+  let nuc_len = end - start;
+  let codon_len = format_codon_length(nuc_len);
+  let exceptions = exceptions.join(", ");
+  writeln!(
+    w,
+    "{gene_icon} {cds_icon} {seg_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    name.bright_blue()
+  )?;
+
+  Ok(())
+}
+
+fn write_cds<W: Write>(
+  w: &mut W,
+  gene_map: &GeneMap,
+  max_name_len: usize,
+  i: usize,
+  gene: &Gene,
+  j: usize,
+  cds: &Cds,
+) -> Result<(), Report> {
+  let max_name_len = max_name_len + 4;
+  let name = truncate_with_ellipsis(&cds.name, max_name_len);
+  let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
+  let cds_icon = if j == gene.cdses.len() - 1 {
+    IMPASSE_ICON
+  } else {
+    FORK_ICON
+  };
+
+  writeln!(
+    w,
+    "{gene_icon} {cds_icon} {:max_name_len$} │   │   │         │         │         │             │",
+    name.bright_cyan()
+  )?;
+
+  Ok(())
+}
+
+fn write_gene<W: Write>(
+  w: &mut W,
+  gene_map: &GeneMap,
+  max_name_len: usize,
+  i: usize,
+  gene: &Gene,
+) -> Result<(), Report> {
+  let Gene {
+    index,
+    id,
+    gene_name,
+    start,
+    end,
+    frame,
+    strand,
+    cdses,
+    exceptions,
+    attributes,
+    source_record,
+    compat_is_cds,
+  } = gene;
+
+  let max_name_len = max_name_len + 8;
+  let gene_name = truncate_with_ellipsis(gene_name, max_name_len);
+  let gene_icon = if i == gene_map.len() - 1 {
+    IMPASSE_ICON
+  } else {
+    FORK_ICON
+  };
+  let nuc_len = end - start;
+  let codon_len = format_codon_length(nuc_len);
+  let exceptions = exceptions.join(", ");
+  writeln!(
+      w,
+      "{gene_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+      gene_name.bright_green()
+    )?;
+
   Ok(())
 }
 
