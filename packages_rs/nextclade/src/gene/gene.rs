@@ -92,24 +92,35 @@ impl Gene {
 
   /// HACK: COMPATIBILITY: if there are no gene records, pretend that CDS records describe full genes
   pub fn from_cds(cds: &Cds) -> Result<Self, Report> {
-    let cds_segment = match &cds.segments[..] {
-      [] => return make_internal_error!("Gene map: CDS should always contain at least one segment, but none were found in CDS '{}'", cds.id),
-      [one] => one,
-      many => return make_error!("Gene map: The genes were missing and tried to treat CDS records as if they were full genes. However, encountered a CDS with multiple segments (multiple CDS records with the same `ID` attribute): '{}'. This is not currently supported.", cds.id)
-    };
+    let index = 0;
+    let id = cds.segments.iter().map(|seg| &seg.id).unique().join("+");
+    let gene_name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
+    let start = cds.segments.first().map(|seg| seg.start).unwrap_or_default();
+    let end = cds.segments.last().map(|seg| seg.end).unwrap_or_default();
+    let strand = cds
+      .segments
+      .first()
+      .map_or(GeneStrand::Unknown, |seg| seg.strand.clone());
+    let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
+    let exceptions = cds
+      .segments
+      .iter()
+      .flat_map(|seg| &seg.exceptions)
+      .cloned()
+      .collect_vec();
 
     Ok(Self {
-      index: cds_segment.index,
-      id: cds_segment.id.clone(),
-      gene_name: cds_segment.name.clone(),
-      start: cds_segment.start,
-      end: cds_segment.end,
-      strand: cds_segment.strand.clone(),
-      frame: cds_segment.frame,
+      index,
+      id,
+      gene_name,
+      start,
+      end,
+      strand,
+      frame,
       cdses: vec![cds.clone()],
-      exceptions: cds_segment.exceptions.clone(),
-      attributes: cds_segment.attributes.clone(),
-      source_record: cds_segment.source_record.clone(),
+      exceptions,
+      attributes: MultiMap::new(),
+      source_record: None,
       compat_is_cds: true,
     })
   }
