@@ -221,8 +221,23 @@ fn get_records_by_feature_type<'r>(
 ) -> Vec<&'r (usize, GffRecord)> {
   records
     .iter()
-    .filter(|(i, record)| record.feature_type().to_lowercase() == record_type.to_lowercase())
+    .filter(|(i, record)| {
+      let searched = record_type.to_lowercase();
+      let candidate = record.feature_type().to_lowercase();
+      (candidate == searched) || (candidate == get_sequence_anthology_code(&searched).unwrap_or_default())
+    })
     .collect_vec()
+}
+
+#[inline]
+#[must_use]
+pub fn get_sequence_anthology_code(feature_name: &str) -> Option<&str> {
+  match feature_name {
+    "cds" => Some("SO:0000316"),
+    "gene" => Some("SO:0000704"),
+    "mature_protein_region_of_CDS" => Some("SO:0002249"),
+    _ => None,
+  }
 }
 
 /// Retrieve an attribute from a GFF record given a name. Return None if not found.
