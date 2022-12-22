@@ -18,7 +18,7 @@ use std::hash::Hash;
 use std::io::Read;
 use std::path::Path;
 
-pub const NAME_ATTRS: &[&str] = &["Name", "name", "gene_name", "locus_tag", "gene", "ID", "product"];
+pub const NAME_ATTRS: &[&str] = &["Name", "name", "gene_name", "gene", "locus_tag", "product", "ID"];
 
 lazy_static! {
   pub static ref NAME_ATTRS_STR: String = NAME_ATTRS.iter().map(surround_with_quotes).join(", ");
@@ -91,6 +91,7 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<GeneMap, Re
 
 /// Assemble lists features with parent-child relationships into a hierarchy.
 /// Usually the features are matched by `ID` attribute in the parent and `Parent` attribute in child.
+#[allow(clippy::needless_pass_by_value)]
 fn build_hierarchy_of_features(
   genes: Vec<Gene>,
   cdses: Vec<Cds>,
@@ -172,7 +173,7 @@ pub struct GffCommonInfo {
 
 impl GffCommonInfo {
   pub fn from_gff_record(gene_record: &GffRecord) -> Result<GffCommonInfo, Report> {
-    let gff_record_str = gff_record_to_string(&gene_record).unwrap_or_else(|_| "Unknown".to_owned());
+    let gff_record_str = gff_record_to_string(gene_record).unwrap_or_else(|_| "Unknown".to_owned());
     let name = get_one_of_attributes_optional(gene_record, NAME_ATTRS);
     let id = get_one_of_attributes_optional(gene_record, &["ID"]);
     let start = (*gene_record.start() - 1) as usize; // Convert to 0-based indices

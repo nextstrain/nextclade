@@ -182,7 +182,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
         writeln!(
           w,
           "{gene_icon} {cds_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-          name.bright_blue()
+          name.bright_cyan()
         )?;
       }
 
@@ -217,9 +217,19 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
           writeln!(
             w,
             "{gene_icon} {cds_icon} {seg_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-            name.dimmed()
+            name.bright_blue()
           )?;
         }
+      }
+
+      if !mprs.is_empty() {
+        if i != gene_map.len() - 1 {
+          write!(w, "{PASS_ICON} ")?;
+          if j != cdses.len() - 1 {
+            write!(w, "{PASS_ICON} ")?;
+          }
+        }
+        writeln!(w)?;
       }
 
       for (k, mpr) in mprs.iter().enumerate() {
@@ -251,16 +261,21 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
           )?;
         }
       }
-    }
 
-    if i != gene_map.len() - 1 {
-      writeln!(w, "{PASS_ICON}")?;
+      if i != gene_map.len() - 1 {
+        write!(w, "{PASS_ICON} ")?;
+        if j != cdses.len() - 1 {
+          write!(w, "{PASS_ICON} ")?;
+        }
+      }
+      writeln!(w)?;
     }
   }
 
   writeln!(w, "\nLegend:")?;
-  writeln!(w, "  {} - gene", "█".bright_green())?;
-  writeln!(w, "  {} - CDS", "█".bright_blue())?;
+  writeln!(w, "  {} - Gene", "█".bright_green())?;
+  writeln!(w, "  {} - CDS", "█".bright_cyan())?;
+  writeln!(w, "  {} - CDS segment", "█".bright_blue())?;
   writeln!(w, "  {} - Mature protein region of CDS", "█".dimmed())?;
   Ok(())
 }
