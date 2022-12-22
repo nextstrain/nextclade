@@ -1,5 +1,11 @@
 use crate::gene::cds::Cds;
+use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo, NAME_ATTRS_STR};
 use crate::utils::range::Range;
+use crate::{make_error, make_internal_error};
+use bio::io::gff::Record as GffRecord;
+use eyre::Report;
+use itertools::Itertools;
+use log::warn;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -33,6 +39,8 @@ impl From<bio_types::strand::Strand> for GeneStrand {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Gene {
+  pub index: usize,
+  pub id: String,
   pub gene_name: String,
   pub start: usize,
   pub end: usize,
@@ -41,10 +49,71 @@ pub struct Gene {
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
   pub attributes: MultiMap<String, String>,
+  pub source_record: Option<String>,
   pub compat_is_cds: bool,
 }
 
 impl Gene {
+  pub fn from_gff_record((index, record): &(usize, GffRecord)) -> Result<Self, Report> {
+    let GffCommonInfo {
+      id,
+      name,
+      start,
+      end,
+      strand,
+      frame,
+      exceptions,
+      attributes,
+      gff_record_str,
+    } = GffCommonInfo::from_gff_record(record)?;
+
+    let gene_name = name.unwrap_or_else(|| {
+      warn!("Gene map: the GFF3 gene record #{index} does not contain name attribute (attempted the following attribute keys: {}). This is compliant with GFF3 spec, however makes it difficult to identify the gene later on. Affected record:\n{gff_record_str}", *NAME_ATTRS_STR);
+      format!("Gene_({index})")
+    });
+
+    let id = get_one_of_attributes_optional(record, &["ID"]).unwrap_or_else(|| gene_name.clone());
+
+    Ok(Self {
+      index: *index,
+      id,
+      gene_name,
+      start,
+      end,
+      strand,
+      frame,
+      cdses: vec![],
+      exceptions,
+      attributes,
+      source_record: Some(gff_record_str),
+      compat_is_cds: false,
+    })
+  }
+
+  /// HACK: COMPATIBILITY: if there are no gene records, pretend that CDS records describe full genes
+  pub fn from_cds(cds: &Cds) -> Result<Self, Report> {
+    let cds_segment = match &cds.segments[..] {
+      [] => return make_internal_error!("Gene map: CDS should always contain at least one segment, but none were found in CDS '{}'", cds.id),
+      [one] => one,
+      many => return make_error!("Gene map: The genes were missing and tried to treat CDS records as if they were full genes. However, encountered a CDS with multiple segments (multiple CDS records with the same `ID` attribute): '{}'. This is not currently supported.", cds.id)
+    };
+
+    Ok(Self {
+      index: cds_segment.index,
+      id: cds_segment.id.clone(),
+      gene_name: cds_segment.name.clone(),
+      start: cds_segment.start,
+      end: cds_segment.end,
+      strand: cds_segment.strand.clone(),
+      frame: cds_segment.frame,
+      cdses: vec![cds.clone()],
+      exceptions: cds_segment.exceptions.clone(),
+      attributes: cds_segment.attributes.clone(),
+      source_record: cds_segment.source_record.clone(),
+      compat_is_cds: true,
+    })
+  }
+
   #[inline]
   pub const fn len(&self) -> usize {
     self.end - self.start

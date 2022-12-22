@@ -1,7 +1,7 @@
-use crate::gene::cds::{Cds, MatureProteinRegion};
+use crate::gene::cds::{Cds, CdsSegment, MatureProteinRegion};
 use crate::gene::gene::Gene;
 use crate::make_error;
-use crate::utils::string::{surround_with_quotes, truncate_with_ellipsis};
+use crate::utils::string::truncate_with_ellipsis;
 use eyre::Report;
 use itertools::{max, Itertools};
 use log::warn;
@@ -86,6 +86,14 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .map(|cds| cds.name.len())
     .unwrap_or_default();
 
+  let max_cds_segment_name_len = gene_map
+    .iter()
+    .flat_map(|(_, gene)| &gene.cdses)
+    .flat_map(|cds| &cds.segments)
+    .max_by_key(|cds_segment| cds_segment.name.len())
+    .map(|cds| cds.name.len())
+    .unwrap_or_default();
+
   let max_mpr_name_len = gene_map
     .iter()
     .flat_map(|(_, gene)| &gene.cdses)
@@ -95,7 +103,13 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .unwrap_or_default();
 
   let max_name_len = clamp(
-    max([max_gene_name_len, max_cds_name_len, max_mpr_name_len]).unwrap_or_default(),
+    max([
+      max_gene_name_len,
+      max_cds_name_len,
+      max_cds_segment_name_len,
+      max_mpr_name_len,
+    ])
+    .unwrap_or_default(),
     0,
     50,
   );
@@ -115,6 +129,8 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .enumerate()
   {
     let Gene {
+      index,
+      id,
       gene_name,
       start,
       end,
@@ -123,7 +139,8 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
       cdses,
       exceptions,
       attributes,
-      ..
+      source_record,
+      compat_is_cds,
     } = gene;
 
     {
@@ -144,21 +161,14 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
       )?;
     }
 
-    for (j, cds) in cdses
-      .iter()
-      .sorted_by_key(|cds| (cds.start, cds.end, &cds.name))
-      .enumerate()
-    {
+    for (j, cds) in cdses.iter().enumerate() {
       let Cds {
+        id,
         name,
-        start,
-        end,
-        frame,
-        strand,
+        segments,
+        parent_ids,
         mprs,
-        exceptions,
-        attributes,
-        ..
+        compat_is_gene,
       } = cds;
 
       {
@@ -176,19 +186,54 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
         )?;
       }
 
-      for (k, mpr) in mprs
-        .iter()
-        .sorted_by_key(|mpr| (mpr.start, mpr.end, &mpr.name))
-        .enumerate()
-      {
-        let MatureProteinRegion {
+      for (s, cds_segment) in segments.iter().enumerate() {
+        let CdsSegment {
+          index,
+          id,
           name,
           start,
           end,
           strand,
           frame,
+          mprs,
           exceptions,
           attributes,
+          source_record,
+          compat_is_gene,
+        } = cds_segment;
+
+        {
+          let name = truncate_with_ellipsis(name, max_name_len);
+          let gene_icon = if i == gene_map.len() - 1 { "   " } else { PASS_ICON };
+          let cds_icon = if j == cdses.len() - 1 { "   " } else { PASS_ICON };
+          let seg_icon = if s == segments.len() - 1 {
+            IMPASSE_ICON
+          } else {
+            FORK_ICON
+          };
+          let nuc_len = end - start;
+          let codon_len = format_codon_length(nuc_len);
+          let exceptions = exceptions.join(", ");
+          writeln!(
+            w,
+            "{gene_icon} {cds_icon} {seg_icon} {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+            name.dimmed()
+          )?;
+        }
+      }
+
+      for (k, mpr) in mprs.iter().enumerate() {
+        let MatureProteinRegion {
+          id,
+          name,
+          start,
+          end,
+          strand,
+          frame,
+          parent_ids,
+          exceptions,
+          attributes,
+          source_record,
         } = mpr;
 
         {

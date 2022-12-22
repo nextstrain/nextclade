@@ -17,6 +17,12 @@ pub fn last<T>(arr: &[T]) -> Result<&T, Report> {
   ))
 }
 
+/// Check is all elements are pairwise equal
+/// Credits: https://sts10.github.io/2019/06/06/is-all-equal-function.html
+pub fn are_all_equal<T: PartialEq>(arr: &[T]) -> bool {
+  arr.windows(2).all(|w| w[0] == w[1])
+}
+
 #[macro_export(local_inner_macros)]
 macro_rules! hash_set {
   () => (

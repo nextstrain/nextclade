@@ -261,184 +261,184 @@ mod coord_map_tests {
     Ok(())
   }
 
-  #[rstest]
-  fn extract_gene_plus_strand() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Forward,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //                5           |17
-    // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(
-      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
-      "CCGTGCGG--CG"
-    );
-    Ok(())
-  }
-
-  #[rstest]
-  fn extract_gene_minus_strand() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Reverse,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //                5           |17
-    // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
-    // rev comp       CG--CCGCACGG
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(
-      from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
-      "CG--CCGCACGG"
-    );
-    Ok(())
-  }
-
-  #[rstest]
-  fn ref_feature_pos_to_aln_fwd() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Forward,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    //                0..    |7
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //                5         |15
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(coord_map.feature_ref_to_aln_position(&gene, 7), 15);
-    Ok(())
-  }
-
-  #[rstest]
-  fn ref_feature_pos_to_aln_rev() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Reverse,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    //                 |7      |0
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //                 |6
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(coord_map.feature_ref_to_aln_position(&gene, 7), 6);
-    Ok(())
-  }
-
-  #[rstest]
-  fn aln_feature_pos_to_ref_fwd() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Forward,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    //               |3    |8
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //               |        |8
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(coord_map.feature_aln_to_ref_position(&gene, 8), 8);
-    Ok(())
-  }
-
-  #[rstest]
-  fn aln_feature_pos_to_ref_rev() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Reverse,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    //               |3 |5
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //               |  |9       |0
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(coord_map.feature_aln_to_ref_position(&gene, 9), 5);
-    Ok(())
-  }
-
-  #[rstest]
-  fn aln_feature_range_to_ref_fwd() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Forward,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    //               |   |3 |6
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //               |   |     |9
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(
-      coord_map.feature_aln_to_ref_range(&gene, &Range { begin: 3, end: 9 }),
-      Range { begin: 6, end: 9 }
-    );
-    Ok(())
-  }
-
-  #[rstest]
-  fn aln_feature_range_to_ref_rev() -> Result<(), Report> {
-    let gene = Gene {
-      gene_name: "g1".to_owned(),
-      start: 3,
-      end: 12,
-      strand: GeneStrand::Reverse,
-      frame: 0,
-      cdses: vec![],
-      attributes: multimap!(),
-    };
-    //               |   |6 |9
-    // reference: ACT|CCGTGACCG|CGT
-    // ref_aln: A--CT|CCGT---GACCG|--CGT
-    //               |  9|   3|
-
-    let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
-    assert_eq!(
-      coord_map.feature_aln_to_ref_range(&gene, &Range { begin: 3, end: 9 }),
-      Range { begin: 6, end: 9 }
-    );
-    Ok(())
-  }
+  // #[rstest]
+  // fn extract_gene_plus_strand() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Forward,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //                5           |17
+  //   // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(
+  //     from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
+  //     "CCGTGCGG--CG"
+  //   );
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn extract_gene_minus_strand() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Reverse,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //                5           |17
+  //   // qry_aln: ACGCT|CCGTGCGG--CG|TGCGT
+  //   // rev comp       CG--CCGCACGG
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(
+  //     from_nuc_seq(&coord_map.extract_gene(&to_nuc_seq("ACGCTCCGTGCGG--CGTGCGT")?, &gene)),
+  //     "CG--CCGCACGG"
+  //   );
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn ref_feature_pos_to_aln_fwd() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Forward,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   //                0..    |7
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //                5         |15
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(coord_map.feature_ref_to_aln_position(&gene, 7), 15);
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn ref_feature_pos_to_aln_rev() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Reverse,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   //                 |7      |0
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //                 |6
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(coord_map.feature_ref_to_aln_position(&gene, 7), 6);
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn aln_feature_pos_to_ref_fwd() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Forward,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   //               |3    |8
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //               |        |8
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(coord_map.feature_aln_to_ref_position(&gene, 8), 8);
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn aln_feature_pos_to_ref_rev() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Reverse,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   //               |3 |5
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //               |  |9       |0
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(coord_map.feature_aln_to_ref_position(&gene, 9), 5);
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn aln_feature_range_to_ref_fwd() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Forward,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   //               |   |3 |6
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //               |   |     |9
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(
+  //     coord_map.feature_aln_to_ref_range(&gene, &Range { begin: 3, end: 9 }),
+  //     Range { begin: 6, end: 9 }
+  //   );
+  //   Ok(())
+  // }
+  //
+  // #[rstest]
+  // fn aln_feature_range_to_ref_rev() -> Result<(), Report> {
+  //   let gene = Gene {
+  //     gene_name: "g1".to_owned(),
+  //     start: 3,
+  //     end: 12,
+  //     strand: GeneStrand::Reverse,
+  //     frame: 0,
+  //     cdses: vec![],
+  //     attributes: multimap!(),
+  //   };
+  //   //               |   |6 |9
+  //   // reference: ACT|CCGTGACCG|CGT
+  //   // ref_aln: A--CT|CCGT---GACCG|--CGT
+  //   //               |  9|   3|
+  //
+  //   let coord_map = CoordMap::new(&to_nuc_seq("A--CTCCGT---GACCG--CGT")?);
+  //   assert_eq!(
+  //     coord_map.feature_aln_to_ref_range(&gene, &Range { begin: 3, end: 9 }),
+  //     Range { begin: 6, end: 9 }
+  //   );
+  //   Ok(())
+  // }
 }
