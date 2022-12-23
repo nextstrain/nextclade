@@ -99,7 +99,7 @@ fn build_hierarchy_of_features(
   mprs: Vec<MatureProteinRegion>,
 ) -> Result<Vec<Gene>, Report> {
   // HACK: COMPATIBILITY: If there are no gene records, then pretend that CDS records describe genes
-  let (mut genes, cdses) = if genes.is_empty() {
+  let (genes, cdses) = if genes.is_empty() {
     warn!("Gene map: No gene records found. Treating CDS records as genes. This behavior is for backwards compatibility only and will be removed in future versions. To remove this warning, make sure you provide a valid gene map (genome annotation), containing information about both the genes and the CDSes.");
 
     // Create a gene from each CDS
