@@ -1,0 +1,20 @@
+##sequence-region KX369547.1 1 10769
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=64320
+# Species: Zika virus strain PF13/251013-18, complete genome
+# Source: https://www.ncbi.nlm.nih.gov/nuccore/KX369547.1
+KX369547.1	Genbank	region	1	10769	.	+	.	ID=KX369547.1:1..10769;Dbxref=taxon:64320;collection-date=25-Oct-2013;country=French Polynesia;gbkey=Src;genome=genomic;isolation-source=serum;mol_type=genomic RNA;nat-host=Homo sapiens;strain=PF13/251013-18
+KX369547.1	Genbank	five_prime_UTR	1	90	.	+	.	ID=id-KX369547.1:1..90;gbkey=5'UTR
+KX369547.1	Genbank	CDS	91	10362	.	+	0	ID=cds-ANN44857.1;Dbxref=NCBI_GP:ANN44857.1;Name=ANN44857.1;gbkey=CDS;product=polyprotein;protein_id=ANN44857.1
+KX369547.1	Genbank	mature_protein_region_of_CDS	91	465	.	+	.	ID=id-ANN44857.1:1..125;Parent=cds-ANN44857.1;gbkey=Prot;product=capsid protein
+KX369547.1	Genbank	mature_protein_region_of_CDS	466	735	.	+	.	ID=id-ANN44857.1:126..215;Parent=cds-ANN44857.1;gbkey=Prot;product=propeptide
+KX369547.1	Genbank	mature_protein_region_of_CDS	736	960	.	+	.	ID=id-ANN44857.1:216..290;Parent=cds-ANN44857.1;gbkey=Prot;product=membrane protein
+KX369547.1	Genbank	mature_protein_region_of_CDS	961	2475	.	+	.	ID=id-ANN44857.1:291..795;Parent=cds-ANN44857.1;gbkey=Prot;product=envelope protein
+KX369547.1	Genbank	mature_protein_region_of_CDS	2476	3561	.	+	.	ID=id-ANN44857.1:796..1157;Parent=cds-ANN44857.1;gbkey=Prot;product=NS1
+KX369547.1	Genbank	mature_protein_region_of_CDS	3562	4215	.	+	.	ID=id-ANN44857.1:1158..1375;Parent=cds-ANN44857.1;gbkey=Prot;product=NS2A
+KX369547.1	Genbank	mature_protein_region_of_CDS	4216	4647	.	+	.	ID=id-ANN44857.1:1376..1519;Parent=cds-ANN44857.1;gbkey=Prot;product=NS2B
+KX369547.1	Genbank	mature_protein_region_of_CDS	4648	6456	.	+	.	ID=id-ANN44857.1:1520..2122;Parent=cds-ANN44857.1;gbkey=Prot;product=NS3
+KX369547.1	Genbank	mature_protein_region_of_CDS	6457	6897	.	+	.	ID=id-ANN44857.1:2123..2269;Parent=cds-ANN44857.1;gbkey=Prot;product=NS4A
+KX369547.1	Genbank	mature_protein_region_of_CDS	6898	8403	.	+	.	ID=id-ANN44857.1:2270..2771;Parent=cds-ANN44857.1;gbkey=Prot;product=NS4B
+KX369547.1	Genbank	mature_protein_region_of_CDS	8404	10359	.	+	.	ID=id-ANN44857.1:2772..3423;Parent=cds-ANN44857.1;gbkey=Prot;product=NS5
+KX369547.1	Genbank	three_prime_UTR	10363	10661	.	+	.	ID=id-KX369547.1:10363..10661;gbkey=3'UTR
+

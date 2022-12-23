@@ -1,0 +1,16 @@
+##sequence-region KR075003.1 1 18958
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=186538
+# Species: Zaire ebolavirus isolate Ebola virus H.sapiens-wt/LBR/2014/Makona-Liberia-DQE14, complete genome
+# Source: https://www.ncbi.nlm.nih.gov/nuccore/KR075003.1
+KR075003.1	Genbank	region	1	18958	.	+	.	ID=KR075003.1:1..18958;Dbxref=taxon:186538;collection-date=2014;country=Liberia;gbkey=Src;genome=genomic;isolate=Ebola virus H.sapiens-wt/LBR/2014/Makona-Liberia-DQE14;mol_type=viral cRNA;nat-host=Homo sapiens
+KR075003.1	Genbank	CDS	470	2689	.	+	0	ID=cds-AKC01489.1;Dbxref=NCBI_GP:AKC01489.1;Name=AKC01489.1;gbkey=CDS;product=NP;protein_id=AKC01489.1
+KR075003.1	Genbank	CDS	3129	4151	.	+	0	ID=cds-AKC01490.1;Dbxref=NCBI_GP:AKC01490.1;Name=AKC01490.1;gbkey=CDS;product=VP35;protein_id=AKC01490.1
+KR075003.1	Genbank	CDS	4479	5459	.	+	0	ID=cds-AKC01491.1;Dbxref=NCBI_GP:AKC01491.1;Name=AKC01491.1;gbkey=CDS;product=VP40;protein_id=AKC01491.1
+KR075003.1	Genbank	CDS	6039	6924	.	+	0	ID=cds-AKC01493.1;Dbxref=NCBI_GP:AKC01493.1;Name=AKC01493.1;Note=insertion of non-template A into mRNA by transcriptional editing;exception=ribosomal slippage;gbkey=CDS;product=GP1%2C2;protein_id=AKC01493.1
+KR075003.1	Genbank	CDS	6924	8068	.	+	2	ID=cds-AKC01493.1;Dbxref=NCBI_GP:AKC01493.1;Name=AKC01493.1;Note=insertion of non-template A into mRNA by transcriptional editing;exception=ribosomal slippage;gbkey=CDS;product=GP1%2C2;protein_id=AKC01493.1
+KR075003.1	Genbank	CDS	6039	7133	.	+	0	ID=cds-AKC01492.1;Dbxref=NCBI_GP:AKC01492.1;Name=AKC01492.1;gbkey=CDS;product=sGP;protein_id=AKC01492.1
+KR075003.1	Genbank	sequence_feature	6924	6924	.	+	.	ID=id-KR075003.1:6924..6924;Note=site of non-template A insertion;gbkey=misc_feature
+KR075003.1	Genbank	CDS	8509	9375	.	+	0	ID=cds-AKC01494.1;Dbxref=NCBI_GP:AKC01494.1;Name=AKC01494.1;gbkey=CDS;product=VP30;protein_id=AKC01494.1
+KR075003.1	Genbank	CDS	10345	11100	.	+	0	ID=cds-AKC01495.1;Dbxref=NCBI_GP:AKC01495.1;Name=AKC01495.1;gbkey=CDS;product=VP24;protein_id=AKC01495.1
+KR075003.1	Genbank	CDS	11581	18219	.	+	0	ID=cds-AKC01496.1;Dbxref=NCBI_GP:AKC01496.1;Name=AKC01496.1;gbkey=CDS;product=L;protein_id=AKC01496.1
+

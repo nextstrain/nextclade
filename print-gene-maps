@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap "exit 0" INT
+
+# Dependencies:
+#   sudo apt-get install -y parallel
+
+export GENEMAP_BIN="${1:? "Usage: ${0} path_to_genemap_bin"}"
+export GENEMAP_BIN
+
+THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+export THIS_DIR
+
+export DATASET_DIR="$THIS_DIR/data2"
+
+datasets="$(ls -1 "${DATASET_DIR}")"
+n_datasets="$(echo "${datasets}" | wc -w)"
+
+function run_one_test() {
+  dataset=$1
+
+  printf "\n\n%s\n\n" "********************** Running '${GENEMAP_BIN}' for '${dataset}' ************************"
+
+  ${GENEMAP_BIN} "$DATASET_DIR/${dataset}/genemap.gff" 2>&1
+}
+export -f run_one_test
+
+parallel --jobs="${n_datasets}" run_one_test ::: "${datasets}"

@@ -1,0 +1,46 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ViralProj15599
+#!genome-build-accession NCBI_Assembly:GCF_000865065.1
+##sequence-region NC_002640.1 1 10649
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=11070
+NC_002640.1	RefSeq	region	1	10649	.	+	.	ID=NC_002640.1:1..10649;Dbxref=taxon:11070;clone=rDEN4;gbkey=Src;genome=genomic;mol_type=genomic RNA
+NC_002640.1	RefSeq	five_prime_UTR	1	101	.	+	.	ID=id-NC_002640.1:1..101;gbkey=5'UTR
+NC_002640.1	RefSeq	stem_loop	2	69	.	+	.	ID=id-NC_002640.1:2..69;Note=stem-loop A (SLA);gbkey=stem_loop
+NC_002640.1	RefSeq	regulatory_region	70	80	.	+	.	ID=id-NC_002640.1:70..80;Note=oligo U track spacer;gbkey=regulatory;regulatory_class=other
+NC_002640.1	RefSeq	promoter	81	96	.	+	.	ID=id-NC_002640.1:81..96;Note=5' upstream AUG region (UAR);gbkey=regulatory;regulatory_class=promoter
+NC_002640.1	RefSeq	stem_loop	81	95	.	+	.	ID=id-NC_002640.1:81..95;Note=stem-loop B (SLB);gbkey=stem_loop
+NC_002640.1	RefSeq	gene	102	10265	.	+	.	ID=gene-DV4_gp1;Dbxref=GeneID:5075729;Name=POLY;gbkey=Gene;gene=POLY;gene_biotype=protein_coding;gene_synonym=polyprotein gene;locus_tag=DV4_gp1
+NC_002640.1	RefSeq	CDS	102	10265	.	+	0	ID=cds-NP_073286.1;Parent=gene-DV4_gp1;Dbxref=Genbank:NP_073286.1,GeneID:5075729;Name=NP_073286.1;gbkey=CDS;gene=POLY;locus_tag=DV4_gp1;product=polyprotein;protein_id=NP_073286.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	102	440	.	+	.	ID=id-NP_073286.1:1..113;Parent=cds-NP_073286.1;gbkey=Prot;product=anchored capsid protein ancC;protein_id=NP_740314.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	102	398	.	+	.	ID=id-NP_073286.1:1..99;Note=virion capsid protein;Parent=cds-NP_073286.1;gbkey=Prot;product=capsid protein C;protein_id=NP_740313.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	441	938	.	+	.	ID=id-NP_073286.1:114..279;Parent=cds-NP_073286.1;gbkey=Prot;product=membrane glycoprotein precursor prM;protein_id=NP_740315.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	441	713	.	+	.	ID=id-NP_073286.1:114..204;Note=peptide pr;Parent=cds-NP_073286.1;gbkey=Prot;product=protein pr;protein_id=YP_009164957.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	714	938	.	+	.	ID=id-NP_073286.1:205..279;Parent=cds-NP_073286.1;gbkey=Prot;product=membrane glycoprotein M;protein_id=NP_740316.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	939	2423	.	+	.	ID=id-NP_073286.1:280..774;Parent=cds-NP_073286.1;gbkey=Prot;product=envelope protein E;protein_id=NP_740317.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	2424	3479	.	+	.	ID=id-NP_073286.1:775..1126;Parent=cds-NP_073286.1;gbkey=Prot;product=nonstructural protein NS1;protein_id=NP_740318.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	3480	4133	.	+	.	ID=id-NP_073286.1:1127..1344;Parent=cds-NP_073286.1;gbkey=Prot;product=nonstructural protein NS2A;protein_id=NP_740319.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	4134	4523	.	+	.	ID=id-NP_073286.1:1345..1474;Parent=cds-NP_073286.1;gbkey=Prot;product=nonstructural protein NS2B;protein_id=NP_740320.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	4524	6377	.	+	.	ID=id-NP_073286.1:1475..2092;Parent=cds-NP_073286.1;gbkey=Prot;product=nonstructural protein NS3;protein_id=NP_740321.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	6378	6758	.	+	.	ID=id-NP_073286.1:2093..2219;Parent=cds-NP_073286.1;gbkey=Prot;product=nonstructural protein NS4A;protein_id=NP_740322.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	6759	6827	.	+	.	ID=id-NP_073286.1:2220..2242;Parent=cds-NP_073286.1;gbkey=Prot;product=protein 2K;protein_id=NP_740323.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	6828	7562	.	+	.	ID=id-NP_073286.1:2243..2487;Parent=cds-NP_073286.1;gbkey=Prot;product=nonstructural protein NS4B;protein_id=NP_740324.1
+NC_002640.1	RefSeq	mature_protein_region_of_CDS	7563	10262	.	+	.	ID=id-NP_073286.1:2488..3387;Parent=cds-NP_073286.1;gbkey=Prot;product=RNA-dependent RNA polymerase NS5;protein_id=NP_740325.1
+NC_002640.1	RefSeq	stem_loop	118	134	.	+	.	ID=id-NC_002640.1:118..134;Note=capsid region hairpin (cHP);gbkey=stem_loop
+NC_002640.1	RefSeq	regulatory_region	136	146	.	+	.	ID=id-NC_002640.1:136..146;Note=5' conserved sequence (CS)%3B also called cyclization sequence;gbkey=regulatory;regulatory_class=other
+NC_002640.1	RefSeq	three_prime_UTR	10266	10649	.	+	.	ID=id-NC_002640.1:10266..10649;gbkey=3'UTR
+NC_002640.1	RefSeq	lnc_RNA	10292	10649	.	+	.	ID=rna-NC_002640.1:10292..10649;Note=subgenomic flavivirus RNA;gbkey=ncRNA;product=sfRNA2
+NC_002640.1	RefSeq	exon	10292	10649	.	+	.	ID=exon-NC_002640.1:10292..10649-1;Parent=rna-NC_002640.1:10292..10649;Note=subgenomic flavivirus RNA;gbkey=ncRNA;product=sfRNA2
+NC_002640.1	RefSeq	stem_loop	10296	10364	.	+	.	ID=id-NC_002640.1:10296..10364;Note=flaviviral nuclease-resistant RNA 2 (fNR2)%3B also called stem-loop 2 or xrRNA2;gbkey=stem_loop
+NC_002640.1	RefSeq	lnc_RNA	10372	10649	.	+	.	ID=rna-NC_002640.1:10372..10649;Note=subgenomic flavivirus RNA;gbkey=ncRNA;product=sfRNA3
+NC_002640.1	RefSeq	exon	10372	10649	.	+	.	ID=exon-NC_002640.1:10372..10649-1;Parent=rna-NC_002640.1:10372..10649;Note=subgenomic flavivirus RNA;gbkey=ncRNA;product=sfRNA3
+NC_002640.1	RefSeq	stem_loop	10376	10462	.	+	.	ID=id-NC_002640.1:10376..10462;Note=dumbbell 1 (DBI)%3B also called xrRNA3;gbkey=stem_loop
+NC_002640.1	RefSeq	lnc_RNA	10464	10649	.	+	.	ID=rna-NC_002640.1:10464..10649;Note=subgenomic flavivirus RNA;gbkey=ncRNA;product=sfRNA4
+NC_002640.1	RefSeq	exon	10464	10649	.	+	.	ID=exon-NC_002640.1:10464..10649-1;Parent=rna-NC_002640.1:10464..10649;Note=subgenomic flavivirus RNA;gbkey=ncRNA;product=sfRNA4
+NC_002640.1	RefSeq	stem_loop	10467	10547	.	+	.	ID=id-NC_002640.1:10467..10547;Note=dumbbell 2 (DBII)%3B also called xrRNA4;gbkey=stem_loop
+NC_002640.1	RefSeq	regulatory_region	10544	10554	.	+	.	ID=id-NC_002640.1:10544..10554;Note=3' conserved sequence (CS)%3B also called cyclization sequence;gbkey=regulatory;regulatory_class=other
+NC_002640.1	RefSeq	stem_loop	10557	10570	.	+	.	ID=id-NC_002640.1:10557..10570;Note=short hairpin (sHP);gbkey=stem_loop
+NC_002640.1	RefSeq	promoter	10568	10584	.	+	.	ID=id-NC_002640.1:10568..10584;Note=3' upstream AUG region (UAR);gbkey=regulatory;regulatory_class=promoter
+NC_002640.1	RefSeq	stem_loop	10571	10649	.	+	.	ID=id-NC_002640.1:10571..10649;Note=3' stem-loop (3'SL);gbkey=stem_loop
+###

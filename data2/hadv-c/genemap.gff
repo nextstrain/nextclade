@@ -1,0 +1,172 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ViralProj14518
+#!genome-build-accession NCBI_Assembly:GCF_000845085.1
+##sequence-region NC_001405.1 1 35937
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=129951
+NC_001405.1	RefSeq	region	1	35937	.	+	.	ID=NC_001405.1:1..35937;Dbxref=taxon:129951;acronym=HAdV-C;gbkey=Src;genome=genomic;isolation-source=adenoid tissue;mol_type=genomic DNA;nat-host=Homo sapiens;old-name=Human adenovirus C;serotype=Human adenovirus 2
+NC_001405.1	RefSeq	inverted_repeat	1	102	.	+	.	ID=id-NC_001405.1:1..102;gbkey=repeat_region;rpt_type=inverted;standard_name=ITR
+NC_001405.1	RefSeq	gene	467	1630	.	+	.	ID=gene-HAdVC_gp01;Dbxref=GeneID:2652980;Name=E1A;gbkey=Gene;gene=E1A;gene_biotype=protein_coding;locus_tag=HAdVC_gp01;old_locus_tag=HAdVCgp01
+NC_001405.1	RefSeq	CDS	559	1111	.	+	0	ID=cds-NP_040507.1;Parent=gene-HAdVC_gp01;Dbxref=Genbank:NP_040507.1,GeneID:2652980;Name=NP_040507.1;Note=genus-specific;gbkey=CDS;gene=E1A;locus_tag=HAdVC_gp01;product=control protein E1A;protein_id=NP_040507.1
+NC_001405.1	RefSeq	CDS	1226	1542	.	+	2	ID=cds-NP_040507.1;Parent=gene-HAdVC_gp01;Dbxref=Genbank:NP_040507.1,GeneID:2652980;Name=NP_040507.1;Note=genus-specific;gbkey=CDS;gene=E1A;locus_tag=HAdVC_gp01;product=control protein E1A;protein_id=NP_040507.1
+NC_001405.1	RefSeq	CDS	559	973	.	+	0	ID=cds-NP_040508.1;Parent=gene-HAdVC_gp01;Dbxref=Genbank:NP_040508.1,GeneID:2652980;Name=NP_040508.1;Note=genus-specific;gbkey=CDS;gene=E1A;locus_tag=HAdVC_gp01;product=control protein E1A 243R;protein_id=NP_040508.1
+NC_001405.1	RefSeq	CDS	1226	1542	.	+	2	ID=cds-NP_040508.1;Parent=gene-HAdVC_gp01;Dbxref=Genbank:NP_040508.1,GeneID:2652980;Name=NP_040508.1;Note=genus-specific;gbkey=CDS;gene=E1A;locus_tag=HAdVC_gp01;product=control protein E1A 243R;protein_id=NP_040508.1
+NC_001405.1	RefSeq	intron	637	1225	.	+	.	ID=id-HAdVC_gp01;Parent=gene-HAdVC_gp01;Dbxref=GeneID:2652980;Note=protein omitted as functional identity is dubious;experiment=transcript mapping;gbkey=intron;gene=E1A;locus_tag=HAdVC_gp01
+NC_001405.1	RefSeq	intron	974	1225	.	+	.	ID=id-HAdVC_gp01-2;Parent=gene-HAdVC_gp01;Dbxref=GeneID:2652980;experiment=transcript mapping;gbkey=intron;gene=E1A;locus_tag=HAdVC_gp01
+NC_001405.1	RefSeq	intron	1112	1225	.	+	.	ID=id-HAdVC_gp01-3;Parent=gene-HAdVC_gp01;Dbxref=GeneID:2652980;experiment=transcript mapping;gbkey=intron;gene=E1A;locus_tag=HAdVC_gp01
+NC_001405.1	RefSeq	primary_transcript	498	1630	.	+	.	ID=id-HAdVC_gp01-4;Dbxref=GeneID:2652980;experiment=transcript mapping;gbkey=prim_transcript;gene=E1A;locus_tag=HAdVC_gp01
+NC_001405.1	RefSeq	TATA_box	467	472	.	+	.	ID=id-HAdVC_gp01-5;Parent=gene-HAdVC_gp01;Dbxref=GeneID:2652980;gbkey=regulatory;gene=E1A;locus_tag=HAdVC_gp01;regulatory_class=TATA_box
+NC_001405.1	RefSeq	polyA_signal_sequence	1608	1613	.	+	.	ID=id-HAdVC_gp01-6;Parent=gene-HAdVC_gp01;Dbxref=GeneID:2652980;gbkey=regulatory;gene=E1A;locus_tag=HAdVC_gp01;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	1669	4061	.	+	.	ID=gene-HAdVC_gp02;Dbxref=GeneID:2652981;Name=E1B;gbkey=Gene;gene=E1B;gene_biotype=protein_coding;locus_tag=HAdVC_gp02
+NC_001405.1	RefSeq	CDS	1711	2238	.	+	0	ID=cds-NP_040510.1;Parent=gene-HAdVC_gp02;Dbxref=Genbank:NP_040510.1,GeneID:2652981;Name=NP_040510.1;Note=genus-specific;gbkey=CDS;gene=E1B;locus_tag=HAdVC_gp02;product=control protein E1B 19K;protein_id=NP_040510.1
+NC_001405.1	RefSeq	CDS	2016	3503	.	+	0	ID=cds-NP_040511.1;Parent=gene-HAdVC_gp02;Dbxref=Genbank:NP_040511.1,GeneID:2652981;Name=NP_040511.1;Note=genus-specific;gbkey=CDS;gene=E1B;locus_tag=HAdVC_gp02;product=control protein E1B 55K;protein_id=NP_040511.1
+NC_001405.1	RefSeq	primary_transcript	1699	4061	.	+	.	ID=id-HAdVC_gp02;Dbxref=GeneID:2652981;experiment=transcript mapping;gbkey=prim_transcript;gene=E1B;locus_tag=HAdVC_gp02
+NC_001405.1	RefSeq	TATA_box	1669	1674	.	+	.	ID=id-HAdVC_gp02-2;Parent=gene-HAdVC_gp02;Dbxref=GeneID:2652981;gbkey=regulatory;gene=E1B;locus_tag=HAdVC_gp02;regulatory_class=TATA_box
+NC_001405.1	RefSeq	intron	2250	3588	.	+	.	ID=id-NC_001405.1:2250..3588;Note=protein omitted as functional identity is dubious;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	2250	3269	.	+	.	ID=id-NC_001405.1:2250..3269;Note=protein omitted as functional identity is dubious;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	2250	3211	.	+	.	ID=id-NC_001405.1:2250..3211;Note=protein omitted as functional identity is dubious;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	3505	3588	.	+	.	ID=id-NC_001405.1:3505..3588;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	gene	3545	4061	.	+	.	ID=gene-HAdVC_gp03;Dbxref=GeneID:2653012;Name=IX;gbkey=Gene;gene=IX;gene_biotype=protein_coding;locus_tag=HAdVC_gp03;old_locus_tag=HAdVCgp03
+NC_001405.1	RefSeq	CDS	3600	4022	.	+	0	ID=cds-NP_040514.1;Parent=gene-HAdVC_gp03;Dbxref=Genbank:NP_040514.1,GeneID:2653012;Name=NP_040514.1;Note=genus-specific;gbkey=CDS;gene=IX;locus_tag=HAdVC_gp03;product=capsid protein IX;protein_id=NP_040514.1
+NC_001405.1	RefSeq	primary_transcript	3576	4061	.	+	.	ID=id-HAdVC_gp03;Dbxref=GeneID:2653012;experiment=transcript mapping;gbkey=prim_transcript;gene=IX;locus_tag=HAdVC_gp03
+NC_001405.1	RefSeq	TATA_box	3545	3550	.	+	.	ID=id-HAdVC_gp03-2;Parent=gene-HAdVC_gp03;Dbxref=GeneID:2653012;gbkey=regulatory;gene=IX;locus_tag=HAdVC_gp03;regulatory_class=TATA_box
+NC_001405.1	RefSeq	polyA_signal_sequence	4029	4034	.	+	.	ID=id-NC_001405.1:4029..4034;Note=E1B%2C IX;gbkey=regulatory;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	4050	27121	.	-	.	ID=gene-HAdVC_gp04;Dbxref=GeneID:2652985;Name=E2B;gbkey=Gene;gene=E2B;gene_biotype=protein_coding;locus_tag=HAdVC_gp04;old_locus_tag=HAdVCgp06
+NC_001405.1	RefSeq	CDS	14106	14114	.	-	0	ID=cds-NP_040516.2;Parent=gene-HAdVC_gp04;Dbxref=Genbank:NP_040516.2,GeneID:2652985;Name=NP_040516.2;Note=genus-common;gbkey=CDS;gene=E2B;locus_tag=HAdVC_gp04;product=DNA polymerase;protein_id=NP_040516.2
+NC_001405.1	RefSeq	CDS	5187	8774	.	-	0	ID=cds-NP_040516.2;Parent=gene-HAdVC_gp04;Dbxref=Genbank:NP_040516.2,GeneID:2652985;Name=NP_040516.2;Note=genus-common;gbkey=CDS;gene=E2B;locus_tag=HAdVC_gp04;product=DNA polymerase;protein_id=NP_040516.2
+NC_001405.1	RefSeq	CDS	14106	14114	.	-	0	ID=cds-NP_040518.2;Parent=gene-HAdVC_gp04;Dbxref=Genbank:NP_040518.2,GeneID:2652985;Name=NP_040518.2;Note=genus-common;gbkey=CDS;gene=E2B;locus_tag=HAdVC_gp04;product=terminal protein precursor pTP;protein_id=NP_040518.2
+NC_001405.1	RefSeq	CDS	8573	10579	.	-	0	ID=cds-NP_040518.2;Parent=gene-HAdVC_gp04;Dbxref=Genbank:NP_040518.2,GeneID:2652985;Name=NP_040518.2;Note=genus-common;gbkey=CDS;gene=E2B;locus_tag=HAdVC_gp04;product=terminal protein precursor pTP;protein_id=NP_040518.2
+NC_001405.1	RefSeq	intron	8775	14105	.	-	.	ID=id-HAdVC_gp04;Parent=gene-HAdVC_gp04;Dbxref=GeneID:2652985;experiment=transcript mapping;gbkey=intron;gene=E2B;locus_tag=HAdVC_gp04
+NC_001405.1	RefSeq	intron	10580	14015	.	-	.	ID=id-HAdVC_gp04-2;Parent=gene-HAdVC_gp04;Dbxref=GeneID:2652985;gbkey=intron;gene=E2B;locus_tag=HAdVC_gp04
+NC_001405.1	RefSeq	intron	14293	24714	.	-	.	ID=id-HAdVC_gp04-3;Parent=gene-HAdVC_gp04;Dbxref=GeneID:2652985;Note=precedes DNA polymerase and terminal protein precursor pTP CDSs;gbkey=intron;gene=E2B;locus_tag=HAdVC_gp04
+NC_001405.1	RefSeq	primary_transcript	4050	27092	.	-	.	ID=id-HAdVC_gp04-4;Dbxref=GeneID:2652985;experiment=transcript mapping;gbkey=prim_transcript;gene=E2B;locus_tag=HAdVC_gp04
+NC_001405.1	RefSeq	gene	4050	5826	.	-	.	ID=gene-HAdVC_gp05;Dbxref=GeneID:5739974;Name=IVa2;gbkey=Gene;gene=IVa2;gene_biotype=protein_coding;locus_tag=HAdVC_gp05
+NC_001405.1	RefSeq	CDS	5696	5708	.	-	0	ID=cds-NP_040515.1;Parent=gene-HAdVC_gp05;Dbxref=Genbank:NP_040515.1,GeneID:5739974;Name=NP_040515.1;Note=genus-common;gbkey=CDS;gene=IVa2;locus_tag=HAdVC_gp05;product=encapsidation protein IVa2;protein_id=NP_040515.1
+NC_001405.1	RefSeq	CDS	4081	5417	.	-	2	ID=cds-NP_040515.1;Parent=gene-HAdVC_gp05;Dbxref=Genbank:NP_040515.1,GeneID:5739974;Name=NP_040515.1;Note=genus-common;gbkey=CDS;gene=IVa2;locus_tag=HAdVC_gp05;product=encapsidation protein IVa2;protein_id=NP_040515.1
+NC_001405.1	RefSeq	intron	5418	5695	.	-	.	ID=id-HAdVC_gp05;Parent=gene-HAdVC_gp05;Dbxref=GeneID:5739974;experiment=transcript mapping;gbkey=intron;gene=IVa2;locus_tag=HAdVC_gp05
+NC_001405.1	RefSeq	primary_transcript	4050	5826	.	-	.	ID=id-HAdVC_gp05-2;Dbxref=GeneID:5739974;experiment=transcript mapping;gbkey=prim_transcript;gene=IVa2;locus_tag=HAdVC_gp05
+NC_001405.1	RefSeq	polyA_signal_sequence	4085	4090	.	-	.	ID=id-NC_001405.1:4085..4090;Note=IVa2%2C E2B;gbkey=regulatory;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	6008	32798	.	+	.	ID=gene-HAdVC_gp06;Dbxref=GeneID:2652999;Name=L5;gbkey=Gene;gene=L5;gene_biotype=protein_coding;locus_tag=HAdVC_gp06;old_locus_tag=HAdVCgp09
+NC_001405.1	RefSeq	intron	27981	28375	.	+	.	ID=id-HAdVC_gp06;Parent=gene-HAdVC_gp06;Dbxref=GeneID:2652999;experiment=transcript mapping;gbkey=intron;gene=L5;locus_tag=HAdVC_gp06
+NC_001405.1	RefSeq	intron	28560	30437	.	+	.	ID=id-HAdVC_gp06-2;Parent=gene-HAdVC_gp06;Dbxref=GeneID:2652999;experiment=transcript mapping;gbkey=intron;gene=L5;locus_tag=HAdVC_gp06
+NC_001405.1	RefSeq	CDS	31030	32778	.	+	0	ID=cds-NP_040533.1;Parent=gene-HAdVC_gp06;Dbxref=Genbank:NP_040533.1,GeneID:2652999;Name=NP_040533.1;Note=genus-common%3B fiber family;gbkey=CDS;gene=L5;locus_tag=HAdVC_gp06;product=fiber;protein_id=NP_040533.1
+NC_001405.1	RefSeq	intron	9724	31029	.	+	.	ID=id-HAdVC_gp06-3;Parent=gene-HAdVC_gp06;Dbxref=GeneID:2652999;Note=precedes fiber CDS;experiment=transcript mapping;gbkey=intron;gene=L5;locus_tag=HAdVC_gp06
+NC_001405.1	RefSeq	intron	30583	31029	.	+	.	ID=id-HAdVC_gp06-4;Parent=gene-HAdVC_gp06;Dbxref=GeneID:2652999;experiment=transcript mapping;gbkey=intron;gene=L5;locus_tag=HAdVC_gp06
+NC_001405.1	RefSeq	primary_transcript	6039	32798	.	+	.	ID=id-HAdVC_gp06-5;Dbxref=GeneID:2652999;experiment=transcript mapping;gbkey=prim_transcript;gene=L5;locus_tag=HAdVC_gp06
+NC_001405.1	RefSeq	polyA_signal_sequence	32774	32779	.	+	.	ID=id-HAdVC_gp06-6;Parent=gene-HAdVC_gp06;Dbxref=GeneID:2652999;gbkey=regulatory;gene=L5;locus_tag=HAdVC_gp06;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	6008	28223	.	+	.	ID=gene-HAdVC_gp07;Dbxref=GeneID:2653005;Name=L4;gbkey=Gene;gene=L4;gene_biotype=protein_coding;locus_tag=HAdVC_gp07
+NC_001405.1	RefSeq	CDS	24108	26525	.	+	0	ID=cds-NP_040528.1;Parent=gene-HAdVC_gp07;Dbxref=Genbank:NP_040528.1,GeneID:2653005;Name=NP_040528.1;Note=genus-common;gbkey=CDS;gene=L4;locus_tag=HAdVC_gp07;product=hexon assembly protein 100K;protein_id=NP_040528.1
+NC_001405.1	RefSeq	CDS	26239	26551	.	+	0	ID=cds-NP_040529.1;Parent=gene-HAdVC_gp07;Dbxref=Genbank:NP_040529.1,GeneID:2653005;Name=NP_040529.1;Note=genus-common;gbkey=CDS;gene=L4;locus_tag=HAdVC_gp07;product=protein 33K;protein_id=NP_040529.1
+NC_001405.1	RefSeq	CDS	26754	27127	.	+	2	ID=cds-NP_040529.1;Parent=gene-HAdVC_gp07;Dbxref=Genbank:NP_040529.1,GeneID:2653005;Name=NP_040529.1;Note=genus-common;gbkey=CDS;gene=L4;locus_tag=HAdVC_gp07;product=protein 33K;protein_id=NP_040529.1
+NC_001405.1	RefSeq	CDS	26239	26826	.	+	0	ID=cds-YP_001551767.1;Parent=gene-HAdVC_gp07;Dbxref=Genbank:YP_001551767.1,GeneID:2653005;Name=YP_001551767.1;Note=genus-common;gbkey=CDS;gene=L4;locus_tag=HAdVC_gp07;product=encapsidation protein 22K;protein_id=YP_001551767.1
+NC_001405.1	RefSeq	CDS	27215	27898	.	+	0	ID=cds-NP_040530.1;Parent=gene-HAdVC_gp07;Dbxref=Genbank:NP_040530.1,GeneID:2653005;Name=NP_040530.1;Note=genus-common;gbkey=CDS;gene=L4;locus_tag=HAdVC_gp07;product=capsid protein precursor pVIII;protein_id=NP_040530.1
+NC_001405.1	RefSeq	intron	9724	27194	.	+	.	ID=id-HAdVC_gp07;Parent=gene-HAdVC_gp07;Dbxref=GeneID:2653005;Note=precedes capsid protein precursor pVIII CDS;gbkey=intron;gene=L4;locus_tag=HAdVC_gp07
+NC_001405.1	RefSeq	intron	9724	26237	.	+	.	ID=id-HAdVC_gp07-2;Parent=gene-HAdVC_gp07;Dbxref=GeneID:2653005;Note=precedes protein 33K and encapsidation protein 22K CDSs;gbkey=intron;gene=L4;locus_tag=HAdVC_gp07
+NC_001405.1	RefSeq	intron	9724	24094	.	+	.	ID=id-HAdVC_gp07-3;Parent=gene-HAdVC_gp07;Dbxref=GeneID:2653005;Note=precedes hexon assembly protein 100K CDS;experiment=transcript mapping;gbkey=intron;gene=L4;locus_tag=HAdVC_gp07
+NC_001405.1	RefSeq	intron	26522	26753	.	+	.	ID=id-HAdVC_gp07-4;Parent=gene-HAdVC_gp07;Dbxref=GeneID:2653005;experiment=transcript mapping;gbkey=intron;gene=L4;locus_tag=HAdVC_gp07
+NC_001405.1	RefSeq	primary_transcript	6039	28223	.	+	.	ID=id-HAdVC_gp07-5;Dbxref=GeneID:2653005;experiment=transcript mapping;gbkey=prim_transcript;gene=L4;locus_tag=HAdVC_gp07
+NC_001405.1	RefSeq	polyA_signal_sequence	28205	28210	.	+	.	ID=id-HAdVC_gp07-6;Parent=gene-HAdVC_gp07;Dbxref=GeneID:2653005;gbkey=regulatory;gene=L4;locus_tag=HAdVC_gp07;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	6008	22443	.	+	.	ID=gene-HAdVC_gp08;Dbxref=GeneID:2652998;Name=L3;gbkey=Gene;gene=L3;gene_biotype=protein_coding;locus_tag=HAdVC_gp08
+NC_001405.1	RefSeq	CDS	18001	18753	.	+	0	ID=cds-NP_040524.1;Parent=gene-HAdVC_gp08;Dbxref=Genbank:NP_040524.1,GeneID:2652998;Name=NP_040524.1;Note=genus-common;gbkey=CDS;gene=L3;locus_tag=HAdVC_gp08;product=capsid protein precursor pVI;protein_id=NP_040524.1
+NC_001405.1	RefSeq	CDS	18838	21744	.	+	0	ID=cds-NP_040525.1;Parent=gene-HAdVC_gp08;Dbxref=Genbank:NP_040525.1,GeneID:2652998;Name=NP_040525.1;Note=genus-common;gbkey=CDS;gene=L3;locus_tag=HAdVC_gp08;product=hexon;protein_id=NP_040525.1
+NC_001405.1	RefSeq	CDS	21778	22392	.	+	0	ID=cds-NP_040526.1;Parent=gene-HAdVC_gp08;Dbxref=Genbank:NP_040526.1,GeneID:2652998;Name=NP_040526.1;Note=genus-common;gbkey=CDS;gene=L3;locus_tag=HAdVC_gp08;product=protease;protein_id=NP_040526.1
+NC_001405.1	RefSeq	intron	9724	21649	.	+	.	ID=id-HAdVC_gp08;Parent=gene-HAdVC_gp08;Dbxref=GeneID:2652998;Note=precedes protease CDS;experiment=transcript mapping;gbkey=intron;gene=L3;locus_tag=HAdVC_gp08
+NC_001405.1	RefSeq	intron	9724	18801	.	+	.	ID=id-HAdVC_gp08-2;Parent=gene-HAdVC_gp08;Dbxref=GeneID:2652998;Note=precedes hexon CDS;experiment=transcript mapping;gbkey=intron;gene=L3;locus_tag=HAdVC_gp08
+NC_001405.1	RefSeq	intron	9724	17999	.	+	.	ID=id-HAdVC_gp08-3;Parent=gene-HAdVC_gp08;Dbxref=GeneID:2652998;Note=precedes capsid protein precursor pVI CDS;experiment=transcript mapping;gbkey=intron;gene=L3;locus_tag=HAdVC_gp08
+NC_001405.1	RefSeq	primary_transcript	6039	22443	.	+	.	ID=id-HAdVC_gp08-4;Dbxref=GeneID:2652998;experiment=transcript mapping;gbkey=prim_transcript;gene=L3;locus_tag=HAdVC_gp08
+NC_001405.1	RefSeq	polyA_signal_sequence	22418	22423	.	+	.	ID=id-HAdVC_gp08-5;Parent=gene-HAdVC_gp08;Dbxref=GeneID:2652998;gbkey=regulatory;gene=L3;locus_tag=HAdVC_gp08;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	6008	17969	.	+	.	ID=gene-HAdVC_gp09;Dbxref=GeneID:2652996;Name=L2;gbkey=Gene;gene=L2;gene_biotype=protein_coding;locus_tag=HAdVC_gp09
+NC_001405.1	RefSeq	CDS	14151	15866	.	+	0	ID=cds-NP_040521.1;Parent=gene-HAdVC_gp09;Dbxref=Genbank:NP_040521.1,GeneID:2652996;Name=NP_040521.1;Note=genus-common;gbkey=CDS;gene=L2;locus_tag=HAdVC_gp09;product=penton base;protein_id=NP_040521.1
+NC_001405.1	RefSeq	CDS	15873	16469	.	+	0	ID=cds-NP_040522.1;Parent=gene-HAdVC_gp09;Dbxref=Genbank:NP_040522.1,GeneID:2652996;Name=NP_040522.1;Note=genus-common;gbkey=CDS;gene=L2;locus_tag=HAdVC_gp09;product=core protein precursor pVII;protein_id=NP_040522.1
+NC_001405.1	RefSeq	CDS	16539	17648	.	+	0	ID=cds-NP_040523.1;Parent=gene-HAdVC_gp09;Dbxref=Genbank:NP_040523.1,GeneID:2652996;Name=NP_040523.1;Note=genus-specific;gbkey=CDS;gene=L2;locus_tag=HAdVC_gp09;product=core protein V;protein_id=NP_040523.1
+NC_001405.1	RefSeq	CDS	17676	17918	.	+	0	ID=cds-YP_001551766.1;Parent=gene-HAdVC_gp09;Dbxref=Genbank:YP_001551766.1,GeneID:2652996;Name=YP_001551766.1;Note=genus-common;gbkey=CDS;gene=L2;locus_tag=HAdVC_gp09;product=core protein precursor pX;protein_id=YP_001551766.1
+NC_001405.1	RefSeq	intron	9724	17673	.	+	.	ID=id-HAdVC_gp09;Parent=gene-HAdVC_gp09;Dbxref=GeneID:2652996;Note=precedes core protein precursor pX CDS;gbkey=intron;gene=L2;locus_tag=HAdVC_gp09
+NC_001405.1	RefSeq	intron	9724	16515	.	+	.	ID=id-HAdVC_gp09-2;Parent=gene-HAdVC_gp09;Dbxref=GeneID:2652996;Note=precedes core protein V CDS;experiment=transcript mapping;gbkey=intron;gene=L2;locus_tag=HAdVC_gp09
+NC_001405.1	RefSeq	intron	9724	15853	.	+	.	ID=id-HAdVC_gp09-3;Parent=gene-HAdVC_gp09;Dbxref=GeneID:2652996;Note=precedes core protein precursor pVII CDS;gbkey=intron;gene=L2;locus_tag=HAdVC_gp09
+NC_001405.1	RefSeq	intron	9724	14149	.	+	.	ID=id-HAdVC_gp09-4;Parent=gene-HAdVC_gp09;Dbxref=GeneID:2652996;Note=precedes penton base CDS;experiment=transcript mapping;gbkey=intron;gene=L2;locus_tag=HAdVC_gp09
+NC_001405.1	RefSeq	primary_transcript	6039	17969	.	+	.	ID=id-HAdVC_gp09-5;Dbxref=GeneID:2652996;experiment=transcript mapping;gbkey=prim_transcript;gene=L2;locus_tag=HAdVC_gp09
+NC_001405.1	RefSeq	polyA_signal_sequence	17949	17954	.	+	.	ID=id-HAdVC_gp09-6;Parent=gene-HAdVC_gp09;Dbxref=GeneID:2652996;gbkey=regulatory;gene=L2;locus_tag=HAdVC_gp09;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	6008	14113	.	+	.	ID=gene-HAdVC_gp10;Dbxref=GeneID:2652993;Name=L1;gbkey=Gene;gene=L1;gene_biotype=protein_coding;locus_tag=HAdVC_gp10;old_locus_tag=HAdVCgp12
+NC_001405.1	RefSeq	CDS	7968	8381	.	+	0	ID=cds-NP_040517.2;Parent=gene-HAdVC_gp10;Dbxref=Genbank:NP_040517.2,GeneID:2652993;Name=NP_040517.2;Note=genus-specific;gbkey=CDS;gene=L1;locus_tag=HAdVC_gp10;product=protein 13.6K;protein_id=NP_040517.2
+NC_001405.1	RefSeq	CDS	9634	9657	.	+	0	ID=cds-NP_040517.2;Parent=gene-HAdVC_gp10;Dbxref=Genbank:NP_040517.2,GeneID:2652993;Name=NP_040517.2;Note=genus-specific;gbkey=CDS;gene=L1;locus_tag=HAdVC_gp10;product=protein 13.6K;protein_id=NP_040517.2
+NC_001405.1	RefSeq	CDS	11040	12287	.	+	0	ID=cds-NP_040519.1;Parent=gene-HAdVC_gp10;Dbxref=Genbank:NP_040519.1,GeneID:2652993;Name=NP_040519.1;Note=genus-common;gbkey=CDS;gene=L1;locus_tag=HAdVC_gp10;product=encapsidation protein 52K;protein_id=NP_040519.1
+NC_001405.1	RefSeq	CDS	12308	14065	.	+	0	ID=cds-NP_040520.1;Parent=gene-HAdVC_gp10;Dbxref=Genbank:NP_040520.1,GeneID:2652993;Name=NP_040520.1;Note=genus-common;gbkey=CDS;gene=L1;locus_tag=HAdVC_gp10;product=capsid protein precursor pIIIa;protein_id=NP_040520.1
+NC_001405.1	RefSeq	intron	9724	12307	.	+	.	ID=id-HAdVC_gp10;Parent=gene-HAdVC_gp10;Dbxref=GeneID:2652993;Note=precedes capsid protein precursor pIIIa CDS;gbkey=intron;gene=L1;locus_tag=HAdVC_gp10
+NC_001405.1	RefSeq	intron	9724	11039	.	+	.	ID=id-HAdVC_gp10-2;Parent=gene-HAdVC_gp10;Dbxref=GeneID:2652993;Note=precedes encapsidation protein 52K CDS;experiment=transcript mapping;gbkey=intron;gene=L1;locus_tag=HAdVC_gp10
+NC_001405.1	RefSeq	primary_transcript	6039	14113	.	+	.	ID=id-HAdVC_gp10-3;Dbxref=GeneID:2652993;experiment=transcript mapping;gbkey=prim_transcript;gene=L1;locus_tag=HAdVC_gp10
+NC_001405.1	RefSeq	polyA_signal_sequence	14092	14097	.	+	.	ID=id-HAdVC_gp10-4;Parent=gene-HAdVC_gp10;Dbxref=GeneID:2652993;gbkey=regulatory;gene=L1;locus_tag=HAdVC_gp10;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	TATA_box	6008	6013	.	+	.	ID=id-NC_001405.1:6008..6013;Note=L;gbkey=regulatory;regulatory_class=TATA_box
+NC_001405.1	RefSeq	intron	6080	7100	.	+	.	ID=id-NC_001405.1:6080..7100;Note=between L1 and L2 leaders;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	7173	9633	.	+	.	ID=id-NC_001405.1:7173..9633;Note=between L2 and L3 leaders;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	7173	7941	.	+	.	ID=id-NC_001405.1:7173..7941;Note=between L2 and i leaders%3B precedes protein 13.6K CDS;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	8382	9633	.	+	.	ID=id-NC_001405.1:8382..9633;Note=between i and L3 leaders;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	gene	10610	10766	.	+	.	ID=gene-HAdVC_gs01;Dbxref=GeneID:5739975;Name=VAI;gbkey=Gene;gene=VAI;gene_biotype=misc_RNA;locus_tag=HAdVC_gs01
+NC_001405.1	RefSeq	transcript	10610	10766	.	+	.	ID=rna-HAdVC_gs01;Parent=gene-HAdVC_gs01;Dbxref=GeneID:5739975;Note=VAI;experiment=transcript mapping;gbkey=misc_RNA;gene=VAI;locus_tag=HAdVC_gs01;product=virus-associated RNA I
+NC_001405.1	RefSeq	exon	10610	10766	.	+	.	ID=exon-HAdVC_gs01-1;Parent=rna-HAdVC_gs01;Dbxref=GeneID:5739975;Note=VAI;experiment=transcript mapping;gbkey=misc_RNA;gene=VAI;locus_tag=HAdVC_gs01;product=virus-associated RNA I
+NC_001405.1	RefSeq	gene	10866	11023	.	+	.	ID=gene-HAdVC_gs02;Dbxref=GeneID:2653002;Name=VAII;gbkey=Gene;gene=VAII;gene_biotype=misc_RNA;locus_tag=HAdVC_gs02;old_locus_tag=HAdVCgs02
+NC_001405.1	RefSeq	transcript	10866	11023	.	+	.	ID=rna-HAdVC_gs02;Parent=gene-HAdVC_gs02;Dbxref=GeneID:2653002;Note=VAII;experiment=transcript mapping;gbkey=misc_RNA;gene=VAII;locus_tag=HAdVC_gs02;product=virus-associated RNA II
+NC_001405.1	RefSeq	exon	10866	11023	.	+	.	ID=exon-HAdVC_gs02-1;Parent=rna-HAdVC_gs02;Dbxref=GeneID:2653002;Note=VAII;experiment=transcript mapping;gbkey=misc_RNA;gene=VAII;locus_tag=HAdVC_gs02;product=virus-associated RNA II
+NC_001405.1	RefSeq	gene	22420	27121	.	-	.	ID=gene-HAdVC_gp11;Dbxref=GeneID:5739976;Name=E2A;gbkey=Gene;gene=E2A;gene_biotype=protein_coding;locus_tag=HAdVC_gp11
+NC_001405.1	RefSeq	CDS	22490	24079	.	-	0	ID=cds-NP_040527.1;Parent=gene-HAdVC_gp11;Dbxref=Genbank:NP_040527.1,GeneID:5739976;Name=NP_040527.1;Note=genus-common%3B DBP family;gbkey=CDS;gene=E2A;locus_tag=HAdVC_gp11;product=single-stranded DNA-binding protein;protein_id=NP_040527.1
+NC_001405.1	RefSeq	primary_transcript	22420	27092	.	-	.	ID=id-HAdVC_gp11;Dbxref=GeneID:5739976;Note=5'-end also registered 1 nuc to left%3B E2A;gbkey=prim_transcript;gene=E2A;locus_tag=HAdVC_gp11
+NC_001405.1	RefSeq	gene	22420	25985	.	-	.	ID=gene-HAdVC_gp12;Dbxref=GeneID:5739977;Name=E2A-L;gbkey=Gene;gene=E2A-L;gene_biotype=other;locus_tag=HAdVC_gp12
+NC_001405.1	RefSeq	intron	24792	25885	.	-	.	ID=id-HAdVC_gp12;Parent=gene-HAdVC_gp12;Dbxref=GeneID:5739977;experiment=transcript mapping;gbkey=intron;gene=E2A-L;locus_tag=HAdVC_gp12
+NC_001405.1	RefSeq	primary_transcript	22420	25956	.	-	.	ID=id-HAdVC_gp12-2;Dbxref=GeneID:5739977;Note=5'-end also registered 2 nuc to left;experiment=transcript mapping;gbkey=prim_transcript;gene=E2A-L;locus_tag=HAdVC_gp12
+NC_001405.1	RefSeq	TATA_box	25980	25985	.	-	.	ID=id-HAdVC_gp12-3;Parent=gene-HAdVC_gp12;Dbxref=GeneID:5739977;gbkey=regulatory;gene=E2A-L;locus_tag=HAdVC_gp12;regulatory_class=TATA_box
+NC_001405.1	RefSeq	polyA_signal_sequence	22434	22439	.	-	.	ID=id-NC_001405.1:22434..22439;Note=E2A%2C E2A-L;experiment=transcript mapping;gbkey=regulatory;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	intron	24089	24714	.	-	.	ID=id-NC_001405.1:24089..24714;Note=E2A%2C E2A-L%3B precedes single-stranded DNA-binding protein CDS;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	intron	24792	27024	.	-	.	ID=id-NC_001405.1:24792..27024;Note=E2A%2C E2B;experiment=transcript mapping;gbkey=intron
+NC_001405.1	RefSeq	TATA_box	27116	27121	.	-	.	ID=id-NC_001405.1:27116..27121;Note=E2A%2C E2B%3B nominal;gbkey=regulatory;regulatory_class=TATA_box
+NC_001405.1	RefSeq	gene	27580	30864	.	+	.	ID=gene-HAdVC_gp13;Dbxref=GeneID:2652988;Name=E3B;gbkey=Gene;gene=E3B;gene_biotype=protein_coding;locus_tag=HAdVC_gp13;old_locus_tag=HAdVCgp27
+NC_001405.1	RefSeq	CDS	29781	30056	.	+	0	ID=cds-YP_001551770.1;Parent=gene-HAdVC_gp13;Dbxref=Genbank:YP_001551770.1,GeneID:2652988;Name=YP_001551770.1;Note=genus-specific%3B MP family;gbkey=CDS;gene=E3B;locus_tag=HAdVC_gp13;product=membrane protein E3 RID-alpha;protein_id=YP_001551770.1
+NC_001405.1	RefSeq	CDS	30059	30451	.	+	0	ID=cds-YP_001551771.1;Parent=gene-HAdVC_gp13;Dbxref=Genbank:YP_001551771.1,GeneID:2652988;Name=YP_001551771.1;Note=genus-specific%3B MP family;gbkey=CDS;gene=E3B;locus_tag=HAdVC_gp13;product=membrane protein E3 RID-beta;protein_id=YP_001551771.1
+NC_001405.1	RefSeq	CDS	30444	30830	.	+	0	ID=cds-NP_597753.1;Parent=gene-HAdVC_gp13;Dbxref=Genbank:NP_597753.1,GeneID:2652988;Name=NP_597753.1;Note=genus-specific%3B 12.5K family;gbkey=CDS;gene=E3B;locus_tag=HAdVC_gp13;product=control protein E3 14.7K;protein_id=NP_597753.1
+NC_001405.1	RefSeq	intron	27632	30437	.	+	.	ID=id-HAdVC_gp13;Parent=gene-HAdVC_gp13;Dbxref=GeneID:2652988;Note=precedes control protein E3 14.7K CDS;gbkey=intron;gene=E3B;locus_tag=HAdVC_gp13
+NC_001405.1	RefSeq	intron	27632	30046	.	+	.	ID=id-HAdVC_gp13-2;Parent=gene-HAdVC_gp13;Dbxref=GeneID:2652988;Note=precedes membrane protein E3 RID-beta CDS;gbkey=intron;gene=E3B;locus_tag=HAdVC_gp13
+NC_001405.1	RefSeq	primary_transcript	27609	30864	.	+	.	ID=id-HAdVC_gp13-3;Dbxref=GeneID:2652988;experiment=transcript mapping;gbkey=prim_transcript;gene=E3B;locus_tag=HAdVC_gp13
+NC_001405.1	RefSeq	polyA_signal_sequence	30842	30847	.	+	.	ID=id-HAdVC_gp13-4;Parent=gene-HAdVC_gp13;Dbxref=GeneID:2652988;gbkey=regulatory;gene=E3B;locus_tag=HAdVC_gp13;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	gene	27580	29804	.	+	.	ID=gene-HAdVC_gp14;Dbxref=GeneID:2652987;Name=E3A;gbkey=Gene;gene=E3A;gene_biotype=protein_coding;locus_tag=HAdVC_gp14;old_locus_tag=HAdVCgp28
+NC_001405.1	RefSeq	CDS	27899	28222	.	+	0	ID=cds-YP_001551768.1;Parent=gene-HAdVC_gp14;Dbxref=Genbank:YP_001551768.1,GeneID:2652987;Name=YP_001551768.1;Note=genus-specific%3B 12.5K family;gbkey=CDS;gene=E3A;locus_tag=HAdVC_gp14;product=control protein E3 12.5K;protein_id=YP_001551768.1
+NC_001405.1	RefSeq	CDS	28630	28815	.	+	0	ID=cds-YP_001551769.1;Parent=gene-HAdVC_gp14;Dbxref=Genbank:YP_001551769.1,GeneID:2652987;Name=YP_001551769.1;Note=genus-specific%3B MP family;gbkey=CDS;gene=E3A;locus_tag=HAdVC_gp14;product=membrane glycoprotein E3 CR1-alpha;protein_id=YP_001551769.1
+NC_001405.1	RefSeq	CDS	28812	29291	.	+	0	ID=cds-NP_040531.1;Parent=gene-HAdVC_gp14;Dbxref=Genbank:NP_040531.1,GeneID:2652987;Name=NP_040531.1;Note=genus-specific%3B MP family;gbkey=CDS;gene=E3A;locus_tag=HAdVC_gp14;product=membrane glycoprotein E3 gp19K;protein_id=NP_040531.1
+NC_001405.1	RefSeq	CDS	29468	29773	.	+	0	ID=cds-NP_040532.1;Parent=gene-HAdVC_gp14;Dbxref=Genbank:NP_040532.1,GeneID:2652987;Name=NP_040532.1;Note=genus-specific%3B MP family;gbkey=CDS;gene=E3A;locus_tag=HAdVC_gp14;product=membrane glycoprotein E3 CR1-beta;protein_id=NP_040532.1
+NC_001405.1	RefSeq	intron	27632	29764	.	+	.	ID=id-HAdVC_gp14;Parent=gene-HAdVC_gp14;Dbxref=GeneID:2652987;Note=precedes membrane protein E3 RID-alpha CDS;gbkey=intron;gene=E3A;locus_tag=HAdVC_gp14
+NC_001405.1	RefSeq	intron	27632	29465	.	+	.	ID=id-HAdVC_gp14-2;Parent=gene-HAdVC_gp14;Dbxref=GeneID:2652987;Note=precedes membrane glycoprotein E3 CR1-beta CDS;gbkey=intron;gene=E3A;locus_tag=HAdVC_gp14
+NC_001405.1	RefSeq	intron	27632	28772	.	+	.	ID=id-HAdVC_gp14-3;Parent=gene-HAdVC_gp14;Dbxref=GeneID:2652987;Note=precedes membrane glycoprotein E3 gp19K CDS;gbkey=intron;gene=E3A;locus_tag=HAdVC_gp14
+NC_001405.1	RefSeq	intron	27632	28365	.	+	.	ID=id-HAdVC_gp14-4;Parent=gene-HAdVC_gp14;Dbxref=GeneID:2652987;Note=precedes membrane glycoprotein E3 CR1-alpha CDS;gbkey=intron;gene=E3A;locus_tag=HAdVC_gp14
+NC_001405.1	RefSeq	primary_transcript	27609	29804	.	+	.	ID=id-HAdVC_gp14-5;Dbxref=GeneID:2652987;Note=3'-ends also registered 3%2C 5 and 12 nuc to left;experiment=transcript mapping;gbkey=prim_transcript;gene=E3A;locus_tag=HAdVC_gp14
+NC_001405.1	RefSeq	polyA_signal_sequence	29769	29774	.	+	.	ID=id-HAdVC_gp14-6;Parent=gene-HAdVC_gp14;Dbxref=GeneID:2652987;gbkey=regulatory;gene=E3A;locus_tag=HAdVC_gp14;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	TATA_box	27580	27585	.	+	.	ID=id-NC_001405.1:27580..27585;Note=E3A%2C E3B;gbkey=regulatory;regulatory_class=TATA_box
+NC_001405.1	RefSeq	gene	30856	31019	.	-	.	ID=gene-HAdVC_gp15;Dbxref=GeneID:2653006;Name=U;gbkey=Gene;gene=U;gene_biotype=protein_coding;locus_tag=HAdVC_gp15;old_locus_tag=HAdVCgp30;partial=true;start_range=.,30856
+NC_001405.1	RefSeq	CDS	30856	31019	.	-	0	ID=cds-NP_597754.2;Parent=gene-HAdVC_gp15;Dbxref=Genbank:NP_597754.2,GeneID:2653006;Name=NP_597754.2;Note=genus-common;gbkey=CDS;gene=U;locus_tag=HAdVC_gp15;partial=true;product=protein U;protein_id=NP_597754.2;start_range=.,30856
+NC_001405.1	RefSeq	gene	32802	35641	.	-	.	ID=gene-HAdVC_gp16;Dbxref=GeneID:2652989;Name=E4;gbkey=Gene;gene=E4;gene_biotype=protein_coding;locus_tag=HAdVC_gp16;old_locus_tag=HAdVCgp31
+NC_001405.1	RefSeq	CDS	33904	34077	.	-	0	ID=cds-YP_001551772.1;Parent=gene-HAdVC_gp16;Dbxref=Genbank:YP_001551772.1,GeneID:2652989;Name=YP_001551772.1;Note=genus-specific;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4orf6/7;protein_id=YP_001551772.1
+NC_001405.1	RefSeq	CDS	32914	33192	.	-	0	ID=cds-YP_001551772.1;Parent=gene-HAdVC_gp16;Dbxref=Genbank:YP_001551772.1,GeneID:2652989;Name=YP_001551772.1;Note=genus-specific;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4orf6/7;protein_id=YP_001551772.1
+NC_001405.1	RefSeq	CDS	33193	34077	.	-	0	ID=cds-NP_597755.2;Parent=gene-HAdVC_gp16;Dbxref=Genbank:NP_597755.2,GeneID:2652989;Name=NP_597755.2;Note=genus-specific%3B 34K family;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4 34K;protein_id=NP_597755.2
+NC_001405.1	RefSeq	CDS	33998	34342	.	-	0	ID=cds-YP_001551773.1;Parent=gene-HAdVC_gp16;Dbxref=Genbank:YP_001551773.1,GeneID:2652989;Name=YP_001551773.1;Note=genus-specific;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4orf4;protein_id=YP_001551773.1
+NC_001405.1	RefSeq	CDS	34356	34706	.	-	0	ID=cds-NP_040534.1;Parent=gene-HAdVC_gp16;Dbxref=Genbank:NP_040534.1,GeneID:2652989;Name=NP_040534.1;Note=genus-specific;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4orf3;protein_id=NP_040534.1
+NC_001405.1	RefSeq	CDS	34703	35095	.	-	0	ID=cds-YP_001551774.1;Parent=gene-HAdVC_gp16;Dbxref=Genbank:YP_001551774.1,GeneID:2652989;Name=YP_001551774.1;Note=genus-specific;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4orf2;protein_id=YP_001551774.1
+NC_001405.1	RefSeq	CDS	35146	35532	.	-	0	ID=cds-NP_597756.1;Parent=gene-HAdVC_gp16;Dbxref=Genbank:NP_597756.1,GeneID:2652989;Name=NP_597756.1;Note=genus-specific%3B DURP family;gbkey=CDS;gene=E4;locus_tag=HAdVC_gp16;product=control protein E4orf1;protein_id=NP_597756.1
+NC_001405.1	RefSeq	intron	33193	33903	.	-	.	ID=id-HAdVC_gp16;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33284	33903	.	-	.	ID=id-HAdVC_gp16-2;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33377	33903	.	-	.	ID=id-HAdVC_gp16-3;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33404	33903	.	-	.	ID=id-HAdVC_gp16-4;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33452	33903	.	-	.	ID=id-HAdVC_gp16-5;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33610	33903	.	-	.	ID=id-HAdVC_gp16-6;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33679	33903	.	-	.	ID=id-HAdVC_gp16-7;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	33875	33903	.	-	.	ID=id-HAdVC_gp16-8;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34083	35547	.	-	.	ID=id-HAdVC_gp16-9;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;Note=precedes control protein E4 34K CDS;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34083	34288	.	-	.	ID=id-HAdVC_gp16-10;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34242	34288	.	-	.	ID=id-HAdVC_gp16-11;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34330	34605	.	-	.	ID=id-HAdVC_gp16-12;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34380	35547	.	-	.	ID=id-HAdVC_gp16-13;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;Note=precedes control protein E4orf4 CDS;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34380	34605	.	-	.	ID=id-HAdVC_gp16-14;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34436	34605	.	-	.	ID=id-HAdVC_gp16-15;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	34736	35547	.	-	.	ID=id-HAdVC_gp16-16;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;Note=precedes control protein E4orf3 CDS;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	intron	35108	35547	.	-	.	ID=id-HAdVC_gp16-17;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;Note=precedes control protein E4orf2 CDS;experiment=transcript mapping;gbkey=intron;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	primary_transcript	32802	35609	.	-	.	ID=id-HAdVC_gp16-18;Dbxref=GeneID:2652989;experiment=transcript mapping;gbkey=prim_transcript;gene=E4;locus_tag=HAdVC_gp16
+NC_001405.1	RefSeq	polyA_signal_sequence	32816	32821	.	-	.	ID=id-HAdVC_gp16-19;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;gbkey=regulatory;gene=E4;locus_tag=HAdVC_gp16;regulatory_class=polyA_signal_sequence
+NC_001405.1	RefSeq	TATA_box	35636	35641	.	-	.	ID=id-HAdVC_gp16-20;Parent=gene-HAdVC_gp16;Dbxref=GeneID:2652989;gbkey=regulatory;gene=E4;locus_tag=HAdVC_gp16;regulatory_class=TATA_box
+NC_001405.1	RefSeq	inverted_repeat	35836	35937	.	+	.	ID=id-NC_001405.1:35836..35937;gbkey=repeat_region;rpt_type=inverted;standard_name=ITR
+###
