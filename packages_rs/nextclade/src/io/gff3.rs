@@ -135,7 +135,7 @@ fn build_hierarchy_of_features(
   });
 
   // Associate CDSes with their parent genes
-  genes.iter_mut().try_for_each(|gene| {
+  let genes = genes.into_iter().filter_map(|mut gene| {
     gene.cdses = cdses
       .iter()
       .filter(|cds| cds.parent_ids.contains(&gene.id))
@@ -148,19 +148,15 @@ fn build_hierarchy_of_features(
       .collect_vec();
 
     if gene.cdses.is_empty() {
-      let err = make_error!(
-        "Gene map: CDS entries are present, but gene '{}' have no CDSes associated with it. This is not allowed.",
+      warn!(
+        "Gene map: Both gene and CDS record types are present, but gene '{}' have no CDSes associated with it. Ignoring this gene.",
         gene.gene_name
       );
-      return if let Some(gff_record) = &gene.source_record {
-        err.with_section(|| gff_record.clone().header("Failed entry:"))
-      } else {
-        err
-      };
+      return None
     }
 
-    Ok(())
-  })?;
+    Some(gene)
+  }).collect_vec();
 
   Ok(genes)
 }
