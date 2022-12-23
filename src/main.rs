@@ -16,9 +16,10 @@ const REFERENCE_PATH: &str = "/Users/corneliusromer/code/nextclade_data/data/dat
 const QUERY_PATH: &str = "//Users/corneliusromer/code/nextclade_data/data/datasets/rsv_b/references/EPI_ISL_1653999/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 
 const SEED_MATCH_CONFIG: SeedMatchConfig = SeedMatchConfig {
-    kmer_length: 14,
-    min_match_length: 25,
-    allowed_mismatches: 1,
+    // Purposefully lax, to allow for some off-target matches
+    kmer_length: 10,
+    min_match_length: 20,
+    allowed_mismatches: 4,
 };
 
 fn read_fasta(filename: &str) -> Records<BufReader<File>> {
@@ -40,7 +41,7 @@ struct SeedMatchConfig {
     allowed_mismatches: usize,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct SeedMatch {
     ref_index: usize,
     qry_index: usize,
@@ -59,6 +60,14 @@ impl SeedMatch {
 
     fn qry_shift(&self, other: &SeedMatch) -> isize {
         self.qry_index as isize - other.qry_index as isize
+    }
+
+    fn qry_end(&self) -> usize {
+        self.qry_index + self.length
+    }
+
+    fn ref_end(&self) -> usize {
+        self.ref_index + self.length
     }
 }
 
@@ -231,7 +240,7 @@ impl CodonSpacedIndex {
                                 length: 3 * seed_match.length,
                                 mismatches: seed_match.mismatches,
                             });
-                            qry_index += seed_match.length;
+                            qry_index += 1;
                         }
                     }
                     qry_index += 1;
@@ -273,6 +282,108 @@ fn combine_seeds(mut matches: Vec<SeedMatch>) -> Vec<SeedMatch> {
         }
     }
     combined_matches
+}
+
+/// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
+fn chain_seeds(matches: Vec<SeedMatch>) {
+    #[derive(Clone, Copy, Debug)]
+    struct Triplet {
+        ref_end: usize,
+        score: usize,
+        j: usize,
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum EndpointSide {
+        Start,
+        End,
+    }
+
+    #[derive(Clone, Copy, Debug)]
+    struct Endpoint {
+        qry_pos: usize,
+        side: EndpointSide,
+        j: usize,
+    }
+
+    let mut scores: Vec<usize> = vec![0; matches.len()];
+
+    // Construct endpoint vec
+    let mut endpoints = Vec::<Endpoint>::with_capacity(2 * matches.len());
+    for (match_no, match_) in matches.iter().enumerate() {
+        endpoints.push(Endpoint {
+            qry_pos: match_.qry_index.to_owned(),
+            side: EndpointSide::Start,
+            j: match_no,
+        });
+        endpoints.push(Endpoint {
+            qry_pos: match_.qry_index + match_.length,
+            side: EndpointSide::End,
+            j: match_no,
+        });
+    }
+    // dbg!(&endpoints);
+
+    endpoints.sort_by(|a, b| a.qry_pos.cmp(&b.qry_pos));
+
+    let mut triplets = Vec::<Triplet>::with_capacity(matches.len());
+
+    for endpoint in endpoints {
+        // dbg!(endpoint);
+        // if endpoint.side == EndpointSide::End {
+        //     dbg!(scores[endpoint.j]);
+        // }
+        // dbg!(&matches[endpoint.j]);
+        // dbg!(&triplets);
+        match endpoint.side {
+            EndpointSide::Start => {
+                // Find first triplet where ref_end is > endpoint
+
+                let mut first_triplet: &Triplet = &Triplet {
+                    ref_end: 0,
+                    score: 0,
+                    j: 0,
+                };
+                for triplet in triplets.as_slice() {
+                    if triplet.ref_end < matches[endpoint.j].ref_index {
+                        first_triplet = triplet;
+                        break;
+                    }
+                }
+                scores[endpoint.j] = matches[endpoint.j].length + first_triplet.score;
+            }
+            EndpointSide::End => {
+                let mut first_triplet: &Triplet = &Triplet {
+                    ref_end: 0,
+                    score: 0,
+                    j: 0,
+                };
+                for triplet in triplets.as_slice() {
+                    first_triplet = triplet;
+                    if triplet.ref_end <= matches[endpoint.j].ref_index + matches[endpoint.j].length
+                    {
+                        break;
+                    }
+                }
+                if scores[endpoint.j] > first_triplet.score {
+                    let added_triplet = Triplet {
+                        ref_end: matches[endpoint.j].ref_index + matches[endpoint.j].length,
+                        score: scores[endpoint.j],
+                        j: endpoint.j,
+                    };
+                    triplets.push(added_triplet.clone());
+                    // Sort descending
+                    triplets.sort_by(|b, a| a.ref_end.cmp(&b.ref_end));
+                    triplets.retain(|triplet| {
+                        triplet.ref_end < added_triplet.ref_end
+                            || triplet.score >= added_triplet.score
+                    });
+                }
+            }
+        }
+    }
+
+    dbg!(triplets);
 }
 
 fn main() {
@@ -325,7 +436,8 @@ fn main() {
             "Covered: {}",
             matches.iter().fold(0, |acc, m| acc + m.length)
         );
-        // Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
+
+        chain_seeds(matches);
         // Post process matches: join overlapping, remove short ones, remove outliers
         // Design windows based on joined matches, allowing bands, somewhat into the matches where there are gaps
     }
