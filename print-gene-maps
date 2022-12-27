@@ -16,7 +16,7 @@ export THIS_DIR
 
 export DATASET_DIR="$THIS_DIR/data2"
 
-datasets="$(ls -1 "${DATASET_DIR}")"
+datasets="$(find "${DATASET_DIR}" -name "genemap.gff")"
 n_datasets="$(echo "${datasets}" | wc -w)"
 
 function run_one_test() {
@@ -24,7 +24,7 @@ function run_one_test() {
 
   printf "\n\n%s\n\n" "********************** Running '${GENEMAP_BIN}' for '${dataset}' ************************"
 
-  ${GENEMAP_BIN} "$DATASET_DIR/${dataset}/genemap.gff" 2>&1
+  ${GENEMAP_BIN} "${dataset}" 2>&1
 }
 export -f run_one_test
 
