@@ -34,6 +34,8 @@ pub struct Feature {
   pub frame: i32,
   pub parent_ids: Vec<String>,
   pub exceptions: Vec<String>,
+  pub notes: Vec<String>,
+  pub is_circular: bool,
   pub attributes: MultiMap<String, String>,
   pub source_record: Option<String>,
 }
@@ -48,6 +50,8 @@ impl Feature {
       strand,
       frame,
       exceptions,
+      notes,
+      is_circular,
       attributes,
       gff_record_str,
     } = GffCommonInfo::from_gff_record(&record)?;
@@ -68,6 +72,8 @@ impl Feature {
       frame,
       parent_ids,
       exceptions,
+      notes,
+      is_circular,
       attributes,
       source_record: Some(gff_record_str),
     })
@@ -93,11 +99,15 @@ pub struct FeatureGroup {
   pub parent_ids: Vec<String>,
   pub children: Vec<FeatureGroup>,
   pub exceptions: Vec<String>,
+  pub notes: Vec<String>,
+  pub is_circular: bool,
 }
 
 impl Ord for FeatureGroup {
   fn cmp(&self, other: &Self) -> Ordering {
-    (self.start(), self.end(), &self.name_and_type()).cmp(&(other.start(), other.end(), &other.name_and_type()))
+    let s = (self.start(), -(self.end() as isize), &self.name_and_type());
+    let o = (other.start(), -(other.end() as isize), &other.name_and_type());
+    s.cmp(&o)
   }
 }
 
@@ -150,6 +160,15 @@ impl FeatureGroup {
       .cloned()
       .collect_vec();
 
+    let notes = features
+      .iter()
+      .flat_map(|feature| &feature.notes)
+      .unique()
+      .cloned()
+      .collect_vec();
+
+    let is_circular = features.iter().any(|feature| feature.is_circular);
+
     Self {
       index,
       id,
@@ -161,6 +180,8 @@ impl FeatureGroup {
       parent_ids,
       children: vec![],
       exceptions,
+      notes,
+      is_circular,
     }
   }
 
@@ -314,16 +335,22 @@ pub fn format_feature_map<W: Write>(w: &mut W, feature_map: &[FeatureGroup]) -> 
     .max_by_key(|(depth, feature)| feature.name_and_type().len() + (depth + 1) * INDENT)
     .map(|(depth, feature)| feature.name_and_type().len() + (depth + 1) * INDENT)
     .unwrap_or_default();
-  let max_name_len = clamp(max_name_len, 0, 50);
+  let max_name_len = clamp(max_name_len, 30, 50);
 
+  let is_circular = feature_map_flat.iter().any(|(_, feature)| feature.is_circular);
+  let n_indent = max_name_len - 7;
+
+  let (circular, n_indent) = if is_circular {
+    ("(circular)", n_indent - 10)
+  } else {
+    ("", n_indent)
+  };
+
+  let indent = " ".repeat(n_indent);
   writeln!(
     w,
-    "Genome {:n$}     │ s │ f │  start  │   end   │   nucs  │    codons   │",
-    "",
-    n = max_name_len + 1
+    "Genome {circular} {indent}│ s │ f │  start  │   end   │   nucs  │    codons   │"
   )?;
-
-  writeln!(w, "{PASS_ICON}")?;
 
   format_feature_map_recursive(w, feature_map, max_name_len, 1)
 }
@@ -361,9 +388,11 @@ fn format_feature_group<W: Write>(
     parent_ids,
     children,
     exceptions,
+    notes,
+    is_circular,
   } = feature;
 
-  let max_name_len = max_name_len - 2 * depth;
+  let max_name_len = max_name_len - INDENT * depth;
 
   match &features.as_slice() {
     &[feature] => {
@@ -374,16 +403,17 @@ fn format_feature_group<W: Write>(
       let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
       let strand = strand;
       let frame = frame;
-      let exceptions = exceptions.join(", ");
+      let exceptions = exceptions.iter().chain(notes.iter()).join(", ");
+
       let formatted = format!(
-        "{indent} {name:max_name_len$} │ {strand:} │ {frame:} │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
+        "{indent}{name:max_name_len$} │ {strand:} │ {frame:} │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
         "", "", "", ""
       )
       .style(style_for_feature_type(feature_type)?)
       .to_string();
       writeln!(w, "{formatted}")?;
       for feature in features.iter() {
-        format_feature(w, feature, max_name_len - 2, depth + 1)?;
+        format_feature(w, feature, max_name_len - INDENT, depth + 1)?;
       }
     }
   }
@@ -403,6 +433,8 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
     frame,
     parent_ids,
     exceptions,
+    notes,
+    is_circular,
     attributes,
     source_record,
   } = feature;
@@ -411,10 +443,11 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
   let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
   let nuc_len = end - start;
   let codon_len = format_codon_length(nuc_len);
-  let exceptions = exceptions.join(", ");
+  let exceptions = exceptions.iter().chain(notes.iter()).join(", ");
+  let is_circular = if *is_circular { "✔" } else { " " };
 
   let formatted = format!(
-    "{indent} {name:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"
+    "{indent}{name:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"
   ).style(style_for_feature_type(feature_type)?).to_string();
 
   writeln!(w, "{formatted}")?;

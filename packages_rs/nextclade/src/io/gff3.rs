@@ -19,7 +19,26 @@ use std::hash::Hash;
 use std::io::Read;
 use std::path::Path;
 
-pub const NAME_ATTRS: &[&str] = &["Name", "name", "gene_name", "gene", "locus_tag", "product", "ID"];
+/// Possible keys for name attribute (in order of preference!)
+pub const NAME_ATTRS: &[&str] = &[
+  "Name",
+  "name",
+  "Gene",
+  "gene",
+  "gene_name",
+  "locus_tag",
+  "Alias",
+  "alias",
+  "standard_name",
+  "old-name",
+  "product",
+  "gene_synonym",
+  "gb-synonym",
+  "acronym",
+  "gb-acronym",
+  "protein_id",
+  "ID",
+];
 
 lazy_static! {
   pub static ref NAME_ATTRS_STR: String = NAME_ATTRS.iter().map(surround_with_quotes).join(", ");
@@ -171,36 +190,54 @@ pub struct GffCommonInfo {
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,
+  pub notes: Vec<String>,
+  pub is_circular: bool,
   pub attributes: MultiMap<String, String>,
   pub gff_record_str: String,
 }
 
 impl GffCommonInfo {
-  pub fn from_gff_record(gene_record: &GffRecord) -> Result<GffCommonInfo, Report> {
-    let gff_record_str = gff_record_to_string(gene_record).unwrap_or_else(|_| "Unknown".to_owned());
-    let name = get_one_of_attributes_optional(gene_record, NAME_ATTRS);
-    let id = get_one_of_attributes_optional(gene_record, &["ID"]);
-    let start = (*gene_record.start() - 1) as usize; // Convert to 0-based indices
-    let end = *gene_record.end() as usize;
-    let strand = gene_record
+  pub fn from_gff_record(record: &GffRecord) -> Result<GffCommonInfo, Report> {
+    let gff_record_str = gff_record_to_string(record).unwrap_or_else(|_| "Unknown".to_owned());
+    let name = get_one_of_attributes_optional(record, NAME_ATTRS);
+    let id = get_one_of_attributes_optional(record, &["ID"]);
+    let start = (*record.start() - 1) as usize; // Convert to 0-based indices
+    let end = *record.end() as usize;
+    let strand = record
       .strand()
       .map_or(GeneStrand::Unknown, bio_types::strand::Strand::into);
-    let frame = parse_gff3_frame(gene_record.frame(), start);
+    let frame = parse_gff3_frame(record.frame(), start);
 
-    let exceptions = get_all_attributes(
-      gene_record,
-      &[
-        "exception",
-        "exceptions",
-        "transl_except",
-        "Note",
-        "note",
-        "Notes",
-        "notes",
-      ],
-    )?;
+    let attr_keys = record.attributes().keys().sorted().unique().collect_vec();
 
-    let attributes = gene_record.attributes().clone();
+    let exception_attr_keys = {
+      let mut exception_attr_keys = attr_keys
+        .iter()
+        .filter(|key| key.contains("except"))
+        .map(|s| s.as_str())
+        .collect_vec();
+      exception_attr_keys.extend_from_slice(&["exception", "exceptions", "except", "transl_except"]);
+      exception_attr_keys
+    };
+
+    let exceptions = get_all_attributes(record, &exception_attr_keys)?;
+
+    let notes_attr_keys = {
+      let mut notes_attr_keys = attr_keys
+        .iter()
+        .filter(|key| key.contains("note"))
+        .map(|s| s.as_str())
+        .collect_vec();
+      notes_attr_keys.extend_from_slice(&["Note", "note", "Notes", "notes"]);
+      notes_attr_keys
+    };
+
+    let notes = get_all_attributes(record, &notes_attr_keys)?;
+
+    let is_circular =
+      get_attribute_optional(record, "Is_circular").map_or(false, |is_circular| is_circular.to_lowercase() == "true");
+
+    let attributes = record.attributes().clone();
     Ok(GffCommonInfo {
       id,
       name,
@@ -209,6 +246,8 @@ impl GffCommonInfo {
       strand,
       frame,
       exceptions,
+      notes,
+      is_circular,
       attributes,
       gff_record_str,
     })

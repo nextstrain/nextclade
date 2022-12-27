@@ -115,6 +115,8 @@ impl CdsSegment {
       strand,
       frame,
       exceptions,
+      notes,
+      is_circular,
       attributes,
       gff_record_str,
     } = GffCommonInfo::from_gff_record(record)?;
@@ -164,6 +166,8 @@ impl MatureProteinRegion {
       strand,
       frame,
       exceptions,
+      notes,
+      is_circular,
       attributes,
       gff_record_str,
     } = GffCommonInfo::from_gff_record(record)?;
