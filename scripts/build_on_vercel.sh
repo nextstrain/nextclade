@@ -4,13 +4,10 @@ set -euxo pipefail
 trap "exit" INT
 
 # Directory where this script resides
-THIS_DIR="$(
-  cd "$(dirname "${BASH_SOURCE[0]}")"
-  pwd
-)"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Where the source code is
-PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/..)"
+PROJECT_ROOT_DIR="$(realpath "${THIS_DIR}/..")"
 
 source "${PROJECT_ROOT_DIR}/.env.example"
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
@@ -46,27 +43,24 @@ rm -f /lib64/libvips.so.42
 # Vercel caches `node_modules/`, so let's put our caches there
 export CACHE_DIR="${PROJECT_ROOT_DIR}/node_modules/.cache"
 
-mkdir -p "${CACHE_DIR}"
+function symlink_to_cache() {
+  target_dir_rel="${1}"
+  if [ -e "${CACHE_DIR}/${target_dir_rel}" ]; then
+    mkdir -p "${CACHE_DIR}/${target_dir_rel}"
+    ln -sf "${CACHE_DIR}/${target_dir_rel}" "${target_dir_rel}"
+  fi
+}
 
 export CARGO_HOME="${CACHE_DIR}/.cargo"
 export RUSTUP_HOME="${CACHE_DIR}/.rustup"
 export CARGO_INSTALL_ROOT="${CARGO_HOME}/install"
 export PATH=/usr/lib/llvm-13/bin:${HOME}/.local/bin:${CARGO_HOME}/bin:${CARGO_HOME}/install/bin:/usr/sbin${PATH:+":$PATH"}
 
-mkdir -p "${CACHE_DIR}/.build"
-ln -s "${CACHE_DIR}/.build" ".build"
-
-mkdir -p "${CACHE_DIR}/.cache"
-ln -s "${CACHE_DIR}/.cache" ".cache"
-
-mkdir -p "${CACHE_DIR}/.build_web"
-ln -s "${CACHE_DIR}/.build_web" "packages_rs/nextclade-web/.build"
-
-mkdir -p "${CACHE_DIR}/.cache_web"
-ln -s "${CACHE_DIR}/.cache_web" "packages_rs/nextclade-web/.cache"
-
-mkdir -p "${CACHE_DIR}/node_modules"
-ln -s "${CACHE_DIR}/node_modules" "packages_rs/nextclade-web/node_modules"
+symlink_to_cache ".build"
+symlink_to_cache ".cache"
+symlink_to_cache "packages_rs/nextclade-web/.build/production/tmp"
+symlink_to_cache "packages_rs/nextclade-web/.cache"
+symlink_to_cache "packages_rs/nextclade-web/node_modules"
 
 # Install rustup and toolchain from rust-toolchain.toml, if not already in the cache
 if ! command cargo &>/dev/null; then
@@ -111,7 +105,6 @@ if ! command cargo &>/dev/null; then
 
   which wasm-pack
 fi
-
 
 cp ".env.example" ".env"
 
