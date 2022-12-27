@@ -330,7 +330,7 @@ pub fn gene_map_to_string(gene_map: &GeneMap) -> Result<String, Report> {
   Ok(String::from_utf8(buf)?)
 }
 
-fn format_codon_length(nuc_len: usize) -> String {
+pub fn format_codon_length(nuc_len: usize) -> String {
   let codons = nuc_len / 3;
   let codons_decimal = match nuc_len % 3 {
     0 => "     ",

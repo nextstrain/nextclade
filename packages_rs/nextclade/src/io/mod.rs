@@ -9,6 +9,7 @@ pub mod file;
 pub mod fs;
 pub mod gene_map;
 pub mod gff3;
+pub mod feature_tree;
 pub mod insertions_csv;
 pub mod json;
 pub mod letter;
