@@ -186,15 +186,20 @@ impl GffCommonInfo {
       .strand()
       .map_or(GeneStrand::Unknown, bio_types::strand::Strand::into);
     let frame = parse_gff3_frame(gene_record.frame(), start);
-    let exceptions = gene_record
-      .attributes()
-      .get_vec("exception")
-      .cloned()
-      .unwrap_or_default()
-      .into_iter()
-      .sorted()
-      .unique()
-      .collect_vec();
+
+    let exceptions = get_all_attributes(
+      gene_record,
+      &[
+        "exception",
+        "exceptions",
+        "transl_except",
+        "Note",
+        "note",
+        "Notes",
+        "notes",
+      ],
+    )?;
+
     let attributes = gene_record.attributes().clone();
     Ok(GffCommonInfo {
       id,
@@ -267,6 +272,17 @@ pub fn get_one_of_attributes_required(record: &GffRecord, attr_names: &[&str]) -
     )
     .with_section(|| gff_record_to_string(record).unwrap().header("Failed entry:"))
   })
+}
+
+/// Retrieve attribute values for all given keys
+pub fn get_all_attributes(record: &GffRecord, attr_names: &[&str]) -> Result<Vec<String>, Report> {
+  attr_names
+    .iter()
+    .flat_map(|attr| record.attributes().get_vec(*attr).cloned().unwrap_or_default())
+    .sorted()
+    .unique()
+    .map(|val| Ok(urlencoding::decode(&val)?.to_string()))
+    .collect::<Result<Vec<String>, Report>>()
 }
 
 /// Parses `frame` column of the GFF3 record.

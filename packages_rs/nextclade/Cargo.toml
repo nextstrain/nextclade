@@ -49,6 +49,7 @@ strum = "0.24.0"
 strum_macros = "0.24.0"
 tinytemplate = "1.2.1"
 traversal = "0.1.2"
+urlencoding = "2.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
 zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "deflate", "time"] }
 

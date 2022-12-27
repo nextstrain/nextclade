@@ -1,7 +1,6 @@
 use crate::gene::cds::Cds;
 use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo, NAME_ATTRS_STR};
 use crate::utils::range::Range;
-use crate::{make_error, make_internal_error};
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
 use itertools::Itertools;
@@ -10,7 +9,7 @@ use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum GeneStrand {
   #[serde(rename = "+")]
   Forward,
