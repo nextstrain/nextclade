@@ -1,4 +1,5 @@
 use crate::gene::gene::GeneStrand;
+use crate::io::file::open_file_or_stdin;
 use crate::io::gene_map::format_codon_length;
 use crate::io::gff3::GffCommonInfo;
 use crate::make_error;
@@ -7,15 +8,17 @@ use crate::utils::string::truncate_with_ellipsis;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use color_eyre::Section;
 use eyre::{eyre, Report, WrapErr};
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use lazy_static::lazy_static;
 use multimap::MultiMap;
 use num_traits::clamp;
 use owo_colors::{DynColors, OwoColorize, ParseColorError, Style};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::cmp::{max, Ordering};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::fmt::Write as _;
 use std::hash::Hash;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -215,16 +218,148 @@ impl FeatureGroup {
 }
 
 /// Read GFF3 records given a file
-pub fn read_gff3_feature_map<P: AsRef<Path>>(filename: P) -> Result<Vec<FeatureGroup>, Report> {
-  let filename = filename.as_ref();
-  let mut reader = GffReader::from_file(filename, GffType::GFF3).map_err(|report| eyre!(report))?;
-  process_gff_records(&mut reader).wrap_err_with(|| format!("When reading GFF3 file '{filename:?}'"))
+pub fn read_gff3_feature_map<P: AsRef<Path>>(filename: P) -> Result<Vec<SequenceRegionFeature>, Report> {
+  let mut file = open_file_or_stdin(&Some(filename))?;
+  let mut buf = vec![];
+  {
+    file.read_to_end(&mut buf)?;
+  }
+  read_gff3_feature_map_str(&String::from_utf8(buf)?)
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SequenceRegionFeature {
+  pub index: usize,
+  pub id: String,
+  pub start: usize,
+  pub end: usize,
+  pub children: Vec<FeatureGroup>,
+}
+
+impl SequenceRegionFeature {
+  #[must_use]
+  #[inline]
+  pub fn name_and_type(&self) -> String {
+    format!("{} '{}'", shorten_feature_type("Sequence region"), self.id)
+  }
 }
 
 /// Read GFF3 records given a string
-pub fn read_gff3_feature_map_str(content: &str) -> Result<Vec<FeatureGroup>, Report> {
-  let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
-  process_gff_records(&mut reader).wrap_err("When reading GFF3 file")
+pub fn read_gff3_feature_map_str(content: &str) -> Result<Vec<SequenceRegionFeature>, Report> {
+  // Find char ranges of sequence regions in GFF file
+  let ranges = {
+    // Find where sequence regions start
+    let begins = content.match_indices("##sequence-region");
+
+    // Find where the GFF entries end (the "tail")
+    let tail = content.match_indices("###");
+
+    // Extract indices
+    let begins = chain(begins, tail)
+      .map(|(index, _)| index)
+      .sorted()
+      .unique()
+      .collect_vec();
+
+    // Iterate over pairs of adjacent indices, which give us ranges. The last "tail" range is conveniently excluded.
+    begins
+      .into_iter()
+      .tuple_windows()
+      .map(|(content_begin, content_end)| {
+        #[allow(clippy::string_slice)]
+        let content = &content[content_begin..content_end - 1];
+        (content, content_begin, content_end)
+      })
+      .collect_vec()
+  };
+
+  if !ranges.is_empty() {
+    // Parse text ranges into sequence regions data structures (along with its entries)
+    ranges
+    .into_iter()
+    .enumerate()
+    .map(|(index,(content, content_begin, content_end))| {
+      let content = content.trim();
+
+      // Extract '##sequence-region' header line
+      let header_line = content
+        .lines()
+        .next()
+        .ok_or_else(|| eyre!("When parsing '##sequence-region' starting at line {content_begin}: content of the region is empty"))?;
+
+      // Parse '##sequence-region {id} {start} {end}' header line
+      let (id, start, end) = parse_sequence_region_header(header_line).wrap_err_with(|| {
+        format!("When parsing '##sequence-region' header at line {content_begin}:\n  {header_line}")
+      })?;
+
+      // Parse GFF entries of the region
+      let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
+      let children = process_gff_records(&mut reader)
+        .wrap_err_with(|| {
+          eyre!("When processing GFF entries of ##sequence-region '{id} {start} {end}' starting at line {content_begin}:\n  {content}")
+        })?;
+
+      Ok(SequenceRegionFeature {
+        index,
+        id,
+        start,
+        end,
+        children,
+      })
+    })
+    .collect()
+  } else {
+    // There is no '##sequence-region' lines in this file. Pretend the whole file is one sequence region.
+    let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
+    let children = process_gff_records(&mut reader).wrap_err("When reading GFF3 file")?;
+    let end = children.iter().map(FeatureGroup::end).max().unwrap_or_default();
+
+    let id = children
+      .iter()
+      .find(|child| child.feature_type == "region")
+      .map_or_else(|| "Untitled".to_owned(), |region| region.id.clone());
+
+    Ok(vec![SequenceRegionFeature {
+      index: 0,
+      id,
+      start: 0,
+      end,
+      children,
+    }])
+  }
+}
+
+fn parse_sequence_region_header(line: &str) -> Result<(String, usize, usize), Report> {
+  const SEQ_REGION_REGEX: &str = r"^##sequence-region\s+(?P<id>\S+?)\s+(?P<start>\d{1,10})\s+(?P<end>\d{1,10})$";
+
+  lazy_static! {
+    static ref RE: Regex = Regex::new(SEQ_REGION_REGEX)
+      .wrap_err_with(|| format!("When compiling regular expression '{SEQ_REGION_REGEX}'"))
+      .unwrap();
+  }
+
+  let captures = RE.captures(line).ok_or_else(|| eyre!("Unknown format"))?;
+  match (captures.name("id"), captures.name("start"), captures.name("end")) {
+    (Some(id), Some(start), Some(end)) => {
+      let id = id.as_str().to_owned();
+
+      let start = start
+        .as_str()
+        .parse::<usize>()
+        .wrap_err_with(|| format!("When parsing start position:\n  {}", start.as_str()))?;
+
+      let start = start - 1; // Convert to 0-based indices
+
+      let end = end
+        .as_str()
+        .parse::<usize>()
+        .wrap_err_with(|| format!("When parsing end position:\n  {}", end.as_str()))?;
+
+      Ok((id, start, end))
+    }
+    _ => make_error!("Unknown format: 'seqid', 'start' or 'end' positions not found"),
+  }
 }
 
 /// Read GFF3 records and convert them into the internal representation
@@ -314,12 +449,92 @@ fn flatten_feature_map_recursive(
   });
 }
 
-pub fn feature_map_to_string(feature_map: &[FeatureGroup]) -> Result<String, Report> {
+pub fn feature_map_to_string(seq_regions: &[SequenceRegionFeature]) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
   {
-    format_feature_map(&mut buf, feature_map)?;
+    format_sequence_region_features(&mut buf, seq_regions)?;
   }
   Ok(String::from_utf8(buf)?)
+}
+
+pub fn format_sequence_region_features<W: Write>(
+  w: &mut W,
+  seq_regions: &[SequenceRegionFeature],
+) -> Result<(), Report> {
+  let features_flat = seq_regions
+    .iter()
+    .flat_map(|reg| flatten_feature_map(&reg.children))
+    .collect_vec();
+
+  let seq_region_names = seq_regions
+    .iter()
+    .map(|seq_region| seq_region.name_and_type().len() + INDENT)
+    .max()
+    .unwrap_or_default();
+
+  let max_name_len = features_flat
+    .iter()
+    .map(|(depth, feature)| feature.name_and_type().len() + (depth + 2) * INDENT)
+    .max()
+    .unwrap_or_default();
+
+  let max_name_len = max(seq_region_names, max_name_len);
+  let max_name_len = clamp(max_name_len, 30, 50);
+
+  let (circular, n_indent) = {
+    let is_circular = features_flat.iter().any(|(_, feature)| feature.is_circular);
+    let n_indent = max_name_len - 7;
+
+    if is_circular {
+      ("(circular)", n_indent - 10)
+    } else {
+      ("", n_indent)
+    }
+  };
+
+  let indent = " ".repeat(n_indent);
+  writeln!(
+    w,
+    "Genome {circular}{indent} │ s │ f │  start  │   end   │   nucs  │    codons   │"
+  )?;
+
+  for (i, seq_region) in seq_regions.iter().enumerate() {
+    if (1..=seq_regions.len()).contains(&i) {
+      writeln!(w)?;
+    }
+    format_sequence_region_feature(w, seq_region, max_name_len)?;
+  }
+
+  Ok(())
+}
+
+pub fn format_sequence_region_feature<W: Write>(
+  w: &mut W,
+  seq_region: &SequenceRegionFeature,
+  max_name_len: usize,
+) -> Result<(), Report> {
+  let SequenceRegionFeature {
+    index,
+    id,
+    start,
+    end,
+    children,
+  } = seq_region;
+
+  let indent_left = " ".repeat(INDENT);
+  let name = truncate_with_ellipsis(seq_region.name_and_type(), max_name_len - INDENT);
+  let indent_right = max_name_len - INDENT;
+  let nuc_len = end - start;
+  let codon_len = format_codon_length(nuc_len);
+
+  writeln!(
+    w,
+    "{indent_left}{name:indent_right$} │   │   │ {start:7} │ {end:7} │ {nuc_len:7} │ {codon_len:>11} │"
+  )?;
+
+  format_feature_groups(w, &seq_region.children, max_name_len)?;
+
+  Ok(())
 }
 
 const PASS_ICON: &str = "│  ";
@@ -327,35 +542,15 @@ const FORK_ICON: &str = "├──";
 const IMPASSE_ICON: &str = "└──";
 const INDENT: usize = 2;
 
-pub fn format_feature_map<W: Write>(w: &mut W, feature_map: &[FeatureGroup]) -> Result<(), Report> {
-  let feature_map_flat = flatten_feature_map(feature_map);
-
-  let max_name_len = feature_map_flat
-    .iter()
-    .max_by_key(|(depth, feature)| feature.name_and_type().len() + (depth + 1) * INDENT)
-    .map(|(depth, feature)| feature.name_and_type().len() + (depth + 1) * INDENT)
-    .unwrap_or_default();
-  let max_name_len = clamp(max_name_len, 30, 50);
-
-  let is_circular = feature_map_flat.iter().any(|(_, feature)| feature.is_circular);
-  let n_indent = max_name_len - 7;
-
-  let (circular, n_indent) = if is_circular {
-    ("(circular)", n_indent - 10)
-  } else {
-    ("", n_indent)
-  };
-
-  let indent = " ".repeat(n_indent);
-  writeln!(
-    w,
-    "Genome {circular} {indent}│ s │ f │  start  │   end   │   nucs  │    codons   │"
-  )?;
-
-  format_feature_map_recursive(w, feature_map, max_name_len, 1)
+pub fn format_feature_groups<W: Write>(
+  w: &mut W,
+  feature_map: &[FeatureGroup],
+  max_name_len: usize,
+) -> Result<(), Report> {
+  format_feature_groups_recursive(w, feature_map, max_name_len, 2)
 }
 
-fn format_feature_map_recursive<W: Write>(
+fn format_feature_groups_recursive<W: Write>(
   w: &mut W,
   feature_groups: &[FeatureGroup],
   max_name_len: usize,
@@ -366,7 +561,7 @@ fn format_feature_map_recursive<W: Write>(
     .enumerate()
     .try_for_each(|(height, feature_group)| -> Result<(), Report> {
       format_feature_group(w, feature_group, max_name_len, depth)?;
-      format_feature_map_recursive(w, &feature_group.children, max_name_len, depth + 1)?;
+      format_feature_groups_recursive(w, &feature_group.children, max_name_len, depth + 1)?;
       Ok(())
     })
 }

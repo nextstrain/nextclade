@@ -1,6 +1,7 @@
 use crate::gene::cds::{Cds, CdsSegment, MatureProteinRegion};
 use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::container::get_first_of;
+use crate::io::file::open_file_or_stdin;
 use crate::io::gene_map::GeneMap;
 use crate::make_error;
 use crate::utils::error::to_eyre_error;
@@ -46,9 +47,12 @@ lazy_static! {
 
 /// Read GFF3 records given a file
 pub fn read_gff3_file<P: AsRef<Path>>(filename: P) -> Result<GeneMap, Report> {
-  let filename = filename.as_ref();
-  let mut reader = GffReader::from_file(filename, GffType::GFF3).map_err(|report| eyre!(report))?;
-  process_gff_records(&mut reader).wrap_err_with(|| format!("When reading GFF3 file '{filename:?}'"))
+  let mut file = open_file_or_stdin(&Some(filename))?;
+  let mut buf = vec![];
+  {
+    file.read_to_end(&mut buf)?;
+  }
+  read_gff3_str(&String::from_utf8(buf)?)
 }
 
 /// Read GFF3 records given a string
