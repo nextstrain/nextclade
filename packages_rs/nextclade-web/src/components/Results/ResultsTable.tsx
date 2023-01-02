@@ -21,6 +21,7 @@ import {
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
+  sortAnalysisResultsByMotifsAtom,
 } from 'src/state/results.state'
 import { FormattedText } from 'src/components/Common/FormattedText'
 import type { TableRowDatum } from './ResultsTableRow'
@@ -174,6 +175,14 @@ export function ResultsTable() {
   const sortByKey = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
     set(sortAnalysisResultsByKeyAtom({ key, direction }), undefined)
   }, []) // prettier-ignore
+  const sortByMotifs = useRecoilCallback(
+    ({ set }) =>
+      (key: string, direction: SortDirection) =>
+        () => {
+          set(sortAnalysisResultsByMotifsAtom({ key, direction }), undefined)
+        },
+    [],
+  ) // prettier-ignore
 
   const dynamicCladeColumns = useMemo(() => {
     return cladeNodeAttrDescs
@@ -217,8 +226,8 @@ export function ResultsTable() {
 
   const dynamicAaMotifsColumns = useMemo(() => {
     return aaMotifsDescs.map(({ name, nameFriendly, nameShort, description }) => {
-      const sortAsc = sortByKey(name, SortDirection.asc)
-      const sortDesc = sortByKey(name, SortDirection.desc)
+      const sortAsc = sortByMotifs(name, SortDirection.asc)
+      const sortDesc = sortByMotifs(name, SortDirection.desc)
       return (
         <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
@@ -232,7 +241,7 @@ export function ResultsTable() {
         </TableHeaderCell>
       )
     })
-  }, [aaMotifsDescs, sortByKey, dynamicPhenotypeColumnWidthPx])
+  }, [aaMotifsDescs, sortByMotifs, dynamicPhenotypeColumnWidthPx])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
