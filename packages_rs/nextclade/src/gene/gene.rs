@@ -141,6 +141,10 @@ impl Gene {
     self.len() == 0
   }
 
+  pub fn name_and_type(&self) -> String {
+    format!("Gene '{}'", self.gene_name)
+  }
+
   /// Converts relative nucleotide position inside gene (relative to gene start) to absolute position in the
   /// reference nucleotide sequence
   #[inline]

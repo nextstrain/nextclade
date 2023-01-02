@@ -1,3 +1,5 @@
+use crate::make_error;
+use eyre::Report;
 use multimap::MultiMap;
 use std::borrow::Borrow;
 use std::hash::Hash;
@@ -25,4 +27,13 @@ where
     .flatten()
     .cloned()
     .collect()
+}
+
+// Take first element, and checks that it's the only element
+pub fn take_exactly_one<T>(elems: &[T]) -> Result<&T, Report> {
+  match &elems {
+    [] => make_error!("Expected exactly one element, but found none"),
+    [first] => Ok(first),
+    _ => make_error!("Expected exactly one element, but found: {}", elems.len()),
+  }
 }

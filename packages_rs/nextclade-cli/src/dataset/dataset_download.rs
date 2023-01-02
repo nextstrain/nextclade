@@ -10,7 +10,6 @@ use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaRecord};
 use nextclade::io::fs::absolute_path;
 use nextclade::io::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::gff3::{read_gff3_file, read_gff3_str};
 use nextclade::make_error;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::tree::tree::AuspiceTree;
@@ -101,8 +100,13 @@ pub fn dataset_zip_load(
   )?;
 
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
-    || filter_gene_map(Some(read_gff3_str(&zip_read_str(&mut zip, "genemap.gff")?)?), genes),
-    |input_gene_map| filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes),
+    || {
+      filter_gene_map(
+        Some(GeneMap::from_gff3_str(&zip_read_str(&mut zip, "genemap.gff")?)?),
+        genes,
+      )
+    },
+    |input_gene_map| filter_gene_map(Some(GeneMap::from_gff3_file(input_gene_map)?), genes),
   )?;
 
   Ok(DatasetFiles {
@@ -207,7 +211,7 @@ pub fn dataset_load_files(
   Ok(DatasetFiles {
     ref_record,
     virus_properties: VirusProperties::from_path(input_virus_properties)?,
-    gene_map: filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes)?,
+    gene_map: filter_gene_map(Some(GeneMap::from_gff3_file(input_gene_map)?), genes)?,
     tree: AuspiceTree::from_path(input_tree)?,
     qc_config: QcConfig::from_path(input_qc_config)?,
     primers,
@@ -271,7 +275,7 @@ pub fn dataset_str_download_and_load(
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
     || {
       filter_gene_map(
-        Some(read_gff3_str(&dataset_file_http_get(
+        Some(GeneMap::from_gff3_str(&dataset_file_http_get(
           &mut http,
           &dataset,
           "genemap.gff",
@@ -279,7 +283,7 @@ pub fn dataset_str_download_and_load(
         genes,
       )
     },
-    |input_gene_map| filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes),
+    |input_gene_map| filter_gene_map(Some(GeneMap::from_gff3_file(input_gene_map)?), genes),
   )?;
 
   Ok(DatasetFiles {

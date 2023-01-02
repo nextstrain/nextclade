@@ -10,9 +10,11 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::{chain, Itertools};
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::path::Path;
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct FeatureTree {
   pub seq_regions: Vec<SequenceRegion>,
 }

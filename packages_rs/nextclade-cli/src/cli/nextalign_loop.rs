@@ -9,7 +9,6 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gene_map::gene_map_to_string;
 use nextclade::io::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing};
 use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
@@ -61,7 +60,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
   let gene_map = match input_gene_map {
     Some(input_gene_map) => {
-      let gene_map = read_gff3_file(input_gene_map)?;
+      let gene_map = GeneMap::from_gff3_file(input_gene_map)?;
       filter_gene_map(Some(gene_map), &genes)?
     }
     None => GeneMap::new(),

@@ -1,9 +1,8 @@
 use clap::{AppSettings, Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
-use log::{info, LevelFilter};
-use nextclade::io::gene_map::gene_map_to_string;
-use nextclade::io::gff3::read_gff3_file;
+use log::LevelFilter;
+use nextclade::io::gene_map::{gene_map_to_string, GeneMap};
 use nextclade::utils::global_init::global_init;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
@@ -28,7 +27,7 @@ pub struct GenemapArgs {
 fn main() -> Result<(), Report> {
   let args = GenemapArgs::parse();
   setup_logger(LevelFilter::Warn);
-  let gene_map = read_gff3_file(args.input_gene_map)?;
+  let gene_map = GeneMap::from_gff3_file(args.input_gene_map)?;
   println!("{}", gene_map_to_string(&gene_map)?);
   Ok(())
 }
