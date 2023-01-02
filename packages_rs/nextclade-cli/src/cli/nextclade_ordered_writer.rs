@@ -40,6 +40,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
     gene_map: &'a GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
+    aa_motifs_keys: &[String],
     output_fasta: &Option<PathBuf>,
     output_json: &Option<PathBuf>,
     output_ndjson: &Option<PathBuf>,
@@ -77,11 +78,23 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .collect_vec();
 
     let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
-      NextcladeResultsCsvFileWriter::new(output_csv, b';', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(
+        output_csv,
+        b';',
+        &clade_node_attr_keys,
+        &phenotype_attr_keys,
+        aa_motifs_keys,
+      )
     })?;
 
     let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
-      NextcladeResultsCsvFileWriter::new(output_tsv, b'\t', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(
+        output_tsv,
+        b'\t',
+        &clade_node_attr_keys,
+        &phenotype_attr_keys,
+        aa_motifs_keys,
+      )
     })?;
 
     Ok(Self {

@@ -132,6 +132,12 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
+  let aa_motifs_keys = &virus_properties
+    .count_aa_motifs
+    .iter()
+    .map(|desc| desc.name.clone())
+    .collect_vec();
+
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
@@ -224,6 +230,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         gene_map,
         clade_node_attrs,
         phenotype_attrs,
+        aa_motifs_keys,
         &output_fasta,
         &output_json,
         &output_ndjson,
