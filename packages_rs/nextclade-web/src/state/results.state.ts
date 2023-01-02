@@ -2,7 +2,7 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
@@ -233,6 +233,16 @@ export const phenotypeAttrDescsAtom = atom<PhenotypeAttrDesc[]>({
 export const phenotypeAttrKeysAtom = selector<string[]>({
   key: 'phenotypeAttrKeys',
   get: ({ get }) => get(phenotypeAttrDescsAtom).map((desc) => desc.name),
+})
+
+export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({
+  key: 'aaMotifsDescsAtom',
+  default: [],
+})
+
+export const aaMotifsKeysAtom = selector<string[]>({
+  key: 'aaMotifsKeysAtom',
+  get: ({ get }) => get(aaMotifsDescsAtom).map((desc) => desc.name),
 })
 
 export const analysisStatusGlobalAtom = atom({

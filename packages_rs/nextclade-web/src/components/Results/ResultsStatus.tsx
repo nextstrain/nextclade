@@ -138,7 +138,6 @@ export function selectStatus(
     default:
       if (process.env.NODE_ENV !== 'production') {
         throw new Error(
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `This switch-case block should be exhaustive, but has reached the default case. The value was "${statusGlobal}". This is an internal error. Please report it to developers.`,
         )
       }

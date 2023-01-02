@@ -351,6 +351,13 @@ export interface PhenotypeValue {
   value: number
 }
 
+export interface AaMotif {
+  name: string
+  gene: string
+  position: number
+  seq: string
+}
+
 export interface AnalysisResult {
   index: number
   seqName: string
@@ -391,6 +398,7 @@ export interface AnalysisResult {
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]
   missingGenes: string[]
+  aaMotifs: Record<string, AaMotif[]>
 }
 
 export interface AnalysisError {
@@ -587,6 +595,13 @@ export interface DatasetsIndexV2Json {
 
 export interface PhenotypeAttrDesc {
   name: string
+  nameFriendly: string
+  description: string
+}
+
+export interface AaMotifsDesc {
+  name: string
+  nameShort: string
   nameFriendly: string
   description: string
 }

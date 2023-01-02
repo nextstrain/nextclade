@@ -1,4 +1,4 @@
-use crate::analyze::virus_properties::{CountAaMotifsDesc, CountAaMotifsGeneDesc};
+use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::Translation;
 use crate::utils::range::Range;
@@ -17,16 +17,17 @@ pub struct AaMotif {
 }
 
 pub fn find_aa_motifs(
-  count_aa_motifs_desc: &[CountAaMotifsDesc],
+  count_aa_motifs_desc: &[AaMotifsDesc],
   translations: &[Translation],
 ) -> Result<BTreeMap<String, Vec<AaMotif>>, Report> {
   let motifs: Vec<AaMotif> = count_aa_motifs_desc
     .iter()
     .flat_map(
-      |CountAaMotifsDesc {
+      |AaMotifsDesc {
          name,
          motifs,
          include_genes,
+         ..
        }| {
         // If no genes specified, process all genes
         let include_genes = if include_genes.is_empty() {

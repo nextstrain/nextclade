@@ -1,9 +1,17 @@
 import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isEmpty } from 'lodash'
-import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
 
-import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/types'
+import type {
+  AaMotifsDesc,
+  AlgorithmInput,
+  DatasetFiles,
+  Dataset,
+  FastaRecordId,
+  Gene,
+  NextcladeResult,
+} from 'src/types'
+import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
@@ -24,6 +32,7 @@ export interface LaunchAnalysisInitialData {
   genomeSize: number
   cladeNodeAttrKeyDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
+  aaMotifsDescs: AaMotifsDesc[]
 }
 
 export interface LaunchAnalysisCallbacks {

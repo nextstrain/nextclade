@@ -21,7 +21,8 @@ struct VirusPropertiesRaw {
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
-  pub count_aa_motifs: Vec<CountAaMotifsDesc>,
+  #[serde(default = "Vec::new")]
+  pub aa_motifs: Vec<AaMotifsDesc>,
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -33,7 +34,7 @@ pub struct VirusProperties {
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
   #[serde(default = "Vec::new")]
-  pub count_aa_motifs: Vec<CountAaMotifsDesc>,
+  pub aa_motifs: Vec<AaMotifsDesc>,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -114,8 +115,11 @@ pub struct PhenotypeAttrDesc {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CountAaMotifsDesc {
+pub struct AaMotifsDesc {
   pub name: String,
+  pub name_short: String,
+  pub name_friendly: String,
+  pub description: String,
   pub motifs: Vec<String>,
 
   #[serde(default = "Vec::new")]
@@ -150,7 +154,7 @@ impl FromStr for VirusProperties {
       alignment_params: raw.alignment_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
       phenotype_data: raw.phenotype_data,
-      count_aa_motifs: raw.count_aa_motifs,
+      aa_motifs: raw.aa_motifs,
     })
   }
 }

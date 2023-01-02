@@ -182,7 +182,7 @@ pub fn nextclade_run_one(
       .collect_vec()
   });
 
-  let aa_motifs = find_aa_motifs(&virus_properties.count_aa_motifs, &translations)?;
+  let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translations)?;
   let total_aa_motifs = aa_motifs.values().map(Vec::len).sum();
 
   let qc = qc_run(

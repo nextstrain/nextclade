@@ -15,6 +15,7 @@ import {
   resultsTableDynamicPhenotypeColumnWidthPxAtom,
 } from 'src/state/settings.state'
 import {
+  aaMotifsDescsAtom,
   cladeNodeAttrDescsAtom,
   phenotypeAttrDescsAtom,
   seqIndicesFilteredAtom,
@@ -69,6 +70,7 @@ export function ResultsTable() {
   const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
+  const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom)
 
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
@@ -82,8 +84,10 @@ export function ResultsTable() {
       dynamicPhenotypeColumnWidthPx,
       cladeNodeAttrDescs,
       phenotypeAttrDescs,
+      aaMotifsDescs,
     }))
   }, [
+    aaMotifsDescs,
     cladeNodeAttrDescs,
     columnWidthsPx,
     dynamicCladeColumnWidthPx,
@@ -211,6 +215,25 @@ export function ResultsTable() {
     })
   }, [phenotypeAttrDescs, dynamicPhenotypeColumnWidthPx, sortByKey])
 
+  const dynamicAaMotifsColumns = useMemo(() => {
+    return aaMotifsDescs.map(({ name, nameFriendly, nameShort, description }) => {
+      const sortAsc = sortByKey(name, SortDirection.asc)
+      const sortDesc = sortByKey(name, SortDirection.desc)
+      return (
+        <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{nameShort}</TableCellText>
+            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier={`btn-help-col-aa-motifs-${name}`} tooltipWidth="600px">
+            <h5>{`Column: ${nameFriendly}`}</h5>
+            <FormattedText text={description} />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+      )
+    })
+  }, [aaMotifsDescs, sortByKey, dynamicPhenotypeColumnWidthPx])
+
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
       <TableHeaderRow>
@@ -257,6 +280,8 @@ export function ResultsTable() {
         {dynamicCladeColumns}
 
         {dynamicPhenotypeColumns}
+
+        {dynamicAaMotifsColumns}
 
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>

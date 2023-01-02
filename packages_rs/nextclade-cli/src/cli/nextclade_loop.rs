@@ -133,7 +133,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
   let aa_motifs_keys = &virus_properties
-    .count_aa_motifs
+    .aa_motifs
     .iter()
     .map(|desc| desc.name.clone())
     .collect_vec();

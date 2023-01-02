@@ -170,6 +170,7 @@ impl NextcladeWasm {
     errors_json_str: &str,
     clade_node_attrs_json_str: &str,
     phenotype_attrs_json_str: &str,
+    aa_motifs_keys_json_str: &str,
     delimiter: char,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
@@ -193,11 +194,17 @@ impl NextcladeWasm {
     let clade_node_attr_keys = clade_node_attrs.into_iter().map(|attr| attr.name).collect_vec();
     let phenotype_attr_keys = phenotype_attrs.into_iter().map(|attr| attr.name).collect_vec();
 
+    let aa_motifs_keys: Vec<String> = jserr(
+      json_parse(aa_motifs_keys_json_str)
+        .wrap_err("When serializing results JSON: When parsing AA motifs keys JSON internally"),
+    )?;
+
     jserr(results_to_csv_string(
       &outputs,
       &errors,
       &clade_node_attr_keys,
       &phenotype_attr_keys,
+      &aa_motifs_keys,
       delimiter as u8,
     ))
   }

@@ -7,6 +7,7 @@ import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
 import type {
+  AaMotifsDesc,
   AnalysisError,
   AnalysisResult,
   ErrorsFromWeb,
@@ -79,7 +80,8 @@ async function getInitialData(): Promise<LaunchAnalysisInitialData> {
     throw new ErrorModuleNotInitialized('getInitialData')
   }
   const initialData = nextcladeWasm.get_initial_data()
-  const { gene_map, genome_size, clade_node_attr_key_descs, phenotype_attr_descs } = initialData.to_js()
+  const { gene_map, genome_size, clade_node_attr_key_descs, phenotype_attr_descs, aa_motifs_descs } =
+    initialData.to_js()
   initialData.free()
 
   return {
@@ -87,6 +89,7 @@ async function getInitialData(): Promise<LaunchAnalysisInitialData> {
     genomeSize: Number(genome_size),
     cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
     phenotypeAttrDescs: JSON.parse(phenotype_attr_descs) as PhenotypeAttrDesc[],
+    aaMotifsDescs: JSON.parse(aa_motifs_descs) as AaMotifsDesc[],
   }
 }
 
@@ -215,6 +218,7 @@ export async function serializeResultsCsv(
   errors: AnalysisError[],
   cladeNodeAttrsJson: CladeNodeAttrDesc[],
   phenotypeAttrsJson: PhenotypeAttrDesc[],
+  aaMotifsDescs: AaMotifsDesc[],
   delimiter: string,
 ) {
   return NextcladeWasm.serialize_results_csv(
@@ -222,6 +226,7 @@ export async function serializeResultsCsv(
     JSON.stringify(errors),
     JSON.stringify(cladeNodeAttrsJson),
     JSON.stringify(phenotypeAttrsJson),
+    JSON.stringify(aaMotifsDescs),
     delimiter,
   )
 }

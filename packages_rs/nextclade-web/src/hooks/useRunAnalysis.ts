@@ -20,6 +20,7 @@ import {
   virusPropertiesInputAtom,
 } from 'src/state/inputs.state'
 import {
+  aaMotifsDescsAtom,
   analysisResultAtom,
   analysisResultsAtom,
   analysisStatusGlobalAtom,
@@ -64,11 +65,12 @@ export function useRunAnalysis() {
           onGlobalStatus(status) {
             set(analysisStatusGlobalAtom, status)
           },
-          onInitialData({ geneMap, genomeSize, cladeNodeAttrKeyDescs, phenotypeAttrDescs }) {
+          onInitialData({ geneMap, genomeSize, cladeNodeAttrKeyDescs, phenotypeAttrDescs, aaMotifsDescs }) {
             set(geneMapAtom, geneMap)
             set(genomeSizeAtom, genomeSize)
             set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs)
             set(phenotypeAttrDescsAtom, phenotypeAttrDescs)
+            set(aaMotifsDescsAtom, aaMotifsDescs)
           },
           onParsedFasta(/* record */) {
             // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.

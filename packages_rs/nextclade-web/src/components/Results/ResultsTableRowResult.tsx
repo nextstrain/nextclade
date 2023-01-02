@@ -1,8 +1,9 @@
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import type { CladeNodeAttrDesc } from 'auspice'
 
-import { PhenotypeAttrDesc, QcStatus } from 'src/types'
+import { AaMotifsDesc, PhenotypeAttrDesc, QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
@@ -27,13 +28,14 @@ import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
-import { CladeNodeAttrDesc } from 'auspice'
+import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
 
 export interface ResultsTableRowResultProps {
   index: number
   viewedGene: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
+  aaMotifsDescs: AaMotifsDesc[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
@@ -77,6 +79,7 @@ export function ResultsTableRowResult({
   viewedGene,
   cladeNodeAttrDescs,
   phenotypeAttrDescs,
+  aaMotifsDescs,
   columnWidthsPx,
   dynamicCladeColumnWidthPx,
   dynamicPhenotypeColumnWidthPx,
@@ -130,6 +133,12 @@ export function ResultsTableRowResult({
       {phenotypeAttrDescs.map(({ name }) => (
         <TableCellAlignedLeft key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <ColumnCustomNodeAttr sequence={analysisResult} attrKey={name} />
+        </TableCellAlignedLeft>
+      ))}
+
+      {aaMotifsDescs.map((desc) => (
+        <TableCellAlignedLeft key={desc.name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+          <ColumnAaMotifs analysisResult={analysisResult} motifDesc={desc} />
         </TableCellAlignedLeft>
       ))}
 
