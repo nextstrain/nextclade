@@ -1,14 +1,15 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import styled from 'styled-components'
-
+import { get } from 'lodash'
+import styled, { useTheme } from 'styled-components'
+import { useRecoilValue } from 'recoil'
+import { Col, Row } from 'reactstrap'
 import type { AaMotif, AaMotifsDesc, AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
-import { Col, Row } from 'reactstrap'
-import { get } from 'lodash'
 import { TableSlimWithBorders } from 'src/components/Common/TableSlim'
 import { InsertedFragmentTruncated } from 'src/components/Results/ListOfInsertions'
+import { geneMapAtom } from 'src/state/results.state'
 
 export interface ColumnAaMotifsProps {
   analysisResult: AnalysisResult
@@ -58,39 +59,51 @@ export interface ListOfAaMotifsProps {
 
 export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const geneMap = useRecoilValue(geneMapAtom)
 
   const { thead, tbody } = useMemo(() => {
     const thead = (
-      <tr>
+      <Tr>
         <ThNormal className="text-center">{t('Gene')}</ThNormal>
         <ThNormal className="text-center">{t('Ref pos.')}</ThNormal>
         <ThFragment className="text-center">{t('Motif')}</ThFragment>
-      </tr>
+      </Tr>
     )
 
     const aaMotifsTruncated = motifs.slice(0, 20)
-    const tbody = aaMotifsTruncated.map(({ gene, position, seq }) => (
-      <tr key={`${gene}-${position}`}>
-        <TdNormal className="text-center">{gene}</TdNormal>
-        <TdNormal className="text-center">{position + 1}</TdNormal>
-        <TdFragment className="text-left">
-          <InsertedFragmentTruncated insertion={seq} isAminoacid />
-        </TdFragment>
-      </tr>
-    ))
+
+    const tbody = aaMotifsTruncated.map(({ gene, position, seq }) => {
+      const geneObj = geneMap.find((geneObj) => geneObj.geneName === gene)
+      const geneBg = geneObj?.color ?? theme.gray400
+      const geneFg = theme.gray200
+      return (
+        <Tr key={`${gene}-${position}`}>
+          <TdNormal>
+            <GeneText $background={geneBg} $color={geneFg}>
+              {gene}
+            </GeneText>
+          </TdNormal>
+          <TdNormal className="text-center">{position + 1}</TdNormal>
+          <TdFragment className="text-left">
+            <InsertedFragmentTruncated insertion={seq} isAminoacid />
+          </TdFragment>
+        </Tr>
+      )
+    })
 
     if (aaMotifsTruncated.length < motifs.length) {
       tbody.push(
-        <tr key="trunc">
+        <Tr key="trunc">
           <td colSpan={3} className="text-center">
             {'...truncated'}
           </td>
-        </tr>,
+        </Tr>,
       )
     }
 
     return { thead, tbody }
-  }, [motifs, t])
+  }, [geneMap, motifs, t, theme])
 
   if (motifs.length === 0) {
     return null
@@ -105,14 +118,31 @@ export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
 }
 
 const AaMotifsTable = styled(TableSlimWithBorders)`
-  min-width: 400px;
+  min-width: 200px;
+`
+
+const Tr = styled.tr`
+  background-color: ${(props) => props.theme.gray200};
+  border: none;
+
+  :nth-child(odd) {
+    background-color: ${(props) => props.theme.gray100};
+  }
+
+  :last-child {
+    border-radius: 3px;
+  }
 `
 
 const ThNormal = styled.th`
   width: 100px;
+  height: 26px;
+  background-color: ${(props) => props.theme.gray700};
+  color: ${(props) => props.theme.gray200};
+  font-weight: bold;
 `
 
-const ThFragment = styled.th`
+const ThFragment = styled(ThNormal)`
   min-width: 200px;
 `
 
@@ -120,6 +150,14 @@ const TdNormal = styled.td`
   min-width: 80px;
 `
 
-const TdFragment = styled.td`
+const TdFragment = styled(TdNormal)`
   min-width: 200px;
+`
+
+export const GeneText = styled.span<{ $background?: string; $color?: string }>`
+  padding: 1px 2px;
+  background-color: ${(props) => props.$background};
+  color: ${(props) => props.$color ?? props.theme.gray100};
+  font-weight: bold;
+  border-radius: 3px;
 `
