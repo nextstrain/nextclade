@@ -2,6 +2,7 @@ use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
 use crate::analyze::aa_changes_group::AaChangeGroup;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
@@ -88,6 +89,8 @@ pub struct NextcladeOutputs {
   pub nearest_node_id: usize,
   pub is_reverse_complement: bool,
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
+  pub aa_motifs: BTreeMap<String, Vec<AaMotif>>,
+  pub total_aa_motifs: usize,
 }
 
 impl NextcladeOutputs {
