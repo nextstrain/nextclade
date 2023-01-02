@@ -7,17 +7,53 @@ use itertools::{max, Itertools};
 use log::warn;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
 
-pub type GeneMap = BTreeMap<String, Gene>;
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[must_use]
+pub struct GeneMap {
+  genes: BTreeMap<String, Gene>,
+}
 
-fn get_requested_genes_not_in_genemap(gene_map: &GeneMap, genes: &[String]) -> String {
-  genes
-    .iter()
-    .filter(|&gene_name| !gene_map.contains_key(gene_name))
-    .join("`, `")
+impl GeneMap {
+  pub fn new() -> Self {
+    Self::from_genes(BTreeMap::<String, Gene>::new())
+  }
+
+  pub fn from_genes(genes: BTreeMap<String, Gene>) -> Self {
+    Self { genes }
+  }
+
+  #[must_use]
+  pub fn is_empty(&self) -> bool {
+    self.genes.is_empty()
+  }
+
+  #[must_use]
+  pub fn len(&self) -> usize {
+    self.genes.len()
+  }
+
+  #[must_use]
+  pub fn contains(&self, gene_name: &str) -> bool {
+    self.genes.contains_key(gene_name)
+  }
+
+  #[must_use]
+  pub fn get(&self, gene_name: &str) -> Option<&Gene> {
+    self.genes.get(gene_name)
+  }
+
+  pub fn iter(&self) -> std::collections::btree_map::Iter<String, Gene> {
+    self.genes.iter()
+  }
+
+  pub fn into_iter(self) -> std::collections::btree_map::IntoIter<String, Gene> {
+    self.genes.into_iter()
+  }
 }
 
 /// Filters gene map according to the list of requested genes.
@@ -34,7 +70,7 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -
   match (gene_map, genes) {
     // Both gene map and list of genes are provided. Retain only requested genes.
     (Some(gene_map), Some(genes)) => {
-      let gene_map: GeneMap = gene_map
+      let gene_map: BTreeMap<String, Gene> = gene_map
         .into_iter()
         .filter(|(gene_name, ..)| genes.contains(gene_name))
         .collect();
@@ -47,7 +83,7 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -
            `{requested_genes_not_in_genemap}`",
         );
       }
-      Ok(gene_map)
+      Ok(GeneMap::from_genes(gene_map))
     }
 
     // Only gene map is provided. Take all the genes.
@@ -66,6 +102,13 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -
     // on gene information.
     (None, None) => Ok(GeneMap::new()),
   }
+}
+
+fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: &[String]) -> String {
+  genes
+    .iter()
+    .filter(|&gene_name| !gene_map.contains_key(gene_name))
+    .join("`, `")
 }
 
 const PASS_ICON: &str = "│  ";

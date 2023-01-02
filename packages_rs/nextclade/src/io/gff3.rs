@@ -110,7 +110,9 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<GeneMap, Re
   }
 
   // Collect array of genes into the map of names to genes
-  Ok(genes.into_iter().map(|gene| (gene.gene_name.clone(), gene)).collect())
+  Ok(GeneMap::from_genes(
+    genes.into_iter().map(|gene| (gene.gene_name.clone(), gene)).collect(),
+  ))
 }
 
 /// Assemble lists features with parent-child relationships into a hierarchy.
