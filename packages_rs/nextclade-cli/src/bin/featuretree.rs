@@ -2,7 +2,7 @@ use clap::{AppSettings, Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
 use log::LevelFilter;
-use nextclade::io::feature_tree::{feature_map_to_string, read_gff3_feature_map};
+use nextclade::features::feature_tree::FeatureTree;
 use nextclade::utils::global_init::global_init;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
@@ -27,7 +27,7 @@ pub struct FeaturemapArgs {
 fn main() -> Result<(), Report> {
   let args = FeaturemapArgs::parse();
   setup_logger(LevelFilter::Warn);
-  let feature_map = read_gff3_feature_map(args.input_feature_map)?;
-  println!("{}", feature_map_to_string(&feature_map)?);
+  let feature_tree = FeatureTree::from_gff3_file(args.input_feature_map)?;
+  println!("{}", &feature_tree.to_pretty_string()?);
   Ok(())
 }
