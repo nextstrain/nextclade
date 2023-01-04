@@ -127,9 +127,8 @@ fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: 
     .join("`, `")
 }
 
-const PASS_ICON: &str = "│  ";
-const FORK_ICON: &str = "├──";
-const IMPASSE_ICON: &str = "└──";
+const INDENT: &str = " ";
+const INDENT_WIDTH: usize = 2;
 
 pub fn gene_map_to_string(gene_map: &GeneMap) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
@@ -142,14 +141,14 @@ pub fn gene_map_to_string(gene_map: &GeneMap) -> Result<String, Report> {
 pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Report> {
   let max_gene_name_len = gene_map
     .iter()
-    .map(|(_, gene)| gene.name_and_type().len().saturating_sub(8))
+    .map(|(_, gene)| gene.name_and_type().len() + INDENT_WIDTH)
     .max()
     .unwrap_or_default();
 
   let max_cds_name_len = gene_map
     .iter()
     .flat_map(|(_, gene)| &gene.cdses)
-    .map(|cds| cds.name_and_type().len())
+    .map(|cds| cds.name_and_type().len() + INDENT_WIDTH * 2)
     .max()
     .unwrap_or_default();
 
@@ -157,7 +156,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .iter()
     .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.segments)
-    .map(|seg| seg.name_and_type().len())
+    .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 3)
     .max()
     .unwrap_or_default();
 
@@ -165,7 +164,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .iter()
     .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
-    .map(|protein| protein.name_and_type().len())
+    .map(|protein| protein.name_and_type().len() + INDENT_WIDTH * 3)
     .max()
     .unwrap_or_default();
 
@@ -174,7 +173,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .flat_map(|protein| &protein.segments)
-    .map(|seg| seg.name_and_type().len())
+    .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 4)
     .max()
     .unwrap_or_default();
 
@@ -188,17 +187,14 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     ])
     .unwrap_or_default(),
     0,
-    50,
+    100,
   );
 
   writeln!(
     w,
-    "Genome {:n$}     │ s │ f │  start  │   end   │   nucs  │    codons   │",
-    "",
-    n = max_name_len + 1
+    "{:max_name_len$} │ s │ f │  start  │   end   │   nucs  │    codons   │",
+    "Genome",
   )?;
-
-  writeln!(w, "{PASS_ICON}")?;
 
   for (gene_name, gene) in gene_map
     .iter()
@@ -237,27 +233,30 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
     compat_is_cds,
   } = gene;
 
-  let max_name_len = max_name_len + 8;
+  let indent_width = INDENT_WIDTH;
+  let indent = INDENT.repeat(indent_width);
+  let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(gene.name_and_type(), max_name_len);
   let nuc_len = end - start;
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
-      w,
-      "  {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-      name.style(style_for_feature_type("gene")?)
-    )?;
+    w,
+    "{indent}{:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    name.style(style_for_feature_type("gene")?)
+  )?;
 
   Ok(())
 }
 
 fn write_cds<W: Write>(w: &mut W, max_name_len: usize, cds: &Cds) -> Result<(), Report> {
-  let max_name_len = max_name_len + 4;
+  let indent_width = INDENT_WIDTH * 2;
+  let indent = INDENT.repeat(indent_width);
+  let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(cds.name_and_type(), max_name_len);
-
   writeln!(
     w,
-    "    {:max_name_len$} │   │   │         │         │         │             │",
+    "{indent}{:max_name_len$} │   │   │         │         │         │             │",
     name.style(style_for_feature_type("cds")?)
   )?;
 
@@ -279,13 +278,16 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
     compat_is_gene,
   } = cds_segment;
 
+  let indent_width = INDENT_WIDTH * 3;
+  let indent = INDENT.repeat(indent_width);
+  let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(cds_segment.name_and_type(), max_name_len);
   let nuc_len = end - start;
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "      {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("cds segment")?)
   )?;
 
@@ -293,10 +295,13 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
 }
 
 fn write_protein<W: Write>(w: &mut W, max_name_len: usize, protein: &Protein) -> Result<(), Report> {
+  let indent_width = INDENT_WIDTH * 3;
+  let indent = INDENT.repeat(indent_width);
+  let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(protein.name_and_type(), max_name_len);
   writeln!(
     w,
-    "      {:max_name_len$} │   │   │         │         │         │             │",
+    "{indent}{:max_name_len$} │   │   │         │         │         │             │",
     name.style(style_for_feature_type("protein")?)
   )?;
 
@@ -322,13 +327,16 @@ fn write_protein_segment<W: Write>(
     compat_is_gene,
   } = protein_segment;
 
+  let indent_width = INDENT_WIDTH * 4;
+  let indent = INDENT.repeat(indent_width);
+  let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(protein_segment.name_and_type(), max_name_len);
   let nuc_len = end - start;
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "        {:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("protein segment")?)
   )?;
 
