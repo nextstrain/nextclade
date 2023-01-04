@@ -1,0 +1,14 @@
+##gff-version 3
+##sequence-region EPI_ISL_412866 1 15225
+EPI_ISL_412866	feature	source	1	15225	.	.	.	mol_type=viral cRNA;organism=Human respiratory syncytial virus A
+EPI_ISL_412866	feature	gene	70	489	.	.	0	codon_start=1;gene_name=NS1;product=nonstructural protein 1;protein_id=VVF34488.1
+EPI_ISL_412866	feature	gene	599	973	.	.	0	codon_start=1;gene_name=NS2;product=nonstructural protein 2;protein_id=VVF34491.1
+EPI_ISL_412866	feature	gene	1111	2286	.	.	0	codon_start=1;gene_name=N;product=nucleoprotein;protein_id=VVF34494.1
+EPI_ISL_412866	feature	gene	2318	3043	.	.	0	codon_start=1;gene_name=P;product=phosphoprotein;protein_id=VVF34497.1
+EPI_ISL_412866	feature	gene	3226	3996	.	.	0	codon_start=1;gene_name=M;product=matrix protein;protein_id=VVF34500.1
+EPI_ISL_412866	feature	gene	4266	4460	.	.	0	codon_start=1;gene_name=SH;product=small hydrophobic protein;protein_id=VVF34503.1
+EPI_ISL_412866	feature	gene	4652	5617	.	.	0	codon_start=1;gene_name=G;product=attachment glycoprotein;protein_id=VVF34506.1
+EPI_ISL_412866	feature	gene	5697	7421	.	.	0	codon_start=1;gene_name=F;product=fusion glycoprotein;protein_id=VVF34509.1
+EPI_ISL_412866	feature	gene	7640	8224	.	.	0	codon_start=1;gene_name=M2-1;product=M2-1 protein;protein_id=VVF34512.1
+EPI_ISL_412866	feature	gene	8193	8465	.	.	0	codon_start=1;gene_name=M2-2;product=M2-2 protein;protein_id=VVF34515.1
+EPI_ISL_412866	feature	gene	8523	15029	.	.	0	codon_start=1;gene_name=L;product=polymerase protein;protein_id=VVF34518.1
