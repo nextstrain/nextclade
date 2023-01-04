@@ -1,4 +1,5 @@
-use crate::gene::gene::{Gene, GeneStrand};
+use crate::features::feature::Feature;
+use crate::gene::gene::GeneStrand;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
@@ -14,44 +15,46 @@ pub struct Cds {
 
 impl Cds {
   /// HACK: COMPATIBILITY: if there are no CDS records, we pretend that each gene record imply a CDS with one segment and one protein
-  pub fn from_gene(gene: &Gene) -> Self {
+  pub fn from_gene(feature: &Feature) -> Self {
+    assert_eq!(feature.feature_type, "gene");
+
     let protein_segment = ProteinSegment {
-      id: format!("protein-segment-from-gene-{}", gene.id.clone()),
-      name: gene.gene_name.clone(),
-      start: gene.start,
-      end: gene.end,
-      strand: gene.strand.clone(),
-      frame: gene.frame,
-      exceptions: gene.exceptions.clone(),
-      attributes: gene.attributes.clone(),
-      source_record: gene.source_record.clone(),
+      id: format!("protein-segment-from-gene-{}", feature.id.clone()),
+      name: feature.name.clone(),
+      start: feature.start,
+      end: feature.end,
+      strand: feature.strand.clone(),
+      frame: feature.frame,
+      exceptions: feature.exceptions.clone(),
+      attributes: feature.attributes.clone(),
+      source_record: feature.source_record.clone(),
       compat_is_cds: true,
       compat_is_gene: true,
     };
 
     let protein = Protein {
-      id: format!("protein-from-gene-{}", gene.id.clone()),
-      name: gene.gene_name.clone(),
+      id: format!("protein-from-gene-{}", feature.id.clone()),
+      name: feature.name.clone(),
       segments: vec![protein_segment],
     };
 
     let cds_segment = CdsSegment {
-      index: gene.index,
-      id: format!("cds-segment-from-gene-{}", gene.id.clone()),
-      name: gene.gene_name.clone(),
-      start: gene.start,
-      end: gene.end,
-      strand: GeneStrand::Forward,
-      frame: gene.frame,
-      exceptions: gene.exceptions.clone(),
-      attributes: gene.attributes.clone(),
-      source_record: gene.source_record.clone(),
+      index: feature.index,
+      id: format!("cds-segment-from-gene-{}", feature.id.clone()),
+      name: feature.name.clone(),
+      start: feature.start,
+      end: feature.end,
+      strand: feature.strand.clone(),
+      frame: feature.frame,
+      exceptions: feature.exceptions.clone(),
+      attributes: feature.attributes.clone(),
+      source_record: feature.source_record.clone(),
       compat_is_gene: true,
     };
 
     Self {
-      id: format!("cds-from-gene-{}", gene.id),
-      name: gene.gene_name.clone(),
+      id: format!("cds-from-gene-{}", feature.id),
+      name: feature.name.clone(),
       segments: vec![cds_segment],
       proteins: vec![protein],
       compat_is_gene: true,

@@ -5,8 +5,9 @@ use crate::gene::cds::{Cds, CdsSegment, Protein, ProteinSegment};
 use crate::gene::gene::Gene;
 use crate::io::container::take_exactly_one;
 use crate::io::gene_map::GeneMap;
-use crate::make_internal_error;
+use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
+use itertools::Itertools;
 
 pub fn convert_feature_tree_to_gene_map(feature_tree: &FeatureTree) -> Result<GeneMap, Report> {
   let seq_region = take_exactly_one(&feature_tree.seq_regions)
@@ -15,16 +16,34 @@ pub fn convert_feature_tree_to_gene_map(feature_tree: &FeatureTree) -> Result<Ge
 }
 
 fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap, Report> {
-  let mut genes = vec![];
+  let genes = find_genes(&seq_region.children)?;
 
-  seq_region
-    .children
-    .iter()
-    .try_for_each(|feature_group| find_genes_recursive(feature_group, &mut genes))?;
+  if genes.is_empty() {
+    return make_error!(
+      "Gene map: unable to find any genes or CDSes. Please make sure the genome annotation is correct."
+    );
+  }
 
   Ok(GeneMap::from_genes(
     genes.into_iter().map(|gene| (gene.gene_name.clone(), gene)).collect(),
   ))
+}
+
+fn find_genes(feature_groups: &[FeatureGroup]) -> Result<Vec<Gene>, Report> {
+  let mut genes = vec![];
+  feature_groups
+    .iter()
+    .try_for_each(|feature_group| find_genes_recursive(feature_group, &mut genes))?;
+
+  if genes.is_empty() {
+    // If there are no genes, but there are CDSes, then pretend each CDS is a gene
+    find_cdses(feature_groups)?
+      .into_iter()
+      .map(|cds| Gene::from_cds(&cds))
+      .collect()
+  } else {
+    Ok(genes)
+  }
 }
 
 fn find_genes_recursive(feature_group: &FeatureGroup, genes: &mut Vec<Gene>) -> Result<(), Report> {
@@ -51,11 +70,12 @@ fn convert_gene(feature_group: &FeatureGroup) -> Result<Gene, Report> {
     )
   })?;
 
-  let mut cdses = vec![];
-  feature_group
-    .children
-    .iter()
-    .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, &mut cdses))?;
+  let mut cdses = find_cdses(&feature_group.children)?;
+
+  // HACK: COMPAT: If there are no CDSes in this gene, then pretend the whole gene is a CDS
+  if cdses.is_empty() {
+    cdses.push(Cds::from_gene(feature));
+  }
 
   Ok(Gene {
     index: feature.index,
@@ -71,6 +91,14 @@ fn convert_gene(feature_group: &FeatureGroup) -> Result<Gene, Report> {
     source_record: feature.source_record.clone(),
     compat_is_cds: false,
   })
+}
+
+fn find_cdses(feature_groups: &[FeatureGroup]) -> Result<Vec<Cds>, Report> {
+  let mut cdses = vec![];
+  feature_groups
+    .iter()
+    .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, &mut cdses))?;
+  Ok(cdses)
 }
 
 fn find_cdses_recursive(feature_group: &FeatureGroup, cdses: &mut Vec<Cds>) -> Result<(), Report> {
