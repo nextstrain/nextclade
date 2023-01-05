@@ -3,7 +3,8 @@ use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
 use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use crate::analyze::divergence::calculate_divergence;
-use crate::analyze::find_aa_motifs::find_aa_motifs;
+use crate::analyze::find_aa_motifs::{find_aa_motifs, AaMotif};
+use crate::analyze::find_aa_motifs_changes::{find_aa_motifs_changes, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::letter_composition::get_letter_composition;
@@ -35,6 +36,7 @@ pub fn nextclade_run_one(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
+  aa_motifs_ref: &AaMotifsMap,
   gene_map: &GeneMap,
   primers: &[PcrPrimer],
   tree: &AuspiceTree,
@@ -183,7 +185,7 @@ pub fn nextclade_run_one(
   });
 
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translations)?;
-  let total_aa_motifs = aa_motifs.values().map(Vec::len).sum();
+  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs);
 
   let qc = qc_run(
     &private_nuc_mutations,
@@ -236,7 +238,7 @@ pub fn nextclade_run_one(
       coverage,
       phenotype_values,
       aa_motifs,
-      total_aa_motifs,
+      aa_motifs_changes,
       qc,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,

@@ -1,3 +1,4 @@
+use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::Translation;
@@ -6,9 +7,9 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::hash::{Hash, Hasher};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct AaMotif {
   pub name: String,
   pub gene: String,
@@ -16,12 +17,15 @@ pub struct AaMotif {
   pub seq: String,
 }
 
+impl From<AaMotifWithoutSeq> for AaMotif {
+  fn from(aa_motif: AaMotifWithoutSeq) -> Self {
+    aa_motif.0
+  }
+}
+
 /// Find motifs in translated sequences, given a list of regexes (with restriction by gene and codon ranges)
 /// This is useful for example to find Fly glycosylation spots.
-pub fn find_aa_motifs(
-  aa_motifs_desc: &[AaMotifsDesc],
-  translations: &[Translation],
-) -> Result<BTreeMap<String, Vec<AaMotif>>, Report> {
+pub fn find_aa_motifs(aa_motifs_desc: &[AaMotifsDesc], translations: &[Translation]) -> Result<AaMotifsMap, Report> {
   // Find motifs
   let motifs: Vec<AaMotif> = aa_motifs_desc
     .iter()
@@ -129,4 +133,32 @@ fn process_one_motif(
       })
     })
     .collect_vec()
+}
+
+// Wrapper for `struct AaMotif` which disregards `.seq` during comparison.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd)]
+pub struct AaMotifWithoutSeq(pub AaMotif);
+
+impl From<AaMotif> for AaMotifWithoutSeq {
+  fn from(aa_motif: AaMotif) -> Self {
+    Self(aa_motif)
+  }
+}
+
+impl Hash for AaMotifWithoutSeq {
+  fn hash<H: Hasher>(&self, state: &mut H) {
+    self.0.name.hash(state);
+    self.0.gene.hash(state);
+    self.0.position.hash(state);
+    // NOTE: `.seq` is disregarded
+  }
+}
+
+impl Eq for AaMotifWithoutSeq {}
+
+impl PartialEq<Self> for AaMotifWithoutSeq {
+  fn eq(&self, other: &Self) -> bool {
+    (&self.0.name, &self.0.gene, &self.0.position).eq(&(&other.0.name, &other.0.gene, &other.0.position))
+    // NOTE: `.seq` is disregarded
+  }
 }

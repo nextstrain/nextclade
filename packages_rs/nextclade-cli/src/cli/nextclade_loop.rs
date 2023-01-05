@@ -10,6 +10,7 @@ use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
@@ -127,6 +128,11 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
 
+  let aa_motifs_ref = &find_aa_motifs(
+    &virus_properties.aa_motifs,
+    &ref_peptides.values().cloned().collect_vec(),
+  )?;
+
   let should_keep_outputs = output_tree.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
@@ -194,6 +200,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               &qry_seq,
               ref_seq,
               ref_peptides,
+              aa_motifs_ref,
               gene_map,
               primers,
               tree,

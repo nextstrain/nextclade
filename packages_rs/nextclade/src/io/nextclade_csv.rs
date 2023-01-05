@@ -192,7 +192,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       is_reverse_complement,
       warnings,
       aa_motifs,
-      total_aa_motifs,
+      aa_motifs_changes,
       ..
     } = nextclade_outputs;
 

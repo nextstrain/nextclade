@@ -6,6 +6,7 @@ pub mod aa_sub_full;
 pub mod count_gaps;
 pub mod divergence;
 pub mod find_aa_motifs;
+pub mod find_aa_motifs_changes;
 pub mod find_private_aa_mutations;
 pub mod find_private_nuc_mutations;
 pub mod is_sequenced;
