@@ -56,7 +56,7 @@ pub fn zip_map_hashmap<'a, K, V1, V2, R, F>(
   left: &'a BTreeMap<K, V1>,
   right: &'a BTreeMap<K, V2>,
   mut f: F,
-) -> impl Iterator<Item = (K, R)> + 'a
+) -> impl Iterator<Item = R> + 'a
 where
   K: Debug + Clone + Ord + PartialEq,
   F: FnMut(&K, &V1, &V2) -> R + 'a,
@@ -65,6 +65,6 @@ where
 
   left.iter().map(move |(key, left)| {
     let right = right.get(key).unwrap();
-    (key.clone(), f(key, left, right))
+    f(key, left, right)
   })
 }

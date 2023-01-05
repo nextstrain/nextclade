@@ -367,10 +367,10 @@ export interface AaMotifMutation {
 }
 
 export interface AaMotifChanges {
-  preserved: AaMotif[]
-  gained: AaMotif[]
-  lost: AaMotif[]
-  mutated: AaMotifMutation[]
+  preserved: AaMotifMutation[]
+  gained: AaMotifMutation[]
+  lost: AaMotifMutation[]
+  total: number
 }
 
 export interface AnalysisResult {

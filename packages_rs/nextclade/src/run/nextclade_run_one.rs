@@ -3,7 +3,7 @@ use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
 use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use crate::analyze::divergence::calculate_divergence;
-use crate::analyze::find_aa_motifs::{find_aa_motifs, AaMotif};
+use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::{find_aa_motifs_changes, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
@@ -185,7 +185,7 @@ pub fn nextclade_run_one(
   });
 
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translations)?;
-  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs);
+  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_peptides, &translations)?;
 
   let qc = qc_run(
     &private_nuc_mutations,

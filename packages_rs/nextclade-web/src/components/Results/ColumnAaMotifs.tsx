@@ -36,26 +36,21 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
 
   const motifs = get(aaMotifsChanges, motifDesc.name)
 
-  const val = useMemo(() => {
+  const columnValue = useMemo(() => {
     if (!motifs) {
       return null
     }
-    const totalMotifs = motifs.preserved.length + motifs.gained.length + motifs.lost.length + motifs.mutated.length
-    return {
-      totalMotifs,
-      columnValue: (
-        <span>
-          <ColoredText>{totalMotifs}</ColoredText>
-          <TextNarrow>
-            {'('}
-            <ColoredText $color={'#487921'}>+{motifs.gained.length}</ColoredText>
-            <ColoredText $color={'#7f0d0d'}>-{motifs.lost.length}</ColoredText>
-            <ColoredText $color={'#2f53c2'}>~{motifs.mutated.length}</ColoredText>
-            {')'}
-          </TextNarrow>
-        </span>
-      ),
-    }
+    return (
+      <span>
+        <ColoredText>{motifs.total}</ColoredText>
+        <TextNarrow>
+          {'('}
+          <ColoredText $color={'#487921'}>+{motifs.gained.length}</ColoredText>
+          <ColoredText $color={'#7f0d0d'}>-{motifs.lost.length}</ColoredText>
+          {')'}
+        </TextNarrow>
+      </span>
+    )
   }, [motifs])
 
   const gained = useMemo(
@@ -68,7 +63,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           <p className="my-0">
             <small>{t('Motifs which are not present in reference sequence, but appeared in query sequence')}</small>
           </p>
-          <ListOfAaMotifs motifs={motifs.gained} />
+          <ListOfAaMotifMutations motifs={motifs.gained} />
         </div>
       ),
     [motifs.gained, t],
@@ -84,26 +79,10 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           <p className="my-0">
             <small>{t('Motifs which are present in reference sequence, but disappeared in query sequence')}</small>
           </p>
-          <ListOfAaMotifs motifs={motifs.lost} />
+          <ListOfAaMotifMutations motifs={motifs.lost} />
         </div>
       ),
     [motifs.lost, t],
-  )
-
-  const mutated = useMemo(
-    () =>
-      motifs.mutated.length > 0 && (
-        <div>
-          <ColoredH6 $color={'#2f53c2'} className="mb-0">
-            {t('Mutated: {{mutated}}', { mutated: motifs.mutated.length })}
-          </ColoredH6>
-          <p className="my-0">
-            <small>{t('Motifs with fragments changed compared to reference sequence')}</small>
-          </p>
-          <ListOfAaMotifMutations motifs={motifs.mutated} />
-        </div>
-      ),
-    [motifs.mutated, t],
   )
 
   const preserved = useMemo(
@@ -114,19 +93,17 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
             {t('Preserved: {{preserved}}', { preserved: motifs.preserved.length })}
           </ColoredH6>
           <p className="my-0">
-            <small>{t('Motifs carried from reference sequence as is')}</small>
+            <small>{t('Motifs carried from reference sequence (sometimes mutated)')}</small>
           </p>
-          <ListOfAaMotifs motifs={motifs.preserved} />
+          <ListOfAaMotifMutations motifs={motifs.preserved} />
         </div>
       ),
     [motifs.preserved, t],
   )
 
-  if (!val) {
+  if (!columnValue) {
     return null
   }
-
-  const { totalMotifs, columnValue } = val
 
   return (
     <div id={id} className="w-100 text-center" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
@@ -139,10 +116,9 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
               <small>{t('Note that motifs are detected after insertions are stripped.')}</small>
             </p>
 
-            <h6 className="font-weight-bold">{t('Total: {{total}}', { total: totalMotifs })}</h6>
+            <h6 className="font-weight-bold">{t('Total: {{total}}', { total: motifs.total })}</h6>
             {gained}
             {lost}
-            {mutated}
             {preserved}
           </Col>
         </Row>
@@ -248,22 +224,7 @@ export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) 
           </TdNormal>
           <TdNormal className="text-center">{position + 1}</TdNormal>
           <TdFragment className="text-left">
-            <TableFragmentComparison>
-              <tbody>
-                <tr>
-                  <td>{t('Ref.')}</td>
-                  <td>
-                    <InsertedFragmentTruncated insertion={refSeq} isAminoacid />
-                  </td>
-                </tr>
-                <tr>
-                  <td>{t('Query')}</td>
-                  <td>
-                    <InsertedFragmentTruncated insertion={qrySeq} isAminoacid />
-                  </td>
-                </tr>
-              </tbody>
-            </TableFragmentComparison>
+            <MotifFragment refSeq={refSeq} qrySeq={qrySeq} />
           </TdFragment>
         </Tr>
       )
@@ -291,6 +252,25 @@ export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) 
       <thead>{thead}</thead>
       <tbody>{tbody}</tbody>
     </AaMotifsTable>
+  )
+}
+
+export interface MotifFragmentProps {
+  refSeq: string
+  qrySeq: string
+}
+
+export function MotifFragment({ refSeq, qrySeq }: MotifFragmentProps) {
+  if (refSeq === qrySeq) {
+    return <InsertedFragmentTruncated insertion={refSeq} isAminoacid />
+  }
+
+  return (
+    <>
+      <InsertedFragmentTruncated insertion={refSeq} isAminoacid />
+      {' ⟶ ' /* eslint-disable-line only-ascii/only-ascii */}
+      <InsertedFragmentTruncated insertion={qrySeq} isAminoacid />
+    </>
   )
 }
 
