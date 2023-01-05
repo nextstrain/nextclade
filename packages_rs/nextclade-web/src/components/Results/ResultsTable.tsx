@@ -13,6 +13,7 @@ import {
   resultsTableDynamicCladeColumnWidthPxAtom,
   isResultsFilterPanelCollapsedAtom,
   resultsTableDynamicPhenotypeColumnWidthPxAtom,
+  resultsTableDynamicAaMotifsColumnWidthAtomPxAtom,
 } from 'src/state/settings.state'
 import {
   aaMotifsDescsAtom,
@@ -69,6 +70,7 @@ export function ResultsTable() {
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
   const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom)
   const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
+  const dynamicAaMotifsColumnWidthPx = useRecoilValue(resultsTableDynamicAaMotifsColumnWidthAtomPxAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom)
@@ -83,6 +85,7 @@ export function ResultsTable() {
       columnWidthsPx,
       dynamicCladeColumnWidthPx,
       dynamicPhenotypeColumnWidthPx,
+      dynamicAaMotifsColumnWidthPx,
       cladeNodeAttrDescs,
       phenotypeAttrDescs,
       aaMotifsDescs,
@@ -91,6 +94,7 @@ export function ResultsTable() {
     aaMotifsDescs,
     cladeNodeAttrDescs,
     columnWidthsPx,
+    dynamicAaMotifsColumnWidthPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
     phenotypeAttrDescs,
@@ -229,7 +233,7 @@ export function ResultsTable() {
       const sortAsc = sortByMotifs(name, SortDirection.asc)
       const sortDesc = sortByMotifs(name, SortDirection.desc)
       return (
-        <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+        <TableHeaderCell key={name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{nameShort}</TableCellText>
             <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
@@ -241,7 +245,7 @@ export function ResultsTable() {
         </TableHeaderCell>
       )
     })
-  }, [aaMotifsDescs, sortByMotifs, dynamicPhenotypeColumnWidthPx])
+  }, [aaMotifsDescs, sortByMotifs, dynamicAaMotifsColumnWidthPx])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>

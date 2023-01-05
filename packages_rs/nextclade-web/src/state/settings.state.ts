@@ -2,12 +2,13 @@ import { mapValues, sum } from 'lodash'
 import { atom, selector } from 'recoil'
 import {
   COLUMN_WIDTHS,
+  DYNAMIC_AA_MOTIFS_COLUMN_WIDTH,
   DYNAMIC_CLADE_COLUMN_WIDTH,
   DYNAMIC_PHENOTYPE_COLUMN_WIDTH,
 } from 'src/components/Results/ResultsTableStyle'
 import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { cladeNodeAttrKeysAtom, phenotypeAttrKeysAtom } from 'src/state/results.state'
+import { aaMotifsDescsAtom, cladeNodeAttrKeysAtom, phenotypeAttrKeysAtom } from 'src/state/results.state'
 
 export const isInitializedAtom = atom<boolean>({
   key: 'isInitialized',
@@ -93,6 +94,16 @@ export const resultsTableDynamicPhenotypeColumnWidthPxAtom = selector<string>({
   get: ({ get }) => `${get(resultsTableDynamicPhenotypeColumnWidthAtom)}px`,
 })
 
+export const resultsTableDynamicAaMotifsColumnWidthAtom = atom<number>({
+  key: 'resultsTableDynamicAaMotifsColumnWidthAtom',
+  default: DYNAMIC_AA_MOTIFS_COLUMN_WIDTH,
+})
+
+export const resultsTableDynamicAaMotifsColumnWidthAtomPxAtom = selector<string>({
+  key: 'resultsTableDynamicAaMotifsColumnWidthAtomPxAtom',
+  get: ({ get }) => `${get(resultsTableDynamicAaMotifsColumnWidthAtom)}px`,
+})
+
 export const resultsTableTotalWidthAtom = selector<number>({
   key: 'resultsTableTotalWidth',
   get({ get }) {
@@ -102,7 +113,15 @@ export const resultsTableTotalWidthAtom = selector<number>({
     const dynamicPhenotypeColumnsWidthTotal =
       get(phenotypeAttrKeysAtom).length * get(resultsTableDynamicPhenotypeColumnWidthAtom)
 
-    return sum(Object.values(COLUMN_WIDTHS)) + dynamicCladeColumnsWidthTotal + dynamicPhenotypeColumnsWidthTotal
+    const dynamicAaMotifsColumnsWidthTotal =
+      get(aaMotifsDescsAtom).length * get(resultsTableDynamicAaMotifsColumnWidthAtom)
+
+    return (
+      sum(Object.values(COLUMN_WIDTHS)) +
+      dynamicCladeColumnsWidthTotal +
+      dynamicPhenotypeColumnsWidthTotal +
+      dynamicAaMotifsColumnsWidthTotal
+    )
   },
 })
 

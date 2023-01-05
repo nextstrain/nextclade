@@ -1,7 +1,10 @@
 use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::analyze::find_aa_motifs::find_aa_motifs;
+use nextclade::analyze::find_aa_motifs_changes::AaMotifsMap;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
@@ -146,6 +149,7 @@ impl AnalysisResult {
 pub struct Nextclade {
   ref_seq: Vec<Nuc>,
   ref_peptides: TranslationMap,
+  aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
   primers: Vec<PcrPrimer>,
   tree: AuspiceTree,
@@ -192,6 +196,11 @@ impl Nextclade {
     let ref_peptides =
       translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
+    let aa_motifs_ref = find_aa_motifs(
+      &virus_properties.aa_motifs,
+      &ref_peptides.values().cloned().collect_vec(),
+    )?;
+
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
     tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
@@ -207,6 +216,7 @@ impl Nextclade {
     Ok(Self {
       ref_seq,
       ref_peptides,
+      aa_motifs_ref,
       gene_map,
       primers,
       tree,
@@ -247,6 +257,7 @@ impl Nextclade {
       qry_seq,
       &self.ref_seq,
       &self.ref_peptides,
+      &self.aa_motifs_ref,
       &self.gene_map,
       &self.primers,
       &self.tree,

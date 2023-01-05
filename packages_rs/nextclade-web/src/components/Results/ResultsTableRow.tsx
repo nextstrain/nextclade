@@ -16,6 +16,7 @@ export interface TableRowDatum {
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
+  dynamicAaMotifsColumnWidthPx: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
@@ -34,6 +35,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     columnWidthsPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
+    dynamicAaMotifsColumnWidthPx,
     cladeNodeAttrDescs,
     phenotypeAttrDescs,
     aaMotifsDescs,
@@ -53,6 +55,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         columnWidthsPx={columnWidthsPx}
         dynamicCladeColumnWidthPx={dynamicCladeColumnWidthPx}
         dynamicPhenotypeColumnWidthPx={dynamicPhenotypeColumnWidthPx}
+        dynamicAaMotifsColumnWidthPx={dynamicAaMotifsColumnWidthPx}
         cladeNodeAttrDescs={cladeNodeAttrDescs}
         phenotypeAttrDescs={phenotypeAttrDescs}
         aaMotifsDescs={aaMotifsDescs}

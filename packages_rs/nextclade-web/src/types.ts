@@ -358,6 +358,21 @@ export interface AaMotif {
   seq: string
 }
 
+export interface AaMotifMutation {
+  name: string
+  gene: string
+  position: number
+  refSeq: string
+  qrySeq: string
+}
+
+export interface AaMotifChanges {
+  preserved: AaMotif[]
+  gained: AaMotif[]
+  lost: AaMotif[]
+  mutated: AaMotifMutation[]
+}
+
 export interface AnalysisResult {
   index: number
   seqName: string
@@ -399,6 +414,7 @@ export interface AnalysisResult {
   warnings: PeptideWarning[]
   missingGenes: string[]
   aaMotifs: Record<string, AaMotif[]>
+  aaMotifsChanges: Record<string, AaMotifChanges>
 }
 
 export interface AnalysisError {

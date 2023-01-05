@@ -9,6 +9,7 @@ use std::fmt::Debug;
 pub type AaMotifsMap = BTreeMap<String, Vec<AaMotif>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AaMotifChanges {
   pub preserved: Vec<AaMotif>,
   pub gained: Vec<AaMotif>,
@@ -17,6 +18,7 @@ pub struct AaMotifChanges {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct AaMotifMutation {
   pub name: String,
   pub gene: String,

@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[serde(rename_all = "camelCase")]
 pub struct AaMotif {
   pub name: String,
   pub gene: String,

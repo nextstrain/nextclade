@@ -11,6 +11,7 @@ export const HEADER_ROW_CONTENT_HEIGHT = 60
 
 export const DYNAMIC_CLADE_COLUMN_WIDTH = 85
 export const DYNAMIC_PHENOTYPE_COLUMN_WIDTH = 65
+export const DYNAMIC_AA_MOTIFS_COLUMN_WIDTH = 80
 
 export const COLUMN_WIDTHS = {
   id: 45,

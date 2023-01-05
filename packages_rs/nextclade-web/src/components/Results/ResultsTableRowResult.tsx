@@ -39,6 +39,7 @@ export interface ResultsTableRowResultProps {
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
+  dynamicAaMotifsColumnWidthPx: string
 }
 
 export function getQcRowColor(qcStatus: QcStatus) {
@@ -83,6 +84,7 @@ export function ResultsTableRowResult({
   columnWidthsPx,
   dynamicCladeColumnWidthPx,
   dynamicPhenotypeColumnWidthPx,
+  dynamicAaMotifsColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
   const { seqName, result } = useRecoilValue(analysisResultAtom(index))
@@ -137,9 +139,9 @@ export function ResultsTableRowResult({
       ))}
 
       {aaMotifsDescs.map((desc) => (
-        <TableCellAlignedLeft key={desc.name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+        <TableCell key={desc.name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
           <ColumnAaMotifs analysisResult={analysisResult} motifDesc={desc} />
-        </TableCellAlignedLeft>
+        </TableCell>
       ))}
 
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
