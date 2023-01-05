@@ -45,10 +45,10 @@ fn find_aa_motifs_changes_one(motifs_ref: &[AaMotif], motifs_qry: &[AaMotif]) ->
   let motifs_qry: HashSet<AaMotifWithoutSeq> = motifs_qry.iter().cloned().map(AaMotifWithoutSeq::from).collect();
 
   // Gained motifs: not present in ref, present in qry
-  let gained: Vec<AaMotif> = cloned_into(motifs_ref.difference(&motifs_qry)).sorted().collect_vec();
+  let gained: Vec<AaMotif> = cloned_into(motifs_qry.difference(&motifs_ref)).sorted().collect_vec();
 
   // Lost motifs: present in ref, not present in query
-  let lost: Vec<AaMotif> = cloned_into(motifs_qry.difference(&motifs_ref)).sorted().collect_vec();
+  let lost: Vec<AaMotif> = cloned_into(motifs_ref.difference(&motifs_qry)).sorted().collect_vec();
 
   // Kept motifs: present in ref and qry
   let kept = {
