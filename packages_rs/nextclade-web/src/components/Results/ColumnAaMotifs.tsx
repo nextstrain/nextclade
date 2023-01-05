@@ -134,12 +134,12 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
       <Tooltip id={id} isOpen={showTooltip} target={id} wide fullWidth>
         <Row noGutters>
           <Col className="mb-0">
-            <h5 className="my-0">{motifDesc.nameFriendly}</h5>
+            <h5 className="my-0 font-weight-bold">{motifDesc.nameFriendly}</h5>
             <p>
               <small>{t('Note that motifs are detected after insertions are stripped.')}</small>
             </p>
 
-            <h6>{t('Total: {{total}}', { total: totalMotifs })}</h6>
+            <h6 className="font-weight-bold">{t('Total: {{total}}', { total: totalMotifs })}</h6>
             {gained}
             {lost}
             {mutated}
@@ -314,7 +314,7 @@ const Tr = styled.tr`
 const ThNormal = styled.th`
   width: 100px;
   height: 26px;
-  background-color: ${(props) => props.theme.gray700};
+  background-color: ${(props) => props.theme.gray600};
   color: ${(props) => props.theme.gray200};
   font-weight: bold;
 `
@@ -357,6 +357,7 @@ export const ColoredH6 = styled.h6<{ $background?: string; $color?: string }>`
   background-color: ${(props) => props.$background};
   color: ${(props) => props.$color};
   border-radius: 3px;
+  font-weight: bold;
 `
 
 export const TableFragmentComparison = styled(TableSlim)`
