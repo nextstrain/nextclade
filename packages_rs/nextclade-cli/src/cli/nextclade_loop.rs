@@ -15,6 +15,7 @@ use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
+use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
@@ -88,6 +89,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_json,
         output_csv,
         output_tsv,
+        output_columns_selection,
         output_tree,
         output_insertions,
         output_errors,
@@ -143,6 +145,8 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     .iter()
     .map(|desc| desc.name.clone())
     .collect_vec();
+
+  let csv_column_config = CsvColumnConfig::new(&output_columns_selection)?;
 
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -246,6 +250,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         &output_insertions,
         &output_errors,
         &output_translations,
+        &csv_column_config,
         in_order,
       )
       .wrap_err("When creating output writer")
