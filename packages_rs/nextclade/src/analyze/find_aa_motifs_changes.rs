@@ -91,7 +91,7 @@ fn find_aa_motifs_changes_one(
       .collect_vec()
   };
 
-  let total = gained.len() + lost.len() + preserved.len();
+  let total = gained.len() + preserved.len();
 
   Ok(AaMotifChanges {
     preserved,
