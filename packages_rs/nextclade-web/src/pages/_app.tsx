@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import 'css.escape'
 
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
@@ -12,7 +12,7 @@ import { BrowserWarning } from 'src/components/Common/BrowserWarning'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
-import { createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
@@ -108,21 +108,24 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
+      .then(async ({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
         set(datasetsAtom, {
           datasets,
           defaultDataset,
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        set(datasetCurrentAtom, (previous) => currentDataset ?? previous)
 
-        return undefined
+        const previousDataset = await getPromise(datasetCurrentAtom)
+        const dataset = currentDataset ?? previousDataset
+        set(datasetCurrentAtom, dataset)
+        return dataset
       })
-      .then(() => {
-        const qrySeqInput = createInputFromUrlParamMaybe(urlQuery, 'input-fasta')
-        if (qrySeqInput) {
-          set(qrySeqInputsStorageAtom, [qrySeqInput])
+      .then((dataset) => {
+        const inputFastas = createInputFastasFromUrlParam(urlQuery, dataset)
+
+        if (!isEmpty(inputFastas)) {
+          set(qrySeqInputsStorageAtom, inputFastas)
         }
 
         set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
@@ -132,7 +135,7 @@ export function RecoilStateInitializer() {
         set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
         set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
 
-        if (qrySeqInput) {
+        if (!isEmpty(inputFastas)) {
           run()
         }
 
