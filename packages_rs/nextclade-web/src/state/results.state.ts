@@ -2,7 +2,7 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { AaMotifsDesc, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, CsvColumnConfig, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
@@ -19,6 +19,7 @@ import {
   showMediocreFilterAtom,
 } from 'src/state/resultFilters.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
+import { persistAtom } from 'src/state/persist/localStorage'
 
 // Stores analysis result for a single sequence (defined by sequence name)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
@@ -262,6 +263,12 @@ export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({
 export const aaMotifsKeysAtom = selector<string[]>({
   key: 'aaMotifsKeysAtom',
   get: ({ get }) => get(aaMotifsDescsAtom).map((desc) => desc.name),
+})
+
+export const csvColumnConfigAtom = atom<CsvColumnConfig | undefined>({
+  key: 'csvColumnConfigAtom',
+  default: undefined,
+  effects: [persistAtom],
 })
 
 export const analysisStatusGlobalAtom = atom({

@@ -8,7 +8,7 @@ use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::insertions_csv::insertions_to_csv_string;
 use nextclade::io::json::{json_parse, json_stringify};
-use nextclade::io::nextclade_csv::results_to_csv_string;
+use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
@@ -172,6 +172,7 @@ impl NextcladeWasm {
     phenotype_attrs_json_str: &str,
     aa_motifs_keys_json_str: &str,
     delimiter: char,
+    csv_colum_config_json_str: &str,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
       json_parse(outputs_json_str).wrap_err("When serializing results into CSV: When parsing outputs JSON internally"),
@@ -200,6 +201,11 @@ impl NextcladeWasm {
     let phenotype_attr_keys = phenotype_attrs.into_iter().map(|attr| attr.name).collect_vec();
     let aa_motifs_keys = aa_motifs_descs.into_iter().map(|desc| desc.name).collect_vec();
 
+    let csv_colum_config: CsvColumnConfig = jserr(
+      json_parse(csv_colum_config_json_str)
+        .wrap_err("When serializing results JSON: When parsing CSV column config JSON internally"),
+    )?;
+
     jserr(results_to_csv_string(
       &outputs,
       &errors,
@@ -207,6 +213,7 @@ impl NextcladeWasm {
       &phenotype_attr_keys,
       &aa_motifs_keys,
       delimiter as u8,
+      &csv_colum_config,
     ))
   }
 

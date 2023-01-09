@@ -49,6 +49,8 @@ pub enum CsvColumnCategory {
   Dynamic,
 }
 
+pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
+
 // Configuration for enabling/disabling CSV columns or categories of them
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -109,8 +111,6 @@ impl Default for CsvColumnConfig {
     }
   }
 }
-
-pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
 
 lazy_static! {
   // Default configuration and layout of CSV column categories
@@ -238,7 +238,7 @@ fn prepare_headers(
     let mut insert_custom_cols_at_index = headers
       .iter()
       .position(|header| header == "clade")
-      .unwrap_or(headers.len());
+      .unwrap_or_else(|| headers.len().saturating_sub(1));
 
     custom_node_attr_keys.iter().rev().for_each(|key| {
       headers.insert(insert_custom_cols_at_index + 1, key.clone());

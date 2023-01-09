@@ -1,6 +1,6 @@
 import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
-import { isEmpty } from 'lodash'
+import { isEmpty, merge } from 'lodash'
 
 import type {
   AaMotifsDesc,
@@ -10,6 +10,7 @@ import type {
   FastaRecordId,
   Gene,
   NextcladeResult,
+  CsvColumnConfig,
 } from 'src/types'
 import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
@@ -33,6 +34,7 @@ export interface LaunchAnalysisInitialData {
   cladeNodeAttrKeyDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
+  csvColumnConfig: CsvColumnConfig
 }
 
 export interface LaunchAnalysisCallbacks {
@@ -61,6 +63,7 @@ export async function launchAnalysis(
   callbacks: LaunchAnalysisCallbacks,
   datasetPromise: Promise<Dataset | undefined>,
   numThreads: Promise<number>,
+  csvColumnConfigPromise: Promise<CsvColumnConfig | undefined>,
 ) {
   const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
@@ -73,6 +76,8 @@ export async function launchAnalysis(
   }
 
   const params = await getParams(paramInputs, dataset)
+
+  const csvColumnConfig = await csvColumnConfigPromise
 
   const launcherWorker = await spawn<LauncherThread>(
     new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
@@ -91,6 +96,9 @@ export async function launchAnalysis(
 
     try {
       const initialData = await launcherWorker.getInitialData()
+
+      initialData.csvColumnConfig = merge(initialData.csvColumnConfig, csvColumnConfig)
+
       onInitialData(initialData)
 
       // Run the launcher worker

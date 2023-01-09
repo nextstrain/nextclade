@@ -11,6 +11,7 @@ import {
   aaMotifsDescsAtom,
   analysisResultsAtom,
   cladeNodeAttrDescsAtom,
+  csvColumnConfigAtom,
   phenotypeAttrDescsAtom,
   treeAtom,
 } from 'src/state/results.state'
@@ -98,7 +99,20 @@ async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delim
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
   const aaMotifsDescs = await snapshot.getPromise(aaMotifsDescsAtom)
-  return worker.serializeResultsCsv(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, aaMotifsDescs, delimiter)
+  const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
+  if (!csvColumnConfig) {
+    throw new ErrorInternal('CSV column config is not initialized, but it should be')
+  }
+
+  return worker.serializeResultsCsv(
+    results,
+    errors,
+    cladeNodeAttrDescs,
+    phenotypeAttrDescs,
+    aaMotifsDescs,
+    delimiter,
+    csvColumnConfig,
+  )
 }
 
 export function useExportCsv() {
