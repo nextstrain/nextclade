@@ -174,7 +174,7 @@ pub fn calculate_distance_matrix(
 pub fn calculate_q(distance_matrix: &DMatrix<f64>) -> DMatrix<f64> {
   let n = distance_matrix.nrows();
   let scalar = (n - 2) as f64;
-  let factor: f64 = 0.5;
+  let factor: f64 = 1.0;
   let col_sum_matrix = distance_matrix.row_sum_tr() * DMatrix::from_element(1, n, 1.0);
   let row_sum_matrix = col_sum_matrix.transpose();
 

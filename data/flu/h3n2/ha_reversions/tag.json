@@ -1,0 +1,38 @@
+{
+  "comment": "chore: bring genemap in line with GFF3 standard",
+  "compatibility": {
+    "nextcladeCli": {
+      "max": null,
+      "min": "1.10.0"
+    },
+    "nextcladeWeb": {
+      "max": null,
+      "min": "1.13.0"
+    }
+  },
+  "defaultGene": "HA1",
+  "defaultRef": "CY163680",
+  "enabled": true,
+  "files": {
+    "geneMap": "genemap.gff",
+    "primers": "primers.csv",
+    "qc": "qc.json",
+    "reference": "reference.fasta",
+    "sequences": "sequences.fasta",
+    "tree": "tree.json",
+    "virusPropertiesJson": "virus_properties.json"
+  },
+  "geneOrderPreference": [
+    "HA1",
+    "HA2"
+  ],
+  "metadata": {},
+  "name": "flu_h3n2_ha",
+  "nameFriendly": "Influenza A H3N2 HA",
+  "reference": {
+    "accession": "CY163680",
+    "source": "genbank",
+    "strainName": "A/Wisconsin/67/2005"
+  },
+  "tag": "2022-06-08T12:00:00Z"
+}

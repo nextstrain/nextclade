@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "build_url": "https://github.com/neherlab/nextclade_data_workflows",
+    "colorings": [
+      {
+        "key": "clade_membership",
+        "title": "Clade",
+        "type": "categorical"
+      },
+      {
+        "key": "gt",
+        "title": "Genotype",
+        "type": "categorical"
+      },
+      {
+        "key": "region",
+        "scale": [
+          [
+            "china",
+            "#4042C7"
+          ],
+          [
+            "southeast_asia",
+            "#4274CE"
+          ],
+          [
+            "south_asia",
+            "#5199B7"
+          ],
+          [
+            "japan_korea",
+            "#69B091"
+          ],
+          [
+            "oceania",
+            "#88BB6C"
+          ],
+          [
+            "west_asia",
+            "#ADBD51"
+          ],
+          [
+            "africa",
+            "#CEB541"
+          ],
+          [
+            "europe",
+            "#E39B39"
+          ],
+          [
+            "south_america",
+            "#E56C2F"
+          ],
+          [
+            "north_america",
+            "#DC2F24"
+          ]
+        ],
+        "title": "Region",
+        "type": "categorical"
+      },
+      {
+        "key": "accessionID",
+        "title": "Accession",
+        "type": "categorical"
+      },
+      {
+        "key": "country",
+        "title": "Country",
+        "type": "categorical"
+      },
+      {
+        "key": "date",
+        "title": "Sample Date",
+        "type": "ordinal"
+      },
+      {
+        "key": "EPI_ISL",
+        "title": "EPI_ISL",
+        "type": "categorical"
+      }
+    ],
+    "data_provenance": [
+      {
+        "name": "GISAID"
+      }
+    ],
+    "display_defaults": {
+      "branch_label": "clade",
+      "color_by": "clade_membership",
+      "distance_measure": "div"
+    },
+    "filters": [
+      "region",
+      "country",
+      "clade_membership"
+    ],
+    "genome_annotations": {
+      "HA1": {
+        "end": 1052,
+        "seqid": "CY163680.1",
+        "start": 66,
+        "strand": "+",
+        "type": "gene"
+      },
+      "HA2": {
+        "end": 1715,
+        "seqid": "CY163680.1",
+        "start": 1053,
+        "strand": "+",
+        "type": "gene"
+      },
+      "SigPep": {
+        "end": 65,
+        "seqid": "CY163680.1",
+        "start": 18,
+        "strand": "+",
+        "type": "gene"
+      },
+      "nuc": {
+        "end": 1737,
+        "seqid": "CY163680.1",
+        "start": 1,
+        "strand": "+",
+        "type": "source"
+      }
+    },
+    "maintainers": [
+      {
+        "name": "Cornelius Roemer",
+        "url": "https://neherlab.org"
+      },
+      {
+        "name": "Richard Neher",
+        "url": "https://neherlab.org"
+      }
+    ],
+    "panels": [
+      "tree",
+      "entropy"
+    ],
+    "title": "Nextclade reference tree for Influenza type:h3n2 segment:ha with root CY163680 built on 2021-12-16",
+    "updated": "2021-12-16"
+  },
+  "tree": {
+    "branch_attrs": {
+      "labels": {
+        "aa": "",
+        "clade": "reference"
+      },
+      "mutations": {}
+    },
+    "children": [
+      {
+        "branch_attrs": {
+          "labels": {
+            "aa": "HA1: K1I, N2I, T8S",
+            "clade": "reference"
+          },
+          "mutations": {
+            "nuc": [
+              "A68T",
+              "A69T",
+              "A71T",
+              "C72T",
+              "A87T",
+              "A88T"
+              ],
+          "HA1": [
+              "K1I",
+              "N2I",
+              "T8S"
+              ]
+          }
+        },
+        "children": [
+          {
+            "branch_attrs": {
+              "labels": {
+                "aa": "HA1: F3F, P4L",
+                "clade": "reference"
+              },
+              "mutations": {
+                "nuc": [
+                  "C76T",
+                  "C77T"
+                  ],
+              "HA1": [
+                  "F3F",
+                  "P4L"
+                  ]
+              }
+            },
+            "name": "c1",
+            "node_attrs": {
+              "clade_membership": {
+                "value": "reference"
+              },
+              "date": {
+                "value": "2022-05-24"
+              },
+              "div": 0.005,
+              "region": {
+                "value": "north_america"
+              }
+          }
+        },
+        {
+          "branch_attrs": {
+            "labels": {
+              "aa": "HA1: F3L, P4K",
+              "clade": "reference"
+            },
+            "mutations": {
+              "nuc": [
+                "C75A",
+                "C74A",
+                "C77A"
+                ],
+            "HA1": [
+                "F3L",
+                "P4K"
+                ]
+            }
+          },
+          "name": "c2",
+          "node_attrs": {
+            "clade_membership": {
+              "value": "reference"
+            },
+            "date": {
+              "value": "2022-09-24"
+            },
+            "div": 0.006,
+            "region": {
+              "value": "north_america"
+            }
+          }
+        }
+        ],
+        "name": "n",
+        "node_attrs": {
+          "clade_membership": {
+            "value": "reference"
+          },
+          "date": {
+            "value": "2021-10-24"
+          },
+          "div": 0.003,
+          "region": {
+            "value": "north_america"
+          },
+          "accessionID": {
+            "value": "A/Maryland/5/2021"
+          }
+        }
+      }
+    ],
+    "name": "NODE_0000000",
+    "node_attrs": {
+      "clade_membership": {
+        "value": "reference"
+      },
+      "div": 0
+    }
+  },
+  "version": "v2"
+}
