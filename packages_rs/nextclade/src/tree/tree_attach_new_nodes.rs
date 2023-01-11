@@ -162,6 +162,10 @@ fn attach_new_nodes(
   //compute vertices mutations
   let mut vertices = HashMap::<NodeType, InternalMutations>::new();
   add_mutations_to_vertices(&parent_node, &directed_g, results, &mut vertices);
+  //make sure node is still seen in tree
+  if node.is_leaf() {
+    add_aux_node(node);
+  }
   //attach subtree to node
   attach_subtree(
     node,
@@ -259,7 +263,7 @@ fn attach_new_node(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
 }
 
 fn add_aux_node(node: &mut AuspiceTreeNode) {
-  debug_assert!(node.is_ref_node());
+  //debug_assert!(node.is_ref_node());
 
   let mut aux_node = node.clone();
   aux_node.branch_attrs.mutations.clear();
