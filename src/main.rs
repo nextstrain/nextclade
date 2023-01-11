@@ -285,6 +285,8 @@ fn combine_seeds(mut matches: Vec<SeedMatch>) -> Vec<SeedMatch> {
 }
 
 /// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
+/// Right now, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
+/// Input matches are already merged
 fn chain_seeds(matches: Vec<SeedMatch>) {
     #[derive(Clone, Copy, Debug)]
     struct Triplet {
@@ -306,7 +308,9 @@ fn chain_seeds(matches: Vec<SeedMatch>) {
         j: usize,
     }
 
+    // Scores vec maps a particular seed match to optimal score
     let mut scores: Vec<usize> = vec![0; matches.len()];
+    let mut previous_match: Vec<Option<usize>> = vec![None; matches.len()];
 
     // Construct endpoint vec
     let mut endpoints = Vec::<Endpoint>::with_capacity(2 * matches.len());
@@ -326,6 +330,8 @@ fn chain_seeds(matches: Vec<SeedMatch>) {
 
     endpoints.sort_by(|a, b| a.qry_pos.cmp(&b.qry_pos));
 
+    // Triplets contains the best possible chains, with decreasing ref_end
+    // Small ref_end means more matches can still come after, hence for equal score, this is better
     let mut triplets = Vec::<Triplet>::with_capacity(matches.len());
 
     for endpoint in endpoints {
@@ -337,42 +343,49 @@ fn chain_seeds(matches: Vec<SeedMatch>) {
         // dbg!(&triplets);
         match endpoint.side {
             EndpointSide::Start => {
-                // Find first triplet where ref_end is > endpoint
+                // Find first triplet where ref_end is < endpoint.j's ref_index
+                // We're looking for the highest scoring chain that we can legally extend with this match
 
-                let mut first_triplet: &Triplet = &Triplet {
-                    ref_end: 0,
-                    score: 0,
-                    j: 0,
-                };
-                for triplet in triplets.as_slice() {
-                    if triplet.ref_end < matches[endpoint.j].ref_index {
-                        first_triplet = triplet;
-                        break;
-                    }
-                }
-                scores[endpoint.j] = matches[endpoint.j].length + first_triplet.score;
+                let (best_chain_score, index) = triplets
+                    .as_slice()
+                    .into_iter()
+                    .filter(|triplet| triplet.ref_end <= matches[endpoint.j].ref_index)
+                    .map(|triplet| (triplet.score, Some(triplet.j)))
+                    .next()
+                    .unwrap_or((0, None));
+
+                scores[endpoint.j] = matches[endpoint.j].length + best_chain_score;
+                previous_match[endpoint.j] = index;
             }
             EndpointSide::End => {
-                let mut first_triplet: &Triplet = &Triplet {
-                    ref_end: 0,
-                    score: 0,
-                    j: 0,
-                };
-                for triplet in triplets.as_slice() {
-                    first_triplet = triplet;
-                    if triplet.ref_end <= matches[endpoint.j].ref_index + matches[endpoint.j].length
-                    {
-                        break;
-                    }
-                }
-                if scores[endpoint.j] > first_triplet.score {
+                // Check whether this match is optimal and if so, insert into triplets vec
+                // Find last triplet that ends after this match's ref_end as later triplets have superior ref_ends
+
+                // Find out if this seed match is optimal in any sense
+                // Only keep triplets that
+
+                // Find out whether this seed match should be used or not
+                // Should not be used if there's a triplet with ref_end < this match's ref_end and score >= this match's score
+                // or ref_end == this match's ref_end and score > this match's score
+
+                let add_match = triplets
+                    .as_slice()
+                    .into_iter()
+                    .filter(|triplet| {
+                        triplet.ref_end < matches[endpoint.j].ref_index + matches[endpoint.j].length
+                    })
+                    .map(|triplet| triplet.score <= scores[endpoint.j])
+                    .next()
+                    .unwrap_or(true);
+
+                if add_match {
                     let added_triplet = Triplet {
                         ref_end: matches[endpoint.j].ref_index + matches[endpoint.j].length,
                         score: scores[endpoint.j],
                         j: endpoint.j,
                     };
                     triplets.push(added_triplet.clone());
-                    // Sort descending
+                    // Sort descending by ref_end
                     triplets.sort_by(|b, a| a.ref_end.cmp(&b.ref_end));
                     triplets.retain(|triplet| {
                         triplet.ref_end < added_triplet.ref_end
@@ -383,7 +396,25 @@ fn chain_seeds(matches: Vec<SeedMatch>) {
         }
     }
 
+    // Reconstruct optimal chain
+    let mut optimal_chain = Vec::<SeedMatch>::new();
+
+    let mut chain_end_index = Some(triplets.get(0).unwrap().j);
+
+    loop {
+        if chain_end_index.is_none() {
+            break;
+        }
+        let index = chain_end_index.unwrap();
+        let next_match = matches[index].clone();
+        optimal_chain.push(next_match);
+
+        chain_end_index = previous_match[index];
+    }
+    optimal_chain.reverse();
+
     dbg!(triplets);
+    dbg!(optimal_chain);
 }
 
 fn main() {
