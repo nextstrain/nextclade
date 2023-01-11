@@ -545,11 +545,11 @@ export interface CsvColumnConfigColumnProps {
 export function CsvColumnConfigColumn({ category, column }: CsvColumnConfigColumnProps) {
   const [csvColumnConfig, setCsvColumnConfigAtom] = useRecoilState(csvColumnConfigAtom)
 
-  const checked = useMemo(() => getColumnState(csvColumnConfig, column), [column, csvColumnConfig])
+  const checked = useMemo(() => getColumnState(csvColumnConfig, category, column), [category, column, csvColumnConfig])
 
   const onChange = useCallback(() => {
     setCsvColumnConfigAtom((config: CsvColumnConfig | undefined) => {
-      const previousEnabled = getColumnState(config, column)
+      const previousEnabled = getColumnState(config, category, column)
       return config && enableColumn(config, category, column, !previousEnabled)
     })
   }, [category, column, setCsvColumnConfigAtom])
@@ -564,14 +564,17 @@ export function CsvColumnConfigColumn({ category, column }: CsvColumnConfigColum
   )
 }
 
-function getColumnState(config: CsvColumnConfig | undefined, column: string): boolean {
+function getColumnState(config: CsvColumnConfig | undefined, category: string, column: string): boolean {
   if (!config) {
     return false
   }
-  const found = Object.values(config.categories)
-    .flatMap((columns) => Object.entries(columns))
-    .find(([candidate, _]) => candidate === column)
-  return found?.[1] ?? false
+
+  const columns = get(config?.categories, category)
+  if (!columns) {
+    return false
+  }
+
+  return get(columns, column) ?? false
 }
 
 function enableColumn(config: CsvColumnConfig, category: string, column: string, enabled: boolean): CsvColumnConfig {
