@@ -402,10 +402,10 @@ export function CsvColumnConfigDialog() {
           <Input type="checkbox" checked={dynamicColumnsState} onChange={onDynamicColumnsStateChange} />
           <TextWithHelp
             title={t(
-              'Various dynamic columns, such as custom clades and phenotypes might be available depending on dataset',
+              'Various optional columns, such as custom clades and phenotypes might be available depending on dataset',
             )}
           >
-            {t('Dynamic columns')}
+            {t('Dataset-specific columns')}
           </TextWithHelp>
         </Label>
       </FormGroup>
@@ -473,8 +473,8 @@ export function CsvColumnConfigCategory({ category, columns }: CsvColumnConfigCa
       get(
         {
           'general': t('General'),
-          'ref-muts': t('Reference mutations'),
-          'priv-muts': t('Private mutations'),
+          'ref-muts': t('Mutations relative to reference sequence'),
+          'priv-muts': t('Mutations relative to nearest node (private mutations)'),
           'qc': t('Quality control'),
           'primers': t('PCR primers'),
           'errs-warns': t('Errors & warnings'),
