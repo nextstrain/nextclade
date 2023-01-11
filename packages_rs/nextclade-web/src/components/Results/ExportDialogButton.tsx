@@ -569,7 +569,7 @@ function getColumnState(config: CsvColumnConfig | undefined, category: string, c
     return false
   }
 
-  const columns = get(config?.categories, category)
+  const columns = get(config.categories, category)
   if (!columns) {
     return false
   }
@@ -578,7 +578,7 @@ function getColumnState(config: CsvColumnConfig | undefined, category: string, c
 }
 
 function enableColumn(config: CsvColumnConfig, category: string, column: string, enabled: boolean): CsvColumnConfig {
-  const columns = get(config?.categories, category)
+  const columns = get(config.categories, category)
   if (!columns) {
     return config
   }
