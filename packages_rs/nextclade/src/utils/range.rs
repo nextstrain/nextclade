@@ -14,6 +14,11 @@ impl Range {
   pub const fn new(begin: usize, end: usize) -> Range {
     Range { begin, end }
   }
+  
+  #[inline]
+  pub const fn len(&self) -> usize {
+    self.end.saturating_sub(self.begin)
+  }
 
   #[inline]
   pub const fn is_empty(&self) -> bool {

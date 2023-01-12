@@ -435,6 +435,7 @@ export interface Translation {
   seq: string
   insertions: AminoacidInsertion[]
   frameShifts: FrameShift[]
+  alignmentRange: Range
 }
 
 /** Represents a named interval in the genome */

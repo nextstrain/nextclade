@@ -3,6 +3,7 @@ use crate::io::aa::from_aa_seq;
 use crate::make_internal_report;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
+use crate::utils::range::{intersect, Range};
 use eyre::Report;
 use itertools::{Itertools, Zip};
 use serde::{Deserialize, Serialize};
@@ -38,8 +39,18 @@ pub fn find_aa_motifs_changes(
   ref_peptides: &TranslationMap,
   translations: &[Translation],
 ) -> Result<AaMotifsChangesMap, Report> {
-  zip_map_hashmap(aa_motifs_ref, aa_motifs_qry, |name, motifs_ref, motifs_qry| {
+  let query_motif_keys = aa_motifs_qry.keys().collect_vec();
+
+  // Exclude ref motifs missing in query
+  let aa_motifs_ref: AaMotifsMap = aa_motifs_ref
+    .iter()
+    .filter(|(name, _)| query_motif_keys.contains(name))
+    .map(|(key, val)| (key.clone(), val.clone()))
+    .collect();
+
+  zip_map_hashmap(&aa_motifs_ref, aa_motifs_qry, |name, motifs_ref, motifs_qry| {
     let changes = find_aa_motifs_changes_one(motifs_ref, motifs_qry, ref_peptides, translations)?;
+
     Ok((name.clone(), changes))
   })
   .collect()
@@ -126,16 +137,25 @@ fn add_ref_seq(motif: &AaMotif, ref_peptides: &TranslationMap) -> Result<AaMotif
 
 // Add query sequence fragment to motif
 fn add_qry_seq(motif: &AaMotif, translations: &[Translation]) -> Option<AaMotifMutation> {
-  translations.iter().find(|tr| tr.gene_name == motif.gene).map(|tr| {
-    let begin = motif.position;
-    let end = begin + motif.seq.len();
-    let qry_seq = from_aa_seq(&tr.seq[begin..end]);
-    AaMotifMutation {
-      name: motif.name.clone(),
-      gene: motif.gene.clone(),
-      position: motif.position,
-      ref_seq: motif.seq.clone(),
-      qry_seq,
-    }
-  })
+  translations
+    .iter()
+    .find(|tr| tr.gene_name == motif.gene)
+    .and_then(|tr| {
+      let begin = motif.position;
+      let end = begin + motif.seq.len();
+
+      let sequenced_motif_range = intersect(&tr.alignment_range, &Range::new(begin, end));
+      if sequenced_motif_range.len() < motif.seq.len() {
+        None
+      } else {
+        let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
+        Some(AaMotifMutation {
+          name: motif.name.clone(),
+          gene: motif.gene.clone(),
+          position: motif.position,
+          ref_seq: motif.seq.clone(),
+          qry_seq,
+        })
+      }
+    })
 }

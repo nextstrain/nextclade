@@ -3,7 +3,7 @@ import { get } from 'lodash'
 import styled, { useTheme } from 'styled-components'
 import { useRecoilValue } from 'recoil'
 import { Col, Row } from 'reactstrap'
-import type { AaMotif, AaMotifMutation, AaMotifsDesc, AnalysisResult } from 'src/types'
+import type { AaMotif, AaMotifChanges, AaMotifMutation, AaMotifsDesc, AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { useTranslationSafe, useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
@@ -34,7 +34,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
     [index, motifDesc.name, seqName],
   )
 
-  const motifs = get(aaMotifsChanges, motifDesc.name)
+  const motifs: AaMotifChanges | undefined = get(aaMotifsChanges, motifDesc.name)
 
   const columnValue = useMemo(() => {
     if (!motifs) {
@@ -53,8 +53,11 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
     )
   }, [motifs])
 
-  const gained = useMemo(
-    () =>
+  const gained = useMemo(() => {
+    if (!motifs) {
+      return null
+    }
+    return (
       motifs.gained.length > 0 && (
         <div>
           <ColoredH6 $color={'#487921'} className="mb-0">
@@ -65,12 +68,15 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           </p>
           <ListOfAaMotifMutations motifs={motifs.gained} />
         </div>
-      ),
-    [motifs.gained, t],
-  )
+      )
+    )
+  }, [motifs, t])
 
-  const lost = useMemo(
-    () =>
+  const lost = useMemo(() => {
+    if (!motifs) {
+      return null
+    }
+    return (
       motifs.lost.length > 0 && (
         <div>
           <ColoredH6 $color={'#7f0d0d'} className="mb-0">
@@ -81,12 +87,16 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           </p>
           <ListOfAaMotifMutations motifs={motifs.lost} />
         </div>
-      ),
-    [motifs.lost, t],
-  )
+      )
+    )
+  }, [motifs, t])
 
-  const preserved = useMemo(
-    () =>
+  const preserved = useMemo(() => {
+    if (!motifs) {
+      return null
+    }
+
+    return (
       motifs.preserved.length > 0 && (
         <div>
           <ColoredH6 className="mb-0">
@@ -97,9 +107,9 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           </p>
           <ListOfAaMotifMutations motifs={motifs.preserved} />
         </div>
-      ),
-    [motifs.preserved, t],
-  )
+      )
+    )
+  }, [motifs, t])
 
   if (!columnValue) {
     return null

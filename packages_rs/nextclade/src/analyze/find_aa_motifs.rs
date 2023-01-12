@@ -2,7 +2,7 @@ use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::Range;
+use crate::utils::range::{intersect, Range};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use regex::Regex;
@@ -98,6 +98,14 @@ fn process_one_translation(
 
   ranges
     .iter()
+    .filter_map(|range| {
+      let sequenced_motif_range = intersect(&translation.alignment_range, range);
+      if sequenced_motif_range.is_empty() {
+        None
+      } else {
+        Some(sequenced_motif_range)
+      }
+    })
     .flat_map(|range| {
       let seq = &translation.seq[range.begin..range.end];
       let seq = from_aa_seq(seq);
@@ -105,7 +113,7 @@ fn process_one_translation(
       motifs
         .iter()
         .cloned()
-        .flat_map(|motif| process_one_motif(name, translation, range, &seq, &motif))
+        .flat_map(|motif| process_one_motif(name, translation, &range, &seq, &motif))
         .collect_vec()
     })
     .collect_vec()
