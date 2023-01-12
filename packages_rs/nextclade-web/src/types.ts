@@ -370,6 +370,7 @@ export interface AaMotifChanges {
   preserved: AaMotifMutation[]
   gained: AaMotifMutation[]
   lost: AaMotifMutation[]
+  ambiguous: AaMotifMutation[]
   total: number
 }
 

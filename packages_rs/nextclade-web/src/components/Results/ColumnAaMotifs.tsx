@@ -47,6 +47,8 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           {'('}
           <ColoredText $color={'#487921'}>+{motifs.gained.length}</ColoredText>
           <ColoredText $color={'#7f0d0d'}>-{motifs.lost.length}</ColoredText>
+          {/* eslint-disable-next-line only-ascii/only-ascii */}
+          <ColoredText $color={'#1c3357'}>±{motifs.ambiguous.length}</ColoredText>
           {')'}
         </TextNarrow>
       </span>
@@ -91,6 +93,27 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
     )
   }, [motifs, t])
 
+  const ambiguous = useMemo(() => {
+    if (!motifs) {
+      return null
+    }
+    return (
+      motifs.ambiguous.length > 0 && (
+        <div>
+          <ColoredH6 $color={'#1c3357'} className="mb-0">
+            {t('Ambiguous: {{ambiguous}}', { ambiguous: motifs.ambiguous.length })}
+          </ColoredH6>
+          <p className="my-0">
+            <small>
+              {t('Motifs which are present in reference sequence, but contain ambiguity in query sequence')}
+            </small>
+          </p>
+          <ListOfAaMotifMutations motifs={motifs.ambiguous} />
+        </div>
+      )
+    )
+  }, [motifs, t])
+
   const preserved = useMemo(() => {
     if (!motifs) {
       return null
@@ -129,6 +152,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
             <h6 className="font-weight-bold">{t('Total: {{total}}', { total: motifs.total })}</h6>
             {gained}
             {lost}
+            {ambiguous}
             {preserved}
           </Col>
         </Row>
@@ -334,6 +358,7 @@ export const ColoredText = styled.span<{ $background?: string; $color?: string }
   background-color: ${(props) => props.$background};
   color: ${(props) => props.$color};
   border-radius: 3px;
+  font-family: ${(props) => props.theme.font.monospace};
 `
 
 export const TextNarrow = styled.small`

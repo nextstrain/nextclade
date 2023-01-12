@@ -5,7 +5,7 @@ use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
 use crate::utils::range::{intersect, Range};
 use eyre::Report;
-use itertools::{Itertools, Zip};
+use itertools::{Either, Itertools, Zip};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 use std::fmt::Debug;
@@ -19,6 +19,7 @@ pub struct AaMotifChanges {
   pub preserved: Vec<AaMotifMutation>,
   pub gained: Vec<AaMotifMutation>,
   pub lost: Vec<AaMotifMutation>,
+  pub ambiguous: Vec<AaMotifMutation>,
   pub total: usize,
 }
 
@@ -76,12 +77,19 @@ fn find_aa_motifs_changes_one(
     .sorted()
     .collect_vec();
 
-  // Lost motifs: present in ref, not present in query
-  let lost = motifs_ref
+  // Lost motifs: present in ref, not present in query.
+  // Ambiguous motifs: present in ref, contain amino acid X in query.
+  let (lost, ambiguous): (Vec<AaMotifMutation>, Vec<AaMotifMutation>) = motifs_ref
     .difference(&motifs_qry)
     .filter_map(|motif| add_qry_seq(&motif.0, translations))
     .sorted()
-    .collect_vec();
+    .partition_map(|motif_change| {
+      if motif_change.qry_seq.to_lowercase().contains('x') {
+        Either::Right(motif_change)
+      } else {
+        Either::Left(motif_change)
+      }
+    });
 
   // Preserved motifs: present in ref and qry
   let preserved = {
@@ -100,12 +108,13 @@ fn find_aa_motifs_changes_one(
       .collect_vec()
   };
 
-  let total = gained.len() + preserved.len();
+  let total = gained.len() + ambiguous.len() + preserved.len();
 
   Ok(AaMotifChanges {
     preserved,
     gained,
     lost,
+    ambiguous,
     total,
   })
 }
