@@ -26,7 +26,7 @@ pub fn nextalign_run_one(
     Err(report) => Err(report),
 
     Ok(alignment) => {
-      let coord_map = CoordMap::new(ref_seq);
+      let coord_map = CoordMap::new(&alignment.ref_seq);
 
       let translations = translate_genes(
         &alignment.qry_seq,
