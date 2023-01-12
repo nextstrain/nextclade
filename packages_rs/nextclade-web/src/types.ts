@@ -400,6 +400,7 @@ export interface AnalysisResult {
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number
+  aaAlignmentRanges: Record<string, Range>
   alignedQuery: string
   nucleotideComposition: Record<string, number>
   pcrPrimerChanges: PcrPrimerChange[]

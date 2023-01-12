@@ -28,8 +28,10 @@ use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
+use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
+use std::collections::BTreeMap;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -200,6 +202,17 @@ pub fn nextclade_run_one(
     qc_config,
   );
 
+  let aa_alignment_ranges: BTreeMap<String, Range> = translations
+    .iter()
+    .filter_map(|tr| {
+      if tr.alignment_range.is_empty() {
+        None
+      } else {
+        Some((tr.gene_name.clone(), tr.alignment_range.clone()))
+      }
+    })
+    .collect();
+
   Ok((
     stripped.qry_seq,
     translations,
@@ -231,6 +244,7 @@ pub fn nextclade_run_one(
       alignment_start,
       alignment_end,
       alignment_score,
+      aa_alignment_ranges,
       pcr_primer_changes,
       total_pcr_primer_changes,
       clade,
