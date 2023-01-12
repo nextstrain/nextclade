@@ -68,9 +68,7 @@ fn find_aa_motifs_changes_one(
   // Lost motifs: present in ref, not present in query
   let lost = motifs_ref
     .difference(&motifs_qry)
-    .map(|motif| add_qry_seq(&motif.0, translations))
-    .collect::<Result<Vec<AaMotifMutation>, Report>>()?
-    .into_iter()
+    .filter_map(|motif| add_qry_seq(&motif.0, translations))
     .sorted()
     .collect_vec();
 
@@ -127,27 +125,17 @@ fn add_ref_seq(motif: &AaMotif, ref_peptides: &TranslationMap) -> Result<AaMotif
 }
 
 // Add query sequence fragment to motif
-fn add_qry_seq(motif: &AaMotif, translations: &[Translation]) -> Result<AaMotifMutation, Report> {
-  let qry_seq = &translations
-    .iter()
-    .find(|tr| tr.gene_name == motif.gene)
-    .ok_or_else(|| {
-      make_internal_report!(
-        "Aa motif search: unable to find translation for reference gene: '{}'",
-        motif.gene
-      )
-    })?
-    .seq;
-
-  let begin = motif.position;
-  let end = begin + motif.seq.len();
-  let qry_seq = from_aa_seq(&qry_seq[begin..end]);
-
-  Ok(AaMotifMutation {
-    name: motif.name.clone(),
-    gene: motif.gene.clone(),
-    position: motif.position,
-    ref_seq: motif.seq.clone(),
-    qry_seq,
+fn add_qry_seq(motif: &AaMotif, translations: &[Translation]) -> Option<AaMotifMutation> {
+  translations.iter().find(|tr| tr.gene_name == motif.gene).map(|tr| {
+    let begin = motif.position;
+    let end = begin + motif.seq.len();
+    let qry_seq = from_aa_seq(&tr.seq[begin..end]);
+    AaMotifMutation {
+      name: motif.name.clone(),
+      gene: motif.gene.clone(),
+      position: motif.position,
+      ref_seq: motif.seq.clone(),
+      qry_seq,
+    }
   })
 }
