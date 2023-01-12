@@ -11,6 +11,7 @@ use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
+use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
@@ -33,6 +34,7 @@ pub struct NextalignOutputs {
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,
+  pub coord_map: CoordMap,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

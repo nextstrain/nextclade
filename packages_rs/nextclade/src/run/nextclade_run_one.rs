@@ -22,6 +22,7 @@ use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
+use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
@@ -49,10 +50,11 @@ pub fn nextclade_run_one(
   let NextalignOutputs {
     stripped,
     alignment,
-    translations,
+    mut translations,
     warnings,
     missing_genes,
     is_reverse_complement,
+    coord_map,
   } = nextalign_run_one(
     index,
     seq_name,
@@ -74,6 +76,8 @@ pub fn nextclade_run_one(
   let alignment_start = alignment_range.begin;
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
+
+  calculate_aa_alignment_ranges_in_place(&alignment_range, gene_map, &coord_map, &mut translations)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();

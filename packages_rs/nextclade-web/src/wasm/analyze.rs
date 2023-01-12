@@ -14,8 +14,10 @@ use nextclade::io::gene_map::GeneMap;
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use nextclade::make_internal_report;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
+use nextclade::translate::aa_alignment_ranges::calculate_aa_alignment_range_in_place;
 use nextclade::translate::translate_genes::TranslationMap;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
@@ -23,6 +25,7 @@ use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
+use nextclade::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use typescript_definitions::TypescriptDefinition;
@@ -193,8 +196,23 @@ impl Nextclade {
 
     let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &alignment_params);
 
-    let ref_peptides =
-      translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+    let ref_peptides = {
+      let mut ref_peptides =
+        translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+
+      ref_peptides
+        .iter_mut()
+        .try_for_each(|(name, translation)| -> Result<(), Report> {
+          let gene = gene_map
+            .get(&translation.gene_name)
+            .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+          translation.alignment_range = Range::new(0, gene.len_codon());
+
+          Ok(())
+        })?;
+
+      ref_peptides
+    };
 
     let aa_motifs_ref = find_aa_motifs(
       &virus_properties.aa_motifs,

@@ -16,13 +16,14 @@ use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
-use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::utils::range::Range;
+use nextclade::{make_error, make_internal_report};
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
@@ -126,7 +127,23 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
+  let ref_peptides = &{
+    let mut ref_peptides =
+      translate_genes_ref(ref_seq, gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+
+    ref_peptides
+      .iter_mut()
+      .try_for_each(|(name, translation)| -> Result<(), Report> {
+        let gene = gene_map
+          .get(&translation.gene_name)
+          .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+        translation.alignment_range = Range::new(0, gene.len_codon());
+
+        Ok(())
+      })?;
+
+    ref_peptides
+  };
 
   let aa_motifs_ref = &find_aa_motifs(
     &virus_properties.aa_motifs,
