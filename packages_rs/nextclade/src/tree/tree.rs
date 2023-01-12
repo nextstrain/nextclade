@@ -1,11 +1,12 @@
+use crate::graph::edge::GraphEdge;
+use crate::graph::graph::Graph;
+use crate::graph::node::{GraphNode, GraphNodeKey};
 use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
 use eyre::{Report, WrapErr};
-use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::any::Any;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
@@ -16,6 +17,19 @@ use validator::Validate;
 // HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
 // https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
 pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
+
+#[derive(Clone, Debug)]
+pub struct AuspiceTreeEdge; // Edge payload is empty. Branch attributes are currently stored on nodes.
+
+impl AuspiceTreeEdge {
+  pub fn new() -> Self {
+    Self {}
+  }
+}
+
+impl GraphEdge for AuspiceTreeEdge {}
+
+pub type AuspiceGraph = Graph<AuspiceTreeNode, AuspiceTreeEdge>;
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeNodeAttr {
@@ -100,7 +114,7 @@ pub struct TreeNodeAttrs {
 
 /// Temporary data internal to Nextclade.
 /// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
   pub id: usize,
   pub substitutions: BTreeMap<usize, Nuc>,
@@ -160,6 +174,8 @@ impl AuspiceTreeNode {
       .collect()
   }
 }
+
+impl GraphNode for AuspiceTreeNode {}
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

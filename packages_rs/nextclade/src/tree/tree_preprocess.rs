@@ -1,12 +1,15 @@
 use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::nuc_sub::NucSub;
+use crate::graph::graph::Graph;
+use crate::graph::node::GraphNodeKey;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
+  AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
+  AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
@@ -19,15 +22,17 @@ pub fn tree_preprocess_in_place(
   tree: &mut AuspiceTree,
   ref_seq: &[Nuc],
   ref_peptides: &BTreeMap<String, Translation>,
-) -> Result<(), Report> {
+) -> Result<AuspiceGraph, Report> {
   let mut parent_nuc_muts = BTreeMap::<usize, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<usize, Aa>>::new();
-  let mut id = 0_usize;
+
+  let mut graph = Graph::<AuspiceTreeNode, AuspiceTreeEdge>::new();
+
   tree_preprocess_in_place_impl_recursive(
-    &mut id,
     &mut tree.tree,
     &mut parent_nuc_muts,
     &mut parent_aa_muts,
+    &mut graph,
     ref_seq,
     ref_peptides,
   )?;
@@ -39,17 +44,19 @@ pub fn tree_preprocess_in_place(
 
   tree_add_metadata(tree);
 
-  Ok(())
+  graph.build()
 }
 
 pub fn tree_preprocess_in_place_impl_recursive(
-  id: &mut usize,
   node: &mut AuspiceTreeNode,
   parent_nuc_muts: &mut BTreeMap<usize, Nuc>,
   parent_aa_muts: &mut BTreeMap<String, BTreeMap<usize, Aa>>,
+  graph: &mut AuspiceGraph,
   ref_seq: &[Nuc],
   ref_peptides: &BTreeMap<String, Translation>,
-) -> Result<(), Report> {
+) -> Result<GraphNodeKey, Report> {
+  let graph_node_key = graph.add_node(node.clone());
+
   let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
   let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
@@ -60,7 +67,7 @@ pub fn tree_preprocess_in_place_impl_recursive(
     .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
     .collect();
 
-  node.tmp.id = *id;
+  node.tmp.id = graph_node_key.as_usize();
   node.tmp.mutations = nuc_muts.clone();
   node.tmp.substitutions = nuc_subs;
   node.tmp.aa_mutations = aa_muts.clone();
@@ -70,11 +77,12 @@ pub fn tree_preprocess_in_place_impl_recursive(
   node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
   for child in &mut node.children {
-    *id += 1;
-    tree_preprocess_in_place_impl_recursive(id, child, &mut nuc_muts, &mut aa_muts, ref_seq, ref_peptides)?;
+    let graph_child_key =
+      tree_preprocess_in_place_impl_recursive(child, &mut nuc_muts, &mut aa_muts, graph, ref_seq, ref_peptides)?;
+    graph.add_edge(graph_node_key, graph_child_key, AuspiceTreeEdge::new())?;
   }
 
-  Ok(())
+  Ok(graph_node_key)
 }
 
 pub fn map_nuc_muts(
