@@ -47,8 +47,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
           {'('}
           <ColoredText $color={'#487921'}>+{motifs.gained.length}</ColoredText>
           <ColoredText $color={'#7f0d0d'}>-{motifs.lost.length}</ColoredText>
-          {/* eslint-disable-next-line only-ascii/only-ascii */}
-          <ColoredText $color={'#1c3357'}>±{motifs.ambiguous.length}</ColoredText>
+          <ColoredText> {motifs.ambiguous.length}</ColoredText>
           {')'}
         </TextNarrow>
       </span>
@@ -100,7 +99,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
     return (
       motifs.ambiguous.length > 0 && (
         <div>
-          <ColoredH6 $color={'#1c3357'} className="mb-0">
+          <ColoredH6 className="mb-0">
             {t('Ambiguous: {{ambiguous}}', { ambiguous: motifs.ambiguous.length })}
           </ColoredH6>
           <p className="my-0">
