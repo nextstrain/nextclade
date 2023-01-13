@@ -25,7 +25,6 @@ def get_args(argv):
         # Print something useful
         print ('usage: treebuilder -t <ref_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>')
         sys.exit(2)
-    print(opts)
     if len(opts) <3:
         print ('usage: treebuilder -t <reference_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>')
         sys.exit()
@@ -60,6 +59,7 @@ def main():
     len_ref_seq = len(ref_seq[0].seq)
 
     nc_tree = NextcladeTree(tree_json_as_dict, seq_length=len_ref_seq)
+    #import ipdb; ipdb.set_trace()
 
     #get new sequences with attachment points and private mutations
     df = pd.read_json(new_seq_ndjson, lines=True)

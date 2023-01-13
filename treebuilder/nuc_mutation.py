@@ -32,9 +32,9 @@ def nuc_mut_from_str(string):
 
 def nuc_mut_from_dict(dict_):
     if 'queryNuc' in dict_:
-        return NucMutation(dict_['refNuc'], dict_['pos'], dict_['queryNuc'])
+        return NucMutation(dict_['refNuc'], dict_['pos']+1, dict_['queryNuc'])
     else:
-        return NucMutation(dict_['ref'], dict_['pos'], '-')
+        return NucMutation(dict_['ref'], dict_['pos']+1, '-')
 
 def revert(nuc_mut):
     return NucMutation(nuc_mut.qry, nuc_mut.pos, nuc_mut.reff)

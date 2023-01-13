@@ -14,40 +14,36 @@ def attach_new_sequences(tree, sequences_df):
 
 def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
     if nearest_node.is_terminal():
-        print("creating node between nodes because node is terminal")
-        new_internal_clade =Phylo.Newick.Clade(name="parent_"+str(seq_name))
+        #node is terminal - make internal and create dummy new terminal node
+        nearest_node.name = str(nearest_node.name)+"_internal"
+        new_terminal_node =Phylo.Newick.Clade(name=nearest_node.name)
         tree.tree.MAX_id += 1
-        new_internal_clade.id  = tree.tree.MAX_id
-        new_internal_clade.branch_length = nearest_node.branch_length
-        new_internal_clade.mutations = nearest_node.mutations
-        nearest_node.reversion_mutations = [revert(m) for m in nearest_node.mutations]
-        new_internal_clade.up = nearest_node.up
-        nearest_node.up.clades.append(new_internal_clade)
-        new_internal_clade.up.clades.remove(nearest_node)
-        new_internal_clade.clades.append(nearest_node)
-        nearest_node.up = new_internal_clade
-        nearest_node.branch_length = 0
-        nearest_node.mutations = []
-        nearest_node.reversion_mutations = []
-        attach_node(tree, new_internal_clade, private_nuc_mut, seq_name)
-    else:
-        print([m.__str__() for m in private_nuc_mut])
-        new_clade =Phylo.Newick.Clade(name=str(seq_name)+"_new")
-        tree.tree.MAX_id += 1
-        new_clade.id  = tree.tree.MAX_id
-        new_clade.branch_length = len(private_nuc_mut)/tree.len_ref_seq
-        new_clade.mutations = private_nuc_mut
-        new_clade.reversion_mutations = [revert(m) for m in new_clade.mutations]
-        new_clade.up = nearest_node
-        nearest_node.clades.append(new_clade)
+        new_terminal_node.id  = tree.tree.MAX_id
+        new_terminal_node.branch_length = 0
+        new_terminal_node.mutations = []
+        new_terminal_node.reversion_mutations = []
+        new_terminal_node.up = nearest_node
+        new_terminal_node.clade_membership = new_terminal_node.up.clade_membership
+        nearest_node.clades.append(new_terminal_node)
+    #print([m.__str__() for m in private_nuc_mut])
+    new_clade =Phylo.Newick.Clade(name=str(seq_name)+"_new")
+    tree.tree.MAX_id += 1
+    new_clade.id  = tree.tree.MAX_id
+    new_clade.branch_length = len(private_nuc_mut)/tree.len_ref_seq
+    new_clade.mutations = private_nuc_mut
+    new_clade.reversion_mutations = [revert(m) for m in new_clade.mutations]
+    new_clade.up = nearest_node
+    new_clade.clade_membership = new_clade.up.clade_membership
+    nearest_node.clades.append(new_clade)
     return None
 
 def create_node_between_nodes(tree, top_node, bottom_node, new_shared_mut, up=True):
-    print("creating node between nodes")
+    #print("creating node between nodes")
     new_node =Phylo.Newick.Clade(name="parent_"+str(tree.tree.MAX_id))
     tree.tree.MAX_id += 1
     new_node.id  = tree.tree.MAX_id
     new_node.up = top_node
+    new_node.clade_membership = new_node.up.clade_membership
     if up==True:
         new_node_mut = remove_mut(bottom_node.reversion_mutations, new_shared_mut)
         new_node.reversion_mutations = new_node_mut

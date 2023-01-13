@@ -8,12 +8,12 @@ def create_tree_dict(tree, div=0):
     tree_dict["branch_attrs"]["mutations"]["nuc"] = [m.__str__() for m in tree.root.mutations]
     tree_dict["branch_attrs"]["label"] = {
         "aa": "",
-        "clade": "reference"
+        "clade": tree.root.clade_membership
         }
     tree_dict["node_attrs"] = {}
     tree_dict["node_attrs"]["div"] = tree.root.branch_length + div
     tree_dict["node_attrs"]["clade_membership"] ={
-                "value": "reference"
+                "value": tree.root.clade_membership
               }
     if tree.root.name.endswith('new'):
         tree_dict["node_attrs"]["Node type"]= {
@@ -73,7 +73,6 @@ def write_new_json(file_name, tree, initial_json):
 
         tree_dict = create_tree_dict(tree)
         json_str_pre = json.dumps(tree_dict, indent=4)
-        print(json_str_pre)
         initial_json["tree"] = tree_dict
         json_str = json.dumps(initial_json, indent=4)
         with open(file_name, "w") as outfile:
