@@ -63,12 +63,16 @@ impl GeneMap {
     self.genes.get(gene_name)
   }
 
-  pub fn iter(&self) -> std::collections::btree_map::Iter<String, Gene> {
+  pub fn iter(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
     self.genes.iter()
   }
 
-  pub fn into_iter(self) -> std::collections::btree_map::IntoIter<String, Gene> {
+  pub fn into_iter(self) -> impl Iterator<Item = (String, Gene)> {
     self.genes.into_iter()
+  }
+
+  pub fn values(&self) -> impl Iterator<Item = &Gene> + '_ {
+    self.genes.values()
   }
 }
 

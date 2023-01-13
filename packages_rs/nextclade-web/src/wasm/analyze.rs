@@ -8,7 +8,6 @@ use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene::Gene;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
-use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::qc::qc_config::QcConfig;
@@ -181,7 +180,7 @@ impl Nextclade {
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
 
-    let gene_map = read_gff3_str(gene_map_str).wrap_err("When parsing gene map")?;
+    let gene_map = GeneMap::from_gff3_str(gene_map_str).wrap_err("When parsing gene map")?;
 
     let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &alignment_params);
 

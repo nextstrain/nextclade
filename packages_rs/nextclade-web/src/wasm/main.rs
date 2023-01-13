@@ -5,7 +5,7 @@ use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
-use nextclade::io::gff3::read_gff3_str;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::insertions_to_csv_string;
 use nextclade::io::json::{json_parse, json_stringify};
 use nextclade::io::nextclade_csv::results_to_csv_string;
@@ -92,7 +92,7 @@ impl NextcladeWasm {
 
   /// Checks that a string containing gene map in GFF format is correct
   pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
-    let gene_map = jserr(read_gff3_str(gene_map_gff_str))?;
+    let gene_map = jserr(GeneMap::from_gff3_str(gene_map_gff_str))?;
     jserr(json_stringify(&gene_map))
   }
 
