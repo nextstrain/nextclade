@@ -684,7 +684,7 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
          gene,
          position,
          seq,
-       }| format!("{gene}:{position}:{seq}"),
+       }| format!("{gene}:{}:{seq}", position + 1),
     )
     .join(";")
 }
