@@ -9,17 +9,18 @@ use std::fs::File;
 use std::io::BufReader;
 use std::thread::current;
 
-// const REFERENCE_PATH: &str = "data/sc2_reference.fasta";
-// const QUERY_PATH: &str = "data/sc2_query_long.fasta";
+const REFERENCE_PATH: &str = "data/sc2_reference.fasta";
+const QUERY_PATH: &str = "data/sc2_query_long.fasta";
 
-const REFERENCE_PATH: &str = "/Users/corneliusromer/code/nextclade_data/data/datasets/rsv_a/references/EPI_ISL_412866/versions/2022-12-20T22:00:12Z/files/reference.fasta";
-const QUERY_PATH: &str = "//Users/corneliusromer/code/nextclade_data/data/datasets/rsv_b/references/EPI_ISL_1653999/versions/2022-12-20T22:00:12Z/files/reference.fasta";
+// const REFERENCE_PATH: &str = "/Users/corneliusromer/code/nextclade_data/data/datasets/rsv_a/references/EPI_ISL_412866/versions/2022-12-20T22:00:12Z/files/reference.fasta";
+// const QUERY_PATH: &str = "//Users/corneliusromer/code/nextclade_data/data/datasets/rsv_b/references/EPI_ISL_1653999/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 
 const SEED_MATCH_CONFIG: SeedMatchConfig = SeedMatchConfig {
     // Purposefully lax, to allow for some off-target matches
-    kmer_length: 10,
-    min_match_length: 20,
-    allowed_mismatches: 4,
+    kmer_length: 6,       // Should not be much larger than 1/divergence of amino acids
+    min_match_length: 50, // Experimentally determined, to keep off-target matches reasonably low
+    allowed_mismatches: 2, // Ns count as mismatches
+    window_size: 8,
 };
 
 fn read_fasta(filename: &str) -> Records<BufReader<File>> {
@@ -28,6 +29,47 @@ fn read_fasta(filename: &str) -> Records<BufReader<File>> {
 
     reader.records()
 }
+
+/// Copied from https://stackoverflow.com/a/75084739/7483211
+pub struct SkipEvery<I> {
+    inner: I,
+    every: usize,
+    index: usize,
+}
+
+impl<I> SkipEvery<I> {
+    fn new(inner: I, every: usize) -> Self {
+        assert!(every > 1);
+        let index = 0;
+        Self {
+            inner,
+            every,
+            index,
+        }
+    }
+}
+
+impl<I: Iterator> Iterator for SkipEvery<I> {
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index == self.every - 1 {
+            self.index = 1;
+            self.inner.nth(1)
+        } else {
+            self.index += 1;
+            self.inner.next()
+        }
+    }
+}
+
+pub trait IteratorSkipEveryExt: Iterator + Sized {
+    fn skip_every(self, every: usize) -> SkipEvery<Self> {
+        SkipEvery::new(self, every)
+    }
+}
+
+impl<I: Iterator + Sized> IteratorSkipEveryExt for I {}
 
 struct Index {
     fm_index: FMIndex<BWT, Less, Occ>,
@@ -39,14 +81,15 @@ struct SeedMatchConfig {
     kmer_length: usize,
     min_match_length: usize,
     allowed_mismatches: usize,
+    window_size: usize,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct SeedMatch {
     ref_index: usize,
     qry_index: usize,
     length: usize,
-    mismatches: usize,
+    offset: isize,
 }
 
 impl SeedMatch {
@@ -133,8 +176,10 @@ impl Index {
             mut ref_index,
             mut qry_index,
             mut length,
-            mismatches,
+            offset,
         } = input_match.clone();
+
+        let mut mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
 
         let mut forward_mismatches = 0;
 
@@ -144,16 +189,32 @@ impl Index {
         {
             if self.ref_seq[ref_index + length] != qry_seq[qry_index + length] {
                 forward_mismatches += 1;
+                mismatch_queue.push_back(true);
+            } else {
+                mismatch_queue.push_back(false);
+            }
+
+            if mismatch_queue.pop_front().unwrap() {
+                forward_mismatches -= 1;
             }
 
             length += 1;
         }
+
+        mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
 
         let mut backward_mismatches = 0;
 
         while backward_mismatches < config.allowed_mismatches && ref_index > 0 && qry_index > 0 {
             if self.ref_seq[ref_index - 1] != qry_seq[qry_index - 1] {
                 backward_mismatches += 1;
+                mismatch_queue.push_back(true);
+            } else {
+                mismatch_queue.push_back(false);
+            }
+
+            if mismatch_queue.pop_front().unwrap() {
+                backward_mismatches -= 1;
             }
 
             ref_index -= 1;
@@ -162,13 +223,16 @@ impl Index {
         }
 
         SeedMatch {
-            qry_index,
-            ref_index,
-            length,
-            mismatches: mismatches + forward_mismatches + backward_mismatches,
+            qry_index: qry_index + config.window_size,
+            ref_index: ref_index + config.window_size,
+            length: length.saturating_sub(2 * config.window_size),
+            offset: ref_index as isize - qry_index as isize,
         }
     }
 
+    /// Returns an extended seed match if there is a match at the given qry_index
+    /// qry_index is in qry_seq coordinates, transparent to skipping or not
+    /// Hence returns coordinates in the qry_seq frame
     fn single_extended_match(
         &self,
         qry_seq: &[u8],
@@ -186,7 +250,7 @@ impl Index {
                     qry_index,
                     ref_index,
                     length: config.kmer_length,
-                    mismatches: 0,
+                    offset: ref_index as isize - qry_index as isize,
                 },
                 config,
             ))
@@ -201,14 +265,20 @@ struct CodonSpacedIndex {
     ref_seq: Vec<u8>,
 }
 
+struct SkippedSequence {
+    sequence: Vec<u8>,
+    offset: usize,
+}
+
 // every third position of reference
 
 impl CodonSpacedIndex {
     fn from_sequence(reference: Vec<u8>) -> Self {
+        // Instead of taking every third, skip every third
         let indexes = [
-            Index::from_sequence(reference.iter().step_by(3).copied().collect()),
-            Index::from_sequence(reference.iter().skip(1).step_by(3).copied().collect()),
-            Index::from_sequence(reference.iter().skip(2).step_by(3).copied().collect()),
+            Index::from_sequence(reference.iter().skip_every(3).copied().collect()),
+            Index::from_sequence(reference.iter().skip(1).skip_every(3).copied().collect()),
+            Index::from_sequence(reference.iter().skip(2).skip_every(3).copied().collect()),
         ];
 
         Self {
@@ -217,33 +287,43 @@ impl CodonSpacedIndex {
         }
     }
 
+    /// Returns extended matches for given query sequence in natural coordinates
     fn extended_matches(&self, qry_seq: &[u8], config: &SeedMatchConfig) -> Vec<SeedMatch> {
         let mut matches = Vec::<SeedMatch>::new();
 
-        let spaced_queries: [Vec<u8>; 3] = [
-            qry_seq.iter().step_by(3).copied().collect(),
-            qry_seq.iter().skip(1).step_by(3).copied().collect(),
-            qry_seq.iter().skip(2).step_by(3).copied().collect(),
+        let skipped_queries: [Vec<u8>; 3] = [
+            qry_seq.iter().skip_every(3).copied().collect(),
+            qry_seq.iter().skip(1).skip_every(3).copied().collect(),
+            qry_seq.iter().skip(2).skip_every(3).copied().collect(),
         ];
 
-        for (i, qry_seq) in spaced_queries.iter().enumerate() {
-            for (j, index) in self.indexes.iter().enumerate() {
-                let mut qry_index = 0;
-                while qry_index < qry_seq.len() {
-                    if let Some(seed_match) =
-                        index.single_extended_match(qry_seq, qry_index, config)
-                    {
-                        if seed_match.length > config.min_match_length {
+        for (skipped_qry_offset, skipped_qry_seq) in skipped_queries.iter().enumerate() {
+            for (skipped_ref_offset, skipped_fm_index) in self.indexes.iter().enumerate() {
+                let mut skipped_qry_index = 0;
+                while skipped_qry_index < skipped_qry_seq.len() {
+                    if let Some(skipped_seed_match) = skipped_fm_index.single_extended_match(
+                        skipped_qry_seq,
+                        skipped_qry_index,
+                        config,
+                    ) {
+                        if skipped_seed_match.length > config.min_match_length {
+                            let unskipped =
+                                skipped_seed_match.qry_index * 3 / 2 + skipped_qry_offset;
+                            let unskipped_ref_index =
+                                skipped_seed_match.ref_index * 3 / 2 + skipped_ref_offset;
                             matches.push(SeedMatch {
-                                qry_index: seed_match.qry_index * 3 + i,
-                                ref_index: seed_match.ref_index * 3 + j,
-                                length: 3 * seed_match.length,
-                                mismatches: seed_match.mismatches,
+                                // 0 1 2 3 4 5 6 7 8 9
+                                // 0 1   2 3   4 5   6
+                                //   0 1   2 3   4 5
+                                //     0 1   2 3   4 5
+                                qry_index: unskipped,
+                                ref_index: unskipped_ref_index,
+                                length: skipped_seed_match.length * 3 / 2,
+                                offset: unskipped_ref_index as isize - unskipped as isize,
                             });
-                            qry_index += 1;
                         }
                     }
-                    qry_index += 1;
+                    skipped_qry_index += 1;
                 }
             }
         }
@@ -254,34 +334,36 @@ impl CodonSpacedIndex {
 /// Combine overlapping seed matches that have the same offset
 fn combine_seeds(mut matches: Vec<SeedMatch>) -> Vec<SeedMatch> {
     matches.sort_by(|a, b| a.qry_index.cmp(&b.qry_index));
+    matches.dedup();
 
-    let mut combined_matches = Vec::<SeedMatch>::with_capacity(matches.len());
+    // let mut combined_matches = Vec::<SeedMatch>::with_capacity(matches.len());
 
-    for i in 0..matches.len() {
-        let mut current_match = matches[i].clone();
-        let next_match = matches.get(i + 1);
-        for next_match in matches.iter().skip(i + 1) {
-            if next_match.qry_index > current_match.qry_index + current_match.length {
-                break;
-            }
-            if next_match.shift(&current_match) != 0 {
-                continue;
-            }
-            current_match.length = max(
-                current_match.length,
-                next_match.qry_shift(&current_match) as usize + next_match.length,
-            );
-        }
-        if current_match.qry_index
-            > combined_matches
-                .last()
-                .map(|m| m.qry_index + m.length)
-                .unwrap_or(0)
-        {
-            combined_matches.push(current_match);
-        }
-    }
-    combined_matches
+    // for i in 0..matches.len() {
+    //     let mut current_match = matches[i].clone();
+    //     let next_match = matches.get(i + 1);
+    //     for next_match in matches.iter().skip(i + 1) {
+    //         if next_match.qry_index > current_match.qry_index + current_match.length {
+    //             break;
+    //         }
+    //         if next_match.shift(&current_match) != 0 {
+    //             continue;
+    //         }
+    //         current_match.length = max(
+    //             current_match.length,
+    //             next_match.qry_shift(&current_match) as usize + next_match.length,
+    //         );
+    //     }
+    //     if current_match.qry_index
+    //         > combined_matches
+    //             .last()
+    //             .map(|m| m.qry_index + m.length)
+    //             .unwrap_or(0)
+    //     {
+    //         combined_matches.push(current_match);
+    //     }
+    // }
+    // combined_matches
+    matches
 }
 
 /// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
@@ -310,6 +392,7 @@ fn chain_seeds(matches: Vec<SeedMatch>) {
 
     // Scores vec maps a particular seed match to optimal score
     let mut scores: Vec<usize> = vec![0; matches.len()];
+    // previous_match is used for backtracking
     let mut previous_match: Vec<Option<usize>> = vec![None; matches.len()];
 
     // Construct endpoint vec
@@ -413,8 +496,18 @@ fn chain_seeds(matches: Vec<SeedMatch>) {
     }
     optimal_chain.reverse();
 
-    dbg!(triplets);
-    dbg!(optimal_chain);
+    // dbg!(triplets);
+    let mut end = 0;
+    let mut penalty = 0;
+    for seed in optimal_chain.iter() {
+        let gap = seed.qry_index - end;
+        penalty += gap * gap;
+        println!("Gap: {gap}");
+        end = seed.qry_index + seed.length;
+        println!("Match: {seed:?}");
+    }
+    println!("Penalty: {penalty}");
+    // println!("{optimal_chain:?}");
 }
 
 fn main() {
@@ -439,9 +532,11 @@ fn main() {
 
     for record in query {
         let record = record.expect("Problem parsing sequence");
-        println!("Processing sequence: {}", record.id());
+        println!("Processing sequence: {:?}", record.id());
 
         let mut matches = index.extended_matches(record.seq(), &SEED_MATCH_CONFIG);
+
+        assert!(matches.len() > 0);
 
         matches = combine_seeds(matches);
 
@@ -463,10 +558,10 @@ fn main() {
             );
         }
 
-        println!(
-            "Covered: {}",
-            matches.iter().fold(0, |acc, m| acc + m.length)
-        );
+        // println!(
+        //     "Covered: {}",
+        //     matches.iter().fold(0, |acc, m| acc + m.length)
+        // );
 
         chain_seeds(matches);
         // Post process matches: join overlapping, remove short ones, remove outliers
