@@ -7,3 +7,10 @@ edition = "2021"
 
 [dependencies]
 bio = "*"
+heapless = "*"
+
+[profile.release]
+debug = true
+strip = "none"
+incremental = true
+split-debuginfo = "packed"

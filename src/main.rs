@@ -1,13 +1,13 @@
+#![warn(dead_code, unused_imports, unused_variables, deprecated_in_future)]
+
 use bio::alphabets;
 use bio::data_structures::bwt::{bwt, less, Less, Occ, BWT};
 use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::{suffix_array, RawSuffixArray};
 use bio::io::fasta;
 use bio::io::fasta::Records;
-use std::cmp::max;
 use std::fs::File;
 use std::io::BufReader;
-use std::thread::current;
 
 const REFERENCE_PATH: &str = "data/sc2_reference.fasta";
 const QUERY_PATH: &str = "data/sc2_query_long.fasta";
@@ -15,9 +15,22 @@ const QUERY_PATH: &str = "data/sc2_query_long.fasta";
 // const REFERENCE_PATH: &str = "/Users/corneliusromer/code/nextclade_data/data/datasets/rsv_a/references/EPI_ISL_412866/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 // const QUERY_PATH: &str = "//Users/corneliusromer/code/nextclade_data/data/datasets/rsv_b/references/EPI_ISL_1653999/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+pub fn increase_counter() {
+    COUNTER.fetch_add(1, Ordering::Relaxed);
+}
+
+pub fn read_counter() -> usize {
+    COUNTER.load(Ordering::Relaxed)
+}
+
 const SEED_MATCH_CONFIG: SeedMatchConfig = SeedMatchConfig {
     // Purposefully lax, to allow for some off-target matches
-    kmer_length: 6,       // Should not be much larger than 1/divergence of amino acids
+    kmer_length: 8,       // Should not be much larger than 1/divergence of amino acids
+    kmer_distance: 10,    // Distance between successive kmers
     min_match_length: 50, // Experimentally determined, to keep off-target matches reasonably low
     allowed_mismatches: 2, // Ns count as mismatches
     window_size: 8,
@@ -79,6 +92,7 @@ struct Index {
 
 struct SeedMatchConfig {
     kmer_length: usize,
+    kmer_distance: usize,
     min_match_length: usize,
     allowed_mismatches: usize,
     window_size: usize,
@@ -90,28 +104,6 @@ struct SeedMatch {
     qry_index: usize,
     length: usize,
     offset: isize,
-}
-
-impl SeedMatch {
-    fn offset(&self) -> isize {
-        self.ref_index as isize - self.qry_index as isize
-    }
-
-    fn shift(&self, other: &SeedMatch) -> isize {
-        self.offset() - other.offset()
-    }
-
-    fn qry_shift(&self, other: &SeedMatch) -> isize {
-        self.qry_index as isize - other.qry_index as isize
-    }
-
-    fn qry_end(&self) -> usize {
-        self.qry_index + self.length
-    }
-
-    fn ref_end(&self) -> usize {
-        self.ref_index + self.length
-    }
 }
 
 impl Index {
@@ -145,27 +137,33 @@ impl Index {
 
     /// Returns the starting indeces of all full matches of the query in the reference
     /// Returns an empty vector if no matches are found
-    fn full_matches(&self, query: &[u8]) -> Vec<usize> {
+    fn full_matches(&self, query: &[u8]) -> Option<Vec<usize>> {
         let backward_search_result = self.backward_search(query);
         match backward_search_result {
             BackwardSearchResult::Complete(suffix_array_interval) => {
-                suffix_array_interval.occ(&self.suffix_array)
+                Some(suffix_array_interval.occ(&self.suffix_array))
             }
-            _ => Vec::<usize>::new(),
+            _ => None,
         }
     }
 
     /// Returns matching index if there is exactly one match, otherwise returns None
     fn single_match(&self, kmer: &[u8]) -> Option<usize> {
         let matches = self.full_matches(kmer);
-        if matches.len() == 1 {
-            Some(matches[0])
-        } else {
-            None
+        if let Some(matches) = matches {
+            if matches.len() == 1 {
+                return Some(matches[0]);
+            }
         }
+        None
     }
 
     /// Given a seed, extends forwards and backwards and returns the extended seed
+    /// TODO: Cache extend results to avoid recomputing (dynamic programming)
+    /// Calculate windows for given offsets
+    /// kmer matches provide offsets to try
+    /// Iteratively extend, and don't recompute if next match is within window
+    #[inline(never)]
     fn extend_seed(
         &self,
         qry_seq: &[u8],
@@ -176,46 +174,59 @@ impl Index {
             mut ref_index,
             mut qry_index,
             mut length,
-            offset,
+            ..
         } = input_match.clone();
 
-        let mut mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
+        increase_counter();
+
+        let mut mismatch_queue = [false; 9];
+        let mut mismatch_queue_index = 0;
+
+        // let mut mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
 
         let mut forward_mismatches = 0;
 
+        let ref_seq_len = self.ref_seq.len();
+        let qry_seq_len = qry_seq.len();
+
         while forward_mismatches < config.allowed_mismatches
-            && ref_index + length < self.ref_seq.len()
-            && qry_index + length < qry_seq.len()
+            && ref_index + length < ref_seq_len
+            && qry_index + length < qry_seq_len
         {
-            if self.ref_seq[ref_index + length] != qry_seq[qry_index + length] {
-                forward_mismatches += 1;
-                mismatch_queue.push_back(true);
-            } else {
-                mismatch_queue.push_back(false);
+            if mismatch_queue[mismatch_queue_index] {
+                forward_mismatches = forward_mismatches.saturating_sub(1);
             }
 
-            if mismatch_queue.pop_front().unwrap() {
-                forward_mismatches -= 1;
+            if self.ref_seq[ref_index + length] != qry_seq[qry_index + length] {
+                forward_mismatches += 1;
+                mismatch_queue[mismatch_queue_index] = true;
+            } else {
+                mismatch_queue[mismatch_queue_index] = false;
             }
+
+            mismatch_queue_index = (mismatch_queue_index + 1) % config.window_size;
 
             length += 1;
         }
 
-        mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
+        mismatch_queue = [false; 9];
+
+        // mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
 
         let mut backward_mismatches = 0;
 
         while backward_mismatches < config.allowed_mismatches && ref_index > 0 && qry_index > 0 {
-            if self.ref_seq[ref_index - 1] != qry_seq[qry_index - 1] {
-                backward_mismatches += 1;
-                mismatch_queue.push_back(true);
-            } else {
-                mismatch_queue.push_back(false);
+            if mismatch_queue[mismatch_queue_index] {
+                backward_mismatches = backward_mismatches.saturating_sub(1);
             }
 
-            if mismatch_queue.pop_front().unwrap() {
-                backward_mismatches -= 1;
+            if self.ref_seq[ref_index - 1] != qry_seq[qry_index - 1] {
+                backward_mismatches += 1;
+                mismatch_queue[mismatch_queue_index] = true;
+            } else {
+                mismatch_queue[mismatch_queue_index] = false;
             }
+            mismatch_queue_index = (mismatch_queue_index + 1) % config.window_size;
 
             ref_index -= 1;
             qry_index -= 1;
@@ -232,7 +243,7 @@ impl Index {
 
     /// Returns an extended seed match if there is a match at the given qry_index
     /// qry_index is in qry_seq coordinates, transparent to skipping or not
-    /// Hence returns coordinates in the qry_seq frame
+    /// Hence returns coordinates in the qry_seq frme
     fn single_extended_match(
         &self,
         qry_seq: &[u8],
@@ -243,6 +254,7 @@ impl Index {
             return None;
         };
 
+        // TODO: Deal with multiple matches
         if let Some(ref_index) = self.single_match(&kmer) {
             Some(self.extend_seed(
                 qry_seq,
@@ -263,11 +275,6 @@ impl Index {
 struct CodonSpacedIndex {
     indexes: [Index; 3],
     ref_seq: Vec<u8>,
-}
-
-struct SkippedSequence {
-    sequence: Vec<u8>,
-    offset: usize,
 }
 
 // every third position of reference
@@ -301,6 +308,7 @@ impl CodonSpacedIndex {
             for (skipped_ref_offset, skipped_fm_index) in self.indexes.iter().enumerate() {
                 let mut skipped_qry_index = 0;
                 while skipped_qry_index < skipped_qry_seq.len() {
+                    // TODO: Separate matching and extension, so that extension can be done in natural coordinates
                     if let Some(skipped_seed_match) = skipped_fm_index.single_extended_match(
                         skipped_qry_seq,
                         skipped_qry_index,
@@ -323,7 +331,7 @@ impl CodonSpacedIndex {
                             });
                         }
                     }
-                    skipped_qry_index += 1;
+                    skipped_qry_index += config.kmer_distance;
                 }
             }
         }
@@ -332,6 +340,7 @@ impl CodonSpacedIndex {
 }
 
 /// Combine overlapping seed matches that have the same offset
+/// Don't combine because it blurs regions of low similarity
 fn combine_seeds(mut matches: Vec<SeedMatch>) -> Vec<SeedMatch> {
     matches.sort_by(|a, b| a.qry_index.cmp(&b.qry_index));
     matches.dedup();
@@ -369,6 +378,7 @@ fn combine_seeds(mut matches: Vec<SeedMatch>) -> Vec<SeedMatch> {
 /// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
 /// Right now, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
 /// Input matches are already merged
+/// TODO: Use binary search tree instead of vecs
 fn chain_seeds(matches: Vec<SeedMatch>) {
     #[derive(Clone, Copy, Debug)]
     struct Triplet {
@@ -525,6 +535,8 @@ fn main() {
     // Get chains of matches, need to optimize some loss function through dynamical programming
     // Especially tricky: duplications (like in RSV)
 
+    let mut counter = 0;
+
     let reference = read_fasta(REFERENCE_PATH).next().unwrap().unwrap();
     let query = read_fasta(QUERY_PATH);
 
@@ -567,4 +579,5 @@ fn main() {
         // Post process matches: join overlapping, remove short ones, remove outliers
         // Design windows based on joined matches, allowing bands, somewhat into the matches where there are gaps
     }
+    println!("Counter: {}", read_counter());
 }
