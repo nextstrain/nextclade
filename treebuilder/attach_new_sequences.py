@@ -80,7 +80,7 @@ def move(tree, nearest_node, private_nuc_mut, seq_name):
         if closeness == dist_nearest_node:
             ##should be attached to parent not nearest_node
             private_nuc_mut = remove_mut(private_nuc_mut, nearest_node.reversion_mutations)
-            move(nearest_node.up, private_nuc_mut, seq_name)
+            move(tree, nearest_node.up, private_nuc_mut, seq_name)
             return None
     
     max_closeness = closeness
