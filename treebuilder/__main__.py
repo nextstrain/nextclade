@@ -22,7 +22,7 @@ def get_args(argv):
     # Get the arguments from the command-line except the filename
     try:
         # Define the getopt parameters
-        opts, args = getopt.getopt(argv[1:], 'ht:d:r', ['ref_tree', 'data', 'ref_seq'])
+        opts, args = getopt.getopt(argv[1:], 'ht:d:r:', ['ref_tree', 'data', 'ref_seq'])
     except getopt.GetoptError:
         # Print something useful
         print (message)
@@ -60,6 +60,7 @@ def main():
     if ref_seq_fasta:
         ref_seq = AlignIO.read(ref_seq_fasta, 'fasta') 
         len_ref_seq = len(ref_seq[0].seq)
+        print("length of reference sequence is: "+ str(len_ref_seq))
     else:
         len_ref_seq = 1
 
