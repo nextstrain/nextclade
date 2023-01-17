@@ -1,8 +1,10 @@
 from Bio import Phylo
-from Bio.Phylo.BaseTree import Clade
-from . import nuc_mut_from_str, revert, nuc_mut_from_dict, remove_mut, shared_mut, get_branch_length
+from . import revert, nuc_mut_from_dict, remove_mut, shared_mut, get_branch_length
 
 def attach_new_sequences(tree, sequences_df):
+
+    ##extract sequence information from sequences_df
+    seq_list =  []
     for index, row in sequences_df.iterrows():
         new_private_nuc_mut = []
         new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['privateSubstitutions']])
@@ -10,7 +12,15 @@ def attach_new_sequences(tree, sequences_df):
         new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['reversionSubstitutions']])
         new_private_nuc_mut = sorted(list(set(new_private_nuc_mut)))
         nearest_node = tree.node_dictionary[row['nearestNodeId']]
-        move(tree, nearest_node, new_private_nuc_mut, row['seqName'])
+        seq_list.append([len(new_private_nuc_mut), row['seqName'], new_private_nuc_mut, nearest_node])
+    
+    ##sort list by number of private mutations
+    seq_list_sorted = [i[1:] for i in sorted(seq_list, key=lambda x:x[1])]
+    ##attach sequences to tree
+    for seq in seq_list_sorted:
+        attach_sequence_to_tree(tree, seq[2], seq[1], seq[0])
+    ##ladderize tree
+    tree.tree.ladderize()
 
 def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
     if nearest_node.is_terminal():
@@ -26,7 +36,7 @@ def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
         new_terminal_node.up = nearest_node
         new_terminal_node.clade_membership = new_terminal_node.up.clade_membership
         nearest_node.clades.append(new_terminal_node)
-    #print([m.__str__() for m in private_nuc_mut])
+    #add to nearest node
     new_clade =Phylo.Newick.Clade(name=str(seq_name)+"_new")
     tree.tree.MAX_id += 1
     new_clade.id  = tree.tree.MAX_id
@@ -40,7 +50,9 @@ def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
     return None
 
 def create_node_between_nodes(tree, top_node, bottom_node, new_shared_mut, up=True):
-    #print("creating node between nodes")
+    ##create new node between top_node and bottom node which shares reversion mutations 
+    ##with branch from top to bottom node if up=True and mutations with branch from top 
+    ##to bottom node if up=False
     tree.tree.MAX_id += 1
     new_node =Phylo.Newick.Clade(name="parent_"+str(tree.tree.MAX_id))
     new_node.id  = tree.tree.MAX_id
@@ -70,8 +82,8 @@ def create_node_between_nodes(tree, top_node, bottom_node, new_shared_mut, up=Tr
     bottom_node.up = new_node
     return new_node
 
-def move(tree, nearest_node, private_nuc_mut, seq_name):
-
+def attach_sequence_to_tree(tree, nearest_node, private_nuc_mut, seq_name):
+    ##initialize closest node to nearest node
     closer_node = nearest_node
 
     ##check if distance of new_seq to parent is less than nearest node's distance to parent
@@ -83,7 +95,7 @@ def move(tree, nearest_node, private_nuc_mut, seq_name):
         if closeness == dist_nearest_node:
             ##should be attached to parent not nearest_node
             private_nuc_mut = remove_mut(private_nuc_mut, nearest_node.reversion_mutations)
-            move(tree, nearest_node.up, private_nuc_mut, seq_name)
+            attach_sequence_to_tree(tree, nearest_node.up, private_nuc_mut, seq_name)
             return None
     
     max_closeness = closeness
@@ -102,7 +114,7 @@ def move(tree, nearest_node, private_nuc_mut, seq_name):
         if dist_nearest_node>0 and closeness == dist_nearest_node:
             ##should be attached to child not nearest_node
             private_nuc_mut =  remove_mut(private_nuc_mut, child.mutations)
-            move(tree, child, private_nuc_mut, seq_name)
+            attach_sequence_to_tree(tree, child, private_nuc_mut, seq_name)
             return None
     if max_closeness == 0:
         ##should be attached to nearest_node
