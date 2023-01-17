@@ -8,7 +8,7 @@ use bio::io::fasta;
 use bio::io::fasta::Records;
 use gcollections::ops::*;
 use interval::interval_set::*;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::fs::File;
 use std::io::BufReader;
 
@@ -18,25 +18,13 @@ const QUERY_PATH: &str = "data/sc2_query_long.fasta";
 // const REFERENCE_PATH: &str = "/Users/corneliusromer/code/nextclade_data/data/datasets/rsv_a/references/EPI_ISL_412866/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 // const QUERY_PATH: &str = "//Users/corneliusromer/code/nextclade_data/data/datasets/rsv_b/references/EPI_ISL_1653999/versions/2022-12-20T22:00:12Z/files/reference.fasta";
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-static COUNTER: AtomicUsize = AtomicUsize::new(0);
-
-pub fn increase_counter() {
-    COUNTER.fetch_add(1, Ordering::Relaxed);
-}
-
-pub fn read_counter() -> usize {
-    COUNTER.load(Ordering::Relaxed)
-}
-
 const SEED_MATCH_CONFIG: SeedMatchConfig = SeedMatchConfig {
     // Purposefully lax, to allow for some off-target matches
-    kmer_length: 10,    // Should not be much larger than 1/divergence of amino acids
-    kmer_distance: 100, // Distance between successive kmers
-    min_match_length: 30, // Experimentally determined, to keep off-target matches reasonably low
-    allowed_mismatches: 2, // Ns count as mismatches
-    window_size: 9,
+    kmer_length: 10,   // Should not be much larger than 1/divergence of amino acids
+    kmer_distance: 10, // Distance between successive kmers
+    min_match_length: 40, // Experimentally determined, to keep off-target matches reasonably low
+    allowed_mismatches: 8, // Ns count as mismatches
+    window_size: 30,
 };
 
 fn read_fasta(filename: &str) -> Records<BufReader<File>> {
@@ -89,7 +77,6 @@ impl<I: Iterator + Sized> IteratorSkipEveryExt for I {}
 
 struct Index {
     fm_index: FMIndex<BWT, Less, Occ>,
-    ref_seq: Vec<u8>,
     suffix_array: RawSuffixArray,
 }
 
@@ -116,6 +103,7 @@ impl Index {
 
         //Need to end the sequence that's indexed with the special/magic character `$`
         //otherwise the index doesn't work
+        // It's wasteful that I need to clone the ref just to append `$` -> issue in bio crate?
         reference.push(b'$');
 
         let suffix_array = suffix_array(&reference);
@@ -124,18 +112,10 @@ impl Index {
         let occ = Occ::new(&burrow_wheeler_transform, 1, &alphabet);
         let fm_index = FMIndex::new(burrow_wheeler_transform, less, occ);
 
-        reference.pop();
-
         Self {
             fm_index,
-            ref_seq: reference,
             suffix_array,
         }
-    }
-
-    /// Internal function to perform a backward search on the index
-    fn backward_search(&self, query: &[u8]) -> BackwardSearchResult {
-        self.fm_index.backward_search(query.iter())
     }
 
     /// Returns the starting indeces of all full matches of the query in the reference
@@ -144,7 +124,7 @@ impl Index {
         if query.iter().any(|&x| x == b'N') {
             return None;
         }
-        let backward_search_result = self.backward_search(query);
+        let backward_search_result = self.fm_index.backward_search(query.iter());
         match backward_search_result {
             BackwardSearchResult::Complete(suffix_array_interval) => {
                 Some(suffix_array_interval.occ(&self.suffix_array))
@@ -152,93 +132,71 @@ impl Index {
             _ => None,
         }
     }
-
-    /// Returns matching index if there is exactly one match, otherwise returns None
-    fn single_match(&self, kmer: &[u8]) -> Option<usize> {
-        let matches = self.full_matches(kmer);
-        if let Some(matches) = matches {
-            if matches.len() == 1 {
-                return Some(matches[0]);
-            }
-        }
-        None
-    }
 }
 
-fn extend_seed(
-    qry_seq: &[u8],
-    ref_seq: &[u8],
-    input_match: &SeedMatch,
-    config: &SeedMatchConfig,
-) -> SeedMatch {
-    let SeedMatch {
-        mut ref_index,
-        mut qry_index,
-        mut length,
-        ..
-    } = input_match.clone();
+impl SeedMatch {
+    fn extend_seed(&self, qry_seq: &[u8], ref_seq: &[u8], config: &SeedMatchConfig) -> SeedMatch {
+        let SeedMatch {
+            mut ref_index,
+            mut qry_index,
+            mut length,
+            ..
+        } = self.clone();
 
-    increase_counter();
+        let ref_seq_len = ref_seq.len();
+        let qry_seq_len = qry_seq.len();
 
-    let mut mismatch_queue = [false; 9];
-    let mut mismatch_queue_index = 0;
+        let mut mismatch_queue = VecDeque::from(vec![false; config.window_size]);
 
-    // let mut mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
+        let mut forward_mismatches = 0;
 
-    let mut forward_mismatches = 0;
+        while forward_mismatches < config.allowed_mismatches
+            && ref_index + length < ref_seq_len
+            && qry_index + length < qry_seq_len
+        {
+            if mismatch_queue.pop_front().unwrap() {
+                forward_mismatches = forward_mismatches.saturating_sub(1);
+            }
 
-    let ref_seq_len = ref_seq.len();
-    let qry_seq_len = qry_seq.len();
+            if ref_seq[ref_index + length] != qry_seq[qry_index + length] {
+                forward_mismatches += 1;
+                mismatch_queue.push_back(true);
+            } else {
+                mismatch_queue.push_back(false);
+            }
 
-    while forward_mismatches < config.allowed_mismatches
-        && ref_index + length < ref_seq_len
-        && qry_index + length < qry_seq_len
-    {
-        if mismatch_queue[mismatch_queue_index] {
-            forward_mismatches = forward_mismatches.saturating_sub(1);
+            length += 1;
         }
 
-        if ref_seq[ref_index + length] != qry_seq[qry_index + length] {
-            forward_mismatches += 1;
-            mismatch_queue[mismatch_queue_index] = true;
-        } else {
-            mismatch_queue[mismatch_queue_index] = false;
+        mismatch_queue = VecDeque::from(vec![false; config.window_size]);
+
+        let mut backward_mismatches = 0;
+
+        while backward_mismatches < config.allowed_mismatches && ref_index > 0 && qry_index > 0 {
+            if mismatch_queue.pop_front().unwrap() {
+                backward_mismatches = backward_mismatches.saturating_sub(1);
+            }
+
+            if ref_seq[ref_index - 1] != qry_seq[qry_index - 1] {
+                backward_mismatches += 1;
+                mismatch_queue.push_back(true);
+            } else {
+                mismatch_queue.push_back(false);
+            }
+
+            ref_index -= 1;
+            qry_index -= 1;
+            length += 1;
         }
 
-        mismatch_queue_index = (mismatch_queue_index + 1) % config.window_size;
+        length = length.saturating_sub(2 * config.window_size);
 
-        length += 1;
-    }
-
-    mismatch_queue = [false; 9];
-
-    // mismatch_queue = std::collections::VecDeque::from(vec![false; config.window_size]);
-
-    let mut backward_mismatches = 0;
-
-    while backward_mismatches < config.allowed_mismatches && ref_index > 0 && qry_index > 0 {
-        if mismatch_queue[mismatch_queue_index] {
-            backward_mismatches = backward_mismatches.saturating_sub(1);
+        SeedMatch {
+            ref_index,
+            qry_index,
+            length,
+            offset: self.offset,
         }
-
-        if ref_seq[ref_index - 1] != qry_seq[qry_index - 1] {
-            backward_mismatches += 1;
-            mismatch_queue[mismatch_queue_index] = true;
-        } else {
-            mismatch_queue[mismatch_queue_index] = false;
-        }
-        mismatch_queue_index = (mismatch_queue_index + 1) % config.window_size;
-
-        ref_index -= 1;
-        qry_index -= 1;
-        length += 1;
-    }
-
-    SeedMatch {
-        qry_index: qry_index + config.window_size,
-        ref_index: ref_index + config.window_size,
-        length: length.saturating_sub(2 * config.window_size),
-        offset: ref_index as isize - qry_index as isize,
     }
 }
 
@@ -278,8 +236,6 @@ impl CodonSpacedIndex {
             for (skipped_ref_offset, skipped_fm_index) in self.indexes.iter().enumerate() {
                 let mut skipped_qry_index = 0;
                 while skipped_qry_index + config.kmer_length < skipped_qry_seq.len() {
-                    // TODO: Separate matching and extension, so that extension can be done in natural coordinates
-                    // TODO: Move forward by kmer length if non-ACTG found
                     if let Some(skipped_seed_matches) = skipped_fm_index.full_matches(
                         &skipped_qry_seq
                             [skipped_qry_index..(skipped_qry_index + config.kmer_length)],
@@ -308,10 +264,6 @@ impl CodonSpacedIndex {
     fn extended_matches(&self, qry_seq: &[u8], config: &SeedMatchConfig) -> Vec<SeedMatch> {
         let index_matches = self.index_matches(qry_seq, config);
 
-        // map from offset (isize) -> [map of (qrypos -> length)]
-        // TODO: Design smart range datastructure that can
-        // 1. Check if point is in a range
-        // 2. Add range, and ensure there's no overlap
         let mut matches = BTreeMap::<isize, IntervalSet<usize>>::new();
 
         for index_match in index_matches {
@@ -336,12 +288,7 @@ impl CodonSpacedIndex {
                 }
             }
 
-            // TODO: Adjust extend_seed to work in this context
-            let extended_match = extend_seed(qry_seq, &self.ref_seq, &index_match, config);
-
-            if extended_match.length < config.min_match_length {
-                // continue;
-            }
+            let extended_match = index_match.extend_seed(qry_seq, &self.ref_seq, config);
 
             // Insert extended range into matches map
             // Simple case if there's no good range with this offset yet
@@ -357,8 +304,6 @@ impl CodonSpacedIndex {
             // Get ranges overlapped by extended match
             } else {
                 let good_ranges = matches.get(&index_match.offset).unwrap();
-                // println!("before: {:?}", good_ranges);
-                // println!("added: {:?}", extended_match);
                 matches.insert(
                     index_match.offset,
                     vec![(
@@ -368,12 +313,10 @@ impl CodonSpacedIndex {
                     .to_interval_set()
                     .union(good_ranges),
                 );
-                // println!("after: {}", matches.get(&index_match.offset).unwrap());
             }
         }
 
         // Transform to Vec<SeedMatch>
-
         matches
             .iter()
             .flat_map(|(offset, intervals)| {
@@ -387,14 +330,14 @@ impl CodonSpacedIndex {
                     })
                     .collect::<Vec<SeedMatch>>()
             })
-            .collect::<Vec<SeedMatch>>()
+            .collect()
     }
 }
 
 /// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
 /// Right now, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
 /// Input matches are already merged
-/// TODO: Use binary search tree instead of vecs
+/// Optional TODO: Use binary search tree instead of vecs
 fn chain_seeds(matches: Vec<SeedMatch>) {
     #[derive(Clone, Copy, Debug)]
     struct Triplet {
@@ -550,8 +493,6 @@ fn main() {
     // Optional: extension around the edges of matches, allow partial mismatches and extend from there - start with accepting only full matches
     // Get chains of matches, need to optimize some loss function through dynamical programming
     // Especially tricky: duplications (like in RSV)
-
-    let mut counter = 0;
 
     let reference = read_fasta(REFERENCE_PATH).next().unwrap().unwrap();
     let query = read_fasta(QUERY_PATH);
