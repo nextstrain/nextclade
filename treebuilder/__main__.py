@@ -14,23 +14,25 @@ from . import attach_new_sequences
 from . import write_new_json
 
 def get_args(argv):
+    message = """treebuilder -t <ref_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>,
+            if no reference sequence is provided, the length of the reference sequence will be set to 1"""
     reference_tree = None
     data = None
     reference_seq = None
     # Get the arguments from the command-line except the filename
     try:
         # Define the getopt parameters
-        opts, args = getopt.getopt(argv[1:], 'ht:d:r:', ['ref_tree', 'data', 'ref_seq'])
+        opts, args = getopt.getopt(argv[1:], 'ht:d:r', ['ref_tree', 'data', 'ref_seq'])
     except getopt.GetoptError:
         # Print something useful
-        print ('usage: treebuilder -t <ref_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>')
+        print (message)
         sys.exit(2)
-    if len(opts) <3:
-        print ('usage: treebuilder -t <reference_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>')
+    if len(opts) <2:
+        print (message)
         sys.exit()
     for opt, arg in opts:
         if opts == '-h':
-            print ('usage: treebuilder -t <reference_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>')
+            print (message)
             sys.exit()
         elif opt in ("-t", "--ref_tree"):
             reference_tree = arg
@@ -39,7 +41,7 @@ def get_args(argv):
         elif opt in ("-r", "--ref_seq"):
             reference_seq = arg
         else:
-            print ('usage: treebuilder -t <reference_tree_json> -d <new_sequences_data_ndjson> -r <reference_sequence_fasta>')
+            print (message)
             sys.exit()
 
     return reference_tree, data, reference_seq
@@ -55,8 +57,11 @@ def main():
     tree_json_as_dict = json.load(open(ref_tree_json))
 
     #Get length of reference sequence
-    ref_seq = AlignIO.read(ref_seq_fasta, 'fasta') 
-    len_ref_seq = len(ref_seq[0].seq)
+    if ref_seq_fasta:
+        ref_seq = AlignIO.read(ref_seq_fasta, 'fasta') 
+        len_ref_seq = len(ref_seq[0].seq)
+    else:
+        len_ref_seq = 1
 
     nc_tree = NextcladeTree(tree_json_as_dict, seq_length=len_ref_seq)
     #import ipdb; ipdb.set_trace()

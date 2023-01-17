@@ -50,3 +50,10 @@ def shared_mut(mutations_vector_1, mutations_vector_2):
 def remove_mut(mutations_vector_1, mutations_vector_2):
     mutations_vector_wo_2 = [ x for x in mutations_vector_1 if (x in mutations_vector_2)==False]
     return mutations_vector_wo_2
+
+def get_branch_length(mutations_vector, len_ref_seq):
+    branch_length = 0
+    for mut in mutations_vector:
+        if mut.qry != '-':
+            branch_length += 1
+    return branch_length/len_ref_seq

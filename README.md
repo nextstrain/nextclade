@@ -11,8 +11,16 @@ nextclade run --input-dataset data/ --output-all=output data/sequences.fasta
 This will generate a new tree `nextclade.auspice.json` where sequences have been attached to the nearest node in the reference tree. The `.ndjson` contains information about which node each sequence was attached to, and mutations from that node in the reference tree to the newly attached sequence node (so called private mutations). An example can be seen in the `test_data` folder. 
 
 We use these files as input to compute an optimal location of each new sequence node by moving locally up and down in the tree from that attached node. 
-Using the command: 
+If the branch lengths of the tree should be calculated by dividing by the length of the reference sequence this needs to be supplied with the `-r` argument, otherwise the mutation count will be used for branch length.
+
+Use the command: 
 ```
 treebuilder -t test_data/tree.json -d test_data/nextclade.ndjson -r test_data/reference.fasta 
 ```
-This new tree is returned as: `output_tree.json`. 
+Or alternatively the command:
+```
+treebuilder -t test_data/tree.json -d test_data/nextclade.ndjson
+```
+for trees with branch length = mutation count. 
+
+The new tree is returned as: `output_tree.json`. 

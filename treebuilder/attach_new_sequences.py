@@ -1,6 +1,6 @@
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Clade
-from . import nuc_mut_from_str, revert, nuc_mut_from_dict, remove_mut, shared_mut
+from . import nuc_mut_from_str, revert, nuc_mut_from_dict, remove_mut, shared_mut, get_branch_length
 
 def attach_new_sequences(tree, sequences_df):
     for index, row in sequences_df.iterrows():
@@ -15,11 +15,12 @@ def attach_new_sequences(tree, sequences_df):
 def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
     if nearest_node.is_terminal():
         #node is terminal - make internal and create dummy new terminal node
-        nearest_node.name = str(nearest_node.name)+"_internal"
         new_terminal_node =Phylo.Newick.Clade(name=nearest_node.name)
+        nearest_node.name = str(nearest_node.name)+"_internal"
         tree.tree.MAX_id += 1
         new_terminal_node.id  = tree.tree.MAX_id
         new_terminal_node.branch_length = 0
+        new_terminal_node.div = nearest_node.div
         new_terminal_node.mutations = []
         new_terminal_node.reversion_mutations = []
         new_terminal_node.up = nearest_node
@@ -29,7 +30,8 @@ def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
     new_clade =Phylo.Newick.Clade(name=str(seq_name)+"_new")
     tree.tree.MAX_id += 1
     new_clade.id  = tree.tree.MAX_id
-    new_clade.branch_length = len(private_nuc_mut)/tree.len_ref_seq
+    new_clade.branch_length = get_branch_length(private_nuc_mut, tree.len_ref_seq)
+    new_clade.div = nearest_node.div + new_clade.branch_length
     new_clade.mutations = private_nuc_mut
     new_clade.reversion_mutations = [revert(m) for m in new_clade.mutations]
     new_clade.up = nearest_node
@@ -39,8 +41,8 @@ def attach_node(tree, nearest_node, private_nuc_mut, seq_name):
 
 def create_node_between_nodes(tree, top_node, bottom_node, new_shared_mut, up=True):
     #print("creating node between nodes")
-    new_node =Phylo.Newick.Clade(name="parent_"+str(tree.tree.MAX_id))
     tree.tree.MAX_id += 1
+    new_node =Phylo.Newick.Clade(name="parent_"+str(tree.tree.MAX_id))
     new_node.id  = tree.tree.MAX_id
     new_node.up = top_node
     new_node.clade_membership = new_node.up.clade_membership
@@ -58,8 +60,9 @@ def create_node_between_nodes(tree, top_node, bottom_node, new_shared_mut, up=Tr
         new_bottom_node_mut = remove_mut(bottom_node.mutations, new_shared_mut)
         bottom_node.mutations = new_bottom_node_mut
         bottom_node.reversion_mutations = [revert(m) for m in bottom_node.mutations]
-    new_node.branch_length = len(new_node.mutations)/tree.len_ref_seq
-    bottom_node.branch_length = len(bottom_node.mutations)/tree.len_ref_seq
+    new_node.branch_length = get_branch_length(new_node.mutations, tree.len_ref_seq)
+    new_node.div = top_node.div + new_node.branch_length
+    bottom_node.branch_length = get_branch_length(bottom_node.mutations, tree.len_ref_seq) 
     ##correct links to nodes
     top_node.clades.remove(bottom_node)
     top_node.clades.append(new_node)

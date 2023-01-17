@@ -15,6 +15,7 @@ class NextcladeTree(object):
         tree.root = Phylo.Newick.Clade(name=tree_json['tree']['name'])
         tree.root.id = 0
         tree.MAX_id = 0
+        tree.root.div = tree_json['tree']['node_attrs']['div']
         tree.root.branch_length = tree_json['tree']['node_attrs']['div']
         tree.root.clade_membership =  tree_json['tree']["node_attrs"]["clade_membership"]["value"]
         if 'nuc' in tree_json['tree']['branch_attrs']['mutations'].keys():
@@ -33,7 +34,8 @@ class NextcladeTree(object):
                 self.tree.MAX_id += 1
                 new_clade =Phylo.Newick.Clade(name=child['name'])
                 new_clade.id  = self.tree.MAX_id
-                new_clade.branch_length = child['node_attrs']['div'] - clade.branch_length
+                new_clade.div = child['node_attrs']['div'] 
+                new_clade.branch_length = child['node_attrs']['div'] - clade.div
                 new_clade.clade_membership = child["node_attrs"]["clade_membership"]["value"]
                 if 'nuc' in child['branch_attrs']['mutations'].keys():
                     new_clade.mutations = [nuc_mut_from_str(m) for m in child['branch_attrs']['mutations']['nuc']]
