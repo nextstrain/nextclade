@@ -22,7 +22,7 @@ pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
 pub struct AuspiceTreeEdge; // Edge payload is empty. Branch attributes are currently stored on nodes.
 
 impl AuspiceTreeEdge {
-  pub fn new() -> Self {
+  pub const fn new() -> Self {
     Self {}
   }
 }

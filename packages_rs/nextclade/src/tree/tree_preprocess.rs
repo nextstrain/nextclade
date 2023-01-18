@@ -47,7 +47,6 @@ pub fn tree_preprocess_in_place(
   graph.build()
 }
 
-
 pub fn tree_preprocess_in_place_impl_recursive(
   node: &mut AuspiceTreeNode,
   parent_nuc_muts: &mut BTreeMap<usize, Nuc>,

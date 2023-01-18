@@ -10,7 +10,8 @@ use crate::io::nextclade_csv::{
 };
 use crate::make_internal_report;
 use crate::tree::tree::{
-  AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE, AuspiceTreeEdge,
+  AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
+  AUSPICE_UNKNOWN_VALUE,
 };
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
@@ -80,40 +81,6 @@ pub fn create_new_auspice_node(result: &NextcladeOutputs) -> AuspiceTreeNode {
   }
 }
 
-fn create_empty_auspice_node(name: String) -> AuspiceTreeNode{
-  AuspiceTreeNode {
-    name: name,
-    branch_attrs: TreeBranchAttrs {
-      mutations: Default::default(),
-      other: Default::default(),
-    },
-    node_attrs: TreeNodeAttrs {
-      div: None,
-      clade_membership: TreeNodeAttr {
-        value: "FAKE".to_string(),
-        other: Default::default(),
-      },
-      node_type: None,
-      region: None,
-      country: None,
-      division: None,
-      alignment: None,
-      missing: None,
-      gaps: None,
-      non_acgtns: None,
-      has_pcr_primer_changes: None,
-      pcr_primer_changes: None,
-      qc_status: None,
-      missing_genes: None,
-      other: Default::default(),
-    },
-    children: vec![],
-    tmp: Default::default(),
-    other: Default::default(),
-  }
-
-}
-
 use super::tree::AuspiceGraph;
 
 pub fn graph_attach_new_nodes_in_place(graph: &mut AuspiceGraph, results: &[NextcladeOutputs]) {
@@ -122,26 +89,38 @@ pub fn graph_attach_new_nodes_in_place(graph: &mut AuspiceGraph, results: &[Next
     let id = result.nearest_node_id;
     //check node exists in tree
     let node = graph
-    .get_node(GraphNodeKey::new(id )).ok_or_else(|| make_internal_report!("Node with id '{id}' expected to exist, but not found"));
-    //check if node is terminal 
-    let (is_terminal, name) = match node {
-      Ok(n) => (n.is_leaf(), n.payload().name.clone()),
-      Err(e) => panic!("Cannot find nearest node: {:?}", e),
+      .get_node(GraphNodeKey::new(id))
+      .ok_or_else(|| make_internal_report!("Node with id '{id}' expected to exist, but not found"));
+    //check if node is terminal
+    let (is_terminal, new_node) = match node {
+      Ok(n) => (n.is_leaf(), n.payload().clone()),
+      Err(e) => panic!("Cannot find nearest node: {e:?}"),
     };
+    //if nearest_node is terminal create dummy empty terminal node with nearest_node's name (so that nearest_node) stays a terminal)
+    //and attach new node to nearest_node (same id, now called {name}_parent)
     if is_terminal {
-      let target = graph.get_node_mut(GraphNodeKey::new(id )).unwrap().payload_mut();
-      target.name = (target.name.clone()+"_internal").to_owned();
-      let new_terminal_node: AuspiceTreeNode = create_empty_auspice_node(name);
+      let target = graph.get_node_mut(GraphNodeKey::new(id)).unwrap().payload_mut();
+      target.name = format!("{}_parent", target.name);
+
+      let mut new_terminal_node = new_node;
+      new_terminal_node.branch_attrs.mutations.clear();
+      new_terminal_node.branch_attrs.other = serde_json::Value::default();
+
       let new_terminal_key = graph.add_node(new_terminal_node);
-      graph.add_edge(GraphNodeKey::new(id ), new_terminal_key, AuspiceTreeEdge::new()).map_err(|err| println!("{:?}", err)).ok();
-      
+      graph
+        .add_edge(GraphNodeKey::new(id), new_terminal_key, AuspiceTreeEdge::new())
+        .map_err(|err| println!("{err:?}"))
+        .ok();
     }
     //Attach only to a reference node.
     let new_graph_node: AuspiceTreeNode = create_new_auspice_node(result);
-            
+
     // Create and add the new node to the graph. This node will not be connected to anything yet.
     let new_node_key = graph.add_node(new_graph_node);
-    graph.add_edge(GraphNodeKey::new(id ), new_node_key, AuspiceTreeEdge::new()).map_err(|err| println!("{:?}", err)).ok();
+    graph
+      .add_edge(GraphNodeKey::new(id), new_node_key, AuspiceTreeEdge::new())
+      .map_err(|err| println!("{err:?}"))
+      .ok();
   }
 }
 
@@ -191,10 +170,7 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
 fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
   let new_node = create_new_auspice_node(result);
 
-  node.children.insert(
-    0,
-    new_node,
-  );
+  node.children.insert(0, new_node);
 }
 
 fn convert_mutations_to_node_branch_attrs(result: &NextcladeOutputs) -> BTreeMap<String, Vec<String>> {

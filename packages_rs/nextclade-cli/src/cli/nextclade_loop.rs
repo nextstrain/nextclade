@@ -17,14 +17,14 @@ use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
-use nextclade::tree::tree::AuspiceTreeNode;
-use nextclade::{make_error, make_internal_report};
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree_attach_new_nodes::{tree_attach_new_nodes_in_place, graph_attach_new_nodes_in_place};
+use nextclade::tree::tree::AuspiceTreeNode;
+use nextclade::tree::tree_attach_new_nodes::{graph_attach_new_nodes_in_place, tree_attach_new_nodes_in_place};
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::{make_error, make_internal_report};
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
@@ -268,9 +268,9 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
     tree_g.tree = root;
 
-    json_write("graph_tree.json", &tree_g)?;
-  }
-  if let Some(output_tree) = output_tree {
+    let graph_tree_name = output_tree.with_extension("graph.json");
+    json_write(graph_tree_name, &tree_g)?;
+
     tree_attach_new_nodes_in_place(&mut tree, &outputs);
     json_write(output_tree, &tree)?;
   }

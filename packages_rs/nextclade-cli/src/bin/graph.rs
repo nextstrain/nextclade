@@ -4,12 +4,13 @@ use eyre::{Report, WrapErr};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::graph::graph::convert_graph_to_auspice_tree;
 use nextclade::graph::node::GraphNodeKey;
+use nextclade::io::json::json_parse;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::to_nuc_seq;
 use nextclade::make_internal_report;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::{
-  AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs,
+  AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
 };
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::utils::global_init::{global_init, setup_logger};
@@ -18,6 +19,7 @@ use nextclade_cli::cli::nextclade_cli::{
 };
 use nextclade_cli::cli::nextclade_loop::nextclade_get_inputs;
 use nextclade_cli::dataset::dataset_download::DatasetFiles;
+use serde_json::Value;
 
 #[ctor]
 fn init() {
@@ -137,14 +139,14 @@ fn create_absolute_nonsense_fake_auspice_node() -> AuspiceTreeNode {
   AuspiceTreeNode {
     name: "FAKE".to_owned(),
     branch_attrs: TreeBranchAttrs {
-      mutations: Default::default(),
-      other: Default::default(),
+      mutations: std::collections::BTreeMap::default(),
+      other: serde_json::Value::default(),
     },
     node_attrs: TreeNodeAttrs {
       div: None,
       clade_membership: TreeNodeAttr {
-        value: "FAKE".to_string(),
-        other: Default::default(),
+        value: "FAKE".to_owned(),
+        other: serde_json::Value::default(),
       },
       node_type: None,
       region: None,
@@ -158,10 +160,10 @@ fn create_absolute_nonsense_fake_auspice_node() -> AuspiceTreeNode {
       pcr_primer_changes: None,
       qc_status: None,
       missing_genes: None,
-      other: Default::default(),
+      other: serde_json::Value::default(),
     },
     children: vec![],
-    tmp: Default::default(),
-    other: Default::default(),
+    tmp: TreeNodeTempData::default(),
+    other: serde_json::Value::default(),
   }
 }
