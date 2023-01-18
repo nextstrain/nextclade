@@ -1,6 +1,6 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
-use crate::analyze::letter_ranges::NucRange;
+use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
@@ -56,6 +56,8 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "aaSubstitutions",
   "aaDeletions",
   "aaInsertions",
+  "unknownAaRanges",
+  "totalUnknownAa",
   "missing",
   "nonACGTNs",
   "pcrPrimerChanges",
@@ -162,8 +164,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       total_aminoacid_deletions,
       aa_insertions,
       total_aminoacid_insertions,
-      // unknown_aa_ranges,
-      // total_unknown_aa,
+      unknown_aa_ranges,
+      total_unknown_aa,
       alignment_start,
       alignment_end,
       alignment_score,
@@ -207,6 +209,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     )?;
     self.add_entry("totalAminoacidDeletions", &total_aminoacid_deletions.to_string())?;
     self.add_entry("totalAminoacidInsertions", &total_aminoacid_insertions.to_string())?;
+    self.add_entry("totalUnknownAa", &total_unknown_aa.to_string())?;
     self.add_entry("totalMissing", &total_missing.to_string())?;
     self.add_entry("totalNonACGTNs", &total_non_acgtns.to_string())?;
     self.add_entry("totalPcrPrimerChanges", &total_pcr_primer_changes.to_string())?;
@@ -253,6 +256,10 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry(
       "aaInsertions",
       &format_aa_insertions(aa_insertions, ARRAY_ITEM_DELIMITER),
+    )?;
+    self.add_entry(
+      "unknownAaRanges",
+      &format_unknown_aa_ranges(unknown_aa_ranges, ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry("missing", &format_missings(missing, ARRAY_ITEM_DELIMITER))?;
     self.add_entry("nonACGTNs", &format_non_acgtns(non_acgtns, ARRAY_ITEM_DELIMITER))?;
@@ -561,6 +568,19 @@ pub fn format_aa_insertion(AaIns { gene, ins, pos }: &AaIns) -> String {
 #[inline]
 pub fn format_aa_insertions(insertions: &[AaIns], delimiter: &str) -> String {
   insertions.iter().map(format_aa_insertion).join(delimiter)
+}
+
+#[inline]
+pub fn format_unknown_aa_ranges(unknown_aa_ranges: &[GeneAaRange], delimiter: &str) -> String {
+  unknown_aa_ranges
+    .iter()
+    .flat_map(|GeneAaRange { gene_name, ranges, .. }: &GeneAaRange| {
+      ranges.iter().map(move |range| {
+        let range_str = range.to_range().to_string();
+        format!("{gene_name}:{range_str}")
+      })
+    })
+    .join(delimiter)
 }
 
 #[inline]
