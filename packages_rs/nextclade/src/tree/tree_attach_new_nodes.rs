@@ -4,11 +4,13 @@ use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
+use crate::graph::node::{GraphNodeKey, Node};
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
+use crate::make_internal_report;
 use crate::tree::tree::{
-  AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
+  AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE, AuspiceTreeEdge,
 };
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
@@ -18,6 +20,129 @@ use std::collections::BTreeMap;
 
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
   tree_attach_new_nodes_impl_in_place_recursive(&mut tree.tree, results);
+}
+
+pub fn create_new_auspice_node(result: &NextcladeOutputs) -> AuspiceTreeNode {
+  let mutations = convert_mutations_to_node_branch_attrs(result);
+
+  let alignment = format!(
+    "start: {}, end: {} (score: {})",
+    result.alignment_start, result.alignment_end, result.alignment_score
+  );
+
+  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
+    (Some(TreeNodeAttr::new("No")), None)
+  } else {
+    (
+      Some(TreeNodeAttr::new("Yes")),
+      Some(TreeNodeAttr::new(&format_pcr_primer_changes(
+        &result.pcr_primer_changes,
+        ", ",
+      ))),
+    )
+  };
+
+  #[allow(clippy::from_iter_instead_of_collect)]
+  let other = serde_json::Value::from_iter(
+    result
+      .custom_node_attributes
+      .clone()
+      .into_iter()
+      .map(|(key, val)| (key, json!({ "value": val }))),
+  );
+
+  AuspiceTreeNode {
+    name: format!("{}_new", result.seq_name),
+    branch_attrs: TreeBranchAttrs {
+      mutations,
+      other: serde_json::Value::default(),
+    },
+    node_attrs: TreeNodeAttrs {
+      div: Some(result.divergence),
+      clade_membership: TreeNodeAttr::new(&result.clade),
+      node_type: Some(TreeNodeAttr::new("New")),
+      region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+      country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+      division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+      alignment: Some(TreeNodeAttr::new(&alignment)),
+      missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
+      gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
+      non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
+      has_pcr_primer_changes,
+      pcr_primer_changes,
+      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
+      qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
+      other,
+    },
+    children: vec![],
+    tmp: TreeNodeTempData::default(),
+    other: serde_json::Value::default(),
+  }
+}
+
+fn create_empty_auspice_node(name: String) -> AuspiceTreeNode{
+  AuspiceTreeNode {
+    name: name,
+    branch_attrs: TreeBranchAttrs {
+      mutations: Default::default(),
+      other: Default::default(),
+    },
+    node_attrs: TreeNodeAttrs {
+      div: None,
+      clade_membership: TreeNodeAttr {
+        value: "FAKE".to_string(),
+        other: Default::default(),
+      },
+      node_type: None,
+      region: None,
+      country: None,
+      division: None,
+      alignment: None,
+      missing: None,
+      gaps: None,
+      non_acgtns: None,
+      has_pcr_primer_changes: None,
+      pcr_primer_changes: None,
+      qc_status: None,
+      missing_genes: None,
+      other: Default::default(),
+    },
+    children: vec![],
+    tmp: Default::default(),
+    other: Default::default(),
+  }
+
+}
+
+use super::tree::AuspiceGraph;
+
+pub fn graph_attach_new_nodes_in_place(graph: &mut AuspiceGraph, results: &[NextcladeOutputs]) {
+  // Look for a query sample result for which this node was decided to be nearest
+  for result in results {
+    let id = result.nearest_node_id;
+    //check node exists in tree
+    let node = graph
+    .get_node(GraphNodeKey::new(id )).ok_or_else(|| make_internal_report!("Node with id '{id}' expected to exist, but not found"));
+    //check if node is terminal 
+    let (is_terminal, name) = match node {
+      Ok(n) => (n.is_leaf(), n.payload().name.clone()),
+      Err(e) => panic!("Cannot find nearest node: {:?}", e),
+    };
+    if is_terminal {
+      let target = graph.get_node_mut(GraphNodeKey::new(id )).unwrap().payload_mut();
+      target.name = (target.name.clone()+"_internal").to_owned();
+      let new_terminal_node: AuspiceTreeNode = create_empty_auspice_node(name);
+      let new_terminal_key = graph.add_node(new_terminal_node);
+      graph.add_edge(GraphNodeKey::new(id ), new_terminal_key, AuspiceTreeEdge::new()).map_err(|err| println!("{:?}", err)).ok();
+      
+    }
+    //Attach only to a reference node.
+    let new_graph_node: AuspiceTreeNode = create_new_auspice_node(result);
+            
+    // Create and add the new node to the graph. This node will not be connected to anything yet.
+    let new_node_key = graph.add_node(new_graph_node);
+    graph.add_edge(GraphNodeKey::new(id ), new_node_key, AuspiceTreeEdge::new()).map_err(|err| println!("{:?}", err)).ok();
+  }
 }
 
 fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs]) {
@@ -64,63 +189,11 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
 }
 
 fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  let mutations = convert_mutations_to_node_branch_attrs(result);
-
-  let alignment = format!(
-    "start: {}, end: {} (score: {})",
-    result.alignment_start, result.alignment_end, result.alignment_score
-  );
-
-  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
-    (Some(TreeNodeAttr::new("No")), None)
-  } else {
-    (
-      Some(TreeNodeAttr::new("Yes")),
-      Some(TreeNodeAttr::new(&format_pcr_primer_changes(
-        &result.pcr_primer_changes,
-        ", ",
-      ))),
-    )
-  };
-
-  #[allow(clippy::from_iter_instead_of_collect)]
-  let other = serde_json::Value::from_iter(
-    result
-      .custom_node_attributes
-      .clone()
-      .into_iter()
-      .map(|(key, val)| (key, json!({ "value": val }))),
-  );
+  let new_node = create_new_auspice_node(result);
 
   node.children.insert(
     0,
-    AuspiceTreeNode {
-      name: format!("{}_new", result.seq_name),
-      branch_attrs: TreeBranchAttrs {
-        mutations,
-        other: serde_json::Value::default(),
-      },
-      node_attrs: TreeNodeAttrs {
-        div: Some(result.divergence),
-        clade_membership: TreeNodeAttr::new(&result.clade),
-        node_type: Some(TreeNodeAttr::new("New")),
-        region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-        country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-        division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-        alignment: Some(TreeNodeAttr::new(&alignment)),
-        missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
-        gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
-        non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
-        has_pcr_primer_changes,
-        pcr_primer_changes,
-        missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
-        qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
-        other,
-      },
-      children: vec![],
-      tmp: TreeNodeTempData::default(),
-      other: serde_json::Value::default(),
-    },
+    new_node,
   );
 }
 

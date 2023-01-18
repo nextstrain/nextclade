@@ -11,15 +11,18 @@ use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
+use nextclade::graph::graph::convert_graph_to_auspice_tree;
+use nextclade::graph::node::GraphNodeKey;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
-use nextclade::make_error;
+use nextclade::tree::tree::AuspiceTreeNode;
+use nextclade::{make_error, make_internal_report};
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::tree_attach_new_nodes::{tree_attach_new_nodes_in_place, graph_attach_new_nodes_in_place};
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use std::path::PathBuf;
@@ -258,7 +261,15 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       }
     });
   });
+  let mut tree_g = tree.clone();
+  let mut graph = tree_preprocess_in_place(&mut tree_g, ref_seq, ref_peptides)?;
+  graph_attach_new_nodes_in_place(&mut graph, &outputs);
+  if let Some(output_tree) = run_args.outputs.output_tree {
+    let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
+    tree_g.tree = root;
 
+    json_write("graph_tree.json", &tree_g)?;
+  }
   if let Some(output_tree) = output_tree {
     tree_attach_new_nodes_in_place(&mut tree, &outputs);
     json_write(output_tree, &tree)?;

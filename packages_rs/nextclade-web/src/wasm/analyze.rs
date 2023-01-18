@@ -276,7 +276,7 @@ impl Nextclade {
       }
     }
   }
-
+  // let mut graph = tree_preprocess_in_place(&mut self.tree, &self.ref_seq, &self.ref_peptides);
   pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {
     tree_attach_new_nodes_in_place(&mut self.tree, nextclade_outputs);
     &self.tree
