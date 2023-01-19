@@ -135,12 +135,13 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
+  let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides).unwrap();
+
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
-    tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides).unwrap();
     let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
@@ -261,16 +262,18 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       }
     });
   });
+
   let mut tree_g = tree.clone();
-  let mut graph = tree_preprocess_in_place(&mut tree_g, ref_seq, ref_peptides)?;
-  graph_attach_new_nodes_in_place(&mut graph, &outputs);
   if let Some(output_tree) = run_args.outputs.output_tree {
+    //output when using graph
+    graph_attach_new_nodes_in_place(&mut graph, &outputs);
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
     tree_g.tree = root;
 
     let graph_tree_name = output_tree.with_extension("graph.json");
     json_write(graph_tree_name, &tree_g)?;
 
+    //output when using tree
     tree_attach_new_nodes_in_place(&mut tree, &outputs);
     json_write(output_tree, &tree)?;
   }

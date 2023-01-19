@@ -212,8 +212,15 @@ where
     Ok(())
   }
 
-  pub fn remove_edge(&mut self, edge_key: GraphEdgeKey) -> Edge<E> {
-    self.edges.remove(edge_key.as_usize())
+  pub fn remove_edge(&mut self, edge_key: GraphEdgeKey) -> Result<Edge<E>, Report> {
+    //remove edge from node.outbound_edges
+    let source_key = self.get_edge(edge_key).unwrap().source();
+    let source = self
+        .get_node_mut(source_key)
+        .ok_or_else(|| eyre!("When adding a graph edge {edge_key} "))?;
+    source.outbound_mut().retain(|&x| x != edge_key);
+
+    Ok(self.edges.remove(edge_key.as_usize()))
   }
 
   /// Given a new node ID and insertion target ID, insert a new node between target and the parent of the target
@@ -242,14 +249,17 @@ where
       [edge_key] => {
         // This was an internal or leaf node. First we remove inbound edge.
         let edge = self.remove_edge(*edge_key);
-        let parent_node_key = edge.source();
+        let parent_node_key = match edge {
+          Ok(edge) => edge.source(),
+          Err(e) => panic!("Cannot find nearest node: {e:?}"),
+        };
         println!("{}", parent_node_key);
 
         // Add left edge: from parent to new node
-        self.add_edge(parent_node_key, target_node_key, edge_payload_left)?;
+        self.add_edge(parent_node_key, new_node_key, edge_payload_left)?;
 
         // Add right edge: from new node to the insertion target node
-        self.add_edge(target_node_key, new_node_key, edge_payload_right)?;
+        self.add_edge(new_node_key, target_node_key, edge_payload_right)?;
 
         Ok(())
       }
