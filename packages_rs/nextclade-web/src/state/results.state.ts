@@ -2,11 +2,11 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
-import { SortCategory, SortDirection, sortResults, sortResultsByKey } from 'src/helpers/sortResults'
+import { SortCategory, SortDirection, sortMotifs, sortResults, sortResultsByKey } from 'src/helpers/sortResults'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import {
   aaFilterAtom,
@@ -140,6 +140,25 @@ export const sortAnalysisResultsByKeyAtom = selectorFamily<undefined, { key: str
     },
 })
 
+export const sortAnalysisResultsByMotifsAtom = selectorFamily<undefined, { key: string; direction: SortDirection }>({
+  key: 'sortAnalysisResultsByMotifsAtom',
+
+  get: () => () => undefined,
+
+  set:
+    ({ key, direction }) =>
+    ({ get, set }, def: undefined | DefaultValue) => {
+      const results = get(analysisResultsAtom)
+
+      const resultsSorted = isDefaultValue(def)
+        ? sortResults(results, { category: SortCategory.index, direction })
+        : sortMotifs(results, { key, direction })
+
+      const seqIndicesSorted = resultsSorted.map((result) => result.index)
+      set(seqIndicesAtom, seqIndicesSorted)
+    },
+})
+
 /**
  * Access array of analysis results
  * NOTE: `set` operation will replace the existing elements in the array with the new ones
@@ -233,6 +252,16 @@ export const phenotypeAttrDescsAtom = atom<PhenotypeAttrDesc[]>({
 export const phenotypeAttrKeysAtom = selector<string[]>({
   key: 'phenotypeAttrKeys',
   get: ({ get }) => get(phenotypeAttrDescsAtom).map((desc) => desc.name),
+})
+
+export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({
+  key: 'aaMotifsDescsAtom',
+  default: [],
+})
+
+export const aaMotifsKeysAtom = selector<string[]>({
+  key: 'aaMotifsKeysAtom',
+  get: ({ get }) => get(aaMotifsDescsAtom).map((desc) => desc.name),
 })
 
 export const analysisStatusGlobalAtom = atom({

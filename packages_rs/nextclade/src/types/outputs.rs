@@ -2,6 +2,7 @@ use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
 use crate::analyze::aa_changes_group::AaChangeGroup;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
@@ -10,11 +11,13 @@ use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
+use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use crate::utils::range::Range;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,6 +35,7 @@ pub struct NextalignOutputs {
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,
+  pub coord_map: CoordMap,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +78,7 @@ pub struct NextcladeOutputs {
   pub alignment_start: usize,
   pub alignment_end: usize,
   pub alignment_score: i32,
+  pub aa_alignment_ranges: BTreeMap<String, Range>,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
   pub clade: String,
@@ -88,6 +93,8 @@ pub struct NextcladeOutputs {
   pub nearest_node_id: usize,
   pub is_reverse_complement: bool,
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
+  pub aa_motifs: AaMotifsMap,
+  pub aa_motifs_changes: AaMotifsChangesMap,
 }
 
 impl NextcladeOutputs {

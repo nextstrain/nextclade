@@ -3,13 +3,18 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
+import { get } from 'lodash'
 
 import { geneMapAtom } from 'src/state/results.state'
-import type { AnalysisResult, Gene, PeptideWarning } from 'src/types'
+import type { AnalysisResult, Gene, PeptideWarning, Range } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
+import {
+  SequenceMarkerUnsequencedEnd,
+  SequenceMarkerUnsequencedStart,
+} from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
@@ -96,12 +101,13 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions } = sequence
+  const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaAlignmentRanges } = sequence
   const geneLength = gene.end - gene.start
   const pixelsPerAa = width / Math.round(geneLength / 3)
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
+  const alignmentRange: Range = get(aaAlignmentRanges, viewedGene) ?? { begin: 0, end: geneLength }
 
   const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.geneName === gene.geneName)
@@ -134,6 +140,13 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
         <rect fill="transparent" x={0} y={-10} width={geneLength} height="30" />
 
+        <SequenceMarkerUnsequencedStart
+          index={index}
+          seqName={seqName}
+          alignmentStart={alignmentRange.begin}
+          pixelsPerBase={pixelsPerAa}
+        />
+
         {unknownAaRangesForGene &&
           unknownAaRangesForGene.ranges.map((range) => (
             <PeptideMarkerUnknown
@@ -158,6 +171,14 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         })}
         {frameShiftMarkers}
         {insertionMarkers}
+
+        <SequenceMarkerUnsequencedEnd
+          index={index}
+          seqName={seqName}
+          genomeSize={geneLength}
+          alignmentEnd={alignmentRange.end}
+          pixelsPerBase={pixelsPerAa}
+        />
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

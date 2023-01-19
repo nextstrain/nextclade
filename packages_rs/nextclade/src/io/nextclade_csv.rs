@@ -1,5 +1,6 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
@@ -96,7 +97,11 @@ static NEXTCLADE_CSV_HEADERS: &[&str] = &[
   "errors",
 ];
 
-fn prepare_headers(custom_node_attr_keys: &[String], phenotype_attr_keys: &[String]) -> Vec<String> {
+fn prepare_headers(
+  custom_node_attr_keys: &[String],
+  phenotype_attr_keys: &[String],
+  aa_motifs_keys: &[String],
+) -> Vec<String> {
   let mut headers: Vec<String> = NEXTCLADE_CSV_HEADERS
     .iter()
     .copied()
@@ -115,6 +120,12 @@ fn prepare_headers(custom_node_attr_keys: &[String], phenotype_attr_keys: &[Stri
   insert_custom_cols_at_index += custom_node_attr_keys.len();
 
   phenotype_attr_keys.iter().rev().for_each(|key| {
+    headers.insert(insert_custom_cols_at_index + 1, key.clone());
+  });
+
+  insert_custom_cols_at_index += phenotype_attr_keys.len();
+
+  aa_motifs_keys.iter().rev().for_each(|key| {
     headers.insert(insert_custom_cols_at_index + 1, key.clone());
   });
 
@@ -180,6 +191,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       custom_node_attributes,
       is_reverse_complement,
       warnings,
+      aa_motifs,
+      aa_motifs_changes,
       ..
     } = nextclade_outputs;
 
@@ -192,6 +205,10 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
         .iter()
         .try_for_each(|PhenotypeValue { name, value, .. }| self.add_entry(name, &value))?;
     }
+
+    aa_motifs
+      .iter()
+      .try_for_each(|(name, motifs)| self.add_entry(name, &format_aa_motifs(motifs)))?;
 
     self.add_entry("seqName", seq_name)?;
     self.add_entry("clade", clade)?;
@@ -450,8 +467,9 @@ impl NextcladeResultsCsvFileWriter {
     delimiter: u8,
     clade_attr_keys: &[String],
     phenotype_attr_keys: &[String],
+    aa_motifs_keys: &[String],
   ) -> Result<Self, Report> {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys);
+    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys, aa_motifs_keys);
     let csv_writer = CsvVecFileWriter::new(filepath, delimiter, &headers)?;
     let writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
     Ok(Self { writer })
@@ -656,17 +674,33 @@ pub fn format_escape(escape: &[PhenotypeValue]) -> String {
     .join(";")
 }
 
+#[inline]
+fn format_aa_motifs(motifs: &[AaMotif]) -> String {
+  motifs
+    .iter()
+    .map(
+      |AaMotif {
+         name,
+         gene,
+         position,
+         seq,
+       }| format!("{gene}:{}:{seq}", position + 1),
+    )
+    .join(";")
+}
+
 pub fn results_to_csv_string(
   outputs: &[NextcladeOutputs],
   errors: &[NextcladeErrorOutputs],
   clade_attr_keys: &[String],
   phenotype_attr_keys: &[String],
+  aa_motifs_keys: &[String],
   delimiter: u8,
 ) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
 
   {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys);
+    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys, aa_motifs_keys);
     let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
     let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
 

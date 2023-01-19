@@ -20,10 +20,14 @@ export function seqMarkerHeightStateToString(val: SeqMarkerHeightState) {
 export function seqMarkerHeightStateFromString(key: string) {
   // prettier-ignore
   switch (key) {
-    case 'Top': return SeqMarkerHeightState.Top
-    case 'Bottom': return SeqMarkerHeightState.Bottom
-    case 'Full': return SeqMarkerHeightState.Full
-    case 'Off': return SeqMarkerHeightState.Off
+    case "Top":
+      return SeqMarkerHeightState.Top;
+    case "Bottom":
+      return SeqMarkerHeightState.Bottom;
+    case "Full":
+      return SeqMarkerHeightState.Full;
+    case "Off":
+      return SeqMarkerHeightState.Off;
   }
   throw new ErrorInternal(`When converting string to 'SeqMarkerHeightState': Unknown variant'${key}'`)
 }
@@ -39,7 +43,7 @@ export function getSeqMarkerDims(state: SeqMarkerHeightState) {
     case SeqMarkerHeightState.Off:
       return { y: 0, height: 0 }
   }
-  throw new ErrorInternal(`getSeqMarkerDims: Unknown 'SeqMarkerHeightState' variant: '${state}'`) // eslint-disable-line @typescript-eslint/restrict-template-expressions
+  throw new ErrorInternal(`getSeqMarkerDims: Unknown 'SeqMarkerHeightState' variant: '${state}'`)
 }
 
 export const seqMarkerMissingHeightStateAtom = atom<SeqMarkerHeightState>({
