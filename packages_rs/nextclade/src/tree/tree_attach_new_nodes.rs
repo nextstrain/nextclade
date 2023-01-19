@@ -15,6 +15,7 @@ use crate::tree::tree::{
 };
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
+use assert2::__assert2_impl::print;
 use itertools::Itertools;
 use serde_json::json;
 use std::collections::BTreeMap;
@@ -83,6 +84,46 @@ pub fn create_new_auspice_node(result: &NextcladeOutputs) -> AuspiceTreeNode {
 
 use super::tree::AuspiceGraph;
 
+fn join_nuc_sub(
+  subst1: &Vec<NucSub>,
+  subst2: &Vec<NucSub>
+) -> Vec<NucSub> {
+  let mut shared_substitutions = Vec::<NucSub>::new();
+  let mut i = 0;
+  let mut j = 0;
+  while (i < subst1.len()) && (j < subst2.len()) {
+    if subst1[i].pos == subst2[j].pos {
+      // position is also mutated in node
+      if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
+        shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
+      }
+      i += 1;
+      j += 1;
+    } else if subst1[i].pos < subst2[j].pos {
+      i += 1;
+    } else {
+      j += 1;
+    }
+  }
+  shared_substitutions
+}
+
+pub fn get_closest_child(graph: &AuspiceGraph, node_key: usize, result: &NextcladeOutputs) -> Option<(GraphNodeKey, Vec<NucSub>)> {
+  let mut closest_child = None;
+  let mut closest_child_dist = 0;
+  let node = graph.get_node(GraphNodeKey::new(node_key)).expect("Node not found");
+  for child_key in graph.iter_child_keys_of(node) {
+    let child = graph.get_node(child_key).expect("Node not found");
+    let child_mutations = child.payload().tmp.private_mutations.clone();
+    let shared_substitutions = join_nuc_sub(&child_mutations, &result.private_nuc_mutations.private_substitutions);
+    if shared_substitutions.len() > closest_child_dist {
+      closest_child_dist = shared_substitutions.len();
+      closest_child = Some((child_key, shared_substitutions));
+    }
+  }
+  closest_child
+}
+
 pub fn graph_attach_new_nodes_in_place(graph: &mut AuspiceGraph, results: &[NextcladeOutputs]) {
   // Look for a query sample result for which this node was decided to be nearest
   for result in results {
@@ -91,36 +132,70 @@ pub fn graph_attach_new_nodes_in_place(graph: &mut AuspiceGraph, results: &[Next
     let node = graph
       .get_node(GraphNodeKey::new(id))
       .ok_or_else(|| make_internal_report!("Node with id '{id}' expected to exist, but not found"));
-    //check if node is terminal
-    let (is_terminal, new_node) = match node {
-      Ok(n) => (n.is_leaf(), n.payload().clone()),
-      Err(e) => panic!("Cannot find nearest node: {e:?}"),
-    };
-    //if nearest_node is terminal create dummy empty terminal node with nearest_node's name (so that nearest_node) stays a terminal)
-    //and attach new node to nearest_node (same id, now called {name}_parent)
-    if is_terminal {
-      let target = graph.get_node_mut(GraphNodeKey::new(id)).unwrap().payload_mut();
-      target.name = format!("{}_parent", target.name);
 
-      let mut new_terminal_node = new_node;
-      new_terminal_node.branch_attrs.mutations.clear();
-      new_terminal_node.branch_attrs.other = serde_json::Value::default();
+    //check if new seq is in between nearest node and a child of nearest node
+    let closest_child_results = get_closest_child(graph, id, result);
 
-      let new_terminal_key = graph.add_node(new_terminal_node);
-      graph
-        .add_edge(GraphNodeKey::new(id), new_terminal_key, AuspiceTreeEdge::new())
+    match closest_child_results {
+      Some((child_key, new_private_mutations)) => {
+        let nearest_node = match node {
+          Ok(n) => n.payload().clone(),
+          Err(e) => panic!("Cannot find nearest node: {e:?}"),
+        };
+        let mut new_middle_node: AuspiceTreeNode = nearest_node;
+        new_middle_node.tmp.private_mutations = new_private_mutations;
+        println!("nearest node : {0}", new_middle_node.name);
+        new_middle_node.name = format!("{}_internal", child_key);
+        new_middle_node.tmp.id = graph.num_nodes();
+        let new_middle_node_key = graph.add_node(new_middle_node);
+        println!("Found closest child: {child_key:?}");
+        graph.insert_node_before(
+          new_middle_node_key,
+          child_key,
+          AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+          AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+        ).map_err(|err| println!("{err:?}"))
+        .ok();
+        println!("Added new node: {new_middle_node_key:?}");
+        //middle_node.branch_attrs.mutations = new_private_mutations;
+      }
+      None => {
+        //check if node is terminal
+        let (is_terminal, nearest_node) = match node {
+          Ok(n) => (n.is_leaf(), n.payload().clone()),
+          Err(e) => panic!("Cannot find nearest node: {e:?}"),
+        };
+        //if nearest_node is terminal create dummy empty terminal node with nearest_node's name (so that nearest_node) stays a terminal)
+        //and attach new node to nearest_node (same id, now called {name}_parent)
+        if is_terminal {
+          let target = graph.get_node_mut(GraphNodeKey::new(id)).unwrap().payload_mut();
+          target.name = format!("{}_parent", target.name);
+
+          let mut new_terminal_node = nearest_node;
+          new_terminal_node.branch_attrs.mutations.clear();
+          new_terminal_node.branch_attrs.other = serde_json::Value::default();
+          new_terminal_node.tmp.private_mutations = Vec::new();
+          new_terminal_node.tmp.id = graph.num_nodes();
+
+          let new_terminal_key = graph.add_node(new_terminal_node);
+          graph
+            .add_edge(GraphNodeKey::new(id), new_terminal_key, AuspiceTreeEdge::new())
+            .map_err(|err| println!("{err:?}"))
+            .ok();
+        }
+        //Attach only to a reference node.
+        let mut new_graph_node: AuspiceTreeNode = create_new_auspice_node(result);
+        new_graph_node.tmp.private_mutations = result.private_nuc_mutations.private_substitutions.clone();
+        new_graph_node.tmp.id = graph.num_nodes();
+
+        // Create and add the new node to the graph.
+        let new_node_key = graph.add_node(new_graph_node);
+        graph
+        .add_edge(GraphNodeKey::new(id), new_node_key, AuspiceTreeEdge::new())
         .map_err(|err| println!("{err:?}"))
         .ok();
+      }
     }
-    //Attach only to a reference node.
-    let new_graph_node: AuspiceTreeNode = create_new_auspice_node(result);
-
-    // Create and add the new node to the graph. This node will not be connected to anything yet.
-    let new_node_key = graph.add_node(new_graph_node);
-    graph
-      .add_edge(GraphNodeKey::new(id), new_node_key, AuspiceTreeEdge::new())
-      .map_err(|err| println!("{err:?}"))
-      .ok();
   }
 }
 

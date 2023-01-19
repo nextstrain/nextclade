@@ -1,3 +1,4 @@
+use crate::analyze::nuc_sub::NucSub;
 use crate::graph::edge::GraphEdge;
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, GraphNodeKey};
@@ -119,6 +120,7 @@ pub struct TreeNodeTempData {
   pub id: usize,
   pub substitutions: BTreeMap<usize, Nuc>,
   pub mutations: BTreeMap<usize, Nuc>,
+  pub private_mutations: Vec<NucSub>,
   pub aa_substitutions: BTreeMap<String, BTreeMap<usize, Aa>>,
   pub aa_mutations: BTreeMap<String, BTreeMap<usize, Aa>>,
   pub is_ref_node: bool,

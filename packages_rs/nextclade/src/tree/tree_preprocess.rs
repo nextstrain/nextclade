@@ -1,11 +1,12 @@
 use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::graph::Graph;
 use crate::graph::node::GraphNodeKey;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::make_error;
+use crate::{make_error, make_internal_report};
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
   AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
@@ -69,6 +70,7 @@ pub fn tree_preprocess_in_place_impl_recursive(
 
   node.tmp.id = graph_node_key.as_usize();
   node.tmp.mutations = nuc_muts.clone();
+  node.tmp.private_mutations = calc_node_private_mutations(node);
   node.tmp.substitutions = nuc_subs;
   node.tmp.aa_mutations = aa_muts.clone();
   node.tmp.aa_substitutions = aa_subs;
@@ -83,6 +85,25 @@ pub fn tree_preprocess_in_place_impl_recursive(
   }
 
   Ok(graph_node_key)
+}
+
+pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Vec<NucSub> {
+  let mut nuc_muts = Vec::<NucSub>::new();
+  match node.branch_attrs.mutations.get("nuc") {
+    None => nuc_muts,
+    Some(mutations) => {
+      for mutation_str in mutations {
+        let mutation = NucSub::from_str(mutation_str);
+        let mutation = match mutation {
+            Ok(n) => n,
+            Err(e) => panic!("Cannot read mutation: {e:?}"),
+          };
+
+        nuc_muts.push(mutation);
+      }
+      nuc_muts
+    }
+  }
 }
 
 fn map_nuc_muts(

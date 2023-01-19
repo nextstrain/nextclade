@@ -243,6 +243,7 @@ where
         // This was an internal or leaf node. First we remove inbound edge.
         let edge = self.remove_edge(*edge_key);
         let parent_node_key = edge.source();
+        println!("{}", parent_node_key);
 
         // Add left edge: from parent to new node
         self.add_edge(parent_node_key, target_node_key, edge_payload_left)?;
