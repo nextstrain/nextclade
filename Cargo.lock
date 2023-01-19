@@ -1468,6 +1468,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "log",
+ "maplit",
  "num",
  "num-traits",
  "num_cpus",

@@ -624,3 +624,11 @@ export interface AaMotifsDesc {
   nameFriendly: string
   description: string
 }
+
+export type CsvColumnConfigMap = Record<string, Record<string, boolean>>
+
+export interface CsvColumnConfig {
+  categories: CsvColumnConfigMap
+  individual: string[]
+  includeDynamic: boolean
+}

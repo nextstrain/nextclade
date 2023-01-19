@@ -13,6 +13,7 @@ use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;
+use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::make_internal_report;
 use nextclade::qc::qc_config::QcConfig;
@@ -109,6 +110,7 @@ pub struct AnalysisInitialData {
   clade_node_attr_key_descs: String,
   phenotype_attr_descs: String,
   aa_motifs_descs: String,
+  csv_column_config_default: String,
 }
 
 #[wasm_bindgen]
@@ -257,6 +259,7 @@ impl Nextclade {
       clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
       phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,
       aa_motifs_descs: json_stringify(&self.aa_motifs_descs)?,
+      csv_column_config_default: json_stringify(&CsvColumnConfig::default())?,
     })
   }
 

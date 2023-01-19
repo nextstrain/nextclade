@@ -11,6 +11,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
+use nextclade::io::nextclade_csv::CSV_POSSIBLE_CATEGORIES;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -382,7 +383,7 @@ pub struct NextcladeRunOutputArgs {
   /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-insertions`, `--output-errors`
   ///
   /// If the required directory tree does not exist, it will be created.
-  #[clap(long, short = 'O')]
+  #[clap(long, short = 'O', group = "tabular_output")]
   #[clap(value_hint = ValueHint::DirPath)]
   pub output_all: Option<PathBuf>,
 
@@ -479,7 +480,7 @@ pub struct NextcladeRunOutputArgs {
   /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
-  #[clap(long, short = 'c')]
+  #[clap(long, short = 'c', group = "tabular_output")]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_csv: Option<PathBuf>,
 
@@ -494,9 +495,27 @@ pub struct NextcladeRunOutputArgs {
   /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
-  #[clap(long, short = 't')]
+  #[clap(long, short = 't', group = "tabular_output")]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tsv: Option<PathBuf>,
+
+  /// Restricts columns written into tabular output files (CSV and TSV).
+  ///
+  /// Should contain a comma-separated list of individual column names and/or column category names to include into both CSV and TSV outputs.
+  ///
+  /// If this flag is omitted, or if category 'all' is present in the list, then all other entries are ignored and all columns are written.
+  ///
+  /// Only valid together with one or multiple of flags: `--output-csv`, `--output-tsv`, `--output-all`.
+  #[clap(
+    long,
+    short = 'C',
+    takes_value = true,
+    multiple_values = true,
+    use_value_delimiter = true
+  )]
+  #[clap(requires = "tabular_output")]
+  #[clap(possible_values=CSV_POSSIBLE_CATEGORIES.iter().map(String::as_str))]
+  pub output_columns_selection: Vec<String>,
 
   /// Path to output phylogenetic tree with input sequences placed onto it, in Auspice JSON V2 format.
   ///
