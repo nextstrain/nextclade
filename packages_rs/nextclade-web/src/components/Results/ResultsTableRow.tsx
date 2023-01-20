@@ -3,7 +3,7 @@ import { areEqual, ListChildComponentProps } from 'react-window'
 import { useRecoilValue } from 'recoil'
 
 import type { CladeNodeAttrDesc } from 'auspice'
-import type { PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, PhenotypeAttrDesc } from 'src/types'
 import { COLUMN_WIDTHS } from 'src/components/Results/ResultsTableStyle'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ResultsTableRowError } from './ResultsTableRowError'
@@ -16,8 +16,10 @@ export interface TableRowDatum {
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
+  dynamicAaMotifsColumnWidthPx: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
+  aaMotifsDescs: AaMotifsDesc[]
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -33,8 +35,10 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     columnWidthsPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
+    dynamicAaMotifsColumnWidthPx,
     cladeNodeAttrDescs,
     phenotypeAttrDescs,
+    aaMotifsDescs,
   } = useMemo(() => data[index], [data, index])
 
   const { result, error } = useRecoilValue(analysisResultAtom(seqIndex))
@@ -51,8 +55,10 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         columnWidthsPx={columnWidthsPx}
         dynamicCladeColumnWidthPx={dynamicCladeColumnWidthPx}
         dynamicPhenotypeColumnWidthPx={dynamicPhenotypeColumnWidthPx}
+        dynamicAaMotifsColumnWidthPx={dynamicAaMotifsColumnWidthPx}
         cladeNodeAttrDescs={cladeNodeAttrDescs}
         phenotypeAttrDescs={phenotypeAttrDescs}
+        aaMotifsDescs={aaMotifsDescs}
         viewedGene={viewedGene}
       />
     )

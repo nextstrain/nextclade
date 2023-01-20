@@ -8,7 +8,7 @@ use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
-use nextclade::io::nextclade_csv::NextcladeResultsCsvFileWriter;
+use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
 use nextclade::io::nuc::from_nuc_seq;
 use nextclade::io::results_json::ResultsJsonWriter;
 use nextclade::translate::translate_genes::TranslationMap;
@@ -40,6 +40,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
     gene_map: &'a GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
+    aa_motifs_keys: &[String],
     output_fasta: &Option<PathBuf>,
     output_json: &Option<PathBuf>,
     output_ndjson: &Option<PathBuf>,
@@ -48,6 +49,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
     output_insertions: &Option<PathBuf>,
     output_errors: &Option<PathBuf>,
     output_translations: &Option<String>,
+    csv_column_config: &CsvColumnConfig,
     in_order: bool,
   ) -> Result<Self, Report> {
     let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
@@ -77,11 +79,25 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .collect_vec();
 
     let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
-      NextcladeResultsCsvFileWriter::new(output_csv, b';', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(
+        output_csv,
+        b';',
+        &clade_node_attr_keys,
+        &phenotype_attr_keys,
+        aa_motifs_keys,
+        csv_column_config,
+      )
     })?;
 
     let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
-      NextcladeResultsCsvFileWriter::new(output_tsv, b'\t', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(
+        output_tsv,
+        b'\t',
+        &clade_node_attr_keys,
+        &phenotype_attr_keys,
+        aa_motifs_keys,
+        csv_column_config,
+      )
     })?;
 
     Ok(Self {

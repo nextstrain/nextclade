@@ -23,3 +23,9 @@ pub fn truncate_with_ellipsis(s: impl AsRef<str>, new_len: usize) -> String {
   }
   s
 }
+#[macro_export]
+macro_rules! o {
+  ($x:expr $(,)?) => {
+    ToOwned::to_owned($x)
+  };
+}

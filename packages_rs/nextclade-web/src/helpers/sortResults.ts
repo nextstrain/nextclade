@@ -26,11 +26,6 @@ export interface Sorting {
   direction: SortDirection
 }
 
-export interface SortingKeyBased {
-  key: string
-  direction: SortDirection
-}
-
 export function defaultNumber(direction: SortDirection) {
   return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
 }
@@ -184,6 +179,11 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
   return results
 }
 
+export interface SortingKeyBased {
+  key: string
+  direction: SortDirection
+}
+
 export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKeyBased) {
   const { key, direction } = sorting
   return orderBy(
@@ -195,6 +195,15 @@ export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKey
         defaultNumber(direction)
       )
     },
+    direction,
+  )
+}
+
+export function sortMotifs(results: NextcladeResult[], sorting: SortingKeyBased) {
+  const { key, direction } = sorting
+  return orderBy(
+    results,
+    (result) => get(result.result?.analysisResult?.aaMotifs, key)?.length ?? defaultNumber(direction),
     direction,
   )
 }

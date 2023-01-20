@@ -1,7 +1,8 @@
 import { CladeNodeAttrDesc } from 'auspice'
-import type { AnalysisError, AnalysisResult, ErrorsFromWeb, PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, AnalysisError, AnalysisResult, ErrorsFromWeb, PhenotypeAttrDesc } from 'src/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
+import { CsvColumnConfig } from 'src/types'
 
 export class ExportWorker {
   private thread!: NextcladeWasmWorker
@@ -44,9 +45,19 @@ export class ExportWorker {
     errors: AnalysisError[],
     cladeNodeAttrs: CladeNodeAttrDesc[],
     phenotypeAttrs: PhenotypeAttrDesc[],
+    aaMotifsDescs: AaMotifsDesc[],
     delimiter: string,
+    csvColumnConfig: CsvColumnConfig,
   ) {
-    return this.thread.serializeResultsCsv(results, errors, cladeNodeAttrs, phenotypeAttrs, delimiter)
+    return this.thread.serializeResultsCsv(
+      results,
+      errors,
+      cladeNodeAttrs,
+      phenotypeAttrs,
+      aaMotifsDescs,
+      delimiter,
+      csvColumnConfig,
+    )
   }
 
   public async serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {

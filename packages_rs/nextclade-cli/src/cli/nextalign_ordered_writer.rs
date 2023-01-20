@@ -88,6 +88,7 @@ impl<'a> NextalignOrderedWriter<'a> {
           warnings,
           missing_genes,
           is_reverse_complement,
+          ..
         } = output;
 
         if let Some(fasta_writer) = &mut self.fasta_writer {

@@ -4,6 +4,7 @@ use crate::io::nuc::Nuc;
 
 use crate::align::params::AlignPairwiseParams;
 use crate::translate::translate_genes::Translation;
+use crate::utils::range::Range;
 use eyre::Report;
 
 pub const fn decode(triplet: &[Nuc]) -> Aa {
@@ -100,5 +101,6 @@ pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams
     seq: peptide,
     insertions: vec![],
     frame_shifts: vec![],
+    alignment_range: Range::default(),
   })
 }

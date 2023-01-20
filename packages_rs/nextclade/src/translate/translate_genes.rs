@@ -3,27 +3,23 @@ use crate::align::insertions_strip::{insertions_strip, Insertion};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
-use crate::gene::gene::{Gene, GeneStrand};
+use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::from_nuc_seq;
 use crate::io::nuc::Nuc;
-use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
 use crate::utils::collections::{first, last};
-use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
-use eyre::{eyre, Report};
+use eyre::Report;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashSet};
-use std::ops::Range as StdRange;
+use std::collections::BTreeMap;
 
 /// Results of the translation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +31,7 @@ pub struct Translation {
   pub seq: Vec<Aa>,
   pub insertions: Vec<Insertion<Aa>>,
   pub frame_shifts: Vec<FrameShift>,
+  pub alignment_range: Range,
 }
 
 pub type TranslationMap = BTreeMap<String, Translation>;
@@ -188,6 +185,7 @@ pub fn translate_gene(
     seq: stripped.qry_seq,
     insertions: stripped.insertions,
     frame_shifts,
+    alignment_range: Range::default(),
   })
 }
 
@@ -199,11 +197,10 @@ pub fn translate_genes(
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
   gene_map: &GeneMap,
+  coord_map: &CoordMap,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<IndexMap<String, Result<Translation, Report>>, Report> {
-  let coord_map = CoordMap::new(ref_seq);
-
   gene_map
     .iter()
     .map(
@@ -219,7 +216,7 @@ pub fn translate_genes(
           gene,
           ref_peptide,
           gap_open_close_aa,
-          &coord_map,
+          coord_map,
           params,
         );
 
