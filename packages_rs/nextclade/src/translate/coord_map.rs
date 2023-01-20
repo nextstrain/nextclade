@@ -1,8 +1,10 @@
+use crate::gene::cds::{Cds, CdsSegment};
 use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
+use itertools::Itertools;
 use std::ops::Range as StdRange;
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
@@ -147,21 +149,40 @@ impl CoordMap {
 
   /// Extracts nucleotide sequence of a gene
   pub fn extract_gene(&self, full_aln_seq: &[Nuc], gene: &Gene) -> Vec<Nuc> {
-    let &Gene { start, end, .. } = gene;
+    gene
+      .cdses
+      .iter()
+      .flat_map(|cds| self.extract_cds(full_aln_seq, cds))
+      .collect_vec()
+  }
 
-    // Gene map contains gene range in reference coordinates (like in ref sequence)
-    let gene_range_ref = Range { begin: start, end };
+  /// Extracts nucleotide sequence of a CDS
+  pub fn extract_cds(&self, full_aln_seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
+    cds
+      .segments
+      .iter()
+      .flat_map(|cds_segment| self.extract_cds_segment(full_aln_seq, cds_segment))
+      .collect_vec()
+  }
+
+  /// Extracts nucleotide sequence of a CDS segment
+  pub fn extract_cds_segment(&self, full_aln_seq: &[Nuc], cds_segment: &CdsSegment) -> Vec<Nuc> {
+    // Genemap contains ranges in reference coordinates (like in ref sequence)
+    let range_ref = Range {
+      begin: cds_segment.start,
+      end: cds_segment.end,
+    };
 
     // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
-    let gene_range_aln = self.ref_to_aln_range(&gene_range_ref);
-    let mut gene_nucs = full_aln_seq[StdRange::from(gene_range_aln)].to_vec();
+    let range_aln = self.ref_to_aln_range(&range_ref);
+    let mut nucs = full_aln_seq[StdRange::from(range_aln.clone())].to_vec();
 
     // Reverse strands should be reverse-complemented
-    if gene.strand == GeneStrand::Reverse {
-      reverse_complement_in_place(&mut gene_nucs);
+    if cds_segment.strand == GeneStrand::Reverse {
+      reverse_complement_in_place(&mut nucs);
     }
 
-    gene_nucs
+    nucs
   }
 }
 
