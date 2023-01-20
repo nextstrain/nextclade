@@ -178,7 +178,7 @@ impl CoordMap {
 
     // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
     let range_aln = self.ref_to_aln_range(&range_ref);
-    let mut nucs = full_aln_seq[StdRange::from(range_aln.clone())].to_vec();
+    let mut nucs = full_aln_seq[StdRange::from(range_aln)].to_vec();
 
     // Reverse strands should be reverse-complemented
     if cds_segment.strand == GeneStrand::Reverse {
@@ -192,10 +192,8 @@ impl CoordMap {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::io::nuc::from_nuc_seq;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
-  use multimap::multimap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
