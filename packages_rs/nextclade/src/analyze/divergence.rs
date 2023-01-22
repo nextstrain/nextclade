@@ -2,15 +2,14 @@ use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::tree::tree::{AuspiceTreeNode, DivergenceUnits};
 
 pub fn calculate_divergence(
-  node: &AuspiceTreeNode,
-  private_mutations: &PrivateNucMutations,
+  parent_div: f64,
+  number_private_mutations: usize,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
-  let parent_div = node.node_attrs.div.unwrap_or(0.0);
 
   // Divergence is just number of substitutions compared to the parent node
-  let mut this_div = private_mutations.private_substitutions.len() as f64;
+  let mut this_div = number_private_mutations as f64;
 
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.

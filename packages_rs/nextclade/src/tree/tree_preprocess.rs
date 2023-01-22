@@ -6,13 +6,13 @@ use crate::graph::node::GraphNodeKey;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::{make_error, make_internal_report};
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
   AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
   AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
+use crate::{make_error, make_internal_report};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use num::Float;
@@ -95,9 +95,9 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Vec<NucSub> {
       for mutation_str in mutations {
         let mutation = NucSub::from_str(mutation_str);
         let mutation = match mutation {
-            Ok(n) => n,
-            Err(e) => panic!("Cannot read mutation: {e:?}"),
-          };
+          Ok(n) => n,
+          Err(e) => panic!("Cannot read mutation: {e:?}"),
+        };
 
         nuc_muts.push(mutation);
       }

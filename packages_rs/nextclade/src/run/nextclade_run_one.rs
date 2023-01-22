@@ -139,8 +139,8 @@ pub fn nextclade_run_one(
     ref_peptides,
     gene_map,
   );
-
-  let divergence = calculate_divergence(node, &private_nuc_mutations, &tree.tmp.divergence_units, ref_seq.len());
+  let parent_div = node.node_attrs.div.unwrap_or(0.0);
+  let divergence = calculate_divergence(parent_div, private_nuc_mutations.private_substitutions.len(), &tree.tmp.divergence_units, ref_seq.len());
 
   let LinkedNucAndAaChanges {
     substitutions,

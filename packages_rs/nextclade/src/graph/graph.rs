@@ -213,12 +213,18 @@ where
   }
 
   pub fn remove_edge(&mut self, edge_key: GraphEdgeKey) -> Result<Edge<E>, Report> {
-    //remove edge from node.outbound_edges
+    //remove edge from source.outbound_edges
     let source_key = self.get_edge(edge_key).unwrap().source();
     let source = self
-        .get_node_mut(source_key)
-        .ok_or_else(|| eyre!("When adding a graph edge {edge_key} "))?;
+      .get_node_mut(source_key)
+      .ok_or_else(|| eyre!("Error when adding a graph edge {edge_key} "))?;
     source.outbound_mut().retain(|&x| x != edge_key);
+    //remove edge from target.inbound_edges
+    let target_key = self.get_edge(edge_key).unwrap().target();
+    let target = self
+      .get_node_mut(target_key)
+      .ok_or_else(|| eyre!("Error when adding a graph edge {edge_key} "))?;
+    target.inbound_mut().retain(|&x| x != edge_key);
 
     Ok(self.edges.remove(edge_key.as_usize()))
   }
