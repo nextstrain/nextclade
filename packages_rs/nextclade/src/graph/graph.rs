@@ -212,7 +212,7 @@ where
     Ok(())
   }
 
-  pub fn remove_edge(&mut self, edge_key: GraphEdgeKey) -> Result<Edge<E>, Report> {
+  pub fn remove_edge(&mut self, edge_key: GraphEdgeKey) -> Result<&Edge<E>, Report> {
     //remove edge from source.outbound_edges
     let source_key = self.get_edge(edge_key).unwrap().source();
     let source = self
@@ -226,7 +226,8 @@ where
       .ok_or_else(|| eyre!("Error when adding a graph edge {edge_key} "))?;
     target.inbound_mut().retain(|&x| x != edge_key);
 
-    Ok(self.edges.remove(edge_key.as_usize()))
+    self.get_edge(edge_key)
+    .ok_or_else(|| eyre!("Error when removing a graph edge {edge_key} "))
   }
 
   /// Given a new node ID and insertion target ID, insert a new node between target and the parent of the target
@@ -259,7 +260,6 @@ where
           Ok(edge) => edge.source(),
           Err(e) => panic!("Cannot find nearest node: {e:?}"),
         };
-        println!("{}", parent_node_key);
 
         // Add left edge: from parent to new node
         self.add_edge(parent_node_key, new_node_key, edge_payload_left)?;
