@@ -140,7 +140,12 @@ pub fn nextclade_run_one(
     gene_map,
   );
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
-  let divergence = calculate_divergence(parent_div, private_nuc_mutations.private_substitutions.len(), &tree.tmp.divergence_units, ref_seq.len());
+  let divergence = calculate_divergence(
+    parent_div,
+    private_nuc_mutations.private_substitutions.len(),
+    &tree.tmp.divergence_units,
+    ref_seq.len(),
+  );
 
   let LinkedNucAndAaChanges {
     substitutions,

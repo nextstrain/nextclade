@@ -226,8 +226,9 @@ where
       .ok_or_else(|| eyre!("Error when adding a graph edge {edge_key} "))?;
     target.inbound_mut().retain(|&x| x != edge_key);
 
-    self.get_edge(edge_key)
-    .ok_or_else(|| eyre!("Error when removing a graph edge {edge_key} "))
+    self
+      .get_edge(edge_key)
+      .ok_or_else(|| eyre!("Error when removing a graph edge {edge_key} "))
   }
 
   /// Given a new node ID and insertion target ID, insert a new node between target and the parent of the target

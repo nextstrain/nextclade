@@ -7,7 +7,6 @@ pub fn calculate_divergence(
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
-
   // Divergence is just number of substitutions compared to the parent node
   let mut this_div = number_private_mutations as f64;
 
