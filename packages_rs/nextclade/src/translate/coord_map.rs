@@ -4,6 +4,7 @@ use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
+use eyre::Report;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
@@ -189,8 +190,211 @@ impl CoordMap {
   }
 }
 
+fn extract_cds_sequence(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
+  cds
+    .segments
+    .iter()
+    .flat_map(|cds_segment| seq[cds_segment.start..cds_segment.end].iter().copied())
+    .collect_vec()
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CdsToAln {
+  global: Vec<usize>,
+  start: usize,
+  len: usize,
+}
+
+fn extract_cds_alignment(seq_aln: &[Nuc], cds: &Cds, coord_map: &CoordMap) -> (Vec<Nuc>, Vec<CdsToAln>) {
+  let mut cds_aln = vec![];
+  let mut cds_to_aln = vec![];
+  for segment in &cds.segments {
+    let start = coord_map.ref_to_aln_position(segment.start);
+    let end = coord_map.ref_to_aln_position(segment.end);
+    cds_to_aln.push(CdsToAln {
+      global: (start..end).collect_vec(),
+      start: cds_aln.len(),
+      len: end - start,
+    });
+    cds_aln.extend_from_slice(&seq_aln[start..end]);
+  }
+  (cds_aln, cds_to_aln)
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum CdsPosition {
+  Before,
+  Inside(usize),
+  After,
+}
+
+/// Map a position in the extracted alignment of the CDS to the global alignment.
+/// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
+fn cds_to_global_aln_position(pos: usize, cds_to_aln_map: &[CdsToAln]) -> Vec<CdsPosition> {
+  cds_to_aln_map
+    .iter()
+    .map(|segment| {
+      let pos_in_segment = pos as isize - segment.start as isize;
+
+      if pos_in_segment < 0 {
+        CdsPosition::Before
+      } else if pos_in_segment >= segment.len as isize {
+        CdsPosition::After
+      } else {
+        CdsPosition::Inside(segment.global[pos_in_segment as usize])
+      }
+    })
+    .collect_vec()
+}
+
 #[cfg(test)]
 mod coord_map_tests {
+  use super::*;
+  use crate::io::nuc::to_nuc_seq;
+  use eyre::Report;
+  use multimap::MultiMap;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  fn create_fake_cds(segment_ranges: &[(usize, usize)]) -> Cds {
+    Cds {
+      id: "".to_owned(),
+      name: "".to_owned(),
+      segments: segment_ranges
+        .iter()
+        .map(|(start, end)| CdsSegment {
+          index: 0,
+          id: "".to_owned(),
+          name: "".to_owned(),
+          start: *start,
+          end: *end,
+          strand: GeneStrand::Forward,
+          frame: 0,
+          exceptions: vec![],
+          attributes: MultiMap::default(),
+          source_record: None,
+          compat_is_gene: false,
+        })
+        .collect_vec(),
+      proteins: vec![],
+      compat_is_gene: false,
+    }
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn extracts_cds_sequence() -> Result<(), Report> {
+    // CDS range                   11111111111111111
+    // CDS range                                   2222222222222222222      333333
+    // index                   012345678901234567890123456789012345678901234567890123
+    let seq =      to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let expected = to_nuc_seq(    "GCACAATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?;
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let actual = extract_cds_sequence(&seq, &cds);
+    assert_eq!(actual, expected);
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn extracts_cds_alignment() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+
+    let expected = to_nuc_seq("GCACAATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?;
+    let (ref_cds_aln, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+    assert_eq!(
+      ref_cds_aln,
+      to_nuc_seq("GCACA---ATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?
+    );
+    assert_eq!(
+      ref_cds_to_aln,
+      vec![
+        CdsToAln {
+          global: vec![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+          start: 0,
+          len: 20,
+        },
+        CdsToAln {
+          global: vec![23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
+          start: 20,
+          len: 19,
+        },
+        CdsToAln {
+          global: vec![48, 49, 50, 51, 52, 53],
+          start: 39,
+          len: 6,
+        },
+      ]
+    );
+
+    let (qry_cds_aln, qry_cds_to_aln) = extract_cds_alignment(&qry_aln, &cds, &global_coord_map);
+    assert_eq!(
+      qry_cds_aln,
+      to_nuc_seq("GCACACGCATC---TTTAAAACGGGTTTGCGGTGTCAGTCGTCTT")?
+    );
+    assert_eq!(
+      qry_cds_to_aln,
+      vec![
+        CdsToAln {
+          global: vec![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+          start: 0,
+          len: 20,
+        },
+        CdsToAln {
+          global: vec![23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
+          start: 20,
+          len: 19,
+        },
+        CdsToAln {
+          global: vec![48, 49, 50, 51, 52, 53],
+          start: 39,
+          len: 6,
+        },
+      ]
+    );
+
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn maps_example() -> Result<(), Report> {
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+
+    assert_eq!(
+      global_coord_map.aln_to_ref_table,
+      vec![
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53
+      ]
+    );
+
+    assert_eq!(
+      global_coord_map.ref_to_aln_table,
+      vec![
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56
+      ]
+    );
+
+    Ok(())
+  }
+
   // #[rstest]
   // fn maps_ref_to_aln_simple() -> Result<(), Report> {
   //   // ref pos: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14
