@@ -1543,6 +1543,7 @@ dependencies = [
  "rstest_reuse",
  "semver 1.0.10",
  "serde",
+ "serde_json",
  "strum 0.24.1",
  "strum_macros 0.24.1",
  "url",

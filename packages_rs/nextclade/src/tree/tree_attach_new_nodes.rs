@@ -160,37 +160,31 @@ pub fn get_closest_neighbor(
   let mut closest_neighbor_dist = 0;
   let node = graph.get_node(GraphNodeKey::new(node_key)).expect("Node not found");
   //first check how close to parent new sequence is
-  let parent_key = graph
-    .parent_key_of_by_key(GraphNodeKey::new(node_key));
-  match parent_key {
-    Some(parent_key) => {
-      let parent_mutations = node
+  let parent_key = graph.parent_key_of_by_key(GraphNodeKey::new(node_key));
+  if let Some(parent_key) = parent_key {
+    let parent_mutations = node
       .payload()
       .tmp
       .private_mutations
       .iter()
       .map(std::clone::Clone::clone)
       .collect_vec();
-      let reverted_parent_mutations = parent_mutations.iter().map(NucSub::invert).collect_vec();
-      let (shared_substitutions, p_not_shared_substitutions, seq_not_shared_substitutions) =
-        split_mutations(&reverted_parent_mutations, seq_private_mutations);
-      if !shared_substitutions.is_empty() && shared_substitutions.len() == parent_mutations.len() {
-        closest_neighbor = get_closest_neighbor(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
-        found = true;
-      }else {
-        if shared_substitutions.len() > closest_neighbor_dist {
-          closest_neighbor_dist = shared_substitutions.len();
-          closest_neighbor = (
-            node_key,
-            parent_key.as_usize(),
-            seq_not_shared_substitutions,
-            p_not_shared_substitutions.iter().map(NucSub::invert).collect_vec(),
-            shared_substitutions.iter().map(NucSub::invert).collect_vec(),
-          );
-        }
-      }
+    let reverted_parent_mutations = parent_mutations.iter().map(NucSub::invert).collect_vec();
+    let (shared_substitutions, p_not_shared_substitutions, seq_not_shared_substitutions) =
+      split_mutations(&reverted_parent_mutations, seq_private_mutations);
+    if !shared_substitutions.is_empty() && shared_substitutions.len() == parent_mutations.len() {
+      closest_neighbor = get_closest_neighbor(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
+      found = true;
+    } else if shared_substitutions.len() > closest_neighbor_dist {
+      closest_neighbor_dist = shared_substitutions.len();
+      closest_neighbor = (
+        node_key,
+        parent_key.as_usize(),
+        seq_not_shared_substitutions,
+        p_not_shared_substitutions.iter().map(NucSub::invert).collect_vec(),
+        shared_substitutions.iter().map(NucSub::invert).collect_vec(),
+      );
     }
-    None => {}
   }
   //check if new sequence is actually closer to a child
   if !found {
@@ -377,16 +371,12 @@ pub fn graph_attach_new_node_in_place(
     let mut target_key = closest_neighbor.1;
 
     //check if next nearest node is parent or child
-    let parent_key = graph
-      .parent_key_of_by_key(GraphNodeKey::new(nearest_node_id));
-    match parent_key {
-      Some(parent_key) => {
-          if closest_neighbor.1 == parent_key.as_usize() {
-            source_key = parent_key.as_usize();
-            target_key = nearest_node_id;
-          }
-        }
-      None => {}
+    let parent_key = graph.parent_key_of_by_key(GraphNodeKey::new(nearest_node_id));
+    if let Some(parent_key) = parent_key {
+      if closest_neighbor.1 == parent_key.as_usize() {
+        source_key = parent_key.as_usize();
+        target_key = nearest_node_id;
+      }
     }
     add_to_middle_node(
       graph,
