@@ -267,6 +267,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   if let Some(output_tree) = run_args.outputs.output_tree {
     //output when using graph
     graph_attach_new_nodes_in_place(&mut graph, &outputs, &tree.tmp.divergence_units, ref_seq.len());
+    graph.ladderize_tree()?;
 
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
     tree_g.tree = root;

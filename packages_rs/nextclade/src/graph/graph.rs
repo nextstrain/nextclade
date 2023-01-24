@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode};
@@ -70,6 +72,14 @@ where
       .iter()
       .filter_map(|edge_key| self.get_edge(*edge_key))
       .map(Edge::target)
+  }
+
+  pub fn iter_child_keys_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = GraphNodeKey> + '_ {
+    let node = self
+      .get_node(node_key)
+      .ok_or_else(|| make_internal_report!("Node with id '{node_key}' expected to exist, but not found"))
+      .unwrap();
+    self.iter_child_keys_of(node)
   }
 
   pub fn get_node(&self, index: GraphNodeKey) -> Option<&Node<N>> {
@@ -315,6 +325,95 @@ where
   pub fn build(mut self) -> Result<Graph<N, E>, Report> {
     self.build_ref()?;
     Ok(self)
+  }
+
+  pub fn get_ladderize_map(&self) -> Result<HashMap<GraphNodeKey, Vec<GraphEdgeKey>>, Report> {
+    let roots = self.iter_roots().collect_vec();
+    if roots.len() != 1 {
+      return make_internal_error!(
+        "Only trees with exactly one root are supported, but found '{}'",
+        roots.len()
+      );
+    }
+    let root_index = self.roots[0];
+    let mut depth_map = HashMap::<GraphNodeKey, usize>::new();
+    self.get_depth_map_recursive(root_index, &mut depth_map);
+    let mut new_edge_order_map = HashMap::<GraphNodeKey, Vec<GraphEdgeKey>>::new();
+    self.get_ladderize_map_recursive(root_index, &depth_map, &mut new_edge_order_map);
+    Ok(new_edge_order_map)
+  }
+
+  pub fn get_depth_map_recursive(&self, node_key: GraphNodeKey, depth_map: &mut HashMap<GraphNodeKey, usize>) {
+    let node = self.get_node(node_key).unwrap();
+    for child in self.iter_child_keys_of(node) {
+      self.get_depth_map_recursive(child, depth_map);
+    }
+    if self.key_in_leaves(node_key) {
+      depth_map.insert(node_key, 0);
+    } else {
+      let mut max_depth = 0;
+      for child in self.iter_child_keys_of(node) {
+        let child_depth = depth_map.get(&child).unwrap();
+        if child_depth > &max_depth {
+          max_depth = *child_depth;
+        }
+      }
+      depth_map.insert(node_key, max_depth + 1);
+    }
+  }
+
+  pub fn get_ladderize_map_recursive(
+    &self,
+    node_key: GraphNodeKey,
+    depth_map: &HashMap<GraphNodeKey, usize>,
+    new_edge_order_map: &mut HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
+  ) {
+    let node = self.get_node(node_key).unwrap();
+    let pre_outbound_order = node.outbound().iter().map(std::clone::Clone::clone).collect_vec();
+    let order_outbound_nodes = pre_outbound_order
+      .iter()
+      .map(|edge_key| self.get_edge(*edge_key).expect("Node not found").target())
+      .map(|node_key| depth_map.get(&node_key).expect("Node not found"))
+      .collect_vec();
+    let mut zipped = pre_outbound_order
+      .into_iter()
+      .zip(order_outbound_nodes.into_iter())
+      .collect::<Vec<_>>();
+    zipped.sort_by(|&(_, a), &(_, b)| a.cmp(b));
+    let sorted_outbound: Vec<GraphEdgeKey> = zipped.into_iter().map(|(a, _)| a).collect();
+    new_edge_order_map.insert(node_key, sorted_outbound);
+    for child in self.iter_child_keys_of(node) {
+      self.get_ladderize_map_recursive(child, depth_map, new_edge_order_map);
+    }
+  }
+
+  pub fn ladderize_tree(&mut self) -> Result<(), Report> {
+    let new_edge_order_map = self.get_ladderize_map()?;
+    let node_key = self.roots[0];
+    self.ladderize_tree_recursive(node_key, &new_edge_order_map)?;
+
+    Ok(())
+  }
+
+  pub fn ladderize_tree_recursive(
+    &mut self,
+    node_key: GraphNodeKey,
+    new_edge_order_map: &HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
+  ) -> Result<(), Report> {
+    let node = self.get_node_mut(node_key).unwrap();
+    match new_edge_order_map.get(&node_key) {
+      Some(new_edge_order) => {
+        node.outbound_mut().clear();
+        for edge_key in new_edge_order {
+          node.outbound_mut().push(*edge_key);
+        }
+        for edge_key in new_edge_order {
+          self.ladderize_tree_recursive(self.get_edge(*edge_key).unwrap().target(), new_edge_order_map)?;
+        }
+      }
+      None => println!("error in ladderizing tree."),
+    }
+    Ok(())
   }
 }
 
