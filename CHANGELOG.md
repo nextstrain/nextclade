@@ -1,3 +1,43 @@
+## Nextclade Web 2.10.0, Nextclade CLI 2.9.1 (2023-01-24)
+
+### Add motifs search
+
+Nextclade datasets can now be configured to search for motifs in the translated sequences, given a regular expression.
+
+At the same time, we released new versions of the following Influenza datasets, which use this feature to detect glycosylation motifs:
+
+ - Influenza A H1N1pdm HA (flu_h1n1pdm_ha), with reference MW626062
+ - Influenza A H3N2 HA (flu_h3n2_ha), with reference EPI1857216
+
+If you run the analysis with the latest version of these datasets, you can find the results in the `glycosylaiton` column or field of output files or in "Glyc." column in Nextclade Web.
+
+If you want to configure your own datasets for motifs search, see an example configuration in the `aaMotifs` property of `virus_properties.json` of these datasets: [link](https://github.com/nextstrain/nextclade_data/blob/bc2974ab3bf5a9198e68f5f54db095dc3d6e968b/data/datasets/flu_h3n2_ha/references/EPI1857216/versions/2023-01-19T12%3A00%3A00Z/files/virus_properties.json#L35-L55).
+
+
+### Allow to chose columns written into CSV and TSV outputs
+
+You can now select a subset of columns to be included into CSV and TSV output files of Nextclade Web (available in the "Download" dialog) and Nextclade CLI (available with `--output-csv` and `--output-tsv`). You can either chose individual columns or categories of related columns.
+
+In Nextclade Web, in the "Download" dialog, click "Configure columns", then check or uncheck columns or categories you want to keep. Note that this configuration persists across different Nextclade runs.
+
+In Nextclade CLI, use `--output-columns-selection` flag. This flag accepts a comma-separated list of column names and/or column category names. Individual columns and categories can be mixed together. You can find a list of column names in the full output file. The following categories are currently available: all, general, ref-muts, priv-muts, errs-warns, qc, primers, dynamic. Another way to receive both lists is to add a non-existent or misspelled name to the list. The error message will then display all possible columns and categories.
+
+
+### Add URL parameter for running analysis of example sequences
+
+You can now launch the analysis of example sequences (as provided by the dataset) in Nextclade Web, by using the special keyword `example` in the `input-fasta` URL parameter. For example, navigating to this URL will run the analysis of example SARS-CoV-2 sequences (same as choosing "SARS-CoV-2" and then clicking "Load example" in the UI):
+
+```
+https://clades.nextstrain.org/?dataset-name=sars-cov-2&input-fasta=example
+```
+
+This could useful for example for testing new datasets:
+
+```
+https://clades.nextstrain.org/?dataset-url=http://example.com/my-dataset-dir&input-fasta=example
+```
+
+
 ## Nextclade Web 2.9.1, Nextclade CLI 2.9.1 (2022-12-09)
 
 ### Set default weights in "private mutations" QC check to 1
