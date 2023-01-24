@@ -1,4 +1,4 @@
-## Nextclade Web 2.10.0, Nextclade CLI 2.9.1 (2023-01-24)
+## Nextclade Web 2.10.0, Nextclade CLI 2.10.1 (2023-01-24)
 
 ### Add motifs search
 
