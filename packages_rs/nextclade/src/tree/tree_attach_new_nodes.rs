@@ -103,9 +103,10 @@ pub fn create_new_auspice_node(
 
 use super::tree::{AuspiceGraph, DivergenceUnits};
 
-fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> (Vec<NucSub>, Vec<NucSub>) {
+fn split_mutations(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> (Vec<NucSub>, Vec<NucSub>, Vec<NucSub>) {
   let mut shared_substitutions = Vec::<NucSub>::new();
-  let mut not_shared_substitutions = Vec::<NucSub>::new();
+  let mut vect1_not_shared_substitutions = Vec::<NucSub>::new();
+  let mut vect2_not_shared_substitutions = Vec::<NucSub>::new();
   let mut i = 0;
   let mut j = 0;
   while (i < subst1.len()) && (j < subst2.len()) {
@@ -114,102 +115,113 @@ fn join_nuc_sub(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> (Vec<NucSub>, Vec
       if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
         shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
       } else {
-        not_shared_substitutions.push(subst1[i].clone());
+        vect1_not_shared_substitutions.push(subst1[i].clone());
+        vect2_not_shared_substitutions.push(subst2[j].clone());
       }
       i += 1;
       j += 1;
     } else if subst1[i].pos < subst2[j].pos {
-      not_shared_substitutions.push(subst1[i].clone());
+      vect1_not_shared_substitutions.push(subst1[i].clone());
       i += 1;
     } else {
+      vect2_not_shared_substitutions.push(subst2[j].clone());
       j += 1;
     }
   }
   while i < subst1.len() {
-    not_shared_substitutions.push(subst1[i].clone());
+    vect1_not_shared_substitutions.push(subst1[i].clone());
     i += 1;
   }
-  (shared_substitutions, not_shared_substitutions)
+  while j < subst2.len() {
+    vect2_not_shared_substitutions.push(subst2[j].clone());
+    j += 1;
+  }
+  (
+    shared_substitutions,
+    vect1_not_shared_substitutions,
+    vect2_not_shared_substitutions,
+  )
 }
 
-fn get_set_difference(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> Vec<NucSub> {
-  let mut not_shared_substitutions = Vec::<NucSub>::new();
-  let mut i = 0;
-  let mut j = 0;
-  while (i < subst1.len()) && (j < subst2.len()) {
-    if subst1[i].pos == subst2[j].pos {
-      // position is also mutated in node
-      if subst1[i].reff != subst2[j].reff || subst1[i].qry != subst2[j].qry {
-        not_shared_substitutions.push(subst1[i].clone());
-      }
-      i += 1;
-      j += 1;
-    } else if subst1[i].pos < subst2[j].pos {
-      not_shared_substitutions.push(subst1[i].clone());
-      i += 1;
-    } else {
-      j += 1;
-    }
-  }
-  while i < subst1.len() {
-    not_shared_substitutions.push(subst1[i].clone());
-    i += 1;
-  }
-  not_shared_substitutions
-}
-
-pub fn get_closest_child(
+pub fn get_closest_neighbor(
   graph: &AuspiceGraph,
   node_key: usize,
   seq_private_mutations: &Vec<NucSub>,
 ) -> (usize, usize, Vec<NucSub>, Vec<NucSub>, Vec<NucSub>) {
   let pre_new_seq_private_mutations = seq_private_mutations.iter().map(std::clone::Clone::clone).collect_vec();
-  let mut closest_child = (
+  let mut closest_neighbor = (
     node_key,
     node_key,
     pre_new_seq_private_mutations,
     Vec::<NucSub>::default(),
     Vec::<NucSub>::default(),
   );
-  let mut closest_child_dist = 0;
+  let mut closest_neighbor_dist = 0;
   let node = graph.get_node(GraphNodeKey::new(node_key)).expect("Node not found");
-  for child_key in graph.iter_child_keys_of(node) {
-    let child = graph.get_node(child_key).expect("Node not found");
-    let child_mutations = child.payload().tmp.private_mutations.clone();
-    let (shared_substitutions, not_shared_substitutions) = join_nuc_sub(&child_mutations, seq_private_mutations);
-    if !shared_substitutions.is_empty() && shared_substitutions.len() == child_mutations.len() {
-      let new_seq_private_mutations = get_set_difference(seq_private_mutations, &child_mutations);
-      closest_child = get_closest_child(graph, child_key.as_usize(), &new_seq_private_mutations);
-      break;
-    }
-    if shared_substitutions.len() > closest_child_dist {
-      let pre_new_seq_private_mutations = seq_private_mutations.iter().map(std::clone::Clone::clone).collect_vec();
-      closest_child_dist = shared_substitutions.len();
-      closest_child = (
+  //first check how close to parent new sequence is
+  let parent_key = graph
+    .parent_key_of_by_key(GraphNodeKey::new(node_key))
+    .expect("Node has no parent");
+  let parent_mutations = node
+    .payload()
+    .tmp
+    .private_mutations
+    .iter()
+    .map(std::clone::Clone::clone)
+    .collect_vec();
+  let reverted_parent_mutations = parent_mutations.iter().map(NucSub::invert).collect_vec();
+  let (shared_substitutions, p_not_shared_substitutions, seq_not_shared_substitutions) =
+    split_mutations(&reverted_parent_mutations, seq_private_mutations);
+  if !shared_substitutions.is_empty() && shared_substitutions.len() == parent_mutations.len() {
+    closest_neighbor = get_closest_neighbor(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
+  } else {
+    if shared_substitutions.len() > closest_neighbor_dist {
+      closest_neighbor_dist = shared_substitutions.len();
+      closest_neighbor = (
         node_key,
-        child_key.as_usize(),
-        pre_new_seq_private_mutations,
-        shared_substitutions,
-        not_shared_substitutions,
+        parent_key.as_usize(),
+        seq_not_shared_substitutions,
+        p_not_shared_substitutions.iter().map(NucSub::invert).collect_vec(),
+        shared_substitutions.iter().map(NucSub::invert).collect_vec(),
       );
     }
+    //check if new sequence is actually closer to a child
+    for child_key in graph.iter_child_keys_of(node) {
+      let child = graph.get_node(child_key).expect("Node not found");
+      let child_mutations = child.payload().tmp.private_mutations.clone();
+      let (shared_substitutions, c_not_shared_substitutions, seq_not_shared_substitutions) =
+        split_mutations(&child_mutations, seq_private_mutations);
+      if !shared_substitutions.is_empty() && shared_substitutions.len() == child_mutations.len() {
+        closest_neighbor = get_closest_neighbor(graph, child_key.as_usize(), &seq_not_shared_substitutions);
+        break;
+      }
+      if shared_substitutions.len() > closest_neighbor_dist {
+        closest_neighbor_dist = shared_substitutions.len();
+        closest_neighbor = (
+          node_key,
+          child_key.as_usize(),
+          seq_not_shared_substitutions,
+          shared_substitutions,
+          c_not_shared_substitutions,
+        );
+      }
+    }
   }
-  closest_child
+  closest_neighbor
 }
 
 pub fn add_to_middle_node(
   graph: &mut AuspiceGraph,
-  nearest_node: AuspiceTreeNode,
-  child_key: usize,
+  source_key: usize,
+  target_key: usize,
   new_private_mutations_middle_node: Vec<NucSub>,
-  new_private_mutations_child: Vec<NucSub>,
-  new_private_mutations_seq: &Vec<NucSub>,
+  new_private_mutations_target: Vec<NucSub>,
+  new_private_mutations_seq: &[NucSub],
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) {
-  let mut new_middle_node: AuspiceTreeNode = nearest_node;
-  let seq_private_mutations = get_set_difference(new_private_mutations_seq, &new_private_mutations_middle_node);
+  let mut new_middle_node: AuspiceTreeNode = graph.get_node(GraphNodeKey::new(source_key)).unwrap().payload().clone();
 
   let string_private_mutations_middle_node = new_private_mutations_middle_node
     .iter()
@@ -232,27 +244,27 @@ pub fn add_to_middle_node(
       .map(NucSub::to_string)
       .collect_vec(),
   );
-  new_middle_node.name = format!("{child_key}_internal");
+  new_middle_node.name = format!("{target_key}_internal");
   new_middle_node.tmp.id = graph.num_nodes();
   let new_middle_node_key = graph.add_node(new_middle_node);
 
-  //alter private mutations of child
-  let mut child = graph.get_node_mut(GraphNodeKey::new(child_key)).unwrap().payload_mut();
-  let string_private_mutations_child = new_private_mutations_child
+  //alter private mutations of target
+  let mut target = graph.get_node_mut(GraphNodeKey::new(target_key)).unwrap().payload_mut();
+  let string_private_mutations_target = new_private_mutations_target
     .iter()
     .map(std::clone::Clone::clone)
     .collect_vec();
   let divergence = calculate_divergence(
     divergence_middle_node,
-    new_private_mutations_child.len(),
+    new_private_mutations_target.len(),
     divergence_units,
     ref_seq_len,
   );
-  child.tmp.private_mutations = new_private_mutations_child;
-  child.branch_attrs.mutations = BTreeMap::<String, Vec<String>>::default();
-  child.branch_attrs.mutations.insert(
+  target.tmp.private_mutations = new_private_mutations_target;
+  target.branch_attrs.mutations = BTreeMap::<String, Vec<String>>::default();
+  target.branch_attrs.mutations.insert(
     "nuc".to_owned(),
-    string_private_mutations_child
+    string_private_mutations_target
       .iter()
       .map(NucSub::to_string)
       .collect_vec(),
@@ -262,28 +274,78 @@ pub fn add_to_middle_node(
   graph
     .insert_node_before(
       new_middle_node_key,
-      GraphNodeKey::new(child_key),
+      GraphNodeKey::new(target_key),
       AuspiceTreeEdge::new(), // Edge payloads are currently dummy
       AuspiceTreeEdge::new(), // Edge payloads are currently dummy
     )
     .map_err(|err| println!("{err:?}"))
     .ok();
   //attach seq to new_middle_node
-  let divergence_new_seq = calculate_divergence(
-    divergence_middle_node,
-    seq_private_mutations.len(),
+  attach_node(
+    graph,
+    new_middle_node_key.as_usize(),
+    new_private_mutations_seq,
+    result,
+    divergence_units,
+    ref_seq_len,
+  );
+}
+
+pub fn attach_node(
+  graph: &mut AuspiceGraph,
+  nearest_node_id: usize,
+  new_private_mutations: &[NucSub],
+  result: &NextcladeOutputs,
+  divergence_units: &DivergenceUnits,
+  ref_seq_len: usize,
+) {
+  let nearest_node_clone = graph
+    .get_node(GraphNodeKey::new(nearest_node_id))
+    .unwrap()
+    .payload()
+    .clone();
+  let nearest_node_div = nearest_node_clone.node_attrs.div.unwrap_or(0.0);
+  //check if node is a leaf, then it contains a sequence and we need to create a new node to be visible in the tree
+  if graph.key_in_leaves(GraphNodeKey::new(nearest_node_id)) {
+    let target = graph
+      .get_node_mut(GraphNodeKey::new(nearest_node_id))
+      .unwrap()
+      .payload_mut();
+    target.name = format!("{}_parent", target.name);
+
+    let mut new_terminal_node = nearest_node_clone;
+    new_terminal_node.branch_attrs.mutations.clear();
+    new_terminal_node.branch_attrs.other = serde_json::Value::default();
+    new_terminal_node.tmp.private_mutations = Vec::new();
+    new_terminal_node.tmp.id = graph.num_nodes();
+
+    let new_terminal_key = graph.add_node(new_terminal_node);
+    graph
+      .add_edge(
+        GraphNodeKey::new(nearest_node_id),
+        new_terminal_key,
+        AuspiceTreeEdge::new(),
+      )
+      .map_err(|err| println!("{err:?}"))
+      .ok();
+  }
+  //Attach only to a reference node.
+  let new_node_private_mutations = new_private_mutations.iter().map(std::clone::Clone::clone).collect_vec();
+  let divergence_new_node = calculate_divergence(
+    nearest_node_div,
+    new_node_private_mutations.len(),
     divergence_units,
     ref_seq_len,
   );
   let mut new_graph_node: AuspiceTreeNode =
-    create_new_auspice_node(result, Some(seq_private_mutations.clone()), Some(divergence_new_seq));
-  new_graph_node.tmp.private_mutations = seq_private_mutations;
+    create_new_auspice_node(result, Some(new_node_private_mutations), Some(divergence_new_node));
+  new_graph_node.tmp.private_mutations = new_private_mutations.iter().map(std::clone::Clone::clone).collect_vec();
   new_graph_node.tmp.id = graph.num_nodes();
 
   // Create and add the new node to the graph.
   let new_node_key = graph.add_node(new_graph_node);
   graph
-    .add_edge(new_middle_node_key, new_node_key, AuspiceTreeEdge::new())
+    .add_edge(GraphNodeKey::new(nearest_node_id), new_node_key, AuspiceTreeEdge::new())
     .map_err(|err| println!("{err:?}"))
     .ok();
 }
@@ -295,30 +357,32 @@ pub fn graph_attach_new_node_in_place(
   ref_seq_len: usize,
 ) {
   let id = result.nearest_node_id;
-  //check node exists in tree
 
-  //check if new seq is in between nearest node and a child of nearest node
-  let seq_private_mutations = &result.private_nuc_mutations.private_substitutions;
-  let closest_child = get_closest_child(graph, id, seq_private_mutations);
-  let nearest_node_id = closest_child.0;
-  let nearest_node_result = graph
-    .get_node(GraphNodeKey::new(nearest_node_id))
-    .ok_or_else(|| make_internal_report!("Node with id '{nearest_node_id}' expected to exist, but not found"));
-  let nearest_node = match nearest_node_result {
-    Ok(n) => n.payload().clone(),
-    Err(e) => panic!("Cannot find nearest node: {e:?}"),
-  };
+  //check if new seq is in between nearest node and a neighbor of nearest node
+  let closest_neighbor = get_closest_neighbor(graph, id, &result.private_nuc_mutations.private_substitutions);
+  let nearest_node_id = closest_neighbor.0;
 
-  if nearest_node_id != closest_child.1 {
+  if nearest_node_id != closest_neighbor.1 {
     //if there exists a child that shares private mutations with new seq, create middle node between that child and the nearest_node
     //attach seq to middle node
+    let mut source_key = nearest_node_id;
+    let mut target_key = closest_neighbor.1;
+
+    //check if next nearest node is parent or child
+    let parent_key = graph
+      .parent_key_of_by_key(GraphNodeKey::new(nearest_node_id))
+      .expect("Node has no parent");
+    if closest_neighbor.1 == parent_key.as_usize() {
+      source_key = parent_key.as_usize();
+      target_key = nearest_node_id;
+    }
     add_to_middle_node(
       graph,
-      nearest_node,
-      closest_child.1,
-      closest_child.3,
-      closest_child.4,
-      &closest_child.2,
+      source_key,
+      target_key,
+      closest_neighbor.3,
+      closest_neighbor.4,
+      &closest_neighbor.2,
       result,
       divergence_units,
       ref_seq_len,
@@ -326,49 +390,14 @@ pub fn graph_attach_new_node_in_place(
   } else {
     //if nearest_node is terminal create dummy empty terminal node with nearest_node's name (so that nearest_node) stays a terminal)
     //and attach new node to nearest_node (same id, now called {name}_parent)
-    let nearest_node_div = nearest_node.node_attrs.div.unwrap_or(0.0);
-    if nearest_node.is_leaf() {
-      let target = graph
-        .get_node_mut(GraphNodeKey::new(nearest_node_id))
-        .unwrap()
-        .payload_mut();
-      target.name = format!("{}_parent", target.name);
-
-      let mut new_terminal_node = nearest_node;
-      new_terminal_node.branch_attrs.mutations.clear();
-      new_terminal_node.branch_attrs.other = serde_json::Value::default();
-      new_terminal_node.tmp.private_mutations = Vec::new();
-      new_terminal_node.tmp.id = graph.num_nodes();
-
-      let new_terminal_key = graph.add_node(new_terminal_node);
-      graph
-        .add_edge(
-          GraphNodeKey::new(nearest_node_id),
-          new_terminal_key,
-          AuspiceTreeEdge::new(),
-        )
-        .map_err(|err| println!("{err:?}"))
-        .ok();
-    }
-    //Attach only to a reference node.
-    let new_node_private_mutations = closest_child.2.iter().map(std::clone::Clone::clone).collect_vec();
-    let divergence_new_node = calculate_divergence(
-      nearest_node_div,
-      new_node_private_mutations.len(),
+    attach_node(
+      graph,
+      nearest_node_id,
+      &closest_neighbor.2,
+      result,
       divergence_units,
       ref_seq_len,
     );
-    let mut new_graph_node: AuspiceTreeNode =
-      create_new_auspice_node(result, Some(new_node_private_mutations), Some(divergence_new_node));
-    new_graph_node.tmp.private_mutations = closest_child.2.iter().map(std::clone::Clone::clone).collect_vec();
-    new_graph_node.tmp.id = graph.num_nodes();
-
-    // Create and add the new node to the graph.
-    let new_node_key = graph.add_node(new_graph_node);
-    graph
-      .add_edge(GraphNodeKey::new(nearest_node_id), new_node_key, AuspiceTreeEdge::new())
-      .map_err(|err| println!("{err:?}"))
-      .ok();
   }
 }
 

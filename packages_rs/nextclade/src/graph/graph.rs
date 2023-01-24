@@ -140,6 +140,10 @@ where
     self.leaves.iter().filter_map(|idx| self.get_node(*idx))
   }
 
+  pub fn key_in_leaves(&self, key: GraphNodeKey) -> bool {
+    self.leaves.contains(&key)
+  }
+
   // FIXME
   //
   // #[inline]
@@ -160,6 +164,10 @@ where
   pub fn add_node(&mut self, node_payload: N) -> GraphNodeKey {
     let node_key = GraphNodeKey::new(self.nodes.len());
     let node = Node::new(node_key, node_payload);
+    //add to leaves if has no outgoing edges
+    if node.outbound().is_empty() {
+      self.leaves.push(node_key);
+    }
     self.nodes.push(node);
     node_key
   }
@@ -195,6 +203,10 @@ where
       }
 
       self.edges.push(new_edge);
+    }
+    //check if source is a leaf, if so remove from leaves
+    if self.key_in_leaves(source_key) {
+      self.leaves.retain(|&x| x != source_key);
     }
 
     {

@@ -56,8 +56,6 @@ pub fn tree_preprocess_in_place_impl_recursive(
   ref_seq: &[Nuc],
   ref_peptides: &BTreeMap<String, Translation>,
 ) -> Result<GraphNodeKey, Report> {
-  let graph_node_key = graph.add_node(node.clone());
-
   let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
   let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
@@ -68,13 +66,14 @@ pub fn tree_preprocess_in_place_impl_recursive(
     .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
     .collect();
 
-  node.tmp.id = graph_node_key.as_usize();
   node.tmp.mutations = nuc_muts.clone();
   node.tmp.private_mutations = calc_node_private_mutations(node);
   node.tmp.substitutions = nuc_subs;
   node.tmp.aa_mutations = aa_muts.clone();
   node.tmp.aa_substitutions = aa_subs;
   node.tmp.is_ref_node = true;
+  let graph_node_key = graph.add_node(node.clone());
+  node.tmp.id = graph_node_key.as_usize();
 
   node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 

@@ -34,6 +34,14 @@ impl NucSub {
       qry: self.qry,
     }
   }
+  #[must_use]
+  pub const fn invert(&self) -> NucSub {
+    NucSub {
+      reff: self.qry,
+      pos: self.pos,
+      qry: self.reff,
+    }
+  }
 }
 
 impl FromStr for NucSub {
