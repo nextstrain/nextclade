@@ -1,3 +1,14 @@
+## Nextclade CLI 2.10.1 (2023-01-24)
+
+### Ensure `--output-all`, `--output-tsv`, `--output-csv` can be used together again in Nextclade CLI
+
+This fixes a regression introduced in Nextclade CLI 2.10.0, where `--output-all`, `--output-tsv`, `--output-csv` arguments became mutually exclusive. This was not intended and now resolved.
+
+This bug was breaking out bioconda checks, so Nextclade CLI version 2.10.0 will not be available in bioconda. Use 2.10.1 instead.
+
+Nextclade Web is not affected.
+
+
 ## Nextclade Web 2.10.0, Nextclade CLI 2.10.0 (2023-01-24)
 
 ### Add motifs search
