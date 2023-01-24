@@ -839,6 +839,7 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     }
     NextcladeCommands::Run(mut run_args) => {
       nextclade_check_removed_args(&run_args)?;
+      nextclade_check_column_config_args(&run_args)?;
       nextclade_get_output_filenames(&mut run_args).wrap_err("When deducing output filenames")?;
       nextclade_run(*run_args)
     }
