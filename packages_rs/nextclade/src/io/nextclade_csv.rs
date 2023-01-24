@@ -20,12 +20,14 @@ use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
 use crate::utils::range::Range;
 use crate::{make_error, o};
+use edit_distance::edit_distance;
 use eyre::Report;
 use indexmap::{indexmap, IndexMap};
 use itertools::{chain, Either, Itertools};
 use lazy_static::lazy_static;
 use regex::internal::Input;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
@@ -73,7 +75,16 @@ impl CsvColumnConfig {
       if !CSV_POSSIBLE_COLUMNS.contains(header) && !CSV_POSSIBLE_CATEGORIES.contains(header) {
         let categories = CSV_POSSIBLE_CATEGORIES.join(", ");
         let individual = CSV_POSSIBLE_COLUMNS.join(", ");
-        make_error!("Output columns selection: unknown column or category name '{header}'.\n\nPossible categories:\n    {categories}\n\nPossible individual columns:\n    {individual}")
+
+        let suggestions = CSV_POSSIBLE_CATEGORIES.iter().chain(CSV_POSSIBLE_COLUMNS.iter())
+          .filter_map(|candidate| {
+          let distance = edit_distance(candidate, header);
+          (distance < 3).then_some((candidate, distance))
+        }).sorted_by_key(|(_, distance)| *distance).map(|(candidate, _)| candidate).join(", ");
+
+        let suggestion_text = if suggestions.is_empty() { Cow::from("") } else { Cow::from(format!("\n\n  Did you mean: {suggestions}?")) };
+
+        make_error!("Output columns selection: unknown column or category name '{header}'.\n\nPossible categories:\n    {categories}\n\nPossible individual columns:\n    {individual}{suggestion_text}")
       } else {
         Ok(())
       }

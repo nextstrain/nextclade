@@ -514,7 +514,6 @@ pub struct NextcladeRunOutputArgs {
     use_value_delimiter = true
   )]
   #[clap(requires = "tabular_output")]
-  #[clap(possible_values=CSV_POSSIBLE_CATEGORIES.iter().map(String::as_str))]
   pub output_columns_selection: Vec<String>,
 
   /// Path to output phylogenetic tree with input sequences placed onto it, in Auspice JSON V2 format.
