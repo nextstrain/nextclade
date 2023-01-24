@@ -16,7 +16,7 @@ crate-type = ["lib"]
 assert2 = "0.3.6"
 auto_ops = "0.3.0"
 bio = "0.41.0"
-bio-types = "0.12.1"
+bio-types = "*"
 chrono = { version = "0.4.19", default-features = false, features = ["clock", "std", "wasmbind"] }
 clap = { version = "3.1.8", features = ["derive"] }
 clap-verbosity-flag = "1.0.0"
