@@ -33,6 +33,8 @@ In Nextclade Web, in the "Download" dialog, click "Configure columns", then chec
 
 In Nextclade CLI, use `--output-columns-selection` flag. This flag accepts a comma-separated list of column names and/or column category names. Individual columns and categories can be mixed together. You can find a list of column names in the full output file. The following categories are currently available: all, general, ref-muts, priv-muts, errs-warns, qc, primers, dynamic. Another way to receive both lists is to add a non-existent or misspelled name to the list. The error message will then display all possible columns and categories.
 
+Note that because of this feature the order of columns might be different compared to previous versions of Nextclade.
+
 
 ### Add URL parameter for running analysis of example sequences
 
@@ -47,6 +49,12 @@ This could useful for example for testing new datasets:
 ```
 https://clades.nextstrain.org/?dataset-url=http://example.com/my-dataset-dir&input-fasta=example
 ```
+
+### Add `index` column to CSV and TSV outputs
+
+The `index` field is already present in other output formats. In this version CSV and TSV output files gain `index` column as well, which contains the index (integer signifying location) of a corresponding record in the input fasta file or files. Note that this is not the same as row index, because CSV/TSV rows can be emitted in an unspecified order in Nextclade CLI (but this can be changed with `--in-order` flag; which is set by default in Nextclade Web).
+
+Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
 
 
 ## Nextclade Web 2.9.1, Nextclade CLI 2.9.1 (2022-12-09)
