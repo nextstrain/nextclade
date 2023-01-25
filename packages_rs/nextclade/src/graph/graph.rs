@@ -336,36 +336,38 @@ where
       );
     }
     let root_index = self.roots[0];
-    let mut depth_map = HashMap::<GraphNodeKey, usize>::new();
-    self.get_depth_map_recursive(root_index, &mut depth_map);
+    let mut terminal_count_map = HashMap::<GraphNodeKey, usize>::new();
+    self.get_terminal_number_map_recursive(root_index, &mut terminal_count_map);
     let mut new_edge_order_map = HashMap::<GraphNodeKey, Vec<GraphEdgeKey>>::new();
-    self.get_ladderize_map_recursive(root_index, &depth_map, &mut new_edge_order_map);
+    self.get_ladderize_map_recursive(root_index, &terminal_count_map, &mut new_edge_order_map);
     Ok(new_edge_order_map)
   }
 
-  pub fn get_depth_map_recursive(&self, node_key: GraphNodeKey, depth_map: &mut HashMap<GraphNodeKey, usize>) {
+  pub fn get_terminal_number_map_recursive(
+    &self,
+    node_key: GraphNodeKey,
+    terminal_count_map: &mut HashMap<GraphNodeKey, usize>,
+  ) {
     let node = self.get_node(node_key).unwrap();
     for child in self.iter_child_keys_of(node) {
-      self.get_depth_map_recursive(child, depth_map);
+      self.get_terminal_number_map_recursive(child, terminal_count_map);
     }
     if self.key_in_leaves(node_key) {
-      depth_map.insert(node_key, 0);
+      terminal_count_map.insert(node_key, 1);
     } else {
-      let mut max_depth = 0;
+      let mut num_terminals = 0;
       for child in self.iter_child_keys_of(node) {
-        let child_depth = depth_map.get(&child).unwrap();
-        if child_depth > &max_depth {
-          max_depth = *child_depth;
-        }
+        let child_terminals = terminal_count_map.get(&child).unwrap();
+        num_terminals += child_terminals;
       }
-      depth_map.insert(node_key, max_depth + 1);
+      terminal_count_map.insert(node_key, num_terminals);
     }
   }
 
   pub fn get_ladderize_map_recursive(
     &self,
     node_key: GraphNodeKey,
-    depth_map: &HashMap<GraphNodeKey, usize>,
+    terminal_count_map: &HashMap<GraphNodeKey, usize>,
     new_edge_order_map: &mut HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
   ) {
     let node = self.get_node(node_key).unwrap();
@@ -373,7 +375,7 @@ where
     let order_outbound_nodes = pre_outbound_order
       .iter()
       .map(|edge_key| self.get_edge(*edge_key).expect("Node not found").target())
-      .map(|node_key| depth_map.get(&node_key).expect("Node not found"))
+      .map(|node_key| terminal_count_map.get(&node_key).expect("Node not found"))
       .collect_vec();
     let mut zipped = pre_outbound_order
       .into_iter()
@@ -383,7 +385,7 @@ where
     let sorted_outbound: Vec<GraphEdgeKey> = zipped.into_iter().map(|(a, _)| a).collect();
     new_edge_order_map.insert(node_key, sorted_outbound);
     for child in self.iter_child_keys_of(node) {
-      self.get_ladderize_map_recursive(child, depth_map, new_edge_order_map);
+      self.get_ladderize_map_recursive(child, terminal_count_map, new_edge_order_map);
     }
   }
 

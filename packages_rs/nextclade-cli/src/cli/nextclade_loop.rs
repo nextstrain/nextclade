@@ -262,7 +262,11 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       }
     });
   });
-
+  outputs.sort_by(|a, b| {
+    a.private_nuc_mutations
+      .total_private_substitutions
+      .cmp(&b.private_nuc_mutations.total_private_substitutions)
+  });
   let mut tree_g = tree.clone();
   if let Some(output_tree) = run_args.outputs.output_tree {
     //output when using graph
