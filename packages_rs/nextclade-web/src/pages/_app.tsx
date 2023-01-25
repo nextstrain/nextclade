@@ -38,6 +38,8 @@ import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
@@ -192,30 +194,32 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
     <Suspense fallback={fallback}>
       <ReactReduxProvider store={store}>
         <RecoilRoot>
-          <ThemeProvider theme={theme}>
-            <MDXProvider components={mdxComponents}>
-              <Plausible domain={DOMAIN_STRIPPED} />
-              <QueryClientProvider client={queryClient}>
-                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                {/* @ts-ignore */}
-                <I18nextProvider i18n={i18n}>
-                  <ErrorBoundary>
-                    <Suspense>
-                      <RecoilStateInitializer />
-                    </Suspense>
-                    <Suspense fallback={fallback}>
-                      <SEO />
-                      <PreviewWarning />
-                      <BrowserWarning />
-                      <Component {...pageProps} />
-                      <ErrorPopup />
-                      <ReactQueryDevtools initialIsOpen={false} />
-                    </Suspense>
-                  </ErrorBoundary>
-                </I18nextProvider>
-              </QueryClientProvider>
-            </MDXProvider>
-          </ThemeProvider>
+          <DndProvider backend={HTML5Backend}>
+            <ThemeProvider theme={theme}>
+              <MDXProvider components={mdxComponents}>
+                <Plausible domain={DOMAIN_STRIPPED} />
+                <QueryClientProvider client={queryClient}>
+                  {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                  {/* @ts-ignore */}
+                  <I18nextProvider i18n={i18n}>
+                    <ErrorBoundary>
+                      <Suspense>
+                        <RecoilStateInitializer />
+                      </Suspense>
+                      <Suspense fallback={fallback}>
+                        <SEO />
+                        <PreviewWarning />
+                        <BrowserWarning />
+                        <Component {...pageProps} />
+                        <ErrorPopup />
+                        <ReactQueryDevtools initialIsOpen={false} />
+                      </Suspense>
+                    </ErrorBoundary>
+                  </I18nextProvider>
+                </QueryClientProvider>
+              </MDXProvider>
+            </ThemeProvider>
+          </DndProvider>
         </RecoilRoot>
       </ReactReduxProvider>
     </Suspense>

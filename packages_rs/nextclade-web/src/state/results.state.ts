@@ -330,3 +330,9 @@ export const canDownloadAtom = selector<boolean>({
     return globalStatus === AlgorithmGlobalStatus.done
   },
 })
+
+export const statsCriterionAtom = atom({
+  key: 'statsCriterion',
+  default: 'clade',
+  effects: [persistAtom],
+})

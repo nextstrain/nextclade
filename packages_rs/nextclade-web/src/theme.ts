@@ -103,13 +103,19 @@ export const font = {
 }
 
 export const shadows = {
+  lighter: `1px 1px 1px 1px ${rgba(gray500, 0.2)}`,
   light: `1px 1px 1px 1px ${rgba(gray600, 0.2)}`,
   slight: `1px 1px 1px 1px ${rgba(gray700, 0.25)}`,
   medium: `2px 2px 3px 3px ${rgba(gray900, 0.25)}`,
+  blurredMedium: `5px 5px 20px 5px ${rgba(gray700, 0.25)}`,
   filter: {
     slight: `1px 1px 1px ${rgba(gray700, 0.25)}`,
     medium: `2px 2px 3px ${rgba(gray900, 0.33)}`,
   },
+}
+
+export const outline = {
+  drop: `2px dashed ${primary}`,
 }
 
 const uploadZoneBoxShadow = `1px 1px 3px 3px ${rgba(gray700, 0.25)}`
@@ -160,6 +166,7 @@ export const theme = {
   containerMaxWidths,
   font,
   shadows,
+  outline,
   filePicker,
   uploadZone,
 
