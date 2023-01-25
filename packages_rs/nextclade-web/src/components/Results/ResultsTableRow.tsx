@@ -51,7 +51,8 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     return (
       <ResultsTableRowResult
         {...restProps}
-        index={seqIndex}
+        rowIndex={index}
+        seqIndex={seqIndex}
         columnWidthsPx={columnWidthsPx}
         dynamicCladeColumnWidthPx={dynamicCladeColumnWidthPx}
         dynamicPhenotypeColumnWidthPx={dynamicPhenotypeColumnWidthPx}

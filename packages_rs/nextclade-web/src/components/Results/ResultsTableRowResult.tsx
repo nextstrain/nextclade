@@ -20,7 +20,9 @@ import {
   TableCell,
   TableCellAlignedLeft,
   TableCellName,
+  TableCellRowIndex,
   TableCellText,
+  TableHeaderCell,
   TableRow,
 } from 'src/components/Results/ResultsTableStyle'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
@@ -31,7 +33,8 @@ import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
 
 export interface ResultsTableRowResultProps {
-  index: number
+  rowIndex: number
+  seqIndex: number
   viewedGene: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
@@ -76,7 +79,8 @@ export function TableRowColored({
 }
 
 export function ResultsTableRowResult({
-  index,
+  rowIndex,
+  seqIndex,
   viewedGene,
   cladeNodeAttrDescs,
   phenotypeAttrDescs,
@@ -87,7 +91,7 @@ export function ResultsTableRowResult({
   dynamicAaMotifsColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
-  const { seqName, result } = useRecoilValue(analysisResultAtom(index))
+  const { seqName, result } = useRecoilValue(analysisResultAtom(seqIndex))
 
   const data = useMemo(() => {
     if (!result) {
@@ -107,13 +111,17 @@ export function ResultsTableRowResult({
   const { analysisResult, qc, warnings } = data
 
   return (
-    <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
+    <TableRowColored {...restProps} index={seqIndex} overallStatus={qc.overallStatus}>
+      <TableCellRowIndex basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
+        <TableCellText>{rowIndex}</TableCellText>
+      </TableCellRowIndex>
+
       <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
-        <TableCellText>{index}</TableCellText>
+        <TableCellText>{seqIndex}</TableCellText>
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName index={index} seqName={seqName} />
+        <ColumnName index={seqIndex} seqName={seqName} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.qc} grow={0} shrink={0}>
