@@ -22,7 +22,6 @@ import {
   TableCellName,
   TableCellRowIndex,
   TableCellText,
-  TableHeaderCell,
   TableRow,
 } from 'src/components/Results/ResultsTableStyle'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
