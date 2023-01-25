@@ -5,7 +5,7 @@ use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
 use eyre::Report;
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
 
@@ -247,6 +247,67 @@ fn cds_to_global_aln_position(pos: usize, cds_to_aln_map: &[CdsToAln]) -> Vec<Cd
       }
     })
     .collect_vec()
+}
+
+/// Map a position in the extracted alignment of the CDS to the reference sequence.
+/// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
+fn cds_to_global_ref_position(pos: usize, cds_to_aln_map: &[CdsToAln], coord_map: &CoordMap) -> Vec<CdsPosition> {
+  cds_to_global_aln_position(pos, cds_to_aln_map)
+    .into_iter()
+    .map(|cds_pos| match cds_pos {
+      CdsPosition::Inside(pos) => CdsPosition::Inside(coord_map.aln_to_ref_position(pos)),
+      _ => cds_pos,
+    })
+    .collect_vec()
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum CdsRange {
+  Before,
+  Covered(Range),
+  After,
+}
+
+// Map a range in the extracted alignment of the CDS to the global alignment.
+// Returns a result for each CDS segment, as a range can span multiple CDS-segments.
+fn cds_to_global_aln_range(range: &Range, cds_to_aln_map: &[CdsToAln]) -> Vec<CdsRange> {
+  let cds_to_aln_begin = cds_to_global_aln_position(range.begin, cds_to_aln_map);
+
+  // need to map end position -1 to correspond to the last included position
+  let cds_to_aln_end = cds_to_global_aln_position(range.end - 1, cds_to_aln_map);
+
+  let mut result = vec![];
+  for (seg_start, seg_end, seg_map) in izip!(cds_to_aln_begin, cds_to_aln_end, cds_to_aln_map) {
+    let begin = match seg_start {
+      CdsPosition::Before => seg_map.global[0],
+      CdsPosition::Inside(pos) => pos,
+      CdsPosition::After => {
+        result.push(CdsRange::After);
+        continue;
+      }
+    };
+
+    // map end and increment by one to correspond to open interval
+    let end = match seg_end {
+      CdsPosition::Before => {
+        result.push(CdsRange::Before);
+        continue;
+      }
+      CdsPosition::Inside(pos) => pos + 1,
+      CdsPosition::After => seg_map.global.last().unwrap() + 1,
+    };
+
+    result.push(CdsRange::Covered(Range { begin, end }));
+  }
+  result
+}
+
+/// Expand a codon in the extracted alignment to a range in the global alignment
+fn codon_to_global_aln_range(codon: usize, cds_to_aln_map: &[CdsToAln]) -> Vec<CdsRange> {
+  let begin = codon * 3;
+  let end = begin + 3;
+  cds_to_global_aln_range(&Range { begin, end }, cds_to_aln_map)
 }
 
 #[cfg(test)]
