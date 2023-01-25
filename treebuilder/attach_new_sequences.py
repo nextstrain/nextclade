@@ -8,16 +8,17 @@ def attach_new_sequences(tree, sequences_df):
     for index, row in sequences_df.iterrows():
         new_private_nuc_mut = []
         new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['privateSubstitutions']])
-        new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['privateDeletions']])
-        new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['reversionSubstitutions']])
+        #new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['privateDeletions']])
+        #new_private_nuc_mut.extend([nuc_mut_from_dict(dict_) for dict_ in row['privateNucMutations']['reversionSubstitutions']])
         new_private_nuc_mut = sorted(list(set(new_private_nuc_mut)))
         nearest_node = tree.node_dictionary[row['nearestNodeId']]
         seq_list.append([len(new_private_nuc_mut), row['seqName'], new_private_nuc_mut, nearest_node])
     
     ##sort list by number of private mutations
-    seq_list_sorted = [i[1:] for i in sorted(seq_list, key=lambda x:x[1])]
+    seq_list_sorted = [i[1:] for i in sorted(seq_list, key=lambda x:x[0])]
     ##attach sequences to tree
     for seq in seq_list_sorted:
+        print("attaching seq: ", seq[0])
         attach_sequence_to_tree(tree, seq[2], seq[1], seq[0])
     ##ladderize tree
     tree.tree.ladderize()
