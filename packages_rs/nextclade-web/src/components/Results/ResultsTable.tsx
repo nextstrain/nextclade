@@ -41,6 +41,7 @@ import { ResultsControlsSort } from './ResultsControlsSort'
 import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
 import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
 import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
+import HelpTipsColumnRowIndex from './HelpTips/HelpTipsColumnRowIndex.mdx'
 import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsCoverage from './HelpTips/HelpTipsColumnCoverage.mdx'
@@ -250,9 +251,18 @@ export function ResultsTable() {
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
       <TableHeaderRow>
-        <TableHeaderCell first basis={columnWidthsPx.id} grow={0} shrink={0}>
+        <TableHeaderCell first basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
           <TableHeaderCellContent>
-            <TableCellText>{t('ID')}</TableCellText>
+            <TableCellText>{t('#')}</TableCellText>
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-row-index">
+            <HelpTipsColumnRowIndex />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+
+        <TableHeaderCell basis={columnWidthsPx.id} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{t('i')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByIndexAsc} sortDesc={sortByIndexDesc} />
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-seq-id">
