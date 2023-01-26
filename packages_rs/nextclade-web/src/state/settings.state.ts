@@ -8,7 +8,7 @@ import {
 } from 'src/components/Results/ResultsTableStyle'
 import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { aaMotifsDescsAtom, cladeNodeAttrKeysAtom, phenotypeAttrKeysAtom } from 'src/state/results.state'
+import { aaMotifsDescsAtom, cladeNodeAttrDescsAtom, phenotypeAttrKeysAtom } from 'src/state/results.state'
 
 export const isInitializedAtom = atom<boolean>({
   key: 'isInitialized',
@@ -108,7 +108,8 @@ export const resultsTableTotalWidthAtom = selector<number>({
   key: 'resultsTableTotalWidth',
   get({ get }) {
     const dynamicCladeColumnsWidthTotal =
-      get(cladeNodeAttrKeysAtom).length * get(resultsTableDynamicCladeColumnWidthAtom)
+      get(cladeNodeAttrDescsAtom).filter((desc) => !desc.hideInWeb).length *
+      get(resultsTableDynamicCladeColumnWidthAtom)
 
     const dynamicPhenotypeColumnsWidthTotal =
       get(phenotypeAttrKeysAtom).length * get(resultsTableDynamicPhenotypeColumnWidthAtom)

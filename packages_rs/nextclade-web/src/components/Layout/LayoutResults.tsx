@@ -23,7 +23,6 @@ const Header = styled.header`
 const MainContent = styled.main`
   flex-grow: 1;
   flex-basis: 100%;
-  overflow: auto;
   min-height: 2em;
 `
 
