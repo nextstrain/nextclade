@@ -15,17 +15,16 @@ import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
 import { ButtonRerun } from './ButtonRerun'
 
-export const Container = styled.div<{ $minWidth: number }>`
+export const Container = styled.div`
   width: 100%;
   height: 100%;
-  min-width: ${(props) => props.$minWidth}px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
 `
 
 const Header = styled.header`
-  flex-shrink: 0;
+  flex-shrink: 1;
   display: flex;
 `
 
@@ -44,6 +43,22 @@ const HeaderRight = styled.header`
   display: flex;
 `
 
+const WrapperOuter = styled.div`
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+`
+
+const WrapperInner = styled.div<{ $minWidth: number }>`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: ${(props) => props.$minWidth}px;
+`
+
 const HeaderRightContainer = styled.div`
   flex: 0;
 `
@@ -51,7 +66,6 @@ const HeaderRightContainer = styled.div`
 const MainContent = styled.main`
   flex: 1;
   flex-basis: 100%;
-  overflow: auto;
   border: none;
 `
 
@@ -64,7 +78,7 @@ export function ResultsPage() {
 
   return (
     <LayoutResults>
-      <Container $minWidth={totalWidth}>
+      <Container>
         <Header>
           <HeaderLeft>
             <ButtonBack />
@@ -91,17 +105,21 @@ export function ResultsPage() {
           </HeaderRight>
         </Header>
 
-        <ResultsFilter />
+        <WrapperOuter>
+          <WrapperInner $minWidth={totalWidth}>
+            <ResultsFilter />
 
-        <MainContent>
-          <ResultsTable />
-        </MainContent>
+            <MainContent>
+              <ResultsTable />
+            </MainContent>
 
-        <Footer>
-          <Suspense fallback={null}>
-            <GeneMapTable />
-          </Suspense>
-        </Footer>
+            <Footer>
+              <Suspense fallback={null}>
+                <GeneMapTable />
+              </Suspense>
+            </Footer>
+          </WrapperInner>
+        </WrapperOuter>
       </Container>
     </LayoutResults>
   )
