@@ -2,7 +2,8 @@ import type { Nucleotide } from 'src/types'
 import { Aminoacid } from 'src/types'
 
 export const PROJECT_NAME = 'Nextclade' as const
-export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and sequence quality checks' as const
+export const PROJECT_DESCRIPTION =
+  'Genetic sequence alignment, clade assignment, mutation calling, phylogenetic placement, and quality checks for SARS-CoV-2, Influenza (Flu), Monkeypox, Respiratory Syncytial Virus (RSV) and other pathogens' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain developers' as const
 export const RELEASE_URL = 'https://clades.nextstrain.org' as const
