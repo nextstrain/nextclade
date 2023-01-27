@@ -1,5 +1,7 @@
+use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
-use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
+use crate::analyze::find_private_nuc_mutations::{PrivateMutationsMinimal, PrivateNucMutations};
+use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::graph::Graph;
 use crate::graph::node::GraphNodeKey;
@@ -86,10 +88,16 @@ pub fn tree_preprocess_in_place_impl_recursive(
   Ok(graph_node_key)
 }
 
-pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Vec<NucSub> {
-  let mut nuc_muts = Vec::<NucSub>::new();
+pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> PrivateMutationsMinimal {
+  let mut nuc_sub = Vec::<NucSub>::new();
+  let mut nuc_del = Vec::<NucDelMinimal>::new();
+  let mut aa_sub = BTreeMap::<String, Vec<AaSubMinimal>>::new();
   match node.branch_attrs.mutations.get("nuc") {
-    None => nuc_muts,
+    None => PrivateMutationsMinimal {
+      private_nuc_substitutions: nuc_sub,
+      private_nuc_deletions: nuc_del,
+      private_aa_mutations: aa_sub,
+    },
     Some(mutations) => {
       for mutation_str in mutations {
         let mutation = NucSub::from_str(mutation_str);
@@ -97,10 +105,36 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Vec<NucSub> {
           Ok(n) => n,
           Err(e) => panic!("Cannot read mutation: {e:?}"),
         };
-
-        nuc_muts.push(mutation);
+        if mutation.is_del() {
+          let del = NucDelMinimal {
+            reff: mutation.reff,
+            pos: mutation.pos,
+          };
+          nuc_del.push(del);
+        } else {
+          nuc_sub.push(mutation);
+        }
       }
-      nuc_muts
+      for (k, v) in &node.branch_attrs.mutations {
+        if k != "nuc" {
+          let mut aa_sub_vec = Vec::<AaSubMinimal>::new();
+          let aa_del_vec = Vec::<AaDelMinimal>::new();
+          for mutation_str in v {
+            let mutation = AaSubMinimal::from_str(mutation_str);
+            let mutation = match mutation {
+              Ok(n) => n,
+              Err(e) => panic!("Cannot read mutation: {e:?}"),
+            };
+            aa_sub_vec.push(mutation);
+          }
+          aa_sub.insert(k.to_string(), aa_sub_vec);
+        }
+      }
+      PrivateMutationsMinimal {
+        private_nuc_substitutions: nuc_sub,
+        private_nuc_deletions: nuc_del,
+        private_aa_mutations: aa_sub,
+      }
     }
   }
 }

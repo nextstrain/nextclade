@@ -36,6 +36,15 @@ impl AaSubMinimal {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     format!("{}{}{}", from_aa(self.reff), self.pos + 1, from_aa(self.qry))
   }
+
+  #[must_use]
+  pub const fn invert(&self) -> AaSubMinimal {
+    AaSubMinimal {
+      reff: self.qry,
+      pos: self.pos,
+      qry: self.reff,
+    }
+  }
 }
 
 impl FromStr for AaSubMinimal {

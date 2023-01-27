@@ -21,7 +21,8 @@ use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::AuspiceTreeNode;
-use nextclade::tree::tree_attach_new_nodes::{graph_attach_new_nodes_in_place, tree_attach_new_nodes_in_place};
+use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::{make_error, make_internal_report};
@@ -262,6 +263,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       }
     });
   });
+  //add sequences with less private mutations first to avoid un-treelike behavior in the graph
   outputs.sort_by(|a, b| {
     a.private_nuc_mutations
       .total_private_substitutions
@@ -269,8 +271,9 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   });
   let mut tree_g = tree.clone();
   if let Some(output_tree) = run_args.outputs.output_tree {
-    //output when using graph
+    //attach sequences to graph in greedy approach, building a tree
     graph_attach_new_nodes_in_place(&mut graph, &outputs, &tree.tmp.divergence_units, ref_seq.len());
+    //ladderize tree prior to output
     graph.ladderize_tree()?;
 
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;

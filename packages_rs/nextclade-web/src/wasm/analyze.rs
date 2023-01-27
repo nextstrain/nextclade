@@ -6,6 +6,7 @@ use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene::Gene;
+use nextclade::graph::graph::{convert_graph_to_auspice_tree, Graph};
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::gff3::read_gff3_str;
@@ -15,8 +16,9 @@ use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::TranslationMap;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
+use nextclade::tree::tree::{AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
@@ -148,6 +150,7 @@ pub struct Nextclade {
   gene_map: GeneMap,
   primers: Vec<PcrPrimer>,
   tree: AuspiceTree,
+  graph: Graph<AuspiceTreeNode, AuspiceTreeEdge>,
   qc_config: QcConfig,
   virus_properties: VirusProperties,
   gap_open_close_nuc: Vec<i32>,
@@ -191,7 +194,9 @@ impl Nextclade {
       translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
-    tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
+
+    let graph = tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
+
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
     let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);
@@ -206,6 +211,7 @@ impl Nextclade {
       gene_map,
       primers,
       tree,
+      graph,
       qc_config,
       virus_properties,
       gap_open_close_nuc,
@@ -276,9 +282,22 @@ impl Nextclade {
       }
     }
   }
-  // let mut graph = tree_preprocess_in_place(&mut self.tree, &self.ref_seq, &self.ref_peptides);
-  pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {
-    tree_attach_new_nodes_in_place(&mut self.tree, nextclade_outputs);
+
+  pub fn preformat_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> Result<&AuspiceTree, Report> {
+    graph_attach_new_nodes_in_place(
+      &mut self.graph,
+      nextclade_outputs,
+      &self.tree.tmp.divergence_units,
+      self.ref_seq.len(),
+    );
+    self.graph.ladderize_tree()?;
+    let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&self.graph)?;
+    self.tree.tree = root;
+
+    Ok(&self.tree)
+  }
+
+  pub fn get_output_tree(&mut self) -> &AuspiceTree {
     &self.tree
   }
 }

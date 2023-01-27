@@ -167,9 +167,9 @@
               "A88T"
               ],
           "HA1": [
-              "K1I",
-              "N2I",
-              "T8S"
+              "Q1H",
+              "K2Y",
+              "N8F"
               ]
           }
         },
@@ -186,7 +186,7 @@
                   "C77T"
                   ],
               "HA1": [
-                  "F3F",
+                  "L3F",
                   "P4L"
                   ]
               }
@@ -199,7 +199,7 @@
               "date": {
                 "value": "2022-05-24"
               },
-              "div": 0.0045,
+              "div": 8,
               "region": {
                 "value": "north_america"
               }
@@ -218,7 +218,7 @@
                 "C77A"
                 ],
             "HA1": [
-                "F3L",
+                "L3F",
                 "P4K"
                 ]
             }
@@ -231,7 +231,7 @@
             "date": {
               "value": "2022-09-24"
             },
-            "div": 0.005,
+            "div": 9,
             "region": {
               "value": "north_america"
             }
@@ -246,7 +246,7 @@
           "date": {
             "value": "2021-10-24"
           },
-          "div": 0.003,
+          "div": 6,
           "region": {
             "value": "north_america"
           },

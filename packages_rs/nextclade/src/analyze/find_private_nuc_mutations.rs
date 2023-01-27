@@ -13,6 +13,33 @@ use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+use super::aa_del::AaDelMinimal;
+use super::aa_sub::AaSubMinimal;
+
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+pub struct PrivateMutationsMinimal {
+  /// All private nuc mutations
+  pub private_nuc_substitutions: Vec<NucSub>,
+  pub private_nuc_deletions: Vec<NucDelMinimal>,
+  /// All private aa mutations
+  pub private_aa_mutations: BTreeMap<String, Vec<AaSubMinimal>>,
+}
+
+impl PrivateMutationsMinimal {
+  #[must_use]
+  pub fn invert(&self) -> PrivateMutationsMinimal {
+    PrivateMutationsMinimal {
+      private_nuc_substitutions: self.private_nuc_substitutions.iter().map(NucSub::invert).collect(),
+      private_nuc_deletions: self.private_nuc_deletions.clone(),
+      private_aa_mutations: self
+        .private_aa_mutations
+        .iter()
+        .map(|(gene, subs)| (gene.clone(), subs.iter().map(AaSubMinimal::invert).collect()))
+        .collect(),
+    }
+  }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateNucMutations {

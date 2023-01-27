@@ -1,3 +1,4 @@
+use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::edge::GraphEdge;
 use crate::graph::graph::Graph;
@@ -120,7 +121,7 @@ pub struct TreeNodeTempData {
   pub id: usize,
   pub substitutions: BTreeMap<usize, Nuc>,
   pub mutations: BTreeMap<usize, Nuc>,
-  pub private_mutations: Vec<NucSub>,
+  pub private_mutations: PrivateMutationsMinimal,
   pub aa_substitutions: BTreeMap<String, BTreeMap<usize, Aa>>,
   pub aa_mutations: BTreeMap<String, BTreeMap<usize, Aa>>,
   pub is_ref_node: bool,
