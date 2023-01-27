@@ -41,7 +41,7 @@ pub fn align_nuc(
   let min_len: usize = params.min_length;
   if qry_len < min_len {
     return make_error!(
-      "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}"
+      "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence."
     );
   }
 
