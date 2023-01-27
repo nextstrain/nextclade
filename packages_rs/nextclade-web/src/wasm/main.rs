@@ -74,7 +74,7 @@ impl NextcladeWasm {
   /// This should only run once, in one of the webworkers.
   pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
-    let tree = self.nextclade.get_output_tree();
+    let tree = self.nextclade.get_output_tree(&nextclade_outputs);
     jserr(json_stringify(tree))
   }
 
