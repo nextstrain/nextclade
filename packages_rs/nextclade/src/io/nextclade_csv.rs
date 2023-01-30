@@ -853,7 +853,7 @@ pub fn results_to_csv_string(
       match output_or_error {
         NextcladeOutputOrError::Outputs(output) => writer.write(&output)?,
         NextcladeOutputOrError::Error(error) => {
-          writer.write_nuc_error(error.index, &error.seq_name, &error.errors.join(";"))?
+          writer.write_nuc_error(error.index, &error.seq_name, &error.errors.join(";"))?;
         }
       };
     }
