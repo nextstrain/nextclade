@@ -554,7 +554,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
   }
 
   /// Writes one row for the case of error
-  pub fn write_nuc_error(&mut self, seq_name: &str, errors: &str) -> Result<(), Report> {
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &str) -> Result<(), Report> {
+    self.add_entry("index", &index)?;
     self.add_entry("seqName", &seq_name)?;
     self.add_entry("errors", &errors)?;
     self.write_row()?;
@@ -622,8 +623,8 @@ impl NextcladeResultsCsvFileWriter {
   }
 
   /// Writes one row into nextclade.csv or .tsv file for the case of error
-  pub fn write_nuc_error(&mut self, seq_name: &str, errors: &str) -> Result<(), Report> {
-    self.writer.write_nuc_error(seq_name, errors)
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &str) -> Result<(), Report> {
+    self.writer.write_nuc_error(index, seq_name, errors)
   }
 }
 
@@ -851,7 +852,9 @@ pub fn results_to_csv_string(
     for (_, output_or_error) in outputs_or_errors {
       match output_or_error {
         NextcladeOutputOrError::Outputs(output) => writer.write(&output)?,
-        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(&error.seq_name, &error.errors.join(";"))?,
+        NextcladeOutputOrError::Error(error) => {
+          writer.write_nuc_error(error.index, &error.seq_name, &error.errors.join(";"))?
+        }
       };
     }
   }

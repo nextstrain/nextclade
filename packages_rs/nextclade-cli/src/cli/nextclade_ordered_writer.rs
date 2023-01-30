@@ -196,10 +196,10 @@ impl<'a> NextcladeOrderedWriter<'a> {
           errors_csv_writer.write_nuc_error(&seq_name, &cause)?;
         }
         if let Some(output_csv_writer) = &mut self.output_csv_writer {
-          output_csv_writer.write_nuc_error(&seq_name, &cause)?;
+          output_csv_writer.write_nuc_error(index, &seq_name, &cause)?;
         }
         if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
-          output_tsv_writer.write_nuc_error(&seq_name, &cause)?;
+          output_tsv_writer.write_nuc_error(index, &seq_name, &cause)?;
         }
         if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
           output_ndjson_writer.write_nuc_error(index, &seq_name, &[cause.clone()])?;
