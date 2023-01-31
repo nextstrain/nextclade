@@ -430,6 +430,9 @@ mod coord_map_tests {
   #[rustfmt::skip]
   #[rstest]
   fn maps_example() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
     let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
@@ -451,6 +454,114 @@ mod coord_map_tests {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
         33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56
       ]
+    );
+
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn maps_cds_to_global_aln_position() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+
+    assert_eq!(
+      cds_to_global_aln_position(10, &ref_cds_to_aln),
+      [CdsPosition::Inside(14), CdsPosition::Before, CdsPosition::Before]
+    );
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn maps_cds_to_global_aln_range() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+
+    assert_eq!(
+      cds_to_global_aln_range(&Range::new(10, 15), &ref_cds_to_aln),
+      [
+        CdsRange::Covered(Range::new(14, 19)),
+        CdsRange::Before,
+        CdsRange::Before
+      ]
+    );
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn maps_codon_to_global_aln_range() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+
+    assert_eq!(
+      codon_to_global_aln_range(5, &ref_cds_to_aln),
+      [
+        CdsRange::Covered(Range::new(19, 22)),
+        CdsRange::Before,
+        CdsRange::Before
+      ]
+    );
+
+    assert_eq!(
+      codon_to_global_aln_range(6, &ref_cds_to_aln),
+      [
+        CdsRange::Covered(Range::new(22, 24)),
+        CdsRange::Covered(Range::new(23, 24)),
+        CdsRange::Before
+      ]
+    );
+
+    assert_eq!(
+      codon_to_global_aln_range(7, &ref_cds_to_aln),
+      [CdsRange::After, CdsRange::Covered(Range::new(24, 27)), CdsRange::Before]
+    );
+
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn maps_cds_to_global_ref_position() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+
+    assert_eq!(
+      cds_to_global_ref_position(10, &ref_cds_to_aln, &global_coord_map),
+      [CdsPosition::Inside(11), CdsPosition::Before, CdsPosition::Before]
     );
 
     Ok(())
