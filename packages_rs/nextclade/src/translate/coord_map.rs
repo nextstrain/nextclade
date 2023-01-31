@@ -56,7 +56,7 @@ fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
 /// done in alignment space, while others in reference space. This struct allows for conversion of position indices
 /// from one space to another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CoordMap {
   aln_to_ref_table: Vec<usize>,
@@ -188,14 +188,24 @@ impl CoordMap {
 
     nucs
   }
-}
 
-fn extract_cds_sequence(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-  cds
-    .segments
-    .iter()
-    .flat_map(|cds_segment| seq[cds_segment.start..cds_segment.end].iter().copied())
-    .collect_vec()
+  /////////////////////////////////////////////////////////////////////////////////////////////
+
+  fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> (Vec<Nuc>, CoordMapForCds) {
+    let mut cds_aln_seq = vec![];
+    let mut cds_to_aln_map = vec![];
+    for segment in &cds.segments {
+      let start = self.ref_to_aln_position(segment.start);
+      let end = self.ref_to_aln_position(segment.end);
+      cds_to_aln_map.push(CdsToAln {
+        global: (start..end).collect_vec(),
+        start: cds_aln_seq.len(),
+        len: end - start,
+      });
+      cds_aln_seq.extend_from_slice(&seq_aln[start..end]);
+    }
+    (cds_aln_seq, CoordMapForCds::new(cds_to_aln_map, self.clone()))
+  }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -206,59 +216,12 @@ pub struct CdsToAln {
   len: usize,
 }
 
-fn extract_cds_alignment(seq_aln: &[Nuc], cds: &Cds, coord_map: &CoordMap) -> (Vec<Nuc>, Vec<CdsToAln>) {
-  let mut cds_aln = vec![];
-  let mut cds_to_aln = vec![];
-  for segment in &cds.segments {
-    let start = coord_map.ref_to_aln_position(segment.start);
-    let end = coord_map.ref_to_aln_position(segment.end);
-    cds_to_aln.push(CdsToAln {
-      global: (start..end).collect_vec(),
-      start: cds_aln.len(),
-      len: end - start,
-    });
-    cds_aln.extend_from_slice(&seq_aln[start..end]);
-  }
-  (cds_aln, cds_to_aln)
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum CdsPosition {
   Before,
   Inside(usize),
   After,
-}
-
-/// Map a position in the extracted alignment of the CDS to the global alignment.
-/// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-fn cds_to_global_aln_position(pos: usize, cds_to_aln_map: &[CdsToAln]) -> Vec<CdsPosition> {
-  cds_to_aln_map
-    .iter()
-    .map(|segment| {
-      let pos_in_segment = pos as isize - segment.start as isize;
-
-      if pos_in_segment < 0 {
-        CdsPosition::Before
-      } else if pos_in_segment >= segment.len as isize {
-        CdsPosition::After
-      } else {
-        CdsPosition::Inside(segment.global[pos_in_segment as usize])
-      }
-    })
-    .collect_vec()
-}
-
-/// Map a position in the extracted alignment of the CDS to the reference sequence.
-/// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-fn cds_to_global_ref_position(pos: usize, cds_to_aln_map: &[CdsToAln], coord_map: &CoordMap) -> Vec<CdsPosition> {
-  cds_to_global_aln_position(pos, cds_to_aln_map)
-    .into_iter()
-    .map(|cds_pos| match cds_pos {
-      CdsPosition::Inside(pos) => CdsPosition::Inside(coord_map.aln_to_ref_position(pos)),
-      _ => cds_pos,
-    })
-    .collect_vec()
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -269,45 +232,101 @@ pub enum CdsRange {
   After,
 }
 
-// Map a range in the extracted alignment of the CDS to the global alignment.
-// Returns a result for each CDS segment, as a range can span multiple CDS-segments.
-fn cds_to_global_aln_range(range: &Range, cds_to_aln_map: &[CdsToAln]) -> Vec<CdsRange> {
-  let cds_to_aln_begin = cds_to_global_aln_position(range.begin, cds_to_aln_map);
-
-  // need to map end position -1 to correspond to the last included position
-  let cds_to_aln_end = cds_to_global_aln_position(range.end - 1, cds_to_aln_map);
-
-  let mut result = vec![];
-  for (seg_start, seg_end, seg_map) in izip!(cds_to_aln_begin, cds_to_aln_end, cds_to_aln_map) {
-    let begin = match seg_start {
-      CdsPosition::Before => seg_map.global[0],
-      CdsPosition::Inside(pos) => pos,
-      CdsPosition::After => {
-        result.push(CdsRange::After);
-        continue;
-      }
-    };
-
-    // map end and increment by one to correspond to open interval
-    let end = match seg_end {
-      CdsPosition::Before => {
-        result.push(CdsRange::Before);
-        continue;
-      }
-      CdsPosition::Inside(pos) => pos + 1,
-      CdsPosition::After => seg_map.global.last().unwrap() + 1,
-    };
-
-    result.push(CdsRange::Covered(Range { begin, end }));
-  }
-  result
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+pub struct CoordMapForCds {
+  cds_to_aln_map: Vec<CdsToAln>,
+  coord_map: CoordMap,
 }
 
-/// Expand a codon in the extracted alignment to a range in the global alignment
-fn codon_to_global_aln_range(codon: usize, cds_to_aln_map: &[CdsToAln]) -> Vec<CdsRange> {
-  let begin = codon * 3;
-  let end = begin + 3;
-  cds_to_global_aln_range(&Range { begin, end }, cds_to_aln_map)
+impl CoordMapForCds {
+  pub fn new(cds_to_aln_map: Vec<CdsToAln>, coord_map: CoordMap) -> Self {
+    Self {
+      cds_to_aln_map,
+      coord_map,
+    }
+  }
+
+  /// Map a position in the extracted alignment of the CDS to the global alignment.
+  /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
+  fn cds_to_global_aln_position(&self, cds_aln_pos: usize) -> Vec<CdsPosition> {
+    self
+      .cds_to_aln_map
+      .iter()
+      .map(|segment| {
+        let pos_in_segment = cds_aln_pos as isize - segment.start as isize;
+
+        if pos_in_segment < 0 {
+          CdsPosition::Before
+        } else if pos_in_segment >= segment.len as isize {
+          CdsPosition::After
+        } else {
+          CdsPosition::Inside(segment.global[pos_in_segment as usize])
+        }
+      })
+      .collect_vec()
+  }
+
+  /// Map a position in the extracted alignment of the CDS to the reference sequence.
+  /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
+  fn cds_to_global_ref_position(&self, pos: usize) -> Vec<CdsPosition> {
+    self
+      .cds_to_global_aln_position(pos)
+      .into_iter()
+      .map(|cds_pos| match cds_pos {
+        CdsPosition::Inside(pos) => CdsPosition::Inside(self.coord_map.aln_to_ref_position(pos)),
+        _ => cds_pos,
+      })
+      .collect_vec()
+  }
+
+  // Map a range in the extracted alignment of the CDS to the global alignment.
+  // Returns a result for each CDS segment, as a range can span multiple CDS-segments.
+  fn cds_to_global_aln_range(&self, range: &Range) -> Vec<CdsRange> {
+    let cds_to_aln_begin = self.cds_to_global_aln_position(range.begin);
+
+    // need to map end position -1 to correspond to the last included position
+    let cds_to_aln_end = self.cds_to_global_aln_position(range.end - 1);
+
+    let mut result = vec![];
+    for (seg_start, seg_end, seg_map) in izip!(cds_to_aln_begin, cds_to_aln_end, &self.cds_to_aln_map) {
+      let begin = match seg_start {
+        CdsPosition::Before => seg_map.global[0],
+        CdsPosition::Inside(pos) => pos,
+        CdsPosition::After => {
+          result.push(CdsRange::After);
+          continue;
+        }
+      };
+
+      // map end and increment by one to correspond to open interval
+      let end = match seg_end {
+        CdsPosition::Before => {
+          result.push(CdsRange::Before);
+          continue;
+        }
+        CdsPosition::Inside(pos) => pos + 1,
+        CdsPosition::After => seg_map.global.last().unwrap() + 1,
+      };
+
+      result.push(CdsRange::Covered(Range { begin, end }));
+    }
+    result
+  }
+
+  /// Expand a codon in the extracted alignment to a range in the global alignment
+  fn codon_to_global_aln_range(&self, codon: usize) -> Vec<CdsRange> {
+    let begin = codon * 3;
+    let end = begin + 3;
+    self.cds_to_global_aln_range(&Range { begin, end })
+  }
+}
+
+fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
+  cds
+    .segments
+    .iter()
+    .flat_map(|cds_segment| seq[cds_segment.start..cds_segment.end].iter().copied())
+    .collect_vec()
 }
 
 #[cfg(test)]
@@ -350,10 +369,10 @@ mod coord_map_tests {
     // CDS range                   11111111111111111
     // CDS range                                   2222222222222222222      333333
     // index                   012345678901234567890123456789012345678901234567890123
-    let seq =      to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let reff =     to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let expected = to_nuc_seq(    "GCACAATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?;
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let actual = extract_cds_sequence(&seq, &cds);
+    let actual = extract_cds_ref(&reff, &cds);
     assert_eq!(actual, expected);
     Ok(())
   }
@@ -372,14 +391,15 @@ mod coord_map_tests {
     let global_coord_map = CoordMap::new(&ref_aln);
 
     let expected = to_nuc_seq("GCACAATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?;
-    let (ref_cds_aln, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+    let (ref_cds_aln, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
     assert_eq!(
       ref_cds_aln,
       to_nuc_seq("GCACA---ATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?
     );
+
     assert_eq!(
       ref_cds_to_aln,
-      vec![
+       CoordMapForCds::new(vec![
         CdsToAln {
           global: vec![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
           start: 0,
@@ -395,17 +415,17 @@ mod coord_map_tests {
           start: 39,
           len: 6,
         },
-      ]
+      ], global_coord_map.clone())
     );
 
-    let (qry_cds_aln, qry_cds_to_aln) = extract_cds_alignment(&qry_aln, &cds, &global_coord_map);
+    let (qry_cds_aln, qry_cds_to_aln) = global_coord_map.extract_cds_aln(&qry_aln, &cds);
     assert_eq!(
       qry_cds_aln,
       to_nuc_seq("GCACACGCATC---TTTAAAACGGGTTTGCGGTGTCAGTCGTCTT")?
     );
     assert_eq!(
       qry_cds_to_aln,
-      vec![
+      CoordMapForCds::new(vec![
         CdsToAln {
           global: vec![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
           start: 0,
@@ -421,7 +441,7 @@ mod coord_map_tests {
           start: 39,
           len: 6,
         },
-      ]
+      ], global_coord_map)
     );
 
     Ok(())
@@ -471,10 +491,10 @@ mod coord_map_tests {
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      cds_to_global_aln_position(10, &ref_cds_to_aln),
+      ref_cds_to_aln.cds_to_global_aln_position(10),
       [CdsPosition::Inside(14), CdsPosition::Before, CdsPosition::Before]
     );
     Ok(())
@@ -492,10 +512,10 @@ mod coord_map_tests {
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      cds_to_global_aln_range(&Range::new(10, 15), &ref_cds_to_aln),
+      ref_cds_to_aln.cds_to_global_aln_range(&Range::new(10, 15)),
       [
         CdsRange::Covered(Range::new(14, 19)),
         CdsRange::Before,
@@ -517,10 +537,10 @@ mod coord_map_tests {
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      codon_to_global_aln_range(5, &ref_cds_to_aln),
+      ref_cds_to_aln.codon_to_global_aln_range(5),
       [
         CdsRange::Covered(Range::new(19, 22)),
         CdsRange::Before,
@@ -529,7 +549,7 @@ mod coord_map_tests {
     );
 
     assert_eq!(
-      codon_to_global_aln_range(6, &ref_cds_to_aln),
+      ref_cds_to_aln.codon_to_global_aln_range(6),
       [
         CdsRange::Covered(Range::new(22, 24)),
         CdsRange::Covered(Range::new(23, 24)),
@@ -538,7 +558,7 @@ mod coord_map_tests {
     );
 
     assert_eq!(
-      codon_to_global_aln_range(7, &ref_cds_to_aln),
+      ref_cds_to_aln.codon_to_global_aln_range(7),
       [CdsRange::After, CdsRange::Covered(Range::new(24, 27)), CdsRange::Before]
     );
 
@@ -557,10 +577,10 @@ mod coord_map_tests {
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = extract_cds_alignment(&ref_aln, &cds, &global_coord_map);
+    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      cds_to_global_ref_position(10, &ref_cds_to_aln, &global_coord_map),
+      ref_cds_to_aln.cds_to_global_ref_position(10),
       [CdsPosition::Inside(11), CdsPosition::Before, CdsPosition::Before]
     );
 
