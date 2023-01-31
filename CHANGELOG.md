@@ -1,3 +1,35 @@
+## Nextclade Web 2.11.0, Nextclade CLI 2.11.0 (2023-01-31)
+
+### IMPORTANT: ensure `index` column is written to CSV/TSV output files in case of error
+
+The new column `index` was correctly written when analysis of a sample succeeds. However, for analyses which ended up with an error (e.g. "Unable to align") this column was mistakenly missing. In this version we fix this omission.
+
+### Fix gene map width in Nextclade Web
+
+Gene map (genome annotation) was misaligned with sequence views (not matching their width). This has been fixed in this version.
+
+### Add table row indices to results table in Nextclade Web
+
+We added a column with index of the row in the table. This is useful for visual search and counting of sorted and filtered results.
+
+Not to be confused with sequence index. Row indices always start with 0 and sorted in ascending order, and do not change their position when sorting or filtering the results.
+
+These indices are not a part of output files. Nextclade CLI is not affected.
+
+### Improve error messages
+
+Errors due to failure of sequence alignment are reworded and hopefully are more complete and comprehensible now.
+Additionally, we improved error message when reference sequence fails to read.
+
+### Always show action buttons on results page in Nextclade Web
+
+On smaller screens the "Download", "Tree" and other action buttons were not visible by default and horizontal scrolling were required to see them. We changed the layout such that the panel with buttons does not overflow along with table and so the buttons are always visible. Table is still scrollable.
+
+### Improve wording on main page of Nextclade Web
+
+We improved text on main page as well as descriptions inside HTML markup, adding more concrete information and keywords. This should be more pleasant to read and might improve Nextclade ranking in search engines.
+
+
 ## Nextclade CLI 2.10.1 (2023-01-24)
 
 ### Ensure `--output-all`, `--output-tsv`, `--output-csv` can be used together again in Nextclade CLI
