@@ -56,7 +56,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
   alignment_params.merge_opt(alignment_params_from_cli);
 
   let ref_record = &read_one_fasta(input_ref)?;
-  let ref_seq = &to_nuc_seq(&ref_record.seq)?;
+  let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
 
   let gene_map = match input_gene_map {
     Some(input_gene_map) => {

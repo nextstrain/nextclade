@@ -112,7 +112,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     primers,
   } = nextclade_get_inputs(&run_args, &genes)?;
 
-  let ref_seq = &to_nuc_seq(&ref_record.seq)?;
+  let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
 
   let mut alignment_params = AlignPairwiseParams::default();
 
