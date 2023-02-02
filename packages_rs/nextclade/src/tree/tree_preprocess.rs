@@ -4,7 +4,7 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::CdsTranslation;
 use crate::tree::tree::{
   AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
@@ -18,7 +18,7 @@ use std::str::FromStr;
 pub fn tree_preprocess_in_place(
   tree: &mut AuspiceTree,
   ref_seq: &[Nuc],
-  ref_peptides: &BTreeMap<String, Translation>,
+  ref_peptides: &BTreeMap<String, CdsTranslation>,
 ) -> Result<(), Report> {
   let mut parent_nuc_muts = BTreeMap::<usize, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<usize, Aa>>::new();
@@ -48,7 +48,7 @@ fn tree_preprocess_in_place_impl_recursive(
   parent_nuc_muts: &mut BTreeMap<usize, Nuc>,
   parent_aa_muts: &mut BTreeMap<String, BTreeMap<usize, Aa>>,
   ref_seq: &[Nuc],
-  ref_peptides: &BTreeMap<String, Translation>,
+  ref_peptides: &BTreeMap<String, CdsTranslation>,
 ) -> Result<(), Report> {
   let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
   let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
@@ -114,7 +114,7 @@ fn map_nuc_muts(
 // TODO: Treat "nuc" just as another gene, thus reduce duplicate
 fn map_aa_muts(
   node: &AuspiceTreeNode,
-  ref_peptides: &BTreeMap<String, Translation>,
+  ref_peptides: &BTreeMap<String, CdsTranslation>,
   parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
 ) -> Result<BTreeMap<String, BTreeMap<usize, Aa>>, Report> {
   ref_peptides

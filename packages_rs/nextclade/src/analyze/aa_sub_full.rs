@@ -1,6 +1,5 @@
 use crate::analyze::aa_changes::{AaDel, AaSub};
-use crate::analyze::aa_del::AaDelMinimal;
-use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
+use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use serde::{Deserialize, Serialize};
 

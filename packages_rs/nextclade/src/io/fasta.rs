@@ -4,7 +4,7 @@ use crate::io::compression::Decompressor;
 use crate::io::concat::concat;
 use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};
 use crate::io::gene_map::GeneMap;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::CdsTranslation;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
 use log::{info, trace};
@@ -233,9 +233,9 @@ impl FastaPeptideWriter {
     Ok(Self { writers })
   }
 
-  pub fn write(&mut self, seq_name: &str, translation: &Translation) -> Result<(), Report> {
-    match self.writers.get_mut(&translation.gene_name) {
-      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.gene_name),
+  pub fn write(&mut self, seq_name: &str, translation: &CdsTranslation) -> Result<(), Report> {
+    match self.writers.get_mut(&translation.cds.name) {
+      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.cds.name),
       Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq), false),
     }
   }

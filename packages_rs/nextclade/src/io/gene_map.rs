@@ -3,8 +3,8 @@ use crate::features::feature_type::style_for_feature_type;
 use crate::features::gene_map::convert_feature_tree_to_gene_map;
 use crate::gene::cds::{Cds, CdsSegment, Protein, ProteinSegment};
 use crate::gene::gene::Gene;
-use crate::make_error;
 use crate::utils::string::truncate_with_ellipsis;
+use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::{max, Itertools};
 use log::warn;
@@ -19,7 +19,7 @@ use std::path::Path;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[must_use]
 pub struct GeneMap {
-  genes: BTreeMap<String, Gene>,
+  pub genes: BTreeMap<String, Gene>,
 }
 
 impl GeneMap {
@@ -58,9 +58,11 @@ impl GeneMap {
     self.genes.contains_key(gene_name)
   }
 
-  #[must_use]
-  pub fn get(&self, gene_name: &str) -> Option<&Gene> {
-    self.genes.get(gene_name)
+  pub fn get(&self, gene_name: &str) -> Result<&Gene, Report> {
+    self
+      .genes
+      .get(gene_name)
+      .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
   }
 
   pub fn iter(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {

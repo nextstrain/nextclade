@@ -8,7 +8,7 @@ use crate::qc::qc_rule_private_mutations::{rule_private_mutations, QcResultPriva
 use crate::qc::qc_rule_snp_clusters::{rule_snp_clusters, QcResultSnpClusters};
 use crate::qc::qc_rule_stop_codons::{rule_stop_codons, QcResultStopCodons};
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::CdsTranslation;
 use num::traits::Pow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -70,7 +70,7 @@ pub fn qc_run(
   private_nuc_mutations: &PrivateNucMutations,
   nucleotide_composition: &BTreeMap<Nuc, usize>,
   total_missing: usize,
-  translations: &[Translation],
+  translations: &[CdsTranslation],
   frame_shifts: &[FrameShift],
   config: &QcConfig,
 ) -> QcResult {

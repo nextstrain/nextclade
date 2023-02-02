@@ -61,7 +61,7 @@ pub enum NextalignCommands {
   },
 
   /// Run alignment and translation.
-  /// 
+  ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   Run(Box<NextalignRunArgs>),
 }

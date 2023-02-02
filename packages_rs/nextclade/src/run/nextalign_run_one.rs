@@ -4,11 +4,10 @@ use crate::align::params::AlignPairwiseParams;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 use crate::translate::coord_map::CoordMap;
-use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
+use crate::translate::translate_genes::{translate_genes, Translation};
 use crate::types::outputs::{NextalignOutputs, PeptideWarning};
-use crate::utils::error::report_to_string;
 use eyre::Report;
-use itertools::{Either, Itertools};
+use itertools::Itertools;
 use std::collections::HashSet;
 
 pub fn nextalign_run_one(
@@ -16,7 +15,7 @@ pub fn nextalign_run_one(
   seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
@@ -28,7 +27,7 @@ pub fn nextalign_run_one(
     Ok(alignment) => {
       let coord_map = CoordMap::new(&alignment.ref_seq);
 
-      let translations = translate_genes(
+      let translation = translate_genes(
         &alignment.qry_seq,
         &alignment.ref_seq,
         ref_peptides,
@@ -40,16 +39,10 @@ pub fn nextalign_run_one(
 
       let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
-      let (translations, mut warnings): (Vec<Translation>, Vec<PeptideWarning>) =
-        translations.into_iter().partition_map(|(gene_name, res)| match res {
-          Ok(tr) => Either::Left(tr),
-          Err(err) => Either::Right(PeptideWarning {
-            gene_name,
-            warning: report_to_string(&err),
-          }),
-        });
-
-      let present_genes: HashSet<String> = translations.iter().map(|tr| &tr.gene_name).cloned().collect();
+      let present_genes: HashSet<String> = translation
+        .iter()
+        .flat_map(|(_, gene_tr)| gene_tr.cdses.iter().map(|(_, cds_tr)| cds_tr.cds.name.clone()))
+        .collect();
 
       let missing_genes = gene_map
         .iter()
@@ -59,17 +52,26 @@ pub fn nextalign_run_one(
 
       let is_reverse_complement = alignment.is_reverse_complement;
 
-      if is_reverse_complement {
-        warnings.push(PeptideWarning {
-          gene_name: "nuc".to_owned(),
-          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
-        });
-      }
+      let warnings = {
+        let mut warnings = translation
+          .iter()
+          .flat_map(|(_, gene_tr)| gene_tr.warnings)
+          .collect_vec();
+
+        if is_reverse_complement {
+          warnings.push(PeptideWarning {
+            gene_name: "nuc".to_owned(),
+            warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
+          });
+        }
+
+        warnings
+      };
 
       Ok(NextalignOutputs {
         stripped,
         alignment,
-        translations,
+        translation,
         warnings,
         missing_genes,
         is_reverse_complement,

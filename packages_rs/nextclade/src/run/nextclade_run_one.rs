@@ -24,7 +24,7 @@ use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
 use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
-use crate::translate::translate_genes::{Translation, TranslationMap};
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
@@ -38,7 +38,7 @@ pub fn nextclade_run_one(
   seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   aa_motifs_ref: &AaMotifsMap,
   gene_map: &GeneMap,
   primers: &[PcrPrimer],
@@ -48,11 +48,11 @@ pub fn nextclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report> {
+) -> Result<(Vec<Nuc>, Vec<CdsTranslation>, NextcladeOutputs), Report> {
   let NextalignOutputs {
     stripped,
     alignment,
-    mut translations,
+    mut translation,
     warnings,
     missing_genes,
     is_reverse_complement,
@@ -79,7 +79,7 @@ pub fn nextclade_run_one(
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
 
-  calculate_aa_alignment_ranges_in_place(&alignment_range, gene_map, &coord_map, &mut translations)?;
+  calculate_aa_alignment_ranges_in_place(&alignment_range, gene_map, &coord_map, &mut translation)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();
@@ -98,7 +98,7 @@ pub fn nextclade_run_one(
   let pcr_primer_changes = get_pcr_primer_changes(&substitutions, primers);
   let total_pcr_primer_changes = pcr_primer_changes.iter().map(|pc| pc.substitutions.len()).sum();
 
-  let frame_shifts = frame_shifts_flatten(&translations);
+  let frame_shifts = frame_shifts_flatten(&translation);
   let total_frame_shifts = frame_shifts.len();
 
   let FindAaChangesOutput {
@@ -108,7 +108,7 @@ pub fn nextclade_run_one(
     &stripped.ref_seq,
     &stripped.qry_seq,
     ref_peptides,
-    &translations,
+    &translation,
     &alignment_range,
     gene_map,
   )?;
@@ -116,10 +116,10 @@ pub fn nextclade_run_one(
   let total_aminoacid_substitutions = aa_substitutions.len();
   let total_aminoacid_deletions = aa_deletions.len();
 
-  let aa_insertions = get_aa_insertions(&translations);
+  let aa_insertions = get_aa_insertions(&translation);
   let total_aminoacid_insertions = aa_insertions.len();
 
-  let unknown_aa_ranges = find_aa_letter_ranges(&translations, Aa::X);
+  let unknown_aa_ranges = find_aa_letter_ranges(&translation, Aa::X);
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
   let TreeFindNearestNodeOutput { node, distance } =
@@ -190,32 +190,32 @@ pub fn nextclade_run_one(
       .collect_vec()
   });
 
-  let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translations)?;
-  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_peptides, &translations)?;
+  let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
+  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_peptides, &translation)?;
 
   let qc = qc_run(
     &private_nuc_mutations,
     &nucleotide_composition,
     total_missing,
-    &translations,
+    &translation,
     &frame_shifts,
     qc_config,
   );
 
-  let aa_alignment_ranges: BTreeMap<String, Range> = translations
+  let aa_alignment_ranges: BTreeMap<String, Range> = translation
     .iter()
     .filter_map(|tr| {
       if tr.alignment_range.is_empty() {
         None
       } else {
-        Some((tr.gene_name.clone(), tr.alignment_range.clone()))
+        Some((tr.cds.name.clone(), tr.alignment_range.clone()))
       }
     })
     .collect();
 
   Ok((
     stripped.qry_seq,
-    translations,
+    translation,
     NextcladeOutputs {
       index,
       seq_name: seq_name.to_owned(),

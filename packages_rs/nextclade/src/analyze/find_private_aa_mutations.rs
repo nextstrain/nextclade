@@ -2,18 +2,14 @@ use crate::analyze::aa_changes::{AaDel, AaSub};
 use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::is_sequenced::is_aa_sequenced;
-use crate::analyze::letter_ranges::{AaRange, GeneAaRange};
-use crate::analyze::virus_properties::{LabelMap, MutationLabelMaps, VirusProperties};
-use crate::gene::genotype::{Genotype, GenotypeLabeled};
+use crate::analyze::letter_ranges::GeneAaRange;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::make_internal_report;
-use crate::translate::translate_genes::{Translation, TranslationMap};
+use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::Range;
-use eyre::Report;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -37,7 +33,7 @@ pub fn find_private_aa_mutations(
   aa_substitutions: &[AaSub],
   aa_deletions: &[AaDel],
   aa_unknowns: &[GeneAaRange],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
 ) -> BTreeMap<String, PrivateAaMutations> {
   gene_map

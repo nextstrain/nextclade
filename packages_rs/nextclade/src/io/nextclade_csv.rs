@@ -11,7 +11,7 @@ use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::CdsTranslation;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
@@ -737,12 +737,14 @@ pub fn format_frame_shifts(frame_shifts: &[FrameShift], delimiter: &str) -> Stri
 }
 
 #[inline]
-pub fn format_aa_insertions_from_translations(translations: &[Translation], delimiter: &str) -> String {
+pub fn format_aa_insertions_from_translations(translations: &[CdsTranslation], delimiter: &str) -> String {
   translations
     .iter()
     .map(
-      |Translation {
-         gene_name, insertions, ..
+      |CdsTranslation {
+         name: gene_name,
+         insertions,
+         ..
        }| {
         insertions
           .iter()
@@ -787,7 +789,7 @@ pub fn format_failed_genes(failed_genes: &[String], delimiter: &str) -> String {
 }
 
 #[inline]
-pub fn format_aa_warnings(maybe_translations: &[Result<Translation, Report>], delimiter: &str) -> String {
+pub fn format_aa_warnings(maybe_translations: &[Result<CdsTranslation, Report>], delimiter: &str) -> String {
   maybe_translations
     .iter()
     .filter_map(|tr| match tr {

@@ -17,20 +17,20 @@ use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
+use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
-use nextclade::translate::translate_genes::Translation;
+use nextclade::translate::translate_genes::CdsTranslation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::range::Range;
-use nextclade::{make_error, make_internal_report};
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
-  pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report>,
+  pub outputs_or_err: Result<(Vec<Nuc>, Vec<CdsTranslation>, NextcladeOutputs), Report>,
 }
 
 pub struct DatasetFilePaths {
@@ -136,11 +136,8 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     ref_peptides
       .iter_mut()
       .try_for_each(|(name, translation)| -> Result<(), Report> {
-        let gene = gene_map
-          .get(&translation.gene_name)
-          .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+        let gene = gene_map.get(&translation.name)?;
         translation.alignment_range = Range::new(0, gene.len_codon());
-
         Ok(())
       })?;
 

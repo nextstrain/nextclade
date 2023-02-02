@@ -205,8 +205,8 @@ impl Nextclade {
         .iter_mut()
         .try_for_each(|(name, translation)| -> Result<(), Report> {
           let gene = gene_map
-            .get(&translation.gene_name)
-            .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+            .get(&translation.name)
+            .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.name))?;
           translation.alignment_range = Range::new(0, gene.len_codon());
 
           Ok(())

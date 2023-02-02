@@ -1,11 +1,10 @@
-use crate::gene::gene::Gene;
-use crate::io::aa::Aa;
-use crate::io::nuc::Nuc;
-
 use crate::align::params::AlignPairwiseParams;
-use crate::translate::translate_genes::Translation;
-use crate::utils::range::Range;
+use crate::gene::cds::Cds;
+use crate::io::aa::Aa;
+use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq};
+use crate::io::nuc::Nuc;
 use eyre::Report;
+use serde::{Deserialize, Serialize};
 
 pub const fn decode(triplet: &[Nuc]) -> Aa {
   match *triplet {
@@ -78,9 +77,17 @@ pub const fn decode(triplet: &[Nuc]) -> Aa {
   }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CdsPeptide {
+  pub name: String,
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
+  pub seq: Vec<Aa>,
+}
+
 /// Translates a nucleotide sequence of a gene into the corresponding aminoacid sequence (peptide)
-/// NOTE: we accept gene sequence by value here to avoid copying (it should be moved) and then process it in-place
-pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams) -> Result<Translation, Report> {
+pub fn translate(gene_nuc_seq: &[Nuc], cds: &Cds, params: &AlignPairwiseParams) -> CdsPeptide {
   // NOTE: rounds the result to the multiple of 3 (floor) so that translation does not overrun the buffer
   let peptide_length = gene_nuc_seq.len() / 3;
 
@@ -96,11 +103,8 @@ pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams
   }
   peptide.shrink_to_fit();
 
-  Ok(Translation {
-    gene_name: gene.gene_name.clone(),
+  CdsPeptide {
+    name: cds.name.clone(),
     seq: peptide,
-    insertions: vec![],
-    frame_shifts: vec![],
-    alignment_range: Range::default(),
-  })
+  }
 }

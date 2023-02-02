@@ -72,126 +72,126 @@ impl CoordMap {
     }
   }
 
-  pub fn aln_to_ref_position(&self, aln: usize) -> usize {
+  fn aln_to_ref_position(&self, aln: usize) -> usize {
     self.aln_to_ref_table[aln]
   }
 
   // Reff is used because `ref` is magic word in Rust
-  pub fn ref_to_aln_position(&self, reff: usize) -> usize {
+  fn ref_to_aln_position(&self, reff: usize) -> usize {
     self.ref_to_aln_table[reff]
   }
 
-  /// Converts relative position inside an aligned feature (e.g. gene) to absolute position in the reference
-  pub fn feature_aln_to_ref_position(&self, feature: &Gene, aln_pos_rel: usize) -> usize {
-    let aln_pos = if feature.strand == GeneStrand::Reverse {
-      self.ref_to_aln_position(feature.end - 1) - aln_pos_rel //feature.end points to the nuc after the feature, hence - 1
-    } else {
-      self.ref_to_aln_position(feature.start) + aln_pos_rel
-    };
-    self.aln_to_ref_position(aln_pos)
-  }
-
-  /// Converts relative position inside a feature (e.g. gene) to absolute position in the alignment
-  pub fn feature_ref_to_aln_position(&self, feature: &Gene, ref_pos_rel: usize) -> usize {
-    let ref_pos = if feature.strand == GeneStrand::Reverse {
-      feature.end - 1 - ref_pos_rel // the feature end is one past the last character, hence -1
-    } else {
-      feature.start + ref_pos_rel
-    };
-    self.ref_to_aln_position(ref_pos)
-  }
-
-  pub fn aln_to_ref_range(&self, aln_range: &Range) -> Range {
-    Range {
-      begin: self.aln_to_ref_table[aln_range.begin],
-      end: self.aln_to_ref_table[aln_range.end - 1] + 1,
-    }
-  }
-
-  pub fn ref_to_aln_range(&self, ref_range: &Range) -> Range {
-    Range {
-      begin: self.ref_to_aln_table[ref_range.begin],
-      end: self.ref_to_aln_table[ref_range.end - 1] + 1,
-    }
-  }
-
-  pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
-    if feature.strand == GeneStrand::Reverse {
-      Range {
-        begin: self.feature_aln_to_ref_position(feature, aln_range.end - 1),
-        end: self.feature_aln_to_ref_position(feature, aln_range.begin) + 1,
-      }
-    } else {
-      Range {
-        begin: self.feature_aln_to_ref_position(feature, aln_range.begin),
-        end: self.feature_aln_to_ref_position(feature, aln_range.end - 1) + 1,
-      }
-    }
-  }
-
-  pub fn feature_ref_to_aln_range(&self, feature: &Gene, ref_range: &Range) -> Range {
-    Range {
-      begin: self.feature_ref_to_aln_position(feature, ref_range.begin),
-      end: self.feature_ref_to_aln_position(feature, ref_range.end - 1) + 1,
-    }
-  }
-
-  pub fn feature_aln_to_feature_ref_position(&self, feature: &Gene, aln_position: usize) -> usize {
-    if feature.strand == GeneStrand::Reverse {
-      feature.end - 1 - self.feature_aln_to_ref_position(feature, aln_position)
-    } else {
-      self.feature_aln_to_ref_position(feature, aln_position) - feature.start
-    }
-  }
-
-  pub fn feature_aln_to_feature_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
-    Range {
-      begin: self.feature_aln_to_feature_ref_position(feature, aln_range.begin),
-      end: self.feature_aln_to_feature_ref_position(feature, aln_range.end - 1) + 1,
-    }
-  }
-
-  /// Extracts nucleotide sequence of a gene
-  pub fn extract_gene(&self, full_aln_seq: &[Nuc], gene: &Gene) -> Vec<Nuc> {
-    gene
-      .cdses
-      .iter()
-      .flat_map(|cds| self.extract_cds(full_aln_seq, cds))
-      .collect_vec()
-  }
-
-  /// Extracts nucleotide sequence of a CDS
-  pub fn extract_cds(&self, full_aln_seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-    cds
-      .segments
-      .iter()
-      .flat_map(|cds_segment| self.extract_cds_segment(full_aln_seq, cds_segment))
-      .collect_vec()
-  }
-
-  /// Extracts nucleotide sequence of a CDS segment
-  pub fn extract_cds_segment(&self, full_aln_seq: &[Nuc], cds_segment: &CdsSegment) -> Vec<Nuc> {
-    // Genemap contains ranges in reference coordinates (like in ref sequence)
-    let range_ref = Range {
-      begin: cds_segment.start,
-      end: cds_segment.end,
-    };
-
-    // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
-    let range_aln = self.ref_to_aln_range(&range_ref);
-    let mut nucs = full_aln_seq[StdRange::from(range_aln)].to_vec();
-
-    // Reverse strands should be reverse-complemented
-    if cds_segment.strand == GeneStrand::Reverse {
-      reverse_complement_in_place(&mut nucs);
-    }
-
-    nucs
-  }
+  // /// Converts relative position inside an aligned feature (e.g. gene) to absolute position in the reference
+  // pub fn feature_aln_to_ref_position(&self, feature: &Gene, aln_pos_rel: usize) -> usize {
+  //   let aln_pos = if feature.strand == GeneStrand::Reverse {
+  //     self.ref_to_aln_position(feature.end - 1) - aln_pos_rel //feature.end points to the nuc after the feature, hence - 1
+  //   } else {
+  //     self.ref_to_aln_position(feature.start) + aln_pos_rel
+  //   };
+  //   self.aln_to_ref_position(aln_pos)
+  // }
+  //
+  // /// Converts relative position inside a feature (e.g. gene) to absolute position in the alignment
+  // pub fn feature_ref_to_aln_position(&self, feature: &Gene, ref_pos_rel: usize) -> usize {
+  //   let ref_pos = if feature.strand == GeneStrand::Reverse {
+  //     feature.end - 1 - ref_pos_rel // the feature end is one past the last character, hence -1
+  //   } else {
+  //     feature.start + ref_pos_rel
+  //   };
+  //   self.ref_to_aln_position(ref_pos)
+  // }
+  //
+  // pub fn aln_to_ref_range(&self, aln_range: &Range) -> Range {
+  //   Range {
+  //     begin: self.aln_to_ref_table[aln_range.begin],
+  //     end: self.aln_to_ref_table[aln_range.end - 1] + 1,
+  //   }
+  // }
+  //
+  // pub fn ref_to_aln_range(&self, ref_range: &Range) -> Range {
+  //   Range {
+  //     begin: self.ref_to_aln_table[ref_range.begin],
+  //     end: self.ref_to_aln_table[ref_range.end - 1] + 1,
+  //   }
+  // }
+  //
+  // pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
+  //   if feature.strand == GeneStrand::Reverse {
+  //     Range {
+  //       begin: self.feature_aln_to_ref_position(feature, aln_range.end - 1),
+  //       end: self.feature_aln_to_ref_position(feature, aln_range.begin) + 1,
+  //     }
+  //   } else {
+  //     Range {
+  //       begin: self.feature_aln_to_ref_position(feature, aln_range.begin),
+  //       end: self.feature_aln_to_ref_position(feature, aln_range.end - 1) + 1,
+  //     }
+  //   }
+  // }
+  //
+  // pub fn feature_ref_to_aln_range(&self, feature: &Gene, ref_range: &Range) -> Range {
+  //   Range {
+  //     begin: self.feature_ref_to_aln_position(feature, ref_range.begin),
+  //     end: self.feature_ref_to_aln_position(feature, ref_range.end - 1) + 1,
+  //   }
+  // }
+  //
+  // pub fn feature_aln_to_feature_ref_position(&self, feature: &Gene, aln_position: usize) -> usize {
+  //   if feature.strand == GeneStrand::Reverse {
+  //     feature.end - 1 - self.feature_aln_to_ref_position(feature, aln_position)
+  //   } else {
+  //     self.feature_aln_to_ref_position(feature, aln_position) - feature.start
+  //   }
+  // }
+  //
+  // pub fn feature_aln_to_feature_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
+  //   Range {
+  //     begin: self.feature_aln_to_feature_ref_position(feature, aln_range.begin),
+  //     end: self.feature_aln_to_feature_ref_position(feature, aln_range.end - 1) + 1,
+  //   }
+  // }
+  //
+  // /// Extracts nucleotide sequence of a gene
+  // pub fn extract_gene(&self, full_aln_seq: &[Nuc], gene: &Gene) -> Vec<Nuc> {
+  //   gene
+  //     .cdses
+  //     .iter()
+  //     .flat_map(|cds| self.extract_cds(full_aln_seq, cds))
+  //     .collect_vec()
+  // }
+  //
+  // /// Extracts nucleotide sequence of a CDS
+  // pub fn extract_cds(&self, full_aln_seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
+  //   cds
+  //     .segments
+  //     .iter()
+  //     .flat_map(|cds_segment| self.extract_cds_segment(full_aln_seq, cds_segment))
+  //     .collect_vec()
+  // }
+  //
+  // /// Extracts nucleotide sequence of a CDS segment
+  // pub fn extract_cds_segment(&self, full_aln_seq: &[Nuc], cds_segment: &CdsSegment) -> Vec<Nuc> {
+  //   // Genemap contains ranges in reference coordinates (like in ref sequence)
+  //   let range_ref = Range {
+  //     begin: cds_segment.start,
+  //     end: cds_segment.end,
+  //   };
+  //
+  //   // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
+  //   let range_aln = self.ref_to_aln_range(&range_ref);
+  //   let mut nucs = full_aln_seq[StdRange::from(range_aln)].to_vec();
+  //
+  //   // Reverse strands should be reverse-complemented
+  //   if cds_segment.strand == GeneStrand::Reverse {
+  //     reverse_complement_in_place(&mut nucs);
+  //   }
+  //
+  //   nucs
+  // }
 
   /////////////////////////////////////////////////////////////////////////////////////////////
 
-  fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> (Vec<Nuc>, CoordMapForCds) {
+  pub fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> (Vec<Nuc>, CoordMapForCds) {
     let mut cds_aln_seq = vec![];
     let mut cds_to_aln_map = vec![];
     for segment in &cds.segments {
@@ -248,7 +248,7 @@ impl CoordMapForCds {
 
   /// Map a position in the extracted alignment of the CDS to the global alignment.
   /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-  fn cds_to_global_aln_position(&self, cds_aln_pos: usize) -> Vec<CdsPosition> {
+  pub fn cds_to_global_aln_position(&self, cds_aln_pos: usize) -> Vec<CdsPosition> {
     self
       .cds_to_aln_map
       .iter()
@@ -266,22 +266,9 @@ impl CoordMapForCds {
       .collect_vec()
   }
 
-  /// Map a position in the extracted alignment of the CDS to the reference sequence.
-  /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-  fn cds_to_global_ref_position(&self, pos: usize) -> Vec<CdsPosition> {
-    self
-      .cds_to_global_aln_position(pos)
-      .into_iter()
-      .map(|cds_pos| match cds_pos {
-        CdsPosition::Inside(pos) => CdsPosition::Inside(self.coord_map.aln_to_ref_position(pos)),
-        _ => cds_pos,
-      })
-      .collect_vec()
-  }
-
   // Map a range in the extracted alignment of the CDS to the global alignment.
-  // Returns a result for each CDS segment, as a range can span multiple CDS-segments.
-  fn cds_to_global_aln_range(&self, range: &Range) -> Vec<CdsRange> {
+  // Returns a result for each CDS segment, as a range can span multiple CDS segments.
+  pub fn cds_to_global_aln_range(&self, range: &Range) -> Vec<CdsRange> {
     let cds_to_aln_begin = self.cds_to_global_aln_position(range.begin);
 
     // need to map end position -1 to correspond to the last included position
@@ -313,15 +300,49 @@ impl CoordMapForCds {
     result
   }
 
+  /// Map a position in the extracted alignment of the CDS to the reference sequence.
+  /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
+  pub fn cds_to_global_ref_position(&self, pos: usize) -> Vec<CdsPosition> {
+    self
+      .cds_to_global_aln_position(pos)
+      .into_iter()
+      .map(|cds_pos| match cds_pos {
+        CdsPosition::Inside(pos) => CdsPosition::Inside(self.coord_map.aln_to_ref_position(pos)),
+        _ => cds_pos,
+      })
+      .collect_vec()
+  }
+
+  pub fn cds_to_global_ref_range(&self, range: &Range) -> Vec<CdsRange> {
+    unimplemented!()
+  }
+
+  /// Converts nucleotide position to codon index
+  pub const fn cds_to_codon_position(&self, nuc_rel_ref: usize) -> usize {
+    // Make sure the nucleotide position is adjusted to codon boundary before the division
+    // TODO: ensure that adjustment direction is correct for reverse strands
+    let nuc_rel_ref_adj = nuc_rel_ref + (3 - nuc_rel_ref % 3) % 3;
+    nuc_rel_ref_adj / 3
+  }
+
+  /// Converts a nucleotide range within the gene to a range of codon indices
+  pub const fn cds_to_codon_range(&self, nuc_rel_ref: &Range) -> Range {
+    let &Range { begin, end } = nuc_rel_ref;
+    Range {
+      begin: self.cds_to_codon_position(begin),
+      end: self.cds_to_codon_position(end),
+    }
+  }
+
   /// Expand a codon in the extracted alignment to a range in the global alignment
-  fn codon_to_global_aln_range(&self, codon: usize) -> Vec<CdsRange> {
+  pub fn codon_to_global_aln_range(&self, codon: usize) -> Vec<CdsRange> {
     let begin = codon * 3;
     let end = begin + 3;
     self.cds_to_global_aln_range(&Range { begin, end })
   }
 }
 
-fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
+pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
   cds
     .segments
     .iter()

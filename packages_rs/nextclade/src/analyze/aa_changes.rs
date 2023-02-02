@@ -1,24 +1,37 @@
-use crate::analyze::aa_changes_group::AaChangeGroup;
 use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
-use crate::gene::gene::{Gene, GeneStrand};
-use crate::io::aa::{from_aa, Aa};
+use crate::gene::cds::Cds;
+use crate::io::aa::{from_aa, from_aa_seq, Aa};
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
-use crate::make_internal_report;
-use crate::translate::complement::reverse_complement_in_place;
-use crate::translate::translate_genes::{Translation, TranslationMap};
-use crate::utils::error::keep_ok;
-use crate::utils::range::Range;
+use crate::translate::coord_map::{CdsRange, CoordMapForCds};
+use crate::translate::translate_genes::Translation;
+use crate::utils::range::{intersect, Range};
 use eyre::Report;
-use itertools::{assert_equal, merge, Itertools};
-use num_traits::{clamp_max, clamp_min};
+use itertools::{izip, Itertools};
+use num_traits::clamp_max;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NucContext {
+  pub codon_nuc_range: Range,
+  pub ref_context: String,
+  pub query_context: String,
+  pub context_nuc_range: Range,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AaContext {
+  pub ref_aa_context: String,
+  pub qry_aa_context: String,
+}
 
 /// Represents aminoacid substitution
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -33,10 +46,9 @@ pub struct AaSub {
 
   #[serde(rename = "queryAA")]
   pub qry: Aa,
-  pub codon_nuc_range: Range,
-  pub ref_context: String,
-  pub query_context: String,
-  pub context_nuc_range: Range,
+
+  pub nuc_contexts: Vec<NucContext>,
+  pub aa_context: AaContext,
 }
 
 impl AaSub {
@@ -90,10 +102,8 @@ pub struct AaDel {
   #[serde(rename = "codon")]
   pub pos: usize,
 
-  pub codon_nuc_range: Range,
-  pub ref_context: String,
-  pub query_context: String,
-  pub context_nuc_range: Range,
+  pub nuc_contexts: Vec<NucContext>,
+  pub aa_context: AaContext,
 }
 
 impl AaDel {
@@ -151,10 +161,9 @@ pub struct AaChange {
   #[serde(rename = "queryAA")]
   pub qry: Aa,
 
-  pub codon_nuc_range: Range,
-  pub ref_context: String,
-  pub query_context: String,
-  pub context_nuc_range: Range,
+  pub nuc_contexts: Vec<NucContext>,
+  pub aa_context: AaContext,
+
   pub nuc_substitutions: Vec<NucSub>,
   pub nuc_deletions: Vec<NucDel>,
 }
@@ -167,10 +176,8 @@ impl From<AaSubFull> for AaChange {
       reff: sub.sub.reff,
       pos: sub.sub.pos,
       qry: sub.sub.qry,
-      codon_nuc_range: sub.sub.codon_nuc_range,
-      ref_context: sub.sub.ref_context,
-      query_context: sub.sub.query_context,
-      context_nuc_range: sub.sub.context_nuc_range,
+      nuc_contexts: sub.sub.nuc_contexts.clone(),
+      aa_context: sub.sub.aa_context.clone(),
       nuc_substitutions: sub.nuc_substitutions,
       nuc_deletions: sub.nuc_deletions,
     }
@@ -185,10 +192,8 @@ impl From<AaDelFull> for AaChange {
       reff: del.del.reff,
       pos: del.del.pos,
       qry: Aa::Gap,
-      codon_nuc_range: del.del.codon_nuc_range,
-      ref_context: del.del.ref_context,
-      query_context: del.del.query_context,
-      context_nuc_range: del.del.context_nuc_range,
+      nuc_contexts: del.del.nuc_contexts.clone(),
+      aa_context: del.del.aa_context.clone(),
       nuc_substitutions: del.nuc_substitutions,
       nuc_deletions: del.nuc_deletions,
     }
@@ -221,42 +226,25 @@ pub struct FindAaChangesOutput {
 pub fn find_aa_changes(
   ref_seq: &[Nuc],
   qry_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
-  translations: &[Translation],
+  ref_translation: &Translation,
+  qry_translation: &Translation,
   alignment_range: &Range,
   gene_map: &GeneMap,
 ) -> Result<FindAaChangesOutput, Report> {
-  let mut changes = translations
-    .iter()
-    .map(
-      |Translation {
-         gene_name,
-         seq,
-         insertions,
-         frame_shifts,
-         ..
-       }|
-       -> Result<FindAaChangesOutput, Report> {
-        let ref_peptide = ref_peptides.get(gene_name).ok_or(make_internal_report!(
-          "Reference peptide not found for gene '{gene_name}'"
-        ))?;
-
-        let gene = gene_map
-          .get(gene_name)
-          .ok_or(make_internal_report!("Gene '{gene_name}' not found in gene map"))?;
-
-        Ok(find_aa_changes_for_gene(
+  let mut changes = izip!(qry_translation.values(), ref_translation.values())
+    .flat_map(|(qry_gene, ref_gene)| {
+      izip!(qry_gene.cdses.values(), ref_gene.cdses.values()).map(|(qry_cds_tr, ref_cds_tr)| {
+        find_aa_changes_for_cds(
           qry_seq,
           ref_seq,
-          &ref_peptide.seq,
-          seq,
-          gene,
+          &ref_cds_tr.seq,
+          &qry_cds_tr.seq,
+          &qry_cds_tr.cds,
           alignment_range,
-        ))
-      },
-    )
-    .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
-    .into_iter()
+          &qry_cds_tr.qry_cds_map,
+        )
+      })
+    })
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
       output.aa_substitutions.extend(changes.aa_substitutions);
       output.aa_deletions.extend(changes.aa_deletions);
@@ -283,13 +271,14 @@ pub fn find_aa_changes(
 /// was not always accurate, because if there are multiple nucleotide changes in a codon, the direct correspondence
 /// might not always be established without knowing the order in which nucleotide changes have occurred. And in the
 /// context of Nextclade we don't have this information.
-fn find_aa_changes_for_gene(
+fn find_aa_changes_for_cds(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptide: &[Aa],
   qry_peptide: &[Aa],
-  gene: &Gene,
+  cds: &Cds,
   alignment_range: &Range,
+  qry_cds_map: &CoordMapForCds,
 ) -> FindAaChangesOutput {
   assert_eq!(ref_peptide.len(), qry_peptide.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
@@ -303,64 +292,87 @@ fn find_aa_changes_for_gene(
     let ref_aa = ref_peptide[codon];
     let qry_aa = qry_peptide[codon];
 
-    // Find where the codon is in nucleotide sequences
-    let codon_begin = if gene.strand != GeneStrand::Reverse {
-      gene.start + codon * 3
-    } else {
-      gene.end - (codon + 1) * 3
-    };
-    let codon_end = codon_begin + 3;
+    // Provide surrounding context in AA sequences: 1 codon to the left and 1 codon to the right
+    let context_aa_begin = codon.saturating_sub(1);
+    let context_aa_end = codon.saturating_add(1);
+    let ref_aa_context = &ref_peptide[context_aa_begin..context_aa_end];
+    let qry_aa_context = &ref_peptide[context_aa_begin..context_aa_end];
 
-    // If the codon is outside of nucleotide alignment, there is nothing to do
-    if !alignment_range.contains(codon_begin) || !alignment_range.contains(codon_end) {
-      continue;
-    }
-
-    // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
-    // Avoid underflow bug when codon_begin <=2
-    let context_begin = clamp_min(codon_begin, 3) - 3;
-    let context_end = clamp_max(codon_end + 3, num_nucs);
-    let mut ref_context = ref_seq[context_begin..context_end].to_vec();
-    let mut query_context = qry_seq[context_begin..context_end].to_vec();
-    if gene.strand == GeneStrand::Reverse {
-      reverse_complement_in_place(&mut ref_context);
-      reverse_complement_in_place(&mut query_context);
-    }
-
-    let codon_nuc_range = Range {
-      begin: codon_begin,
-      end: codon_end,
+    let aa_context = AaContext {
+      ref_aa_context: from_aa_seq(ref_aa_context),
+      qry_aa_context: from_aa_seq(qry_aa_context),
     };
 
-    let context_nuc_range = Range {
-      begin: context_begin,
-      end: context_end,
-    };
+    // TODO: handle reverse strands
+    // let codon_begin = if cds.strand != GeneStrand::Reverse {
+    //   cds.start + codon * 3
+    // } else {
+    //   cds.end - (codon + 1) * 3
+    // };
+    // let codon_end = codon_begin + 3;
+
+    let nuc_contexts =
+      // Find where the codon is in nucleotide sequences
+      qry_cds_map.codon_to_global_aln_range(codon)
+      .into_iter()
+      .filter_map(|cds_range| match cds_range {
+        CdsRange::Covered(range) => {
+          // If the codon is outside of nucleotide alignment, exclude it or trim it to the nuc alignment range
+          let intersection = intersect(alignment_range, &range);
+          (!intersection.is_empty()).then_some(intersection)
+        }
+        _ => None,
+      })
+      .map(|codon_nuc_range| {
+        let Range{begin, end} = codon_nuc_range;
+
+        // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
+        let context_begin = begin.saturating_sub(3);
+        let context_end = clamp_max(end.saturating_add(3), num_nucs);
+
+        let context_nuc_range = Range {
+          begin: context_begin,
+          end: context_end,
+        };
+
+        let ref_context = from_nuc_seq(&ref_seq[context_begin..context_end]);
+        let query_context = from_nuc_seq(&qry_seq[context_begin..context_end]);
+
+        // TODO: handle reverse strands
+        // if gene.strand == GeneStrand::Reverse {
+        //   reverse_complement_in_place(&mut ref_context);
+        //   reverse_complement_in_place(&mut query_context);
+        // }
+
+        NucContext{
+          codon_nuc_range,
+          ref_context,
+          query_context,
+          context_nuc_range,
+        }
+      })
+      .collect_vec();
 
     if qry_aa.is_gap() {
       // Gap in the ref sequence means that this is a deletion in the query sequence
       aa_deletions.push(AaDel {
-        gene: gene.gene_name.clone(),
+        gene: cds.name.clone(),
         reff: ref_aa,
         pos: codon,
-        codon_nuc_range,
-        ref_context: from_nuc_seq(&ref_context),
-        query_context: from_nuc_seq(&query_context),
-        context_nuc_range,
+        nuc_contexts,
+        aa_context,
       });
     }
     // TODO: we might account for ambiguous amino acids in this condition
     else if qry_aa != ref_aa && qry_aa != Aa::X {
       // If not a gap and the state has changed, than it's a substitution
       aa_substitutions.push(AaSub {
-        gene: gene.gene_name.clone(),
+        gene: cds.name.clone(),
         reff: ref_aa,
         pos: codon,
         qry: qry_aa,
-        codon_nuc_range,
-        ref_context: from_nuc_seq(&ref_context),
-        query_context: from_nuc_seq(&query_context),
-        context_nuc_range,
+        nuc_contexts,
+        aa_context,
       });
     }
   }
