@@ -419,7 +419,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       &format_pcr_primer_changes(pcr_primer_changes, ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry("alignmentScore", &alignment_score)?;
-    self.add_entry("alignmentStart", &alignment_start.to_string())?;
+    self.add_entry("alignmentStart", &(alignment_start + 1).to_string())?;
     self.add_entry("alignmentEnd", &alignment_end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry_maybe(
