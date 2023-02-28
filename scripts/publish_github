@@ -73,7 +73,7 @@ prerelease_flag=${release_type:+--prerelease}
   else
     cat docs/assets/prerelease-warning.md
   fi
-  git cliff --unreleased
+  git cliff --current
   cat docs/assets/release-instructions.md
 ) |
   gh release create \

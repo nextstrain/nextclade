@@ -69,74 +69,76 @@ TSV and CSV files are equivalent and only differ in the column delimiter (tabs v
 
 Every row in tabular output corresponds to 1 input sequence. The meaning of columns is described below:
 
-| Column name                                     | Meaning                                                                                                    |
-|-------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| index                                           | Index (integer signifying location) of a corresponding record in the input fasta file(s)                   |
-| seqName                                         | Name of the sequence (as provided in the input file)                                                       |
-| clade                                           | Assigned clade                                                                                             |
-| qc.overallScore                                 | Overall [quality control](algorithm/07-quality-control) score                                              |
-| qc.overallStatus                                | Overall [quality control](algorithm/07-quality-control) status                                             |
-| totalSubstitutions                              | Total number of detected nucleotide substitutions                                                          |
-| totalDeletions                                  | Total number of detected nucleotide deletions                                                              |
-| totalInsertions                                 | Total number of detected nucleotide insertions                                                             |
-| totalFrameShifts                                | Total number of detected frame shifts                                                                      |
-| totalAminoacidSubstitutions                     | Total number of detected aminoacid substitutions                                                           |
-| totalAminoacidDeletions                         | Total number of detected aminoacid deletions                                                               |
-| totalAminoacidInsertions                        | Total number of detected aminoacid insertions                                                              |
-| totalMissing                                    | Total number of detected missing nucleotides                                                               |
-| totalNonACGTNs                                  | Total number of detected ambiguous nucleotides                                                             |
-| totalPcrPrimerChanges                           | Total number of nucleotide mutations detected in PCR primer regions                                        |
-| substitutions                                   | List of detected nucleotide substitutions                                                                  |
-| deletions                                       | List of detected nucleotide deletion ranges                                                                |
-| insertions                                      | List of detected inserted nucleotide fragments                                                             |
-| privateNucMutations.reversionSubstitutions      | List of detected private mutations that are reversions to reference                                        |
-| privateNucMutations.labeledSubstitutions        | List of detected private mutations that are to a genotype that has been labeled in `virus_properties.json` |
-| privateNucMutations.unlabeledSubstitutions      | List of detected private mutations that are neither reversions nor labeled                                 |
-| privateNucMutations.totalReversionSubstitutions | Total number of private mutations that are reversions to reference                                         |
-| privateNucMutations.totalLabeledSubstitutions   | Total number of private mutations that are to a genotype that has been labeled in `virus_properties.json`  |
-| privateNucMutations.totalUnlabeledSubstitutions | Total number of private mutations that are neither reversions nor labeled                                  |
-| privateNucMutations.totalPrivateSubstitutions   | Total number of private mutations overall                                                                  |
-| frameShifts                                     | List of detected frame shifts                                                                              |
-| aaSubstitutions                                 | List of detected aminoacid substitutions                                                                   |
-| aaDeletions                                     | List of detected aminoacid deletions                                                                       |
-| aaInsertions                                    | List of detected aminoacid insertions                                                                      | 
-| missing                                         | List of detected N nucleotides                                                                             |
-| nonACGTNs                                       | List of detected ambiguous nucleotides                                                                     |
-| pcrPrimerChanges                                | List of detected PCR primer changes                                                                        |
-| alignmentScore                                  | Alignment score                                                                                            |
-| alignmentStart                                  | Beginning of the sequenced region                                                                          |
-| alignmentEnd                                    | End of the sequenced region                                                                                |
-| qc.missingData.missingDataThreshold             | Threshold that was used for "Missing data" QC rule                                                         |
-| qc.missingData.score                            | Score for "Missing data" QC rule                                                                           |
-| qc.missingData.status                           | Status for "Missing data" QC rule                                                                          |
-| qc.missingData.totalMissing                     | Total number of missing nucleotides used in "Missing data" QC rule                                         |
-| qc.mixedSites.mixedSitesThreshold               | Threshold used for "Mixed sites" QC rule                                                                   |
-| qc.mixedSites.score                             | Score for "Mixed sites" QC rule                                                                            |
-| qc.mixedSites.status                            | Status for "Mixed sites" QC rule                                                                           |
-| qc.mixedSites.totalMixedSites                   | Total number of ambiguous nucleotides used for "Mixed sites" QC rule                                       |
-| qc.privateMutations.cutoff                      | Cutoff parameter used for "Private mutations" QC rule                                                      |
-| qc.privateMutations.excess                      | Excess parameter used for "Private mutations" QC rule                                                      |
-| qc.privateMutations.score                       | Score for "Private mutations" QC rule                                                                      |
-| qc.privateMutations.status                      | Status for "Private mutations" QC rule                                                                     |
-| qc.privateMutations.total                       | Weighted sum of private mutations used for "Private mutations" QC rule                                     |
-| qc.snpClusters.clusteredSNPs                    | Clustered SNP detected for "SNP clusters" QC rule                                                          |
-| qc.snpClusters.score                            | Score for "SNP clusters" QC rule                                                                           |
-| qc.snpClusters.status                           | Status for "SNP clusters" QC rule                                                                          |
-| qc.snpClusters.totalSNPs                        | Total number of SNPs for "SNP clusters" QC rule                                                            |
-| qc.frameShifts.frameShifts                      | List of detected frame shifts in "Frame shifts" QC rule (excluding ignored)                                |
-| qc.frameShifts.totalFrameShifts                 | Total number of detected frame shifts in for "Frame shifts" QC rule  (excluding ignored)                   |
-| qc.frameShifts.frameShiftsIgnored               | List of frame shifts detected, but ignored due to ignore list                                              |
-| qc.frameShifts.totalFrameShiftsIgnored          | Total number of frame shifts detected, but ignored due to ignore list                                      |
-| qc.frameShifts.score                            | Score for "Frame shifts" QC rule                                                                           |
-| qc.frameShifts.status                           | Status for "Frame shifts" QC rule                                                                          |
-| qc.stopCodons.stopCodons                        | List of detected stop codons in "Stop codons" QC rule                                                      |
-| qc.stopCodons.totalStopCodons                   | Total number of detected stop codons in "Stop codons" QC rule                                              |
-| qc.stopCodons.score                             | Score for "Stop codons" QC rule                                                                            |
-| qc.stopCodons.status                            | Status for "Stop codons" QC rule                                                                           |
-| isReverseComplement                             | Whether query sequences were transformed using reverse complement operation before alignment               | 
-| errors                                          | List of errors during processing                                                                           |
-| warnings                                        | List of warnings during processing                                                                         |
-| failedGenes                                     | List of genes that failed translation                                                                      |
+| Column name                                     | Meaning                                                                                                      |
+|-------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| index                                           | Index (integer signifying location) of a corresponding record in the input fasta file(s)                     |
+| seqName                                         | Name of the sequence (as provided in the input file)                                                         |
+| clade                                           | Assigned clade                                                                                               |
+| qc.overallScore                                 | Overall [quality control](algorithm/07-quality-control) score                                                |
+| qc.overallStatus                                | Overall [quality control](algorithm/07-quality-control) status                                               |
+| totalSubstitutions                              | Total number of detected nucleotide substitutions                                                            |
+| totalDeletions                                  | Total number of detected nucleotide deletions                                                                |
+| totalInsertions                                 | Total number of detected nucleotide insertions                                                               |
+| totalFrameShifts                                | Total number of detected frame shifts                                                                        |
+| totalAminoacidSubstitutions                     | Total number of detected aminoacid substitutions                                                             |
+| totalAminoacidDeletions                         | Total number of detected aminoacid deletions                                                                 |
+| totalAminoacidInsertions                        | Total number of detected aminoacid insertions                                                                |
+| totalMissing                                    | Total number of detected missing nucleotides (nucleotide character `N`)                                      |
+| totalNonACGTNs                                  | Total number of detected ambiguous nucleotides  (nucleotide characters that are not `A`, `C`, `G`, `T`, `N`) |
+| totalUnknownAa                                  | Total number of unknown aminoacids (aminoacid character `X`)                                                 |
+| totalPcrPrimerChanges                           | Total number of nucleotide mutations detected in PCR primer regions                                          |
+| substitutions                                   | List of detected nucleotide substitutions                                                                    |
+| deletions                                       | List of detected nucleotide deletion ranges                                                                  |
+| insertions                                      | List of detected inserted nucleotide fragments                                                               |
+| privateNucMutations.reversionSubstitutions      | List of detected private mutations that are reversions to reference                                          |
+| privateNucMutations.labeledSubstitutions        | List of detected private mutations that are to a genotype that has been labeled in `virus_properties.json`   |
+| privateNucMutations.unlabeledSubstitutions      | List of detected private mutations that are neither reversions nor labeled                                   |
+| privateNucMutations.totalReversionSubstitutions | Total number of private mutations that are reversions to reference                                           |
+| privateNucMutations.totalLabeledSubstitutions   | Total number of private mutations that are to a genotype that has been labeled in `virus_properties.json`    |
+| privateNucMutations.totalUnlabeledSubstitutions | Total number of private mutations that are neither reversions nor labeled                                    |
+| privateNucMutations.totalPrivateSubstitutions   | Total number of private mutations overall                                                                    |
+| frameShifts                                     | List of detected frame shifts                                                                                |
+| aaSubstitutions                                 | List of detected aminoacid substitutions                                                                     |
+| aaDeletions                                     | List of detected aminoacid deletions                                                                         |
+| aaInsertions                                    | List of detected aminoacid insertions                                                                        | 
+| missing                                         | List of detected missing nucleotides (nucleotide character `N`)                                              |
+| nonACGTNs                                       | List of detected ambiguous nucleotides (nucleotide characters that are not `A`, `C`, `G`, `T`, `N`)          |
+| unknownAaRanges                                 | List of detected contiguous ranges of unknown aminoacid (aminoacid character `X`)                            |
+| pcrPrimerChanges                                | List of detected PCR primer changes                                                                          |
+| alignmentScore                                  | Alignment score                                                                                              |
+| alignmentStart                                  | Beginning of the sequenced region                                                                            |
+| alignmentEnd                                    | End of the sequenced region                                                                                  |
+| qc.missingData.missingDataThreshold             | Threshold that was used for "Missing data" QC rule                                                           |
+| qc.missingData.score                            | Score for "Missing data" QC rule                                                                             |
+| qc.missingData.status                           | Status for "Missing data" QC rule                                                                            |
+| qc.missingData.totalMissing                     | Total number of missing nucleotides used in "Missing data" QC rule                                           |
+| qc.mixedSites.mixedSitesThreshold               | Threshold used for "Mixed sites" QC rule                                                                     |
+| qc.mixedSites.score                             | Score for "Mixed sites" QC rule                                                                              |
+| qc.mixedSites.status                            | Status for "Mixed sites" QC rule                                                                             |
+| qc.mixedSites.totalMixedSites                   | Total number of ambiguous nucleotides used for "Mixed sites" QC rule                                         |
+| qc.privateMutations.cutoff                      | Cutoff parameter used for "Private mutations" QC rule                                                        |
+| qc.privateMutations.excess                      | Excess parameter used for "Private mutations" QC rule                                                        |
+| qc.privateMutations.score                       | Score for "Private mutations" QC rule                                                                        |
+| qc.privateMutations.status                      | Status for "Private mutations" QC rule                                                                       |
+| qc.privateMutations.total                       | Weighted sum of private mutations used for "Private mutations" QC rule                                       |
+| qc.snpClusters.clusteredSNPs                    | Clustered SNP detected for "SNP clusters" QC rule                                                            |
+| qc.snpClusters.score                            | Score for "SNP clusters" QC rule                                                                             |
+| qc.snpClusters.status                           | Status for "SNP clusters" QC rule                                                                            |
+| qc.snpClusters.totalSNPs                        | Total number of SNPs for "SNP clusters" QC rule                                                              |
+| qc.frameShifts.frameShifts                      | List of detected frame shifts in "Frame shifts" QC rule (excluding ignored)                                  |
+| qc.frameShifts.totalFrameShifts                 | Total number of detected frame shifts in for "Frame shifts" QC rule  (excluding ignored)                     |
+| qc.frameShifts.frameShiftsIgnored               | List of frame shifts detected, but ignored due to ignore list                                                |
+| qc.frameShifts.totalFrameShiftsIgnored          | Total number of frame shifts detected, but ignored due to ignore list                                        |
+| qc.frameShifts.score                            | Score for "Frame shifts" QC rule                                                                             |
+| qc.frameShifts.status                           | Status for "Frame shifts" QC rule                                                                            |
+| qc.stopCodons.stopCodons                        | List of detected stop codons in "Stop codons" QC rule                                                        |
+| qc.stopCodons.totalStopCodons                   | Total number of detected stop codons in "Stop codons" QC rule                                                |
+| qc.stopCodons.score                             | Score for "Stop codons" QC rule                                                                              |
+| qc.stopCodons.status                            | Status for "Stop codons" QC rule                                                                             |
+| isReverseComplement                             | Whether query sequences were transformed using reverse complement operation before alignment                 |
+| errors                                          | List of errors during processing                                                                             |
+| warnings                                        | List of warnings during processing                                                                           |
+| failedGenes                                     | List of genes that failed translation                                                                        |
 
 > ⚠️ Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
 

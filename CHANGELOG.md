@@ -1,3 +1,38 @@
+## Nextclade Web 2.12.0, Nextclade CLI 2.12.0 (2023-02-28)
+
+### Improve tooltip for "missing" column in Nextclade Web
+
+This column's tooltip now also shows ranges of unsequenced regions, i.e. contiguous ranges of nucleotide characters absent at the 5' and 3' end of the original query sequence, as compared to the reference sequence. To put it differently, these are the ranges that are to the left and right of the alignment range - from 0 to `alignmentStart` and from `alignmentEnd` to the length of the reference sequence. These regions may appear after alignment step, where Nextclade or Nextalign might insert characters `-` on the 5' and 3' ends to fill the query sequence to the length of the reference sequence. Just like it does with the characters that are absent from the inner parts of the query sequence (which we then call "deletions"). If found, the unsequenced regions are also shown as two light-grey rectangles at either or both ends of the sequence in sequence view column in Nextclade Web.
+
+Unsequenced regions are not to be confused with the missing nucleotides, which are also shown in the same tooltip. Missing nucleotides are the `N` characters present in the original query sequence. They are not introduced nor modified by Nextclade and Nextalign, and are only detected and counted.
+
+It seems that there is no consensus in the bioinformatics community about the notation and naming of either of these events (e.g. which character to use and how to call these ranges). Be thoughtful about these regions when working with the results of Nextclade and Nextalign, especially if you analyze:
+
+ - sequences from different sources (different labs may use different conventions)
+ - sequences that are partial (have large unsequenced ranges on 5' and 3' end and large deletions in the body)
+ - sequences of low quality (e.g. lots of `N`s and large deletions in the body)
+ - sequences that are already aligned (e.g. have some form of padding on 5' and 3' ends)
+ - sequences that are processed in some way (e.g. replacement or filling with `N` or `-`, or even filling from a consensus genome)
+
+If you find strange or inconsistent results, we encourage you to inspect the input and output sequences in an alignment viewer on per-sequence basis and to contact the authors of individual sequences to clarify their conventions and intent.
+
+### Fix alignment range in CSV and TSV outputs
+
+In CSV and TSV outputs, the values in columns `alignmentStart` and `alignmentEnd` were emitted in 0-based numbering. This was unexpected - by convention, CSV and TSV files have all ranges in 1-based format. This is now fixed.
+
+### Add new columns in CSV and TSV outputs
+
+We added new columns in CSV and TSV outputs:
+
+ - `unknownAaRanges` - list of detected contiguous ranges of unknown aminoacid (character `X`)
+ - `totalUnknownAa` - total number of unknown aminoacids (character `X`)
+
+### Internal changes
+
+ - Upgrade Auspice to 2.43.0 ([changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md))
+ - Upgrade Rust to 1.67.1 ([changelog](https://github.com/rust-lang/rust/blob/master/RELEASES.md))
+
+
 ## Nextclade Web 2.11.0, Nextclade CLI 2.11.0 (2023-01-31)
 
 ### IMPORTANT: ensure `index` column is written to CSV/TSV output files in case of error
