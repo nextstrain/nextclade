@@ -374,7 +374,7 @@ DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null ||
   [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
 
-  export DOCKER_BUILDKIT=1
+  # export DOCKER_BUILDKIT=1
   export BUILDKIT_PROGRESS=plain
   export PROGRESS_NO_TRUNC=1
 
