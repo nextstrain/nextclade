@@ -1,5 +1,5 @@
 use crate::align::align::align_nuc;
-use crate::align::insertions_strip::insertions_strip;
+use crate::align::insertions_strip::{get_aa_insertions, insertions_strip};
 use crate::align::params::AlignPairwiseParams;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
@@ -40,7 +40,7 @@ pub fn nextalign_run_one(
       let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
       let present_genes: HashSet<String> = translation
-        .iter()
+        .iter_genes()
         .flat_map(|(_, gene_tr)| gene_tr.cdses.iter().map(|(_, cds_tr)| cds_tr.cds.name.clone()))
         .collect();
 
@@ -54,8 +54,8 @@ pub fn nextalign_run_one(
 
       let warnings = {
         let mut warnings = translation
-          .iter()
-          .flat_map(|(_, gene_tr)| gene_tr.warnings)
+          .iter_genes()
+          .flat_map(|(_, gene_tr)| gene_tr.warnings.clone())
           .collect_vec();
 
         if is_reverse_complement {
@@ -68,10 +68,13 @@ pub fn nextalign_run_one(
         warnings
       };
 
+      let aa_insertions = get_aa_insertions(&translation);
+
       Ok(NextalignOutputs {
         stripped,
         alignment,
         translation,
+        aa_insertions,
         warnings,
         missing_genes,
         is_reverse_complement,

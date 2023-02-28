@@ -1,8 +1,7 @@
-use crate::align::insertions_strip::Insertion;
+use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
-use crate::io::nextclade_csv::{format_aa_insertions, format_aa_insertions_from_translations, format_nuc_insertions};
+use crate::io::nextclade_csv::{format_aa_insertions, format_nuc_insertions};
 use crate::io::nuc::Nuc;
-use crate::translate::translate_genes::CdsTranslation;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
 };
@@ -35,12 +34,12 @@ impl InsertionsCsvWriter {
     &mut self,
     seq_name: &str,
     nuc_insertions: &[Insertion<Nuc>],
-    translations: &[CdsTranslation],
+    aa_insertions: &[AaIns],
   ) -> Result<(), Report> {
     self.writer.write(&InsertionCsvEntry {
       seq_name,
       insertions: format_nuc_insertions(nuc_insertions, ";"),
-      aa_insertions: format_aa_insertions_from_translations(translations, ";"),
+      aa_insertions: format_aa_insertions(aa_insertions, ";"),
     })
   }
 }

@@ -25,7 +25,7 @@ fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap
   }
 
   Ok(GeneMap::from_genes(
-    genes.into_iter().map(|gene| (gene.gene_name.clone(), gene)).collect(),
+    genes.into_iter().map(|gene| (gene.name.clone(), gene)).collect(),
   ))
 }
 
@@ -80,7 +80,7 @@ fn convert_gene(feature_group: &FeatureGroup) -> Result<Gene, Report> {
   Ok(Gene {
     index: feature.index,
     id: feature.id.clone(),
-    gene_name: feature.name.clone(),
+    name: feature.name.clone(),
     start: feature.start,
     end: feature.end,
     strand: feature.strand.clone(),

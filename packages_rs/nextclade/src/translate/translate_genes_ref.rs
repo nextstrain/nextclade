@@ -29,15 +29,17 @@ pub fn translate_genes_ref(
           }
 
           let tr = translate(&nucs, cds, params);
+          let len = tr.seq.len();
 
           (
             cds.name.clone(),
             CdsTranslation {
+              gene: gene.clone(),
               cds: cds.clone(),
               seq: tr.seq,
               insertions: vec![],
               frame_shifts: vec![],
-              alignment_range: Range::new(0, tr.seq.len()),
+              alignment_range: Range::new(0, len),
               ref_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
               qry_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
             },

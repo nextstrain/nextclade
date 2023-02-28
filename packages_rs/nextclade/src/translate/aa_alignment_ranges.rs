@@ -15,7 +15,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
   coord_map: &CoordMap,
   translation: &mut Translation,
 ) -> Result<(), Report> {
-  translation.iter_mut().try_for_each(|(_, gene_tr)| {
+  translation.iter_genes_mut().try_for_each(|(_, gene_tr)| {
     let gene = &mut gene_tr.gene;
 
     gene_tr.cdses.iter_mut().try_for_each(|(_, cds_tr)| {
@@ -23,18 +23,16 @@ pub fn calculate_aa_alignment_ranges_in_place(
         // Calculate CDS ranges in nuc alignment
         cds_tr.qry_cds_map.cds_to_global_aln_range(&Range::new(gene.start, gene.end)).into_iter()
         // Take covered ranges
-        .filter_map(|cds_range| match cds_range {
+        .find_map(|cds_range| match cds_range {
           CdsRange::Covered(range) => {
             // If the codon is outside of nucleotide alignment, exclude it or trim it to the nuc alignment range
             let sequenced_gene_range_aln_abs = intersect(alignment_range, &range);
 
             let gene_start_aln = cds_tr.qry_cds_map.cds_to_global_aln_position(gene.start).into_iter()
-              .filter_map(|cds_pos| match cds_pos {
+              .find_map(|cds_pos| match cds_pos {
                 CdsPosition::Inside(pos) => Some(pos),
                 _ => None
-
-              })
-              .next()?;
+              })?;
 
             let sequenced_gene_range_aln_rel = sequenced_gene_range_aln_abs - gene_start_aln;
             let range = cds_tr.qry_cds_map.cds_to_codon_range(&sequenced_gene_range_aln_rel);
@@ -42,9 +40,8 @@ pub fn calculate_aa_alignment_ranges_in_place(
           }
           _ => None,
         })
-          .next()
           .ok_or_else(||
-            make_internal_report!("No alignment ranges found for CDS '{}' in gene '{}'", cds_tr.cds.name, gene.gene_name)
+            make_internal_report!("No alignment ranges found for CDS '{}' in gene '{}'", cds_tr.cds.name, gene.name)
           )?;
 
       cds_tr.alignment_range = aa_alignment_range;

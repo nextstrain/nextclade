@@ -11,7 +11,7 @@ use nextclade::io::ndjson::NdjsonFileWriter;
 use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
 use nextclade::io::nuc::from_nuc_seq;
 use nextclade::io::results_json::ResultsJsonWriter;
-use nextclade::translate::translate_genes::TranslationMap;
+use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
@@ -115,16 +115,16 @@ impl<'a> NextcladeOrderedWriter<'a> {
     })
   }
 
-  pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_peptides: &TranslationMap) -> Result<(), Report> {
+  pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_translation: &Translation) -> Result<(), Report> {
     let FastaRecord { seq_name, seq, .. } = &ref_record;
 
     if let Some(fasta_writer) = &mut self.fasta_writer {
       fasta_writer.write(seq_name, seq, false)?;
     }
 
-    ref_peptides.iter().try_for_each(|(_, peptide)| {
+    ref_translation.cdses().try_for_each(|cds_tr| {
       if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-        fasta_peptide_writer.write(seq_name, peptide)?;
+        fasta_peptide_writer.write(seq_name, cds_tr)?;
       }
       Result::<(), Report>::Ok(())
     })?;
@@ -141,10 +141,11 @@ impl<'a> NextcladeOrderedWriter<'a> {
     } = record;
 
     match outputs_or_err {
-      Ok((qry_seq_stripped, translations, nextclade_outputs)) => {
+      Ok((qry_seq_stripped, translation, nextclade_outputs)) => {
         let NextcladeOutputs {
           warnings,
           insertions,
+          aa_insertions,
           missing_genes,
           is_reverse_complement,
           ..
@@ -155,13 +156,13 @@ impl<'a> NextcladeOrderedWriter<'a> {
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-          for translation in &translations {
-            fasta_peptide_writer.write(&seq_name, translation)?;
+          for cds_tr in translation.cdses() {
+            fasta_peptide_writer.write(&seq_name, cds_tr)?;
           }
         }
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
-          insertions_csv_writer.write(&seq_name, insertions, &translations)?;
+          insertions_csv_writer.write(&seq_name, insertions, aa_insertions)?;
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {

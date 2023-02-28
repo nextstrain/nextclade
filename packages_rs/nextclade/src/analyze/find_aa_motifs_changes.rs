@@ -1,6 +1,5 @@
 use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
 use crate::io::aa::from_aa_seq;
-use crate::make_internal_report;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
 use crate::utils::range::{intersect, Range};
@@ -37,8 +36,8 @@ pub struct AaMotifMutation {
 pub fn find_aa_motifs_changes(
   aa_motifs_ref: &AaMotifsMap,
   aa_motifs_qry: &AaMotifsMap,
-  ref_peptides: &Translation,
-  translations: &[CdsTranslation],
+  ref_translation: &Translation,
+  qry_translation: &Translation,
 ) -> Result<AaMotifsChangesMap, Report> {
   let query_motif_keys = aa_motifs_qry.keys().collect_vec();
 
@@ -50,7 +49,7 @@ pub fn find_aa_motifs_changes(
     .collect();
 
   zip_map_hashmap(&aa_motifs_ref, aa_motifs_qry, |name, motifs_ref, motifs_qry| {
-    let changes = find_aa_motifs_changes_one(motifs_ref, motifs_qry, ref_peptides, translations)?;
+    let changes = find_aa_motifs_changes_one(motifs_ref, motifs_qry, ref_translation, qry_translation)?;
 
     Ok((name.clone(), changes))
   })
@@ -60,8 +59,8 @@ pub fn find_aa_motifs_changes(
 fn find_aa_motifs_changes_one(
   motifs_ref: &[AaMotif],
   motifs_qry: &[AaMotif],
-  ref_peptides: &Translation,
-  translations: &[CdsTranslation],
+  ref_translation: &Translation,
+  qry_translation: &Translation,
 ) -> Result<AaMotifChanges, Report> {
   // We want to find added and removed positions (`.pos`) per gene.
   // So we use a wrapper for `struct AaMotif` which disregards `.seq` during comparison.
@@ -71,7 +70,7 @@ fn find_aa_motifs_changes_one(
   // Gained motifs: not present in ref, present in qry
   let gained = motifs_qry
     .difference(&motifs_ref)
-    .map(|motif| add_ref_seq(&motif.0, ref_peptides))
+    .map(|motif| add_ref_seq(&motif.0, ref_translation))
     .collect::<Result<Vec<AaMotifMutation>, Report>>()?
     .into_iter()
     .sorted()
@@ -81,7 +80,7 @@ fn find_aa_motifs_changes_one(
   // Ambiguous motifs: present in ref, contain amino acid X in query.
   let (lost, ambiguous): (Vec<AaMotifMutation>, Vec<AaMotifMutation>) = motifs_ref
     .difference(&motifs_qry)
-    .filter_map(|motif| add_qry_seq(&motif.0, translations))
+    .filter_map(|motif| add_qry_seq(&motif.0, qry_translation))
     .sorted()
     .partition_map(|motif_change| {
       if motif_change.qry_seq.to_lowercase().contains('x') {
@@ -120,16 +119,8 @@ fn find_aa_motifs_changes_one(
 }
 
 // Add ref sequence fragment to motif
-fn add_ref_seq(motif: &AaMotif, ref_peptides: &Translation) -> Result<AaMotifMutation, Report> {
-  let ref_seq = &ref_peptides
-    .get(&motif.gene)
-    .ok_or_else(|| {
-      make_internal_report!(
-        "Aa motif search: unable to find translation for reference gene: '{}'",
-        motif.gene
-      )
-    })?
-    .seq;
+fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotifMutation, Report> {
+  let ref_seq = &ref_translation.get_cds(&motif.cds)?.seq;
 
   let begin = motif.position;
   let end = begin + motif.seq.len();
@@ -145,23 +136,26 @@ fn add_ref_seq(motif: &AaMotif, ref_peptides: &Translation) -> Result<AaMotifMut
 }
 
 // Add query sequence fragment to motif
-fn add_qry_seq(motif: &AaMotif, translations: &[CdsTranslation]) -> Option<AaMotifMutation> {
-  translations.iter().find(|tr| tr.cds.name == motif.gene).and_then(|tr| {
-    let begin = motif.position;
-    let end = begin + motif.seq.len();
+fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotifMutation> {
+  qry_translation
+    .cdses()
+    .find(|tr| tr.gene.name == motif.gene && tr.cds.name == motif.cds)
+    .and_then(|tr| {
+      let begin = motif.position;
+      let end = begin + motif.seq.len();
 
-    let sequenced_motif_range = intersect(&tr.alignment_range, &Range::new(begin, end));
-    if sequenced_motif_range.len() < motif.seq.len() {
-      None
-    } else {
-      let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
-      Some(AaMotifMutation {
-        name: motif.name.clone(),
-        gene: motif.gene.clone(),
-        position: motif.position,
-        ref_seq: motif.seq.clone(),
-        qry_seq,
-      })
-    }
-  })
+      let sequenced_motif_range = intersect(&tr.alignment_range, &Range::new(begin, end));
+      if sequenced_motif_range.len() < motif.seq.len() {
+        None
+      } else {
+        let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
+        Some(AaMotifMutation {
+          name: motif.name.clone(),
+          gene: motif.gene.clone(),
+          position: motif.position,
+          ref_seq: motif.seq.clone(),
+          qry_seq,
+        })
+      }
+    })
 }

@@ -4,7 +4,7 @@ use itertools::Itertools;
 
 pub fn frame_shifts_flatten(translation: &Translation) -> Vec<FrameShift> {
   translation
-    .iter()
+    .iter_genes()
     .flat_map(|(_, gene_tr)| {
       gene_tr
         .cdses

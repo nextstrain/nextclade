@@ -43,32 +43,40 @@ pub fn link_nuc_and_aa_changes(
 
   for aa_sub in &mut linked.aa_substitutions {
     for nuc_sub in &mut linked.substitutions {
-      if aa_sub.sub.codon_nuc_range.contains(nuc_sub.sub.pos) {
-        nuc_sub.aa_substitutions.push(aa_sub.sub.clone());
-        aa_sub.nuc_substitutions.push(nuc_sub.sub.clone());
+      for context in &aa_sub.sub.nuc_contexts {
+        if context.codon_nuc_range.contains(nuc_sub.sub.pos) {
+          nuc_sub.aa_substitutions.push(aa_sub.sub.clone());
+          aa_sub.nuc_substitutions.push(nuc_sub.sub.clone());
+        }
       }
     }
 
     for nuc_del in &mut linked.deletions {
-      if have_intersection(&nuc_del.del.to_range(), &aa_sub.sub.codon_nuc_range) {
-        nuc_del.aa_substitutions.push(aa_sub.sub.clone());
-        aa_sub.nuc_deletions.push(nuc_del.del.clone());
+      for context in &aa_sub.sub.nuc_contexts {
+        if have_intersection(&nuc_del.del.to_range(), &context.codon_nuc_range) {
+          nuc_del.aa_substitutions.push(aa_sub.sub.clone());
+          aa_sub.nuc_deletions.push(nuc_del.del.clone());
+        }
       }
     }
   }
 
   for aa_del in &mut linked.aa_deletions {
     for nuc_sub in &mut linked.substitutions {
-      if aa_del.del.codon_nuc_range.contains(nuc_sub.sub.pos) {
-        nuc_sub.aa_deletions.push(aa_del.del.clone());
-        aa_del.nuc_substitutions.push(nuc_sub.sub.clone());
+      for context in &aa_del.del.nuc_contexts {
+        if context.codon_nuc_range.contains(nuc_sub.sub.pos) {
+          nuc_sub.aa_deletions.push(aa_del.del.clone());
+          aa_del.nuc_substitutions.push(nuc_sub.sub.clone());
+        }
       }
     }
 
     for nuc_del in &mut linked.deletions {
-      if have_intersection(&nuc_del.del.to_range(), &aa_del.del.codon_nuc_range) {
-        nuc_del.aa_deletions.push(aa_del.del.clone());
-        aa_del.nuc_deletions.push(nuc_del.del.clone());
+      for context in &aa_del.del.nuc_contexts {
+        if have_intersection(&nuc_del.del.to_range(), &context.codon_nuc_range) {
+          nuc_del.aa_deletions.push(aa_del.del.clone());
+          aa_del.nuc_deletions.push(nuc_del.del.clone());
+        }
       }
     }
   }

@@ -55,16 +55,14 @@ pub fn find_codon_mask_range(
   // extend the frame shifted region to a mask that includes leading and trailing gaps
   let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
 
-  let mask_codon_ranges = qry_cds_map
+  qry_cds_map
     .cds_to_global_ref_range(&mask_nuc_rel_aln)
     .into_iter()
     .filter_map(|cds_range| match cds_range {
       CdsRange::Covered(range) => Some(qry_cds_map.cds_to_codon_range(&range)),
       _ => None,
     })
-    .collect_vec();
-
-  mask_codon_ranges
+    .collect_vec()
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

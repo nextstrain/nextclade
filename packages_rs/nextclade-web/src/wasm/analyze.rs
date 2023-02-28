@@ -14,18 +14,15 @@ use nextclade::io::gene_map::GeneMap;
 use nextclade::io::json::json_stringify;
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
-use nextclade::make_internal_report;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
-use nextclade::translate::aa_alignment_ranges::calculate_aa_alignment_range_in_place;
-use nextclade::translate::translate_genes::TranslationMap;
+use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
-use nextclade::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use typescript_definitions::TypescriptDefinition;
@@ -152,7 +149,7 @@ impl AnalysisResult {
 
 pub struct Nextclade {
   ref_seq: Vec<Nuc>,
-  ref_peptides: TranslationMap,
+  ref_peptides: Translation,
   aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
   primers: Vec<PcrPrimer>,
@@ -197,31 +194,13 @@ impl Nextclade {
 
     let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &alignment_params);
 
-    let ref_peptides = {
-      let mut ref_peptides =
-        translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+    let ref_translation =
+      translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
-      ref_peptides
-        .iter_mut()
-        .try_for_each(|(name, translation)| -> Result<(), Report> {
-          let gene = gene_map
-            .get(&translation.name)
-            .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.name))?;
-          translation.alignment_range = Range::new(0, gene.len_codon());
-
-          Ok(())
-        })?;
-
-      ref_peptides
-    };
-
-    let aa_motifs_ref = find_aa_motifs(
-      &virus_properties.aa_motifs,
-      &ref_peptides.values().cloned().collect_vec(),
-    )?;
+    let aa_motifs_ref = find_aa_motifs(&virus_properties.aa_motifs, &ref_translation)?;
 
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
-    tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
+    tree_preprocess_in_place(&mut tree, &ref_seq, &ref_translation)?;
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
     let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);
@@ -234,7 +213,7 @@ impl Nextclade {
 
     Ok(Self {
       ref_seq,
-      ref_peptides,
+      ref_peptides: ref_translation,
       aa_motifs_ref,
       gene_map,
       primers,

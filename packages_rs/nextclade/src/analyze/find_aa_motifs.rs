@@ -1,7 +1,7 @@
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::io::aa::from_aa_seq;
-use crate::translate::translate_genes::CdsTranslation;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::{intersect, Range};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
@@ -14,6 +14,7 @@ use std::hash::{Hash, Hasher};
 pub struct AaMotif {
   pub name: String,
   pub gene: String,
+  pub cds: String,
   pub position: usize,
   pub seq: String,
 }
@@ -26,11 +27,11 @@ impl From<AaMotifWithoutSeq> for AaMotif {
 
 /// Find motifs in translated sequences, given a list of regexes (with restriction by gene and codon ranges)
 /// This is useful for example to find Fly glycosylation spots.
-pub fn find_aa_motifs(aa_motifs_desc: &[AaMotifsDesc], translations: &[CdsTranslation]) -> Result<AaMotifsMap, Report> {
+pub fn find_aa_motifs(aa_motifs_desc: &[AaMotifsDesc], translation: &Translation) -> Result<AaMotifsMap, Report> {
   // Find motifs
   let motifs: Vec<AaMotif> = aa_motifs_desc
     .iter()
-    .flat_map(|desc| process_one_aa_motifs_desc(desc, translations))
+    .flat_map(|desc| process_one_aa_motifs_desc(desc, translation))
     .collect::<Result<Vec<AaMotif>, Report>>()?;
 
   // Group motifs by name
@@ -46,7 +47,7 @@ pub fn find_aa_motifs(aa_motifs_desc: &[AaMotifsDesc], translations: &[CdsTransl
 
 fn process_one_aa_motifs_desc(
   aa_motifs_desc: &AaMotifsDesc,
-  translations: &[CdsTranslation],
+  translation: &Translation,
 ) -> Vec<Result<AaMotif, Report>> {
   let AaMotifsDesc {
     name,
@@ -57,8 +58,8 @@ fn process_one_aa_motifs_desc(
 
   // If no genes specified, process all genes
   let include_genes = if include_genes.is_empty() {
-    translations
-      .iter()
+    translation
+      .cdses()
       .map(|translation| CountAaMotifsGeneDesc {
         gene: translation.cds.name.clone(),
         ranges: vec![],
@@ -71,8 +72,8 @@ fn process_one_aa_motifs_desc(
   include_genes
     .iter()
     .flat_map(|CountAaMotifsGeneDesc { gene, ranges }| {
-      translations
-        .iter()
+      translation
+        .cdses()
         .filter(|CdsTranslation { cds, .. }| &cds.name == gene)
         .flat_map(|translation| process_one_translation(translation, name, motifs, ranges))
         .collect_vec()
@@ -135,7 +136,8 @@ fn process_one_motif(
       captures.get(0).map(|capture| {
         Ok(AaMotif {
           name: name.to_owned(),
-          gene: translation.cds.name.clone(),
+          gene: translation.gene.name.clone(),
+          cds: translation.cds.name.clone(),
           position: range.begin + capture.start(),
           seq: capture.as_str().to_owned(),
         })

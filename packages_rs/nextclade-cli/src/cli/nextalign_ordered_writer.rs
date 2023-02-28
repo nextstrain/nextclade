@@ -6,7 +6,7 @@ use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::nuc::from_nuc_seq;
-use nextclade::translate::translate_genes::TranslationMap;
+use nextclade::translate::translate_genes::Translation;
 use nextclade::types::outputs::NextalignOutputs;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::option::OptionMapRefFallible;
@@ -54,16 +54,16 @@ impl<'a> NextalignOrderedWriter<'a> {
     })
   }
 
-  pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_peptides: &TranslationMap) -> Result<(), Report> {
+  pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_translation: &Translation) -> Result<(), Report> {
     let FastaRecord { seq_name, seq, .. } = &ref_record;
 
     if let Some(fasta_writer) = &mut self.fasta_writer {
       fasta_writer.write(seq_name, seq, false)?;
     }
 
-    ref_peptides.iter().try_for_each(|(_, peptide)| {
+    ref_translation.cdses().try_for_each(|cds_tr| {
       if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-        fasta_peptide_writer.write(seq_name, peptide)?;
+        fasta_peptide_writer.write(seq_name, cds_tr)?;
       }
       Result::<(), Report>::Ok(())
     })?;
@@ -84,7 +84,8 @@ impl<'a> NextalignOrderedWriter<'a> {
         let NextalignOutputs {
           stripped,
           alignment,
-          translations,
+          translation,
+          aa_insertions,
           warnings,
           missing_genes,
           is_reverse_complement,
@@ -96,13 +97,13 @@ impl<'a> NextalignOrderedWriter<'a> {
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-          for translation in translations {
+          for translation in translation.cdses() {
             fasta_peptide_writer.write(seq_name, translation)?;
           }
         }
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
-          insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
+          insertions_csv_writer.write(seq_name, &stripped.insertions, aa_insertions)?;
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {

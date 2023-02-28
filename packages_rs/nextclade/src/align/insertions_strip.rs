@@ -1,7 +1,7 @@
 use crate::io::aa::Aa;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
-use crate::translate::translate_genes::CdsTranslation;
+use crate::translate::translate_genes::Translation;
 use color_eyre::SectionExt;
 use eyre::Report;
 use itertools::Itertools;
@@ -131,14 +131,14 @@ impl PartialOrd for AaIns {
   }
 }
 
-pub fn get_aa_insertions(translations: &[CdsTranslation]) -> Vec<AaIns> {
-  translations
-    .iter()
-    .flat_map(|tr| {
-      tr.insertions.iter().cloned().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene: tr.cds.name.clone(),
-        pos,
-        ins,
+pub fn get_aa_insertions(translation: &Translation) -> Vec<AaIns> {
+  translation
+    .iter_cdses()
+    .flat_map(|(cds_name, cds_tr)| {
+      cds_tr.insertions.iter().map(|Insertion::<Aa> { pos, ins }| AaIns {
+        gene: cds_name.clone(),
+        pos: *pos,
+        ins: ins.clone(),
       })
     })
     .sorted()

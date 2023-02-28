@@ -204,7 +204,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   for (gene_name, gene) in gene_map
     .iter()
-    .sorted_by_key(|(_, gene)| (gene.start, gene.end, &gene.gene_name))
+    .sorted_by_key(|(_, gene)| (gene.start, gene.end, &gene.name))
   {
     write_gene(w, max_name_len, gene)?;
     for cds in &gene.cdses {
@@ -227,7 +227,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
   let Gene {
     index,
     id,
-    gene_name: name,
+    name,
     start,
     end,
     frame,

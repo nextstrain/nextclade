@@ -4,7 +4,7 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
-use crate::translate::translate_genes::CdsTranslation;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::tree::tree::{
   AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
@@ -18,7 +18,7 @@ use std::str::FromStr;
 pub fn tree_preprocess_in_place(
   tree: &mut AuspiceTree,
   ref_seq: &[Nuc],
-  ref_peptides: &BTreeMap<String, CdsTranslation>,
+  ref_translation: &Translation,
 ) -> Result<(), Report> {
   let mut parent_nuc_muts = BTreeMap::<usize, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<usize, Aa>>::new();
@@ -29,7 +29,7 @@ pub fn tree_preprocess_in_place(
     &mut parent_nuc_muts,
     &mut parent_aa_muts,
     ref_seq,
-    ref_peptides,
+    ref_translation,
   )?;
 
   // TODO: Avoid second full tree iteration by merging it into the one that is just above
@@ -48,12 +48,12 @@ fn tree_preprocess_in_place_impl_recursive(
   parent_nuc_muts: &mut BTreeMap<usize, Nuc>,
   parent_aa_muts: &mut BTreeMap<String, BTreeMap<usize, Aa>>,
   ref_seq: &[Nuc],
-  ref_peptides: &BTreeMap<String, CdsTranslation>,
+  ref_translation: &Translation,
 ) -> Result<(), Report> {
   let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
   let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(node, ref_peptides, parent_aa_muts)?;
+  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
   let aa_subs: BTreeMap<String, BTreeMap<usize, Aa>> = aa_muts
     .clone()
     .into_iter()
@@ -71,7 +71,7 @@ fn tree_preprocess_in_place_impl_recursive(
 
   for child in &mut node.children {
     *id += 1;
-    tree_preprocess_in_place_impl_recursive(id, child, &mut nuc_muts, &mut aa_muts, ref_seq, ref_peptides)?;
+    tree_preprocess_in_place_impl_recursive(id, child, &mut nuc_muts, &mut aa_muts, ref_seq, ref_translation)?;
   }
 
   Ok(())
@@ -114,19 +114,19 @@ fn map_nuc_muts(
 // TODO: Treat "nuc" just as another gene, thus reduce duplicate
 fn map_aa_muts(
   node: &AuspiceTreeNode,
-  ref_peptides: &BTreeMap<String, CdsTranslation>,
+  ref_translation: &Translation,
   parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
 ) -> Result<BTreeMap<String, BTreeMap<usize, Aa>>, Report> {
-  ref_peptides
-    .iter()
+  ref_translation
+    .cdses()
     //We iterate over all genes that we have ref_peptides for
-    .map(|(gene_name, ref_peptide)| match parent_aa_muts.get(gene_name) {
+    .map(|ref_cds_tr| match parent_aa_muts.get(&ref_cds_tr.cds.name) {
       Some(aa_muts) => (
-        gene_name.clone(),
-        map_aa_muts_for_one_gene(gene_name, node, &ref_peptide.seq, aa_muts),
+        ref_cds_tr.cds.name.clone(),
+        map_aa_muts_for_one_gene(&ref_cds_tr.cds.name, node, &ref_cds_tr.seq, aa_muts),
       ),
       // Initialize aa_muts, default dictionary style
-      None => (gene_name.clone(), Ok(BTreeMap::new())),
+      None => (ref_cds_tr.cds.name.clone(), Ok(BTreeMap::new())),
     })
     .map(|(name, muts)| -> Result<_, Report>  {
       Ok((name, muts?))

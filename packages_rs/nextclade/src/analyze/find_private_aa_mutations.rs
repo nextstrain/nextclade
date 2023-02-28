@@ -6,7 +6,6 @@ use crate::analyze::letter_ranges::GeneAaRange;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
-use crate::make_internal_report;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
@@ -42,10 +41,7 @@ pub fn find_private_aa_mutations(
       //node.tmp contains mutations accumulated from root
       None => None,
       Some(node_mut_map) => {
-        let ref_peptide = ref_peptides
-          .get(gene)
-          .ok_or(make_internal_report!("Reference peptide not found for gene '{gene}'"))
-          .unwrap();
+        let ref_peptide = ref_peptides.get_cds(gene).unwrap();
 
         let aa_substitutions = aa_substitutions.iter().filter(|sub| &sub.gene == gene).collect_vec();
         let aa_deletions = aa_deletions.iter().filter(|del| &del.gene == gene).collect_vec();

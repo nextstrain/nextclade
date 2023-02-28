@@ -8,7 +8,7 @@ use crate::qc::qc_rule_private_mutations::{rule_private_mutations, QcResultPriva
 use crate::qc::qc_rule_snp_clusters::{rule_snp_clusters, QcResultSnpClusters};
 use crate::qc::qc_rule_stop_codons::{rule_stop_codons, QcResultStopCodons};
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::CdsTranslation;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use num::traits::Pow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -70,7 +70,7 @@ pub fn qc_run(
   private_nuc_mutations: &PrivateNucMutations,
   nucleotide_composition: &BTreeMap<Nuc, usize>,
   total_missing: usize,
-  translations: &[CdsTranslation],
+  translation: &Translation,
   frame_shifts: &[FrameShift],
   config: &QcConfig,
 ) -> QcResult {
@@ -80,7 +80,7 @@ pub fn qc_run(
     private_mutations: rule_private_mutations(private_nuc_mutations, &config.private_mutations),
     snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
-    stop_codons: rule_stop_codons(translations, &config.stop_codons),
+    stop_codons: rule_stop_codons(translation, &config.stop_codons),
     overall_score: 0.0,
     overall_status: QcStatus::Good,
   };

@@ -5,7 +5,6 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::gene::cds::Cds;
 use crate::io::aa::{from_aa, from_aa_seq, Aa};
-use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::translate::coord_map::{CdsRange, CoordMapForCds};
@@ -26,7 +25,7 @@ pub struct NucContext {
   pub context_nuc_range: Range,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AaContext {
   pub ref_aa_context: String,
@@ -229,9 +228,8 @@ pub fn find_aa_changes(
   ref_translation: &Translation,
   qry_translation: &Translation,
   alignment_range: &Range,
-  gene_map: &GeneMap,
 ) -> Result<FindAaChangesOutput, Report> {
-  let mut changes = izip!(qry_translation.values(), ref_translation.values())
+  let mut changes = izip!(qry_translation.genes(), ref_translation.genes())
     .flat_map(|(qry_gene, ref_gene)| {
       izip!(qry_gene.cdses.values(), ref_gene.cdses.values()).map(|(qry_cds_tr, ref_cds_tr)| {
         find_aa_changes_for_cds(

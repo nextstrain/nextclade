@@ -5,7 +5,7 @@ use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::io::aa::{from_aa_seq, Aa};
+use crate::io::aa::from_aa_seq;
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::qc::qc_config::StopCodonLocation;
@@ -333,7 +333,6 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       is_reverse_complement,
       warnings,
       aa_motifs,
-      aa_motifs_changes,
       ..
     } = nextclade_outputs;
 
@@ -720,15 +719,15 @@ pub fn format_aa_deletions(substitutions: &[AaDelFull], delimiter: &str) -> Stri
 }
 
 #[inline]
-pub fn format_aa_insertion(AaIns { gene, ins, pos }: &AaIns) -> String {
-  let ins_str = from_aa_seq(ins);
-  let pos_one_based = pos + 1;
-  format!("{gene}:{pos_one_based}:{ins_str}")
-}
-
-#[inline]
 pub fn format_aa_insertions(insertions: &[AaIns], delimiter: &str) -> String {
-  insertions.iter().map(format_aa_insertion).join(delimiter)
+  insertions
+    .iter()
+    .map(|AaIns { gene, ins, pos }: &AaIns| {
+      let ins_str = from_aa_seq(ins);
+      let pos_one_based = pos + 1;
+      format!("{gene}:{pos_one_based}:{ins_str}")
+    })
+    .join(delimiter)
 }
 
 #[inline]
@@ -753,33 +752,6 @@ pub fn format_frame_shifts(frame_shifts: &[FrameShift], delimiter: &str) -> Stri
       let range = &frame_shift.codon.to_string();
       format!("{gene_name}:{range}")
     })
-    .join(delimiter)
-}
-
-#[inline]
-pub fn format_aa_insertions_from_translations(translations: &[CdsTranslation], delimiter: &str) -> String {
-  translations
-    .iter()
-    .map(
-      |CdsTranslation {
-         name: gene_name,
-         insertions,
-         ..
-       }| {
-        insertions
-          .iter()
-          .cloned()
-          .map(|Insertion::<Aa> { pos, ins }| {
-            format_aa_insertion(&AaIns {
-              gene: gene_name.clone(),
-              pos,
-              ins,
-            })
-          })
-          .join(";")
-      },
-    )
-    .filter(|s| !s.is_empty())
     .join(delimiter)
 }
 
@@ -847,9 +819,10 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
       |AaMotif {
          name,
          gene,
+         cds,
          position,
          seq,
-       }| format!("{gene}:{}:{seq}", position + 1),
+       }| format!("{}:{}:{seq}", cds, position + 1),
     )
     .join(";")
 }

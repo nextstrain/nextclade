@@ -1,13 +1,11 @@
 use crate::gene::cds::{Cds, CdsSegment};
-use crate::gene::gene::{Gene, GeneStrand};
+use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::{izip, Itertools};
 use serde::{Deserialize, Serialize};
-use std::ops::Range as StdRange;
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
 /// Given a position of a letter in the aligned sequence, the "alignment to reference" coordinate map allows to

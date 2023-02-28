@@ -1,6 +1,6 @@
 use crate::qc::qc_config::{QcRulesConfigStopCodons, StopCodonLocation};
 use crate::qc::qc_run::{QcRule, QcStatus};
-use crate::translate::translate_genes::CdsTranslation;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -20,18 +20,15 @@ impl QcRule for QcResultStopCodons {
   }
 }
 
-pub fn rule_stop_codons(
-  translations: &[CdsTranslation],
-  config: &QcRulesConfigStopCodons,
-) -> Option<QcResultStopCodons> {
+pub fn rule_stop_codons(translation: &Translation, config: &QcRulesConfigStopCodons) -> Option<QcResultStopCodons> {
   if !config.enabled {
     return None;
   }
 
   let mut stop_codons = Vec::<StopCodonLocation>::new();
   let mut stop_codons_ignored = Vec::<StopCodonLocation>::new();
-  for translation in translations {
-    let CdsTranslation { cds, seq: peptide, .. } = translation;
+  for cds_tr in translation.cdses() {
+    let CdsTranslation { cds, seq: peptide, .. } = cds_tr;
 
     let len_minus_one = peptide.len() - 1; // Minus one to ignore valid stop codon at the end
     for (codon, aa) in peptide.iter().enumerate().take(len_minus_one) {

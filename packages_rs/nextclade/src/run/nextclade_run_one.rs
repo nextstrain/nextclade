@@ -24,7 +24,7 @@ use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
 use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
-use crate::translate::translate_genes::{CdsTranslation, Translation};
+use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
@@ -48,11 +48,12 @@ pub fn nextclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<(Vec<Nuc>, Vec<CdsTranslation>, NextcladeOutputs), Report> {
+) -> Result<(Vec<Nuc>, Translation, NextcladeOutputs), Report> {
   let NextalignOutputs {
     stripped,
     alignment,
     mut translation,
+    aa_insertions,
     warnings,
     missing_genes,
     is_reverse_complement,
@@ -110,13 +111,10 @@ pub fn nextclade_run_one(
     ref_peptides,
     &translation,
     &alignment_range,
-    gene_map,
   )?;
 
   let total_aminoacid_substitutions = aa_substitutions.len();
   let total_aminoacid_deletions = aa_deletions.len();
-
-  let aa_insertions = get_aa_insertions(&translation);
   let total_aminoacid_insertions = aa_insertions.len();
 
   let unknown_aa_ranges = find_aa_letter_ranges(&translation, Aa::X);
@@ -203,7 +201,7 @@ pub fn nextclade_run_one(
   );
 
   let aa_alignment_ranges: BTreeMap<String, Range> = translation
-    .iter()
+    .cdses()
     .filter_map(|tr| {
       if tr.alignment_range.is_empty() {
         None

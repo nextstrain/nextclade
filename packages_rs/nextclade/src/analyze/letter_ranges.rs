@@ -1,7 +1,7 @@
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::translate::translate_genes::CdsTranslation;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 
@@ -113,9 +113,9 @@ impl GeneAaRange {
 }
 
 /// Finds contiguous ranges (segments) consisting of a given amino acid in the sequence.
-pub fn find_aa_letter_ranges(translations: &[CdsTranslation], letter: Aa) -> Vec<GeneAaRange> {
-  translations
-    .iter()
+pub fn find_aa_letter_ranges(translation: &Translation, letter: Aa) -> Vec<GeneAaRange> {
+  translation
+    .cdses()
     .filter_map(|CdsTranslation { cds, seq, .. }| {
       let ranges = find_letter_ranges_by(seq, |candidate| candidate == letter);
       let length = ranges.iter().map(LetterRange::len).sum();

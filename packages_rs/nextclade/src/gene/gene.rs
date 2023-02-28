@@ -36,7 +36,7 @@ impl From<bio_types::strand::Strand> for GeneStrand {
 pub struct Gene {
   pub index: usize,
   pub id: String,
-  pub gene_name: String,
+  pub name: String,
   pub start: usize,
   pub end: usize,
   pub strand: GeneStrand,
@@ -71,7 +71,7 @@ impl Gene {
     Ok(Self {
       index,
       id,
-      gene_name,
+      name: gene_name,
       start,
       end,
       strand,
@@ -100,6 +100,6 @@ impl Gene {
   }
 
   pub fn name_and_type(&self) -> String {
-    format!("Gene '{}'", self.gene_name)
+    format!("Gene '{}'", self.name)
   }
 }
