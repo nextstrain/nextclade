@@ -3,6 +3,8 @@ use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
 use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use crate::analyze::divergence::calculate_divergence;
+use crate::analyze::find_aa_motifs::find_aa_motifs;
+use crate::analyze::find_aa_motifs_changes::{find_aa_motifs_changes, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::letter_composition::get_letter_composition;
@@ -20,13 +22,16 @@ use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
+use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
+use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
+use std::collections::BTreeMap;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -34,6 +39,7 @@ pub fn nextclade_run_one(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
+  aa_motifs_ref: &AaMotifsMap,
   gene_map: &GeneMap,
   primers: &[PcrPrimer],
   tree: &AuspiceTree,
@@ -46,10 +52,11 @@ pub fn nextclade_run_one(
   let NextalignOutputs {
     stripped,
     alignment,
-    translations,
+    mut translations,
     warnings,
     missing_genes,
     is_reverse_complement,
+    coord_map,
   } = nextalign_run_one(
     index,
     seq_name,
@@ -71,6 +78,8 @@ pub fn nextclade_run_one(
   let alignment_start = alignment_range.begin;
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
+
+  calculate_aa_alignment_ranges_in_place(&alignment_range, gene_map, &coord_map, &mut translations)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();
@@ -181,6 +190,9 @@ pub fn nextclade_run_one(
       .collect_vec()
   });
 
+  let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translations)?;
+  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_peptides, &translations)?;
+
   let qc = qc_run(
     &private_nuc_mutations,
     &nucleotide_composition,
@@ -189,6 +201,17 @@ pub fn nextclade_run_one(
     &frame_shifts,
     qc_config,
   );
+
+  let aa_alignment_ranges: BTreeMap<String, Range> = translations
+    .iter()
+    .filter_map(|tr| {
+      if tr.alignment_range.is_empty() {
+        None
+      } else {
+        Some((tr.gene_name.clone(), tr.alignment_range.clone()))
+      }
+    })
+    .collect();
 
   Ok((
     stripped.qry_seq,
@@ -221,6 +244,7 @@ pub fn nextclade_run_one(
       alignment_start,
       alignment_end,
       alignment_score,
+      aa_alignment_ranges,
       pcr_primer_changes,
       total_pcr_primer_changes,
       clade,
@@ -231,6 +255,8 @@ pub fn nextclade_run_one(
       divergence,
       coverage,
       phenotype_values,
+      aa_motifs,
+      aa_motifs_changes,
       qc,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,

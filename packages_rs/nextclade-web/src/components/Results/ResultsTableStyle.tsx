@@ -11,8 +11,10 @@ export const HEADER_ROW_CONTENT_HEIGHT = 60
 
 export const DYNAMIC_CLADE_COLUMN_WIDTH = 85
 export const DYNAMIC_PHENOTYPE_COLUMN_WIDTH = 65
+export const DYNAMIC_AA_MOTIFS_COLUMN_WIDTH = 85
 
 export const COLUMN_WIDTHS = {
+  rowIndex: 45,
   id: 45,
   seqName: 250,
   qc: 130,
@@ -34,7 +36,6 @@ export const Table = styled.div<{ rounded?: boolean }>`
   height: 100%;
   background-color: #b3b3b3aa;
   overflow: hidden;
-  border-radius: ${(props) => props.rounded && '3px'};
   transition: border-radius 250ms linear;
 `
 
@@ -83,6 +84,20 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   align-items: center;
   text-align: center;
   border-left: 1px solid #b3b3b3;
+`
+
+export const TableCellRowIndex = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
+  flex-basis: ${(props) => props?.basis};
+  flex-grow: ${(props) => props?.grow};
+  flex-shrink: ${(props) => props?.shrink};
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  background-color: #495057;
+  color: #e7e7e7;
+  border-top: 1px solid #b3b3b3aa;
+  height: calc(100% - 1px);
 `
 
 export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`

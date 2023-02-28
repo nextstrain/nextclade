@@ -1,3 +1,94 @@
+## Nextclade Web 2.11.0, Nextclade CLI 2.11.0 (2023-01-31)
+
+### IMPORTANT: ensure `index` column is written to CSV/TSV output files in case of error
+
+The new column `index` was correctly written when analysis of a sample succeeds. However, for analyses which ended up with an error (e.g. "Unable to align") this column was mistakenly missing. In this version we fix this omission.
+
+### Fix gene map width in Nextclade Web
+
+Gene map (genome annotation) was misaligned with sequence views (not matching their width). This has been fixed in this version.
+
+### Add table row indices to results table in Nextclade Web
+
+We added a column with index of the row in the table. This is useful for visual search and counting of sorted and filtered results.
+
+Not to be confused with sequence index. Row indices always start with 0 and sorted in ascending order, and do not change their position when sorting or filtering the results.
+
+These indices are not a part of output files. Nextclade CLI is not affected.
+
+### Improve error messages
+
+Errors due to failure of sequence alignment are reworded and hopefully are more complete and comprehensible now.
+Additionally, we improved error message when reference sequence fails to read.
+
+### Always show action buttons on results page in Nextclade Web
+
+On smaller screens the "Download", "Tree" and other action buttons were not visible by default and horizontal scrolling were required to see them. We changed the layout such that the panel with buttons does not overflow along with table and so the buttons are always visible. Table is still scrollable.
+
+### Improve wording on main page of Nextclade Web
+
+We improved text on main page as well as descriptions inside HTML markup, adding more concrete information and keywords. This should be more pleasant to read and might improve Nextclade ranking in search engines.
+
+
+## Nextclade CLI 2.10.1 (2023-01-24)
+
+### Ensure `--output-all`, `--output-tsv`, `--output-csv` can be used together again in Nextclade CLI
+
+This fixes a regression introduced in Nextclade CLI 2.10.0, where `--output-all`, `--output-tsv`, `--output-csv` arguments became mutually exclusive. This was not intended and now resolved.
+
+This bug was breaking out bioconda checks, so Nextclade CLI version 2.10.0 will not be available in bioconda. Use 2.10.1 instead.
+
+Nextclade Web is not affected.
+
+
+## Nextclade Web 2.10.0, Nextclade CLI 2.10.0 (2023-01-24)
+
+### Add motifs search
+
+Nextclade datasets can now be configured to search for motifs in the translated sequences, given a regular expression.
+
+At the same time, we released new versions of the following Influenza datasets, which use this feature to detect glycosylation motifs:
+
+ - Influenza A H1N1pdm HA (flu_h1n1pdm_ha), with reference MW626062
+ - Influenza A H3N2 HA (flu_h3n2_ha), with reference EPI1857216
+
+If you run the analysis with the latest version of these datasets, you can find the results in the `glycosylaiton` column or field of output files or in "Glyc." column in Nextclade Web.
+
+If you want to configure your own datasets for motifs search, see an example configuration in the `aaMotifs` property of `virus_properties.json` of these datasets: [link](https://github.com/nextstrain/nextclade_data/blob/bc2974ab3bf5a9198e68f5f54db095dc3d6e968b/data/datasets/flu_h3n2_ha/references/EPI1857216/versions/2023-01-19T12%3A00%3A00Z/files/virus_properties.json#L35-L55).
+
+
+### Allow to chose columns written into CSV and TSV outputs
+
+You can now select a subset of columns to be included into CSV and TSV output files of Nextclade Web (available in the "Download" dialog) and Nextclade CLI (available with `--output-csv` and `--output-tsv`). You can either chose individual columns or categories of related columns.
+
+In Nextclade Web, in the "Download" dialog, click "Configure columns", then check or uncheck columns or categories you want to keep. Note that this configuration persists across different Nextclade runs.
+
+In Nextclade CLI, use `--output-columns-selection` flag. This flag accepts a comma-separated list of column names and/or column category names. Individual columns and categories can be mixed together. You can find a list of column names in the full output file. The following categories are currently available: all, general, ref-muts, priv-muts, errs-warns, qc, primers, dynamic. Another way to receive both lists is to add a non-existent or misspelled name to the list. The error message will then display all possible columns and categories.
+
+Note that because of this feature the order of columns might be different compared to previous versions of Nextclade.
+
+
+### Add URL parameter for running analysis of example sequences
+
+You can now launch the analysis of example sequences (as provided by the dataset) in Nextclade Web, by using the special keyword `example` in the `input-fasta` URL parameter. For example, navigating to this URL will run the analysis of example SARS-CoV-2 sequences (same as choosing "SARS-CoV-2" and then clicking "Load example" in the UI):
+
+```
+https://clades.nextstrain.org/?dataset-name=sars-cov-2&input-fasta=example
+```
+
+This could useful for example for testing new datasets:
+
+```
+https://clades.nextstrain.org/?dataset-url=http://example.com/my-dataset-dir&input-fasta=example
+```
+
+### Add `index` column to CSV and TSV outputs
+
+The `index` field is already present in other output formats. In this version CSV and TSV output files gain `index` column as well, which contains the index (integer signifying location) of a corresponding record in the input fasta file or files. Note that this is not the same as row index, because CSV/TSV rows can be emitted in an unspecified order in Nextclade CLI (but this can be changed with `--in-order` flag; which is set by default in Nextclade Web).
+
+Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
+
+
 ## Nextclade Web 2.9.1, Nextclade CLI 2.9.1 (2022-12-09)
 
 ### Set default weights in "private mutations" QC check to 1

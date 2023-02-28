@@ -10,18 +10,21 @@ use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
+use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
-use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::utils::range::Range;
+use nextclade::{make_error, make_internal_report};
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
@@ -87,6 +90,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_json,
         output_csv,
         output_tsv,
+        output_columns_selection,
         output_tree,
         output_insertions,
         output_errors,
@@ -108,7 +112,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     primers,
   } = nextclade_get_inputs(&run_args, &genes)?;
 
-  let ref_seq = &to_nuc_seq(&ref_record.seq)?;
+  let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
 
   let mut alignment_params = AlignPairwiseParams::default();
 
@@ -125,12 +129,41 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
+  let ref_peptides = &{
+    let mut ref_peptides =
+      translate_genes_ref(ref_seq, gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+
+    ref_peptides
+      .iter_mut()
+      .try_for_each(|(name, translation)| -> Result<(), Report> {
+        let gene = gene_map
+          .get(&translation.gene_name)
+          .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+        translation.alignment_range = Range::new(0, gene.len_codon());
+
+        Ok(())
+      })?;
+
+    ref_peptides
+  };
+
+  let aa_motifs_ref = &find_aa_motifs(
+    &virus_properties.aa_motifs,
+    &ref_peptides.values().cloned().collect_vec(),
+  )?;
 
   let should_keep_outputs = output_tree.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
+
+  let aa_motifs_keys = &virus_properties
+    .aa_motifs
+    .iter()
+    .map(|desc| desc.name.clone())
+    .collect_vec();
+
+  let csv_column_config = CsvColumnConfig::new(&output_columns_selection)?;
 
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -188,6 +221,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               &qry_seq,
               ref_seq,
               ref_peptides,
+              aa_motifs_ref,
               gene_map,
               primers,
               tree,
@@ -224,6 +258,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         gene_map,
         clade_node_attrs,
         phenotype_attrs,
+        aa_motifs_keys,
         &output_fasta,
         &output_json,
         &output_ndjson,
@@ -232,6 +267,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         &output_insertions,
         &output_errors,
         &output_translations,
+        &csv_column_config,
         in_order,
       )
       .wrap_err("When creating output writer")

@@ -1,5 +1,6 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
@@ -7,7 +8,6 @@ use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::aa::{from_aa_seq, Aa};
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
-use crate::make_internal_error;
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
@@ -19,106 +19,255 @@ use crate::types::outputs::{
 use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
 use crate::utils::range::Range;
+use crate::{make_error, o};
+use edit_distance::edit_distance;
 use eyre::Report;
-use itertools::Itertools;
+use indexmap::{indexmap, IndexMap};
+use itertools::{chain, Either, Itertools};
+use lazy_static::lazy_static;
 use regex::internal::Input;
+use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
+use std::str::FromStr;
+use strum;
+use strum::VariantNames;
+use strum_macros::{Display, EnumString, EnumVariantNames};
 
-/// List of headers in the resulting CSV or TSV file. Order is important!
-static NEXTCLADE_CSV_HEADERS: &[&str] = &[
-  "seqName",
-  "clade",
-  "qc.overallScore",
-  "qc.overallStatus",
-  "totalSubstitutions",
-  "totalDeletions",
-  "totalInsertions",
-  "totalFrameShifts",
-  "totalAminoacidSubstitutions",
-  "totalAminoacidDeletions",
-  "totalAminoacidInsertions",
-  "totalMissing",
-  "totalNonACGTNs",
-  "totalPcrPrimerChanges",
-  "substitutions",
-  "deletions",
-  "insertions",
-  "privateNucMutations.reversionSubstitutions",
-  "privateNucMutations.labeledSubstitutions",
-  "privateNucMutations.unlabeledSubstitutions",
-  "privateNucMutations.totalReversionSubstitutions",
-  "privateNucMutations.totalLabeledSubstitutions",
-  "privateNucMutations.totalUnlabeledSubstitutions",
-  "privateNucMutations.totalPrivateSubstitutions",
-  "frameShifts",
-  "aaSubstitutions",
-  "aaDeletions",
-  "aaInsertions",
-  "unknownAaRanges",
-  "totalUnknownAa",
-  "missing",
-  "nonACGTNs",
-  "pcrPrimerChanges",
-  "alignmentScore",
-  "alignmentStart",
-  "alignmentEnd",
-  "coverage",
-  "qc.missingData.missingDataThreshold",
-  "qc.missingData.score",
-  "qc.missingData.status",
-  "qc.missingData.totalMissing",
-  "qc.mixedSites.mixedSitesThreshold",
-  "qc.mixedSites.score",
-  "qc.mixedSites.status",
-  "qc.mixedSites.totalMixedSites",
-  "qc.privateMutations.cutoff",
-  "qc.privateMutations.excess",
-  "qc.privateMutations.score",
-  "qc.privateMutations.status",
-  "qc.privateMutations.total",
-  "qc.snpClusters.clusteredSNPs",
-  "qc.snpClusters.score",
-  "qc.snpClusters.status",
-  "qc.snpClusters.totalSNPs",
-  "qc.frameShifts.frameShifts",
-  "qc.frameShifts.totalFrameShifts",
-  "qc.frameShifts.frameShiftsIgnored",
-  "qc.frameShifts.totalFrameShiftsIgnored",
-  "qc.frameShifts.score",
-  "qc.frameShifts.status",
-  "qc.stopCodons.stopCodons",
-  "qc.stopCodons.totalStopCodons",
-  "qc.stopCodons.score",
-  "qc.stopCodons.status",
-  "isReverseComplement",
-  "failedGenes",
-  "warnings",
-  "errors",
-];
+// List of categories of CSV columns
+#[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, Hash, EnumString, EnumVariantNames)]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
+pub enum CsvColumnCategory {
+  All,
+  General,
+  RefMuts,
+  PrivMuts,
+  ErrsWarns,
+  Qc,
+  Primers,
+  Dynamic,
+}
 
-fn prepare_headers(custom_node_attr_keys: &[String], phenotype_attr_keys: &[String]) -> Vec<String> {
-  let mut headers: Vec<String> = NEXTCLADE_CSV_HEADERS
-    .iter()
+pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
+
+// Configuration for enabling/disabling CSV columns or categories of them
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CsvColumnConfig {
+  pub categories: CsvColumnConfigMap,
+  pub individual: Vec<String>,
+  pub include_dynamic: bool,
+}
+
+impl CsvColumnConfig {
+  pub fn new(output_columns_selection: &[String]) -> Result<Self, Report> {
+    let (categories, individual): (Vec<CsvColumnCategory>, Vec<String>) = output_columns_selection
+      .iter()
+      .partition_map(|candidate| match CsvColumnCategory::from_str(candidate) {
+        Ok(category) => Either::Left(category),
+        Err(_) => Either::Right(candidate.clone()),
+      });
+
+    individual.iter().try_for_each(|header| {
+      if !CSV_POSSIBLE_COLUMNS.contains(header) && !CSV_POSSIBLE_CATEGORIES.contains(header) {
+        let categories = CSV_POSSIBLE_CATEGORIES.join(", ");
+        let individual = CSV_POSSIBLE_COLUMNS.join(", ");
+
+        let suggestions = CSV_POSSIBLE_CATEGORIES.iter().chain(CSV_POSSIBLE_COLUMNS.iter())
+          .filter_map(|candidate| {
+          let distance = edit_distance(candidate, header);
+          (distance < 3).then_some((candidate, distance))
+        }).sorted_by_key(|(_, distance)| *distance).map(|(candidate, _)| candidate).join(", ");
+
+        let suggestion_text = if suggestions.is_empty() { Cow::from("") } else { Cow::from(format!("\n\n  Did you mean: {suggestions}?")) };
+
+        make_error!("Output columns selection: unknown column or category name '{header}'.\n\nPossible categories:\n    {categories}\n\nPossible individual columns:\n    {individual}{suggestion_text}")
+      } else {
+        Ok(())
+      }
+    })?;
+
+    if output_columns_selection.is_empty() || categories.contains(&CsvColumnCategory::All) {
+      Ok(Self::default())
+    } else {
+      let include_dynamic = categories.contains(&CsvColumnCategory::Dynamic);
+
+      let categories = categories
+        .into_iter()
+        .filter(|category| !matches!(category, CsvColumnCategory::Dynamic)) // Dynamic columns are handled specially
+        .map(|category| {
+          let columns = CSV_COLUMN_CONFIG_MAP_DEFAULT.get(&category).unwrap().clone();
+          (category, columns)
+        })
+        .collect();
+
+      Ok(Self {
+        categories,
+        individual,
+        include_dynamic,
+      })
+    }
+  }
+}
+
+impl Default for CsvColumnConfig {
+  fn default() -> Self {
+    Self {
+      categories: CSV_COLUMN_CONFIG_MAP_DEFAULT.clone(),
+      individual: vec![],
+      include_dynamic: true,
+    }
+  }
+}
+
+lazy_static! {
+  // Default configuration and layout of CSV column categories
+  pub static ref CSV_COLUMN_CONFIG_MAP_DEFAULT: CsvColumnConfigMap = indexmap! {
+    CsvColumnCategory::General => indexmap! {
+      o!("clade") => true,
+      o!("qc.overallScore") => true,
+      o!("qc.overallStatus") => true,
+      o!("totalSubstitutions") => true,
+      o!("totalDeletions") => true,
+      o!("totalInsertions") => true,
+      o!("totalFrameShifts") => true,
+      o!("totalMissing") => true,
+      o!("totalNonACGTNs") => true,
+      o!("totalAminoacidSubstitutions") => true,
+      o!("totalAminoacidDeletions") => true,
+      o!("totalAminoacidInsertions") => true,
+      o!("totalUnknownAa") => true,
+      o!("alignmentScore") => true,
+      o!("alignmentStart") => true,
+      o!("alignmentEnd") => true,
+      o!("coverage") => true,
+      o!("isReverseComplement") => true,
+    },
+    CsvColumnCategory::RefMuts => indexmap! {
+      o!("substitutions") => true,
+      o!("deletions") => true,
+      o!("insertions") => true,
+      o!("frameShifts") => true,
+      o!("aaSubstitutions") => true,
+      o!("aaDeletions") => true,
+      o!("aaInsertions") => true,
+    },
+    CsvColumnCategory::PrivMuts => indexmap! {
+      o!("privateNucMutations.reversionSubstitutions") => true,
+      o!("privateNucMutations.labeledSubstitutions") => true,
+      o!("privateNucMutations.unlabeledSubstitutions") => true,
+      o!("privateNucMutations.totalReversionSubstitutions") => true,
+      o!("privateNucMutations.totalLabeledSubstitutions") => true,
+      o!("privateNucMutations.totalUnlabeledSubstitutions") => true,
+      o!("privateNucMutations.totalPrivateSubstitutions") => true,
+    },
+    CsvColumnCategory::Qc => indexmap! {
+      o!("missing") => true,
+      o!("unknownAaRanges") => true,
+      o!("nonACGTNs") => true,
+      o!("qc.overallScore") => true,
+      o!("qc.overallStatus") => true,
+      o!("qc.missingData.missingDataThreshold") => true,
+      o!("qc.missingData.score") => true,
+      o!("qc.missingData.status") => true,
+      o!("qc.missingData.totalMissing") => true,
+      o!("qc.mixedSites.mixedSitesThreshold") => true,
+      o!("qc.mixedSites.score") => true,
+      o!("qc.mixedSites.status") => true,
+      o!("qc.mixedSites.totalMixedSites") => true,
+      o!("qc.privateMutations.cutoff") => true,
+      o!("qc.privateMutations.excess") => true,
+      o!("qc.privateMutations.score") => true,
+      o!("qc.privateMutations.status") => true,
+      o!("qc.privateMutations.total") => true,
+      o!("qc.snpClusters.clusteredSNPs") => true,
+      o!("qc.snpClusters.score") => true,
+      o!("qc.snpClusters.status") => true,
+      o!("qc.snpClusters.totalSNPs") => true,
+      o!("qc.frameShifts.frameShifts") => true,
+      o!("qc.frameShifts.totalFrameShifts") => true,
+      o!("qc.frameShifts.frameShiftsIgnored") => true,
+      o!("qc.frameShifts.totalFrameShiftsIgnored") => true,
+      o!("qc.frameShifts.score") => true,
+      o!("qc.frameShifts.status") => true,
+      o!("qc.stopCodons.stopCodons") => true,
+      o!("qc.stopCodons.totalStopCodons") => true,
+      o!("qc.stopCodons.score") => true,
+      o!("qc.stopCodons.status") => true,
+    },
+    CsvColumnCategory::Primers => indexmap! {
+      o!("totalPcrPrimerChanges") => true,
+      o!("pcrPrimerChanges") => true,
+    },
+    CsvColumnCategory::ErrsWarns => indexmap! {
+      o!("failedGenes") => true,
+      o!("warnings") => true,
+      o!("errors") => true,
+    }
+  };
+
+  pub static ref CSV_POSSIBLE_CATEGORIES: Vec<String> = CsvColumnCategory::VARIANTS.iter()
     .copied()
-    .map(ToOwned::to_owned)
+    .map(String::from)
     .collect_vec();
 
-  let mut insert_custom_cols_at_index = headers
+  pub static ref CSV_POSSIBLE_COLUMNS: Vec<String> = CSV_COLUMN_CONFIG_MAP_DEFAULT
     .iter()
-    .position(|header| header == "clade")
-    .unwrap_or(headers.len());
+    .flat_map(|(_, columns)| columns.iter())
+    .map(|(column, _)| column.clone())
+    .collect_vec();
+}
 
-  custom_node_attr_keys.iter().rev().for_each(|key| {
-    headers.insert(insert_custom_cols_at_index + 1, key.clone());
-  });
+fn prepare_headers(
+  custom_node_attr_keys: &[String],
+  phenotype_attr_keys: &[String],
+  aa_motifs_keys: &[String],
+  column_config: &CsvColumnConfig,
+) -> Vec<String> {
+  // Get names of enabled columns
+  let mut headers = {
+    let mandatory_headers = vec!["index", "seqName"].into_iter();
 
-  insert_custom_cols_at_index += custom_node_attr_keys.len();
+    let category_headers = column_config
+      .categories
+      .iter()
+      .flat_map(|(_, columns)| columns.iter())
+      .filter(|(column, enabled)| **enabled)
+      .map(|(column, _)| column.as_str());
 
-  phenotype_attr_keys.iter().rev().for_each(|key| {
-    headers.insert(insert_custom_cols_at_index + 1, key.clone());
-  });
+    let individual_headers = column_config.individual.iter().map(String::as_str);
+
+    chain![mandatory_headers, category_headers, individual_headers]
+      .unique()
+      .map(String::from)
+      .collect_vec()
+  };
+
+  if column_config.include_dynamic {
+    // Insert dynamic columns after this column index
+    let mut insert_custom_cols_at_index = headers
+      .iter()
+      .position(|header| header == "clade")
+      .unwrap_or_else(|| headers.len().saturating_sub(1));
+
+    custom_node_attr_keys.iter().rev().for_each(|key| {
+      headers.insert(insert_custom_cols_at_index + 1, key.clone());
+    });
+    insert_custom_cols_at_index += custom_node_attr_keys.len();
+
+    phenotype_attr_keys.iter().rev().for_each(|key| {
+      headers.insert(insert_custom_cols_at_index + 1, key.clone());
+    });
+    insert_custom_cols_at_index += phenotype_attr_keys.len();
+
+    aa_motifs_keys.iter().rev().for_each(|key| {
+      headers.insert(insert_custom_cols_at_index + 1, key.clone());
+      insert_custom_cols_at_index += aa_motifs_keys.len();
+    });
+  }
 
   headers
 }
@@ -145,6 +294,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     const ARRAY_ITEM_DELIMITER: &str = ",";
 
     let NextcladeOutputs {
+      index,
       seq_name,
       substitutions,
       total_substitutions,
@@ -182,6 +332,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       custom_node_attributes,
       is_reverse_complement,
       warnings,
+      aa_motifs,
+      aa_motifs_changes,
       ..
     } = nextclade_outputs;
 
@@ -195,7 +347,13 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
         .try_for_each(|PhenotypeValue { name, value, .. }| self.add_entry(name, &value))?;
     }
 
+    aa_motifs
+      .iter()
+      .try_for_each(|(name, motifs)| self.add_entry(name, &format_aa_motifs(motifs)))?;
+
+    self.add_entry("index", index)?;
     self.add_entry("seqName", seq_name)?;
+
     self.add_entry("clade", clade)?;
     self.add_entry("qc.overallScore", &format_qc_score(qc.overall_score))?;
     self.add_entry("qc.overallStatus", &qc.overall_status.to_string())?;
@@ -268,7 +426,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       &format_pcr_primer_changes(pcr_primer_changes, ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry("alignmentScore", &alignment_score)?;
-    self.add_entry("alignmentStart", &alignment_start.to_string())?;
+    self.add_entry("alignmentStart", &(alignment_start + 1).to_string())?;
     self.add_entry("alignmentEnd", &alignment_end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry_maybe(
@@ -403,7 +561,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
   }
 
   /// Writes one row for the case of error
-  pub fn write_nuc_error(&mut self, seq_name: &str, errors: &str) -> Result<(), Report> {
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &str) -> Result<(), Report> {
+    self.add_entry("index", &index)?;
     self.add_entry("seqName", &seq_name)?;
     self.add_entry("errors", &errors)?;
     self.write_row()?;
@@ -415,7 +574,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
   fn add_entry<K: AsRef<str> + Display, V: ToString>(&mut self, key: K, val: &V) -> Result<(), Report> {
     let index = self.headers.iter().position(|header| header == key.as_ref());
     match index {
-      None => make_internal_error!("When adding entry to a CSV file: CSV header not found for key: '{key}'"),
+      None => Ok(()),
       Some(index) => {
         self.row[index] = val.to_string();
         Ok(())
@@ -457,8 +616,10 @@ impl NextcladeResultsCsvFileWriter {
     delimiter: u8,
     clade_attr_keys: &[String],
     phenotype_attr_keys: &[String],
+    aa_motifs_keys: &[String],
+    column_config: &CsvColumnConfig,
   ) -> Result<Self, Report> {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys);
+    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys, aa_motifs_keys, column_config);
     let csv_writer = CsvVecFileWriter::new(filepath, delimiter, &headers)?;
     let writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
     Ok(Self { writer })
@@ -469,8 +630,8 @@ impl NextcladeResultsCsvFileWriter {
   }
 
   /// Writes one row into nextclade.csv or .tsv file for the case of error
-  pub fn write_nuc_error(&mut self, seq_name: &str, errors: &str) -> Result<(), Report> {
-    self.writer.write_nuc_error(seq_name, errors)
+  pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &str) -> Result<(), Report> {
+    self.writer.write_nuc_error(index, seq_name, errors)
   }
 }
 
@@ -676,17 +837,34 @@ pub fn format_escape(escape: &[PhenotypeValue]) -> String {
     .join(";")
 }
 
+#[inline]
+fn format_aa_motifs(motifs: &[AaMotif]) -> String {
+  motifs
+    .iter()
+    .map(
+      |AaMotif {
+         name,
+         gene,
+         position,
+         seq,
+       }| format!("{gene}:{}:{seq}", position + 1),
+    )
+    .join(";")
+}
+
 pub fn results_to_csv_string(
   outputs: &[NextcladeOutputs],
   errors: &[NextcladeErrorOutputs],
   clade_attr_keys: &[String],
   phenotype_attr_keys: &[String],
+  aa_motifs_keys: &[String],
   delimiter: u8,
+  column_config: &CsvColumnConfig,
 ) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
 
   {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys);
+    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys, aa_motifs_keys, column_config);
     let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
     let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
 
@@ -694,7 +872,9 @@ pub fn results_to_csv_string(
     for (_, output_or_error) in outputs_or_errors {
       match output_or_error {
         NextcladeOutputOrError::Outputs(output) => writer.write(&output)?,
-        NextcladeOutputOrError::Error(error) => writer.write_nuc_error(&error.seq_name, &error.errors.join(";"))?,
+        NextcladeOutputOrError::Error(error) => {
+          writer.write_nuc_error(error.index, &error.seq_name, &error.errors.join(";"))?;
+        }
       };
     }
   }

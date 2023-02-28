@@ -71,6 +71,7 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 
 | Column name                                     | Meaning                                                                                                    |
 |-------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| index                                           | Index (integer signifying location) of a corresponding record in the input fasta file(s)                   |
 | seqName                                         | Name of the sequence (as provided in the input file)                                                       |
 | clade                                           | Assigned clade                                                                                             |
 | qc.overallScore                                 | Overall [quality control](algorithm/07-quality-control) score                                              |
@@ -136,6 +137,8 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | errors                                          | List of errors during processing                                                                           |
 | warnings                                        | List of warnings during processing                                                                         |
 | failedGenes                                     | List of genes that failed translation                                                                      |
+
+> ⚠️ Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
 
 The table can contain additional columns for every clade-like attribute defined in reference tree in `meta.extensions.clade_node_attrs` and in the node attributes. For example, the default SARS-CoV-2 datasets define `Nextclade_pango` attribute which signifies a PANGO lineage assigned by Nextclade (see [Nextclade as pango lineage classifier: Methods and Validation](algorithm/nextclade-pango)).
 
@@ -208,17 +211,17 @@ A table that, for each sequence, contains a list of warnings (column `warnings`)
 
 When processing of a sequence fails for various reasons, not all output files will contain the corresponding entry (due to limitations of file formats):
 
-| Output file                  | CLI arg                 | Failed entries?  |
-|------------------------------|:------------------------|:-----------------|
-| Aligned nucleotide sequences | `--output-fasta`        | no               |
-| Aligned peptides             | `--output-translations` | no               |
-| Auspice tree JSON            | `--output-tree`         | no               |
-| Analysis results CSV         | `--output-csv`          | yes              |
-| Analysis results TSV         | `--output-tsv`          | yes              |
-| Analysis results NDJSON      | `--output-ndjson`       | yes              |
-| Analysis results JSON        | `--output-json`         | yes              |
-| Insertions CSV               | `--output-insertions`   | yes              |
-| Errors CSV                   | `--output-errors`       | yes              |
+| Output file                  | CLI arg                 | Failed entries? |
+|------------------------------|:------------------------|:----------------|
+| Aligned nucleotide sequences | `--output-fasta`        | no              |
+| Aligned peptides             | `--output-translations` | no              |
+| Auspice tree JSON            | `--output-tree`         | no              |
+| Analysis results CSV         | `--output-csv`          | yes             |
+| Analysis results TSV         | `--output-tsv`          | yes             |
+| Analysis results NDJSON      | `--output-ndjson`       | yes             |
+| Analysis results JSON        | `--output-json`         | yes             |
+| Insertions CSV               | `--output-insertions`   | yes             |
+| Errors CSV                   | `--output-errors`       | yes             |
 
 ## Compression of output files and writing to standard output (stdout)
 

@@ -234,6 +234,7 @@ pub fn find_aa_changes(
          seq,
          insertions,
          frame_shifts,
+         ..
        }|
        -> Result<FindAaChangesOutput, Report> {
         let ref_peptide = ref_peptides.get(gene_name).ok_or(make_internal_report!(

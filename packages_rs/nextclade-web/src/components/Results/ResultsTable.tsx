@@ -13,13 +13,16 @@ import {
   resultsTableDynamicCladeColumnWidthPxAtom,
   isResultsFilterPanelCollapsedAtom,
   resultsTableDynamicPhenotypeColumnWidthPxAtom,
+  resultsTableDynamicAaMotifsColumnWidthAtomPxAtom,
 } from 'src/state/settings.state'
 import {
+  aaMotifsDescsAtom,
   cladeNodeAttrDescsAtom,
   phenotypeAttrDescsAtom,
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
   sortAnalysisResultsByKeyAtom,
+  sortAnalysisResultsByMotifsAtom,
 } from 'src/state/results.state'
 import { FormattedText } from 'src/components/Common/FormattedText'
 import type { TableRowDatum } from './ResultsTableRow'
@@ -38,6 +41,7 @@ import { ResultsControlsSort } from './ResultsControlsSort'
 import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
 import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
 import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
+import HelpTipsColumnRowIndex from './HelpTips/HelpTipsColumnRowIndex.mdx'
 import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsCoverage from './HelpTips/HelpTipsColumnCoverage.mdx'
@@ -67,8 +71,10 @@ export function ResultsTable() {
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
   const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom)
   const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
+  const dynamicAaMotifsColumnWidthPx = useRecoilValue(resultsTableDynamicAaMotifsColumnWidthAtomPxAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
+  const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom)
 
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
@@ -80,12 +86,16 @@ export function ResultsTable() {
       columnWidthsPx,
       dynamicCladeColumnWidthPx,
       dynamicPhenotypeColumnWidthPx,
+      dynamicAaMotifsColumnWidthPx,
       cladeNodeAttrDescs,
       phenotypeAttrDescs,
+      aaMotifsDescs,
     }))
   }, [
+    aaMotifsDescs,
     cladeNodeAttrDescs,
     columnWidthsPx,
+    dynamicAaMotifsColumnWidthPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
     phenotypeAttrDescs,
@@ -170,6 +180,14 @@ export function ResultsTable() {
   const sortByKey = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
     set(sortAnalysisResultsByKeyAtom({ key, direction }), undefined)
   }, []) // prettier-ignore
+  const sortByMotifs = useRecoilCallback(
+    ({ set }) =>
+      (key: string, direction: SortDirection) =>
+        () => {
+          set(sortAnalysisResultsByMotifsAtom({ key, direction }), undefined)
+        },
+    [],
+  ) // prettier-ignore
 
   const dynamicCladeColumns = useMemo(() => {
     return cladeNodeAttrDescs
@@ -211,12 +229,40 @@ export function ResultsTable() {
     })
   }, [phenotypeAttrDescs, dynamicPhenotypeColumnWidthPx, sortByKey])
 
+  const dynamicAaMotifsColumns = useMemo(() => {
+    return aaMotifsDescs.map(({ name, nameFriendly, nameShort, description }) => {
+      const sortAsc = sortByMotifs(name, SortDirection.asc)
+      const sortDesc = sortByMotifs(name, SortDirection.desc)
+      return (
+        <TableHeaderCell key={name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{nameShort}</TableCellText>
+            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier={`btn-help-col-aa-motifs-${name}`} tooltipWidth="600px">
+            <h5>{`Column: ${nameFriendly}`}</h5>
+            <FormattedText text={description} />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+      )
+    })
+  }, [aaMotifsDescs, sortByMotifs, dynamicAaMotifsColumnWidthPx])
+
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
       <TableHeaderRow>
-        <TableHeaderCell first basis={columnWidthsPx.id} grow={0} shrink={0}>
+        <TableHeaderCell first basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
           <TableHeaderCellContent>
-            <TableCellText>{t('ID')}</TableCellText>
+            <TableCellText>{t('#')}</TableCellText>
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-row-index">
+            <HelpTipsColumnRowIndex />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+
+        <TableHeaderCell basis={columnWidthsPx.id} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{t('i')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByIndexAsc} sortDesc={sortByIndexDesc} />
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-seq-id">
@@ -257,6 +303,8 @@ export function ResultsTable() {
         {dynamicCladeColumns}
 
         {dynamicPhenotypeColumns}
+
+        {dynamicAaMotifsColumns}
 
         <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
           <TableHeaderCellContent>

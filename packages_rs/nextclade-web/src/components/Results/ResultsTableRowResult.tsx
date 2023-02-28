@@ -1,8 +1,9 @@
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import type { CladeNodeAttrDesc } from 'auspice'
 
-import { PhenotypeAttrDesc, QcStatus } from 'src/types'
+import { AaMotifsDesc, PhenotypeAttrDesc, QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
@@ -19,6 +20,7 @@ import {
   TableCell,
   TableCellAlignedLeft,
   TableCellName,
+  TableCellRowIndex,
   TableCellText,
   TableRow,
 } from 'src/components/Results/ResultsTableStyle'
@@ -27,16 +29,19 @@ import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
-import { CladeNodeAttrDesc } from 'auspice'
+import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
 
 export interface ResultsTableRowResultProps {
-  index: number
+  rowIndex: number
+  seqIndex: number
   viewedGene: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
+  aaMotifsDescs: AaMotifsDesc[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
+  dynamicAaMotifsColumnWidthPx: string
 }
 
 export function getQcRowColor(qcStatus: QcStatus) {
@@ -73,16 +78,19 @@ export function TableRowColored({
 }
 
 export function ResultsTableRowResult({
-  index,
+  rowIndex,
+  seqIndex,
   viewedGene,
   cladeNodeAttrDescs,
   phenotypeAttrDescs,
+  aaMotifsDescs,
   columnWidthsPx,
   dynamicCladeColumnWidthPx,
   dynamicPhenotypeColumnWidthPx,
+  dynamicAaMotifsColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
-  const { seqName, result } = useRecoilValue(analysisResultAtom(index))
+  const { seqName, result } = useRecoilValue(analysisResultAtom(seqIndex))
 
   const data = useMemo(() => {
     if (!result) {
@@ -102,13 +110,17 @@ export function ResultsTableRowResult({
   const { analysisResult, qc, warnings } = data
 
   return (
-    <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
+    <TableRowColored {...restProps} index={seqIndex} overallStatus={qc.overallStatus}>
+      <TableCellRowIndex basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
+        <TableCellText>{rowIndex}</TableCellText>
+      </TableCellRowIndex>
+
       <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
-        <TableCellText>{index}</TableCellText>
+        <TableCellText>{seqIndex}</TableCellText>
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName index={index} seqName={seqName} />
+        <ColumnName index={seqIndex} seqName={seqName} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.qc} grow={0} shrink={0}>
@@ -131,6 +143,12 @@ export function ResultsTableRowResult({
         <TableCellAlignedLeft key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <ColumnCustomNodeAttr sequence={analysisResult} attrKey={name} />
         </TableCellAlignedLeft>
+      ))}
+
+      {aaMotifsDescs.map((desc) => (
+        <TableCell key={desc.name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
+          <ColumnAaMotifs analysisResult={analysisResult} motifDesc={desc} />
+        </TableCell>
       ))}
 
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
