@@ -65,16 +65,36 @@ impl GeneMap {
       .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
+  pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
     self.genes.iter()
   }
 
-  pub fn into_iter(self) -> impl Iterator<Item = (String, Gene)> {
+  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = (&String, &mut Gene)> + '_ {
+    self.genes.iter_mut()
+  }
+
+  pub fn into_iter_genes(self) -> impl Iterator<Item = (String, Gene)> {
     self.genes.into_iter()
   }
 
-  pub fn values(&self) -> impl Iterator<Item = &Gene> + '_ {
+  pub fn genes(&self) -> impl Iterator<Item = &Gene> + '_ {
     self.genes.values()
+  }
+
+  pub fn iter_cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
+    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+  }
+
+  pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = &mut Cds> + '_ {
+    self.genes.iter_mut().flat_map(|(_, gene)| gene.cdses.iter_mut())
+  }
+
+  pub fn into_iter_cdses(self) -> impl Iterator<Item = Cds> {
+    self.genes.into_iter().flat_map(|(_, gene)| gene.cdses.into_iter())
+  }
+
+  pub fn cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
+    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
   }
 }
 
@@ -93,7 +113,7 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -
     // Both gene map and list of genes are provided. Retain only requested genes.
     (Some(gene_map), Some(genes)) => {
       let gene_map: BTreeMap<String, Gene> = gene_map
-        .into_iter()
+        .into_iter_genes()
         .filter(|(gene_name, ..)| genes.contains(gene_name))
         .collect();
 
@@ -146,20 +166,20 @@ pub fn gene_map_to_string(gene_map: &GeneMap) -> Result<String, Report> {
 
 pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Report> {
   let max_gene_name_len = gene_map
-    .iter()
+    .iter_genes()
     .map(|(_, gene)| gene.name_and_type().len() + INDENT_WIDTH)
     .max()
     .unwrap_or_default();
 
   let max_cds_name_len = gene_map
-    .iter()
+    .iter_genes()
     .flat_map(|(_, gene)| &gene.cdses)
     .map(|cds| cds.name_and_type().len() + INDENT_WIDTH * 2)
     .max()
     .unwrap_or_default();
 
   let max_cds_segment_name_len = gene_map
-    .iter()
+    .iter_genes()
     .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.segments)
     .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 3)
@@ -167,7 +187,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .unwrap_or_default();
 
   let max_protein_name_len = gene_map
-    .iter()
+    .iter_genes()
     .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .map(|protein| protein.name_and_type().len() + INDENT_WIDTH * 3)
@@ -175,7 +195,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .unwrap_or_default();
 
   let max_protein_segment_name_len = gene_map
-    .iter()
+    .iter_genes()
     .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .flat_map(|protein| &protein.segments)
@@ -203,7 +223,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
   )?;
 
   for (gene_name, gene) in gene_map
-    .iter()
+    .iter_genes()
     .sorted_by_key(|(_, gene)| (gene.start, gene.end, &gene.name))
   {
     write_gene(w, max_name_len, gene)?;

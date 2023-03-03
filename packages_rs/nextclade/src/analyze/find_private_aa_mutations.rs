@@ -36,7 +36,7 @@ pub fn find_private_aa_mutations(
   gene_map: &GeneMap,
 ) -> BTreeMap<String, PrivateAaMutations> {
   gene_map
-    .iter()
+    .iter_genes()
     .filter_map(|(gene, _)| match node.tmp.aa_mutations.get(gene) {
       //node.tmp contains mutations accumulated from root
       None => None,

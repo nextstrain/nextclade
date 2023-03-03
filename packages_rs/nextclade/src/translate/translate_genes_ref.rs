@@ -17,7 +17,7 @@ pub fn translate_genes_ref(
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
   let genes = gene_map
-    .iter()
+    .iter_genes()
     .map(|(gene_name, gene)| {
       let cdses = gene
         .cdses

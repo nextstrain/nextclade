@@ -303,7 +303,7 @@ pub fn translate_genes(
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
   let genes: IndexMap<String, GeneTranslation> = gene_map
-    .iter()
+    .iter_genes()
     .map(|(gene_name, gene)| {
       let ref_gene_translation = ref_peptides.get_gene(&gene.name)?;
 
