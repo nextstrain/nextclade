@@ -312,7 +312,18 @@ impl CoordMapForCds {
   }
 
   pub fn cds_to_global_ref_range(&self, range: &Range) -> Vec<CdsRange> {
-    unimplemented!()
+    self
+      .cds_to_global_aln_range(range)
+      .into_iter()
+      .map(|segment| match segment {
+        CdsRange::Covered(segment) => {
+          let begin = self.coord_map.aln_to_ref_position(segment.begin);
+          let end = self.coord_map.aln_to_ref_position(segment.end - 1) + 1;
+          CdsRange::Covered(Range { begin, end })
+        }
+        CdsRange::Before | CdsRange::After => segment,
+      })
+      .collect_vec()
   }
 
   /// Converts nucleotide position to codon index
@@ -603,6 +614,31 @@ mod coord_map_tests {
       [CdsPosition::Inside(11), CdsPosition::Before, CdsPosition::Before]
     );
 
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn maps_cds_to_global_ref_range() -> Result<(), Report> {
+    // CDS range                  11111111111111111
+    // CDS range                                  2222222222222222222      333333
+    // index                  012345678901234567890123456789012345678901234567890123456
+    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
+
+    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+    let global_coord_map = CoordMap::new(&ref_aln);
+    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
+
+    assert_eq!(
+      ref_cds_to_aln.cds_to_global_ref_range(&Range::new(10, 15)),
+      [
+        CdsRange::Covered(Range::new(11, 16)),
+        CdsRange::Before,
+        CdsRange::Before
+      ]
+    );
     Ok(())
   }
 
