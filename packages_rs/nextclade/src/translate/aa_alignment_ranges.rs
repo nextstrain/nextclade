@@ -1,5 +1,4 @@
 use crate::io::gene_map::GeneMap;
-use crate::make_internal_report;
 use crate::translate::coord_map::{CdsPosition, CdsRange, CoordMap};
 use crate::translate::translate_genes::Translation;
 use crate::utils::range::{intersect, Range};
@@ -39,10 +38,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
             Some(range)
           }
           _ => None,
-        })
-          .ok_or_else(||
-            make_internal_report!("No alignment ranges found for CDS '{}' in gene '{}'", cds_tr.cds.name, gene.name)
-          )?;
+        }).unwrap_or_default();
 
       cds_tr.alignment_range = aa_alignment_range;
 
