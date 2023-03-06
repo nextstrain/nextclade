@@ -1,5 +1,7 @@
+use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
-use eyre::Report;
+use crate::io::container::take_exactly_one;
+use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
@@ -49,6 +51,41 @@ pub struct Gene {
 }
 
 impl Gene {
+  pub fn from_feature_group(feature_group: &FeatureGroup) -> Result<Self, Report> {
+    assert_eq!(feature_group.feature_type, "gene");
+
+    let feature = take_exactly_one(&feature_group.features).wrap_err_with(|| {
+      eyre!(
+        "When processing feature group '{}' ('{}') of type '{}': genes must consist of exactly one feature",
+        feature_group.name,
+        feature_group.id,
+        feature_group.feature_type
+      )
+    })?;
+
+    let mut cdses = find_cdses(&feature_group.children)?;
+
+    // HACK: COMPAT: If there are no CDSes in this gene, then pretend the whole gene is a CDS
+    if cdses.is_empty() {
+      cdses.push(Cds::from_gene(feature));
+    }
+
+    Ok(Self {
+      index: feature.index,
+      id: feature.id.clone(),
+      name: feature.name.clone(),
+      start: feature.start,
+      end: feature.end,
+      strand: feature.strand.clone(),
+      frame: feature.frame,
+      cdses,
+      exceptions: feature.exceptions.clone(),
+      attributes: feature.attributes.clone(),
+      source_record: feature.source_record.clone(),
+      compat_is_cds: false,
+    })
+  }
+
   /// HACK: COMPATIBILITY: if there are no gene records, pretend that CDS records describe full genes
   pub fn from_cds(cds: &Cds) -> Result<Self, Report> {
     let index = 0;
@@ -102,4 +139,25 @@ impl Gene {
   pub fn name_and_type(&self) -> String {
     format!("Gene '{}'", self.name)
   }
+}
+
+pub fn find_cdses(feature_groups: &[FeatureGroup]) -> Result<Vec<Cds>, Report> {
+  let mut cdses = vec![];
+  feature_groups
+    .iter()
+    .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, &mut cdses))?;
+  Ok(cdses)
+}
+
+fn find_cdses_recursive(feature_group: &FeatureGroup, cdses: &mut Vec<Cds>) -> Result<(), Report> {
+  if feature_group.feature_type == "CDS" {
+    let cds = Cds::from_feature_group(feature_group)
+      .wrap_err_with(|| eyre!("When processing CDS, '{}'", feature_group.name))?;
+    cdses.push(cds);
+  }
+
+  feature_group
+    .children
+    .iter()
+    .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, cdses))
 }
