@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub struct Protein {
   pub id: String,
   pub name: String,
+  pub product: String,
   pub segments: Vec<ProteinSegment>,
 }
 
@@ -47,6 +48,7 @@ impl Protein {
     Ok(Self {
       id: feature_group.id.clone(),
       name: feature_group.name.clone(),
+      product: feature_group.product.clone(),
       segments,
     })
   }

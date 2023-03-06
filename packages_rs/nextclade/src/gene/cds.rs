@@ -84,6 +84,7 @@ impl Cds {
     let protein = Protein {
       id: format!("protein-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
+      product: feature.product.clone(),
       segments: vec![protein_segment],
     };
 
@@ -103,7 +104,7 @@ impl Cds {
 
     Self {
       id: format!("cds-from-gene-{}", feature.id),
-      name: format!("cds-from-gene-{}", feature.name),
+      name: feature.name.clone(),
       product: feature.product.clone(),
       segments: vec![cds_segment],
       proteins: vec![protein],
