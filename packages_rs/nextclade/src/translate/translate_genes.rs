@@ -21,6 +21,7 @@ use crate::{make_error, make_internal_report};
 use eyre::Report;
 use indexmap::IndexMap;
 use itertools::Itertools;
+use num_traits::clamp_max;
 use rayon::iter::Either;
 use serde::{Deserialize, Serialize};
 
@@ -195,7 +196,7 @@ pub fn mask_nuc_frame_shifts_in_place(seq: &mut [Nuc], frame_shifts: &[FrameShif
 pub fn fill_range_inplace(seq: &mut [Aa], range: &Range, letter: Aa) {
   // TODO: this is a very C-like function. Try to replace the indexed loop with something more idiomatic
   let mut current = range.begin;
-  let end = range.end;
+  let end = clamp_max(range.end, seq.len());
   while current < end {
     seq[current] = letter;
     current += 1;
