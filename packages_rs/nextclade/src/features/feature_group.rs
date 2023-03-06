@@ -12,6 +12,7 @@ pub struct FeatureGroup {
   pub index: usize,
   pub id: String,
   pub name: String,
+  pub product: String,
   pub feature_type: String,
   pub strand: GeneStrand,
   pub frame: i32,
@@ -48,6 +49,7 @@ impl FeatureGroup {
 
     let id = features.iter().map(|feature| &feature.id).unique().join("+");
     let name = features.iter().map(|feature| &feature.name).unique().join("+");
+    let product = features.iter().map(|feature| &feature.product).unique().join("+");
     let feature_type = features.iter().map(|feature| &feature.feature_type).unique().join("+");
 
     let strand = {
@@ -93,6 +95,7 @@ impl FeatureGroup {
       index,
       id,
       name,
+      product,
       feature_type,
       strand,
       frame,

@@ -1,6 +1,6 @@
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
-use crate::io::gff3::GffCommonInfo;
+use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo};
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
 use multimap::MultiMap;
@@ -13,6 +13,7 @@ pub struct Feature {
   pub index: usize,
   pub id: String,
   pub name: String,
+  pub product: String,
   pub feature_type: String,
   pub start: usize,
   pub end: usize,
@@ -43,14 +44,17 @@ impl Feature {
     } = GffCommonInfo::from_gff_record(&record)?;
 
     let name = name.unwrap_or_else(|| format!("Feature #{index}"));
-    let id = attributes.get("ID").cloned().unwrap_or_else(|| name.clone());
+    let id = id.unwrap_or_else(|| attributes.get("ID").cloned().unwrap_or_else(|| name.clone()));
     let feature_type = record.feature_type().to_owned();
     let parent_ids = attributes.get_vec("Parent").cloned().unwrap_or_default();
+    let product = get_one_of_attributes_optional(&record, &["Product", "product", "Protein", "protein", "protein_id"])
+      .unwrap_or_else(|| name.clone());
 
     Ok(Self {
       index,
       id,
       name,
+      product,
       feature_type,
       start,
       end,

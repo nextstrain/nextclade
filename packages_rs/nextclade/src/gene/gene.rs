@@ -53,7 +53,7 @@ impl Gene {
   pub fn from_cds(cds: &Cds) -> Result<Self, Report> {
     let index = 0;
     let id = cds.segments.iter().map(|seg| &seg.id).unique().join("+");
-    let gene_name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
+    let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
     let start = cds.segments.first().map(|seg| seg.start).unwrap_or_default();
     let end = cds.segments.last().map(|seg| seg.end).unwrap_or_default();
     let strand = cds
@@ -71,7 +71,7 @@ impl Gene {
     Ok(Self {
       index,
       id,
-      name: gene_name,
+      name,
       start,
       end,
       strand,

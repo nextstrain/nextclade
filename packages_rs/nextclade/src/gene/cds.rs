@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct Cds {
   pub id: String,
   pub name: String,
+  pub product: String,
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
   pub compat_is_gene: bool,
@@ -54,7 +55,8 @@ impl Cds {
 
     Self {
       id: format!("cds-from-gene-{}", feature.id),
-      name: feature.name.clone(),
+      name: format!("cds-from-gene-{}", feature.name),
+      product: feature.product.clone(),
       segments: vec![cds_segment],
       proteins: vec![protein],
       compat_is_gene: true,

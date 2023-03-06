@@ -150,6 +150,7 @@ fn convert_cds(feature_group: &FeatureGroup) -> Result<Cds, Report> {
   Ok(Cds {
     id: feature_group.id.clone(),
     name: feature_group.name.clone(),
+    product: feature_group.product.clone(),
     segments,
     proteins: mprs,
     compat_is_gene: false,
