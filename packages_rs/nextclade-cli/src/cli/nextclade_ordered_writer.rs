@@ -165,7 +165,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
         }
 
         for warning in warnings {
-          warn!("{}", warning.warning);
+          warn!("In sequence #{index} '{seq_name}': {}", warning.warning);
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
