@@ -9,6 +9,7 @@ use crate::types::outputs::{NextalignOutputs, PeptideWarning};
 use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::{Either, Itertools};
+use log::warn;
 use std::collections::HashSet;
 
 pub fn nextalign_run_one(
@@ -64,6 +65,10 @@ pub fn nextalign_run_one(
           gene_name: "nuc".to_owned(),
           warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
         });
+      }
+
+      for warning in &warnings {
+        warn!("{}", warning.warning);
       }
 
       Ok(NextalignOutputs {

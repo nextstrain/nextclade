@@ -1,3 +1,10 @@
+## Upcoming
+
+### Ensure translation warnings in CLI
+
+Dur to an omission, Nextclade CLI and Nextalign CLI since v2 did not print sequence translation-releated warnings to the console. This is now fixed.
+
+
 ## Nextclade Web 2.12.0, Nextclade CLI 2.12.0 (2023-02-28)
 
 ### Improve tooltip for "missing" column in Nextclade Web
