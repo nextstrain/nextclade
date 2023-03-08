@@ -105,6 +105,7 @@ module.exports = {
       },
     ],
     'import/no-extraneous-dependencies': ['warn', { devDependencies: true }],
+    'import/no-useless-path-segments': 'off',
     'import/no-webpack-loader-syntax': 'off',
     'import/order': 'warn',
     'import/prefer-default-export': 'off',
