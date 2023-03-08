@@ -104,6 +104,7 @@ export default class Document extends NextDocument {
           <DisableNextJsErrorPopup />
 
           <NoIndex />
+          <link rel="canonical" href={DOMAIN} />
 
           <meta charSet="utf8" />
           <title>{PROJECT_NAME}</title>
