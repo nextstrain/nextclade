@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
@@ -11,9 +11,7 @@ import {
   TWITTER_USERNAME_FRIENDLY,
   URL_MANIFEST_JSON,
   URL_FAVICON,
-  RELEASE_URL,
 } from 'src/constants'
-import { getGitBranch } from '../../lib/getGitBranch'
 
 export const GenericIcons = [16, 32, 96, 128, 196].map((size) => {
   const sizes = `${size}x${size}`
