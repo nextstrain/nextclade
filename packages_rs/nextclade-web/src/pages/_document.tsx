@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
@@ -11,7 +11,9 @@ import {
   TWITTER_USERNAME_FRIENDLY,
   URL_MANIFEST_JSON,
   URL_FAVICON,
+  RELEASE_URL,
 } from 'src/constants'
+import { getGitBranch } from '../../lib/getGitBranch'
 
 export const GenericIcons = [16, 32, 96, 128, 196].map((size) => {
   const sizes = `${size}x${size}`
@@ -53,6 +55,19 @@ const disableErrorPopup = {
 }
 
 /**
+ *
+ * Prevent indexing by search engines
+ * https://developers.google.com/search/docs/crawling-indexing/block-indexing
+ *
+ */
+function NoIndex() {
+  if (process.env.BLOCK_SEARCH_INDEXING !== '1') {
+    return null
+  }
+  return <meta name="robots" content="noindex" />
+}
+
+/**
  * Disables Next.js error popup in dev mode, so that the behavior is consistent with production.
  * Put this component into Document's Head.
  */
@@ -87,6 +102,8 @@ export default class Document extends NextDocument {
       <Html lang="en">
         <Head>
           <DisableNextJsErrorPopup />
+
+          <NoIndex />
 
           <meta charSet="utf8" />
           <title>{PROJECT_NAME}</title>
