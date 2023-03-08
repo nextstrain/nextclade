@@ -1,7 +1,7 @@
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
+use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
 use crate::utils::range::Range;
 use itertools::Itertools;
 
@@ -63,7 +63,32 @@ fn tree_sort_nearest_nodes<'node>(
   nearest_node_candidates: &[TreeFindNearestNodeOutput<'node>],
 ) -> Vec<TreeFindNearestNodeOutput<'node>> {
   // TODO: actually reorder the list or create a new one, and calculate placement confidence for each node
-  nearest_node_candidates.to_vec()
+  let confidence_sum = nearest_node_candidates
+    .iter()
+    .map(|node| {
+      node
+        .node
+        .node_attrs
+        .placement_prior
+        .to_owned()
+        .map_or(0_f64, |attr| libm::exp10(attr.value.parse::<f64>().unwrap_or(-10_f64)))
+    })
+    .sum::<f64>();
+  nearest_node_candidates
+    .iter()
+    .map(|node| TreeFindNearestNodeOutput {
+      node: node.node,
+      distance: node.distance,
+      confidence: node
+        .node
+        .node_attrs
+        .placement_prior
+        .to_owned()
+        .map_or(0.0, |attr| libm::exp10(attr.value.parse::<f64>().unwrap_or(-10_f64)) / confidence_sum),
+    })
+    // Calculate sum of all confidences
+    .sorted_by(|a, b| b.confidence.total_cmp(&a.confidence))
+    .collect_vec()
 }
 
 /// Calculates distance metric between a given query sample and a tree node
@@ -99,8 +124,6 @@ pub fn tree_calculate_node_distance(
 
   let total_node_muts = node.tmp.substitutions.len() as i64;
   let total_seq_muts = qry_nuc_subs.len() as i64;
-
-  let placement_bias = node.node_attrs.placement_bias.map_or(0.999, |pb| pb.value);
 
   // calculate distance from set overlaps.
   total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites

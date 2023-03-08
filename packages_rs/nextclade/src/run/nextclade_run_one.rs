@@ -123,6 +123,13 @@ pub fn nextclade_run_one(
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
   let nearest_node_candidates = tree_find_nearest_nodes(tree, &substitutions, &missing, &alignment_range);
+  println!(
+    "nearest_node_candidates: {:?}",
+    nearest_node_candidates
+      .iter()
+      .map(|n| (n.node.name.clone(), n.confidence))
+      .collect::<Vec<_>>()
+  );
   let TreeFindNearestNodeOutput {
     node,
     distance,

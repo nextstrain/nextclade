@@ -68,7 +68,7 @@ pub struct TreeNodeAttrs {
   pub division: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub placement_bias: Option<TreeNodeAttrInt>,
+  pub placement_prior: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Alignment")]
