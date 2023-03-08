@@ -70,7 +70,7 @@ fn tree_sort_nearest_nodes<'node>(
         .node
         .node_attrs
         .placement_prior
-        .to_owned()
+        .clone()
         .map_or(0_f64, |attr| libm::exp10(attr.value.parse::<f64>().unwrap_or(-10_f64)))
     })
     .sum::<f64>();
@@ -82,8 +82,7 @@ fn tree_sort_nearest_nodes<'node>(
       confidence: node
         .node
         .node_attrs
-        .placement_prior
-        .to_owned()
+        .placement_prior.clone()
         .map_or(0.0, |attr| libm::exp10(attr.value.parse::<f64>().unwrap_or(-10_f64)) / confidence_sum),
     })
     // Calculate sum of all confidences
