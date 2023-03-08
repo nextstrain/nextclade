@@ -14,10 +14,10 @@ use crate::qc::qc_run::QcResult;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
+use crate::utils::range::Range;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use crate::utils::range::Range;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
