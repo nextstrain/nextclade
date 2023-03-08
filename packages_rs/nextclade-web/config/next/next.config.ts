@@ -7,6 +7,7 @@ import getWithMDX from '@next/mdx'
 import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
 
+import { RELEASE_URL } from './../../src/constants'
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getGitBranch } from '../../lib/getGitBranch'
 import { getBuildNumber } from '../../lib/getBuildNumber'
@@ -57,6 +58,7 @@ const clientEnv = {
   DOMAIN,
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
+  BLOCK_SEARCH_INDEXING: DOMAIN === RELEASE_URL ? '0' : '1',
 }
 
 const nextConfig: NextConfig = {
