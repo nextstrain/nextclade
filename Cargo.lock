@@ -1487,7 +1487,6 @@ dependencies = [
  "rstest",
  "rstest_reuse",
  "serde",
- "serde-this-or-that",
  "serde_json",
  "serde_stacker",
  "strum 0.24.1",
@@ -2268,15 +2267,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61ea8d54c77f8315140a05f4c7237403bf38b72704d031543aa1d16abbf517d1"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde-this-or-that"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "634c5a3cb041e56cc2964386151c67d520f845445789da3bd46bfb1c94f5e3bb"
-dependencies = [
- "serde",
 ]
 
 [[package]]

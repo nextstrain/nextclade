@@ -26,12 +26,37 @@ use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_plac
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
-use crate::tree::tree_find_nearest_node::{tree_find_nearest_nodes, TreeFindNearestNodeOutput};
+use crate::tree::tree_find_nearest_node::tree_find_nearest_nodes;
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlacementConfidence {
+  // Contains information about alternative placements
+  // How far away they are (over which range, e.g. divergence/distance on tree * probability/confidence of the placement -> expected distance)
+  // Number of alternative placements per distance, confidence per distance
+  // List of nearest placements aggregated: dict of (distance, prior) (normalized for distance 0 placement = 1)
+  // Confidence of best placement
+  // Other nearby placements, highest prior per distance, up to distance x, so relative prior
+  best_placements: Vec<NodePlacementInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NodePlacementInfo {
+  // Contains information about alternative placements
+  name: String,
+  distance: i64,
+  log_prior: f64,
+}
+
+// Clade confidence -> confidence of this clade, most likely other clade (plus its confidence), potentially relaxing distance requirements
+// Lineage confidence ->
 
 pub fn nextclade_run_one(
   index: usize,
@@ -127,14 +152,10 @@ pub fn nextclade_run_one(
     "nearest_node_candidates: {:?}",
     nearest_node_candidates
       .iter()
-      .map(|n| (n.node.name.clone(), n.confidence))
+      .map(|n| (n.node.name.clone(), n.prior))
       .collect::<Vec<_>>()
   );
-  let TreeFindNearestNodeOutput {
-    node,
-    distance,
-    confidence,
-  } = nearest_node_candidates[0];
+  let node = nearest_node_candidates[0].node;
 
   let nearest_node_id = node.tmp.id;
   let clade = node.clade();
@@ -225,6 +246,18 @@ pub fn nextclade_run_one(
     })
     .collect();
 
+  let best_placements = nearest_node_candidates
+    .iter()
+    .map(|n| NodePlacementInfo {
+      name: n.node.name.clone(),
+      distance: n.distance,
+      log_prior: n.prior.log10(),
+    })
+    .take(10)
+    .collect_vec();
+
+  let placement_confidence = PlacementConfidence { best_placements };
+
   Ok((
     stripped.qry_seq,
     translations,
@@ -273,6 +306,7 @@ pub fn nextclade_run_one(
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,
       is_reverse_complement,
+      placement_confidence,
     },
   ))
 }

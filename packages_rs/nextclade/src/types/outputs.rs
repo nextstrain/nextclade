@@ -11,6 +11,7 @@ use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
+use crate::run::nextclade_run_one::PlacementConfidence;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
@@ -95,6 +96,7 @@ pub struct NextcladeOutputs {
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
+  pub placement_confidence: PlacementConfidence,
 }
 
 impl NextcladeOutputs {
