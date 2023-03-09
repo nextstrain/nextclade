@@ -7,7 +7,6 @@ use indexmap::IndexMap;
 use serde::{de, Deserializer};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde_this_or_that::as_f64;
 use std::any::Any;
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -39,7 +38,7 @@ impl TreeNodeAttr {
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeNodeAttrF64 {
-  #[serde(deserialize_with = "as_f64")]
+  #[serde(deserialize_with = "de_f64_or_string_as_f64")]
   pub value: f64,
 
   #[serde(flatten)]
@@ -53,6 +52,14 @@ impl TreeNodeAttrF64 {
       other: serde_json::Value::default(),
     }
   }
+}
+
+fn de_f64_or_string_as_f64<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f64, D::Error> {
+  Ok(match Value::deserialize(deserializer)? {
+    Value::String(s) => s.parse().map_err(de::Error::custom)?,
+    Value::Number(num) => num.as_f64().ok_or_else(|| de::Error::custom("Invalid number"))?,
+    _ => return Err(de::Error::custom("wrong type")),
+  })
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
