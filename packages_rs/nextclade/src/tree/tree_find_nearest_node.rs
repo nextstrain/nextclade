@@ -79,11 +79,7 @@ fn tree_sort_nearest_nodes<'node>(
 }
 
 fn calculate_confidence(node: &AuspiceTreeNode) -> f64 {
-  node
-    .node_attrs
-    .placement_prior
-    .as_ref()
-    .map_or(0.0, |attr| 10_f64.powf(attr.value))
+  10.0_f64.powf(node.node_attrs.placement_prior.clone().map_or(-10.0, |attr| attr.value))
 }
 
 /// Calculates distance metric between a given query sample and a tree node
