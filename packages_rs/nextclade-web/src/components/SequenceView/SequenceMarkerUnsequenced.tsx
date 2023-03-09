@@ -113,6 +113,7 @@ export interface SequenceMarkerUnsequencedEndProps {
 }
 
 // eslint-disable-next-line react/display-name
+// Used for both peptide and nucleotide view
 export const SequenceMarkerUnsequencedEnd = memo(
   ({ index, seqName, genomeSize, alignmentEnd, pixelsPerBase }: SequenceMarkerUnsequencedEndProps) => {
     const { t } = useTranslation()

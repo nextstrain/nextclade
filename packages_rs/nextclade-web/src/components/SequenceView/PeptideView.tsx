@@ -175,7 +175,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         <SequenceMarkerUnsequencedEnd
           index={index}
           seqName={seqName}
-          genomeSize={geneLength}
+          genomeSize={geneLength/3}
           alignmentEnd={alignmentRange.end}
           pixelsPerBase={pixelsPerAa}
         />
