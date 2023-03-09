@@ -56,38 +56,34 @@ pub fn tree_find_nearest_nodes<'node>(
   }
 }
 
-/// Reorder equivalently near nodes according to a metric, from the best to the worst.
+/// Reorder equivalently near nodes according to confidence.
 /// The first node in the resulting list will be considered "the most nearest" among equally nearest nodes
 /// and will be used for clade assignment.
 fn tree_sort_nearest_nodes<'node>(
   nearest_node_candidates: &[TreeFindNearestNodeOutput<'node>],
 ) -> Vec<TreeFindNearestNodeOutput<'node>> {
-  // TODO: actually reorder the list or create a new one, and calculate placement confidence for each node
-  let confidence_sum = nearest_node_candidates
+  let confidence_sum: f64 = nearest_node_candidates
     .iter()
-    .map(|node| {
-      node
-        .node
-        .node_attrs
-        .placement_prior
-        .clone()
-        .map_or(0_f64, |attr| libm::exp10(attr.value.parse::<f64>().unwrap_or(-10_f64)))
-    })
-    .sum::<f64>();
+    .map(|output| calculate_confidence(output.node))
+    .sum();
+
   nearest_node_candidates
     .iter()
     .map(|node| TreeFindNearestNodeOutput {
       node: node.node,
       distance: node.distance,
-      confidence: node
-        .node
-        .node_attrs
-        .placement_prior.clone()
-        .map_or(0.0, |attr| libm::exp10(attr.value.parse::<f64>().unwrap_or(-10_f64)) / confidence_sum),
+      confidence: calculate_confidence(node.node) / confidence_sum,
     })
-    // Calculate sum of all confidences
     .sorted_by(|a, b| b.confidence.total_cmp(&a.confidence))
     .collect_vec()
+}
+
+fn calculate_confidence(node: &AuspiceTreeNode) -> f64 {
+  node
+    .node_attrs
+    .placement_prior
+    .as_ref()
+    .map_or(0.0, |attr| 10_f64.powf(attr.value))
 }
 
 /// Calculates distance metric between a given query sample and a tree node

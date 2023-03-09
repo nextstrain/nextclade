@@ -52,7 +52,6 @@ tinytemplate = "1.2.1"
 traversal = "0.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
 zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "deflate", "time"] }
-libm = "0.2.6"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 atty = "0.2.14"

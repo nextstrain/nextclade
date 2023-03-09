@@ -107,7 +107,7 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
         region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-        placement_prior: Some(TreeNodeAttr::new("")),
+        placement_prior: None,
         alignment: Some(TreeNodeAttr::new(&alignment)),
         missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
         gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
