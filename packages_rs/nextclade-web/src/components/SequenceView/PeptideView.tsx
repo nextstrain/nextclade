@@ -102,8 +102,8 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   }
 
   const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaAlignmentRanges } = sequence
-  const geneLength = gene.end - gene.start
-  const pixelsPerAa = width / Math.round(geneLength / 3)
+  const geneLength = (gene.end - gene.start) / 3
+  const pixelsPerAa = width / Math.round(geneLength)
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
