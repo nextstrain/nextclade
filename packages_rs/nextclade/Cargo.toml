@@ -44,6 +44,7 @@ pretty_assertions = "1.2.1"
 rayon = "1.5.2"
 regex = "1.5.5"
 serde = { version = "1.0.136", features = ["derive"] }
+serde-this-or-that = "0.4.2"
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 serde_stacker = { version = "0.1.6" }
 strum = "0.24.0"
