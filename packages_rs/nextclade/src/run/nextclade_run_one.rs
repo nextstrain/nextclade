@@ -125,6 +125,14 @@ pub fn nextclade_run_one(
   let nearest_node_candidates = tree_find_nearest_nodes(tree, &substitutions, &missing, &alignment_range);
   let node = nearest_node_candidates[0].node;
   let nearest_node_id = node.tmp.id;
+
+  let nearest_nodes = nearest_node_candidates
+    .iter()
+    // Choose all nodes with distance equal to the distance of the nearest node
+    .filter(|n| n.distance == nearest_node_candidates[0].distance)
+    .map(|n| n.node.name.clone())
+    .collect_vec();
+
   let clade = node.clade();
 
   let clade_node_attr_keys = tree.clade_node_attr_descs();
@@ -260,6 +268,7 @@ pub fn nextclade_run_one(
       qc,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,
+      nearest_nodes,
       is_reverse_complement,
     },
   ))

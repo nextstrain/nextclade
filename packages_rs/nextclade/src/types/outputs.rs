@@ -91,6 +91,7 @@ pub struct NextcladeOutputs {
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: usize,
+  pub nearest_nodes: Vec<String>,
   pub is_reverse_complement: bool,
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
