@@ -26,7 +26,7 @@ use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_plac
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::tree::tree::AuspiceTree;
-use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
+use crate::tree::tree_find_nearest_node::tree_find_nearest_nodes;
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use crate::utils::range::Range;
 use eyre::Report;
@@ -122,8 +122,8 @@ pub fn nextclade_run_one(
   let unknown_aa_ranges = find_aa_letter_ranges(&translations, Aa::X);
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
-  let TreeFindNearestNodeOutput { node, distance } =
-    tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
+  let nearest_node_candidates = tree_find_nearest_nodes(tree, &substitutions, &missing, &alignment_range);
+  let node = nearest_node_candidates[0].node;
   let nearest_node_id = node.tmp.id;
   let clade = node.clade();
 
