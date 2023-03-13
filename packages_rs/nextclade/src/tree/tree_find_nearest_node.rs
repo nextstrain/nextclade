@@ -1,8 +1,9 @@
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
+use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
 use crate::utils::range::Range;
+use itertools::Itertools;
 
 pub struct TreeFindNearestNodeOutput<'node> {
   pub node: &'node AuspiceTreeNode,
@@ -10,28 +11,31 @@ pub struct TreeFindNearestNodeOutput<'node> {
 }
 
 /// For a given query sample, finds nearest node on the reference tree (according to the distance metric)
-pub fn tree_find_nearest_node<'node>(
+pub fn tree_find_nearest_nodes<'node>(
   tree: &'node AuspiceTree,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &Range,
-) -> TreeFindNearestNodeOutput<'node> {
+) -> Vec<TreeFindNearestNodeOutput<'node>> {
   // Iterate over tree nodes and calculate distance metric between the sample and each node
-  tree
+  let nodes_by_placement_score = tree
     .iter_depth_first_preorder()
     .map(|(_, node)| {
       let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range);
       TreeFindNearestNodeOutput { node, distance }
     })
+    .sorted_by(|a, b| a.distance.cmp(&b.distance))
+    .collect_vec();
 
-    // Find nearest node (having minimum distance)
-    .min_by_key(|out| out.distance)
-
-    // If none can be found, return default (e.g. if tree is empty, which is unlikely)
-    .unwrap_or(TreeFindNearestNodeOutput {
+  if nodes_by_placement_score.is_empty() {
+    // Unlikely case: if there's no nodes, return parent
+    vec![TreeFindNearestNodeOutput {
       node: &tree.tree,
       distance: 0,
-    })
+    }]
+  } else {
+    nodes_by_placement_score
+  }
 }
 
 /// Calculates distance metric between a given query sample and a tree node
