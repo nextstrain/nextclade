@@ -2,8 +2,11 @@
 
 ### Ensure translation warnings in CLI
 
-Dur to an omission, Nextclade CLI and Nextalign CLI since v2 did not print sequence translation-releated warnings to the console. This is now fixed.
+Due to an omission, Nextclade CLI and Nextalign CLI since v2 did not print sequence translation-releated warnings to the console. This is now fixed.
 
+### Fix Google Search Console warnings
+
+We resolved warnings in Google Search Console: added canonical URL meta tag, and added `noindex` tag for non-release deployments. This should improve Nextclade appearance in Google Search.
 
 ## Nextclade Web 2.12.0, Nextclade CLI 2.12.0 (2023-02-28)
 
