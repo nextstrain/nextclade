@@ -364,6 +364,7 @@ pub struct NextcladeRunInputArgs {
   pub server: Url,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunOutputArgs {
   /// REMOVED. Use `--output-all` instead
@@ -555,6 +556,10 @@ pub struct NextcladeRunOutputArgs {
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
   #[clap(long)]
   pub include_reference: bool,
+
+  /// Whether to include the list of nearest nodes to the outputs
+  #[clap(long)]
+  pub include_nearest_node_info: bool,
 
   /// Emit output sequences in-order.
   ///
