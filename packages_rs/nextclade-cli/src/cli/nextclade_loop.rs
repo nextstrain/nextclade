@@ -95,6 +95,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_insertions,
         output_errors,
         include_reference,
+        include_nearest_node_info,
         in_order,
         replace_unknown,
         ..
@@ -230,6 +231,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               gap_open_close_nuc,
               gap_open_close_aa,
               alignment_params,
+              include_nearest_node_info,
             )
           });
 
