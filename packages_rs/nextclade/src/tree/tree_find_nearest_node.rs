@@ -44,7 +44,14 @@ pub fn tree_find_nearest_nodes<'node>(
 
 /// Gets non-log scale prior from node attributes
 fn get_prior(node: &AuspiceTreeNode) -> f64 {
-  10.0_f64.powf(node.node_attrs.placement_prior.clone().map_or(-10.0, |attr| attr.value))
+  10.0_f64.powf(
+    node
+      .node_attrs
+      .placement_prior
+      .as_ref()
+      // Hard coded -10.0 is small but not zero
+      .map_or(-10.0, |attr| attr.value),
+  )
 }
 
 /// Calculates distance metric between a given query sample and a tree node
