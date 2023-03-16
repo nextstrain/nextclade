@@ -162,6 +162,7 @@ pub struct Nextclade {
   phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   aa_motifs_descs: Vec<AaMotifsDesc>,
   aln_params: AlignPairwiseParams,
+  include_nearest_node_info: bool,
 }
 
 impl Nextclade {
@@ -226,6 +227,7 @@ impl Nextclade {
       phenotype_attr_descs,
       aa_motifs_descs,
       aln_params: alignment_params,
+      include_nearest_node_info: false, // Never emit nearest node info in web, to reduce output size
     })
   }
 
@@ -265,6 +267,7 @@ impl Nextclade {
       &self.gap_open_close_nuc,
       &self.gap_open_close_aa,
       &self.aln_params,
+      self.include_nearest_node_info,
     ) {
       Ok((qry_seq_aligned_stripped, translations, nextclade_outputs)) => {
         let nextclade_outputs_str =
