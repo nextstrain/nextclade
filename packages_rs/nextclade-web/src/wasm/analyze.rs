@@ -1,6 +1,5 @@
 use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
@@ -234,7 +233,7 @@ impl Nextclade {
   #[inline]
   pub fn get_initial_data(&self) -> Result<AnalysisInitialData, Report> {
     Ok(AnalysisInitialData {
-      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.values().cloned().collect())?,
+      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.genes().cloned().collect())?,
       genome_size: self.ref_seq.len(),
       clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
       phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,
