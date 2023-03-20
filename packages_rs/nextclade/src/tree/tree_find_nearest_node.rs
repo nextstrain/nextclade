@@ -24,7 +24,7 @@ pub fn tree_find_nearest_nodes<'node>(
   let nodes_by_placement_score = tree
     .iter_depth_first_preorder()
     .map(|(_, node)| {
-      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, &[]);
+      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, &[Range::new(0, 25000)]);
       let prior = get_prior(node);
       TreePlacementInfo { node, distance, prior }
     })
