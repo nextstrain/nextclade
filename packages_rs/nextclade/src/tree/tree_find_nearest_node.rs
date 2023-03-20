@@ -1,6 +1,7 @@
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
+use crate::io::nuc::Nuc;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
 use crate::utils::range::Range;
 use itertools::Itertools;
@@ -23,7 +24,7 @@ pub fn tree_find_nearest_nodes<'node>(
   let nodes_by_placement_score = tree
     .iter_depth_first_preorder()
     .map(|(_, node)| {
-      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range);
+      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, &[]);
       let prior = get_prior(node);
       TreePlacementInfo { node, distance, prior }
     })
@@ -55,20 +56,39 @@ fn get_prior(node: &AuspiceTreeNode) -> f64 {
 }
 
 /// Calculates distance metric between a given query sample and a tree node
-pub fn tree_calculate_node_distance(
+fn tree_calculate_node_distance(
   node: &AuspiceTreeNode,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &Range,
+  masked_ranges: &[Range],
 ) -> i64 {
   let mut shared_differences = 0_i64;
   let mut shared_sites = 0_i64;
 
-  for qmut in qry_nuc_subs {
-    let der = node.tmp.substitutions.get(&qmut.pos);
-    if let Some(der) = der {
+  // Mask effectively turns query mutations into missing
+  // Remove from qry_nuc_subs all mutations that are masked
+  let masked_qry_nuc_subs = qry_nuc_subs
+    .iter()
+    .filter(|sub| !masked_ranges.iter().any(|range| range.contains(sub.pos)))
+    .collect_vec();
+
+  // Add all masked ranges to qry_missing
+  let masked_qry_missing = masked_ranges
+    .iter()
+    .map(|range| NucRange {
+      begin: range.begin,
+      end: range.end,
+      letter: Nuc::N,
+    })
+    .chain(qry_missing.iter().cloned())
+    .collect_vec();
+
+  for qmut in &masked_qry_nuc_subs {
+    let node_mut = node.tmp.substitutions.get(&qmut.pos);
+    if let Some(node_mut) = node_mut {
       // position is also mutated in node
-      if qmut.qry == *der {
+      if qmut.qry == *node_mut {
         shared_differences += 1; // the exact mutation is shared between node and seq
       } else {
         shared_sites += 1; // the same position is mutated, but the states are different
@@ -80,13 +100,13 @@ pub fn tree_calculate_node_distance(
   // for these we can't tell whether the node agrees with seq
   let mut undetermined_sites = 0_i64;
   for pos in node.tmp.substitutions.keys() {
-    if !is_nuc_sequenced(*pos, qry_missing, aln_range) {
+    if !is_nuc_sequenced(*pos, &masked_qry_missing, aln_range) {
       undetermined_sites += 1;
     }
   }
 
   let total_node_muts = node.tmp.substitutions.len() as i64;
-  let total_seq_muts = qry_nuc_subs.len() as i64;
+  let total_seq_muts = masked_qry_nuc_subs.len() as i64;
 
   // calculate distance from set overlaps.
   total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites
@@ -94,14 +114,11 @@ pub fn tree_calculate_node_distance(
 
 #[cfg(test)]
 mod tests {
-  #![allow(clippy::needless_pass_by_value)]
-  use std::path::PathBuf;
-  use std::{collections::BTreeMap, fs};
+  use std::collections::BTreeMap;
 
   use crate::io::nuc::Nuc;
   use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
 
-  // rstest fixtures are passed by value
   use super::*;
   use eyre::Report;
   use pretty_assertions::assert_eq;
@@ -201,8 +218,9 @@ mod tests {
     let qry_nuc_subs: Vec<NucSub> = vec![];
     let qry_missing: Vec<NucRange> = vec![];
     let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges: Vec<Range> = vec![];
 
-    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
     assert_eq!(result, 0);
 
@@ -215,8 +233,9 @@ mod tests {
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
     let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges: Vec<Range> = vec![];
 
-    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
     assert_eq!(result, 3);
 
@@ -229,8 +248,9 @@ mod tests {
     let qry_nuc_subs: Vec<NucSub> = vec![];
     let qry_missing: Vec<NucRange> = vec![];
     let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges: Vec<Range> = vec![];
 
-    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
     assert_eq!(result, 5);
 
@@ -243,8 +263,9 @@ mod tests {
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
     let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges: Vec<Range> = vec![];
 
-    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
     assert_eq!(result, 5);
 
@@ -257,8 +278,9 @@ mod tests {
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing = simple_qry_missing();
     let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges: Vec<Range> = vec![];
 
-    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
     assert_eq!(result, 4);
 
@@ -271,8 +293,54 @@ mod tests {
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
     let aln_range = Range { begin: 0, end: 20 };
+    let masked_ranges: Vec<Range> = vec![];
 
-    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
+
+    assert_eq!(result, 3);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn shared_mutations_all_masked() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges = vec![Range { begin: 0, end: 100 }];
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
+
+    assert_eq!(result, 0);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn shared_mutations_some_masked() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 100 };
+    let masked_ranges = vec![Range { begin: 0, end: 5 }, Range { begin: 30, end: 50 }];
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
+
+    assert_eq!(result, 3);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn shared_mutations_all_combinations() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing = simple_qry_missing();
+    let aln_range = Range { begin: 0, end: 30 };
+    let masked_ranges = vec![Range { begin: 12, end: 13 }];
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
     assert_eq!(result, 3);
 
