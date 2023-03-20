@@ -10,6 +10,10 @@ To given an example: a partial sequence may have as many mismatches when compare
 
 The impact of the feature is biggest for partial and incomplete sequences.
 
+### Fix incorrect indices in mutation badges 
+
+The mutation badges in various places in Nextclade Web could show position "0", even though they are supposed to be 1-based. This was due to a programming mistake, which is now corrected.
+
 ### Fix Google Search Console warnings
 
 We resolved warnings in Google Search Console: added canonical URL meta tag, and added `noindex` tag for non-release deployments. This should improve Nextclade appearance in Google Search.
