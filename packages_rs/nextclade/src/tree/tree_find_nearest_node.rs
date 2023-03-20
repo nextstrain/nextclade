@@ -91,3 +91,191 @@ pub fn tree_calculate_node_distance(
   // calculate distance from set overlaps.
   total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites
 }
+
+#[cfg(test)]
+mod tests {
+  #![allow(clippy::needless_pass_by_value)]
+  use std::path::PathBuf;
+  use std::{collections::BTreeMap, fs};
+
+  use crate::io::nuc::Nuc;
+  use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
+
+  // rstest fixtures are passed by value
+  use super::*;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+
+  /// Default node for testing
+  #[fixture]
+  fn default_node() -> AuspiceTreeNode {
+    AuspiceTreeNode {
+      name: "Test".to_owned(),
+
+      branch_attrs: TreeBranchAttrs {
+        mutations: BTreeMap::new(),
+        other: serde_json::Value::default(),
+      },
+
+      node_attrs: TreeNodeAttrs {
+        div: None,
+        clade_membership: TreeNodeAttr {
+          value: "Test_Clade".to_owned(),
+          other: serde_json::Value::default(),
+        },
+        node_type: None,
+        region: None,
+        country: None,
+        division: None,
+        placement_prior: None,
+        alignment: None,
+        missing: None,
+        gaps: None,
+        non_acgtns: None,
+        has_pcr_primer_changes: None,
+        pcr_primer_changes: None,
+        qc_status: None,
+        missing_genes: None,
+        other: serde_json::Value::default(),
+      },
+
+      children: vec![],
+
+      tmp: TreeNodeTempData::default(),
+
+      other: serde_json::Value::default(),
+    }
+  }
+
+  fn simple_qry_nuc_subs() -> Vec<NucSub> {
+    vec![
+      NucSub {
+        reff: Nuc::A,
+        pos: 3,
+        qry: Nuc::C,
+      },
+      NucSub {
+        reff: Nuc::A,
+        pos: 7,
+        qry: Nuc::C,
+      },
+      NucSub {
+        reff: Nuc::A,
+        pos: 12,
+        qry: Nuc::C,
+      },
+    ]
+  }
+
+  fn simple_qry_missing() -> Vec<NucRange> {
+    vec![
+      NucRange {
+        begin: 8,
+        end: 10,
+        letter: Nuc::N,
+      },
+      NucRange {
+        begin: 20,
+        end: 30,
+        letter: Nuc::N,
+      },
+    ]
+  }
+
+  fn simple_node_nuc_subs() -> BTreeMap<usize, Nuc> {
+    vec![(3, Nuc::T), (12, Nuc::C), (15, Nuc::T), (23, Nuc::G), (35, Nuc::G)]
+      .into_iter()
+      .collect()
+  }
+
+  fn node_with_simple_nuc_subs() -> AuspiceTreeNode {
+    let mut node = default_node();
+    node.tmp.substitutions = simple_node_nuc_subs();
+    node
+  }
+
+  #[rstest]
+  fn no_mutation_zero_distance() -> Result<(), Report> {
+    let node = default_node();
+    let qry_nuc_subs: Vec<NucSub> = vec![];
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 100 };
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+
+    assert_eq!(result, 0);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn query_mutations_only() -> Result<(), Report> {
+    let node = default_node();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 100 };
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+
+    assert_eq!(result, 3);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn node_mutations_only() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs: Vec<NucSub> = vec![];
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 100 };
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+
+    assert_eq!(result, 5);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn shared_mutations() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 100 };
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+
+    assert_eq!(result, 5);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn shared_mutations_with_missing() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing = simple_qry_missing();
+    let aln_range = Range { begin: 0, end: 100 };
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+
+    assert_eq!(result, 4);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn shared_mutations_clipped_range() -> Result<(), Report> {
+    let node = node_with_simple_nuc_subs();
+    let qry_nuc_subs = simple_qry_nuc_subs();
+    let qry_missing: Vec<NucRange> = vec![];
+    let aln_range = Range { begin: 0, end: 20 };
+
+    let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range);
+
+    assert_eq!(result, 3);
+
+    Ok(())
+  }
+}
