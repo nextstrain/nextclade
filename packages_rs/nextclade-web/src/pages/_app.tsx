@@ -163,7 +163,7 @@ export function RecoilStateInitializer() {
 
   useEffect(() => {
     initialize()
-  }, [])
+  }, [initialize])
 
   if (!initialized && !isNil(error)) {
     throw error
