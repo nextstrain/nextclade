@@ -136,8 +136,11 @@ export function RecoilStateInitializer() {
         set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
 
         if (!isEmpty(inputFastas)) {
-          run()
+          console.log('Would run analysis')
+          // run()
         }
+
+        console.log('qrySeqInputsStorageAtom', urlQuery, qrySeqInputsStorageAtom)
 
         return undefined
       })

@@ -20,7 +20,7 @@ export function createInputFastasFromUrlParam(
   dataset: Dataset | undefined,
 ): AlgorithmInput[] {
   const urls = takeArray(urlQuery?.['input-fasta'])
-  return urls
+  const result = urls
     .map((url) => {
       if (url === 'example') {
         return dataset ? new AlgorithmInputDefault(dataset) : undefined
@@ -31,4 +31,6 @@ export function createInputFastasFromUrlParam(
       return undefined
     })
     .filter(notUndefinedOrNull)
+  console.log('createInputFastasFromUrlParam', { urls, result })
+  return result
 }
