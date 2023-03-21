@@ -26,6 +26,10 @@ The mutation badges in various places in Nextclade Web could show position "0", 
 
 The `input-pcr-primers` and `input-virus-properties` URL params were swapped in the code accidentally, so one was incorrectly setting the other. This is now fixed.
 
+### Ensure translation warnings in CLI
+
+Due to an omission, Nextclade CLI and Nextalign CLI since v2 did not print sequence translation-releated warnings to the console. This is now fixed.
+
 ### Fix Google Search Console warnings
 
 We resolved warnings in Google Search Console: added canonical URL meta tag, and added `noindex` tag for non-release deployments. This should improve Nextclade appearance in Google Search.
