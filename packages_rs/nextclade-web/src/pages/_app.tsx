@@ -74,92 +74,98 @@ export function RecoilStateInitializer() {
 
   const error = useRecoilValue(globalErrorAtom)
 
-  const initialize = useRecoilCallback(({ set, snapshot }) => () => {
-    if (initialized) {
-      return
-    }
-
-    const snapShotRelease = snapshot.retain()
-    const { getPromise } = snapshot
-
-    // eslint-disable-next-line no-void
-    void Promise.resolve()
-      // eslint-disable-next-line promise/always-return
-      .then(async () => {
-        const localeKey = await getPromise(localeAtom)
-        const locale = getLocaleWithKey(localeKey)
-        await changeLocale(i18n, locale.key)
-        await changeAuspiceLocale(i18nAuspice, locale.key)
-        set(localeAtom, locale.key)
-      })
-      .then(async () => {
-        const datasetInfo = await fetchSingleDataset(urlQuery)
-
-        if (!isNil(datasetInfo)) {
-          return datasetInfo
+  const initialize = useRecoilCallback(
+    ({ set, snapshot }) =>
+      () => {
+        if (initialized) {
+          return
         }
 
-        const datasetServerUrlDefault = await getPromise(datasetServerUrlAtom)
-        return initializeDatasets(urlQuery, datasetServerUrlDefault)
-      })
-      .catch((error) => {
-        // Dataset error is fatal and we want error to be handled in the ErrorBoundary
-        setInitialized(false)
-        set(globalErrorAtom, sanitizeError(error))
-        throw error
-      })
-      .then(async ({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
-        set(datasetsAtom, {
-          datasets,
-          defaultDataset,
-          defaultDatasetName,
-          defaultDatasetNameFriendly,
-        })
+        const snapShotRelease = snapshot.retain()
+        const { getPromise } = snapshot
 
-        const previousDataset = await getPromise(datasetCurrentAtom)
-        const dataset = currentDataset ?? previousDataset
-        set(datasetCurrentAtom, dataset)
-        return dataset
-      })
-      .then((dataset) => {
-        const inputFastas = createInputFastasFromUrlParam(urlQuery, dataset)
+        // eslint-disable-next-line no-void
+        void Promise.resolve()
+          // eslint-disable-next-line promise/always-return
+          .then(async () => {
+            const localeKey = await getPromise(localeAtom)
+            const locale = getLocaleWithKey(localeKey)
+            await changeLocale(i18n, locale.key)
+            await changeAuspiceLocale(i18nAuspice, locale.key)
+            set(localeAtom, locale.key)
+          })
+          .then(async () => {
+            const datasetInfo = await fetchSingleDataset(urlQuery)
 
-        if (!isEmpty(inputFastas)) {
-          set(qrySeqInputsStorageAtom, inputFastas)
-        }
+            if (!isNil(datasetInfo)) {
+              return datasetInfo
+            }
 
-        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
-        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
-        set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
-        set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
-        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
-        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+            const datasetServerUrlDefault = await getPromise(datasetServerUrlAtom)
+            return initializeDatasets(urlQuery, datasetServerUrlDefault)
+          })
+          .catch((error) => {
+            // Dataset error is fatal and we want error to be handled in the ErrorBoundary
+            setInitialized(false)
+            set(globalErrorAtom, sanitizeError(error))
+            throw error
+          })
+          .then(
+            async ({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
+              set(datasetsAtom, {
+                datasets,
+                defaultDataset,
+                defaultDatasetName,
+                defaultDatasetNameFriendly,
+              })
 
-        if (!isEmpty(inputFastas)) {
-          run()
-        }
+              const previousDataset = await getPromise(datasetCurrentAtom)
+              const dataset = currentDataset ?? previousDataset
+              set(datasetCurrentAtom, dataset)
+              return dataset
+            },
+          )
+          .then((dataset) => {
+            const inputFastas = createInputFastasFromUrlParam(urlQuery, dataset)
 
-        return undefined
-      })
-      .then(async () => {
-        const changelogShouldShowOnUpdates = await getPromise(changelogShouldShowOnUpdatesAtom)
-        const changelogLastVersionSeen = await getPromise(changelogLastVersionSeenAtom)
-        set(changelogIsShownAtom, shouldShowChangelog(changelogLastVersionSeen, changelogShouldShowOnUpdates))
-        set(changelogLastVersionSeenAtom, (prev) => process.env.PACKAGE_VERSION ?? prev ?? '')
-        return undefined
-      })
-      .then(() => {
-        setInitialized(true)
-        return undefined
-      })
-      .catch((error) => {
-        setInitialized(true)
-        set(globalErrorAtom, sanitizeError(error))
-      })
-      .finally(() => {
-        snapShotRelease()
-      })
-  })
+            if (!isEmpty(inputFastas)) {
+              set(qrySeqInputsStorageAtom, inputFastas)
+            }
+
+            set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
+            set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
+            set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
+            set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
+            set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
+            set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+
+            if (!isEmpty(inputFastas)) {
+              run()
+            }
+
+            return undefined
+          })
+          .then(async () => {
+            const changelogShouldShowOnUpdates = await getPromise(changelogShouldShowOnUpdatesAtom)
+            const changelogLastVersionSeen = await getPromise(changelogLastVersionSeenAtom)
+            set(changelogIsShownAtom, shouldShowChangelog(changelogLastVersionSeen, changelogShouldShowOnUpdates))
+            set(changelogLastVersionSeenAtom, (prev) => process.env.PACKAGE_VERSION ?? prev ?? '')
+            return undefined
+          })
+          .then(() => {
+            setInitialized(true)
+            return undefined
+          })
+          .catch((error) => {
+            setInitialized(true)
+            set(globalErrorAtom, sanitizeError(error))
+          })
+          .finally(() => {
+            snapShotRelease()
+          })
+      },
+    [initialized, run, setInitialized, urlQuery],
+  )
 
   useEffect(() => {
     initialize()
