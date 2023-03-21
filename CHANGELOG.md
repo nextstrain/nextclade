@@ -22,6 +22,10 @@ Nextclade Web was showing right boundary of the unsequenced AA range on the 3' e
 
 The mutation badges in various places in Nextclade Web could show position "0", even though they are supposed to be 1-based. This was due to a programming mistake, which is now corrected.
 
+### Fix `input-pcr-primers` and `input-virus-properties` URL params in Nextclade Web
+
+The `input-pcr-primers` and `input-virus-properties` URL params were swapped in the code accidentally, so one was incorrectly setting the other. This is now fixed.
+
 ### Ensure translation warnings in CLI
 
 Due to an omission, Nextclade CLI and Nextalign CLI since v2 did not print sequence translation-releated warnings to the console. This is now fixed.
