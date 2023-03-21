@@ -151,20 +151,20 @@ If an `input-fasta` URL parameter is provided, Nextclade Web automatically start
 
 All parameters are optional.
 
-| URL parameter          | Meaning                                                                                                   |
-|------------------------|-----------------------------------------------------------------------------------------------------------|
-| input-fasta            | URL to a fasta file containing query sequences. If provided, the analysis will start automatically.       |
-| input-root-seq         | URL to a fasta file containing reference (root) sequence.                                                 |
-| input-tree             | URL to a Auspice JSON v2 file containing reference tree.                                                  |
-| input-pcr-primers      | URL to a CSV file containing PCR primers.                                                                 |
-| input-qc-config        | URL to a JSON file containing QC configuration.                                                           |
-| input-gene-map         | URL to a GFF3 file containing gene map.                                                                   |
-| input-virus-properties | URL to a JSON file containing labeled genotypes (`virusProperties.json`)                                  |
-| dataset-name           | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                                    |
-| dataset-reference      | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.              |
-| dataset-tag            | Version tag of the dataset to use.                                                                        |
-| dataset-server         | URL to the custom dataset server (to the path where `index_v2.json` is, without filename).                |
-| dataset-url            | URL to a single dataset directory (to the path where `tree.json` and other files are, without filenames). |
+| URL parameter          | Meaning                                                                                                                                                        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| input-fasta            | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. Special value `example` will use dataset example sequences |
+| input-root-seq         | URL to a fasta file containing reference (root) sequence.                                                                                                      |
+| input-tree             | URL to a Auspice JSON v2 file containing reference tree.                                                                                                       |
+| input-pcr-primers      | URL to a CSV file containing PCR primers.                                                                                                                      |
+| input-qc-config        | URL to a JSON file containing QC configuration.                                                                                                                |
+| input-gene-map         | URL to a GFF3 file containing gene map.                                                                                                                        |
+| input-virus-properties | URL to a JSON file containing labeled genotypes (`virusProperties.json`)                                                                                       |
+| dataset-name           | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                                                                                         |
+| dataset-reference      | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.                                                                   |
+| dataset-tag            | Version tag of the dataset to use.                                                                                                                             |
+| dataset-server         | URL to the custom dataset server (to the path where `index_v2.json` is, without filename).                                                                     |
+| dataset-url            | URL to a single dataset directory (to the path where `tree.json` and other files are, without filenames).                                                      |
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 
@@ -178,6 +178,12 @@ https://clades.nextstrain.org?dataset-name=sars-cov-2
 In this case, Nextclade will download the latest SARS-CoV-2 dataset and the provided `fasta` file, and will automatically start the analysis. Real example:
 
 > [https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=https://data.clades.nextstrain.org/datasets/sars-cov-2/references/MN908947/versions/2022-01-05T19:54:31Z/files/sequences.fasta](https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=https://data.clades.nextstrain.org/datasets/sars-cov-2/references/MN908947/versions/2022-01-05T19:54:31Z/files/sequences.fasta)
+
+The special value `&input-fasta=example` will instruct Nextclade to use the example sequences of the dataset (this option is useful for demonstration purposes as users will not need to click anything):
+
+```url
+https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=example
+```
 
 Multiple files can be specified, for example the sequences and the reference tree:
 
@@ -217,25 +223,23 @@ Local URLs should also work:
 https://clades.nextstrain.org?dataset-server=http://localhost:27722
 ```
 
-
 The `dataset-url` parameter accepts the usual URLs
 
-```
+```url
 https://clades.nextstrain.org?dataset-url=http://example.com/path/to/dataset
 ```
 
 as well as URLs to GitHub repos:
 
-```
+```txt
 ?dataset-url=https://github.com/org/repo
 ?dataset-url=https://github.com/org/repo/tree/branch
 ?dataset-url=https://github.com/org/repo/tree/branch/path/to/file
 ```
 
-
 and shortcut URLs to GitHub repos:
 
-```
+```txt
 ?dataset-url=github:owner/org/repo
 ?dataset-url=github:owner/org/repo/path/to/file
 ?dataset-url=github:owner/org/repo@branch@
@@ -244,13 +248,11 @@ and shortcut URLs to GitHub repos:
 
 If a branch name is not specified, the default branch name is queried from GitHub REST API (subject to rate limits).
 
-
 > 💡 Nextclade is a client-side-only, single-page web application, hosted on a static server. We do not set any usage limits for the analyses triggered. Note that all the computation will happen on the end-user machine.
 
 > ⚠️The linked resources should be available for fetching by a web browser on the client machine. Make sure [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled on your file server as well as that all required authentication (if any) is included into the file URL itself.
 
 > ⚠️The URLs might get quite complex, so don't forget to [encode the special characters](https://en.wikipedia.org/wiki/Percent-encoding), to keep the URLs valid.
-
 
 ## Performance tips
 
@@ -265,7 +267,6 @@ For optimal performance, before running Nextclade, close unused applications and
 You can also try to tune the performance by increasing or decreasing the number of CPU threads in the "Settings" window. This option tells Nextclade how many processing jobs it is allowed to run in parallel. More threads will consume more memory, and will make startup process longer, but will make the analysis faster in case there are many sequences to process. Less threads will speedup the startup, and decrease memory consumption, but will make the analysis slower.
 
 In case of any problems, try to run Nextclade in a fresh private/incognito browser window, with no extensions enabled, and where Nextclade is the only tab.
-
 
 ## What's next?
 

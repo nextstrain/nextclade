@@ -5,9 +5,11 @@ use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
 use crate::utils::range::Range;
 use itertools::Itertools;
 
-pub struct TreeFindNearestNodeOutput<'node> {
+/// Distance and placement prior for a ref tree node
+pub struct TreePlacementInfo<'node> {
   pub node: &'node AuspiceTreeNode,
   pub distance: i64,
+  pub prior: f64, // prior in non-log scale
 }
 
 /// For a given query sample, finds nearest node on the reference tree (according to the distance metric)
@@ -16,26 +18,40 @@ pub fn tree_find_nearest_nodes<'node>(
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &Range,
-) -> Vec<TreeFindNearestNodeOutput<'node>> {
+) -> Vec<TreePlacementInfo<'node>> {
   // Iterate over tree nodes and calculate distance metric between the sample and each node
   let nodes_by_placement_score = tree
     .iter_depth_first_preorder()
     .map(|(_, node)| {
       let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range);
-      TreeFindNearestNodeOutput { node, distance }
+      let prior = get_prior(node);
+      TreePlacementInfo { node, distance, prior }
     })
-    .sorted_by(|a, b| a.distance.cmp(&b.distance))
+    .sorted_by(|a, b| a.distance.cmp(&b.distance).then(b.prior.total_cmp(&a.prior)))
     .collect_vec();
 
   if nodes_by_placement_score.is_empty() {
     // Unlikely case: if there's no nodes, return parent
-    vec![TreeFindNearestNodeOutput {
+    vec![TreePlacementInfo {
       node: &tree.tree,
       distance: 0,
+      prior: 1.0,
     }]
   } else {
     nodes_by_placement_score
   }
+}
+
+/// Gets non-log scale prior from node attributes
+fn get_prior(node: &AuspiceTreeNode) -> f64 {
+  10.0_f64.powf(
+    node
+      .node_attrs
+      .placement_prior
+      .as_ref()
+      // Hard coded -10.0 is small but not zero
+      .map_or(-10.0, |attr| attr.value),
+  )
 }
 
 /// Calculates distance metric between a given query sample and a tree node

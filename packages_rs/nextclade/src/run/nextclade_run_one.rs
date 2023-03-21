@@ -48,6 +48,7 @@ pub fn nextclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
+  include_nearest_node_info: bool,
 ) -> Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report> {
   let NextalignOutputs {
     stripped,
@@ -126,12 +127,14 @@ pub fn nextclade_run_one(
   let node = nearest_node_candidates[0].node;
   let nearest_node_id = node.tmp.id;
 
-  let nearest_nodes = nearest_node_candidates
+  let nearest_nodes = include_nearest_node_info.then_some(
+    nearest_node_candidates
     .iter()
     // Choose all nodes with distance equal to the distance of the nearest node
     .filter(|n| n.distance == nearest_node_candidates[0].distance)
     .map(|n| n.node.name.clone())
-    .collect_vec();
+    .collect_vec(),
+  );
 
   let clade = node.clade();
 

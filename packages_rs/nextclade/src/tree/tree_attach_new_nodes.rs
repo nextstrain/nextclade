@@ -12,7 +12,7 @@ use crate::tree::tree::{
 };
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use serde_json::json;
 use std::collections::BTreeMap;
 
@@ -83,14 +83,21 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
     )
   };
 
-  #[allow(clippy::from_iter_instead_of_collect)]
-  let other = serde_json::Value::from_iter(
-    result
-      .custom_node_attributes
-      .clone()
-      .into_iter()
-      .map(|(key, val)| (key, json!({ "value": val }))),
-  );
+  let custom_node_attributes_json = result
+    .custom_node_attributes
+    .clone()
+    .into_iter()
+    .map(|(key, val)| (key, json!({ "value": val })))
+    .collect_vec();
+
+  let phenotype_values_json = result.phenotype_values.as_ref().map_or(vec![], |phenotype_values| {
+    phenotype_values
+      .iter()
+      .map(|val| (val.name.clone(), json!({ "value": val.value.to_string() })))
+      .collect_vec()
+  });
+
+  let other: serde_json::Value = chain!(phenotype_values_json, custom_node_attributes_json).collect();
 
   node.children.insert(
     0,
@@ -107,6 +114,7 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
         region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
         division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        placement_prior: None,
         alignment: Some(TreeNodeAttr::new(&alignment)),
         missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
         gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),

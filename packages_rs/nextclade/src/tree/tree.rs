@@ -35,6 +35,23 @@ impl TreeNodeAttr {
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+pub struct TreeNodeAttrF64 {
+  pub value: f64,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl TreeNodeAttrF64 {
+  pub fn new(value: f64) -> Self {
+    Self {
+      value,
+      other: serde_json::Value::default(),
+    }
+  }
+}
+
+#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
@@ -61,6 +78,9 @@ pub struct TreeNodeAttrs {
 
   #[serde(skip_serializing_if = "Option::is_none")]
   pub division: Option<TreeNodeAttr>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub placement_prior: Option<TreeNodeAttrF64>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Alignment")]
