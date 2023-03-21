@@ -165,6 +165,10 @@ impl<'a> NextcladeOrderedWriter<'a> {
           insertions_csv_writer.write(&seq_name, insertions, aa_insertions)?;
         }
 
+        for warning in warnings {
+          warn!("In sequence #{index} '{seq_name}': {}", warning.warning);
+        }
+
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
           errors_csv_writer.write_aa_errors(&seq_name, warnings, missing_genes)?;
         }

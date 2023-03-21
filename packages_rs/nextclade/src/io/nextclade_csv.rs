@@ -16,7 +16,6 @@ use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
 };
-use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
 use crate::utils::range::Range;
 use crate::{make_error, o};
@@ -778,17 +777,6 @@ pub fn format_stop_codons(stop_codons: &[StopCodonLocation], delimiter: &str) ->
 #[inline]
 pub fn format_failed_genes(failed_genes: &[String], delimiter: &str) -> String {
   failed_genes.join(delimiter)
-}
-
-#[inline]
-pub fn format_aa_warnings(maybe_translations: &[Result<CdsTranslation, Report>], delimiter: &str) -> String {
-  maybe_translations
-    .iter()
-    .filter_map(|tr| match tr {
-      Err(report) => Some(report_to_string(report)),
-      Ok(_) => None,
-    })
-    .join(delimiter)
 }
 
 #[inline]
