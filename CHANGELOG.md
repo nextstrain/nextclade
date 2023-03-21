@@ -26,6 +26,10 @@ The mutation badges in various places in Nextclade Web could show position "0", 
 
 We resolved warnings in Google Search Console: added canonical URL meta tag, and added `noindex` tag for non-release deployments. This should improve Nextclade appearance in Google Search.
 
+### Internal changes:
+
+ - freeze wasm-pack version to 0.10.3
+
 
 ## Nextclade Web 2.12.0, Nextclade CLI 2.12.0 (2023-02-28)
 
