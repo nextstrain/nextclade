@@ -132,8 +132,8 @@ export function RecoilStateInitializer() {
         set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
         set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
         set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
-        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
-        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
+        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
 
         if (!isEmpty(inputFastas)) {
           run()
