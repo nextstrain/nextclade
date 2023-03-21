@@ -1,7 +1,7 @@
 use crate::cli::nextclade_loop::NextcladeRecord;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::warn;
+use log::{info, warn};
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
@@ -165,7 +165,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
         }
 
         for warning in warnings {
-          warn!("In sequence #{index} '{seq_name}': {}", warning.warning);
+          info!("In sequence #{index} '{seq_name}': {}", warning.warning);
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
