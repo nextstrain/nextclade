@@ -10,6 +10,14 @@ To given an example: a partial sequence may have as many mismatches when compare
 
 The impact of the feature is biggest for partial and incomplete sequences.
 
+### Add custom phenotype values to the newly placed tree nodes
+
+The phenotype values (such as `ace2_binding` and `"immune_escape"`) are present in all output files, but are missing from the tree JSON, due to an omission. This is no fixed and these values are set as node attributes of the tree. This allows to see the values and colorings for phenotype values on the tree page.
+
+### Fix length of 3' unsequenced aminoacid ranges in Nextclade Web
+
+Nextclade Web was showing right boundary of the unsequenced AA range on the 3' end of peptide sequences incorrectly (the range was longer than expected). The calculations were using length of a gene in nuc;eotides, where there should be length in codons. This is now fixed.
+
 ### Fix incorrect indices in mutation badges 
 
 The mutation badges in various places in Nextclade Web could show position "0", even though they are supposed to be 1-based. This was due to a programming mistake, which is now corrected.
