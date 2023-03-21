@@ -68,6 +68,7 @@ fn tree_calculate_node_distance(
   let mut shared_sites = 0_i64;
 
   // Mask effectively turns query mutations into missing
+  // Rest of logic is the same once qry_nuc_subs and qry_missing are mutated
   // Remove from qry_nuc_subs all mutations that are masked
   let masked_qry_nuc_subs = qry_nuc_subs
     .iter()
@@ -319,6 +320,7 @@ mod tests {
   }
 
   #[rstest]
+  /// Equivalent to shared_mutations but with a mask -> distance 3 instead of 5
   fn shared_mutations_some_masked() -> Result<(), Report> {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
