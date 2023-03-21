@@ -123,7 +123,13 @@ pub fn nextclade_run_one(
   let unknown_aa_ranges = find_aa_letter_ranges(&translations, Aa::X);
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
-  let nearest_node_candidates = tree_find_nearest_nodes(tree, &substitutions, &missing, &alignment_range);
+  let nearest_node_candidates = tree_find_nearest_nodes(
+    tree,
+    &substitutions,
+    &missing,
+    &alignment_range,
+    &virus_properties.placement_mask_ranges,
+  );
   let node = nearest_node_candidates[0].node;
   let nearest_node_id = node.tmp.id;
 

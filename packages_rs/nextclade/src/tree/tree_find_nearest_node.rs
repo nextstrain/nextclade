@@ -19,12 +19,13 @@ pub fn tree_find_nearest_nodes<'node>(
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &Range,
+  masked_ranges: &[Range],
 ) -> Vec<TreePlacementInfo<'node>> {
   // Iterate over tree nodes and calculate distance metric between the sample and each node
   let nodes_by_placement_score = tree
     .iter_depth_first_preorder()
     .map(|(_, node)| {
-      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, &[Range::new(0, 25000)]);
+      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
       let prior = get_prior(node);
       TreePlacementInfo { node, distance, prior }
     })
