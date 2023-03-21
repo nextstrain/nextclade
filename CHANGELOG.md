@@ -1,8 +1,34 @@
 ## Upcoming
 
+### Attach sequences to a priori most likely node if reference tree contains "placement_prior"
+
+Until now, when there were multiple positions with equal numbers of mismatches between a query sequence and reference tree position, Nextclade always attached the query sequence to the reference tree node with the fewest number of ancestors. Due to the way recombinants are placed in the SARS-CoV-2 reference trees, this meant that in particular partial sequences were often attached to recombinants. With most recombinants being rare, this bias to attach to recombinants was often surprising.
+
+In this version, we introduce a new [feature](https://github.com/nextstrain/nextclade/pull/1119) that allows to attach sequences to a priori most likely nodes - taking into account which positions on the reference tree are most commonly found in circulation. The information on the prior probability that a particular reference tree node is the best match for a random query sequence is contained in the `placement_prior` reference tree node attribute. This attribute is currently only present in the most recent SARS-CoV-2 reference trees. The calculation can be found in this `nextclade_data_workflows` [pull request](https://github.com/neherlab/nextclade_data_workflows/pull/38).
+
+To given an example: a partial sequence may have as many mismatches when compared to BA.5 as it has to the recombinant XP. Based on sequences in public databases, we know that BA.5 is much more common than XP. Hence, the query sequence is attached to BA.5. Previously, the query sequence would have been attached to XP, because XP has fewer parent nodes in the reference tree.
+
+The impact of the feature is biggest for partial and incomplete sequences.
+
+### Add custom phenotype values to the newly placed tree nodes
+
+The phenotype values (such as `ace2_binding` and `"immune_escape"`) are present in all output files, but are missing from the tree JSON, due to an omission. This is no fixed and these values are set as node attributes of the tree. This allows to see the values and colorings for phenotype values on the tree page.
+
+### Fix length of 3' unsequenced aminoacid ranges in Nextclade Web
+
+Nextclade Web was showing right boundary of the unsequenced AA range on the 3' end of peptide sequences incorrectly (the range was longer than expected). The calculations were using length of a gene in nuc;eotides, where there should be length in codons. This is now fixed.
+
+### Fix incorrect indices in mutation badges 
+
+The mutation badges in various places in Nextclade Web could show position "0", even though they are supposed to be 1-based. This was due to a programming mistake, which is now corrected.
+
 ### Fix Google Search Console warnings
 
 We resolved warnings in Google Search Console: added canonical URL meta tag, and added `noindex` tag for non-release deployments. This should improve Nextclade appearance in Google Search.
+
+### Internal changes:
+
+ - freeze wasm-pack version to 0.10.3
 
 
 ## Nextclade Web 2.12.0, Nextclade CLI 2.12.0 (2023-02-28)
