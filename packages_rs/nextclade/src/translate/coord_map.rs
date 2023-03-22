@@ -373,6 +373,7 @@ mod coord_map_tests {
     Cds {
       id: "".to_owned(),
       name: "".to_owned(),
+      product: "".to_owned(),
       segments: segment_ranges
         .iter()
         .map(|(start, end)| CdsSegment {
@@ -414,14 +415,13 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    // let reff = to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
 
-    let expected = to_nuc_seq("GCACAATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?;
     let (ref_cds_aln, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
     assert_eq!(
       ref_cds_aln,
@@ -484,11 +484,8 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
-    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
 
     assert_eq!(
@@ -516,9 +513,7 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
@@ -537,9 +532,7 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
@@ -562,9 +555,7 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
@@ -602,9 +593,7 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
@@ -624,9 +613,7 @@ mod coord_map_tests {
     // CDS range                  11111111111111111
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
-    let reff =    to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
     let global_coord_map = CoordMap::new(&ref_aln);
