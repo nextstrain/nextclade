@@ -2,7 +2,6 @@ use crate::gene::cds::Cds;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::coord_map::{CdsRange, CoordMap, CoordMapForCds};
-use crate::utils::collections::{first, last};
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
@@ -46,23 +45,10 @@ pub fn find_nuc_mask_range(query: &[Nuc], frame_shift_nuc_range_rel: &Range) -> 
 
 /// Finds codon range to be masked. The aminoacids belonging to frame shift need to be masked, because they are not
 /// biological and can produce a lot of noisy mutations that don't exist.
-pub fn find_codon_mask_range(
-  nuc_rel_aln: &Range,
-  query: &[Nuc],
-  coord_map: &CoordMap,
-  qry_cds_map: &CoordMapForCds,
-) -> Vec<Range> {
+pub fn find_codon_mask_range(nuc_rel_aln: &Range, query: &[Nuc], coord_map_local: &CoordMap) -> Range {
   // extend the frame shifted region to a mask that includes leading and trailing gaps
   let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
-
-  qry_cds_map
-    .cds_to_global_ref_range(&mask_nuc_rel_aln)
-    .into_iter()
-    .filter_map(|cds_range| match cds_range {
-      CdsRange::Covered(range) => Some(coord_map.local_aln_to_codon_range(&range)),
-      _ => None,
-    })
-    .collect_vec()
+  coord_map_local.local_aln_to_codon_range(&mask_nuc_rel_aln)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -80,7 +66,7 @@ pub struct FrameShift {
   pub codon: Range,
   pub gaps_leading: FrameShiftContext,
   pub gaps_trailing: FrameShiftContext,
-  pub codon_mask: Vec<Range>,
+  pub codon_mask: Range,
 }
 
 pub fn frame_shift_transform(
@@ -91,11 +77,6 @@ pub fn frame_shift_transform(
   coord_map_local: &CoordMap,
   cds: &Cds,
 ) -> Result<FrameShift, Report> {
-  // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
-  // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
-  // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
-  // (as in the original reference coordinates, with gaps stripped).
-
   let codon = coord_map_local.local_aln_to_codon_range(nuc_rel_aln);
 
   // determine the range(s) of the frame shift in the reference nucleotide sequence
@@ -109,11 +90,11 @@ pub fn frame_shift_transform(
     .collect_vec();
 
   // determine reference codons mapping to frame shifted region including trailing/leading gaps
-  let codon_mask = find_codon_mask_range(nuc_rel_aln, query, coord_map, qry_cds_map);
+  let codon_mask = find_codon_mask_range(nuc_rel_aln, query, coord_map_local);
 
   let gaps_leading = FrameShiftContext {
     codon: Range {
-      begin: first(&codon_mask)?.begin,
+      begin: codon_mask.begin,
       end: codon.begin,
     },
   };
@@ -121,7 +102,7 @@ pub fn frame_shift_transform(
   let gaps_trailing = FrameShiftContext {
     codon: Range {
       begin: codon.end,
-      end: last(&codon_mask)?.end,
+      end: codon_mask.end,
     },
   };
 
