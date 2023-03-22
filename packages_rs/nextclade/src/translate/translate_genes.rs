@@ -131,6 +131,7 @@ pub struct CdsTranslation {
   pub alignment_range: Range,
   pub ref_cds_map: CoordMapForCds,
   pub qry_cds_map: CoordMapForCds,
+  pub coord_map_local: CoordMap,
 }
 
 /// Results of the aminoacid alignment parameters estimation
@@ -227,6 +228,9 @@ pub fn translate_cds(
   let (mut ref_cds_seq, ref_cds_map) = coord_map.extract_cds_aln(ref_seq, cds);
   let (mut qry_cds_seq, qry_cds_map) = coord_map.extract_cds_aln(qry_seq, cds);
 
+  // Coordinate map local to this CDS
+  let coord_map_local = CoordMap::new(&ref_cds_seq);
+
   let ref_gaps = GapCounts::new(&ref_cds_seq);
   let qry_gaps = GapCounts::new(&qry_cds_seq);
 
@@ -252,8 +256,14 @@ pub fn translate_cds(
 
   // NOTE: frame shift detection should be performed on unstripped genes
   let nuc_rel_frame_shifts = frame_shifts_detect(&qry_cds_seq, &ref_cds_seq);
-  let frame_shifts =
-    frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_cds_seq, coord_map, &qry_cds_map, cds)?;
+  let frame_shifts = frame_shifts_transform_coordinates(
+    &nuc_rel_frame_shifts,
+    &qry_cds_seq,
+    coord_map,
+    &qry_cds_map,
+    &coord_map_local,
+    cds,
+  )?;
 
   mask_nuc_frame_shifts_in_place(&mut qry_cds_seq, &frame_shifts);
 
@@ -288,6 +298,7 @@ pub fn translate_cds(
     alignment_range: Range::new(0, 0),
     ref_cds_map,
     qry_cds_map,
+    coord_map_local,
   })
 }
 

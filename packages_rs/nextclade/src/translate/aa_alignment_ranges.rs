@@ -34,7 +34,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
               })?;
 
             let sequenced_gene_range_aln_rel = sequenced_gene_range_aln_abs - gene_start_aln;
-            let range = cds_tr.qry_cds_map.cds_to_codon_range(&sequenced_gene_range_aln_rel);
+            let range = cds_tr.coord_map_local.local_aln_to_codon_range(&sequenced_gene_range_aln_rel);
             Some(range)
           }
           _ => None,

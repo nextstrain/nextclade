@@ -59,7 +59,7 @@ pub fn find_codon_mask_range(
     .cds_to_global_ref_range(&mask_nuc_rel_aln)
     .into_iter()
     .filter_map(|cds_range| match cds_range {
-      CdsRange::Covered(range) => Some(qry_cds_map.cds_to_codon_range(&range)),
+      CdsRange::Covered(range) => Some(coord_map.local_aln_to_codon_range(&range)),
       _ => None,
     })
     .collect_vec()
@@ -88,6 +88,7 @@ pub fn frame_shift_transform(
   query: &[Nuc],
   coord_map: &CoordMap,
   qry_cds_map: &CoordMapForCds,
+  coord_map_local: &CoordMap,
   cds: &Cds,
 ) -> Result<FrameShift, Report> {
   // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
@@ -95,7 +96,7 @@ pub fn frame_shift_transform(
   // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
   // (as in the original reference coordinates, with gaps stripped).
 
-  let codon = qry_cds_map.cds_to_codon_range(nuc_rel_aln);
+  let codon = coord_map_local.local_aln_to_codon_range(nuc_rel_aln);
 
   // determine the range(s) of the frame shift in the reference nucleotide sequence
   let nuc_abs_ref = qry_cds_map
@@ -142,10 +143,11 @@ pub fn frame_shifts_transform_coordinates(
   query: &[Nuc],
   coord_map: &CoordMap,
   qry_cds_map: &CoordMapForCds,
+  coord_map_local: &CoordMap,
   cds: &Cds,
 ) -> Result<Vec<FrameShift>, Report> {
   nuc_rel_frame_shifts
     .iter()
-    .map(|fs_nuc_rel_aln| frame_shift_transform(fs_nuc_rel_aln, query, coord_map, qry_cds_map, cds))
+    .map(|fs_nuc_rel_aln| frame_shift_transform(fs_nuc_rel_aln, query, coord_map, qry_cds_map, coord_map_local, cds))
     .collect()
 }

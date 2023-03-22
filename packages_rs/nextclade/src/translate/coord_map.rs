@@ -49,6 +49,14 @@ fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
   coord_map
 }
 
+/// Converts nucleotide local reference position to codon position
+pub const fn cds_nuc_local_ref_to_codon_position(nuc_local_ref_pos: usize) -> usize {
+  // Make sure the nucleotide position is adjusted to codon boundary before the division
+  // TODO: ensure that adjustment direction is correct for reverse strands
+  let nuc_rel_ref_adj = nuc_local_ref_pos + (3 - nuc_local_ref_pos % 3) % 3;
+  nuc_rel_ref_adj.saturating_div(3)
+}
+
 /// Converts sequence alignment to reference coordinates and vice versa.
 ///
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
@@ -77,6 +85,16 @@ impl CoordMap {
   // Reff is used because `ref` is magic word in Rust
   fn ref_to_aln_position(&self, reff: usize) -> usize {
     self.ref_to_aln_table[reff]
+  }
+
+  // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
+  pub fn local_aln_to_codon_range(&self, nuc_local_aln: &Range) -> Range {
+    let begin = self.aln_to_ref_position(nuc_local_aln.begin);
+    let end = self.aln_to_ref_position(nuc_local_aln.end - 1) + 1;
+    Range {
+      begin: cds_nuc_local_ref_to_codon_position(begin),
+      end: cds_nuc_local_ref_to_codon_position(end),
+    }
   }
 
   // /// Converts relative position inside an aligned feature (e.g. gene) to absolute position in the reference
@@ -324,23 +342,6 @@ impl CoordMapForCds {
         CdsRange::Before | CdsRange::After => segment,
       })
       .collect_vec()
-  }
-
-  /// Converts nucleotide position to codon index
-  pub const fn cds_to_codon_position(&self, nuc_rel_ref: usize) -> usize {
-    // Make sure the nucleotide position is adjusted to codon boundary before the division
-    // TODO: ensure that adjustment direction is correct for reverse strands
-    let nuc_rel_ref_adj = nuc_rel_ref + (3 - nuc_rel_ref % 3) % 3;
-    nuc_rel_ref_adj / 3
-  }
-
-  /// Converts a nucleotide range within the gene to a range of codon indices
-  pub const fn cds_to_codon_range(&self, nuc_rel_ref: &Range) -> Range {
-    let &Range { begin, end } = nuc_rel_ref;
-    Range {
-      begin: self.cds_to_codon_position(begin),
-      end: self.cds_to_codon_position(end),
-    }
   }
 
   /// Expand a codon in the extracted alignment to a range in the global alignment
