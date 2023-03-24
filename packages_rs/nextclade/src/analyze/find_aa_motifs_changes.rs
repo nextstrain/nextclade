@@ -1,6 +1,6 @@
 use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
 use crate::io::aa::from_aa_seq;
-use crate::translate::translate_genes::{CdsTranslation, Translation};
+use crate::translate::translate_genes::Translation;
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
 use crate::utils::range::{intersect, Range};
 use eyre::Report;
@@ -143,19 +143,20 @@ fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotif
     .and_then(|tr| {
       let begin = motif.position;
       let end = begin + motif.seq.len();
-
-      let sequenced_motif_range = intersect(&tr.alignment_range, &Range::new(begin, end));
-      if sequenced_motif_range.len() < motif.seq.len() {
-        None
-      } else {
-        let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
-        Some(AaMotifMutation {
-          name: motif.name.clone(),
-          gene: motif.gene.clone(),
-          position: motif.position,
-          ref_seq: motif.seq.clone(),
-          qry_seq,
-        })
-      }
+      tr.alignment_ranges.iter().find_map(|alignment_range| {
+        let sequenced_motif_range = intersect(alignment_range, &Range::new(begin, end));
+        if sequenced_motif_range.len() < motif.seq.len() {
+          None
+        } else {
+          let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
+          Some(AaMotifMutation {
+            name: motif.name.clone(),
+            gene: motif.gene.clone(),
+            position: motif.position,
+            ref_seq: motif.seq.clone(),
+            qry_seq,
+          })
+        }
+      })
     })
 }

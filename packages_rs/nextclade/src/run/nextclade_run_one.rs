@@ -81,7 +81,7 @@ pub fn nextclade_run_one(
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
 
-  calculate_aa_alignment_ranges_in_place(&alignment_range, gene_map, &coord_map, &mut translation)?;
+  calculate_aa_alignment_ranges_in_place(&alignment_range, &coord_map, &mut translation)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();
@@ -211,14 +211,15 @@ pub fn nextclade_run_one(
     qc_config,
   );
 
-  let aa_alignment_ranges: BTreeMap<String, Range> = translation
+  let aa_alignment_ranges: BTreeMap<String, Vec<Range>> = translation
     .cdses()
-    .filter_map(|tr| {
-      if tr.alignment_range.is_empty() {
-        None
-      } else {
-        Some((tr.cds.name.clone(), tr.alignment_range.clone()))
-      }
+    .map(|tr| {
+      let alignment_ranges = tr
+        .alignment_ranges
+        .iter()
+        .filter_map(|alignment_range| (!alignment_range.is_empty()).then_some(alignment_range.clone()))
+        .collect_vec();
+      (tr.cds.name.clone(), alignment_ranges)
     })
     .collect();
 

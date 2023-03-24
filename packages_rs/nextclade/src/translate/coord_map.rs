@@ -78,12 +78,12 @@ impl CoordMap {
     }
   }
 
-  fn aln_to_ref_position(&self, aln: usize) -> usize {
+  pub fn aln_to_ref_position(&self, aln: usize) -> usize {
     self.aln_to_ref_table[aln]
   }
 
   // Reff is used because `ref` is magic word in Rust
-  fn ref_to_aln_position(&self, reff: usize) -> usize {
+  pub fn ref_to_aln_position(&self, reff: usize) -> usize {
     self.ref_to_aln_table[reff]
   }
 
@@ -116,21 +116,21 @@ impl CoordMap {
   //   };
   //   self.ref_to_aln_position(ref_pos)
   // }
-  //
-  // pub fn aln_to_ref_range(&self, aln_range: &Range) -> Range {
-  //   Range {
-  //     begin: self.aln_to_ref_table[aln_range.begin],
-  //     end: self.aln_to_ref_table[aln_range.end - 1] + 1,
-  //   }
-  // }
-  //
-  // pub fn ref_to_aln_range(&self, ref_range: &Range) -> Range {
-  //   Range {
-  //     begin: self.ref_to_aln_table[ref_range.begin],
-  //     end: self.ref_to_aln_table[ref_range.end - 1] + 1,
-  //   }
-  // }
-  //
+
+  pub fn aln_to_ref_range(&self, aln_range: &Range) -> Range {
+    Range {
+      begin: self.aln_to_ref_table[aln_range.begin],
+      end: self.aln_to_ref_table[aln_range.end - 1] + 1,
+    }
+  }
+
+  pub fn ref_to_aln_range(&self, ref_range: &Range) -> Range {
+    Range {
+      begin: self.ref_to_aln_table[ref_range.begin],
+      end: self.ref_to_aln_table[ref_range.end - 1] + 1,
+    }
+  }
+
   // pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
   //   if feature.strand == GeneStrand::Reverse {
   //     Range {
@@ -280,6 +280,16 @@ impl CoordMapForCds {
         }
       })
       .collect_vec()
+  }
+
+  pub fn cds_to_global_aln_position_one(&self, cds_aln_pos: usize) -> usize {
+    self
+      .cds_to_global_aln_position(cds_aln_pos)
+      .into_iter()
+      .find_map(|pos| match pos {
+        CdsPosition::Inside(pos) => Some(pos),
+        _ => None
+      }).unwrap()
   }
 
   // Map a range in the extracted alignment of the CDS to the global alignment.

@@ -8,7 +8,6 @@ use crate::translate::translate::translate;
 use crate::translate::translate_genes::{CdsTranslation, GeneTranslation, Translation};
 use crate::utils::range::Range;
 use eyre::Report;
-use regex::internal::Input;
 
 /// Translates genes in reference sequence
 pub fn translate_genes_ref(
@@ -39,7 +38,7 @@ pub fn translate_genes_ref(
               seq: tr.seq,
               insertions: vec![],
               frame_shifts: vec![],
-              alignment_range: Range::new(0, len),
+              alignment_ranges: vec![Range::new(0, len)],
               ref_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
               qry_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
               coord_map_local: CoordMap::new(&[]),

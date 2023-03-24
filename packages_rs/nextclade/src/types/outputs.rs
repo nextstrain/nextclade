@@ -79,7 +79,7 @@ pub struct NextcladeOutputs {
   pub alignment_start: usize,
   pub alignment_end: usize,
   pub alignment_score: i32,
-  pub aa_alignment_ranges: BTreeMap<String, Range>,
+  pub aa_alignment_ranges: BTreeMap<String, Vec<Range>>,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
   pub clade: String,

@@ -2,7 +2,7 @@ use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::{intersect, Range};
+use crate::utils::range::{intersect_or_none, Range};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use regex::Regex;
@@ -97,26 +97,18 @@ fn process_one_translation(
     ranges.to_owned()
   };
 
-  ranges
-    .iter()
-    .filter_map(|range| {
-      let sequenced_motif_range = intersect(&translation.alignment_range, range);
-      if sequenced_motif_range.is_empty() {
-        None
-      } else {
-        Some(sequenced_motif_range)
-      }
+  ranges.iter().flat_map(|motif_range| {
+      translation.alignment_ranges.iter().filter_map(|alignment_range| {
+        // Trim motif ranges outside alignment range
+        // NOTE(design): this silently ignores motifs outside of alignment range (e.g. in partial sequences)
+        // this is currently by design (as discussed internally), but might be revised in the future.
+        intersect_or_none(alignment_range, motif_range)
+      })
     })
-    .flat_map(|range| {
-      let seq = &translation.seq[range.begin..range.end];
-      let seq = from_aa_seq(seq);
-
-      motifs
-        .iter()
-        .cloned()
-        .flat_map(|motif| process_one_motif(name, translation, &range, &seq, &motif))
-        .collect_vec()
-    })
+    // For each range, search each motif pattern
+    .flat_map(|range|
+      motifs.iter().flat_map(move |motif| process_one_motif(name, translation, &range, motif))
+    )
     .collect_vec()
 }
 
@@ -124,15 +116,17 @@ fn process_one_motif(
   name: &str,
   translation: &CdsTranslation,
   range: &Range,
-  seq: &str,
   motif: &str,
 ) -> Vec<Result<AaMotif, Report>> {
   let re = Regex::new(motif)
     .wrap_err_with(|| eyre!("When compiling motif RegEx '{}'", motif))
     .unwrap();
 
-  re.captures_iter(seq)
+  let seq = from_aa_seq(&translation.seq[range.begin..range.end]);
+
+  re.captures_iter(&seq)
     .filter_map(|captures| {
+      // NOTE: .get(0) retrieves the full match (for the entire regex)
       captures.get(0).map(|capture| {
         Ok(AaMotif {
           name: name.to_owned(),

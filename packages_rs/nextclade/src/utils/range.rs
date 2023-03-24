@@ -43,11 +43,19 @@ pub const fn have_intersection(x: &Range, y: &Range) -> bool {
   !(y.begin >= x.end || x.begin >= y.end)
 }
 
+/// Compute an intersection of two ranges. Returns an empty range if the intersection is empty
 #[inline]
 pub fn intersect(x: &Range, y: &Range) -> Range {
   let mut intersection = Range::new(max(x.begin, y.begin), min(x.end, y.end));
   intersection.fixup();
   intersection
+}
+
+/// Compute an intersection of two ranges. Returns None if the intersection is empty
+#[inline]
+pub fn intersect_or_none(x: &Range, y: &Range) -> Option<Range> {
+  let intersection = intersect(x, y);
+  (!intersection.is_empty()).then_some(intersection)
 }
 
 // Arithmetic operators
