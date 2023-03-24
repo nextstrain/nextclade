@@ -7,9 +7,9 @@ use crate::gene::cds::Cds;
 use crate::io::aa::{from_aa, from_aa_seq, Aa};
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
-use crate::translate::coord_map::{CdsRange, CoordMapForCds};
+use crate::translate::coord_map::CoordMapForCds;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::{intersect, Range};
+use crate::utils::range::{intersect_or_none, Range};
 use eyre::Report;
 use itertools::{izip, Itertools};
 use num_traits::clamp_max;
@@ -227,21 +227,22 @@ pub fn find_aa_changes(
   qry_seq: &[Nuc],
   ref_translation: &Translation,
   qry_translation: &Translation,
-  alignment_range: &Range,
+  global_alignment_range: &Range,
 ) -> Result<FindAaChangesOutput, Report> {
-  let mut changes = izip!(qry_translation.genes(), ref_translation.genes())
-    .flat_map(|(qry_gene, ref_gene)| {
-      izip!(qry_gene.cdses.values(), ref_gene.cdses.values()).map(|(qry_cds_tr, ref_cds_tr)| {
-        find_aa_changes_for_cds(
-          qry_seq,
-          ref_seq,
-          &ref_cds_tr.seq,
-          &qry_cds_tr.seq,
-          &qry_cds_tr.cds,
-          alignment_range,
-          &qry_cds_tr.qry_cds_map,
-        )
-      })
+  let mut changes = izip!(qry_translation.iter_cdses(), ref_translation.iter_cdses())
+    .map(|((qry_name, qry_cds_tr), (ref_name, ref_cds_tr))| {
+      assert_eq!(qry_cds_tr.cds.name, ref_cds_tr.cds.name);
+      assert_eq!(qry_cds_tr.gene.name, ref_cds_tr.gene.name);
+      find_aa_changes_for_cds(
+        &qry_cds_tr.cds,
+        qry_seq,
+        ref_seq,
+        &ref_cds_tr.seq,
+        &qry_cds_tr.seq,
+        &qry_cds_tr.alignment_ranges,
+        &qry_cds_tr.qry_cds_map,
+        global_alignment_range,
+      )
     })
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
       output.aa_substitutions.extend(changes.aa_substitutions);
@@ -270,13 +271,14 @@ pub fn find_aa_changes(
 /// might not always be established without knowing the order in which nucleotide changes have occurred. And in the
 /// context of Nextclade we don't have this information.
 fn find_aa_changes_for_cds(
+  cds: &Cds,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptide: &[Aa],
   qry_peptide: &[Aa],
-  cds: &Cds,
-  alignment_range: &Range,
+  aa_alignment_ranges: &[Range],
   qry_cds_map: &CoordMapForCds,
+  global_alignment_range: &Range,
 ) -> FindAaChangesOutput {
   assert_eq!(ref_peptide.len(), qry_peptide.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
@@ -287,6 +289,17 @@ fn find_aa_changes_for_cds(
   let num_nucs = qry_seq.len();
   let num_codons = qry_peptide.len();
   for codon in 0..num_codons {
+    // NOTE(design): Ignore codons outside of alignment range. For a partial sequence this might make semblance that
+    // there is less mutations compared to full sequences. This has profound effect on clade assignment and QC.
+    // However this is not necessarily the case. We simply don't know and here we choose to ignore fragments outside
+    // alignment.
+    if !aa_alignment_ranges
+      .iter()
+      .any(|aa_alignment_range| aa_alignment_range.contains(codon))
+    {
+      continue;
+    }
+
     let ref_aa = ref_peptide[codon];
     let qry_aa = qry_peptide[codon];
 
@@ -301,7 +314,7 @@ fn find_aa_changes_for_cds(
       qry_aa_context: from_aa_seq(qry_aa_context),
     };
 
-    // TODO: handle reverse strands
+    // TODO(bug): handle reverse strands
     // let codon_begin = if cds.strand != GeneStrand::Reverse {
     //   cds.start + codon * 3
     // } else {
@@ -311,18 +324,12 @@ fn find_aa_changes_for_cds(
 
     let nuc_contexts =
       // Find where the codon is in nucleotide sequences
-      qry_cds_map.codon_to_global_aln_range(codon)
+      qry_cds_map.codon_to_global_aln_range_covered(codon)
       .into_iter()
-      .filter_map(|cds_range| match cds_range {
-        CdsRange::Covered(range) => {
-          // If the codon is outside of nucleotide alignment, exclude it or trim it to the nuc alignment range
-          let intersection = intersect(alignment_range, &range);
-          (!intersection.is_empty()).then_some(intersection)
-        }
-        _ => None,
-      })
+      .filter_map(|aln_range| intersect_or_none(&aln_range, global_alignment_range))
       .map(|codon_nuc_range| {
-        let Range{begin, end} = codon_nuc_range;
+        // TODO(bug): this range might need to be converted to ref coordinates (Is it used in UI?)
+        let Range { begin, end } = codon_nuc_range;
 
         // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
         let context_begin = begin.saturating_sub(3);
@@ -336,7 +343,7 @@ fn find_aa_changes_for_cds(
         let ref_context = from_nuc_seq(&ref_seq[context_begin..context_end]);
         let query_context = from_nuc_seq(&qry_seq[context_begin..context_end]);
 
-        // TODO: handle reverse strands
+        // TODO(bug): handle reverse strands
         // if gene.strand == GeneStrand::Reverse {
         //   reverse_complement_in_place(&mut ref_context);
         //   reverse_complement_in_place(&mut query_context);
@@ -361,9 +368,16 @@ fn find_aa_changes_for_cds(
         aa_context,
       });
     }
-    // TODO: we might account for ambiguous amino acids in this condition
+    // NOTE(design): Here we ignore amino acid `X` in query.
+    //  For a sequence with many such fragments, this might make semblance
+    //  that there is less mutations. This has profound effect on clade assignment and QC.
+    //  However this is not necessarily the case. We simply don't know and here we choose to ignore fragments filled
+    //  with `X`.
+    //
+    // TODO(feat): instead of strict comparison, we might account for ambiguous amino acids in this condition,
+    //  to recover some more useful data from lower-quality sequences
     else if qry_aa != ref_aa && qry_aa != Aa::X {
-      // If not a gap and the state has changed, than it's a substitution
+      // If not a gap and the state has changed, then it's a substitution
       aa_substitutions.push(AaSub {
         gene: cds.name.clone(),
         reff: ref_aa,

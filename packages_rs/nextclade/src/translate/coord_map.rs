@@ -288,8 +288,9 @@ impl CoordMapForCds {
       .into_iter()
       .find_map(|pos| match pos {
         CdsPosition::Inside(pos) => Some(pos),
-        _ => None
-      }).unwrap()
+        _ => None,
+      })
+      .unwrap()
   }
 
   // Map a range in the extracted alignment of the CDS to the global alignment.
@@ -359,6 +360,18 @@ impl CoordMapForCds {
     let begin = codon * 3;
     let end = begin + 3;
     self.cds_to_global_aln_range(&Range { begin, end })
+  }
+
+  /// Same as [Self::codon_to_global_aln_range], but returns only covered ranges
+  pub fn codon_to_global_aln_range_covered(&self, codon: usize) -> Vec<Range> {
+    self
+      .codon_to_global_aln_range(codon)
+      .into_iter()
+      .filter_map(|range| match range {
+        CdsRange::Covered(range) => Some(range),
+        _ => None,
+      })
+      .collect_vec()
   }
 }
 
