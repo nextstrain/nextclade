@@ -21,12 +21,13 @@ pub struct FeatureTree {
 
 impl FeatureTree {
   pub fn from_gff3_file<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
+    let filename = filename.as_ref();
     let mut file = open_file_or_stdin(&Some(filename))?;
     let mut buf = vec![];
     {
       file.read_to_end(&mut buf)?;
     }
-    Self::from_gff3_str(&String::from_utf8(buf)?)
+    Self::from_gff3_str(&String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
   pub fn from_gff3_str(content: &str) -> Result<Self, Report> {
@@ -110,7 +111,7 @@ fn read_gff3_feature_tree_str(content: &str) -> Result<Vec<SequenceRegion>, Repo
   } else {
     // There is no '##sequence-region' lines in this file. Pretend the whole file is one sequence region.
     let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
-    let children = process_gff_records(&mut reader).wrap_err("When reading GFF3 file")?;
+    let children = process_gff_records(&mut reader).wrap_err("When parsing GFF3 file")?;
     let end = children.iter().map(FeatureGroup::end).max().unwrap_or_default();
 
     let id = children
@@ -170,6 +171,8 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
     .enumerate()
     .map(Feature::from_gff_record)
     .collect::<Result<Vec<Feature>, Report>>()?;
+
+  validate(&features)?;
 
   if features.is_empty() {
     return make_error!("Gene map contains no features. This is not allowed.");
@@ -245,4 +248,59 @@ fn flatten_feature_map_recursive(
     );
     flatten_feature_map_recursive(&feature_group.children, depth + 1, feature_map_flat);
   });
+}
+
+fn validate(features: &[Feature]) -> Result<(), Report> {
+  let mut errors: Vec<String> = vec![];
+
+  let mut missing_parents = vec![];
+  let mut self_reference = vec![];
+  for feature1 in features {
+    feature1.parent_ids.iter().for_each(|parent_id| {
+      let feature2 = features.iter().find(|feature2| &feature2.id == parent_id);
+      match feature2 {
+        None => {
+          missing_parents.push((parent_id, feature1));
+        }
+        Some(feature2) => {
+          if feature2.id == feature1.id {
+            self_reference.push(feature1);
+          }
+        }
+      }
+    });
+  }
+
+  if !missing_parents.is_empty() {
+    let details = missing_parents
+      .iter()
+      .map(|(parent_id, feature)| format!("  - ID={};Name={};Parent={}", feature.id, feature.name, parent_id))
+      .join("\n");
+
+    errors.push(format!("The following features refer to non-existing parents:\n{details}\nFor each case, make sure attribute 'Parent' contains an 'ID' of an existing feature, or remove attribute 'Parent'."));
+  }
+
+  if !self_reference.is_empty() {
+    let details = self_reference
+      .iter()
+      .map(|feature| format!("  - ID={};Name={}", feature.id, feature.name))
+      .join("\n");
+
+    errors.push(format!("The following features refer to themselves:\n{details}\nFor each case, make sure the attribute 'Parent' does not contain the 'ID' of the feature itself."));
+  }
+
+  let duplicated_ids = features.iter().map(|feature| &feature.id).duplicates().collect_vec();
+  if !duplicated_ids.is_empty() {
+    let details = duplicated_ids.iter().map(|id| format!("  - {id}")).join("\n");
+    errors.push(format!("The following 'ID' attributes appear more than once:\n{details}\nFor each case, make sure 'ID' attributes are unique."));
+  }
+
+  if !errors.is_empty() {
+    return make_error!(
+      "Gene map is invalid. The following errors were found:\n\n{}",
+      errors.join("\n\n")
+    );
+  }
+
+  Ok(())
 }
