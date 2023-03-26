@@ -49,17 +49,26 @@ fn read_gff3_feature_tree_str(content: &str) -> Result<Vec<SequenceRegion>, Repo
   // Find char ranges of sequence regions in GFF file
   let ranges = {
     // Find where sequence regions start
-    let begins = content.match_indices("##sequence-region");
+    let begins = content.match_indices("##sequence-region").collect_vec();
 
     // Find where the GFF entries end (the "tail")
-    let tail = content.match_indices("###");
+    let tail = content.match_indices("###").collect_vec();
 
     // Extract indices
-    let begins = chain(begins, tail)
+    let mut begins = chain(&begins, &tail)
       .map(|(index, _)| index)
       .sorted()
       .unique()
+      .copied()
       .collect_vec();
+
+    if begins.len() == 1 {
+      // The subsequent iteration in pairs will have no iterations if there's only 1 item.
+      // But we want to keep the first range when it's the only range. So let's fixup the array of indices by pushing
+      // the `end` once more.
+      let end = if tail.len() == 1 { tail[0].0 } else { content.len() };
+      begins.push(end);
+    }
 
     // Iterate over pairs of adjacent indices, which give us ranges. The last "tail" range is conveniently excluded.
     begins
