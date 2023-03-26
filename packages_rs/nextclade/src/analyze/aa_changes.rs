@@ -4,9 +4,11 @@ use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::gene::cds::Cds;
+use crate::gene::gene::GeneStrand;
 use crate::io::aa::{from_aa, from_aa_seq, Aa};
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
+use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMapForCds;
 use crate::translate::translate_genes::Translation;
 use crate::utils::range::{intersect_or_none, Range};
@@ -340,14 +342,16 @@ fn find_aa_changes_for_cds(
           end: context_end,
         };
 
-        let ref_context = from_nuc_seq(&ref_seq[context_begin..context_end]);
-        let query_context = from_nuc_seq(&qry_seq[context_begin..context_end]);
+        let mut ref_context = ref_seq[context_begin..context_end].to_owned();
+        let mut query_context = qry_seq[context_begin..context_end].to_owned();
 
-        // TODO(bug): handle reverse strands
-        // if gene.strand == GeneStrand::Reverse {
-        //   reverse_complement_in_place(&mut ref_context);
-        //   reverse_complement_in_place(&mut query_context);
-        // }
+        if cds.strand == GeneStrand::Reverse {
+          reverse_complement_in_place(&mut ref_context);
+          reverse_complement_in_place(&mut query_context);
+        }
+
+        let ref_context = from_nuc_seq(&ref_context);
+        let query_context = from_nuc_seq(&query_context);
 
         NucContext{
           codon_nuc_range,

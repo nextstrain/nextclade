@@ -1,8 +1,6 @@
 use crate::align::params::AlignPairwiseParams;
-use crate::gene::gene::GeneStrand;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::{extract_cds_ref, CoordMap, CoordMapForCds};
 use crate::translate::translate::translate;
 use crate::translate::translate_genes::{CdsTranslation, GeneTranslation, Translation};
@@ -22,11 +20,7 @@ pub fn translate_genes_ref(
         .cdses
         .iter()
         .map(|cds| {
-          let mut nucs = extract_cds_ref(ref_seq, cds);
-          if gene.strand == GeneStrand::Reverse {
-            reverse_complement_in_place(&mut nucs);
-          }
-
+          let nucs = extract_cds_ref(ref_seq, cds);
           let tr = translate(&nucs, cds, params);
           let len = tr.seq.len();
 

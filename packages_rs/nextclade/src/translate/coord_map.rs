@@ -2,6 +2,7 @@ use crate::gene::cds::{Cds, CdsSegment};
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::{izip, Itertools};
@@ -220,6 +221,12 @@ impl CoordMap {
       });
       cds_aln_seq.extend_from_slice(&seq_aln[start..end]);
     }
+
+    // Reverse strands should be reverse-complemented
+    if cds.strand == GeneStrand::Reverse {
+      reverse_complement_in_place(&mut cds_aln_seq);
+    }
+
     (cds_aln_seq, CoordMapForCds::new(cds_to_aln_map, self.clone()))
   }
 }
@@ -376,11 +383,18 @@ impl CoordMapForCds {
 }
 
 pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-  cds
+  let mut nucs = cds
     .segments
     .iter()
     .flat_map(|cds_segment| seq[cds_segment.start..cds_segment.end].iter().copied())
-    .collect_vec()
+    .collect_vec();
+
+  // Reverse strands should be reverse-complemented
+  if cds.strand == GeneStrand::Reverse {
+    reverse_complement_in_place(&mut nucs);
+  }
+
+  nucs
 }
 
 #[cfg(test)]
@@ -397,6 +411,7 @@ mod coord_map_tests {
       id: "".to_owned(),
       name: "".to_owned(),
       product: "".to_owned(),
+      strand: GeneStrand::Forward,
       segments: segment_ranges
         .iter()
         .map(|(start, end)| CdsSegment {

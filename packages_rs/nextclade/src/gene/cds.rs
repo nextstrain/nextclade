@@ -2,8 +2,10 @@ use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
+use crate::io::container::take_exactly_one;
 use crate::make_internal_error;
 use eyre::{eyre, Report, WrapErr};
+use itertools::Itertools;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
@@ -13,6 +15,7 @@ pub struct Cds {
   pub id: String,
   pub name: String,
   pub product: String,
+  pub strand: GeneStrand,
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
   pub compat_is_gene: bool,
@@ -33,7 +36,7 @@ impl Cds {
           name: feature.name.clone(),
           start: feature.start,
           end: feature.end,
-          strand: feature.strand.clone(),
+          strand: feature.strand,
           frame: feature.frame,
           exceptions: feature.exceptions.clone(),
           attributes: feature.attributes.clone(),
@@ -53,10 +56,23 @@ impl Cds {
       .iter()
       .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, &mut proteins))?;
 
+    let strand = {
+      let strands = segments.iter().map(|segment| segment.strand).unique().collect_vec();
+      take_exactly_one(&strands)
+        .wrap_err_with(|| {
+          eyre!(
+            "When deducing strand for CDS '{}' from CDS segments",
+            feature_group.name
+          )
+        })
+        .cloned()
+    }?;
+
     Ok(Self {
       id: feature_group.id.clone(),
       name: feature_group.name.clone(),
       product: feature_group.product.clone(),
+      strand,
       segments,
       proteins,
       compat_is_gene: false,
@@ -72,7 +88,7 @@ impl Cds {
       name: feature.name.clone(),
       start: feature.start,
       end: feature.end,
-      strand: feature.strand.clone(),
+      strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
@@ -94,7 +110,7 @@ impl Cds {
       name: feature.name.clone(),
       start: feature.start,
       end: feature.end,
-      strand: feature.strand.clone(),
+      strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
@@ -106,6 +122,7 @@ impl Cds {
       id: format!("cds-from-gene-{}", feature.id),
       name: feature.name.clone(),
       product: feature.product.clone(),
+      strand: feature.strand,
       segments: vec![cds_segment],
       proteins: vec![protein],
       compat_is_gene: true,
