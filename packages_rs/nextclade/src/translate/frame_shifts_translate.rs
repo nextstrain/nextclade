@@ -1,7 +1,7 @@
 use crate::gene::cds::Cds;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{CdsRange, CoordMap, CoordMapForCds};
+use crate::translate::coord_map::{CdsRange, CoordMap, CoordMapForCds, CoordMapLocal};
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::Itertools;
@@ -45,7 +45,7 @@ pub fn find_nuc_mask_range(query: &[Nuc], frame_shift_nuc_range_rel: &Range) -> 
 
 /// Finds codon range to be masked. The aminoacids belonging to frame shift need to be masked, because they are not
 /// biological and can produce a lot of noisy mutations that don't exist.
-pub fn find_codon_mask_range(nuc_rel_aln: &Range, query: &[Nuc], coord_map_local: &CoordMap) -> Range {
+pub fn find_codon_mask_range(nuc_rel_aln: &Range, query: &[Nuc], coord_map_local: &CoordMapLocal) -> Range {
   // extend the frame shifted region to a mask that includes leading and trailing gaps
   let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
   coord_map_local.local_aln_to_codon_range(&mask_nuc_rel_aln)
@@ -74,7 +74,7 @@ pub fn frame_shift_transform(
   query: &[Nuc],
   coord_map: &CoordMap,
   qry_cds_map: &CoordMapForCds,
-  coord_map_local: &CoordMap,
+  coord_map_local: &CoordMapLocal,
   cds: &Cds,
 ) -> Result<FrameShift, Report> {
   let codon = coord_map_local.local_aln_to_codon_range(nuc_rel_aln);
@@ -124,7 +124,7 @@ pub fn frame_shifts_transform_coordinates(
   query: &[Nuc],
   coord_map: &CoordMap,
   qry_cds_map: &CoordMapForCds,
-  coord_map_local: &CoordMap,
+  coord_map_local: &CoordMapLocal,
   cds: &Cds,
 ) -> Result<Vec<FrameShift>, Report> {
   nuc_rel_frame_shifts

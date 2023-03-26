@@ -9,7 +9,7 @@ use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{CoordMap, CoordMapForCds};
+use crate::translate::coord_map::{CoordMap, CoordMapForCds, CoordMapLocal};
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
@@ -131,7 +131,7 @@ pub struct CdsTranslation {
   pub alignment_ranges: Vec<Range>,
   pub ref_cds_map: CoordMapForCds,
   pub qry_cds_map: CoordMapForCds,
-  pub coord_map_local: CoordMap,
+  pub coord_map_local: CoordMapLocal,
 }
 
 /// Results of the aminoacid alignment parameters estimation
@@ -229,7 +229,7 @@ pub fn translate_cds(
   let (mut qry_cds_seq, qry_cds_map) = coord_map.extract_cds_aln(qry_seq, cds);
 
   // Coordinate map local to this CDS
-  let coord_map_local = CoordMap::new(&ref_cds_seq);
+  let coord_map_local = CoordMapLocal::new(&ref_cds_seq);
 
   let ref_gaps = GapCounts::new(&ref_cds_seq);
   let qry_gaps = GapCounts::new(&qry_cds_seq);

@@ -1,4 +1,4 @@
-use crate::align::insertions_strip::{get_aa_insertions, NucIns};
+use crate::align::insertions_strip::NucIns;
 use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
 use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;

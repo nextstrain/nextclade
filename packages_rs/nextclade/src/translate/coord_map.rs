@@ -50,14 +50,6 @@ fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
   coord_map
 }
 
-/// Converts nucleotide local reference position to codon position
-pub const fn cds_nuc_local_ref_to_codon_position(nuc_local_ref_pos: usize) -> usize {
-  // Make sure the nucleotide position is adjusted to codon boundary before the division
-  // TODO: ensure that adjustment direction is correct for reverse strands
-  let nuc_rel_ref_adj = nuc_local_ref_pos + (3 - nuc_local_ref_pos % 3) % 3;
-  nuc_rel_ref_adj.saturating_div(3)
-}
-
 /// Converts sequence alignment to reference coordinates and vice versa.
 ///
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
@@ -86,16 +78,6 @@ impl CoordMap {
   // Reff is used because `ref` is magic word in Rust
   pub fn ref_to_aln_position(&self, reff: usize) -> usize {
     self.ref_to_aln_table[reff]
-  }
-
-  // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
-  pub fn local_aln_to_codon_range(&self, nuc_local_aln: &Range) -> Range {
-    let begin = self.aln_to_ref_position(nuc_local_aln.begin);
-    let end = self.aln_to_ref_position(nuc_local_aln.end - 1) + 1;
-    Range {
-      begin: cds_nuc_local_ref_to_codon_position(begin),
-      end: cds_nuc_local_ref_to_codon_position(end),
-    }
   }
 
   // /// Converts relative position inside an aligned feature (e.g. gene) to absolute position in the reference
@@ -228,6 +210,39 @@ impl CoordMap {
     }
 
     (cds_aln_seq, CoordMapForCds::new(cds_to_aln_map, self.clone()))
+  }
+}
+
+/// Same as [CoordMap] but is meant for coordinates local to a genomic feature (e.g. a single CDS).
+/// Wraps [CoordMap] and contains additional functionality for local transformations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoordMapLocal {
+  coord_map: CoordMap,
+}
+
+impl CoordMapLocal {
+  pub fn new(ref_seq: &[Nuc]) -> Self {
+    Self {
+      coord_map: CoordMap::new(ref_seq),
+    }
+  }
+
+  // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
+  pub fn local_aln_to_codon_range(&self, nuc_local_aln: &Range) -> Range {
+    let begin = self.coord_map.aln_to_ref_position(nuc_local_aln.begin);
+    let end = self.coord_map.aln_to_ref_position(nuc_local_aln.end - 1) + 1;
+    Range {
+      begin: Self::cds_nuc_local_ref_to_codon_position(begin),
+      end: Self::cds_nuc_local_ref_to_codon_position(end),
+    }
+  }
+
+  /// Converts nucleotide local reference position to codon position
+  const fn cds_nuc_local_ref_to_codon_position(nuc_local_ref_pos: usize) -> usize {
+    // Make sure the nucleotide position is adjusted to codon boundary before the division
+    // TODO: ensure that adjustment direction is correct for reverse strands
+    let nuc_rel_ref_adj = nuc_local_ref_pos + (3 - nuc_local_ref_pos % 3) % 3;
+    nuc_rel_ref_adj.saturating_div(3)
   }
 }
 
