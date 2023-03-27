@@ -1,0 +1,860 @@
+{
+  "genes": {
+    "E": {
+      "index": 9,
+      "id": "gene-E",
+      "name": "E",
+      "start": 26244,
+      "end": 26472,
+      "strand": "+",
+      "frame": 0,
+      "cdses": [
+        {
+          "id": "cds-QHD43418.1",
+          "name": "QHD43418.1",
+          "product": "envelope protein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 10,
+              "id": "cds-QHD43418.1",
+              "name": "QHD43418.1",
+              "start": 26244,
+              "end": 26472,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "Name": [
+                  "QHD43418.1"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "Note": [
+                  "structural protein%3B E protein"
+                ],
+                "gene": [
+                  "E"
+                ],
+                "Parent": [
+                  "gene-E"
+                ],
+                "protein_id": [
+                  "QHD43418.1"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43418.1"
+                ],
+                "ID": [
+                  "cds-QHD43418.1"
+                ],
+                "product": [
+                  "envelope protein"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t26245\t26472\t.\t+\t0\tName=QHD43418.1;gbkey=CDS;Note=structural protein%3B E protein;gene=E;Parent=gene-E;protein_id=QHD43418.1;Dbxref=NCBI_GP:QHD43418.1;ID=cds-QHD43418.1;product=envelope protein\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "ID": [
+          "gene-E"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "gbkey": [
+          "Gene"
+        ],
+        "Name": [
+          "E"
+        ],
+        "gene": [
+          "E"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t26245\t26472\t.\t+\t.\tID=gene-E;gene_biotype=protein_coding;gbkey=Gene;Name=E;gene=E\n",
+      "compatIsCds": false
+    },
+    "M": {
+      "index": 11,
+      "id": "gene-M",
+      "name": "M",
+      "start": 26522,
+      "end": 27191,
+      "strand": "+",
+      "frame": 2,
+      "cdses": [
+        {
+          "id": "cds-QHD43419.1",
+          "name": "QHD43419.1",
+          "product": "membrane glycoprotein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 12,
+              "id": "cds-QHD43419.1",
+              "name": "QHD43419.1",
+              "start": 26522,
+              "end": 27191,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "product": [
+                  "membrane glycoprotein"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43419.1"
+                ],
+                "Parent": [
+                  "gene-M"
+                ],
+                "Name": [
+                  "QHD43419.1"
+                ],
+                "protein_id": [
+                  "QHD43419.1"
+                ],
+                "gene": [
+                  "M"
+                ],
+                "ID": [
+                  "cds-QHD43419.1"
+                ],
+                "Note": [
+                  "structural protein"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t26523\t27191\t.\t+\t0\tproduct=membrane glycoprotein;gbkey=CDS;Dbxref=NCBI_GP:QHD43419.1;Parent=gene-M;Name=QHD43419.1;protein_id=QHD43419.1;gene=M;ID=cds-QHD43419.1;Note=structural protein\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "Name": [
+          "M"
+        ],
+        "ID": [
+          "gene-M"
+        ],
+        "gbkey": [
+          "Gene"
+        ],
+        "gene": [
+          "M"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t26523\t27191\t.\t+\t.\tgene_biotype=protein_coding;Name=M;ID=gene-M;gbkey=Gene;gene=M\n",
+      "compatIsCds": false
+    },
+    "N": {
+      "index": 19,
+      "id": "gene-N",
+      "name": "N",
+      "start": 28273,
+      "end": 29533,
+      "strand": "+",
+      "frame": 1,
+      "cdses": [
+        {
+          "id": "cds-QHD43423.2",
+          "name": "QHD43423.2",
+          "product": "nucleocapsid phosphoprotein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 20,
+              "id": "cds-QHD43423.2",
+              "name": "QHD43423.2",
+              "start": 28273,
+              "end": 29533,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "Dbxref": [
+                  "NCBI_GP:QHD43423.2"
+                ],
+                "ID": [
+                  "cds-QHD43423.2"
+                ],
+                "Note": [
+                  "structural protein"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "gene": [
+                  "N"
+                ],
+                "Parent": [
+                  "gene-N"
+                ],
+                "product": [
+                  "nucleocapsid phosphoprotein"
+                ],
+                "protein_id": [
+                  "QHD43423.2"
+                ],
+                "Name": [
+                  "QHD43423.2"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t28274\t29533\t.\t+\t0\tDbxref=NCBI_GP:QHD43423.2;ID=cds-QHD43423.2;Note=structural protein;gbkey=CDS;gene=N;Parent=gene-N;product=nucleocapsid phosphoprotein;protein_id=QHD43423.2;Name=QHD43423.2\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "Name": [
+          "N"
+        ],
+        "gene": [
+          "N"
+        ],
+        "ID": [
+          "gene-N"
+        ],
+        "gbkey": [
+          "Gene"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t28274\t29533\t.\t+\t.\tName=N;gene=N;ID=gene-N;gbkey=Gene;gene_biotype=protein_coding\n",
+      "compatIsCds": false
+    },
+    "ORF10": {
+      "index": 21,
+      "id": "gene-ORF10",
+      "name": "ORF10",
+      "start": 29557,
+      "end": 29674,
+      "strand": "+",
+      "frame": 1,
+      "cdses": [
+        {
+          "id": "cds-QHI42199.1",
+          "name": "QHI42199.1",
+          "product": "ORF10 protein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 22,
+              "id": "cds-QHI42199.1",
+              "name": "QHI42199.1",
+              "start": 29557,
+              "end": 29674,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "ID": [
+                  "cds-QHI42199.1"
+                ],
+                "product": [
+                  "ORF10 protein"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHI42199.1"
+                ],
+                "protein_id": [
+                  "QHI42199.1"
+                ],
+                "gene": [
+                  "ORF10"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "Name": [
+                  "QHI42199.1"
+                ],
+                "Parent": [
+                  "gene-ORF10"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t29558\t29674\t.\t+\t0\tID=cds-QHI42199.1;product=ORF10 protein;Dbxref=NCBI_GP:QHI42199.1;protein_id=QHI42199.1;gene=ORF10;gbkey=CDS;Name=QHI42199.1;Parent=gene-ORF10\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "gbkey": [
+          "Gene"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "Name": [
+          "ORF10"
+        ],
+        "gene": [
+          "ORF10"
+        ],
+        "ID": [
+          "gene-ORF10"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t29558\t29674\t.\t+\t.\tgbkey=Gene;gene_biotype=protein_coding;Name=ORF10;gene=ORF10;ID=gene-ORF10\n",
+      "compatIsCds": false
+    },
+    "ORF3a": {
+      "index": 7,
+      "id": "gene-ORF3a",
+      "name": "ORF3a",
+      "start": 25392,
+      "end": 26220,
+      "strand": "+",
+      "frame": 0,
+      "cdses": [
+        {
+          "id": "cds-QHD43417.1",
+          "name": "QHD43417.1",
+          "product": "ORF3a protein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 8,
+              "id": "cds-QHD43417.1",
+              "name": "QHD43417.1",
+              "start": 25392,
+              "end": 26220,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "gbkey": [
+                  "CDS"
+                ],
+                "gene": [
+                  "ORF3a"
+                ],
+                "protein_id": [
+                  "QHD43417.1"
+                ],
+                "Name": [
+                  "QHD43417.1"
+                ],
+                "Parent": [
+                  "gene-ORF3a"
+                ],
+                "product": [
+                  "ORF3a protein"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43417.1"
+                ],
+                "ID": [
+                  "cds-QHD43417.1"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t25393\t26220\t.\t+\t0\tgbkey=CDS;gene=ORF3a;protein_id=QHD43417.1;Name=QHD43417.1;Parent=gene-ORF3a;product=ORF3a protein;Dbxref=NCBI_GP:QHD43417.1;ID=cds-QHD43417.1\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "gene": [
+          "ORF3a"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "gbkey": [
+          "Gene"
+        ],
+        "Name": [
+          "ORF3a"
+        ],
+        "ID": [
+          "gene-ORF3a"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t25393\t26220\t.\t+\t.\tgene=ORF3a;gene_biotype=protein_coding;gbkey=Gene;Name=ORF3a;ID=gene-ORF3a\n",
+      "compatIsCds": false
+    },
+    "ORF6": {
+      "index": 13,
+      "id": "gene-ORF6",
+      "name": "ORF6",
+      "start": 27201,
+      "end": 27387,
+      "strand": "+",
+      "frame": 0,
+      "cdses": [
+        {
+          "id": "cds-QHD43420.1",
+          "name": "QHD43420.1",
+          "product": "ORF6 protein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 14,
+              "id": "cds-QHD43420.1",
+              "name": "QHD43420.1",
+              "start": 27201,
+              "end": 27387,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "gbkey": [
+                  "CDS"
+                ],
+                "Name": [
+                  "QHD43420.1"
+                ],
+                "ID": [
+                  "cds-QHD43420.1"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43420.1"
+                ],
+                "gene": [
+                  "ORF6"
+                ],
+                "Parent": [
+                  "gene-ORF6"
+                ],
+                "protein_id": [
+                  "QHD43420.1"
+                ],
+                "product": [
+                  "ORF6 protein"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t27202\t27387\t.\t+\t0\tgbkey=CDS;Name=QHD43420.1;ID=cds-QHD43420.1;Dbxref=NCBI_GP:QHD43420.1;gene=ORF6;Parent=gene-ORF6;protein_id=QHD43420.1;product=ORF6 protein\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "Name": [
+          "ORF6"
+        ],
+        "ID": [
+          "gene-ORF6"
+        ],
+        "gbkey": [
+          "Gene"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "gene": [
+          "ORF6"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t27202\t27387\t.\t+\t.\tName=ORF6;ID=gene-ORF6;gbkey=Gene;gene_biotype=protein_coding;gene=ORF6\n",
+      "compatIsCds": false
+    },
+    "ORF7a": {
+      "index": 15,
+      "id": "gene-ORF7a",
+      "name": "ORF7a",
+      "start": 27393,
+      "end": 27759,
+      "strand": "+",
+      "frame": 0,
+      "cdses": [
+        {
+          "id": "cds-QHD43421.1",
+          "name": "QHD43421.1",
+          "product": "ORF7a protein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 16,
+              "id": "cds-QHD43421.1",
+              "name": "QHD43421.1",
+              "start": 27393,
+              "end": 27759,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "Name": [
+                  "QHD43421.1"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "protein_id": [
+                  "QHD43421.1"
+                ],
+                "product": [
+                  "ORF7a protein"
+                ],
+                "gene": [
+                  "ORF7a"
+                ],
+                "ID": [
+                  "cds-QHD43421.1"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43421.1"
+                ],
+                "Parent": [
+                  "gene-ORF7a"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t27394\t27759\t.\t+\t0\tName=QHD43421.1;gbkey=CDS;protein_id=QHD43421.1;product=ORF7a protein;gene=ORF7a;ID=cds-QHD43421.1;Dbxref=NCBI_GP:QHD43421.1;Parent=gene-ORF7a\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "ID": [
+          "gene-ORF7a"
+        ],
+        "Name": [
+          "ORF7a"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "gene": [
+          "ORF7a"
+        ],
+        "gbkey": [
+          "Gene"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t27394\t27759\t.\t+\t.\tID=gene-ORF7a;Name=ORF7a;gene_biotype=protein_coding;gene=ORF7a;gbkey=Gene\n",
+      "compatIsCds": false
+    },
+    "ORF8": {
+      "index": 17,
+      "id": "gene-ORF8",
+      "name": "ORF8",
+      "start": 27893,
+      "end": 28259,
+      "strand": "+",
+      "frame": 2,
+      "cdses": [
+        {
+          "id": "cds-QHD43422.1",
+          "name": "QHD43422.1",
+          "product": "ORF8 protein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 18,
+              "id": "cds-QHD43422.1",
+              "name": "QHD43422.1",
+              "start": 27893,
+              "end": 28259,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "ID": [
+                  "cds-QHD43422.1"
+                ],
+                "gene": [
+                  "ORF8"
+                ],
+                "product": [
+                  "ORF8 protein"
+                ],
+                "Name": [
+                  "QHD43422.1"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43422.1"
+                ],
+                "Parent": [
+                  "gene-ORF8"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "protein_id": [
+                  "QHD43422.1"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t27894\t28259\t.\t+\t0\tID=cds-QHD43422.1;gene=ORF8;product=ORF8 protein;Name=QHD43422.1;Dbxref=NCBI_GP:QHD43422.1;Parent=gene-ORF8;gbkey=CDS;protein_id=QHD43422.1\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "gbkey": [
+          "Gene"
+        ],
+        "gene": [
+          "ORF8"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "Name": [
+          "ORF8"
+        ],
+        "ID": [
+          "gene-ORF8"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t27894\t28259\t.\t+\t.\tgbkey=Gene;gene=ORF8;gene_biotype=protein_coding;Name=ORF8;ID=gene-ORF8\n",
+      "compatIsCds": false
+    },
+    "S": {
+      "index": 5,
+      "id": "gene-S",
+      "name": "S",
+      "start": 21562,
+      "end": 25384,
+      "strand": "+",
+      "frame": 1,
+      "cdses": [
+        {
+          "id": "cds-QHD43416.1",
+          "name": "QHD43416.1",
+          "product": "surface glycoprotein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 6,
+              "id": "cds-QHD43416.1",
+              "name": "QHD43416.1",
+              "start": 21562,
+              "end": 25384,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [],
+              "attributes": {
+                "ID": [
+                  "cds-QHD43416.1"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43416.1"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "Name": [
+                  "QHD43416.1"
+                ],
+                "product": [
+                  "surface glycoprotein"
+                ],
+                "Parent": [
+                  "gene-S"
+                ],
+                "gene": [
+                  "S"
+                ],
+                "protein_id": [
+                  "QHD43416.1"
+                ],
+                "Note": [
+                  "structural protein"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t21563\t25384\t.\t+\t0\tID=cds-QHD43416.1;Dbxref=NCBI_GP:QHD43416.1;gbkey=CDS;Name=QHD43416.1;product=surface glycoprotein;Parent=gene-S;gene=S;protein_id=QHD43416.1;Note=structural protein\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "gene": [
+          "S"
+        ],
+        "ID": [
+          "gene-S"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ],
+        "Name": [
+          "S"
+        ],
+        "gbkey": [
+          "Gene"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t21563\t25384\t.\t+\t.\tgene=S;ID=gene-S;gene_biotype=protein_coding;Name=S;gbkey=Gene\n",
+      "compatIsCds": false
+    },
+    "orf1ab": {
+      "index": 2,
+      "id": "gene-orf1ab",
+      "name": "orf1ab",
+      "start": 265,
+      "end": 21555,
+      "strand": "+",
+      "frame": 1,
+      "cdses": [
+        {
+          "id": "cds-QHD43415.1",
+          "name": "QHD43415.1",
+          "product": "orf1ab polyprotein",
+          "strand": "+",
+          "segments": [
+            {
+              "index": 3,
+              "id": "cds-QHD43415.1",
+              "name": "QHD43415.1",
+              "start": 265,
+              "end": 13468,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [
+                "ribosomal slippage"
+              ],
+              "attributes": {
+                "Dbxref": [
+                  "NCBI_GP:QHD43415.1"
+                ],
+                "exception": [
+                  "ribosomal slippage"
+                ],
+                "Note": [
+                  "translated by -1 ribosomal frameshift"
+                ],
+                "Parent": [
+                  "gene-orf1ab"
+                ],
+                "product": [
+                  "orf1ab polyprotein"
+                ],
+                "gene": [
+                  "orf1ab"
+                ],
+                "Name": [
+                  "QHD43415.1"
+                ],
+                "ID": [
+                  "cds-QHD43415.1"
+                ],
+                "protein_id": [
+                  "QHD43415.1"
+                ],
+                "gbkey": [
+                  "CDS"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t266\t13468\t.\t+\t0\tDbxref=NCBI_GP:QHD43415.1;exception=ribosomal slippage;Note=translated by -1 ribosomal frameshift;Parent=gene-orf1ab;product=orf1ab polyprotein;gene=orf1ab;Name=QHD43415.1;ID=cds-QHD43415.1;protein_id=QHD43415.1;gbkey=CDS\n",
+              "compatIsGene": false
+            },
+            {
+              "index": 4,
+              "id": "cds-QHD43415.1",
+              "name": "QHD43415.1",
+              "start": 13467,
+              "end": 21555,
+              "strand": "+",
+              "frame": 0,
+              "exceptions": [
+                "ribosomal slippage"
+              ],
+              "attributes": {
+                "exception": [
+                  "ribosomal slippage"
+                ],
+                "Parent": [
+                  "gene-orf1ab"
+                ],
+                "product": [
+                  "orf1ab polyprotein"
+                ],
+                "Dbxref": [
+                  "NCBI_GP:QHD43415.1"
+                ],
+                "gbkey": [
+                  "CDS"
+                ],
+                "ID": [
+                  "cds-QHD43415.1"
+                ],
+                "gene": [
+                  "orf1ab"
+                ],
+                "Note": [
+                  "translated by -1 ribosomal frameshift"
+                ],
+                "Name": [
+                  "QHD43415.1"
+                ],
+                "protein_id": [
+                  "QHD43415.1"
+                ]
+              },
+              "sourceRecord": "MN908947.3\tGenbank\tCDS\t13468\t21555\t.\t+\t0\texception=ribosomal slippage;Parent=gene-orf1ab;product=orf1ab polyprotein;Dbxref=NCBI_GP:QHD43415.1;gbkey=CDS;ID=cds-QHD43415.1;gene=orf1ab;Note=translated by -1 ribosomal frameshift;Name=QHD43415.1;protein_id=QHD43415.1\n",
+              "compatIsGene": false
+            }
+          ],
+          "proteins": [],
+          "compatIsGene": false
+        }
+      ],
+      "exceptions": [],
+      "attributes": {
+        "gbkey": [
+          "Gene"
+        ],
+        "ID": [
+          "gene-orf1ab"
+        ],
+        "Name": [
+          "orf1ab"
+        ],
+        "gene": [
+          "orf1ab"
+        ],
+        "gene_biotype": [
+          "protein_coding"
+        ]
+      },
+      "sourceRecord": "MN908947.3\tGenbank\tgene\t266\t21555\t.\t+\t.\tgbkey=Gene;ID=gene-orf1ab;Name=orf1ab;gene=orf1ab;gene_biotype=protein_coding\n",
+      "compatIsCds": false
+    }
+  }
+}
