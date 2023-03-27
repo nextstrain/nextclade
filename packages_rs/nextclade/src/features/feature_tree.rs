@@ -15,6 +15,7 @@ use std::io::Read;
 use std::path::Path;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FeatureTree {
   pub seq_regions: Vec<SequenceRegion>,
 }
