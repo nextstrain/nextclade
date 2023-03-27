@@ -1,6 +1,6 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
-use log::warn;
+use log::{info, warn};
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
@@ -103,6 +103,10 @@ impl<'a> NextalignOrderedWriter<'a> {
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
           insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
+        }
+
+        for warning in warnings {
+          info!("In sequence #{index} '{seq_name}': {}", warning.warning);
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
