@@ -4,9 +4,12 @@ use crate::features::gene_map::convert_feature_tree_to_gene_map;
 use crate::gene::cds::{Cds, CdsSegment};
 use crate::gene::gene::Gene;
 use crate::gene::protein::{Protein, ProteinSegment};
+use crate::io::file::open_file_or_stdin;
+use crate::io::json::json_parse;
+use crate::utils::error::report_to_string;
 use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_report};
-use eyre::Report;
+use eyre::{eyre, Report, WrapErr};
 use itertools::{max, Itertools};
 use log::warn;
 use num_traits::clamp;
@@ -37,10 +40,34 @@ impl GeneMap {
   }
 
   pub fn from_gff3_file<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
-    Self::from_feature_tree(&FeatureTree::from_gff3_file(filename)?)
+    let filename = filename.as_ref();
+    let mut file = open_file_or_stdin(&Some(filename))?;
+    let mut buf = vec![];
+    {
+      file.read_to_end(&mut buf)?;
+    }
+    Self::from_gff3_str(&String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
+  // TODO: rename this function, because it handles more than GFF3
   pub fn from_gff3_str(content: &str) -> Result<Self, Report> {
+    let gene_map_json: Result<GeneMap, Report> = json_parse(content);
+    let gene_map_gff: Result<GeneMap, Report> = Self::from_gff3_str_impl(content);
+
+    Ok(match (gene_map_json, gene_map_gff) {
+      (Err(json_err), Err(gff_err)) => {
+        return make_error!("Attempted to parse the genome annotation as JSON and as GFF, but both attempts failed:\nJSON error: {}\n\nGFF3 error: {}\n",
+          report_to_string(&json_err),
+          report_to_string(&gff_err),
+        )
+      },
+      (Ok(gene_map), _) => gene_map,
+      (_, Ok(gene_map)) => gene_map,
+    })
+  }
+
+  // TODO: rename this function after renaming the function above
+  fn from_gff3_str_impl(content: &str) -> Result<Self, Report> {
     Self::from_feature_tree(&FeatureTree::from_gff3_str(content)?)
   }
 
