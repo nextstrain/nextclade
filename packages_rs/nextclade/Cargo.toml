@@ -46,6 +46,7 @@ rayon = "1.5.2"
 regex = "1.5.5"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+serde_yaml = "0.9.19"
 serde_stacker = { version = "0.1.6" }
 strum = "0.24.0"
 strum_macros = "0.24.0"

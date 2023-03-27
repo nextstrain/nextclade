@@ -18,3 +18,4 @@ pub mod nextclade_csv;
 pub mod nuc;
 pub mod parse_pos;
 pub mod results_json;
+pub mod yaml;

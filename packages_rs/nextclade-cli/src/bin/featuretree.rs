@@ -4,6 +4,7 @@ use eyre::Report;
 use log::LevelFilter;
 use nextclade::features::feature_tree::FeatureTree;
 use nextclade::io::json::{json_stringify, json_write};
+use nextclade::io::yaml::yaml_write;
 use nextclade::utils::global_init::global_init;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
@@ -41,7 +42,11 @@ fn main() -> Result<(), Report> {
   let feature_tree = FeatureTree::from_gff3_file(args.input_feature_map)?;
 
   if let Some(output) = args.output {
-    json_write(output, &feature_tree)?;
+    if output.ends_with("yaml") || output.ends_with("yml") {
+      yaml_write(output, &feature_tree)?;
+    } else {
+      json_write(output, &feature_tree)?;
+    }
   }
 
   if args.json {

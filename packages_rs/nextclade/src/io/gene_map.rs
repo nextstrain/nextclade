@@ -6,6 +6,7 @@ use crate::gene::gene::Gene;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
 use crate::io::json::json_parse;
+use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
 use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_report};
@@ -51,7 +52,7 @@ impl GeneMap {
 
   // TODO: rename this function, because it handles more than GFF3
   pub fn from_gff3_str(content: &str) -> Result<Self, Report> {
-    let gene_map_json: Result<GeneMap, Report> = json_parse(content);
+    let gene_map_json: Result<GeneMap, Report> = yaml_parse(content);
     let gene_map_gff: Result<GeneMap, Report> = Self::from_gff3_str_impl(content);
 
     Ok(match (gene_map_json, gene_map_gff) {
