@@ -298,12 +298,6 @@ fn validate(features: &[Feature]) -> Result<(), Report> {
     errors.push(format!("The following features refer to themselves:\n{details}\nFor each case, make sure the attribute 'Parent' does not contain the 'ID' of the feature itself."));
   }
 
-  let duplicated_ids = features.iter().map(|feature| &feature.id).duplicates().collect_vec();
-  if !duplicated_ids.is_empty() {
-    let details = duplicated_ids.iter().map(|id| format!("  - {id}")).join("\n");
-    errors.push(format!("The following 'ID' attributes appear more than once:\n{details}\nFor each case, make sure 'ID' attributes are unique."));
-  }
-
   if !errors.is_empty() {
     return make_error!(
       "Gene map is invalid. The following errors were found:\n\n{}",
