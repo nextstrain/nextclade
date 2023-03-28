@@ -76,7 +76,7 @@ git branch --delete --force "bump/nextclade-${version}" || true
 git push nextstrain --delete "bump/nextclade-${version}" || true
 
 # Create a new branch
-git switch --quiet "upstream/master" --create "bump/nextclade-${version}"
+git switch --quiet --create "bump/nextclade-${version}"
 
 ## Bump the version
 "${THIS_DIR}/update-bioconda.py" "nextclade" "${version}" "${artifacts_dir}" "recipes/nextclade/meta.yaml"
