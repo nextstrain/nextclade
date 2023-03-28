@@ -1,3 +1,14 @@
+## Nextclade CLI 2.13.1 (2023-03-28)
+
+### Lower verbosity level of translation-related warnings in Nextclade CLI
+
+Warnings related to translation of peptides now have verbosity level "info", down from "warning", to reduce clutter in logs. You can still find all errors and warnings in the "errors" and "warnings" columns of the CSV and TSV output files, as well as in the corresponding fields of JSON output files. If you want these warnings to be printed into the console, you can increase Nextclade CLI verbosity level to "info" by adding at least one occurrence of `--verbose` (`-v`) flag or by explicitly setting `--verbosity=info` or to a lower value. Type `nextclade run --help` for more details.
+
+### Internal changes
+
+ - Add more smoke tests, including for datasets with default reference
+
+
 ## Nextclade Web 2.13.0, Nextclade CLI 2.13.0 (2023-03-21)
 
 ### Attach sequences to a priori most likely node if reference tree contains "placement_prior"
