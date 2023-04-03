@@ -2,31 +2,31 @@ import { CladeSchema } from 'src/components/Main/CladeSchema.tsx'
 
 ## What is Nextclade?
 
-Nextclade is a tool that performs genetic sequence alignment, clade assignment, mutation calling, phylogenetic placement, and quality checks for SARS-CoV-2, Influenza (Flu), Monkeypox, Respiratory Syncytial Virus (RSV) and other pathogens.
+Nextclade is a tool that performs genetic sequence alignment, clade assignment, mutation calling, phylogenetic placement, and quality checks for SARS-CoV-2, Influenza (Flu), Mpox, Respiratory Syncytial Virus (RSV) and other pathogens.
 
 Nextclade identifies differences between your sequences and a reference sequence, uses these differences to assign your sequences to clades, reports potential sequence quality issues in your data, and shows how the sequences are related to each other by placing them into an existing phylogenetic tree (we call it "phylogenetic placement"). You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
 To analyze your data, drag a fasta file onto the upload box or paste sequences into the text box. These sequences will then be analyzed in your browser - data never leave your computer. Since your computer is doing the work rather than a server, it is advisable to analyze at most a few hundred sequences at a time.
 
-Nextclade application and algorithms are opensource. The code is available on [GitHub](https://github.com/nextstrain/nextclade). The user manual is available at [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade).
+The Nextclade app and algorithms are opensource. The code is available on [GitHub](https://github.com/nextstrain/nextclade). The user manual is available at [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade).
 
 
-### What are the clades?
+### What are the SARS-CoV-2 clades?
 
-Nextclade was originally developed during COVID-19 pandemic, historically primarily focused on SARS-CoV-2, and at the time of writing, this is still the main use-case. This section describes clades with application to SARS-CoV-2, but Nextclade can analyse other pathogens too.
+Nextclade was originally developed during COVID-19 pandemic, primarily focused on SARS-CoV-2. This section describes clades with application to SARS-CoV-2, but Nextclade can analyse other pathogens too.
 
 <CladeSchema />
 
 Since its emergence in late 2019, SARS-CoV-2 has diversified into several different co-circulating variants. To facilitate discussion of these variants, we have grouped them into __clades__ which are defined by specific signature mutations.
 
-We currently define more than 20 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming) for details):
+We currently define more than 30 clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming) for details):
 
 - 19A and 19B emerged in Wuhan and have dominated the early outbreak
 - 20A emerged from 19A out of dominated the European outbreak in March and has since spread globally
 - 20B and 20C are large genetically distinct subclades 20A emerged in early 2020
 - 20D to 20J have emerged over the summer of 2020 and include three "Variants of Concern" (VoC).
 - 21A to 21F include the VoC __delta__ and several Variants of Interest (VoI).
-- 21K to 22D are different clades within the diverse VoC __omicron__.
+- 21K onwards are different clades within the diverse VoC __omicron__.
 
 Within Nextstrain, we define each clade by its combination of signature mutations. You can find the exact clade definition in [github.com/nextstrain/ncov/defaults/clades.tsv](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv). When available, we will include [WHO labels for VoCs and VoIs](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
 
@@ -36,7 +36,8 @@ Learn more about how Nextclade assigns clades in the [documentation](https://doc
 
 Besides SARS-CoV-2, we provide Nextclade datasets to analyze the following other pathogens:
 
- * Seasonal Influenza viruses (A/H3N2, A/H1N1pdm, B/Vic, B/Yam)
- * Monkeypox virus (the overall clade structure, as well as fine-grained lineages within the recent sustained human-to-human transmission)
+ * Seasonal Influenza viruses (HA and NA for A/H3N2, A/H1N1pdm, B/Vic, and B/Yam)
+ * Mpox virus (the overall clade structure, as well as fine-grained lineages within the recent sustained human-to-human transmission)
+ * Respiratory Syncytial Virus (RSV) (subtypes A and B)
 
 You can also put together your own dataset to analyse other pathogens.
