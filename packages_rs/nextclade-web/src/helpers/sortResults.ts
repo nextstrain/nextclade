@@ -189,11 +189,17 @@ export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKey
   return orderBy(
     results,
     (result) => {
+      const customNodeAttributes = result.result?.analysisResult?.customNodeAttributes ?? {};
+      const hasKeyInCustomAttributes = customNodeAttributes.hasOwnProperty(key);
+
+      if (hasKeyInCustomAttributes) {
+        return customNodeAttributes[key];
+      }
+
       return (
-        get(result.result?.analysisResult?.customNodeAttributes ?? {}, key) ??
         result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ??
         defaultNumber(direction)
-      )
+      );
     },
     direction,
   )
