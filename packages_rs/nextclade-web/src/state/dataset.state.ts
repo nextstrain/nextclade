@@ -58,6 +58,11 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
   },
 })
 
+export const datasetUpdatedAtom = atom<Dataset | undefined>({
+  key: 'datasetUpdated',
+  default: undefined,
+})
+
 export const geneOrderPreferenceAtom = selector({
   key: 'geneOrderPreference',
   get({ get }) {

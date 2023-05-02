@@ -1,11 +1,17 @@
 import type { ParsedUrlQuery } from 'querystring'
 
 import { Dataset } from 'src/types'
-import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
+import {
+  fetchDatasetsIndex,
+  filterDatasets,
+  findDataset,
+  getLatestCompatibleEnabledDatasets,
+} from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom, datasetsAtom, datasetServerUrlAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
 import { useQuery } from 'react-query'
+import { isNil } from 'lodash'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: Dataset[]) {
   // Retrieve dataset-related URL params and try to find a dataset based on these params
@@ -56,6 +62,41 @@ export function useUpdatedDatasetIndex() {
     },
     {
       refetchInterval: 12 * 60 * 60 * 1000, // 12 hours
+      refetchIntervalInBackground: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: true,
+    },
+  )
+}
+
+/**
+ * Check currently selected dataset against **local** dataset index periodically and store updated dataset locally.
+ * If an updated dataset is stored, user will receive a notification.
+ */
+export function useUpdatedDataset() {
+  const { datasets } = useRecoilValue(datasetsAtom)
+  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
+  const setDatasetUpdated = useSetRecoilState(datasetUpdatedAtom)
+
+  useQuery(
+    'currentDatasetState',
+    async () => {
+      const name = datasetCurrent?.attributes.name.value
+      const refAccession = datasetCurrent?.attributes.reference.value
+      const tag = datasetCurrent?.attributes.tag.value
+      if (!isNil(name) && !isNil(refAccession) && !isNil(tag)) {
+        const candidateDatasets = filterDatasets(datasets, name, refAccession)
+        const updatedDataset = candidateDatasets.find((candidate) => {
+          const candidateTag = candidate.attributes.tag.value
+          return candidateTag > tag
+        })
+        setDatasetUpdated(updatedDataset)
+      }
+      return undefined
+    },
+    {
+      refetchInterval: 5 * 1000, // 5 seconds
       refetchIntervalInBackground: true,
       refetchOnMount: true,
       refetchOnReconnect: true,
