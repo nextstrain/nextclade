@@ -9,6 +9,7 @@ import type { Dataset } from 'src/types'
 import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
 const DatasetSelectorContainer = styled(Container)`
@@ -58,6 +59,9 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
   const { datasets } = useRecoilValue(datasetsAtom)
   const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetCurrentAtom)
   const [datasetHighlighted, setDatasetHighlighted] = useState<Dataset | undefined>(datasetCurrent)
+
+  // This periodically fetches dataset index and updates the list of datasets.
+  useUpdatedDatasetIndex()
 
   const onSearchTermChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
