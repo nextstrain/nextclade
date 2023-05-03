@@ -400,6 +400,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
   BUILDX_CACHE_DIR="${CACHE_DIR}/buildx"
 
+  mkdir -p "${BUILDX_CACHE_DIR}"
+
   if [ "${VERBOSE:=0}" != "1" ]; then
     ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} -q"
   fi
