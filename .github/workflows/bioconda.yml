@@ -23,6 +23,7 @@ defaults:
 
 env:
   GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
 
 jobs:
 
