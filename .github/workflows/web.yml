@@ -3,12 +3,9 @@ name: web
 
 on:
   push:
-    tags:
-    branches:
-    branches-ignore: [ 'staging-cli', 'release-cli' ]
+    branches: ['master', 'staging', 'release']
 
   pull_request:
-    branches:
 
   repository_dispatch:
     types: build
