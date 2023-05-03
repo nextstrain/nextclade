@@ -73,6 +73,23 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 
 Let's build the WebAssembly module:
 
+<details>
+<summary>Show extra requirements for macOS</summary>
+
+For macOS, you will also have to install llvm: 
+
+```bash
+brew install llvm
+```
+
+Furthermore, you will need to set the following environment variables before invoking `yarn wasm-prod`:
+
+```bash
+export CC=/opt/homebrew/opt/llvm/bin/clang
+export AR=/opt/homebrew/opt/llvm/bin/llvm-ar 
+```
+</details>
+
 ```bash
 # Clone Nextclade git repository
 git clone https://github.com/nextstrain/nextclade

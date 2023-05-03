@@ -3,12 +3,9 @@ name: cli
 
 on:
   push:
-    tags:
-    branches:
-    branches-ignore: [ 'staging', 'release' ]
+    branches: ['master', 'staging-cli', 'release-cli']
 
   pull_request:
-    branches:
 
   repository_dispatch:
     types: build
@@ -27,6 +24,7 @@ defaults:
 
 env:
   GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
 
 jobs:
 
