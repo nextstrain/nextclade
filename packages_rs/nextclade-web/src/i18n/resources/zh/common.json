@@ -325,5 +325,9 @@
   "We tried to download the file from": "我们尝试从中下载文件",
   "What's new": "新增内容",
   "you are connected to the internet": "你已连接到互联网",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "您可以通过在以下地址创建请求（所谓的 {{issue}} ）向开发人员报告： "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "您可以通过在以下地址创建请求（所谓的 {{issue}} ）向开发人员报告： ",
+  "A new version of this dataset is available.": "该数据集的新版本可用。",
+  "Accept the updated dataset": "接受更新的数据集",
+  "Update": "更新",
+  "What's new?": "有什么新的？"
 }

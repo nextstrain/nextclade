@@ -325,5 +325,9 @@
   "We tried to download the file from": "Προσπαθήσαμε να κατεβάσουμε το αρχείο από",
   "What's new": "Τι νέο υπάρχει",
   "you are connected to the internet": "είστε συνδεδεμένοι στο διαδίκτυο",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Μπορείτε να το αναφέρετε στους προγραμματιστές δημιουργώντας ένα αίτημα (το λεγόμενο {{issue}}) στη διεύθυνση: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Μπορείτε να το αναφέρετε στους προγραμματιστές δημιουργώντας ένα αίτημα (το λεγόμενο {{issue}}) στη διεύθυνση: ",
+  "A new version of this dataset is available.": "Μια νέα έκδοση αυτού του συνόλου δεδομένων είναι διαθέσιμη.",
+  "Accept the updated dataset": "Αποδοχή του ενημερωμένου συνόλου δεδομένων",
+  "Update": "Ενημέρωση",
+  "What's new?": "Τι νέα;"
 }

@@ -325,5 +325,9 @@
   "We tried to download the file from": "நாங்கள் கோப்பை பதிவிறக்க முயற்சித்தோம்",
   "What's new": "புதியது என்ன",
   "you are connected to the internet": "நீங்கள் இணையத்துடன் இணைக்கப்பட்டுள்ளீர்கள்",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "ஒரு கோரிக்கையை உருவாக்குவதன் மூலம் டெவலப்பர்களிடம் அதை நீங்கள் {{issue}} தெரிவிக்கலாம்: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "ஒரு கோரிக்கையை உருவாக்குவதன் மூலம் டெவலப்பர்களிடம் அதை நீங்கள் {{issue}} தெரிவிக்கலாம்: ",
+  "A new version of this dataset is available.": "இந்த தரவுத்தொகுப்பின் ஒரு புதிய பதிப்பு கிடைக்கிறது.",
+  "Accept the updated dataset": "மேம்படுத்தப்பட்ட தரவுத்தொகுப்பை ஏற்கவும்",
+  "Update": "புதுப்பிக்கப்பட்டது",
+  "What's new?": "புதிதாக என்ன?"
 }

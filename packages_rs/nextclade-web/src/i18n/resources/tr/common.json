@@ -325,5 +325,9 @@
   "We tried to download the file from": "Dosyayı indirmeye çalıştık",
   "What's new": "Yenilikler",
   "you are connected to the internet": "internete bağlıysanız",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bunu geliştiricilere şu adresten bir istek oluşturarak (sözde {{issue}}) bildirebilirsiniz: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bunu geliştiricilere şu adresten bir istek oluşturarak (sözde {{issue}}) bildirebilirsiniz: ",
+  "A new version of this dataset is available.": "Bu veri kümesinin yeni bir sürümü mevcuttur.",
+  "Accept the updated dataset": "Güncellenmiş veri kümesini kabul et",
+  "Update": "Güncelleme",
+  "What's new?": "Yenilikler ne?"
 }

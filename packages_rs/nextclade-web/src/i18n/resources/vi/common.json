@@ -325,5 +325,9 @@
   "We tried to download the file from": "Chúng tôi đã cố gắng tải xuống tệp từ",
   "What's new": "Có gì mới",
   "you are connected to the internet": "bạn đang kết nối với internet",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bạn có thể báo cáo nó cho nhà phát triển bằng cách tạo một yêu cầu (được gọi là {{issue}}) tại: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Bạn có thể báo cáo nó cho nhà phát triển bằng cách tạo một yêu cầu (được gọi là {{issue}}) tại: ",
+  "A new version of this dataset is available.": "Một phiên bản mới của tập dữ liệu này có sẵn.",
+  "Accept the updated dataset": "Chấp nhận tập dữ liệu được cập nhật",
+  "Update": "Cập nhật",
+  "What's new?": "Có gì mới?"
 }

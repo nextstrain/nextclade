@@ -17,7 +17,9 @@
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} requires at least {{memoryRequired}} of memory per thread",
   "*Make sure this file is publicly accessible and CORS is enabled on your server": "*Make sure this file is publicly accessible and CORS is enabled on your server",
   "1st nuc.": "1st nuc.",
+  "A new version of this dataset is available.": "A new version of this dataset is available.",
   "Accept the data": "Accept the data",
+  "Accept the updated dataset": "Accept the updated dataset",
   "Add more sequence data": "Add more sequence data",
   "Affected codons:": "Affected codons:",
   "After ref pos.": "After ref pos.",
@@ -319,11 +321,13 @@
   "Unsequenced": "Unsequenced",
   "unsupported": "unsupported",
   "Unsupported browser": "Unsupported browser",
+  "Update": "Update",
   "Updated: {{updated}}": "Updated: {{updated}}",
   "Virus properties": "Virus properties",
   "Warning": "Warning",
   "We tried to download the file from": "We tried to download the file from",
   "What's new": "What's new",
+  "What's new?": "What's new?",
   "you are connected to the internet": "you are connected to the internet",
   "You can report it to developers by creating a request (so called {{issue}}) at: ": "You can report it to developers by creating a request (so called {{issue}}) at: "
 }

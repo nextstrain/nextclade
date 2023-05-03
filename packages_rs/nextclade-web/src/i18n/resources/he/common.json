@@ -325,5 +325,9 @@
   "We tried to download the file from": "ניסינו להוריד את הקובץ",
   "What's new": "מה חדש",
   "you are connected to the internet": "אתה מחובר לאינטרנט",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "אתה יכול לדווח על כך למפתחים על ידי יצירת בקשה (שנקראה {{issue}}) בכתובת: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "אתה יכול לדווח על כך למפתחים על ידי יצירת בקשה (שנקראה {{issue}}) בכתובת: ",
+  "A new version of this dataset is available.": "גרסה חדשה של מערך נתונים זה זמינה.",
+  "Accept the updated dataset": "קבל את מערך הנתונים המעודכן",
+  "Update": "עדכון",
+  "What's new?": "מה חדש?"
 }

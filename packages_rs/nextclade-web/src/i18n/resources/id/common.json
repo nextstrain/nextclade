@@ -325,5 +325,9 @@
   "We tried to download the file from": "Kami mencoba mengunduh file dari",
   "What's new": "Apa yang baru",
   "you are connected to the internet": "Anda terhubung ke internet",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Anda dapat melaporkannya ke pengembang dengan membuat permintaan (disebut {{issue}}) di: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Anda dapat melaporkannya ke pengembang dengan membuat permintaan (disebut {{issue}}) di: ",
+  "A new version of this dataset is available.": "Versi baru dari kumpulan data ini tersedia.",
+  "Accept the updated dataset": "Terima kumpulan data yang diperbarui",
+  "Update": "Perbarui",
+  "What's new?": "Apa yang baru?"
 }
