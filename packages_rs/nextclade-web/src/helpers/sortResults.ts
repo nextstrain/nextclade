@@ -184,15 +184,26 @@ export interface SortingKeyBased {
   direction: SortDirection
 }
 
-export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKeyBased) {
+export function sortCustomNodeAttribute(results: NextcladeResult[], sorting: SortingKeyBased) {
   const { key, direction } = sorting
   return orderBy(
     results,
     (result) => {
       // Replace nullish values with empty strings, such that they could be sorted lexicographically
-      const customAttr = get(result.result?.analysisResult?.customNodeAttributes, key) ?? ''
-      const phenotypeAttr = result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ?? ''
-      return customAttr ?? phenotypeAttr ?? defaultNumber(direction)
+      return get(result.result?.analysisResult?.customNodeAttributes, key) ?? ''
+    },
+    direction,
+  )
+}
+
+export function sortPhenotypeValue(results: NextcladeResult[], sorting: SortingKeyBased) {
+  const { key, direction } = sorting
+  return orderBy(
+    results,
+    (result) => {
+      return (
+        result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ?? defaultNumber(direction)
+      )
     },
     direction,
   )
