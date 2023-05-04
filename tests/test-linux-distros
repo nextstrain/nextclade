@@ -54,7 +54,6 @@ distros=(
   "oraclelinux:7.2"
   "oraclelinux:8.0"
   "oraclelinux:8.6"
-  "registry.access.redhat.com/ubi7/ubi"
   "registry.access.redhat.com/ubi8/ubi"
   "registry.access.redhat.com/ubi9/ubi"
   "opensuse/archive:13.2"

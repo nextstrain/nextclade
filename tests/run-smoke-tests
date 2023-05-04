@@ -23,8 +23,10 @@ export THIS_DIR
 export DATASET_DIR="$THIS_DIR/../tmp/smoke-tests/dataset"
 export OUT_DIR="$THIS_DIR/../tmp/smoke-tests/result"
 
-dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value')
-num_dataset_names_and_refs=$(echo "${dataset_names_and_refs}" | wc -l)
+dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value' | sort | uniq)
+dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
+all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
+num_datasets=$(echo "${all_datasets}" | wc -l)
 
 function run_one_test() {
   name_and_ref=$1
@@ -34,15 +36,15 @@ function run_one_test() {
   name="${arr[0]}"
   reference="${arr[1]}"
 
-  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference}'"
+  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'"
 
-  ${NEXTCLADE_BIN} dataset get --name="${name}" --reference="${reference}" --output-dir="$DATASET_DIR/${name}-${reference}"
+  ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}/${reference:-default}"
 
   ${NEXTCLADE_BIN} run --quiet --in-order \
-    --output-all="$OUT_DIR/${name}-${reference}" \
-    --input-dataset="$DATASET_DIR/${name}-${reference}" \
-    "$DATASET_DIR/${name}-${reference}/sequences.fasta"
+    --output-all="$OUT_DIR/${name}/${reference:-default}" \
+    --input-dataset="$DATASET_DIR/${name}/${reference:-default}" \
+    "$DATASET_DIR/${name}/${reference:-default}/sequences.fasta"
 }
 export -f run_one_test
 
-parallel --jobs="${num_dataset_names_and_refs}" run_one_test ::: "${dataset_names_and_refs}"
+parallel --jobs="${num_datasets}" run_one_test ::: "${all_datasets}"
