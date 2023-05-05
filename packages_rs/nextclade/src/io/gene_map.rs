@@ -292,7 +292,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
   let indent = INDENT.repeat(indent_width);
   let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(gene.name_and_type(), max_name_len);
-  let nuc_len = end - start;
+  let nuc_len = gene.len();
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
@@ -325,6 +325,7 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
     name,
     start,
     end,
+    landmark,
     strand,
     frame,
     exceptions,

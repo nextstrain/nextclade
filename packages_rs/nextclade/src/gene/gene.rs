@@ -17,6 +17,12 @@ pub enum GeneStrand {
   Unknown,
 }
 
+impl Default for GeneStrand {
+  fn default() -> Self {
+    Self::Forward
+  }
+}
+
 impl Display for GeneStrand {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     self.serialize(f)
@@ -67,7 +73,7 @@ impl Gene {
 
     // HACK: COMPAT: If there are no CDSes in this gene, then pretend the whole gene is a CDS
     if cdses.is_empty() {
-      cdses.push(Cds::from_gene(feature));
+      cdses.push(Cds::from_gene(feature)?);
     }
 
     Ok(Self {
@@ -122,18 +128,18 @@ impl Gene {
   }
 
   #[inline]
-  pub const fn len(&self) -> usize {
-    self.end - self.start
+  pub fn len(&self) -> usize {
+    self.cdses.iter().map(Cds::len).sum()
   }
 
   #[inline]
-  pub const fn len_codon(&self) -> usize {
-    (self.len() - self.len() % 3) / 3
-  }
-
-  #[inline]
-  pub const fn is_empty(&self) -> bool {
+  pub fn is_empty(&self) -> bool {
     self.len() == 0
+  }
+
+  #[inline]
+  pub fn len_codon(&self) -> usize {
+    (self.len() - self.len() % 3) / 3
   }
 
   pub fn name_and_type(&self) -> String {

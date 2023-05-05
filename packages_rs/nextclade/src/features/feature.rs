@@ -17,9 +17,11 @@ pub struct Feature {
   pub feature_type: String,
   pub start: usize,
   pub end: usize,
+  pub landmark: Landmark,
   pub strand: GeneStrand,
   pub frame: i32,
   pub parent_ids: Vec<String>,
+  pub seqid: String, // Column 0 in the GFF file
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
@@ -28,7 +30,7 @@ pub struct Feature {
 }
 
 impl Feature {
-  pub fn from_gff_record((index, record): (usize, GffRecord)) -> Result<Self, Report> {
+  pub fn from_gff_record(index: usize, record: GffRecord) -> Result<Self, Report> {
     let GffCommonInfo {
       id,
       name,
@@ -49,6 +51,7 @@ impl Feature {
     let parent_ids = attributes.get_vec("Parent").cloned().unwrap_or_default();
     let product = get_one_of_attributes_optional(&record, &["Product", "product", "Protein", "protein", "protein_id"])
       .unwrap_or_else(|| name.clone());
+    let seqid = record.seqname().to_owned();
 
     Ok(Self {
       index,
@@ -58,9 +61,11 @@ impl Feature {
       feature_type,
       start,
       end,
+      landmark: Landmark::default(),
       strand,
       frame,
       parent_ids,
+      seqid,
       exceptions,
       notes,
       is_circular,
@@ -73,5 +78,42 @@ impl Feature {
   #[inline]
   pub fn name_and_type(&self) -> String {
     format!("{} '{}'", shorten_feature_type(&self.feature_type), self.name)
+  }
+}
+
+#[derive(Clone, Default, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Landmark {
+  pub index: usize,
+  pub id: String,
+  pub name: String,
+  pub start: usize,
+  pub end: usize,
+  pub strand: GeneStrand,
+  pub is_circular: bool,
+}
+
+impl Landmark {
+  pub fn from_feature(feature: &Feature) -> Landmark {
+    let Feature {
+      index,
+      id,
+      name,
+      start,
+      end,
+      strand,
+      is_circular,
+      ..
+    } = feature;
+
+    Self {
+      index: *index,
+      name: name.clone(),
+      id: id.to_owned(),
+      start: *start,
+      end: *end,
+      strand: *strand,
+      is_circular: *is_circular,
+    }
   }
 }

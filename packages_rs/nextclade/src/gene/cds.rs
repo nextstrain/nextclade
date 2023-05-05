@@ -1,12 +1,13 @@
-use crate::features::feature::Feature;
+use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::container::take_exactly_one;
-use crate::make_internal_error;
+use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use multimap::MultiMap;
+use num_traits::{clamp, clamp_max};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -36,6 +37,7 @@ impl Cds {
           name: feature.name.clone(),
           start: feature.start,
           end: feature.end,
+          landmark: feature.landmark.clone(),
           strand: feature.strand,
           frame: feature.frame,
           exceptions: feature.exceptions.clone(),
@@ -50,6 +52,8 @@ impl Cds {
       return make_internal_error!("CDS contains no segments")?;
     }
 
+    let segments = split_circular_cds_segments(&segments)?;
+
     let mut proteins = vec![];
     feature_group
       .children
@@ -61,7 +65,7 @@ impl Cds {
       take_exactly_one(&strands)
         .wrap_err_with(|| {
           eyre!(
-            "When deducing strand for CDS '{}' from CDS segments",
+            "When deducing strand for CDS '{}' from strands of its segments",
             feature_group.name
           )
         })
@@ -80,7 +84,7 @@ impl Cds {
   }
 
   /// HACK: COMPATIBILITY: if there are no CDS records, we pretend that each gene record imply a CDS with one segment and one protein
-  pub fn from_gene(feature: &Feature) -> Self {
+  pub fn from_gene(feature: &Feature) -> Result<Self, Report> {
     assert_eq!(feature.feature_type, "gene");
 
     let protein_segment = ProteinSegment {
@@ -110,6 +114,7 @@ impl Cds {
       name: feature.name.clone(),
       start: feature.start,
       end: feature.end,
+      landmark: feature.landmark.clone(),
       strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
@@ -118,20 +123,111 @@ impl Cds {
       compat_is_gene: true,
     };
 
-    Self {
+    let segments = vec![cds_segment];
+    let segments = split_circular_cds_segments(&segments)?;
+
+    Ok(Self {
       id: format!("cds-from-gene-{}", feature.id),
       name: feature.name.clone(),
       product: feature.product.clone(),
       strand: feature.strand,
-      segments: vec![cds_segment],
+      segments,
       proteins: vec![protein],
       compat_is_gene: true,
-    }
+    })
   }
 
   pub fn name_and_type(&self) -> String {
     format!("CDS '{}'", self.name)
   }
+
+  #[inline]
+  pub fn len(&self) -> usize {
+    self.segments.iter().map(CdsSegment::len).sum()
+  }
+
+  #[inline]
+  pub fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
+}
+
+/// Split features, which attached to circular landmark features, to strictly linear segments, without wraparound.
+/// Each feature which goes beyond the landmark end will be split into at least 2 segments:
+///   - from segment start to landmark end
+///   - from landmark start to segment end, wrapped around (the overflowing segment)
+/// We also support the case when feature wraps around more than once.
+fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment>, Report> {
+  let mut linear_segments = vec![];
+  for segment in segments {
+    if segment.landmark.is_circular {
+      validate_segment_bounds(segment, true)?;
+
+      let landmark_start = segment.landmark.start;
+      let landmark_end = segment.landmark.end;
+
+      let mut segment_end = segment.end;
+      linear_segments.push({
+        let mut segment = segment.clone();
+        segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+        validate_segment_bounds(&segment, false)?;
+        segment
+      });
+
+      while segment_end > landmark_end {
+        segment_end = segment_end % landmark_end;
+
+        linear_segments.push({
+          let mut segment = segment.clone();
+          segment.start = landmark_start; // Chop the underflowing part (before landmark)
+          segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+          validate_segment_bounds(&segment, false)?;
+          segment
+        });
+      }
+    } else {
+      validate_segment_bounds(segment, false)?;
+      linear_segments.push(segment.clone());
+    }
+  }
+
+  Ok(linear_segments)
+}
+
+fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result<(), Report> {
+  if segment.start > segment.end {
+    return make_error!(
+      "Gene map is invalid: In genomic feature '{}': Feature start > end: {} > {}",
+      segment.name,
+      segment.start + 1,
+      segment.end + 1,
+    );
+  }
+
+  let landmark_start = segment.landmark.start;
+  let landmark_end = segment.landmark.end;
+
+  if segment.start < landmark_start {
+    return make_error!(
+      "Gene map is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}",
+      segment.name,
+      segment.start + 1,
+      landmark_start + 1,
+      landmark_end + 1,
+    );
+  }
+
+  if !allow_overflow && segment.end > landmark_end {
+    return make_error!(
+      "Gene map is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}",
+      segment.name,
+      segment.end + 1,
+      landmark_start + 1,
+      landmark_end + 1,
+    );
+  }
+
+  Ok(())
 }
 
 fn find_proteins_recursive(feature_group: &FeatureGroup, proteins: &mut Vec<Protein>) -> Result<(), Report> {
@@ -155,6 +251,7 @@ pub struct CdsSegment {
   pub name: String,
   pub start: usize,
   pub end: usize,
+  pub landmark: Landmark,
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,
@@ -166,5 +263,15 @@ pub struct CdsSegment {
 impl CdsSegment {
   pub fn name_and_type(&self) -> String {
     format!("CDS segment '{}'", self.name)
+  }
+
+  #[inline]
+  pub const fn len(&self) -> usize {
+    self.end - self.start
+  }
+
+  #[inline]
+  pub const fn is_empty(&self) -> bool {
+    self.len() == 0
   }
 }
