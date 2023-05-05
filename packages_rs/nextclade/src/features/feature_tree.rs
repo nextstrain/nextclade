@@ -3,10 +3,9 @@ use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_tree_format::format_sequence_region_features;
 use crate::features::sequence_region::SequenceRegion;
 use crate::io::file::open_file_or_stdin;
-use crate::io::gff3::get_one_of_attributes_required;
 use crate::make_error;
 use crate::utils::error::to_eyre_error;
-use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord, Record};
+use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use eyre::{eyre, Report, WrapErr};
 use itertools::{chain, Itertools};
 use lazy_static::lazy_static;
@@ -202,33 +201,6 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
 
   build_hierarchy_of_features(&features)
 }
-
-// /// Find the landmark feature for this feature. Landmark feature is a feature used to establish the coordinate
-// /// system for the current feature. The ID of the landmark feature is contained in the 'seqid' column of each
-// /// feature.
-// fn find_landmark(index: usize, record: &Record, records: &[Record]) -> Result<(), Report> {
-//   let record_id = get_one_of_attributes_required(&record, &["ID"]).wrap_err_with(|| eyre!("The record"));
-//
-//   let landmark = records.iter().find(|candidate| {
-//     // HACK: the 'seqid' does not always matches the landmark 'ID' exactly. Sometimes ID contains additional range
-//     // number after a colon. For better compatibility with the existing GFF files, we strip these extra details
-//     // before matching the two IDs.
-//
-//     let candidate_id = get_one_of_attributes_required(candidate, &["ID"])?;
-//
-//     match candidate.attributes().split(':').next() {
-//       Some(candidate_id) => feature.seqid == candidate_id,
-//       None => false,
-//     }
-//   });
-//
-//   match landmark {
-//       None => make_error!("Gene map is invalid: In genomic feature '{}': The column 'seqid' (column 0) refers to feature '{}', but the feature with such 'ID' attribute is not found. Make sure that the column 'seqid' (column 0) contains an 'ID' of the landmark feature and that this feature exists.", feature.name, feature.seqid),
-//       Some(landmark) => {
-//         Ok(())
-//       }
-//     }
-// }
 
 fn process_circular_features(features: &mut [Feature]) -> Result<(), Report> {
   let features2 = features.to_owned(); // TODO(perf): avoid copy
