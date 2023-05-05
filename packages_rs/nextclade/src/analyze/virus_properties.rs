@@ -23,6 +23,8 @@ struct VirusPropertiesRaw {
   pub phenotype_data: Option<Vec<PhenotypeData>>,
   #[serde(default = "Vec::new")]
   pub aa_motifs: Vec<AaMotifsDesc>,
+  #[serde(default = "Vec::new")]
+  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -35,6 +37,8 @@ pub struct VirusProperties {
   pub phenotype_data: Option<Vec<PhenotypeData>>,
   #[serde(default = "Vec::new")]
   pub aa_motifs: Vec<AaMotifsDesc>,
+  #[serde(default = "Vec::new")]
+  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -155,6 +159,7 @@ impl FromStr for VirusProperties {
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
       phenotype_data: raw.phenotype_data,
       aa_motifs: raw.aa_motifs,
+      placement_mask_ranges: raw.placement_mask_ranges,
     })
   }
 }

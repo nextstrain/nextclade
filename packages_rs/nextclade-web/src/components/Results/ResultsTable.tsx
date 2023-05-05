@@ -21,7 +21,8 @@ import {
   phenotypeAttrDescsAtom,
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
-  sortAnalysisResultsByKeyAtom,
+  sortAnalysisResultsByCustomNodeAttributesAtom,
+  sortAnalysisResultsByPhenotypeValuesAtom,
   sortAnalysisResultsByMotifsAtom,
 } from 'src/state/results.state'
 import { FormattedText } from 'src/components/Common/FormattedText'
@@ -177,8 +178,11 @@ export function ResultsTable() {
   const sortByTotalStopCodonsDesc = useRecoilCallback(({ set }) => () => {
     set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.desc }), undefined)
   }, []) // prettier-ignore
-  const sortByKey = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
-    set(sortAnalysisResultsByKeyAtom({ key, direction }), undefined)
+  const sortByCustomNodeAttributes = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
+    set(sortAnalysisResultsByCustomNodeAttributesAtom({ key, direction }), undefined)
+  }, []) // prettier-ignore
+  const sortByPhenotypeValues = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
+    set(sortAnalysisResultsByPhenotypeValuesAtom({ key, direction }), undefined)
   }, []) // prettier-ignore
   const sortByMotifs = useRecoilCallback(
     ({ set }) =>
@@ -193,8 +197,8 @@ export function ResultsTable() {
     return cladeNodeAttrDescs
       .filter((attr) => !attr.hideInWeb)
       .map(({ name: attrKey, displayName, description }) => {
-        const sortAsc = sortByKey(attrKey, SortDirection.asc)
-        const sortDesc = sortByKey(attrKey, SortDirection.desc)
+        const sortAsc = sortByCustomNodeAttributes(attrKey, SortDirection.asc)
+        const sortDesc = sortByCustomNodeAttributes(attrKey, SortDirection.desc)
         return (
           <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
             <TableHeaderCellContent>
@@ -208,12 +212,12 @@ export function ResultsTable() {
           </TableHeaderCell>
         )
       })
-  }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByKey])
+  }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByCustomNodeAttributes])
 
   const dynamicPhenotypeColumns = useMemo(() => {
     return phenotypeAttrDescs.map(({ name, nameFriendly, description }) => {
-      const sortAsc = sortByKey(name, SortDirection.asc)
-      const sortDesc = sortByKey(name, SortDirection.desc)
+      const sortAsc = sortByPhenotypeValues(name, SortDirection.asc)
+      const sortDesc = sortByPhenotypeValues(name, SortDirection.desc)
       return (
         <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
@@ -227,7 +231,7 @@ export function ResultsTable() {
         </TableHeaderCell>
       )
     })
-  }, [phenotypeAttrDescs, dynamicPhenotypeColumnWidthPx, sortByKey])
+  }, [phenotypeAttrDescs, sortByPhenotypeValues, dynamicPhenotypeColumnWidthPx])
 
   const dynamicAaMotifsColumns = useMemo(() => {
     return aaMotifsDescs.map(({ name, nameFriendly, nameShort, description }) => {

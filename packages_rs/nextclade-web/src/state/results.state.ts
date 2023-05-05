@@ -6,7 +6,14 @@ import type { AaMotifsDesc, CsvColumnConfig, Gene, NextcladeResult, PhenotypeAtt
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
-import { SortCategory, SortDirection, sortMotifs, sortResults, sortResultsByKey } from 'src/helpers/sortResults'
+import {
+  SortCategory,
+  SortDirection,
+  sortMotifs,
+  sortResults,
+  sortCustomNodeAttribute,
+  sortPhenotypeValue,
+} from 'src/helpers/sortResults'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import {
   aaFilterAtom,
@@ -122,8 +129,11 @@ export const sortAnalysisResultsAtom = selectorFamily<undefined, { category: Sor
     },
 })
 
-export const sortAnalysisResultsByKeyAtom = selectorFamily<undefined, { key: string; direction: SortDirection }>({
-  key: 'sortAnalysisResultsByKey',
+export const sortAnalysisResultsByCustomNodeAttributesAtom = selectorFamily<
+  undefined,
+  { key: string; direction: SortDirection }
+>({
+  key: 'sortAnalysisResultsByCustomNodeAttributes',
 
   get: () => () => undefined,
 
@@ -134,7 +144,29 @@ export const sortAnalysisResultsByKeyAtom = selectorFamily<undefined, { key: str
 
       const resultsSorted = isDefaultValue(def)
         ? sortResults(results, { category: SortCategory.index, direction })
-        : sortResultsByKey(results, { key, direction })
+        : sortCustomNodeAttribute(results, { key, direction })
+
+      const seqIndicesSorted = resultsSorted.map((result) => result.index)
+      set(seqIndicesAtom, seqIndicesSorted)
+    },
+})
+
+export const sortAnalysisResultsByPhenotypeValuesAtom = selectorFamily<
+  undefined,
+  { key: string; direction: SortDirection }
+>({
+  key: 'sortAnalysisResultsByPhenotypeValues',
+
+  get: () => () => undefined,
+
+  set:
+    ({ key, direction }) =>
+    ({ get, set }, def: undefined | DefaultValue) => {
+      const results = get(analysisResultsAtom)
+
+      const resultsSorted = isDefaultValue(def)
+        ? sortResults(results, { category: SortCategory.index, direction })
+        : sortPhenotypeValue(results, { key, direction })
 
       const seqIndicesSorted = resultsSorted.map((result) => result.index)
       set(seqIndicesAtom, seqIndicesSorted)
