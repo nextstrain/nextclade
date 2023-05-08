@@ -195,7 +195,7 @@ impl CoordMap {
     let mut cds_to_aln_map = vec![];
     for segment in &cds.segments {
       let start = self.ref_to_aln_position(segment.start);
-      let end = self.ref_to_aln_position(segment.end);
+      let end = self.ref_to_aln_position(segment.end - 1) + 1;
       cds_to_aln_map.push(CdsToAln {
         global: (start..end).collect_vec(),
         start: cds_aln_seq.len(),
