@@ -96,8 +96,8 @@ export function useUpdatedDataset() {
       return undefined
     },
     {
-      refetchInterval: 5 * 1000, // 5 seconds
-      refetchIntervalInBackground: true,
+      refetchInterval: 60 * 60 * 1000, // 1 hour
+      refetchIntervalInBackground: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
       refetchOnWindowFocus: true,
