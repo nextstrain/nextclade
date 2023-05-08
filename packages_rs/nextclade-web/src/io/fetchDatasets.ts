@@ -61,6 +61,7 @@ export function useUpdatedDatasetIndex() {
       setDatasetsState(datasetsState)
     },
     {
+      staleTime: 0,
       refetchInterval: 12 * 60 * 60 * 1000, // 12 hours
       refetchIntervalInBackground: true,
       refetchOnMount: true,
@@ -96,6 +97,7 @@ export function useUpdatedDataset() {
       return undefined
     },
     {
+      staleTime: 0,
       refetchInterval: 60 * 60 * 1000, // 1 hour
       refetchIntervalInBackground: false,
       refetchOnMount: true,
