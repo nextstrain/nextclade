@@ -5,6 +5,7 @@ use crate::gene::cds::{Cds, CdsSegment};
 use crate::gene::gene::Gene;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
+use crate::io::json::json_parse;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
 use crate::utils::string::truncate_with_ellipsis;
@@ -15,6 +16,7 @@ use log::warn;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
@@ -22,15 +24,15 @@ use std::path::Path;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[must_use]
 pub struct GeneMap {
-  pub genes: Vec<Gene>,
+  pub genes: BTreeMap<String, Gene>,
 }
 
 impl GeneMap {
   pub fn new() -> Self {
-    Self::from_genes(vec![])
+    Self::from_genes(BTreeMap::<String, Gene>::new())
   }
 
-  pub fn from_genes(genes: Vec<Gene>) -> Self {
+  pub fn from_genes(genes: BTreeMap<String, Gene>) -> Self {
     Self { genes }
   }
 
@@ -81,45 +83,47 @@ impl GeneMap {
   }
 
   #[must_use]
-  pub fn contains_gene(&self, gene_name: &str) -> bool {
-    self.iter_genes().find(|gene| gene.name == gene_name).is_some()
-  }
-
-  #[must_use]
-  pub fn contains_cds(&self, cds_name: &str) -> bool {
-    self.iter_cdses().find(|gene| gene.name == cds_name).is_some()
+  pub fn contains(&self, gene_name: &str) -> bool {
+    self.genes.contains_key(gene_name)
   }
 
   pub fn get(&self, gene_name: &str) -> Result<&Gene, Report> {
     self
       .genes
-      .iter()
-      .find(|gene| gene.name == gene_name)
+      .get(gene_name)
       .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
   }
 
-  pub fn iter_genes(&self) -> impl Iterator<Item = &Gene> + '_ {
+  pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
     self.genes.iter()
   }
 
-  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = &mut Gene> + '_ {
+  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = (&String, &mut Gene)> + '_ {
     self.genes.iter_mut()
   }
 
-  pub fn into_iter_genes(self) -> impl Iterator<Item = Gene> {
+  pub fn into_iter_genes(self) -> impl Iterator<Item = (String, Gene)> {
     self.genes.into_iter()
   }
 
+  pub fn genes(&self) -> impl Iterator<Item = &Gene> + '_ {
+    self.genes.values()
+  }
+
   pub fn iter_cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
-    self.iter_genes().flat_map(|gene| gene.cdses.iter())
+    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
   }
 
   pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = &mut Cds> + '_ {
-    self.iter_genes_mut().flat_map(|gene| gene.cdses.iter_mut())
+    self.genes.iter_mut().flat_map(|(_, gene)| gene.cdses.iter_mut())
   }
 
   pub fn into_iter_cdses(self) -> impl Iterator<Item = Cds> {
-    self.into_iter_genes().flat_map(|gene| gene.cdses.into_iter())
+    self.genes.into_iter().flat_map(|(_, gene)| gene.cdses.into_iter())
+  }
+
+  pub fn cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
+    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
   }
 }
 
@@ -137,9 +141,9 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -
   match (gene_map, genes) {
     // Both gene map and list of genes are provided. Retain only requested genes.
     (Some(gene_map), Some(genes)) => {
-      let gene_map: Vec<Gene> = gene_map
+      let gene_map: BTreeMap<String, Gene> = gene_map
         .into_iter_genes()
-        .filter(|gene| genes.contains(&gene.name))
+        .filter(|(gene_name, ..)| genes.contains(gene_name))
         .collect();
 
       let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
@@ -171,10 +175,10 @@ pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -
   }
 }
 
-fn get_requested_genes_not_in_genemap(gene_map: &Vec<Gene>, genes: &[String]) -> String {
+fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: &[String]) -> String {
   genes
     .iter()
-    .filter(|&gene_name| gene_map.iter().find(|gene| &gene.name == gene_name).is_none())
+    .filter(|&gene_name| !gene_map.contains_key(gene_name))
     .join("`, `")
 }
 
@@ -192,20 +196,20 @@ pub fn gene_map_to_string(gene_map: &GeneMap) -> Result<String, Report> {
 pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Report> {
   let max_gene_name_len = gene_map
     .iter_genes()
-    .map(|gene| gene.name_and_type().len() + INDENT_WIDTH)
+    .map(|(_, gene)| gene.name_and_type().len() + INDENT_WIDTH)
     .max()
     .unwrap_or_default();
 
   let max_cds_name_len = gene_map
     .iter_genes()
-    .flat_map(|gene| &gene.cdses)
+    .flat_map(|(_, gene)| &gene.cdses)
     .map(|cds| cds.name_and_type().len() + INDENT_WIDTH * 2)
     .max()
     .unwrap_or_default();
 
   let max_cds_segment_name_len = gene_map
     .iter_genes()
-    .flat_map(|gene| &gene.cdses)
+    .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.segments)
     .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 3)
     .max()
@@ -213,7 +217,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   let max_protein_name_len = gene_map
     .iter_genes()
-    .flat_map(|gene| &gene.cdses)
+    .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .map(|protein| protein.name_and_type().len() + INDENT_WIDTH * 3)
     .max()
@@ -221,7 +225,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   let max_protein_segment_name_len = gene_map
     .iter_genes()
-    .flat_map(|gene| &gene.cdses)
+    .flat_map(|(_, gene)| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .flat_map(|protein| &protein.segments)
     .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 4)
@@ -247,9 +251,9 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     "Genome",
   )?;
 
-  for gene in gene_map
+  for (gene_name, gene) in gene_map
     .iter_genes()
-    .sorted_by_key(|gene| (gene.start, gene.end, &gene.name))
+    .sorted_by_key(|(_, gene)| (gene.start, gene.end, &gene.name))
   {
     write_gene(w, max_name_len, gene)?;
     for cds in &gene.cdses {

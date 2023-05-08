@@ -138,7 +138,7 @@ fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotif
 // Add query sequence fragment to motif
 fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotifMutation> {
   qry_translation
-    .iter_cdses()
+    .cdses()
     .find(|tr| tr.gene.name == motif.gene && tr.cds.name == motif.cds)
     .and_then(|tr| {
       let begin = motif.position;

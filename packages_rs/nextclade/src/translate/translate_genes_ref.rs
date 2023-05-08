@@ -15,7 +15,7 @@ pub fn translate_genes_ref(
 ) -> Result<Translation, Report> {
   let genes = gene_map
     .iter_genes()
-    .map(|gene| {
+    .map(|(gene_name, gene)| {
       let cdses = gene
         .cdses
         .iter()
@@ -24,27 +24,33 @@ pub fn translate_genes_ref(
           let tr = translate(&nucs, cds, params);
           let len = tr.seq.len();
 
-          CdsTranslation {
-            gene: gene.clone(),
-            cds: cds.clone(),
-            seq: tr.seq,
-            insertions: vec![],
-            frame_shifts: vec![],
-            alignment_ranges: vec![Range::new(0, len)],
-            ref_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
-            qry_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
-            coord_map_local: CoordMapLocal::new(&[]),
-          }
+          (
+            cds.name.clone(),
+            CdsTranslation {
+              gene: gene.clone(),
+              cds: cds.clone(),
+              seq: tr.seq,
+              insertions: vec![],
+              frame_shifts: vec![],
+              alignment_ranges: vec![Range::new(0, len)],
+              ref_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
+              qry_cds_map: CoordMapForCds::new(vec![], CoordMap::new(&[])), // dummy values
+              coord_map_local: CoordMapLocal::new(&[]),
+            },
+          )
         })
         .collect();
 
-      GeneTranslation {
-        gene: gene.clone(),
-        cdses,
-        warnings: vec![],
-      }
+      (
+        gene_name.clone(),
+        GeneTranslation {
+          gene: gene.clone(),
+          cdses,
+          warnings: vec![],
+        },
+      )
     })
     .collect();
 
-  Ok(Translation::from_genes(genes))
+  Ok(Translation { genes })
 }

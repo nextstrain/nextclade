@@ -37,21 +37,15 @@ pub fn find_private_aa_mutations(
 ) -> BTreeMap<String, PrivateAaMutations> {
   gene_map
     .iter_genes()
-    .filter_map(|gene| match node.tmp.aa_mutations.get(&gene.name) {
+    .filter_map(|(gene, _)| match node.tmp.aa_mutations.get(gene) {
       //node.tmp contains mutations accumulated from root
       None => None,
       Some(node_mut_map) => {
-        let ref_peptide = ref_peptides.get_cds(&gene.name).unwrap();
+        let ref_peptide = ref_peptides.get_cds(gene).unwrap();
 
-        let aa_substitutions = aa_substitutions
-          .iter()
-          .filter(|sub| sub.gene == gene.name)
-          .collect_vec();
-        let aa_deletions = aa_deletions.iter().filter(|del| del.gene == gene.name).collect_vec();
-        let aa_unknowns = aa_unknowns
-          .iter()
-          .filter(|unk| unk.gene_name == gene.name)
-          .collect_vec();
+        let aa_substitutions = aa_substitutions.iter().filter(|sub| &sub.gene == gene).collect_vec();
+        let aa_deletions = aa_deletions.iter().filter(|del| &del.gene == gene).collect_vec();
+        let aa_unknowns = aa_unknowns.iter().filter(|unk| &unk.gene_name == gene).collect_vec();
 
         let private_aa_mutations = find_private_aa_mutations_for_one_gene(
           node_mut_map,
@@ -61,7 +55,7 @@ pub fn find_private_aa_mutations(
           &ref_peptide.seq,
         );
 
-        Some((gene.name.clone(), private_aa_mutations))
+        Some((gene.clone(), private_aa_mutations))
       }
     })
     .collect()

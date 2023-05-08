@@ -16,7 +16,7 @@ pub fn get_gap_open_close_scores_codon_aware(
   params: &AlignPairwiseParams,
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
-  for gene in gene_map.iter_genes() {
+  for (_, gene) in gene_map.iter_genes() {
     for i in (gene.start..gene.end).step_by(3) {
       gap_open_close[i] = params.penalty_gap_open_in_frame;
       gap_open_close[i + 1] = params.penalty_gap_open_out_of_frame;

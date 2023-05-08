@@ -231,24 +231,20 @@ pub fn find_aa_changes(
   qry_translation: &Translation,
   global_alignment_range: &Range,
 ) -> Result<FindAaChangesOutput, Report> {
-  let mut changes = qry_translation
-    .iter_cdses()
-    .filter_map(|qry_cds_tr| {
-      // NOTE: this will silently ignore genes/cdses missing from query translations
-      let ref_cds_tr = ref_translation.get_cds(&qry_cds_tr.cds.name).ok();
-
-      ref_cds_tr.map(|ref_cds_tr| {
-        find_aa_changes_for_cds(
-          &qry_cds_tr.cds,
-          qry_seq,
-          ref_seq,
-          &ref_cds_tr.seq,
-          &qry_cds_tr.seq,
-          &qry_cds_tr.alignment_ranges,
-          &qry_cds_tr.qry_cds_map,
-          global_alignment_range,
-        )
-      })
+  let mut changes = izip!(qry_translation.iter_cdses(), ref_translation.iter_cdses())
+    .map(|((qry_name, qry_cds_tr), (ref_name, ref_cds_tr))| {
+      assert_eq!(qry_cds_tr.cds.name, ref_cds_tr.cds.name);
+      assert_eq!(qry_cds_tr.gene.name, ref_cds_tr.gene.name);
+      find_aa_changes_for_cds(
+        &qry_cds_tr.cds,
+        qry_seq,
+        ref_seq,
+        &ref_cds_tr.seq,
+        &qry_cds_tr.seq,
+        &qry_cds_tr.alignment_ranges,
+        &qry_cds_tr.qry_cds_map,
+        global_alignment_range,
+      )
     })
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
       output.aa_substitutions.extend(changes.aa_substitutions);

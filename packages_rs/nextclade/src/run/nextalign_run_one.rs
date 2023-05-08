@@ -39,11 +39,14 @@ pub fn nextalign_run_one(
 
       let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
-      let present_genes: HashSet<String> = translation.iter_cdses().map(|cds_tr| cds_tr.cds.name.clone()).collect();
+      let present_genes: HashSet<String> = translation
+        .iter_genes()
+        .flat_map(|(_, gene_tr)| gene_tr.cdses.iter().map(|(_, cds_tr)| cds_tr.cds.name.clone()))
+        .collect();
 
       let missing_genes = gene_map
         .iter_genes()
-        .filter_map(|gene| (!present_genes.contains(&gene.name)).then_some(&gene.name))
+        .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then_some(gene_name))
         .cloned()
         .collect_vec();
 
@@ -52,7 +55,7 @@ pub fn nextalign_run_one(
       let warnings = {
         let mut warnings = translation
           .iter_genes()
-          .flat_map(|gene_tr| gene_tr.warnings.clone())
+          .flat_map(|(_, gene_tr)| gene_tr.warnings.clone())
           .collect_vec();
 
         if is_reverse_complement {

@@ -61,7 +61,7 @@ impl<'a> NextalignOrderedWriter<'a> {
       fasta_writer.write(seq_name, seq, false)?;
     }
 
-    ref_translation.iter_cdses().try_for_each(|cds_tr| {
+    ref_translation.cdses().try_for_each(|cds_tr| {
       if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
         fasta_peptide_writer.write(seq_name, cds_tr)?;
       }
@@ -97,7 +97,7 @@ impl<'a> NextalignOrderedWriter<'a> {
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-          for translation in translation.iter_cdses() {
+          for translation in translation.cdses() {
             fasta_peptide_writer.write(seq_name, translation)?;
           }
         }
