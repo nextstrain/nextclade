@@ -160,30 +160,35 @@ impl Cds {
 fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment>, Report> {
   let mut linear_segments = vec![];
   for segment in segments {
-    if segment.landmark.is_circular {
-      validate_segment_bounds(segment, true)?;
+    if let Some(landmark) = &segment.landmark {
+      if landmark.is_circular {
+        validate_segment_bounds(segment, true)?;
 
-      let landmark_start = segment.landmark.start;
-      let landmark_end = segment.landmark.end;
+        let landmark_start = landmark.start;
+        let landmark_end = landmark.end;
 
-      let mut segment_end = segment.end;
-      linear_segments.push({
-        let mut segment = segment.clone();
-        segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
-        validate_segment_bounds(&segment, false)?;
-        segment
-      });
-
-      while segment_end > landmark_end {
-        segment_end = segment_end % landmark_end;
-
+        let mut segment_end = segment.end;
         linear_segments.push({
           let mut segment = segment.clone();
-          segment.start = landmark_start; // Chop the underflowing part (before landmark)
           segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
           validate_segment_bounds(&segment, false)?;
           segment
         });
+
+        while segment_end > landmark_end {
+          segment_end = segment_end % landmark_end;
+
+          linear_segments.push({
+            let mut segment = segment.clone();
+            segment.start = landmark_start; // Chop the underflowing part (before landmark)
+            segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+            validate_segment_bounds(&segment, false)?;
+            segment
+          });
+        }
+      } else {
+        validate_segment_bounds(segment, false)?;
+        linear_segments.push(segment.clone());
       }
     } else {
       validate_segment_bounds(segment, false)?;
@@ -204,27 +209,29 @@ fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result
     );
   }
 
-  let landmark_start = segment.landmark.start;
-  let landmark_end = segment.landmark.end;
+  if let Some(landmark) = &segment.landmark {
+    let landmark_start = landmark.start;
+    let landmark_end = landmark.end;
 
-  if segment.start < landmark_start {
-    return make_error!(
+    if segment.start < landmark_start {
+      return make_error!(
       "Gene map is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}",
       segment.name,
       segment.start + 1,
       landmark_start + 1,
       landmark_end + 1,
     );
-  }
+    }
 
-  if !allow_overflow && segment.end > landmark_end {
-    return make_error!(
+    if !allow_overflow && segment.end > landmark_end {
+      return make_error!(
       "Gene map is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}",
       segment.name,
       segment.end + 1,
       landmark_start + 1,
       landmark_end + 1,
     );
+    }
   }
 
   Ok(())
@@ -251,7 +258,7 @@ pub struct CdsSegment {
   pub name: String,
   pub start: usize,
   pub end: usize,
-  pub landmark: Landmark,
+  pub landmark: Option<Landmark>,
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,

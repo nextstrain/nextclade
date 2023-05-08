@@ -205,6 +205,8 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
 fn process_circular_features(features: &mut [Feature]) -> Result<(), Report> {
   let features2 = features.to_owned(); // TODO(perf): avoid copy
 
+  let has_circular = features.iter().any(|feature| feature.is_circular);
+
   features.iter_mut().try_for_each(|feature| {
       // Find the landmark feature for this feature. Landmark feature is a feature used to establish the coordinate
       // system for the current feature. The ID of the landmark feature is contained in the 'seqid' column of each
@@ -219,15 +221,13 @@ fn process_circular_features(features: &mut [Feature]) -> Result<(), Report> {
         }
       });
 
-    match landmark {
-      None => make_error!("Gene map is invalid: In genomic feature '{}': The column 'seqid' (column 0) refers to feature '{}', but the feature with such 'ID' attribute is not found. Make sure that the column 'seqid' (column 0) contains an 'ID' of the landmark feature and that this feature exists.", feature.name, feature.seqid),
-      Some(landmark) => {
-        // If the landmark is circular, the features anchored on it can wrap around the end of its range.
-        // To indicate that, we mark each feature with an optional attribute to facilitate computations later.
-        feature.landmark = Landmark::from_feature(landmark);
-        Ok(())
-      }
+    if has_circular && landmark.is_none() {
+      return make_error!("Gene map is invalid: There are circular features in the genome, and this requires a landmark feature to be present. However, in genomic feature '{}', the column 'seqid' (column 0) refers to feature '{}', but the feature with such 'ID' attribute is not found. Make sure that the column 'seqid' (column 0) contains an 'ID' of the landmark feature and that this feature exists.", feature.name, feature.seqid)
     }
+
+    feature.landmark = landmark.map(Landmark::from_feature);
+
+    Ok(())
   })
 }
 
