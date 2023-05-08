@@ -36,7 +36,7 @@ import { ThemeProvider } from 'styled-components'
 import { Provider as ReactReduxProvider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { QueryClient, QueryClientConfig, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
@@ -174,8 +174,12 @@ export function RecoilStateInitializer() {
 
 const mdxComponents = { a: LinkExternal }
 
+const REACT_QUERY_OPTIONS: QueryClientConfig = {
+  defaultOptions: { queries: { suspense: true, retry: 1 } },
+}
+
 export function MyApp({ Component, pageProps, router }: AppProps) {
-  const queryClient = useMemo(() => new QueryClient(), [])
+  const queryClient = useMemo(() => new QueryClient(REACT_QUERY_OPTIONS), [])
   const { store } = useMemo(() => configureStore(), [])
   const fallback = useMemo(() => <Loading />, [])
 
