@@ -15,11 +15,11 @@ use std::io::Read;
 
 /// Possible keys for name attribute (in order of preference!)
 pub const NAME_ATTRS: &[&str] = &[
-  "Name",
-  "name",
   "Gene",
   "gene",
   "gene_name",
+  "Name",
+  "name",
   "locus_tag",
   "Alias",
   "alias",
