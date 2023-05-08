@@ -23,9 +23,7 @@ fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap
     );
   }
 
-  Ok(GeneMap::from_genes(
-    genes.into_iter().map(|gene| (gene.name.clone(), gene)).collect(),
-  ))
+  Ok(GeneMap::from_genes(genes))
 }
 
 fn find_genes(feature_groups: &[FeatureGroup]) -> Result<Vec<Gene>, Report> {

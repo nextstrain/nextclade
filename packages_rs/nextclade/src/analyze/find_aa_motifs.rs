@@ -59,7 +59,7 @@ fn process_one_aa_motifs_desc(
   // If no genes specified, process all genes
   let include_genes = if include_genes.is_empty() {
     translation
-      .cdses()
+      .iter_cdses()
       .map(|translation| CountAaMotifsGeneDesc {
         gene: translation.cds.name.clone(),
         ranges: vec![],
@@ -73,7 +73,7 @@ fn process_one_aa_motifs_desc(
     .iter()
     .flat_map(|CountAaMotifsGeneDesc { gene, ranges }| {
       translation
-        .cdses()
+        .iter_cdses()
         .filter(|CdsTranslation { cds, .. }| &cds.name == gene)
         .flat_map(|translation| process_one_translation(translation, name, motifs, ranges))
         .collect_vec()

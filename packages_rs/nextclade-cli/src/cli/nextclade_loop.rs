@@ -132,11 +132,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let ref_translation =
     &translate_genes_ref(ref_seq, gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
-  let ref_cds_translations = ref_translation
-    .genes()
-    .flat_map(|gene| gene.cdses.values())
-    .cloned()
-    .collect_vec();
+  let ref_cds_translations = ref_translation.iter_cdses().cloned().collect_vec();
 
   let aa_motifs_ref = &find_aa_motifs(&virus_properties.aa_motifs, ref_translation)?;
 

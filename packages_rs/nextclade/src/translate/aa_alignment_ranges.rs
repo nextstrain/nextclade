@@ -13,7 +13,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
   coord_map: &CoordMap,
   translation: &mut Translation,
 ) -> Result<(), Report> {
-  translation.iter_cdses_mut().try_for_each(|(_, cds_tr)| {
+  translation.iter_cdses_mut().try_for_each(|cds_tr| {
     let aa_alignment_ranges = cds_tr
       .cds
       .segments

@@ -118,7 +118,7 @@ fn map_aa_muts(
   parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
 ) -> Result<BTreeMap<String, BTreeMap<usize, Aa>>, Report> {
   ref_translation
-    .cdses()
+    .iter_cdses()
     //We iterate over all genes that we have ref_peptides for
     .map(|ref_cds_tr| match parent_aa_muts.get(&ref_cds_tr.cds.name) {
       Some(aa_muts) => (

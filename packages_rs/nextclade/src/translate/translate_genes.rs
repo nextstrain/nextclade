@@ -19,7 +19,6 @@ use crate::utils::error::report_to_string;
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
-use indexmap::IndexMap;
 use itertools::Itertools;
 use num_traits::clamp_max;
 use rayon::iter::Either;
@@ -28,13 +27,21 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Translation {
-  pub genes: IndexMap<String, GeneTranslation>,
+  genes: Vec<GeneTranslation>,
 }
 
 impl Translation {
+  pub fn new() -> Self {
+    Self::from_genes(vec![])
+  }
+
+  pub fn from_genes(genes: Vec<GeneTranslation>) -> Self {
+    Self { genes }
+  }
+
   pub fn get_gene<S: AsRef<str>>(&self, gene_name: S) -> Result<&GeneTranslation, Report> {
     let gene_name = gene_name.as_ref();
-    self.genes.get(gene_name).ok_or_else(|| {
+    self.genes.iter().find(|tr| tr.gene.name == gene_name).ok_or_else(|| {
       make_internal_report!("When looking up a gene translation: gene '{gene_name}' is expected, but not found")
     })
   }
@@ -44,7 +51,7 @@ impl Translation {
     self
       .genes
       .iter()
-      .find_map(|(_, gene)| gene.cdses.get(cds_name))
+      .find_map(|gene| gene.cdses.iter().find(|cds| cds.cds.name == cds_name))
       .ok_or_else(|| {
         make_internal_report!("When looking up a CDS translation: CDS '{cds_name}' is expected, but not found")
       })
@@ -61,40 +68,45 @@ impl Translation {
   }
 
   #[must_use]
-  pub fn contains(&self, gene_name: &str) -> bool {
-    self.genes.contains_key(gene_name)
+  pub fn contains_gene(&self, gene_name: &str) -> bool {
+    self.iter_genes().any(|gene| gene.gene.name == gene_name)
   }
 
-  pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &GeneTranslation)> + '_ {
+  #[must_use]
+  pub fn contains_cds(&self, cds_name: &str) -> bool {
+    self.iter_cdses().any(|gene| gene.gene.name == cds_name)
+  }
+
+  pub fn get(&self, gene_name: &str) -> Result<&GeneTranslation, Report> {
+    self
+      .genes
+      .iter()
+      .find(|gene| gene.gene.name == gene_name)
+      .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
+  }
+
+  pub fn iter_genes(&self) -> impl Iterator<Item = &GeneTranslation> + '_ {
     self.genes.iter()
   }
 
-  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = (&String, &mut GeneTranslation)> + '_ {
+  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = &mut GeneTranslation> + '_ {
     self.genes.iter_mut()
   }
 
-  pub fn into_iter_genes(self) -> impl Iterator<Item = (String, GeneTranslation)> {
+  pub fn into_iter_genes(self) -> impl Iterator<Item = GeneTranslation> {
     self.genes.into_iter()
   }
 
-  pub fn genes(&self) -> impl Iterator<Item = &GeneTranslation> + '_ {
-    self.genes.values()
+  pub fn iter_cdses(&self) -> impl Iterator<Item = &CdsTranslation> + '_ {
+    self.iter_genes().flat_map(|gene| gene.cdses.iter())
   }
 
-  pub fn iter_cdses(&self) -> impl Iterator<Item = (&String, &CdsTranslation)> + '_ {
-    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+  pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = &mut CdsTranslation> + '_ {
+    self.iter_genes_mut().flat_map(|gene| gene.cdses.iter_mut())
   }
 
-  pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = (&String, &mut CdsTranslation)> + '_ {
-    self.genes.iter_mut().flat_map(|(_, gene)| gene.cdses.iter_mut())
-  }
-
-  pub fn into_iter_cdses(self) -> impl Iterator<Item = (String, CdsTranslation)> {
-    self.genes.into_iter().flat_map(|(_, gene)| gene.cdses.into_iter())
-  }
-
-  pub fn cdses(&self) -> impl Iterator<Item = &CdsTranslation> + '_ {
-    self.genes.iter().flat_map(|(_, gene)| gene.cdses.values())
+  pub fn into_iter_cdses(self) -> impl Iterator<Item = CdsTranslation> {
+    self.into_iter_genes().flat_map(|gene| gene.cdses.into_iter())
   }
 }
 
@@ -102,14 +114,14 @@ impl Translation {
 #[serde(rename_all = "camelCase")]
 pub struct GeneTranslation {
   pub gene: Gene,
-  pub cdses: IndexMap<String, CdsTranslation>,
+  pub cdses: Vec<CdsTranslation>,
   pub warnings: Vec<PeptideWarning>,
 }
 
 impl GeneTranslation {
   pub fn get_cds<S: AsRef<str>>(&self, cds_name: S) -> Result<&CdsTranslation, Report> {
     let cds_name = cds_name.as_ref();
-    self.cdses.get(cds_name).ok_or_else(|| {
+    self.cdses.iter().find(|cds| cds.cds.name == cds_name).ok_or_else(|| {
       make_internal_report!(
         "When looking up a CDS translation: CDS '{cds_name}' in gene '{}' is expected, but not found",
         self.gene.name
@@ -314,44 +326,40 @@ pub fn translate_genes(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
-  let genes: IndexMap<String, GeneTranslation> = gene_map
+  let genes = gene_map
     .iter_genes()
-    .map(|(gene_name, gene)| {
+    .map(|gene| {
       let ref_gene_translation = ref_peptides.get_gene(&gene.name)?;
 
-      let (cdses, warnings): (IndexMap<String, CdsTranslation>, Vec<PeptideWarning>) =
-        gene.cdses.iter().partition_map(|cds| {
-          let ref_cds_translation = ref_gene_translation.get_cds(&cds.name).unwrap();
+      let (cdses, warnings): (Vec<CdsTranslation>, Vec<PeptideWarning>) = gene.cdses.iter().partition_map(|cds| {
+        let ref_cds_translation = ref_gene_translation.get_cds(&cds.name).unwrap();
 
-          // Treat translation errors as warnings
-          match translate_cds(
-            qry_seq,
-            ref_seq,
-            gene,
-            cds,
-            ref_cds_translation,
-            gap_open_close_aa,
-            coord_map,
-            params,
-          ) {
-            Ok(translation) => Either::Left((cds.name.clone(), translation)),
-            Err(report) => Either::Right(PeptideWarning {
-              gene_name: cds.name.clone(),
-              warning: report_to_string(&report),
-            }),
-          }
-        });
+        // Treat translation errors as warnings
+        match translate_cds(
+          qry_seq,
+          ref_seq,
+          gene,
+          cds,
+          ref_cds_translation,
+          gap_open_close_aa,
+          coord_map,
+          params,
+        ) {
+          Ok(translation) => Either::Left(translation),
+          Err(report) => Either::Right(PeptideWarning {
+            gene_name: cds.name.clone(),
+            warning: report_to_string(&report),
+          }),
+        }
+      });
 
-      Ok((
-        gene_name.clone(),
-        GeneTranslation {
-          gene: gene.clone(),
-          cdses,
-          warnings,
-        },
-      ))
+      Ok(GeneTranslation {
+        gene: gene.clone(),
+        cdses,
+        warnings,
+      })
     })
-    .collect::<Result<IndexMap<String, GeneTranslation>, Report>>()?;
+    .collect::<Result<Vec<GeneTranslation>, Report>>()?;
 
   Ok(Translation { genes })
 }

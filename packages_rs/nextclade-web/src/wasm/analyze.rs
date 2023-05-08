@@ -233,7 +233,7 @@ impl Nextclade {
   #[inline]
   pub fn get_initial_data(&self) -> Result<AnalysisInitialData, Report> {
     Ok(AnalysisInitialData {
-      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.genes().cloned().collect())?,
+      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.iter_genes().cloned().collect())?,
       genome_size: self.ref_seq.len(),
       clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
       phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,

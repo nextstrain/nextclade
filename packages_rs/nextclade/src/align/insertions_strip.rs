@@ -134,9 +134,9 @@ impl PartialOrd for AaIns {
 pub fn get_aa_insertions(translation: &Translation) -> Vec<AaIns> {
   translation
     .iter_cdses()
-    .flat_map(|(cds_name, cds_tr)| {
+    .flat_map(|cds_tr| {
       cds_tr.insertions.iter().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene: cds_name.clone(),
+        gene: cds_tr.cds.name.clone(),
         pos: *pos,
         ins: ins.clone(),
       })
