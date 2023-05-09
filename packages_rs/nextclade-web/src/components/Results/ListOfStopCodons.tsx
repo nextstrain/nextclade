@@ -27,10 +27,10 @@ export function ListOfStopCodons({ stopCodons }: ListOfStopCodonsProps) {
 
   return (
     <>
-      <h6>{t('Unexpected premature stop codons ({{n}})', { n: stopCodons.totalStopCodons })}</h6>
+      <h6>{t('Unexpected premature stop codons ({{ n }})', { n: stopCodons.totalStopCodons })}</h6>
       <StopCodonsItems stopCodons={stopCodons.stopCodons} />
 
-      <h6>{t('Known premature stop codons ({{n}})', { n: stopCodons.totalStopCodonsIgnored })}</h6>
+      <h6>{t('Known premature stop codons ({{ n }})', { n: stopCodons.totalStopCodonsIgnored })}</h6>
       <StopCodonsItems stopCodons={stopCodons.stopCodonsIgnored} />
     </>
   )

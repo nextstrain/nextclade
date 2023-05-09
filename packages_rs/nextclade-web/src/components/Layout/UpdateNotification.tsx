@@ -79,20 +79,18 @@ export function UpdateNotification() {
         <ToastBody>
           <Row noGutters>
             <Col>
-              <p className="my-1 ">
-                {t('A new version of {{nextclade}} is available:', { nextclade: 'Nextclade Web' })}
-              </p>
+              <p className="my-1 ">{t('A new version of Nextclade Web is available:')}</p>
               <p className="my-1 font-weight-bold">
                 {/* eslint-disable-next-line only-ascii/only-ascii */}
                 <span>{`${PACKAGE_VERSION} ⟶ ${version}`}</span>
-                {' ('}
+                <span>{' ('}</span>
                 <LinkExternal
                   href="https://github.com/nextstrain/nextclade/blob/release/CHANGELOG.md"
                   title={t('Open changelog to see what has changed in the new version.')}
                 >
-                  {"What's new?"}
+                  {t("What's new?")}
                 </LinkExternal>
-                {')'}
+                <span>{')'}</span>
               </p>
               <p className="my-1">
                 {t('Click "Update" button or refresh the page any time to get the latest updates.')}
@@ -101,13 +99,15 @@ export function UpdateNotification() {
           </Row>
 
           <Row noGutters className="w-100 d-flex">
-            <Col className="flex-grow-0 ml-auto d-flex flex-row">
-              <Button className="mx-1" color="link" onClick={dismiss} title={dismissText}>
-                {t('Later')}
-              </Button>
-              <Button className="mx-1" color="primary" onClick={reload} title={reloadText}>
-                {t('Update')}
-              </Button>
+            <Col className="w-100 d-flex">
+              <div className="ml-auto">
+                <Button className="mx-1" color="link" onClick={dismiss} title={dismissText}>
+                  {t('Later')}
+                </Button>
+                <Button className="mx-1" color="primary" onClick={reload} title={reloadText}>
+                  {t('Update')}
+                </Button>
+              </div>
             </Col>
           </Row>
         </ToastBody>
@@ -122,7 +122,7 @@ const UpdateNotificationWrapper = styled.div`
   position: absolute;
   right: 1rem;
   top: 50px;
-  z-index: 9999;
+  z-index: 999;
   padding: 0;
   margin: 0;
   min-width: ${TOAST_WIDTH};
