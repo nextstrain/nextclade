@@ -325,5 +325,9 @@
   "We tried to download the file from": "からファイルをダウンロードしようとしました",
   "What's new": "新着情報",
   "you are connected to the internet": "インターネットに接続している",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "開発者に報告するには、以下の場所でリクエスト (いわゆる {{issue}}) を作成します。 "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "開発者に報告するには、以下の場所でリクエスト (いわゆる {{issue}}) を作成します。 ",
+  "A new version of this dataset is available.": "このデータセットの新しいバージョンが公開されました。",
+  "Accept the updated dataset": "更新されたデータセットを承認",
+  "Update": "[更新]",
+  "What's new?": "何が新しいの？"
 }

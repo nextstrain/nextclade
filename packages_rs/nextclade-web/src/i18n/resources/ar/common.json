@@ -325,5 +325,9 @@
   "We tried to download the file from": "حاولنا تنزيل الملف من",
   "What's new": "ما الجديد",
   "you are connected to the internet": "أنت متصل بالإنترنت",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "يمكنك الإبلاغ عن ذلك للمطورين عن طريق إنشاء طلب (يسمى {{issue}}) على: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "يمكنك الإبلاغ عن ذلك للمطورين عن طريق إنشاء طلب (يسمى {{issue}}) على: ",
+  "A new version of this dataset is available.": "يتوفر إصدار جديد من مجموعة البيانات هذه.",
+  "Accept the updated dataset": "اقبل مجموعة البيانات المحدثة",
+  "Update": "تحديث",
+  "What's new?": "ما الجديد؟"
 }

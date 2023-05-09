@@ -325,5 +325,9 @@
   "We tried to download the file from": "에서 파일을 다운로드하려고 했습니다.",
   "What's new": "새 소식",
   "you are connected to the internet": "인터넷에 연결되어 있습니다.",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "다음 주소에서 요청 (소위 {{issue}}) 을 생성하여 개발자에게 신고할 수 있습니다. "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "다음 주소에서 요청 (소위 {{issue}}) 을 생성하여 개발자에게 신고할 수 있습니다. ",
+  "A new version of this dataset is available.": "이 데이터세트의 새 버전을 사용할 수 있습니다.",
+  "Accept the updated dataset": "업데이트된 데이터세트 수락",
+  "Update": "업데이트",
+  "What's new?": "무엇이 새로워졌나요?"
 }

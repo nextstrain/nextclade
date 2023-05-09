@@ -325,5 +325,9 @@
   "We tried to download the file from": "ما سعی کردیم فایل را از",
   "What's new": "تازه چه خبر",
   "you are connected to the internet": "شما به اینترنت متصل",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "شما می توانید آن را به توسعه دهندگان با ایجاد یک درخواست (به اصطلاح {{issue}}) در: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "شما می توانید آن را به توسعه دهندگان با ایجاد یک درخواست (به اصطلاح {{issue}}) در: ",
+  "A new version of this dataset is available.": "نسخه جدیدی از این مجموعه داده در دسترس است.",
+  "Accept the updated dataset": "مجموعه داده به روز شده را بپذیرید",
+  "Update": "به روز رسانی",
+  "What's new?": "تازه چه خبر؟"
 }

@@ -325,5 +325,9 @@
   "We tried to download the file from": "Nous avons essayé de télécharger le fichier depuis",
   "What's new": "Nouveautés",
   "you are connected to the internet": "vous êtes connecté à Internet",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Vous pouvez le signaler aux développeurs en créant une demande (appelée « requête » {{issue}}) à l'adresse suivante : "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Vous pouvez le signaler aux développeurs en créant une demande (appelée « requête » {{issue}}) à l'adresse suivante : ",
+  "A new version of this dataset is available.": "Une nouvelle version de ce jeu de données est disponible.",
+  "Accept the updated dataset": "Accepter le jeu de données mis à jour",
+  "Update": "Mettre à jour",
+  "What's new?": "Qu'y a-t-il de nouveau ?"
 }

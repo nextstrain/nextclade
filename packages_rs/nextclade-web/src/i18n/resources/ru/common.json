@@ -325,5 +325,9 @@
   "We tried to download the file from": "Мы попытались загрузить файл с",
   "What's new": "Что нового",
   "you are connected to the internet": "вы подключены к Интернету",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Вы можете сообщить об этом разработчикам, создав запрос (так называемый {{issue}}) по адресу: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Вы можете сообщить об этом разработчикам, создав запрос (так называемый {{issue}}) по адресу: ",
+  "A new version of this dataset is available.": "Доступна новая версия этого набора данных.",
+  "Accept the updated dataset": "Примите обновленный набор данных",
+  "Update": "Обновить",
+  "What's new?": "Что нового?"
 }

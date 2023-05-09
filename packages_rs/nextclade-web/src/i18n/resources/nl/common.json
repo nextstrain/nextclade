@@ -325,5 +325,9 @@
   "We tried to download the file from": "We hebben geprobeerd het bestand te downloaden van",
   "What's new": "Wat is er nieuw",
   "you are connected to the internet": "je bent verbonden met het internet",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Je kunt dit aan ontwikkelaars melden door een verzoek in te dienen (zogenaamd {{issue}}) op: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "Je kunt dit aan ontwikkelaars melden door een verzoek in te dienen (zogenaamd {{issue}}) op: ",
+  "A new version of this dataset is available.": "Er is een nieuwe versie van deze dataset beschikbaar.",
+  "Accept the updated dataset": "Accepteer de bijgewerkte dataset",
+  "Update": "Bijwerken",
+  "What's new?": "Wat is er nieuw?"
 }

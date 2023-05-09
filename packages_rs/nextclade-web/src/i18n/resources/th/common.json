@@ -325,5 +325,9 @@
   "We tried to download the file from": "เราพยายามดาวน์โหลดไฟล์จาก",
   "What's new": "มีอะไรใหม่",
   "you are connected to the internet": "คุณเชื่อมต่อกับอินเทอร์เน็ต",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "คุณสามารถรายงานไปยังนักพัฒนาโดยการสร้างคำขอ (เรียกว่า {{issue}}) ที่: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "คุณสามารถรายงานไปยังนักพัฒนาโดยการสร้างคำขอ (เรียกว่า {{issue}}) ที่: ",
+  "A new version of this dataset is available.": "รุ่นใหม่ของชุดข้อมูลนี้สามารถใช้ได้",
+  "Accept the updated dataset": "ยอมรับชุดข้อมูลที่ปรับปรุง",
+  "Update": "อัพเดท",
+  "What's new?": "มีอะไรใหม่"
 }

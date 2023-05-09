@@ -325,5 +325,9 @@
   "We tried to download the file from": "हमने फ़ाइल को यहां से डाउनलोड करने की कोशिश की",
   "What's new": "नया क्या है",
   "you are connected to the internet": "आप इंटरनेट से जुड़े हैं",
-  "You can report it to developers by creating a request (so called {{issue}}) at: ": "आप यहां अनुरोध (तथाकथित {{issue}}) बनाकर डेवलपर्स को इसकी रिपोर्ट कर सकते हैं: "
+  "You can report it to developers by creating a request (so called {{issue}}) at: ": "आप यहां अनुरोध (तथाकथित {{issue}}) बनाकर डेवलपर्स को इसकी रिपोर्ट कर सकते हैं: ",
+  "A new version of this dataset is available.": "इस डेटासेट का नया संस्करण उपलब्ध है।",
+  "Accept the updated dataset": "अपडेट किए गए डेटासेट को स्वीकार करें",
+  "Update": "अपडेट",
+  "What's new?": "नया क्या है?"
 }
