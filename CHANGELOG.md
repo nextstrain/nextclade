@@ -1,3 +1,51 @@
+## Nextclade Web 2.14.0, Nextclade CLI 2.14.0 (2023-05-09)
+
+### Algorithm: add masked sites for distance calculation
+
+TODO
+
+
+### Avoid stale software and dataset versions in Nextclade Web
+
+It was widely reported that users with long-persisting browser tabs and also users who don't switch datasets often, receive incorrect Pango lineage assignments or otherwise miss on important features.
+
+Nextclade Web is a fully client-side, single-page application, which once it downloads its own program code and once it downloads a list of available datasets, just keeps running and using the same version of software code and of datasets. Thus, without periodic page refresh and without periodic fetching of new dataset versions, users can run old code and use old data indefinitely, receiving obsolete or incomplete results.
+
+In order to mitigate this problem, in this version we add periodic background version checks in Nextclade Web. Once in a while Nextclade Web will check whether the currently used version of software is the latest, as well as periodically refresh the list of available datasets and their versions. Whenever a new version of software or of a dataset is available, user will receive an update notification. The update can be accepted or dismissed (until the next version is available). Additionally, one can always obtain the latest code and datasets by refreshing the page in the browser.
+
+Nextclade is a fast-moving project, where new features and bug fixes are added frequently. We emphasize importance of using the latest versions of both, software and datasets, to receive the most accurate and up-to-date results.
+
+
+### Sort empty values in the results table in Nextclade Web
+
+Nextclade Web previously did not change position of empty cells when sorting a column in the results table, which might be confusing. Now the empty values are sorted lexicographically as if they were empty strings.
+
+
+### Improve and localize citation dialog in Nextclade Web
+
+"Citation" dialog is now more readable and is translated to multiple languages.
+
+
+### Fix localization in Nextclade Web
+
+We added missing translations for some of the sentences in Nextclade Web.
+
+
+### Update text on main page of Nextclade Web
+
+We made the intro text on main page of Nextclade Web more relevant.
+
+
+### Internal changes:
+
+- Prevent duplicated GitHub action runs in pull requests
+- Remove Red Hat 7 from tested Linux distros
+- Fix Debian repositories in CI builds for aarch64-unknown-linux-gnu architecture
+- Update master branch of the fork before making bioconda PR branch
+- Extend dev documentation
+
+
+
 ## Nextclade CLI 2.13.1 (2023-03-28)
 
 ### Lower verbosity level of translation-related warnings in Nextclade CLI
