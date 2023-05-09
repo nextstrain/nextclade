@@ -1,22 +1,8 @@
 import React from 'react'
-
-import { MDXProvider } from '@mdx-js/react'
-import { Col, Container as ContainerBase, Row } from 'reactstrap'
+import { Col, Container, Row } from 'reactstrap'
 import styled from 'styled-components'
-
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-
-import CitationMd from './CitationContent.md'
-
-export const Container = styled(ContainerBase)``
-
-export const Paragraph = styled.p`
-  margin-bottom: 0;
-`
-
-export const Ul = styled.ul`
-  padding: 1rem;
-`
 
 export const Blockquote = styled.blockquote`
   margin-bottom: 0.33rem;
@@ -33,21 +19,36 @@ export const Blockquote = styled.blockquote`
   }
 `
 
-const components = {
-  a: LinkExternal,
-  p: Paragraph,
-  ul: Ul,
-  blockquote: Blockquote,
-}
-
 export function Citation() {
+  const { t } = useTranslationSafe()
+
   return (
     <Container>
       <Row noGutters>
         <Col>
-          <MDXProvider components={components}>
-            <CitationMd />
-          </MDXProvider>
+          <p className="mb-1">
+            {t('If you use results obtained with Nextclade in a publication, please add citation to our paper:')}
+          </p>
+
+          <Blockquote>
+            {'Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). ' +
+              'Nextclade: clade assignment, mutation calling and quality control for viral genomes. ' +
+              'Journal of Open Source Software, 6(67), 3773, '}
+            <LinkExternal href="https://doi.org/10.21105/joss.03773">
+              {'https://doi.org/10.21105/joss.03773'}
+            </LinkExternal>
+          </Blockquote>
+
+          <p className="mt-3 mb-1">
+            {t('Download bibtex fragment: ')}
+            <LinkExternal href="/citation.bib" download>
+              {'citation.bib'}
+            </LinkExternal>
+          </p>
+
+          <p className="mt-3 mb-1">{t('Where possible, please additionally provide a link to Nextclade Web:')}</p>
+
+          <Blockquote>{'https://clades.nextstrain.org'}</Blockquote>
         </Col>
       </Row>
     </Container>
