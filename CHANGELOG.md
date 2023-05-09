@@ -1,56 +1,48 @@
 ## Nextclade Web 2.14.0, Nextclade CLI 2.14.0 (2023-05-09)
 
-### Algorithm: add masked sites for distance calculation
+### Algorithm & Datasets: enable masked sites for distance calculation
 
-For some viruses, genome sequencing is unreliable in specific parts of the genome or some regions should be ignored for other reasons when calculating distances between nodes in the reference tree and query sequences.
+For some viruses, genome sequencing is unreliable in specific parts of the genome or some regions should be ignored for other reasons when calculating distances between nodes for the purpose of placing query sequences on the reference tree. These distances are used to find the optimal (smallest distance) placement of the query sequence on the reference tree and sequence errors in these regions can lead to wrong placement.
 
-These distances are used to find the optimal (smallest distance) placement of the query sequence on the reference tree and sequence errors in these regions can lead to wrong placement.
+Until now, to place query sequences on the reference tree, Nextclade counted all nucleotide differences between query and reference sequence. Moving forward, sequence regions to be ignored for reference tree placement can be defined in datasets' `virus_properties.json`. This is useful for example for SARS-CoV-2, where we will start ignoring the terminal parts of the untranslated regions. Another use case is mpox, where the terminal repeats are intrinsically constrained to be identical. Masking one of the two terminals will avoid double-counting of the same mutations.
 
-The new field `placementMaskRanges` in the `virus_properties.json` file of Nextclade datasets, allows to define a list of ignored ranges. Mutations in these ranges will be treated as unsequenced regions in distance calculation and thus do not contribute to distances.
+[PR #1128](https://github.com/nextstrain/nextclade/pull/1128) adds this feature to Nextclade's algorithm.
 
-We are planning to release a new version of SARS-CoV-2 dataset which relies on this new feature, with improved tree placement and clade assignment for certain sequences.
+Masked ranges are specified in the new field `placementMaskRanges` in datasets' `virus_properties.json`. For example, the terminal 50 nucleotides of SARS-CoV-2 can be ignored for tree placement by adding the following line (positions are 0-based and end-exclusive):
 
+```json
+"placementMaskRanges":[{"begin":0,"end":50},{"begin":29850,"end":29902}],
+```
+
+The changes are backwards compatible, if the field does not exist, Nextclade defaults to the old behavior of counting all nucleotide differences.
+
+We are planning to shortly release a new version of SARS-CoV-2 datasets making use of this feature. Only a small proportion of sequences (<1%)should be affected, however where there are changes they will be a slight improvement in accuracy.
 
 ### Avoid stale software and dataset versions in Nextclade Web
 
-It was widely reported that users with long-persisting browser tabs and also users who don't switch datasets often, receive incorrect Pango lineage assignments or otherwise miss on important features.
+It was widely reported that users with long-persisting browser tabs and also users who don't switch datasets often, sometimes do not receive new Nextclade dataset updates, which meant that these users would not get newly designated lineages and clades lineage assignments.
 
-Nextclade Web is a fully client-side, single-page application, which once it downloads its own program code and once it downloads a list of available datasets, just keeps running and using the same version of software code and of datasets. Thus, without periodic page refresh and without periodic fetching of new dataset versions, users can run old code and use old data indefinitely, receiving obsolete or incomplete results.
+Nextclade Web is a fully client-side, single-page application, which downloads the code and list of datasets once when first opening a tab. When users do not refresh the tab and don't change dataset, the same software and dataset version are used indefinitely. Without periodic page refresh and without periodic fetching of new dataset versions, users can run old code and use old data indefinitely, receiving obsolete or incomplete results.
 
-In order to mitigate this problem, in this version we add periodic background version checks in Nextclade Web. Once in a while Nextclade Web will check whether the currently used version of software is the latest, as well as periodically refresh the list of available datasets and their versions. Whenever a new version of software or of a dataset is available, user will receive an update notification. The update can be accepted or dismissed (until the next version is available). Additionally, one can always obtain the latest code and datasets by refreshing the page in the browser.
+In order to mitigate this problem, in this version, we add periodic background version checks in Nextclade Web. Every day or so, Nextclade Web will check whether the currently used version of software is the latest, as well as periodically refresh the list of available datasets and their versions. Whenever a new version of software or of a dataset is available, user will receive an update notification. The update can be accepted or dismissed (until the next version is available). Additionally, one can always obtain the latest code and datasets by doing a simple page reload in the browser (no need to clear the cache).
 
 Nextclade is a fast-moving project, where new features and bug fixes are added frequently. We emphasize importance of using the latest versions of both, software and datasets, to receive the most accurate and up-to-date results.
 
-
 ### Sort empty values in the results table in Nextclade Web
 
-Nextclade Web previously did not change position of empty cells when sorting a column in the results table, which might be confusing. Now the empty values are sorted lexicographically as if they were empty strings.
+Nextclade Web previously had a bug, sorting incorrectly when the the column to be sorted by contained empty values. Empty values are now treated as empty strings, fixing this issue.
 
+### Improved citation dialog, website copy and translation in Nextclade Web
 
-### Improve and localize citation dialog in Nextclade Web
+The "Citation" modal is now more readable and translated to multiple languages. We also added missing translations for some of the sentences in Nextclade Web. We made the intro text on main page of Nextclade Web more relevant.
 
-"Citation" dialog is now more readable and is translated to multiple languages.
-
-
-### Fix localization in Nextclade Web
-
-We added missing translations for some of the sentences in Nextclade Web.
-
-
-### Update text on main page of Nextclade Web
-
-We made the intro text on main page of Nextclade Web more relevant.
-
-
-### Internal changes:
+### Internal changes
 
 - Prevent duplicated GitHub action runs in pull requests
 - Remove Red Hat 7 from tested Linux distros
 - Fix Debian repositories in CI builds for aarch64-unknown-linux-gnu architecture
 - Update master branch of the fork before making bioconda PR branch
 - Extend dev documentation
-
-
 
 ## Nextclade CLI 2.13.1 (2023-03-28)
 
