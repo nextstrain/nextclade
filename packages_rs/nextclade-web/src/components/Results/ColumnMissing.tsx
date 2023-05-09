@@ -63,7 +63,7 @@ export function ListOfMissing({ missing, totalMissing }: ListOfMissingProps) {
 
   return (
     <>
-      <h6 className="mb-0">{t('Missing ({{count}})', { count: totalMissing })}</h6>
+      <h6 className="mb-0">{t('Missing ({{ n }})', { n: totalMissing })}</h6>
       <p className="my-0">
         <small>{t('Ranges of nucleotide "N"')}</small>
       </p>
@@ -87,7 +87,7 @@ export function AlignmentRangeTable({ alignmentStart, alignmentEnd }: AlignmentR
 
   return (
     <>
-      <h6 className="mb-0">{t('Not sequenced ({{count}})', { count: total })}</h6>
+      <h6 className="mb-0">{t('Not sequenced ({{ n }})', { n: total })}</h6>
       <small>
         <p>
           {t(

@@ -29,7 +29,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
           <thead />
           <tbody>
             <tr>
-              <th>{t('Nucleotide substitutions rel. to reference ({{n}})', { n: substitutions.length })}</th>
+              <th>{t('Nucleotide substitutions rel. to reference ({{ n }})', { n: substitutions.length })}</th>
             </tr>
             <tr>
               <td>
@@ -38,7 +38,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
             </tr>
 
             <tr>
-              <th>{t('Aminoacid substitutions rel. to reference ({{n}})', { n: aaSubstitutions.length })}</th>
+              <th>{t('Aminoacid substitutions rel. to reference ({{ n }})', { n: aaSubstitutions.length })}</th>
             </tr>
             <tr>
               <td>
@@ -47,7 +47,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
             </tr>
 
             <tr>
-              <th>{t('Private mutations rel. to tree ({{n}})', { n: privateNucMutationsInternal.totalMutations })}</th>
+              <th>{t('Private mutations rel. to tree ({{ n }})', { n: privateNucMutationsInternal.totalMutations })}</th>
             </tr>
             <tr>
               <td>

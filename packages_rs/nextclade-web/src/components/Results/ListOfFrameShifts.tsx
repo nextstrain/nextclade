@@ -29,10 +29,10 @@ export function ListOfFrameShifts({ frameShiftsResults }: ListOfFrameShiftsProps
 
   return (
     <>
-      <h6>{t('Unexpected frame shifts ({{n}})', { n: totalFrameShifts })}</h6>
+      <h6>{t('Unexpected frame shifts ({{ n }})', { n: totalFrameShifts })}</h6>
       <FrameShiftRows frameShifts={frameShifts} />
 
-      <h6>{t('Known frame shifts ({{n}})', { n: totalFrameShiftsIgnored })}</h6>
+      <h6>{t('Known frame shifts ({{ n }})', { n: totalFrameShiftsIgnored })}</h6>
       <FrameShiftRows frameShifts={frameShiftsIgnored} />
     </>
   )
