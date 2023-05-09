@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
+import { isNil } from 'lodash'
 import urljoin from 'url-join'
-import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
+import { useAxiosQueryOrUndefined } from 'src/helpers/useAxiosQuery'
 import {
   Button,
   Col,
@@ -35,14 +36,14 @@ export interface AppJson {
   blockSearchIndexing: string
 }
 
-export function useAppJson(): AppJson {
+export function useAppJson(): AppJson | undefined {
   const url = useMemo(() => {
     const origin = typeof window !== 'undefined' ? window?.location.origin : '/'
     return urljoin(origin, IS_PRODUCTION ? '' : '_next/static', 'app.json')
   }, [])
-  return useAxiosQuery(url, {
+  return useAxiosQueryOrUndefined(url, {
     staleTime: 0,
-    refetchInterval: 10 * 1000, // 1 hour
+    refetchInterval: 60 * 60 * 1000, // 1 hour
     refetchIntervalInBackground: false,
     refetchOnMount: true,
     refetchOnReconnect: true,
@@ -52,16 +53,20 @@ export function useAppJson(): AppJson {
 
 export function UpdateNotification() {
   const { t } = useTranslation()
-  const { version } = useAppJson()
+  const appJson = useAppJson()
   const reload = useReloadPage('/')
   const [lastNotifiedAppVersion, setLastNotifiedAppVersion] = useRecoilState(lastNotifiedAppVersionAtom)
 
   const reloadText = t('Reload the page to get the latest version of Nextclade.')
   const dismissText = t('Dismiss this notification. You can update Nextclade any time later by refreshing the page.')
 
-  const dismiss = useCallback(() => setLastNotifiedAppVersion(version), [setLastNotifiedAppVersion, version])
+  const dismiss = useCallback(() => {
+    if (!isNil(appJson)) {
+      setLastNotifiedAppVersion(appJson.version)
+    }
+  }, [appJson, setLastNotifiedAppVersion])
 
-  if (!(version > (lastNotifiedAppVersion ?? PACKAGE_VERSION ?? ''))) {
+  if (isNil(appJson) || !(appJson.version > (lastNotifiedAppVersion ?? PACKAGE_VERSION ?? ''))) {
     return null
   }
 
@@ -82,7 +87,7 @@ export function UpdateNotification() {
               <p className="my-1 ">{t('A new version of Nextclade Web is available:')}</p>
               <p className="my-1 font-weight-bold">
                 {/* eslint-disable-next-line only-ascii/only-ascii */}
-                <span>{`${PACKAGE_VERSION} ⟶ ${version}`}</span>
+                <span>{`${PACKAGE_VERSION} ⟶ ${appJson.version}`}</span>
                 <span>{' ('}</span>
                 <LinkExternal
                   href="https://github.com/nextstrain/nextclade/blob/release/CHANGELOG.md"
