@@ -47,7 +47,9 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
             </tr>
 
             <tr>
-              <th>{t('Private mutations rel. to tree ({{ n }})', { n: privateNucMutationsInternal.totalMutations })}</th>
+              <th>
+                {t('Private mutations rel. to tree ({{ n }})', { n: privateNucMutationsInternal.totalMutations })}
+              </th>
             </tr>
             <tr>
               <td>
