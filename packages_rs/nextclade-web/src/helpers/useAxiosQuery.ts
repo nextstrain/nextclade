@@ -1,7 +1,7 @@
 import { useQuery } from 'react-query'
 import type { UseQueryOptions } from 'react-query'
 
-import { axiosFetch } from 'src/io/axiosFetch'
+import { axiosFetch, axiosFetchOrUndefined } from 'src/io/axiosFetch'
 import { useMemo } from 'react'
 
 export type UseAxiosQueryOptions<TData = unknown> = UseQueryOptions<TData, Error, TData, string[]>
@@ -30,4 +30,23 @@ export function useAxiosQuery<TData = unknown>(url: string, options?: UseAxiosQu
     }
     return res.data
   }, [res.data, url])
+}
+
+/** Makes a cached fetch request, ignoring errors */
+export function useAxiosQueryOrUndefined<TData = unknown>(
+  url: string,
+  options?: UseAxiosQueryOptions<TData | undefined>,
+): TData | undefined {
+  const newOptions = useMemo(() => queryOptionsDefaulted<TData | undefined>(options), [options])
+  const res = useQuery<TData | undefined, Error, TData | undefined, string[]>(
+    [url],
+    async () => axiosFetchOrUndefined(url),
+    newOptions,
+  )
+  return useMemo(() => {
+    if (!res.data) {
+      return undefined
+    }
+    return res.data
+  }, [res.data])
 }
