@@ -2,7 +2,13 @@
 
 ### Algorithm: add masked sites for distance calculation
 
-TODO
+For some viruses, genome sequencing is unreliable in specific parts of the genome or some regions should be ignored for other reasons when calculating distances between nodes in the reference tree and query sequences.
+
+These distances are used to find the optimal (smallest distance) placement of the query sequence on the reference tree and sequence errors in these regions can lead to wrong placement.
+
+The new field `placementMaskRanges` in the `virus_properties.json` file of Nextclade datasets, allows to define a list of ignored ranges. Mutations in these ranges will be treated as unsequenced regions in distance calculation and thus do not contribute to distances.
+
+We are planning to release a new version of SARS-CoV-2 dataset which relies on this new feature, with improved tree placement and clade assignment for certain sequences.
 
 
 ### Avoid stale software and dataset versions in Nextclade Web
