@@ -12,8 +12,8 @@ use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMapForCds;
 use crate::translate::translate_genes::Translation;
 use crate::utils::range::{intersect_or_none, Range};
-use eyre::Report;
-use itertools::{izip, Itertools};
+use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use num_traits::clamp_max;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -231,11 +231,14 @@ pub fn find_aa_changes(
   qry_translation: &Translation,
   global_alignment_range: &Range,
 ) -> Result<FindAaChangesOutput, Report> {
-  let mut changes = izip!(qry_translation.iter_cdses(), ref_translation.iter_cdses())
-    .map(|((qry_name, qry_cds_tr), (ref_name, ref_cds_tr))| {
-      assert_eq!(qry_cds_tr.cds.name, ref_cds_tr.cds.name);
-      assert_eq!(qry_cds_tr.gene.name, ref_cds_tr.gene.name);
-      find_aa_changes_for_cds(
+  let mut changes = qry_translation
+    .iter_cdses()
+    .map(|(qry_name, qry_cds_tr)| {
+      let ref_cds_tr = ref_translation
+        .get_cds(qry_name)
+        .wrap_err_with(|| format!("When searching for reference translation of CDS {qry_name}"))?;
+
+      Ok(find_aa_changes_for_cds(
         &qry_cds_tr.cds,
         qry_seq,
         ref_seq,
@@ -244,8 +247,10 @@ pub fn find_aa_changes(
         &qry_cds_tr.alignment_ranges,
         &qry_cds_tr.qry_cds_map,
         global_alignment_range,
-      )
+      ))
     })
+    .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
+    .into_iter()
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
       output.aa_substitutions.extend(changes.aa_substitutions);
       output.aa_deletions.extend(changes.aa_deletions);
