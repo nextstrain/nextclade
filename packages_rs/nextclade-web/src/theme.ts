@@ -106,6 +106,7 @@ export const shadows = {
   light: `1px 1px 1px 1px ${rgba(gray600, 0.2)}`,
   slight: `1px 1px 1px 1px ${rgba(gray700, 0.25)}`,
   medium: `2px 2px 3px 3px ${rgba(gray900, 0.25)}`,
+  large: `2px 2px 10px 10px ${rgba(gray900, 0.1)}`,
   filter: {
     slight: `1px 1px 1px ${rgba(gray700, 0.25)}`,
     medium: `2px 2px 3px ${rgba(gray900, 0.33)}`,

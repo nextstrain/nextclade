@@ -127,7 +127,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                 <tr className="mb-2">
                   <td colSpan={2}>
-                    <h6>{t('Aminoacid changes ({{count}})', { count: changes.length })}</h6>
+                    <h6>{t('Aminoacid changes ({{ n }})', { n: changes.length })}</h6>
                   </td>
                 </tr>
 
@@ -160,7 +160,7 @@ function PeptideMarkerMutationGroupUnmemoed({
                 {totalNucChanges > 0 && (
                   <tr>
                     <td colSpan={2}>
-                      <h6 className="mt-3">{t('Nucleotide changes nearby ({{count}})', { count: totalNucChanges })}</h6>
+                      <h6 className="mt-3">{t('Nucleotide changes nearby ({{ n }})', { n: totalNucChanges })}</h6>
                     </td>
                   </tr>
                 )}

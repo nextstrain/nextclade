@@ -26,7 +26,7 @@ export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListO
               <TableSlim className="mb-0">
                 <tbody>
                   <tr>
-                    <td>{t('Reversions ({{n}})', { n: reversions.length })}</td>
+                    <td>{t('Reversions ({{ n }})', { n: reversions.length })}</td>
                   </tr>
                   <tr>
                     <td>
@@ -43,7 +43,7 @@ export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListO
               <TableSlim className="mb-0">
                 <tbody>
                   <tr>
-                    <td>{t('Labeled private mutations ({{n}})', { n: labeled.length })}</td>
+                    <td>{t('Labeled private mutations ({{ n }})', { n: labeled.length })}</td>
                   </tr>
                   <tr>
                     <td>
@@ -60,7 +60,7 @@ export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListO
               <TableSlim className="mb-0">
                 <tbody>
                   <tr>
-                    <td>{t('Unlabeled private mutations ({{n}})', { n: unlabeled.length })}</td>
+                    <td>{t('Unlabeled private mutations ({{ n }})', { n: unlabeled.length })}</td>
                   </tr>
                   <tr>
                     <td>

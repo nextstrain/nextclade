@@ -30,9 +30,14 @@ sudo apt-get install --yes libssl-dev pkg-config
 # Prepare dotenv file with default values
 cp .env.example .env
 
-# Build and run Nextclade in debug mode (convenient for development, fast to build, slow to run, has debug info)
-# Nextclade dataset is expected to be in ./data_dev/, refer to Nextclade dataset information 
+# Build Nextclade and use it to download a dataset to ./data_dev/
+# In later commands, a dataset is expected to be in ./data_dev/, refer to Nextclade dataset information 
 # (https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html#download-a-dataset)
+cargo run --bin=nextclade -- dataset \
+  get --name=sars-cov-2 \
+  --output-dir=data_dev/
+
+# Build and run Nextclade in debug mode (convenient for development, fast to build, slow to run, has debug info)
 # Refer to the user documentation for explanation of Nextclade CLI flags (https://docs.nextstrain.org/projects/nextclade/en/stable/)
 cargo run --bin=nextclade -- run \
   data_dev/sequences.fasta \

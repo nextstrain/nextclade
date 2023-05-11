@@ -20,8 +20,11 @@ export function ColumnInsertions({ analysisResult }: ColumnInsertionsProps) {
   const { index, seqName, insertions, totalInsertions, aaInsertions, totalAminoacidInsertions } = analysisResult
   const id = getSafeId('col-insertions', { index, seqName, insertions })
 
-  const nucTitle = useMemo(() => t('Nucleotide insertions ({{n}})', { n: insertions.length }), [insertions.length, t])
-  const aaTitle = useMemo(() => t('Aminoacid insertions ({{n}})', { n: aaInsertions.length }), [aaInsertions.length, t])
+  const nucTitle = useMemo(() => t('Nucleotide insertions ({{ n }})', { n: insertions.length }), [insertions.length, t])
+  const aaTitle = useMemo(
+    () => t('Aminoacid insertions ({{ n }})', { n: aaInsertions.length }),
+    [aaInsertions.length, t],
+  )
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>

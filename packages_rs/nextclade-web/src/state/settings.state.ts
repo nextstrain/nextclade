@@ -59,6 +59,12 @@ export const changelogLastVersionSeenAtom = atom<string>({
   effects: [persistAtom],
 })
 
+export const lastNotifiedAppVersionAtom = atom<string | undefined>({
+  key: 'lastNotifiedAppVersion',
+  default: undefined,
+  effects: [persistAtom],
+})
+
 export const showNewRunPopupAtom = atom({
   key: 'showNewRunPopup',
   default: false,
