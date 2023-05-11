@@ -92,7 +92,7 @@ async function getInitialData(): Promise<LaunchAnalysisInitialData> {
   initialData.free()
 
   return {
-    geneMap: prepareGeneMap(gene_map),
+    genes: prepareGeneMap(gene_map),
     genomeSize: Number(genome_size),
     cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
     phenotypeAttrDescs: JSON.parse(phenotype_attr_descs) as PhenotypeAttrDesc[],

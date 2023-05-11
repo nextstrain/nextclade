@@ -29,7 +29,7 @@ export interface LaunchAnalysisInputs {
 }
 
 export interface LaunchAnalysisInitialData {
-  geneMap: Gene[]
+  genes: Gene[]
   genomeSize: number
   cladeNodeAttrKeyDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]

@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from 'react'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
-
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
-import { geneNamesAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { cdsNamesAtom } from 'src/state/results.state'
 
 const Select = styled.select`
   text-align: center;
@@ -19,7 +18,7 @@ const Select = styled.select`
 export function SequenceSelector() {
   const { t } = useTranslationSafe()
 
-  const geneNames = useRecoilValue(geneNamesAtom)
+  const cdsNames = useRecoilValue(cdsNamesAtom)
 
   const viewedGene = useRecoilValue(viewedGeneAtom)
   const onChangeGene = useRecoilCallback(
@@ -42,14 +41,14 @@ export function SequenceSelector() {
   )
 
   const geneOptions = useMemo(() => {
-    return [GENE_OPTION_NUC_SEQUENCE, ...geneNames].map((gene) => {
+    return [GENE_OPTION_NUC_SEQUENCE, ...cdsNames].map((gene) => {
       return (
         <option key={gene} value={gene}>
           {getOptionText(gene)}
         </option>
       )
     })
-  }, [geneNames, getOptionText])
+  }, [cdsNames, getOptionText])
 
   return (
     <Select

@@ -8,7 +8,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { geneMapAtom } from 'src/state/results.state'
+import { cdsAtom } from 'src/state/results.state'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
@@ -35,10 +35,8 @@ function PeptideMarkerFrameShiftUnmemoed({
   const { geneName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
   const id = getSafeId('frame-shift-aa-marker', { index, seqName, ...frameShift })
 
-  const geneMap = useRecoilValue(geneMapAtom)
-
-  const gene = geneMap.find((gene) => geneName === gene.geneName)
-  if (!gene) {
+  const cds = useRecoilValue(cdsAtom(geneName))
+  if (!cds) {
     return null
   }
 

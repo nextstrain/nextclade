@@ -9,7 +9,7 @@ import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSub
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
-import { geneMapAtom } from 'src/state/results.state'
+import { cdsAtom } from 'src/state/results.state'
 
 export const MutationBadgeBox = styled.span`
   display: inline-block;
@@ -100,13 +100,11 @@ export interface AminoacidMutationBadgeProps {
 export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps) {
   const theme = useTheme()
 
-  const geneMap = useRecoilValue(geneMapAtom)
-
   const { gene: geneName, refAA, codon } = mutation
   const queryAA = get(mutation, 'queryAA', AMINOACID_GAP) as Aminoacid
+  const cds = useRecoilValue(cdsAtom(geneName))
 
-  const gene = geneMap.find((gene) => gene.geneName === geneName)
-  const geneBg = gene?.color ?? '#999'
+  const geneBg = cds?.color ?? '#999'
   const refBg = getAminoacidColor(refAA)
   const refFg = getTextColor(theme, refBg)
   const queryBg = getAminoacidColor(queryAA)

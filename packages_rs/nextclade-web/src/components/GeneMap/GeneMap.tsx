@@ -2,12 +2,12 @@ import { groupBy } from 'lodash'
 import React, { SVGProps, useCallback, useEffect, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { geneLength } from 'src/types'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
-
 import { BASE_MIN_WIDTH_PX, GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import type { Gene } from 'src/types'
+import type { CdsSegment } from 'src/types'
+import { cdsSegmentNucLength } from 'src/types'
+import { cdsesAtom, genomeSizeAtom } from 'src/state/results.state'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -15,17 +15,16 @@ import { getAxisLength } from 'src/components/GeneMap/getAxisLength'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColoredSquare } from 'src/components/Common/ColoredSquare'
-import { geneMapAtom, genomeSizeAtom } from 'src/state/results.state'
 
 const GENE_MAP_MARGIN = 5
 const GENE_HEIGHT_PX = 15
 const GENE_STRAND_SPACING = 10
 
-export function getGeneMapDimensions(genes: Gene[]) {
-  const frames = Object.keys(groupBy(genes, (gene) => gene.frame))
+export function getGeneMapDimensions(cdsSegments: CdsSegment[]) {
+  const frames = Object.keys(groupBy(cdsSegments, (cdsSeg) => cdsSeg.frame))
   const hasFrames = frames.length > 1
 
-  const strands = Object.keys(groupBy(genes, (gene) => gene.strand))
+  const strands = Object.keys(groupBy(cdsSegments, (cdsSeg) => cdsSeg.strand))
   const hasStrands = strands.length > 1
 
   const geneFrameOffset = GENE_HEIGHT_PX / 2
@@ -66,14 +65,14 @@ export const GeneMapSVG = styled.svg`
 `
 
 export interface GeneViewProps extends SVGProps<SVGRectElement> {
-  gene: Gene
+  cdsSeg: CdsSegment
   single: boolean
   pixelsPerBase: number
   geneFrameOffset: number
   geneStrandOffset: number
 }
 
-export function GeneView({ gene, single, pixelsPerBase, geneFrameOffset, geneStrandOffset, ...rest }: GeneViewProps) {
+export function GeneView({ cdsSeg, single, pixelsPerBase, geneFrameOffset, geneStrandOffset, ...rest }: GeneViewProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -109,11 +108,12 @@ export function GeneView({ gene, single, pixelsPerBase, geneFrameOffset, geneStr
   const openTooltip = useCallback(() => setHoveredSmart(true), [setHoveredSmart])
   const closeTooltip = useCallback(() => setHoveredSmart(false), [setHoveredSmart])
 
-  const { geneName, color, start, end, frame, strand } = gene // prettier-ignore
-  const length = geneLength(gene)
+  const { name, color, start, end, frame, strand } = cdsSeg // prettier-ignore
+  const geneName = name
+  const length = cdsSegmentNucLength(cdsSeg)
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
-  const id = getSafeId('gene', { ...gene })
+  const id = getSafeId('gene', { ...cdsSeg })
   const stroke = hovered ? '#222' : undefined
 
   let y = geneFrameOffset * frame
@@ -149,7 +149,7 @@ export function GeneView({ gene, single, pixelsPerBase, geneFrameOffset, geneStr
             <tr>
               <td>{t('Gene')}</td>
               <td className="d-flex">
-                <ColoredSquare color={color} size="1rem" />
+                <ColoredSquare color={color ?? '#999'} size="1rem" />
                 <span className="ml-2">{geneName}</span>
               </td>
             </tr>
@@ -194,32 +194,32 @@ export function GeneView({ gene, single, pixelsPerBase, geneFrameOffset, geneStr
 export type GeneMapProps = ReactResizeDetectorDimensions
 
 export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
-  const geneMap = useRecoilValue(geneMapAtom)
+  const cdses = useRecoilValue(cdsesAtom)
   const genomeSize = useRecoilValue(genomeSizeAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
 
   const { viewBox, geneViews, geneMapHeight } = useMemo(() => {
-    const length = getAxisLength(genomeSize, viewedGene, geneMap)
+    const length = getAxisLength(genomeSize, viewedGene, cdses)
     const pixelsPerBase = width / length
     const single = viewedGene !== GENE_OPTION_NUC_SEQUENCE
 
-    let geneMapFiltered: Gene[] = []
+    let geneMapFiltered: CdsSegment[] = []
     if (!single) {
-      geneMapFiltered = geneMap
+      geneMapFiltered = cdses.flatMap((cds) => cds.segments)
     } else {
-      const gene = geneMap.find((gene) => gene.geneName === viewedGene)
-      if (gene) {
-        geneMapFiltered = [gene]
+      const cds = cdses.find((cds) => cds.name === viewedGene)
+      if (cds) {
+        geneMapFiltered = [...cdses.flatMap((cds) => cds.segments)]
       }
     }
 
     const { geneFrameOffset, geneStrandOffset, geneMapHeight } = getGeneMapDimensions(geneMapFiltered)
 
-    const geneViews = geneMapFiltered.map((gene) => {
+    const geneViews = geneMapFiltered.map((cds) => {
       return (
         <GeneView
-          key={gene.geneName}
-          gene={gene}
+          key={cds.name}
+          cdsSeg={cds}
           single={single}
           pixelsPerBase={pixelsPerBase}
           geneFrameOffset={geneFrameOffset}
@@ -231,7 +231,7 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
     const viewBox = `0 ${-GENE_MAP_MARGIN} ${width} ${geneMapHeight}`
 
     return { viewBox, geneViews, geneMapHeight }
-  }, [geneMap, genomeSize, viewedGene, width])
+  }, [cdses, genomeSize, viewedGene, width])
 
   if (!width || !height) {
     return (

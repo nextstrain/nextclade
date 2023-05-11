@@ -9,7 +9,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { useTranslationSafe, useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { TableSlim, TableSlimWithBorders } from 'src/components/Common/TableSlim'
 import { InsertedFragmentTruncated } from 'src/components/Results/ListOfInsertions'
-import { geneMapAtom } from 'src/state/results.state'
+import { cdsesAtom } from 'src/state/results.state'
 
 export interface ColumnAaMotifsProps {
   analysisResult: AnalysisResult
@@ -167,7 +167,7 @@ export interface ListOfAaMotifsProps {
 export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
   const { t } = useTranslation()
   const theme = useTheme()
-  const geneMap = useRecoilValue(geneMapAtom)
+  const cdses = useRecoilValue(cdsesAtom)
 
   const { thead, tbody } = useMemo(() => {
     const thead = (
@@ -181,13 +181,13 @@ export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
     const aaMotifsTruncated = motifs.slice(0, 20)
 
     const tbody = aaMotifsTruncated.map(({ gene, position, seq }) => {
-      const geneObj = geneMap.find((geneObj) => geneObj.geneName === gene)
-      const geneBg = geneObj?.color ?? theme.gray400
-      const geneFg = theme.gray200
+      const cdsObj = cdses.find((cds) => cds.name === gene)
+      const bg = cdsObj?.color ?? theme.gray400
+      const fg = theme.gray200
       return (
         <Tr key={`${gene}-${position}`}>
           <TdNormal>
-            <GeneText $background={geneBg} $color={geneFg}>
+            <GeneText $background={bg} $color={fg}>
               {gene}
             </GeneText>
           </TdNormal>
@@ -210,7 +210,7 @@ export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
     }
 
     return { thead, tbody }
-  }, [geneMap, motifs, t, theme])
+  }, [cdses, motifs, t, theme.gray200, theme.gray400])
 
   if (motifs.length === 0) {
     return null
@@ -231,7 +231,7 @@ export interface ListOfAaMotifMutationsProps {
 export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) {
   const { t } = useTranslation()
   const theme = useTheme()
-  const geneMap = useRecoilValue(geneMapAtom)
+  const cdses = useRecoilValue(cdsesAtom)
 
   const { thead, tbody } = useMemo(() => {
     const thead = (
@@ -245,13 +245,13 @@ export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) 
     const aaMotifsTruncated = motifs.slice(0, 20)
 
     const tbody = aaMotifsTruncated.map(({ gene, position, refSeq, qrySeq }) => {
-      const geneObj = geneMap.find((geneObj) => geneObj.geneName === gene)
-      const geneBg = geneObj?.color ?? theme.gray400
-      const geneFg = theme.gray200
+      const cdsObj = cdses.find((cds) => cds.name === gene)
+      const bg = cdsObj?.color ?? theme.gray400
+      const fg = theme.gray200
       return (
         <Tr key={`${gene}-${position}`}>
           <TdNormal>
-            <GeneText $background={geneBg} $color={geneFg}>
+            <GeneText $background={bg} $color={fg}>
               {gene}
             </GeneText>
           </TdNormal>
@@ -274,7 +274,7 @@ export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) 
     }
 
     return { thead, tbody }
-  }, [geneMap, motifs, t, theme])
+  }, [cdses, motifs, t, theme.gray200, theme.gray400])
 
   if (motifs.length === 0) {
     return null

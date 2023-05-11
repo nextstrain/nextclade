@@ -435,6 +435,7 @@ mod coord_map_tests {
           name: "".to_owned(),
           start: *start,
           end: *end,
+          landmark: None,
           strand: GeneStrand::Forward,
           frame: 0,
           exceptions: vec![],

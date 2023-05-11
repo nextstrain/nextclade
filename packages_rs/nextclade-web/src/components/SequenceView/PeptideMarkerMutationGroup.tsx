@@ -1,8 +1,8 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/types'
+import { cdsAtom } from 'src/state/results.state'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { formatRange } from 'src/helpers/formatRange'
@@ -11,7 +11,6 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { geneAtom } from 'src/state/results.state'
 import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
 import { PeptideContext } from './PeptideContext'
 
@@ -53,8 +52,8 @@ function PeptideMarkerMutationGroupUnmemoed({
 
   const { gene: geneName, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
 
-  const gene = useRecoilValue(geneAtom(geneName))
-  const strand = gene?.strand
+  const cds = useRecoilValue(cdsAtom(geneName))
+  const strand = cds?.strand
 
   const contextTitle = useMemo(() => {
     if (strand === '-') {
@@ -64,7 +63,7 @@ function PeptideMarkerMutationGroupUnmemoed({
   }, [strand])
 
   const footerNote = useMemo(() => {
-    if (gene?.strand === '-') {
+    if (cds?.strand === '-') {
       return (
         <Row noGutters>
           <Col>
@@ -78,7 +77,7 @@ function PeptideMarkerMutationGroupUnmemoed({
       )
     }
     return null
-  }, [gene?.strand, t])
+  }, [cds?.strand, t])
 
   const id = getSafeId('aa-mutation-group-marker', { index, seqName, geneName, begin: codonAaRange.begin })
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)

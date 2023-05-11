@@ -4,9 +4,9 @@ import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { get } from 'lodash'
-
-import { geneMapAtom } from 'src/state/results.state'
 import type { AnalysisResult, Gene, PeptideWarning, Range } from 'src/types'
+import { cdsCodonLength } from 'src/types'
+import { cdsAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
@@ -72,8 +72,7 @@ export interface PeptideViewProps extends ReactResizeDetectorDimensions {
 
 export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: PeptideViewProps) {
   const { t } = useTranslationSafe()
-
-  const geneMap = useRecoilValue(geneMapAtom)
+  const cds = useRecoilValue(cdsAtom(viewedGene))
 
   if (!width) {
     return (
@@ -83,11 +82,10 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const gene = geneMap.find((gene) => gene.geneName === viewedGene)
-  if (!gene) {
+  if (!cds) {
     return (
       <SequenceViewWrapper>
-        {t('Gene {{geneName}} is missing in gene map', { geneName: viewedGene })}
+        {t('CDS {{geneName}} is missing in gene map', { geneName: viewedGene })}
       </SequenceViewWrapper>
     )
   }
@@ -96,21 +94,21 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   if (warningsForThisGene.length > 0) {
     return (
       <SequenceViewWrapper>
-        <PeptideViewMissing geneName={gene.geneName} reasons={warningsForThisGene} />
+        <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
       </SequenceViewWrapper>
     )
   }
 
   const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaAlignmentRanges } = sequence
-  const geneLength = (gene.end - gene.start) / 3
-  const pixelsPerAa = width / Math.round(geneLength)
+  const cdsLength = cdsCodonLength(cds)
+  const pixelsPerAa = width / Math.round(cdsLength)
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
-  const alignmentRange: Range = get(aaAlignmentRanges, viewedGene) ?? { begin: 0, end: geneLength }
+  const alignmentRange: Range = get(aaAlignmentRanges, viewedGene) ?? { begin: 0, end: cdsLength }
 
   const frameShiftMarkers = frameShifts
-    .filter((frameShift) => frameShift.geneName === gene.geneName)
+    .filter((frameShift) => frameShift.geneName === cds.name)
     .map((frameShift) => (
       <PeptideMarkerFrameShift
         key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
@@ -138,7 +136,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
-        <rect fill="transparent" x={0} y={-10} width={geneLength} height="30" />
+        <rect fill="transparent" x={0} y={-10} width={cdsLength} height="30" />
 
         <SequenceMarkerUnsequencedStart
           index={index}
@@ -175,7 +173,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         <SequenceMarkerUnsequencedEnd
           index={index}
           seqName={seqName}
-          genomeSize={geneLength}
+          genomeSize={cdsLength}
           alignmentEnd={alignmentRange.end}
           pixelsPerBase={pixelsPerAa}
         />
