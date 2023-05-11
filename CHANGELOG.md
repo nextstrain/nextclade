@@ -1,3 +1,16 @@
+## Nextclade Web 2.14.1 (2023-05-11)
+
+This is a small bugfix release for Nextclade Web.
+
+### Prevent main page from blinking when selecting a dataset in Nextclade Web
+
+Nextclade Web 2.14.0 introduced a regression, where the page was flashing when dataset was selected from the list. This is now fixed.
+
+### Correctly dismiss dataset update notification in Nextclade Web
+
+The dataset update notifications introduced in Nextclade Web 2.14.0 were not dismissed correctly when "Update" button is clicked. This have been fixed.
+
+
 ## Nextclade Web 2.14.0, Nextclade CLI 2.14.0 (2023-05-09)
 
 ### Algorithm & Datasets: enable masked sites for distance calculation
