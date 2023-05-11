@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 import React, { useCallback, useState } from 'react'
 import { Button, Col, Collapse, Row, UncontrolledAlert } from 'reactstrap'
-import { useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
 import { datasetCurrentAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
@@ -135,12 +135,13 @@ export function DatasetCurrent() {
 
 function DatasetCurrentUpdateNotification() {
   const { t } = useTranslationSafe()
-  const datasetUpdated = useRecoilValue(datasetUpdatedAtom)
+  const [datasetUpdated, setDatasetUpdated] = useRecoilState(datasetUpdatedAtom)
   const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
 
   const onDatasetUpdateClicked = useCallback(() => {
     setDatasetCurrent(datasetUpdated)
-  }, [datasetUpdated, setDatasetCurrent])
+    setDatasetUpdated(undefined)
+  }, [datasetUpdated, setDatasetCurrent, setDatasetUpdated])
 
   if (isNil(datasetUpdated)) {
     return null
