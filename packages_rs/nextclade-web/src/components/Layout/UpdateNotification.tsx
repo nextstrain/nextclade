@@ -42,6 +42,7 @@ export function useAppJson(): AppJson | undefined {
     return urljoin(origin, IS_PRODUCTION ? '' : '_next/static', 'app.json')
   }, [])
   return useAxiosQueryOrUndefined(url, {
+    suspense: false,
     staleTime: 0,
     refetchInterval: 60 * 60 * 1000, // 1 hour
     refetchIntervalInBackground: false,
