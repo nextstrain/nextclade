@@ -95,7 +95,6 @@ impl Default for QcRulesConfigFrameShifts {
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
-#[serde(default)]
 pub struct StopCodonLocation {
   pub gene_name: String,
   pub codon: usize,

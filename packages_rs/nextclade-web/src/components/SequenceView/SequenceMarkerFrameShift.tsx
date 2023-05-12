@@ -9,6 +9,7 @@ import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { SeqMarkerFrameShiftState, seqMarkerFrameShiftStateAtom } from 'src/state/seqViewSettings.state'
 import { cdsAtom } from 'src/state/results.state'
+import { sumBy } from 'lodash'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
@@ -37,7 +38,7 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
     return null
   }
 
-  const nucLength = nucAbs.end - nucAbs.begin
+  const nucLength = sumBy(nucAbs, (nucAbs) => nucAbs.end - nucAbs.begin)
   const codonLength = codon.end - codon.begin
 
   let width = nucLength * pixelsPerBase

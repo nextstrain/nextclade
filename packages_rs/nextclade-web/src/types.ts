@@ -30,13 +30,6 @@ import { StrictOmit } from 'ts-essentials'
 
 export * from 'src/gen/_SchemaRoot'
 
-export interface QCFilters {
-  showGood: boolean
-  showMediocre: boolean
-  showBad: boolean
-  showErrors: boolean
-}
-
 export type Nucleotide = Nuc
 export type Aminoacid = Aa
 export type NucleotideRange = LetterRangeFor_Nuc // eslint-disable-line camelcase
@@ -45,7 +38,7 @@ export type AnalysisResult = NextcladeOutputs
 export type PrivateMutations = PrivateNucMutations
 export type NucleotideSubstitutionSimple = NucSub
 export type NucleotideSubstitutionSimpleLabeled = NucSubLabeled
-export type NucleotideSubstitution = NucSubFull
+export type NucleotideSubstitution = NucSub
 export type NucleotideDeletion = NucDel
 // export type NucleotideDeletionSimple = NucDelMinimal
 // export type NucleotideDeletionSimpleLabeled = NucDelFull
@@ -79,7 +72,7 @@ export function aasToString(aas: Aa[]): string {
   return aas.map(aaToString).join('')
 }
 
-export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucleotideSubstitution {
+export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucSubFull {
   return {
     refNuc,
     pos,
@@ -124,6 +117,20 @@ export function cdsCodonLength(cds: Cds) {
 
 export function cdsSegmentNucLength(cdsSeg: CdsSegment) {
   return cdsSeg.end - cdsSeg.start
+}
+
+export interface QCFilters {
+  showGood: boolean
+  showMediocre: boolean
+  showBad: boolean
+  showErrors: boolean
+}
+
+export interface ResultsFilters extends QCFilters {
+  seqNamesFilter?: string
+  mutationsFilter?: string
+  aaFilter?: string
+  cladesFilter?: string
 }
 
 export enum AlgorithmGlobalStatus {

@@ -1,13 +1,7 @@
-import type {
-  Aminoacid,
-  AminoacidDeletion,
-  AminoacidSubstitution,
-  NucleotideSubstitution,
-  StopCodonLocation,
-} from 'src/types'
+import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucSub, StopCodonLocation } from 'src/types'
 import { AMINOACID_GAP } from 'src/constants'
 
-export function formatMutation({ pos, queryNuc, refNuc }: NucleotideSubstitution) {
+export function formatMutation({ pos, queryNuc, refNuc }: NucSub) {
   // NOTE: by convention, nucleotides are numbered starting from 1, however our arrays are 0-based
   const positionOneBased = pos + 1
   return `${refNuc}${positionOneBased}${queryNuc}`
