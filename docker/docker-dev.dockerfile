@@ -235,12 +235,8 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install executable dependencies
 RUN set -euxo pipefail >/dev/null \
-&& cargo quickinstall cargo-audit \
-&& cargo quickinstall cargo-deny \
-&& cargo quickinstall cargo-edit \
 && cargo quickinstall cargo-watch \
-&& cargo quickinstall wasm-pack --version 0.10.3 \
-&& cargo quickinstall xargo
+&& cargo quickinstall wasm-pack --version 0.10.3
 
 # Setup bash
 RUN set -euxo pipefail >/dev/null \
