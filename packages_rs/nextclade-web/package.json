@@ -81,7 +81,7 @@
     "wasm-dev": "cargo build -q --profile=opt-dev --package=nextclade-web --lib --target=wasm32-unknown-unknown --target-dir=.build/docker/wasm-dev/ && wasm-bindgen .build/docker/wasm-dev/wasm32-unknown-unknown/opt-dev/nextclade_web.wasm --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm && wasm-opt -O --optimize-level=1 --shrink-level=1 .build/docker/wasm-dev/wasm32-unknown-unknown/opt-dev/nextclade_web.wasm -o .build/wasm-prod/nextclade-wasm.wasm && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
     "wasm-prod": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web --locked && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
     "types:clear": "rimraf src/gen/_SchemaRoot.d.ts",
-    "types:generate": "yarn json2ts --enableConstEnums --format --unreachableDefinitions=false --additionalProperties=false --cwd src/gen src/gen/_SchemaRoot.json src/gen/_SchemaRoot.d.ts && yarn prettier --write src/gen/_SchemaRoot.json src/gen/_SchemaRoot.d.ts && sed -i 's/?: string | null/?: string/g' src/gen/_SchemaRoot.d.ts && sed -i 's/[k: string]: unknown//g' src/gen/_SchemaRoot.d.ts"
+    "types:generate": "yarn run:node:prod tools/generateTypes.js -i src/gen/_SchemaRoot.json -o src/gen/_SchemaRoot.d.ts"
   },
   "dependencies": {
     "animate.css": "4.1.1",
@@ -238,6 +238,7 @@
     "copy-webpack-plugin": "10.2.4",
     "cross-env": "7.0.3",
     "css-loader": "6.7.1",
+    "commander": "10.0.1",
     "dotenv": "16.0.0",
     "eslint": "8.14.0",
     "eslint-config-airbnb": "19.0.4",
