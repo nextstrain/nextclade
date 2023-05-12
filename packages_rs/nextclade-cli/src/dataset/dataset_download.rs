@@ -1,15 +1,16 @@
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, nextclade_dataset_http_get, DatasetHttpGetParams};
-use crate::dataset::dataset::Dataset;
 use crate::io::http_client::{HttpClient, ProxyConfig};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaRecord};
 use nextclade::io::fs::absolute_path;
 use nextclade::io::gene_map::{filter_gene_map, GeneMap};
+use nextclade::io::json::json_parse_bytes;
 use nextclade::make_error;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::tree::tree::AuspiceTree;
@@ -20,6 +21,11 @@ use std::io::{BufReader, Read, Seek};
 use std::path::Path;
 use std::str::FromStr;
 use zip::ZipArchive;
+
+#[inline]
+pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsIndexJson, Report> {
+  json_parse_bytes(http.get(&"/index_v2.json")?.as_slice())
+}
 
 pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
   let output_dir = &absolute_path(output_dir)?;
@@ -61,7 +67,7 @@ pub struct DatasetFiles {
 
 pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Result<String, Report> {
   let mut s = String::new();
-  let bytes = zip.by_name(name)?.read_to_string(&mut s);
+  zip.by_name(name)?.read_to_string(&mut s)?;
   Ok(s)
 }
 

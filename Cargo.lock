@@ -1555,6 +1555,7 @@ dependencies = [
  "rstest",
  "rstest_reuse",
  "schemars",
+ "semver 1.0.10",
  "serde",
  "serde_json",
  "serde_stacker",

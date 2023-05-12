@@ -1,9 +1,9 @@
-use crate::dataset::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
 use comfy_table::modifiers::{UTF8_ROUND_CORNERS, UTF8_SOLID_INNER_BORDERS};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::{ContentArrangement, Table};
 use indexmap::IndexMap;
 use itertools::Itertools;
+use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
