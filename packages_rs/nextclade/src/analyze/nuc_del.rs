@@ -1,8 +1,6 @@
 use crate::analyze::nuc_sub::NucSub;
-use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::utils::range::Range;
-use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::str::FromStr;
@@ -31,7 +29,7 @@ impl NucDel {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NucDelMinimal {
-  #[serde(rename = "ref")]
+  #[serde(rename = "refNuc")]
   pub reff: Nuc,
   pub pos: usize,
 }

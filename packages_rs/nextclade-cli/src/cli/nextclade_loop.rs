@@ -3,7 +3,7 @@ use crate::cli::nextclade_cli::{
 };
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::{
-  dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFiles,
+  dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFilesContent,
 };
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -41,7 +41,7 @@ pub struct DatasetFilePaths {
   input_gene_map: PathBuf,
 }
 
-pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<String>>) -> Result<DatasetFiles, Report> {
+pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<String>>) -> Result<DatasetFilesContent, Report> {
   if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
     dataset_str_download_and_load(run_args, dataset_name, genes)
       .wrap_err_with(|| format!("When downloading dataset '{dataset_name}'"))
@@ -103,7 +103,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     alignment_params,
   } = run_args.clone();
 
-  let DatasetFiles {
+  let DatasetFilesContent {
     ref_record,
     virus_properties,
     mut tree,

@@ -1,7 +1,7 @@
 use eyre::WrapErr;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
@@ -37,6 +37,7 @@ pub struct DatasetAttributes {
   pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
 }
 
+// TODO: move to VirusProperties
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetParams {
@@ -91,4 +92,33 @@ impl Dataset {
 pub struct DatasetsIndexJson {
   pub schema: String,
   pub datasets: Vec<Dataset>,
+}
+
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+pub struct DatasetFileUrls {
+  pub ref_record: String,
+  pub virus_properties: String,
+  pub tree: String,
+  pub gene_map: String,
+  pub qc_config: String,
+  pub primers: String,
+}
+
+// TODO: consider replacing the same fields in DatasetsIndexJson with this struct
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetTagJson {
+  pub enabled: bool,
+  pub attributes: DatasetAttributes,
+  pub comment: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub compatibility: Option<DatasetCompatibility>,
+  pub files: DatasetFileUrls,
+  pub params: DatasetParams,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub zip_bundle: Option<String>,
+  #[serde(skip_serializing_if = "serde_json::Value::is_null")]
+  pub metadata: serde_json::Value,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }

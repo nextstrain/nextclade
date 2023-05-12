@@ -1,14 +1,7 @@
 import { isNil } from 'lodash'
 
-import type { NextcladeResult } from 'src/types'
+import type { NextcladeResult, QCFilters } from 'src/types'
 import { QcStatus } from 'src/types'
-
-export interface QCFilters {
-  showGood: boolean
-  showMediocre: boolean
-  showBad: boolean
-  showErrors: boolean
-}
 
 export function filterByQCIssues({ showGood, showMediocre, showBad, showErrors }: QCFilters) {
   return ({ result, error }: NextcladeResult) => {
