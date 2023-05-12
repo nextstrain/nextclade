@@ -2,7 +2,6 @@ import { uniq } from 'lodash'
 
 import type { QcResultStopCodons } from 'src/types'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QcStatus } from 'src/types'
 
 export function formatQCStopCodons<TFunction extends TFunctionInterface>(
   t: TFunction,

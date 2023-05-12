@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
-import type { NucDelFull, NucleotideDeletion } from 'src/types'
+import type { NucDelFull } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'

@@ -4,7 +4,6 @@ import type { DeepReadonly } from 'ts-essentials'
 
 import type { QcResultMixedSites } from 'src/types'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QcStatus } from 'src/types'
 
 export function formatQCMixedSites<TFunction extends TFunctionInterface>(
   t: TFunction,

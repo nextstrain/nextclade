@@ -4,7 +4,6 @@ import type { DeepReadonly } from 'ts-essentials'
 
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
 import type { QcResultMissingData } from 'src/types'
-import { QcStatus } from 'src/types'
 
 export function formatQCMissingData<TFunction extends TFunctionInterface>(
   t: TFunction,
