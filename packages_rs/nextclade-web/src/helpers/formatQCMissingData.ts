@@ -10,14 +10,14 @@ export function formatQCMissingData<TFunction extends TFunctionInterface>(
   t: TFunction,
   missingData?: DeepReadonly<QcResultMissingData>,
 ) {
-  if (!missingData || missingData.status === QcStatus.good) {
+  if (!missingData || missingData.status === 'good') {
     return undefined
   }
 
   const { score, totalMissing, missingDataThreshold, status } = missingData
 
   let message = t('Missing data found')
-  if (status === QcStatus.bad) {
+  if (status === 'bad') {
     message = t('Too much missing data found')
   }
 

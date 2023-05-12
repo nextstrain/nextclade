@@ -8,7 +8,7 @@ export function formatQCStopCodons<TFunction extends TFunctionInterface>(
   t: TFunction,
   qcStopCodons?: QcResultStopCodons,
 ) {
-  if (!qcStopCodons || qcStopCodons.status === QcStatus.good) {
+  if (!qcStopCodons || qcStopCodons.status === 'good') {
     return undefined
   }
 

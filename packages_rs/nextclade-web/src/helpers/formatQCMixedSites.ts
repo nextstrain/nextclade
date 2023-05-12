@@ -10,14 +10,14 @@ export function formatQCMixedSites<TFunction extends TFunctionInterface>(
   t: TFunction,
   mixedSites?: DeepReadonly<QcResultMixedSites>,
 ) {
-  if (!mixedSites || mixedSites.status === QcStatus.good) {
+  if (!mixedSites || mixedSites.status === 'good') {
     return undefined
   }
 
   const { score, totalMixedSites, mixedSitesThreshold, status } = mixedSites
 
   let message = t('Mixed sites found')
-  if (status === QcStatus.bad) {
+  if (status === 'bad') {
     message = t('Too many mixed sites found')
   }
 

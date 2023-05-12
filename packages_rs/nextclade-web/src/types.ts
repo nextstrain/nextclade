@@ -14,6 +14,8 @@ import type {
   DatasetTagJson,
   FastaRecord,
   InsertionFor_Nuc, // eslint-disable-line camelcase
+  LetterRangeFor_Aa, // eslint-disable-line camelcase
+  LetterRangeFor_Nuc, // eslint-disable-line camelcase
   NextcladeErrorOutputs,
   NextcladeOutputs,
   Nuc,
@@ -37,6 +39,8 @@ export interface QCFilters {
 
 export type Nucleotide = Nuc
 export type Aminoacid = Aa
+export type NucleotideRange = LetterRangeFor_Nuc // eslint-disable-line camelcase
+export type AminoacidRange = LetterRangeFor_Aa // eslint-disable-line camelcase
 export type AnalysisResult = NextcladeOutputs
 export type PrivateMutations = PrivateNucMutations
 export type NucleotideSubstitutionSimple = NucSub
@@ -46,7 +50,7 @@ export type NucleotideDeletion = NucDel
 // export type NucleotideDeletionSimple = NucDelMinimal
 // export type NucleotideDeletionSimpleLabeled = NucDelFull
 export type NucleotideInsertion = InsertionFor_Nuc // eslint-disable-line camelcase
-export type NucleotideMissing = Range
+export type NucleotideMissing = LetterRangeFor_Nuc // eslint-disable-line camelcase
 export type AminoacidSubstitution = AaSub
 export type AminoacidDeletion = AaDel
 export type AminoacidInsertion = AaIns
@@ -59,6 +63,22 @@ export type DatasetsIndexV2Json = DatasetsIndexJson
 export type DatasetTag = DatasetTagJson
 export type DatasetFiles = DatasetFileUrls
 
+export function nucToString(nuc: Nuc): string {
+  return nuc.toString()
+}
+
+export function nucsToString(nucs: Nuc[]): string {
+  return nucs.map(nucToString).join('')
+}
+
+export function aaToString(aa: Aa): string {
+  return aa.toString()
+}
+
+export function aasToString(aas: Aa[]): string {
+  return aas.map(aaToString).join('')
+}
+
 export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucleotideSubstitution {
   return {
     refNuc,
@@ -69,7 +89,14 @@ export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubst
   }
 }
 
-export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
+export interface PrivateMutationsInternal {
+  reversions: NucleotideSubstitution[]
+  labeled: NucleotideSubstitutionSimpleLabeled[]
+  unlabeled: NucleotideSubstitution[]
+  totalMutations: number
+}
+
+export function convertPrivateMutations(privateNucMutations: PrivateMutations): PrivateMutationsInternal {
   const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
 
   // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,

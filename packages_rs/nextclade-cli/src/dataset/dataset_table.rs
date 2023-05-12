@@ -31,6 +31,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
       reference,
       tag,
       rest_attrs,
+      ..
     } = &attributes;
 
     let mut attrs = IndexMap::<String, &DatasetAttributeValue>::from([

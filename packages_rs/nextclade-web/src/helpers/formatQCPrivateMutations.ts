@@ -10,7 +10,7 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
   t: TFunction,
   privateMutations?: DeepReadonly<QcResultPrivateMutations>,
 ) {
-  if (!privateMutations || privateMutations.status === QcStatus.good) {
+  if (!privateMutations || privateMutations.status === 'good') {
     return undefined
   }
 

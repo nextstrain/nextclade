@@ -10,6 +10,7 @@ import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { TableSlimWithBorders } from 'src/components/Common/TableSlim'
 import { theme } from 'src/theme'
+import { aasToString, nucsToString } from 'src/types'
 
 const INSERTION_MAX_LENGTH = 30 as const
 
@@ -135,7 +136,7 @@ export function ListOfInsertionsNuc({ insertions }: ListOfInsertionsNucProps) {
         <TdNormal className="text-center">{pos + 1}</TdNormal>
         <TdNormal className="text-center">{ins.length}</TdNormal>
         <TdFragment className="text-left">
-          <InsertedFragmentTruncated insertion={ins} />
+          <InsertedFragmentTruncated insertion={nucsToString(ins)} />
         </TdFragment>
       </tr>
     ))
@@ -191,7 +192,7 @@ export function ListOfInsertionsAa({ insertions }: ListOfInsertionsAaProps) {
         <TdNormal className="text-center">{pos + 1}</TdNormal>
         <TdNormal className="text-center">{ins.length}</TdNormal>
         <TdFragment className="text-left">
-          <InsertedFragmentTruncated insertion={ins} isAminoacid />
+          <InsertedFragmentTruncated insertion={aasToString(ins)} isAminoacid />
         </TdFragment>
       </tr>
     ))

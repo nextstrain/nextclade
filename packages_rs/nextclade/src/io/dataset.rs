@@ -33,6 +33,9 @@ pub struct DatasetAttributes {
   pub reference: DatasetAttributeValue,
   pub tag: DatasetAttributeValue,
 
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub url: Option<DatasetAttributeValue>,
+
   #[serde(flatten)]
   pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
 }
