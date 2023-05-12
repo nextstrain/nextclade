@@ -6,11 +6,12 @@ use crate::io::container::take_exactly_one;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
-use multimap::MultiMap;
-use num_traits::{clamp, clamp_max};
+use num_traits::clamp_max;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Cds {
   pub id: String,
@@ -20,6 +21,7 @@ pub struct Cds {
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
   pub compat_is_gene: bool,
+  pub color: Option<String>,
 }
 
 impl Cds {
@@ -44,6 +46,7 @@ impl Cds {
           attributes: feature.attributes.clone(),
           source_record: feature.source_record.clone(),
           compat_is_gene: false,
+          color: None,
         })
       })
       .collect::<Result<Vec<CdsSegment>, Report>>()?;
@@ -80,6 +83,7 @@ impl Cds {
       segments,
       proteins,
       compat_is_gene: false,
+      color: None,
     })
   }
 
@@ -99,6 +103,7 @@ impl Cds {
       source_record: feature.source_record.clone(),
       compat_is_cds: true,
       compat_is_gene: true,
+      color: None,
     };
 
     let protein = Protein {
@@ -106,6 +111,7 @@ impl Cds {
       name: feature.name.clone(),
       product: feature.product.clone(),
       segments: vec![protein_segment],
+      color: None,
     };
 
     let cds_segment = CdsSegment {
@@ -121,6 +127,7 @@ impl Cds {
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),
       compat_is_gene: true,
+      color: None,
     };
 
     let segments = vec![cds_segment];
@@ -134,6 +141,7 @@ impl Cds {
       segments,
       proteins: vec![protein],
       compat_is_gene: true,
+      color: None,
     })
   }
 
@@ -250,7 +258,7 @@ fn find_proteins_recursive(feature_group: &FeatureGroup, proteins: &mut Vec<Prot
     .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, proteins))
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsSegment {
   pub index: usize,
@@ -262,9 +270,10 @@ pub struct CdsSegment {
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,
-  pub attributes: MultiMap<String, String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub source_record: Option<String>,
   pub compat_is_gene: bool,
+  pub color: Option<String>,
 }
 
 impl CdsSegment {

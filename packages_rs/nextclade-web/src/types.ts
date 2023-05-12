@@ -2,6 +2,9 @@
 import type { Tagged } from 'src/helpers/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { isEqual, isNil, sumBy } from 'lodash'
+import type { Cds, CdsSegment } from 'src/gen/_SchemaRoot'
+
+export * from 'src/gen/_SchemaRoot'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -440,33 +443,6 @@ export interface Translation {
   alignmentRange: Range
 }
 
-export interface Gene {
-  index: number
-  id: string
-  name: string
-  start: number
-  end: number
-  strand: string
-  frame: number
-  cdses: Cds[]
-  exceptions: string[]
-  attributes: Record<string, string[]>
-  sourceRecord?: string
-  compatIsCds: boolean
-  color?: string
-}
-
-export interface Cds {
-  id: string
-  name: string
-  product: string
-  strand: string
-  segments: CdsSegment[]
-  proteins: Protein[]
-  compatIsGene: boolean
-  color?: string
-}
-
 export function cdsNucLength(cds: Cds) {
   return sumBy(cds.segments, cdsSegmentNucLength)
 }
@@ -475,55 +451,8 @@ export function cdsCodonLength(cds: Cds) {
   return cdsNucLength(cds) / 3
 }
 
-export interface CdsSegment {
-  index: number
-  id: string
-  name: string
-  start: number
-  end: number
-  landmark?: Landmark[]
-  strand: string
-  frame: number
-  exceptions: string[]
-  attributes: Record<string, string[]>
-  sourceRecord?: string
-  compatIsGene: boolean
-  color?: string
-}
-
 export function cdsSegmentNucLength(cdsSeg: CdsSegment) {
   return cdsSeg.end - cdsSeg.start
-}
-
-export interface Landmark {
-  index: number
-  id: string
-  name: string
-  start: number
-  end: number
-  strand: string
-  isCircular: boolean
-}
-
-export interface Protein {
-  id: string
-  name: string
-  product: string
-  segments: ProteinSegment[]
-}
-
-export interface ProteinSegment {
-  id: string
-  name: string
-  start: number
-  end: number
-  strand: string
-  frame: number
-  exceptions: string[]
-  attributes: Record<string, string[]>
-  sourceRecord?: string
-  compatIsCds: boolean
-  compatIsGene: boolean
 }
 
 export interface FastaRecordId {

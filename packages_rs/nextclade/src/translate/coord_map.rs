@@ -417,7 +417,7 @@ mod coord_map_tests {
   use super::*;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
-  use multimap::MultiMap;
+  use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -439,7 +439,7 @@ mod coord_map_tests {
           strand: GeneStrand::Forward,
           frame: 0,
           exceptions: vec![],
-          attributes: MultiMap::default(),
+          attributes: hashmap!(),
           source_record: None,
           compat_is_gene: false,
         })

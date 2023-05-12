@@ -286,6 +286,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
     attributes,
     source_record,
     compat_is_cds,
+    color,
   } = gene;
 
   let indent_width = INDENT_WIDTH;
@@ -332,6 +333,7 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
     attributes,
     source_record,
     compat_is_gene,
+    color,
   } = cds_segment;
 
   let indent_width = INDENT_WIDTH * 3;
@@ -381,6 +383,7 @@ fn write_protein_segment<W: Write>(
     source_record,
     compat_is_cds,
     compat_is_gene,
+    color,
   } = protein_segment;
 
   let indent_width = INDENT_WIDTH * 4;

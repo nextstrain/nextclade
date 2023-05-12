@@ -79,7 +79,9 @@
     "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
     "serve-data": "babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\" ./tools/server/dataServer.ts",
     "wasm-dev": "cargo build -q --profile=opt-dev --package=nextclade-web --lib --target=wasm32-unknown-unknown --target-dir=.build/docker/wasm-dev/ && wasm-bindgen .build/docker/wasm-dev/wasm32-unknown-unknown/opt-dev/nextclade_web.wasm --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm && wasm-opt -O --optimize-level=1 --shrink-level=1 .build/docker/wasm-dev/wasm32-unknown-unknown/opt-dev/nextclade_web.wasm -o .build/wasm-prod/nextclade-wasm.wasm && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
-    "wasm-prod": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web --locked && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/"
+    "wasm-prod": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web --locked && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
+    "types:clear": "rimraf src/gen/_SchemaRoot.d.ts",
+    "types:generate": "yarn json2ts --enableConstEnums --format --cwd src/gen src/gen/_SchemaRoot.json src/gen/_SchemaRoot.d.ts && yarn prettier --write src/gen/_SchemaRoot.json src/gen/_SchemaRoot.d.ts && sed -i 's/?: string | null/?: string/g' src/gen/_SchemaRoot.d.ts"
   },
   "dependencies": {
     "animate.css": "4.1.1",
@@ -296,6 +298,7 @@
     "js-yaml": "4.1.0",
     "json-autotranslate": "1.10.3",
     "json-loader": "0.5.7",
+    "json-schema-to-typescript": "13.0.1",
     "lodash-webpack-plugin": "0.11.6",
     "map.prototype.tojson": "0.1.3",
     "next-transpile-modules": "9.0.0",
