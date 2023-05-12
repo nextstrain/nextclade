@@ -7,7 +7,7 @@ use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigMissingData {
@@ -16,7 +16,7 @@ pub struct QcRulesConfigMissingData {
   pub score_bias: f64,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigMixedSites {
@@ -24,7 +24,7 @@ pub struct QcRulesConfigMixedSites {
   pub mixed_sites_threshold: usize,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigPrivateMutations {
@@ -56,7 +56,7 @@ const fn one() -> f64 {
   1.0
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigSnpClusters {
@@ -66,7 +66,7 @@ pub struct QcRulesConfigSnpClusters {
   pub score_weight: f64,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct FrameShiftLocation {
@@ -74,7 +74,7 @@ pub struct FrameShiftLocation {
   pub codon_range: Range,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigFrameShifts {
@@ -93,7 +93,7 @@ impl Default for QcRulesConfigFrameShifts {
   }
 }
 
-#[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct StopCodonLocation {
@@ -101,7 +101,7 @@ pub struct StopCodonLocation {
   pub codon: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigStopCodons {
@@ -120,7 +120,7 @@ impl Default for QcRulesConfigStopCodons {
   }
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcConfig {

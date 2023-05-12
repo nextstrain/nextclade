@@ -77,7 +77,7 @@ pub const fn decode(triplet: &[Nuc]) -> Aa {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsPeptide {
   pub name: String,

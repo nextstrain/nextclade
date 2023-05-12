@@ -9,7 +9,7 @@ use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct InsertionCsvEntry<'a> {
   pub seq_name: &'a str,

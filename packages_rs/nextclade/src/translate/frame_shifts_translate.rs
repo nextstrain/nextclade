@@ -51,13 +51,13 @@ pub fn find_codon_mask_range(nuc_rel_aln: &Range, query: &[Nuc], coord_map_local
   coord_map_local.local_aln_to_codon_range(&mask_nuc_rel_aln)
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FrameShiftContext {
   pub codon: Range,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FrameShift {
   pub gene_name: String,

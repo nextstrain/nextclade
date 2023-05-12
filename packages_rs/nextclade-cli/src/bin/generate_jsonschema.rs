@@ -2,11 +2,15 @@ use clap::{AppSettings, Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
 use log::LevelFilter;
-use nextclade::gene::cds::{Cds, CdsSegment};
-use nextclade::gene::gene::{Gene, GeneStrand};
-use nextclade::gene::protein::{Protein, ProteinSegment};
+use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::io::file::create_file_or_stdout;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::json::json_write_impl;
+use nextclade::qc::qc_config::QcConfig;
+use nextclade::qc::qc_run::QcResult;
+use nextclade::translate::translate_genes::Translation;
+use nextclade::tree::tree::AuspiceTree;
+use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::global_init::global_init;
 use nextclade::utils::global_init::setup_logger;
 use schemars::{schema_for, JsonSchema};
@@ -61,10 +65,11 @@ fn main() -> Result<(), Report> {
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct _SchemaRoot {
-  _1: Gene,
-  _2: GeneStrand,
-  _3: Protein,
-  _4: ProteinSegment,
-  _5: Cds,
-  _6: CdsSegment,
+  _1: GeneMap,
+  _2: Translation,
+  _3: AuspiceTree,
+  _4: QcConfig,
+  _5: QcResult,
+  _6: PcrPrimer,
+  _7: NextcladeOutputs,
 }

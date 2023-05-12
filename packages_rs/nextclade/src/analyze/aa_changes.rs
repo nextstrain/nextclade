@@ -18,7 +18,7 @@ use num_traits::clamp_max;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NucContext {
   pub codon_nuc_range: Range,
@@ -27,7 +27,7 @@ pub struct NucContext {
   pub context_nuc_range: Range,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaContext {
   pub ref_aa_context: String,
@@ -35,7 +35,7 @@ pub struct AaContext {
 }
 
 /// Represents aminoacid substitution
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaSub {
   pub gene: String,
@@ -93,7 +93,7 @@ impl PartialOrd for AaSub {
   }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaDel {
   pub gene: String,
@@ -136,7 +136,7 @@ impl PartialOrd for AaDel {
   }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum AaChangeType {
   #[serde(rename = "substitution")]
@@ -146,7 +146,7 @@ pub enum AaChangeType {
   Del,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaChange {
   #[serde(rename = "type")]
@@ -213,7 +213,7 @@ impl PartialOrd for AaChange {
   }
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FindAaChangesOutput {
   pub aa_substitutions: Vec<AaSub>,

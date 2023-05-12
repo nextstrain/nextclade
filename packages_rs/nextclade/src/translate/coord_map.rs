@@ -55,7 +55,7 @@ fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
 /// done in alignment space, while others in reference space. This struct allows for conversion of position indices
 /// from one space to another.
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CoordMap {
   aln_to_ref_table: Vec<usize>,
@@ -215,7 +215,7 @@ impl CoordMap {
 
 /// Same as [CoordMap] but is meant for coordinates local to a genomic feature (e.g. a single CDS).
 /// Wraps [CoordMap] and contains additional functionality for local transformations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CoordMapLocal {
   coord_map: CoordMap,
 }
@@ -246,7 +246,7 @@ impl CoordMapLocal {
   }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsToAln {
   global: Vec<usize>,
@@ -254,7 +254,7 @@ pub struct CdsToAln {
   len: usize,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum CdsPosition {
   Before,
@@ -262,7 +262,7 @@ pub enum CdsPosition {
   After,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum CdsRange {
   Before,
@@ -270,7 +270,7 @@ pub enum CdsRange {
   After,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 pub struct CoordMapForCds {
   cds_to_aln_map: Vec<CdsToAln>,
   coord_map: CoordMap,
@@ -442,10 +442,12 @@ mod coord_map_tests {
           attributes: hashmap!(),
           source_record: None,
           compat_is_gene: false,
+          color: None,
         })
         .collect_vec(),
       proteins: vec![],
       compat_is_gene: false,
+      color: None,
     }
   }
 

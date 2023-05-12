@@ -5,7 +5,7 @@ use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct LetterRange<L: Letter<L>> {
   pub begin: usize,
   pub end: usize,
@@ -96,7 +96,7 @@ pub fn find_letter_ranges<L: Letter<L>>(qry_aln: &[L], letter: L) -> Vec<LetterR
   find_letter_ranges_by(qry_aln, |candidate| candidate == letter)
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneAaRange {
   pub gene_name: String,

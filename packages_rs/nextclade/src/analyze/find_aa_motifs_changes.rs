@@ -12,7 +12,7 @@ use std::fmt::Debug;
 pub type AaMotifsMap = BTreeMap<String, Vec<AaMotif>>;
 pub type AaMotifsChangesMap = BTreeMap<String, AaMotifChanges>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifChanges {
   pub preserved: Vec<AaMotifMutation>,
@@ -22,7 +22,7 @@ pub struct AaMotifChanges {
   pub total: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifMutation {
   pub name: String,
