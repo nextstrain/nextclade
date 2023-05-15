@@ -241,7 +241,11 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
   const { width, codonsBefore, codonsBegin, ellipsis, codonsEnd, codonsAfter } = useMemo(() => {
-    const { changes, contextNucRange, codonAaRange, refContext, queryContext } = group
+    const { changes, codonAaRange, nucContexts } = group
+
+    // HACK: only uses the first nuc context
+    // TODO: figure out what to do in cas there are multiple nuc contexts
+    const { refContext, queryContext, contextNucRange } = nucContexts[0]
 
     const refCodons = refContext.match(/.{1,3}/g)!
     const queryCodons = queryContext.match(/.{1,3}/g)!
@@ -286,7 +290,10 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
     const ellipsis = itemsEnd.length > 0 ? <PeptideContextEllipsis /> : null
 
     const codonsBegin = itemsBegin.map(([change, refCodon, queryCodon]) => {
-      const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
+      // HACK: only uses the first nuc context
+      // TODO: figure out what to do in cas there are multiple nuc contexts
+      const { codonNucRange } = change.nucContexts[0]
+      const nucBegin = strand === '+' ? codonNucRange.begin : codonNucRange.end - 1
       return (
         <PeptideContextCodon
           key={change.codon}
@@ -300,7 +307,10 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
     })
 
     const codonsEnd = itemsEnd.map(([change, refCodon, queryCodon]) => {
-      const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
+      // HACK: only uses the first nuc context
+      // TODO: figure out what to do in cas there are multiple nuc contexts
+      const { codonNucRange } = change.nucContexts[0]
+      const nucBegin = strand === '+' ? codonNucRange.begin : codonNucRange.end - 1
       return (
         <PeptideContextCodon
           key={change.codon}
