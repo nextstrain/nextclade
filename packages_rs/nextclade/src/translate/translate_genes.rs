@@ -123,6 +123,8 @@ impl GeneTranslation {
 pub struct CdsTranslation {
   pub gene: Gene,
   pub cds: Cds,
+
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,

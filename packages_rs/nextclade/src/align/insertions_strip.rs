@@ -14,6 +14,7 @@ use std::str::FromStr;
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
 
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<T>,
@@ -113,6 +114,7 @@ pub struct AaIns {
   pub gene: String,
   pub pos: i32,
 
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<Aa>,

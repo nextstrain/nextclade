@@ -56,22 +56,6 @@ export type DatasetsIndexV2Json = DatasetsIndexJson
 export type DatasetTag = DatasetTagJson
 export type DatasetFiles = DatasetFileUrls
 
-export function nucToString(nuc: Nuc): string {
-  return nuc.toString()
-}
-
-export function nucsToString(nucs: Nuc[]): string {
-  return nucs.map(nucToString).join('')
-}
-
-export function aaToString(aa: Aa): string {
-  return aa.toString()
-}
-
-export function aasToString(aas: Aa[]): string {
-  return aas.map(aaToString).join('')
-}
-
 export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucSubFull {
   return {
     refNuc,
