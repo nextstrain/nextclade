@@ -1795,7 +1795,7 @@
     "@babel/plugin-transform-react-jsx-development" "^7.16.7"
     "@babel/plugin-transform-react-pure-annotations" "^7.16.7"
 
-"@babel/preset-typescript@7.16.7", "@babel/preset-typescript@7.9.0", "@babel/preset-typescript@^7.15.0", "@babel/preset-typescript@^7.16.0":
+"@babel/preset-typescript@7.16.7", "@babel/preset-typescript@7.9.0", "@babel/preset-typescript@^7.15.0", "@babel/preset-typescript@^7.16.0", "@babel/preset-typescript@^7.21.0":
   version "7.16.7"
   resolved "https://registry.yarnpkg.com/@babel/preset-typescript/-/preset-typescript-7.16.7.tgz#ab114d68bb2020afc069cd51b37ff98a046a70b9"
   integrity sha512-WbVEmgXdIyvzB77AQjGBEyYPZx+8tTsO50XtfozQrkW8QB2rLJpH2lgx0TRw5EJrBxOZQ+wCcyPVQvS8tjEHpQ==
@@ -4267,10 +4267,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.45.2:
-  version "2.45.2"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.45.2.tgz#d14c13c921db6599a5d3aee1dfd5a690edfba06a"
-  integrity sha512-QZH16kHwwefawGhwhqIXhdVrugFfRLYxxiyi+JJX10wQ8TYQ8+ypGCHPaj7uyBUxUZf3isW9NcYLAyfwaVD0zw==
+auspice@2.46.0:
+  version "2.46.0"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.46.0.tgz#8463554b1a75ed47a180e0bf70427e3c20edecbd"
+  integrity sha512-4zUGoyM6zA104+Smk5Kn0qtOUBGCfr7YihD0rDBglNeDbVXpSWJPmW2hRnkj8KUOWIF7waU5kZek1VoY3XWJSQ==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -4279,6 +4279,7 @@ auspice@2.45.2:
     "@babel/plugin-transform-runtime" "^7.8.3"
     "@babel/preset-env" "^7.9.6"
     "@babel/preset-react" "^7.0.0"
+    "@babel/preset-typescript" "^7.21.0"
     "@hot-loader/react-dom" "^16.13.0"
     argparse "^1.0.10"
     babel-loader "^8.0.4"
@@ -4322,7 +4323,6 @@ auspice@2.45.2:
     lodash-webpack-plugin "^0.11.6"
     marked "^0.7.0"
     mousetrap "^1.6.2"
-    node-fetch "^2.6.1"
     null-loader "^4.0.0"
     outer-product "0.0.4"
     papaparse "^5.3.1"
@@ -4334,7 +4334,7 @@ auspice@2.45.2:
     react-ga "^2.2.0"
     react-helmet "^5.2.1"
     react-hot-loader "^4.8.4"
-    react-i18next "^11.3.3"
+    react-i18next "^11.15.6"
     react-icons "^3.9.0"
     react-redux "^7.2.6"
     react-select "^5.2.2"
@@ -12914,7 +12914,7 @@ react-hot-loader@^4.8.4:
     shallowequal "^1.1.0"
     source-map "^0.7.3"
 
-react-i18next@11.3.3, react-i18next@^11.3.3:
+react-i18next@11.3.3, react-i18next@^11.15.6:
   version "11.3.3"
   resolved "https://registry.yarnpkg.com/react-i18next/-/react-i18next-11.3.3.tgz#a84dcc32e3ad013012964d836790d8c6afac8e88"
   integrity sha512-sGnPwJ0Kf8qTRLTnTRk030KiU6WYEZ49rP9ILPvCnsmgEKyucQfTxab+klSYnCSKYija+CWL+yo+c9va9BmJeg==
