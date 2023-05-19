@@ -193,7 +193,7 @@ yarn format:fix
 - Build a fresh dataset directory as described in the [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data) repo. At the time of writing it simply means to run `./scripts/rebuild` and to observe the `data_output/` created, containing the dataset files and associated index files
 - Serve datasets directory locally using any static file server. [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) should be enabled on the server. For example, using `serve` package from NPM:
   ```bash
-  npx serve --cors --listen=tcp://0.0.0.0:27722 data_output/
+  npx serve@latest --cors --listen=tcp://0.0.0.0:27722 data_output/
   ```
   In this example, files should be available at
   ```
