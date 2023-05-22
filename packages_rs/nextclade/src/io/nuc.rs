@@ -74,7 +74,7 @@ impl Letter<Nuc> for Nuc {
   #[inline]
   fn from_string(s: &str) -> Result<Nuc, Report> {
     if s.len() == 1 {
-      let first_char = s.chars().nth(0).ok_or(eyre!("Unable to retrieve first character"))?;
+      let first_char = s.chars().nth(0).ok_or_else(|| eyre!("Unable to retrieve first character"))?;
       Ok(to_nuc(first_char)?)
     } else {
       make_error!("Expected 1 character, but got {}", s.len())

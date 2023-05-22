@@ -83,7 +83,7 @@ impl Letter<Aa> for Aa {
   #[inline]
   fn from_string(s: &str) -> Result<Aa, Report> {
     if s.len() == 1 {
-      let first_char = s.chars().nth(0).ok_or(eyre!("Unable to retrieve first character"))?;
+      let first_char = s.chars().nth(0).ok_or_else(|| eyre!("Unable to retrieve first character"))?;
       Ok(to_aa(first_char)?)
     } else {
       make_error!("Expected 1 character, but got {}", s.len())
