@@ -7,6 +7,7 @@ use nextclade::analyze::find_aa_motifs_changes::AaMotifsMap;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
+use nextclade::gene::cds::Cds;
 use nextclade::gene::gene::Gene;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
@@ -233,7 +234,7 @@ impl Nextclade {
   #[inline]
   pub fn get_initial_data(&self) -> Result<AnalysisInitialData, Report> {
     Ok(AnalysisInitialData {
-      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.genes().cloned().collect())?,
+      gene_map: json_stringify::<Vec<Cds>>(&self.gene_map.cdses().cloned().collect())?,
       genome_size: self.ref_seq.len(),
       clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
       phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,

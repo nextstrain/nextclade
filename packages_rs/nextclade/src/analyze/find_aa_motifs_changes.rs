@@ -26,7 +26,7 @@ pub struct AaMotifChanges {
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifMutation {
   pub name: String,
-  pub gene: String,
+  pub cds: String,
   pub position: usize,
   pub ref_seq: String,
   pub qry_seq: String,
@@ -98,7 +98,7 @@ fn find_aa_motifs_changes_one(
     Zip::from((kept_ref, kept_qry))
       .map(|(motif_ref, motif_qry)| AaMotifMutation {
         name: motif_ref.name,
-        gene: motif_ref.gene,
+        cds: motif_ref.cds.clone(),
         position: motif_ref.position,
         ref_seq: motif_ref.seq,
         qry_seq: motif_qry.seq,
@@ -128,7 +128,7 @@ fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotif
 
   Ok(AaMotifMutation {
     name: motif.name.clone(),
-    gene: motif.gene.clone(),
+    cds: motif.cds.clone(),
     position: motif.position,
     ref_seq,
     qry_seq: motif.seq.clone(),
@@ -138,9 +138,9 @@ fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotif
 // Add query sequence fragment to motif
 fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotifMutation> {
   qry_translation
-    .cdses()
-    .find(|tr| tr.gene.name == motif.gene && tr.cds.name == motif.cds)
-    .and_then(|tr| {
+    .iter_cdses()
+    .find(|(_, tr)| tr.cds.name == motif.cds)
+    .and_then(|(_, tr)| {
       let begin = motif.position;
       let end = begin + motif.seq.len();
       tr.alignment_ranges.iter().find_map(|alignment_range| {
@@ -151,7 +151,7 @@ fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotif
           let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
           Some(AaMotifMutation {
             name: motif.name.clone(),
-            gene: motif.gene.clone(),
+            cds: motif.cds.clone(),
             position: motif.position,
             ref_seq: motif.seq.clone(),
             qry_seq,

@@ -115,8 +115,8 @@ impl GeneAaRange {
 /// Finds contiguous ranges (segments) consisting of a given amino acid in the sequence.
 pub fn find_aa_letter_ranges(translation: &Translation, letter: Aa) -> Vec<GeneAaRange> {
   translation
-    .cdses()
-    .filter_map(|CdsTranslation { cds, seq, .. }| {
+    .iter_cdses()
+    .filter_map(|(_, CdsTranslation { cds, seq, .. })| {
       let ranges = find_letter_ranges_by(seq, |candidate| candidate == letter);
       let length = ranges.iter().map(LetterRange::len).sum();
       (length > 0).then(|| GeneAaRange {

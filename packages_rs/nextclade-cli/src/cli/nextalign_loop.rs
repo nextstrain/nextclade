@@ -7,7 +7,6 @@ use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use nextclade::io::gene_map::gene_map_to_string;
 use nextclade::io::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing};
 use nextclade::run::nextalign_run_one::nextalign_run_one;
@@ -66,7 +65,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
     None => GeneMap::new(),
   };
 
-  info!("Gene map:\n{}", gene_map_to_string(&gene_map)?);
+  // info!("Gene map:\n{}", gene_map_to_string(&gene_map)?);
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, &gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);

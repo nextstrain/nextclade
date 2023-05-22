@@ -27,7 +27,7 @@ pub fn rule_stop_codons(translation: &Translation, config: &QcRulesConfigStopCod
 
   let mut stop_codons = Vec::<StopCodonLocation>::new();
   let mut stop_codons_ignored = Vec::<StopCodonLocation>::new();
-  for cds_tr in translation.cdses() {
+  for (_, cds_tr) in translation.iter_cdses() {
     let CdsTranslation { cds, seq: peptide, .. } = cds_tr;
 
     let len_minus_one = peptide.len() - 1; // Minus one to ignore valid stop codon at the end

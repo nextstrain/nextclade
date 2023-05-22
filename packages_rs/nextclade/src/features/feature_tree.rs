@@ -1,6 +1,6 @@
 use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
-use crate::features::feature_tree_format::format_sequence_region_features;
+// use crate::features::feature_tree_format::format_sequence_region_features;
 use crate::features::sequence_region::SequenceRegion;
 use crate::io::file::open_file_or_stdin;
 use crate::make_error;
@@ -36,13 +36,13 @@ impl FeatureTree {
     Ok(Self { seq_regions })
   }
 
-  pub fn to_pretty_string(&self) -> Result<String, Report> {
-    let mut buf = Vec::<u8>::new();
-    {
-      format_sequence_region_features(&mut buf, &self.seq_regions)?;
-    }
-    Ok(String::from_utf8(buf)?)
-  }
+  // pub fn to_pretty_string(&self) -> Result<String, Report> {
+  //   let mut buf = Vec::<u8>::new();
+  //   {
+  //     format_sequence_region_features(&mut buf, &self.seq_regions)?;
+  //   }
+  //   Ok(String::from_utf8(buf)?)
+  // }
 }
 
 /// Read GFF3 records given a string

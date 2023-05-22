@@ -218,8 +218,8 @@ pub fn nextclade_run_one(
   );
 
   let aa_alignment_ranges: BTreeMap<String, Vec<Range>> = translation
-    .cdses()
-    .map(|tr| {
+    .iter_cdses()
+    .map(|(_, tr)| {
       let alignment_ranges = tr
         .alignment_ranges
         .iter()

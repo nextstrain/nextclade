@@ -218,7 +218,7 @@ impl FastaPeptideWriter {
 
     let writers = gene_map
       .iter_cdses()
-      .map(|cds| -> Result<_, Report> {
+      .map(|(_, cds)| -> Result<_, Report> {
         let template_context = OutputTranslationsTemplateContext { gene: &cds.name };
         let rendered_path = tt
           .render("output_translations", &template_context)

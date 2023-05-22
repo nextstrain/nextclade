@@ -13,7 +13,6 @@ use std::hash::{Hash, Hasher};
 #[serde(rename_all = "camelCase")]
 pub struct AaMotif {
   pub name: String,
-  pub gene: String,
   pub cds: String,
   pub position: usize,
   pub seq: String,
@@ -59,8 +58,8 @@ fn process_one_aa_motifs_desc(
   // If no genes specified, process all genes
   let include_genes = if include_genes.is_empty() {
     translation
-      .cdses()
-      .map(|translation| CountAaMotifsGeneDesc {
+      .iter_cdses()
+      .map(|(_, translation)| CountAaMotifsGeneDesc {
         gene: translation.cds.name.clone(),
         ranges: vec![],
       })
@@ -73,9 +72,9 @@ fn process_one_aa_motifs_desc(
     .iter()
     .flat_map(|CountAaMotifsGeneDesc { gene, ranges }| {
       translation
-        .cdses()
-        .filter(|CdsTranslation { cds, .. }| &cds.name == gene)
-        .flat_map(|translation| process_one_translation(translation, name, motifs, ranges))
+        .iter_cdses()
+        .filter(|(_, CdsTranslation { cds, .. })| &cds.name == gene)
+        .flat_map(|(_, translation)| process_one_translation(translation, name, motifs, &ranges))
         .collect_vec()
     })
     .collect_vec()
@@ -130,7 +129,6 @@ fn process_one_motif(
       captures.get(0).map(|capture| {
         Ok(AaMotif {
           name: name.to_owned(),
-          gene: translation.gene.name.clone(),
           cds: translation.cds.name.clone(),
           position: range.begin + capture.start(),
           seq: capture.as_str().to_owned(),
@@ -153,7 +151,6 @@ impl From<AaMotif> for AaMotifWithoutSeq {
 impl Hash for AaMotifWithoutSeq {
   fn hash<H: Hasher>(&self, state: &mut H) {
     self.0.name.hash(state);
-    self.0.gene.hash(state);
     self.0.position.hash(state);
     // NOTE: `.seq` is disregarded
   }
@@ -163,7 +160,7 @@ impl Eq for AaMotifWithoutSeq {}
 
 impl PartialEq<Self> for AaMotifWithoutSeq {
   fn eq(&self, other: &Self) -> bool {
-    (&self.0.name, &self.0.gene, &self.0.position).eq(&(&other.0.name, &other.0.gene, &other.0.position))
+    (&self.0.name, &self.0.position).eq(&(&other.0.name, &other.0.position))
     // NOTE: `.seq` is disregarded
   }
 }
