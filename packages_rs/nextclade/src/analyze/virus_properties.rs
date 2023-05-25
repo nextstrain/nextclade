@@ -14,30 +14,30 @@ use std::str::FromStr;
 use validator::Validate;
 
 /// Raw JSON version of the `VirusProperties` struct
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 struct VirusPropertiesRaw {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
-  #[serde(default = "Vec::new")]
+  #[serde(default)]
   pub aa_motifs: Vec<AaMotifsDesc>,
-  #[serde(default = "Vec::new")]
+  #[serde(default)]
   pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
 }
 
 /// Contains external configuration and data specific for a particular pathogen
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
-  #[serde(default = "Vec::new")]
+  #[serde(default)]
   pub aa_motifs: Vec<AaMotifsDesc>,
-  #[serde(default = "Vec::new")]
+  #[serde(default)]
   pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
 }
 
@@ -46,20 +46,20 @@ pub type LabelMap<L> = BTreeMap<Genotype<L>, Vec<String>>;
 pub type NucLabelMap = LabelMap<Nuc>;
 
 /// External data that contains labels assigned to many mutations
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct MutationLabelMaps<L: Letter<L>> {
   pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeDataIgnore {
   #[serde(default)]
   pub clades: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum PhenotypeCoeff {
@@ -82,7 +82,7 @@ impl PhenotypeCoeff {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeDataEntry {
   pub name: String,
@@ -96,7 +96,7 @@ impl PhenotypeDataEntry {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeData {
   pub name: String,
@@ -109,7 +109,7 @@ pub struct PhenotypeData {
   pub data: Vec<PhenotypeDataEntry>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeAttrDesc {
   pub name: String,
@@ -117,7 +117,7 @@ pub struct PhenotypeAttrDesc {
   pub description: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifsDesc {
   pub name: String,
@@ -126,16 +126,16 @@ pub struct AaMotifsDesc {
   pub description: String,
   pub motifs: Vec<String>,
 
-  #[serde(default = "Vec::new")]
+  #[serde(default)]
   pub include_genes: Vec<CountAaMotifsGeneDesc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CountAaMotifsGeneDesc {
   pub gene: String,
 
-  #[serde(default = "Vec::new")]
+  #[serde(default)]
   pub ranges: Vec<Range>,
 }
 

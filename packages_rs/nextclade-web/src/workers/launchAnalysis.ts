@@ -5,7 +5,6 @@ import { isEmpty, merge } from 'lodash'
 import type {
   AaMotifsDesc,
   AlgorithmInput,
-  DatasetFiles,
   Dataset,
   FastaRecordId,
   Gene,
@@ -48,7 +47,7 @@ export interface LaunchAnalysisCallbacks {
 }
 
 /** Maps input field names to the dataset field names, so that we know which one to take */
-const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, keyof DatasetFiles> = {
+const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, string> = {
   ref_seq_str: 'reference.fasta',
   gene_map_str: 'genemap.gff',
   tree_str: 'tree.json',

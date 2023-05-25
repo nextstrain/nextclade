@@ -1,10 +1,12 @@
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
 use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo};
+use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
-use multimap::MultiMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -25,7 +27,7 @@ pub struct Feature {
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
-  pub attributes: MultiMap<String, String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub source_record: Option<String>,
 }
 
@@ -46,9 +48,15 @@ impl Feature {
     } = GffCommonInfo::from_gff_record(&record)?;
 
     let name = name.unwrap_or_else(|| format!("Feature #{index}"));
-    let id = id.unwrap_or_else(|| attributes.get("ID").cloned().unwrap_or_else(|| name.clone()));
+    let id = id.unwrap_or_else(|| {
+      attributes
+        .get("ID")
+        .and_then(|ids| first(ids).ok())
+        .cloned()
+        .unwrap_or_else(|| name.clone())
+    });
     let feature_type = record.feature_type().to_owned();
-    let parent_ids = attributes.get_vec("Parent").cloned().unwrap_or_default();
+    let parent_ids = attributes.get("Parent").cloned().unwrap_or_default();
     let product = get_one_of_attributes_optional(&record, &["Product", "product", "Protein", "protein", "protein_id"])
       .unwrap_or_else(|| name.clone());
     let seqid = record.seqname().to_owned();
@@ -81,7 +89,7 @@ impl Feature {
   }
 }
 
-#[derive(Clone, Default, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Landmark {
   pub index: usize,

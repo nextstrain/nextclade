@@ -25,7 +25,7 @@ use num_traits::clamp_max;
 use rayon::iter::Either;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Translation {
   pub genes: IndexMap<String, GeneTranslation>,
@@ -98,7 +98,7 @@ impl Translation {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneTranslation {
   pub gene: Gene,
@@ -118,11 +118,13 @@ impl GeneTranslation {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsTranslation {
   pub name: String,
   pub strand: GeneStrand,
+
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,

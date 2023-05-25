@@ -5,7 +5,6 @@ use crate::gene::cds::{Cds, CdsSegment};
 use crate::gene::gene::Gene;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
-use crate::io::json::json_parse;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
 use crate::utils::string::truncate_with_ellipsis;
@@ -15,13 +14,14 @@ use itertools::{max, Itertools};
 use log::warn;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
 use std::path::Path;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[must_use]
 pub struct GeneMap {
   pub genes: BTreeMap<String, Gene>,
@@ -297,6 +297,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
     attributes,
     source_record,
     compat_is_cds,
+    color,
   } = gene;
 
   let indent_width = INDENT_WIDTH;
@@ -343,6 +344,7 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
     attributes,
     source_record,
     compat_is_gene,
+    color,
   } = cds_segment;
 
   let indent_width = INDENT_WIDTH * 3;
@@ -392,6 +394,7 @@ fn write_protein_segment<W: Write>(
     source_record,
     compat_is_cds,
     compat_is_gene,
+    color,
   } = protein_segment;
 
   let indent_width = INDENT_WIDTH * 4;

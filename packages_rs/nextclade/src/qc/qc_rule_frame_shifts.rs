@@ -12,7 +12,7 @@ pub fn is_frame_shift_ignored(frame_shift: &FrameShift, config: &QcRulesConfigFr
     .any(|ignored| ignored.gene_name == frame_shift.gene_name && ignored.codon_range == frame_shift.codon)
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultFrameShifts {
   pub score: f64,

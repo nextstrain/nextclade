@@ -77,10 +77,12 @@ pub const fn decode(triplet: &[Nuc]) -> Aa {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsPeptide {
   pub name: String,
+
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,

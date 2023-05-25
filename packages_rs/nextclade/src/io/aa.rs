@@ -6,7 +6,7 @@ use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema)]
 pub enum Aa {
   A,
   B,

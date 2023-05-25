@@ -15,7 +15,6 @@ export async function fetchSingleDatasetFromUrl(
   const tag = await axiosFetchOrUndefined<DatasetTag>(urljoin(datasetRootUrl, 'tag.json'))
 
   const currentDataset: Dataset = {
-    id: '0',
     enabled: true,
     attributes: {
       name: {

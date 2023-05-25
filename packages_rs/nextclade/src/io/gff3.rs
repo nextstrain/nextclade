@@ -6,9 +6,9 @@ use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 use std::borrow::BorrowMut;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::io::Read;
@@ -195,7 +195,7 @@ pub struct GffCommonInfo {
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
-  pub attributes: MultiMap<String, String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub gff_record_str: String,
 }
 
@@ -240,7 +240,13 @@ impl GffCommonInfo {
     let is_circular =
       get_attribute_optional(record, "Is_circular").map_or(false, |is_circular| is_circular.to_lowercase() == "true");
 
-    let attributes = record.attributes().clone();
+    // Convert MultiMap to HashMap of Vec
+    let attributes: HashMap<String, Vec<String>> = record
+      .attributes()
+      .iter_all()
+      .map(|(key, values)| (key.clone(), values.clone()))
+      .collect();
+
     Ok(GffCommonInfo {
       id,
       name,

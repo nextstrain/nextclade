@@ -1,7 +1,6 @@
 use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
-use crate::utils::error::to_eyre_error;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -12,7 +11,7 @@ use std::str::FromStr;
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
 /// Represents a mutation without reference character known
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Genotype<L: Letter<L>> {
   pub pos: usize,
@@ -57,7 +56,7 @@ impl<L: Letter<L>> PartialOrd for Genotype<L> {
 }
 
 /// Maps a list of labels to a mutation
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GenotypeLabeled<L: Letter<L>> {
   pub genotype: Genotype<L>,

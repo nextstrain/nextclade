@@ -2,16 +2,18 @@ use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::make_internal_error;
 use eyre::Report;
-use multimap::MultiMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Protein {
   pub id: String,
   pub name: String,
   pub product: String,
   pub segments: Vec<ProteinSegment>,
+  pub color: Option<String>,
 }
 
 impl Protein {
@@ -37,6 +39,7 @@ impl Protein {
           source_record: feature.source_record.clone(),
           compat_is_cds: false,
           compat_is_gene: false,
+          color: None,
         })
       })
       .collect::<Result<Vec<ProteinSegment>, Report>>()?;
@@ -50,6 +53,7 @@ impl Protein {
       name: feature_group.name.clone(),
       product: feature_group.product.clone(),
       segments,
+      color: None,
     })
   }
 
@@ -58,7 +62,7 @@ impl Protein {
   }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ProteinSegment {
   pub id: String,
@@ -68,10 +72,11 @@ pub struct ProteinSegment {
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,
-  pub attributes: MultiMap<String, String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
   pub compat_is_gene: bool,
+  pub color: Option<String>,
 }
 
 impl ProteinSegment {

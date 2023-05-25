@@ -1,322 +1,68 @@
-/* eslint-disable @typescript-eslint/no-empty-interface */
-import type { Tagged } from 'src/helpers/types'
-import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { isEqual, isNil, sumBy } from 'lodash'
+import type {
+  Aa,
+  AaChange,
+  AaChangeGroup,
+  AaDel,
+  AaIns,
+  AaSub,
+  Cds,
+  CdsSegment,
+  Dataset,
+  DatasetFileUrls,
+  DatasetsIndexJson,
+  DatasetTagJson,
+  FastaRecord,
+  InsertionFor_Nuc, // eslint-disable-line camelcase
+  LetterRangeFor_Aa, // eslint-disable-line camelcase
+  LetterRangeFor_Nuc, // eslint-disable-line camelcase
+  NextcladeErrorOutputs,
+  NextcladeOutputs,
+  Nuc,
+  NucDel,
+  NucSub,
+  NucSubFull,
+  NucSubLabeled,
+  PrivateNucMutations,
+  Translation,
+} from 'src/gen/_SchemaRoot'
+import { StrictOmit } from 'ts-essentials'
 
-/** Type-safe representation of a nucleotide */
-export type Nucleotide = Tagged<string, 'Nucleotide'>
+export * from 'src/gen/_SchemaRoot'
 
-/** Type-safe representation of an aminoacid */
-export type Aminoacid = Tagged<string, 'Aminoacid'>
+export type Nucleotide = Nuc
+export type Aminoacid = Aa
+export type NucleotideRange = LetterRangeFor_Nuc // eslint-disable-line camelcase
+export type AminoacidRange = LetterRangeFor_Aa // eslint-disable-line camelcase
+export type AnalysisResult = NextcladeOutputs
+export type PrivateMutations = PrivateNucMutations
+export type NucleotideSubstitutionSimple = NucSub
+export type NucleotideSubstitutionSimpleLabeled = NucSubLabeled
+export type NucleotideSubstitution = NucSub
+export type NucleotideDeletion = NucDel
+// export type NucleotideDeletionSimple = NucDelMinimal
+// export type NucleotideDeletionSimpleLabeled = NucDelFull
+export type NucleotideInsertion = InsertionFor_Nuc // eslint-disable-line camelcase
+export type NucleotideMissing = LetterRangeFor_Nuc // eslint-disable-line camelcase
+export type AminoacidSubstitution = AaSub
+export type AminoacidDeletion = AaDel
+export type AminoacidInsertion = AaIns
+export type AminoacidChange = AaChange
+export type AminoacidChangesGroup = AaChangeGroup
+// export type AaMotifDesc = AaMotif
+export type AnalysisError = NextcladeErrorOutputs
+export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
+export type DatasetsIndexV2Json = DatasetsIndexJson
+export type DatasetTag = DatasetTagJson
+export type DatasetFiles = DatasetFileUrls
 
-/** Represents a numeric interval bounded by begin and end. Similar to `Span`, but different representation. */
-export interface Range {
-  begin: number
-  end: number
-}
-
-/** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
-export interface Span {
-  start: number
-  length: number
-}
-
-export interface NucleotideLocation {
-  pos: number
-  nuc: Nucleotide
-}
-
-export interface NucleotideSubstitution {
-  pos: number
-  refNuc: Nucleotide
-  queryNuc: Nucleotide
-  pcrPrimersChanged: PcrPrimer[]
-  aaSubstitutions: AminoacidSubstitution[]
-  aaDeletions: AminoacidDeletion[]
-}
-
-export interface NucleotideDeletion extends Span {
-  aaSubstitutions: AminoacidSubstitution[]
-  aaDeletions: AminoacidDeletion[]
-}
-
-export interface NucleotideInsertion {
-  pos: number
-  ins: string
-}
-
-export interface AminoacidInsertion {
-  gene: string
-  pos: number
-  ins: string
-}
-
-export interface NucleotideMissing extends Range {}
-
-export interface CharacterRange<Letter> extends Range {
-  character: Letter
-}
-
-export type NucleotideRange = CharacterRange<Nucleotide>
-export type AminoacidRange = CharacterRange<Aminoacid>
-
-export interface GeneAminoacidRange {
-  geneName: string
-  character: Aminoacid
-  ranges: AminoacidRange[]
-  length: number
-}
-
-export type Clades = Record<string, NucleotideLocation[]>
-
-export interface CladesGrouped {
-  pos: number
-  subs: Record<string, string[]>
-}
-
-export interface AminoacidSubstitution {
-  refAA: Aminoacid
-  codon: number
-  queryAA: Aminoacid
-  gene: string
-  codonNucRange: Range
-  refContext: string
-  queryContext: string
-  contextNucRange: Range
-  nucSubstitutions: NucleotideSubstitution[]
-  nucDeletions: NucleotideDeletion[]
-}
-
-export interface AminoacidDeletion {
-  gene: string
-  refAA: Aminoacid
-  codon: number
-  codonNucRange: Range
-  refContext: string
-  queryContext: string
-  contextNucRange: Range
-  nucSubstitutions: NucleotideSubstitution[]
-  nucDeletions: NucleotideDeletion[]
-}
-
-export interface AminoacidChange extends AminoacidSubstitution {
-  type: 'substitution' | 'deletion'
-}
-
-export interface AminoacidChangesGroup {
-  gene: string
-  codonAaRange: Range
-  codonNucRange: Range
-  changes: AminoacidChange[]
-  nucSubstitutions: NucleotideSubstitution[]
-  nucDeletions: NucleotideDeletion[]
-  refContext: string
-  queryContext: string
-  contextNucRange: Range
-  numSubstitutions: number
-  numDeletions: number
-}
-
-export interface PcrPrimer {
-  name: string
-  target: string
-  source: string
-  rootOligonuc: string
-  primerOligonuc: string
-  range: Range
-  nonACGTs: NucleotideLocation[]
-}
-
-export interface PcrPrimerChange {
-  primer: PcrPrimer
-  substitutions: NucleotideSubstitution[]
-}
-
-export interface QCRulesConfigMissingData {
-  enabled: boolean
-  missingDataThreshold: number
-  scoreBias: number
-}
-
-export interface QCRulesConfigMixedSites {
-  enabled: boolean
-  mixedSitesThreshold: number
-}
-
-export interface QCRulesConfigPrivateMutations {
-  enabled: boolean
-  typical: number
-  cutoff: number
-}
-
-export interface QCRulesConfigSnpClusters {
-  enabled: boolean
-  windowSize: number
-  clusterCutOff: number
-  scoreWeight: number
-}
-
-export interface QCRulesConfigFrameShifts {
-  enabled: boolean
-}
-
-export interface QCRulesConfigStopCodons {
-  enabled: boolean
-}
-
-export interface QcConfig {
-  schemaVersion: string
-  missingData: QCRulesConfigMissingData
-  mixedSites: QCRulesConfigMixedSites
-  privateMutations: QCRulesConfigPrivateMutations
-  snpClusters: QCRulesConfigSnpClusters
-  frameShifts: QCRulesConfigFrameShifts
-  stopCodons: QCRulesConfigStopCodons
-}
-
-export interface ClusteredSNPs {
-  start: number
-  end: number
-  numberOfSNPs: number
-}
-
-export enum QcStatus {
-  good = 'good',
-  mediocre = 'mediocre',
-  bad = 'bad',
-}
-
-export interface QcResultMixedSites {
-  score: number
-  status: QcStatus
-  totalMixedSites: number
-  mixedSitesThreshold: number
-}
-
-export interface ClusteredSnp {
-  start: number
-  end: number
-  numberOfSNPs: number
-}
-
-export interface QcResultSnpClusters {
-  score: number
-  status: QcStatus
-  totalSNPs: number
-  clusteredSNPs: ClusteredSnp[]
-}
-
-export interface QcResultMissingData {
-  score: number
-  status: QcStatus
-  totalMissing: number
-  missingDataThreshold: number
-}
-
-export interface QcResultPrivateMutations {
-  score: number
-  status: QcStatus
-  numReversionSubstitutions: number
-  numLabeledSubstitutions: number
-  numUnlabeledSubstitutions: number
-  totalDeletionRanges: number
-  weightedTotal: number
-  excess: number
-  cutoff: number
-}
-
-export interface FrameShiftContext {
-  codon: Range
-}
-
-export interface FrameShift {
-  geneName: string
-  nucRel: Range
-  nucAbs: Range
-  codon: Range
-  gapsLeading: FrameShiftContext
-  gapsTrailing: FrameShiftContext
-}
-
-export interface QcResultFrameShifts {
-  score: number
-  status: QcStatus
-  frameShifts: FrameShift[]
-  totalFrameShifts: number
-  frameShiftsIgnored: FrameShift[]
-  totalFrameShiftsIgnored: number
-}
-
-export interface StopCodonLocation {
-  geneName: string
-  codon: number
-}
-
-export interface QcResultStopCodons {
-  score: number
-  status: QcStatus
-  stopCodons: StopCodonLocation[]
-  totalStopCodons: number
-  stopCodonsIgnored: StopCodonLocation[]
-  totalStopCodonsIgnored: number
-}
-
-export interface QcResult {
-  missingData?: QcResultMissingData
-  mixedSites?: QcResultMixedSites
-  privateMutations?: QcResultPrivateMutations
-  snpClusters?: QcResultSnpClusters
-  frameShifts?: QcResultFrameShifts
-  stopCodons?: QcResultStopCodons
-  overallScore: number
-  overallStatus: QcStatus
-}
-
-export interface NucleotideSubstitutionSimple {
-  refNuc: string
-  pos: number
-  queryNuc: string
-}
-
-export interface NucleotideDeletionSimple {
-  refNuc: string
-  pos: number
-}
-
-export interface NucleotideSubstitutionSimpleLabeled {
-  substitution: NucleotideSubstitutionSimple
-  labels: string[]
-}
-
-export interface NucleotideDeletionSimpleLabeled {
-  deletion: NucleotideDeletionSimple
-  labels: string[]
-}
-
-export interface PrivateMutations {
-  privateSubstitutions: NucleotideSubstitutionSimple[]
-  privateDeletions: NucleotideDeletionSimple[]
-  reversionSubstitutions: NucleotideSubstitutionSimple[]
-  labeledSubstitutions: NucleotideSubstitutionSimpleLabeled[]
-  unlabeledSubstitutions: NucleotideSubstitutionSimple[]
-}
-
-export function convertDelToSub(del: NucleotideDeletionSimple): NucleotideSubstitutionSimple {
-  return { ...del, queryNuc: '-' }
-}
-
-export function convertDelToSubLabeled(labeled: NucleotideDeletionSimpleLabeled): NucleotideSubstitutionSimpleLabeled {
-  return { ...labeled, substitution: convertDelToSub(labeled.deletion) }
-}
-
-export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucleotideSubstitution {
+export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucSubFull {
   return {
-    refNuc: refNuc as Nucleotide,
+    refNuc,
     pos,
-    queryNuc: queryNuc as Nucleotide,
+    queryNuc,
     aaDeletions: [],
     aaSubstitutions: [],
-    pcrPrimersChanged: [],
   }
 }
 
@@ -327,7 +73,7 @@ export interface PrivateMutationsInternal {
   totalMutations: number
 }
 
-export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
+export function convertPrivateMutations(privateNucMutations: PrivateMutations): PrivateMutationsInternal {
   const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
 
   // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
@@ -345,128 +91,6 @@ export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
   return { reversions, labeled, unlabeled, totalMutations }
 }
 
-export interface PhenotypeValue {
-  name: string
-  gene: string
-  value: number
-}
-
-export interface AaMotif {
-  name: string
-  gene: string
-  position: number
-  seq: string
-}
-
-export interface AaMotifMutation {
-  name: string
-  gene: string
-  position: number
-  refSeq: string
-  qrySeq: string
-}
-
-export interface AaMotifChanges {
-  preserved: AaMotifMutation[]
-  gained: AaMotifMutation[]
-  lost: AaMotifMutation[]
-  ambiguous: AaMotifMutation[]
-  total: number
-}
-
-export interface AnalysisResult {
-  index: number
-  seqName: string
-  substitutions: NucleotideSubstitution[]
-  totalSubstitutions: number
-  insertions: NucleotideInsertion[]
-  totalInsertions: number
-  deletions: NucleotideDeletion[]
-  totalDeletions: number
-  frameShifts: FrameShift[]
-  totalFrameShifts: number
-  missing: NucleotideMissing[]
-  totalMissing: number
-  nonACGTNs: NucleotideRange[]
-  totalNonACGTNs: number
-  aaSubstitutions: AminoacidSubstitution[]
-  totalAminoacidSubstitutions: number
-  aaDeletions: AminoacidDeletion[]
-  totalAminoacidDeletions: number
-  aaInsertions: AminoacidInsertion[]
-  totalAminoacidInsertions: number
-  unknownAaRanges: GeneAminoacidRange[]
-  totalUnknownAa: number
-  aaChangesGroups: AminoacidChangesGroup[]
-  alignmentStart: number
-  alignmentEnd: number
-  alignmentScore: number
-  aaAlignmentRanges: Record<string, Range>
-  alignedQuery: string
-  nucleotideComposition: Record<string, number>
-  pcrPrimerChanges: PcrPrimerChange[]
-  totalPcrPrimerChanges: number
-  clade: string
-  privateNucMutations: PrivateMutations
-  privateAaMutations: Record<string, PrivateMutations>
-  coverage: number
-  phenotypeValues?: PhenotypeValue[]
-  qc: QcResult
-  customNodeAttributes: Record<string, string>
-  warnings: PeptideWarning[]
-  missingGenes: string[]
-  aaMotifs: Record<string, AaMotif[]>
-  aaMotifsChanges: Record<string, AaMotifChanges>
-}
-
-export interface AnalysisError {
-  index: number
-  seqName: string
-  errors: string[]
-}
-
-export interface ErrorsFromWeb {
-  seqName: string
-  errors: string
-  warnings: PeptideWarning[]
-  failedGenes: string[]
-}
-
-export interface Translation {
-  geneName: string
-  seq: string
-  insertions: AminoacidInsertion[]
-  frameShifts: FrameShift[]
-  alignmentRange: Range
-}
-
-export interface Gene {
-  index: number
-  id: string
-  name: string
-  start: number
-  end: number
-  strand: string
-  frame: number
-  cdses: Cds[]
-  exceptions: string[]
-  attributes: Record<string, string[]>
-  sourceRecord?: string
-  compatIsCds: boolean
-  color?: string
-}
-
-export interface Cds {
-  id: string
-  name: string
-  product: string
-  strand: string
-  segments: CdsSegment[]
-  proteins: Protein[]
-  compatIsGene: boolean
-  color?: string
-}
-
 export function cdsNucLength(cds: Cds) {
   return sumBy(cds.segments, cdsSegmentNucLength)
 }
@@ -475,69 +99,22 @@ export function cdsCodonLength(cds: Cds) {
   return cdsNucLength(cds) / 3
 }
 
-export interface CdsSegment {
-  index: number
-  id: string
-  name: string
-  start: number
-  end: number
-  landmark?: Landmark[]
-  strand: string
-  frame: number
-  exceptions: string[]
-  attributes: Record<string, string[]>
-  sourceRecord?: string
-  compatIsGene: boolean
-  color?: string
-}
-
 export function cdsSegmentNucLength(cdsSeg: CdsSegment) {
   return cdsSeg.end - cdsSeg.start
 }
 
-export interface Landmark {
-  index: number
-  id: string
-  name: string
-  start: number
-  end: number
-  strand: string
-  isCircular: boolean
+export interface QCFilters {
+  showGood: boolean
+  showMediocre: boolean
+  showBad: boolean
+  showErrors: boolean
 }
 
-export interface Protein {
-  id: string
-  name: string
-  product: string
-  segments: ProteinSegment[]
-}
-
-export interface ProteinSegment {
-  id: string
-  name: string
-  start: number
-  end: number
-  strand: string
-  frame: number
-  exceptions: string[]
-  attributes: Record<string, string[]>
-  sourceRecord?: string
-  compatIsCds: boolean
-  compatIsGene: boolean
-}
-
-export interface FastaRecordId {
-  seqName: string
-  index: number
-}
-
-export interface FastaRecord extends FastaRecordId {
-  seq: string
-}
-
-export interface PeptideWarning {
-  geneName: string
-  warning: string
+export interface ResultsFilters extends QCFilters {
+  seqNamesFilter?: string
+  mutationsFilter?: string
+  aaFilter?: string
+  cladesFilter?: string
 }
 
 export enum AlgorithmGlobalStatus {
@@ -566,13 +143,6 @@ export function getResultStatus(result: NextcladeResult) {
   return AlgorithmSequenceStatus.started
 }
 
-export interface ResultsFilters extends QCFilters {
-  seqNamesFilter?: string
-  mutationsFilter?: string
-  aaFilter?: string
-  cladesFilter?: string
-}
-
 export enum AlgorithmInputType {
   File = 'FileInput',
   Url = 'Url',
@@ -588,13 +158,11 @@ export interface AlgorithmInput {
   getContent(): Promise<string>
 }
 
-export interface UrlParams {
-  inputRootSeq?: string
-  inputTree?: string
-  inputPcrPrimers?: string
-  inputQcConfig?: string
-  inputVirusJson?: string
-  inputGeneMap?: string
+export interface NextcladeResult {
+  index: number
+  seqName: string
+  result?: AnalysisOutput
+  error?: string
 }
 
 export interface AnalysisOutput {
@@ -603,104 +171,6 @@ export interface AnalysisOutput {
   analysisResult: AnalysisResult
 }
 
-export interface NextcladeResult {
-  index: number
-  seqName: string
-  result?: AnalysisOutput
-  error?: string
-}
-
-export interface DatasetFiles {
-  'genemap.gff': string
-  'primers.csv': string
-  'qc.json': string
-  'reference.fasta': string
-  'sequences.fasta': string
-  'tag.json': string
-  'tree.json': string
-  'virus_properties.json': string
-
-  [k: string]: string
-}
-
-export interface DatasetAttribute {
-  value: string
-  valueFriendly?: string
-  isDefault: boolean
-}
-
-export interface DatasetAttributes {
-  name: DatasetAttribute
-  tag: DatasetAttribute
-  reference: DatasetAttribute
-
-  [k: string]: DatasetAttribute
-}
-
-export interface DatasetCompatibility {
-  nextcladeCli: {
-    min?: string
-    max?: string
-  }
-  nextcladeWeb: {
-    min?: string
-    max?: string
-  }
-}
-
-export interface DatasetParams {
-  defaultGene?: string
-  geneOrderPreference?: string[]
-}
-
-export interface DatasetTag {
-  enabled?: boolean
-  attributes?: Partial<DatasetAttributes>
-  comment?: string
-  compatibility?: DatasetCompatibility
-  files?: DatasetFiles
-  params?: DatasetParams
-  zipBundle?: string
-  metadata?: Record<string, unknown>
-}
-
-export interface Dataset {
-  id: string
-  enabled: boolean
-  attributes: DatasetAttributes
-  comment: string
-  compatibility: DatasetCompatibility
-  files: DatasetFiles
-  params: DatasetParams
-  zipBundle: string
-}
-
 export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
   return !isNil(left) && !isNil(right) && isEqual(left.attributes, right.attributes)
-}
-
-export interface DatasetsIndexV2Json {
-  schema: string
-  datasets: Dataset[]
-}
-
-export interface PhenotypeAttrDesc {
-  name: string
-  nameFriendly: string
-  description: string
-}
-
-export interface AaMotifsDesc {
-  name: string
-  nameShort: string
-  nameFriendly: string
-  description: string
-}
-
-export type CsvColumnConfigMap = Record<string, Record<string, boolean>>
-
-export interface CsvColumnConfig {
-  categories: CsvColumnConfigMap
-  individual: string[]
-  includeDynamic: boolean
 }

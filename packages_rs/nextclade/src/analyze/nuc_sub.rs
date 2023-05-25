@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 const NUC_MUT_REGEX: &str = r"((?P<ref>[A-Z-])(?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 pub struct NucSub {
   #[serde(rename = "refNuc")]
   pub reff: Nuc,
@@ -82,7 +82,7 @@ impl PartialOrd for NucSub {
   }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSubLabeled {
   #[serde(rename = "substitution")]

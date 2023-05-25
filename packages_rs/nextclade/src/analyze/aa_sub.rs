@@ -14,7 +14,7 @@ use std::str::FromStr;
 const AA_MUT_REGEX: &str = r"((?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))";
 
 /// Represents aminoacid substitution in a simple way (without gene name and surrounding context)
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct AaSubMinimal {
   #[serde(rename = "refAA")]
   pub reff: Aa,

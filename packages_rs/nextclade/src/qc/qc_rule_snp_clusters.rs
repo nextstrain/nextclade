@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::collections::VecDeque;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteredSnp {
   pub start: usize,
@@ -16,7 +16,7 @@ pub struct ClusteredSnp {
   pub number_of_snps: usize,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct QcResultSnpClusters {
   pub score: f64,
   pub status: QcStatus,

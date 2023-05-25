@@ -105,19 +105,25 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
-  const alignmentRange: Range = get(aaAlignmentRanges, viewedGene) ?? { begin: 0, end: cdsLength }
+
+  // HACK: only first range is used.
+  // TODO: What does it mean to have multiple alignment ranges? Implement this when it's clear.
+  const alignmentRange: Range = get(aaAlignmentRanges, viewedGene)?.[0] ?? { begin: 0, end: cdsLength }
 
   const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.geneName === cds.name)
-    .map((frameShift) => (
-      <PeptideMarkerFrameShift
-        key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
-        index={index}
-        seqName={seqName}
-        frameShift={frameShift}
-        pixelsPerAa={pixelsPerAa}
-      />
-    ))
+    .map((frameShift) => {
+      const id = getSafeId('frame-shift-aa-marker', { ...frameShift })
+      return (
+        <PeptideMarkerFrameShift
+          key={id}
+          index={index}
+          seqName={seqName}
+          frameShift={frameShift}
+          pixelsPerAa={pixelsPerAa}
+        />
+      )
+    })
 
   const insertionMarkers = aaInsertions
     .filter((ins) => ins.gene === viewedGene)

@@ -7,7 +7,7 @@ use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultPrivateMutations {
   pub score: f64,

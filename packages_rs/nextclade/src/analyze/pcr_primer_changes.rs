@@ -4,7 +4,7 @@ use crate::io::nuc::is_nuc_match;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PcrPrimerChange {
   pub primer: PcrPrimer,

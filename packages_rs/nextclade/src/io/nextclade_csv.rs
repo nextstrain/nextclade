@@ -36,7 +36,7 @@ use strum::VariantNames;
 use strum_macros::{Display, EnumString, EnumVariantNames};
 
 // List of categories of CSV columns
-#[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, Hash, EnumString, EnumVariantNames)]
+#[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, EnumVariantNames)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum CsvColumnCategory {
@@ -53,7 +53,7 @@ pub enum CsvColumnCategory {
 pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
 
 // Configuration for enabling/disabling CSV columns or categories of them
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,

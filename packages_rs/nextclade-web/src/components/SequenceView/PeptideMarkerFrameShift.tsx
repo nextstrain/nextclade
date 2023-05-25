@@ -9,6 +9,7 @@ import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { cdsAtom } from 'src/state/results.state'
+import { sumBy } from 'lodash'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
@@ -40,7 +41,7 @@ function PeptideMarkerFrameShiftUnmemoed({
     return null
   }
 
-  const nucLength = nucAbs.end - nucAbs.begin
+  const nucLength = sumBy(nucAbs, (nucAbs) => nucAbs.end - nucAbs.begin)
   const codonLength = codon.end - codon.begin
 
   let width = codonLength * pixelsPerAa
@@ -49,7 +50,7 @@ function PeptideMarkerFrameShiftUnmemoed({
   const x = codon.begin * pixelsPerAa - halfAa
 
   const codonRangeStr = formatRange(codon.begin, codon.end)
-  const nucRangeStr = formatRange(nucAbs.begin, nucAbs.end)
+  const nucRangeStr = nucAbs.map((nucAbs) => formatRange(nucAbs.begin, nucAbs.end)).join(', ')
 
   return (
     <g id={id}>

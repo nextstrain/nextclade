@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
-import type { NucleotideSubstitution } from 'src/types'
+import type { NucSubFull } from 'src/types'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -18,7 +18,7 @@ import {
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
-  substitution: NucleotideSubstitution
+  substitution: NucSubFull
   pixelsPerBase: number
 }
 
@@ -97,7 +97,7 @@ function SequenceMarkerMutationUnmemoed({
             ))}
 
             {aaDeletions.map((del) => (
-              <tr key={del.queryContext}>
+              <tr key={del.nucContexts.map((nc) => nc.queryContext).join('-')}>
                 <td>{t('Aminoacid deletion')}</td>
                 <td>
                   <AminoacidMutationBadge mutation={del} />

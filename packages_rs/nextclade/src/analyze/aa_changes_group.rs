@@ -16,7 +16,7 @@ pub fn merge_context(left: &str, right: &str) -> String {
   result
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaChangeGroup {
   pub gene: String,

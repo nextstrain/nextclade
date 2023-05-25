@@ -20,7 +20,7 @@ pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
 }
 
-#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FastaRecord {
   pub seq_name: String,

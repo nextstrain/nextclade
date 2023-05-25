@@ -9,7 +9,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotif {
   pub name: String,
@@ -139,7 +139,7 @@ fn process_one_motif(
 }
 
 // Wrapper for `struct AaMotif` which disregards `.seq` during comparison.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, PartialOrd)]
 pub struct AaMotifWithoutSeq(pub AaMotif);
 
 impl From<AaMotif> for AaMotifWithoutSeq {

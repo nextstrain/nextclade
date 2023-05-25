@@ -3,11 +3,13 @@ use crate::gene::cds::Cds;
 use crate::io::container::take_exactly_one;
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
-use multimap::MultiMap;
+use maplit::hashmap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema)]
 pub enum GeneStrand {
   #[serde(rename = "+")]
   Forward,
@@ -39,7 +41,7 @@ impl From<bio_types::strand::Strand> for GeneStrand {
   }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Gene {
   pub index: usize,
@@ -51,9 +53,10 @@ pub struct Gene {
   pub frame: i32,
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
-  pub attributes: MultiMap<String, String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
+  pub color: Option<String>,
 }
 
 impl Gene {
@@ -89,6 +92,7 @@ impl Gene {
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),
       compat_is_cds: false,
+      color: None,
     })
   }
 
@@ -121,9 +125,10 @@ impl Gene {
       frame,
       cdses: vec![cds.clone()],
       exceptions,
-      attributes: MultiMap::new(),
+      attributes: hashmap!(),
       source_record: None,
       compat_is_cds: true,
+      color: None,
     })
   }
 

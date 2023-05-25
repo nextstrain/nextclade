@@ -1,26 +1,24 @@
-use crate::io::http_client::HttpClient;
-use eyre::{Report, WrapErr};
-use nextclade::io::json::{json_parse, json_parse_bytes};
+use eyre::WrapErr;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCompatibilityRange {
   pub min: Option<String>,
   pub max: Option<String>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCompatibility {
   pub nextclade_cli: DatasetCompatibilityRange,
   pub nextclade_web: DatasetCompatibilityRange,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetAttributeValue {
   pub is_default: bool,
@@ -28,25 +26,29 @@ pub struct DatasetAttributeValue {
   pub value_friendly: Option<String>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetAttributes {
   pub name: DatasetAttributeValue,
   pub reference: DatasetAttributeValue,
   pub tag: DatasetAttributeValue,
 
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub url: Option<DatasetAttributeValue>,
+
   #[serde(flatten)]
   pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+// TODO: move to VirusProperties
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetParams {
   pub default_gene: Option<String>,
   pub gene_order_preference: Option<Vec<String>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Dataset {
   pub enabled: bool,
@@ -88,34 +90,38 @@ impl Dataset {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetsIndexJson {
   pub schema: String,
   pub datasets: Vec<Dataset>,
 }
 
-impl TryFrom<&[u8]> for DatasetsIndexJson {
-  type Error = Report;
-
-  #[inline]
-  fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-    json_parse_bytes(bytes).wrap_err("When parsing dataset index JSON")
-  }
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+pub struct DatasetFileUrls {
+  pub ref_record: String,
+  pub virus_properties: String,
+  pub tree: String,
+  pub gene_map: String,
+  pub qc_config: String,
+  pub primers: String,
 }
 
-impl DatasetsIndexJson {
-  #[inline]
-  pub fn download(http: &mut HttpClient) -> Result<Self, Report> {
-    Self::try_from(http.get(&"/index_v2.json")?.as_slice())
-  }
-}
-
-impl FromStr for DatasetsIndexJson {
-  type Err = Report;
-
-  #[inline]
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s).wrap_err("When parsing dataset index JSON")
-  }
+// TODO: consider replacing the same fields in DatasetsIndexJson with this struct
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetTagJson {
+  pub enabled: bool,
+  pub attributes: DatasetAttributes,
+  pub comment: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub compatibility: Option<DatasetCompatibility>,
+  pub files: DatasetFileUrls,
+  pub params: DatasetParams,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub zip_bundle: Option<String>,
+  #[serde(skip_serializing_if = "serde_json::Value::is_null")]
+  pub metadata: serde_json::Value,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }

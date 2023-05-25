@@ -19,14 +19,14 @@ use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PeptideWarning {
   pub gene_name: String,
   pub warning: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextalignOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
@@ -39,7 +39,7 @@ pub struct NextalignOutputs {
   pub coord_map: CoordMap,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeValue {
   pub name: String,
@@ -47,7 +47,7 @@ pub struct PhenotypeValue {
   pub value: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
   pub index: usize,
@@ -110,7 +110,7 @@ impl NextcladeOutputs {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeErrorOutputs {
   pub index: usize,

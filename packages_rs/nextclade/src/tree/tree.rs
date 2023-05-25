@@ -15,7 +15,7 @@ use validator::Validate;
 // https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
 pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttr {
   pub value: String,
 
@@ -32,7 +32,7 @@ impl TreeNodeAttr {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrF64 {
   pub value: f64,
 
@@ -49,7 +49,7 @@ impl TreeNodeAttrF64 {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
@@ -57,7 +57,7 @@ pub struct TreeBranchAttrs {
   pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrs {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub div: Option<f64>,
@@ -128,7 +128,7 @@ pub struct TreeNodeTempData {
   pub is_ref_node: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeNode {
   pub name: String,
 
@@ -179,7 +179,7 @@ impl AuspiceTreeNode {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CladeNodeAttrKeyDesc {
   pub name: String,
@@ -189,17 +189,17 @@ pub struct CladeNodeAttrKeyDesc {
   pub hide_in_web: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   pub clade_node_attrs: Option<Vec<CladeNodeAttrKeyDesc>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
   pub nextclade: Option<AuspiceMetaExtensionsNextclade>,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 pub struct AuspiceColoring {
   #[serde(rename = "type")]
   pub type_: String,
@@ -213,7 +213,7 @@ pub struct AuspiceColoring {
   pub scale: Vec<[String; 2]>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceDisplayDefaults {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub branch_label: Option<String>,
@@ -225,7 +225,7 @@ pub struct AuspiceDisplayDefaults {
   pub distance_measure: Option<String>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
   pub extensions: Option<AuspiceMetaExtensions>,
 
@@ -293,7 +293,7 @@ pub struct TreeTempData {
   pub divergence_units: DivergenceUnits,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTree {
   pub meta: AuspiceTreeMeta,
 

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::ops::Range as StdRange;
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Range {
   pub begin: usize,
   pub end: usize,
