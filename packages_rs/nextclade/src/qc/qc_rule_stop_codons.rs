@@ -28,13 +28,13 @@ pub fn rule_stop_codons(translation: &Translation, config: &QcRulesConfigStopCod
   let mut stop_codons = Vec::<StopCodonLocation>::new();
   let mut stop_codons_ignored = Vec::<StopCodonLocation>::new();
   for cds_tr in translation.cdses() {
-    let CdsTranslation { cds, seq: peptide, .. } = cds_tr;
+    let CdsTranslation { name, seq: peptide, .. } = cds_tr;
 
     let len_minus_one = peptide.len() - 1; // Minus one to ignore valid stop codon at the end
     for (codon, aa) in peptide.iter().enumerate().take(len_minus_one) {
       if aa.is_stop() {
         let stop_codon = StopCodonLocation {
-          gene_name: cds.name.clone(),
+          gene_name: name.clone(),
           codon,
         };
 

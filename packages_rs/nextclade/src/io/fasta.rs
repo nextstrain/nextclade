@@ -234,8 +234,8 @@ impl FastaPeptideWriter {
   }
 
   pub fn write(&mut self, seq_name: &str, translation: &CdsTranslation) -> Result<(), Report> {
-    match self.writers.get_mut(&translation.cds.name) {
-      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.cds.name),
+    match self.writers.get_mut(&translation.name) {
+      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.name),
       Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq), false),
     }
   }

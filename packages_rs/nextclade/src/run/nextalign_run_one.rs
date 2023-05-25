@@ -41,7 +41,7 @@ pub fn nextalign_run_one(
 
       let present_genes: HashSet<String> = translation
         .iter_genes()
-        .flat_map(|(_, gene_tr)| gene_tr.cdses.iter().map(|(_, cds_tr)| cds_tr.cds.name.clone()))
+        .flat_map(|(_, gene_tr)| gene_tr.cdses.iter().map(|(_, cds_tr)| cds_tr.name.clone()))
         .collect();
 
       let missing_genes = gene_map

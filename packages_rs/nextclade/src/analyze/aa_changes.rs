@@ -6,6 +6,7 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::gene::cds::Cds;
 use crate::gene::gene::GeneStrand;
 use crate::io::aa::{from_aa, from_aa_seq, Aa};
+use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::translate::complement::reverse_complement_in_place;
@@ -239,7 +240,8 @@ pub fn find_aa_changes(
         .wrap_err_with(|| format!("When searching for reference translation of CDS {qry_name}"))?;
 
       Ok(find_aa_changes_for_cds(
-        &qry_cds_tr.cds,
+        &qry_cds_tr.name,
+        &qry_cds_tr.strand,
         qry_seq,
         ref_seq,
         &ref_cds_tr.seq,
@@ -278,7 +280,8 @@ pub fn find_aa_changes(
 /// might not always be established without knowing the order in which nucleotide changes have occurred. And in the
 /// context of Nextclade we don't have this information.
 fn find_aa_changes_for_cds(
-  cds: &Cds,
+  name: &str,
+  strand: &GeneStrand,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptide: &[Aa],
@@ -350,7 +353,7 @@ fn find_aa_changes_for_cds(
         let mut ref_context = ref_seq[context_begin..context_end].to_owned();
         let mut query_context = qry_seq[context_begin..context_end].to_owned();
 
-        if cds.strand == GeneStrand::Reverse {
+        if strand == &GeneStrand::Reverse {
           reverse_complement_in_place(&mut ref_context);
           reverse_complement_in_place(&mut query_context);
         }
@@ -370,7 +373,7 @@ fn find_aa_changes_for_cds(
     if qry_aa.is_gap() {
       // Gap in the ref sequence means that this is a deletion in the query sequence
       aa_deletions.push(AaDel {
-        gene: cds.name.clone(),
+        gene: name.to_owned(),
         reff: ref_aa,
         pos: codon,
         nuc_contexts,
@@ -388,7 +391,7 @@ fn find_aa_changes_for_cds(
     else if qry_aa != ref_aa && qry_aa != Aa::X {
       // If not a gap and the state has changed, then it's a substitution
       aa_substitutions.push(AaSub {
-        gene: cds.name.clone(),
+        gene: name.to_owned(),
         reff: ref_aa,
         pos: codon,
         qry: qry_aa,

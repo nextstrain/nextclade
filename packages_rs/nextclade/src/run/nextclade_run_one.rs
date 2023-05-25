@@ -81,7 +81,7 @@ pub fn nextclade_run_one(
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
 
-  calculate_aa_alignment_ranges_in_place(&alignment_range, &coord_map, &mut translation)?;
+  calculate_aa_alignment_ranges_in_place(&alignment_range, &coord_map, &mut translation, &gene_map)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();
@@ -225,7 +225,7 @@ pub fn nextclade_run_one(
         .iter()
         .filter_map(|alignment_range| (!alignment_range.is_empty()).then_some(alignment_range.clone()))
         .collect_vec();
-      (tr.cds.name.clone(), alignment_ranges)
+      (tr.name.clone(), alignment_ranges)
     })
     .collect();
 
