@@ -13,7 +13,6 @@ use std::hash::{Hash, Hasher};
 #[serde(rename_all = "camelCase")]
 pub struct AaMotif {
   pub name: String,
-  pub gene: String,
   pub cds: String,
   pub position: usize,
   pub seq: String,
@@ -61,7 +60,7 @@ fn process_one_aa_motifs_desc(
     translation
       .cdses()
       .map(|translation| CountAaMotifsGeneDesc {
-        gene: translation.cds.name.clone(),
+        gene: translation.name.clone(),
         ranges: vec![],
       })
       .collect_vec()
@@ -74,7 +73,7 @@ fn process_one_aa_motifs_desc(
     .flat_map(|CountAaMotifsGeneDesc { gene, ranges }| {
       translation
         .cdses()
-        .filter(|CdsTranslation { cds, .. }| &cds.name == gene)
+        .filter(|CdsTranslation { name, .. }| name == gene)
         .flat_map(|translation| process_one_translation(translation, name, motifs, ranges))
         .collect_vec()
     })
@@ -130,8 +129,7 @@ fn process_one_motif(
       captures.get(0).map(|capture| {
         Ok(AaMotif {
           name: name.to_owned(),
-          gene: translation.gene.name.clone(),
-          cds: translation.cds.name.clone(),
+          cds: translation.name.clone(),
           position: range.begin + capture.start(),
           seq: capture.as_str().to_owned(),
         })
@@ -153,7 +151,7 @@ impl From<AaMotif> for AaMotifWithoutSeq {
 impl Hash for AaMotifWithoutSeq {
   fn hash<H: Hasher>(&self, state: &mut H) {
     self.0.name.hash(state);
-    self.0.gene.hash(state);
+    self.0.cds.hash(state);
     self.0.position.hash(state);
     // NOTE: `.seq` is disregarded
   }
@@ -163,7 +161,7 @@ impl Eq for AaMotifWithoutSeq {}
 
 impl PartialEq<Self> for AaMotifWithoutSeq {
   fn eq(&self, other: &Self) -> bool {
-    (&self.0.name, &self.0.gene, &self.0.position).eq(&(&other.0.name, &other.0.gene, &other.0.position))
+    (&self.0.name, &self.0.cds, &self.0.position).eq(&(&other.0.name, &other.0.cds, &other.0.position))
     // NOTE: `.seq` is disregarded
   }
 }

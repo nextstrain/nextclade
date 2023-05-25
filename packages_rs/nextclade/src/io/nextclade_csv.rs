@@ -806,7 +806,6 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
     .map(
       |AaMotif {
          name,
-         gene,
          cds,
          position,
          seq,

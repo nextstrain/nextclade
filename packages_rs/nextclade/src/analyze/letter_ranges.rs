@@ -116,11 +116,11 @@ impl GeneAaRange {
 pub fn find_aa_letter_ranges(translation: &Translation, letter: Aa) -> Vec<GeneAaRange> {
   translation
     .cdses()
-    .filter_map(|CdsTranslation { cds, seq, .. }| {
+    .filter_map(|CdsTranslation { name, seq, .. }| {
       let ranges = find_letter_ranges_by(seq, |candidate| candidate == letter);
       let length = ranges.iter().map(LetterRange::len).sum();
       (length > 0).then(|| GeneAaRange {
-        gene_name: cds.name.clone(),
+        gene_name: name.clone(),
         letter,
         ranges,
         length,

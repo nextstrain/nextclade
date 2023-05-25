@@ -1,3 +1,4 @@
+use crate::io::gene_map::GeneMap;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::translate_genes::Translation;
 use crate::utils::range::{intersect_or_none, Range};
@@ -12,10 +13,12 @@ pub fn calculate_aa_alignment_ranges_in_place(
   alignment_range: &Range,
   coord_map: &CoordMap,
   translation: &mut Translation,
+  gene_map: &GeneMap,
 ) -> Result<(), Report> {
   translation.iter_cdses_mut().try_for_each(|(_, cds_tr)| {
-    let aa_alignment_ranges = cds_tr
-      .cds
+    let cds = gene_map.get_cds(&cds_tr.name)?;
+
+    let aa_alignment_ranges = cds
       .segments
       .iter()
       .filter_map(|segment| {

@@ -94,6 +94,17 @@ impl GeneMap {
       .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
   }
 
+  pub fn get_cds<S: AsRef<str>>(&self, cds_name: S) -> Result<&Cds, Report> {
+    let cds_name = cds_name.as_ref();
+    self
+      .genes
+      .iter()
+      .find_map(|(_, gene)| gene.cdses.iter().find(|cds| cds.name == cds_name))
+      .ok_or_else(|| {
+        make_internal_report!("When looking up a CDS translation: CDS '{cds_name}' is expected, but not found")
+      })
+  }
+
   pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
     self.genes.iter()
   }

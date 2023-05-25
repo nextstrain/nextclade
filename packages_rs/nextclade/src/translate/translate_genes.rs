@@ -4,7 +4,7 @@ use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
 use crate::gene::cds::Cds;
-use crate::gene::gene::Gene;
+use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
@@ -121,8 +121,8 @@ impl GeneTranslation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsTranslation {
-  pub gene: Gene,
-  pub cds: Cds,
+  pub name: String,
+  pub strand: GeneStrand,
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,
@@ -290,8 +290,8 @@ pub fn translate_cds(
   mask_peptide_frame_shifts_in_place(&mut stripped.qry_seq, &frame_shifts);
 
   Ok(CdsTranslation {
-    gene: gene.clone(),
-    cds: cds.clone(),
+    name: cds.name.clone(),
+    strand: cds.strand,
     seq: stripped.qry_seq,
     insertions: stripped.insertions,
     frame_shifts,
