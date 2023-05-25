@@ -335,7 +335,6 @@ fn find_aa_changes_for_cds(
     let nuc_contexts =
       // Find where the codon is in nucleotide sequences
       qry_cds_map.codon_to_global_aln_range_covered(codon)
-      .into_iter()
       .filter_map(|aln_range| intersect_or_none(&aln_range, global_alignment_range))
       .map(|codon_nuc_range| {
         // TODO(bug): this range might need to be converted to ref coordinates (Is it used in UI?)

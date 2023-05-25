@@ -1,10 +1,9 @@
-use crate::gene::cds::{Cds, CdsSegment};
+use crate::gene::cds::Cds;
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
-use eyre::Report;
 use itertools::{izip, Itertools};
 use serde::{Deserialize, Serialize};
 
@@ -282,28 +281,23 @@ impl CoordMapForCds {
 
   /// Map a position in the extracted alignment of the CDS to the global alignment.
   /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-  pub fn cds_to_global_aln_position(&self, cds_aln_pos: usize) -> Vec<CdsPosition> {
-    self
-      .cds_to_aln_map
-      .iter()
-      .map(|segment| {
-        let pos_in_segment = cds_aln_pos as isize - segment.start as isize;
+  pub fn cds_to_global_aln_position(&self, cds_aln_pos: usize) -> impl Iterator<Item = CdsPosition> + '_ {
+    self.cds_to_aln_map.iter().map(move |segment| {
+      let pos_in_segment = cds_aln_pos as isize - segment.start as isize;
 
-        if pos_in_segment < 0 {
-          CdsPosition::Before
-        } else if pos_in_segment >= segment.len as isize {
-          CdsPosition::After
-        } else {
-          CdsPosition::Inside(segment.global[pos_in_segment as usize])
-        }
-      })
-      .collect_vec()
+      if pos_in_segment < 0 {
+        CdsPosition::Before
+      } else if pos_in_segment >= segment.len as isize {
+        CdsPosition::After
+      } else {
+        CdsPosition::Inside(segment.global[pos_in_segment as usize])
+      }
+    })
   }
 
   pub fn cds_to_global_aln_position_one(&self, cds_aln_pos: usize) -> usize {
     self
       .cds_to_global_aln_position(cds_aln_pos)
-      .into_iter()
       .find_map(|pos| match pos {
         CdsPosition::Inside(pos) => Some(pos),
         _ => None,
@@ -347,18 +341,22 @@ impl CoordMapForCds {
 
   /// Map a position in the extracted alignment of the CDS to the reference sequence.
   /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-  pub fn cds_to_global_ref_position(&self, pos: usize, coord_map: &CoordMap) -> Vec<CdsPosition> {
-    self
-      .cds_to_global_aln_position(pos)
-      .into_iter()
-      .map(|cds_pos| match cds_pos {
-        CdsPosition::Inside(pos) => CdsPosition::Inside(coord_map.aln_to_ref_position(pos)),
-        _ => cds_pos,
-      })
-      .collect_vec()
+  pub fn cds_to_global_ref_position<'a>(
+    &'a self,
+    pos: usize,
+    coord_map: &'a CoordMap,
+  ) -> impl Iterator<Item = CdsPosition> + 'a {
+    self.cds_to_global_aln_position(pos).map(|cds_pos| match cds_pos {
+      CdsPosition::Inside(pos) => CdsPosition::Inside(coord_map.aln_to_ref_position(pos)),
+      _ => cds_pos,
+    })
   }
 
-  pub fn cds_to_global_ref_range(&self, range: &Range, coord_map: &CoordMap) -> Vec<CdsRange> {
+  pub fn cds_to_global_ref_range<'a>(
+    &'a self,
+    range: &'a Range,
+    coord_map: &'a CoordMap,
+  ) -> impl Iterator<Item = CdsRange> + 'a {
     self
       .cds_to_global_aln_range(range)
       .into_iter()
@@ -370,7 +368,6 @@ impl CoordMapForCds {
         }
         CdsRange::Before | CdsRange::After => segment,
       })
-      .collect_vec()
   }
 
   /// Expand a codon in the extracted alignment to a range in the global alignment
@@ -381,7 +378,7 @@ impl CoordMapForCds {
   }
 
   /// Same as [Self::codon_to_global_aln_range], but returns only covered ranges
-  pub fn codon_to_global_aln_range_covered(&self, codon: usize) -> Vec<Range> {
+  pub fn codon_to_global_aln_range_covered(&self, codon: usize) -> impl Iterator<Item = Range> + '_ {
     self
       .codon_to_global_aln_range(codon)
       .into_iter()
@@ -389,7 +386,6 @@ impl CoordMapForCds {
         CdsRange::Covered(range) => Some(range),
         _ => None,
       })
-      .collect_vec()
   }
 }
 
@@ -411,6 +407,7 @@ pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
+  use crate::gene::cds::CdsSegment;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use multimap::MultiMap;
@@ -570,7 +567,7 @@ mod coord_map_tests {
     let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      ref_cds_to_aln.cds_to_global_aln_position(10),
+      ref_cds_to_aln.cds_to_global_aln_position(10).collect_vec(),
       [CdsPosition::Inside(14), CdsPosition::Before, CdsPosition::Before]
     );
     Ok(())
@@ -650,7 +647,7 @@ mod coord_map_tests {
     let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      ref_cds_to_aln.cds_to_global_ref_position(10, &global_coord_map),
+      ref_cds_to_aln.cds_to_global_ref_position(10, &global_coord_map).collect_vec(),
       [CdsPosition::Inside(11), CdsPosition::Before, CdsPosition::Before]
     );
 
@@ -670,7 +667,7 @@ mod coord_map_tests {
     let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      ref_cds_to_aln.cds_to_global_ref_range(&Range::new(10, 15), &global_coord_map),
+      ref_cds_to_aln.cds_to_global_ref_range(&Range::new(10, 15), &global_coord_map).collect_vec(),
       [
         CdsRange::Covered(Range::new(11, 16)),
         CdsRange::Before,
