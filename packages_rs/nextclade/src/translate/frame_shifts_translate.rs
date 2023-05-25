@@ -81,11 +81,7 @@ pub fn frame_shift_transform(
 
   // determine the range(s) of the frame shift in the reference nucleotide sequence
   let nuc_abs_ref = qry_cds_map
-    .cds_to_global_ref_range(nuc_rel_aln, &coord_map)
-    .filter_map(|cds_range| match cds_range {
-      CdsRange::Covered(range) => Some(range),
-      _ => None,
-    })
+    .cds_to_global_ref_range(nuc_rel_aln, coord_map)
     .collect_vec();
 
   // determine reference codons mapping to frame shifted region including trailing/leading gaps
