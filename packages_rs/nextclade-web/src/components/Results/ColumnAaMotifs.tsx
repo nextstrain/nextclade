@@ -180,15 +180,15 @@ export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
 
     const aaMotifsTruncated = motifs.slice(0, 20)
 
-    const tbody = aaMotifsTruncated.map(({ gene, position, seq }) => {
-      const cdsObj = cdses.find((cds) => cds.name === gene)
+    const tbody = aaMotifsTruncated.map(({ name, position, seq }) => {
+      const cdsObj = cdses.find((cds) => cds.name === name)
       const bg = cdsObj?.color ?? theme.gray400
       const fg = theme.gray200
       return (
-        <Tr key={`${gene}-${position}`}>
+        <Tr key={`${name}-${position}`}>
           <TdNormal>
             <GeneText $background={bg} $color={fg}>
-              {gene}
+              {name}
             </GeneText>
           </TdNormal>
           <TdNormal className="text-center">{position + 1}</TdNormal>
