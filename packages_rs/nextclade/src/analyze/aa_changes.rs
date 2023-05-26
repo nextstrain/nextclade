@@ -241,7 +241,7 @@ pub fn find_aa_changes(
 
       Ok(find_aa_changes_for_cds(
         &qry_cds_tr.name,
-        &qry_cds_tr.strand,
+        qry_cds_tr.strand,
         qry_seq,
         ref_seq,
         &ref_cds_tr.seq,
@@ -281,7 +281,7 @@ pub fn find_aa_changes(
 /// context of Nextclade we don't have this information.
 fn find_aa_changes_for_cds(
   name: &str,
-  strand: &GeneStrand,
+  strand: GeneStrand,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptide: &[Aa],
@@ -352,7 +352,7 @@ fn find_aa_changes_for_cds(
         let mut ref_context = ref_seq[context_begin..context_end].to_owned();
         let mut query_context = qry_seq[context_begin..context_end].to_owned();
 
-        if strand == &GeneStrand::Reverse {
+        if strand == GeneStrand::Reverse {
           reverse_complement_in_place(&mut ref_context);
           reverse_complement_in_place(&mut query_context);
         }

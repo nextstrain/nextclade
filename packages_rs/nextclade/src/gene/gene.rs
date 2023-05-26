@@ -85,7 +85,7 @@ impl Gene {
       name: feature.name.clone(),
       start: feature.start,
       end: feature.end,
-      strand: feature.strand.clone(),
+      strand: feature.strand,
       frame: feature.frame,
       cdses,
       exceptions: feature.exceptions.clone(),
@@ -106,7 +106,7 @@ impl Gene {
     let strand = cds
       .segments
       .first()
-      .map_or(GeneStrand::Unknown, |seg| seg.strand.clone());
+      .map_or(GeneStrand::Unknown, |seg| seg.strand);
     let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
     let exceptions = cds
       .segments

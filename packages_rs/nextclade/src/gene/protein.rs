@@ -32,7 +32,7 @@ impl Protein {
           name: feature.name.clone(),
           start: feature.start,
           end: feature.end,
-          strand: feature.strand.clone(),
+          strand: feature.strand,
           frame: feature.frame,
           exceptions: feature.exceptions.clone(),
           attributes: feature.attributes.clone(),

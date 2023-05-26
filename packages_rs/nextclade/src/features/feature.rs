@@ -32,7 +32,7 @@ pub struct Feature {
 }
 
 impl Feature {
-  pub fn from_gff_record(index: usize, record: GffRecord) -> Result<Self, Report> {
+  pub fn from_gff_record(index: usize, record: &GffRecord) -> Result<Self, Report> {
     let GffCommonInfo {
       id,
       name,
@@ -45,7 +45,7 @@ impl Feature {
       is_circular,
       attributes,
       gff_record_str,
-    } = GffCommonInfo::from_gff_record(&record)?;
+    } = GffCommonInfo::from_gff_record(record)?;
 
     let name = name.unwrap_or_else(|| format!("Feature #{index}"));
     let id = id.unwrap_or_else(|| {
@@ -57,7 +57,7 @@ impl Feature {
     });
     let feature_type = record.feature_type().to_owned();
     let parent_ids = attributes.get("Parent").cloned().unwrap_or_default();
-    let product = get_one_of_attributes_optional(&record, &["Product", "product", "Protein", "protein", "protein_id"])
+    let product = get_one_of_attributes_optional(record, &["Product", "product", "Protein", "protein", "protein_id"])
       .unwrap_or_else(|| name.clone());
     let seqid = record.seqname().to_owned();
 
@@ -117,7 +117,7 @@ impl Landmark {
     Self {
       index: *index,
       name: name.clone(),
-      id: id.to_owned(),
+      id: id.clone(),
       start: *start,
       end: *end,
       strand: *strand,

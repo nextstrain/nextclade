@@ -188,7 +188,7 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
     //   (index, record, landmark)
     // })
     // .map(|(index, record, landmark)| Feature::from_gff_record(index, record, landmark))
-    .map(|(index, record)| Feature::from_gff_record(index, record))
+    .map(|(index, record)| Feature::from_gff_record(index, &record))
     .collect::<Result<Vec<Feature>, Report>>()?;
 
   validate(&features)?;

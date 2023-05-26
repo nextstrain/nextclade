@@ -55,7 +55,7 @@ impl FeatureGroup {
     let strand = {
       let strands = features.iter().map(|feature| &feature.strand).unique().collect_vec();
       match strands.as_slice() {
-        &[strand] => strand.clone(),
+        &[strand] => *strand,
         _ => GeneStrand::Unknown,
       }
     };
