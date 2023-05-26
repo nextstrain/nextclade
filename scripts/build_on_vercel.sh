@@ -110,9 +110,9 @@ cp ".env.example" ".env"
 
 cd packages_rs/nextclade-web
 
-yarn wasm-prod
-
 yarn install --frozen-lockfile
+
+yarn wasm-prod
 
 yarn prod:build
 
