@@ -14,6 +14,10 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
+export PROD_ENABLE_TYPE_CHECKS=0
+export PROD_ENABLE_ESLINT=0
+export PROD_ENABLE_STYLELINT=0
+
 # Vercel seems to be currently using VMs provisioned with Amazon Linux 2, which is a derivative of RHEL 7,
 # If something breaks, perhaps they've changed things.
 cat /etc/os-release
@@ -107,6 +111,10 @@ if ! command cargo &>/dev/null; then
 fi
 
 cp ".env.example" ".env"
+
+sed -i'' "s|PROD_ENABLE_TYPE_CHECKS=1|PROD_ENABLE_TYPE_CHECKS=0|g" .env
+sed -i'' "s|PROD_ENABLE_ESLINT=1|PROD_ENABLE_ESLINT=0|g" .env
+sed -i'' "s|PROD_ENABLE_STYLELINT=1|PROD_ENABLE_STYLELINT=0|g" .env
 
 cd packages_rs/nextclade-web
 
