@@ -9,15 +9,15 @@ pub fn concat_to_vec<T: Clone>(x: &[T], y: &[T]) -> Vec<T> {
 }
 
 pub fn first<T>(arr: &[T]) -> Result<&T, Report> {
-  arr.first().ok_or_else(|| make_internal_report!(
-    "When attempted to retrieve the first element: Array is empty"
-  ))
+  arr
+    .first()
+    .ok_or_else(|| make_internal_report!("When attempted to retrieve the first element: Array is empty"))
 }
 
 pub fn last<T>(arr: &[T]) -> Result<&T, Report> {
-  arr.last().ok_or_else(|| make_internal_report!(
-    "When attempted to retrieve the first element: Array is empty"
-  ))
+  arr
+    .last()
+    .ok_or_else(|| make_internal_report!("When attempted to retrieve the first element: Array is empty"))
 }
 
 // Given an iterator, clone all elements and convert them using `Into` trait

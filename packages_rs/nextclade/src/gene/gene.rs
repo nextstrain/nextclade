@@ -103,10 +103,7 @@ impl Gene {
     let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
     let start = cds.segments.first().map(|seg| seg.start).unwrap_or_default();
     let end = cds.segments.last().map(|seg| seg.end).unwrap_or_default();
-    let strand = cds
-      .segments
-      .first()
-      .map_or(GeneStrand::Unknown, |seg| seg.strand);
+    let strand = cds.segments.first().map_or(GeneStrand::Unknown, |seg| seg.strand);
     let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
     let exceptions = cds
       .segments

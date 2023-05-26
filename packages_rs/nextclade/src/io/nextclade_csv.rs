@@ -36,7 +36,9 @@ use strum::VariantNames;
 use strum_macros::{Display, EnumString, EnumVariantNames};
 
 // List of categories of CSV columns
-#[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, EnumVariantNames)]
+#[derive(
+  Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, EnumVariantNames,
+)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum CsvColumnCategory {

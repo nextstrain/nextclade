@@ -41,7 +41,10 @@ pub struct DatasetFilePaths {
   input_gene_map: PathBuf,
 }
 
-pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<String>>) -> Result<DatasetFilesContent, Report> {
+pub fn nextclade_get_inputs(
+  run_args: &NextcladeRunArgs,
+  genes: &Option<Vec<String>>,
+) -> Result<DatasetFilesContent, Report> {
   if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
     dataset_str_download_and_load(run_args, dataset_name, genes)
       .wrap_err_with(|| format!("When downloading dataset '{dataset_name}'"))
