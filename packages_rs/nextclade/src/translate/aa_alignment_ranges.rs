@@ -26,12 +26,12 @@ pub fn calculate_aa_alignment_ranges_in_place(
         let segment_global_aln_range = coord_map.ref_to_aln_range(&Range::new(segment.start, segment.end));
 
         // Trim segment to the nuc alignment range
-        intersect_or_none(alignment_range, &segment_global_aln_range).map(|segment_global_aln_range| {
-          let gene_start_aln = coord_map.ref_to_aln_position(segment.start);
-          let sequenced_gene_range_aln_rel = segment_global_aln_range - gene_start_aln;
+        intersect_or_none(&segment_global_aln_range, alignment_range).map(|segment_range_global_aln| {
+          let segment_start_pos_global_aln = coord_map.ref_to_aln_position(segment.start);
+          let segment_range_local_aln = segment_range_global_aln - segment_start_pos_global_aln;
           cds_tr
             .coord_map_local
-            .local_aln_to_codon_range(&sequenced_gene_range_aln_rel)
+            .local_to_codon_ref_range(&segment_range_local_aln)
         })
       })
       .collect_vec();

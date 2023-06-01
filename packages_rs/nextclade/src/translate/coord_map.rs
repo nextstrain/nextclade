@@ -227,12 +227,17 @@ impl CoordMapLocal {
   }
 
   // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
-  pub fn local_aln_to_codon_range(&self, nuc_local_aln: &Range) -> Range {
-    let begin = self.coord_map.aln_to_ref_position(nuc_local_aln.begin);
-    let end = self.coord_map.aln_to_ref_position(nuc_local_aln.end - 1) + 1;
+  pub fn local_to_codon_aln_range(&self, nuc_local_aln: &Range) -> Range {
+    let nuc_local_ref = self.coord_map.aln_to_ref_range(nuc_local_aln);
+    self.local_to_codon_ref_range(&nuc_local_ref)
+  }
+
+  // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
+  pub const fn local_to_codon_ref_range(&self, nuc_local_aln: &Range) -> Range {
+    let Range { begin, end } = nuc_local_aln;
     Range {
-      begin: Self::cds_nuc_local_ref_to_codon_position(begin),
-      end: Self::cds_nuc_local_ref_to_codon_position(end),
+      begin: Self::cds_nuc_local_ref_to_codon_position(*begin),
+      end: Self::cds_nuc_local_ref_to_codon_position(*end),
     }
   }
 

@@ -238,7 +238,7 @@ pub fn translate_cds(
 
   if qry_cds_seq.is_empty() || qry_gaps.is_all_gaps() {
     return make_error!(
-      "When processing CDS \"{}\": The extracted sequence is empty or consists entirely from gaps",
+      "When processing gene \"{}\": The extracted gene sequence is empty or consists entirely from gaps",
       &cds.name
     );
   }
