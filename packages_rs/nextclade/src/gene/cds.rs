@@ -1,5 +1,6 @@
 use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
+use crate::gene::common::{Id, Name};
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::utils::range::{NucRefGlobalRange, NucRefLocalRange, Range};
@@ -24,6 +25,18 @@ pub struct Cds {
   pub attributes: HashMap<String, Vec<String>>,
   pub compat_is_gene: bool,
   pub color: Option<String>,
+}
+
+impl Name for Cds {
+  fn name(&self) -> &str {
+    &self.name
+  }
+}
+
+impl Id for Cds {
+  fn id(&self) -> &str {
+    &self.id
+  }
 }
 
 impl Cds {

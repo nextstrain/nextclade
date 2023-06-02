@@ -1,6 +1,7 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_tree::FeatureTree;
 use crate::features::sequence_region::SequenceRegion;
+use crate::gene::common::check_duplicates_by_name_and_not_ids;
 use crate::gene::gene::{find_cdses, Gene};
 use crate::io::container::take_exactly_one;
 use crate::io::gene_map::GeneMap;
@@ -41,6 +42,7 @@ fn find_genes(feature_groups: &[FeatureGroup]) -> Result<Vec<Gene>, Report> {
       .map(|cds| Gene::from_cds(&cds))
       .collect()
   } else {
+    check_duplicates_by_name_and_not_ids(&genes)?;
     Ok(genes)
   }
 }

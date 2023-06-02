@@ -1,5 +1,6 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
+use crate::gene::common::{check_duplicates_by_name_and_not_ids, Id, Name};
 use crate::io::container::take_exactly_one;
 use crate::utils::range::NucRefGlobalRange;
 use eyre::{eyre, Report, WrapErr};
@@ -55,6 +56,18 @@ pub struct Gene {
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
   pub color: Option<String>,
+}
+
+impl Name for Gene {
+  fn name(&self) -> &str {
+    &self.name
+  }
+}
+
+impl Id for Gene {
+  fn id(&self) -> &str {
+    &self.id
+  }
 }
 
 impl Gene {
@@ -147,6 +160,7 @@ pub fn find_cdses(feature_groups: &[FeatureGroup]) -> Result<Vec<Cds>, Report> {
   feature_groups
     .iter()
     .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, &mut cdses))?;
+  check_duplicates_by_name_and_not_ids(&cdses)?;
   Ok(cdses)
 }
 
