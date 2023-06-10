@@ -1,7 +1,7 @@
 use crate::align::params::AlignPairwiseParams;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{extract_cds_ref, CoordMap, CoordMapForCds, CoordMapLocal};
+use crate::translate::coord_map::{extract_cds_ref, CoordMapForCds, CoordMapLocal};
 use crate::translate::translate::translate;
 use crate::translate::translate_genes::{CdsTranslation, GeneTranslation, Translation};
 use crate::utils::range::Range;
@@ -32,7 +32,7 @@ pub fn translate_genes_ref(
               seq: tr.seq,
               insertions: vec![],
               frame_shifts: vec![],
-              alignment_ranges: vec![Range::new(0, len)],
+              alignment_ranges: vec![Range::from_usize(0, len)],
               ref_cds_map: CoordMapForCds::new(vec![]), // dummy values
               qry_cds_map: CoordMapForCds::new(vec![]), // dummy values
               coord_map_local: CoordMapLocal::new(&[]),

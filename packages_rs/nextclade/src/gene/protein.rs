@@ -1,6 +1,7 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::make_internal_error;
+use crate::utils::range::NucRefGlobalRange;
 use eyre::Report;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -30,8 +31,7 @@ impl Protein {
         Ok(ProteinSegment {
           id: feature.id.clone(),
           name: feature.name.clone(),
-          start: feature.start,
-          end: feature.end,
+          range: feature.range.clone(),
           strand: feature.strand,
           frame: feature.frame,
           exceptions: feature.exceptions.clone(),
@@ -67,8 +67,7 @@ impl Protein {
 pub struct ProteinSegment {
   pub id: String,
   pub name: String,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,

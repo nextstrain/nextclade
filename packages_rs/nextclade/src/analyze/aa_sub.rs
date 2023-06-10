@@ -1,9 +1,8 @@
 use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
-use crate::utils::range::Range;
+use crate::utils::range::AaRefPosition;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -20,7 +19,7 @@ pub struct AaSubMinimal {
   pub reff: Aa,
 
   #[serde(rename = "codon")]
-  pub pos: usize,
+  pub pos: AaRefPosition,
 
   #[serde(rename = "queryAA")]
   pub qry: Aa,
@@ -53,7 +52,7 @@ impl FromStr for AaSubMinimal {
       return match (captures.name("ref"), captures.name("pos"), captures.name("qry")) {
         (Some(reff), Some(pos), Some(qry)) => {
           let reff = Aa::from_string(reff.as_str())?;
-          let pos = parse_pos(pos.as_str())?;
+          let pos = parse_pos(pos.as_str())?.into();
           let qry = Aa::from_string(qry.as_str())?;
           Ok(Self { reff, pos, qry })
         }

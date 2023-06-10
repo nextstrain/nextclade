@@ -2,6 +2,7 @@ use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
 use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo};
 use crate::utils::collections::first;
+use crate::utils::range::NucRefGlobalRange;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
 use schemars::JsonSchema;
@@ -17,8 +18,7 @@ pub struct Feature {
   pub name: String,
   pub product: String,
   pub feature_type: String,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub landmark: Option<Landmark>,
   pub strand: GeneStrand,
   pub frame: i32,
@@ -36,8 +36,7 @@ impl Feature {
     let GffCommonInfo {
       id,
       name,
-      start,
-      end,
+      range,
       strand,
       frame,
       exceptions,
@@ -67,8 +66,7 @@ impl Feature {
       name,
       product,
       feature_type,
-      start,
-      end,
+      range,
       landmark: None,
       strand,
       frame,
@@ -95,8 +93,7 @@ pub struct Landmark {
   pub index: usize,
   pub id: String,
   pub name: String,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub strand: GeneStrand,
   pub is_circular: bool,
 }
@@ -107,8 +104,7 @@ impl Landmark {
       index,
       id,
       name,
-      start,
-      end,
+      range,
       strand,
       is_circular,
       ..
@@ -118,8 +114,7 @@ impl Landmark {
       index: *index,
       name: name.clone(),
       id: id.clone(),
-      start: *start,
-      end: *end,
+      range: *range,
       strand: *strand,
       is_circular: *is_circular,
     }

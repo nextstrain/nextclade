@@ -1,5 +1,6 @@
 use crate::gene::gene::GeneStrand;
 use crate::io::container::get_first_of;
+use crate::utils::range::NucRefGlobalRange;
 use crate::utils::string::surround_with_quotes;
 use bio::io::gff::{GffType, Record as GffRecord, Writer as GffWriter};
 use color_eyre::{Section, SectionExt};
@@ -188,8 +189,7 @@ lazy_static! {
 pub struct GffCommonInfo {
   pub id: Option<String>,
   pub name: Option<String>,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,
@@ -206,6 +206,8 @@ impl GffCommonInfo {
     let id = get_one_of_attributes_optional(record, &["ID"]);
     let start = (*record.start() - 1) as usize; // Convert to 0-based indices
     let end = *record.end() as usize;
+    let range = NucRefGlobalRange::new(start.into(), end.into());
+
     let strand = record
       .strand()
       .map_or(GeneStrand::Unknown, bio_types::strand::Strand::into);
@@ -250,8 +252,7 @@ impl GffCommonInfo {
     Ok(GffCommonInfo {
       id,
       name,
-      start,
-      end,
+      range,
       strand,
       frame,
       exceptions,

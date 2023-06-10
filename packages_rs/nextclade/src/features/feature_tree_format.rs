@@ -65,18 +65,14 @@ fn format_sequence_region_feature<W: Write>(
   seq_region: &SequenceRegion,
   max_name_len: usize,
 ) -> Result<(), Report> {
-  let SequenceRegion {
-    index,
-    id,
-    start,
-    end,
-    children,
-  } = seq_region;
+  let SequenceRegion { range, .. } = seq_region;
 
   let indent_left = " ".repeat(INDENT);
   let name = truncate_with_ellipsis(seq_region.name_and_type(), max_name_len - INDENT);
   let indent_right = max_name_len - INDENT;
-  let nuc_len = end - start;
+  let start = range.begin;
+  let end = range.end;
+  let nuc_len = range.len();
   let codon_len = format_codon_length(nuc_len);
 
   writeln!(
@@ -121,19 +117,15 @@ fn format_feature_group<W: Write>(
   depth: usize,
 ) -> Result<(), Report> {
   let FeatureGroup {
-    index,
-    id,
-    name,
-    product,
     feature_type,
     strand,
     frame,
     features,
-    parent_ids,
-    children,
+    parent_ids: _parent_ids,
+    children: _children,
     exceptions,
     notes,
-    is_circular,
+    ..
   } = feature;
 
   let max_name_len = max_name_len - INDENT * depth;
@@ -167,31 +159,27 @@ fn format_feature_group<W: Write>(
 
 fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, depth: usize) -> Result<(), Report> {
   let Feature {
-    index,
-    id,
-    name,
-    product,
     feature_type,
-    start,
-    end,
-    landmark,
+    range,
+    landmark: _landmark,
     strand,
     frame,
-    parent_ids,
-    seqid,
+    parent_ids: _parent_ids,
+    seqid: _seqid,
     exceptions,
     notes,
     is_circular,
-    attributes,
-    source_record,
+    ..
   } = feature;
 
   let indent = "  ".repeat(depth);
   let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
-  let nuc_len = end - start;
+  let start = range.begin;
+  let end = range.end;
+  let nuc_len = range.len();
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.iter().chain(notes.iter()).join(", ");
-  let is_circular = if *is_circular { "✔" } else { " " };
+  let _is_circular = if *is_circular { "✔" } else { " " };
 
   let formatted = format!(
     "{indent}{name:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"

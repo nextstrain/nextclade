@@ -3,7 +3,7 @@ use crate::align::insertions_strip::{get_aa_insertions, insertions_strip};
 use crate::align::params::AlignPairwiseParams;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::CoordMap;
+use crate::translate::coord_map::CoordMapGlobal;
 use crate::translate::translate_genes::{translate_genes, Translation};
 use crate::types::outputs::{NextalignOutputs, PeptideWarning};
 use eyre::Report;
@@ -25,7 +25,7 @@ pub fn nextalign_run_one(
     Err(report) => Err(report),
 
     Ok(alignment) => {
-      let coord_map = CoordMap::new(&alignment.ref_seq);
+      let coord_map = CoordMapGlobal::new(&alignment.ref_seq);
 
       let translation = translate_genes(
         &alignment.qry_seq,

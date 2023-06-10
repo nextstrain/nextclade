@@ -2,27 +2,26 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::Range;
+use crate::utils::range::{AaRefPosition, NucRefGlobalPosition, PositionLike, Range};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct LetterRange<L: Letter<L>> {
-  pub begin: usize,
-  pub end: usize,
+pub struct LetterRange<L: Letter<L>, P: PositionLike> {
+  pub range: Range<P>,
 
   #[serde(rename = "character")]
   pub letter: L,
 }
 
-impl<L: Letter<L>> LetterRange<L> {
+impl<L: Letter<L>, P: PositionLike> LetterRange<L, P> {
   #[inline]
-  pub const fn contains_pos(&self, x: usize) -> bool {
-    x >= self.begin && x < self.end
+  pub const fn contains_pos(&self, pos: P) -> bool {
+    self.range.contains(pos)
   }
 
   #[inline]
   pub const fn len(&self) -> usize {
-    self.end - self.begin
+    self.range.len()
   }
 
   #[inline]
@@ -31,16 +30,13 @@ impl<L: Letter<L>> LetterRange<L> {
   }
 
   #[inline]
-  pub const fn to_range(&self) -> Range {
-    Range {
-      begin: self.begin,
-      end: self.end,
-    }
+  pub const fn range(&self) -> &Range<P> {
+    &self.range
   }
 }
 
-pub type NucRange = LetterRange<Nuc>;
-pub type AaRange = LetterRange<Aa>;
+pub type NucRange = LetterRange<Nuc, NucRefGlobalPosition>;
+pub type AaRange = LetterRange<Aa, AaRefPosition>;
 
 // Finds contiguous ranges (segments) in the sequence, such that for every character inside every range,
 // the predicate function returns true and every range contains only the same letter.
@@ -49,10 +45,13 @@ pub type AaRange = LetterRange<Aa>;
 //
 // For example if predicate returns `true` for characters A and C, this function will find ranges `AAAA` and `CCCCC`,
 // but not `ZZZ` or `ACCCAC`.
-pub fn find_letter_ranges_by<L: Letter<L>>(seq: &[L], pred: impl Fn(L) -> bool) -> Vec<LetterRange<L>> {
+pub fn find_letter_ranges_by<L: Letter<L>, P: PositionLike>(
+  seq: &[L],
+  pred: impl Fn(L) -> bool,
+) -> Vec<LetterRange<L, P>> {
   let len = seq.len();
 
-  let mut result = Vec::<LetterRange<L>>::new();
+  let mut result = vec![];
   let mut i = 0_usize;
   let mut begin = 0_usize;
   let mut found_maybe = Option::<L>::default();
@@ -77,7 +76,8 @@ pub fn find_letter_ranges_by<L: Letter<L>>(seq: &[L], pred: impl Fn(L) -> bool) 
         let end = i;
 
         // Remember the range
-        result.push(LetterRange::<L> { begin, end, letter });
+        let range = Range::<P>::from_usize(begin, end);
+        result.push(LetterRange { range, letter });
 
         found_maybe = None;
       }
@@ -92,7 +92,7 @@ pub fn find_letter_ranges_by<L: Letter<L>>(seq: &[L], pred: impl Fn(L) -> bool) 
 }
 
 /// Finds contiguous ranges (segments) consisting of a given nucleotide in the sequence.
-pub fn find_letter_ranges<L: Letter<L>>(qry_aln: &[L], letter: L) -> Vec<LetterRange<L>> {
+pub fn find_letter_ranges<L: Letter<L>, P: PositionLike>(qry_aln: &[L], letter: L) -> Vec<LetterRange<L, P>> {
   find_letter_ranges_by(qry_aln, |candidate| candidate == letter)
 }
 
@@ -107,7 +107,7 @@ pub struct GeneAaRange {
 }
 
 impl GeneAaRange {
-  pub fn contains_pos(&self, pos: usize) -> bool {
+  pub fn contains_pos(&self, pos: AaRefPosition) -> bool {
     self.ranges.iter().any(|range| range.contains_pos(pos))
   }
 }

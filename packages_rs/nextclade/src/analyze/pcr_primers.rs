@@ -4,8 +4,7 @@ use crate::io::fs::read_file_to_string;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::make_error;
 use crate::translate::complement::reverse_complement_in_place;
-use crate::utils::error::{report_to_string, to_eyre_error};
-use crate::utils::range::Range;
+use crate::utils::range::NucRefGlobalRange;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
@@ -37,7 +36,7 @@ pub struct PcrPrimer {
   pub name: String,
   pub root_oligonuc: String,
   pub primer_oligonuc: String,
-  pub range: Range,
+  pub range: NucRefGlobalRange,
   #[serde(rename = "nonACGTs")]
   pub non_acgts: Vec<Genotype<Nuc>>,
 }
@@ -94,10 +93,7 @@ pub fn convert_pcr_primer(raw: PcrPrimerCsvRow, ref_seq_str: &str) -> Result<Pcr
       )
     }
     Some((begin, root_oligonuc)) => {
-      let range = Range {
-        begin,
-        end: begin + root_oligonuc.len(),
-      };
+      let range = NucRefGlobalRange::from_usize(begin, begin + root_oligonuc.len());
 
       let non_acgts = find_non_acgt(&primer_oligonuc);
 
@@ -152,6 +148,11 @@ pub fn find_non_acgt(seq: &[Nuc]) -> Vec<Genotype<Nuc>> {
   seq
     .iter()
     .enumerate()
-    .filter_map(|(pos, nuc)| (!nuc.is_acgt()).then_some(Genotype { pos, qry: *nuc }))
+    .filter_map(|(pos, nuc)| {
+      (!nuc.is_acgt()).then_some(Genotype {
+        pos: pos.into(),
+        qry: *nuc,
+      })
+    })
     .collect_vec()
 }

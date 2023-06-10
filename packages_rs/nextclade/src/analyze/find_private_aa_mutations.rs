@@ -9,6 +9,7 @@ use crate::io::letter::Letter;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
+use crate::utils::range::{AaRefPosition, PositionLike};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -62,7 +63,7 @@ pub fn find_private_aa_mutations(
 }
 
 pub fn find_private_aa_mutations_for_one_gene(
-  node_mut_map: &BTreeMap<usize, Aa>,
+  node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_substitutions: &[&AaSub],
   aa_deletions: &[&AaDel],
   aa_unknowns: &[&GeneAaRange],
@@ -70,7 +71,7 @@ pub fn find_private_aa_mutations_for_one_gene(
 ) -> PrivateAaMutations {
   // Remember which positions we cover while iterating sequence mutations,
   // to be able to skip them when we iterate over node mutations
-  let mut seq_positions_mutated_or_deleted = BTreeSet::<usize>::new();
+  let mut seq_positions_mutated_or_deleted = BTreeSet::<AaRefPosition>::new();
 
   // Iterate over sequence substitutions
   let non_reversion_substitutions =
@@ -116,9 +117,9 @@ pub fn find_private_aa_mutations_for_one_gene(
 
 /// Iterates over sequence substitutions, compares sequence and node substitutions and finds the private ones.
 fn process_seq_substitutions(
-  node_mut_map: &BTreeMap<usize, Aa>,
+  node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   substitutions: &[&AaSub],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,
 ) -> Vec<AaSubMinimal> {
   let mut non_reversion_substitutions = Vec::<AaSubMinimal>::new();
 
@@ -173,10 +174,10 @@ fn process_seq_substitutions(
 /// two specializations are provided below. This is due to deletions having different data structure for nucleotides
 /// and for amino acids (range vs point).
 fn process_seq_deletions(
-  node_mut_map: &BTreeMap<usize, Aa>,
+  node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   deletions: &[&AaDel],
   ref_seq: &[Aa],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,
 ) -> Vec<AaDelMinimal> {
   let mut non_reversion_deletions = Vec::<AaDelMinimal>::new();
 
@@ -211,10 +212,10 @@ fn process_seq_deletions(
 
 /// Iterates over node mutations, compares node and sequence mutations and finds reversion mutations.
 fn find_reversions(
-  node_mut_map: &BTreeMap<usize, Aa>,
+  node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_unknowns: &[&GeneAaRange],
   ref_peptide: &[Aa],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,
 ) -> Vec<AaSubMinimal> {
   let mut reversion_substitutions = Vec::<AaSubMinimal>::new();
 
@@ -230,7 +231,7 @@ fn find_reversions(
       reversion_substitutions.push(AaSubMinimal {
         reff: *node_qry,
         pos,
-        qry: ref_peptide[pos],
+        qry: ref_peptide[pos.as_usize()],
       });
     }
   }

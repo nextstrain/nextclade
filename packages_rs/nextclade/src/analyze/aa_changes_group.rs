@@ -2,7 +2,7 @@ use crate::analyze::aa_changes::{AaChange, AaChangeType, AaContext, NucContext};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
-use crate::utils::range::Range;
+use crate::utils::range::AaRefRange;
 use itertools::{merge, Itertools};
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +20,7 @@ pub fn merge_context(left: &str, right: &str) -> String {
 #[serde(rename_all = "camelCase")]
 pub struct AaChangeGroup {
   pub gene: String,
-  pub codon_aa_range: Range,
+  pub codon_aa_range: AaRefRange,
   pub changes: Vec<AaChange>,
   pub num_substitutions: usize,
   pub num_deletions: usize,
@@ -34,7 +34,7 @@ impl AaChangeGroup {
   pub fn new(change: &AaChange) -> Self {
     Self {
       gene: change.gene.clone(),
-      codon_aa_range: Range {
+      codon_aa_range: AaRefRange {
         begin: change.pos,
         end: change.pos + 1,
       },

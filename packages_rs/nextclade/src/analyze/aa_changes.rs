@@ -3,29 +3,24 @@ use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
-use crate::gene::cds::Cds;
 use crate::gene::gene::GeneStrand;
-use crate::io::aa::{from_aa, from_aa_seq, Aa};
-use crate::io::gene_map::GeneMap;
+use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
-use crate::io::nuc::{from_nuc_seq, Nuc};
-use crate::translate::complement::reverse_complement_in_place;
+use crate::io::nuc::Nuc;
 use crate::translate::coord_map::CoordMapForCds;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::{intersect_or_none, Range};
+use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange};
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
-use num_traits::clamp_max;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NucContext {
-  pub codon_nuc_range: Range,
+  pub codon_nuc_range: NucRefGlobalRange,
   pub ref_context: String,
   pub query_context: String,
-  pub context_nuc_range: Range,
+  pub context_nuc_range: NucRefGlobalRange,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -44,7 +39,7 @@ pub struct AaSub {
   pub reff: Aa,
 
   #[serde(rename = "codon")]
-  pub pos: usize,
+  pub pos: AaRefPosition,
 
   #[serde(rename = "queryAA")]
   pub qry: Aa,
@@ -102,7 +97,7 @@ pub struct AaDel {
   pub reff: Aa,
 
   #[serde(rename = "codon")]
-  pub pos: usize,
+  pub pos: AaRefPosition,
 
   pub nuc_contexts: Vec<NucContext>,
   pub aa_context: AaContext,
@@ -158,7 +153,7 @@ pub struct AaChange {
   pub reff: Aa,
 
   #[serde(rename = "codon")]
-  pub pos: usize,
+  pub pos: AaRefPosition,
 
   #[serde(rename = "queryAA")]
   pub qry: Aa,
@@ -230,7 +225,7 @@ pub fn find_aa_changes(
   qry_seq: &[Nuc],
   ref_translation: &Translation,
   qry_translation: &Translation,
-  global_alignment_range: &Range,
+  global_alignment_range: &NucRefGlobalRange,
 ) -> Result<FindAaChangesOutput, Report> {
   let mut changes = qry_translation
     .iter_cdses()
@@ -286,9 +281,9 @@ fn find_aa_changes_for_cds(
   ref_seq: &[Nuc],
   ref_peptide: &[Aa],
   qry_peptide: &[Aa],
-  aa_alignment_ranges: &[Range],
+  aa_alignment_ranges: &[AaRefRange],
   qry_cds_map: &CoordMapForCds,
-  global_alignment_range: &Range,
+  global_alignment_range: &NucRefGlobalRange,
 ) -> FindAaChangesOutput {
   assert_eq!(ref_peptide.len(), qry_peptide.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
@@ -296,109 +291,106 @@ fn find_aa_changes_for_cds(
   let mut aa_substitutions = Vec::<AaSub>::new();
   let mut aa_deletions = Vec::<AaDel>::new();
 
-  let num_nucs = qry_seq.len();
-  let num_codons = qry_peptide.len();
-  for codon in 0..num_codons {
-    // NOTE(design): Ignore codons outside of alignment range. For a partial sequence this might make semblance that
-    // there is less mutations compared to full sequences. This has profound effect on clade assignment and QC.
-    // However this is not necessarily the case. We simply don't know and here we choose to ignore fragments outside
-    // alignment.
-    if !aa_alignment_ranges
-      .iter()
-      .any(|aa_alignment_range| aa_alignment_range.contains(codon))
-    {
-      continue;
-    }
-
-    let ref_aa = ref_peptide[codon];
-    let qry_aa = qry_peptide[codon];
-
-    // Provide surrounding context in AA sequences: 1 codon to the left and 1 codon to the right
-    let context_aa_begin = codon.saturating_sub(1);
-    let context_aa_end = codon.saturating_add(1);
-    let ref_aa_context = &ref_peptide[context_aa_begin..context_aa_end];
-    let qry_aa_context = &ref_peptide[context_aa_begin..context_aa_end];
-
-    let aa_context = AaContext {
-      ref_aa_context: from_aa_seq(ref_aa_context),
-      qry_aa_context: from_aa_seq(qry_aa_context),
-    };
-
-    // TODO(bug): handle reverse strands
-    // let codon_begin = if cds.strand != GeneStrand::Reverse {
-    //   cds.start + codon * 3
-    // } else {
-    //   cds.end - (codon + 1) * 3
-    // };
-    // let codon_end = codon_begin + 3;
-
-    let nuc_contexts =
-      // Find where the codon is in nucleotide sequences
-      qry_cds_map.codon_to_global_aln_range(codon)
-      .filter_map(|aln_range| intersect_or_none(&aln_range, global_alignment_range))
-      .map(|codon_nuc_range| {
-        // TODO(bug): this range might need to be converted to ref coordinates (Is it used in UI?)
-        let Range { begin, end } = codon_nuc_range;
-
-        // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
-        let context_begin = begin.saturating_sub(3);
-        let context_end = clamp_max(end.saturating_add(3), num_nucs);
-
-        let context_nuc_range = Range {
-          begin: context_begin,
-          end: context_end,
-        };
-
-        let mut ref_context = ref_seq[context_begin..context_end].to_owned();
-        let mut query_context = qry_seq[context_begin..context_end].to_owned();
-
-        if strand == GeneStrand::Reverse {
-          reverse_complement_in_place(&mut ref_context);
-          reverse_complement_in_place(&mut query_context);
-        }
-
-        let ref_context = from_nuc_seq(&ref_context);
-        let query_context = from_nuc_seq(&query_context);
-
-        NucContext{
-          codon_nuc_range,
-          ref_context,
-          query_context,
-          context_nuc_range,
-        }
-      })
-      .collect_vec();
-
-    if qry_aa.is_gap() {
-      // Gap in the ref sequence means that this is a deletion in the query sequence
-      aa_deletions.push(AaDel {
-        gene: name.to_owned(),
-        reff: ref_aa,
-        pos: codon,
-        nuc_contexts,
-        aa_context,
-      });
-    }
-    // NOTE(design): Here we ignore amino acid `X` in query.
-    //  For a sequence with many such fragments, this might make semblance
-    //  that there is less mutations. This has profound effect on clade assignment and QC.
-    //  However this is not necessarily the case. We simply don't know and here we choose to ignore fragments filled
-    //  with `X`.
-    //
-    // TODO(feat): instead of strict comparison, we might account for ambiguous amino acids in this condition,
-    //  to recover some more useful data from lower-quality sequences
-    else if qry_aa != ref_aa && qry_aa != Aa::X {
-      // If not a gap and the state has changed, then it's a substitution
-      aa_substitutions.push(AaSub {
-        gene: name.to_owned(),
-        reff: ref_aa,
-        pos: codon,
-        qry: qry_aa,
-        nuc_contexts,
-        aa_context,
-      });
-    }
-  }
+  // let num_nucs = qry_seq.len();
+  // let num_codons = qry_peptide.len();
+  // for codon in AaRefRange::from_usize(0, num_codons).iter() {
+  //   // NOTE(design): Ignore codons outside of alignment range. For a partial sequence this might make semblance that
+  //   // there is less mutations compared to full sequences. This has profound effect on clade assignment and QC.
+  //   // However this is not necessarily the case. We simply don't know and here we choose to ignore fragments outside
+  //   // alignment.
+  //   if !aa_alignment_ranges
+  //     .iter()
+  //     .any(|aa_alignment_range| aa_alignment_range.contains(codon))
+  //   {
+  //     continue;
+  //   }
+  //
+  //   let ref_aa = ref_peptide[codon.as_usize()];
+  //   let qry_aa = qry_peptide[codon.as_usize()];
+  //
+  //   // Provide surrounding context in AA sequences: 1 codon to the left and 1 codon to the right
+  //   let context_aa_begin = codon.saturating_sub(1);
+  //   let context_aa_end = codon.saturating_add(1);
+  //   let ref_aa_context = &ref_peptide[context_aa_begin..context_aa_end];
+  //   let qry_aa_context = &ref_peptide[context_aa_begin..context_aa_end];
+  //
+  //   let aa_context = AaContext {
+  //     ref_aa_context: from_aa_seq(ref_aa_context),
+  //     qry_aa_context: from_aa_seq(qry_aa_context),
+  //   };
+  //
+  //   // TODO(bug): handle reverse strands
+  //   // let codon_begin = if cds.strand != GeneStrand::Reverse {
+  //   //   cds.start + codon * 3
+  //   // } else {
+  //   //   cds.end - (codon + 1) * 3
+  //   // };
+  //   // let codon_end = codon_begin + 3;
+  //
+  //   let nuc_contexts =
+  //     // Find where the codon is in nucleotide sequences
+  //     qry_cds_map.codon_to_global_aln_range(codon)
+  //     .filter_map(|aln_range| intersect_or_none(&aln_range, global_alignment_range))
+  //     .map(|codon_nuc_range| {
+  //       // TODO(bug): this range might need to be converted to ref coordinates (Is it used in UI?)
+  //       let Range { begin, end } = codon_nuc_range;
+  //
+  //       // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
+  //       let context_begin = begin.saturating_sub(3);
+  //       let context_end = clamp_max(end.saturating_add(3), num_nucs);
+  //
+  //       let context_nuc_range = NucRefGlobalRange::new(context_begin, context_end);
+  //
+  //       let mut ref_context = ref_seq[context_begin..context_end].to_owned();
+  //       let mut query_context = qry_seq[context_begin..context_end].to_owned();
+  //
+  //       if strand == GeneStrand::Reverse {
+  //         reverse_complement_in_place(&mut ref_context);
+  //         reverse_complement_in_place(&mut query_context);
+  //       }
+  //
+  //       let ref_context = from_nuc_seq(&ref_context);
+  //       let query_context = from_nuc_seq(&query_context);
+  //
+  //       NucContext{
+  //         codon_nuc_range,
+  //         ref_context,
+  //         query_context,
+  //         context_nuc_range,
+  //       }
+  //     })
+  //     .collect_vec();
+  //
+  //   if qry_aa.is_gap() {
+  //     // Gap in the ref sequence means that this is a deletion in the query sequence
+  //     aa_deletions.push(AaDel {
+  //       gene: name.to_owned(),
+  //       reff: ref_aa,
+  //       pos: codon,
+  //       nuc_contexts,
+  //       aa_context,
+  //     });
+  //   }
+  //   // NOTE(design): Here we ignore amino acid `X` in query.
+  //   //  For a sequence with many such fragments, this might make semblance
+  //   //  that there is less mutations. This has profound effect on clade assignment and QC.
+  //   //  However this is not necessarily the case. We simply don't know and here we choose to ignore fragments filled
+  //   //  with `X`.
+  //   //
+  //   // TODO(feat): instead of strict comparison, we might account for ambiguous amino acids in this condition,
+  //   //  to recover some more useful data from lower-quality sequences
+  //   else if qry_aa != ref_aa && qry_aa != Aa::X {
+  //     // If not a gap and the state has changed, then it's a substitution
+  //     aa_substitutions.push(AaSub {
+  //       gene: name.to_owned(),
+  //       reff: ref_aa,
+  //       pos: codon,
+  //       qry: qry_aa,
+  //       nuc_contexts,
+  //       aa_context,
+  //     });
+  //   }
+  // }
 
   FindAaChangesOutput {
     aa_substitutions,

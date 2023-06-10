@@ -1,37 +1,37 @@
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::Range;
+use crate::utils::range::{NucAlnLocalRange, Range};
 use crate::utils::wraparound::wraparound;
 
 // Invalid/unset positions are set with this value
 static POSITION_INVALID: i32 = -1;
 
 struct FrameShiftDetector {
-  frame_shifts: Vec<Range>, // List of detected frame shifts
-  frame: i32,               // Frame of the previously processed character (not necessarily n-1!)
-  old_frame: i32,           // Frame of the character before previous (not necessarily n-2!)
-  begin: i32,               // Remembers potential begin of the current frame shift range
-  end: i32,                 // Remembers potential end of the current frame shift range
-  last_indel: i32,          // Remembers position of the last insertion of deletion
-  dirty: bool,              // Allows to avoid full run in `advance()` on every character
+  frame_shifts: Vec<NucAlnLocalRange>, // List of detected frame shifts
+  frame: i32,                          // Frame of the previously processed character (not necessarily n-1!)
+  old_frame: i32,                      // Frame of the character before previous (not necessarily n-2!)
+  begin: i32,                          // Remembers potential begin of the current frame shift range
+  end: i32,                            // Remembers potential end of the current frame shift range
+  last_indel: i32,                     // Remembers position of the last insertion of deletion
+  dirty: bool,                         // Allows to avoid full run in `advance()` on every character
 }
 
 impl FrameShiftDetector {
   pub fn new(start_frame: i32) -> Self {
     Self {
-      frame_shifts: Vec::<Range>::new(), // List of detected frame shifts
-      frame: start_frame,                // Frame of the previously processed character (not necessarily n-1!)
-      old_frame: 0,                      // Frame of the character before previous (not necessarily n-2!)
-      begin: POSITION_INVALID,           // Remembers potential begin of the current frame shift range
-      end: POSITION_INVALID,             // Remembers potential end of the current frame shift range
-      last_indel: POSITION_INVALID,      // Remembers position of the last insertion of deletion
-      dirty: false,                      // Allows to avoid full run in `advance()` on every character
+      frame_shifts: vec![],
+      frame: start_frame,
+      old_frame: 0,
+      begin: POSITION_INVALID,
+      end: POSITION_INVALID,
+      last_indel: POSITION_INVALID,
+      dirty: false,
     }
   }
 
   /// Returns frame shifts detected so far */
-  pub fn get_frame_shifts(&self) -> Vec<Range> {
-    self.frame_shifts.clone()
+  pub fn get_frame_shifts(self) -> Vec<NucAlnLocalRange> {
+    self.frame_shifts
   }
 
   /// Call this for every insertion */
@@ -56,10 +56,9 @@ impl FrameShiftDetector {
       // We are not in shift and `begin` was set previously. This is the end of the shift range. Remember the range.
       debug_assert!(self.begin >= 0);
       debug_assert!(self.begin <= self.end);
-      self.frame_shifts.push(Range {
-        begin: self.begin as usize,
-        end: self.end as usize,
-      });
+      self
+        .frame_shifts
+        .push(NucAlnLocalRange::from_usize(self.begin as usize, self.end as usize));
       self.reset();
     }
 
@@ -77,10 +76,9 @@ impl FrameShiftDetector {
     if self.begin != POSITION_INVALID {
       debug_assert!(self.begin >= 0);
       debug_assert!(self.begin <= pos);
-      self.frame_shifts.push(Range {
-        begin: self.begin as usize,
-        end: pos as usize,
-      });
+      self
+        .frame_shifts
+        .push(NucAlnLocalRange::from_usize(self.begin as usize, pos as usize));
       self.reset();
     }
   }
@@ -124,7 +122,7 @@ impl FrameShiftDetector {
 
 /// Detects nucleotide frame shifts in the query sequence
 /// and the corresponding aminoacid frame shifts in the query peptide
-pub fn frame_shifts_detect(qry_gene_seq: &[Nuc], ref_gene_seq: &[Nuc]) -> Vec<Range> {
+pub fn frame_shifts_detect(qry_gene_seq: &[Nuc], ref_gene_seq: &[Nuc]) -> Vec<NucAlnLocalRange> {
   debug_assert_eq!(ref_gene_seq.len(), qry_gene_seq.len());
   let length = ref_gene_seq.len() as i32;
 

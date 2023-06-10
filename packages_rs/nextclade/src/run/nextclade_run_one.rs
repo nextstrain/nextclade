@@ -28,7 +28,7 @@ use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_find_nearest_node::tree_find_nearest_nodes;
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
-use crate::utils::range::Range;
+use crate::utils::range::AaRefRange;
 use eyre::Report;
 use itertools::Itertools;
 use std::collections::BTreeMap;
@@ -71,20 +71,18 @@ pub fn nextclade_run_one(
     params,
   )?;
 
+  let alignment_score = alignment.alignment_score;
+
   let FindNucChangesOutput {
     substitutions,
     deletions,
     alignment_range,
   } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
 
-  let alignment_start = alignment_range.begin;
-  let alignment_end = alignment_range.end;
-  let alignment_score = alignment.alignment_score;
-
   calculate_aa_alignment_ranges_in_place(&alignment_range, &coord_map, &mut translation, gene_map)?;
 
   let total_substitutions = substitutions.len();
-  let total_deletions = deletions.iter().map(|del| del.length).sum();
+  let total_deletions = deletions.iter().map(|del| del.len()).sum();
 
   let insertions = stripped.insertions.clone();
   let total_insertions = insertions.iter().map(NucIns::len).sum();
@@ -175,7 +173,7 @@ pub fn nextclade_run_one(
 
   let aa_changes_groups = group_adjacent_aa_subs_and_dels(&aa_substitutions, &aa_deletions);
 
-  let total_aligned_nucs = alignment_end - alignment_start;
+  let total_aligned_nucs = alignment_range.len();
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
@@ -183,15 +181,7 @@ pub fn nextclade_run_one(
     phenotype_data
       .iter()
       .filter_map(|phenotype_data| {
-        let PhenotypeData {
-          name,
-          name_friendly,
-          description,
-          gene,
-          data,
-          ignore,
-          ..
-        } = phenotype_data;
+        let PhenotypeData { name, gene, ignore, .. } = phenotype_data;
         if ignore.clades.contains(&clade) {
           return None;
         }
@@ -217,7 +207,7 @@ pub fn nextclade_run_one(
     qc_config,
   );
 
-  let aa_alignment_ranges: BTreeMap<String, Vec<Range>> = translation
+  let aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
     .cdses()
     .map(|tr| {
       let alignment_ranges = tr
@@ -257,8 +247,7 @@ pub fn nextclade_run_one(
       unknown_aa_ranges,
       total_unknown_aa,
       aa_changes_groups,
-      alignment_start,
-      alignment_end,
+      alignment_range,
       alignment_score,
       aa_alignment_ranges,
       pcr_primer_changes,

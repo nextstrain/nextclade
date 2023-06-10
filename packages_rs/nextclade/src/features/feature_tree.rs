@@ -5,6 +5,7 @@ use crate::features::sequence_region::SequenceRegion;
 use crate::io::file::open_file_or_stdin;
 use crate::make_error;
 use crate::utils::error::to_eyre_error;
+use crate::utils::range::NucRefGlobalRange;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use eyre::{eyre, Report, WrapErr};
 use itertools::{chain, Itertools};
@@ -112,8 +113,7 @@ fn read_gff3_feature_tree_str(content: &str) -> Result<Vec<SequenceRegion>, Repo
       Ok(SequenceRegion {
         index,
         id,
-        start,
-        end,
+        range: NucRefGlobalRange::from_usize(start, end),
         children,
       })
     })
@@ -132,8 +132,7 @@ fn read_gff3_feature_tree_str(content: &str) -> Result<Vec<SequenceRegion>, Repo
     Ok(vec![SequenceRegion {
       index: 0,
       id,
-      start: 0,
-      end,
+      range: NucRefGlobalRange::new(0.into(), end),
       children,
     }])
   }
