@@ -312,7 +312,7 @@ fn find_aa_changes_for_cds(
     let qry_aa = qry_peptide[codon.as_usize()];
 
     // Provide surrounding context in AA sequences: 1 codon to the left and 1 codon to the right
-    let context_aa = AaRefRange::new(codon - 1, codon + 2);
+    let context_aa = AaRefRange::new(codon - 1, codon + 2).clamp_range(0, num_codons);
     let ref_aa_context = &ref_peptide[context_aa.to_std()];
     let qry_aa_context = &ref_peptide[context_aa.to_std()];
 

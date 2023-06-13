@@ -11,7 +11,7 @@
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
-use num_traits::{AsPrimitive, SaturatingAdd, SaturatingMul, SaturatingSub};
+use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive, SaturatingAdd, SaturatingMul, SaturatingSub};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Debug, Display, Formatter};
@@ -25,11 +25,31 @@ pub trait PositionLikeAttrs:
 }
 
 pub trait PositionLike: From<isize> + Into<isize> + PositionLikeAttrs {
+  #[must_use]
   fn as_usize(&self) -> usize {
     self.as_isize() as usize
   }
 
+  #[must_use]
   fn as_isize(&self) -> isize;
+
+  #[must_use]
+  #[inline]
+  fn clamp_min_pos<T: AsPrimitive<isize>>(&self, lower_bound: T) -> Self {
+    clamp_min(self.as_isize(), lower_bound.as_()).into()
+  }
+
+  #[must_use]
+  #[inline]
+  fn clamp_max_pos<T: AsPrimitive<isize>>(&self, upper_bound: T) -> Self {
+    clamp_max(self.as_isize(), upper_bound.as_()).into()
+  }
+
+  #[must_use]
+  #[inline]
+  fn clamp_pos<T: AsPrimitive<isize>, U: AsPrimitive<isize>>(&self, lower_bound: T, upper_bound: U) -> Self {
+    clamp(self.as_isize(), lower_bound.as_(), upper_bound.as_()).into()
+  }
 }
 
 /// Coordinate: alignment vs reference
@@ -320,6 +340,34 @@ impl<P: PositionLike> Range<P> {
   #[inline]
   pub fn iter(&self) -> impl Iterator<Item = P> {
     ((self.begin.into())..(self.end.into())).map(Into::into)
+  }
+
+  #[must_use]
+  #[inline]
+  pub fn clamp_min_range<T: AsPrimitive<isize>>(&self, lower_bound: T) -> Self {
+    Self::new(
+      clamp_min(self.begin.as_isize(), lower_bound.as_()).into(),
+      clamp_min(self.end.as_isize(), lower_bound.as_()).into(),
+    )
+  }
+
+  #[must_use]
+  #[inline]
+  pub fn clamp_max_range<T: AsPrimitive<isize>>(&self, upper_bound: T) -> Self {
+    Self::new(
+      clamp_max(self.begin.as_isize(), upper_bound.as_()).into(),
+      clamp_max(self.end.as_isize(), upper_bound.as_()).into(),
+    )
+  }
+
+  #[must_use]
+  #[inline]
+  #[allow(clippy::same_name_method)]
+  pub fn clamp_range<T: AsPrimitive<isize>, U: AsPrimitive<isize>>(&self, lower_bound: T, upper_bound: U) -> Self {
+    Self::new(
+      clamp(self.begin.as_isize(), lower_bound.as_(), upper_bound.as_()).into(),
+      clamp(self.end.as_isize(), lower_bound.as_(), upper_bound.as_()).into(),
+    )
   }
 }
 
