@@ -242,7 +242,7 @@ pub fn find_aa_changes(
       let cds = gene_map.get_cds(&qry_cds_tr.name)?;
 
       Ok(find_aa_changes_for_cds(
-        &cds,
+        cds,
         qry_seq,
         ref_seq,
         &ref_cds_tr.seq,

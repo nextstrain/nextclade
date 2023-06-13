@@ -11,6 +11,7 @@ use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, NucRange};
 use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
+use crate::analyze::nuc_del::NucDel;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::calculate_phenotype;
@@ -82,7 +83,7 @@ pub fn nextclade_run_one(
   calculate_aa_alignment_ranges_in_place_2(&alignment_range, &mut translation, gene_map, &coord_map_global)?;
 
   let total_substitutions = substitutions.len();
-  let total_deletions = deletions.iter().map(|del| del.len()).sum();
+  let total_deletions = deletions.iter().map(NucDel::len).sum();
 
   let insertions = stripped.insertions.clone();
   let total_insertions = insertions.iter().map(NucIns::len).sum();

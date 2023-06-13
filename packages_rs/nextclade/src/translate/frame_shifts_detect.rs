@@ -1,6 +1,6 @@
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::{NucAlnLocalRange, Range};
+use crate::utils::range::NucAlnLocalRange;
 use crate::utils::wraparound::wraparound;
 
 // Invalid/unset positions are set with this value
@@ -30,8 +30,8 @@ impl FrameShiftDetector {
   }
 
   /// Returns frame shifts detected so far */
-  pub fn get_frame_shifts(self) -> Vec<NucAlnLocalRange> {
-    self.frame_shifts
+  pub fn get_frame_shifts(&self) -> &[NucAlnLocalRange] {
+    &self.frame_shifts
   }
 
   /// Call this for every insertion */
@@ -138,5 +138,5 @@ pub fn frame_shifts_detect(qry_gene_seq: &[Nuc], ref_gene_seq: &[Nuc]) -> Vec<Nu
   }
   detector.done(length);
 
-  detector.get_frame_shifts()
+  detector.get_frame_shifts().to_vec()
 }

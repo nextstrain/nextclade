@@ -45,7 +45,8 @@ pub trait SeqTypeMarker: PositionLikeAttrs {}
 ///
 /// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
-#[derive(Clone, Copy, Debug, Default, Eq, Ord, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[allow(clippy::partial_pub_fields)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Position<C, S, L>
 where
   C: CoordsMarker,
@@ -59,28 +60,28 @@ where
   #[serde(skip)]
   _locality_marker: PhantomData<L>,
   #[serde(skip)]
-  _sequecne_merker: PhantomData<S>,
+  _sequence_marker: PhantomData<S>,
 }
 
-impl<C, S, L> Into<usize> for Position<C, S, L>
+impl<C, S, L> From<Position<C, S, L>> for usize
 where
   C: CoordsMarker,
   S: SpaceMarker,
   L: SeqTypeMarker,
 {
-  fn into(self) -> usize {
-    self.inner as usize
+  fn from(val: Position<C, S, L>) -> Self {
+    val.inner as usize
   }
 }
 
-impl<C, S, L> Into<isize> for Position<C, S, L>
+impl<C, S, L> From<Position<C, S, L>> for isize
 where
   C: CoordsMarker,
   S: SpaceMarker,
   L: SeqTypeMarker,
 {
-  fn into(self) -> isize {
-    self.inner
+  fn from(val: Position<C, S, L>) -> Self {
+    val.inner
   }
 }
 
@@ -96,7 +97,7 @@ where
       inner: pos,
       _coordinate_marker: PhantomData::default(),
       _locality_marker: PhantomData::default(),
-      _sequecne_merker: PhantomData::default(),
+      _sequence_marker: PhantomData::default(),
     }
   }
 }
@@ -136,7 +137,7 @@ where
   }
 }
 
-impl<C, S, L> PartialEq for Position<C, S, L>
+impl<C, S, L> PartialEq<Self> for Position<C, S, L>
 where
   C: CoordsMarker,
   S: SpaceMarker,
@@ -170,6 +171,25 @@ where
   }
 }
 
+impl<C, S, L> Eq for Position<C, S, L>
+where
+  C: CoordsMarker,
+  L: SeqTypeMarker,
+  S: SpaceMarker,
+{
+}
+
+impl<C, S, L> Ord for Position<C, S, L>
+where
+  C: CoordsMarker,
+  L: SeqTypeMarker,
+  S: SpaceMarker,
+{
+  fn cmp(&self, other: &Self) -> Ordering {
+    self.inner.cmp(&other.inner)
+  }
+}
+
 impl<C, S, L> PositionLikeAttrs for Position<C, S, L>
 where
   C: CoordsMarker,
@@ -186,6 +206,17 @@ where
 {
   fn as_isize(&self) -> isize {
     self.inner
+  }
+}
+
+impl<C, S, L> Hash for Position<C, S, L>
+where
+  C: CoordsMarker,
+  S: SpaceMarker,
+  L: SeqTypeMarker,
+{
+  fn hash<H: Hasher>(&self, state: &mut H) {
+    self.inner.hash(state);
   }
 }
 
@@ -272,7 +303,7 @@ impl<P: PositionLike> Range<P> {
 
   #[inline]
   pub fn iter(&self) -> impl Iterator<Item = P> {
-    ((self.begin.into())..(self.end.into())).map(|index| index.into())
+    ((self.begin.into())..(self.end.into())).map(Into::into)
   }
 }
 

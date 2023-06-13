@@ -53,7 +53,7 @@ pub fn link_nuc_and_aa_changes(
 
     for nuc_del in &mut linked.deletions {
       for context in &aa_sub.sub.nuc_contexts {
-        if have_intersection(&nuc_del.del.range(), &context.codon_nuc_range) {
+        if have_intersection(nuc_del.del.range(), &context.codon_nuc_range) {
           nuc_del.aa_substitutions.push(aa_sub.sub.clone());
           aa_sub.nuc_deletions.push(nuc_del.del.clone());
         }
@@ -73,7 +73,7 @@ pub fn link_nuc_and_aa_changes(
 
     for nuc_del in &mut linked.deletions {
       for context in &aa_del.del.nuc_contexts {
-        if have_intersection(&nuc_del.del.range(), &context.codon_nuc_range) {
+        if have_intersection(nuc_del.del.range(), &context.codon_nuc_range) {
           nuc_del.aa_deletions.push(aa_del.del.clone());
           aa_del.nuc_deletions.push(nuc_del.del.clone());
         }

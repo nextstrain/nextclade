@@ -34,7 +34,7 @@ impl NucDel {
   }
 
   #[inline]
-  pub fn range(&self) -> &NucRefGlobalRange {
+  pub const fn range(&self) -> &NucRefGlobalRange {
     &self.range
   }
 }

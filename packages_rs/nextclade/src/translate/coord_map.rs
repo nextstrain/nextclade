@@ -230,7 +230,7 @@ impl CoordMapLocal {
   }
 
   /// Converts nucleotide local reference position to codon position
-  fn local_to_codon_aln_position(pos: &NucAlnLocalPosition) -> AaAlnPosition {
+  fn local_to_codon_aln_position(pos: NucAlnLocalPosition) -> AaAlnPosition {
     // Make sure the nucleotide position is adjusted to codon boundary before the division
     // TODO: ensure that adjustment direction is correct for reverse strands
     let pos = pos.as_isize();
@@ -241,13 +241,13 @@ impl CoordMapLocal {
   /// Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
   pub fn local_to_codon_aln_range(&self, range: &NucAlnLocalRange) -> AaAlnRange {
     AaAlnRange::new(
-      Self::local_to_codon_aln_position(&range.begin),
-      Self::local_to_codon_aln_position(&range.end),
+      Self::local_to_codon_aln_position(range.begin),
+      Self::local_to_codon_aln_position(range.end),
     )
   }
 
   /// Converts nucleotide local reference position to codon position
-  fn local_to_codon_ref_position(pos: &NucRefLocalPosition) -> AaRefPosition {
+  fn local_to_codon_ref_position(pos: NucRefLocalPosition) -> AaRefPosition {
     // Make sure the nucleotide position is adjusted to codon boundary before the division
     // TODO: ensure that adjustment direction is correct for reverse strands
     let pos = pos.as_isize();
@@ -258,8 +258,8 @@ impl CoordMapLocal {
   pub fn local_to_codon_ref_range(&self, range: &NucAlnLocalRange) -> AaRefRange {
     let range = self.aln_to_ref_range(range);
     AaRefRange::new(
-      Self::local_to_codon_ref_position(&range.begin),
-      Self::local_to_codon_ref_position(&range.end),
+      Self::local_to_codon_ref_position(range.begin),
+      Self::local_to_codon_ref_position(range.end),
     )
   }
 }

@@ -92,7 +92,7 @@ pub fn frame_shift_transform(
     gene_name: cds.name.clone(),
     nuc_abs: nuc_ref_global,
     codon,
-    nuc_rel: nuc_aln_local.to_owned(),
+    nuc_rel: nuc_aln_local.clone(),
     gaps_leading,
     gaps_trailing,
   })

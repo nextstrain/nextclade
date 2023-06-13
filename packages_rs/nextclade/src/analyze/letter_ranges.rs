@@ -30,7 +30,7 @@ impl<L: Letter<L>, P: PositionLike> LetterRange<L, P> {
   }
 
   #[inline]
-  pub fn range(&self) -> &Range<P> {
+  pub const fn range(&self) -> &Range<P> {
     &self.range
   }
 }
