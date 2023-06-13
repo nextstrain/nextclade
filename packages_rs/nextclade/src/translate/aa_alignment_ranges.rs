@@ -62,7 +62,7 @@ pub fn calculate_aa_alignment_ranges_in_place_2(
           let included_global_aln = coord_map_global.ref_to_aln_range(&included_ref);
           let begin_aln = coord_map_global.ref_to_aln_position(segment.range.begin);
           let included_local_aln = NucAlnLocalRange::from_range(included_global_aln - begin_aln);
-          coord_map_local.local_to_codon_ref_range(&included_local_aln)
+          cds_tr.coord_map_local.local_to_codon_ref_range(&included_local_aln)
         })
       })
       .collect_vec();
