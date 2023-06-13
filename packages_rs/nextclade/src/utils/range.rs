@@ -12,7 +12,7 @@ use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
 use num_traits::{AsPrimitive, SaturatingAdd, SaturatingMul, SaturatingSub};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
@@ -46,20 +46,16 @@ pub trait SeqTypeMarker: PositionLikeAttrs {}
 /// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
 #[allow(clippy::partial_pub_fields)]
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Clone, Copy, Debug, Default, schemars::JsonSchema)]
 pub struct Position<C, S, L>
 where
   C: CoordsMarker,
   S: SpaceMarker,
   L: SeqTypeMarker,
 {
-  #[serde(flatten)]
   pub inner: isize,
-  #[serde(skip)]
   _coordinate_marker: PhantomData<C>,
-  #[serde(skip)]
   _locality_marker: PhantomData<L>,
-  #[serde(skip)]
   _sequence_marker: PhantomData<S>,
 }
 
@@ -220,6 +216,32 @@ where
   }
 }
 
+impl<'de, C, S, L> Deserialize<'de> for Position<C, S, L>
+where
+  C: CoordsMarker,
+  S: SpaceMarker,
+  L: SeqTypeMarker,
+{
+  fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let i = i64::deserialize(deserializer)?;
+    Ok(Position::new(i as isize))
+  }
+}
+
+impl<C, S, L> Serialize for Position<C, S, L>
+where
+  C: CoordsMarker,
+  S: SpaceMarker,
+  L: SeqTypeMarker,
+{
+  fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
+  where
+    Ser: Serializer,
+  {
+    serializer.serialize_i64(self.inner as i64)
+  }
+}
+
 /// Range of positions in a given 1-dimensional coordinate space.
 ///
 /// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
@@ -229,12 +251,6 @@ pub struct Range<P: PositionLike> {
   pub begin: P,
   pub end: P,
 }
-
-// impl<'a, P: PositionLike> AsRef<Range<P>> for &'a Range<P> {
-//   fn as_ref(&self) -> &'a Range<P> {
-//     *self
-//   }
-// }
 
 impl<P: PositionLike> AsRef<Range<P>> for Range<P> {
   fn as_ref(&self) -> &Range<P> {
