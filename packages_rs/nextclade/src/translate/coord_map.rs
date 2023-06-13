@@ -4,10 +4,10 @@ use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::{
-  AaAlnPosition, AaAlnRange, AaRefPosition, AaRefRange, AlignmentCoords, CoordsMarker, GlobalSpace,
-  NucAlnGlobalPosition, NucAlnGlobalRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalPosition,
-  NucRefGlobalRange, NucRefLocalPosition, NucRefLocalRange, NucSpace, Position, PositionLike, Range, ReferenceCoords,
-  SeqTypeMarker, SpaceMarker,
+  AaAlnPosition, AaRefPosition, AaRefRange, AlignmentCoords, CoordsMarker, GlobalSpace, NucAlnGlobalPosition,
+  NucAlnGlobalRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalPosition, NucRefGlobalRange,
+  NucRefLocalPosition, NucRefLocalRange, NucSpace, Position, PositionLike, Range, ReferenceCoords, SeqTypeMarker,
+  SpaceMarker,
 };
 use crate::vec_into;
 use itertools::{izip, Itertools};
@@ -230,23 +230,6 @@ impl CoordMapLocal {
   }
 
   /// Converts nucleotide local reference position to codon position
-  fn local_to_codon_aln_position(pos: NucAlnLocalPosition) -> AaAlnPosition {
-    // Make sure the nucleotide position is adjusted to codon boundary before the division
-    // TODO: ensure that adjustment direction is correct for reverse strands
-    let pos = pos.as_isize();
-    let pos_adjusted = pos + (3 - pos % 3) % 3;
-    AaAlnPosition::new(pos_adjusted / 3)
-  }
-
-  /// Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
-  pub fn local_to_codon_aln_range(&self, range: &NucAlnLocalRange) -> AaAlnRange {
-    AaAlnRange::new(
-      Self::local_to_codon_aln_position(range.begin),
-      Self::local_to_codon_aln_position(range.end),
-    )
-  }
-
-  /// Converts nucleotide local reference position to codon position
   fn local_to_codon_ref_position(pos: NucRefLocalPosition) -> AaRefPosition {
     // Make sure the nucleotide position is adjusted to codon boundary before the division
     // TODO: ensure that adjustment direction is correct for reverse strands
@@ -262,6 +245,18 @@ impl CoordMapLocal {
       Self::local_to_codon_ref_position(range.end),
     )
   }
+}
+
+fn local_to_codon_position(pos: NucRefLocalPosition) -> AaRefPosition {
+  // Make sure the nucleotide position is adjusted to codon boundary before the division
+  // TODO: ensure that adjustment direction is correct for reverse strands
+  let pos = pos.as_isize();
+  let pos_adjusted = pos + (3 - pos % 3) % 3;
+  AaRefPosition::new(pos_adjusted / 3)
+}
+
+pub fn local_to_codon_range(range: &NucRefLocalRange) -> AaRefRange {
+  AaRefRange::new(local_to_codon_position(range.begin), local_to_codon_position(range.end))
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
