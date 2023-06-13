@@ -4,10 +4,10 @@ use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::{
-  AaAlnPosition, AaRefPosition, AaRefRange, AlignmentCoords, CoordsMarker, GlobalSpace, NucAlnGlobalPosition,
-  NucAlnGlobalRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalPosition, NucRefGlobalRange,
-  NucRefLocalPosition, NucRefLocalRange, NucSpace, Position, PositionLike, Range, ReferenceCoords, SeqTypeMarker,
-  SpaceMarker,
+  AaAlnPosition, AaAlnRange, AaRefPosition, AaRefRange, AlignmentCoords, CoordsMarker, GlobalSpace,
+  NucAlnGlobalPosition, NucAlnGlobalRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalPosition,
+  NucRefGlobalRange, NucRefLocalPosition, NucRefLocalRange, NucSpace, Position, PositionLike, Range, ReferenceCoords,
+  SeqTypeMarker, SpaceMarker,
 };
 use crate::vec_into;
 use itertools::{izip, Itertools};
@@ -18,12 +18,12 @@ use serde::{Deserialize, Serialize};
 /// lookup the position of the corresponding letter in the reference sequence.
 fn make_aln_to_ref_map<L: SpaceMarker>(ref_seq: &[Nuc]) -> Vec<Position<ReferenceCoords, L, NucSpace>> {
   let mut rev_coord_map = Vec::<Position<ReferenceCoords, L, NucSpace>>::with_capacity(ref_seq.len());
-  let mut ref_pos = 0;
+  let mut ref_pos = 0_isize;
 
   for nuc in ref_seq {
     if nuc.is_gap() {
       if rev_coord_map.is_empty() {
-        rev_coord_map.push(0.into());
+        rev_coord_map.push(0_isize.into());
       } else {
         let prev = *(rev_coord_map.last().unwrap());
         rev_coord_map.push(prev);
@@ -185,8 +185,8 @@ impl CoordMapGlobal {
       let range = self.ref_to_aln_range(&segment.range);
       cds_to_aln_map.push(CdsToAln {
         global: range.iter().collect_vec(),
-        start: cds_aln_seq.len(),
-        len: range.len(),
+        start: cds_aln_seq.len() as isize,
+        len: range.len() as isize,
       });
       cds_aln_seq.extend_from_slice(&seq_aln[range.to_std()]);
     }
@@ -230,24 +230,36 @@ impl CoordMapLocal {
   }
 
   /// Converts nucleotide local reference position to codon position
-  fn cds_nuc_local_ref_to_codon_position(nuc_local_ref_pos: &NucRefLocalPosition) -> AaRefPosition {
+  fn local_to_codon_aln_position(pos: &NucAlnLocalPosition) -> AaAlnPosition {
     // Make sure the nucleotide position is adjusted to codon boundary before the division
     // TODO: ensure that adjustment direction is correct for reverse strands
-    let nuc_rel_ref_adj = nuc_local_ref_pos.as_isize() + (3 - nuc_local_ref_pos.as_isize() % 3) % 3;
-    AaRefPosition::new((nuc_rel_ref_adj / 3) as usize)
+    let pos = pos.as_isize();
+    let pos_adjusted = pos + (3 - pos % 3) % 3;
+    AaAlnPosition::new(pos_adjusted / 3)
   }
 
   /// Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
-  pub fn local_to_codon_aln_range(&self, nuc_local_aln: &NucAlnLocalRange) -> AaRefRange {
-    let nuc_local_ref = self.aln_to_ref_range(nuc_local_aln);
-    self.local_to_codon_ref_range(&nuc_local_ref)
+  pub fn local_to_codon_aln_range(&self, range: &NucAlnLocalRange) -> AaAlnRange {
+    AaAlnRange::new(
+      Self::local_to_codon_aln_position(&range.begin),
+      Self::local_to_codon_aln_position(&range.end),
+    )
   }
 
-  /// Converts nucleotide local reference range to codon range
-  pub const fn local_to_codon_ref_range(&self, nuc_aln_local: &NucRefLocalRange) -> AaRefRange {
+  /// Converts nucleotide local reference position to codon position
+  fn local_to_codon_ref_position(pos: &NucRefLocalPosition) -> AaRefPosition {
+    // Make sure the nucleotide position is adjusted to codon boundary before the division
+    // TODO: ensure that adjustment direction is correct for reverse strands
+    let pos = pos.as_isize();
+    let pos_adjusted = pos + (3 - pos % 3) % 3;
+    AaRefPosition::new(pos_adjusted / 3)
+  }
+
+  pub fn local_to_codon_ref_range(&self, range: &NucAlnLocalRange) -> AaRefRange {
+    let range = self.aln_to_ref_range(range);
     AaRefRange::new(
-      Self::cds_nuc_local_ref_to_codon_position(&nuc_aln_local.begin),
-      Self::cds_nuc_local_ref_to_codon_position(&nuc_aln_local.end),
+      Self::local_to_codon_ref_position(&range.begin),
+      Self::local_to_codon_ref_position(&range.end),
     )
   }
 }
@@ -256,15 +268,23 @@ impl CoordMapLocal {
 #[serde(rename_all = "camelCase")]
 pub struct CdsToAln<L: SpaceMarker> {
   global: Vec<Position<AlignmentCoords, L, NucSpace>>,
-  start: usize,
-  len: usize,
+  start: isize,
+  len: isize,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub enum CdsPosition {
+pub enum CdsAlnPosition {
   Before,
   Inside(NucAlnGlobalPosition),
+  After,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum CdsRefPosition {
+  Before,
+  Inside(NucRefGlobalPosition),
   After,
 }
 
@@ -288,16 +308,19 @@ impl CoordMapForCds {
 
   /// Map a position in the extracted alignment of the CDS to the global alignment.
   /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-  pub fn cds_to_global_aln_position(&self, cds_aln_pos: NucAlnLocalPosition) -> impl Iterator<Item = CdsPosition> + '_ {
+  pub fn cds_to_global_aln_position(
+    &self,
+    cds_aln_pos: NucAlnLocalPosition,
+  ) -> impl Iterator<Item = CdsAlnPosition> + '_ {
     self.cds_to_aln_map.iter().map(move |segment| {
       let pos_in_segment = cds_aln_pos - segment.start;
 
       if pos_in_segment < 0 {
-        CdsPosition::Before
+        CdsAlnPosition::Before
       } else if pos_in_segment >= segment.len {
-        CdsPosition::After
+        CdsAlnPosition::After
       } else {
-        CdsPosition::Inside(segment.global[pos_in_segment.as_usize()])
+        CdsAlnPosition::Inside(segment.global[pos_in_segment.as_usize()])
       }
     })
   }
@@ -306,7 +329,7 @@ impl CoordMapForCds {
     self
       .cds_to_global_aln_position(cds_aln_pos)
       .find_map(|pos| match pos {
-        CdsPosition::Inside(pos) => Some(pos),
+        CdsAlnPosition::Inside(pos) => Some(pos),
         _ => None,
       })
       .unwrap()
@@ -324,20 +347,20 @@ impl CoordMapForCds {
       .into_iter()
       .filter_map(|(seg_start, seg_end, seg_map)| {
         let begin = match seg_start {
-          CdsPosition::Before => seg_map.global[0],
-          CdsPosition::Inside(pos) => pos,
-          CdsPosition::After => {
+          CdsAlnPosition::Before => seg_map.global[0],
+          CdsAlnPosition::Inside(pos) => pos,
+          CdsAlnPosition::After => {
             return None;
           }
         };
 
         // map end and increment by one to correspond to open interval
         let end = match seg_end {
-          CdsPosition::Before => {
+          CdsAlnPosition::Before => {
             return None;
           }
-          CdsPosition::Inside(pos) => pos + 1,
-          CdsPosition::After => seg_map.global.last().unwrap() + 1,
+          CdsAlnPosition::Inside(pos) => pos + 1,
+          CdsAlnPosition::After => seg_map.global.last().unwrap() + 1,
         };
 
         Some(Range { begin, end })
@@ -350,10 +373,11 @@ impl CoordMapForCds {
     &'a self,
     pos: NucAlnLocalPosition,
     coord_map: &'a CoordMapGlobal,
-  ) -> impl Iterator<Item = CdsPosition> + 'a {
+  ) -> impl Iterator<Item = CdsRefPosition> + 'a {
     self.cds_to_global_aln_position(pos).map(|cds_pos| match cds_pos {
-      CdsPosition::Inside(pos) => CdsPosition::Inside(coord_map.aln_to_ref_position(pos)),
-      _ => cds_pos,
+      CdsAlnPosition::Before => CdsRefPosition::Before,
+      CdsAlnPosition::Inside(pos) => CdsRefPosition::Inside(coord_map.aln_to_ref_position(pos)),
+      CdsAlnPosition::After => CdsRefPosition::After,
     })
   }
 
@@ -557,7 +581,7 @@ mod coord_map_tests {
 
     assert_eq!(
       ref_cds_to_aln.cds_to_global_aln_position(10.into()).collect_vec(),
-      [CdsPosition::Inside(14.into()), CdsPosition::Before, CdsPosition::Before]
+      [CdsAlnPosition::Inside(14.into()), CdsAlnPosition::Before, CdsAlnPosition::Before]
     );
     Ok(())
   }

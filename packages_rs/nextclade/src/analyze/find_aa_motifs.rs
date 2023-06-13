@@ -128,7 +128,7 @@ fn process_one_motif(
         Ok(AaMotif {
           name: name.to_owned(),
           cds: translation.name.clone(),
-          position: range.begin + capture.start(),
+          position: range.begin + capture.start() as isize,
           seq: capture.as_str().to_owned(),
         })
       })

@@ -25,14 +25,14 @@ pub fn nextalign_run_one(
     Err(report) => Err(report),
 
     Ok(alignment) => {
-      let coord_map = CoordMapGlobal::new(&alignment.ref_seq);
+      let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
 
       let translation = translate_genes(
         &alignment.qry_seq,
         &alignment.ref_seq,
         ref_peptides,
         gene_map,
-        &coord_map,
+        &coord_map_global,
         gap_open_close_aa,
         params,
       )?;
@@ -71,14 +71,14 @@ pub fn nextalign_run_one(
       let aa_insertions = get_aa_insertions(&translation);
 
       Ok(NextalignOutputs {
-        stripped,
         alignment,
+        stripped,
         translation,
         aa_insertions,
         warnings,
         missing_genes,
         is_reverse_complement,
-        coord_map,
+        coord_map_global,
       })
     }
   }

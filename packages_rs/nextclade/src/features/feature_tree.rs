@@ -132,7 +132,7 @@ fn read_gff3_feature_tree_str(content: &str) -> Result<Vec<SequenceRegion>, Repo
     Ok(vec![SequenceRegion {
       index: 0,
       id,
-      range: NucRefGlobalRange::new(0.into(), end),
+      range: NucRefGlobalRange::new(0_isize.into(), end),
       children,
     }])
   }

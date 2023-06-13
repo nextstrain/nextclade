@@ -1,16 +1,17 @@
 // Tagged position and range types for different coordinate spaces.
-// 
+//
 // Each coordinate space has a dummy marker (tag) struct implementing a coordinate space trait.
 // A concrete position type and its sibling range type use these markers to distinguish themselves from positions and
 // ranges in other spaces. This way the positions and ranges in different spaces have different Rust types and they
 // cannot be accidentally mixed up.
-// 
+//
 // This prevents, for example, adding a position in alignment coordinates to the position in the
-// reference coordinates, which is always a bug. Similarly, you cannot passing a range in reference to a function 
+// reference coordinates, which is always a bug. Similarly, you cannot passing a range in reference to a function
 // expecting a range in alignment.
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
-use num_traits::{SaturatingAdd, SaturatingMul, SaturatingSub};
+use num::Integer;
+use num_traits::{AsPrimitive, SaturatingAdd, SaturatingMul, SaturatingSub};
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Debug, Display, Formatter};
@@ -23,12 +24,12 @@ pub trait PositionLikeAttrs:
 {
 }
 
-pub trait PositionLike: From<usize> + Into<usize> + PositionLikeAttrs {
-  fn as_usize(&self) -> usize;
-
-  fn as_isize(&self) -> isize {
-    self.as_usize() as isize
+pub trait PositionLike: From<isize> + Into<isize> + PositionLikeAttrs {
+  fn as_usize(&self) -> usize {
+    self.as_isize() as usize
   }
+
+  fn as_isize(&self) -> isize;
 }
 
 /// Coordinate: alignment vs reference
@@ -52,7 +53,7 @@ where
   L: SeqTypeMarker,
 {
   #[serde(flatten)]
-  pub inner: usize,
+  pub inner: isize,
   #[serde(skip)]
   _coordinate_marker: PhantomData<C>,
   #[serde(skip)]
@@ -68,6 +69,17 @@ where
   L: SeqTypeMarker,
 {
   fn into(self) -> usize {
+    self.inner as usize
+  }
+}
+
+impl<C, S, L> Into<isize> for Position<C, S, L>
+where
+  C: CoordsMarker,
+  S: SpaceMarker,
+  L: SeqTypeMarker,
+{
+  fn into(self) -> isize {
     self.inner
   }
 }
@@ -79,7 +91,7 @@ where
   L: SeqTypeMarker,
 {
   #[inline]
-  pub const fn new(pos: usize) -> Self {
+  pub fn new(pos: isize) -> Self {
     Self {
       inner: pos,
       _coordinate_marker: PhantomData::default(),
@@ -89,14 +101,15 @@ where
   }
 }
 
-impl<C, S, L> From<usize> for Position<C, S, L>
+impl<C, S, L, I> From<I> for Position<C, S, L>
 where
+  I: Integer + AsPrimitive<isize>,
   C: CoordsMarker,
   S: SpaceMarker,
   L: SeqTypeMarker,
 {
-  fn from(pos: usize) -> Self {
-    Self::new(pos)
+  fn from(pos: I) -> Self {
+    Self::new(pos.as_())
   }
 }
 
@@ -113,7 +126,7 @@ where
 
 impl<U, C, S, L> PartialEq<U> for Position<C, S, L>
 where
-  usize: PartialEq<U>,
+  isize: PartialEq<U>,
   C: CoordsMarker,
   S: SpaceMarker,
   L: SeqTypeMarker,
@@ -136,7 +149,7 @@ where
 
 impl<U, C, S, L> PartialOrd<U> for Position<C, S, L>
 where
-  usize: PartialOrd<U>,
+  isize: PartialOrd<U>,
   C: CoordsMarker,
   S: SpaceMarker,
   L: SeqTypeMarker,
@@ -171,7 +184,7 @@ where
   S: SpaceMarker,
   L: SeqTypeMarker,
 {
-  fn as_usize(&self) -> usize {
+  fn as_isize(&self) -> isize {
     self.inner
   }
 }
@@ -186,6 +199,18 @@ pub struct Range<P: PositionLike> {
   pub end: P,
 }
 
+// impl<'a, P: PositionLike> AsRef<Range<P>> for &'a Range<P> {
+//   fn as_ref(&self) -> &'a Range<P> {
+//     *self
+//   }
+// }
+
+impl<P: PositionLike> AsRef<Range<P>> for Range<P> {
+  fn as_ref(&self) -> &Range<P> {
+    self
+  }
+}
+
 impl<P: PositionLike> Range<P> {
   #[inline]
   pub const fn new(begin: P, end: P) -> Self {
@@ -193,7 +218,15 @@ impl<P: PositionLike> Range<P> {
   }
 
   #[inline]
-  pub const fn from_usize(begin: usize, end: usize) -> Self {
+  pub fn from_usize(begin: usize, end: usize) -> Self {
+    Self {
+      begin: P::from(begin as isize),
+      end: P::from(end as isize),
+    }
+  }
+
+  #[inline]
+  pub fn from_isize(begin: isize, end: isize) -> Self {
     Self {
       begin: P::from(begin),
       end: P::from(end),
@@ -201,8 +234,14 @@ impl<P: PositionLike> Range<P> {
   }
 
   #[inline]
+  pub fn from_range<Q: PositionLike>(range: impl AsRef<Range<Q>>) -> Self {
+    let range = range.as_ref();
+    Self::from_isize(range.begin.as_isize(), range.end.as_isize())
+  }
+
+  #[inline]
   pub fn len(&self) -> usize {
-    self.end.into().saturating_sub(self.begin.into())
+    self.end.into().saturating_sub(self.begin.into()) as usize
   }
 
   #[inline]
@@ -226,8 +265,8 @@ impl<P: PositionLike> Range<P> {
   #[inline]
   pub fn to_std(&self) -> StdRange<usize> {
     StdRange {
-      start: self.begin.into(),
-      end: self.end.into(),
+      start: self.begin.as_usize(),
+      end: self.end.as_usize(),
     }
   }
 
@@ -245,9 +284,9 @@ pub fn have_intersection<P: PositionLike>(x: &Range<P>, y: &Range<P>) -> bool {
 /// Compute an intersection of two ranges. Returns an empty range if the intersection is empty
 #[inline]
 pub fn intersect<P: PositionLike>(x: &Range<P>, y: &Range<P>) -> Range<P> {
-  let begin = max(x.begin, y.begin).into();
-  let end = min(x.end, y.end).into();
-  let mut intersection = Range::from_usize(begin, end);
+  let begin = max(x.begin, y.begin);
+  let end = min(x.end, y.end);
+  let mut intersection = Range::new(begin, end);
   intersection.fixup();
   intersection
 }
@@ -262,8 +301,8 @@ pub fn intersect_or_none<P: PositionLike>(x: &Range<P>, y: &Range<P>) -> Option<
 impl<P: PositionLike> From<Range<P>> for StdRange<usize> {
   fn from(other: Range<P>) -> Self {
     StdRange::<usize> {
-      start: other.begin.into(),
-      end: other.end.into(),
+      start: other.begin.as_usize(),
+      end: other.end.as_usize(),
     }
   }
 }
@@ -443,17 +482,28 @@ pub type AaRefRange = Range<AaRefPosition>;
 ///   The operators can then be implemented only once for the generic type, instead of for each of the specialized types.
 macro_rules! impl_ops_for_pos {
   ($t:ty) => {
-    // for position and scalar
-    impl_op_ex_commutative!(+ |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner.saturating_add(scalar)) });
-    impl_op_ex_commutative!(- |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner.saturating_sub(scalar)) });
-    impl_op_ex_commutative!(* |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner.saturating_mul(scalar)) });
-    impl_op_ex_commutative!(/ |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner / scalar) });
-    impl_op_ex_commutative!(% |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner % scalar) });
+  // for position and signed scalar
+    impl_op_ex_commutative!(+ |pos: &$t, scalar: isize| -> $t { <$t>::new(pos.inner.saturating_add(scalar)) });
+    impl_op_ex_commutative!(- |pos: &$t, scalar: isize| -> $t { <$t>::new(pos.inner.saturating_sub(scalar)) });
+    impl_op_ex_commutative!(* |pos: &$t, scalar: isize| -> $t { <$t>::new(pos.inner.saturating_mul(scalar)) });
+    impl_op_ex_commutative!(/ |pos: &$t, scalar: isize| -> $t { <$t>::new(pos.inner / scalar) });
+    impl_op_ex_commutative!(% |pos: &$t, scalar: isize| -> $t { <$t>::new(pos.inner % scalar) });
 
-    // for position and scalar, compound
-    impl_op_ex!(+= |pos: &mut $t, scalar: usize| { pos.inner = pos.inner.saturating_add(scalar); });
-    impl_op_ex!(-= |pos: &mut $t, scalar: usize| { pos.inner = pos.inner.saturating_sub(scalar); });
-    impl_op_ex!(*= |pos: &mut $t, scalar: usize| { pos.inner = pos.inner.saturating_mul(scalar); });
+    // // for position and unsigned scalar
+    // impl_op_ex_commutative!(+ |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner.saturating_add(scalar as isize)) });
+    // impl_op_ex_commutative!(- |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner.saturating_sub(scalar as isize)) });
+    // impl_op_ex_commutative!(* |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner.saturating_mul(scalar as isize)) });
+    // impl_op_ex_commutative!(/ |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner / (scalar as isize)) });
+    // impl_op_ex_commutative!(% |pos: &$t, scalar: usize| -> $t { <$t>::new(pos.inner % (scalar as isize)) });
+
+    // for position and signed scalar, compound
+    impl_op_ex!(+= |pos: &mut $t, scalar: isize| { pos.inner = pos.inner.saturating_add(scalar); });
+    impl_op_ex!(-= |pos: &mut $t, scalar: isize| { pos.inner = pos.inner.saturating_sub(scalar); });
+    impl_op_ex!(*= |pos: &mut $t, scalar: isize| { pos.inner = pos.inner.saturating_mul(scalar); });
+
+    // impl_op_ex!(+= |pos: &mut $t, scalar: usize| { pos.inner = pos.inner.saturating_add(scalar as isize); });
+    // impl_op_ex!(-= |pos: &mut $t, scalar: usize| { pos.inner = pos.inner.saturating_sub(scalar as isize); });
+    // impl_op_ex!(*= |pos: &mut $t, scalar: usize| { pos.inner = pos.inner.saturating_mul(scalar as isize); });
 
     // for position and position
     impl_op_ex!(+ |left: &$t, right: &$t| -> $t { <$t>::new(left.inner.saturating_add(right.inner)) });
@@ -474,18 +524,22 @@ impl_ops_for_pos!(AaRefPosition);
 ///
 /// TODO: See notes for the sibling macro for the position types.
 macro_rules! impl_ops_for_range {
-  ($t:ty) => {
+  ($t:ty, $p:ty) => {
     // for range and scalar
-    impl_op_ex!(+ |range: &$t, scalar: usize| -> $t { <$t>::new(range.begin + scalar, range.end + scalar) });
-    impl_op_ex!(- |range: &$t, scalar: usize| -> $t { <$t>::new(range.begin - scalar, range.end - scalar) });
-    impl_op_ex!(* |range: &$t, scalar: usize| -> $t { <$t>::new(range.begin * scalar, range.end * scalar) });
-    impl_op_ex!(/ |range: &$t, scalar: usize| -> $t { <$t>::new(range.begin / scalar, range.end / scalar) });
+    impl_op_ex!(+ |range: &$t, scalar: isize| -> $t { <$t>::new(range.begin + scalar, range.end + scalar) });
+    impl_op_ex!(- |range: &$t, scalar: isize| -> $t { <$t>::new(range.begin - scalar, range.end - scalar) });
+    impl_op_ex!(* |range: &$t, scalar: isize| -> $t { <$t>::new(range.begin * scalar, range.end * scalar) });
+    impl_op_ex!(/ |range: &$t, scalar: isize| -> $t { <$t>::new(range.begin / scalar, range.end / scalar) });
+
+    // for range and position
+    impl_op_ex!(+ |range: &$t, pos: &$p| -> $t { <$t>::new(range.begin + pos, range.end + pos) });
+    impl_op_ex!(- |range: &$t, pos: &$p| -> $t { <$t>::new(range.begin - pos, range.end - pos) });
   };
 }
 
-impl_ops_for_range!(NucAlnGlobalRange);
-impl_ops_for_range!(NucRefGlobalRange);
-impl_ops_for_range!(NucAlnLocalRange);
-impl_ops_for_range!(NucRefLocalRange);
-impl_ops_for_range!(AaAlnRange);
-impl_ops_for_range!(AaRefRange);
+impl_ops_for_range!(NucAlnGlobalRange, NucAlnGlobalPosition);
+impl_ops_for_range!(NucRefGlobalRange, NucRefGlobalPosition);
+impl_ops_for_range!(NucAlnLocalRange, NucAlnLocalPosition);
+impl_ops_for_range!(NucRefLocalRange, NucRefLocalPosition);
+impl_ops_for_range!(AaAlnRange, AaAlnPosition);
+impl_ops_for_range!(AaRefRange, AaRefPosition);

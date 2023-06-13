@@ -2,7 +2,7 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::{NucRefGlobalRange, Range};
+use crate::utils::range::NucRefGlobalRange;
 
 pub struct FindNucChangesOutput {
   pub substitutions: Vec<NucSub>,
@@ -34,9 +34,7 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
         alignment_start = i as i64;
         before_alignment = false;
       } else if n_del > 0 {
-        deletions.push(NucDel {
-          range: NucRefGlobalRange::from_usize(del_pos as usize, (del_pos + n_del) as usize),
-        });
+        deletions.push(NucDel::from_usize(del_pos as usize, (del_pos + n_del) as usize));
         n_del = 0;
       }
       alignment_end = (i + 1) as i64;

@@ -114,7 +114,7 @@ impl Landmark {
       index: *index,
       name: name.clone(),
       id: id.clone(),
-      range: *range,
+      range: range.clone(),
       strand: *strand,
       is_circular: *is_circular,
     }

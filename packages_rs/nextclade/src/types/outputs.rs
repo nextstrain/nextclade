@@ -29,14 +29,14 @@ pub struct PeptideWarning {
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextalignOutputs {
-  pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
+  pub stripped: StripInsertionsResult<Nuc>,
   pub translation: Translation,
   pub aa_insertions: Vec<AaIns>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,
-  pub coord_map: CoordMapGlobal,
+  pub coord_map_global: CoordMapGlobal,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]

@@ -38,7 +38,7 @@ impl Cds {
           index: feature.index,
           id: feature.id.clone(),
           name: feature.name.clone(),
-          range: feature.range,
+          range: feature.range.clone(),
           landmark: feature.landmark.clone(),
           strand: feature.strand,
           frame: feature.frame,
@@ -279,12 +279,12 @@ impl CdsSegment {
   }
 
   #[inline]
-  pub const fn len(&self) -> usize {
+  pub fn len(&self) -> usize {
     self.range.len()
   }
 
   #[inline]
-  pub const fn is_empty(&self) -> bool {
+  pub fn is_empty(&self) -> bool {
     self.len() == 0
   }
 }

@@ -11,7 +11,7 @@ pub struct NucDel {
 }
 
 impl NucDel {
-  pub fn new(begin: NucRefGlobalPosition, end: NucRefGlobalPosition) -> Self {
+  pub const fn new(begin: NucRefGlobalPosition, end: NucRefGlobalPosition) -> Self {
     Self {
       range: NucRefGlobalRange::new(begin, end),
     }
@@ -24,17 +24,17 @@ impl NucDel {
   }
 
   #[inline]
-  pub const fn len(&self) -> usize {
+  pub fn len(&self) -> usize {
     self.range.len()
   }
 
   #[inline]
-  pub const fn is_empty(&self) -> bool {
+  pub fn is_empty(&self) -> bool {
     self.range.is_empty()
   }
 
   #[inline]
-  pub const fn range(&self) -> &NucRefGlobalRange {
+  pub fn range(&self) -> &NucRefGlobalRange {
     &self.range
   }
 }

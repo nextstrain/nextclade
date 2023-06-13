@@ -139,7 +139,7 @@ fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotif
 fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotifMutation> {
   qry_translation.cdses().find(|tr| tr.name == motif.cds).and_then(|tr| {
     let begin = motif.position;
-    let end = begin + motif.seq.len();
+    let end = begin + motif.seq.len() as isize;
     tr.alignment_ranges.iter().find_map(|alignment_range| {
       let sequenced_motif_range = intersect(alignment_range, &Range::new(begin, end));
       if sequenced_motif_range.len() < motif.seq.len() {

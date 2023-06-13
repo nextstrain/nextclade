@@ -22,7 +22,7 @@ use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
-use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
+use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place_2;
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTree;
@@ -51,14 +51,14 @@ pub fn nextclade_run_one(
   include_nearest_node_info: bool,
 ) -> Result<(Vec<Nuc>, Translation, NextcladeOutputs), Report> {
   let NextalignOutputs {
-    stripped,
     alignment,
+    stripped,
     mut translation,
     aa_insertions,
     warnings,
     missing_genes,
     is_reverse_complement,
-    coord_map,
+    coord_map_global,
   } = nextalign_run_one(
     index,
     seq_name,
@@ -79,7 +79,7 @@ pub fn nextclade_run_one(
     alignment_range,
   } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
 
-  calculate_aa_alignment_ranges_in_place(&alignment_range, &coord_map, &mut translation, gene_map)?;
+  calculate_aa_alignment_ranges_in_place_2(&alignment_range, &mut translation, gene_map, &coord_map_global)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.len()).sum();
@@ -110,6 +110,7 @@ pub fn nextclade_run_one(
     ref_peptides,
     &translation,
     &alignment_range,
+    gene_map,
   )?;
 
   let total_aminoacid_substitutions = aa_substitutions.len();

@@ -211,9 +211,9 @@ pub fn fill_range_inplace<P: PositionLike>(seq: &mut [Aa], range: &Range<P>, let
 /// and we cover them with `X`.
 pub fn mask_peptide_frame_shifts_in_place(seq: &mut [Aa], frame_shifts: &[FrameShift]) {
   for frame_shift in frame_shifts {
-    fill_range_inplace(seq, &frame_shift.gaps_leading.codon, Aa::Gap);
+    fill_range_inplace(seq, &frame_shift.gaps_leading, Aa::Gap);
     fill_range_inplace(seq, &frame_shift.codon, Aa::X);
-    fill_range_inplace(seq, &frame_shift.gaps_trailing.codon, Aa::Gap);
+    fill_range_inplace(seq, &frame_shift.gaps_trailing, Aa::Gap);
   }
 }
 
@@ -311,7 +311,7 @@ pub fn translate_genes(
   ref_seq: &[Nuc],
   ref_peptides: &Translation,
   gene_map: &GeneMap,
-  coord_map: &CoordMapGlobal,
+  coord_map_global: &CoordMapGlobal,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
@@ -331,7 +331,7 @@ pub fn translate_genes(
             cds,
             ref_cds_translation,
             gap_open_close_aa,
-            coord_map,
+            coord_map_global,
             params,
           ) {
             Ok(translation) => Either::Left((cds.name.clone(), translation)),

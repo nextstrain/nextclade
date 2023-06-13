@@ -15,22 +15,22 @@ pub struct LetterRange<L: Letter<L>, P: PositionLike> {
 
 impl<L: Letter<L>, P: PositionLike> LetterRange<L, P> {
   #[inline]
-  pub const fn contains_pos(&self, pos: P) -> bool {
+  pub fn contains_pos(&self, pos: P) -> bool {
     self.range.contains(pos)
   }
 
   #[inline]
-  pub const fn len(&self) -> usize {
+  pub fn len(&self) -> usize {
     self.range.len()
   }
 
   #[inline]
-  pub const fn is_empty(&self) -> bool {
+  pub fn is_empty(&self) -> bool {
     self.len() == 0
   }
 
   #[inline]
-  pub const fn range(&self) -> &Range<P> {
+  pub fn range(&self) -> &Range<P> {
     &self.range
   }
 }
