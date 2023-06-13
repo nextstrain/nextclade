@@ -166,7 +166,7 @@ impl CoordMapGlobal {
   pub fn aln_to_ref_range(&self, aln_range: &NucAlnGlobalRange) -> NucRefGlobalRange {
     Range::new(
       self.aln_to_ref_position(aln_range.begin),
-      self.aln_to_ref_position(aln_range.begin - 1) + 1,
+      self.aln_to_ref_position(aln_range.end - 1) + 1,
     )
   }
 
@@ -174,7 +174,7 @@ impl CoordMapGlobal {
   pub fn ref_to_aln_range(&self, ref_range: &NucRefGlobalRange) -> NucAlnGlobalRange {
     Range::new(
       self.ref_to_aln_position(ref_range.begin),
-      self.ref_to_aln_position(ref_range.begin - 1) + 1,
+      self.ref_to_aln_position(ref_range.end - 1) + 1,
     )
   }
 
