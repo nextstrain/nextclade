@@ -1,5 +1,5 @@
 use crate::io::gene_map::GeneMap;
-use crate::translate::coord_map::local_to_codon_range;
+use crate::translate::coord_map::local_to_codon_range_exclusive;
 use crate::translate::translate_genes::Translation;
 use crate::utils::range::{intersect, NucRefGlobalRange, NucRefLocalRange, PositionLike};
 use eyre::Report;
@@ -24,7 +24,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
       if !included_range_global.is_empty() {
         // Convert to coordinates local to CDS (not local to segment!)
         let included_range_local = NucRefLocalRange::from_range(included_range_global - prev_segment_end as isize);
-        aa_alignment_ranges.push(local_to_codon_range(&included_range_local));
+        aa_alignment_ranges.push(local_to_codon_range_exclusive(&included_range_local));
       }
       // CDS consists of concatenated segments; remember by how far we went along the CDS so far
       prev_segment_end += segment.len();

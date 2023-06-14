@@ -11,6 +11,7 @@ use crate::utils::range::{
 };
 use crate::vec_into;
 use itertools::{izip, Itertools};
+use num::integer::div_floor;
 use serde::{Deserialize, Serialize};
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
@@ -247,16 +248,19 @@ impl CoordMapLocal {
   }
 }
 
-fn local_to_codon_position(pos: NucRefLocalPosition) -> AaRefPosition {
-  // Make sure the nucleotide position is adjusted to codon boundary before the division
+/// Convert ref local nuc CDS position to AA ref position, excluding partial codons (rounding to lower bound)
+fn local_to_codon_position_exclusive(pos: NucRefLocalPosition) -> AaRefPosition {
+  // Make sure the position is adjusted to lower boundary of codon (i.e. exclude incomplete codons)
   // TODO: ensure that adjustment direction is correct for reverse strands
-  let pos = pos.as_isize();
-  let pos_adjusted = pos + (3 - pos % 3) % 3;
-  AaRefPosition::new(pos_adjusted / 3)
+  AaRefPosition::new(div_floor(pos.as_isize(), 3))
 }
 
-pub fn local_to_codon_range(range: &NucRefLocalRange) -> AaRefRange {
-  AaRefRange::new(local_to_codon_position(range.begin), local_to_codon_position(range.end))
+/// Convert ref local nuc CDS range to AA ref range, excluding partial codons
+pub fn local_to_codon_range_exclusive(range: &NucRefLocalRange) -> AaRefRange {
+  AaRefRange::new(
+    local_to_codon_position_exclusive(range.begin),
+    local_to_codon_position_exclusive(range.end),
+  )
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
