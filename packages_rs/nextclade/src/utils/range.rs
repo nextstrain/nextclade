@@ -66,7 +66,7 @@ pub trait SeqTypeMarker: PositionLikeAttrs {}
 /// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
 #[allow(clippy::partial_pub_fields)]
-#[derive(Clone, Copy, Debug, Default, schemars::JsonSchema)]
+#[derive(Clone, Copy, Default, schemars::JsonSchema)]
 pub struct Position<C, S, L>
 where
   C: CoordsMarker,
@@ -138,6 +138,17 @@ where
 {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     std::fmt::Display::fmt(&self.inner, f)
+  }
+}
+
+impl<C, S, L> Debug for Position<C, S, L>
+where
+  C: CoordsMarker,
+  S: SpaceMarker,
+  L: SeqTypeMarker,
+{
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    std::fmt::Debug::fmt(&self.inner, f)
   }
 }
 
