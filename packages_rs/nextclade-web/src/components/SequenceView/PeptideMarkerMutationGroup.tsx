@@ -171,12 +171,15 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </tr>
                 ))}
 
-                {nucDeletions.map((del) => (
-                  <tr key={del.start}>
-                    <td>{t('Deletion')}</td>
-                    <td>{formatRange(del.start, del.start + del.length)}</td>
-                  </tr>
-                ))}
+                {nucDeletions.map((del) => {
+                  const rangeStr = formatRange(del.range)
+                  return (
+                    <tr key={rangeStr}>
+                      <td>{t('Deletion')}</td>
+                      <td>{}</td>
+                    </tr>
+                  )
+                })}
 
                 <tr>
                   <td colSpan={2}>

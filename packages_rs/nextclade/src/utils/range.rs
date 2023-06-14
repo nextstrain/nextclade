@@ -12,6 +12,8 @@ use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
 use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive, SaturatingAdd, SaturatingMul, SaturatingSub};
+use schemars::gen::SchemaGenerator;
+use schemars::schema::Schema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Debug, Display, Formatter};
@@ -66,7 +68,7 @@ pub trait SeqTypeMarker: PositionLikeAttrs {}
 /// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
 #[allow(clippy::partial_pub_fields)]
-#[derive(Clone, Copy, Default, schemars::JsonSchema)]
+#[derive(Clone, Copy, Default)]
 pub struct Position<C, S, L>
 where
   C: CoordsMarker,
@@ -270,6 +272,21 @@ where
     Ser: Serializer,
   {
     serializer.serialize_i64(self.inner as i64)
+  }
+}
+
+impl<C, S, L> schemars::JsonSchema for Position<C, S, L>
+where
+  C: CoordsMarker,
+  S: SpaceMarker,
+  L: SeqTypeMarker,
+{
+  fn schema_name() -> String {
+    "Position".to_owned()
+  }
+
+  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<isize>()
   }
 }
 

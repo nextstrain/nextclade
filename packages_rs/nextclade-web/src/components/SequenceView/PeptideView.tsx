@@ -154,7 +154,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         {unknownAaRangesForGene &&
           unknownAaRangesForGene.ranges.map((range) => (
             <PeptideMarkerUnknown
-              key={range.begin}
+              key={range.range.begin}
               index={index}
               seqName={seqName}
               range={range}

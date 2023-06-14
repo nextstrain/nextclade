@@ -245,10 +245,10 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
 
     // HACK: only uses the first nuc context
     // TODO: figure out what to do in cas there are multiple nuc contexts
-    const { refContext, queryContext, contextNucRange } = nucContexts[0]
+    const { refContext, qryContext, contextNucRange } = nucContexts[0]
 
     const refCodons = refContext.match(/.{1,3}/g)!
-    const queryCodons = queryContext.match(/.{1,3}/g)!
+    const queryCodons = qryContext.match(/.{1,3}/g)!
 
     const firstRefCodon = first(refCodons)!
     const lastRefCodon = last(refCodons)!

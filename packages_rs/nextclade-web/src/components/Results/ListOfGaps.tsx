@@ -18,9 +18,9 @@ export function ListOfGaps({ deletions }: ListOfGapsProps) {
   const { t } = useTranslation()
 
   const gapItems = useMemo(() => {
-    const gapItems = deletions.map(({ start, length }) => {
-      const range = formatRange(start, start + length)
-      return <Li key={range}>{range}</Li>
+    const gapItems = deletions.map(({ range }) => {
+      const rangeStr = formatRange(range)
+      return <Li key={rangeStr}>{rangeStr}</Li>
     })
 
     return truncateList(gapItems, LIST_OF_GAPS_MAX_ITEMS, t('...more'))

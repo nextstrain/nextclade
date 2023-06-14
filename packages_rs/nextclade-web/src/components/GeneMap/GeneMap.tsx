@@ -108,11 +108,11 @@ export function GeneView({ cdsSeg, single, pixelsPerBase, geneFrameOffset, geneS
   const openTooltip = useCallback(() => setHoveredSmart(true), [setHoveredSmart])
   const closeTooltip = useCallback(() => setHoveredSmart(false), [setHoveredSmart])
 
-  const { name, color, start, end, frame, strand } = cdsSeg // prettier-ignore
+  const { name, color, range, frame, strand } = cdsSeg // prettier-ignore
   const geneName = name
   const length = cdsSegmentNucLength(cdsSeg)
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
-  const x = single ? 0 : start * pixelsPerBase
+  const x = single ? 0 : range.begin * pixelsPerBase
   const id = getSafeId('gene', { ...cdsSeg })
   const stroke = hovered ? '#222' : undefined
 
@@ -161,7 +161,7 @@ export function GeneView({ cdsSeg, single, pixelsPerBase, geneFrameOffset, geneS
 
             <tr>
               <td>{t('Nuc. range')}</td>
-              <td>{formatRange(start, end)}</td>
+              <td>{formatRange(range)}</td>
             </tr>
 
             <tr>

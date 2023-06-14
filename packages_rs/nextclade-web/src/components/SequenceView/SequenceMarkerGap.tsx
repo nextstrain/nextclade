@@ -2,6 +2,7 @@ import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import type { NucDelFull } from 'src/types'
+import { rangeLen } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
@@ -30,17 +31,15 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
   const seqMarkerGapHeightState = useRecoilValue(seqMarkerGapHeightStateAtom)
   const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerGapHeightState), [seqMarkerGapHeightState])
 
-  const { start: begin, length, aaSubstitutions, aaDeletions } = deletion
-  const end = begin + length
-
+  const { range, aaSubstitutions, aaDeletions } = deletion
   const id = getSafeId('gap-marker', { index, seqName, ...deletion })
 
-  let width = (end - begin) * pixelsPerBase
+  let width = rangeLen(range) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = begin * pixelsPerBase - halfNuc
+  const x = range.begin * pixelsPerBase - halfNuc
 
-  const rangeStr = formatRange(begin, end)
+  const rangeStr = formatRange(range)
 
   const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 

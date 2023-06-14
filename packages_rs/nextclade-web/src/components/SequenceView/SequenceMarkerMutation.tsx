@@ -97,7 +97,7 @@ function SequenceMarkerMutationUnmemoed({
             ))}
 
             {aaDeletions.map((del) => (
-              <tr key={del.nucContexts.map((nc) => nc.queryContext).join('-')}>
+              <tr key={del.nucContexts.map((nc) => nc.qryContext).join('-')}>
                 <td>{t('Aminoacid deletion')}</td>
                 <td>
                   <AminoacidMutationBadge mutation={del} />

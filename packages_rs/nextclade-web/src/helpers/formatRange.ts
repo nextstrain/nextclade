@@ -1,17 +1,22 @@
-export function formatRange(begin: number, end: number) {
-  if (begin > end) {
-    console.warn(`formatRange: Attempted to format an invalid range: \`[${begin}; ${end})\`. This is probably a bug.`)
+/* eslint-disable camelcase */
+import type { RangeFor_Position } from '_SchemaRoot'
+
+export function formatRange(range: RangeFor_Position) {
+  if (range.begin > range.end) {
+    console.warn(
+      `formatRange: Attempted to format an invalid range: \`[${range.begin}; ${range.end})\`. This is probably a bug.`,
+    )
   }
 
-  if (begin >= end) {
+  if (range.begin >= range.end) {
     return 'empty range'
   }
 
   // NOTE: we (and JavaScript) use 0-based, half-open ranges,
   // but bioinformaticians prefer 1-based, closed ranges.
   // So we convert from "0-based, half-open ranges" to "1-based, closed ranges" here
-  const beginOne = begin + 1
-  const endOne = end
+  const beginOne = range.begin + 1
+  const endOne = range.end
 
   if (endOne === beginOne) {
     return beginOne.toString()
@@ -19,10 +24,10 @@ export function formatRange(begin: number, end: number) {
   return `${beginOne}-${endOne}`
 }
 
-export function formatRangeMaybeEmpty(begin: number, end: number) {
-  if (begin >= end) {
+export function formatRangeMaybeEmpty(range: RangeFor_Position) {
+  if (range.begin >= range.end) {
     return '-'
   }
 
-  return formatRange(begin, end)
+  return formatRange(range)
 }

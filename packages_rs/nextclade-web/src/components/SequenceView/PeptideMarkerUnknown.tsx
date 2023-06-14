@@ -9,6 +9,7 @@ import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { rangeLen } from 'src/types'
 
 const unknownAaColor = getAminoacidColor(AMINOACID_UNKNOWN)
 
@@ -31,16 +32,14 @@ export function PeptideMarkerUnknownUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { begin, end } = range // prettier-ignore
-
   const id = getSafeId('unknown-marker', { index, seqName, ...range })
-  let width = (end - begin) * pixelsPerAa
+  const length = rangeLen(range.range)
+  let width = length * pixelsPerAa
   width = Math.max(width, AA_MIN_WIDTH_PX)
   const halfAa = Math.max(pixelsPerAa, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first AA
-  const x = begin * pixelsPerAa - halfAa
+  const x = range.range.begin * pixelsPerAa - halfAa
 
-  const rangeStr = formatRange(begin, end)
-  const length = end - begin
+  const rangeStr = formatRange(range.range)
 
   return (
     <rect

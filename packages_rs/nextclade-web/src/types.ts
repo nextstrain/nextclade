@@ -10,12 +10,12 @@ import type {
   CdsSegment,
   Dataset,
   DatasetFileUrls,
-  DatasetsIndexJson,
   DatasetTagJson,
+  DatasetsIndexJson,
   FastaRecord,
   InsertionFor_Nuc, // eslint-disable-line camelcase
-  LetterRangeFor_Aa, // eslint-disable-line camelcase
-  LetterRangeFor_Nuc, // eslint-disable-line camelcase
+  LetterRangeFor_AaAnd_Position, // eslint-disable-line camelcase
+  LetterRangeFor_NucAnd_Position, // eslint-disable-line camelcase
   NextcladeErrorOutputs,
   NextcladeOutputs,
   Nuc,
@@ -24,16 +24,23 @@ import type {
   NucSubFull,
   NucSubLabeled,
   PrivateNucMutations,
+  RangeFor_Position, // eslint-disable-line camelcase
   Translation,
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
 
 export * from 'src/gen/_SchemaRoot'
 
+export type Range = RangeFor_Position // eslint-disable-line camelcase
+
+export function rangeLen(range: Range) {
+  return range.end - range.begin
+}
+
 export type Nucleotide = Nuc
 export type Aminoacid = Aa
-export type NucleotideRange = LetterRangeFor_Nuc // eslint-disable-line camelcase
-export type AminoacidRange = LetterRangeFor_Aa // eslint-disable-line camelcase
+export type NucleotideRange = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
+export type AminoacidRange = LetterRangeFor_AaAnd_Position // eslint-disable-line camelcase
 export type AnalysisResult = NextcladeOutputs
 export type PrivateMutations = PrivateNucMutations
 export type NucleotideSubstitutionSimple = NucSub
@@ -43,7 +50,7 @@ export type NucleotideDeletion = NucDel
 // export type NucleotideDeletionSimple = NucDelMinimal
 // export type NucleotideDeletionSimpleLabeled = NucDelFull
 export type NucleotideInsertion = InsertionFor_Nuc // eslint-disable-line camelcase
-export type NucleotideMissing = LetterRangeFor_Nuc // eslint-disable-line camelcase
+export type NucleotideMissing = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
 export type AminoacidSubstitution = AaSub
 export type AminoacidDeletion = AaDel
 export type AminoacidInsertion = AaIns
@@ -100,7 +107,7 @@ export function cdsCodonLength(cds: Cds) {
 }
 
 export function cdsSegmentNucLength(cdsSeg: CdsSegment) {
-  return cdsSeg.end - cdsSeg.start
+  return cdsSeg.range.end - cdsSeg.range.begin
 }
 
 export interface QCFilters {

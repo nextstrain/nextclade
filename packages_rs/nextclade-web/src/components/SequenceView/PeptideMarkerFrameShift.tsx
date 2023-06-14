@@ -10,6 +10,7 @@ import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { cdsAtom } from 'src/state/results.state'
 import { sumBy } from 'lodash'
+import { rangeLen } from 'src/types'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
@@ -42,15 +43,15 @@ function PeptideMarkerFrameShiftUnmemoed({
   }
 
   const nucLength = sumBy(nucAbs, (nucAbs) => nucAbs.end - nucAbs.begin)
-  const codonLength = codon.end - codon.begin
+  const codonLength = rangeLen(codon)
 
   let width = codonLength * pixelsPerAa
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfAa = Math.max(pixelsPerAa, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first AA
   const x = codon.begin * pixelsPerAa - halfAa
 
-  const codonRangeStr = formatRange(codon.begin, codon.end)
-  const nucRangeStr = nucAbs.map((nucAbs) => formatRange(nucAbs.begin, nucAbs.end)).join(', ')
+  const codonRangeStr = formatRange(codon)
+  const nucRangeStr = nucAbs.map((nucAbs) => formatRange(nucAbs)).join(', ')
 
   return (
     <g id={id}>
@@ -109,12 +110,12 @@ function PeptideMarkerFrameShiftUnmemoed({
 
               <tr>
                 <td>{t('Leading deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsLeading.codon.begin, gapsLeading.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsLeading)}</td>
               </tr>
 
               <tr>
                 <td>{t('Trailing deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsTrailing.codon.begin, gapsTrailing.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsTrailing)}</td>
               </tr>
             </tbody>
           </TableSlim>
