@@ -1,7 +1,7 @@
 use crate::io::gene_map::GeneMap;
 use crate::translate::coord_map::local_to_codon_range;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::{intersect, NucRefGlobalRange, NucRefLocalRange};
+use crate::utils::range::{intersect, NucRefGlobalRange, NucRefLocalRange, PositionLike};
 use eyre::Report;
 
 pub fn calculate_aa_alignment_ranges_in_place(
@@ -15,7 +15,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
     let cds = gene_map.get_cds(&cds_tr.name)?;
 
     let mut aa_alignment_ranges = vec![];
-    let mut prev_segment_end = 0_usize;
+    let mut prev_segment_end = cds.segments[0].range.begin.as_usize();
 
     // For each segment
     for segment in &cds.segments {
