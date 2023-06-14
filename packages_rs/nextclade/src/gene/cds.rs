@@ -3,6 +3,7 @@ use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::container::take_exactly_one;
+use crate::utils::range::NucRefGlobalRange;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
@@ -37,8 +38,7 @@ impl Cds {
           index: feature.index,
           id: feature.id.clone(),
           name: feature.name.clone(),
-          start: feature.start,
-          end: feature.end,
+          range: feature.range.clone(),
           landmark: feature.landmark.clone(),
           strand: feature.strand,
           frame: feature.frame,
@@ -94,8 +94,7 @@ impl Cds {
     let protein_segment = ProteinSegment {
       id: format!("protein-segment-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
-      start: feature.start,
-      end: feature.end,
+      range: feature.range.clone(),
       strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
@@ -118,8 +117,7 @@ impl Cds {
       index: feature.index,
       id: format!("cds-segment-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
-      start: feature.start,
-      end: feature.end,
+      range: feature.range.clone(),
       landmark: feature.landmark.clone(),
       strand: feature.strand,
       frame: feature.frame,
@@ -172,13 +170,13 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
       if landmark.is_circular {
         validate_segment_bounds(segment, true)?;
 
-        let landmark_start = landmark.start;
-        let landmark_end = landmark.end;
+        let landmark_start = landmark.range.begin;
+        let landmark_end = landmark.range.end;
 
-        let mut segment_end = segment.end;
+        let mut segment_end = segment.range.end;
         linear_segments.push({
           let mut segment = segment.clone();
-          segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+          segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
           validate_segment_bounds(&segment, false)?;
           segment
         });
@@ -188,8 +186,8 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
 
           linear_segments.push({
             let mut segment = segment.clone();
-            segment.start = landmark_start; // Chop the underflowing part (before landmark)
-            segment.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+            segment.range.begin = landmark_start; // Chop the underflowing part (before landmark)
+            segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
             validate_segment_bounds(&segment, false)?;
             segment
           });
@@ -208,34 +206,34 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
 }
 
 fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result<(), Report> {
-  if segment.start > segment.end {
+  if segment.range.begin > segment.range.end {
     return make_error!(
       "Gene map is invalid: In genomic feature '{}': Feature start > end: {} > {}",
       segment.name,
-      segment.start + 1,
-      segment.end + 1,
+      segment.range.begin + 1,
+      segment.range.end + 1,
     );
   }
 
   if let Some(landmark) = &segment.landmark {
-    let landmark_start = landmark.start;
-    let landmark_end = landmark.end;
+    let landmark_start = landmark.range.begin;
+    let landmark_end = landmark.range.end;
 
-    if segment.start < landmark_start {
+    if segment.range.begin < landmark_start {
       return make_error!(
       "Gene map is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}",
       segment.name,
-      segment.start + 1,
+      segment.range.begin + 1,
       landmark_start + 1,
       landmark_end + 1,
     );
     }
 
-    if !allow_overflow && segment.end > landmark_end {
+    if !allow_overflow && segment.range.end > landmark_end {
       return make_error!(
       "Gene map is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}",
       segment.name,
-      segment.end + 1,
+      segment.range.end + 1,
       landmark_start + 1,
       landmark_end + 1,
     );
@@ -264,8 +262,7 @@ pub struct CdsSegment {
   pub index: usize,
   pub id: String,
   pub name: String,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub landmark: Option<Landmark>,
   pub strand: GeneStrand,
   pub frame: i32,
@@ -282,12 +279,12 @@ impl CdsSegment {
   }
 
   #[inline]
-  pub const fn len(&self) -> usize {
-    self.end - self.start
+  pub fn len(&self) -> usize {
+    self.range.len()
   }
 
   #[inline]
-  pub const fn is_empty(&self) -> bool {
+  pub fn is_empty(&self) -> bool {
     self.len() == 0
   }
 }

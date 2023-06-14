@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
-import type { FrameShift, FrameShiftContext, Range } from 'src/types'
+import type { FrameShift, Range } from 'src/types'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -65,8 +65,8 @@ export interface FrameShiftMarkerSegmentProps extends SVGProps<SVGRectElement> {
   geneName: string
   codon: Range
   nucAbs: Range
-  gapsTrailing: FrameShiftContext
-  gapsLeading: FrameShiftContext
+  gapsTrailing: Range
+  gapsLeading: Range
   pixelsPerBase: number
 }
 
@@ -98,8 +98,8 @@ function SequenceMarkerFrameShiftSegment({
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = nucAbs.begin * pixelsPerBase - halfNuc
 
-  const codonRangeStr = formatRange(codon.begin, codon.end)
-  const nucRangeStr = formatRange(nucAbs.begin, nucAbs.end)
+  const codonRangeStr = formatRange(codon)
+  const nucRangeStr = formatRange(nucAbs)
 
   return (
     <g>
@@ -157,12 +157,12 @@ function SequenceMarkerFrameShiftSegment({
 
               <tr>
                 <td>{t('Leading deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsLeading.codon.begin, gapsLeading.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsLeading)}</td>
               </tr>
 
               <tr>
                 <td>{t('Trailing deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsTrailing.codon.begin, gapsTrailing.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsTrailing)}</td>
               </tr>
             </tbody>
           </TableSlim>

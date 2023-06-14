@@ -51,3 +51,16 @@ where
     f(key, left, right)
   })
 }
+
+#[macro_export]
+macro_rules! vec_into {
+  () => (
+    vec![]
+  );
+  ($elem:expr; $n:expr) => (
+    vec![$elem; $n].into_iter().map(|x| x.into()).collect()
+  );
+  ($($x:expr),+ $(,)?) => (
+    vec![$($x),+].into_iter().map(|x| x.into()).collect()
+  );
+}

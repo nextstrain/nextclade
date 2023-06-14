@@ -4,11 +4,12 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
-use crate::translate::translate_genes::{CdsTranslation, Translation};
+use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
   AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
+use crate::utils::range::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use num::Float;
@@ -20,8 +21,8 @@ pub fn tree_preprocess_in_place(
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<(), Report> {
-  let mut parent_nuc_muts = BTreeMap::<usize, Nuc>::new();
-  let mut parent_aa_muts = BTreeMap::<String, BTreeMap<usize, Aa>>::new();
+  let mut parent_nuc_muts = BTreeMap::<NucRefGlobalPosition, Nuc>::new();
+  let mut parent_aa_muts = BTreeMap::<String, BTreeMap<AaRefPosition, Aa>>::new();
   let mut id = 0_usize;
   tree_preprocess_in_place_impl_recursive(
     &mut id,
@@ -45,16 +46,17 @@ pub fn tree_preprocess_in_place(
 fn tree_preprocess_in_place_impl_recursive(
   id: &mut usize,
   node: &mut AuspiceTreeNode,
-  parent_nuc_muts: &mut BTreeMap<usize, Nuc>,
-  parent_aa_muts: &mut BTreeMap<String, BTreeMap<usize, Aa>>,
+  parent_nuc_muts: &mut BTreeMap<NucRefGlobalPosition, Nuc>,
+  parent_aa_muts: &mut BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<(), Report> {
-  let mut nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
-  let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
+  let mut nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
+  let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
+    nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-  let mut aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
-  let aa_subs: BTreeMap<String, BTreeMap<usize, Aa>> = aa_muts
+  let mut aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
+  let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
     .clone()
     .into_iter()
     .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
@@ -80,8 +82,8 @@ fn tree_preprocess_in_place_impl_recursive(
 fn map_nuc_muts(
   node: &AuspiceTreeNode,
   ref_seq: &[Nuc],
-  parent_nuc_muts: &BTreeMap<usize, Nuc>,
-) -> Result<BTreeMap<usize, Nuc>, Report> {
+  parent_nuc_muts: &BTreeMap<NucRefGlobalPosition, Nuc>,
+) -> Result<BTreeMap<NucRefGlobalPosition, Nuc>, Report> {
   let mut nuc_muts = parent_nuc_muts.clone();
   match node.branch_attrs.mutations.get("nuc") {
     None => Ok(nuc_muts),
@@ -90,14 +92,14 @@ fn map_nuc_muts(
         let mutation = NucSub::from_str(mutation_str)
           .wrap_err_with(|| format!("When parsing nucleotide mutation {mutation_str}"))?;
 
-        if ref_seq.len() < mutation.pos {
+        if ref_seq.len() < mutation.pos.as_usize() {
           return make_error!(
             "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the position is outside of reference sequence length ({}). This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Check that you are using a correct dataset.", ref_seq.len()
           );
         }
 
         // If mutation reverts nucleotide back to what reference had, remove it from the map
-        let ref_nuc = ref_seq[mutation.pos];
+        let ref_nuc = ref_seq[mutation.pos.as_usize()];
         if ref_nuc == mutation.qry {
           nuc_muts.remove(&mutation.pos);
         } else {
@@ -115,8 +117,8 @@ fn map_nuc_muts(
 fn map_aa_muts(
   node: &AuspiceTreeNode,
   ref_translation: &Translation,
-  parent_aa_muts: &BTreeMap<String, BTreeMap<usize, Aa>>,
-) -> Result<BTreeMap<String, BTreeMap<usize, Aa>>, Report> {
+  parent_aa_muts: &BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
+) -> Result<BTreeMap<String, BTreeMap<AaRefPosition, Aa>>, Report> {
   ref_translation
     .cdses()
     //We iterate over all genes that we have ref_peptides for
@@ -138,8 +140,8 @@ fn map_aa_muts_for_one_gene(
   gene_name: &str,
   node: &AuspiceTreeNode,
   ref_peptide: &[Aa],
-  parent_aa_muts: &BTreeMap<usize, Aa>,
-) -> Result<BTreeMap<usize, Aa>, Report> {
+  parent_aa_muts: &BTreeMap<AaRefPosition, Aa>,
+) -> Result<BTreeMap<AaRefPosition, Aa>, Report> {
   let mut aa_muts = parent_aa_muts.clone();
 
   match node.branch_attrs.mutations.get(gene_name) {
@@ -148,7 +150,7 @@ fn map_aa_muts_for_one_gene(
       for mutation_str in mutations {
         let mutation = AaSubMinimal::from_str(mutation_str)?;
 
-        if ref_peptide.len() < mutation.pos {
+        if ref_peptide.len() < mutation.pos.as_usize() {
           return make_error!(
           "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and gene map in the Nextclade dataset",
           node.name,
@@ -160,7 +162,7 @@ fn map_aa_muts_for_one_gene(
         }
 
         // If mutation reverts amino acid back to what reference had, remove it from the map
-        let ref_nuc = ref_peptide[mutation.pos];
+        let ref_nuc = ref_peptide[mutation.pos.as_usize()];
         if ref_nuc == mutation.qry {
           aa_muts.remove(&mutation.pos);
         } else {

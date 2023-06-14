@@ -68,7 +68,7 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",
-    result.alignment_start, result.alignment_end, result.alignment_score
+    result.alignment_range.begin, result.alignment_range.end, result.alignment_score
   );
 
   let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {

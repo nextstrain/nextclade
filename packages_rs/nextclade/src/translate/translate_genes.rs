@@ -9,14 +9,14 @@ use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{CoordMap, CoordMapForCds, CoordMapLocal};
+use crate::translate::coord_map::{CoordMapForCds, CoordMapGlobal, CoordMapLocal};
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
 use crate::types::outputs::PeptideWarning;
 use crate::utils::collections::{first, last};
 use crate::utils::error::report_to_string;
-use crate::utils::range::Range;
+use crate::utils::range::{AaRefRange, PositionLike, Range};
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use indexmap::IndexMap;
@@ -130,7 +130,7 @@ pub struct CdsTranslation {
   pub seq: Vec<Aa>,
   pub insertions: Vec<Insertion<Aa>>,
   pub frame_shifts: Vec<FrameShift>,
-  pub alignment_ranges: Vec<Range>,
+  pub alignment_ranges: Vec<AaRefRange>,
   pub ref_cds_map: CoordMapForCds,
   pub qry_cds_map: CoordMapForCds,
   pub coord_map_local: CoordMapLocal,
@@ -188,18 +188,18 @@ pub fn mask_nuc_frame_shifts_in_place(seq: &mut [Nuc], frame_shifts: &[FrameShif
     let mut current = frame_shift.nuc_rel.begin;
     let end = frame_shift.nuc_rel.end;
     while current < end {
-      if !seq[current].is_gap() {
-        seq[current] = Nuc::N;
+      if !seq[current.as_usize()].is_gap() {
+        seq[current.as_usize()] = Nuc::N;
       }
-      current += 1;
+      current = current + 1;
     }
   }
 }
 
-pub fn fill_range_inplace(seq: &mut [Aa], range: &Range, letter: Aa) {
+pub fn fill_range_inplace<P: PositionLike>(seq: &mut [Aa], range: &Range<P>, letter: Aa) {
   // TODO: this is a very C-like function. Try to replace the indexed loop with something more idiomatic
-  let mut current = range.begin;
-  let end = clamp_max(range.end, seq.len());
+  let mut current = range.begin.as_usize();
+  let end = clamp_max(range.end.as_usize(), seq.len());
   while current < end {
     seq[current] = letter;
     current += 1;
@@ -211,20 +211,19 @@ pub fn fill_range_inplace(seq: &mut [Aa], range: &Range, letter: Aa) {
 /// and we cover them with `X`.
 pub fn mask_peptide_frame_shifts_in_place(seq: &mut [Aa], frame_shifts: &[FrameShift]) {
   for frame_shift in frame_shifts {
-    fill_range_inplace(seq, &frame_shift.gaps_leading.codon, Aa::Gap);
+    fill_range_inplace(seq, &frame_shift.gaps_leading, Aa::Gap);
     fill_range_inplace(seq, &frame_shift.codon, Aa::X);
-    fill_range_inplace(seq, &frame_shift.gaps_trailing.codon, Aa::Gap);
+    fill_range_inplace(seq, &frame_shift.gaps_trailing, Aa::Gap);
   }
 }
 
 pub fn translate_cds(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  gene: &Gene,
   cds: &Cds,
   ref_cds_translation: &CdsTranslation,
   gap_open_close_aa: &[i32],
-  coord_map: &CoordMap,
+  coord_map: &CoordMapGlobal,
   params: &AlignPairwiseParams,
 ) -> Result<CdsTranslation, Report> {
   let (mut ref_cds_seq, ref_cds_map) = coord_map.extract_cds_aln(ref_seq, cds);
@@ -312,7 +311,7 @@ pub fn translate_genes(
   ref_seq: &[Nuc],
   ref_peptides: &Translation,
   gene_map: &GeneMap,
-  coord_map: &CoordMap,
+  coord_map_global: &CoordMapGlobal,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
@@ -329,11 +328,10 @@ pub fn translate_genes(
           match translate_cds(
             qry_seq,
             ref_seq,
-            gene,
             cds,
             ref_cds_translation,
             gap_open_close_aa,
-            coord_map,
+            coord_map_global,
             params,
           ) {
             Ok(translation) => Either::Left((cds.name.clone(), translation)),

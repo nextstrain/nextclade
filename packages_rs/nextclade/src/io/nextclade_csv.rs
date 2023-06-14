@@ -17,7 +17,7 @@ use crate::types::outputs::{
   PhenotypeValue,
 };
 use crate::utils::num::is_int;
-use crate::utils::range::Range;
+use crate::utils::range::{NucRefGlobalRange, Range};
 use crate::{make_error, o};
 use edit_distance::edit_distance;
 use eyre::Report;
@@ -317,8 +317,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       total_aminoacid_insertions,
       unknown_aa_ranges,
       total_unknown_aa,
-      alignment_start,
-      alignment_end,
+      alignment_range,
       alignment_score,
       pcr_primer_changes,
       total_pcr_primer_changes,
@@ -426,8 +425,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       &format_pcr_primer_changes(pcr_primer_changes, ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry("alignmentScore", &alignment_score)?;
-    self.add_entry("alignmentStart", &(alignment_start + 1).to_string())?;
-    self.add_entry("alignmentEnd", &alignment_end.to_string())?;
+    self.add_entry("alignmentStart", &(alignment_range.begin + 1).to_string())?;
+    self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
@@ -659,10 +658,7 @@ pub fn format_nuc_substitutions_labeled(substitutions: &[NucSubLabeled], delimit
 
 #[inline]
 pub fn format_nuc_deletions(deletions: &[NucDelFull], delimiter: &str) -> String {
-  deletions
-    .iter()
-    .map(|del| del.del.to_range().to_string())
-    .join(delimiter)
+  deletions.iter().map(|del| del.del.range().to_string()).join(delimiter)
 }
 
 #[inline]
@@ -683,7 +679,7 @@ pub fn format_non_acgtns(non_acgtns: &[NucRange], delimiter: &str) -> String {
     .iter()
     .map(|non_acgtn| {
       let nuc = from_nuc(non_acgtn.letter);
-      let range = &non_acgtn.to_range().to_string();
+      let range = &non_acgtn.range().to_string();
       format!("{nuc}:{range}")
     })
     .join(delimiter)
@@ -693,7 +689,7 @@ pub fn format_non_acgtns(non_acgtns: &[NucRange], delimiter: &str) -> String {
 pub fn format_missings(missings: &[NucRange], delimiter: &str) -> String {
   missings
     .iter()
-    .map(|missing| missing.to_range().to_string())
+    .map(|missing| missing.range().to_string())
     .join(delimiter)
 }
 
@@ -737,7 +733,7 @@ pub fn format_unknown_aa_ranges(unknown_aa_ranges: &[GeneAaRange], delimiter: &s
     .iter()
     .flat_map(|GeneAaRange { gene_name, ranges, .. }: &GeneAaRange| {
       ranges.iter().map(move |range| {
-        let range_str = range.to_range().to_string();
+        let range_str = range.range().to_string();
         format!("{gene_name}:{range_str}")
       })
     })
@@ -761,7 +757,7 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = Range::new(snp.start, snp.end).to_string();
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
       let number_of_snps = snp.number_of_snps;
       format!("{range}:{number_of_snps}")
     })

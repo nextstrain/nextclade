@@ -1,6 +1,7 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::io::container::take_exactly_one;
+use crate::utils::range::NucRefGlobalRange;
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use maplit::hashmap;
@@ -47,8 +48,7 @@ pub struct Gene {
   pub index: usize,
   pub id: String,
   pub name: String,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub strand: GeneStrand,
   pub frame: i32,
   pub cdses: Vec<Cds>,
@@ -83,8 +83,7 @@ impl Gene {
       index: feature.index,
       id: feature.id.clone(),
       name: feature.name.clone(),
-      start: feature.start,
-      end: feature.end,
+      range: feature.range.clone(),
       strand: feature.strand,
       frame: feature.frame,
       cdses,
@@ -101,8 +100,8 @@ impl Gene {
     let index = 0;
     let id = cds.segments.iter().map(|seg| &seg.id).unique().join("+");
     let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
-    let start = cds.segments.first().map(|seg| seg.start).unwrap_or_default();
-    let end = cds.segments.last().map(|seg| seg.end).unwrap_or_default();
+    let start = cds.segments.first().map(|seg| seg.range.begin).unwrap_or_default();
+    let end = cds.segments.last().map(|seg| seg.range.end).unwrap_or_default();
     let strand = cds.segments.first().map_or(GeneStrand::Unknown, |seg| seg.strand);
     let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
     let exceptions = cds
@@ -116,8 +115,7 @@ impl Gene {
       index,
       id,
       name,
-      start,
-      end,
+      range: NucRefGlobalRange::new(start, end),
       strand,
       frame,
       cdses: vec![cds.clone()],

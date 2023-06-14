@@ -1,6 +1,6 @@
-use crate::analyze::aa_changes::AaSub;
 use crate::analyze::aa_sub::AaSubMinimal;
 use crate::io::aa::Aa;
+use crate::utils::range::AaRefPosition;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -11,7 +11,7 @@ pub struct AaDelMinimal {
   pub reff: Aa,
 
   #[serde(rename = "codon")]
-  pub pos: usize,
+  pub pos: AaRefPosition,
 }
 
 impl AaDelMinimal {

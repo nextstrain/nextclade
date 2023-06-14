@@ -11,10 +11,10 @@ use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
-use crate::translate::coord_map::CoordMap;
+use crate::translate::coord_map::CoordMapGlobal;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::Range;
+use crate::utils::range::{AaRefRange, NucRefGlobalRange, Range};
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -29,14 +29,14 @@ pub struct PeptideWarning {
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextalignOutputs {
-  pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
+  pub stripped: StripInsertionsResult<Nuc>,
   pub translation: Translation,
   pub aa_insertions: Vec<AaIns>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,
-  pub coord_map: CoordMap,
+  pub coord_map_global: CoordMapGlobal,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
@@ -76,10 +76,9 @@ pub struct NextcladeOutputs {
   pub unknown_aa_ranges: Vec<GeneAaRange>,
   pub total_unknown_aa: usize,
   pub aa_changes_groups: Vec<AaChangeGroup>,
-  pub alignment_start: usize,
-  pub alignment_end: usize,
+  pub alignment_range: NucRefGlobalRange,
   pub alignment_score: i32,
-  pub aa_alignment_ranges: BTreeMap<String, Vec<Range>>,
+  pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
   pub clade: String,

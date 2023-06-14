@@ -2,13 +2,12 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::Range;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use crate::utils::range::NucRefGlobalRange;
 
 pub struct FindNucChangesOutput {
   pub substitutions: Vec<NucSub>,
   pub deletions: Vec<NucDel>,
-  pub alignment_range: Range,
+  pub alignment_range: NucRefGlobalRange,
 }
 
 /// Finds nucleotide changes (nucleotide substitutions and deletions) as well
@@ -35,10 +34,7 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
         alignment_start = i as i64;
         before_alignment = false;
       } else if n_del > 0 {
-        deletions.push(NucDel {
-          start: del_pos as usize,
-          length: n_del as usize,
-        });
+        deletions.push(NucDel::from_usize(del_pos as usize, (del_pos + n_del) as usize));
         n_del = 0;
       }
       alignment_end = (i + 1) as i64;
@@ -48,7 +44,7 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
     if !d.is_gap() && (d != ref_nuc) && d.is_acgt() {
       substitutions.push(NucSub {
         reff: ref_nuc,
-        pos: i,
+        pos: i.into(),
         qry: d,
       });
     } else if d.is_gap() && !before_alignment {
@@ -65,9 +61,6 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
   FindNucChangesOutput {
     substitutions,
     deletions,
-    alignment_range: Range {
-      begin: alignment_start as usize,
-      end: alignment_end as usize,
-    },
+    alignment_range: NucRefGlobalRange::from_usize(alignment_start as usize, alignment_end as usize),
   }
 }

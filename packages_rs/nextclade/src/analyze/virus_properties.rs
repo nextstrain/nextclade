@@ -5,7 +5,7 @@ use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::Range;
+use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalRange};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -24,7 +24,7 @@ struct VirusPropertiesRaw {
   #[serde(default)]
   pub aa_motifs: Vec<AaMotifsDesc>,
   #[serde(default)]
-  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
+  pub placement_mask_ranges: Vec<NucRefGlobalRange>, // 0-based, end-exclusive
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -38,7 +38,7 @@ pub struct VirusProperties {
   #[serde(default)]
   pub aa_motifs: Vec<AaMotifsDesc>,
   #[serde(default)]
-  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
+  pub placement_mask_ranges: Vec<NucRefGlobalRange>, // 0-based, end-exclusive
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -87,11 +87,11 @@ impl PhenotypeCoeff {
 pub struct PhenotypeDataEntry {
   pub name: String,
   pub weight: f64,
-  pub locations: BTreeMap<usize, PhenotypeCoeff>,
+  pub locations: BTreeMap<AaRefPosition, PhenotypeCoeff>,
 }
 
 impl PhenotypeDataEntry {
-  pub fn get_coeff(&self, pos: usize, aa: Aa) -> f64 {
+  pub fn get_coeff(&self, pos: AaRefPosition, aa: Aa) -> f64 {
     self.locations.get(&pos).map_or(0.0, |location| location.get_coeff(aa))
   }
 }
@@ -103,7 +103,7 @@ pub struct PhenotypeData {
   pub name_friendly: String,
   pub description: String,
   pub gene: String,
-  pub aa_range: Range,
+  pub aa_range: AaRefRange,
   #[serde(default)]
   pub ignore: PhenotypeDataIgnore,
   pub data: Vec<PhenotypeDataEntry>,
@@ -136,7 +136,7 @@ pub struct CountAaMotifsGeneDesc {
   pub gene: String,
 
   #[serde(default)]
-  pub ranges: Vec<Range>,
+  pub ranges: Vec<AaRefRange>,
 }
 
 impl FromStr for VirusProperties {

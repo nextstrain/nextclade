@@ -1,6 +1,7 @@
 use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
+use crate::utils::range::NucRefGlobalPosition;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -14,7 +15,7 @@ const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Genotype<L: Letter<L>> {
-  pub pos: usize,
+  pub pos: NucRefGlobalPosition,
   pub qry: L,
 }
 
@@ -31,7 +32,7 @@ impl<L: Letter<L>> FromStr for Genotype<L> {
     if let Some(captures) = RE.captures(s) {
       return match (captures.name("pos"), captures.name("qry")) {
         (Some(pos), Some(qry)) => {
-          let pos = parse_pos(pos.as_str())?;
+          let pos = parse_pos(pos.as_str())?.into();
           let qry = L::from_string(qry.as_str())?;
           Ok(Self { pos, qry })
         }

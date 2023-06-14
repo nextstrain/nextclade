@@ -1,28 +1,41 @@
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::nuc::Nuc;
-use crate::utils::range::Range;
+use crate::utils::range::{NucRefGlobalPosition, NucRefGlobalRange};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 pub struct NucDel {
-  pub start: usize,
-  pub length: usize,
+  range: NucRefGlobalRange,
 }
 
 impl NucDel {
-  #[inline]
-  pub const fn end(&self) -> usize {
-    self.start + self.length
+  pub const fn new(begin: NucRefGlobalPosition, end: NucRefGlobalPosition) -> Self {
+    Self {
+      range: NucRefGlobalRange::new(begin, end),
+    }
+  }
+
+  pub fn from_usize(begin: usize, end: usize) -> Self {
+    Self {
+      range: NucRefGlobalRange::from_usize(begin, end),
+    }
   }
 
   #[inline]
-  pub const fn to_range(&self) -> Range {
-    Range {
-      begin: self.start,
-      end: self.end(),
-    }
+  pub fn len(&self) -> usize {
+    self.range.len()
+  }
+
+  #[inline]
+  pub fn is_empty(&self) -> bool {
+    self.range.is_empty()
+  }
+
+  #[inline]
+  pub const fn range(&self) -> &NucRefGlobalRange {
+    &self.range
   }
 }
 
@@ -31,7 +44,7 @@ impl NucDel {
 pub struct NucDelMinimal {
   #[serde(rename = "refNuc")]
   pub reff: Nuc,
-  pub pos: usize,
+  pub pos: NucRefGlobalPosition,
 }
 
 impl NucDelMinimal {

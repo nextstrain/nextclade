@@ -98,7 +98,7 @@ export const SequenceMarkerUnsequencedStart = memo(
 
     return (
       <SequenceMarker id={id} begin={begin} end={end} pixelsPerBase={pixelsPerBase}>
-        {t('Not sequenced: {{range}}', { range: formatRange(begin, end) })}
+        {t('Not sequenced: {{range}}', { range: formatRange({ begin, end }) })}
       </SequenceMarker>
     )
   },
@@ -129,7 +129,7 @@ export const SequenceMarkerUnsequencedEnd = memo(
 
     return (
       <SequenceMarker id={id} begin={begin} end={end} pixelsPerBase={pixelsPerBase}>
-        {t('Not sequenced: {{range}}', { range: formatRange(begin, end) })}
+        {t('Not sequenced: {{range}}', { range: formatRange({ begin, end }) })}
       </SequenceMarker>
     )
   },

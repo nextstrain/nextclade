@@ -3,27 +3,33 @@ use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
-use crate::utils::range::Range;
+use crate::utils::range::{
+  AaAlnPosition, AaRefPosition, AaRefRange, AlignmentCoords, CoordsMarker, GlobalSpace, NucAlnGlobalPosition,
+  NucAlnGlobalRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalPosition, NucRefGlobalRange,
+  NucRefLocalPosition, NucRefLocalRange, NucSpace, Position, PositionLike, Range, ReferenceCoords, SeqTypeMarker,
+  SpaceMarker,
+};
+use crate::vec_into;
 use itertools::{izip, Itertools};
 use serde::{Deserialize, Serialize};
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
 /// Given a position of a letter in the aligned sequence, the "alignment to reference" coordinate map allows to
 /// lookup the position of the corresponding letter in the reference sequence.
-fn make_aln_to_ref_map(ref_seq: &[Nuc]) -> Vec<usize> {
-  let mut rev_coord_map = Vec::<usize>::with_capacity(ref_seq.len());
-  let mut ref_pos = 0;
+fn make_aln_to_ref_map<L: SpaceMarker>(ref_seq: &[Nuc]) -> Vec<Position<ReferenceCoords, L, NucSpace>> {
+  let mut rev_coord_map = Vec::<Position<ReferenceCoords, L, NucSpace>>::with_capacity(ref_seq.len());
+  let mut ref_pos = 0_isize;
 
   for nuc in ref_seq {
     if nuc.is_gap() {
       if rev_coord_map.is_empty() {
-        rev_coord_map.push(0);
+        rev_coord_map.push(0_isize.into());
       } else {
         let prev = *(rev_coord_map.last().unwrap());
         rev_coord_map.push(prev);
       }
     } else {
-      rev_coord_map.push(ref_pos);
+      rev_coord_map.push(ref_pos.into());
       ref_pos += 1;
     }
   }
@@ -36,12 +42,12 @@ fn make_aln_to_ref_map(ref_seq: &[Nuc]) -> Vec<usize> {
 /// Given a position of a letter in the reference sequence, the "reference to alignment" coordinate map allows to
 /// lookup the position of the corresponding letter in the aligned sequence.
 ///
-fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
-  let mut coord_map = Vec::<usize>::with_capacity(ref_seq.len());
+fn make_ref_to_aln_map<L: SpaceMarker>(ref_seq: &[Nuc]) -> Vec<Position<AlignmentCoords, L, NucSpace>> {
+  let mut coord_map = Vec::<Position<AlignmentCoords, L, NucSpace>>::with_capacity(ref_seq.len());
 
   for (i, nuc) in ref_seq.iter().enumerate() {
     if !nuc.is_gap() {
-      coord_map.push(i);
+      coord_map.push(i.into());
     }
   }
 
@@ -49,158 +55,140 @@ fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
   coord_map
 }
 
-/// Converts sequence alignment to reference coordinates and vice versa.
+// /// Converts sequence alignment to reference coordinates and vice versa.
+// ///
+// /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
+// /// done in alignment space, while others in reference space. This struct allows for conversion of position indices
+// /// from one space to another.
+// #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
+// #[serde(rename_all = "camelCase")]
+// struct CoordMap<L: SpaceMarker> {
+//   aln_to_ref_table: Vec<Position<ReferenceCoords, L, NucSpace>>,
+//   ref_to_aln_table: Vec<Position<AlignmentCoords, L, NucSpace>>,
+// }
+//
+// impl<L: SpaceMarker> CoordMap<L> {
+//   /// Takes aligned ref_seq before insertions (i.e. gaps in ref) are stripped
+//   pub fn new(ref_seq: &[Nuc]) -> Self {
+//     Self {
+//       aln_to_ref_table: make_aln_to_ref_map(ref_seq),
+//       ref_to_aln_table: make_ref_to_aln_map(ref_seq),
+//     }
+//   }
+//
+//   pub fn aln_to_ref_position(
+//     &self,
+//     aln: Position<AlignmentCoords, L, NucSpace>,
+//   ) -> Position<ReferenceCoords, L, NucSpace> {
+//     self.aln_to_ref_table[aln.as_usize()]
+//   }
+//
+//   pub fn ref_to_aln_position(
+//     &self,
+//     reff: Position<ReferenceCoords, L, NucSpace>,
+//   ) -> Position<AlignmentCoords, L, NucSpace> {
+//     self.ref_to_aln_table[reff.as_usize()]
+//   }
+//
+//   pub fn aln_to_ref_range(
+//     &self,
+//     aln_range: &Range<Position<AlignmentCoords, L, NucSpace>>,
+//   ) -> Range<Position<ReferenceCoords, L, NucSpace>> {
+//     Range::<Position<ReferenceCoords, L, NucSpace>>::new(
+//       self.aln_to_ref_table[aln_range.begin.as_usize()],
+//       (self.aln_to_ref_table[aln_range.end.as_usize() - 1].as_usize() + 1).into(),
+//     )
+//   }
+//
+//   pub fn ref_to_aln_range(
+//     &self,
+//     ref_range: &Range<Position<ReferenceCoords, L, NucSpace>>,
+//   ) -> Range<Position<AlignmentCoords, L, NucSpace>> {
+//     Range::<Position<AlignmentCoords, L, NucSpace>>::new(
+//       self.ref_to_aln_table[ref_range.begin.as_usize()],
+//       (self.ref_to_aln_table[ref_range.end.as_usize() - 1].as_usize() + 1).into(),
+//     )
+//   }
+//
+//   pub fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> (Vec<Nuc>, CoordMapForCds) {
+//     let mut cds_aln_seq = vec![];
+//     let mut cds_to_aln_map = vec![];
+//     for segment in &cds.segments {
+//       let range = self.ref_to_aln_range(&segment.range);
+//       cds_to_aln_map.push(CdsToAln {
+//         global: range.iter().collect_vec(),
+//         start: cds_aln_seq.len(),
+//         len: range.len(),
+//       });
+//       cds_aln_seq.extend_from_slice(&seq_aln[range.to_std()]);
+//     }
+//
+//     // Reverse strands should be reverse-complemented
+//     if cds.strand == GeneStrand::Reverse {
+//       reverse_complement_in_place(&mut cds_aln_seq);
+//     }
+//
+//     (cds_aln_seq, CoordMapForCds::new(cds_to_aln_map))
+//   }
+// }
+
+/// Converts from global alignment coordinates to global reference coordinates and vice versa.
 ///
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
-/// done in alignment space, while others in reference space. This struct allows for conversion of position indices
+/// done in alignment space, while others in reference space. This struct allows for conversion of positions and ranges
 /// from one space to another.
-#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct CoordMap {
-  aln_to_ref_table: Vec<usize>,
-  ref_to_aln_table: Vec<usize>,
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct CoordMapGlobal {
+  aln_to_ref_table: Vec<NucRefGlobalPosition>,
+  ref_to_aln_table: Vec<NucAlnGlobalPosition>,
 }
 
-impl CoordMap {
+impl CoordMapGlobal {
   /// Takes aligned ref_seq before insertions (i.e. gaps in ref) are stripped
-  pub fn new(ref_seq: &[Nuc]) -> Self {
+  pub fn new(ref_seq_unstripped: &[Nuc]) -> Self {
     Self {
-      aln_to_ref_table: make_aln_to_ref_map(ref_seq),
-      ref_to_aln_table: make_ref_to_aln_map(ref_seq),
+      aln_to_ref_table: make_aln_to_ref_map(ref_seq_unstripped),
+      ref_to_aln_table: make_ref_to_aln_map(ref_seq_unstripped),
     }
   }
 
-  pub fn aln_to_ref_position(&self, aln: usize) -> usize {
-    self.aln_to_ref_table[aln]
+  #[inline]
+  pub fn aln_to_ref_position(&self, aln: NucAlnGlobalPosition) -> NucRefGlobalPosition {
+    self.aln_to_ref_table[aln.as_usize()]
   }
 
-  // Reff is used because `ref` is magic word in Rust
-  pub fn ref_to_aln_position(&self, reff: usize) -> usize {
-    self.ref_to_aln_table[reff]
+  #[inline]
+  pub fn ref_to_aln_position(&self, reff: NucRefGlobalPosition) -> NucAlnGlobalPosition {
+    self.ref_to_aln_table[reff.as_usize()]
   }
 
-  // /// Converts relative position inside an aligned feature (e.g. gene) to absolute position in the reference
-  // pub fn feature_aln_to_ref_position(&self, feature: &Gene, aln_pos_rel: usize) -> usize {
-  //   let aln_pos = if feature.strand == GeneStrand::Reverse {
-  //     self.ref_to_aln_position(feature.end - 1) - aln_pos_rel //feature.end points to the nuc after the feature, hence - 1
-  //   } else {
-  //     self.ref_to_aln_position(feature.start) + aln_pos_rel
-  //   };
-  //   self.aln_to_ref_position(aln_pos)
-  // }
-  //
-  // /// Converts relative position inside a feature (e.g. gene) to absolute position in the alignment
-  // pub fn feature_ref_to_aln_position(&self, feature: &Gene, ref_pos_rel: usize) -> usize {
-  //   let ref_pos = if feature.strand == GeneStrand::Reverse {
-  //     feature.end - 1 - ref_pos_rel // the feature end is one past the last character, hence -1
-  //   } else {
-  //     feature.start + ref_pos_rel
-  //   };
-  //   self.ref_to_aln_position(ref_pos)
-  // }
-
-  pub fn aln_to_ref_range(&self, aln_range: &Range) -> Range {
-    Range {
-      begin: self.aln_to_ref_table[aln_range.begin],
-      end: self.aln_to_ref_table[aln_range.end - 1] + 1,
-    }
+  #[inline]
+  pub fn aln_to_ref_range(&self, aln_range: &NucAlnGlobalRange) -> NucRefGlobalRange {
+    Range::new(
+      self.aln_to_ref_position(aln_range.begin),
+      self.aln_to_ref_position(aln_range.end - 1) + 1,
+    )
   }
 
-  pub fn ref_to_aln_range(&self, ref_range: &Range) -> Range {
-    Range {
-      begin: self.ref_to_aln_table[ref_range.begin],
-      end: self.ref_to_aln_table[ref_range.end - 1] + 1,
-    }
+  #[inline]
+  pub fn ref_to_aln_range(&self, ref_range: &NucRefGlobalRange) -> NucAlnGlobalRange {
+    Range::new(
+      self.ref_to_aln_position(ref_range.begin),
+      self.ref_to_aln_position(ref_range.end - 1) + 1,
+    )
   }
-
-  // pub fn feature_aln_to_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
-  //   if feature.strand == GeneStrand::Reverse {
-  //     Range {
-  //       begin: self.feature_aln_to_ref_position(feature, aln_range.end - 1),
-  //       end: self.feature_aln_to_ref_position(feature, aln_range.begin) + 1,
-  //     }
-  //   } else {
-  //     Range {
-  //       begin: self.feature_aln_to_ref_position(feature, aln_range.begin),
-  //       end: self.feature_aln_to_ref_position(feature, aln_range.end - 1) + 1,
-  //     }
-  //   }
-  // }
-  //
-  // pub fn feature_ref_to_aln_range(&self, feature: &Gene, ref_range: &Range) -> Range {
-  //   Range {
-  //     begin: self.feature_ref_to_aln_position(feature, ref_range.begin),
-  //     end: self.feature_ref_to_aln_position(feature, ref_range.end - 1) + 1,
-  //   }
-  // }
-  //
-  // pub fn feature_aln_to_feature_ref_position(&self, feature: &Gene, aln_position: usize) -> usize {
-  //   if feature.strand == GeneStrand::Reverse {
-  //     feature.end - 1 - self.feature_aln_to_ref_position(feature, aln_position)
-  //   } else {
-  //     self.feature_aln_to_ref_position(feature, aln_position) - feature.start
-  //   }
-  // }
-  //
-  // pub fn feature_aln_to_feature_ref_range(&self, feature: &Gene, aln_range: &Range) -> Range {
-  //   Range {
-  //     begin: self.feature_aln_to_feature_ref_position(feature, aln_range.begin),
-  //     end: self.feature_aln_to_feature_ref_position(feature, aln_range.end - 1) + 1,
-  //   }
-  // }
-  //
-  // /// Extracts nucleotide sequence of a gene
-  // pub fn extract_gene(&self, full_aln_seq: &[Nuc], gene: &Gene) -> Vec<Nuc> {
-  //   gene
-  //     .cdses
-  //     .iter()
-  //     .flat_map(|cds| self.extract_cds(full_aln_seq, cds))
-  //     .collect_vec()
-  // }
-  //
-  // /// Extracts nucleotide sequence of a CDS
-  // pub fn extract_cds(&self, full_aln_seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-  //   cds
-  //     .segments
-  //     .iter()
-  //     .flat_map(|cds_segment| self.extract_cds_segment(full_aln_seq, cds_segment))
-  //     .collect_vec()
-  // }
-  //
-  // /// Extracts nucleotide sequence of a CDS segment
-  // pub fn extract_cds_segment(&self, full_aln_seq: &[Nuc], cds_segment: &CdsSegment) -> Vec<Nuc> {
-  //   // Genemap contains ranges in reference coordinates (like in ref sequence)
-  //   let range_ref = Range {
-  //     begin: cds_segment.start,
-  //     end: cds_segment.end,
-  //   };
-  //
-  //   // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
-  //   let range_aln = self.ref_to_aln_range(&range_ref);
-  //   let mut nucs = full_aln_seq[StdRange::from(range_aln)].to_vec();
-  //
-  //   // Reverse strands should be reverse-complemented
-  //   if cds_segment.strand == GeneStrand::Reverse {
-  //     reverse_complement_in_place(&mut nucs);
-  //   }
-  //
-  //   nucs
-  // }
-
-  /////////////////////////////////////////////////////////////////////////////////////////////
 
   pub fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> (Vec<Nuc>, CoordMapForCds) {
     let mut cds_aln_seq = vec![];
     let mut cds_to_aln_map = vec![];
     for segment in &cds.segments {
-      let start = self.ref_to_aln_position(segment.start);
-      let end = self.ref_to_aln_position(segment.end - 1) + 1;
+      let range = self.ref_to_aln_range(&segment.range);
       cds_to_aln_map.push(CdsToAln {
-        global: (start..end).collect_vec(),
-        start: cds_aln_seq.len(),
-        len: end - start,
+        global: range.iter().collect_vec(),
+        start: cds_aln_seq.len() as isize,
+        len: range.len() as isize,
       });
-      cds_aln_seq.extend_from_slice(&seq_aln[start..end]);
+      cds_aln_seq.extend_from_slice(&seq_aln[range.to_std()]);
     }
 
     // Reverse strands should be reverse-complemented
@@ -212,57 +200,86 @@ impl CoordMap {
   }
 }
 
-/// Same as [CoordMap] but is meant for coordinates local to a genomic feature (e.g. a single CDS).
-/// Wraps [CoordMap] and contains additional functionality for local transformations.
+/// Similar principle to [CoordMapGlobal], but converts between nucleotide and codon spaces.
+///
+/// The word "local" here signifies that the coordinates are relative to the beginning of a
+/// genetic feature (e.g. a gene, a CDS etc.)
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CoordMapLocal {
-  coord_map: CoordMap,
+  aln_to_ref_table: Vec<NucRefLocalPosition>,
 }
 
 impl CoordMapLocal {
-  pub fn new(ref_seq: &[Nuc]) -> Self {
+  pub fn new(ref_seq_unstripped: &[Nuc]) -> Self {
     Self {
-      coord_map: CoordMap::new(ref_seq),
+      aln_to_ref_table: make_aln_to_ref_map(ref_seq_unstripped),
     }
   }
 
-  // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
-  pub fn local_to_codon_aln_range(&self, nuc_local_aln: &Range) -> Range {
-    let nuc_local_ref = self.coord_map.aln_to_ref_range(nuc_local_aln);
-    self.local_to_codon_ref_range(&nuc_local_ref)
+  #[inline]
+  fn aln_to_ref_position(&self, aln: NucAlnLocalPosition) -> NucRefLocalPosition {
+    self.aln_to_ref_table[aln.as_usize()]
   }
 
-  // Converts a range in local coordinates (relative to the beginning of a CDS) to codon range
-  pub const fn local_to_codon_ref_range(&self, nuc_local_aln: &Range) -> Range {
-    let Range { begin, end } = nuc_local_aln;
-    Range {
-      begin: Self::cds_nuc_local_ref_to_codon_position(*begin),
-      end: Self::cds_nuc_local_ref_to_codon_position(*end),
-    }
+  #[inline]
+  fn aln_to_ref_range(&self, aln_range: &NucAlnLocalRange) -> NucRefLocalRange {
+    Range::new(
+      self.aln_to_ref_position(aln_range.begin),
+      self.aln_to_ref_position(aln_range.end - 1) + 1,
+    )
   }
 
   /// Converts nucleotide local reference position to codon position
-  const fn cds_nuc_local_ref_to_codon_position(nuc_local_ref_pos: usize) -> usize {
+  fn local_to_codon_ref_position(pos: NucRefLocalPosition) -> AaRefPosition {
     // Make sure the nucleotide position is adjusted to codon boundary before the division
     // TODO: ensure that adjustment direction is correct for reverse strands
-    let nuc_rel_ref_adj = nuc_local_ref_pos + (3 - nuc_local_ref_pos % 3) % 3;
-    nuc_rel_ref_adj.saturating_div(3)
+    let pos = pos.as_isize();
+    let pos_adjusted = pos + (3 - pos % 3) % 3;
+    AaRefPosition::new(pos_adjusted / 3)
+  }
+
+  pub fn local_to_codon_ref_range(&self, range: &NucAlnLocalRange) -> AaRefRange {
+    let range = self.aln_to_ref_range(range);
+    AaRefRange::new(
+      Self::local_to_codon_ref_position(range.begin),
+      Self::local_to_codon_ref_position(range.end),
+    )
   }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct CdsToAln {
-  global: Vec<usize>,
-  start: usize,
-  len: usize,
+fn local_to_codon_position(pos: NucRefLocalPosition) -> AaRefPosition {
+  // Make sure the nucleotide position is adjusted to codon boundary before the division
+  // TODO: ensure that adjustment direction is correct for reverse strands
+  let pos = pos.as_isize();
+  let pos_adjusted = pos + (3 - pos % 3) % 3;
+  AaRefPosition::new(pos_adjusted / 3)
+}
+
+pub fn local_to_codon_range(range: &NucRefLocalRange) -> AaRefRange {
+  AaRefRange::new(local_to_codon_position(range.begin), local_to_codon_position(range.end))
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub enum CdsPosition {
+pub struct CdsToAln<L: SpaceMarker> {
+  global: Vec<Position<AlignmentCoords, L, NucSpace>>,
+  start: isize,
+  len: isize,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum CdsAlnPosition {
   Before,
-  Inside(usize),
+  Inside(NucAlnGlobalPosition),
+  After,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum CdsRefPosition {
+  Before,
+  Inside(NucRefGlobalPosition),
   After,
 }
 
@@ -270,41 +287,44 @@ pub enum CdsPosition {
 #[serde(rename_all = "camelCase")]
 pub enum CdsRange {
   Before,
-  Covered(Range),
+  Covered(NucAlnGlobalRange),
   After,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 pub struct CoordMapForCds {
-  cds_to_aln_map: Vec<CdsToAln>,
+  cds_to_aln_map: Vec<CdsToAln<GlobalSpace>>,
 }
 
 impl CoordMapForCds {
-  pub fn new(cds_to_aln_map: Vec<CdsToAln>) -> Self {
+  pub fn new(cds_to_aln_map: Vec<CdsToAln<GlobalSpace>>) -> Self {
     Self { cds_to_aln_map }
   }
 
   /// Map a position in the extracted alignment of the CDS to the global alignment.
   /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
-  pub fn cds_to_global_aln_position(&self, cds_aln_pos: usize) -> impl Iterator<Item = CdsPosition> + '_ {
+  pub fn cds_to_global_aln_position(
+    &self,
+    cds_aln_pos: NucAlnLocalPosition,
+  ) -> impl Iterator<Item = CdsAlnPosition> + '_ {
     self.cds_to_aln_map.iter().map(move |segment| {
-      let pos_in_segment = cds_aln_pos as isize - segment.start as isize;
+      let pos_in_segment = cds_aln_pos - segment.start;
 
       if pos_in_segment < 0 {
-        CdsPosition::Before
-      } else if pos_in_segment >= segment.len as isize {
-        CdsPosition::After
+        CdsAlnPosition::Before
+      } else if pos_in_segment >= segment.len {
+        CdsAlnPosition::After
       } else {
-        CdsPosition::Inside(segment.global[pos_in_segment as usize])
+        CdsAlnPosition::Inside(segment.global[pos_in_segment.as_usize()])
       }
     })
   }
 
-  pub fn cds_to_global_aln_position_one(&self, cds_aln_pos: usize) -> usize {
+  pub fn cds_to_global_aln_position_one(&self, cds_aln_pos: NucAlnLocalPosition) -> NucAlnGlobalPosition {
     self
       .cds_to_global_aln_position(cds_aln_pos)
       .find_map(|pos| match pos {
-        CdsPosition::Inside(pos) => Some(pos),
+        CdsAlnPosition::Inside(pos) => Some(pos),
         _ => None,
       })
       .unwrap()
@@ -312,7 +332,7 @@ impl CoordMapForCds {
 
   // Map a range in the extracted alignment of the CDS to the global alignment.
   // Returns a result for each CDS segment, as a range can span multiple CDS segments.
-  pub fn cds_to_global_aln_range(&self, range: &Range) -> impl Iterator<Item = Range> + '_ {
+  pub fn cds_to_global_aln_range(&self, range: &NucAlnLocalRange) -> impl Iterator<Item = NucAlnGlobalRange> + '_ {
     let cds_to_aln_begin = self.cds_to_global_aln_position(range.begin);
 
     // need to map end position -1 to correspond to the last included position
@@ -322,20 +342,20 @@ impl CoordMapForCds {
       .into_iter()
       .filter_map(|(seg_start, seg_end, seg_map)| {
         let begin = match seg_start {
-          CdsPosition::Before => seg_map.global[0],
-          CdsPosition::Inside(pos) => pos,
-          CdsPosition::After => {
+          CdsAlnPosition::Before => seg_map.global[0],
+          CdsAlnPosition::Inside(pos) => pos,
+          CdsAlnPosition::After => {
             return None;
           }
         };
 
         // map end and increment by one to correspond to open interval
         let end = match seg_end {
-          CdsPosition::Before => {
+          CdsAlnPosition::Before => {
             return None;
           }
-          CdsPosition::Inside(pos) => pos + 1,
-          CdsPosition::After => seg_map.global.last().unwrap() + 1,
+          CdsAlnPosition::Inside(pos) => pos + 1,
+          CdsAlnPosition::After => seg_map.global.last().unwrap() + 1,
         };
 
         Some(Range { begin, end })
@@ -346,20 +366,21 @@ impl CoordMapForCds {
   /// Returns a result for each CDS segment, but a single position can  only be in one CDS segment.
   pub fn cds_to_global_ref_position<'a>(
     &'a self,
-    pos: usize,
-    coord_map: &'a CoordMap,
-  ) -> impl Iterator<Item = CdsPosition> + 'a {
+    pos: NucAlnLocalPosition,
+    coord_map: &'a CoordMapGlobal,
+  ) -> impl Iterator<Item = CdsRefPosition> + 'a {
     self.cds_to_global_aln_position(pos).map(|cds_pos| match cds_pos {
-      CdsPosition::Inside(pos) => CdsPosition::Inside(coord_map.aln_to_ref_position(pos)),
-      _ => cds_pos,
+      CdsAlnPosition::Before => CdsRefPosition::Before,
+      CdsAlnPosition::Inside(pos) => CdsRefPosition::Inside(coord_map.aln_to_ref_position(pos)),
+      CdsAlnPosition::After => CdsRefPosition::After,
     })
   }
 
   pub fn cds_to_global_ref_range<'a>(
     &'a self,
-    range: &'a Range,
-    coord_map: &'a CoordMap,
-  ) -> impl Iterator<Item = Range> + 'a {
+    range: &'a NucAlnLocalRange,
+    coord_map: &'a CoordMapGlobal,
+  ) -> impl Iterator<Item = NucRefGlobalRange> + 'a {
     self.cds_to_global_aln_range(range).map(|range| {
       let begin = coord_map.aln_to_ref_position(range.begin);
       let end = coord_map.aln_to_ref_position(range.end - 1) + 1;
@@ -368,10 +389,10 @@ impl CoordMapForCds {
   }
 
   /// Expand a codon in the extracted alignment to a range in the global alignment
-  pub fn codon_to_global_aln_range(&self, codon: usize) -> impl Iterator<Item = Range> + '_ {
-    let begin = codon * 3;
+  pub fn codon_to_global_aln_range(&self, codon: AaAlnPosition) -> impl Iterator<Item = NucAlnGlobalRange> + '_ {
+    let begin = (codon * 3).as_usize();
     let end = begin + 3;
-    self.cds_to_global_aln_range(&Range { begin, end })
+    self.cds_to_global_aln_range(&NucAlnLocalRange::from_usize(begin, end))
   }
 }
 
@@ -379,7 +400,7 @@ pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
   let mut nucs = cds
     .segments
     .iter()
-    .flat_map(|cds_segment| seq[cds_segment.start..cds_segment.end].iter().copied())
+    .flat_map(|cds_segment| seq[cds_segment.range.to_std()].iter().copied())
     .collect_vec();
 
   // Reverse strands should be reverse-complemented
@@ -412,8 +433,7 @@ mod coord_map_tests {
           index: 0,
           id: "".to_owned(),
           name: "".to_owned(),
-          start: *start,
-          end: *end,
+          range: NucRefGlobalRange::from_usize(*start, *end),
           landmark: None,
           strand: GeneStrand::Forward,
           frame: 0,
@@ -455,7 +475,7 @@ mod coord_map_tests {
     let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMap::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln);
 
     let (ref_cds_aln, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
     assert_eq!(
@@ -467,17 +487,17 @@ mod coord_map_tests {
       ref_cds_to_aln,
        CoordMapForCds::new(vec![
         CdsToAln {
-          global: vec![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+          global: vec_into![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
           start: 0,
           len: 20,
         },
         CdsToAln {
-          global: vec![23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
+          global: vec_into![23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
           start: 20,
           len: 19,
         },
         CdsToAln {
-          global: vec![48, 49, 50, 51, 52, 53],
+          global: vec_into![48, 49, 50, 51, 52, 53],
           start: 39,
           len: 6,
         },
@@ -493,17 +513,17 @@ mod coord_map_tests {
       qry_cds_to_aln,
       CoordMapForCds::new(vec![
         CdsToAln {
-          global: vec![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+          global: vec_into![4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
           start: 0,
           len: 20,
         },
         CdsToAln {
-          global: vec![23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
+          global: vec_into![23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
           start: 20,
           len: 19,
         },
         CdsToAln {
-          global: vec![48, 49, 50, 51, 52, 53],
+          global: vec_into![48, 49, 50, 51, 52, 53],
           start: 39,
           len: 6,
         },
@@ -521,7 +541,7 @@ mod coord_map_tests {
     // index                  012345678901234567890123456789012345678901234567890123456
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
 
-    let global_coord_map = CoordMap::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln);
 
     assert_eq!(
       global_coord_map.aln_to_ref_table,
@@ -551,12 +571,12 @@ mod coord_map_tests {
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMap::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln);
     let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      ref_cds_to_aln.cds_to_global_aln_position(10).collect_vec(),
-      [CdsPosition::Inside(14), CdsPosition::Before, CdsPosition::Before]
+      ref_cds_to_aln.cds_to_global_aln_position(10.into()).collect_vec(),
+      [CdsAlnPosition::Inside(14.into()), CdsAlnPosition::Before, CdsAlnPosition::Before]
     );
     Ok(())
   }
@@ -570,90 +590,91 @@ mod coord_map_tests {
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMap::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln);
     let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
 
     assert_eq!(
-      ref_cds_to_aln.cds_to_global_aln_range(&Range::new(10, 15)).collect_vec(),      [        Range::new(14, 19)      ]
+      ref_cds_to_aln.cds_to_global_aln_range(&NucAlnLocalRange::from_usize(10, 15)).collect_vec(),
+      [NucAlnGlobalRange::from_usize(14, 19)]
     );
     Ok(())
   }
-
-  #[rustfmt::skip]
-  #[rstest]
-  fn maps_codon_to_global_aln_range() -> Result<(), Report> {
-    // CDS range                  11111111111111111
-    // CDS range                                  2222222222222222222      333333
-    // index                  012345678901234567890123456789012345678901234567890123456
-    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-
-    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
-
-    assert_eq!(
-      ref_cds_to_aln.codon_to_global_aln_range(5).collect_vec(),
-      [
-        Range::new(19, 22),
-      ]
-    );
-
-    assert_eq!(
-      ref_cds_to_aln.codon_to_global_aln_range(6).collect_vec(),
-      [
-        Range::new(22, 24),
-        Range::new(23, 24),
-      ]
-    );
-
-    assert_eq!(
-      ref_cds_to_aln.codon_to_global_aln_range(7).collect_vec(),
-      [Range::new(24, 27)]
-    );
-
-    Ok(())
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
-  fn maps_cds_to_global_ref_position() -> Result<(), Report> {
-    // CDS range                  11111111111111111
-    // CDS range                                  2222222222222222222      333333
-    // index                  012345678901234567890123456789012345678901234567890123456
-    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-
-    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
-
-    assert_eq!(
-      ref_cds_to_aln.cds_to_global_ref_position(10, &global_coord_map).collect_vec(),
-      [CdsPosition::Inside(11), CdsPosition::Before, CdsPosition::Before]
-    );
-
-    Ok(())
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
-  fn maps_cds_to_global_ref_range() -> Result<(), Report> {
-    // CDS range                  11111111111111111
-    // CDS range                                  2222222222222222222      333333
-    // index                  012345678901234567890123456789012345678901234567890123456
-    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-
-    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMap::new(&ref_aln);
-    let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
-
-    assert_eq!(
-      ref_cds_to_aln.cds_to_global_ref_range(&Range::new(10, 15), &global_coord_map).collect_vec(),
-      [
-        Range::new(11, 16),
-      ]
-    );
-    Ok(())
-  }
+  //
+  // #[rustfmt::skip]
+  // #[rstest]
+  // fn maps_codon_to_global_aln_range() -> Result<(), Report> {
+  //   // CDS range                  11111111111111111
+  //   // CDS range                                  2222222222222222222      333333
+  //   // index                  012345678901234567890123456789012345678901234567890123456
+  //   let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+  //
+  //   let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+  //   let global_coord_map = CoordMap::new(&ref_aln);
+  //   let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
+  //
+  //   assert_eq!(
+  //     ref_cds_to_aln.codon_to_global_aln_range(5).collect_vec(),
+  //     [
+  //       Range::new(19, 22),
+  //     ]
+  //   );
+  //
+  //   assert_eq!(
+  //     ref_cds_to_aln.codon_to_global_aln_range(6).collect_vec(),
+  //     [
+  //       Range::new(22, 24),
+  //       Range::new(23, 24),
+  //     ]
+  //   );
+  //
+  //   assert_eq!(
+  //     ref_cds_to_aln.codon_to_global_aln_range(7).collect_vec(),
+  //     [Range::new(24, 27)]
+  //   );
+  //
+  //   Ok(())
+  // }
+  //
+  // #[rustfmt::skip]
+  // #[rstest]
+  // fn maps_cds_to_global_ref_position() -> Result<(), Report> {
+  //   // CDS range                  11111111111111111
+  //   // CDS range                                  2222222222222222222      333333
+  //   // index                  012345678901234567890123456789012345678901234567890123456
+  //   let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+  //
+  //   let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+  //   let global_coord_map = CoordMap::new(&ref_aln);
+  //   let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
+  //
+  //   assert_eq!(
+  //     ref_cds_to_aln.cds_to_global_ref_position(10, &global_coord_map).collect_vec(),
+  //     [CdsPosition::Inside(11), CdsPosition::Before, CdsPosition::Before]
+  //   );
+  //
+  //   Ok(())
+  // }
+  //
+  // #[rustfmt::skip]
+  // #[rstest]
+  // fn maps_cds_to_global_ref_range() -> Result<(), Report> {
+  //   // CDS range                  11111111111111111
+  //   // CDS range                                  2222222222222222222      333333
+  //   // index                  012345678901234567890123456789012345678901234567890123456
+  //   let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+  //
+  //   let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
+  //   let global_coord_map = CoordMap::new(&ref_aln);
+  //   let (_, ref_cds_to_aln) = global_coord_map.extract_cds_aln(&ref_aln, &cds);
+  //
+  //   assert_eq!(
+  //     ref_cds_to_aln.cds_to_global_ref_range(&Range::new(10, 15), &global_coord_map).collect_vec(),
+  //     [
+  //       Range::new(11, 16),
+  //     ]
+  //   );
+  //   Ok(())
+  // }
 
   // #[rstest]
   // fn maps_ref_to_aln_simple() -> Result<(), Report> {

@@ -1,6 +1,7 @@
 use crate::features::feature::Feature;
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
+use crate::utils::range::{NucRefGlobalPosition, PositionLike};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -26,8 +27,8 @@ pub struct FeatureGroup {
 
 impl Ord for FeatureGroup {
   fn cmp(&self, other: &Self) -> Ordering {
-    let s = (self.start(), -(self.end() as isize), &self.name_and_type());
-    let o = (other.start(), -(other.end() as isize), &other.name_and_type());
+    let s = (self.start(), -(self.end().as_isize()), &self.name_and_type());
+    let o = (other.start(), -(other.end().as_isize()), &other.name_and_type());
     s.cmp(&o)
   }
 }
@@ -116,22 +117,22 @@ impl FeatureGroup {
 
   #[must_use]
   #[inline]
-  pub fn start(&self) -> usize {
+  pub fn start(&self) -> NucRefGlobalPosition {
     self
       .features
       .iter()
-      .map(|feature| feature.start)
+      .map(|feature| feature.range.begin)
       .min()
       .unwrap_or_default()
   }
 
   #[must_use]
   #[inline]
-  pub fn end(&self) -> usize {
+  pub fn end(&self) -> NucRefGlobalPosition {
     self
       .features
       .iter()
-      .map(|feature| feature.end)
+      .map(|feature| feature.range.end)
       .min()
       .unwrap_or_default()
   }

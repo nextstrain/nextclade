@@ -79,7 +79,7 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
     return null
   }
 
-  const { seqName, clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } =
+  const { seqName, clade, alignmentRange, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } =
     result.analysisResult
 
   return (
@@ -109,7 +109,7 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
 
         <tr>
           <td>{t('Alignment range')}</td>
-          <td>{formatRange(alignmentStart, alignmentEnd)}</td>
+          <td>{formatRange(alignmentRange)}</td>
         </tr>
 
         <tr>

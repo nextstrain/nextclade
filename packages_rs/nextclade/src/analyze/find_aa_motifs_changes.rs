@@ -2,7 +2,7 @@ use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::Translation;
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
-use crate::utils::range::{intersect, Range};
+use crate::utils::range::{intersect, AaRefPosition, Range};
 use eyre::Report;
 use itertools::{Either, Itertools, Zip};
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,7 @@ pub struct AaMotifChanges {
 pub struct AaMotifMutation {
   pub name: String,
   pub gene: String,
-  pub position: usize,
+  pub position: AaRefPosition,
   pub ref_seq: String,
   pub qry_seq: String,
 }
@@ -122,7 +122,7 @@ fn find_aa_motifs_changes_one(
 fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotifMutation, Report> {
   let ref_seq = &ref_translation.get_cds(&motif.cds)?.seq;
 
-  let begin = motif.position;
+  let begin = motif.position.into();
   let end = begin + motif.seq.len();
   let ref_seq = from_aa_seq(&ref_seq[begin..end]);
 
@@ -139,13 +139,13 @@ fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotif
 fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotifMutation> {
   qry_translation.cdses().find(|tr| tr.name == motif.cds).and_then(|tr| {
     let begin = motif.position;
-    let end = begin + motif.seq.len();
+    let end = begin + motif.seq.len() as isize;
     tr.alignment_ranges.iter().find_map(|alignment_range| {
       let sequenced_motif_range = intersect(alignment_range, &Range::new(begin, end));
       if sequenced_motif_range.len() < motif.seq.len() {
         None
       } else {
-        let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.begin..sequenced_motif_range.end]);
+        let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.to_std()]);
         Some(AaMotifMutation {
           name: motif.name.clone(),
           gene: motif.cds.clone(),

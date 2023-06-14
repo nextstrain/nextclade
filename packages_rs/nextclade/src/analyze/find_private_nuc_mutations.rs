@@ -2,14 +2,12 @@ use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
-use crate::analyze::virus_properties::{LabelMap, MutationLabelMaps, NucLabelMap, VirusProperties};
-use crate::gene::genotype::{Genotype, GenotypeLabeled};
-use crate::io::aa::Aa;
+use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::Range;
+use crate::utils::range::{NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -63,7 +61,7 @@ pub fn find_private_nuc_mutations(
   substitutions: &[NucSub],
   deletions: &[NucDel],
   missing: &[NucRange],
-  alignment_range: &Range,
+  alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
   virus_properties: &VirusProperties,
 ) -> PrivateNucMutations {
@@ -71,7 +69,7 @@ pub fn find_private_nuc_mutations(
 
   // Remember which positions we cover while iterating sequence mutations,
   // to be able to skip them when we iterate over node mutations
-  let mut seq_positions_mutated_or_deleted = BTreeSet::<usize>::new();
+  let mut seq_positions_mutated_or_deleted = BTreeSet::<NucRefGlobalPosition>::new();
 
   // Iterate over sequence substitutions
   let non_reversion_substitutions =
@@ -128,9 +126,9 @@ pub fn find_private_nuc_mutations(
 ///
 /// This function is generic and is suitable for both nucleotide and aminoacid substitutions.
 fn process_seq_substitutions(
-  node_mut_map: &BTreeMap<usize, Nuc>,
+  node_mut_map: &BTreeMap<NucRefGlobalPosition, Nuc>,
   substitutions: &[NucSub],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucSub> {
   let mut non_reversion_substitutions = Vec::<NucSub>::new();
 
@@ -185,19 +183,16 @@ fn process_seq_substitutions(
 /// two specializations are provided below. This is due to deletions having different data structure for nucleotides
 /// and for amino acids (range vs point).
 fn process_seq_deletions(
-  node_mut_map: &BTreeMap<usize, Nuc>,
+  node_mut_map: &BTreeMap<NucRefGlobalPosition, Nuc>,
   deletions: &[NucDel],
   ref_seq: &[Nuc],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucDelMinimal> {
   let mut non_reversion_deletions = Vec::<NucDelMinimal>::new();
 
   for del in deletions {
-    let start = del.start;
-    let end = del.end();
-
     #[allow(clippy::needless_range_loop)]
-    for pos in start..end {
+    for pos in del.range().iter() {
       seq_positions_mutated_or_deleted.insert(pos);
 
       match node_mut_map.get(&pos) {
@@ -205,7 +200,7 @@ fn process_seq_deletions(
           // Case 3: Deletion in sequence but not in node, i.e. this is a newly occurred deletion.
           // Action: Add the sequence deletion itself (take refNuc from reference sequence).
           non_reversion_deletions.push(NucDelMinimal {
-            reff: ref_seq[pos],
+            reff: ref_seq[pos.as_usize()],
             pos,
           });
         }
@@ -233,11 +228,11 @@ fn process_seq_deletions(
 
 /// Iterates over node mutations, compares node and sequence mutations and finds reversion mutations.
 fn find_reversions(
-  node_mut_map: &BTreeMap<usize, Nuc>,
+  node_mut_map: &BTreeMap<NucRefGlobalPosition, Nuc>,
   missing: &[NucRange],
-  alignment_range: &Range,
+  alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucSub> {
   let mut reversion_substitutions = Vec::<NucSub>::new();
 
@@ -253,7 +248,7 @@ fn find_reversions(
       reversion_substitutions.push(NucSub {
         reff: *node_qry,
         pos,
-        qry: ref_seq[pos],
+        qry: ref_seq[pos.as_usize()],
       });
     }
   }

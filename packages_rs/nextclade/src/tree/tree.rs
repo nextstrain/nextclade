@@ -2,6 +2,7 @@ use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
+use crate::utils::range::{AaRefPosition, NucRefGlobalPosition};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -121,10 +122,10 @@ pub struct TreeNodeAttrs {
 #[derive(Clone, Default, Debug)]
 pub struct TreeNodeTempData {
   pub id: usize,
-  pub substitutions: BTreeMap<usize, Nuc>,
-  pub mutations: BTreeMap<usize, Nuc>,
-  pub aa_substitutions: BTreeMap<String, BTreeMap<usize, Aa>>,
-  pub aa_mutations: BTreeMap<String, BTreeMap<usize, Aa>>,
+  pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
+  pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
+  pub aa_substitutions: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
+  pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   pub is_ref_node: bool,
 }
 

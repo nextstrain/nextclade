@@ -2,11 +2,12 @@ use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::{intersect_or_none, Range};
+use crate::utils::range::{intersect_or_none, AaRefPosition, AaRefRange};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Ord, PartialOrd, Eq, PartialEq, Hash)]
@@ -14,7 +15,7 @@ use std::hash::{Hash, Hasher};
 pub struct AaMotif {
   pub name: String,
   pub cds: String,
-  pub position: usize,
+  pub position: AaRefPosition,
   pub seq: String,
 }
 
@@ -84,16 +85,13 @@ fn process_one_translation(
   translation: &CdsTranslation,
   name: &str,
   motifs: &[String],
-  ranges: &[Range],
+  ranges: &[AaRefRange],
 ) -> Vec<Result<AaMotif, Report>> {
   // If no ranges specified for a gene, search the whole gene
   let ranges = if ranges.is_empty() {
-    vec![Range {
-      begin: 0,
-      end: translation.seq.len(),
-    }]
+    Cow::Owned(vec![AaRefRange::from_usize(0, translation.seq.len())])
   } else {
-    ranges.to_owned()
+    Cow::Borrowed(ranges)
   };
 
   ranges.iter().flat_map(|motif_range| {
@@ -114,14 +112,14 @@ fn process_one_translation(
 fn process_one_motif(
   name: &str,
   translation: &CdsTranslation,
-  range: &Range,
+  range: &AaRefRange,
   motif: &str,
 ) -> Vec<Result<AaMotif, Report>> {
   let re = Regex::new(motif)
     .wrap_err_with(|| eyre!("When compiling motif RegEx '{}'", motif))
     .unwrap();
 
-  let seq = from_aa_seq(&translation.seq[range.begin..range.end]);
+  let seq = from_aa_seq(&translation.seq[range.to_std()]);
 
   re.captures_iter(&seq)
     .filter_map(|captures| {
@@ -130,7 +128,7 @@ fn process_one_motif(
         Ok(AaMotif {
           name: name.to_owned(),
           cds: translation.name.clone(),
-          position: range.begin + capture.start(),
+          position: range.begin + capture.start() as isize,
           seq: capture.as_str().to_owned(),
         })
       })

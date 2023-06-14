@@ -1,5 +1,6 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_type::shorten_feature_type;
+use crate::utils::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -7,8 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct SequenceRegion {
   pub index: usize,
   pub id: String,
-  pub start: usize,
-  pub end: usize,
+  pub range: NucRefGlobalRange,
   pub children: Vec<FeatureGroup>,
 }
 

@@ -3,6 +3,7 @@ use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc, Nuc};
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
+use crate::utils::range::NucRefGlobalPosition;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -16,7 +17,7 @@ const NUC_MUT_REGEX: &str = r"((?P<ref>[A-Z-])(?P<pos>\d{1,10})(?P<qry>[A-Z-]))"
 pub struct NucSub {
   #[serde(rename = "refNuc")]
   pub reff: Nuc,
-  pub pos: usize,
+  pub pos: NucRefGlobalPosition,
 
   #[serde(rename = "queryNuc")]
   pub qry: Nuc,
@@ -51,7 +52,7 @@ impl FromStr for NucSub {
       return match (captures.name("ref"), captures.name("pos"), captures.name("qry")) {
         (Some(reff), Some(pos), Some(qry)) => {
           let reff = Nuc::from_string(reff.as_str())?;
-          let pos = parse_pos(pos.as_str())?;
+          let pos = parse_pos(pos.as_str())?.into();
           let qry = Nuc::from_string(qry.as_str())?;
           Ok(Self { reff, pos, qry })
         }

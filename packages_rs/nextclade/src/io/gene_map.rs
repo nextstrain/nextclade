@@ -262,9 +262,9 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     "Genome",
   )?;
 
-  for (gene_name, gene) in gene_map
+  for (_, gene) in gene_map
     .iter_genes()
-    .sorted_by_key(|(_, gene)| (gene.start, gene.end, &gene.name))
+    .sorted_by_key(|(_, gene)| (gene.range.begin, gene.range.end, &gene.name))
   {
     write_gene(w, max_name_len, gene)?;
     for cds in &gene.cdses {
@@ -285,26 +285,20 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
 fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(), Report> {
   let Gene {
-    index,
-    id,
-    name,
-    start,
-    end,
+    range,
     frame,
     strand,
-    cdses,
     exceptions,
-    attributes,
-    source_record,
-    compat_is_cds,
-    color,
+    ..
   } = gene;
 
   let indent_width = INDENT_WIDTH;
   let indent = INDENT.repeat(indent_width);
   let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(gene.name_and_type(), max_name_len);
-  let nuc_len = gene.len();
+  let start = range.begin;
+  let end = range.end;
+  let nuc_len = range.len();
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
@@ -332,26 +326,20 @@ fn write_cds<W: Write>(w: &mut W, max_name_len: usize, cds: &Cds) -> Result<(), 
 
 fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &CdsSegment) -> Result<(), Report> {
   let CdsSegment {
-    index,
-    id,
-    name,
-    start,
-    end,
-    landmark,
+    range,
     strand,
     frame,
     exceptions,
-    attributes,
-    source_record,
-    compat_is_gene,
-    color,
+    ..
   } = cds_segment;
 
   let indent_width = INDENT_WIDTH * 3;
   let indent = INDENT.repeat(indent_width);
   let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(cds_segment.name_and_type(), max_name_len);
-  let nuc_len = end - start;
+  let start = range.begin;
+  let end = range.end;
+  let nuc_len = range.len();
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
@@ -383,25 +371,20 @@ fn write_protein_segment<W: Write>(
   protein_segment: &ProteinSegment,
 ) -> Result<(), Report> {
   let ProteinSegment {
-    id,
-    name,
-    start,
-    end,
+    range,
     strand,
     frame,
     exceptions,
-    attributes,
-    source_record,
-    compat_is_cds,
-    compat_is_gene,
-    color,
+    ..
   } = protein_segment;
 
   let indent_width = INDENT_WIDTH * 4;
   let indent = INDENT.repeat(indent_width);
   let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_with_ellipsis(protein_segment.name_and_type(), max_name_len);
-  let nuc_len = end - start;
+  let start = range.begin;
+  let end = range.end;
+  let nuc_len = range.len();
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
   writeln!(
