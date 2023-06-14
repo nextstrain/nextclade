@@ -23,7 +23,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
       let included_range_global = intersect(global_alignment_range, &segment.range);
       if !included_range_global.is_empty() {
         // Convert to coordinates local to CDS (not local to segment!)
-        let included_range_local = NucRefLocalRange::from_range(included_range_global + prev_segment_end as isize);
+        let included_range_local = NucRefLocalRange::from_range(included_range_global - prev_segment_end as isize);
         aa_alignment_ranges.push(local_to_codon_range(&included_range_local));
       }
       // CDS consists of concatenated segments; remember by how far we went along the CDS so far
