@@ -266,6 +266,7 @@ where
 ///
 /// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
+#[must_use]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Range<P: PositionLike> {
   pub begin: P,
@@ -290,6 +291,7 @@ impl<P: PositionLike> Range<P> {
       begin: P::from(begin as isize),
       end: P::from(end as isize),
     }
+    .fixed()
   }
 
   #[inline]
@@ -298,12 +300,13 @@ impl<P: PositionLike> Range<P> {
       begin: P::from(begin),
       end: P::from(end),
     }
+    .fixed()
   }
 
   #[inline]
   pub fn from_range<Q: PositionLike>(range: impl AsRef<Range<Q>>) -> Self {
     let range = range.as_ref();
-    Self::from_isize(range.begin.as_isize(), range.end.as_isize())
+    Self::from_isize(range.begin.as_isize(), range.end.as_isize()).fixed()
   }
 
   #[inline]
@@ -322,10 +325,17 @@ impl<P: PositionLike> Range<P> {
   }
 
   #[inline]
-  pub fn fixup(&mut self) {
+  pub fn fix(&mut self) {
     if self.begin > self.end {
       self.begin = self.end;
     }
+  }
+
+  #[inline]
+  pub fn fixed(&self) -> Self {
+    let mut clone = self.clone();
+    clone.fix();
+    clone
   }
 
   /// Convert to Range from standard library (e.g. to use for array indexing)
@@ -342,25 +352,24 @@ impl<P: PositionLike> Range<P> {
     ((self.begin.into())..(self.end.into())).map(Into::into)
   }
 
-  #[must_use]
   #[inline]
   pub fn clamp_min_range<T: AsPrimitive<isize>>(&self, lower_bound: T) -> Self {
     Self::new(
       clamp_min(self.begin.as_isize(), lower_bound.as_()).into(),
       clamp_min(self.end.as_isize(), lower_bound.as_()).into(),
     )
+    .fixed()
   }
 
-  #[must_use]
   #[inline]
   pub fn clamp_max_range<T: AsPrimitive<isize>>(&self, upper_bound: T) -> Self {
     Self::new(
       clamp_max(self.begin.as_isize(), upper_bound.as_()).into(),
       clamp_max(self.end.as_isize(), upper_bound.as_()).into(),
     )
+    .fixed()
   }
 
-  #[must_use]
   #[inline]
   #[allow(clippy::same_name_method)]
   pub fn clamp_range<T: AsPrimitive<isize>, U: AsPrimitive<isize>>(&self, lower_bound: T, upper_bound: U) -> Self {
@@ -368,6 +377,7 @@ impl<P: PositionLike> Range<P> {
       clamp(self.begin.as_isize(), lower_bound.as_(), upper_bound.as_()).into(),
       clamp(self.end.as_isize(), lower_bound.as_(), upper_bound.as_()).into(),
     )
+    .fixed()
   }
 }
 
@@ -382,7 +392,7 @@ pub fn intersect<P: PositionLike>(x: &Range<P>, y: &Range<P>) -> Range<P> {
   let begin = max(x.begin, y.begin);
   let end = min(x.end, y.end);
   let mut intersection = Range::new(begin, end);
-  intersection.fixup();
+  intersection.fix();
   intersection
 }
 
