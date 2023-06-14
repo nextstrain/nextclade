@@ -225,7 +225,7 @@ impl CoordMapLocal {
   fn aln_to_ref_range(&self, aln_range: &NucAlnLocalRange) -> NucRefLocalRange {
     Range::new(
       self.aln_to_ref_position(aln_range.begin),
-      self.aln_to_ref_position(aln_range.begin - 1) + 1,
+      self.aln_to_ref_position(aln_range.end - 1) + 1,
     )
   }
 
