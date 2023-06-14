@@ -15,7 +15,7 @@ pub fn calculate_aa_alignment_ranges_in_place(
     let cds = gene_map.get_cds(&cds_tr.name)?;
 
     let mut aa_alignment_ranges = vec![];
-    let mut prev_segment_len = 0_usize;
+    let mut prev_segment_end = 0_usize;
 
     // For each segment
     for segment in &cds.segments {
@@ -23,14 +23,16 @@ pub fn calculate_aa_alignment_ranges_in_place(
       let included_range_global = intersect(global_alignment_range, &segment.range);
       if !included_range_global.is_empty() {
         // Convert to coordinates local to CDS (not local to segment!)
-        let included_range_local = NucRefLocalRange::from_range(included_range_global + prev_segment_len as isize);
+        let included_range_local = NucRefLocalRange::from_range(included_range_global + prev_segment_end as isize);
         aa_alignment_ranges.push(local_to_codon_range(&included_range_local));
       }
       // CDS consists of concatenated segments; remember by how far we went along the CDS so far
-      prev_segment_len += segment.len();
+      prev_segment_end += segment.len();
     }
 
-    // Recor
+    // Record computed AA alignment ranges on CDS translation
+    // TODO: avoid mutable code. Move calculation of AA alignment ranges to where translation is.
+    //   This requires global_alignment_range to be available there, but it is only computed much later currently.
     cds_tr.alignment_ranges = aa_alignment_ranges;
 
     Ok::<(), Report>(())
