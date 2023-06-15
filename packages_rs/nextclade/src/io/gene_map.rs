@@ -40,22 +40,23 @@ impl GeneMap {
     convert_feature_tree_to_gene_map(feature_tree)
   }
 
-  pub fn from_gff3_file<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
+  pub fn from_file<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
     let filename = filename.as_ref();
     let mut file = open_file_or_stdin(&Some(filename))?;
     let mut buf = vec![];
     {
       file.read_to_end(&mut buf)?;
     }
-    Self::from_gff3_str(&String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
+    Self::from_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
   // TODO: rename this function, because it handles more than GFF3
-  pub fn from_gff3_str(content: &str) -> Result<Self, Report> {
-    let gene_map_json: Result<GeneMap, Report> = yaml_parse(content);
-    let gene_map_gff: Result<GeneMap, Report> = Self::from_gff3_str_impl(content);
+  pub fn from_str(content: impl AsRef<str>) -> Result<Self, Report> {
+    let content = content.as_ref();
+    let gene_map_yaml: Result<GeneMap, Report> = Self::from_yaml_str(content);
+    let gene_map_gff: Result<GeneMap, Report> = Self::from_gff3_str(content);
 
-    Ok(match (gene_map_json, gene_map_gff) {
+    let gene_map = match (gene_map_yaml, gene_map_gff) {
       (Err(json_err), Err(gff_err)) => {
         return make_error!("Attempted to parse the genome annotation as JSON and as GFF, but both attempts failed:\nJSON error: {}\n\nGFF3 error: {}\n",
           report_to_string(&json_err),
@@ -64,12 +65,18 @@ impl GeneMap {
       },
       (Ok(gene_map), _) => gene_map,
       (_, Ok(gene_map)) => gene_map,
-    })
+    };
+
+    gene_map.validate()?;
+    Ok(gene_map)
   }
 
-  // TODO: rename this function after renaming the function above
-  fn from_gff3_str_impl(content: &str) -> Result<Self, Report> {
-    Self::from_feature_tree(&FeatureTree::from_gff3_str(content)?)
+  fn from_yaml_str(content: impl AsRef<str>) -> Result<Self, Report> {
+    yaml_parse(content.as_ref())
+  }
+
+  fn from_gff3_str(content: impl AsRef<str>) -> Result<Self, Report> {
+    Self::from_feature_tree(&FeatureTree::from_gff3_str(content.as_ref())?)
   }
 
   #[must_use]
@@ -135,6 +142,10 @@ impl GeneMap {
 
   pub fn cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
     self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+  }
+
+  pub const fn validate(&self) -> Result<(), Report> {
+    Ok(())
   }
 }
 

@@ -60,7 +60,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
   let gene_map = match input_gene_map {
     Some(input_gene_map) => {
-      let gene_map = GeneMap::from_gff3_file(input_gene_map)?;
+      let gene_map = GeneMap::from_file(input_gene_map)?;
       filter_gene_map(Some(gene_map), &genes)?
     }
     None => GeneMap::new(),

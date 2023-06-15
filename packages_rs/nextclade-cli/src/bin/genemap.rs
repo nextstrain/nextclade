@@ -38,7 +38,7 @@ pub struct GenemapArgs {
 fn main() -> Result<(), Report> {
   let args = GenemapArgs::parse();
   setup_logger(LevelFilter::Warn);
-  let gene_map = GeneMap::from_gff3_file(args.input_gene_map)?;
+  let gene_map = GeneMap::from_file(args.input_gene_map)?;
 
   if let Some(output) = args.output {
     if output.to_string_lossy().ends_with("yaml") || output.to_string_lossy().ends_with("yml") {

@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::path::Path;
 
-pub fn yaml_parse<T: for<'de> Deserialize<'de>>(s: &str) -> Result<T, Report> {
-  let result = serde_yaml::from_str(s)?;
+pub fn yaml_parse<T: for<'de> Deserialize<'de>>(s: impl AsRef<str>) -> Result<T, Report> {
+  let result = serde_yaml::from_str(s.as_ref())?;
   Ok(result)
 }
 

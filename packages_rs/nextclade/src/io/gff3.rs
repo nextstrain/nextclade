@@ -363,7 +363,7 @@ mod tests {
 
   #[rstest]
   fn gff3_checks_feature_length() -> Result<(), Report> {
-    let result = GeneMap::from_gff3_str(
+    let result = GeneMap::from_str(
       r#"##gff-version 3
 ##sequence-region EPI1857216 1 1718
 EPI1857216	feature	gene	1	47	.	+	.	gene_name="SigPep"

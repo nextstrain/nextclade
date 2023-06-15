@@ -188,7 +188,7 @@ impl Nextclade {
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
 
-    let gene_map = GeneMap::from_gff3_str(gene_map_str).wrap_err("When parsing gene map")?;
+    let gene_map = GeneMap::from_str(gene_map_str).wrap_err("When parsing gene map")?;
 
     let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &alignment_params);
 

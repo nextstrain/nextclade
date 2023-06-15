@@ -29,11 +29,11 @@ impl FeatureTree {
     {
       file.read_to_end(&mut buf)?;
     }
-    Self::from_gff3_str(&String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
+    Self::from_gff3_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
-  pub fn from_gff3_str(content: &str) -> Result<Self, Report> {
-    let seq_regions = read_gff3_feature_tree_str(content)?;
+  pub fn from_gff3_str(content: impl AsRef<str>) -> Result<Self, Report> {
+    let seq_regions = read_gff3_feature_tree_str(content.as_ref())?;
     Ok(Self { seq_regions })
   }
 
@@ -47,7 +47,9 @@ impl FeatureTree {
 }
 
 /// Read GFF3 records given a string
-fn read_gff3_feature_tree_str(content: &str) -> Result<Vec<SequenceRegion>, Report> {
+fn read_gff3_feature_tree_str(content: impl AsRef<str>) -> Result<Vec<SequenceRegion>, Report> {
+  let content = content.as_ref();
+
   // Find char ranges of sequence regions in GFF file
   let ranges = {
     // Find where sequence regions start

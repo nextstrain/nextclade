@@ -92,7 +92,7 @@ impl NextcladeWasm {
 
   /// Checks that a string containing gene map in GFF format is correct
   pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
-    let gene_map = jserr(GeneMap::from_gff3_str(gene_map_gff_str))?;
+    let gene_map = jserr(GeneMap::from_str(gene_map_gff_str))?;
     jserr(json_stringify(&gene_map))
   }
 
