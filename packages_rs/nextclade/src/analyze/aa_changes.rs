@@ -14,7 +14,7 @@ use crate::translate::translate_genes::Translation;
 use crate::utils::range::{intersect_or_none, AaRefPosition, AaRefRange, NucRefGlobalRange, PositionLike};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use num_traits::clamp_max;
+use num_traits::{clamp_max, clamp_min};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -343,7 +343,7 @@ fn find_aa_changes_for_cds(
         let NucRefGlobalRange { begin, end } = codon_nuc_range;
 
         // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
-        let context_nuc_begin = begin - 3;
+        let context_nuc_begin = clamp_min(begin - 3, 0.into());
         let context_nuc_end = clamp_max(end + 3, num_nucs.into());
         let context_nuc_range = NucRefGlobalRange::new(context_nuc_begin, context_nuc_end);
 
