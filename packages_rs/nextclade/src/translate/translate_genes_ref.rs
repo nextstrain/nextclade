@@ -30,6 +30,7 @@ pub fn translate_genes_ref(
               name: cds.name.clone(),
               strand: cds.strand,
               seq: tr.seq,
+              nuc_seq: nucs,
               insertions: vec![],
               frame_shifts: vec![],
               alignment_ranges: vec![Range::from_usize(0, len)],

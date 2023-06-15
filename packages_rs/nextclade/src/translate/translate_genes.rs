@@ -128,6 +128,11 @@ pub struct CdsTranslation {
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,
+
+  #[schemars(with = "String")]
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
+  pub nuc_seq: Vec<Nuc>,
   pub insertions: Vec<Insertion<Aa>>,
   pub frame_shifts: Vec<FrameShift>,
   pub alignment_ranges: Vec<AaRefRange>,
@@ -294,6 +299,7 @@ pub fn translate_cds(
     name: cds.name.clone(),
     strand: cds.strand,
     seq: stripped.qry_seq,
+    nuc_seq: qry_cds_seq,
     insertions: stripped.insertions,
     frame_shifts,
     alignment_ranges: vec![],

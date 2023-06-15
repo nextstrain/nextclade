@@ -10,7 +10,7 @@ use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::translate::complement::reverse_complement_in_place;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::{intersect_or_none, AaRefPosition, AaRefRange, NucRefGlobalRange, PositionLike};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -245,9 +245,8 @@ pub fn find_aa_changes(
         cds,
         qry_seq,
         ref_seq,
-        &ref_cds_tr.seq,
-        &qry_cds_tr.seq,
-        &qry_cds_tr.alignment_ranges,
+        &ref_cds_tr,
+        &qry_cds_tr,
         global_alignment_range,
       ))
     })
@@ -283,11 +282,16 @@ fn find_aa_changes_for_cds(
   cds: &Cds,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_peptide: &[Aa],
-  qry_peptide: &[Aa],
-  aa_alignment_ranges: &[AaRefRange],
+  ref_tr: &CdsTranslation,
+  qry_tr: &CdsTranslation,
   global_alignment_range: &NucRefGlobalRange,
 ) -> FindAaChangesOutput {
+  let ref_peptide = &ref_tr.seq;
+  let qry_peptide = &qry_tr.seq;
+  let ref_cds_nucs = &ref_tr.nuc_seq;
+  let qry_cds_nucs = &qry_tr.nuc_seq;
+  let aa_alignment_ranges = &qry_tr.alignment_ranges;
+
   assert_eq!(ref_peptide.len(), qry_peptide.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
