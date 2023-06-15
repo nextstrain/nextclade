@@ -4,17 +4,14 @@ use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::gene::cds::Cds;
-use crate::gene::gene::GeneStrand;
-use crate::io::aa::{from_aa, from_aa_seq, Aa};
+use crate::io::aa::{from_aa, Aa};
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
-use crate::io::nuc::{from_nuc_seq, Nuc};
-use crate::translate::complement::reverse_complement_in_place;
+use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::{intersect_or_none, AaRefPosition, AaRefRange, NucRefGlobalRange, PositionLike};
+use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use num_traits::{clamp_max, clamp_min};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -245,8 +242,8 @@ pub fn find_aa_changes(
         cds,
         qry_seq,
         ref_seq,
-        &ref_cds_tr,
-        &qry_cds_tr,
+        ref_cds_tr,
+        qry_cds_tr,
         global_alignment_range,
       ))
     })
@@ -300,11 +297,9 @@ fn find_aa_changes_for_cds(
 
   let num_nucs = qry_seq.len();
   let num_codons = qry_peptide.len();
+  let mut groups = vec![AaChangeGroup { changes: vec![] }];
+  let mut curr_group = groups.last_mut().unwrap();
   for codon in AaRefRange::from_usize(0, num_codons).iter() {
-    // NOTE(design): Ignore codons outside of alignment range. For a partial sequence this might make semblance that
-    // there is less mutations compared to full sequences. This has profound effect on clade assignment and QC.
-    // However this is not necessarily the case. We simply don't know and here we choose to ignore fragments outside
-    // alignment.
     if !aa_alignment_ranges
       .iter()
       .any(|aa_alignment_range| aa_alignment_range.contains(codon))
@@ -312,93 +307,81 @@ fn find_aa_changes_for_cds(
       continue;
     }
 
+    // let nuc_contexts = cds
+    //   .segments
+    //   .iter()
+    //   .filter_map(|segment| {
+    //     let codon = codon.as_isize();
+    //     // Find where the codon is in nucleotide sequences
+    //     let codon_begin = if segment.strand != GeneStrand::Reverse {
+    //       segment.range.begin.as_isize() + codon * 3
+    //     } else {
+    //       segment.range.end.as_isize() - (codon + 1) * 3
+    //     };
+    //     let codon_end = codon_begin + 3;
+    //
+    //     intersect_or_none(
+    //       global_alignment_range,
+    //       &NucRefGlobalRange::from_isize(codon_begin, codon_end),
+    //     )
+    //   })
+    //   .map(|codon_nuc_range| {
+    //     let NucRefGlobalRange { begin, end } = codon_nuc_range;
+    //
+    //     // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
+    //     let context_nuc_begin = clamp_min(begin - 3, 0.into());
+    //     let context_nuc_end = clamp_max(end + 3, num_nucs.into());
+    //     let context_nuc_range = NucRefGlobalRange::new(context_nuc_begin, context_nuc_end);
+    //
+    //     let mut ref_context = ref_seq[context_nuc_range.to_std()].to_owned();
+    //     let mut qry_context = qry_seq[context_nuc_range.to_std()].to_owned();
+    //
+    //     if cds.strand == GeneStrand::Reverse {
+    //       reverse_complement_in_place(&mut ref_context);
+    //       reverse_complement_in_place(&mut qry_context);
+    //     }
+    //
+    //     let ref_context = from_nuc_seq(&ref_context);
+    //     let qry_context = from_nuc_seq(&qry_context);
+    //
+    //     NucContext {
+    //       codon_nuc_range,
+    //       ref_context,
+    //       qry_context,
+    //       context_nuc_range,
+    //     }
+    //   })
+    //   .collect_vec();
+
     let ref_aa = ref_peptide[codon.as_usize()];
     let qry_aa = qry_peptide[codon.as_usize()];
+    if qry_aa != ref_aa && qry_aa != Aa::X {
+      let change = AaChangeWithContext {
+        codon,
+        ref_aa,
+        qry_aa,
+        nuc_pos: 0.into(),   // TODO
+        ref_triplet: vec![], // TODO
+        qry_triplet: vec![], // TODO
+      };
 
-    // Provide surrounding context in AA sequences: 1 codon to the left and 1 codon to the right
-    let context_aa = AaRefRange::new(codon - 1, codon + 2).clamp_range(0, num_codons);
-    let ref_aa_context = &ref_peptide[context_aa.to_std()];
-    let qry_aa_context = &ref_peptide[context_aa.to_std()];
-
-    let aa_context = AaContext {
-      ref_aa_context: from_aa_seq(ref_aa_context),
-      qry_aa_context: from_aa_seq(qry_aa_context),
-    };
-
-    let nuc_contexts = cds
-      .segments
-      .iter()
-      .filter_map(|segment| {
-        let codon = codon.as_isize();
-        // Find where the codon is in nucleotide sequences
-        let codon_begin = if segment.strand != GeneStrand::Reverse {
-          segment.range.begin.as_isize() + codon * 3
-        } else {
-          segment.range.end.as_isize() - (codon + 1) * 3
-        };
-        let codon_end = codon_begin + 3;
-
-        intersect_or_none(
-          global_alignment_range,
-          &NucRefGlobalRange::from_isize(codon_begin, codon_end),
-        )
-      })
-      .map(|codon_nuc_range| {
-        let NucRefGlobalRange { begin, end } = codon_nuc_range;
-
-        // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
-        let context_nuc_begin = clamp_min(begin - 3, 0.into());
-        let context_nuc_end = clamp_max(end + 3, num_nucs.into());
-        let context_nuc_range = NucRefGlobalRange::new(context_nuc_begin, context_nuc_end);
-
-        let mut ref_context = ref_seq[context_nuc_range.to_std()].to_owned();
-        let mut qry_context = qry_seq[context_nuc_range.to_std()].to_owned();
-
-        if cds.strand == GeneStrand::Reverse {
-          reverse_complement_in_place(&mut ref_context);
-          reverse_complement_in_place(&mut qry_context);
+      match curr_group.changes.last() {
+        None => {
+          // Current group is empty. This will be the first item for the first group.
+          curr_group.changes.push(change);
         }
-
-        let ref_context = from_nuc_seq(&ref_context);
-        let qry_context = from_nuc_seq(&qry_context);
-
-        NucContext {
-          codon_nuc_range,
-          ref_context,
-          qry_context,
-          context_nuc_range,
+        Some(prev) => {
+          // Group is not empty
+          if prev.codon + 1 == change.codon {
+            // Previous codon in the group is adjacent. Append to the group.
+            curr_group.changes.push(change);
+          } else {
+            // Previous codon in the group is not adjacent. Start a new group.
+            groups.push(AaChangeGroup { changes: vec![change] });
+            curr_group = groups.last_mut().unwrap();
+          }
         }
-      })
-      .collect_vec();
-
-    if qry_aa.is_gap() {
-      // Gap in the ref sequence means that this is a deletion in the query sequence
-      aa_deletions.push(AaDel {
-        gene: cds.name.clone(),
-        reff: ref_aa,
-        pos: codon,
-        nuc_contexts,
-        aa_context,
-      });
-    }
-    // NOTE(design): Here we ignore amino acid `X` in query.
-    //  For a sequence with many such fragments, this might make semblance
-    //  that there is less mutations. This has profound effect on clade assignment and QC.
-    //  However this is not necessarily the case. We simply don't know and here we choose to ignore fragments filled
-    //  with `X`.
-    //
-    // TODO(feat): instead of strict comparison, we might account for ambiguous amino acids in this condition,
-    //  to recover some more useful data from lower-quality sequences
-    else if qry_aa != ref_aa && qry_aa != Aa::X {
-      // If not a gap and the state has changed, then it's a substitution
-      aa_substitutions.push(AaSub {
-        gene: cds.name.clone(),
-        reff: ref_aa,
-        pos: codon,
-        qry: qry_aa,
-        nuc_contexts,
-        aa_context,
-      });
+      }
     }
   }
 
@@ -406,4 +389,19 @@ fn find_aa_changes_for_cds(
     aa_substitutions,
     aa_deletions,
   }
+}
+
+#[derive(Debug, Clone)]
+pub struct AaChangeWithContext {
+  pub codon: AaRefPosition,
+  pub ref_aa: Aa,
+  pub qry_aa: Aa,
+  pub nuc_pos: NucRefGlobalPosition,
+  pub ref_triplet: Vec<Nuc>,
+  pub qry_triplet: Vec<Nuc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AaChangeGroup {
+  changes: Vec<AaChangeWithContext>,
 }
