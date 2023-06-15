@@ -372,12 +372,9 @@ EPI1857216	feature	gene	1036	1698	.	+	.	gene_name="HA2"
 "#,
     );
 
-    let report = eyre!("GFF3 record is invalid: feature length must be divisible by 3, but the length is 47")
-      .wrap_err(eyre!("When reading GFF3 file"));
-
     assert_eq!(
       report_to_string(&result.unwrap_err()),
-      "When reading GFF3 file: When parsing a GFF3 record: GFF3 record is invalid: feature length must be divisible by 3, but the length is 47"
+      "Length of a CDS is expected to be divisible by 3, but the length of CDS 'HA1' is 988 (it consists of 1 fragment(s) of length(s) 988). This is likely a mistake in genome annotation."
     );
 
     Ok(())

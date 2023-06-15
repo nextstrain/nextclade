@@ -12,6 +12,7 @@ use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};
 use itertools::{max, Itertools};
 use log::warn;
+use num::Integer;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
@@ -144,7 +145,21 @@ impl GeneMap {
     self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
   }
 
-  pub const fn validate(&self) -> Result<(), Report> {
+  pub fn validate(&self) -> Result<(), Report> {
+    self.iter_cdses().try_for_each(|cds| {
+      cds.len().is_multiple_of(&3).then_some(()).ok_or_else(|| {
+        let segment_lengths = cds.segments.iter().map(CdsSegment::len).join("+");
+        let n_segments = cds.segments.len();
+        eyre!(
+          "Length of a CDS is expected to be divisible by 3, but the length of CDS '{}' is {} \
+          (it consists of {n_segments} fragment(s) of length(s) {segment_lengths}). \
+          This is likely a mistake in genome annotation.",
+          cds.name,
+          cds.len()
+        )
+      })
+    })?;
+
     Ok(())
   }
 }
