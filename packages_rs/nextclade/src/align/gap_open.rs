@@ -30,7 +30,6 @@ pub fn get_gap_open_close_scores_codon_aware(
         }
       }
     }
-    dbg!(&gene.name, &gene.range);
   }
   gap_open_close
 }
