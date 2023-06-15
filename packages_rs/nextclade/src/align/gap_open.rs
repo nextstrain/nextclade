@@ -17,11 +17,20 @@ pub fn get_gap_open_close_scores_codon_aware(
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
   for (_, gene) in gene_map.iter_genes() {
-    for i in (gene.range.to_std()).step_by(3) {
-      gap_open_close[i] = params.penalty_gap_open_in_frame;
-      gap_open_close[i + 1] = params.penalty_gap_open_out_of_frame;
-      gap_open_close[i + 2] = params.penalty_gap_open_out_of_frame;
+    for cds in gene.cdses.iter() {
+      for segment in cds.segments.iter() {
+        let mut cds_pos: usize = 0;
+        for i in segment.range.to_std() {
+          if cds_pos % 3 > 0 {
+            gap_open_close[i] = params.penalty_gap_open_out_of_frame;
+          } else {
+            gap_open_close[i] = params.penalty_gap_open_in_frame;
+          }
+          cds_pos += 1;
+        }
+      }
     }
+    dbg!(&gene.name, &gene.range);
   }
   gap_open_close
 }
