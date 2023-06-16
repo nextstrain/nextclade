@@ -1,6 +1,9 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::gene::gene::GeneStrand;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
+use crate::utils::range::{NucRefGlobalPosition, NucRefGlobalRange};
+use either::Either;
 
 pub type GapScoreMap = Vec<i32>;
 
@@ -20,7 +23,15 @@ pub fn get_gap_open_close_scores_codon_aware(
     for cds in gene.cdses.iter() {
       for segment in cds.segments.iter() {
         let mut cds_pos: usize = 0;
-        for i in segment.range.to_std() {
+
+        let range = segment.range.to_std();
+        let range = if segment.strand == GeneStrand::Reverse {
+          Either::Left(range.rev())
+        } else {
+          Either::Right(range)
+        };
+
+        for i in range {
           if cds_pos % 3 > 0 {
             gap_open_close[i] = params.penalty_gap_open_out_of_frame;
           } else {
@@ -138,27 +149,6 @@ mod tests {
   }
 
   #[rstest]
-  fn test_gap_score_simple_adjacent_reverse(ctx: Context) -> Result<(), Report> {
-    #[rustfmt::skip]
-    let gene_map = create_test_genome_annotation(&[
-      &[
-        (3, 12, Reverse),
-        (12, 18, Forward)
-      ],
-    ])?;
-
-    #[rustfmt::skip]
-    //                         |                          |                 |
-    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
-    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
-
-    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
-
-    assert_eq!(actual, expect);
-    Ok(())
-  }
-
-  #[rstest]
   fn test_gap_score_simple_2_cds(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let gene_map = create_test_genome_annotation(&[
@@ -174,6 +164,27 @@ mod tests {
     //                         |                 |        |                 |
     //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
     let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 6, 6, 6, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_adjacent_reverse(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (3, 12, Reverse),
+        (12, 18, Forward)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                         |                          |                 |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
