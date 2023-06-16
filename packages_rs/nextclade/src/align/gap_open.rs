@@ -33,3 +33,214 @@ pub fn get_gap_open_close_scores_codon_aware(
   }
   gap_open_close
 }
+
+#[cfg(test)]
+mod tests {
+  #![allow(clippy::field_reassign_with_default, clippy::needless_pass_by_value)]
+  use super::*;
+  use crate::gene::cds::{Cds, CdsSegment};
+  use crate::gene::gene::GeneStrand::{Forward, Reverse};
+  use crate::gene::gene::{Gene, GeneStrand};
+  use crate::utils::range::NucRefGlobalRange;
+  use eyre::Report;
+  use itertools::Itertools;
+  use maplit::hashmap;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+  use std::collections::BTreeMap;
+
+  fn create_test_genome_annotation(cdses: &[&[(isize, isize, GeneStrand)]]) -> Result<GeneMap, Report> {
+    let genes = cdses
+      .iter()
+      .enumerate()
+      .map(|(cds_index, cds)| {
+        let segments = cds
+          .iter()
+          .enumerate()
+          .map(|(index, (begin, end, strand))| CdsSegment {
+            index,
+            id: index.to_string(),
+            name: index.to_string(),
+            range: NucRefGlobalRange::from_isize(*begin, *end),
+            landmark: None,
+            strand: *strand,
+            frame: 0,
+            exceptions: vec![],
+            attributes: hashmap! {},
+            source_record: None,
+            compat_is_gene: false,
+            color: None,
+          })
+          .collect_vec();
+
+        Ok((
+          cds_index.to_string(),
+          Gene::from_cds(&Cds {
+            id: cds_index.to_string(),
+            name: cds_index.to_string(),
+            product: cds_index.to_string(),
+            strand: GeneStrand::Unknown,
+            segments,
+            proteins: vec![],
+            compat_is_gene: false,
+            color: None,
+          })?,
+        ))
+      })
+      .collect::<Result<BTreeMap<String, Gene>, Report>>()?;
+
+    let gene_map = GeneMap::from_genes(genes);
+
+    gene_map.validate()?;
+
+    Ok(gene_map)
+  }
+
+  struct Context {
+    ref_seq: Vec<Nuc>,
+    params: AlignPairwiseParams,
+  }
+
+  #[fixture]
+  fn ctx() -> Context {
+    let ref_seq = vec![Nuc::Gap; 25];
+
+    let params = {
+      let mut params = AlignPairwiseParams::default();
+      params.penalty_gap_open = 6;
+      params.penalty_gap_open_in_frame = 7;
+      params.penalty_gap_open_out_of_frame = 8;
+      params
+    };
+
+    Context { ref_seq, params }
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_adjacent(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (3, 12, Forward),
+        (12, 18, Forward)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                         |                          |                 |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_adjacent_reverse(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (3, 12, Reverse),
+        (12, 18, Forward)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                         |                          |                 |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_2_cds(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (3, 9, Forward)
+      ],
+      &[
+        (12, 18, Forward)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                         |                 |        |                 |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 6, 6, 6, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_2_cds_reverse(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (3, 9, Reverse)
+      ],
+      &[
+        (12, 18, Reverse)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                         |                 |        |                 |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 6, 6, 6, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_begin(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (0, 9, Forward)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                |                          |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_end(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (15, 24, Forward)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                                                             |                          |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+}
