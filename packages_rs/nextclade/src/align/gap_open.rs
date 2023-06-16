@@ -21,8 +21,7 @@ pub fn get_gap_open_close_scores_codon_aware(
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
     for cds in gene_map.iter_cdses() {
       for segment in &cds.segments {
-        let mut cds_pos: usize = 0;
-  
+
         let range = segment.range.to_std();
         let codon_start = if segment.strand == GeneStrand::Reverse { 2 } else { 0 };
         let range = if segment.strand == GeneStrand::Reverse {
@@ -30,14 +29,13 @@ pub fn get_gap_open_close_scores_codon_aware(
         } else {
           Either::Right(range)
         };
-  
-        for i in range {
+
+        for (cds_pos, i) in range.enumerate() {
           if cds_pos % 3 == codon_start {
             gap_open_close[i] = params.penalty_gap_open_in_frame;
           } else {
             gap_open_close[i] = params.penalty_gap_open_out_of_frame;
           }
-          cds_pos += 1;
         }
       }
     }
