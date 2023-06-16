@@ -2,7 +2,7 @@ use crate::align::params::AlignPairwiseParams;
 use crate::gene::gene::GeneStrand;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::utils::range::{NucRefGlobalPosition, NucRefGlobalRange};
+use crate::utils::range::NucRefGlobalRange;
 use either::Either;
 
 pub type GapScoreMap = Vec<i32>;
@@ -19,11 +19,10 @@ pub fn get_gap_open_close_scores_codon_aware(
   params: &AlignPairwiseParams,
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
-  for (_, gene) in gene_map.iter_genes() {
-    for cds in gene.cdses.iter() {
+    for cds in gene_map.iter_cdses() {
       for segment in cds.segments.iter() {
         let mut cds_pos: usize = 0;
-
+  
         let range = segment.range.to_std();
         let codon_start = if segment.strand == GeneStrand::Reverse { 2 } else { 0 };
         let range = if segment.strand == GeneStrand::Reverse {
@@ -31,7 +30,7 @@ pub fn get_gap_open_close_scores_codon_aware(
         } else {
           Either::Right(range)
         };
-
+  
         for i in range {
           if cds_pos % 3 == codon_start {
             gap_open_close[i] = params.penalty_gap_open_in_frame;
@@ -42,7 +41,6 @@ pub fn get_gap_open_close_scores_codon_aware(
         }
       }
     }
-  }
   gap_open_close
 }
 
