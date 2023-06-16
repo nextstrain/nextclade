@@ -174,7 +174,7 @@ export interface NextcladeResult {
 
 export interface AnalysisOutput {
   query: string
-  queryPeptides: Translation[]
+  queryPeptides: Translation
   analysisResult: AnalysisResult
 }
 

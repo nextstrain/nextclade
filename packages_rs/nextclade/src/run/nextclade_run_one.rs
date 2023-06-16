@@ -221,6 +221,18 @@ pub fn nextclade_run_one(
     })
     .collect();
 
+  let aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
+    .cdses()
+    .map(|tr| {
+      let unsequenced_ranges = tr
+        .unsequenced_ranges
+        .iter()
+        .filter_map(|unsequenced_range| (!unsequenced_range.is_empty()).then_some(unsequenced_range.clone()))
+        .collect_vec();
+      (tr.name.clone(), unsequenced_ranges)
+    })
+    .collect();
+
   Ok((
     stripped.qry_seq,
     translation,
@@ -252,6 +264,7 @@ pub fn nextclade_run_one(
       alignment_range,
       alignment_score,
       aa_alignment_ranges,
+      aa_unsequenced_ranges,
       pcr_primer_changes,
       total_pcr_primer_changes,
       clade,

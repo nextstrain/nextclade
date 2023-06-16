@@ -34,6 +34,7 @@ pub fn translate_genes_ref(
               insertions: vec![],
               frame_shifts: vec![],
               alignment_ranges: vec![Range::from_usize(0, len)],
+              unsequenced_ranges: vec![],
               ref_cds_map: CoordMapForCds::new(vec![]), // dummy values
               qry_cds_map: CoordMapForCds::new(vec![]), // dummy values
               coord_map_local: CoordMapLocal::new(&[]),

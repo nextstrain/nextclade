@@ -108,7 +108,7 @@ pub fn dataset_zip_load(
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
     || {
       filter_gene_map(
-        Some(GeneMap::from_str(&zip_read_str(&mut zip, "genemap.gff")?)?),
+        Some(GeneMap::from_str(zip_read_str(&mut zip, "genemap.gff")?)?),
         genes,
       )
     },
@@ -281,7 +281,7 @@ pub fn dataset_str_download_and_load(
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
     || {
       filter_gene_map(
-        Some(GeneMap::from_str(&dataset_file_http_get(
+        Some(GeneMap::from_str(dataset_file_http_get(
           &mut http,
           &dataset,
           "genemap.gff",

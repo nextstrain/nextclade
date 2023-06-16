@@ -256,7 +256,22 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
     const firstQryCodon = first(queryCodons)!
     const lastQryCodon = last(queryCodons)!
 
-    const changesAndCodons = safeZip3(changes, refCodons.slice(1, -1), queryCodons.slice(1, -1))
+    const refCodonsSlice = refCodons.slice(1, -1)
+    const queryCodonsSlice = queryCodons.slice(1, -1)
+
+    // TODO: FIXME: this is to avaoid crashes, but nuc context needs to be fixed on the backend
+    if (changes.length !== queryCodonsSlice.length || changes.length !== refCodonsSlice.length) {
+      return {
+        width: 0,
+        codonsBefore: null,
+        codonsBegin: [],
+        ellipsis: null,
+        codonsEnd: [],
+        codonsAfter: null,
+      }
+    }
+
+    const changesAndCodons = safeZip3(changes, refCodonsSlice, queryCodonsSlice)
 
     let itemsBegin = changesAndCodons
     let itemsEnd: typeof changesAndCodons = []

@@ -123,7 +123,7 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
     if (result) {
       const { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
 
-      const queryPeptides = JSON.parse(query_peptides) as Translation[]
+      const queryPeptides = JSON.parse(query_peptides) as Translation
       const analysisResult = JSON.parse(analysis_result) as AnalysisResult
 
       return {

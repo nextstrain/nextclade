@@ -3,18 +3,15 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import { get } from 'lodash'
-import type { AnalysisResult, Gene, PeptideWarning, Range } from 'src/types'
+import type { AnalysisResult, Gene, PeptideWarning } from 'src/types'
 import { cdsCodonLength } from 'src/types'
 import { cdsAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { formatRange } from 'src/helpers/formatRange'
+import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
-import {
-  SequenceMarkerUnsequencedEnd,
-  SequenceMarkerUnsequencedStart,
-} from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
@@ -99,16 +96,13 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaAlignmentRanges } = sequence
+  const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaUnsequencedRanges } = sequence
   const cdsLength = cdsCodonLength(cds)
   const pixelsPerAa = width / Math.round(cdsLength)
   const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
-
-  // HACK: only first range is used.
-  // TODO: What does it mean to have multiple alignment ranges? Implement this when it's clear.
-  const alignmentRange: Range = get(aaAlignmentRanges, viewedGene)?.[0] ?? { begin: 0, end: cdsLength }
+  const unsequencedRanges = aaUnsequencedRanges[viewedGene] ?? []
 
   const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.geneName === cds.name)
@@ -139,17 +133,22 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
       )
     })
 
+  const unsequenced = unsequencedRanges.map((range, index) => (
+    <SequenceMarkerUnsequenced
+      key={`${seqName}-${formatRange(range)}`}
+      index={index}
+      seqName={seqName}
+      range={range}
+      pixelsPerBase={pixelsPerAa}
+    />
+  ))
+
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
         <rect fill="transparent" x={0} y={-10} width={cdsLength} height="30" />
 
-        <SequenceMarkerUnsequencedStart
-          index={index}
-          seqName={seqName}
-          alignmentStart={alignmentRange.begin}
-          pixelsPerBase={pixelsPerAa}
-        />
+        {unsequenced}
 
         {unknownAaRangesForGene &&
           unknownAaRangesForGene.ranges.map((range) => (
@@ -175,14 +174,6 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         })}
         {frameShiftMarkers}
         {insertionMarkers}
-
-        <SequenceMarkerUnsequencedEnd
-          index={index}
-          seqName={seqName}
-          genomeSize={cdsLength}
-          alignmentEnd={alignmentRange.end}
-          pixelsPerBase={pixelsPerAa}
-        />
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

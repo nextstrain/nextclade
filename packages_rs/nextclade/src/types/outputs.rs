@@ -14,7 +14,7 @@ use crate::qc::qc_run::QcResult;
 use crate::translate::coord_map::CoordMapGlobal;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::{AaRefRange, NucRefGlobalRange, Range};
+use crate::utils::range::{AaRefRange, NucRefGlobalRange};
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -79,6 +79,7 @@ pub struct NextcladeOutputs {
   pub alignment_range: NucRefGlobalRange,
   pub alignment_score: i32,
   pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
+  pub aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
   pub clade: String,
