@@ -20,7 +20,7 @@ pub fn get_gap_open_close_scores_codon_aware(
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
     for cds in gene_map.iter_cdses() {
-      for segment in cds.segments.iter() {
+      for segment in &cds.segments {
         let mut cds_pos: usize = 0;
   
         let range = segment.range.to_std();
