@@ -19,26 +19,25 @@ pub fn get_gap_open_close_scores_codon_aware(
   params: &AlignPairwiseParams,
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
-    for cds in gene_map.iter_cdses() {
-      for segment in &cds.segments {
+  for cds in gene_map.iter_cdses() {
+    for segment in &cds.segments {
+      let range = segment.range.to_std();
+      let codon_start = if segment.strand == GeneStrand::Reverse { 2 } else { 0 };
+      let range = if segment.strand == GeneStrand::Reverse {
+        Either::Left(range.rev())
+      } else {
+        Either::Right(range)
+      };
 
-        let range = segment.range.to_std();
-        let codon_start = if segment.strand == GeneStrand::Reverse { 2 } else { 0 };
-        let range = if segment.strand == GeneStrand::Reverse {
-          Either::Left(range.rev())
+      for (cds_pos, i) in range.enumerate() {
+        if cds_pos % 3 == codon_start {
+          gap_open_close[i] = params.penalty_gap_open_in_frame;
         } else {
-          Either::Right(range)
-        };
-
-        for (cds_pos, i) in range.enumerate() {
-          if cds_pos % 3 == codon_start {
-            gap_open_close[i] = params.penalty_gap_open_in_frame;
-          } else {
-            gap_open_close[i] = params.penalty_gap_open_out_of_frame;
-          }
+          gap_open_close[i] = params.penalty_gap_open_out_of_frame;
         }
       }
     }
+  }
   gap_open_close
 }
 
