@@ -129,7 +129,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   alignment_params.merge_opt(run_args.alignment_params);
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
-  info!("Gene map:\n{}", gene_map_to_string(&gene_map)?);
+  info!("Gene map:\n{}", gene_map_to_string(gene_map)?);
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
