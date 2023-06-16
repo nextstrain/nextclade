@@ -25,6 +25,7 @@ pub fn get_gap_open_close_scores_codon_aware(
         let mut cds_pos: usize = 0;
 
         let range = segment.range.to_std();
+        let codon_start = if segment.strand == GeneStrand::Reverse { 2 } else { 0 };
         let range = if segment.strand == GeneStrand::Reverse {
           Either::Left(range.rev())
         } else {
@@ -32,10 +33,10 @@ pub fn get_gap_open_close_scores_codon_aware(
         };
 
         for i in range {
-          if cds_pos % 3 > 0 {
-            gap_open_close[i] = params.penalty_gap_open_out_of_frame;
-          } else {
+          if cds_pos % 3 == codon_start {
             gap_open_close[i] = params.penalty_gap_open_in_frame;
+          } else {
+            gap_open_close[i] = params.penalty_gap_open_out_of_frame;
           }
           cds_pos += 1;
         }
