@@ -362,7 +362,9 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   let exceptions = exceptions.join(", ");
   let wrap = match cds_segment.wrapping_part {
     WrappingPart::NonWrapping => "   ".to_owned(),
-    WrappingPart::Wrapping(i) => format!("\u{21BB} {i}"),
+    WrappingPart::WrappingStart => format!("\u{21BB} 0"),
+    WrappingPart::WrappingCentral(i) => format!("\u{21BB} {i}"),
+    WrappingPart::WrappingEnd(i) => format!("\u{21BB} {i}"),
   };
   writeln!(
     w,

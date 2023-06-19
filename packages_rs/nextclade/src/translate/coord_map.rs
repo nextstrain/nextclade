@@ -185,14 +185,20 @@ impl CoordMapGlobal {
     for segment in &cds.segments {
       let range = match segment.wrapping_part {
         WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
-        WrappingPart::Wrapping(i) => {
-          if i == 0 {
-            // if segment is the first part of a segment that wraps around the origin, extend range to end of alignment
-            NucAlnGlobalRange::from_usize(self.ref_to_aln_position(segment.range.begin).as_usize(), seq_aln.len())
-          } else {
-            // if segment is the second part of a segment that wraps around the origin, start range at the beginning of the alignment.
-            NucAlnGlobalRange::from_usize(0, self.ref_to_aln_position(segment.range.end - 1).as_usize() + 1)
-          }
+        WrappingPart::WrappingStart => {
+          // If segment is the first part of a segment that wraps around the origin,
+          // extend range to end of alignment.
+          NucAlnGlobalRange::new(self.ref_to_aln_position(segment.range.begin), seq_aln.len().into())
+        }
+        WrappingPart::WrappingCentral(_) => {
+          // If segment is the middle part of a segment that wraps around the origin,
+          // it spans the entire aligned sequence.
+          NucAlnGlobalRange::from_usize(0, seq_aln.len())
+        }
+        WrappingPart::WrappingEnd(_) => {
+          // If segment is the second part of a segment that wraps around the origin,
+          // start range at the beginning of the alignment.
+          NucAlnGlobalRange::new(0.into(), self.ref_to_aln_position(segment.range.end - 1) + 1)
         }
       };
 

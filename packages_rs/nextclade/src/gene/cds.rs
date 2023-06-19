@@ -188,9 +188,9 @@ impl Cds {
 
 /// Split features, which attached to circular landmark features, to strictly linear segments, without wraparound.
 /// Each feature which goes beyond the landmark end will be split into at least 2 segments:
-///   - from segment start to landmark end
-///   - from landmark start to segment end, wrapped around (the overflowing segment)
-/// We also support the case when feature wraps around more than once.
+///   - the part from segment start to landmark end, before the wrap around
+///   - (optionally) the middle parts spanning the entire sequence
+///   - the last part from landmark start to segment end
 fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment>, Report> {
   let mut linear_segments = vec![];
   for segment in segments {
@@ -209,7 +209,7 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
         linear_segments.push({
           let mut segment = segment.clone();
           segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark).
-          segment.wrapping_part = WrappingPart::Wrapping(0); // Mark this part as the first part of the wrapping group.
+          segment.wrapping_part = WrappingPart::WrappingStart; // Mark this part as the first part of the wrapping group.
           validate_segment_bounds(&segment, false)?;
           segment
         });
@@ -224,14 +224,19 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
             segment.range.begin = landmark_start; // Chop the underflowing part (before landmark).
             segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark),
                                                                       // in case the segment wraps multiple times.
-            segment.wrapping_part = WrappingPart::Wrapping(part_counter); // Mark this part as one of the follow up
-                                                                          // parts in the wrapping group,
-                                                                          // beyond the first wraparound.
+            segment.wrapping_part = WrappingPart::WrappingCentral(part_counter); // Mark this part as one of the
+                                                                                 // follow up parts in the wrapping
+                                                                                 // group, beyond the first wraparound.
             validate_segment_bounds(&segment, false)?;
             segment
           });
 
           part_counter += 1;
+        }
+
+        // Mark the last part specially
+        if let Some(last_part) = linear_segments.last_mut() {
+          last_part.wrapping_part = WrappingPart::WrappingEnd(part_counter - 1);
         }
       } else {
         // The landmark feature is not circular or this segment is within its boundaries.
@@ -299,11 +304,20 @@ fn find_proteins_recursive(feature_group: &FeatureGroup, proteins: &mut Vec<Prot
     .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, proteins))
 }
 
+/// Marks the parts of circular, wrapping segments
+///
+/// Example:
+///   WrappingStart      : |....<-----|
+///   WrappingCentral(1) : |----------|
+///   WrappingCentral(2) : |----------|
+///   WrappingEnd(3)     : |---->     |
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum WrappingPart {
-  NonWrapping,     // this is not a part of a circular, wrapping feature
-  Wrapping(usize), // index of the part in the wrapping feature
+  NonWrapping,            // This is not a part of a circular, wrapping feature.
+  WrappingStart,          // Wrapping part before the first wrap.
+  WrappingCentral(usize), // Wrapping parts after first wrap - contains index of the part in the wrapping feature.
+  WrappingEnd(usize),     // Last wrapping part.
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
