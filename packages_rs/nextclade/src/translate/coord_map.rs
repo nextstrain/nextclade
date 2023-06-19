@@ -187,17 +187,17 @@ impl CoordMapGlobal {
         WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
         WrappingPart::WrappingStart => {
           // If segment is the first part of a segment that wraps around the origin,
-          // extend range to end of alignment.
+          // limit the range to end of alignment (trim the overflowing parts)
           NucAlnGlobalRange::new(self.ref_to_aln_position(segment.range.begin), seq_aln.len().into())
         }
         WrappingPart::WrappingCentral(_) => {
-          // If segment is the middle part of a segment that wraps around the origin,
+          // If segment is one of the the middle parts of a segment that wraps around the origin,
           // it spans the entire aligned sequence.
           NucAlnGlobalRange::from_usize(0, seq_aln.len())
         }
         WrappingPart::WrappingEnd(_) => {
-          // If segment is the second part of a segment that wraps around the origin,
-          // start range at the beginning of the alignment.
+          // If segment is the last part of a segment that wraps around the origin,
+          // start range at the beginning of the alignment (trim the underflowing parts)
           NucAlnGlobalRange::new(0.into(), self.ref_to_aln_position(segment.range.end - 1) + 1)
         }
       };
