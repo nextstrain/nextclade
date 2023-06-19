@@ -418,7 +418,7 @@ pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::gene::cds::CdsSegment;
+  use crate::gene::cds::{CdsSegment, WrappingPart};
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use maplit::hashmap;
@@ -439,6 +439,7 @@ mod coord_map_tests {
           name: "".to_owned(),
           range: NucRefGlobalRange::from_usize(*start, *end),
           landmark: None,
+          wrapping_part: WrappingPart::NonWrapping,
           strand: GeneStrand::Forward,
           frame: 0,
           exceptions: vec![],

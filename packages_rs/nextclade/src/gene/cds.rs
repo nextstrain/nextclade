@@ -40,6 +40,7 @@ impl Cds {
           name: feature.name.clone(),
           range: feature.range.clone(),
           landmark: feature.landmark.clone(),
+          wrapping_part: WrappingPart::NonWrapping,
           strand: feature.strand,
           frame: feature.frame,
           exceptions: feature.exceptions.clone(),
@@ -119,6 +120,7 @@ impl Cds {
       name: feature.name.clone(),
       range: feature.range.clone(),
       landmark: feature.landmark.clone(),
+      wrapping_part: WrappingPart::NonWrapping,
       strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
@@ -168,35 +170,50 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
   for segment in segments {
     if let Some(landmark) = &segment.landmark {
       if landmark.is_circular {
+        // The landmark features is circular. This segment might be circular and might wrap around the end of the
+        // landmark. Let's split this segment into a group of non-wrapping linear parts.
         validate_segment_bounds(segment, true)?;
 
         let landmark_start = landmark.range.begin;
         let landmark_end = landmark.range.end;
 
         let mut segment_end = segment.range.end;
+
+        // The first part, which is before the first wraparound
         linear_segments.push({
           let mut segment = segment.clone();
-          segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+          segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark).
+          segment.wrapping_part = WrappingPart::Wrapping(0); // Mark this part as the first part of the wrapping group.
           validate_segment_bounds(&segment, false)?;
           segment
         });
 
+        // The followup parts, beyond the first wraparound. Note that the segment can wrap more then once.
+        let mut part_counter = 1;
         while segment_end > landmark_end {
           segment_end = segment_end % landmark_end;
 
           linear_segments.push({
             let mut segment = segment.clone();
-            segment.range.begin = landmark_start; // Chop the underflowing part (before landmark)
-            segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+            segment.range.begin = landmark_start; // Chop the underflowing part (before landmark).
+            segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark),
+                                                                      // in case the segment wraps multiple times.
+            segment.wrapping_part = WrappingPart::Wrapping(part_counter); // Mark this part as one of the follow up
+                                                                          // parts in the wrapping group,
+                                                                          // beyond the first wraparound.
             validate_segment_bounds(&segment, false)?;
             segment
           });
+
+          part_counter += 1;
         }
       } else {
+        // The landmark feature is not circular. This segment is not circular.
         validate_segment_bounds(segment, false)?;
         linear_segments.push(segment.clone());
       }
     } else {
+      // No landmark feature. This segment is not circular.
       validate_segment_bounds(segment, false)?;
       linear_segments.push(segment.clone());
     }
@@ -257,6 +274,13 @@ fn find_proteins_recursive(feature_group: &FeatureGroup, proteins: &mut Vec<Prot
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum WrappingPart {
+  NonWrapping,     // this is not a part of a circular, wrapping feature
+  Wrapping(usize), // index of the part in the wrapping feature
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsSegment {
   pub index: usize,
@@ -264,6 +288,7 @@ pub struct CdsSegment {
   pub name: String,
   pub range: NucRefGlobalRange,
   pub landmark: Option<Landmark>,
+  pub wrapping_part: WrappingPart,
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,
