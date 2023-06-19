@@ -1,4 +1,4 @@
-use crate::gene::cds::Cds;
+use crate::gene::cds::{Cds, WrappingPart};
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -183,7 +183,26 @@ impl CoordMapGlobal {
     let mut cds_aln_seq = vec![];
     let mut cds_to_aln_map = vec![];
     for segment in &cds.segments {
-      let range = self.ref_to_aln_range(&segment.range);
+      // TODO: should we use `landmark.range.end` (converted to aln coords) instead of `seq_aln.len()`?
+      let range = match segment.wrapping_part {
+        WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
+        WrappingPart::WrappingStart => {
+          // If segment is the first part of a segment that wraps around the origin,
+          // limit the range to end of alignment (trim the overflowing parts)
+          NucAlnGlobalRange::new(self.ref_to_aln_position(segment.range.begin), seq_aln.len().into())
+        }
+        WrappingPart::WrappingCentral(_) => {
+          // If segment is one of the the middle parts of a segment that wraps around the origin,
+          // it spans the entire aligned sequence.
+          NucAlnGlobalRange::from_usize(0, seq_aln.len())
+        }
+        WrappingPart::WrappingEnd(_) => {
+          // If segment is the last part of a segment that wraps around the origin,
+          // start range at the beginning of the alignment (trim the underflowing parts)
+          NucAlnGlobalRange::new(0.into(), self.ref_to_aln_position(segment.range.end - 1) + 1)
+        }
+      };
+
       cds_to_aln_map.push(CdsToAln {
         global: range.iter().collect_vec(),
         start: cds_aln_seq.len() as isize,
@@ -418,7 +437,7 @@ pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::gene::cds::CdsSegment;
+  use crate::gene::cds::{CdsSegment, WrappingPart};
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use maplit::hashmap;
@@ -439,6 +458,7 @@ mod coord_map_tests {
           name: "".to_owned(),
           range: NucRefGlobalRange::from_usize(*start, *end),
           landmark: None,
+          wrapping_part: WrappingPart::NonWrapping,
           strand: GeneStrand::Forward,
           frame: 0,
           exceptions: vec![],
@@ -449,6 +469,8 @@ mod coord_map_tests {
         })
         .collect_vec(),
       proteins: vec![],
+      exceptions: vec![],
+      attributes: hashmap! {},
       compat_is_gene: false,
       color: None,
     }

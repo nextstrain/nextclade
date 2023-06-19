@@ -7,6 +7,7 @@ use crate::utils::range::NucRefGlobalRange;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
+use maplit::hashmap;
 use num_traits::clamp_max;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,6 +22,8 @@ pub struct Cds {
   pub strand: GeneStrand,
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
+  pub exceptions: Vec<String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub compat_is_gene: bool,
   pub color: Option<String>,
 }
@@ -40,6 +43,7 @@ impl Cds {
           name: feature.name.clone(),
           range: feature.range.clone(),
           landmark: feature.landmark.clone(),
+          wrapping_part: WrappingPart::NonWrapping,
           strand: feature.strand,
           frame: feature.frame,
           exceptions: feature.exceptions.clone(),
@@ -75,6 +79,25 @@ impl Cds {
         .cloned()
     }?;
 
+    let attributes: HashMap<String, Vec<String>> = {
+      let mut attributes: HashMap<String, Vec<String>> = hashmap! {};
+      for segment in &segments {
+        for (k, vs) in &segment.attributes {
+          attributes.entry(k.clone()).or_default().extend_from_slice(vs);
+        }
+      }
+      attributes
+        .into_iter()
+        .map(|(k, vs)| (k, vs.into_iter().unique().collect_vec()))
+        .collect()
+    };
+
+    let exceptions = segments
+      .iter()
+      .flat_map(|segment| segment.exceptions.clone())
+      .unique()
+      .collect_vec();
+
     Ok(Self {
       id: feature_group.id.clone(),
       name: feature_group.name.clone(),
@@ -82,6 +105,8 @@ impl Cds {
       strand,
       segments,
       proteins,
+      exceptions,
+      attributes,
       compat_is_gene: false,
       color: None,
     })
@@ -119,6 +144,7 @@ impl Cds {
       name: feature.name.clone(),
       range: feature.range.clone(),
       landmark: feature.landmark.clone(),
+      wrapping_part: WrappingPart::NonWrapping,
       strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
@@ -138,6 +164,8 @@ impl Cds {
       strand: feature.strand,
       segments,
       proteins: vec![protein],
+      exceptions: feature.exceptions.clone(),
+      attributes: feature.attributes.clone(),
       compat_is_gene: true,
       color: None,
     })
@@ -160,43 +188,63 @@ impl Cds {
 
 /// Split features, which attached to circular landmark features, to strictly linear segments, without wraparound.
 /// Each feature which goes beyond the landmark end will be split into at least 2 segments:
-///   - from segment start to landmark end
-///   - from landmark start to segment end, wrapped around (the overflowing segment)
-/// We also support the case when feature wraps around more than once.
+///   - the part from segment start to landmark end, before the wrap around
+///   - (optionally) the middle parts spanning the entire sequence
+///   - the last part from landmark start to segment end
 fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment>, Report> {
   let mut linear_segments = vec![];
   for segment in segments {
     if let Some(landmark) = &segment.landmark {
-      if landmark.is_circular {
+      if landmark.is_circular && segment.range.end > landmark.range.end {
+        // The landmark features is circular and segment overflows (wraps around) it. Let's split this segment into
+        // a group of non-wrapping linear parts.
         validate_segment_bounds(segment, true)?;
 
         let landmark_start = landmark.range.begin;
         let landmark_end = landmark.range.end;
 
         let mut segment_end = segment.range.end;
+
+        // The first part, which is before the first wraparound
         linear_segments.push({
           let mut segment = segment.clone();
-          segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+          segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark).
+          segment.wrapping_part = WrappingPart::WrappingStart; // Mark this part as the first part of the wrapping group.
           validate_segment_bounds(&segment, false)?;
           segment
         });
 
+        // The followup parts, beyond the first wraparound. Note that the segment can wrap more then once.
+        let mut part_counter = 1;
         while segment_end > landmark_end {
           segment_end = segment_end % landmark_end;
 
           linear_segments.push({
             let mut segment = segment.clone();
-            segment.range.begin = landmark_start; // Chop the underflowing part (before landmark)
-            segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark)
+            segment.range.begin = landmark_start; // Chop the underflowing part (before landmark).
+            segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark),
+                                                                      // in case the segment wraps multiple times.
+            segment.wrapping_part = WrappingPart::WrappingCentral(part_counter); // Mark this part as one of the
+                                                                                 // follow up parts in the wrapping
+                                                                                 // group, beyond the first wraparound.
             validate_segment_bounds(&segment, false)?;
             segment
           });
+
+          part_counter += 1;
+        }
+
+        // Mark the last part specially
+        if let Some(last_part) = linear_segments.last_mut() {
+          last_part.wrapping_part = WrappingPart::WrappingEnd(part_counter - 1);
         }
       } else {
+        // The landmark feature is not circular or this segment is within its boundaries.
         validate_segment_bounds(segment, false)?;
         linear_segments.push(segment.clone());
       }
     } else {
+      // No landmark feature. This segment is not circular.
       validate_segment_bounds(segment, false)?;
       linear_segments.push(segment.clone());
     }
@@ -256,6 +304,22 @@ fn find_proteins_recursive(feature_group: &FeatureGroup, proteins: &mut Vec<Prot
     .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, proteins))
 }
 
+/// Marks the parts of circular, wrapping segments
+///
+/// Example:
+///   WrappingStart      : |....<-----|
+///   WrappingCentral(1) : |----------|
+///   WrappingCentral(2) : |----------|
+///   WrappingEnd(3)     : |---->     |
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum WrappingPart {
+  NonWrapping,            // This is not a part of a circular, wrapping feature.
+  WrappingStart,          // Wrapping part before the first wrap.
+  WrappingCentral(usize), // Wrapping parts after first wrap - contains index of the part in the wrapping feature.
+  WrappingEnd(usize),     // Last wrapping part.
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsSegment {
@@ -264,6 +328,7 @@ pub struct CdsSegment {
   pub name: String,
   pub range: NucRefGlobalRange,
   pub landmark: Option<Landmark>,
+  pub wrapping_part: WrappingPart,
   pub strand: GeneStrand,
   pub frame: i32,
   pub exceptions: Vec<String>,

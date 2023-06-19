@@ -209,7 +209,7 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
     } else {
       const cds = cdses.find((cds) => cds.name === viewedGene)
       if (cds) {
-        geneMapFiltered = [...cdses.flatMap((cds) => cds.segments)]
+        geneMapFiltered = [...cds.segments]
       }
     }
 
