@@ -15,7 +15,7 @@ use std::hash::Hash;
 use std::io::Read;
 
 /// Possible keys for name attribute (in order of preference!)
-pub const NAME_ATTRS: &[&str] = &[
+pub const NAME_ATTRS_GENE: &[&str] = &[
   "Gene",
   "gene",
   "gene_name",
@@ -35,9 +35,49 @@ pub const NAME_ATTRS: &[&str] = &[
   "ID",
 ];
 
-lazy_static! {
-  pub static ref NAME_ATTRS_STR: String = NAME_ATTRS.iter().map(surround_with_quotes).join(", ");
-}
+pub const NAME_ATTRS_CDS: &[&str] = &[
+  "Name",
+  "name",
+  "Alias",
+  "alias",
+  "standard_name",
+  "old-name",
+  "Gene",
+  "gene",
+  "gene_name",
+  "locus_tag",
+  "product",
+  "gene_synonym",
+  "gb-synonym",
+  "acronym",
+  "gb-acronym",
+  "protein_id",
+  "ID",
+];
+
+pub const NAME_ATTRS_PROTEIN: &[&str] = &[
+  "product",
+  "protein_id",
+  "gene_synonym",
+  "gb-synonym",
+  "acronym",
+  "gb-acronym",
+  "ID",
+  "Gene",
+  "gene",
+  "gene_name",
+  "locus_tag",
+  "Name",
+  "name",
+  "Alias",
+  "alias",
+  "standard_name",
+  "old-name",
+];
+
+// lazy_static! {
+//   pub static ref NAME_ATTRS_STR: String = NAME_ATTRS.iter().map(surround_with_quotes).join(", ");
+// }
 
 // /// Read GFF3 records given a file
 // pub fn read_gff3_file<P: AsRef<Path>>(filename: P) -> Result<GeneMap, Report> {
@@ -202,7 +242,12 @@ pub struct GffCommonInfo {
 impl GffCommonInfo {
   pub fn from_gff_record(record: &GffRecord) -> Result<GffCommonInfo, Report> {
     let gff_record_str = gff_record_to_string(record).unwrap_or_else(|_| "Unknown".to_owned());
-    let name = get_one_of_attributes_optional(record, NAME_ATTRS);
+    let name_attrs = match record.feature_type().to_lowercase().as_str() {
+      "cds" => NAME_ATTRS_CDS,
+      "mature_protein_region_of_cds" => NAME_ATTRS_PROTEIN,
+      _ => NAME_ATTRS_GENE,
+    };
+    let name = get_one_of_attributes_optional(record, name_attrs);
     let id = get_one_of_attributes_optional(record, &["ID"]);
     let start = (*record.start() - 1) as usize; // Convert to 0-based indices
     let end = *record.end() as usize;
