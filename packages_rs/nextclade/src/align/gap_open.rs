@@ -20,6 +20,7 @@ pub fn get_gap_open_close_scores_codon_aware(
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
   for cds in gene_map.iter_cdses() {
+    let mut cds_pos = 0;
     for segment in &cds.segments {
       let range = segment.range.to_std();
       let codon_start = if segment.strand == GeneStrand::Reverse { 2 } else { 0 };
@@ -29,12 +30,13 @@ pub fn get_gap_open_close_scores_codon_aware(
         Either::Right(range)
       };
 
-      for (cds_pos, i) in range.enumerate() {
+      for i in range {
         if cds_pos % 3 == codon_start {
           gap_open_close[i] = params.penalty_gap_open_in_frame;
         } else {
           gap_open_close[i] = params.penalty_gap_open_out_of_frame;
         }
+        cds_pos += 1;
       }
     }
   }
@@ -90,6 +92,8 @@ mod tests {
             strand: GeneStrand::Unknown,
             segments,
             proteins: vec![],
+            exceptions: vec![],
+            attributes: hashmap! {},
             compat_is_gene: false,
             color: None,
           })?,
@@ -182,6 +186,27 @@ mod tests {
     //                         |                          |                 |
     //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
     let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 7, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
+
+    assert_eq!(actual, expect);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_simple_nonmod3_reverse(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let gene_map = create_test_genome_annotation(&[
+      &[
+        (3, 11, Forward),
+        (11, 18, Reverse)
+      ],
+    ])?;
+
+    #[rustfmt::skip]
+    //                         |                       |                    |
+    //                0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+    let expect = vec![6, 6, 6, 7, 8, 8, 7, 8, 8, 7, 8, 7, 8, 8, 7, 8, 8, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6];
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 

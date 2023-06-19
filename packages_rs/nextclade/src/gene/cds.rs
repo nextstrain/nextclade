@@ -7,6 +7,7 @@ use crate::utils::range::NucRefGlobalRange;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
+use maplit::hashmap;
 use num_traits::clamp_max;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,6 +22,8 @@ pub struct Cds {
   pub strand: GeneStrand,
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
+  pub exceptions: Vec<String>,
+  pub attributes: HashMap<String, Vec<String>>,
   pub compat_is_gene: bool,
   pub color: Option<String>,
 }
@@ -76,6 +79,25 @@ impl Cds {
         .cloned()
     }?;
 
+    let attributes: HashMap<String, Vec<String>> = {
+      let mut attributes: HashMap<String, Vec<String>> = hashmap! {};
+      for segment in &segments {
+        for (k, vs) in &segment.attributes {
+          attributes.entry(k.clone()).or_default().extend_from_slice(vs);
+        }
+      }
+      attributes
+        .into_iter()
+        .map(|(k, vs)| (k, vs.into_iter().unique().collect_vec()))
+        .collect()
+    };
+
+    let exceptions = segments
+      .iter()
+      .flat_map(|segment| segment.exceptions.clone())
+      .unique()
+      .collect_vec();
+
     Ok(Self {
       id: feature_group.id.clone(),
       name: feature_group.name.clone(),
@@ -83,6 +105,8 @@ impl Cds {
       strand,
       segments,
       proteins,
+      exceptions,
+      attributes,
       compat_is_gene: false,
       color: None,
     })
@@ -140,6 +164,8 @@ impl Cds {
       strand: feature.strand,
       segments,
       proteins: vec![protein],
+      exceptions: feature.exceptions.clone(),
+      attributes: feature.attributes.clone(),
       compat_is_gene: true,
       color: None,
     })
