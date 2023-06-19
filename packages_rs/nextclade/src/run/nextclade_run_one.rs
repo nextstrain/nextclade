@@ -103,6 +103,7 @@ pub fn nextclade_run_one(
   let total_frame_shifts = frame_shifts.len();
 
   let FindAaChangesOutput {
+    aa_changes_groups,
     aa_substitutions,
     aa_deletions,
   } = find_aa_changes(
@@ -172,8 +173,6 @@ pub fn nextclade_run_one(
     aa_substitutions,
     aa_deletions,
   } = link_nuc_and_aa_changes(&substitutions, &deletions, &aa_substitutions, &aa_deletions);
-
-  let aa_changes_groups = group_adjacent_aa_subs_and_dels(&aa_substitutions, &aa_deletions);
 
   let total_aligned_nucs = alignment_range.len();
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;

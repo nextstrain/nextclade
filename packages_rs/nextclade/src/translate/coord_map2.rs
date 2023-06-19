@@ -9,6 +9,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPosition {
+  assert!(pos < cds.len() as isize);
   let mut remaining_pos = pos;
   let mut segment_index = 0;
   let mut segment = &cds.segments[segment_index];
@@ -25,8 +26,17 @@ pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPo
   }
 }
 
-pub fn cds_codon_pos_to_ref(cds: &Cds, codon: AaRefPosition) -> NucRefGlobalPosition {
+pub fn cds_codon_pos_to_ref_pos(cds: &Cds, codon: AaRefPosition) -> NucRefGlobalPosition {
   cds_nuc_pos_to_ref(cds, NucRefLocalPosition::new(codon.as_isize() * 3))
+}
+
+pub fn cds_codon_pos_to_ref_range(cds: &Cds, codon: AaRefPosition) -> NucRefGlobalRange {
+  let begin = codon.as_isize() * 3;
+  let end = begin + 3;
+  NucRefGlobalRange::new(
+    cds_nuc_pos_to_ref(cds, NucRefLocalPosition::new(begin)),
+    cds_nuc_pos_to_ref(cds, NucRefLocalPosition::new(end) - 1) + 1,
+  )
 }
 
 pub fn global_ref_pos_to_local(cds: &Cds, pos: NucRefGlobalPosition) -> Vec<NucRefLocalPosition> {

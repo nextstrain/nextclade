@@ -1,6 +1,6 @@
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
-use crate::analyze::aa_changes_group::AaChangeGroup;
+use crate::analyze::aa_changes::AaChangeGroup;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;

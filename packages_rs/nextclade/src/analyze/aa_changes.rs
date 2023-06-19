@@ -8,8 +8,10 @@ use crate::io::aa::{from_aa, Aa};
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::translate::coord_map2::{cds_codon_pos_to_ref_pos, cds_codon_pos_to_ref_range};
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
+use either::Either;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -211,8 +213,24 @@ impl PartialOrd for AaChange {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct AaChangeWithContext {
+  pub codon: AaRefPosition,
+  pub ref_aa: Aa,
+  pub qry_aa: Aa,
+  pub nuc_pos: NucRefGlobalPosition,
+  pub ref_triplet: Vec<Nuc>,
+  pub qry_triplet: Vec<Nuc>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct AaChangeGroup {
+  changes: Vec<AaChangeWithContext>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FindAaChangesOutput {
+  pub aa_changes_groups: Vec<AaChangeGroup>,
   pub aa_substitutions: Vec<AaSub>,
   pub aa_deletions: Vec<AaDel>,
 }
@@ -292,14 +310,11 @@ fn find_aa_changes_for_cds(
   assert_eq!(ref_peptide.len(), qry_peptide.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
-  let mut aa_substitutions = Vec::<AaSub>::new();
-  let mut aa_deletions = Vec::<AaDel>::new();
-
   let num_nucs = qry_seq.len();
   let num_codons = qry_peptide.len();
-  let mut groups = vec![AaChangeGroup { changes: vec![] }];
-  let mut curr_group = groups.last_mut().unwrap();
-  for codon in AaRefRange::from_usize(0, num_codons).iter() {
+  let mut aa_changes_groups = vec![AaChangeGroup { changes: vec![] }];
+  let mut curr_group = aa_changes_groups.last_mut().unwrap();
+  for codon in AaRefRange::from_usize(0, qry_peptide.len()).iter() {
     if !aa_alignment_ranges
       .iter()
       .any(|aa_alignment_range| aa_alignment_range.contains(codon))
@@ -356,13 +371,17 @@ fn find_aa_changes_for_cds(
     let ref_aa = ref_peptide[codon.as_usize()];
     let qry_aa = qry_peptide[codon.as_usize()];
     if qry_aa != ref_aa && qry_aa != Aa::X {
+      let nuc_range = cds_codon_pos_to_ref_range(cds, codon).clamp_range(0, qry_seq.len());
+      let ref_triplet = ref_seq[nuc_range.to_std()].to_vec();
+      let qry_triplet = qry_seq[nuc_range.to_std()].to_vec();
+
       let change = AaChangeWithContext {
         codon,
         ref_aa,
         qry_aa,
-        nuc_pos: 0.into(),   // TODO
-        ref_triplet: vec![], // TODO
-        qry_triplet: vec![], // TODO
+        nuc_pos: nuc_range.begin,
+        ref_triplet,
+        qry_triplet,
       };
 
       match curr_group.changes.last() {
@@ -377,31 +396,41 @@ fn find_aa_changes_for_cds(
             curr_group.changes.push(change);
           } else {
             // Previous codon in the group is not adjacent. Start a new group.
-            groups.push(AaChangeGroup { changes: vec![change] });
-            curr_group = groups.last_mut().unwrap();
+            aa_changes_groups.push(AaChangeGroup { changes: vec![change] });
+            curr_group = aa_changes_groups.last_mut().unwrap();
           }
         }
       }
     }
   }
 
+  let (aa_substitutions, aa_deletions): (Vec<AaSub>, Vec<AaDel>) = aa_changes_groups
+    .iter()
+    .flat_map(|aa_changes_group| &aa_changes_group.changes)
+    .partition_map(|change| {
+      if change.qry_aa.is_gap() {
+        Either::Right(AaDel {
+          gene: cds.name.clone(),
+          reff: change.ref_aa,
+          pos: change.codon,
+          nuc_contexts: vec![],             // TODO: remove this
+          aa_context: AaContext::default(), // TODO: remove this
+        })
+      } else {
+        Either::Left(AaSub {
+          gene: cds.name.clone(),
+          reff: change.ref_aa,
+          pos: change.codon,
+          qry: change.qry_aa,
+          nuc_contexts: vec![],             // TODO: remove this
+          aa_context: AaContext::default(), // TODO: remove this
+        })
+      }
+    });
+
   FindAaChangesOutput {
+    aa_changes_groups,
     aa_substitutions,
     aa_deletions,
   }
-}
-
-#[derive(Debug, Clone)]
-pub struct AaChangeWithContext {
-  pub codon: AaRefPosition,
-  pub ref_aa: Aa,
-  pub qry_aa: Aa,
-  pub nuc_pos: NucRefGlobalPosition,
-  pub ref_triplet: Vec<Nuc>,
-  pub qry_triplet: Vec<Nuc>,
-}
-
-#[derive(Debug, Clone)]
-pub struct AaChangeGroup {
-  changes: Vec<AaChangeWithContext>,
 }
