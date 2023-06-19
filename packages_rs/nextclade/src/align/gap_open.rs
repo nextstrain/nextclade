@@ -91,6 +91,8 @@ mod tests {
             strand: GeneStrand::Unknown,
             segments,
             proteins: vec![],
+            exceptions: vec![],
+            attributes: hashmap! {},
             compat_is_gene: false,
             color: None,
           })?,

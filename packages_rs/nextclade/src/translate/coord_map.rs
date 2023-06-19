@@ -449,6 +449,8 @@ mod coord_map_tests {
         })
         .collect_vec(),
       proteins: vec![],
+      exceptions: vec![],
+      attributes: hashmap! {},
       compat_is_gene: false,
       color: None,
     }
