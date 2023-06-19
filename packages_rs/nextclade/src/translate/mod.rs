@@ -1,6 +1,7 @@
 pub mod aa_alignment_ranges;
 pub mod complement;
 pub mod coord_map;
+pub mod coord_map2;
 pub mod frame_shifts_detect;
 pub mod frame_shifts_flatten;
 pub mod frame_shifts_translate;
