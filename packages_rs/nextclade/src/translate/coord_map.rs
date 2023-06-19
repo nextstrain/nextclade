@@ -1,4 +1,4 @@
-use crate::gene::cds::Cds;
+use crate::gene::cds::{Cds, WrappingPart};
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -183,7 +183,19 @@ impl CoordMapGlobal {
     let mut cds_aln_seq = vec![];
     let mut cds_to_aln_map = vec![];
     for segment in &cds.segments {
-      let range = self.ref_to_aln_range(&segment.range);
+      let range = match segment.wrapping_part {
+        WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
+        WrappingPart::Wrapping(i) => {
+          if i == 0 {
+            // TODO: the part of the segment before the first circular wrap
+            NucAlnGlobalRange::from_isize(-111, -111)
+          } else {
+            // TODO: the part of the segment after one or more circular wraps
+            NucAlnGlobalRange::from_isize(-999, -999)
+          }
+        }
+      };
+
       cds_to_aln_map.push(CdsToAln {
         global: range.iter().collect_vec(),
         start: cds_aln_seq.len() as isize,
