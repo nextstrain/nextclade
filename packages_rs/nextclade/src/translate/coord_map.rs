@@ -187,11 +187,11 @@ impl CoordMapGlobal {
         WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
         WrappingPart::Wrapping(i) => {
           if i == 0 {
-            // TODO: the part of the segment before the first circular wrap
-            NucAlnGlobalRange::from_isize(-111, -111)
+            // if segment is the first part of a segment that wraps around the origin, extend range to end of alignment
+            NucAlnGlobalRange::from_usize(self.ref_to_aln_position(segment.range.begin).as_usize(), seq_aln.len())
           } else {
-            // TODO: the part of the segment after one or more circular wraps
-            NucAlnGlobalRange::from_isize(-999, -999)
+            // if segment is the second part of a segment that wraps around the origin, start range at the beginning of the alignment.
+            NucAlnGlobalRange::from_usize(0, self.ref_to_aln_position(segment.range.end - 1).as_usize() + 1)
           }
         }
       };
