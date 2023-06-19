@@ -183,6 +183,7 @@ impl CoordMapGlobal {
     let mut cds_aln_seq = vec![];
     let mut cds_to_aln_map = vec![];
     for segment in &cds.segments {
+      // TODO: should we use `landmark.range.end` (converted to aln coords) instead of `seq_aln.len()`?
       let range = match segment.wrapping_part {
         WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
         WrappingPart::WrappingStart => {
