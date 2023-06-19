@@ -195,9 +195,9 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
   let mut linear_segments = vec![];
   for segment in segments {
     if let Some(landmark) = &segment.landmark {
-      if landmark.is_circular {
-        // The landmark features is circular. This segment might be circular and might wrap around the end of the
-        // landmark. Let's split this segment into a group of non-wrapping linear parts.
+      if landmark.is_circular && segment.range.end > landmark.range.end {
+        // The landmark features is circular and segment overflows (wraps around) it. Let's split this segment into
+        // a group of non-wrapping linear parts.
         validate_segment_bounds(segment, true)?;
 
         let landmark_start = landmark.range.begin;
@@ -234,7 +234,7 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
           part_counter += 1;
         }
       } else {
-        // The landmark feature is not circular. This segment is not circular.
+        // The landmark feature is not circular or this segment is within its boundaries.
         validate_segment_bounds(segment, false)?;
         linear_segments.push(segment.clone());
       }
