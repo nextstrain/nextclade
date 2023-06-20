@@ -274,26 +274,28 @@ impl AaChangesGroup {
   }
 
   pub fn with_changes(name: impl AsRef<str>, changes: Vec<AaChangeWithContext>) -> Self {
-    let range = match changes.iter().minmax_by_key(|change| change.codon) {
-      MinMaxResult::NoElements => AaRefRange::from_isize(0, 0),
-      MinMaxResult::OneElement(one) => AaRefRange::new(one.codon, one.codon + 1),
-      MinMaxResult::MinMax(first, last) => AaRefRange::new(first.codon, last.codon + 1),
-    };
-
     Self {
       name: name.as_ref().to_owned(),
-      range,
+      range: Self::find_codon_range(&changes),
       changes,
     }
   }
 
   pub fn push(&mut self, change: AaChangeWithContext) {
-    self.range.end = change.codon + 1;
     self.changes.push(change);
+    self.range = Self::find_codon_range(&self.changes);
   }
 
   pub fn last(&self) -> Option<&AaChangeWithContext> {
     self.changes.last()
+  }
+
+  fn find_codon_range(changes: &[AaChangeWithContext]) -> AaRefRange {
+    match changes.iter().minmax_by_key(|change| change.codon) {
+      MinMaxResult::NoElements => AaRefRange::from_isize(0, 0),
+      MinMaxResult::OneElement(one) => AaRefRange::new(one.codon, one.codon + 1),
+      MinMaxResult::MinMax(first, last) => AaRefRange::new(first.codon, last.codon + 1),
+    }
   }
 }
 
