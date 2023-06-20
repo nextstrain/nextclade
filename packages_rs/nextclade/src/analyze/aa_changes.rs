@@ -481,6 +481,17 @@ fn find_aa_changes_for_cds(
             }
 
             // Start a new group and push the new item into it
+            if codon > 0 {
+              // Prepend one codon to the left for additional context, to start the group
+              curr_group.push(AaChangeWithContext::new(
+                cds,
+                codon - 1,
+                qry_seq,
+                ref_seq,
+                ref_tr,
+                qry_tr,
+              ));
+            }
             aa_changes_groups.push(AaChangesGroup::with_changes(
               &cds.name,
               vec![AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr)],
