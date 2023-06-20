@@ -443,10 +443,10 @@ fn find_aa_changes_for_cds(
     let qry_aa = qry_peptide[codon.as_usize()];
     if qry_aa != ref_aa && qry_aa != Aa::X {
       match curr_group.last() {
-        // Current group is empty. This will be the first item for the first group.
+        // If current group is empty, then we are about to insert the first codon into the first group.
         None => {
           if codon > 0 {
-            // Prepend one codon to the left for additional context, to start the group
+            // Also prepend one codon to the left, for additional context, to start the group
             curr_group.push(AaChangeWithContext::new(
               cds,
               codon - 1,
@@ -462,13 +462,28 @@ fn find_aa_changes_for_cds(
         }
         // Current group is not empty
         Some(prev) => {
-          // Previous codon in the group is adjacent. Append to the group.
-          if prev.codon + 1 == codon {
+          // If previous codon in the group is adjacent or almost adjacent (there is 1 item in between),
+          // then append to the group.
+          if codon <= prev.codon + 2 {
+            // If previous codon in the group is not exactly adjacent, there is 1 item in between,
+            // then cover the hole by inserting previous codon.
+            if codon == prev.codon + 2 {
+              curr_group.push(AaChangeWithContext::new(
+                cds,
+                codon - 2,
+                qry_seq,
+                ref_seq,
+                ref_tr,
+                qry_tr,
+              ));
+            }
+
+            // And insert the current codon
             curr_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
           }
-          // Previous codon in the group is not adjacent. Terminate the current group and start a new group.
+          // If previous codon in the group is not adjacent, then terminate the current group and start a new group.
           else {
-            // Add one codon to the right for additional context, to finalize the current group
+            // Add one codon to the right, for additional context, to finalize the current group
             if (prev.codon + 1) < (qry_tr.seq.len() as isize) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
@@ -480,10 +495,12 @@ fn find_aa_changes_for_cds(
               ));
             }
 
-            // Start a new group and push the new item into it
+            let mut new_group = AaChangesGroup::new(&cds.name);
+
+            // Start a new group and push the current codon into it.
             if codon > 0 {
-              // Prepend one codon to the left for additional context, to start the group
-              curr_group.push(AaChangeWithContext::new(
+              // Also prepend one codon to the left, for additional context, to start the new group.
+              new_group.push(AaChangeWithContext::new(
                 cds,
                 codon - 1,
                 qry_seq,
@@ -492,10 +509,12 @@ fn find_aa_changes_for_cds(
                 qry_tr,
               ));
             }
-            aa_changes_groups.push(AaChangesGroup::with_changes(
-              &cds.name,
-              vec![AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr)],
-            ));
+
+            // Push the current codon to the new group
+            new_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
+
+            aa_changes_groups.push(new_group);
+
             curr_group = aa_changes_groups.last_mut().unwrap();
           }
         }
@@ -503,9 +522,24 @@ fn find_aa_changes_for_cds(
     }
   }
 
+  // Add one codon to the right, for additional context, to finalize the last group
+  if let Some(last) = curr_group.last() {
+    if (last.codon + 1) < (qry_tr.seq.len() as isize) {
+      curr_group.push(AaChangeWithContext::new(
+        cds,
+        last.codon + 1,
+        qry_seq,
+        ref_seq,
+        ref_tr,
+        qry_tr,
+      ));
+    }
+  }
+
   let (aa_substitutions, aa_deletions): (Vec<AaSub>, Vec<AaDel>) = aa_changes_groups
     .iter()
     .flat_map(|aa_changes_group| &aa_changes_group.changes)
+    .filter(|change| change.qry_aa != change.ref_aa)
     .partition_map(|change| {
       if change.qry_aa.is_gap() {
         Either::Right(AaDel {
