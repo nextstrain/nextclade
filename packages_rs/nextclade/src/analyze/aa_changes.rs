@@ -233,6 +233,33 @@ pub struct AaChangeWithContext {
   pub qry_triplet: Vec<Nuc>,
 }
 
+impl AaChangeWithContext {
+  pub fn new(
+    cds: &Cds,
+    codon: AaRefPosition,
+    qry_seq: &[Nuc],
+    ref_seq: &[Nuc],
+    ref_tr: &CdsTranslation,
+    qry_tr: &CdsTranslation,
+  ) -> Self {
+    let ref_aa = ref_tr.seq[codon.as_usize()];
+    let qry_aa = qry_tr.seq[codon.as_usize()];
+    let nuc_range = cds_codon_pos_to_ref_range(cds, codon).clamp_range(0, qry_seq.len());
+    let ref_triplet = ref_seq[nuc_range.to_std()].to_vec();
+    let qry_triplet = qry_seq[nuc_range.to_std()].to_vec();
+
+    Self {
+      cds_name: cds.name.clone(),
+      codon,
+      ref_aa,
+      qry_aa,
+      nuc_pos: nuc_range.begin,
+      ref_triplet,
+      qry_triplet,
+    }
+  }
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaChangesGroup {
@@ -415,33 +442,49 @@ fn find_aa_changes_for_cds(
     let ref_aa = ref_peptide[codon.as_usize()];
     let qry_aa = qry_peptide[codon.as_usize()];
     if qry_aa != ref_aa && qry_aa != Aa::X {
-      let nuc_range = cds_codon_pos_to_ref_range(cds, codon).clamp_range(0, qry_seq.len());
-      let ref_triplet = ref_seq[nuc_range.to_std()].to_vec();
-      let qry_triplet = qry_seq[nuc_range.to_std()].to_vec();
-
-      let change = AaChangeWithContext {
-        cds_name: cds.name.clone(),
-        codon,
-        ref_aa,
-        qry_aa,
-        nuc_pos: nuc_range.begin,
-        ref_triplet,
-        qry_triplet,
-      };
-
       match curr_group.last() {
+        // Current group is empty. This will be the first item for the first group.
         None => {
-          // Current group is empty. This will be the first item for the first group.
-          curr_group.push(change);
+          if codon > 0 {
+            // Prepend one codon to the left for additional context, to start the group
+            curr_group.push(AaChangeWithContext::new(
+              cds,
+              codon - 1,
+              qry_seq,
+              ref_seq,
+              ref_tr,
+              qry_tr,
+            ));
+          }
+
+          // The current codon itself
+          curr_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
         }
+        // Current group is not empty
         Some(prev) => {
-          // Group is not empty
-          if prev.codon + 1 == change.codon {
-            // Previous codon in the group is adjacent. Append to the group.
-            curr_group.push(change);
-          } else {
-            // Previous codon in the group is not adjacent. Start a new group.
-            aa_changes_groups.push(AaChangesGroup::with_changes(&cds.name, vec![change]));
+          // Previous codon in the group is adjacent. Append to the group.
+          if prev.codon + 1 == codon {
+            curr_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
+          }
+          // Previous codon in the group is not adjacent. Terminate the current group and start a new group.
+          else {
+            // Add one codon to the right for additional context, to finalize the current group
+            if (prev.codon + 1) < (qry_tr.seq.len() as isize) {
+              curr_group.push(AaChangeWithContext::new(
+                cds,
+                prev.codon + 1,
+                qry_seq,
+                ref_seq,
+                ref_tr,
+                qry_tr,
+              ));
+            }
+
+            // Start a new group and push the new item into it
+            aa_changes_groups.push(AaChangesGroup::with_changes(
+              &cds.name,
+              vec![AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr)],
+            ));
             curr_group = aa_changes_groups.last_mut().unwrap();
           }
         }

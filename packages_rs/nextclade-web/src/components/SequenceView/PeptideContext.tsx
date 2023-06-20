@@ -226,6 +226,8 @@ export interface PeptideContextProps {
 export function PeptideContext({ group }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
+  console.log(group.changes)
+
   const { width, codonsBegin, ellipsis, codonsEnd } = useMemo(() => {
     const { changes } = group
 
