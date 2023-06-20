@@ -255,7 +255,7 @@ impl GffCommonInfo {
 
     let strand = record
       .strand()
-      .map_or(GeneStrand::Unknown, bio_types::strand::Strand::into);
+      .map_or(GeneStrand::Forward, bio_types::strand::Strand::into);
     let frame = parse_gff3_frame(record.frame(), start);
 
     let attr_keys = record.attributes().keys().sorted().unique().collect_vec();
