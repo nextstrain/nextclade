@@ -9,8 +9,6 @@ import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
 
-const pastel = (c: string) => lighten(0.25)(desaturate(0.33)(c))
-
 export const Table = styled(ReactstrapTable)<{ $width: number }>`
   table-layout: fixed;
   text-align: center;
@@ -46,12 +44,16 @@ export const TrNuc = styled.tr`
   margin: 0;
 `
 
-export const TdNuc = styled.td<{ $color?: string; $shouldHighlight?: boolean }>`
+export const TdNuc = styled.td<{ $color?: string; $background?: string }>`
   width: 20px;
   height: 20px;
-  background: ${(props) => (props.$shouldHighlight ? props.$color : '#efefef')};
+  background: ${(props) => props.$background ?? '#efefef'};
   padding: 0;
   margin: 0;
+
+  * {
+    color: ${(props) => props.$color};
+  }
 `
 
 export const TdAa = styled.td<{ $color?: string; $background?: string }>`
@@ -73,7 +75,7 @@ export const TdAxis = styled.td`
   background: #efefef;
 `
 
-export const NucleotideText = styled.pre<{ $shouldHighlight?: boolean }>`
+export const NucleotideText = styled.pre`
   display: inline;
   font-size: 0.7rem;
   padding: 0;
@@ -111,7 +113,7 @@ export function PeptideContextAminoacid({ aa, shouldHighlight = true }: PeptideC
 
   const { color, background } = useMemo(() => {
     if (aa) {
-      const background = shouldHighlight ? getAminoacidColor(aa) : '#444444'
+      const background = shouldHighlight ? getAminoacidColor(aa) : '#d6d6d6'
       const color = getTextColor(theme, background)
       return { color, background }
     }
@@ -131,10 +133,17 @@ export interface PeptideContextNucleotideProps {
 }
 
 export function PeptideContextNucleotide({ nuc, shouldHighlight }: PeptideContextNucleotideProps) {
-  const color = useMemo(() => pastel(getNucleotideColor(nuc as Nucleotide)), [nuc])
+  const theme = useTheme()
+  const { color, background } = useMemo(() => {
+    const background = shouldHighlight
+      ? lighten(0.1)(desaturate(0.1)(getNucleotideColor(nuc as Nucleotide)))
+      : '#efefef'
+    const color = getTextColor(theme, background)
+    return { color, background }
+  }, [nuc, shouldHighlight, theme])
   return (
-    <TdNuc $color={color} $shouldHighlight={shouldHighlight}>
-      <NucleotideText $shouldHighlight={shouldHighlight}>{nuc}</NucleotideText>
+    <TdNuc $background={background} $color={color}>
+      <NucleotideText>{nuc}</NucleotideText>
     </TdNuc>
   )
 }
@@ -161,7 +170,7 @@ export function PeptideContextCodon({
 
     const refNucs = refTriplet.split('').map((nuc, i) => (
       // eslint-disable-next-line react/no-array-index-key
-      <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} />
+      <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} shouldHighlight={shouldHighlightNucs[i]} />
     ))
 
     const qryNucs = qryTriplet.split('').map((nuc, i) => (
@@ -227,8 +236,6 @@ export interface PeptideContextProps {
 export function PeptideContext({ group }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
-  console.log(group.changes)
-
   const { width, codonsBegin, ellipsis, codonsEnd } = useMemo(() => {
     const { changes } = group
 
@@ -241,7 +248,7 @@ export function PeptideContext({ group }: PeptideContextProps) {
       ellipsis = <PeptideContextEllipsis />
     }
 
-    const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
+    const width = (itemsBegin.length + itemsEnd.length + 2) * 60 + 60
     const codonsBegin = itemsBegin.map((change) => <PeptideContextCodon key={change.codon} change={change} />)
     const codonsEnd = itemsEnd.map((change) => <PeptideContextCodon key={change.codon} change={change} />)
 
