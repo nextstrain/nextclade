@@ -52,8 +52,6 @@ function PeptideMarkerMutationGroupUnmemoed({
   const { name, range, changes: changesWithContext } = group
   const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
 
-  console.log({ group })
-
   const cds = useRecoilValue(cdsAtom(name))
   const strand = cds?.strand
 
@@ -89,7 +87,6 @@ function PeptideMarkerMutationGroupUnmemoed({
   })
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + mutationsOnly.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
-  const width = mutationsOnly.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
   // position mutation group at 'center of group' - half the group width
   const x = ((range.begin + range.end) * pixelsPerAa - (range.end - range.begin) * pixelsPerAaAdjusted) / 2
 
@@ -104,7 +101,6 @@ function PeptideMarkerMutationGroupUnmemoed({
 
   return (
     <g id={id}>
-      <rect fill="#999a" x={x - 0.5} y={-10} width={width + 1} stroke="#aaaa" strokeWidth={0.5} height={32} />
       <svg x={x} y={-9.5} height={29} {...restProps}>
         <g onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
           {mutationsOnly.map((mut) => (
