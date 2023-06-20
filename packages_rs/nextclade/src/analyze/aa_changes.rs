@@ -470,7 +470,7 @@ fn find_aa_changes_for_cds(
             if codon == prev.codon + 2 {
               curr_group.push(AaChangeWithContext::new(
                 cds,
-                codon - 2,
+                codon - 1,
                 qry_seq,
                 ref_seq,
                 ref_tr,
