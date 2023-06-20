@@ -103,19 +103,20 @@ export const AminoacidPositionText = styled.pre`
 
 export interface PeptideContextAminoacidProps {
   aa?: Aminoacid
+  shouldHighlight?: boolean
 }
 
-export function PeptideContextAminoacid({ aa }: PeptideContextAminoacidProps) {
+export function PeptideContextAminoacid({ aa, shouldHighlight = true }: PeptideContextAminoacidProps) {
   const theme = useTheme()
 
   const { color, background } = useMemo(() => {
     if (aa) {
-      const background = getAminoacidColor(aa)
+      const background = shouldHighlight ? getAminoacidColor(aa) : '#444444'
       const color = getTextColor(theme, background)
       return { color, background }
     }
     return {}
-  }, [aa, theme])
+  }, [aa, shouldHighlight, theme])
 
   return (
     <TdAa colSpan={3} $color={color} $background={background}>
@@ -145,7 +146,7 @@ export interface PeptideContextCodonProps {
 export function PeptideContextCodon({
   change: { codon, nucPos, qryAa, refAa, qryTriplet, refTriplet },
 }: PeptideContextCodonProps) {
-  const { codonOneBased, nucBeginOneBased, refNucs, qryNucs } = useMemo(() => {
+  const { codonOneBased, nucBeginOneBased, qry, ref, refNucs, qryNucs } = useMemo(() => {
     const shouldHighlightNucs: boolean[] = safeZip(qryTriplet.split(''), refTriplet.split('')).map(
       ([ref, query]) => ref !== query,
     )
@@ -153,6 +154,10 @@ export function PeptideContextCodon({
     const codonOneBased = codon + 1
 
     const nucBeginOneBased = nucPos + 1
+
+    const shouldHighlightAa = qryAa !== refAa
+    const qry = <PeptideContextAminoacid aa={qryAa} shouldHighlight={shouldHighlightAa} />
+    const ref = <PeptideContextAminoacid aa={refAa} shouldHighlight={shouldHighlightAa} />
 
     const refNucs = refTriplet.split('').map((nuc, i) => (
       // eslint-disable-next-line react/no-array-index-key
@@ -164,8 +169,8 @@ export function PeptideContextCodon({
       <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} shouldHighlight={shouldHighlightNucs[i]} />
     ))
 
-    return { codonOneBased, nucBeginOneBased, refNucs, qryNucs }
-  }, [codon, nucPos, qryTriplet, refTriplet])
+    return { codonOneBased, nucBeginOneBased, qry, ref, refNucs, qryNucs }
+  }, [codon, nucPos, qryAa, qryTriplet, refAa, refTriplet])
 
   return (
     <td>
@@ -177,17 +182,13 @@ export function PeptideContextCodon({
             </TdNuc>
           </TrNuc>
 
-          <TrNuc>
-            <PeptideContextAminoacid aa={refAa} />
-          </TrNuc>
+          <TrNuc>{ref}</TrNuc>
 
           <TrNuc>{refNucs}</TrNuc>
 
           <TrNuc>{qryNucs}</TrNuc>
 
-          <TrNuc>
-            <PeptideContextAminoacid aa={qryAa} />
-          </TrNuc>
+          <TrNuc>{qry}</TrNuc>
 
           <TrNuc>
             <TdAxis colSpan={3}>

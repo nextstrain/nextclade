@@ -49,7 +49,10 @@ function PeptideMarkerMutationGroupUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { name, range, changes } = group
+  const { name, range, changes: changesWithContext } = group
+  const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
+
+  console.log({ group })
 
   const cds = useRecoilValue(cdsAtom(name))
   const strand = cds?.strand
@@ -82,19 +85,19 @@ function PeptideMarkerMutationGroupUnmemoed({
     index,
     seqName,
     name,
-    ...changes.map((change) => change.codon),
+    ...mutationsOnly.map((mut) => mut.codon),
   })
-  const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)
+  const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + mutationsOnly.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
-  const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
+  const width = mutationsOnly.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
   // position mutation group at 'center of group' - half the group width
   const x = ((range.begin + range.end) * pixelsPerAa - (range.end - range.begin) * pixelsPerAaAdjusted) / 2
 
-  let changesHead = changes
-  let changesTail: typeof changes = []
-  if (changes.length > 6) {
-    changesHead = changes.slice(0, 3)
-    changesTail = changes.slice(-3)
+  let changesHead = mutationsOnly
+  let changesTail: typeof mutationsOnly = []
+  if (mutationsOnly.length > 6) {
+    changesHead = mutationsOnly.slice(0, 3)
+    changesTail = mutationsOnly.slice(-3)
   }
 
   // const totalNucChanges = nucSubstitutions.length + nucDeletions.length
@@ -104,13 +107,8 @@ function PeptideMarkerMutationGroupUnmemoed({
       <rect fill="#999a" x={x - 0.5} y={-10} width={width + 1} stroke="#aaaa" strokeWidth={0.5} height={32} />
       <svg x={x} y={-9.5} height={29} {...restProps}>
         <g onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-          {changes.map((change) => (
-            <PeptideMarkerMutation
-              key={change.codon}
-              change={change}
-              parentGroup={group}
-              pixelsPerAa={pixelsPerAaAdjusted}
-            />
+          {mutationsOnly.map((mut) => (
+            <PeptideMarkerMutation key={mut.codon} change={mut} parentGroup={group} pixelsPerAa={pixelsPerAaAdjusted} />
           ))}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
@@ -127,7 +125,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                 <tr className="mb-2">
                   <td colSpan={2}>
-                    <h6>{t('Aminoacid changes ({{ n }})', { n: changes.length })}</h6>
+                    <h6>{t('Aminoacid changes ({{ n }})', { n: mutationsOnly.length })}</h6>
                   </td>
                 </tr>
 
