@@ -99,7 +99,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaUnsequencedRanges } = sequence
   const cdsLength = cdsCodonLength(cds)
   const pixelsPerAa = width / Math.round(cdsLength)
-  const groups = aaChangesGroups.filter((group) => group.gene === viewedGene)
+  const groups = aaChangesGroups.filter((group) => group.name === viewedGene)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
   const unsequencedRanges = aaUnsequencedRanges[viewedGene] ?? []
@@ -164,7 +164,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
         {groups.map((group) => {
           return (
             <PeptideMarkerMutationGroup
-              key={group.codonAaRange.begin}
+              key={group.range.begin}
               index={index}
               seqName={seqName}
               group={group}

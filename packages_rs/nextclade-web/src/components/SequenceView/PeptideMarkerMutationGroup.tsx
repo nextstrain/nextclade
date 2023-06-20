@@ -1,32 +1,31 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-import type { AminoacidChange, AminoacidChangesGroup } from 'src/types'
+import type { AaChangeWithContext, AaChangesGroup } from 'src/types'
 import { cdsAtom } from 'src/state/results.state'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
-import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
+import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { PeptideContext } from './PeptideContext'
 
 export interface PeptideMarkerMutationProps {
-  change: AminoacidChange
-  parentGroup: AminoacidChangesGroup
+  change: AaChangeWithContext
+  parentGroup: AaChangesGroup
   pixelsPerAa: number
 }
 
 export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...restProps }: PeptideMarkerMutationProps) {
-  const { codon, queryAA } = change
-  const { codonAaRange } = parentGroup
+  const { codon, qryAa } = change
+  const { range } = parentGroup
 
-  const pos = codon - codonAaRange.begin
+  const pos = codon - range.begin
   const x = pos * pixelsPerAa
-  const fill = getAminoacidColor(queryAA)
+  const fill = getAminoacidColor(qryAa)
 
   return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={pixelsPerAa} height="30" {...restProps} />
 }
@@ -34,7 +33,7 @@ export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...res
 export interface PeptideMarkerMutationGroupProps extends SVGProps<SVGSVGElement> {
   index: number
   seqName: string
-  group: AminoacidChangesGroup
+  group: AaChangesGroup
   pixelsPerAa: number
 }
 
@@ -50,9 +49,9 @@ function PeptideMarkerMutationGroupUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { gene: geneName, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
+  const { name, range, changes } = group
 
-  const cds = useRecoilValue(cdsAtom(geneName))
+  const cds = useRecoilValue(cdsAtom(name))
   const strand = cds?.strand
 
   const contextTitle = useMemo(() => {
@@ -79,15 +78,17 @@ function PeptideMarkerMutationGroupUnmemoed({
     return null
   }, [cds?.strand, t])
 
-  const id = getSafeId('aa-mutation-group-marker', { index, seqName, geneName, begin: codonAaRange.begin })
+  const id = getSafeId('aa-mutation-group-marker', {
+    index,
+    seqName,
+    name,
+    ...changes.map((change) => change.codon),
+  })
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
   const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
   // position mutation group at 'center of group' - half the group width
-  const x =
-    ((codonAaRange.begin + codonAaRange.end) * pixelsPerAa -
-      (codonAaRange.end - codonAaRange.begin) * pixelsPerAaAdjusted) /
-    2
+  const x = ((range.begin + range.end) * pixelsPerAa - (range.end - range.begin) * pixelsPerAaAdjusted) / 2
 
   let changesHead = changes
   let changesTail: typeof changes = []
@@ -96,7 +97,7 @@ function PeptideMarkerMutationGroupUnmemoed({
     changesTail = changes.slice(-3)
   }
 
-  const totalNucChanges = nucSubstitutions.length + nucDeletions.length
+  // const totalNucChanges = nucSubstitutions.length + nucDeletions.length
 
   return (
     <g id={id}>
@@ -132,7 +133,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                 {changesHead.map((change) => (
                   <tr key={change.codon}>
-                    <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                    <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
                     <td>
                       <AminoacidMutationBadge mutation={change} />
                     </td>
@@ -149,37 +150,37 @@ function PeptideMarkerMutationGroupUnmemoed({
                 {changesTail.length > 0 &&
                   changesTail.map((change) => (
                     <tr key={change.codon}>
-                      <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                      <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
                       <td>
                         <AminoacidMutationBadge mutation={change} />
                       </td>
                     </tr>
                   ))}
 
-                {totalNucChanges > 0 && (
-                  <tr>
-                    <td colSpan={2}>
-                      <h6 className="mt-3">{t('Nucleotide changes nearby ({{ n }})', { n: totalNucChanges })}</h6>
-                    </td>
-                  </tr>
-                )}
+                {/* {totalNucChanges > 0 && ( */}
+                {/*  <tr> */}
+                {/*    <td colSpan={2}> */}
+                {/*      <h6 className="mt-3">{t('Nucleotide changes nearby ({{ n }})', { n: totalNucChanges })}</h6> */}
+                {/*    </td> */}
+                {/*  </tr> */}
+                {/* )} */}
 
-                {nucSubstitutions.map((mut) => (
-                  <tr key={mut.pos}>
-                    <td>{t('Substitution')}</td>
-                    <td>{<NucleotideMutationBadge mutation={mut} />}</td>
-                  </tr>
-                ))}
+                {/* {nucSubstitutions.map((mut) => ( */}
+                {/*  <tr key={mut.pos}> */}
+                {/*    <td>{t('Substitution')}</td> */}
+                {/*    <td>{<NucleotideMutationBadge mutation={mut} />}</td> */}
+                {/*  </tr> */}
+                {/* ))} */}
 
-                {nucDeletions.map((del) => {
-                  const rangeStr = formatRange(del.range)
-                  return (
-                    <tr key={rangeStr}>
-                      <td>{t('Deletion')}</td>
-                      <td>{}</td>
-                    </tr>
-                  )
-                })}
+                {/* {nucDeletions.map((del) => { */}
+                {/*  const rangeStr = formatRange(del.range) */}
+                {/*  return ( */}
+                {/*    <tr key={rangeStr}> */}
+                {/*      <td>{t('Deletion')}</td> */}
+                {/*      <td>{}</td> */}
+                {/*    </tr> */}
+                {/*  ) */}
+                {/* })} */}
 
                 <tr>
                   <td colSpan={2}>
@@ -191,7 +192,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                     <Row noGutters>
                       <Col>
-                        <PeptideContext group={group} strand={strand} />
+                        <PeptideContext group={group} />
                       </Col>
                     </Row>
                   </td>

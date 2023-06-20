@@ -7,13 +7,14 @@ use crate::gene::cds::Cds;
 use crate::io::aa::{from_aa, Aa};
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
+use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map2::{cds_codon_pos_to_ref_pos, cds_codon_pos_to_ref_range};
+use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
 use either::Either;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
+use itertools::{Itertools, MinMaxResult};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -213,24 +214,66 @@ impl PartialOrd for AaChange {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct AaChangeWithContext {
+  pub cds_name: String,
   pub codon: AaRefPosition,
   pub ref_aa: Aa,
   pub qry_aa: Aa,
   pub nuc_pos: NucRefGlobalPosition,
+
+  #[schemars(with = "String")]
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ref_triplet: Vec<Nuc>,
+
+  #[schemars(with = "String")]
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
   pub qry_triplet: Vec<Nuc>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct AaChangeGroup {
+#[serde(rename_all = "camelCase")]
+pub struct AaChangesGroup {
+  name: String,
+  range: AaRefRange,
   changes: Vec<AaChangeWithContext>,
+}
+
+impl AaChangesGroup {
+  pub fn new(name: impl AsRef<str>) -> Self {
+    Self::with_changes(name, vec![])
+  }
+
+  pub fn with_changes(name: impl AsRef<str>, changes: Vec<AaChangeWithContext>) -> Self {
+    let range = match changes.iter().minmax_by_key(|change| change.codon) {
+      MinMaxResult::NoElements => AaRefRange::from_isize(0, 0),
+      MinMaxResult::OneElement(one) => AaRefRange::new(one.codon, one.codon + 1),
+      MinMaxResult::MinMax(first, last) => AaRefRange::new(first.codon, last.codon + 1),
+    };
+
+    Self {
+      name: name.as_ref().to_owned(),
+      range,
+      changes,
+    }
+  }
+
+  pub fn push(&mut self, change: AaChangeWithContext) {
+    self.range.end = change.codon + 1;
+    self.changes.push(change);
+  }
+
+  pub fn last(&self) -> Option<&AaChangeWithContext> {
+    self.changes.last()
+  }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FindAaChangesOutput {
-  pub aa_changes_groups: Vec<AaChangeGroup>,
+  pub aa_changes_groups: Vec<AaChangesGroup>,
   pub aa_substitutions: Vec<AaSub>,
   pub aa_deletions: Vec<AaDel>,
 }
@@ -268,6 +311,7 @@ pub fn find_aa_changes(
     .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
     .into_iter()
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
+      output.aa_changes_groups.extend(changes.aa_changes_groups);
       output.aa_substitutions.extend(changes.aa_substitutions);
       output.aa_deletions.extend(changes.aa_deletions);
       output
@@ -312,7 +356,7 @@ fn find_aa_changes_for_cds(
 
   let num_nucs = qry_seq.len();
   let num_codons = qry_peptide.len();
-  let mut aa_changes_groups = vec![AaChangeGroup { changes: vec![] }];
+  let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
   for codon in AaRefRange::from_usize(0, qry_peptide.len()).iter() {
     if !aa_alignment_ranges
@@ -376,6 +420,7 @@ fn find_aa_changes_for_cds(
       let qry_triplet = qry_seq[nuc_range.to_std()].to_vec();
 
       let change = AaChangeWithContext {
+        cds_name: cds.name.clone(),
         codon,
         ref_aa,
         qry_aa,
@@ -384,19 +429,19 @@ fn find_aa_changes_for_cds(
         qry_triplet,
       };
 
-      match curr_group.changes.last() {
+      match curr_group.last() {
         None => {
           // Current group is empty. This will be the first item for the first group.
-          curr_group.changes.push(change);
+          curr_group.push(change);
         }
         Some(prev) => {
           // Group is not empty
           if prev.codon + 1 == change.codon {
             // Previous codon in the group is adjacent. Append to the group.
-            curr_group.changes.push(change);
+            curr_group.push(change);
           } else {
             // Previous codon in the group is not adjacent. Start a new group.
-            aa_changes_groups.push(AaChangeGroup { changes: vec![change] });
+            aa_changes_groups.push(AaChangesGroup::with_changes(&cds.name, vec![change]));
             curr_group = aa_changes_groups.last_mut().unwrap();
           }
         }

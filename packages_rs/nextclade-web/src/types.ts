@@ -1,8 +1,6 @@
 import { isEqual, isNil, sumBy } from 'lodash'
 import type {
   Aa,
-  AaChange,
-  AaChangeGroup,
   AaDel,
   AaIns,
   AaSub,
@@ -54,8 +52,6 @@ export type NucleotideMissing = LetterRangeFor_NucAnd_Position // eslint-disable
 export type AminoacidSubstitution = AaSub
 export type AminoacidDeletion = AaDel
 export type AminoacidInsertion = AaIns
-export type AminoacidChange = AaChange
-export type AminoacidChangesGroup = AaChangeGroup
 // export type AaMotifDesc = AaMotif
 export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>

@@ -1,7 +1,6 @@
 use crate::align::insertions_strip::NucIns;
 use crate::align::params::AlignPairwiseParams;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
-use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::{find_aa_motifs_changes, AaMotifsMap};

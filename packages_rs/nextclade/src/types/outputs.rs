@@ -1,6 +1,6 @@
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
-use crate::analyze::aa_changes::AaChangeGroup;
+use crate::analyze::aa_changes::AaChangesGroup;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
@@ -75,7 +75,7 @@ pub struct NextcladeOutputs {
   pub total_aminoacid_insertions: usize,
   pub unknown_aa_ranges: Vec<GeneAaRange>,
   pub total_unknown_aa: usize,
-  pub aa_changes_groups: Vec<AaChangeGroup>,
+  pub aa_changes_groups: Vec<AaChangesGroup>,
   pub alignment_range: NucRefGlobalRange,
   pub alignment_score: i32,
   pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,

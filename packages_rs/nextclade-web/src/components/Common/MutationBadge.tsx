@@ -1,11 +1,9 @@
 import React from 'react'
 import { useRecoilValue } from 'recoil'
-import { get, isNil } from 'lodash'
+import { isNil } from 'lodash'
 import styled, { useTheme } from 'styled-components'
 import { shade } from 'polished'
-
-import { AMINOACID_GAP } from 'src/constants'
-import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSubstitution } from 'src/types'
+import type { Aa, NucleotideSubstitution } from 'src/types'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
@@ -94,20 +92,19 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
 }
 
 export interface AminoacidMutationBadgeProps {
-  mutation: AminoacidSubstitution | AminoacidDeletion
+  mutation: { cdsName: string; qryAa: Aa; refAa: Aa; codon: number }
 }
 
 export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps) {
   const theme = useTheme()
 
-  const { gene: geneName, refAA, codon } = mutation
-  const queryAA = get(mutation, 'queryAA', AMINOACID_GAP) as Aminoacid
-  const cds = useRecoilValue(cdsAtom(geneName))
+  const { cdsName, refAa, qryAa, codon } = mutation
+  const cds = useRecoilValue(cdsAtom(cdsName))
 
   const geneBg = cds?.color ?? '#999'
-  const refBg = getAminoacidColor(refAA)
+  const refBg = getAminoacidColor(refAa)
   const refFg = getTextColor(theme, refBg)
-  const queryBg = getAminoacidColor(queryAA)
+  const queryBg = getAminoacidColor(qryAa)
   const queryFg = getTextColor(theme, queryBg)
   const codonOneBased = codon + 1
 
@@ -115,15 +112,15 @@ export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps
     <MutationBadgeBox>
       <MutationWrapper>
         <GeneText $background={geneBg}>
-          {geneName}
+          {cdsName}
           <span>{':'}</span>
         </GeneText>
         <ColoredText $background={refBg} $color={refFg}>
-          {refAA}
+          {refAa}
         </ColoredText>
         <PositionText>{codonOneBased}</PositionText>
         <ColoredText $background={queryBg} $color={queryFg}>
-          {queryAA}
+          {qryAa}
         </ColoredText>
       </MutationWrapper>
     </MutationBadgeBox>
