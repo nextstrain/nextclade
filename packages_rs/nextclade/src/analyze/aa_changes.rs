@@ -13,7 +13,7 @@ use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
 use either::Either;
-use eyre::{Report, WrapErr};
+use eyre::Report;
 use itertools::{Itertools, MinMaxResult};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -316,26 +316,14 @@ pub fn find_aa_changes(
   qry_seq: &[Nuc],
   ref_translation: &Translation,
   qry_translation: &Translation,
-  global_alignment_range: &NucRefGlobalRange,
   gene_map: &GeneMap,
 ) -> Result<FindAaChangesOutput, Report> {
   let mut changes = qry_translation
     .iter_cdses()
     .map(|(qry_name, qry_cds_tr)| {
-      let ref_cds_tr = ref_translation
-        .get_cds(qry_name)
-        .wrap_err_with(|| format!("When searching for reference translation of CDS {qry_name}"))?;
-
+      let ref_cds_tr = ref_translation.get_cds(qry_name)?;
       let cds = gene_map.get_cds(&qry_cds_tr.name)?;
-
-      Ok(find_aa_changes_for_cds(
-        cds,
-        qry_seq,
-        ref_seq,
-        ref_cds_tr,
-        qry_cds_tr,
-        global_alignment_range,
-      ))
+      Ok(find_aa_changes_for_cds(cds, qry_seq, ref_seq, ref_cds_tr, qry_cds_tr))
     })
     .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
     .into_iter()
@@ -372,74 +360,20 @@ fn find_aa_changes_for_cds(
   ref_seq: &[Nuc],
   ref_tr: &CdsTranslation,
   qry_tr: &CdsTranslation,
-  global_alignment_range: &NucRefGlobalRange,
 ) -> FindAaChangesOutput {
-  let ref_peptide = &ref_tr.seq;
-  let qry_peptide = &qry_tr.seq;
-  let ref_cds_nucs = &ref_tr.nuc_seq;
-  let qry_cds_nucs = &qry_tr.nuc_seq;
-  let aa_alignment_ranges = &qry_tr.alignment_ranges;
-
-  assert_eq!(ref_peptide.len(), qry_peptide.len());
+  assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
-  let num_nucs = qry_seq.len();
-  let num_codons = qry_peptide.len();
+  let aa_alignment_ranges = &qry_tr.alignment_ranges;
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
-  for codon in AaRefRange::from_usize(0, qry_peptide.len()).iter() {
+  for codon in AaRefRange::from_usize(0, qry_tr.seq.len()).iter() {
     if !is_codon_sequenced(aa_alignment_ranges, codon) {
       continue;
     }
 
-    // let nuc_contexts = cds
-    //   .segments
-    //   .iter()
-    //   .filter_map(|segment| {
-    //     let codon = codon.as_isize();
-    //     // Find where the codon is in nucleotide sequences
-    //     let codon_begin = if segment.strand != GeneStrand::Reverse {
-    //       segment.range.begin.as_isize() + codon * 3
-    //     } else {
-    //       segment.range.end.as_isize() - (codon + 1) * 3
-    //     };
-    //     let codon_end = codon_begin + 3;
-    //
-    //     intersect_or_none(
-    //       global_alignment_range,
-    //       &NucRefGlobalRange::from_isize(codon_begin, codon_end),
-    //     )
-    //   })
-    //   .map(|codon_nuc_range| {
-    //     let NucRefGlobalRange { begin, end } = codon_nuc_range;
-    //
-    //     // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
-    //     let context_nuc_begin = clamp_min(begin - 3, 0.into());
-    //     let context_nuc_end = clamp_max(end + 3, num_nucs.into());
-    //     let context_nuc_range = NucRefGlobalRange::new(context_nuc_begin, context_nuc_end);
-    //
-    //     let mut ref_context = ref_seq[context_nuc_range.to_std()].to_owned();
-    //     let mut qry_context = qry_seq[context_nuc_range.to_std()].to_owned();
-    //
-    //     if cds.strand == GeneStrand::Reverse {
-    //       reverse_complement_in_place(&mut ref_context);
-    //       reverse_complement_in_place(&mut qry_context);
-    //     }
-    //
-    //     let ref_context = from_nuc_seq(&ref_context);
-    //     let qry_context = from_nuc_seq(&qry_context);
-    //
-    //     NucContext {
-    //       codon_nuc_range,
-    //       ref_context,
-    //       qry_context,
-    //       context_nuc_range,
-    //     }
-    //   })
-    //   .collect_vec();
-
-    let ref_aa = ref_peptide[codon.as_usize()];
-    let qry_aa = qry_peptide[codon.as_usize()];
+    let ref_aa = ref_tr.seq[codon.as_usize()];
+    let qry_aa = qry_tr.seq[codon.as_usize()];
     if is_aa_mutated_or_deleted(ref_aa, qry_aa) {
       match curr_group.last() {
         // If current group is empty, then we are about to insert the first codon into the first group.

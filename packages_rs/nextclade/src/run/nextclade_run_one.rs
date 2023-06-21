@@ -110,7 +110,6 @@ pub fn nextclade_run_one(
     &stripped.qry_seq,
     ref_peptides,
     &translation,
-    &alignment_range,
     gene_map,
   )?;
 
