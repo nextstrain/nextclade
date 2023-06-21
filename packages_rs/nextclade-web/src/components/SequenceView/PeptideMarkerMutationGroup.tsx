@@ -1,5 +1,6 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
+import styled from 'styled-components'
 import type { AaChangeWithContext, AaChangesGroup } from 'src/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
@@ -71,10 +72,23 @@ function PeptideMarkerMutationGroupUnmemoed({
     name,
     ...mutationsOnly.map((mut) => mut.pos),
   })
-  const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + mutationsOnly.length)
+
+  const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changesWithContext.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
+  const width = changesWithContext.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
+
   // position mutation group at 'center of group' - half the group width
   const x = ((range.begin + range.end) * pixelsPerAa - (range.end - range.begin) * pixelsPerAaAdjusted) / 2
+
+  const outline = useMemo(() => {
+    const width = (changesWithContext.length - 2) * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
+    // position mutation group at 'center of group' - half the group width
+    const x =
+      ((range.begin + 1 + range.end - 1) * pixelsPerAa - (range.end - 1 - (range.begin + 1)) * pixelsPerAaAdjusted) / 2
+
+    // return <rect fill="transparent" x={x} y={-10} width={width} stroke="black" strokeWidth={3} height={32} />
+    return <AaMutGroupOutline x={pixelsPerAaAdjusted} y={0.5} width={width} height={28} />
+  }, [mutationsOnly.length, pixelsPerAa, pixelsPerAaAdjusted, range.begin, range.end])
 
   let changesHead = mutationsOnly
   let changesTail: typeof mutationsOnly = []
@@ -92,6 +106,7 @@ function PeptideMarkerMutationGroupUnmemoed({
           {mutationsOnly.map((mut) => (
             <PeptideMarkerMutation key={mut.pos} change={mut} parentGroup={group} pixelsPerAa={pixelsPerAaAdjusted} />
           ))}
+          {outline}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
             <TableSlim borderless className="mb-1">
@@ -189,3 +204,13 @@ function PeptideMarkerMutationGroupUnmemoed({
 }
 
 export const PeptideMarkerMutationGroup = React.memo(PeptideMarkerMutationGroupUnmemoed)
+
+const AaMutGroupOutline = styled.rect`
+  fill: none;
+  stroke: transparent;
+  stroke-width: 0.5px;
+
+  &:hover {
+    stroke: ${(props) => props.theme.gray700};
+  }
+`
