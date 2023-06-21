@@ -11,7 +11,9 @@ use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::io::nuc::Nuc;
 use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::{AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
+use crate::utils::range::{
+  have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike,
+};
 use either::Either;
 use eyre::Report;
 use itertools::{Itertools, MinMaxResult};
@@ -266,6 +268,8 @@ pub struct AaChangesGroup {
   name: String,
   range: AaRefRange,
   changes: Vec<AaChangeWithContext>,
+  nuc_subs: Vec<NucSub>,
+  nuc_dels: Vec<NucDel>,
 }
 
 impl AaChangesGroup {
@@ -278,6 +282,8 @@ impl AaChangesGroup {
       name: name.as_ref().to_owned(),
       range: Self::find_codon_range(&changes),
       changes,
+      nuc_subs: vec![],
+      nuc_dels: vec![],
     }
   }
 
@@ -317,13 +323,17 @@ pub fn find_aa_changes(
   ref_translation: &Translation,
   qry_translation: &Translation,
   gene_map: &GeneMap,
+  nuc_subs: &[NucSub],
+  nuc_dels: &[NucDel],
 ) -> Result<FindAaChangesOutput, Report> {
   let mut changes = qry_translation
     .iter_cdses()
     .map(|(qry_name, qry_cds_tr)| {
       let ref_cds_tr = ref_translation.get_cds(qry_name)?;
       let cds = gene_map.get_cds(&qry_cds_tr.name)?;
-      Ok(find_aa_changes_for_cds(cds, qry_seq, ref_seq, ref_cds_tr, qry_cds_tr))
+      Ok(find_aa_changes_for_cds(
+        cds, qry_seq, ref_seq, ref_cds_tr, qry_cds_tr, nuc_subs, nuc_dels,
+      ))
     })
     .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
     .into_iter()
@@ -360,6 +370,8 @@ fn find_aa_changes_for_cds(
   ref_seq: &[Nuc],
   ref_tr: &CdsTranslation,
   qry_tr: &CdsTranslation,
+  nuc_subs: &[NucSub],
+  nuc_dels: &[NucDel],
 ) -> FindAaChangesOutput {
   assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
@@ -468,6 +480,26 @@ fn find_aa_changes_for_cds(
       ));
     }
   }
+
+  aa_changes_groups.iter_mut().for_each(|group| {
+    let ranges = group
+      .range
+      .iter()
+      .map(|codon| cds_codon_pos_to_ref_range(cds, codon))
+      .collect_vec();
+
+    group.nuc_subs = nuc_subs
+      .iter()
+      .filter(|nuc_sub| ranges.iter().any(|range| range.contains(nuc_sub.pos)))
+      .cloned()
+      .collect_vec();
+
+    group.nuc_dels = nuc_dels
+      .iter()
+      .filter(|nuc_del| ranges.iter().any(|range| have_intersection(range, nuc_del.range())))
+      .cloned()
+      .collect_vec();
+  });
 
   let (aa_substitutions, aa_deletions): (Vec<AaSub>, Vec<AaDel>) = aa_changes_groups
     .iter()

@@ -8,7 +8,8 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
-import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
+import { formatRange } from 'src/helpers/formatRange'
 import { PeptideContext } from './PeptideContext'
 
 export interface PeptideMarkerMutationProps {
@@ -47,7 +48,7 @@ function PeptideMarkerMutationGroupUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { name, range, changes: changesWithContext } = group
+  const { name, range, changes: changesWithContext, nucSubs, nucDels } = group
   const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
 
   const contextTitle = useMemo(() => t('Context'), [t])
@@ -85,7 +86,7 @@ function PeptideMarkerMutationGroupUnmemoed({
     changesTail = mutationsOnly.slice(-3)
   }
 
-  // const totalNucChanges = nucSubstitutions.length + nucDeletions.length
+  const totalNucChanges = nucSubs.length + nucDels.length
 
   return (
     <g id={id}>
@@ -139,30 +140,30 @@ function PeptideMarkerMutationGroupUnmemoed({
                     </tr>
                   ))}
 
-                {/* {totalNucChanges > 0 && ( */}
-                {/*  <tr> */}
-                {/*    <td colSpan={2}> */}
-                {/*      <h6 className="mt-3">{t('Nucleotide changes nearby ({{ n }})', { n: totalNucChanges })}</h6> */}
-                {/*    </td> */}
-                {/*  </tr> */}
-                {/* )} */}
+                {totalNucChanges > 0 && (
+                  <tr>
+                    <td colSpan={2}>
+                      <h6 className="mt-3">{t('Nucleotide changes nearby ({{ n }})', { n: totalNucChanges })}</h6>
+                    </td>
+                  </tr>
+                )}
 
-                {/* {nucSubstitutions.map((mut) => ( */}
-                {/*  <tr key={mut.pos}> */}
-                {/*    <td>{t('Substitution')}</td> */}
-                {/*    <td>{<NucleotideMutationBadge mutation={mut} />}</td> */}
-                {/*  </tr> */}
-                {/* ))} */}
+                {nucSubs.map((mut) => (
+                  <tr key={mut.pos}>
+                    <td>{t('Substitution')}</td>
+                    <td>{<NucleotideMutationBadge mutation={mut} />}</td>
+                  </tr>
+                ))}
 
-                {/* {nucDeletions.map((del) => { */}
-                {/*  const rangeStr = formatRange(del.range) */}
-                {/*  return ( */}
-                {/*    <tr key={rangeStr}> */}
-                {/*      <td>{t('Deletion')}</td> */}
-                {/*      <td>{}</td> */}
-                {/*    </tr> */}
-                {/*  ) */}
-                {/* })} */}
+                {nucDels.map((del) => {
+                  const rangeStr = formatRange(del.range)
+                  return (
+                    <tr key={rangeStr}>
+                      <td>{t('Deletion')}</td>
+                      <td>{}</td>
+                    </tr>
+                  )
+                })}
 
                 <tr>
                   <td colSpan={2}>

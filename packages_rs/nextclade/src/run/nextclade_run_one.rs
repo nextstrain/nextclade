@@ -111,6 +111,8 @@ pub fn nextclade_run_one(
     ref_peptides,
     &translation,
     gene_map,
+    &substitutions,
+    &deletions,
   )?;
 
   let total_aminoacid_substitutions = aa_substitutions.len();
