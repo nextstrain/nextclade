@@ -1,8 +1,6 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
 import type { AaChangeWithContext, AaChangesGroup } from 'src/types'
-import { cdsAtom } from 'src/state/results.state'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -52,32 +50,22 @@ function PeptideMarkerMutationGroupUnmemoed({
   const { name, range, changes: changesWithContext } = group
   const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
 
-  const cds = useRecoilValue(cdsAtom(name))
-  const strand = cds?.strand
+  const contextTitle = useMemo(() => t('Context'), [t])
 
-  const contextTitle = useMemo(() => {
-    if (strand === '-') {
-      return 'Context (reverse strand*)'
-    }
-    return 'Context'
-  }, [strand])
-
-  const footerNote = useMemo(() => {
-    if (cds?.strand === '-') {
-      return (
-        <Row noGutters>
-          <Col>
-            <p className="small">
-              {t('* - note that for reverse strands Nextclade chooses to display amino acid context')}
-              <br />
-              {t('in forward direction, and nucleotide context in reverse direction')}
-            </p>
-          </Col>
-        </Row>
-      )
-    }
-    return null
-  }, [cds?.strand, t])
+  const footerNote = useMemo(
+    () => (
+      <Row noGutters>
+        <Col>
+          <p className="small">
+            {t('Note that for reverse strands Nextclade chooses to display amino acid context')}
+            <br />
+            {t('in forward direction, and nucleotide context in reverse direction')}
+          </p>
+        </Col>
+      </Row>
+    ),
+    [t],
+  )
 
   const id = getSafeId('aa-mutation-group-marker', {
     index,
