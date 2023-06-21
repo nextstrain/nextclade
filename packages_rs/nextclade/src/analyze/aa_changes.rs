@@ -388,10 +388,7 @@ fn find_aa_changes_for_cds(
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
   for codon in AaRefRange::from_usize(0, qry_peptide.len()).iter() {
-    if !aa_alignment_ranges
-      .iter()
-      .any(|aa_alignment_range| aa_alignment_range.contains(codon))
-    {
+    if !is_codon_sequenced(aa_alignment_ranges, codon) {
       continue;
     }
 
@@ -443,11 +440,11 @@ fn find_aa_changes_for_cds(
 
     let ref_aa = ref_peptide[codon.as_usize()];
     let qry_aa = qry_peptide[codon.as_usize()];
-    if qry_aa != ref_aa && qry_aa != Aa::X {
+    if is_aa_mutated_or_deleted(ref_aa, qry_aa) {
       match curr_group.last() {
         // If current group is empty, then we are about to insert the first codon into the first group.
         None => {
-          if codon > 0 {
+          if codon > 0 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
             // Also prepend one codon to the left, for additional context, to start the group
             curr_group.push(AaChangeWithContext::new(
               cds,
@@ -469,7 +466,7 @@ fn find_aa_changes_for_cds(
           if codon <= prev.codon + 2 {
             // If previous codon in the group is not exactly adjacent, there is 1 item in between,
             // then cover the hole by inserting previous codon.
-            if codon == prev.codon + 2 {
+            if codon == prev.codon + 2 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
                 codon - 1,
@@ -486,7 +483,7 @@ fn find_aa_changes_for_cds(
           // If previous codon in the group is not adjacent, then terminate the current group and start a new group.
           else {
             // Add one codon to the right, for additional context, to finalize the current group
-            if (prev.codon + 1) < (qry_tr.seq.len() as isize) {
+            if is_codon_sequenced(aa_alignment_ranges, prev.codon + 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
                 prev.codon + 1,
@@ -500,7 +497,7 @@ fn find_aa_changes_for_cds(
             let mut new_group = AaChangesGroup::new(&cds.name);
 
             // Start a new group and push the current codon into it.
-            if codon > 0 {
+            if is_codon_sequenced(aa_alignment_ranges, codon - 1) {
               // Also prepend one codon to the left, for additional context, to start the new group.
               new_group.push(AaChangeWithContext::new(
                 cds,
@@ -526,7 +523,7 @@ fn find_aa_changes_for_cds(
 
   // Add one codon to the right, for additional context, to finalize the last group
   if let Some(last) = curr_group.last() {
-    if (last.codon + 1) < (qry_tr.seq.len() as isize) {
+    if is_codon_sequenced(aa_alignment_ranges, last.codon + 1) {
       curr_group.push(AaChangeWithContext::new(
         cds,
         last.codon + 1,
@@ -541,7 +538,7 @@ fn find_aa_changes_for_cds(
   let (aa_substitutions, aa_deletions): (Vec<AaSub>, Vec<AaDel>) = aa_changes_groups
     .iter()
     .flat_map(|aa_changes_group| &aa_changes_group.changes)
-    .filter(|change| change.qry_aa != change.ref_aa)
+    .filter(|change| is_aa_mutated_or_deleted(change.ref_aa, change.qry_aa))
     .partition_map(|change| {
       if change.qry_aa.is_gap() {
         Either::Right(AaDel {
@@ -568,4 +565,18 @@ fn find_aa_changes_for_cds(
     aa_substitutions,
     aa_deletions,
   }
+}
+
+/// Check whether a given pair if reference and query aminoacids constitute a mutation or deletion
+#[inline]
+fn is_aa_mutated_or_deleted(ref_aa: Aa, qry_aa: Aa) -> bool {
+  // NOTE: We chose to ignore mutations to `X`.
+  qry_aa != ref_aa && qry_aa != Aa::X
+}
+
+/// Check whether a given codon position corresponds to a sequenced aminoacid
+fn is_codon_sequenced(aa_alignment_ranges: &[AaRefRange], codon: AaRefPosition) -> bool {
+  aa_alignment_ranges
+    .iter()
+    .any(|aa_alignment_range| aa_alignment_range.contains(codon))
 }
