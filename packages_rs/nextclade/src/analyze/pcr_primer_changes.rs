@@ -49,5 +49,5 @@ fn should_report_primer_mutation(sub: &NucSub, primer: &PcrPrimer) -> bool {
   return !primer
     .non_acgts
     .iter()
-    .any(|non_acgt| non_acgt.pos == sub.pos && is_nuc_match(non_acgt.qry, sub.qry));
+    .any(|non_acgt| non_acgt.pos == sub.pos && is_nuc_match(non_acgt.qry, sub.qry_nuc));
 }

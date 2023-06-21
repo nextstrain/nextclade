@@ -1,6 +1,6 @@
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::nuc_del::NucDelMinimal;
+use crate::analyze::nuc_del::NucDel;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcRulesConfigPrivateMutations;
 use crate::qc::qc_run::{QcRule, QcStatus};
@@ -73,7 +73,7 @@ pub fn rule_private_mutations(
 /// form of ranges, private nucleotide deletions are listed
 /// individually. We compute the ranges for private deletions here.
 ///
-fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
+fn find_deletion_ranges(dels: &[NucDel]) -> Vec<NucRange> {
   if dels.is_empty() {
     return vec![];
   }

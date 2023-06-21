@@ -1,12 +1,14 @@
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
 use crate::analyze::aa_changes::AaChangesGroup;
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
-use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
+use crate::analyze::nuc_del::NucDelRange;
+use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
@@ -52,9 +54,9 @@ pub struct PhenotypeValue {
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
-  pub substitutions: Vec<NucSubFull>,
+  pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
-  pub deletions: Vec<NucDelFull>,
+  pub deletions: Vec<NucDelRange>,
   pub total_deletions: usize,
   pub insertions: Vec<Insertion<Nuc>>,
   pub total_insertions: usize,
@@ -67,9 +69,9 @@ pub struct NextcladeOutputs {
   pub nucleotide_composition: BTreeMap<Nuc, usize>,
   pub frame_shifts: Vec<FrameShift>,
   pub total_frame_shifts: usize,
-  pub aa_substitutions: Vec<AaSubFull>,
+  pub aa_substitutions: Vec<AaSub>,
   pub total_aminoacid_substitutions: usize,
-  pub aa_deletions: Vec<AaDelFull>,
+  pub aa_deletions: Vec<AaDel>,
   pub total_aminoacid_deletions: usize,
   pub aa_insertions: Vec<AaIns>,
   pub total_aminoacid_insertions: usize,

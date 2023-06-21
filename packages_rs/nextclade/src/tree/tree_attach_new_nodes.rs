@@ -1,8 +1,7 @@
-use crate::analyze::aa_del::AaDelMinimal;
-use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
@@ -160,7 +159,7 @@ fn convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations: &PrivateNuc
   let dels_as_subs = private_nuc_mutations
     .private_deletions
     .iter()
-    .map(NucDelMinimal::to_sub)
+    .map(NucSub::from)
     .collect_vec();
 
   let mut subs = concat_to_vec(&private_nuc_mutations.private_substitutions, &dels_as_subs);
@@ -173,11 +172,11 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
   let dels_as_subs = private_aa_mutations
     .private_deletions
     .iter()
-    .map(AaDelMinimal::to_sub)
+    .map(AaDel::to_sub)
     .collect_vec();
 
   let mut subs = concat_to_vec(&private_aa_mutations.private_substitutions, &dels_as_subs);
   subs.sort();
 
-  subs.iter().map(AaSubMinimal::to_string_without_gene).collect_vec()
+  subs.iter().map(AaSub::to_string_without_gene).collect_vec()
 }

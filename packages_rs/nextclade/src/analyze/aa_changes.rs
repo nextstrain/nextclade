@@ -1,219 +1,20 @@
-use crate::analyze::aa_del::AaDelMinimal;
-use crate::analyze::aa_sub::AaSubMinimal;
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
-use crate::analyze::nuc_del::NucDel;
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
+use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::gene::cds::Cds;
-use crate::io::aa::{from_aa, Aa};
+use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::io::nuc::Nuc;
 use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::{
-  have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike,
-};
+use crate::utils::range::{have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, PositionLike};
 use either::Either;
 use eyre::Report;
 use itertools::{Itertools, MinMaxResult};
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct NucContext {
-  pub codon_nuc_range: NucRefGlobalRange,
-  pub ref_context: String,
-  pub qry_context: String,
-  pub context_nuc_range: NucRefGlobalRange,
-}
-
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct AaContext {
-  pub ref_aa_context: String,
-  pub qry_aa_context: String,
-}
-
-/// Represents aminoacid substitution
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct AaSub {
-  pub gene: String,
-  #[serde(rename = "refAA")]
-  pub reff: Aa,
-
-  #[serde(rename = "codon")]
-  pub pos: AaRefPosition,
-
-  #[serde(rename = "queryAA")]
-  pub qry: Aa,
-
-  pub nuc_contexts: Vec<NucContext>,
-  pub aa_context: AaContext,
-}
-
-impl AaSub {
-  /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
-  pub fn is_del(&self) -> bool {
-    self.qry.is_gap()
-  }
-
-  pub const fn to_minimal(&self) -> AaSubMinimal {
-    AaSubMinimal {
-      reff: self.reff,
-      pos: self.pos,
-      qry: self.qry,
-    }
-  }
-}
-
-impl ToString for AaSub {
-  fn to_string(&self) -> String {
-    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
-    format!(
-      "{}:{}{}{}",
-      self.gene,
-      from_aa(self.reff),
-      self.pos + 1,
-      from_aa(self.qry)
-    )
-  }
-}
-
-/// Order amino acid substitutions by gene, position, then ref character, then query character
-impl Ord for AaSub {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (&self.gene, self.pos, self.reff, self.qry).cmp(&(&other.gene, other.pos, other.reff, other.qry))
-  }
-}
-
-impl PartialOrd for AaSub {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
-  }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct AaDel {
-  pub gene: String,
-  #[serde(rename = "refAA")]
-  pub reff: Aa,
-
-  #[serde(rename = "codon")]
-  pub pos: AaRefPosition,
-
-  pub nuc_contexts: Vec<NucContext>,
-  pub aa_context: AaContext,
-}
-
-impl AaDel {
-  pub const fn to_minimal(&self) -> AaDelMinimal {
-    AaDelMinimal {
-      reff: self.reff,
-      pos: self.pos,
-    }
-  }
-}
-
-impl ToString for AaDel {
-  fn to_string(&self) -> String {
-    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
-    format!("{}:{}{}-", self.gene, from_aa(self.reff), self.pos + 1,)
-  }
-}
-
-/// Order amino acid deletions by gene, position, then ref character, then query character
-impl Ord for AaDel {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (&self.gene, self.pos, self.reff).cmp(&(&other.gene, other.pos, other.reff))
-  }
-}
-
-impl PartialOrd for AaDel {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
-  }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub enum AaChangeType {
-  #[serde(rename = "substitution")]
-  Sub,
-
-  #[serde(rename = "deletion")]
-  Del,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct AaChange {
-  #[serde(rename = "type")]
-  pub change_type: AaChangeType,
-
-  pub gene: String,
-  #[serde(rename = "refAA")]
-  pub reff: Aa,
-
-  #[serde(rename = "codon")]
-  pub pos: AaRefPosition,
-
-  #[serde(rename = "queryAA")]
-  pub qry: Aa,
-
-  pub nuc_contexts: Vec<NucContext>,
-  pub aa_context: AaContext,
-
-  pub nuc_substitutions: Vec<NucSub>,
-  pub nuc_deletions: Vec<NucDel>,
-}
-
-impl From<AaSubFull> for AaChange {
-  fn from(sub: AaSubFull) -> Self {
-    Self {
-      change_type: AaChangeType::Sub,
-      gene: sub.sub.gene,
-      reff: sub.sub.reff,
-      pos: sub.sub.pos,
-      qry: sub.sub.qry,
-      nuc_contexts: sub.sub.nuc_contexts.clone(),
-      aa_context: sub.sub.aa_context.clone(),
-      nuc_substitutions: sub.nuc_substitutions,
-      nuc_deletions: sub.nuc_deletions,
-    }
-  }
-}
-
-impl From<AaDelFull> for AaChange {
-  fn from(del: AaDelFull) -> Self {
-    Self {
-      change_type: AaChangeType::Del,
-      gene: del.del.gene,
-      reff: del.del.reff,
-      pos: del.del.pos,
-      qry: Aa::Gap,
-      nuc_contexts: del.del.nuc_contexts.clone(),
-      aa_context: del.del.aa_context.clone(),
-      nuc_substitutions: del.nuc_substitutions,
-      nuc_deletions: del.nuc_deletions,
-    }
-  }
-}
-
-impl Ord for AaChange {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (&self.gene, self.pos, self.reff, self.qry).cmp(&(&other.gene, other.pos, other.reff, other.qry))
-  }
-}
-
-impl PartialOrd for AaChange {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
-  }
-}
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -269,7 +70,7 @@ pub struct AaChangesGroup {
   range: AaRefRange,
   changes: Vec<AaChangeWithContext>,
   nuc_subs: Vec<NucSub>,
-  nuc_dels: Vec<NucDel>,
+  nuc_dels: Vec<NucDelRange>,
 }
 
 impl AaChangesGroup {
@@ -324,7 +125,7 @@ pub fn find_aa_changes(
   qry_translation: &Translation,
   gene_map: &GeneMap,
   nuc_subs: &[NucSub],
-  nuc_dels: &[NucDel],
+  nuc_dels: &[NucDelRange],
 ) -> Result<FindAaChangesOutput, Report> {
   let mut changes = qry_translation
     .iter_cdses()
@@ -371,7 +172,7 @@ fn find_aa_changes_for_cds(
   ref_tr: &CdsTranslation,
   qry_tr: &CdsTranslation,
   nuc_subs: &[NucSub],
-  nuc_dels: &[NucDel],
+  nuc_dels: &[NucDelRange],
 ) -> FindAaChangesOutput {
   assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
@@ -508,20 +309,16 @@ fn find_aa_changes_for_cds(
     .partition_map(|change| {
       if change.qry_aa.is_gap() {
         Either::Right(AaDel {
-          gene: cds.name.clone(),
-          reff: change.ref_aa,
+          cds_name: cds.name.clone(),
+          ref_aa: change.ref_aa,
           pos: change.codon,
-          nuc_contexts: vec![],             // TODO: remove this
-          aa_context: AaContext::default(), // TODO: remove this
         })
       } else {
         Either::Left(AaSub {
-          gene: cds.name.clone(),
-          reff: change.ref_aa,
+          cds_name: cds.name.clone(),
+          ref_aa: change.ref_aa,
           pos: change.codon,
-          qry: change.qry_aa,
-          nuc_contexts: vec![],             // TODO: remove this
-          aa_context: AaContext::default(), // TODO: remove this
+          qry_aa: change.qry_aa,
         })
       }
     });

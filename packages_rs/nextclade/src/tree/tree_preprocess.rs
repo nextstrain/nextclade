@@ -1,4 +1,4 @@
-use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
@@ -100,10 +100,10 @@ fn map_nuc_muts(
 
         // If mutation reverts nucleotide back to what reference had, remove it from the map
         let ref_nuc = ref_seq[mutation.pos.as_usize()];
-        if ref_nuc == mutation.qry {
+        if ref_nuc == mutation.qry_nuc {
           nuc_muts.remove(&mutation.pos);
         } else {
-          nuc_muts.insert(mutation.pos, mutation.qry);
+          nuc_muts.insert(mutation.pos, mutation.qry_nuc);
         }
       }
       Ok(nuc_muts)
@@ -148,7 +148,7 @@ fn map_aa_muts_for_one_gene(
     None => Ok(aa_muts),
     Some(mutations) => {
       for mutation_str in mutations {
-        let mutation = AaSubMinimal::from_str(mutation_str)?;
+        let mutation = AaSub::from_str(mutation_str)?;
 
         if ref_peptide.len() < mutation.pos.as_usize() {
           return make_error!(
@@ -163,10 +163,10 @@ fn map_aa_muts_for_one_gene(
 
         // If mutation reverts amino acid back to what reference had, remove it from the map
         let ref_nuc = ref_peptide[mutation.pos.as_usize()];
-        if ref_nuc == mutation.qry {
+        if ref_nuc == mutation.qry_aa {
           aa_muts.remove(&mutation.pos);
         } else {
-          aa_muts.insert(mutation.pos, mutation.qry);
+          aa_muts.insert(mutation.pos, mutation.qry_aa);
         }
       }
       Ok(aa_muts)

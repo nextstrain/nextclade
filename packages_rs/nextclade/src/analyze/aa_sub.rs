@@ -1,3 +1,4 @@
+use crate::analyze::aa_del::AaDel;
 use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
@@ -7,37 +8,48 @@ use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-const AA_MUT_REGEX: &str = r"((?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))";
-
-/// Represents aminoacid substitution in a simple way (without gene name and surrounding context)
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct AaSubMinimal {
-  #[serde(rename = "refAA")]
-  pub reff: Aa,
-
-  #[serde(rename = "codon")]
+/// Represents aminoacid substitution
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AaSub {
+  pub cds_name: String,
   pub pos: AaRefPosition,
-
-  #[serde(rename = "queryAA")]
-  pub qry: Aa,
+  pub ref_aa: Aa,
+  pub qry_aa: Aa,
 }
 
-impl AaSubMinimal {
+impl AaSub {
   /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
   pub fn is_del(&self) -> bool {
-    self.qry.is_gap()
+    self.qry_aa.is_gap()
   }
 
   pub fn to_string_without_gene(&self) -> String {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    format!("{}{}{}", from_aa(self.reff), self.pos + 1, from_aa(self.qry))
+    format!("{}{}{}", from_aa(self.ref_aa), self.pos + 1, from_aa(self.qry_aa))
   }
 }
 
-impl FromStr for AaSubMinimal {
+impl Display for AaSub {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
+    write!(
+      f,
+      "{}:{}{}{}",
+      self.cds_name,
+      from_aa(self.ref_aa),
+      self.pos + 1,
+      from_aa(self.qry_aa)
+    )
+  }
+}
+
+const AA_MUT_REGEX: &str = r"((?P<cds>[A-Z-*]):(?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))";
+
+impl FromStr for AaSub {
   type Err = Report;
 
   /// Parses aminoacid substitution from string. Expects IUPAC notation commonly used in bioinformatics.
@@ -49,29 +61,38 @@ impl FromStr for AaSubMinimal {
     }
 
     if let Some(captures) = RE.captures(s) {
-      return match (captures.name("ref"), captures.name("pos"), captures.name("qry")) {
-        (Some(reff), Some(pos), Some(qry)) => {
-          let reff = Aa::from_string(reff.as_str())?;
+      return match (
+        captures.name("cds"),
+        captures.name("ref"),
+        captures.name("pos"),
+        captures.name("qry"),
+      ) {
+        (Some(cds_name), Some(reff), Some(pos), Some(qry)) => {
+          let cds_name = cds_name.as_str().to_owned();
+          let ref_aa = Aa::from_string(reff.as_str())?;
           let pos = parse_pos(pos.as_str())?.into();
-          let qry = Aa::from_string(qry.as_str())?;
-          Ok(Self { reff, pos, qry })
+          let qry_aa = Aa::from_string(qry.as_str())?;
+          Ok(Self {
+            cds_name,
+            pos,
+            ref_aa,
+            qry_aa,
+          })
         }
-        _ => make_error!("Unable to parse genotype: '{s}'"),
+        _ => make_error!("Unable to parse amino acid substitution: '{s}'"),
       };
     }
-    make_error!("Unable to parse genotype: '{s}'")
+    make_error!("Unable to parse amino acid substitution: '{s}'")
   }
 }
 
-/// Order substitutions by position, then ref character, then query character
-impl Ord for AaSubMinimal {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
-  }
-}
-
-impl PartialOrd for AaSubMinimal {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
+impl From<&AaDel> for AaSub {
+  fn from(del: &AaDel) -> Self {
+    Self {
+      cds_name: del.cds_name.clone(),
+      ref_aa: del.ref_aa,
+      pos: del.pos,
+      qry_aa: Aa::Gap,
+    }
   }
 }

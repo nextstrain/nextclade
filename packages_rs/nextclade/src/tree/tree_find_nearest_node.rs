@@ -89,7 +89,7 @@ fn tree_calculate_node_distance(
     let node_mut = node.tmp.substitutions.get(&qmut.pos);
     if let Some(node_mut) = node_mut {
       // position is also mutated in node
-      if qmut.qry == *node_mut {
+      if qmut.qry_nuc == *node_mut {
         shared_differences += 1; // the exact mutation is shared between node and seq
       } else {
         shared_sites += 1; // the same position is mutated, but the states are different
@@ -170,19 +170,19 @@ mod tests {
   fn simple_qry_nuc_subs() -> Vec<NucSub> {
     vec![
       NucSub {
-        reff: Nuc::A,
+        ref_nuc: Nuc::A,
         pos: 3.into(),
-        qry: Nuc::C,
+        qry_nuc: Nuc::C,
       },
       NucSub {
-        reff: Nuc::A,
+        ref_nuc: Nuc::A,
         pos: 7.into(),
-        qry: Nuc::C,
+        qry_nuc: Nuc::C,
       },
       NucSub {
-        reff: Nuc::A,
+        ref_nuc: Nuc::A,
         pos: 12.into(),
-        qry: Nuc::C,
+        qry_nuc: Nuc::C,
       },
     ]
   }

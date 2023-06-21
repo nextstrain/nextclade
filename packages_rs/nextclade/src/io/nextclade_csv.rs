@@ -1,9 +1,10 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
+use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
-use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::aa::from_aa_seq;
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
@@ -11,13 +12,12 @@ use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::CdsTranslation;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
 };
 use crate::utils::num::is_int;
-use crate::utils::range::{NucRefGlobalRange, Range};
+use crate::utils::range::NucRefGlobalRange;
 use crate::{make_error, o};
 use edit_distance::edit_distance;
 use eyre::Report;
@@ -635,8 +635,8 @@ impl NextcladeResultsCsvFileWriter {
 }
 
 #[inline]
-pub fn format_nuc_substitutions(substitutions: &[NucSubFull], delimiter: &str) -> String {
-  substitutions.iter().map(|sub| sub.sub.to_string()).join(delimiter)
+pub fn format_nuc_substitutions(substitutions: &[NucSub], delimiter: &str) -> String {
+  substitutions.iter().map(ToString::to_string).join(delimiter)
 }
 
 #[inline]
@@ -650,15 +650,15 @@ pub fn format_nuc_substitutions_labeled(substitutions: &[NucSubLabeled], delimit
     .iter()
     .map(|sub| {
       let labels = sub.labels.join("&");
-      let sub = sub.sub.to_string();
+      let sub = sub.substitution.to_string();
       format!("{sub}|{labels}")
     })
     .join(delimiter)
 }
 
 #[inline]
-pub fn format_nuc_deletions(deletions: &[NucDelFull], delimiter: &str) -> String {
-  deletions.iter().map(|del| del.del.range().to_string()).join(delimiter)
+pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> String {
+  deletions.iter().map(|del| del.range().to_string()).join(delimiter)
 }
 
 #[inline]
@@ -706,13 +706,13 @@ pub fn format_pcr_primer_changes(pcr_primer_changes: &[PcrPrimerChange], delimit
 }
 
 #[inline]
-pub fn format_aa_substitutions(substitutions: &[AaSubFull], delimiter: &str) -> String {
-  substitutions.iter().map(|sub| sub.sub.to_string()).join(delimiter)
+pub fn format_aa_substitutions(aa_subs: &[AaSub], delimiter: &str) -> String {
+  aa_subs.iter().map(ToString::to_string).join(delimiter)
 }
 
 #[inline]
-pub fn format_aa_deletions(substitutions: &[AaDelFull], delimiter: &str) -> String {
-  substitutions.iter().map(|del| del.del.to_string()).join(delimiter)
+pub fn format_aa_deletions(aa_dels: &[AaDel], delimiter: &str) -> String {
+  aa_dels.iter().map(ToString::to_string).join(delimiter)
 }
 
 #[inline]

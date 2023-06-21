@@ -1,4 +1,4 @@
-use crate::analyze::nuc_del::NucDel;
+use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -6,7 +6,7 @@ use crate::utils::range::NucRefGlobalRange;
 
 pub struct FindNucChangesOutput {
   pub substitutions: Vec<NucSub>,
-  pub deletions: Vec<NucDel>,
+  pub deletions: Vec<NucDelRange>,
   pub alignment_range: NucRefGlobalRange,
 }
 
@@ -22,7 +22,7 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
   let mut before_alignment = true;
 
   let mut substitutions = Vec::<NucSub>::new();
-  let mut deletions = Vec::<NucDel>::new();
+  let mut deletions = Vec::<NucDelRange>::new();
   let mut alignment_start: i64 = -1;
   let mut alignment_end: i64 = -1;
 
@@ -34,7 +34,7 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
         alignment_start = i as i64;
         before_alignment = false;
       } else if n_del > 0 {
-        deletions.push(NucDel::from_usize(del_pos as usize, (del_pos + n_del) as usize));
+        deletions.push(NucDelRange::from_usize(del_pos as usize, (del_pos + n_del) as usize));
         n_del = 0;
       }
       alignment_end = (i + 1) as i64;
@@ -43,9 +43,9 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
     let ref_nuc = ref_aln[i];
     if !d.is_gap() && (d != ref_nuc) && d.is_acgt() {
       substitutions.push(NucSub {
-        reff: ref_nuc,
+        ref_nuc,
         pos: i.into(),
-        qry: d,
+        qry_nuc: d,
       });
     } else if d.is_gap() && !before_alignment {
       if n_del == 0 {
