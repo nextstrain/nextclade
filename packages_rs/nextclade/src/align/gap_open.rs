@@ -89,7 +89,7 @@ mod tests {
             id: cds_index.to_string(),
             name: cds_index.to_string(),
             product: cds_index.to_string(),
-            strand: GeneStrand::Unknown,
+            strand: Forward,
             segments,
             proteins: vec![],
             exceptions: vec![],

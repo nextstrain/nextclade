@@ -6,7 +6,6 @@ use bio::io::gff::{GffType, Record as GffRecord, Writer as GffWriter};
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
@@ -251,8 +250,10 @@ impl GffCommonInfo {
     let id = get_one_of_attributes_optional(record, &["ID"]);
     let start = (*record.start() - 1) as usize; // Convert to 0-based indices
     let end = *record.end() as usize;
+
     let range = NucRefGlobalRange::new(start.into(), end.into());
 
+    // NOTE: assume 'forward' strand by default because 'unknown' does not make sense in this application
     let strand = record
       .strand()
       .map_or(GeneStrand::Forward, bio_types::strand::Strand::into);

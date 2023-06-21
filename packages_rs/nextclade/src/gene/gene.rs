@@ -16,8 +16,6 @@ pub enum GeneStrand {
   Forward,
   #[serde(rename = "-")]
   Reverse,
-  #[serde(rename = ".")]
-  Unknown,
 }
 
 impl Default for GeneStrand {
@@ -35,9 +33,9 @@ impl Display for GeneStrand {
 impl From<bio_types::strand::Strand> for GeneStrand {
   fn from(s: bio_types::strand::Strand) -> Self {
     match s {
-      bio_types::strand::Strand::Forward => Self::Forward,
+      // NOTE: assume 'forward' strand by default because 'unknown' does not make sense in this application
+      bio_types::strand::Strand::Forward | bio_types::strand::Strand::Unknown => Self::Forward,
       bio_types::strand::Strand::Reverse => Self::Reverse,
-      bio_types::strand::Strand::Unknown => Self::Unknown,
     }
   }
 }
@@ -102,7 +100,10 @@ impl Gene {
     let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
     let start = cds.segments.first().map(|seg| seg.range.begin).unwrap_or_default();
     let end = cds.segments.last().map(|seg| seg.range.end).unwrap_or_default();
-    let strand = cds.segments.first().map_or(GeneStrand::Unknown, |seg| seg.strand);
+
+    // NOTE: assume 'forward' strand by default because 'unknown' does not make sense in this application
+    let strand = cds.segments.first().map_or(GeneStrand::Forward, |seg| seg.strand);
+
     let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
     let exceptions = cds
       .segments

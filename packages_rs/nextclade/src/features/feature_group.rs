@@ -57,7 +57,7 @@ impl FeatureGroup {
       let strands = features.iter().map(|feature| &feature.strand).unique().collect_vec();
       match strands.as_slice() {
         &[strand] => *strand,
-        _ => GeneStrand::Unknown,
+        _ => GeneStrand::Forward,
       }
     };
 
