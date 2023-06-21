@@ -122,7 +122,6 @@ impl GeneTranslation {
 #[serde(rename_all = "camelCase")]
 pub struct CdsTranslation {
   pub name: String,
-  pub strand: GeneStrand,
 
   #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
@@ -298,7 +297,6 @@ pub fn translate_cds(
 
   Ok(CdsTranslation {
     name: cds.name.clone(),
-    strand: cds.strand,
     seq: stripped.qry_seq,
     nuc_seq: qry_cds_seq,
     insertions: stripped.insertions,

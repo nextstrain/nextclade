@@ -118,7 +118,6 @@ fn format_feature_group<W: Write>(
 ) -> Result<(), Report> {
   let FeatureGroup {
     feature_type,
-    strand,
     frame,
     features,
     parent_ids: _parent_ids,
@@ -137,12 +136,11 @@ fn format_feature_group<W: Write>(
     features => {
       let indent = "  ".repeat(depth);
       let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
-      let strand = strand;
       let frame = frame;
       let exceptions = exceptions.iter().chain(notes.iter()).join(", ");
 
       let formatted = format!(
-        "{indent}{name:max_name_len$} │ {strand:} │ {frame:} │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
+        "{indent}{name:max_name_len$} │   │ {frame:} │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
         "", "", "", ""
       )
       .style(style_for_feature_type(feature_type)?)

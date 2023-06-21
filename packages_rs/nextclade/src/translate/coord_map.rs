@@ -208,12 +208,12 @@ impl CoordMapGlobal {
         start: cds_aln_seq.len() as isize,
         len: range.len() as isize,
       });
-      cds_aln_seq.extend_from_slice(&seq_aln[range.to_std()]);
-    }
 
-    // Reverse strands should be reverse-complemented
-    if cds.strand == GeneStrand::Reverse {
-      reverse_complement_in_place(&mut cds_aln_seq);
+      let mut nucs = seq_aln[range.to_std()].to_vec();
+      if segment.strand == GeneStrand::Reverse {
+        reverse_complement_in_place(&mut nucs);
+      }
+      cds_aln_seq.extend_from_slice(&nucs);
     }
 
     (cds_aln_seq, CoordMapForCds::new(cds_to_aln_map))
@@ -420,16 +420,17 @@ impl CoordMapForCds {
 }
 
 pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-  let mut nucs = cds
+  let nucs = cds
     .segments
     .iter()
-    .flat_map(|cds_segment| seq[cds_segment.range.to_std()].iter().copied())
+    .flat_map(|cds_segment| {
+      let mut nucs = seq[cds_segment.range.to_std()].to_vec();
+      if cds_segment.strand == GeneStrand::Reverse {
+        reverse_complement_in_place(&mut nucs);
+      }
+      nucs
+    })
     .collect_vec();
-
-  // Reverse strands should be reverse-complemented
-  if cds.strand == GeneStrand::Reverse {
-    reverse_complement_in_place(&mut nucs);
-  }
 
   nucs
 }
@@ -449,7 +450,6 @@ mod coord_map_tests {
       id: "".to_owned(),
       name: "".to_owned(),
       product: "".to_owned(),
-      strand: GeneStrand::Forward,
       segments: segment_ranges
         .iter()
         .map(|(start, end)| CdsSegment {

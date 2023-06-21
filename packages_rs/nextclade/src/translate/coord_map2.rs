@@ -71,7 +71,6 @@ mod coord_map_tests {
       id: "".to_owned(),
       name: "".to_owned(),
       product: "".to_owned(),
-      strand: Forward,
       segments: segment_ranges
         .iter()
         .map(|(start, end, strand)| CdsSegment {

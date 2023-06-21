@@ -2,7 +2,6 @@ use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
-use crate::io::container::take_exactly_one;
 use crate::utils::range::NucRefGlobalRange;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
@@ -19,7 +18,6 @@ pub struct Cds {
   pub id: String,
   pub name: String,
   pub product: String,
-  pub strand: GeneStrand,
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
   pub exceptions: Vec<String>,
@@ -67,18 +65,6 @@ impl Cds {
       .iter()
       .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, &mut proteins))?;
 
-    let strand = {
-      let strands = segments.iter().map(|segment| segment.strand).unique().collect_vec();
-      take_exactly_one(&strands)
-        .wrap_err_with(|| {
-          eyre!(
-            "When deducing strand for CDS '{}' from strands of its segments",
-            feature_group.name
-          )
-        })
-        .cloned()
-    }?;
-
     let attributes: HashMap<String, Vec<String>> = {
       let mut attributes: HashMap<String, Vec<String>> = hashmap! {};
       for segment in &segments {
@@ -102,7 +88,6 @@ impl Cds {
       id: feature_group.id.clone(),
       name: feature_group.name.clone(),
       product: feature_group.product.clone(),
-      strand,
       segments,
       proteins,
       exceptions,
@@ -120,7 +105,6 @@ impl Cds {
       id: format!("protein-segment-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
       range: feature.range.clone(),
-      strand: feature.strand,
       frame: feature.frame,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
@@ -161,7 +145,6 @@ impl Cds {
       id: format!("cds-from-gene-{}", feature.id),
       name: feature.name.clone(),
       product: feature.product.clone(),
-      strand: feature.strand,
       segments,
       proteins: vec![protein],
       exceptions: feature.exceptions.clone(),

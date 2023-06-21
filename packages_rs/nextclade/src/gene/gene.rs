@@ -47,7 +47,6 @@ pub struct Gene {
   pub id: String,
   pub name: String,
   pub range: NucRefGlobalRange,
-  pub strand: GeneStrand,
   pub frame: i32,
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
@@ -82,7 +81,6 @@ impl Gene {
       id: feature.id.clone(),
       name: feature.name.clone(),
       range: feature.range.clone(),
-      strand: feature.strand,
       frame: feature.frame,
       cdses,
       exceptions: feature.exceptions.clone(),
@@ -100,10 +98,6 @@ impl Gene {
     let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
     let start = cds.segments.first().map(|seg| seg.range.begin).unwrap_or_default();
     let end = cds.segments.last().map(|seg| seg.range.end).unwrap_or_default();
-
-    // NOTE: assume 'forward' strand by default because 'unknown' does not make sense in this application
-    let strand = cds.segments.first().map_or(GeneStrand::Forward, |seg| seg.strand);
-
     let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
     let exceptions = cds
       .segments
@@ -117,7 +111,6 @@ impl Gene {
       id,
       name,
       range: NucRefGlobalRange::new(start, end),
-      strand,
       frame,
       cdses: vec![cds.clone()],
       exceptions,

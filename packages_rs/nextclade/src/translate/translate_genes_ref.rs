@@ -28,7 +28,6 @@ pub fn translate_genes_ref(
             cds.name.clone(),
             CdsTranslation {
               name: cds.name.clone(),
-              strand: cds.strand,
               seq: tr.seq,
               nuc_seq: nucs,
               insertions: vec![],

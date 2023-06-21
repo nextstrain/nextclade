@@ -1,6 +1,5 @@
 use crate::features::feature::Feature;
 use crate::features::feature_type::shorten_feature_type;
-use crate::gene::gene::GeneStrand;
 use crate::utils::range::{NucRefGlobalPosition, PositionLike};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -15,7 +14,6 @@ pub struct FeatureGroup {
   pub name: String,
   pub product: String,
   pub feature_type: String,
-  pub strand: GeneStrand,
   pub frame: i32,
   pub features: Vec<Feature>,
   pub parent_ids: Vec<String>,
@@ -52,14 +50,6 @@ impl FeatureGroup {
     let name = features.iter().map(|feature| &feature.name).unique().join("+");
     let product = features.iter().map(|feature| &feature.product).unique().join("+");
     let feature_type = features.iter().map(|feature| &feature.feature_type).unique().join("+");
-
-    let strand = {
-      let strands = features.iter().map(|feature| &feature.strand).unique().collect_vec();
-      match strands.as_slice() {
-        &[strand] => *strand,
-        _ => GeneStrand::Forward,
-      }
-    };
 
     let frame = {
       let frames = features.iter().map(|feature| &feature.frame).unique().collect_vec();
@@ -98,7 +88,6 @@ impl FeatureGroup {
       name,
       product,
       feature_type,
-      strand,
       frame,
       features: features.to_owned(),
       parent_ids,

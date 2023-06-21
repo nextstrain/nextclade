@@ -396,7 +396,6 @@ fn write_protein_segment<W: Write>(
 ) -> Result<(), Report> {
   let ProteinSegment {
     range,
-    strand,
     exceptions,
     ..
   } = protein_segment;
@@ -412,7 +411,7 @@ fn write_protein_segment<W: Write>(
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │ {strand:} │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │   │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("protein segment")?)
   )?;
 
