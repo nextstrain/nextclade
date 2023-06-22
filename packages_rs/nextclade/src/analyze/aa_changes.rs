@@ -309,7 +309,7 @@ fn find_aa_changes_for_cds(
     let ranges = group
       .range
       .iter()
-      .map(|codon| cds_codon_pos_to_ref_range(cds, codon))
+      .flat_map(|codon| cds_codon_pos_to_ref_range(cds, codon))
       .collect_vec();
 
     group.nuc_subs = nuc_subs
