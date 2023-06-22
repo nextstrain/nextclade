@@ -1,4 +1,4 @@
-import { isEqual, isNil, sumBy } from 'lodash'
+import { isEqual, isNil, range, sumBy } from 'lodash'
 import type {
   Aa,
   Cds,
@@ -73,6 +73,10 @@ export function cdsCodonLength(cds: Cds) {
 
 export function cdsSegmentNucLength(cdsSeg: CdsSegment) {
   return cdsSeg.range.end - cdsSeg.range.begin
+}
+
+export function iterRange(r: Range): number[] {
+  return range(r.begin, r.end)
 }
 
 export interface QCFilters {

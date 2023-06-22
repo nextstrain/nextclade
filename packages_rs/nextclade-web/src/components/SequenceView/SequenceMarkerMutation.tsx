@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
-import type { NucSub } from 'src/types'
+import type { AaSub, NucSub } from 'src/types'
 import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -13,11 +13,14 @@ import {
   SeqMarkerHeightState,
   seqMarkerMutationHeightStateAtom,
 } from 'src/state/seqViewSettings.state'
+import { get } from 'lodash'
+import { ListOfAaChangesFlatTruncated } from 'src/components/SequenceView/ListOfAaChangesFlatTruncated'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
   substitution: NucSub
+  nucToAaMuts: Record<string, AaSub[]>
   pixelsPerBase: number
 }
 
@@ -25,6 +28,7 @@ function SequenceMarkerMutationUnmemoed({
   index,
   seqName,
   substitution,
+  nucToAaMuts,
   pixelsPerBase,
   ...rest
 }: SequenceMarkerMutationProps) {
@@ -48,7 +52,7 @@ function SequenceMarkerMutationUnmemoed({
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = pos * pixelsPerBase - halfNuc
 
-  // const totalAaChanges = aaSubstitutions.length + aaDeletions.length
+  const aaChanges = get(nucToAaMuts, pos.toString(10)) ?? []
 
   return (
     <rect
@@ -78,43 +82,7 @@ function SequenceMarkerMutationUnmemoed({
               </td>
             </tr>
 
-            {/* {totalAaChanges > 0 && ( */}
-            {/*  <tr> */}
-            {/*    <td colSpan={2}> */}
-            {/*      <h6 className="mt-1">{t('Affected codons:')}</h6> */}
-            {/*    </td> */}
-            {/*  </tr> */}
-            {/* )} */}
-
-            {/* {aaSubstitutions.map((mut) => ( */}
-            {/*  <tr key={mut.pos}> */}
-            {/*    <td>{t('Aminoacid substitution')}</td> */}
-            {/*    <td> */}
-            {/*      <AminoacidMutationBadge mutation={mut} /> */}
-            {/*    </td> */}
-            {/*  </tr> */}
-            {/* ))} */}
-
-            {/* {aaDeletions.map((del) => ( */}
-            {/*  <tr key={del.nucContexts.map((nc) => nc.qryContext).join('-')}> */}
-            {/*    <td>{t('Aminoacid deletion')}</td> */}
-            {/*    <td> */}
-            {/*      <AminoacidMutationBadge mutation={del} /> */}
-            {/*    </td> */}
-            {/*  </tr> */}
-            {/* ))} */}
-
-            {/* <tr> */}
-            {/*   <td colSpan={2}> */}
-            {/*     {pcrPrimersChanged.length > 0 && ( */}
-            {/*       <Row noGutters className="mt-2"> */}
-            {/*         <Col> */}
-            {/*           <ListOfPcrPrimersChanged pcrPrimersChanged={pcrPrimersChanged} /> */}
-            {/*         </Col> */}
-            {/*       </Row> */}
-            {/*     )} */}
-            {/*   </td> */}
-            {/* </tr> */}
+            <ListOfAaChangesFlatTruncated aaChanges={aaChanges} maxRows={6} />
           </tbody>
         </TableSlim>
       </Tooltip>

@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
-
-import { NucDelRange, rangeLen } from 'src/types'
+import { get, sortBy, uniqBy } from 'lodash'
+import { AaSub, iterRange, NucDelRange, rangeLen } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
@@ -10,6 +10,7 @@ import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSeqMarkerDims, seqMarkerGapHeightStateAtom, SeqMarkerHeightState } from 'src/state/seqViewSettings.state'
+import { ListOfAaChangesFlatTruncated } from 'src/components/SequenceView/ListOfAaChangesFlatTruncated'
 
 const gapColor = getNucleotideColor(GAP)
 
@@ -17,10 +18,18 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
   deletion: NucDelRange
+  nucToAaMuts: Record<string, AaSub[]>
   pixelsPerBase: number
 }
 
-function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ...rest }: MissingViewProps) {
+function SequenceMarkerGapUnmemoed({
+  index,
+  seqName,
+  deletion,
+  nucToAaMuts,
+  pixelsPerBase,
+  ...rest
+}: MissingViewProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
@@ -30,7 +39,7 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
   const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerGapHeightState), [seqMarkerGapHeightState])
 
   const { range /* aaSubstitutions, aaDeletions */ } = deletion
-  const id = getSafeId('gap-marker', { index, seqName, ...deletion })
+  const id = getSafeId('gap-marker', { index, seqName, ...range })
 
   let width = rangeLen(range) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
@@ -39,11 +48,17 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
 
   const rangeStr = formatRange(range)
 
-  // const totalAaChanges = aaSubstitutions.length + aaDeletions.length
-
   if (seqMarkerGapHeightState === SeqMarkerHeightState.Off) {
     return null
   }
+
+  const aaChanges = uniqBy(
+    sortBy(
+      iterRange(range).flatMap((pos) => get(nucToAaMuts, pos.toString(10)) ?? []),
+      (mut) => mut.pos,
+    ),
+    (mut) => mut.pos,
+  )
 
   return (
     <rect
@@ -63,27 +78,15 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
           <tbody>
             <tr>
               <td colSpan={2}>
-                <h6>{t('Gap: {{range}}', { range: rangeStr })}</h6>
+                <h6>{t('Nucleotide deletion: {{range}}', { range: rangeStr })}</h6>
               </td>
             </tr>
 
-            {/* {totalAaChanges > 0 && ( */}
-            {/*  <tr> */}
-            {/*    <td colSpan={2}> */}
-            {/*      <h6 className="mt-1">{t('Affected codons:')}</h6> */}
-            {/*    </td> */}
-            {/*  </tr> */}
-            {/* )} */}
-
-            {/* <tr> */}
-            {/*  <td colSpan={2}> */}
-            {/*    <ListOfAaChangesFlatTruncated */}
-            {/*      aaSubstitutions={aaSubstitutions} */}
-            {/*      aaDeletions={aaDeletions} */}
-            {/*      maxRows={10} */}
-            {/*    /> */}
-            {/*  </td> */}
-            {/* </tr> */}
+            <tr>
+              <td colSpan={2}>
+                <ListOfAaChangesFlatTruncated aaChanges={aaChanges} maxRows={6} />
+              </td>
+            </tr>
           </tbody>
         </TableSlim>
       </Tooltip>

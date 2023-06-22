@@ -104,6 +104,7 @@ pub fn nextclade_run_one(
     aa_changes_groups,
     aa_substitutions,
     aa_deletions,
+    nuc_to_aa_muts,
   } = find_aa_changes(
     &stripped.ref_seq,
     &stripped.qry_seq,
@@ -252,6 +253,7 @@ pub fn nextclade_run_one(
       unknown_aa_ranges,
       total_unknown_aa,
       aa_changes_groups,
+      nuc_to_aa_muts,
       alignment_range,
       alignment_score,
       aa_alignment_ranges,

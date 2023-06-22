@@ -1,3 +1,4 @@
+use crate::analyze::aa_changes::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;
 use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
@@ -97,6 +98,17 @@ impl From<&AaDel> for AaSub {
       ref_aa: del.ref_aa,
       pos: del.pos,
       qry_aa: Aa::Gap,
+    }
+  }
+}
+
+impl From<&AaChangeWithContext> for AaSub {
+  fn from(change: &AaChangeWithContext) -> Self {
+    Self {
+      cds_name: change.cds_name.clone(),
+      pos: change.pos,
+      ref_aa: change.ref_aa,
+      qry_aa: change.qry_aa,
     }
   }
 }
