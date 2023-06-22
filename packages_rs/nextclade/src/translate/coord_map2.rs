@@ -13,7 +13,7 @@ pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPo
   let mut remaining_pos = pos;
   let mut segment_index = 0;
   let mut segment = &cds.segments[segment_index];
-  while remaining_pos >= segment.len() as isize {
+  while remaining_pos > segment.len() as isize {
     remaining_pos -= segment.len() as isize;
     segment_index += 1;
     segment = &cds.segments[segment_index];
