@@ -3,11 +3,13 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::gene::cds::Cds;
+use crate::gene::gene::GeneStrand;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::io::nuc::Nuc;
+use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::range::{have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, PositionLike};
@@ -47,16 +49,37 @@ impl AaChangeWithContext {
   ) -> Self {
     let ref_aa = ref_tr.seq[pos.as_usize()];
     let qry_aa = qry_tr.seq[pos.as_usize()];
-    let nuc_range = cds_codon_pos_to_ref_range(cds, pos).clamp_range(0, qry_seq.len());
-    let ref_triplet = ref_seq[nuc_range.to_std()].to_vec();
-    let qry_triplet = qry_seq[nuc_range.to_std()].to_vec();
+    let nuc_ranges = cds_codon_pos_to_ref_range(cds, pos);
+    let strand = cds.segments[0].strand;
+
+    let ref_triplet = nuc_ranges
+      .iter()
+      .flat_map(|range| {
+        let mut nucs = ref_seq[range.to_std()].to_vec();
+        if strand == GeneStrand::Reverse {
+          reverse_complement_in_place(&mut nucs);
+        }
+        nucs
+      })
+      .collect_vec();
+
+    let qry_triplet = nuc_ranges
+      .iter()
+      .flat_map(|range| {
+        let mut nucs = qry_seq[range.clamp_range(0, qry_seq.len()).to_std()].to_vec();
+        if strand == GeneStrand::Reverse {
+          reverse_complement_in_place(&mut nucs);
+        }
+        nucs
+      })
+      .collect_vec();
 
     Self {
       cds_name: cds.name.clone(),
       pos,
       ref_aa,
       qry_aa,
-      nuc_pos: nuc_range.begin,
+      nuc_pos: nuc_ranges[0].begin,
       ref_triplet,
       qry_triplet,
     }
