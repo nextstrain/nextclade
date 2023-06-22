@@ -394,11 +394,7 @@ fn write_protein_segment<W: Write>(
   max_name_len: usize,
   protein_segment: &ProteinSegment,
 ) -> Result<(), Report> {
-  let ProteinSegment {
-    range,
-    exceptions,
-    ..
-  } = protein_segment;
+  let ProteinSegment { range, exceptions, .. } = protein_segment;
 
   let indent_width = INDENT_WIDTH * 4;
   let indent = INDENT.repeat(indent_width);

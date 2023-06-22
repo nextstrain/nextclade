@@ -106,12 +106,7 @@ pub fn dataset_zip_load(
   )?;
 
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
-    || {
-      filter_gene_map(
-        Some(GeneMap::from_str(zip_read_str(&mut zip, "genemap.gff")?)?),
-        genes,
-      )
-    },
+    || filter_gene_map(Some(GeneMap::from_str(zip_read_str(&mut zip, "genemap.gff")?)?), genes),
     |input_gene_map| filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes),
   )?;
 
