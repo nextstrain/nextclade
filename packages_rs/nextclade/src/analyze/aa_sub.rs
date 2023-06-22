@@ -27,6 +27,10 @@ impl AaSub {
     self.qry_aa.is_gap()
   }
 
+  pub fn from_str_and_gene(mut_str: impl AsRef<str>, cds_name: impl AsRef<str>) -> Result<Self, Report> {
+    Self::from_str(&format!("{}:{}", cds_name.as_ref(), mut_str.as_ref()))
+  }
+
   pub fn to_string_without_gene(&self) -> String {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     format!("{}{}{}", from_aa(self.ref_aa), self.pos + 1, from_aa(self.qry_aa))
@@ -47,7 +51,7 @@ impl Display for AaSub {
   }
 }
 
-const AA_MUT_REGEX: &str = r"((?P<cds>[A-Z-*]):(?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))";
+const AA_MUT_REGEX: &str = r"((?P<cds>.*?):(?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))";
 
 impl FromStr for AaSub {
   type Err = Report;

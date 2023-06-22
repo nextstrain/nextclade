@@ -148,7 +148,7 @@ fn map_aa_muts_for_one_gene(
     None => Ok(aa_muts),
     Some(mutations) => {
       for mutation_str in mutations {
-        let mutation = AaSub::from_str(mutation_str)?;
+        let mutation = AaSub::from_str_and_gene(mutation_str, gene_name)?;
 
         if ref_peptide.len() < mutation.pos.as_usize() {
           return make_error!(
