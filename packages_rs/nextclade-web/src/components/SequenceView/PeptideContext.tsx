@@ -153,14 +153,14 @@ export interface PeptideContextCodonProps {
 }
 
 export function PeptideContextCodon({
-  change: { codon, nucPos, qryAa, refAa, qryTriplet, refTriplet },
+  change: { pos, nucPos, qryAa, refAa, qryTriplet, refTriplet },
 }: PeptideContextCodonProps) {
   const { codonOneBased, nucBeginOneBased, qry, ref, refNucs, qryNucs } = useMemo(() => {
     const shouldHighlightNucs: boolean[] = safeZip(qryTriplet.split(''), refTriplet.split('')).map(
       ([ref, query]) => ref !== query,
     )
 
-    const codonOneBased = codon + 1
+    const codonOneBased = pos + 1
 
     const nucBeginOneBased = nucPos + 1
 
@@ -179,7 +179,7 @@ export function PeptideContextCodon({
     ))
 
     return { codonOneBased, nucBeginOneBased, qry, ref, refNucs, qryNucs }
-  }, [codon, nucPos, qryAa, qryTriplet, refAa, refTriplet])
+  }, [pos, nucPos, qryAa, qryTriplet, refAa, refTriplet])
 
   return (
     <td>
@@ -249,8 +249,8 @@ export function PeptideContext({ group }: PeptideContextProps) {
     }
 
     const width = (itemsBegin.length + itemsEnd.length + 2) * 60 + 60
-    const codonsBegin = itemsBegin.map((change) => <PeptideContextCodon key={change.codon} change={change} />)
-    const codonsEnd = itemsEnd.map((change) => <PeptideContextCodon key={change.codon} change={change} />)
+    const codonsBegin = itemsBegin.map((change) => <PeptideContextCodon key={change.pos} change={change} />)
+    const codonsEnd = itemsEnd.map((change) => <PeptideContextCodon key={change.pos} change={change} />)
 
     return { width, codonsBegin, ellipsis, codonsEnd }
   }, [group])

@@ -1,8 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
-import type { NucDelFull } from 'src/types'
-import { rangeLen } from 'src/types'
+import { NucDelRange, rangeLen } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
@@ -11,14 +10,13 @@ import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSeqMarkerDims, seqMarkerGapHeightStateAtom, SeqMarkerHeightState } from 'src/state/seqViewSettings.state'
-import { ListOfAaChangesFlatTruncated } from 'src/components/SequenceView/ListOfAaChangesFlatTruncated'
 
 const gapColor = getNucleotideColor(GAP)
 
 export interface MissingViewProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
-  deletion: NucDelFull
+  deletion: NucDelRange
   pixelsPerBase: number
 }
 
@@ -31,7 +29,7 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
   const seqMarkerGapHeightState = useRecoilValue(seqMarkerGapHeightStateAtom)
   const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerGapHeightState), [seqMarkerGapHeightState])
 
-  const { range, aaSubstitutions, aaDeletions } = deletion
+  const { range /* aaSubstitutions, aaDeletions */ } = deletion
   const id = getSafeId('gap-marker', { index, seqName, ...deletion })
 
   let width = rangeLen(range) * pixelsPerBase
@@ -41,7 +39,7 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
 
   const rangeStr = formatRange(range)
 
-  const totalAaChanges = aaSubstitutions.length + aaDeletions.length
+  // const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 
   if (seqMarkerGapHeightState === SeqMarkerHeightState.Off) {
     return null
@@ -69,23 +67,23 @@ function SequenceMarkerGapUnmemoed({ index, seqName, deletion, pixelsPerBase, ..
               </td>
             </tr>
 
-            {totalAaChanges > 0 && (
-              <tr>
-                <td colSpan={2}>
-                  <h6 className="mt-1">{t('Affected codons:')}</h6>
-                </td>
-              </tr>
-            )}
+            {/* {totalAaChanges > 0 && ( */}
+            {/*  <tr> */}
+            {/*    <td colSpan={2}> */}
+            {/*      <h6 className="mt-1">{t('Affected codons:')}</h6> */}
+            {/*    </td> */}
+            {/*  </tr> */}
+            {/* )} */}
 
-            <tr>
-              <td colSpan={2}>
-                <ListOfAaChangesFlatTruncated
-                  aaSubstitutions={aaSubstitutions}
-                  aaDeletions={aaDeletions}
-                  maxRows={10}
-                />
-              </td>
-            </tr>
+            {/* <tr> */}
+            {/*  <td colSpan={2}> */}
+            {/*    <ListOfAaChangesFlatTruncated */}
+            {/*      aaSubstitutions={aaSubstitutions} */}
+            {/*      aaDeletions={aaDeletions} */}
+            {/*      maxRows={10} */}
+            {/*    /> */}
+            {/*  </td> */}
+            {/* </tr> */}
           </tbody>
         </TableSlim>
       </Tooltip>

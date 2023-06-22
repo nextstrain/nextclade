@@ -1,32 +1,27 @@
-import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucSub, StopCodonLocation } from 'src/types'
+import type { AaDel, AaSub, NucSub, StopCodonLocation } from 'src/types'
 import { AMINOACID_GAP } from 'src/constants'
+import { StrictOmit } from 'ts-essentials'
 
-export function formatMutation({ pos, queryNuc, refNuc }: NucSub) {
+export function formatMutation({ pos, qryNuc, refNuc }: NucSub) {
   // NOTE: by convention, nucleotides are numbered starting from 1, however our arrays are 0-based
   const positionOneBased = pos + 1
-  return `${refNuc}${positionOneBased}${queryNuc}`
+  return `${refNuc}${positionOneBased}${qryNuc}`
 }
 
-export interface FormatAAMutationWithoutGeneParams {
-  refAA: Aminoacid
-  queryAA: Aminoacid
-  codon: number
-}
-
-export function formatAAMutationWithoutGene({ refAA, codon, queryAA }: FormatAAMutationWithoutGeneParams) {
+export function formatAAMutationWithoutGene({ refAa, pos, qryAa }: StrictOmit<AaSub, 'cdsName'>) {
   // NOTE: by convention, codons are numbered starting from 1, however our arrays are 0-based
-  const codonOneBased = codon + 1
-  return `${refAA}${codonOneBased}${queryAA}`
+  const posOneBased = pos + 1
+  return `${refAa}${posOneBased}${qryAa}`
 }
 
-export function formatAAMutation({ gene, refAA, codon, queryAA }: AminoacidSubstitution) {
-  const notation = formatAAMutationWithoutGene({ refAA, codon, queryAA })
-  return `${gene}:${notation}`
+export function formatAAMutation({ cdsName, refAa, pos, qryAa }: AaSub) {
+  const notation = formatAAMutationWithoutGene({ refAa, pos, qryAa })
+  return `${cdsName}:${notation}`
 }
 
-export function formatAADeletion({ gene, refAA, codon }: AminoacidDeletion) {
-  const notation = formatAAMutationWithoutGene({ refAA, codon, queryAA: AMINOACID_GAP })
-  return `${gene}:${notation}`
+export function formatAADeletion({ cdsName, refAa, pos }: AaDel) {
+  const notation = formatAAMutationWithoutGene({ refAa, pos, qryAa: AMINOACID_GAP })
+  return `${cdsName}:${notation}`
 }
 
 export function formatStopCodon({ geneName, codon }: StopCodonLocation) {

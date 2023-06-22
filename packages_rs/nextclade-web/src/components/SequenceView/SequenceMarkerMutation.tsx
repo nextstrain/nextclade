@@ -1,11 +1,10 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
-import type { NucSubFull } from 'src/types'
-import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
+import type { NucSub } from 'src/types'
+import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
-
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -18,7 +17,7 @@ import {
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
-  substitution: NucSubFull
+  substitution: NucSub
   pixelsPerBase: number
 }
 
@@ -41,15 +40,15 @@ function SequenceMarkerMutationUnmemoed({
     return null
   }
 
-  const { pos, queryNuc, aaSubstitutions, aaDeletions } = substitution
+  const { pos, qryNuc /* , aaSubstitutions, aaDeletions */ } = substitution
   const id = getSafeId('mutation-marker', { index, seqName, ...substitution })
 
-  const fill = getNucleotideColor(queryNuc)
+  const fill = getNucleotideColor(qryNuc)
   const width = Math.max(BASE_MIN_WIDTH_PX, pixelsPerBase)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = pos * pixelsPerBase - halfNuc
 
-  const totalAaChanges = aaSubstitutions.length + aaDeletions.length
+  // const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 
   return (
     <rect
@@ -79,31 +78,31 @@ function SequenceMarkerMutationUnmemoed({
               </td>
             </tr>
 
-            {totalAaChanges > 0 && (
-              <tr>
-                <td colSpan={2}>
-                  <h6 className="mt-1">{t('Affected codons:')}</h6>
-                </td>
-              </tr>
-            )}
+            {/* {totalAaChanges > 0 && ( */}
+            {/*  <tr> */}
+            {/*    <td colSpan={2}> */}
+            {/*      <h6 className="mt-1">{t('Affected codons:')}</h6> */}
+            {/*    </td> */}
+            {/*  </tr> */}
+            {/* )} */}
 
-            {aaSubstitutions.map((mut) => (
-              <tr key={mut.codon}>
-                <td>{t('Aminoacid substitution')}</td>
-                <td>
-                  <AminoacidMutationBadge mutation={mut} />
-                </td>
-              </tr>
-            ))}
+            {/* {aaSubstitutions.map((mut) => ( */}
+            {/*  <tr key={mut.pos}> */}
+            {/*    <td>{t('Aminoacid substitution')}</td> */}
+            {/*    <td> */}
+            {/*      <AminoacidMutationBadge mutation={mut} /> */}
+            {/*    </td> */}
+            {/*  </tr> */}
+            {/* ))} */}
 
-            {aaDeletions.map((del) => (
-              <tr key={del.nucContexts.map((nc) => nc.qryContext).join('-')}>
-                <td>{t('Aminoacid deletion')}</td>
-                <td>
-                  <AminoacidMutationBadge mutation={del} />
-                </td>
-              </tr>
-            ))}
+            {/* {aaDeletions.map((del) => ( */}
+            {/*  <tr key={del.nucContexts.map((nc) => nc.qryContext).join('-')}> */}
+            {/*    <td>{t('Aminoacid deletion')}</td> */}
+            {/*    <td> */}
+            {/*      <AminoacidMutationBadge mutation={del} /> */}
+            {/*    </td> */}
+            {/*  </tr> */}
+            {/* ))} */}
 
             {/* <tr> */}
             {/*   <td colSpan={2}> */}

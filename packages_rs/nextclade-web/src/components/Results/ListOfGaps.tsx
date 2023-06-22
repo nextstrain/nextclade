@@ -1,17 +1,14 @@
 import React, { useMemo } from 'react'
-
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
-import type { DeepReadonly } from 'ts-essentials'
-
+import type { NucDelRange } from 'src/types'
 import { formatRange } from 'src/helpers/formatRange'
-import type { NucleotideDeletion } from 'src/types'
 import { truncateList } from 'src/components/Results/truncateList'
 import { Li, Ul } from 'src/components/Common/List'
 
 const LIST_OF_GAPS_MAX_ITEMS = 10 as const
 
 export interface ListOfGapsProps {
-  readonly deletions: DeepReadonly<NucleotideDeletion[]>
+  readonly deletions: NucDelRange[]
 }
 
 export function ListOfGaps({ deletions }: ListOfGapsProps) {

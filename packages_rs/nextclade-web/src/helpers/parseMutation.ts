@@ -1,4 +1,4 @@
-import type { Nucleotide, NucleotideSubstitution } from 'src/types'
+import type { Nucleotide, NucSub } from 'src/types'
 import { ANY } from 'src/constants'
 import { parsePosition } from './parsePosition'
 
@@ -9,7 +9,7 @@ export function parseNucleotide(raw: string | undefined | null) {
   return raw.toUpperCase() as Nucleotide
 }
 
-export function parseMutation(formatted: string): Partial<NucleotideSubstitution> | undefined {
+export function parseMutation(formatted: string): Partial<NucSub> | undefined {
   const match = /^(?<refNuc>[.a-z-]{0,1})(?<pos>(\d)*)(?<queryNuc>[.a-z-]{0,1})$/i.exec(formatted)
 
   if (!match?.groups) {

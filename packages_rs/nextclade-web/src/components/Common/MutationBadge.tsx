@@ -3,7 +3,7 @@ import { useRecoilValue } from 'recoil'
 import { isNil } from 'lodash'
 import styled, { useTheme } from 'styled-components'
 import { shade } from 'polished'
-import type { Aa, NucleotideSubstitution } from 'src/types'
+import type { AaSub, NucSub } from 'src/types'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
@@ -59,16 +59,16 @@ export const VersionText = styled.span`
 `
 
 export interface NucleotideMutationBadgeProps {
-  mutation: NucleotideSubstitution
+  mutation: NucSub
 }
 
 export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgeProps) {
   const theme = useTheme()
-  const { refNuc, pos, queryNuc } = mutation
+  const { refNuc, pos, qryNuc } = mutation
 
   const refBg = shade(0.25)(getNucleotideColor(refNuc))
   const refFg = getTextColor(theme, refBg)
-  const queryBg = shade(0.25)(getNucleotideColor(queryNuc))
+  const queryBg = shade(0.25)(getNucleotideColor(qryNuc))
   const queryFg = getTextColor(theme, queryBg)
   const posOneBased = pos + 1
 
@@ -81,9 +81,9 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
           </ColoredText>
         )}
         {!isNil(pos) && <PositionText>{posOneBased}</PositionText>}
-        {!isNil(queryNuc) && (
+        {!isNil(qryNuc) && (
           <ColoredText $background={queryBg} $color={queryFg}>
-            {queryNuc}
+            {qryNuc}
           </ColoredText>
         )}
       </MutationWrapper>
@@ -92,13 +92,13 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
 }
 
 export interface AminoacidMutationBadgeProps {
-  mutation: { cdsName: string; qryAa: Aa; refAa: Aa; codon: number }
+  mutation: AaSub
 }
 
 export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps) {
   const theme = useTheme()
 
-  const { cdsName, refAa, qryAa, codon } = mutation
+  const { cdsName, refAa, qryAa, pos } = mutation
   const cds = useRecoilValue(cdsAtom(cdsName))
 
   const geneBg = cds?.color ?? '#999'
@@ -106,7 +106,7 @@ export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps
   const refFg = getTextColor(theme, refBg)
   const queryBg = getAminoacidColor(qryAa)
   const queryFg = getTextColor(theme, queryBg)
-  const codonOneBased = codon + 1
+  const codonOneBased = pos + 1
 
   return (
     <MutationBadgeBox>

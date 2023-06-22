@@ -1,9 +1,6 @@
 import { isEqual, isNil, sumBy } from 'lodash'
 import type {
   Aa,
-  AaDel,
-  AaIns,
-  AaSub,
   Cds,
   CdsSegment,
   Dataset,
@@ -17,9 +14,7 @@ import type {
   NextcladeErrorOutputs,
   NextcladeOutputs,
   Nuc,
-  NucDel,
   NucSub,
-  NucSubFull,
   NucSubLabeled,
   PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
@@ -40,58 +35,32 @@ export type Aminoacid = Aa
 export type NucleotideRange = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
 export type AminoacidRange = LetterRangeFor_AaAnd_Position // eslint-disable-line camelcase
 export type AnalysisResult = NextcladeOutputs
-export type PrivateMutations = PrivateNucMutations
-export type NucleotideSubstitutionSimple = NucSub
-export type NucleotideSubstitutionSimpleLabeled = NucSubLabeled
-export type NucleotideSubstitution = NucSub
-export type NucleotideDeletion = NucDel
-// export type NucleotideDeletionSimple = NucDelMinimal
-// export type NucleotideDeletionSimpleLabeled = NucDelFull
 export type NucleotideInsertion = InsertionFor_Nuc // eslint-disable-line camelcase
 export type NucleotideMissing = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
-export type AminoacidSubstitution = AaSub
-export type AminoacidDeletion = AaDel
-export type AminoacidInsertion = AaIns
-// export type AaMotifDesc = AaMotif
 export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
 export type DatasetTag = DatasetTagJson
 export type DatasetFiles = DatasetFileUrls
 
-export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucSubFull {
-  return {
-    refNuc,
-    pos,
-    queryNuc,
-    aaDeletions: [],
-    aaSubstitutions: [],
-  }
-}
-
 export interface PrivateMutationsInternal {
-  reversions: NucleotideSubstitution[]
-  labeled: NucleotideSubstitutionSimpleLabeled[]
-  unlabeled: NucleotideSubstitution[]
+  reversionSubstitutions: NucSub[]
+  labeledSubstitutions: NucSubLabeled[]
+  unlabeledSubstitutions: NucSub[]
   totalMutations: number
 }
 
-export function convertPrivateMutations(privateNucMutations: PrivateMutations): PrivateMutationsInternal {
+export function convertPrivateMutations(privateNucMutations: PrivateNucMutations): PrivateMutationsInternal {
   const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
 
-  // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
-  // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
-  const reversions = reversionSubstitutions.map(convertSimpleSubToSub)
+  const totalMutations = reversionSubstitutions.length + labeledSubstitutions.length + unlabeledSubstitutions.length
 
-  const labeled = labeledSubstitutions
-
-  // NOTE: we ignore unlabeled deletions. There are too many of them
-  // TODO: consider converting deletions to ranges, as in the "Gap" column.
-  const unlabeled = unlabeledSubstitutions.map(convertSimpleSubToSub)
-
-  const totalMutations = reversions.length + labeled.length + unlabeled.length
-
-  return { reversions, labeled, unlabeled, totalMutations }
+  return {
+    reversionSubstitutions,
+    labeledSubstitutions,
+    unlabeledSubstitutions,
+    totalMutations,
+  }
 }
 
 export function cdsNucLength(cds: Cds) {

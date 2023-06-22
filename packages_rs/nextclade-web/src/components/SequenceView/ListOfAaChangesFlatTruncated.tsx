@@ -1,13 +1,13 @@
 import React from 'react'
 
-import { AminoacidDeletion, AminoacidSubstitution } from 'src/types'
+import { AaDel, AaSub } from 'src/types'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface ListOfMutationsTruncatedProps {
-  aaSubstitutions: AminoacidSubstitution[]
-  aaDeletions: AminoacidDeletion[]
+  aaSubstitutions: AaSub[]
+  aaDeletions: AaDel[]
   maxRows?: number
 }
 
@@ -18,8 +18,8 @@ export function ListOfAaChangesFlatTruncated({
 }: ListOfMutationsTruncatedProps) {
   const { t } = useTranslationSafe()
 
-  const subs = aaSubstitutions.map((sub) => ({ ...sub, type: 'substitution' }))
-  const dels = aaDeletions.map((del) => ({ ...del, type: 'deletion' }))
+  const subs: AaSub[] = aaSubstitutions.map((sub) => ({ ...sub }))
+  const dels: AaSub[] = aaDeletions.map((del) => ({ ...del, qryAa: '-' }))
   const changes = [...subs, ...dels]
 
   let changesHead = changes
@@ -40,8 +40,8 @@ export function ListOfAaChangesFlatTruncated({
         </tr>
 
         {changesHead.map((change) => (
-          <tr key={change.codon}>
-            <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+          <tr key={change.pos}>
+            <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
             <td>
               <AminoacidMutationBadge mutation={change} />
             </td>
@@ -57,8 +57,8 @@ export function ListOfAaChangesFlatTruncated({
 
         {changesTail.length > 0 &&
           changesTail.map((change) => (
-            <tr key={change.codon}>
-              <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+            <tr key={change.pos}>
+              <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
               <td>
                 <AminoacidMutationBadge mutation={change} />
               </td>

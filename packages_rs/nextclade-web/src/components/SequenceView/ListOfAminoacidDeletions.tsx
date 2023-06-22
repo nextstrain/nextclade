@@ -2,17 +2,17 @@ import React from 'react'
 import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
 
-import type { AminoacidDeletion } from 'src/types'
+import type { AaDel, AaSub } from 'src/types'
 import { formatAADeletion } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { geneOrderPreferenceAtom } from 'src/state/dataset.state'
-import { sortByGenes } from './sortByGenes'
+import { sortByCdsName } from './sortByCdsName'
 
 export interface ListOfAminoacidDeletionsProps {
-  aminoacidDeletions: AminoacidDeletion[]
+  aminoacidDeletions: AaDel[]
 }
 
 export function ListOfAminoacidDeletions({ aminoacidDeletions }: ListOfAminoacidDeletionsProps) {
@@ -22,7 +22,13 @@ export function ListOfAminoacidDeletions({ aminoacidDeletions }: ListOfAminoacid
 
   const totalDeletions = aminoacidDeletions.length
   const maxRows = 6
-  const deletionsSelected = copy(aminoacidDeletions).sort(sortByGenes(geneOrderPreference)).slice(0, 90)
+  const deletionsSelected: AaSub[] = copy(aminoacidDeletions)
+    .sort(sortByCdsName(geneOrderPreference))
+    .slice(0, 90)
+    .map((del) => ({
+      ...del,
+      qryAa: '-',
+    }))
 
   const columns = splitToRows(deletionsSelected, { maxRows })
 

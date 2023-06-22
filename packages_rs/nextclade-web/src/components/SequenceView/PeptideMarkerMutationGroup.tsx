@@ -19,13 +19,10 @@ export interface PeptideMarkerMutationProps {
 }
 
 export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...restProps }: PeptideMarkerMutationProps) {
-  const { codon, qryAa } = change
+  const { pos, qryAa } = change
   const { range } = parentGroup
-
-  const pos = codon - range.begin
-  const x = pos * pixelsPerAa
+  const x = (pos - range.begin) * pixelsPerAa
   const fill = getAminoacidColor(qryAa)
-
   return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={pixelsPerAa} height="30" {...restProps} />
 }
 
@@ -72,7 +69,7 @@ function PeptideMarkerMutationGroupUnmemoed({
     index,
     seqName,
     name,
-    ...mutationsOnly.map((mut) => mut.codon),
+    ...mutationsOnly.map((mut) => mut.pos),
   })
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + mutationsOnly.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
@@ -93,7 +90,7 @@ function PeptideMarkerMutationGroupUnmemoed({
       <svg x={x} y={-9.5} height={29} {...restProps}>
         <g onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
           {mutationsOnly.map((mut) => (
-            <PeptideMarkerMutation key={mut.codon} change={mut} parentGroup={group} pixelsPerAa={pixelsPerAaAdjusted} />
+            <PeptideMarkerMutation key={mut.pos} change={mut} parentGroup={group} pixelsPerAa={pixelsPerAaAdjusted} />
           ))}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
@@ -115,7 +112,7 @@ function PeptideMarkerMutationGroupUnmemoed({
                 </tr>
 
                 {changesHead.map((change) => (
-                  <tr key={change.codon}>
+                  <tr key={change.pos}>
                     <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
                     <td>
                       <AminoacidMutationBadge mutation={change} />
@@ -132,7 +129,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                 {changesTail.length > 0 &&
                   changesTail.map((change) => (
-                    <tr key={change.codon}>
+                    <tr key={change.pos}>
                       <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
                       <td>
                         <AminoacidMutationBadge mutation={change} />

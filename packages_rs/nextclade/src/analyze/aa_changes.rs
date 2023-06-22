@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct AaChangeWithContext {
   pub cds_name: String,
-  pub codon: AaRefPosition,
+  pub pos: AaRefPosition,
   pub ref_aa: Aa,
   pub qry_aa: Aa,
   pub nuc_pos: NucRefGlobalPosition,
@@ -39,21 +39,21 @@ pub struct AaChangeWithContext {
 impl AaChangeWithContext {
   pub fn new(
     cds: &Cds,
-    codon: AaRefPosition,
+    pos: AaRefPosition,
     qry_seq: &[Nuc],
     ref_seq: &[Nuc],
     ref_tr: &CdsTranslation,
     qry_tr: &CdsTranslation,
   ) -> Self {
-    let ref_aa = ref_tr.seq[codon.as_usize()];
-    let qry_aa = qry_tr.seq[codon.as_usize()];
-    let nuc_range = cds_codon_pos_to_ref_range(cds, codon).clamp_range(0, qry_seq.len());
+    let ref_aa = ref_tr.seq[pos.as_usize()];
+    let qry_aa = qry_tr.seq[pos.as_usize()];
+    let nuc_range = cds_codon_pos_to_ref_range(cds, pos).clamp_range(0, qry_seq.len());
     let ref_triplet = ref_seq[nuc_range.to_std()].to_vec();
     let qry_triplet = qry_seq[nuc_range.to_std()].to_vec();
 
     Self {
       cds_name: cds.name.clone(),
-      codon,
+      pos,
       ref_aa,
       qry_aa,
       nuc_pos: nuc_range.begin,
@@ -98,10 +98,10 @@ impl AaChangesGroup {
   }
 
   fn find_codon_range(changes: &[AaChangeWithContext]) -> AaRefRange {
-    match changes.iter().minmax_by_key(|change| change.codon) {
+    match changes.iter().minmax_by_key(|change| change.pos) {
       MinMaxResult::NoElements => AaRefRange::from_isize(0, 0),
-      MinMaxResult::OneElement(one) => AaRefRange::new(one.codon, one.codon + 1),
-      MinMaxResult::MinMax(first, last) => AaRefRange::new(first.codon, last.codon + 1),
+      MinMaxResult::OneElement(one) => AaRefRange::new(one.pos, one.pos + 1),
+      MinMaxResult::MinMax(first, last) => AaRefRange::new(first.pos, last.pos + 1),
     }
   }
 }
@@ -210,10 +210,10 @@ fn find_aa_changes_for_cds(
         Some(prev) => {
           // If previous codon in the group is adjacent or almost adjacent (there is 1 item in between),
           // then append to the group.
-          if codon <= prev.codon + 2 {
+          if codon <= prev.pos + 2 {
             // If previous codon in the group is not exactly adjacent, there is 1 item in between,
             // then cover the hole by inserting previous codon.
-            if codon == prev.codon + 2 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
+            if codon == prev.pos + 2 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
                 codon - 1,
@@ -230,10 +230,10 @@ fn find_aa_changes_for_cds(
           // If previous codon in the group is not adjacent, then terminate the current group and start a new group.
           else {
             // Add one codon to the right, for additional context, to finalize the current group
-            if is_codon_sequenced(aa_alignment_ranges, prev.codon + 1) {
+            if is_codon_sequenced(aa_alignment_ranges, prev.pos + 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
-                prev.codon + 1,
+                prev.pos + 1,
                 qry_seq,
                 ref_seq,
                 ref_tr,
@@ -270,10 +270,10 @@ fn find_aa_changes_for_cds(
 
   // Add one codon to the right, for additional context, to finalize the last group
   if let Some(last) = curr_group.last() {
-    if is_codon_sequenced(aa_alignment_ranges, last.codon + 1) {
+    if is_codon_sequenced(aa_alignment_ranges, last.pos + 1) {
       curr_group.push(AaChangeWithContext::new(
         cds,
-        last.codon + 1,
+        last.pos + 1,
         qry_seq,
         ref_seq,
         ref_tr,
@@ -311,13 +311,13 @@ fn find_aa_changes_for_cds(
         Either::Right(AaDel {
           cds_name: cds.name.clone(),
           ref_aa: change.ref_aa,
-          pos: change.codon,
+          pos: change.pos,
         })
       } else {
         Either::Left(AaSub {
           cds_name: cds.name.clone(),
           ref_aa: change.ref_aa,
-          pos: change.codon,
+          pos: change.pos,
           qry_aa: change.qry_aa,
         })
       }
