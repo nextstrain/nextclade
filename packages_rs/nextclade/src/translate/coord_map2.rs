@@ -2,8 +2,8 @@ use crate::gene::cds::{Cds, WrappingPart};
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::utils::range::{
-  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition, NucRefLocalRange,
-  PositionLike, SeqTypeMarker, SpaceMarker,
+  intersect_or_none, AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition,
+  NucRefLocalRange, PositionLike, SeqTypeMarker, SpaceMarker,
 };
 use assert2::assert;
 use itertools::Itertools;
@@ -32,63 +32,20 @@ pub fn cds_range_to_ref_ranges(cds: &Cds, range: &NucRefLocalRange) -> Vec<(NucR
   assert!(range.begin <= range.end);
   assert!(range.end <= cds.len() as isize);
 
-  let mut remaining_left = range.begin;
-  let mut remaining_right = range.end;
-  let mut segment_index = 0;
-  let mut segment = &cds.segments[segment_index];
-  let mut ranges = vec![];
-
-  // advance on the CDS until reaching the first segment that overlaps.
-  while remaining_left >= segment.len() as isize {
-    remaining_left -= segment.len() as isize;
-    remaining_right -= segment.len() as isize;
-    segment_index += 1;
-    segment = &cds.segments[segment_index];
-  }
-
-  // calculate the position in the global reference of the beginning of the range
-  // if the segment is on the reverse strand, the distance is measured relative to the end
-  let mut range_start = match segment.strand {
-    GeneStrand::Forward => segment.range.begin + remaining_left.as_isize(),
-    GeneStrand::Reverse => segment.range.end - remaining_left.as_isize(), // on the reverse strand this will point to
-                                                                          // end of range in the global seq hence no - 1
-  };
-
-  // advance along the CDS until the end of the range is in the segment
-  while remaining_right >= segment.len() as isize {
-    // the remainder of the segment is full contained.
-    // add the range to the end or from the start depending on strand
-    let new_range = match segment.strand {
-      GeneStrand::Forward => NucRefGlobalRange::new(range_start, segment.range.end),
-      GeneStrand::Reverse => NucRefGlobalRange::new(segment.range.begin, range_start),
-    };
-    ranges.push((new_range, segment.strand));
-
-    remaining_right -= segment.len() as isize;
-    segment_index += 1;
-    segment = &cds.segments[segment_index];
-
-    //determine the start position of the next range either as begin or end of segment range
-    range_start = match segment.strand {
-      GeneStrand::Forward => segment.range.begin,
-      GeneStrand::Reverse => segment.range.end,
-    };
-  }
-
-  // determine end of last segment
-  let range_end = match segment.strand {
-    GeneStrand::Forward => segment.range.begin + remaining_right.as_isize() + 1,
-    GeneStrand::Reverse => segment.range.end - 1 - remaining_right.as_isize(),
-  };
-
-  // add final segment
-  let new_range = match segment.strand {
-    GeneStrand::Forward => NucRefGlobalRange::new(range_start, range_end),
-    GeneStrand::Reverse => NucRefGlobalRange::new(range_end, range_start),
-  };
-  ranges.push((new_range, segment.strand));
-
-  ranges
+  cds
+    .segments
+    .iter()
+    .filter_map(|segment| {
+      intersect_or_none(&segment.range_local, range).map(|NucRefLocalRange { begin, end }| {
+        #[rustfmt::skip]
+        let global_range = NucRefGlobalRange::new(
+          cds_nuc_pos_to_ref(cds, begin),
+          cds_nuc_pos_to_ref(cds, end - 1) + 1,
+        );
+        (global_range, segment.strand)
+      })
+    })
+    .collect_vec()
 }
 
 pub fn cds_codon_pos_to_ref_range(cds: &Cds, codon: AaRefPosition) -> Vec<(NucRefGlobalRange, GeneStrand)> {
