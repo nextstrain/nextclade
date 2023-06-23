@@ -2,8 +2,8 @@ use crate::gene::cds::{Cds, WrappingPart};
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::utils::range::{
-  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition, PositionLike,
-  SeqTypeMarker, SpaceMarker,
+  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition, NucRefLocalRange,
+  PositionLike, SeqTypeMarker, SpaceMarker,
 };
 use assert2::assert;
 use itertools::Itertools;
@@ -20,10 +20,9 @@ pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPo
     segment = &cds.segments[segment_index];
   }
 
-  if segment.strand == GeneStrand::Forward {
-    NucRefGlobalPosition::from(segment.range.begin.as_isize() + remaining_pos.as_isize())
-  } else {
-    NucRefGlobalPosition::from(segment.range.end.as_isize() - 1 - remaining_pos.as_isize())
+  match segment.strand {
+    GeneStrand::Forward => segment.range.begin + remaining_pos.as_isize(),
+    GeneStrand::Reverse => segment.range.end - 1 - remaining_pos.as_isize(),
   }
 }
 
@@ -31,17 +30,13 @@ pub fn cds_codon_pos_to_ref_pos(cds: &Cds, codon: AaRefPosition) -> NucRefGlobal
   cds_nuc_pos_to_ref(cds, NucRefLocalPosition::new(codon.as_isize() * 3))
 }
 
-pub fn cds_range_to_ref_ranges(
-  cds: &Cds,
-  begin: NucRefLocalPosition,
-  end: NucRefLocalPosition,
-) -> Vec<(NucRefGlobalRange, GeneStrand)> {
-  assert!(begin <= end);
-  assert!(end < cds.len() as isize);
-  let mut remaining_left = begin;
-  let mut remaining_right = end;
+pub fn cds_range_to_ref_ranges(cds: &Cds, range: &NucRefLocalRange) -> Vec<(NucRefGlobalRange, GeneStrand)> {
+  assert!(range.begin <= range.end);
+  assert!(range.end < cds.len() as isize);
+
+  let mut remaining_left = range.begin;
+  let mut remaining_right = range.end;
   let mut segment_index = 0;
-  let mut range_start: NucRefGlobalPosition;
   let mut segment = &cds.segments[segment_index];
   let mut ranges = vec![];
 
@@ -55,52 +50,53 @@ pub fn cds_range_to_ref_ranges(
 
   // calculate the position in the global reference of the beginning of the range
   // if the segment is on the reverse strand, the distance is measured relative to the end
-  if segment.strand == GeneStrand::Forward {
-    range_start = NucRefGlobalPosition::from(segment.range.begin.as_isize() + remaining_left.as_isize());
-  } else {
-    // on the reverse strand this will point to end of range in the global seq, hence no - 1
-    range_start = NucRefGlobalPosition::from(segment.range.end.as_isize() - remaining_left.as_isize());
-  }
+  let mut range_start = match segment.strand {
+    GeneStrand::Forward => segment.range.begin + remaining_left.as_isize(),
+    GeneStrand::Reverse => segment.range.end - remaining_left.as_isize(), // on the reverse strand this will point to
+                                                                          // end of range in the global seq hence no - 1
+  };
 
   // advance along the CDS until the end of the range is in the segment
   while remaining_right >= segment.len() as isize {
     // the remainder of the segment is full contained.
     // add the range to the end or from the start depending on strand
-    if segment.strand == GeneStrand::Forward {
-      ranges.push((NucRefGlobalRange::new(range_start, segment.range.end), segment.strand));
-    } else {
-      ranges.push((NucRefGlobalRange::new(segment.range.begin, range_start), segment.strand));
-    }
+    let new_range = match segment.strand {
+      GeneStrand::Forward => NucRefGlobalRange::new(range_start, segment.range.end),
+      GeneStrand::Reverse => NucRefGlobalRange::new(segment.range.begin, range_start),
+    };
+    ranges.push((new_range, segment.strand));
+
     remaining_right -= segment.len() as isize;
     segment_index += 1;
     segment = &cds.segments[segment_index];
+
     //determine the start position of the next range either as begin or end of segment range
-    if segment.strand == GeneStrand::Forward {
-      range_start = segment.range.begin as NucRefGlobalPosition;
-    } else {
-      range_start = segment.range.end as NucRefGlobalPosition;
-    }
+    range_start = match segment.strand {
+      GeneStrand::Forward => segment.range.begin,
+      GeneStrand::Reverse => segment.range.end,
+    };
   }
 
   // determine end of last segment
-  let range_end = if segment.strand == GeneStrand::Forward {
-    NucRefGlobalPosition::from(segment.range.begin.as_isize() + remaining_right.as_isize()) + 1
-  } else {
-    NucRefGlobalPosition::from(segment.range.end.as_isize() - 1 - remaining_right.as_isize())
+  let range_end = match segment.strand {
+    GeneStrand::Forward => segment.range.begin + remaining_right.as_isize() + 1,
+    GeneStrand::Reverse => segment.range.end - 1 - remaining_right.as_isize(),
   };
+
   // add final segment
-  if segment.strand == GeneStrand::Forward {
-    ranges.push((NucRefGlobalRange::new(range_start, range_end), segment.strand));
-  } else {
-    ranges.push((NucRefGlobalRange::new(range_end, range_start), segment.strand));
-  }
+  let new_range = match segment.strand {
+    GeneStrand::Forward => NucRefGlobalRange::new(range_start, range_end),
+    GeneStrand::Reverse => NucRefGlobalRange::new(range_end, range_start),
+  };
+  ranges.push((new_range, segment.strand));
+
   ranges
 }
 
 pub fn cds_codon_pos_to_ref_range(cds: &Cds, codon: AaRefPosition) -> Vec<(NucRefGlobalRange, GeneStrand)> {
   let begin = codon.as_isize() * 3;
   let end = begin + 3;
-  cds_range_to_ref_ranges(cds, NucRefLocalPosition::from(begin), NucRefLocalPosition::from(end))
+  cds_range_to_ref_ranges(cds, &NucRefLocalRange::from_isize(begin, end))
 }
 
 pub fn global_ref_pos_to_local(cds: &Cds, pos: NucRefGlobalPosition) -> Vec<NucRefLocalPosition> {
