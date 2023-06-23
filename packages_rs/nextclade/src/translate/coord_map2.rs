@@ -32,7 +32,7 @@ pub fn cds_codon_pos_to_ref_pos(cds: &Cds, codon: AaRefPosition) -> NucRefGlobal
 
 pub fn cds_range_to_ref_ranges(cds: &Cds, range: &NucRefLocalRange) -> Vec<(NucRefGlobalRange, GeneStrand)> {
   assert!(range.begin <= range.end);
-  assert!(range.end < cds.len() as isize);
+  assert!(range.end <= cds.len() as isize);
 
   let mut remaining_left = range.begin;
   let mut remaining_right = range.end;
