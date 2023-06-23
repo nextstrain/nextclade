@@ -5,6 +5,7 @@ use crate::utils::range::{
   AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition, PositionLike,
   SeqTypeMarker, SpaceMarker,
 };
+use assert2::assert;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
