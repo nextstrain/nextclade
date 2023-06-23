@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::gene::cds::{Cds, WrappingPart};
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
