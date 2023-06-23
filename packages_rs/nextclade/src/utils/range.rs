@@ -417,11 +417,15 @@ pub fn have_intersection<P: PositionLike>(x: &Range<P>, y: &Range<P>) -> bool {
 /// Compute an intersection of two ranges. Returns an empty range if the intersection is empty
 #[inline]
 pub fn intersect<P: PositionLike>(x: &Range<P>, y: &Range<P>) -> Range<P> {
-  let begin = max(x.begin, y.begin);
-  let end = min(x.end, y.end);
-  let mut intersection = Range::new(begin, end);
-  intersection.fix();
-  intersection
+  if y.begin > x.end || x.begin > y.end {
+    Range::from_isize(0, 0)
+  } else {
+    let begin = max(x.begin, y.begin);
+    let end = min(x.end, y.end);
+    let mut intersection = Range::new(begin, end);
+    intersection.fix();
+    intersection
+  }
 }
 
 /// Compute an intersection of two ranges. Returns None if the intersection is empty
