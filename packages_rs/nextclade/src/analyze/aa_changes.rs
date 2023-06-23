@@ -12,11 +12,15 @@ use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::range::{have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, PositionLike};
+use crate::utils::collections::extend_map_of_vecs;
+use crate::utils::range::{
+  have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike,
+};
 use either::Either;
 use eyre::Report;
 use itertools::{Itertools, MinMaxResult};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -36,6 +40,7 @@ pub struct AaChangeWithContext {
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub qry_triplet: Vec<Nuc>,
+  pub nuc_range: NucRefGlobalRange,
 }
 
 impl AaChangeWithContext {
@@ -79,9 +84,15 @@ impl AaChangeWithContext {
       ref_aa,
       qry_aa,
       nuc_pos: nuc_ranges[0].0.begin,
+      nuc_range,
       ref_triplet,
       qry_triplet,
     }
+  }
+
+  #[inline]
+  pub fn is_mutated_or_deleted(&self) -> bool {
+    is_aa_mutated_or_deleted(self.ref_aa, self.qry_aa)
   }
 }
 
@@ -134,6 +145,7 @@ pub struct FindAaChangesOutput {
   pub aa_changes_groups: Vec<AaChangesGroup>,
   pub aa_substitutions: Vec<AaSub>,
   pub aa_deletions: Vec<AaDel>,
+  pub nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>>,
 }
 
 /// Finds aminoacid substitutions and deletions in query peptides relative to reference peptides, in all genes
@@ -160,15 +172,21 @@ pub fn find_aa_changes(
     })
     .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
     .into_iter()
+      // Merge changes from all CDSes into one struct
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
       output.aa_changes_groups.extend(changes.aa_changes_groups);
       output.aa_substitutions.extend(changes.aa_substitutions);
       output.aa_deletions.extend(changes.aa_deletions);
+      extend_map_of_vecs(&mut output.nuc_to_aa_muts, changes.nuc_to_aa_muts);
       output
     });
 
   changes.aa_substitutions.sort();
   changes.aa_deletions.sort();
+  changes.nuc_to_aa_muts.iter_mut().for_each(|(_, vals)| {
+    vals.sort();
+    vals.dedup();
+  });
 
   Ok(changes)
 }
@@ -349,10 +367,37 @@ fn find_aa_changes_for_cds(
       }
     });
 
+  // Associate nuc positions with aa mutations.
+  let nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>> = aa_changes_groups
+    .iter()
+    .flat_map(|group| {
+      group
+        .changes
+        .iter()
+        .filter(|change| AaChangeWithContext::is_mutated_or_deleted(change))
+        .flat_map(|change| {
+          change
+            .nuc_range
+            .iter()
+             // TODO: We convert position to string here, because when communicating with WASM we will pass through
+             //   JSON schema, and JSON object keys must be strings. Maybe there is a way to keep the keys as numbers?
+            .map(move |pos| (pos.to_string(), AaSub::from(change)))
+        })
+    })
+    .into_group_map()
+    .into_iter()
+    .map(|(pos, mut aa_muts)| {
+      aa_muts.sort();
+      aa_muts.dedup();
+      (pos, aa_muts)
+    })
+    .collect();
+
   FindAaChangesOutput {
     aa_changes_groups,
     aa_substitutions,
     aa_deletions,
+    nuc_to_aa_muts,
   }
 }
 

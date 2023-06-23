@@ -39,7 +39,8 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const { index, seqName, substitutions, missing, deletions, alignmentRange, frameShifts, insertions } = sequence
+  const { index, seqName, substitutions, missing, deletions, alignmentRange, frameShifts, insertions, nucToAaMuts } =
+    sequence
 
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
@@ -63,6 +64,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         index={index}
         seqName={seqName}
         substitution={substitution}
+        nucToAaMuts={nucToAaMuts}
         pixelsPerBase={pixelsPerBase}
       />
     )
@@ -87,6 +89,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         index={index}
         seqName={seqName}
         deletion={deletion}
+        nucToAaMuts={nucToAaMuts}
         pixelsPerBase={pixelsPerBase}
       />
     )

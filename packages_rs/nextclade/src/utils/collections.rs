@@ -52,6 +52,20 @@ where
   })
 }
 
+/// Marge 2 maps of vecs, such that all keys from `right` are merged into `left` and the corresponding
+/// values (which are vecs) are merged in case the key is present in both maps. This effectively a merge for
+/// a poor man's MultiMap container implementation.
+///
+/// This version mutates `left` and consumes `right`.
+pub fn extend_map_of_vecs<K, V>(left: &mut BTreeMap<K, Vec<V>>, right: BTreeMap<K, Vec<V>>)
+where
+  K: Ord,
+{
+  right
+    .into_iter()
+    .for_each(|(key, vals)| left.entry(key).or_default().extend(vals));
+}
+
 #[macro_export]
 macro_rules! vec_into {
   () => (

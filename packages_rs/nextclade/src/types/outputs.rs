@@ -78,6 +78,7 @@ pub struct NextcladeOutputs {
   pub unknown_aa_ranges: Vec<GeneAaRange>,
   pub total_unknown_aa: usize,
   pub aa_changes_groups: Vec<AaChangesGroup>,
+  pub nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>>,
   pub alignment_range: NucRefGlobalRange,
   pub alignment_score: i32,
   pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,

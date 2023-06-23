@@ -1,47 +1,40 @@
 import React from 'react'
 
-import { AaDel, AaSub } from 'src/types'
+import { AaSub } from 'src/types'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface ListOfMutationsTruncatedProps {
-  aaSubstitutions: AaSub[]
-  aaDeletions: AaDel[]
+  aaChanges: AaSub[]
   maxRows?: number
 }
 
-export function ListOfAaChangesFlatTruncated({
-  aaSubstitutions,
-  aaDeletions,
-  maxRows = 6,
-}: ListOfMutationsTruncatedProps) {
+export function ListOfAaChangesFlatTruncated({ aaChanges, maxRows = 6 }: ListOfMutationsTruncatedProps) {
   const { t } = useTranslationSafe()
 
-  const subs: AaSub[] = aaSubstitutions.map((sub) => ({ ...sub }))
-  const dels: AaSub[] = aaDeletions.map((del) => ({ ...del, qryAa: '-' }))
-  const changes = [...subs, ...dels]
-
-  let changesHead = changes
-  let changesTail: typeof changes = []
-  if (changes.length > maxRows) {
-    changesHead = changes.slice(0, (maxRows + 1) / 2)
-    changesTail = changes.slice(-maxRows / 2)
+  let changesHead = aaChanges
+  let changesTail: typeof aaChanges = []
+  if (aaChanges.length > maxRows) {
+    changesHead = aaChanges.slice(0, (maxRows + 1) / 2)
+    changesTail = aaChanges.slice(-maxRows / 2)
   }
 
   return (
     <TableSlim borderless className="mb-1">
       <thead />
       <tbody>
-        <tr className="mb-2">
-          <td colSpan={2}>
-            <h6>{t('Aminoacid changes ({{ n }})', { n: changes.length })}</h6>
-          </td>
-        </tr>
+        {aaChanges.length > 0 && (
+          <tr>
+            <td colSpan={2}>
+              <h6 className="mt-1">{t('Affected codons:')}</h6>
+            </td>
+          </tr>
+        )}
 
         {changesHead.map((change) => (
           <tr key={change.pos}>
-            <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
+            <td>{change.qryAa === '-' ? t('Aminoacid deletion') : t('Aminoacid substitution')}</td>
             <td>
               <AminoacidMutationBadge mutation={change} />
             </td>
@@ -58,7 +51,7 @@ export function ListOfAaChangesFlatTruncated({
         {changesTail.length > 0 &&
           changesTail.map((change) => (
             <tr key={change.pos}>
-              <td>{change.qryAa === '-' ? t('Deletion') : t('Substitution')}</td>
+              <td>{change.qryAa === '-' ? t('Aminoacid deletion') : t('Aminoacid substitution')}</td>
               <td>
                 <AminoacidMutationBadge mutation={change} />
               </td>
