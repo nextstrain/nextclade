@@ -8,6 +8,7 @@
 // This prevents, for example, adding a position in alignment coordinates to the position in the
 // reference coordinates, which is always a bug. Similarly, you cannot pass a range in reference to a function
 // expecting a range in alignment.
+use assert2::assert;
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
@@ -65,7 +66,7 @@ pub trait SeqTypeMarker: PositionLikeAttrs {}
 
 /// Position in a given 1-dimensional coordinate space.
 ///
-/// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
+/// The coordinate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
 #[allow(clippy::partial_pub_fields)]
 #[derive(Clone, Copy, Default)]
@@ -292,7 +293,7 @@ where
 
 /// Range of positions in a given 1-dimensional coordinate space.
 ///
-/// The coordianate space type parameter ensures that positions and ranges in different coordinate spaces have
+/// The coordinate space type parameter ensures that positions and ranges in different coordinate spaces have
 /// different Rust types and they cannot be used interchangeably.
 #[must_use]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
@@ -309,12 +310,14 @@ impl<P: PositionLike> AsRef<Range<P>> for Range<P> {
 
 impl<P: PositionLike> Range<P> {
   #[inline]
-  pub const fn new(begin: P, end: P) -> Self {
+  pub fn new(begin: P, end: P) -> Self {
+    assert!(begin <= end);
     Self { begin, end }
   }
 
   #[inline]
   pub fn from_usize(begin: usize, end: usize) -> Self {
+    assert!(begin <= end);
     Self {
       begin: P::from(begin as isize),
       end: P::from(end as isize),
@@ -324,6 +327,7 @@ impl<P: PositionLike> Range<P> {
 
   #[inline]
   pub fn from_isize(begin: isize, end: isize) -> Self {
+    assert!(begin <= end);
     Self {
       begin: P::from(begin),
       end: P::from(end),
@@ -334,6 +338,7 @@ impl<P: PositionLike> Range<P> {
   #[inline]
   pub fn from_range<Q: PositionLike>(range: impl AsRef<Range<Q>>) -> Self {
     let range = range.as_ref();
+    assert!(range.begin <= range.end);
     Self::from_isize(range.begin.as_isize(), range.end.as_isize()).fixed()
   }
 
@@ -588,12 +593,12 @@ pub type NucRefGlobalPosition = Position<ReferenceCoords, GlobalSpace, NucSpace>
 pub type NucRefGlobalRange = Range<NucRefGlobalPosition>;
 
 // Local nucleotide positions in alignment coordinates. "Local" here means that the position is relative
-// to the beginning of a genetic featurem e.g. a gene or a CDS.
+// to the beginning of a genetic feature, e.g. a gene or a CDS.
 pub type NucAlnLocalPosition = Position<AlignmentCoords, LocalSpace, NucSpace>;
 pub type NucAlnLocalRange = Range<NucAlnLocalPosition>;
 
 // Local nucleotide positions in coordinates of reference sequence. "Local" here means that the position is relative
-// to the beginning of a genetic featurem e.g. a gene or a CDS.
+// to the beginning of a genetic feature, e.g. a gene or a CDS.
 pub type NucRefLocalPosition = Position<ReferenceCoords, LocalSpace, NucSpace>;
 pub type NucRefLocalRange = Range<NucRefLocalPosition>;
 

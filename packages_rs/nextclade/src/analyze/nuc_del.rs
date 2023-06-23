@@ -10,7 +10,7 @@ pub struct NucDelRange {
 }
 
 impl NucDelRange {
-  pub const fn new(begin: NucRefGlobalPosition, end: NucRefGlobalPosition) -> Self {
+  pub fn new(begin: NucRefGlobalPosition, end: NucRefGlobalPosition) -> Self {
     Self {
       range: NucRefGlobalRange::new(begin, end),
     }
