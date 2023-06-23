@@ -40,7 +40,7 @@ pub struct AaChangeWithContext {
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub qry_triplet: Vec<Nuc>,
-  pub nuc_range: NucRefGlobalRange,
+  pub nuc_ranges: Vec<NucRefGlobalRange>,
 }
 
 impl AaChangeWithContext {
@@ -78,13 +78,15 @@ impl AaChangeWithContext {
       })
       .collect_vec();
 
+    let nuc_ranges = nuc_ranges.into_iter().map(|(range, _)| range).collect_vec();
+
     Self {
       cds_name: cds.name.clone(),
       pos,
       ref_aa,
       qry_aa,
-      nuc_pos: nuc_ranges[0].0.begin,
-      nuc_range,
+      nuc_pos: nuc_ranges[0].begin,
+      nuc_ranges,
       ref_triplet,
       qry_triplet,
     }
@@ -376,12 +378,12 @@ fn find_aa_changes_for_cds(
         .iter()
         .filter(|change| AaChangeWithContext::is_mutated_or_deleted(change))
         .flat_map(|change| {
-          change
-            .nuc_range
-            .iter()
+          change.nuc_ranges.iter().flat_map(move |range| {
+            range.iter()
              // TODO: We convert position to string here, because when communicating with WASM we will pass through
              //   JSON schema, and JSON object keys must be strings. Maybe there is a way to keep the keys as numbers?
             .map(move |pos| (pos.to_string(), AaSub::from(change)))
+          })
         })
     })
     .into_group_map()
