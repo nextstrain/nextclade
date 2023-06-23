@@ -121,7 +121,7 @@ mod coord_map_tests {
   use super::*;
   use crate::gene::cds::{CdsSegment, WrappingPart};
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
-  use crate::utils::range::Position;
+  use crate::utils::range::{Position, Range};
   use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
@@ -131,24 +131,32 @@ mod coord_map_tests {
       id: "".to_owned(),
       name: "".to_owned(),
       product: "".to_owned(),
-      segments: segment_ranges
-        .iter()
-        .map(|(start, end, strand)| CdsSegment {
-          index: 0,
-          id: "".to_owned(),
-          name: "".to_owned(),
-          range: NucRefGlobalRange::from_usize(*start, *end),
-          landmark: None,
-          wrapping_part: WrappingPart::NonWrapping,
-          strand: *strand,
-          frame: 0,
-          exceptions: vec![],
-          attributes: hashmap!(),
-          source_record: None,
-          compat_is_gene: false,
-          color: None,
-        })
-        .collect_vec(),
+      segments: {
+        let mut segment_start = 0;
+        segment_ranges
+          .iter()
+          .map(|(begin, end, strand)| {
+            let segment = CdsSegment {
+              index: 0,
+              id: "".to_owned(),
+              name: "".to_owned(),
+              range: NucRefGlobalRange::from_usize(*begin, *end),
+              range_local: Range::from_usize(segment_start, segment_start + end - begin),
+              landmark: None,
+              wrapping_part: WrappingPart::NonWrapping,
+              strand: *strand,
+              frame: 0,
+              exceptions: vec![],
+              attributes: hashmap!(),
+              source_record: None,
+              compat_is_gene: false,
+              color: None,
+            };
+            segment_start = segment_start + end - begin;
+            segment
+          })
+          .collect_vec()
+      },
       proteins: vec![],
       exceptions: vec![],
       attributes: hashmap! {},

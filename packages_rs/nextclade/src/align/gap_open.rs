@@ -50,7 +50,7 @@ mod tests {
   use crate::gene::cds::{Cds, CdsSegment, WrappingPart};
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
-  use crate::utils::range::NucRefGlobalRange;
+  use crate::utils::range::{NucRefGlobalRange, Range};
   use eyre::Report;
   use itertools::Itertools;
   use maplit::hashmap;
@@ -71,6 +71,7 @@ mod tests {
             id: index.to_string(),
             name: index.to_string(),
             range: NucRefGlobalRange::from_isize(*begin, *end),
+            range_local: Range::from_isize(0, end - begin),
             landmark: None,
             wrapping_part: WrappingPart::NonWrapping,
             strand: *strand,

@@ -2,7 +2,7 @@ use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
-use crate::utils::range::NucRefGlobalRange;
+use crate::utils::range::{NucRefGlobalRange, NucRefLocalRange, Range};
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
@@ -31,27 +31,38 @@ impl Cds {
     assert_eq!(feature_group.feature_type, "CDS");
 
     // A CDS can consist of one or multiple CDS segments
-    let segments = feature_group
-      .features
-      .iter()
-      .map(|feature| {
-        Ok(CdsSegment {
-          index: feature.index,
-          id: feature.id.clone(),
-          name: feature.name.clone(),
-          range: feature.range.clone(),
-          landmark: feature.landmark.clone(),
-          wrapping_part: WrappingPart::NonWrapping,
-          strand: feature.strand,
-          frame: feature.frame,
-          exceptions: feature.exceptions.clone(),
-          attributes: feature.attributes.clone(),
-          source_record: feature.source_record.clone(),
-          compat_is_gene: false,
-          color: None,
+    let segments = {
+      feature_group
+        .features
+        .iter()
+        .map({
+          let mut begin = 0;
+
+          move |feature| {
+            let segment = CdsSegment {
+              index: feature.index,
+              id: feature.id.clone(),
+              name: feature.name.clone(),
+              range: feature.range.clone(),
+              range_local: Range::from_usize(begin, begin + feature.range.len()),
+              landmark: feature.landmark.clone(),
+              wrapping_part: WrappingPart::NonWrapping,
+              strand: feature.strand,
+              frame: feature.frame,
+              exceptions: feature.exceptions.clone(),
+              attributes: feature.attributes.clone(),
+              source_record: feature.source_record.clone(),
+              compat_is_gene: false,
+              color: None,
+            };
+
+            begin += feature.range.len();
+
+            Ok(segment)
+          }
         })
-      })
-      .collect::<Result<Vec<CdsSegment>, Report>>()?;
+        .collect::<Result<Vec<CdsSegment>, Report>>()
+    }?;
 
     if segments.is_empty() {
       return make_internal_error!("CDS contains no segments")?;
@@ -127,6 +138,7 @@ impl Cds {
       id: format!("cds-segment-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
       range: feature.range.clone(),
+      range_local: Range::from_usize(0, feature.range.len()),
       landmark: feature.landmark.clone(),
       wrapping_part: WrappingPart::NonWrapping,
       strand: feature.strand,
@@ -186,12 +198,16 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
         let landmark_start = landmark.range.begin;
         let landmark_end = landmark.range.end;
 
+        let mut segment_local_begin = 0;
         let mut segment_end = segment.range.end;
 
         // The first part, which is before the first wraparound
         linear_segments.push({
           let mut segment = segment.clone();
           segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark).
+          segment.range_local = NucRefLocalRange::from_usize(segment_local_begin, segment_local_begin + segment.len());
+          segment_local_begin += segment.len();
+
           segment.wrapping_part = WrappingPart::WrappingStart; // Mark this part as the first part of the wrapping group.
           validate_segment_bounds(&segment, false)?;
           segment
@@ -207,6 +223,10 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
             segment.range.begin = landmark_start; // Chop the underflowing part (before landmark).
             segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark),
                                                                       // in case the segment wraps multiple times.
+            segment.range_local =
+              NucRefLocalRange::from_usize(segment_local_begin, segment_local_begin + segment.len());
+            segment_local_begin += segment.len();
+
             segment.wrapping_part = WrappingPart::WrappingCentral(part_counter); // Mark this part as one of the
                                                                                  // follow up parts in the wrapping
                                                                                  // group, beyond the first wraparound.
@@ -310,6 +330,7 @@ pub struct CdsSegment {
   pub id: String,
   pub name: String,
   pub range: NucRefGlobalRange,
+  pub range_local: NucRefLocalRange,
   pub landmark: Option<Landmark>,
   pub wrapping_part: WrappingPart,
   pub strand: GeneStrand,
