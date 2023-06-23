@@ -35,7 +35,7 @@ pub fn cds_range_to_ref_ranges(
   cds: &Cds,
   begin: NucRefLocalPosition,
   end: NucRefLocalPosition,
-) -> Vec<NucRefGlobalRange> {
+) -> Vec<(NucRefGlobalRange, GeneStrand)> {
   assert!(begin <= end);
   assert!(end < cds.len() as isize);
   let mut remaining_left = begin;
@@ -43,7 +43,7 @@ pub fn cds_range_to_ref_ranges(
   let mut segment_index = 0;
   let mut range_start: NucRefGlobalPosition;
   let mut segment = &cds.segments[segment_index];
-  let mut ranges: Vec<NucRefGlobalRange> = vec![];
+  let mut ranges = vec![];
 
   // advance on the CDS until reaching the first segment that overlaps.
   while remaining_left >= segment.len() as isize {
@@ -67,9 +67,9 @@ pub fn cds_range_to_ref_ranges(
     // the remainder of the segment is full contained.
     // add the range to the end or from the start depending on strand
     if segment.strand == GeneStrand::Forward {
-      ranges.push(NucRefGlobalRange::new(range_start, segment.range.end));
+      ranges.push((NucRefGlobalRange::new(range_start, segment.range.end), segment.strand));
     } else {
-      ranges.push(NucRefGlobalRange::new(segment.range.begin, range_start));
+      ranges.push((NucRefGlobalRange::new(segment.range.begin, range_start), segment.strand));
     }
     remaining_right -= segment.len() as isize;
     segment_index += 1;
@@ -90,14 +90,14 @@ pub fn cds_range_to_ref_ranges(
   };
   // add final segment
   if segment.strand == GeneStrand::Forward {
-    ranges.push(NucRefGlobalRange::new(range_start, range_end));
+    ranges.push((NucRefGlobalRange::new(range_start, range_end), segment.strand));
   } else {
-    ranges.push(NucRefGlobalRange::new(range_end, range_start));
+    ranges.push((NucRefGlobalRange::new(range_end, range_start), segment.strand));
   }
   ranges
 }
 
-pub fn cds_codon_pos_to_ref_range(cds: &Cds, codon: AaRefPosition) -> Vec<NucRefGlobalRange> {
+pub fn cds_codon_pos_to_ref_range(cds: &Cds, codon: AaRefPosition) -> Vec<(NucRefGlobalRange, GeneStrand)> {
   let begin = codon.as_isize() * 3;
   let end = begin + 3;
   cds_range_to_ref_ranges(cds, NucRefLocalPosition::from(begin), NucRefLocalPosition::from(end))

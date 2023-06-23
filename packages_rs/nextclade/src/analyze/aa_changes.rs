@@ -50,13 +50,12 @@ impl AaChangeWithContext {
     let ref_aa = ref_tr.seq[pos.as_usize()];
     let qry_aa = qry_tr.seq[pos.as_usize()];
     let nuc_ranges = cds_codon_pos_to_ref_range(cds, pos);
-    let strand = cds.segments[0].strand;
 
     let ref_triplet = nuc_ranges
       .iter()
-      .flat_map(|range| {
+      .flat_map(|(range, strand)| {
         let mut nucs = ref_seq[range.to_std()].to_vec();
-        if strand == GeneStrand::Reverse {
+        if strand == &GeneStrand::Reverse {
           reverse_complement_in_place(&mut nucs);
         }
         nucs
@@ -65,9 +64,9 @@ impl AaChangeWithContext {
 
     let qry_triplet = nuc_ranges
       .iter()
-      .flat_map(|range| {
+      .flat_map(|(range, strand)| {
         let mut nucs = qry_seq[range.clamp_range(0, qry_seq.len()).to_std()].to_vec();
-        if strand == GeneStrand::Reverse {
+        if strand == &GeneStrand::Reverse {
           reverse_complement_in_place(&mut nucs);
         }
         nucs
@@ -79,7 +78,7 @@ impl AaChangeWithContext {
       pos,
       ref_aa,
       qry_aa,
-      nuc_pos: nuc_ranges[0].begin,
+      nuc_pos: nuc_ranges[0].0.begin,
       ref_triplet,
       qry_triplet,
     }
@@ -309,7 +308,11 @@ fn find_aa_changes_for_cds(
     let ranges = group
       .range
       .iter()
-      .flat_map(|codon| cds_codon_pos_to_ref_range(cds, codon))
+      .flat_map(|codon| {
+        cds_codon_pos_to_ref_range(cds, codon)
+          .into_iter()
+          .map(|(range, _)| range)
+      })
       .collect_vec();
 
     group.nuc_subs = nuc_subs
