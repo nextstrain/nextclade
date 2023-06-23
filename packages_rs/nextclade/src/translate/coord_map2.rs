@@ -11,18 +11,16 @@ use serde::{Deserialize, Serialize};
 
 pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPosition {
   assert!(pos < cds.len() as isize);
-  let mut remaining_pos = pos;
-  let mut segment_index = 0;
-  let mut segment = &cds.segments[segment_index];
-  while remaining_pos >= segment.len() as isize {
-    remaining_pos -= segment.len() as isize;
-    segment_index += 1;
-    segment = &cds.segments[segment_index];
-  }
+
+  let segment = cds
+    .segments
+    .iter()
+    .find(|segment| segment.range_local.contains(pos))
+    .expect("Position is expected to be in exactly one segment, but none is found");
 
   match segment.strand {
-    GeneStrand::Forward => segment.range.begin + remaining_pos.as_isize(),
-    GeneStrand::Reverse => segment.range.end - 1 - remaining_pos.as_isize(),
+    GeneStrand::Forward => segment.range.begin + pos.as_isize(),
+    GeneStrand::Reverse => segment.range.end - 1 - pos.as_isize(),
   }
 }
 
