@@ -18,9 +18,10 @@ pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPo
     .find(|segment| segment.range_local.contains(pos))
     .expect("Position is expected to be in exactly one segment, but none is found");
 
+  let pos_in_segment = isize::from(pos - segment.range_local.begin);
   match segment.strand {
-    GeneStrand::Forward => segment.range.begin + pos.as_isize(),
-    GeneStrand::Reverse => segment.range.end - 1 - pos.as_isize(),
+    GeneStrand::Forward => segment.range.begin + pos_in_segment,
+    GeneStrand::Reverse => segment.range.end - 1 - pos_in_segment,
   }
 }
 
