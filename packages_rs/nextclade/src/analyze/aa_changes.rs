@@ -324,6 +324,9 @@ fn find_aa_changes_for_cds(
     }
   }
 
+  // Keep only non-empty groups
+  aa_changes_groups.retain(|group| !group.range.is_empty() && !group.changes.is_empty());
+
   aa_changes_groups.iter_mut().for_each(|group| {
     let ranges = group
       .range
