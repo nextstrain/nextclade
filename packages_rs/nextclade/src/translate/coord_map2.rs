@@ -39,10 +39,13 @@ pub fn cds_range_to_ref_ranges(cds: &Cds, range: &NucRefLocalRange) -> Vec<(NucR
     .filter_map(|segment| {
       intersect_or_none(&segment.range_local, range).map(|NucRefLocalRange { begin, end }| {
         #[rustfmt::skip]
-        let global_range = NucRefGlobalRange::new(
-          cds_nuc_pos_to_ref(cds, begin),
-          cds_nuc_pos_to_ref(cds, end - 1) + 1,
-        );
+        let pos1 = cds_nuc_pos_to_ref(cds, begin);
+        let pos2 = cds_nuc_pos_to_ref(cds, end - 1);
+        let global_range = if segment.strand == GeneStrand::Forward {
+          NucRefGlobalRange::new(pos1, pos2 + 1)
+        } else {
+          NucRefGlobalRange::new(pos2, pos1 + 1)
+        };
         (global_range, segment.strand)
       })
     })
