@@ -1,8 +1,7 @@
-use crate::io::aa::{from_aa_seq, to_aa_seq, Aa};
+use crate::io::aa::Aa;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::{from_nuc_seq, Nuc};
+use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
-use crate::utils::error::{from_eyre_error, keep_ok};
 use color_eyre::SectionExt;
 use eyre::Report;
 use itertools::Itertools;
@@ -48,7 +47,6 @@ impl<T: Letter<T>> PartialOrd for Insertion<T> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StripInsertionsResult<T: Letter<T>> {
   pub qry_seq: Vec<T>,
-  pub ref_seq: Vec<T>,
   pub insertions: Vec<Insertion<T>>,
 }
 
@@ -97,13 +95,8 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
   insertions.shrink_to_fit();
   insertions.sort();
 
-  // Remove gaps from ref
-  let mut ref_stripped = ref_seq.to_vec();
-  ref_stripped.retain(|c| c != &T::GAP);
-
   StripInsertionsResult {
     qry_seq: qry_stripped,
-    ref_seq: ref_stripped,
     insertions,
   }
 }
@@ -152,7 +145,7 @@ mod tests {
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
-  use rstest::{fixture, rstest};
+  use rstest::rstest;
 
   #[rstest]
   fn finds_terminal_insertions() -> Result<(), Report> {
@@ -166,11 +159,10 @@ mod tests {
       Insertion::<Nuc> { pos: 9, ins: to_nuc_seq("CATC")? }
     ];
 
-    #[rustfmt::skip]
-    let StripInsertionsResult { insertions, ref_seq, qry_seq } = insertions_strip(&qry_seq, &ref_seq);
+    let stripped = insertions_strip(&qry_seq, &ref_seq);
 
-    assert_eq!(insertions, expected_insertions);
-    assert_eq!(qry_seq, ref_seq);
+    assert_eq!(stripped.insertions, expected_insertions);
+    assert_eq!(stripped.qry_seq, to_nuc_seq("ACGCTCGCAT")?);
     Ok(())
   }
 }

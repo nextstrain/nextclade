@@ -74,7 +74,7 @@ pub fn nextclade_run_one(
     substitutions,
     deletions,
     alignment_range,
-  } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
+  } = find_nuc_changes(&stripped.qry_seq, ref_seq);
 
   let alignment_start = alignment_range.begin;
   let alignment_end = alignment_range.end;
@@ -106,7 +106,7 @@ pub fn nextclade_run_one(
     aa_substitutions,
     aa_deletions,
   } = find_aa_changes(
-    &stripped.ref_seq,
+    ref_seq,
     &stripped.qry_seq,
     ref_peptides,
     &translations,
