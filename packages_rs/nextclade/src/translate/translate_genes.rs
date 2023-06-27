@@ -4,12 +4,12 @@ use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
 use crate::gene::cds::Cds;
-use crate::gene::gene::{Gene, GeneStrand};
+use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{CoordMapForCds, CoordMapGlobal, CoordMapLocal};
+use crate::translate::coord_map::{CoordMapGlobal, CoordMapLocal};
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
@@ -136,8 +136,6 @@ pub struct CdsTranslation {
   pub frame_shifts: Vec<FrameShift>,
   pub alignment_ranges: Vec<AaRefRange>,
   pub unsequenced_ranges: Vec<AaRefRange>,
-  pub ref_cds_map: CoordMapForCds,
-  pub qry_cds_map: CoordMapForCds,
   pub coord_map_local: CoordMapLocal,
 }
 
@@ -231,8 +229,8 @@ pub fn translate_cds(
   coord_map: &CoordMapGlobal,
   params: &AlignPairwiseParams,
 ) -> Result<CdsTranslation, Report> {
-  let (mut ref_cds_seq, ref_cds_map) = coord_map.extract_cds_aln(ref_seq, cds);
-  let (mut qry_cds_seq, qry_cds_map) = coord_map.extract_cds_aln(qry_seq, cds);
+  let mut ref_cds_seq = coord_map.extract_cds_aln(ref_seq, cds);
+  let mut qry_cds_seq = coord_map.extract_cds_aln(qry_seq, cds);
 
   // Coordinate map local to this CDS
   let coord_map_local = CoordMapLocal::new(&ref_cds_seq);
@@ -262,14 +260,7 @@ pub fn translate_cds(
 
   // NOTE: frame shift detection should be performed on unstripped genes
   let nuc_rel_frame_shifts = frame_shifts_detect(&qry_cds_seq, &ref_cds_seq);
-  let frame_shifts = frame_shifts_transform_coordinates(
-    &nuc_rel_frame_shifts,
-    &qry_cds_seq,
-    coord_map,
-    &qry_cds_map,
-    &coord_map_local,
-    cds,
-  )?;
+  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_cds_seq, &coord_map_local, cds)?;
 
   mask_nuc_frame_shifts_in_place(&mut qry_cds_seq, &frame_shifts);
 
@@ -303,8 +294,6 @@ pub fn translate_cds(
     frame_shifts,
     alignment_ranges: vec![],
     unsequenced_ranges: vec![],
-    ref_cds_map,
-    qry_cds_map,
     coord_map_local,
   })
 }

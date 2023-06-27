@@ -1,7 +1,8 @@
 use crate::gene::cds::Cds;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{CoordMapForCds, CoordMapGlobal, CoordMapLocal};
+use crate::translate::coord_map::{CoordMapGlobal, CoordMapLocal};
+use crate::translate::coord_map2::cds_range_to_ref_ranges;
 use crate::utils::range::{AaRefRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalRange, PositionLike, Range};
 use eyre::Report;
 use itertools::Itertools;
@@ -69,16 +70,15 @@ pub struct FrameShift {
 pub fn frame_shift_transform(
   nuc_aln_local: &NucAlnLocalRange,
   query: &[Nuc],
-  coord_map_global: &CoordMapGlobal,
-  qry_cds_map: &CoordMapForCds,
   coord_map_local: &CoordMapLocal,
   cds: &Cds,
 ) -> Result<FrameShift, Report> {
   let codon = coord_map_local.local_to_codon_ref_range(nuc_aln_local);
 
   // determine the range(s) of the frame shift in the reference nucleotide sequence
-  let nuc_ref_global = qry_cds_map
-    .cds_to_global_ref_range(nuc_aln_local, coord_map_global)
+  let nuc_ref_global = cds_range_to_ref_ranges(cds, &coord_map_local.aln_to_ref_range(nuc_aln_local))
+    .into_iter()
+    .map(|(range, _)| range)
     .collect_vec();
 
   // determine reference codons mapping to frame shifted region including trailing/leading gaps
@@ -103,22 +103,11 @@ pub fn frame_shift_transform(
 pub fn frame_shifts_transform_coordinates(
   nuc_rel_frame_shifts: &[NucAlnLocalRange],
   query: &[Nuc],
-  coord_map_global: &CoordMapGlobal,
-  qry_cds_map: &CoordMapForCds,
   coord_map_local: &CoordMapLocal,
   cds: &Cds,
 ) -> Result<Vec<FrameShift>, Report> {
   nuc_rel_frame_shifts
     .iter()
-    .map(|fs_nuc_rel_aln| {
-      frame_shift_transform(
-        fs_nuc_rel_aln,
-        query,
-        coord_map_global,
-        qry_cds_map,
-        coord_map_local,
-        cds,
-      )
-    })
+    .map(|fs_nuc_rel_aln| frame_shift_transform(fs_nuc_rel_aln, query, coord_map_local, cds))
     .collect()
 }
