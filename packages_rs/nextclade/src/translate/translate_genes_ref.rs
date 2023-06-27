@@ -29,12 +29,10 @@ pub fn translate_genes_ref(
             CdsTranslation {
               name: cds.name.clone(),
               seq: tr.seq,
-              nuc_seq: nucs,
               insertions: vec![],
               frame_shifts: vec![],
               alignment_ranges: vec![Range::from_usize(0, len)],
               unsequenced_ranges: vec![],
-              coord_map_local: CoordMapLocal::new(&[]),
             },
           )
         })
