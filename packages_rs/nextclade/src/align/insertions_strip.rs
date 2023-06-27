@@ -1,8 +1,7 @@
-use crate::io::aa::{from_aa_seq, to_aa_seq, Aa};
+use crate::io::aa::Aa;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::{from_nuc_seq, Nuc};
+use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
-use crate::utils::error::{from_eyre_error, keep_ok};
 use color_eyre::SectionExt;
 use eyre::Report;
 use itertools::Itertools;
@@ -146,7 +145,7 @@ mod tests {
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
-  use rstest::{fixture, rstest};
+  use rstest::rstest;
 
   #[rstest]
   fn finds_terminal_insertions() -> Result<(), Report> {
@@ -163,7 +162,7 @@ mod tests {
     let stripped = insertions_strip(&qry_seq, &ref_seq);
 
     assert_eq!(stripped.insertions, expected_insertions);
-    assert_eq!(stripped.qry_seq, ref_seq);
+    assert_eq!(stripped.qry_seq, to_nuc_seq("ACGCTCGCAT")?);
     Ok(())
   }
 }
