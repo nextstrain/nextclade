@@ -70,6 +70,7 @@ pub struct ProteinSegment {
   pub frame: i32,
   pub exceptions: Vec<String>,
   pub attributes: HashMap<String, Vec<String>>,
+  #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
   pub compat_is_gene: bool,

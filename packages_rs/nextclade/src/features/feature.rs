@@ -28,6 +28,7 @@ pub struct Feature {
   pub notes: Vec<String>,
   pub is_circular: bool,
   pub attributes: HashMap<String, Vec<String>>,
+  #[serde(skip)]
   pub source_record: Option<String>,
 }
 

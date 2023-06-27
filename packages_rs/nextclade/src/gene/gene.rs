@@ -51,6 +51,7 @@ pub struct Gene {
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
   pub attributes: HashMap<String, Vec<String>>,
+  #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
   pub color: Option<String>,
