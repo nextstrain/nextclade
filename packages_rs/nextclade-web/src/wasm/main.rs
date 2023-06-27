@@ -7,7 +7,7 @@ use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::insertions_to_csv_string;
-use nextclade::io::json::{json_parse, json_stringify};
+use nextclade::io::json::{JsonPretty, json_parse, json_stringify};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::qc::qc_config::QcConfig;
@@ -75,13 +75,13 @@ impl NextcladeWasm {
   pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
     let tree = self.nextclade.get_output_tree(&nextclade_outputs);
-    jserr(json_stringify(tree))
+    jserr(json_stringify(tree, JsonPretty(false)))
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct
   pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<String, JsError> {
     let record = jserr(read_one_fasta_str(ref_seq_str))?;
-    jserr(json_stringify(&record))
+    jserr(json_stringify(&record, JsonPretty(false)))
   }
 
   /// Checks that a string containing Auspice tree in JSON format is correct
@@ -93,7 +93,7 @@ impl NextcladeWasm {
   /// Checks that a string containing gene map in GFF format is correct
   pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
     let gene_map = jserr(GeneMap::from_str(gene_map_gff_str))?;
-    jserr(json_stringify(&gene_map))
+    jserr(json_stringify(&gene_map, JsonPretty(false)))
   }
 
   /// Checks that a string containing PCT primers in CSV format is correct

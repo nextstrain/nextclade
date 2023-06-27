@@ -15,7 +15,7 @@ use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::gene_map::gene_map_to_string;
-use nextclade::io::json::json_write;
+use nextclade::io::json::{json_write, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::make_error;
@@ -292,7 +292,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   if let Some(output_tree) = output_tree {
     tree_attach_new_nodes_in_place(&mut tree, &outputs);
-    json_write(output_tree, &tree)?;
+    json_write(output_tree, &tree, JsonPretty(true))?;
   }
 
   Ok(())

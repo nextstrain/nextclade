@@ -10,7 +10,7 @@ use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, Viru
 use nextclade::gene::gene::Gene;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
-use nextclade::io::json::json_stringify;
+use nextclade::io::json::{json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::qc::qc_config::QcConfig;
@@ -233,12 +233,12 @@ impl Nextclade {
   #[inline]
   pub fn get_initial_data(&self) -> Result<AnalysisInitialData, Report> {
     Ok(AnalysisInitialData {
-      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.genes().cloned().collect())?,
+      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.genes().cloned().collect(), JsonPretty(false))?,
       genome_size: self.ref_seq.len(),
-      clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
-      phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,
-      aa_motifs_descs: json_stringify(&self.aa_motifs_descs)?,
-      csv_column_config_default: json_stringify(&CsvColumnConfig::default())?,
+      clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs, JsonPretty(false))?,
+      phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs, JsonPretty(false))?,
+      aa_motifs_descs: json_stringify(&self.aa_motifs_descs, JsonPretty(false))?,
+      csv_column_config_default: json_stringify(&CsvColumnConfig::default(), JsonPretty(false))?,
     })
   }
 
@@ -269,10 +269,11 @@ impl Nextclade {
       self.include_nearest_node_info,
     ) {
       Ok((qry_seq_aligned_stripped, translations, nextclade_outputs)) => {
-        let nextclade_outputs_str =
-          json_stringify(&nextclade_outputs).wrap_err("When serializing output results of Nextclade")?;
+        let nextclade_outputs_str = json_stringify(&nextclade_outputs, JsonPretty(false))
+          .wrap_err("When serializing output results of Nextclade")?;
 
-        let translations_str = json_stringify(&translations).wrap_err("When serializing output translations")?;
+        let translations_str =
+          json_stringify(&translations, JsonPretty(false)).wrap_err("When serializing output translations")?;
 
         let qry_seq_str = from_nuc_seq(&qry_seq_aligned_stripped);
 

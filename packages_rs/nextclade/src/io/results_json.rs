@@ -1,5 +1,5 @@
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
-use crate::io::json::{json_stringify, json_write};
+use crate::io::json::{json_stringify, json_write, JsonPretty};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
 use crate::types::outputs::{
@@ -92,7 +92,7 @@ impl ResultsJsonWriter {
   }
 
   pub fn finish(&self) -> Result<(), Report> {
-    json_write(&self.filepath, &self.result)
+    json_write(&self.filepath, &self.result, JsonPretty(true))
   }
 }
 
@@ -117,7 +117,7 @@ pub fn results_to_json_string(
     phenotype_attr_keys,
     nextclade_web_version,
   );
-  json_stringify(&results_json)
+  json_stringify(&results_json, JsonPretty(false))
 }
 
 pub fn results_to_ndjson_string(

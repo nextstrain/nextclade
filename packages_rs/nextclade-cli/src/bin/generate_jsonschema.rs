@@ -9,7 +9,7 @@ use nextclade::io::errors_csv::ErrorsFromWeb;
 use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::gene_map::GeneMap;
-use nextclade::io::json::json_write_impl;
+use nextclade::io::json::{json_write_impl, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::QcResult;
@@ -51,7 +51,7 @@ fn write_jsonschema<T: JsonSchema>(output: &Option<PathBuf>) -> Result<(), Repor
   };
 
   let schema = schema_for!(T);
-  json_write_impl(writer, &schema)
+  json_write_impl(writer, &schema, JsonPretty(true))
 }
 
 fn main() -> Result<(), Report> {
