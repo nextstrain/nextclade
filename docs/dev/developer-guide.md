@@ -160,11 +160,43 @@ Rust code is linted with [Clippy](https://github.com/rust-lang/rust-clippy):
 cargo clippy
 ```
 
-Clippy is configured in `clippy.toml` and `.cargo/config.toml`.
+Automatic fixes can be applied using:
+
+```bash
+cargo clippy --fix
+```
+
+Clippy is configured in `clippy.toml` and in `.cargo/config.toml`.
+
+For routine development, it is recommended to configure your text editor to see the Rust compiler and linter errors.
+
+##### In [VSCode](https://code.visualstudio.com/):
+
+Make sure you have ["Rust Analyzer" extension](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) (and not deprecated "Rust" extension), and configure it to use clippy: hit Ctrl+Shit+P, then find "Preferences: Open user settings (JSON)", then add:
+
+```
+"rust-analyzer.check.command": "clippy",
+```
+
+Now the warnings and errors will be shown as yellow and red squiggles. If you mouse hover a squiggle, there will appear a tooltip with explanation and a link to even more details. Sometimes there will be a link in the bottom of the tooltip to apply a "Quick fix" for this particular mistake. And there is also a light bulb in the editor to do the same.
+
+You can disable the pesky inline type hints (for all languages) by adding this to your preferences JSON:
+
+```
+"editor.parameterHints.enabled": false,
+"editor.inlayHints.enabled": "off",
+```
+
+An extension ["Error lens"](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) allows to see error and warning text inline in the editor.
+
+##### In Intellij CLion:
+
+In main menu, "File | Settings | Languages & Frameworks | Rust | External Linters", set "External tool" to "Clippy" and check the checkbox "Run external linter to analyze code on the fly".
+
 
 #### Linting Typescript and JavaScript
 
-The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) as a part of development command, but the same lints also be ran separately:
+The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) as a part of development command, but the same lints also be run separately:
 
 ```bash
 cd packages_rs/nextclade-web

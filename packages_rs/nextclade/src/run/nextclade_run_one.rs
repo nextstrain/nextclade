@@ -76,7 +76,7 @@ pub fn nextclade_run_one(
     substitutions,
     deletions,
     alignment_range,
-  } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
+  } = find_nuc_changes(&stripped.qry_seq, ref_seq);
 
   calculate_aa_alignment_ranges_in_place(&alignment_range, &mut translation, gene_map)?;
 
@@ -106,7 +106,7 @@ pub fn nextclade_run_one(
     aa_deletions,
     nuc_to_aa_muts,
   } = find_aa_changes(
-    &stripped.ref_seq,
+    ref_seq,
     &stripped.qry_seq,
     ref_peptides,
     &translation,
