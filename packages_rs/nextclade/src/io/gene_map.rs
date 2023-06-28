@@ -287,7 +287,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   writeln!(
     w,
-    "{:max_name_len$} │ s │  c  │  start  │   end   │   nucs  │    codons   │",
+    "{:max_name_len$} │ s │ f | p |  c  │  start  │   end   │   nucs  │    codons   │",
     "Genome",
   )?;
 
@@ -328,7 +328,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │         │         │         │             │ {exceptions}",
+    "{indent}{:max_name_len$} │   │   │   │     │         │         │         │             │ {exceptions}",
     name.style(style_for_feature_type("gene")?)
   )?;
 
@@ -345,7 +345,7 @@ fn write_cds<W: Write>(w: &mut W, max_name_len: usize, cds: &Cds) -> Result<(), 
   let exceptions = cds.exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │         │         │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │   │   │   │     │         │         │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("cds")?)
   )?;
 
@@ -356,6 +356,8 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   let CdsSegment {
     range,
     strand,
+    frame,
+    phase,
     exceptions,
     ..
   } = cds_segment;
@@ -377,7 +379,7 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   };
   writeln!(
     w,
-    "{indent}{:max_name_len$} │ {strand:} │ {wrap:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │ {strand:} │ {frame:} | {phase:} | {wrap:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("cds segment")?)
   )?;
 
@@ -391,7 +393,7 @@ fn write_protein<W: Write>(w: &mut W, max_name_len: usize, protein: &Protein) ->
   let name = truncate_with_ellipsis(protein.name_and_type(), max_name_len);
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │         │         │         │             │",
+    "{indent}{:max_name_len$} │   │   │   │     │         │         │         │             │",
     name.style(style_for_feature_type("protein")?)
   )?;
 
@@ -416,7 +418,7 @@ fn write_protein_segment<W: Write>(
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │   │   │   │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("protein segment")?)
   )?;
 

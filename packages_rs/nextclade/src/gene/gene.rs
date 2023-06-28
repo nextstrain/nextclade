@@ -96,6 +96,7 @@ impl Gene {
       .segments
       .iter()
       .flat_map(|seg| &seg.exceptions)
+      .unique()
       .cloned()
       .collect_vec();
 

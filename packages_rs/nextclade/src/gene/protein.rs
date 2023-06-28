@@ -1,5 +1,4 @@
 use crate::features::feature_group::FeatureGroup;
-use crate::gene::gene::GeneStrand;
 use crate::make_internal_error;
 use crate::utils::range::NucRefGlobalRange;
 use eyre::Report;
@@ -32,7 +31,6 @@ impl Protein {
           id: feature.id.clone(),
           name: feature.name.clone(),
           range: feature.range.clone(),
-          frame: feature.frame,
           exceptions: feature.exceptions.clone(),
           attributes: feature.attributes.clone(),
           source_record: feature.source_record.clone(),
@@ -67,7 +65,6 @@ pub struct ProteinSegment {
   pub id: String,
   pub name: String,
   pub range: NucRefGlobalRange,
-  pub frame: i32,
   pub exceptions: Vec<String>,
   pub attributes: HashMap<String, Vec<String>>,
   #[serde(skip)]

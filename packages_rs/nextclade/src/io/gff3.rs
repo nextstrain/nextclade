@@ -230,7 +230,6 @@ pub struct GffCommonInfo {
   pub name: Option<String>,
   pub range: NucRefGlobalRange,
   pub strand: GeneStrand,
-  pub frame: i32,
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
@@ -257,7 +256,6 @@ impl GffCommonInfo {
     let strand = record
       .strand()
       .map_or(GeneStrand::Forward, bio_types::strand::Strand::into);
-    let frame = parse_gff3_frame(record.frame(), start);
 
     let attr_keys = record.attributes().keys().sorted().unique().collect_vec();
 
@@ -271,7 +269,10 @@ impl GffCommonInfo {
       exception_attr_keys
     };
 
-    let exceptions = get_all_attributes(record, &exception_attr_keys)?;
+    let exceptions = get_all_attributes(record, &exception_attr_keys)?
+      .into_iter()
+      .unique()
+      .collect();
 
     let notes_attr_keys = {
       let mut notes_attr_keys = attr_keys
@@ -283,7 +284,10 @@ impl GffCommonInfo {
       notes_attr_keys
     };
 
-    let notes = get_all_attributes(record, &notes_attr_keys)?;
+    let notes = get_all_attributes(record, &notes_attr_keys)?
+      .into_iter()
+      .unique()
+      .collect();
 
     let is_circular =
       get_attribute_optional(record, "Is_circular").map_or(false, |is_circular| is_circular.to_lowercase() == "true");
@@ -300,7 +304,6 @@ impl GffCommonInfo {
       name,
       range,
       strand,
-      frame,
       exceptions,
       notes,
       is_circular,
@@ -378,15 +381,6 @@ pub fn get_all_attributes(record: &GffRecord, attr_names: &[&str]) -> Result<Vec
     .unique()
     .map(|val| Ok(urlencoding::decode(&val)?.to_string()))
     .collect::<Result<Vec<String>, Report>>()
-}
-
-/// Parses `frame` column of the GFF3 record.
-/// If `frame` cannot be parsed to an integer, then it is deduced from feature `start`.
-pub fn parse_gff3_frame(frame: &str, start: usize) -> i32 {
-  match frame.parse::<i32>() {
-    Ok(frame) => frame,
-    Err(_) => (start % 3) as i32,
-  }
 }
 
 /// Prints GFF record as it is in the input file

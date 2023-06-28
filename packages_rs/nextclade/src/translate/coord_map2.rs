@@ -77,33 +77,38 @@ pub fn global_ref_pos_to_local(cds: &Cds, pos: NucRefGlobalPosition) -> Vec<NucR
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::gene::cds::{CdsSegment, WrappingPart};
+  use crate::gene::cds::{CdsSegment, Frame, Phase, WrappingPart};
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::utils::range::{Position, Range};
   use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
-  fn create_fake_cds(segment_ranges: &[(usize, usize, GeneStrand)]) -> Cds {
+  fn create_fake_cds(segment_ranges: &[(isize, isize, GeneStrand)]) -> Cds {
     Cds {
       id: "".to_owned(),
       name: "".to_owned(),
       product: "".to_owned(),
       segments: {
-        let mut segment_start = 0;
+        let mut segment_start = 0_isize;
         segment_ranges
           .iter()
           .map(|(begin, end, strand)| {
+            let range_local = Range::from_isize(segment_start, segment_start + end - begin);
+            let phase = Phase::from_begin(range_local.begin).unwrap();
+            let frame = Frame::from_begin(Position::new(*begin)).unwrap();
+
             let segment = CdsSegment {
               index: 0,
               id: "".to_owned(),
               name: "".to_owned(),
-              range: NucRefGlobalRange::from_usize(*begin, *end),
-              range_local: Range::from_usize(segment_start, segment_start + end - begin),
+              range: NucRefGlobalRange::from_isize(*begin, *end),
+              range_local,
               landmark: None,
               wrapping_part: WrappingPart::NonWrapping,
               strand: *strand,
-              frame: 0,
+              frame,
+              phase,
               exceptions: vec![],
               attributes: hashmap!(),
               source_record: None,

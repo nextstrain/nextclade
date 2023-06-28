@@ -47,10 +47,10 @@ pub fn get_gap_open_close_scores_codon_aware(
 mod tests {
   #![allow(clippy::field_reassign_with_default, clippy::needless_pass_by_value)]
   use super::*;
-  use crate::gene::cds::{Cds, CdsSegment, WrappingPart};
+  use crate::gene::cds::{Cds, CdsSegment, Frame, Phase, WrappingPart};
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
-  use crate::utils::range::{NucRefGlobalRange, Range};
+  use crate::utils::range::{NucRefGlobalRange, Position, Range};
   use eyre::Report;
   use itertools::Itertools;
   use maplit::hashmap;
@@ -66,21 +66,28 @@ mod tests {
         let segments = cds
           .iter()
           .enumerate()
-          .map(|(index, (begin, end, strand))| CdsSegment {
-            index,
-            id: index.to_string(),
-            name: index.to_string(),
-            range: NucRefGlobalRange::from_isize(*begin, *end),
-            range_local: Range::from_isize(0, end - begin),
-            landmark: None,
-            wrapping_part: WrappingPart::NonWrapping,
-            strand: *strand,
-            frame: 0,
-            exceptions: vec![],
-            attributes: hashmap! {},
-            source_record: None,
-            compat_is_gene: false,
-            color: None,
+          .map(|(index, (begin, end, strand))| {
+            let range_local = Range::from_isize(0, end - begin);
+            let phase = Phase::from_begin(range_local.begin).unwrap();
+            let frame = Frame::from_begin(Position::from(*begin)).unwrap();
+
+            CdsSegment {
+              index,
+              id: index.to_string(),
+              name: index.to_string(),
+              range: NucRefGlobalRange::from_isize(*begin, *end),
+              range_local,
+              landmark: None,
+              wrapping_part: WrappingPart::NonWrapping,
+              strand: *strand,
+              frame,
+              phase,
+              exceptions: vec![],
+              attributes: hashmap! {},
+              source_record: None,
+              compat_is_gene: false,
+              color: None,
+            }
           })
           .collect_vec();
 
