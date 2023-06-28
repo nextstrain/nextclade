@@ -422,7 +422,7 @@ pub enum Phase {
 
 impl Phase {
   pub fn from_begin(local_begin: NucRefLocalPosition) -> Result<Self, Report> {
-    match (local_begin % 3).as_isize() {
+    match (3 - local_begin.as_isize() % 3) % 3 {
       0 => Ok(Phase::_0),
       1 => Ok(Phase::_1),
       2 => Ok(Phase::_2),
