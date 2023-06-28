@@ -21,7 +21,6 @@ pub struct Feature {
   pub range: NucRefGlobalRange,
   pub landmark: Option<Landmark>,
   pub strand: GeneStrand,
-  pub frame: i32,
   pub parent_ids: Vec<String>,
   pub seqid: String, // Column 0 in the GFF file
   pub exceptions: Vec<String>,
@@ -39,7 +38,6 @@ impl Feature {
       name,
       range,
       strand,
-      frame,
       exceptions,
       notes,
       is_circular,
@@ -70,7 +68,6 @@ impl Feature {
       range,
       landmark: None,
       strand,
-      frame,
       parent_ids,
       seqid,
       exceptions,

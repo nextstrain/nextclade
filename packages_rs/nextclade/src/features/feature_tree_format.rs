@@ -118,7 +118,6 @@ fn format_feature_group<W: Write>(
 ) -> Result<(), Report> {
   let FeatureGroup {
     feature_type,
-    frame,
     features,
     parent_ids: _parent_ids,
     children: _children,
@@ -136,11 +135,10 @@ fn format_feature_group<W: Write>(
     features => {
       let indent = "  ".repeat(depth);
       let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
-      let frame = frame;
-      let exceptions = exceptions.iter().chain(notes.iter()).join(", ");
+      let exceptions = exceptions.iter().chain(notes.iter()).unique().join(", ");
 
       let formatted = format!(
-        "{indent}{name:max_name_len$} │   │ {frame:} │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
+        "{indent}{name:max_name_len$} │   │   │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
         "", "", "", ""
       )
       .style(style_for_feature_type(feature_type)?)
@@ -161,7 +159,6 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
     range,
     landmark: _landmark,
     strand,
-    frame,
     parent_ids: _parent_ids,
     seqid: _seqid,
     exceptions,
@@ -176,11 +173,11 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
   let end = range.end;
   let nuc_len = range.len();
   let codon_len = format_codon_length(nuc_len);
-  let exceptions = exceptions.iter().chain(notes.iter()).join(", ");
+  let exceptions = exceptions.iter().chain(notes.iter()).unique().join(", ");
   let _is_circular = if *is_circular { "✔" } else { " " };
 
   let formatted = format!(
-    "{indent}{name:max_name_len$} │ {strand:} │ {frame:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"
+    "{indent}{name:max_name_len$} │ {strand:} │   │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"
   ).style(style_for_feature_type(feature_type)?).to_string();
 
   writeln!(w, "{formatted}")?;

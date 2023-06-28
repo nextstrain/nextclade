@@ -2,15 +2,21 @@ use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::gene::GeneStrand;
 use crate::gene::protein::{Protein, ProteinSegment};
-use crate::utils::range::{NucRefGlobalRange, NucRefLocalRange, Range};
+use crate::utils::range::{
+  NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition, NucRefLocalRange, PositionLike, Range,
+};
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use maplit::hashmap;
 use num_traits::clamp_max;
+use schemars::gen::SchemaGenerator;
+use schemars::schema::Schema;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -39,6 +45,10 @@ impl Cds {
           let mut begin = 0;
 
           move |feature| {
+            let range_local = Range::from_usize(begin, begin + feature.range.len());
+            let phase = Phase::from_begin(range_local.begin)?;
+            let frame = Frame::from_begin(feature.range.begin)?;
+
             let segment = CdsSegment {
               index: feature.index,
               id: feature.id.clone(),
@@ -48,7 +58,8 @@ impl Cds {
               landmark: feature.landmark.clone(),
               wrapping_part: WrappingPart::NonWrapping,
               strand: feature.strand,
-              frame: feature.frame,
+              frame,
+              phase,
               exceptions: feature.exceptions.clone(),
               attributes: feature.attributes.clone(),
               source_record: feature.source_record.clone(),
@@ -116,7 +127,6 @@ impl Cds {
       id: format!("protein-segment-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
       range: feature.range.clone(),
-      frame: feature.frame,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),
@@ -133,16 +143,21 @@ impl Cds {
       color: None,
     };
 
+    let range_local = Range::from_usize(0, feature.range.len());
+    let phase = Phase::from_begin(range_local.begin)?;
+    let frame = Frame::from_begin(feature.range.begin)?;
+
     let cds_segment = CdsSegment {
       index: feature.index,
       id: format!("cds-segment-from-gene-{}", feature.id.clone()),
       name: feature.name.clone(),
       range: feature.range.clone(),
-      range_local: Range::from_usize(0, feature.range.len()),
+      range_local,
       landmark: feature.landmark.clone(),
       wrapping_part: WrappingPart::NonWrapping,
       strand: feature.strand,
-      frame: feature.frame,
+      frame,
+      phase,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),
@@ -334,7 +349,8 @@ pub struct CdsSegment {
   pub landmark: Option<Landmark>,
   pub wrapping_part: WrappingPart,
   pub strand: GeneStrand,
-  pub frame: i32,
+  pub frame: Frame,
+  pub phase: Phase,
   pub exceptions: Vec<String>,
   pub attributes: HashMap<String, Vec<String>>,
   #[serde(skip)]
@@ -356,5 +372,79 @@ impl CdsSegment {
   #[inline]
   pub fn is_empty(&self) -> bool {
     self.len() == 0
+  }
+}
+
+#[repr(i8)]
+#[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
+pub enum Frame {
+  _0 = 0,
+  _1 = 1,
+  _2 = 2,
+}
+
+impl Frame {
+  pub fn from_begin(global_begin: NucRefGlobalPosition) -> Result<Self, Report> {
+    match (global_begin % 3).as_isize() {
+      0 => Ok(Frame::_0),
+      1 => Ok(Frame::_1),
+      2 => Ok(Frame::_2),
+      val => {
+        make_internal_error!("Unexpected value for the frame of genetic feature: {val}. Expected values are: 0, 1, 2")
+      }
+    }
+  }
+}
+
+impl Display for Frame {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", *self as i8)
+  }
+}
+
+impl schemars::JsonSchema for Frame {
+  fn schema_name() -> String {
+    "Frame".to_owned()
+  }
+
+  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<i8>()
+  }
+}
+
+#[repr(i8)]
+#[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
+pub enum Phase {
+  _0 = 0,
+  _1 = 1,
+  _2 = 2,
+}
+
+impl Phase {
+  pub fn from_begin(local_begin: NucRefLocalPosition) -> Result<Self, Report> {
+    match (3 - local_begin.as_isize() % 3) % 3 {
+      0 => Ok(Phase::_0),
+      1 => Ok(Phase::_1),
+      2 => Ok(Phase::_2),
+      val => {
+        make_internal_error!("Unexpected value for the phase of genetic feature: {val}. Expected values are: 0, 1, 2")
+      }
+    }
+  }
+}
+
+impl Display for Phase {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", *self as i8)
+  }
+}
+
+impl schemars::JsonSchema for Phase {
+  fn schema_name() -> String {
+    "Phase".to_owned()
+  }
+
+  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<i8>()
   }
 }

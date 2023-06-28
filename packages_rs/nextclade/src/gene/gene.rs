@@ -1,7 +1,6 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::io::container::take_exactly_one;
-use crate::utils::range::NucRefGlobalRange;
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use maplit::hashmap;
@@ -46,8 +45,6 @@ pub struct Gene {
   pub index: usize,
   pub id: String,
   pub name: String,
-  pub range: NucRefGlobalRange,
-  pub frame: i32,
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
   pub attributes: HashMap<String, Vec<String>>,
@@ -81,8 +78,6 @@ impl Gene {
       index: feature.index,
       id: feature.id.clone(),
       name: feature.name.clone(),
-      range: feature.range.clone(),
-      frame: feature.frame,
       cdses,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
@@ -97,13 +92,11 @@ impl Gene {
     let index = 0;
     let id = cds.segments.iter().map(|seg| &seg.id).unique().join("+");
     let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
-    let start = cds.segments.first().map(|seg| seg.range.begin).unwrap_or_default();
-    let end = cds.segments.last().map(|seg| seg.range.end).unwrap_or_default();
-    let frame = cds.segments.first().map(|seg| seg.frame).unwrap_or_default();
     let exceptions = cds
       .segments
       .iter()
       .flat_map(|seg| &seg.exceptions)
+      .unique()
       .cloned()
       .collect_vec();
 
@@ -111,8 +104,6 @@ impl Gene {
       index,
       id,
       name,
-      range: NucRefGlobalRange::new(start, end),
-      frame,
       cdses: vec![cds.clone()],
       exceptions,
       attributes: hashmap!(),

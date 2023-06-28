@@ -14,7 +14,6 @@ pub struct FeatureGroup {
   pub name: String,
   pub product: String,
   pub feature_type: String,
-  pub frame: i32,
   pub features: Vec<Feature>,
   pub parent_ids: Vec<String>,
   pub children: Vec<FeatureGroup>,
@@ -51,14 +50,6 @@ impl FeatureGroup {
     let product = features.iter().map(|feature| &feature.product).unique().join("+");
     let feature_type = features.iter().map(|feature| &feature.feature_type).unique().join("+");
 
-    let frame = {
-      let frames = features.iter().map(|feature| &feature.frame).unique().collect_vec();
-      match frames.as_slice() {
-        &[frame] => *frame,
-        _ => 0,
-      }
-    };
-
     let parent_ids = features
       .iter()
       .flat_map(|feature| &feature.parent_ids)
@@ -88,7 +79,6 @@ impl FeatureGroup {
       name,
       product,
       feature_type,
-      frame,
       features: features.to_owned(),
       parent_ids,
       children: vec![],

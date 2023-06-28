@@ -7,16 +7,19 @@ use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
+use crate::utils::range::PositionLike;
 use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};
-use itertools::{max, Itertools};
+use itertools::max as iter_max;
+use itertools::Itertools;
 use log::warn;
 use num::Integer;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::cmp::{max, min};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
@@ -270,7 +273,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .unwrap_or_default();
 
   let max_name_len = clamp(
-    max([
+    iter_max([
       max_gene_name_len,
       max_cds_name_len,
       max_cds_segment_name_len,
@@ -284,14 +287,20 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   writeln!(
     w,
-    "{:max_name_len$} │ s │  c  │  start  │   end   │   nucs  │    codons   │",
+    "{:max_name_len$} │ s │ f | p |  c  │  start  │   end   │   nucs  │    codons   │",
     "Genome",
   )?;
 
-  for (_, gene) in gene_map
-    .iter_genes()
-    .sorted_by_key(|(_, gene)| (gene.range.begin, gene.range.end, &gene.name))
-  {
+  for (_, gene) in gene_map.iter_genes().sorted_by_key(|(_, gene)| {
+    let mut begin = isize::MAX;
+    let mut end = isize::MIN;
+
+    for cds in &gene.cdses {
+      begin = min(begin, cds.segments[0].range.begin.as_isize());
+      end = max(end, cds.segments[0].range.end.as_isize());
+    }
+    (begin, end, &gene.name)
+  }) {
     write_gene(w, max_name_len, gene)?;
     for cds in &gene.cdses {
       write_cds(w, max_name_len, cds)?;
@@ -319,7 +328,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │         │         │         │             │ {exceptions}",
+    "{indent}{:max_name_len$} │   │   │   │     │         │         │         │             │ {exceptions}",
     name.style(style_for_feature_type("gene")?)
   )?;
 
@@ -336,7 +345,7 @@ fn write_cds<W: Write>(w: &mut W, max_name_len: usize, cds: &Cds) -> Result<(), 
   let exceptions = cds.exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │         │         │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │   │   │   │     │         │         │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("cds")?)
   )?;
 
@@ -347,6 +356,8 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   let CdsSegment {
     range,
     strand,
+    frame,
+    phase,
     exceptions,
     ..
   } = cds_segment;
@@ -368,7 +379,7 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   };
   writeln!(
     w,
-    "{indent}{:max_name_len$} │ {strand:} │ {wrap:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │ {strand:} │ {frame:} | {phase:} | {wrap:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("cds segment")?)
   )?;
 
@@ -382,7 +393,7 @@ fn write_protein<W: Write>(w: &mut W, max_name_len: usize, protein: &Protein) ->
   let name = truncate_with_ellipsis(protein.name_and_type(), max_name_len);
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │         │         │         │             │",
+    "{indent}{:max_name_len$} │   │   │   │     │         │         │         │             │",
     name.style(style_for_feature_type("protein")?)
   )?;
 
@@ -407,7 +418,7 @@ fn write_protein_segment<W: Write>(
   let exceptions = exceptions.join(", ");
   writeln!(
     w,
-    "{indent}{:max_name_len$} │   │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
+    "{indent}{:max_name_len$} │   │   │   │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
     name.style(style_for_feature_type("protein segment")?)
   )?;
 
