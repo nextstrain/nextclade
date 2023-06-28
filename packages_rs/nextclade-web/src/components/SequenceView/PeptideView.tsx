@@ -3,7 +3,7 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import type { AnalysisResult, Gene, PeptideWarning } from 'src/types'
+import type { AnalysisResult, PeptideWarning } from 'src/types'
 import { cdsCodonLength } from 'src/types'
 import { cdsAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -12,8 +12,8 @@ import { formatRange } from 'src/helpers/formatRange'
 import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
+import { SequenceViewWrapper, SequenceViewSVG } from 'src/components/SequenceView/FullSequenceView'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
-import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
 import { PeptideMarkerInsertion } from './PeptideMarkerInsertion'
@@ -63,7 +63,6 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
   warnings?: PeptideWarning[]
-  geneMap?: Gene[]
   viewedGene: string
 }
 

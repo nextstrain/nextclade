@@ -1,10 +1,10 @@
+import type { CladeNodeAttrDesc } from 'auspice'
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
-import type { CladeNodeAttrDesc } from 'auspice'
-
-import { AaMotifsDesc, PhenotypeAttrDesc, QcStatus } from 'src/types'
+import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
+import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
 import { ColumnGaps } from 'src/components/Results/ColumnGaps'
@@ -24,17 +24,17 @@ import {
   TableCellText,
   TableRow,
 } from 'src/components/Results/ResultsTableStyle'
+import { FullSequenceView } from 'src/components/SequenceView/FullSequenceView'
+import { NucSequenceView } from 'src/components/SequenceView/NucSequenceView'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
-import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
-import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
-import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
+import { isInNucleotideViewAtom, SeqViewMode, seqViewModeAtom, viewedGeneAtom } from 'src/state/seqViewSettings.state'
+
+import { AaMotifsDesc, AnalysisResult, PeptideWarning, PhenotypeAttrDesc, QcStatus } from 'src/types'
 
 export interface ResultsTableRowResultProps {
   rowIndex: number
   seqIndex: number
-  viewedGene: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
@@ -80,7 +80,6 @@ export function TableRowColored({
 export function ResultsTableRowResult({
   rowIndex,
   seqIndex,
-  viewedGene,
   cladeNodeAttrDescs,
   phenotypeAttrDescs,
   aaMotifsDescs,
@@ -185,13 +184,29 @@ export function ResultsTableRowResult({
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
         <Suspense fallback={null}>
-          {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
-            <SequenceView key={seqName} sequence={analysisResult} />
-          ) : (
-            <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
-          )}
+          <SequenceView seqName={seqName} analysisResult={analysisResult} warnings={warnings} />
         </Suspense>
       </TableCell>
     </TableRowColored>
   )
+}
+
+export interface SequenceViewProps {
+  seqName: string
+  analysisResult: AnalysisResult
+  warnings: PeptideWarning[]
+}
+
+export function SequenceView({ seqName, analysisResult, warnings }: SequenceViewProps) {
+  const isInNucleotideView = useRecoilValue(isInNucleotideViewAtom)
+  const seqViewMode = useRecoilValue(seqViewModeAtom)
+  const viewedGene = useRecoilValue(viewedGeneAtom)
+
+  if (isInNucleotideView) {
+    return <FullSequenceView key={seqName} sequence={analysisResult} />
+  }
+  if (seqViewMode === SeqViewMode.Nuc) {
+    return <NucSequenceView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
+  }
+  return <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
 }

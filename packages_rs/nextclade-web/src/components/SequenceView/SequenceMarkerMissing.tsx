@@ -22,9 +22,17 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   seqName: string
   missing: NucleotideMissing
   pixelsPerBase: number
+  offsetPos?: number
 }
 
-export function SequenceMarkerMissingUnmemoed({ index, seqName, missing, pixelsPerBase, ...rest }: MissingViewProps) {
+export function SequenceMarkerMissingUnmemoed({
+  index,
+  seqName,
+  missing,
+  pixelsPerBase,
+  offsetPos = 0,
+  ...rest
+}: MissingViewProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
@@ -37,13 +45,13 @@ export function SequenceMarkerMissingUnmemoed({ index, seqName, missing, pixelsP
     return null
   }
 
-  const { begin, end } = missing.range // prettier-ignore
+  const {begin, end} = missing.range // prettier-ignore
 
   const id = getSafeId('missing-marker', { index, seqName, ...missing.range })
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = begin * pixelsPerBase - halfNuc
+  const x = (begin - offsetPos) * pixelsPerBase - halfNuc
 
   const rangeStr = formatRange(missing.range)
 

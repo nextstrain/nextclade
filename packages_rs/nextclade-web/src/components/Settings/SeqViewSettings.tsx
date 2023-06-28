@@ -1,66 +1,61 @@
-import React, { useCallback, useMemo } from 'react'
+import { desaturate } from 'polished'
+import React, { useMemo } from 'react'
 import { Col, Container, Form, FormGroup, Label, Row } from 'reactstrap'
-import { RecoilState, useRecoilState } from 'recoil'
-import { Multitoggle } from 'src/components/Common/Multitoggle'
+import { useRecoilState } from 'recoil'
+import { Multitoggle, MultitoggleOption } from 'src/components/Common/Multitoggle'
 import { NumericField } from 'src/components/Common/NumericField'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRecoilStateDeferred } from 'src/hooks/useRecoilStateDeferred'
 import {
-  SEQ_MARKER_HEIGHT_STATES,
   SeqMarkerHeightState,
-  seqMarkerHeightStateFromString,
   seqMarkerMissingHeightStateAtom,
-  seqMarkerHeightStateToString,
   seqMarkerGapHeightStateAtom,
   seqMarkerMutationHeightStateAtom,
   seqMarkerUnsequencedHeightStateAtom,
   maxNucMarkersAtom,
 } from 'src/state/seqViewSettings.state'
+import { useTheme } from 'styled-components'
 
-/** Adapts Recoil state  `enum` to `string` */
-export function useEnumRecoilState<T>(
-  state: RecoilState<T>,
-  serialize: (x: T) => string,
-  deserialize: (k: string) => T,
-): [string, (k: string) => void] {
-  const [enumValue, setEnumValue] = useRecoilState(state)
-
-  const stringValue = useMemo(() => {
-    return serialize(enumValue)
-  }, [enumValue, serialize])
-
-  const setStringValue = useCallback(
-    (key: string) => {
-      const e = deserialize(key)
-      setEnumValue(e)
-    },
-    [deserialize, setEnumValue],
-  )
-
-  return [stringValue, setStringValue]
-}
-
-export function useSeqMarkerState(state: RecoilState<SeqMarkerHeightState>) {
-  return useEnumRecoilState(state, seqMarkerHeightStateToString, seqMarkerHeightStateFromString)
-}
+const TOGGLE_WIDTH = 75
 
 export function SeqViewSettings() {
   const { t } = useTranslationSafe()
+  const theme = useTheme()
 
   const [maxNucMarkers, setMaxNucMarkers] = useRecoilStateDeferred(maxNucMarkersAtom)
-
-  const [seqMarkerMissingHeightState, setSeqMarkerMissingHeightState] = useSeqMarkerState(
-    seqMarkerMissingHeightStateAtom,
-  )
-
-  const [seqMarkerGapHeightState, setSeqMarkerGapHeightState] = useSeqMarkerState(seqMarkerGapHeightStateAtom)
-
-  const [seqMarkerMutationHeightState, setSeqMarkerMutationHeightState] = useSeqMarkerState(
+  const [seqMarkerMissingHeightState, setSeqMarkerMissingHeightState] = useRecoilState(seqMarkerMissingHeightStateAtom)
+  const [seqMarkerGapHeightState, setSeqMarkerGapHeightState] = useRecoilState(seqMarkerGapHeightStateAtom)
+  const [seqMarkerMutationHeightState, setSeqMarkerMutationHeightState] = useRecoilState(
     seqMarkerMutationHeightStateAtom,
   )
-
-  const [seqMarkerUnsequencedHeightState, setSeqMarkerUnsequencedHeightState] = useSeqMarkerState(
+  const [seqMarkerUnsequencedHeightState, setSeqMarkerUnsequencedHeightState] = useRecoilState(
     seqMarkerUnsequencedHeightStateAtom,
+  )
+
+  const heightStateOptions: MultitoggleOption<SeqMarkerHeightState>[] = useMemo(
+    () => [
+      {
+        value: SeqMarkerHeightState.Off,
+        label: t('Off'),
+        color: desaturate(0.175)(theme.danger),
+      },
+      {
+        value: SeqMarkerHeightState.Top,
+        label: t('Top'),
+        color: desaturate(0.175)(theme.warning),
+      },
+      {
+        value: SeqMarkerHeightState.Bottom,
+        label: t('Bottom'),
+        color: desaturate(0.175)(theme.warning),
+      },
+      {
+        value: SeqMarkerHeightState.Full,
+        label: t('Full'),
+        color: desaturate(0.175)(theme.success),
+      },
+    ],
+    [t, theme.danger, theme.success, theme.warning],
   )
 
   return (
@@ -82,20 +77,22 @@ export function SeqViewSettings() {
 
             <FormGroup>
               {t('Missing')}
-              <Multitoggle
-                values={SEQ_MARKER_HEIGHT_STATES}
+              <Multitoggle<SeqMarkerHeightState>
+                options={heightStateOptions}
                 value={seqMarkerMissingHeightState}
                 onChange={setSeqMarkerMissingHeightState}
+                itemWidth={TOGGLE_WIDTH}
               />
             </FormGroup>
 
             <FormGroup>
               <Label>
                 {t('Gaps')}
-                <Multitoggle
-                  values={SEQ_MARKER_HEIGHT_STATES}
+                <Multitoggle<SeqMarkerHeightState>
+                  options={heightStateOptions}
                   value={seqMarkerGapHeightState}
                   onChange={setSeqMarkerGapHeightState}
+                  itemWidth={TOGGLE_WIDTH}
                 />
               </Label>
             </FormGroup>
@@ -103,10 +100,11 @@ export function SeqViewSettings() {
             <FormGroup>
               <Label>
                 {t('Mutations')}
-                <Multitoggle
-                  values={SEQ_MARKER_HEIGHT_STATES}
+                <Multitoggle<SeqMarkerHeightState>
+                  options={heightStateOptions}
                   value={seqMarkerMutationHeightState}
                   onChange={setSeqMarkerMutationHeightState}
+                  itemWidth={TOGGLE_WIDTH}
                 />
               </Label>
             </FormGroup>
@@ -114,10 +112,11 @@ export function SeqViewSettings() {
             <FormGroup>
               <Label>
                 {t('Unsequenced')}
-                <Multitoggle
-                  values={SEQ_MARKER_HEIGHT_STATES}
+                <Multitoggle<SeqMarkerHeightState>
+                  options={heightStateOptions}
                   value={seqMarkerUnsequencedHeightState}
                   onChange={setSeqMarkerUnsequencedHeightState}
+                  itemWidth={TOGGLE_WIDTH}
                 />
               </Label>
             </FormGroup>
