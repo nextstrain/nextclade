@@ -32,6 +32,40 @@ export function rangeLen(range: Range) {
   return range.end - range.begin
 }
 
+export function rangeIsEmpty(range: Range) {
+  return rangeLen(range) === 0
+}
+
+export function rangeFixed(range: Range) {
+  if (range.begin > range.end) {
+    return { begin: range.end, end: range.end }
+  }
+  return range
+}
+
+export function rangeContains(range: Range, x: number) {
+  return x >= range.begin && x < range.end
+}
+
+/// Compute an intersection of two ranges. Returns an empty range if the intersection is empty
+export function rangeIntersect(x: Range, y: Range): Range {
+  if (y.begin > x.end || x.begin > y.end) {
+    return { begin: 0, end: 0 }
+  }
+  const begin = Math.max(x.begin, y.begin)
+  const end = Math.min(x.end, y.end)
+  return rangeFixed({ begin, end })
+}
+
+/// Compute an intersection of two ranges. Returns None if the intersection is empty
+export function rangeIntersectOrNone(x: Range, y: Range): Range | undefined {
+  const intersection = rangeIntersect(x, y)
+  if (rangeIsEmpty(intersection)) {
+    return undefined
+  }
+  return intersection
+}
+
 export type Nucleotide = Nuc
 export type Aminoacid = Aa
 export type NucleotideRange = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase

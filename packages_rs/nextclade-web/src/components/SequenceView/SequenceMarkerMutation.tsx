@@ -22,6 +22,7 @@ export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   substitution: NucSub
   nucToAaMuts: Record<string, AaSub[]>
   pixelsPerBase: number
+  offsetPos?: number
 }
 
 function SequenceMarkerMutationUnmemoed({
@@ -30,6 +31,7 @@ function SequenceMarkerMutationUnmemoed({
   substitution,
   nucToAaMuts,
   pixelsPerBase,
+  offsetPos = 0,
   ...rest
 }: SequenceMarkerMutationProps) {
   const { t } = useTranslation()
@@ -50,7 +52,7 @@ function SequenceMarkerMutationUnmemoed({
   const fill = getNucleotideColor(qryNuc)
   const width = Math.max(BASE_MIN_WIDTH_PX, pixelsPerBase)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = pos * pixelsPerBase - halfNuc
+  const x = (pos - offsetPos) * pixelsPerBase - halfNuc
 
   const aaChanges = get(nucToAaMuts, pos.toString(10)) ?? []
 

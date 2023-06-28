@@ -34,11 +34,11 @@ export const SequenceViewText = styled.p`
   margin: auto;
 `
 
-export interface SequenceViewProps extends ReactResizeDetectorDimensions {
+export interface FullSequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
 }
 
-export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
+export function FullSequenceViewUnsized({ sequence, width }: FullSequenceViewProps) {
   const { index, seqName, substitutions, missing, deletions, alignmentRange, frameShifts, insertions, nucToAaMuts } =
     sequence
 
@@ -163,6 +163,6 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   )
 }
 
-export const SequenceViewUnmemoed = withResizeDetector(SequenceViewUnsized)
+export const FullSequenceViewUnmemoed = withResizeDetector(FullSequenceViewUnsized)
 
-export const SequenceView = React.memo(SequenceViewUnmemoed)
+export const FullSequenceView = React.memo(FullSequenceViewUnmemoed)

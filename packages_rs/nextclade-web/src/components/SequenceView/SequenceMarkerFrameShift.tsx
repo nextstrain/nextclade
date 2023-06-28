@@ -18,11 +18,18 @@ export interface FrameShiftMarkerProps extends SVGProps<SVGRectElement> {
   seqName: string
   frameShift: FrameShift
   pixelsPerBase: number
+  offsetPos?: number
 }
 
 export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed)
 
-function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPerBase }: FrameShiftMarkerProps) {
+function SequenceMarkerFrameShiftUnmemoed({
+  index,
+  seqName,
+  frameShift,
+  pixelsPerBase,
+  offsetPos = 0,
+}: FrameShiftMarkerProps) {
   const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
 
   const frameShiftSegments = useMemo(
@@ -49,10 +56,11 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
             gapsTrailing={gapsTrailing}
             gapsLeading={gapsLeading}
             pixelsPerBase={pixelsPerBase}
+            offsetPos={offsetPos}
           />
         )
       }),
-    [codon, gapsLeading, gapsTrailing, geneName, index, nucAbs, pixelsPerBase, seqName],
+    [codon, gapsLeading, gapsTrailing, geneName, index, nucAbs, offsetPos, pixelsPerBase, seqName],
   )
 
   // eslint-disable-next-line react/jsx-no-useless-fragment
@@ -68,6 +76,7 @@ export interface FrameShiftMarkerSegmentProps extends SVGProps<SVGRectElement> {
   gapsTrailing: Range
   gapsLeading: Range
   pixelsPerBase: number
+  offsetPos?: number
 }
 
 function SequenceMarkerFrameShiftSegment({
@@ -78,6 +87,7 @@ function SequenceMarkerFrameShiftSegment({
   gapsTrailing,
   gapsLeading,
   pixelsPerBase,
+  offsetPos = 0,
 }: FrameShiftMarkerSegmentProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
@@ -96,7 +106,7 @@ function SequenceMarkerFrameShiftSegment({
   let width = nucLength * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = nucAbs.begin * pixelsPerBase - halfNuc
+  const x = (nucAbs.begin - offsetPos) * pixelsPerBase - halfNuc
 
   const codonRangeStr = formatRange(codon)
   const nucRangeStr = formatRange(nucAbs)

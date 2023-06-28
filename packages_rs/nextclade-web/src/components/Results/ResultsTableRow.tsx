@@ -12,7 +12,6 @@ import { ResultsTableRowResult } from './ResultsTableRowResult'
 
 export interface TableRowDatum {
   seqIndex: number
-  viewedGene: string
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
@@ -31,7 +30,6 @@ export const ResultsTableRow = memo(ResultsTableRowUnmemoed, areEqual)
 function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
   const {
     seqIndex,
-    viewedGene,
     columnWidthsPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
@@ -60,7 +58,6 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         cladeNodeAttrDescs={cladeNodeAttrDescs}
         phenotypeAttrDescs={phenotypeAttrDescs}
         aaMotifsDescs={aaMotifsDescs}
-        viewedGene={viewedGene}
       />
     )
   }

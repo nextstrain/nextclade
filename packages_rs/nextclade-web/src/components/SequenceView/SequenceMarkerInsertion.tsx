@@ -13,9 +13,17 @@ export interface MissingViewProps extends SVGProps<SVGPolygonElement> {
   seqName: string
   insertion: NucleotideInsertion
   pixelsPerBase: number
+  offsetPos?: number
 }
 
-function SequenceMarkerInsertionUnmemoed({ index, seqName, insertion, pixelsPerBase, ...rest }: MissingViewProps) {
+function SequenceMarkerInsertionUnmemoed({
+  index,
+  seqName,
+  insertion,
+  pixelsPerBase,
+  offsetPos = 0,
+  ...rest
+}: MissingViewProps) {
   const {
     seqView: {
       markers: {
@@ -33,7 +41,7 @@ function SequenceMarkerInsertionUnmemoed({ index, seqName, insertion, pixelsPerB
 
   const { pos } = insertion
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = pos * pixelsPerBase - halfNuc
+  const x = (pos - offsetPos) * pixelsPerBase - halfNuc
 
   const insertions = useMemo(() => [insertion], [insertion])
   const pointsMain = useMemo(() => `${x} 10, ${x + 5} 19, ${x - 5} 19`, [x])

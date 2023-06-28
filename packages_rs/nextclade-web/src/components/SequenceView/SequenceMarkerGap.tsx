@@ -20,6 +20,7 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   deletion: NucDelRange
   nucToAaMuts: Record<string, AaSub[]>
   pixelsPerBase: number
+  offsetPos?: number
 }
 
 function SequenceMarkerGapUnmemoed({
@@ -28,6 +29,7 @@ function SequenceMarkerGapUnmemoed({
   deletion,
   nucToAaMuts,
   pixelsPerBase,
+  offsetPos = 0,
   ...rest
 }: MissingViewProps) {
   const { t } = useTranslationSafe()
@@ -44,7 +46,7 @@ function SequenceMarkerGapUnmemoed({
   let width = rangeLen(range) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = range.begin * pixelsPerBase - halfNuc
+  const x = (range.begin - offsetPos) * pixelsPerBase - halfNuc
 
   const rangeStr = formatRange(range)
 
