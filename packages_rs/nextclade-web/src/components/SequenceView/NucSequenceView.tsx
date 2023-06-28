@@ -44,7 +44,7 @@ export function NucSequenceViewUnsized({ sequence, width, viewedGene }: NucSeque
     )
   }
 
-  const { index, seqName, nucToAaMuts, alignmentRange } = sequence
+  const { index, seqName, nucToAaMuts } = sequence
 
   const cdsSegments = gene.cdses.flatMap((cds) => cds.segments)
   const cdsStart = minBy(cdsSegments, (seg) => seg.range.begin)?.range.begin ?? 0
