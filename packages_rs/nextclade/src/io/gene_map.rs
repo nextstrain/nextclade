@@ -7,16 +7,19 @@ use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
+use crate::utils::range::PositionLike;
 use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};
-use itertools::{max, Itertools};
+use itertools::max as iter_max;
+use itertools::Itertools;
 use log::warn;
 use num::Integer;
 use num_traits::clamp;
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::cmp::{max, min};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::io::Write;
@@ -270,7 +273,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     .unwrap_or_default();
 
   let max_name_len = clamp(
-    max([
+    iter_max([
       max_gene_name_len,
       max_cds_name_len,
       max_cds_segment_name_len,
@@ -288,10 +291,16 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     "Genome",
   )?;
 
-  for (_, gene) in gene_map
-    .iter_genes()
-    .sorted_by_key(|(_, gene)| (gene.range.begin, gene.range.end, &gene.name))
-  {
+  for (_, gene) in gene_map.iter_genes().sorted_by_key(|(_, gene)| {
+    let mut begin = isize::MAX;
+    let mut end = isize::MIN;
+
+    for cds in &gene.cdses {
+      begin = min(begin, cds.segments[0].range.begin.as_isize());
+      end = max(end, cds.segments[0].range.end.as_isize());
+    }
+    (begin, end, &gene.name)
+  }) {
     write_gene(w, max_name_len, gene)?;
     for cds in &gene.cdses {
       write_cds(w, max_name_len, cds)?;
