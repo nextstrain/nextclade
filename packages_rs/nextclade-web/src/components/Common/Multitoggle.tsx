@@ -1,21 +1,22 @@
 import { noop } from 'lodash'
-import React, { useCallback, useMemo } from 'react'
+import { rgba } from 'polished'
+import React, { ReactNode, useCallback, useMemo } from 'react'
+import { gray900 } from 'src/theme'
 import styled from 'styled-components'
 
 export const Switch = styled.div<{ $width: number }>`
   position: relative;
   height: 26px;
   width: ${(props) => props.$width}px;
-  background-color: ${(props) => props.theme.gray300};
+  background-color: ${(props) => props.theme.gray600};
   border-radius: 3px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
 `
 
 export const SwitchRadio = styled.input`
   display: none;
 `
 
-export const SwitchSelection = styled.span<{ $widthPx: number; $leftPercent: number }>`
+export const SwitchSelection = styled.span<{ $widthPx: number; $leftPercent: number; $color?: string }>`
   display: block;
   position: absolute;
   z-index: 1;
@@ -23,10 +24,11 @@ export const SwitchSelection = styled.span<{ $widthPx: number; $leftPercent: num
   left: ${(props) => props.$leftPercent}%;
   width: ${(props) => props.$widthPx}px;
   height: 26px;
-  background-color: ${(props) => props.theme.primary};
+  background-color: ${(props) => props.$color ?? props.theme.primary};
+  outline: ${(props) => props.theme.gray300} solid 2px;
+  box-shadow: 0 0 3px 3px ${rgba(gray900, 0.5)};
   border-radius: 3px;
-  transition: left 0.25s ease-out;
-  box-shadow: ${(props) => props.theme.shadows.slight};
+  transition: all 0.2s ease-out;
 `
 
 export const SwitchLabel = styled.label<{ $widthPx: number }>`
@@ -36,9 +38,14 @@ export const SwitchLabel = styled.label<{ $widthPx: number }>`
   width: ${(props) => props.$widthPx}px;
   line-height: 26px;
   font-size: 12px;
-  color: ${(props) => props.theme.bodyColor};
+  color: ${(props) => props.theme.gray200};
   text-align: center;
   cursor: pointer;
+  border-right: ${(props) => props.theme.gray200} solid 1px;
+
+  :last-child {
+    border: none;
+  }
 
   ${SwitchRadio}:checked + & {
     transition: 0.15s ease-out;
@@ -46,50 +53,69 @@ export const SwitchLabel = styled.label<{ $widthPx: number }>`
   }
 `
 
-export interface ClickableLabelProps {
-  value: string
-  onChange(value: string): void
+export interface MultitoggleOption<T extends string | number> {
+  value: T
+  label: ReactNode
+  color?: string
+}
+
+export interface ClickableLabelProps<T extends string | number> {
+  option: MultitoggleOption<T>
+  onChange(value: T): void
   itemWidth: number
 }
 
-export function ClickableLabel({ value, onChange, itemWidth, ...restProps }: ClickableLabelProps) {
-  const onClick = useCallback(() => onChange(value), [onChange, value])
+export function ClickableLabel<T extends string | number>({
+  option,
+  onChange,
+  itemWidth,
+  ...restProps
+}: ClickableLabelProps<T>) {
+  const onClick = useCallback(() => onChange(option.value), [onChange, option.value])
   return (
     <SwitchLabel onClick={onClick} $widthPx={itemWidth} {...restProps}>
-      {value}
+      {option.label}
     </SwitchLabel>
   )
 }
 
-export interface MultitoggleProps {
-  values: string[]
-  value: string
-  onChange(value: string): void
+export interface MultitoggleProps<T extends string | number> {
+  options: MultitoggleOption<T>[]
+  value: T
+  onChange(value: T): void
   itemWidth?: number
 }
 
-export function Multitoggle({ values, value, onChange, itemWidth = 45, ...restProps }: MultitoggleProps) {
-  const { selectionLeftPercent, selectionWidthPx, totalWidth } = useMemo(() => {
+export function Multitoggle<T extends string | number>({
+  options,
+  value,
+  onChange,
+  itemWidth = 45,
+  ...restProps
+}: MultitoggleProps<T>) {
+  const { currentOption, selectionLeftPercent, selectionWidthPx, totalWidth } = useMemo(() => {
+    const currIndex = options.findIndex((option) => option.value === value)
+    const numOptions = options.length
+
     return {
-      selectionLeftPercent: (values.indexOf(value) / values.length) * 100,
+      currentOption: options[currIndex],
+      selectionLeftPercent: (currIndex / numOptions) * 100,
       selectionWidthPx: itemWidth,
-      totalWidth: itemWidth * values.length,
+      totalWidth: itemWidth * numOptions,
     }
-  }, [itemWidth, value, values])
+  }, [itemWidth, options, value])
 
   return (
     <Switch $width={totalWidth} {...restProps}>
-      {values.map((val) => {
+      {options.map((option) => {
         return (
-          <span key={val}>
-            <SwitchRadio type="radio" name="switch" checked={val === value} onChange={noop} />
-            <ClickableLabel value={val} onChange={onChange} itemWidth={itemWidth} />
+          <span key={option.value}>
+            <SwitchRadio type="radio" name="switch" checked={option.value === value} onChange={noop} />
+            <ClickableLabel option={option} onChange={onChange} itemWidth={itemWidth} />
           </span>
         )
       })}
-      <SwitchSelection $leftPercent={selectionLeftPercent} $widthPx={selectionWidthPx} />
+      <SwitchSelection $leftPercent={selectionLeftPercent} $widthPx={selectionWidthPx} $color={currentOption.color} />
     </Switch>
   )
 }
-
-//

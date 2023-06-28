@@ -24,6 +24,8 @@ import { StrictOmit } from 'ts-essentials'
 
 export * from 'src/gen/_SchemaRoot'
 
+export type SetterOrUpdater<T> = (valOrUpdater: ((currVal: T) => T) | T) => void
+
 export type Range = RangeFor_Position // eslint-disable-line camelcase
 
 export function rangeLen(range: Range) {
