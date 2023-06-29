@@ -295,5 +295,8 @@ function checkSearchCandidateString(candidate: string | undefined, searchTerm: s
   if (!candidate) {
     return false
   }
-  return candidate.split(' ').some((word) => word.includes(searchTerm))
+  return candidate
+    .toLowerCase()
+    .split(' ')
+    .some((word) => word.includes(searchTerm.toLowerCase()))
 }
