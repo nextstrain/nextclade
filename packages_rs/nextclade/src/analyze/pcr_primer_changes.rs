@@ -1,6 +1,6 @@
+use crate::alphabet::nuc::is_nuc_match;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primers::PcrPrimer;
-use crate::io::nuc::is_nuc_match;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 

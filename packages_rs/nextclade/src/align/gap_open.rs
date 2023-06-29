@@ -1,8 +1,8 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::alphabet::nuc::Nuc;
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::gene::GeneStrand;
 use crate::io::gene_map::GeneMap;
-use crate::io::nuc::Nuc;
 use either::Either;
 
 pub type GapScoreMap = Vec<i32>;

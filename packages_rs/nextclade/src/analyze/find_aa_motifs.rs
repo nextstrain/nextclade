@@ -1,8 +1,8 @@
+use crate::alphabet::aa::from_aa_seq;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::{intersect_or_none, AaRefRange};
-use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;

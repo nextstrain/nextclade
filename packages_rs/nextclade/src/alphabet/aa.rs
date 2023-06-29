@@ -1,7 +1,6 @@
 use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
-use crate::io::letter::{Letter, ScoreMatrixLookup};
+use crate::alphabet::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
-use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 

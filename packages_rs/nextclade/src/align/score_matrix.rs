@@ -1,6 +1,6 @@
 use crate::align::band_2d::{Band2d, Stripe};
 use crate::align::params::{AlignPairwiseParams, GapAlignmentSide};
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 use log::trace;
 
 // store direction info for backtrace as bits in paths matrix
@@ -197,8 +197,8 @@ mod tests {
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::score_matrix;
+  use crate::alphabet::nuc::{to_nuc_seq, Nuc};
   use crate::io::gene_map::GeneMap;
-  use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

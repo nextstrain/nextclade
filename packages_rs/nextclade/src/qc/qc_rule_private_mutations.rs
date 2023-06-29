@@ -1,9 +1,9 @@
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDel;
 use crate::coord::position::PositionLike;
 use crate::coord::range::Range;
-use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcRulesConfigPrivateMutations;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;

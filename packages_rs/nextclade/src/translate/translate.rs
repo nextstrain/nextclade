@@ -1,8 +1,8 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
+use crate::alphabet::nuc::Nuc;
 use crate::gene::cds::Cds;
-use crate::io::aa::Aa;
-use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq};
-use crate::io::nuc::Nuc;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 

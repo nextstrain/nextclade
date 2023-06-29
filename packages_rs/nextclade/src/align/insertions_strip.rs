@@ -1,6 +1,6 @@
-use crate::io::aa::Aa;
-use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::Nuc;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::alphabet::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
 use color_eyre::SectionExt;
 use eyre::Report;
@@ -144,7 +144,7 @@ pub fn get_aa_insertions(translation: &Translation) -> Vec<AaIns> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::io::nuc::to_nuc_seq;
+  use crate::alphabet::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::rstest;

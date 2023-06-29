@@ -1,7 +1,7 @@
+use crate::alphabet::nuc::Nuc;
 use crate::coord::coord_map::{make_aln_to_ref_map, make_ref_to_aln_map};
 use crate::coord::position::{NucAlnGlobalPosition, NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{NucAlnGlobalRange, NucRefGlobalRange, Range};
-use crate::io::nuc::Nuc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -55,7 +55,7 @@ impl CoordMapGlobal {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::io::nuc::to_nuc_seq;
+  use crate::alphabet::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::rstest;

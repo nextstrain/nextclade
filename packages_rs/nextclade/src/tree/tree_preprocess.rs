@@ -1,9 +1,9 @@
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
-use crate::io::aa::Aa;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{

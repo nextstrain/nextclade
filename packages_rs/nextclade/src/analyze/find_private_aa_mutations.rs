@@ -1,12 +1,12 @@
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::Letter;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::GeneAaRange;
 use crate::coord::position::{AaRefPosition, PositionLike};
 use crate::gene::cds::Cds;
-use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
-use crate::io::letter::Letter;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;

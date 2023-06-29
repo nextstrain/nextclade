@@ -1,5 +1,5 @@
+use crate::alphabet::aa::from_aa_seq;
 use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
-use crate::io::aa::from_aa_seq;
 use crate::io::compression::Decompressor;
 use crate::io::concat::concat;
 use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};

@@ -1,11 +1,11 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
 use log::{info, warn};
+use nextclade::alphabet::nuc::from_nuc_seq;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
-use nextclade::io::nuc::from_nuc_seq;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::types::outputs::NextalignOutputs;
 use nextclade::utils::error::report_to_string;

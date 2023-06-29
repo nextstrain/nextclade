@@ -1,6 +1,6 @@
+use crate::alphabet::nuc::Nuc;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
-use crate::io::nuc::Nuc;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 

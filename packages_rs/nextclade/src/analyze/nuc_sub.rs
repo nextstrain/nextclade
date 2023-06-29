@@ -1,8 +1,8 @@
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::{from_nuc, Nuc};
 use crate::analyze::nuc_del::NucDel;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::gene::genotype::Genotype;
-use crate::io::letter::Letter;
-use crate::io::nuc::{from_nuc, Nuc};
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};

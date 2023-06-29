@@ -1,8 +1,8 @@
+use crate::alphabet::aa::{from_aa, Aa};
+use crate::alphabet::letter::Letter;
 use crate::analyze::aa_changes::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;
 use crate::coord::position::AaRefPosition;
-use crate::io::aa::{from_aa, Aa};
-use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};

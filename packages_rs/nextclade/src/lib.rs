@@ -1,4 +1,5 @@
 pub mod align;
+pub mod alphabet;
 pub mod analyze;
 pub mod constants;
 pub mod coord;

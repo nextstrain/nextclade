@@ -1,5 +1,5 @@
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_rule_frame_shifts::{rule_frame_shifts, QcResultFrameShifts};
 use crate::qc::qc_rule_missing_data::{rule_missing_data, QcResultMissingData};

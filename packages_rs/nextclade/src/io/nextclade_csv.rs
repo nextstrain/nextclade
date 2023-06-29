@@ -1,4 +1,6 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
+use crate::alphabet::aa::from_aa_seq;
+use crate::alphabet::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs::AaMotif;
@@ -7,9 +9,7 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::range::NucRefGlobalRange;
-use crate::io::aa::from_aa_seq;
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
-use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;

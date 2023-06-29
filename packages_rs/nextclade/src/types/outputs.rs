@@ -1,5 +1,6 @@
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
@@ -13,7 +14,6 @@ use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::io::json::json_parse;
-use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;

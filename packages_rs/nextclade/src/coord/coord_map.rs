@@ -1,10 +1,10 @@
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::coord::position::{
   AaRefPosition, AlignmentCoords, CoordsMarker, NucRefLocalPosition, NucSpace, Position, PositionLike, ReferenceCoords,
   SeqTypeMarker, SpaceMarker,
 };
 use crate::coord::range::{AaRefRange, NucRefLocalRange};
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
 use itertools::Itertools;
 use num::integer::div_floor;
 use serde::{Deserialize, Serialize};
@@ -72,7 +72,7 @@ mod coord_map_tests {
   // use crate::gene::cds_segment::{CdsSegment, WrappingPart};
   // use crate::gene::frame::Frame;
   // use crate::gene::phase::Phase;
-  // use crate::io::nuc::to_nuc_seq;
+  // use crate::alphabet::nuc::to_nuc_seq;
   // use eyre::Report;
   // use maplit::hashmap;
   // use pretty_assertions::assert_eq;

@@ -1,6 +1,6 @@
 use crate::align::band_2d::Band2d;
 use crate::align::score_matrix::{MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use serde::{Deserialize, Serialize};
 use std::cmp;
@@ -102,8 +102,8 @@ mod tests {
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::params::AlignPairwiseParams;
   use crate::align::score_matrix;
+  use crate::alphabet::nuc::{to_nuc_seq, Nuc};
   use crate::io::gene_map::GeneMap;
-  use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

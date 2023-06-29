@@ -1,8 +1,8 @@
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::coord::range::Range;
-use crate::io::aa::Aa;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use serde::{Deserialize, Serialize};
 

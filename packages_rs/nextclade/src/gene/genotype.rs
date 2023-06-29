@@ -1,5 +1,5 @@
+use crate::alphabet::letter::Letter;
 use crate::coord::position::NucRefGlobalPosition;
-use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};

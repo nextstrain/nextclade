@@ -1,3 +1,4 @@
+use crate::alphabet::letter::Letter;
 use crate::coord::position::{
   AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefLocalPosition, PositionLike, SeqTypeMarker, SpaceMarker,
 };
@@ -5,7 +6,6 @@ use crate::coord::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
-use crate::io::letter::Letter;
 use assert2::assert;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};

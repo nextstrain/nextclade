@@ -1,7 +1,7 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
+use crate::alphabet::nuc::Nuc;
 use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
 use crate::io::nextclade_csv::{format_aa_insertions, format_nuc_insertions};
-use crate::io::nuc::Nuc;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
 };

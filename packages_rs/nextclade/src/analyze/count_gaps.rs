@@ -1,5 +1,5 @@
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 
 #[derive(Default)]
 pub struct GapCounts {

@@ -1,8 +1,8 @@
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::range::{NucRefGlobalRange, Range};
-use crate::io::nuc::Nuc;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
 use itertools::Itertools;
 
@@ -117,7 +117,7 @@ fn tree_calculate_node_distance(
 mod tests {
   use std::collections::BTreeMap;
 
-  use crate::io::nuc::Nuc;
+  use crate::alphabet::nuc::Nuc;
   use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
 
   use super::*;

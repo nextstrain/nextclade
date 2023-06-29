@@ -1,6 +1,6 @@
 use color_eyre::{Section, SectionExt};
 use eyre::{Report, WrapErr};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serializer};
 
 /// Allows to lookup scores for nucleotides and amino acids in a generic way
 pub trait ScoreMatrixLookup<T> {

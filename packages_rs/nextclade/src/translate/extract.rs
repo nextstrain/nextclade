@@ -1,9 +1,9 @@
+use crate::alphabet::nuc::Nuc;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::NucAlnGlobalRange;
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
-use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use itertools::Itertools;
 
@@ -63,12 +63,12 @@ pub fn extract_cds_from_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
+  use crate::alphabet::nuc::to_nuc_seq;
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
   use crate::gene::cds_segment::{CdsSegment, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
-  use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use itertools::Itertools;
   use maplit::hashmap;

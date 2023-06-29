@@ -1,3 +1,5 @@
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
@@ -5,8 +7,6 @@ use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
 use serde::{Deserialize, Serialize};

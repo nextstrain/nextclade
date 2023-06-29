@@ -1,7 +1,7 @@
+use crate::alphabet::aa::from_aa_seq;
 use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::{intersect, Range};
-use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::Translation;
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
 use eyre::Report;
