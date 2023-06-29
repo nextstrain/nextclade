@@ -205,6 +205,13 @@ export function CdsSegmentView({
               <td>{t('Frame')}</td>
               <td>{frame + 1}</td>
             </tr>
+
+            {cds.exceptions.length > 0 && (
+              <tr>
+                <td>{t('Notes')}</td>
+                <td>{cds.exceptions}</td>
+              </tr>
+            )}
           </tbody>
         </TableSlim>
       </Tooltip>
