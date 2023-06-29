@@ -1,6 +1,6 @@
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::gene::GeneStrand;
-use crate::io::container::get_first_of;
+use crate::utils::collections::get_first_of;
 use crate::utils::string::surround_with_quotes;
 use bio::io::gff::{GffType, Record as GffRecord, Writer as GffWriter};
 use color_eyre::{Section, SectionExt};

@@ -1,6 +1,6 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
-use crate::io::container::take_exactly_one;
+use crate::utils::collections::take_exactly_one;
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use maplit::hashmap;

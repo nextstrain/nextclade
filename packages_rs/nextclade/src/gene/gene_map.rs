@@ -4,7 +4,7 @@ use crate::features::sequence_region::SequenceRegion;
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::{find_cdses, Gene};
-use crate::io::container::take_exactly_one;
+use crate::utils::collections::take_exactly_one;
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;

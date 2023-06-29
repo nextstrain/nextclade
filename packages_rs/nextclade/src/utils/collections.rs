@@ -1,8 +1,11 @@
-use crate::make_internal_report;
+use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
+use multimap::MultiMap;
+use std::borrow::Borrow;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
+use std::hash::Hash;
 
 pub fn concat_to_vec<T: Clone>(x: &[T], y: &[T]) -> Vec<T> {
   [x, y].into_iter().flatten().cloned().collect()
@@ -77,4 +80,38 @@ macro_rules! vec_into {
   ($($x:expr),+ $(,)?) => (
     vec![$($x),+].into_iter().map(|x| x.into()).collect()
   );
+}
+
+/// Return value corresponding to one of the given keys
+pub fn get_first_of<Key, Val, KeyRef>(mmap: &MultiMap<Key, Val>, keys: &[&KeyRef]) -> Option<Val>
+where
+  Key: Eq + Hash + Borrow<KeyRef>,
+  KeyRef: Eq + Hash + ?Sized,
+  Val: Clone,
+{
+  get_all_of(mmap, keys).into_iter().next() // Get first of possible values
+}
+
+/// Return all values corresponding to any of the given keys
+pub fn get_all_of<Key, Val, KeyRef>(mmap: &MultiMap<Key, Val>, keys: &[&KeyRef]) -> Vec<Val>
+where
+  Key: Eq + Hash + Borrow<KeyRef>,
+  KeyRef: Eq + Hash + ?Sized,
+  Val: Clone,
+{
+  keys
+    .iter()
+    .filter_map(|&key| mmap.get_vec(key.borrow()))
+    .flatten()
+    .cloned()
+    .collect()
+}
+
+// Take first element, and checks that it's the only element
+pub fn take_exactly_one<T>(elems: &[T]) -> Result<&T, Report> {
+  match &elems {
+    [] => make_error!("Expected exactly one element, but found none"),
+    [first] => Ok(first),
+    _ => make_error!("Expected exactly one element, but found: {}", elems.len()),
+  }
 }
