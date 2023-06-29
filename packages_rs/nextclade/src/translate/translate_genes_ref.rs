@@ -1,8 +1,8 @@
 use crate::align::params::AlignPairwiseParams;
-use crate::coord::coord_map_global::extract_cds_ref;
 use crate::coord::range::Range;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
+use crate::translate::extract::extract_cds_from_ref;
 use crate::translate::translate::translate;
 use crate::translate::translate_genes::{CdsTranslation, GeneTranslation, Translation};
 use eyre::Report;
@@ -20,7 +20,7 @@ pub fn translate_genes_ref(
         .cdses
         .iter()
         .map(|cds| {
-          let nucs = extract_cds_ref(ref_seq, cds);
+          let nucs = extract_cds_from_ref(ref_seq, cds);
           let tr = translate(&nucs, cds, params);
           let len = tr.seq.len();
 

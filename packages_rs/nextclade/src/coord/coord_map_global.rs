@@ -1,11 +1,7 @@
 use crate::coord::coord_map::{make_aln_to_ref_map, make_ref_to_aln_map};
 use crate::coord::position::{NucAlnGlobalPosition, NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{NucAlnGlobalRange, NucRefGlobalRange, Range};
-use crate::gene::cds::Cds;
-use crate::gene::cds_segment::WrappingPart;
-use crate::gene::gene::GeneStrand;
 use crate::io::nuc::Nuc;
-use crate::translate::complement::reverse_complement_in_place;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -54,157 +50,17 @@ impl CoordMapGlobal {
       self.ref_to_aln_position(ref_range.end - 1) + 1,
     )
   }
-
-  pub fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-    let mut cds_aln_seq = vec![];
-    for segment in &cds.segments {
-      // TODO: should we use `landmark.range.end` (converted to aln coords) instead of `seq_aln.len()`?
-      let range = match segment.wrapping_part {
-        WrappingPart::NonWrapping => self.ref_to_aln_range(&segment.range),
-        WrappingPart::WrappingStart => {
-          // If segment is the first part of a segment that wraps around the origin,
-          // limit the range to end of alignment (trim the overflowing parts)
-          NucAlnGlobalRange::new(self.ref_to_aln_position(segment.range.begin), seq_aln.len().into())
-        }
-        WrappingPart::WrappingCentral(_) => {
-          // If segment is one of the the middle parts of a segment that wraps around the origin,
-          // it spans the entire aligned sequence.
-          NucAlnGlobalRange::from_usize(0, seq_aln.len())
-        }
-        WrappingPart::WrappingEnd(_) => {
-          // If segment is the last part of a segment that wraps around the origin,
-          // start range at the beginning of the alignment (trim the underflowing parts)
-          NucAlnGlobalRange::new(0.into(), self.ref_to_aln_position(segment.range.end - 1) + 1)
-        }
-      };
-
-      let mut nucs = seq_aln[range.to_std()].to_vec();
-      if segment.strand == GeneStrand::Reverse {
-        reverse_complement_in_place(&mut nucs);
-      }
-      cds_aln_seq.extend_from_slice(&nucs);
-    }
-
-    cds_aln_seq
-  }
-}
-
-pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
-  let nucs = cds
-    .segments
-    .iter()
-    .flat_map(|cds_segment| {
-      let mut nucs = seq[cds_segment.range.to_std()].to_vec();
-      if cds_segment.strand == GeneStrand::Reverse {
-        reverse_complement_in_place(&mut nucs);
-      }
-      nucs
-    })
-    .collect_vec();
-
-  nucs
 }
 
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::coord::position::Position;
-  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
-  use crate::gene::frame::Frame;
-  use crate::gene::phase::Phase;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
-  use itertools::Itertools;
-  use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
-  fn create_fake_cds(segment_ranges: &[(isize, isize)]) -> Cds {
-    Cds {
-      id: "".to_owned(),
-      name: "".to_owned(),
-      product: "".to_owned(),
-      segments: {
-        let mut segment_start = 0_isize;
-        segment_ranges
-          .iter()
-          .map(|(begin, end)| {
-            let range_local = Range::from_isize(segment_start, segment_start + end - begin);
-            let phase = Phase::from_begin(range_local.begin).unwrap();
-            let frame = Frame::from_begin(Position::from(*begin)).unwrap();
-
-            let segment = CdsSegment {
-              index: 0,
-              id: "".to_owned(),
-              name: "".to_owned(),
-              range: NucRefGlobalRange::from_isize(*begin, *end),
-              range_local,
-              landmark: None,
-              wrapping_part: WrappingPart::NonWrapping,
-              strand: GeneStrand::Forward,
-              frame,
-              phase,
-              exceptions: vec![],
-              attributes: hashmap!(),
-              source_record: None,
-              compat_is_gene: false,
-              color: None,
-            };
-            segment_start = segment_start + end - begin;
-            segment
-          })
-          .collect_vec()
-      },
-      proteins: vec![],
-      exceptions: vec![],
-      attributes: hashmap! {},
-      compat_is_gene: false,
-      color: None,
-    }
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
-  fn extracts_cds_sequence() -> Result<(), Report> {
-    // CDS range                   11111111111111111
-    // CDS range                                   2222222222222222222      333333
-    // index                   012345678901234567890123456789012345678901234567890123
-    let reff = to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let expected = to_nuc_seq("GCACAATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?;
-    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let actual = extract_cds_ref(&reff, &cds);
-    assert_eq!(actual, expected);
-    Ok(())
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
-  fn extracts_cds_alignment() -> Result<(), Report> {
-    // CDS range                  11111111111111111
-    // CDS range                                  2222222222222222222      333333
-    // index                  012345678901234567890123456789012345678901234567890123456
-    // let reff = to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
-    let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
-
-    let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMapGlobal::new(&ref_aln);
-
-    let ref_cds_aln = global_coord_map.extract_cds_aln(&ref_aln, &cds);
-    assert_eq!(
-      ref_cds_aln,
-      to_nuc_seq("GCACA---ATCGTTTTTAAAACGGGTTTGCGGTGTAAGTCGTCTT")?
-    );
-
-    let qry_cds_aln = global_coord_map.extract_cds_aln(&qry_aln, &cds);
-    assert_eq!(
-      qry_cds_aln,
-      to_nuc_seq("GCACACGCATC---TTTAAAACGGGTTTGCGGTGTCAGTCGTCTT")?
-    );
-
-    Ok(())
-  }
-
+  //noinspection SpellCheckingInspection
   #[rustfmt::skip]
   #[rstest]
   fn maps_example() -> Result<(), Report> {

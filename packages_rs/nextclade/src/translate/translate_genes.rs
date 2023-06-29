@@ -13,6 +13,7 @@ use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
+use crate::translate::extract::extract_cds_from_aln;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
@@ -223,11 +224,11 @@ pub fn translate_cds(
   cds: &Cds,
   ref_cds_translation: &CdsTranslation,
   gap_open_close_aa: &[i32],
-  coord_map: &CoordMapGlobal,
+  coord_map_global: &CoordMapGlobal,
   params: &AlignPairwiseParams,
 ) -> Result<CdsTranslation, Report> {
-  let mut ref_cds_seq = coord_map.extract_cds_aln(ref_seq, cds);
-  let mut qry_cds_seq = coord_map.extract_cds_aln(qry_seq, cds);
+  let mut ref_cds_seq = extract_cds_from_aln(ref_seq, cds, coord_map_global);
+  let mut qry_cds_seq = extract_cds_from_aln(qry_seq, cds, coord_map_global);
 
   // Coordinate map local to this CDS
   let coord_map_local = CoordMapLocal::new(&ref_cds_seq);
