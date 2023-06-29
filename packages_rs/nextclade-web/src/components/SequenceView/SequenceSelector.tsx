@@ -3,10 +3,10 @@ import type { Cds, Gene, Protein } from '_SchemaRoot'
 import { isEmpty } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import ReactSelect, { StylesConfig } from 'react-select'
-import { FilterOptionOption } from 'react-select/dist/declarations/src/filters'
+import type { FilterOptionOption } from 'react-select/dist/declarations/src/filters'
 import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/Select'
-import { Theme } from 'react-select/dist/declarations/src/types'
-import { Badge } from 'reactstrap'
+import type { Theme } from 'react-select/dist/declarations/src/types'
+import { Badge as BadgeBase } from 'reactstrap'
 import styled from 'styled-components'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -86,7 +86,7 @@ export function SequenceSelector() {
     return {
       menuPortal: (base) => ({ ...base, zIndex: 9999 }),
       menuList: (base) => ({ ...base, fontSize: '1rem' }),
-      option: (base) => ({ ...base, fontSize: '1rem' }),
+      option: (base) => ({ ...base, fontSize: '1rem', padding: '2px 8px' }),
       singleValue: (base) => ({ ...base, fontSize: '1rem' }),
     }
   }, [])
@@ -105,7 +105,7 @@ export function SequenceSelector() {
           menuPortalTarget={menuPortalTarget}
           styles={reactSelectStyles}
           theme={reactSelectTheme}
-          maxMenuHeight={500}
+          maxMenuHeight={400}
         />
       </InnerWrapper>
     </div>
@@ -147,7 +147,7 @@ function OptionLabelFullGenome({ isMenu: _ }: { isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
     <Indent>
-      <Badge color="success" className="mr-1 px-2 py-1">
+      <Badge $color="#54AD56" className="mr-1 px-2 py-1" title={t('Full genome')}>
         {t('Full genome')}
       </Badge>
     </Indent>
@@ -157,8 +157,8 @@ function OptionLabelFullGenome({ isMenu: _ }: { isMenu?: boolean }) {
 function OptionLabelGene({ gene }: { gene: Gene; isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
-    <Indent>
-      <Badge color="secondary" className="mr-1 px-2 py-1">
+    <Indent title={gene.name}>
+      <Badge $color="#4e7ede" className="mr-1 px-2 py-1">
         {t('Gene')}
       </Badge>
       <span className="text-body">{gene.name}</span>
@@ -166,15 +166,17 @@ function OptionLabelGene({ gene }: { gene: Gene; isMenu?: boolean }) {
   )
 }
 
-function OptionLabelGeneAndCds({ gene }: { gene: Gene; cds: Cds; isMenu?: boolean }) {
+function OptionLabelGeneAndCds({ cds }: { gene: Gene; cds: Cds; isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
-    <Indent>
-      <Badge className="mr-1 px-2 py-1">{t('Gene')}</Badge>
-      <Badge color="primary" className="mr-1">
+    <Indent title={cds.name}>
+      <Badge $color="#4e7ede" className="mr-1 px-2 py-1">
+        {t('Gene')}
+      </Badge>
+      <Badge $color="#846ab8" className="mr-1">
         {t('CDS')}
       </Badge>
-      <span>{gene.name}</span>
+      <span>{cds.name}</span>
     </Indent>
   )
 }
@@ -182,8 +184,8 @@ function OptionLabelGeneAndCds({ gene }: { gene: Gene; cds: Cds; isMenu?: boolea
 function OptionLabelCds({ cds, isMenu = false }: { cds: Cds; isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
-    <Indent indent={isMenu && 1}>
-      <Badge color="primary" className="mr-1 px-2 py-1">
+    <Indent indent={isMenu && 1} title={cds.name}>
+      <Badge $color="#846ab8" className="mr-1 px-2 py-1">
         {t('CDS')}
       </Badge>
       <span>{cds.name}</span>
@@ -194,17 +196,28 @@ function OptionLabelCds({ cds, isMenu = false }: { cds: Cds; isMenu?: boolean })
 function OptionLabelProtein({ protein, isMenu = false }: { protein: Protein; isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
-    <Indent indent={isMenu && 2}>
-      <Badge className="mr-1">{t('Protein')}</Badge>
-      <span>{protein.name}</span>
+    <Indent indent={isMenu && 2} title={protein.name}>
+      <Badge $color="#9c8668" className="mr-1">
+        {t('Protein')}
+      </Badge>
+      <span className="text-body">{protein.name}</span>
     </Indent>
   )
 }
 
+const Badge = styled(BadgeBase)<{ $color?: string }>`
+  background-color: ${(props) => props.$color ?? props.theme.gray600};
+`
+
 // noinspection CssReplaceWithShorthandSafely
 const Indent = styled.div<{ indent?: number | boolean }>`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0;
   margin: 0;
-  margin-left: ${(props) => (Number(props.indent) ?? 0) * 1.5}rem;
+  padding-left: ${(props) => (Number(props.indent) ?? 0) * 0.8}rem;
 `
 
 function prepareOptions(genes: Gene[]) {
