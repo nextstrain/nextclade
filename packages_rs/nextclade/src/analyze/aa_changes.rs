@@ -11,7 +11,7 @@ use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{have_intersection, AaRefRange, NucRefGlobalRange};
 use crate::gene::cds::Cds;
 use crate::gene::gene::GeneStrand;
-use crate::io::gene_map::GeneMap;
+use crate::gene::gene_map::GeneMap;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::collections::extend_map_of_vecs;

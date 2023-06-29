@@ -1,5 +1,5 @@
+use crate::gene::gene_map::GeneMap;
 use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
-use crate::io::gene_map::GeneMap;
 use crate::io::nextclade_csv::format_failed_genes;
 use crate::types::outputs::PeptideWarning;
 use eyre::Report;

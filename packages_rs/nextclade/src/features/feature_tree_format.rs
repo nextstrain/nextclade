@@ -3,7 +3,7 @@ use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_tree::flatten_feature_tree;
 use crate::features::feature_type::style_for_feature_type;
 use crate::features::sequence_region::SequenceRegion;
-use crate::io::gene_map::format_codon_length;
+use crate::gene::gene_map_display::format_codon_length;
 use crate::utils::string::truncate_with_ellipsis;
 use eyre::Report;
 use itertools::Itertools;

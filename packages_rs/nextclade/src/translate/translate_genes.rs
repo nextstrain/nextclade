@@ -12,7 +12,7 @@ use crate::coord::position::PositionLike;
 use crate::coord::range::{AaRefRange, Range};
 use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
-use crate::io::gene_map::GeneMap;
+use crate::gene::gene_map::GeneMap;
 use crate::translate::extract::extract_cds_from_aln;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};

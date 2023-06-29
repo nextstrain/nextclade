@@ -5,7 +5,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::align::seed_alignment::seed_alignment;
 use nextclade::alphabet::nuc::to_nuc_seq;
-use nextclade::io::gene_map::GeneMap;
+use nextclade::gene::gene_map::GeneMap;
 
 pub fn bench_seed_alignment(c: &mut Criterion) {
   let params = AlignPairwiseParams::default();

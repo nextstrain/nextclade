@@ -3,7 +3,7 @@ use crate::align::insertions_strip::{get_aa_insertions, insertions_strip};
 use crate::align::params::AlignPairwiseParams;
 use crate::alphabet::nuc::Nuc;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::io::gene_map::GeneMap;
+use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::{translate_genes, Translation};
 use crate::types::outputs::{NextalignOutputs, PeptideWarning};
 use eyre::Report;

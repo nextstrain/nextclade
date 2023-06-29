@@ -18,7 +18,7 @@ use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::{PhenotypeData, VirusProperties};
 use crate::coord::range::AaRefRange;
-use crate::io::gene_map::GeneMap;
+use crate::gene::gene_map::GeneMap;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;

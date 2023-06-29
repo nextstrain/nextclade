@@ -179,16 +179,9 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
     .map(to_eyre_error)
     .collect::<Result<Vec<GffRecord>, Report>>()?;
 
-  // let records_copy = records.clone();
-
   let mut features = records
     .into_iter()
     .enumerate()
-    // .map(|(index, record)| {
-    //   let landmark = find_landmark(index, record, records);
-    //   (index, record, landmark)
-    // })
-    // .map(|(index, record, landmark)| Feature::from_gff_record(index, record, landmark))
     .map(|(index, record)| Feature::from_gff_record(index, &record))
     .collect::<Result<Vec<Feature>, Report>>()?;
 

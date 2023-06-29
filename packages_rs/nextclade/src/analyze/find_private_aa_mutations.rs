@@ -6,7 +6,7 @@ use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::GeneAaRange;
 use crate::coord::position::{AaRefPosition, PositionLike};
 use crate::gene::cds::Cds;
-use crate::io::gene_map::GeneMap;
+use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;

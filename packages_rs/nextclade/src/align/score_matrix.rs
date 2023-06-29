@@ -198,7 +198,7 @@ mod tests {
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::score_matrix;
   use crate::alphabet::nuc::{to_nuc_seq, Nuc};
-  use crate::io::gene_map::GeneMap;
+  use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

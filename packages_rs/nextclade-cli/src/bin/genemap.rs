@@ -2,7 +2,8 @@ use clap::{AppSettings, Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
 use log::LevelFilter;
-use nextclade::io::gene_map::{gene_map_to_string, GeneMap};
+use nextclade::gene::gene_map::GeneMap;
+use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::io::json::{json_stringify, json_write};
 use nextclade::io::yaml::yaml_write;
 use nextclade::utils::global_init::global_init;
@@ -51,7 +52,7 @@ fn main() -> Result<(), Report> {
   if args.json {
     println!("{}\n", json_stringify(&gene_map)?);
   } else {
-    println!("{}", gene_map_to_string(&gene_map)?);
+    println!("{}", gene_map_to_table_string(&gene_map)?);
   }
 
   Ok(())

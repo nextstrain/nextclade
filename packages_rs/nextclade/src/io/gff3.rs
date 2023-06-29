@@ -247,7 +247,7 @@ pub fn gff_record_to_string(record: &GffRecord) -> Result<String, Report> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::io::gene_map::GeneMap;
+  use crate::gene::gene_map::GeneMap;
   use crate::utils::error::report_to_string;
   use pretty_assertions::assert_eq;
   use rstest::rstest;

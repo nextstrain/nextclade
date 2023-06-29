@@ -89,7 +89,7 @@ mod tests {
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
-  use crate::io::gene_map::GeneMap;
+  use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

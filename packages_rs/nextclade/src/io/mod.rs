@@ -8,7 +8,6 @@ pub mod errors_csv;
 pub mod fasta;
 pub mod file;
 pub mod fs;
-pub mod gene_map;
 pub mod gff3;
 pub mod insertions_csv;
 pub mod json;
