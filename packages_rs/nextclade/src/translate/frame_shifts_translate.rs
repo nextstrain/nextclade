@@ -1,5 +1,5 @@
+use crate::coord::coord_map_cds_to_global::cds_range_to_ref_ranges;
 use crate::coord::coord_map_local::CoordMapLocal;
-use crate::coord::coord_map2::cds_range_to_ref_ranges;
 use crate::gene::cds::Cds;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;

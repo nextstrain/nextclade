@@ -2,7 +2,7 @@ use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::coord::coord_map2::cds_codon_pos_to_ref_range;
+use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
 use crate::gene::cds::Cds;
 use crate::gene::gene::GeneStrand;
 use crate::io::aa::Aa;

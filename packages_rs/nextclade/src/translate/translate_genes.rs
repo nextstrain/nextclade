@@ -1,14 +1,15 @@
 use crate::align::align::align_aa;
-use crate::align::insertions_strip::{Insertion, insertions_strip};
+use crate::align::insertions_strip::{insertions_strip, Insertion};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
+use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::coord_map_local::CoordMapLocal;
 use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
-use crate::io::letter::{Letter, serde_deserialize_seq, serde_serialize_seq};
+use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
@@ -25,7 +26,6 @@ use itertools::Itertools;
 use num_traits::clamp_max;
 use rayon::iter::Either;
 use serde::{Deserialize, Serialize};
-use crate::coord::coord_map_global::CoordMapGlobal;
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
