@@ -1,6 +1,7 @@
 pub mod align;
 pub mod analyze;
 pub mod constants;
+pub mod coord;
 pub mod features;
 pub mod gene;
 pub mod io;

@@ -1,5 +1,5 @@
+use crate::coord::coord_map::local_to_codon_range_exclusive;
 use crate::io::gene_map::GeneMap;
-use crate::translate::coord_map::local_to_codon_range_exclusive;
 use crate::translate::translate_genes::Translation;
 use crate::utils::position::PositionLike;
 use crate::utils::range::{intersect, AaRefRange, NucRefGlobalRange, NucRefLocalRange};

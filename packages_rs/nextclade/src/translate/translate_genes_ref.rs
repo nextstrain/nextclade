@@ -1,7 +1,7 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::coord::coord_map::{extract_cds_ref, CoordMapLocal};
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{extract_cds_ref, CoordMapLocal};
 use crate::translate::translate::translate;
 use crate::translate::translate_genes::{CdsTranslation, GeneTranslation, Translation};
 use crate::utils::range::Range;
