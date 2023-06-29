@@ -75,6 +75,10 @@ export function cdsSegmentNucLength(cdsSeg: CdsSegment) {
   return cdsSeg.range.end - cdsSeg.range.begin
 }
 
+export function cdsSegmentAaLength(cdsSeg: CdsSegment) {
+  return (cdsSeg.rangeLocal.end - cdsSeg.rangeLocal.begin) / 3
+}
+
 export function iterRange(r: Range): number[] {
   return range(r.begin, r.end)
 }

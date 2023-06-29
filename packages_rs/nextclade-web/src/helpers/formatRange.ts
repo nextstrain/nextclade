@@ -31,3 +31,23 @@ export function formatRangeMaybeEmpty(range: RangeFor_Position) {
 
   return formatRange(range)
 }
+
+export function formatCodonLength(nucLength: number) {
+  const whole = Math.round(nucLength / 3)
+  let decimal
+  switch (nucLength % 3) {
+    case 0: {
+      decimal = ''
+      break
+    }
+    case 1: {
+      decimal = '\u2153'
+      break
+    }
+    case 2: {
+      decimal = '\u2154'
+      break
+    }
+  }
+  return `${whole} ${decimal}`
+}
