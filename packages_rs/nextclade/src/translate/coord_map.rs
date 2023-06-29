@@ -55,83 +55,6 @@ fn make_ref_to_aln_map<L: SpaceMarker>(ref_seq: &[Nuc]) -> Vec<Position<Alignmen
   coord_map
 }
 
-// /// Converts sequence alignment to reference coordinates and vice versa.
-// ///
-// /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
-// /// done in alignment space, while others in reference space. This struct allows for conversion of position indices
-// /// from one space to another.
-// #[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
-// #[serde(rename_all = "camelCase")]
-// struct CoordMap<L: SpaceMarker> {
-//   aln_to_ref_table: Vec<Position<ReferenceCoords, L, NucSpace>>,
-//   ref_to_aln_table: Vec<Position<AlignmentCoords, L, NucSpace>>,
-// }
-//
-// impl<L: SpaceMarker> CoordMap<L> {
-//   /// Takes aligned ref_seq before insertions (i.e. gaps in ref) are stripped
-//   pub fn new(ref_seq: &[Nuc]) -> Self {
-//     Self {
-//       aln_to_ref_table: make_aln_to_ref_map(ref_seq),
-//       ref_to_aln_table: make_ref_to_aln_map(ref_seq),
-//     }
-//   }
-//
-//   pub fn aln_to_ref_position(
-//     &self,
-//     aln: Position<AlignmentCoords, L, NucSpace>,
-//   ) -> Position<ReferenceCoords, L, NucSpace> {
-//     self.aln_to_ref_table[aln.as_usize()]
-//   }
-//
-//   pub fn ref_to_aln_position(
-//     &self,
-//     reff: Position<ReferenceCoords, L, NucSpace>,
-//   ) -> Position<AlignmentCoords, L, NucSpace> {
-//     self.ref_to_aln_table[reff.as_usize()]
-//   }
-//
-//   pub fn aln_to_ref_range(
-//     &self,
-//     aln_range: &Range<Position<AlignmentCoords, L, NucSpace>>,
-//   ) -> Range<Position<ReferenceCoords, L, NucSpace>> {
-//     Range::<Position<ReferenceCoords, L, NucSpace>>::new(
-//       self.aln_to_ref_table[aln_range.begin.as_usize()],
-//       (self.aln_to_ref_table[aln_range.end.as_usize() - 1].as_usize() + 1).into(),
-//     )
-//   }
-//
-//   pub fn ref_to_aln_range(
-//     &self,
-//     ref_range: &Range<Position<ReferenceCoords, L, NucSpace>>,
-//   ) -> Range<Position<AlignmentCoords, L, NucSpace>> {
-//     Range::<Position<AlignmentCoords, L, NucSpace>>::new(
-//       self.ref_to_aln_table[ref_range.begin.as_usize()],
-//       (self.ref_to_aln_table[ref_range.end.as_usize() - 1].as_usize() + 1).into(),
-//     )
-//   }
-//
-//   pub fn extract_cds_aln(&self, seq_aln: &[Nuc], cds: &Cds) -> (Vec<Nuc>, CoordMapForCds) {
-//     let mut cds_aln_seq = vec![];
-//     let mut cds_to_aln_map = vec![];
-//     for segment in &cds.segments {
-//       let range = self.ref_to_aln_range(&segment.range);
-//       cds_to_aln_map.push(CdsToAln {
-//         global: range.iter().collect_vec(),
-//         start: cds_aln_seq.len(),
-//         len: range.len(),
-//       });
-//       cds_aln_seq.extend_from_slice(&seq_aln[range.to_std()]);
-//     }
-//
-//     // Reverse strands should be reverse-complemented
-//     if cds.strand == GeneStrand::Reverse {
-//       reverse_complement_in_place(&mut cds_aln_seq);
-//     }
-//
-//     (cds_aln_seq, CoordMapForCds::new(cds_to_aln_map))
-//   }
-// }
-
 /// Converts from global alignment coordinates to global reference coordinates and vice versa.
 ///
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
@@ -272,30 +195,6 @@ pub fn local_to_codon_range_exclusive(range: &NucRefLocalRange) -> AaRefRange {
     local_to_codon_position_exclusive(range.begin),
     local_to_codon_position_exclusive(range.end),
   )
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub enum CdsAlnPosition {
-  Before,
-  Inside(NucAlnGlobalPosition),
-  After,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub enum CdsRefPosition {
-  Before,
-  Inside(NucRefGlobalPosition),
-  After,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub enum CdsRange {
-  Before,
-  Covered(NucAlnGlobalRange),
-  After,
 }
 
 pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
