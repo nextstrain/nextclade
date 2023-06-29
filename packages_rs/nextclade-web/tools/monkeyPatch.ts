@@ -6,7 +6,7 @@
  * Do no use this to fix bugs or introduce features. Consider contributing to the upstream project instead.
  *
  */
-import { concurrent } from 'fasy'
+import { serial } from 'fasy'
 import fs from 'fs-extra'
 import glob from 'glob'
 import { promisify } from 'util'
@@ -23,7 +23,7 @@ export async function removeAuspiceTimers() {
 
   const files = await promisify(glob)('node_modules/auspice/src/**/*.js')
 
-  await concurrent.forEach(async (file) => {
+  await serial.forEach(async (file) => {
     await replace(file, /.*(timerStart|timerEnd)\(".+"\);.*\n/g, '')
     await replace(file, /.*import { timerStart, timerEnd }.*\n/g, '')
   }, files)
@@ -41,7 +41,7 @@ export async function main() {
     // Removes warning about babel codegen skipping optimizations. We only use babel in form of babel-node, to transpile
     // dev scripts on the fly, so this is not at all worth any attention.
     // Reason: too noisy
-    concurrent.forEach(
+    serial.forEach(
       async (file) => {
         await replace(
           file,
@@ -67,7 +67,7 @@ export async function main() {
     // Removes reminder about upgrading caniuse database. Nice, but not that important. Will be handled along with
     // routine package updates.
     // Reason: too noisy
-    concurrent.forEach(
+    serial.forEach(
       async (file) =>
         replace(
           file,
@@ -81,7 +81,7 @@ export async function main() {
       ['node_modules/browserslist/node.js'],
     ),
 
-    concurrent.forEach(
+    serial.forEach(
       async (file) =>
         replace(
           file,
