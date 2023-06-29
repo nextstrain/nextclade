@@ -1,22 +1,19 @@
-use crate::features::feature::{Feature, Landmark};
+use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
-use crate::gene::gene::GeneStrand;
+use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+use crate::gene::frame::Frame;
+use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
-use crate::utils::range::{
-  NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition, NucRefLocalRange, PositionLike, Range,
-};
+use crate::utils::range::{NucRefLocalRange, Range};
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use maplit::hashmap;
 use num_traits::clamp_max;
-use schemars::gen::SchemaGenerator;
-use schemars::schema::Schema;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -320,131 +317,4 @@ fn find_proteins_recursive(feature_group: &FeatureGroup, proteins: &mut Vec<Prot
     .children
     .iter()
     .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, proteins))
-}
-
-/// Marks the parts of circular, wrapping segments
-///
-/// Example:
-///   WrappingStart      : |....<-----|
-///   WrappingCentral(1) : |----------|
-///   WrappingCentral(2) : |----------|
-///   WrappingEnd(3)     : |---->     |
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
-pub enum WrappingPart {
-  NonWrapping,            // This is not a part of a circular, wrapping feature.
-  WrappingStart,          // Wrapping part before the first wrap.
-  WrappingCentral(usize), // Wrapping parts after first wrap - contains index of the part in the wrapping feature.
-  WrappingEnd(usize),     // Last wrapping part.
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct CdsSegment {
-  pub index: usize,
-  pub id: String,
-  pub name: String,
-  pub range: NucRefGlobalRange,
-  pub range_local: NucRefLocalRange,
-  pub landmark: Option<Landmark>,
-  pub wrapping_part: WrappingPart,
-  pub strand: GeneStrand,
-  pub frame: Frame,
-  pub phase: Phase,
-  pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
-  #[serde(skip)]
-  pub source_record: Option<String>,
-  pub compat_is_gene: bool,
-  pub color: Option<String>,
-}
-
-impl CdsSegment {
-  pub fn name_and_type(&self) -> String {
-    format!("CDS segment '{}'", self.name)
-  }
-
-  #[inline]
-  pub fn len(&self) -> usize {
-    self.range.len()
-  }
-
-  #[inline]
-  pub fn is_empty(&self) -> bool {
-    self.len() == 0
-  }
-}
-
-#[repr(i8)]
-#[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
-pub enum Frame {
-  _0 = 0,
-  _1 = 1,
-  _2 = 2,
-}
-
-impl Frame {
-  pub fn from_begin(global_begin: NucRefGlobalPosition) -> Result<Self, Report> {
-    match (global_begin % 3).as_isize() {
-      0 => Ok(Frame::_0),
-      1 => Ok(Frame::_1),
-      2 => Ok(Frame::_2),
-      val => {
-        make_internal_error!("Unexpected value for the frame of genetic feature: {val}. Expected values are: 0, 1, 2")
-      }
-    }
-  }
-}
-
-impl Display for Frame {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", *self as i8)
-  }
-}
-
-impl schemars::JsonSchema for Frame {
-  fn schema_name() -> String {
-    "Frame".to_owned()
-  }
-
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<i8>()
-  }
-}
-
-#[repr(i8)]
-#[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
-pub enum Phase {
-  _0 = 0,
-  _1 = 1,
-  _2 = 2,
-}
-
-impl Phase {
-  pub fn from_begin(local_begin: NucRefLocalPosition) -> Result<Self, Report> {
-    match (3 - local_begin.as_isize() % 3) % 3 {
-      0 => Ok(Phase::_0),
-      1 => Ok(Phase::_1),
-      2 => Ok(Phase::_2),
-      val => {
-        make_internal_error!("Unexpected value for the phase of genetic feature: {val}. Expected values are: 0, 1, 2")
-      }
-    }
-  }
-}
-
-impl Display for Phase {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", *self as i8)
-  }
-}
-
-impl schemars::JsonSchema for Phase {
-  fn schema_name() -> String {
-    "Phase".to_owned()
-  }
-
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<i8>()
-  }
 }

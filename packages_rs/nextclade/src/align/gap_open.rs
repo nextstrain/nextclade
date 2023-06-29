@@ -47,9 +47,12 @@ pub fn get_gap_open_close_scores_codon_aware(
 mod tests {
   #![allow(clippy::field_reassign_with_default, clippy::needless_pass_by_value)]
   use super::*;
-  use crate::gene::cds::{Cds, CdsSegment, Frame, Phase, WrappingPart};
+  use crate::gene::cds::Cds;
+  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
+  use crate::gene::phase::Phase;
   use crate::utils::range::{NucRefGlobalRange, Position, Range};
   use eyre::Report;
   use itertools::Itertools;

@@ -1,4 +1,5 @@
-use crate::gene::cds::{Cds, WrappingPart};
+use crate::gene::cds::Cds;
+use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -316,7 +317,9 @@ pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::gene::cds::{CdsSegment, Frame, Phase, WrappingPart};
+  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  use crate::gene::frame::Frame;
+  use crate::gene::phase::Phase;
   use crate::io::nuc::to_nuc_seq;
   use eyre::Report;
   use maplit::hashmap;

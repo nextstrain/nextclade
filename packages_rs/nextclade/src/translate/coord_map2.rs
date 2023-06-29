@@ -1,4 +1,5 @@
-use crate::gene::cds::{Cds, WrappingPart};
+use crate::gene::cds::Cds;
+use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::utils::range::{
@@ -77,8 +78,10 @@ pub fn global_ref_pos_to_local(cds: &Cds, pos: NucRefGlobalPosition) -> Vec<NucR
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
-  use crate::gene::cds::{CdsSegment, Frame, Phase, WrappingPart};
+  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
+  use crate::gene::phase::Phase;
   use crate::utils::range::{Position, Range};
   use maplit::hashmap;
   use pretty_assertions::assert_eq;

@@ -1,7 +1,8 @@
 use crate::features::feature_tree::FeatureTree;
 use crate::features::feature_type::style_for_feature_type;
 use crate::features::gene_map::convert_feature_tree_to_gene_map;
-use crate::gene::cds::{Cds, CdsSegment, WrappingPart};
+use crate::gene::cds::Cds;
+use crate::gene::cds_segment::{CdsSegment, WrappingPart};
 use crate::gene::gene::Gene;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
