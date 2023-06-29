@@ -7,6 +7,7 @@ import type { FilterOptionOption } from 'react-select/dist/declarations/src/filt
 import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/Select'
 import type { Theme } from 'react-select/dist/declarations/src/types'
 import { Badge as BadgeBase } from 'reactstrap'
+import { ColoredSquare } from 'src/components/Common/ColoredSquare'
 import styled from 'styled-components'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -166,6 +167,7 @@ function OptionLabelGene({ gene }: { gene: Gene; isMenu?: boolean }) {
       <Badge $color="#4e7ede" className="mr-1 px-2 py-1">
         {t('Gene')}
       </Badge>
+      <ColoredSquare className="mr-1" color={gene.color ?? '#999'} size="1.33rem" />
       <span className="text-body">{gene.name}</span>
     </Indent>
   )
@@ -181,6 +183,7 @@ function OptionLabelGeneAndCds({ cds }: { gene: Gene; cds: Cds; isMenu?: boolean
       <Badge $color="#846ab8" className="mr-1">
         {t('CDS')}
       </Badge>
+      <ColoredSquare className="mr-1" color={cds.color ?? '#999'} size="1.33rem" />
       <span>{cds.name}</span>
     </Indent>
   )
@@ -193,6 +196,7 @@ function OptionLabelCds({ cds, isMenu = false }: { cds: Cds; isMenu?: boolean })
       <Badge $color="#846ab8" className="mr-1 px-2 py-1">
         {t('CDS')}
       </Badge>
+      <ColoredSquare className="mr-1" color={cds.color ?? '#999'} size="1.33rem" />
       <span>{cds.name}</span>
     </Indent>
   )
@@ -205,6 +209,7 @@ function OptionLabelProtein({ protein, isMenu = false }: { protein: Protein; isM
       <Badge $color="#9c8668" className="mr-1">
         {t('Protein')}
       </Badge>
+      <ColoredSquare className="mr-1" color={protein.color ?? '#999'} size="1.33rem" />
       <span className="text-body">{protein.name}</span>
     </Indent>
   )
@@ -216,6 +221,7 @@ const Badge = styled(BadgeBase)<{ $color?: string }>`
 
 // noinspection CssReplaceWithShorthandSafely
 const Indent = styled.div<{ indent?: number | boolean }>`
+  display: flex;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
