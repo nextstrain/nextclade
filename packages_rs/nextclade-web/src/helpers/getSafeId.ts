@@ -3,7 +3,7 @@ import { isBoolean, isNil, isNumber, isString } from 'lodash'
 
 export const getSafeId = memoize(getSafeIdImpl)
 
-function getSafeIdImpl(name: string, obj: Record<string, unknown>) {
+function getSafeIdImpl(name: string, obj: object) {
   const str = stringifyObj(obj).replace(/(\W+)/g, '-')
   return CSS.escape(`${name}___${str}`)
 }

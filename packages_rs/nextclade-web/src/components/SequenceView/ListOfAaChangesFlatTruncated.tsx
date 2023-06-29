@@ -1,9 +1,9 @@
 import React from 'react'
-
 import { AaSub } from 'src/types'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { getSafeId } from 'src/helpers/getSafeId'
 
 export interface ListOfMutationsTruncatedProps {
   aaChanges: AaSub[]
@@ -32,14 +32,16 @@ export function ListOfAaChangesFlatTruncated({ aaChanges, maxRows = 6 }: ListOfM
           </tr>
         )}
 
-        {changesHead.map((change) => (
-          <tr key={change.pos}>
-            <td>{change.qryAa === '-' ? t('Aminoacid deletion') : t('Aminoacid substitution')}</td>
-            <td>
-              <AminoacidMutationBadge mutation={change} />
-            </td>
-          </tr>
-        ))}
+        {changesHead.map((change) => {
+          return (
+            <tr key={getSafeId('aa-change', change)}>
+              <td>{change.qryAa === '-' ? t('Aminoacid deletion') : t('Aminoacid substitution')}</td>
+              <td>
+                <AminoacidMutationBadge mutation={change} />
+              </td>
+            </tr>
+          )
+        })}
 
         {changesTail.length > 0 && (
           <tr>
@@ -49,14 +51,16 @@ export function ListOfAaChangesFlatTruncated({ aaChanges, maxRows = 6 }: ListOfM
         )}
 
         {changesTail.length > 0 &&
-          changesTail.map((change) => (
-            <tr key={change.pos}>
-              <td>{change.qryAa === '-' ? t('Aminoacid deletion') : t('Aminoacid substitution')}</td>
-              <td>
-                <AminoacidMutationBadge mutation={change} />
-              </td>
-            </tr>
-          ))}
+          changesTail.map((change) => {
+            return (
+              <tr key={getSafeId('aa-change', change)}>
+                <td>{change.qryAa === '-' ? t('Aminoacid deletion') : t('Aminoacid substitution')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={change} />
+                </td>
+              </tr>
+            )
+          })}
       </tbody>
     </TableSlim>
   )
