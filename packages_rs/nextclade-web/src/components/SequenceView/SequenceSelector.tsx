@@ -7,6 +7,7 @@ import type { FilterOptionOption } from 'react-select/dist/declarations/src/filt
 import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/Select'
 import type { Theme } from 'react-select/dist/declarations/src/types'
 import { Badge as BadgeBase } from 'reactstrap'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import styled from 'styled-components'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -54,20 +55,11 @@ export function SequenceSelector() {
     [setViewedGene],
   )
 
-  const filterOptions = useCallback((candidate: FilterOptionOption<Option>, searchTerm: string): boolean => {
-    if (candidate.value === GENE_OPTION_NUC_SEQUENCE) {
-      return true
-    }
-    if (!isEmpty(searchTerm)) {
-      return (
-        (candidate.data.gene?.name?.split(' ').some((word) => word.includes(searchTerm)) ||
-          candidate.data.cds?.name?.split(' ').some((word) => word.includes(searchTerm)) ||
-          candidate.data.protein?.name?.split(' ').some((word) => word.includes(searchTerm))) ??
-        false
-      )
-    }
-    return true
-  }, [])
+  const filterOptions = useCallback(
+    (candidate: FilterOptionOption<Option>, searchTerm: string): boolean =>
+      checkSearchCandidateEntry(candidate, searchTerm),
+    [],
+  )
 
   const reactSelectTheme = useCallback((theme: Theme): Theme => {
     return {
@@ -275,4 +267,33 @@ function prepareOptions(genes: Gene[]) {
   }
 
   return { options, defaultOption }
+}
+
+const checkSearchCandidateEntry = (candidate: FilterOptionOption<Option>, searchTerm: string): boolean => {
+  if (candidate.value === GENE_OPTION_NUC_SEQUENCE) {
+    return true
+  }
+
+  const { gene, cds, protein } = candidate.data
+
+  if (!isEmpty(searchTerm)) {
+    return [
+      gene?.name,
+      cds?.name,
+      protein?.name,
+      ...(gene?.cdses.flatMap((cds) => cds.name) ?? []),
+      ...(cds?.proteins.flatMap((protein) => protein.name) ?? []),
+      ...(gene?.cdses.flatMap((cds) => cds.proteins.map((protein) => protein?.name)) ?? []),
+    ]
+      .filter(notUndefinedOrNull)
+      .some((s) => checkSearchCandidateString(s, searchTerm))
+  }
+  return true
+}
+
+function checkSearchCandidateString(candidate: string | undefined, searchTerm: string): boolean {
+  if (!candidate) {
+    return false
+  }
+  return candidate.split(' ').some((word) => word.includes(searchTerm))
 }
