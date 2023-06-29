@@ -1,10 +1,10 @@
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
-use crate::utils::position::{
+use crate::coord::position::{
   AaRefPosition, AlignmentCoords, CoordsMarker, NucRefLocalPosition, NucSpace, Position, PositionLike, ReferenceCoords,
   SeqTypeMarker, SpaceMarker,
 };
-use crate::utils::range::{AaRefRange, NucRefLocalRange};
+use crate::coord::range::{AaRefRange, NucRefLocalRange};
+use crate::io::letter::Letter;
+use crate::io::nuc::Nuc;
 use itertools::Itertools;
 use num::integer::div_floor;
 use serde::{Deserialize, Serialize};

@@ -1,6 +1,6 @@
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
-use crate::utils::position::{AaRefPosition, NucRefGlobalPosition};
-use crate::utils::range::NucRefGlobalRange;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
+use crate::coord::range::NucRefGlobalRange;
 use itertools::Itertools;
 
 /// Decides whether a given position in nucleotide sequence is considered "sequenced".

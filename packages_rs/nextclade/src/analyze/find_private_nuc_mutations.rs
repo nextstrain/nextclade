@@ -3,12 +3,12 @@ use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::range::NucRefGlobalRange;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::position::{NucRefGlobalPosition, PositionLike};
-use crate::utils::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 

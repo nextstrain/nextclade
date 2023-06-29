@@ -1,9 +1,9 @@
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::range::{NucRefGlobalRange, Range};
 use crate::io::nuc::Nuc;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
-use crate::utils::range::{NucRefGlobalRange, Range};
 use itertools::Itertools;
 
 /// Distance and placement prior for a ref tree node
@@ -121,7 +121,7 @@ mod tests {
   use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
 
   use super::*;
-  use crate::utils::position::NucRefGlobalPosition;
+  use crate::coord::position::NucRefGlobalPosition;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

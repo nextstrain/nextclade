@@ -1,11 +1,11 @@
+use crate::coord::position::{
+  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefLocalPosition, PositionLike, SeqTypeMarker, SpaceMarker,
+};
+use crate::coord::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange};
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
-use crate::utils::position::{
-  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefLocalPosition, PositionLike, SeqTypeMarker, SpaceMarker,
-};
-use crate::utils::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange};
 use assert2::assert;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -78,12 +78,12 @@ pub fn global_ref_pos_to_local(cds: &Cds, pos: NucRefGlobalPosition) -> Vec<NucR
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
+  use crate::coord::position::Position;
+  use crate::coord::range::Range;
   use crate::gene::cds_segment::{CdsSegment, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::phase::Phase;
-  use crate::utils::position::Position;
-  use crate::utils::range::Range;
   use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;

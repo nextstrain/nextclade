@@ -1,6 +1,6 @@
+use crate::coord::range::NucAlnLocalRange;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::NucAlnLocalRange;
 use crate::utils::wraparound::wraparound;
 
 // Invalid/unset positions are set with this value

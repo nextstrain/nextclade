@@ -1,8 +1,8 @@
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
 use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo};
 use crate::utils::collections::first;
-use crate::utils::range::NucRefGlobalRange;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
 use schemars::JsonSchema;

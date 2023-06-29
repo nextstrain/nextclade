@@ -6,6 +6,7 @@ use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
+use crate::coord::range::NucRefGlobalRange;
 use crate::io::aa::from_aa_seq;
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
@@ -17,7 +18,6 @@ use crate::types::outputs::{
   PhenotypeValue,
 };
 use crate::utils::num::is_int;
-use crate::utils::range::NucRefGlobalRange;
 use crate::{make_error, o};
 use edit_distance::edit_distance;
 use eyre::Report;

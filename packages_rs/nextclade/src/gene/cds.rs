@@ -1,10 +1,10 @@
+use crate::coord::range::{NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds_segment::{CdsSegment, WrappingPart};
 use crate::gene::frame::Frame;
 use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
-use crate::utils::range::{NucRefLocalRange, Range};
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;

@@ -1,10 +1,10 @@
 use crate::align::params::AlignPairwiseParams;
 use crate::coord::coord_map_global::extract_cds_ref;
+use crate::coord::range::Range;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 use crate::translate::translate::translate;
 use crate::translate::translate_genes::{CdsTranslation, GeneTranslation, Translation};
-use crate::utils::range::Range;
 use eyre::Report;
 
 /// Translates genes in reference sequence

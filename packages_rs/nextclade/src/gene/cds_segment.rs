@@ -1,8 +1,8 @@
+use crate::coord::range::{NucRefGlobalRange, NucRefLocalRange};
 use crate::features::feature::Landmark;
 use crate::gene::frame::Frame;
 use crate::gene::gene::GeneStrand;
 use crate::gene::phase::Phase;
-use crate::utils::range::{NucRefGlobalRange, NucRefLocalRange};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

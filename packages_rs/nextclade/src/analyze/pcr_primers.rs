@@ -1,10 +1,10 @@
+use crate::coord::range::NucRefGlobalRange;
 use crate::gene::genotype::Genotype;
 use crate::io::csv::parse_csv;
 use crate::io::fs::read_file_to_string;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::make_error;
 use crate::translate::complement::reverse_complement_in_place;
-use crate::utils::range::NucRefGlobalRange;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::warn;

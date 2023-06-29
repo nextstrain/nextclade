@@ -1,8 +1,8 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::coord::range::NucRefGlobalRange;
 use crate::gene::gene::GeneStrand;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use crate::utils::range::NucRefGlobalRange;
 use either::Either;
 
 pub type GapScoreMap = Vec<i32>;
@@ -47,14 +47,14 @@ pub fn get_gap_open_close_scores_codon_aware(
 mod tests {
   #![allow(clippy::field_reassign_with_default, clippy::needless_pass_by_value)]
   use super::*;
+  use crate::coord::position::Position;
+  use crate::coord::range::{NucRefGlobalRange, Range};
   use crate::gene::cds::Cds;
   use crate::gene::cds_segment::{CdsSegment, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
   use crate::gene::phase::Phase;
-  use crate::utils::position::Position;
-  use crate::utils::range::{NucRefGlobalRange, Range};
   use eyre::Report;
   use itertools::Itertools;
   use maplit::hashmap;

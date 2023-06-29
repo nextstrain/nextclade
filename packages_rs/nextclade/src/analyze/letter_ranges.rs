@@ -1,9 +1,9 @@
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
+use crate::coord::range::Range;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
-use crate::utils::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
-use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]

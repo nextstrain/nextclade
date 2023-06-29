@@ -1,9 +1,9 @@
 use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
+use crate::coord::position::AaRefPosition;
+use crate::coord::range::{intersect, Range};
 use crate::io::aa::from_aa_seq;
 use crate::translate::translate_genes::Translation;
 use crate::utils::collections::{cloned_into, zip_map_hashmap};
-use crate::utils::position::AaRefPosition;
-use crate::utils::range::{intersect, Range};
 use eyre::Report;
 use itertools::{Either, Itertools, Zip};
 use serde::{Deserialize, Serialize};

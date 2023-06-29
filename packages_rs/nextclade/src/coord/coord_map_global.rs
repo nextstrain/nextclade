@@ -1,11 +1,11 @@
 use crate::coord::coord_map::{make_aln_to_ref_map, make_ref_to_aln_map};
+use crate::coord::position::{NucAlnGlobalPosition, NucRefGlobalPosition, PositionLike};
+use crate::coord::range::{NucAlnGlobalRange, NucRefGlobalRange, Range};
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
-use crate::utils::position::{NucAlnGlobalPosition, NucRefGlobalPosition, PositionLike};
-use crate::utils::range::{NucAlnGlobalRange, NucRefGlobalRange, Range};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -108,11 +108,11 @@ pub fn extract_cds_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
 #[cfg(test)]
 mod coord_map_tests {
   use super::*;
+  use crate::coord::position::Position;
   use crate::gene::cds_segment::{CdsSegment, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use crate::io::nuc::to_nuc_seq;
-  use crate::utils::position::Position;
   use eyre::Report;
   use itertools::Itertools;
   use maplit::hashmap;

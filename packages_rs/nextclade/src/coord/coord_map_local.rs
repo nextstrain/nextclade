@@ -1,8 +1,8 @@
 use crate::coord::coord_map::make_aln_to_ref_map;
 use crate::coord::coord_map_global::CoordMapGlobal;
+use crate::coord::position::{AaRefPosition, NucAlnLocalPosition, NucRefLocalPosition, PositionLike};
+use crate::coord::range::{AaRefRange, NucAlnLocalRange, NucRefLocalRange, Range};
 use crate::io::nuc::Nuc;
-use crate::utils::position::{AaRefPosition, NucAlnLocalPosition, NucRefLocalPosition, PositionLike};
-use crate::utils::range::{AaRefRange, NucAlnLocalRange, NucRefLocalRange, Range};
 use serde::{Deserialize, Serialize};
 
 /// Similar principle to [CoordMapGlobal], but converts between nucleotide and codon spaces.

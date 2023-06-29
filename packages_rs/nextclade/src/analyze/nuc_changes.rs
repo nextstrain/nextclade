@@ -1,8 +1,8 @@
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::range::NucRefGlobalRange;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::range::NucRefGlobalRange;
 
 pub struct FindNucChangesOutput {
   pub substitutions: Vec<NucSub>,

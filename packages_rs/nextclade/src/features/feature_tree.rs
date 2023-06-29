@@ -1,3 +1,4 @@
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature::{Feature, Landmark};
 use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_tree_format::format_sequence_region_features;
@@ -5,7 +6,6 @@ use crate::features::sequence_region::SequenceRegion;
 use crate::io::file::open_file_or_stdin;
 use crate::make_error;
 use crate::utils::error::to_eyre_error;
-use crate::utils::range::NucRefGlobalRange;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use eyre::{eyre, Report, WrapErr};
 use itertools::{chain, Itertools};

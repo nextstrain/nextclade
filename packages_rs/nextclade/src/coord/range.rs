@@ -1,4 +1,4 @@
-use crate::utils::position::{
+use crate::coord::position::{
   AaAlnPosition, AaRefPosition, NucAlnGlobalPosition, NucAlnLocalPosition, NucRefGlobalPosition, NucRefLocalPosition,
   PositionLike,
 };

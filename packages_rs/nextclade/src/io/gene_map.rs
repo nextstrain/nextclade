@@ -1,3 +1,4 @@
+use crate::coord::position::PositionLike;
 use crate::features::feature_tree::FeatureTree;
 use crate::features::feature_type::style_for_feature_type;
 use crate::features::gene_map::convert_feature_tree_to_gene_map;
@@ -8,7 +9,6 @@ use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
-use crate::utils::position::PositionLike;
 use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};

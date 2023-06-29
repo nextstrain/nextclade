@@ -1,5 +1,5 @@
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::make_internal_error;
-use crate::utils::position::{NucRefGlobalPosition, PositionLike};
 use eyre::Report;
 use schemars::gen::SchemaGenerator;
 use schemars::schema::Schema;

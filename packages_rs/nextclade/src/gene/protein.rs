@@ -1,6 +1,6 @@
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_group::FeatureGroup;
 use crate::make_internal_error;
-use crate::utils::range::NucRefGlobalRange;
 use eyre::Report;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

@@ -1,5 +1,6 @@
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -9,7 +10,6 @@ use crate::tree::tree::{
   AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
-use crate::utils::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use num::Float;

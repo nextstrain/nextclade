@@ -1,10 +1,10 @@
 use crate::analyze::aa_changes::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;
+use crate::coord::position::AaRefPosition;
 use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
-use crate::utils::position::AaRefPosition;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;

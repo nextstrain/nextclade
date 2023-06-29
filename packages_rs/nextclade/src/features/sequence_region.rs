@@ -1,6 +1,6 @@
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_type::shorten_feature_type;
-use crate::utils::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]

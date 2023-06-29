@@ -1,12 +1,12 @@
 use crate::align::params::AlignPairwiseParamsOptional;
+use crate::coord::position::AaRefPosition;
+use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::gene::genotype::Genotype;
 use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::utils::position::AaRefPosition;
-use crate::utils::range::{AaRefRange, NucRefGlobalRange};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

@@ -1,8 +1,8 @@
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::position::PositionLike;
 use crate::qc::qc_config::QcRulesConfigSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
-use crate::utils::position::PositionLike;
 use itertools::Itertools;
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
