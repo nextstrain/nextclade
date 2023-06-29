@@ -13,6 +13,7 @@ import { useRecoilState, useRecoilValue } from 'recoil'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { genesAtom } from 'src/state/results.state'
+import { ensureNumber } from 'src/helpers/number'
 
 const menuPortalTarget = typeof document === 'object' ? document.body : null
 
@@ -217,7 +218,7 @@ const Indent = styled.div<{ indent?: number | boolean }>`
   max-width: 100%;
   padding: 0;
   margin: 0;
-  padding-left: ${(props) => (Number(props.indent) ?? 0) * 0.8}rem;
+  padding-left: ${(props) => ensureNumber(props.indent) * 0.8}rem;
 `
 
 function prepareOptions(genes: Gene[]) {
