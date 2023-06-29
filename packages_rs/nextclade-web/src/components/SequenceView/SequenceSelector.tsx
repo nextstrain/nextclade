@@ -88,7 +88,11 @@ export function SequenceSelector() {
       menuPortal: (base) => ({ ...base, zIndex: 9999 }),
       menuList: (base) => ({ ...base, fontSize: '1rem' }),
       option: (base) => ({ ...base, fontSize: '1rem', padding: '2px 8px' }),
-      singleValue: (base) => ({ ...base, fontSize: '1rem' }),
+      singleValue: (base, state) => ({
+        ...base,
+        fontSize: '1rem',
+        display: state.selectProps.menuIsOpen ? 'none' : 'block',
+      }),
     }
   }, [])
 
