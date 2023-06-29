@@ -1,5 +1,5 @@
 use crate::align::params::AlignPairwiseParams;
-use crate::coord::coord_map::{extract_cds_ref, CoordMapLocal};
+use crate::coord::coord_map_global::extract_cds_ref;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 use crate::translate::translate::translate;

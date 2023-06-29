@@ -10,7 +10,7 @@ use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::coord::coord_map::CoordMapGlobal;
+use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;

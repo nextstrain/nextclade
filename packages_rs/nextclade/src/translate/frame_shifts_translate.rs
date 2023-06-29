@@ -1,4 +1,4 @@
-use crate::coord::coord_map::CoordMapLocal;
+use crate::coord::coord_map_local::CoordMapLocal;
 use crate::coord::coord_map2::cds_range_to_ref_ranges;
 use crate::gene::cds::Cds;
 use crate::io::letter::Letter;
