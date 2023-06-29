@@ -9,7 +9,7 @@ use crate::tree::tree::{
   AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::{AaRefPosition, NucRefGlobalPosition, PositionLike};
+use crate::utils::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use num::Float;

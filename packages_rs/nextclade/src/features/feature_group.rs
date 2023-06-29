@@ -1,6 +1,6 @@
 use crate::features::feature::Feature;
 use crate::features::feature_type::shorten_feature_type;
-use crate::utils::range::{NucRefGlobalPosition, PositionLike};
+use crate::utils::position::{NucRefGlobalPosition, PositionLike};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;

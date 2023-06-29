@@ -53,7 +53,8 @@ mod tests {
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
   use crate::gene::phase::Phase;
-  use crate::utils::range::{NucRefGlobalRange, Position, Range};
+  use crate::utils::position::Position;
+  use crate::utils::range::{NucRefGlobalRange, Range};
   use eyre::Report;
   use itertools::Itertools;
   use maplit::hashmap;

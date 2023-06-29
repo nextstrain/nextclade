@@ -4,10 +4,12 @@ use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
+use crate::utils::position::{
+  AaRefPosition, AlignmentCoords, CoordsMarker, NucAlnGlobalPosition, NucAlnLocalPosition, NucRefGlobalPosition,
+  NucRefLocalPosition, NucSpace, Position, PositionLike, ReferenceCoords, SeqTypeMarker, SpaceMarker,
+};
 use crate::utils::range::{
-  AaRefPosition, AaRefRange, AlignmentCoords, CoordsMarker, NucAlnGlobalPosition, NucAlnGlobalRange,
-  NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition,
-  NucRefLocalRange, NucSpace, Position, PositionLike, Range, ReferenceCoords, SeqTypeMarker, SpaceMarker,
+  AaRefRange, NucAlnGlobalRange, NucAlnLocalRange, NucRefGlobalRange, NucRefLocalRange, Range,
 };
 use itertools::Itertools;
 use num::integer::div_floor;

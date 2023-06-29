@@ -7,7 +7,8 @@ use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::{NucRefGlobalPosition, NucRefGlobalRange, PositionLike};
+use crate::utils::position::{NucRefGlobalPosition, PositionLike};
+use crate::utils::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 

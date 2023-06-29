@@ -9,7 +9,7 @@ use crate::io::letter::Letter;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::{AaRefPosition, PositionLike};
+use crate::utils::position::{AaRefPosition, PositionLike};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};

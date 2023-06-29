@@ -2,7 +2,7 @@ use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::nuc::Nuc;
-use crate::utils::range::{AaRefPosition, NucRefGlobalPosition};
+use crate::utils::position::{AaRefPosition, NucRefGlobalPosition};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

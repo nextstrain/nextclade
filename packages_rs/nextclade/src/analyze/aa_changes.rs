@@ -13,9 +13,8 @@ use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map2::cds_codon_pos_to_ref_range;
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use crate::utils::collections::extend_map_of_vecs;
-use crate::utils::range::{
-  have_intersection, AaRefPosition, AaRefRange, NucRefGlobalPosition, NucRefGlobalRange, PositionLike,
-};
+use crate::utils::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
+use crate::utils::range::{have_intersection, AaRefRange, NucRefGlobalRange};
 use either::Either;
 use eyre::Report;
 use itertools::{Itertools, MinMaxResult};

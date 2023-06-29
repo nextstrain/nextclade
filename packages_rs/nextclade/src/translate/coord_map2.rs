@@ -2,10 +2,10 @@ use crate::gene::cds::Cds;
 use crate::gene::cds_segment::WrappingPart;
 use crate::gene::gene::GeneStrand;
 use crate::io::letter::Letter;
-use crate::utils::range::{
-  intersect_or_none, AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefGlobalRange, NucRefLocalPosition,
-  NucRefLocalRange, PositionLike, SeqTypeMarker, SpaceMarker,
+use crate::utils::position::{
+  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefLocalPosition, PositionLike, SeqTypeMarker, SpaceMarker,
 };
+use crate::utils::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange};
 use assert2::assert;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -82,7 +82,8 @@ mod coord_map_tests {
   use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::phase::Phase;
-  use crate::utils::range::{Position, Range};
+  use crate::utils::position::Position;
+  use crate::utils::range::Range;
   use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;

@@ -1,6 +1,6 @@
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
-use crate::utils::range::{AaRefRange, NucRefGlobalRange};
+use crate::utils::range::AaRefRange;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::path::Path;

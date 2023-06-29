@@ -1,9 +1,10 @@
 use crate::gene::cds::Cds;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::translate::coord_map::{CoordMapGlobal, CoordMapLocal};
+use crate::translate::coord_map::CoordMapLocal;
 use crate::translate::coord_map2::cds_range_to_ref_ranges;
-use crate::utils::range::{AaRefRange, NucAlnLocalPosition, NucAlnLocalRange, NucRefGlobalRange, PositionLike, Range};
+use crate::utils::position::{NucAlnLocalPosition, PositionLike};
+use crate::utils::range::{AaRefRange, NucAlnLocalRange, NucRefGlobalRange, Range};
 use eyre::Report;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};

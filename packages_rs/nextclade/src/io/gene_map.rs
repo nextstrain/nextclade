@@ -8,7 +8,7 @@ use crate::gene::protein::{Protein, ProteinSegment};
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
 use crate::utils::error::report_to_string;
-use crate::utils::range::PositionLike;
+use crate::utils::position::PositionLike;
 use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};

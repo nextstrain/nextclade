@@ -4,7 +4,8 @@ use crate::analyze::nuc_del::NucDel;
 use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcRulesConfigPrivateMutations;
 use crate::qc::qc_run::{QcRule, QcStatus};
-use crate::utils::range::{PositionLike, Range};
+use crate::utils::position::PositionLike;
+use crate::utils::range::Range;
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 

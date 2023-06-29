@@ -1,7 +1,7 @@
 use crate::io::letter::Letter;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
-use crate::utils::range::NucRefGlobalPosition;
+use crate::utils::position::NucRefGlobalPosition;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;

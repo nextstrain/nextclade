@@ -1,6 +1,6 @@
 use crate::analyze::aa_sub::AaSub;
 use crate::io::aa::{from_aa, Aa};
-use crate::utils::range::AaRefPosition;
+use crate::utils::position::AaRefPosition;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 

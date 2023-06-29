@@ -121,7 +121,7 @@ mod tests {
   use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
 
   use super::*;
-  use crate::utils::range::NucRefGlobalPosition;
+  use crate::utils::position::NucRefGlobalPosition;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
