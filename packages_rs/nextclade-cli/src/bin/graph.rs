@@ -152,6 +152,7 @@ fn create_absolute_nonsense_fake_auspice_node() -> AuspiceTreeNode {
       region: None,
       country: None,
       division: None,
+      placement_prior: None,
       alignment: None,
       missing: None,
       gaps: None,

@@ -27,7 +27,6 @@ use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use nextclade::{make_error, make_internal_report};
 use nextclade::utils::range::Range;
 use nextclade::{make_error, make_internal_report};
 use std::path::PathBuf;
