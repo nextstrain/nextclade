@@ -1,22 +1,19 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { difference, isObject, padStart, isEmpty, get } from 'lodash'
+import { difference, isObject, padStart, isEmpty, get, sortBy, uniqBy } from 'lodash'
 import { notUndefined } from '../src/helpers/notUndefined'
 import { safeZip } from '../src/helpers/safeZip'
 
-const DEFAULT_LOCALE_KEY = 'en'
-const I18N_RESOURCES_DIR = 'src/i18n/resources/'
-const I18N_RESOURCES_DEFAULT_LOCALE_FILE = path.join(I18N_RESOURCES_DIR, DEFAULT_LOCALE_KEY, 'common.json')
+export const DEFAULT_LOCALE_KEY = 'en'
+export const I18N_RESOURCES_DIR = 'src/i18n/resources/'
+export const I18N_RESOURCES_DEFAULT_LOCALE_FILE = path.join(I18N_RESOURCES_DIR, DEFAULT_LOCALE_KEY, 'common.json')
 
-const dirs = fs.readdirSync(I18N_RESOURCES_DIR)
-
-const filepaths = dirs.flatMap((dir) => {
-  const langDir = path.join(I18N_RESOURCES_DIR, dir)
-  return fs
-    .readdirSync(langDir)
-    .filter((filename) => filename.endsWith('.json'))
-    .map((filename) => path.join(langDir, filename))
-})
+const FIXUPS = {
+  '{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}':
+    '{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}',
+  'ID': 'ID',
+  'OK': 'OK',
+}
 
 export function getSubstitutions(str: string) {
   return str.match(/{{.*?}}/g) ?? []
@@ -53,84 +50,129 @@ export function getReferenceKeys() {
   return results.map(({ reference }) => reference)
 }
 
-const referenceKeys = getReferenceKeys()
+export function fixValues(s: string) {
+  let fixed = s.replace(/([^ !#$%&()*,.;=_`{}~-]){{/gim, '$1 {{')
+  fixed = fixed.replace(/}}([^ !#$%&()*,./:;=_`{}~-])/gim, '}} $1')
+  fixed = fixed.replace(/ +/gim, ' ')
+  fixed = fixed.replace(/" (.*) "/gim, '"$1"')
+  fixed = fixed.replace(/" (.*)"/gim, '"$1"')
+  fixed = fixed.replace(/"(.*) "/gim, '"$1"')
+  fixed = fixed.replace(/ :/gim, ':')
 
-filepaths.forEach((filepath) => {
-  const { json } = readJson(filepath)
-  const results = parseLocale(json)
+  fixed = fixed.replace('({{ n }})', '({{n}})')
+  fixed = fixed.replace('() {{n}}', '({{n}})')
+  fixed = fixed.replace('() {{ n }}', '({{n}})')
 
-  const keysBefore = results.length
-  const resultsFiltered = results.filter(({ reference }) => referenceKeys.includes(reference))
-  const keysAfter = resultsFiltered.length
-  const keysRemoved = keysBefore - keysAfter
+  return fixed
+}
 
-  const resultsFixed = resultsFiltered.map(({ index, missing, extra, reference, localized }) => {
-    let missingFixed = missing
-    let extraFixed = extra
-    let localizedFixed: string | undefined
-    if (!isEmpty(missing) && !isEmpty(extra) && missing.length === extra.length) {
-      localizedFixed = localized
-      const dictionary = safeZip(missing, extra)
-      const missingToExtra = Object.fromEntries(dictionary)
-      const extraToMissing = Object.fromEntries(dictionary.map(([k, v]) => [v, k]))
+function main() {
+  const dirs = fs.readdirSync(I18N_RESOURCES_DIR)
 
-      dictionary.forEach(([missing, extra]) => {
-        localizedFixed = localizedFixed?.replace(RegExp(extra, 'g'), missing)
-      })
-
-      missingFixed = missing.filter((m) => !extra.includes(get(missingToExtra, m)))
-      extraFixed = extra.filter((e) => !missing.includes(get(extraToMissing, e)))
-    }
-
-    return { index, missing, missingFixed, missingExtra: extraFixed, extra, reference, localized, localizedFixed }
+  const filepaths = dirs.flatMap((dir) => {
+    const langDir = path.join(I18N_RESOURCES_DIR, dir)
+    return fs
+      .readdirSync(langDir)
+      .filter((filename) => filename.endsWith('.json'))
+      .map((filename) => path.join(langDir, filename))
   })
 
-  const contentFixed = resultsFixed.reduce(
-    (result, { reference, localized, localizedFixed }) => {
-      return {
-        result: {
-          ...result.result,
-          [reference]: localizedFixed ?? localized,
-        },
-        total: localizedFixed ? result.total + 1 : result.total,
-      }
-    },
-    { result: {}, total: 0 },
-  )
+  const referenceKeys = getReferenceKeys()
 
-  fs.writeJsonSync(filepath, contentFixed.result, { spaces: 2 })
+  filepaths.forEach((filepath) => {
+    const { json } = readJson(filepath)
+    const results = parseLocale(json)
 
-  if (contentFixed.total > 0) {
-    console.info(`\nIn file: '${filepath}':\nInfo: corrected ${contentFixed.total} translation issues automatically`)
-  }
+    const keysBefore = results.length
+    const resultsFiltered = results.filter(({ reference }) => referenceKeys.includes(reference))
+    const keysAfter = resultsFiltered.length
+    const keysRemoved = keysBefore - keysAfter
 
-  if (keysRemoved > 0) {
-    console.info(`\nIn file: '${filepath}':\nInfo: removed ${keysRemoved} unused keys`)
-  }
+    const resultsFixed = resultsFiltered.map(({ index, missing, extra, reference, localized }) => {
+      let missingFixed = missing
+      let extraFixed = extra
+      let localizedFixed: string | undefined
+      if (!isEmpty(missing) && !isEmpty(extra) && missing.length === extra.length) {
+        localizedFixed = localized
+        const dictionary = safeZip(missing, extra)
+        const missingToExtra = Object.fromEntries(dictionary)
+        const extraToMissing = Object.fromEntries(dictionary.map(([k, v]) => [v, k]))
 
-  if (resultsFixed.every(({ missingFixed, missingExtra }) => isEmpty(missingFixed) && isEmpty(missingExtra))) {
-    return
-  }
+        dictionary.forEach(([missing, extra]) => {
+          localizedFixed = localizedFixed?.replace(RegExp(extra, 'g'), missing)
+        })
 
-  const message = resultsFixed
-    .filter(({ missingFixed, missingExtra }) => !(isEmpty(missingFixed) && isEmpty(missingExtra)))
-    .sort((x, y) => x.index - y.index)
-    .map(({ index, missing, extra, reference, localized }) => {
-      if (isEmpty(missing) && isEmpty(extra)) {
-        return undefined
+        missingFixed = missing.filter((m) => !extra.includes(get(missingToExtra, m)))
+        extraFixed = extra.filter((e) => !missing.includes(get(extraToMissing, e)))
       }
 
-      const entry = padStart(index.toString(10), 3)
-      const missingStr = missing.map(quote).join(', ')
-      const extraStr = extra.map(quote).join(', ')
-      return `Entry ${entry}:\n    reference: '${reference}'\n    localized: '${localized}'\n    missing  : ${missingStr}\n    extra    : ${extraStr}`
+      return { index, missing, missingFixed, missingExtra: extraFixed, extra, reference, localized, localizedFixed }
     })
-    .filter(notUndefined)
-    .join('\n\n')
 
-  if (message !== '') {
-    console.warn(
-      `\nIn file '${filepath}':\nWarning: translation issues found which cannot be automatically corrected:\n${message}\n`,
+    const contentFixed = resultsFixed.reduce(
+      (result, { reference, localized, localizedFixed }) => {
+        Object.entries(FIXUPS).forEach(([ref, qry]) => {
+          if (reference === ref) {
+            // eslint-disable-next-line no-param-reassign
+            localizedFixed = qry
+          }
+        })
+
+        return {
+          result: {
+            ...result.result,
+            [reference]: fixValues(localizedFixed ?? localized),
+          },
+          total: localizedFixed ? result.total + 1 : result.total,
+        }
+      },
+      { result: {}, total: 0 },
     )
-  }
-})
+
+    fs.writeJsonSync(filepath, sortKeys(contentFixed.result), { spaces: 2 })
+
+    if (contentFixed.total > 0) {
+      console.info(`\nIn file: '${filepath}':\nInfo: corrected ${contentFixed.total} translation issues automatically`)
+    }
+
+    if (keysRemoved > 0) {
+      console.info(`\nIn file: '${filepath}':\nInfo: removed ${keysRemoved} unused keys`)
+    }
+
+    if (resultsFixed.every(({ missingFixed, missingExtra }) => isEmpty(missingFixed) && isEmpty(missingExtra))) {
+      return
+    }
+
+    const message = resultsFixed
+      .filter(({ missingFixed, missingExtra }) => !(isEmpty(missingFixed) && isEmpty(missingExtra)))
+      .sort((x, y) => x.index - y.index)
+      .map(({ index, missing, extra, reference, localized }) => {
+        if (isEmpty(missing) && isEmpty(extra)) {
+          return undefined
+        }
+
+        const entry = padStart(index.toString(10), 3)
+        const missingStr = missing.map(quote).join(', ')
+        const extraStr = extra.map(quote).join(', ')
+        return `Entry ${entry}:\n    reference: '${reference}'\n    localized: '${localized}'\n    missing  : ${missingStr}\n    extra    : ${extraStr}`
+      })
+      .filter(notUndefined)
+      .join('\n\n')
+
+    if (message !== '') {
+      console.warn(
+        `\nIn file '${filepath}':\nWarning: translation issues found which cannot be automatically corrected:\n${message}\n`,
+      )
+    }
+  })
+}
+
+/** Sort object by keys */
+function sortKeys(obj: Record<string, unknown>) {
+  const entries = Object.entries(obj)
+  let newEntries = sortBy(entries, (entry) => entry[0])
+  newEntries = uniqBy(newEntries, (entry) => entry[0])
+  return Object.fromEntries(newEntries) as Record<string, string>
+}
+
+main()

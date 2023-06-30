@@ -1,0 +1,61 @@
+# Build 'nextstrain/nextclade_builder' docker image and push it to DockerHub
+name: builder-docker-image
+
+on:
+  repository_dispatch:
+    types: build
+
+  workflow_dispatch:
+
+  workflow_call:
+
+concurrency:
+  group: builder-docker-image-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+env:
+  GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
+
+jobs:
+  build-base-image:
+    name: "Build base image"
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: nextstrainbot
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-${{ runner.os }}-
+
+      - name: "Build image: base"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          ./docker-dev docker-image-build-push

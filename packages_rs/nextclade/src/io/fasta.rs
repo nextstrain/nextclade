@@ -136,7 +136,7 @@ impl<'a> FastaReader<'a> {
 
 pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report> {
   let filepath = filepath.as_ref();
-  let mut reader = FastaReader::from_path(&filepath)?;
+  let mut reader = FastaReader::from_path(filepath)?;
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record)

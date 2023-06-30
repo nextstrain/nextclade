@@ -1,26 +1,67 @@
 ARG DOCKER_BASE_IMAGE
-ARG CLANG_VERSION
 
 FROM $DOCKER_BASE_IMAGE as base
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
+ARG DOCKER_BASE_IMAGE
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
 ARG NODEMON_VERSION="2.0.15"
 ARG YARN_VERSION="1.22.18"
-ARG CLANG_VERSION=$CLANG_VERSION
 
+# Install required packages if running CentOS
 RUN set -euxo pipefail >/dev/null \
-&& if grep wheezy /etc/apt/sources.list; then export IS_DEBIAN_WHEEZY=1; else export IS_DEBIAN_WHEEZY=0; fi \
-&& if [ ${IS_DEBIAN_WHEEZY} == 1 ]; then printf "deb http://archive.debian.org/debian wheezy main non-free contrib\ndeb http://archive.debian.org/debian-security wheezy/updates main non-free contrib\n" > "/etc/apt/sources.list"; fi \
-&& if [ ${IS_DEBIAN_WHEEZY} == 1 ]; then echo "Acquire::Check-Valid-Until false;" >> "/etc/apt/apt.conf.d/10-nocheckvalid"; fi \
+&& if [[ "$DOCKER_BASE_IMAGE" != centos* ]] && [[ "$DOCKER_BASE_IMAGE" != *manylinux2014* ]]; then exit 0; fi \
+&& sed -i "s/enabled=1/enabled=0/g" "/etc/yum/pluginconf.d/fastestmirror.conf" \
+&& sed -i "s/enabled=1/enabled=0/g" "/etc/yum/pluginconf.d/ovl.conf" \
+&& yum clean all \
+&& yum -y install dnf epel-release \
+&& dnf install -y \
+  autoconf \
+  automake \
+  bash \
+  bash-completion \
+  binutils \
+  brotli \
+  ca-certificates \
+  cmake \
+  curl \
+  gcc \
+  gcc-c++ \
+  gdb \
+  git \
+  gnupg \
+  gzip \
+  make \
+  parallel \
+  pigz \
+  pkgconfig \
+  python3 \
+  python3-pip \
+  redhat-lsb-core \
+  sudo \
+  tar \
+  time \
+  xz \
+  zstd \
+&& dnf clean all \
+&& rm -rf /var/cache/yum
+
+
+ARG CLANG_VERSION
+
+# Install required packages if running Debian or Ubuntu
+RUN set -euxo pipefail >/dev/null \
+&& if [[ "$DOCKER_BASE_IMAGE" != debian* ]] && [[ "$DOCKER_BASE_IMAGE" != ubuntu* ]]; then exit 0; fi \
+&& if grep stretch "/etc/apt/sources.list"; then printf "deb http://archive.debian.org/debian/ stretch main non-free contrib\ndeb http://archive.debian.org/debian-security/ stretch/updates main non-free contrib\n" > "/etc/apt/sources.list"; fi \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
   apt-transport-https \
   bash \
   bash-completion \
+  brotli \
   build-essential \
   ca-certificates \
   curl \
@@ -29,39 +70,29 @@ RUN set -euxo pipefail >/dev/null \
   libssl-dev \
   lsb-release \
   parallel \
+  pigz \
+  pixz \
   pkg-config \
   python3 \
   python3-pip \
+  rename \
   sudo \
   time \
   xz-utils \
 >/dev/null \
-&& \
-  if [ "$(lsb_release -cs)" == "wheezy" ]; then \
-    echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs) main" >> "/etc/apt/sources.list.d/llvm.list"; \
-  else \
-    echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list"; \
-  fi \
+&& echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
 && curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
   clang-${CLANG_VERSION} \
+  clang-tools-${CLANG_VERSION} \
+  lld-${CLANG_VERSION} \
   lldb-${CLANG_VERSION} \
   llvm-${CLANG_VERSION} \
   llvm-${CLANG_VERSION}-dev \
   llvm-${CLANG_VERSION}-tools \
   >/dev/null \
-&& if [ "$(lsb_release -cs)" != "wheezy" ]; then \
-    apt-get install -qq --no-install-recommends --yes \
-      brotli \
-      clang-tools-${CLANG_VERSION} \
-      lld-${CLANG_VERSION} \
-      pigz \
-      pixz \
-      rename \
-    >/dev/null; \
-  fi \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
@@ -85,12 +116,13 @@ ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:
 
 # Install Python dependencies
 RUN set -euxo pipefail >/dev/null \
-&& if [ "$(lsb_release -cs)" == "wheezy" ]; then \
-     curl -fsSL https://bootstrap.pypa.io/pip/3.2/get-pip.py | python3 \
-   ;fi
-
-RUN set -euxo pipefail >/dev/null \
 && pip3 install --user --upgrade cram
+
+# Install dasel, a tool to query TOML files
+RUN set -euxo pipefail >/dev/null \
+&& curl -fsSL -o "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
+&& chmod +x "/usr/bin/jq" \
+&& jq --version
 
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
@@ -107,14 +139,18 @@ RUN set -euxo pipefail >/dev/null \
 # Install Node.js
 COPY .nvmrc /
 RUN set -eux >dev/null \
-&& if [ "$(lsb_release -cs)" != "wheezy" ]; then \
-  mkdir -p "${NODE_DIR}" \
-  && cd "${NODE_DIR}" \
-  && NODE_VERSION=$(cat /.nvmrc) \
-  && curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
-  && npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
-  && npm config set scripts-prepend-node-path auto \
-;fi
+&& mkdir -p "${NODE_DIR}" \
+&& cd "${NODE_DIR}" \
+&& NODE_VERSION=$(cat /.nvmrc) \
+&& curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
+&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
+&& npm config set scripts-prepend-node-path auto
+
+# Calm down the (in)famous chatter from yarn
+RUN set -euxo pipefail >/dev/null \
+&& sed -i'' "s/this.reporter.warn(this.reporter.lang('incompatibleResolutionVersion', pattern, reqPattern));//g" "${NODE_DIR}/lib/node_modules/yarn/lib/cli.js" \
+&& sed -i'' "s/_this2\.reporter.warn(_this2\.reporter.lang('ignoredScripts'));//g" "${NODE_DIR}/lib/node_modules/yarn/lib/cli.js" \
+&& sed -i'' 's/_this3\.reporter\.warn(_this3\.reporter\.lang(peerError.*;//g' "/opt/node/lib/node_modules/yarn/lib/cli.js"
 
 # Make a user and group
 RUN set -euxo pipefail >/dev/null \
@@ -124,6 +160,11 @@ RUN set -euxo pipefail >/dev/null \
   else \
     groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
   fi \
+&& export SUDO_GROUP="sudo" \
+&& \
+  if [[ "$DOCKER_BASE_IMAGE" == centos* ]] || [[ "$DOCKER_BASE_IMAGE" == *manylinux2014* ]]; then \
+    export SUDO_GROUP="wheel"; \
+  fi \
 && \
   if [ -z "$(getent passwd ${UID})" ]; then \
     useradd \
@@ -131,14 +172,15 @@ RUN set -euxo pipefail >/dev/null \
       --create-home --home-dir ${HOME} \
       --shell /bin/bash \
       --gid ${GROUP} \
-      --groups sudo \
+      --groups ${SUDO_GROUP} \
       --uid ${UID} \
       ${USER}; \
   fi \
-&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
-&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
+&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g' \
+&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD:ALL/g' \
 && sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
-&& echo "foo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+&& echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 && touch ${HOME}/.hushlogin \
 && chown -R ${UID}:${GID} "${HOME}"
 
@@ -193,12 +235,8 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install executable dependencies
 RUN set -euxo pipefail >/dev/null \
-&& cargo quickinstall cargo-audit \
-&& cargo quickinstall cargo-deny \
-&& cargo quickinstall cargo-edit \
 && cargo quickinstall cargo-watch \
-&& cargo quickinstall wasm-pack \
-&& cargo quickinstall xargo
+&& cargo quickinstall wasm-pack --version 0.10.3
 
 # Setup bash
 RUN set -euxo pipefail >/dev/null \
@@ -226,8 +264,8 @@ ENV CXX_x86_64-unknown-linux-gnu=clang++
 # Same as native, but convenient to have for mass cross-compilation.
 FROM dev as cross-x86_64-unknown-linux-gnu
 
-ENV CC_x86_64-unknown-linux-gnu=clang
-ENV CXX_x86_64-unknown-linux-gnu=clang++
+ENV CC_x86_64-unknown-linux-gnu=gcc
+ENV CXX_x86_64-unknown-linux-gnu=g++
 
 
 # Cross-compilation for Linux x86_64 with libmusl

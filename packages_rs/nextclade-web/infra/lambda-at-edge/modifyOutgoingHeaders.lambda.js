@@ -77,8 +77,7 @@ function filterHeaders(headers) {
   }, {})
 }
 
-// eslint-disable-next-line unused-imports/no-unused-vars
-function modifyHeaders({ request, response }) {
+function modifyHeaders({ /* request, */ response }) {
   let newHeaders = addHeaders(NEW_HEADERS)
 
   newHeaders = {

@@ -35,7 +35,7 @@ pub fn score_matrix<T: Letter<T>>(
 
   let mut paths = Band2d::<i8>::new(stripes);
   let mut scores = Band2d::<i32>::new(stripes);
-  let band_size = paths.data.len();
+  let band_size = paths.data_len();
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
 
@@ -239,17 +239,22 @@ mod tests {
     let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
     let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
 
-    let mut expected_scores = Band2d::<i32>::new(&stripes);
-    expected_scores.data = vec![
-      0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0, 4,
-      2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
-    ];
+    let expected_scores = Band2d::<i32>::with_data(
+      &stripes,
+      &[
+        0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0,
+        4, 2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
+      ],
+    );
 
-    let mut expected_paths = Band2d::<i8>::new(&stripes);
-    expected_paths.data = vec![
-      0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17, 25,
-      2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12, 17,
-    ];
+    let expected_paths = Band2d::<i8>::with_data(
+      &stripes,
+      &[
+        0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17,
+        25, 2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12,
+        17,
+      ],
+    );
 
     assert_eq!(expected_scores, result.scores);
     assert_eq!(expected_paths, result.paths);

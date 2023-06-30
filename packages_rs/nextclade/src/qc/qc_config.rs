@@ -29,14 +29,31 @@ pub struct QcRulesConfigMixedSites {
 #[serde(default)]
 pub struct QcRulesConfigPrivateMutations {
   pub enabled: bool,
+
+  #[serde(default = "one")]
   pub weight_reversion_substitutions: f64,
+
+  #[serde(default = "one")]
   pub weight_reversion_deletions: f64,
+
+  #[serde(default = "one")]
   pub weight_labeled_substitutions: f64,
+
+  #[serde(default = "one")]
   pub weight_labeled_deletions: f64,
+
+  #[serde(default = "one")]
   pub weight_unlabeled_substitutions: f64,
+
+  #[serde(default = "one")]
   pub weight_unlabeled_deletions: f64,
+
   pub typical: f64,
   pub cutoff: f64,
+}
+
+const fn one() -> f64 {
+  1.0
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]

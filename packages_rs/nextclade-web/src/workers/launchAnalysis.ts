@@ -1,9 +1,18 @@
 import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
-import { isEmpty } from 'lodash'
-import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
+import { isEmpty, merge } from 'lodash'
 
-import type { AlgorithmInput, DatasetFiles, Dataset, FastaRecordId, Gene, NextcladeResult } from 'src/types'
+import type {
+  AaMotifsDesc,
+  AlgorithmInput,
+  DatasetFiles,
+  Dataset,
+  FastaRecordId,
+  Gene,
+  NextcladeResult,
+  CsvColumnConfig,
+} from 'src/types'
+import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
@@ -24,6 +33,8 @@ export interface LaunchAnalysisInitialData {
   genomeSize: number
   cladeNodeAttrKeyDescs: CladeNodeAttrDesc[]
   phenotypeAttrDescs: PhenotypeAttrDesc[]
+  aaMotifsDescs: AaMotifsDesc[]
+  csvColumnConfig: CsvColumnConfig
 }
 
 export interface LaunchAnalysisCallbacks {
@@ -50,21 +61,23 @@ export async function launchAnalysis(
   qryFastaInputs: Promise<AlgorithmInput[]>,
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
-  datasetNamePromise: Promise<string | undefined>,
   datasetPromise: Promise<Dataset | undefined>,
   numThreads: Promise<number>,
+  csvColumnConfigPromise: Promise<CsvColumnConfig | undefined>,
 ) {
   const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(await qryFastaInputs)
 
-  const [dataset, datasetName] = await Promise.all([datasetPromise, datasetNamePromise])
-  if (!dataset || !datasetName) {
+  const [dataset] = await Promise.all([datasetPromise])
+  if (!dataset) {
     throw new ErrorInternal('Dataset is required but not found')
   }
 
   const params = await getParams(paramInputs, dataset)
+
+  const csvColumnConfig = await csvColumnConfigPromise
 
   const launcherWorker = await spawn<LauncherThread>(
     new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
@@ -83,6 +96,9 @@ export async function launchAnalysis(
 
     try {
       const initialData = await launcherWorker.getInitialData()
+
+      initialData.csvColumnConfig = merge(initialData.csvColumnConfig, csvColumnConfig)
+
       onInitialData(initialData)
 
       // Run the launcher worker

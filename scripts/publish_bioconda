@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+
+# Submit a PR to https://github.com/bioconda/bioconda-recipes
+# in order to update Nextclade on 'bioconda' channel of 'conda'.
+#
+# Dependencies:
+#  mkdir -p "${HOME}/bin"
+#  export PATH="${HOME}/bin:${PATH}"
+#  curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+#  curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#  curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+#
+# Requires git user name and email to be set. For example:
+#  git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+#  git config user.name "${{ secrets.GIT_USER_NAME }}"
+
+set -euxo pipefail
+trap 'exit' INT
+
+# Directory where this script resides
+THIS_DIR="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)"
+
+#: "${GITHUB_TOKEN:? Env var \$GITHUB_TOKEN is required.}"
+
+export artifacts_dir="${THIS_DIR}/../artifacts"
+
+artifacts=(
+  'nextalign-aarch64-apple-darwin'
+  'nextalign-x86_64-apple-darwin'
+  'nextalign-x86_64-unknown-linux-gnu'
+  'nextclade-aarch64-apple-darwin'
+  'nextclade-x86_64-apple-darwin'
+  'nextclade-x86_64-unknown-linux-gnu'
+)
+
+mkdir -p "${artifacts_dir}"
+
+function download_artifact() {
+  name=${1:?}
+  curl -fsSL -o "${artifacts_dir}/${name}" "https://github.com/nextstrain/nextclade/releases/latest/download/${name}"
+}
+export -f download_artifact
+
+# Download executables
+parallel --jobs="${#artifacts[@]}" download_artifact ::: "${artifacts[@]}"
+
+chmod +x "${artifacts_dir}"/*
+
+# Setup git identity
+gh auth setup-git >/dev/null
+
+# Get the version string and validate it
+version="$("${artifacts_dir}/nextclade-x86_64-unknown-linux-gnu" --version | awk '{ print $2 }')"
+if [ "$("${THIS_DIR}/semver" validate "${version}")" != "valid" ]; then
+  echo "The version emitted by 'nextclade --version' is invalid: ${version}. Refusing to proceed." >&2
+  exit 1
+fi
+
+## Clone upstream repo (https://github.com/bioconda/bioconda-recipes)
+git clone --quiet --origin upstream --single-branch --branch master "https://github.com/bioconda/bioconda-recipes"
+
+pushd bioconda-recipes >/dev/null
+
+version_old=$(sed -n 's|.*version = "\(.*\)".*|\1|p' "recipes/nextclade/meta.yaml")
+
+## Add Nextstrain fork (https://github.com/nextstrain/bioconda-recipes) as a remote
+git remote add nextstrain "https://github.com/nextstrain/bioconda-recipes" >/dev/null
+
+# Update master branch of the fork
+git push nextstrain upstream/master:master
+
+# Delete branch if already exists locally
+git branch --delete --force "bump/nextclade-${version}" || true
+
+# Delete branch if already exists in the fork
+git push nextstrain --delete "bump/nextclade-${version}" || true
+
+# Create a new branch
+git switch --quiet --create "bump/nextclade-${version}"
+
+## Bump the version
+"${THIS_DIR}/update-bioconda.py" "nextclade" "${version}" "${artifacts_dir}" "recipes/nextclade/meta.yaml"
+"${THIS_DIR}/update-bioconda.py" "nextalign" "${version}" "${artifacts_dir}" "recipes/nextalign/meta.yaml"
+
+# Print the diff
+git --no-pager diff --unified=0 --no-prefix --no-commit-id --word-diff
+
+# Stage and commit the changes
+git add "recipes/nextclade/meta.yaml"
+git add "recipes/nextalign/meta.yaml"
+git commit --quiet -m "Update nextclade and nextalign to ${version}"
+
+# Push to the fork
+git push --quiet --set-upstream nextstrain "bump/nextclade-${version}"
+
+# Revert any other changes so that they don't get committed accidentally
+git add -A
+git reset --quiet --hard HEAD
+git clean --quiet -dfx
+
+home=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".about.home" | jq -r)
+summary=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".about.summary" | jq -r)
+maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".extra.recipe-maintainers" | jq -r '[ .[] | "@" + . ] | join(", ")')
+
+# Create PR body. This is what goes to the first message.
+function pr_body() {
+  cat <<~~
+Update [nextclade](https://bioconda.github.io/recipes/nextclade/README.html) and [nextalign](https://bioconda.github.io/recipes/nextalign/README.html): ${version_old} → ${version}.
+
+<img src=https://img.shields.io/conda/dn/bioconda/nextclade.svg />
+
+<table>
+<tr>
+	<td>Home</td>
+	<td><a href="${home}">${home}</a></td>
+</tr>
+<tr>
+	<td>Summary</td>
+	<td>${summary}</td>
+</tr>
+<tr>
+	<td>Recipe maintainers</td>
+	<td>${maintainers_gh_handles}</td>
+</tr>
+</table>
+
+@BiocondaBot please add label
+
+@BiocondaBot please fetch artifacts
+
+Note: this pull request is submitted [automatically](https://github.com/nextstrain/nextclade/blob/master/.github/workflows/bioconda.yml), triggered by [a release](https://github.com/nextstrain/nextclade/releases) in [nextstrain/nextclade](https://github.com/nextstrain/nextclade) repo. If you want to get in touch, please ping recipe maintainers and/or someone from [\`@nextstrain/core\`](https://github.com/orgs/nextstrain/teams/core/members) team.
+
+~~
+}
+
+# Submit the PR, reading message body from stdin
+function submit_pr() {
+  pr_body | gh pr create \
+    --title "Update nextclade and nextalign to ${version}" \
+    --body-file - \
+    --repo "bioconda/bioconda-recipes"
+}
+
+# Get PR number from the output of gh command
+function get_pr_number() {
+  # The message from gh command typically ends with a URL to the PR and PR number is the last component of the path.
+  # Split the string on '/' and take the last component.
+  echo "${1##*/}"
+}
+
+# Close PR given its number
+function close_pr() {
+  gh pr close "${1:?}" --delete-branch --repo "bioconda/bioconda-recipes"
+}
+
+# Comment on PR given its number and a message from stdin
+function comment_on_pr() {
+  gh pr comment "${1:?}" --body-file -
+}
+
+if ! result=$(submit_pr 2>&1); then
+  echo "${result}" >&2
+  if [[ "${result}" == *"already exists"* ]]; then
+    # Failed because PR already exists. Close and resubmit.
+    pr_number=$(get_pr_number "${result}")
+    close_pr "${pr_number}"
+    submit_pr
+  else
+    exit 1
+  fi
+else
+  echo "${result}"
+  pr_number=$(get_pr_number "${result}")
+  echo "@BiocondaBot please add label" | comment_on_pr "${pr_number}"
+fi
+
+popd >/dev/null
+
+rm -rf bioconda-recipes

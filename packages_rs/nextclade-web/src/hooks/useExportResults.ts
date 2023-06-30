@@ -7,7 +7,14 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
 import { globalErrorAtom } from 'src/state/error.state'
-import { analysisResultsAtom, cladeNodeAttrDescsAtom, phenotypeAttrDescsAtom, treeAtom } from 'src/state/results.state'
+import {
+  aaMotifsDescsAtom,
+  analysisResultsAtom,
+  cladeNodeAttrDescsAtom,
+  csvColumnConfigAtom,
+  phenotypeAttrDescsAtom,
+  treeAtom,
+} from 'src/state/results.state'
 import { ExportWorker } from 'src/workers/ExportThread'
 
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? 'unknown'
@@ -91,7 +98,21 @@ async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delim
   const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
-  return worker.serializeResultsCsv(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, delimiter)
+  const aaMotifsDescs = await snapshot.getPromise(aaMotifsDescsAtom)
+  const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
+  if (!csvColumnConfig) {
+    throw new ErrorInternal('CSV column config is not initialized, but it should be')
+  }
+
+  return worker.serializeResultsCsv(
+    results,
+    errors,
+    cladeNodeAttrDescs,
+    phenotypeAttrDescs,
+    aaMotifsDescs,
+    delimiter,
+    csvColumnConfig,
+  )
 }
 
 export function useExportCsv() {

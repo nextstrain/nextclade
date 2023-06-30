@@ -1,14 +1,14 @@
 use crate::cli::nextclade_loop::NextcladeRecord;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::warn;
+use log::{info, warn};
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
-use nextclade::io::nextclade_csv::NextcladeResultsCsvFileWriter;
+use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
 use nextclade::io::nuc::from_nuc_seq;
 use nextclade::io::results_json::ResultsJsonWriter;
 use nextclade::translate::translate_genes::TranslationMap;
@@ -40,6 +40,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
     gene_map: &'a GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
+    aa_motifs_keys: &[String],
     output_fasta: &Option<PathBuf>,
     output_json: &Option<PathBuf>,
     output_ndjson: &Option<PathBuf>,
@@ -48,20 +49,21 @@ impl<'a> NextcladeOrderedWriter<'a> {
     output_insertions: &Option<PathBuf>,
     output_errors: &Option<PathBuf>,
     output_translations: &Option<String>,
+    csv_column_config: &CsvColumnConfig,
     in_order: bool,
   ) -> Result<Self, Report> {
     let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
 
     let fasta_peptide_writer = output_translations
-      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, &output_translations))?;
+      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
     let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
 
     let errors_csv_writer =
-      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, &output_errors))?;
+      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
 
     let output_json_writer = output_json.map_ref_fallible(|output_json| {
-      ResultsJsonWriter::new(&output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
+      ResultsJsonWriter::new(output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
     })?;
 
     let output_ndjson_writer = output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;
@@ -77,11 +79,25 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .collect_vec();
 
     let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
-      NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(
+        output_csv,
+        b';',
+        &clade_node_attr_keys,
+        &phenotype_attr_keys,
+        aa_motifs_keys,
+        csv_column_config,
+      )
     })?;
 
     let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
-      NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys, &phenotype_attr_keys)
+      NextcladeResultsCsvFileWriter::new(
+        output_tsv,
+        b'\t',
+        &clade_node_attr_keys,
+        &phenotype_attr_keys,
+        aa_motifs_keys,
+        csv_column_config,
+      )
     })?;
 
     Ok(Self {
@@ -148,6 +164,10 @@ impl<'a> NextcladeOrderedWriter<'a> {
           insertions_csv_writer.write(&seq_name, insertions, &translations)?;
         }
 
+        for warning in warnings {
+          info!("In sequence #{index} '{seq_name}': {}", warning.warning);
+        }
+
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
           errors_csv_writer.write_aa_errors(&seq_name, warnings, missing_genes)?;
         }
@@ -180,10 +200,10 @@ impl<'a> NextcladeOrderedWriter<'a> {
           errors_csv_writer.write_nuc_error(&seq_name, &cause)?;
         }
         if let Some(output_csv_writer) = &mut self.output_csv_writer {
-          output_csv_writer.write_nuc_error(&seq_name, &cause)?;
+          output_csv_writer.write_nuc_error(index, &seq_name, &cause)?;
         }
         if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
-          output_tsv_writer.write_nuc_error(&seq_name, &cause)?;
+          output_tsv_writer.write_nuc_error(index, &seq_name, &cause)?;
         }
         if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
           output_ndjson_writer.write_nuc_error(index, &seq_name, &[cause.clone()])?;

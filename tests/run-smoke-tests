@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap "exit 0" INT
+
+# Runs smoke tests - basic use-case checks with default data
+# https://en.wikipedia.org/wiki/Smoke_testing_(software)
+#
+# Dependencies:
+#   sudo apt-get install -y bash curl parallel
+#   mkdir -p "${HOME}/bin"
+#   export PATH="${HOME}/bin:${PATH}"
+#   curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+
+export NEXTCLADE_BIN="${1:? "Usage: ${0} path_to_nextclade"}"
+export NEXTCLADE_BIN
+
+THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+export THIS_DIR
+
+export DATASET_DIR="$THIS_DIR/../tmp/smoke-tests/dataset"
+export OUT_DIR="$THIS_DIR/../tmp/smoke-tests/result"
+
+dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value' | sort | uniq)
+dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
+all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
+num_datasets=$(echo "${all_datasets}" | wc -l)
+
+function run_one_test() {
+  name_and_ref=$1
+
+  # shellcheck disable=SC2206
+  arr=(${name_and_ref//;/ })
+  name="${arr[0]}"
+  reference="${arr[1]}"
+
+  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'"
+
+  ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}/${reference:-default}"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order \
+    --output-all="$OUT_DIR/${name}/${reference:-default}" \
+    --input-dataset="$DATASET_DIR/${name}/${reference:-default}" \
+    "$DATASET_DIR/${name}/${reference:-default}/sequences.fasta"
+}
+export -f run_one_test
+
+parallel --jobs="${num_datasets}" run_one_test ::: "${all_datasets}"

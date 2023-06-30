@@ -9,6 +9,7 @@ import { FaCaretRight } from 'react-icons/fa'
 
 import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
+import { UpdateNotification } from './UpdateNotification'
 
 export const Container = styled(ContainerBase)`
   max-height: 100vh;
@@ -57,7 +58,10 @@ export function LayoutMain({ children }: PropsWithChildren<HTMLProps<HTMLDivElem
         <FaCaretRight />
       </ButtonToResults>
 
-      <MainContent>{children}</MainContent>
+      <MainContent>
+        <UpdateNotification />
+        {children}
+      </MainContent>
 
       <Footer>
         <FooterContent />

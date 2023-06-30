@@ -1,10 +1,10 @@
+import { isNil } from 'lodash'
 import React, { useCallback, useState } from 'react'
-
-import { Button, Col, Collapse, Row } from 'reactstrap'
-import { useRecoilValue, useResetRecoilState } from 'recoil'
-import { datasetCurrentAtom, datasetCurrentNameAtom } from 'src/state/dataset.state'
+import { Button, Col, Collapse, Row, UncontrolledAlert } from 'reactstrap'
+import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
-
+import { useUpdatedDataset } from 'src/io/fetchDatasets'
+import { datasetCurrentAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ButtonCustomize } from 'src/components/Main/ButtonCustomize'
 import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
@@ -68,10 +68,13 @@ export const AdvancedModeExplanationWrapper = styled.div`
 `
 
 export function DatasetCurrent() {
+  // Periodically checks if there's local update for the current dataset
+  useUpdatedDataset()
+
   const { t } = useTranslationSafe()
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const resetDatasetCurrent = useResetRecoilState(datasetCurrentNameAtom)
+  const resetDatasetCurrent = useResetRecoilState(datasetCurrentAtom)
 
   const onChangeClicked = useCallback(() => {
     resetDatasetCurrent()
@@ -90,6 +93,8 @@ export function DatasetCurrent() {
       </CurrentDatasetInfoHeader>
 
       <CurrentDatasetInfoBody>
+        <DatasetCurrentUpdateNotification />
+
         <Row noGutters>
           <Col className="d-flex flex-row">
             <Left>
@@ -127,3 +132,54 @@ export function DatasetCurrent() {
     </CurrentDatasetInfoContainer>
   )
 }
+
+function DatasetCurrentUpdateNotification() {
+  const { t } = useTranslationSafe()
+  const [datasetUpdated, setDatasetUpdated] = useRecoilState(datasetUpdatedAtom)
+  const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
+
+  const onDatasetUpdateClicked = useCallback(() => {
+    setDatasetCurrent(datasetUpdated)
+    setDatasetUpdated(undefined)
+  }, [datasetUpdated, setDatasetCurrent, setDatasetUpdated])
+
+  if (isNil(datasetUpdated)) {
+    return null
+  }
+
+  return (
+    <Row noGutters>
+      <Col>
+        <UncontrolledAlert closeClassName="d-none" fade={false} color="info" className="mx-1 py-2 px-2 d-flex w-100">
+          <AlertTextWrapper>
+            <p className="my-0">{t('A new version of this dataset is available.')}</p>
+            <p className="my-0">
+              <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md">
+                {"What's new?"}
+              </LinkExternal>
+            </p>
+          </AlertTextWrapper>
+
+          <AlertButtonWrapper>
+            <ChangeButton
+              type="button"
+              color="info"
+              title={t('Accept the updated dataset')}
+              onClick={onDatasetUpdateClicked}
+            >
+              {t('Update')}
+            </ChangeButton>
+          </AlertButtonWrapper>
+        </UncontrolledAlert>
+      </Col>
+    </Row>
+  )
+}
+
+const AlertTextWrapper = styled.div`
+  flex: 1;
+`
+
+const AlertButtonWrapper = styled.div`
+  flex: 0;
+`

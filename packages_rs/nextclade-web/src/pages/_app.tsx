@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import 'css.escape'
 
-import { isNil, memoize } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
@@ -12,7 +12,7 @@ import { BrowserWarning } from 'src/components/Common/BrowserWarning'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
-import { createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
@@ -36,7 +36,7 @@ import { ThemeProvider } from 'styled-components'
 import { Provider as ReactReduxProvider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { QueryClient, QueryClientConfig, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
@@ -50,25 +50,11 @@ import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
-import { datasetCurrentNameAtom, datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom, datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
-
-if (process.env.NODE_ENV === 'development') {
-  // Ignore recoil warning messages in browser console
-  // https://github.com/facebookexperimental/Recoil/issues/733
-  const shouldFilter = (args: (string | undefined)[]) =>
-    args[0] && typeof args[0].includes === 'function' && args[0].includes('Duplicate atom key')
-
-  const mutedConsole = memoize((console: Console) => ({
-    ...console,
-    warn: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.warn(...args)),
-    error: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.error(...args)),
-  }))
-  global.console = mutedConsole(global.console)
-}
 
 /**
  * Dummy component that allows to set recoil state asynchronously. Needed because RecoilRoot's initializeState
@@ -122,30 +108,34 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
+      .then(async ({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
         set(datasetsAtom, {
           datasets,
+          defaultDataset,
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        set(datasetCurrentNameAtom, (previous) => currentDatasetName ?? previous)
 
-        return undefined
+        const previousDataset = await getPromise(datasetCurrentAtom)
+        const dataset = currentDataset ?? previousDataset
+        set(datasetCurrentAtom, dataset)
+        return dataset
       })
-      .then(() => {
-        const qrySeqInput = createInputFromUrlParamMaybe(urlQuery, 'input-fasta')
-        if (qrySeqInput) {
-          set(qrySeqInputsStorageAtom, [qrySeqInput])
+      .then((dataset) => {
+        const inputFastas = createInputFastasFromUrlParam(urlQuery, dataset)
+
+        if (!isEmpty(inputFastas)) {
+          set(qrySeqInputsStorageAtom, inputFastas)
         }
 
         set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
         set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
         set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
         set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
-        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
-        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
+        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
 
-        if (qrySeqInput) {
+        if (!isEmpty(inputFastas)) {
           run()
         }
 
@@ -184,8 +174,12 @@ export function RecoilStateInitializer() {
 
 const mdxComponents = { a: LinkExternal }
 
+const REACT_QUERY_OPTIONS: QueryClientConfig = {
+  defaultOptions: { queries: { suspense: true, retry: 1 } },
+}
+
 export function MyApp({ Component, pageProps, router }: AppProps) {
-  const queryClient = useMemo(() => new QueryClient(), [])
+  const queryClient = useMemo(() => new QueryClient(REACT_QUERY_OPTIONS), [])
   const { store } = useMemo(() => configureStore(), [])
   const fallback = useMemo(() => <Loading />, [])
 

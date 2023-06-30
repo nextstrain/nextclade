@@ -153,7 +153,7 @@ pub fn seed_alignment<L: Letter<L>>(
   let num_seed_matches = seed_matches.len();
 
   if num_seed_matches < 2 {
-    return make_error!("Unable to align: no seed matches. Details: number of seed matches: {num_seed_matches}");
+    return make_error!("Unable to align: not enough matches. Details: number of seed matches: {num_seed_matches}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
   }
 
   let match_rate = if num_seeds != 0 {
@@ -166,7 +166,8 @@ pub fn seed_alignment<L: Letter<L>>(
     return make_error!(
       "Unable to align: low seed matching rate. \
     Details: number of seeds: {num_seeds}, number of seed matches: {num_seed_matches}, \
-    matching rate: {match_rate:5.3}, required matching rate: {:5.3}",
+    matching rate: {match_rate:5.3}, required matching rate: {:5.3}. This is likely due to a low quality \
+    of the provided sequence, or due to using incorrect reference sequence.",
       params.min_match_rate
     );
   }
@@ -225,7 +226,7 @@ pub fn create_stripes(
     let width = max - min;
     // Prevent huge widths, which would require massive amount of memory
     if width as usize > max_indel {
-      return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications.");
+      return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
     }
     robust_shifts.push((*min, *max));
   }

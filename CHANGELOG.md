@@ -1,3 +1,293 @@
+## Nextclade Web 2.14.1 (2023-05-11)
+
+This is a small bugfix release for Nextclade Web.
+
+### Prevent main page from blinking when selecting a dataset in Nextclade Web
+
+Nextclade Web 2.14.0 introduced a regression, where the page was flashing when dataset was selected from the list. This is now fixed.
+
+### Correctly dismiss dataset update notification in Nextclade Web
+
+The dataset update notifications introduced in Nextclade Web 2.14.0 were not dismissed correctly when "Update" button is clicked. This have been fixed.
+
+
+## Nextclade Web 2.14.0, Nextclade CLI 2.14.0 (2023-05-09)
+
+### Algorithm & Datasets: enable masked sites for distance calculation
+
+For some viruses, genome sequencing is unreliable in specific parts of the genome or some regions should be ignored for other reasons when calculating distances between nodes for the purpose of placing query sequences on the reference tree. These distances are used to find the optimal (smallest distance) placement of the query sequence on the reference tree and sequence errors in these regions can lead to wrong placement.
+
+Until now, to place query sequences on the reference tree, Nextclade counted all nucleotide differences between query and reference sequence. Moving forward, sequence regions to be ignored for reference tree placement can be defined in datasets' `virus_properties.json`. This is useful for example for SARS-CoV-2, where we will start ignoring the terminal parts of the untranslated regions. Another use case is mpox, where the terminal repeats are intrinsically constrained to be identical. Masking one of the two terminals will avoid double-counting of the same mutations.
+
+[PR #1128](https://github.com/nextstrain/nextclade/pull/1128) adds this feature to Nextclade's algorithm.
+
+Masked ranges are specified in the new field `placementMaskRanges` in datasets' `virus_properties.json`. For example, the terminal 50 nucleotides of SARS-CoV-2 can be ignored for tree placement by adding the following line (positions are 0-based and end-exclusive):
+
+```json
+"placementMaskRanges":[{"begin":0,"end":50},{"begin":29850,"end":29902}],
+```
+
+The changes are backwards compatible, if the field does not exist, Nextclade defaults to the old behavior of counting all nucleotide differences.
+
+We are planning to shortly release a new version of SARS-CoV-2 datasets making use of this feature. Only a small proportion of sequences (<1%)should be affected, however where there are changes they will be a slight improvement in accuracy.
+
+### Avoid stale software and dataset versions in Nextclade Web
+
+It was widely reported that users with long-persisting browser tabs and also users who don't switch datasets often, sometimes do not receive new Nextclade dataset updates, which meant that these users would not get newly designated lineages and clades lineage assignments.
+
+Nextclade Web is a fully client-side, single-page application, which downloads the code and list of datasets once when first opening a tab. When users do not refresh the tab and don't change dataset, the same software and dataset version are used indefinitely. Without periodic page refresh and without periodic fetching of new dataset versions, users can run old code and use old data indefinitely, receiving obsolete or incomplete results.
+
+In order to mitigate this problem, in this version, we add periodic background version checks in Nextclade Web. Every day or so, Nextclade Web will check whether the currently used version of software is the latest, as well as periodically refresh the list of available datasets and their versions. Whenever a new version of software or of a dataset is available, user will receive an update notification. The update can be accepted or dismissed (until the next version is available). Additionally, one can always obtain the latest code and datasets by doing a simple page reload in the browser (no need to clear the cache).
+
+Nextclade is a fast-moving project, where new features and bug fixes are added frequently. We emphasize importance of using the latest versions of both, software and datasets, to receive the most accurate and up-to-date results.
+
+### Sort empty values in the results table in Nextclade Web
+
+Nextclade Web previously had a bug, sorting incorrectly when the the column to be sorted by contained empty values. Empty values are now treated as empty strings, fixing this issue.
+
+### Improved citation dialog, website copy and translation in Nextclade Web
+
+The "Citation" modal is now more readable and translated to multiple languages. We also added missing translations for some of the sentences in Nextclade Web. We made the intro text on main page of Nextclade Web more relevant.
+
+### Internal changes
+
+- Prevent duplicated GitHub action runs in pull requests
+- Remove Red Hat 7 from tested Linux distros
+- Fix Debian repositories in CI builds for aarch64-unknown-linux-gnu architecture
+- Update master branch of the fork before making bioconda PR branch
+- Extend dev documentation
+
+## Nextclade CLI 2.13.1 (2023-03-28)
+
+### Lower verbosity level of translation-related warnings in Nextclade CLI
+
+Warnings related to translation of peptides now have verbosity level "info", down from "warning", to reduce clutter in logs. You can still find all errors and warnings in the "errors" and "warnings" columns of the CSV and TSV output files, as well as in the corresponding fields of JSON output files. If you want these warnings to be printed into the console, you can increase Nextclade CLI verbosity level to "info" by adding at least one occurrence of `--verbose` (`-v`) flag or by explicitly setting `--verbosity=info` or to a lower value. Type `nextclade run --help` for more details.
+
+### Internal changes
+
+ - Add more smoke tests, including for datasets with default reference
+
+
+## Nextclade Web 2.13.0, Nextclade CLI 2.13.0 (2023-03-21)
+
+### Attach sequences to a priori most likely node if reference tree contains "placement_prior"
+
+Until now, when there were multiple positions with equal numbers of mismatches between a query sequence and reference tree position, Nextclade always attached the query sequence to the reference tree node with the fewest number of ancestors. Due to the way recombinants are placed in the SARS-CoV-2 reference trees, this meant that in particular partial sequences were often attached to recombinants. With most recombinants being rare, this bias to attach to recombinants was often surprising.
+
+In this version, we introduce a new [feature](https://github.com/nextstrain/nextclade/pull/1119) that allows to attach sequences to a priori most likely nodes - taking into account which positions on the reference tree are most commonly found in circulation. The information on the prior probability that a particular reference tree node is the best match for a random query sequence is contained in the `placement_prior` reference tree node attribute. This attribute is currently only present in the most recent SARS-CoV-2 reference trees. The calculation can be found in this `nextclade_data_workflows` [pull request](https://github.com/neherlab/nextclade_data_workflows/pull/38).
+
+To give an example: a partial sequence may have as many mismatches when compared to BA.5 as it has to the recombinant XP. Based on sequences in public databases, we know that BA.5 is much more common than XP. Hence, the query sequence is attached to BA.5. Previously, the query sequence would have been attached to XP, because XP has fewer parent nodes in the reference tree.
+
+The impact of the feature is biggest for partial and incomplete sequences.
+
+### Add custom phenotype values to the newly placed tree nodes
+
+When available in the dataset, the phenotype values (such as `ace2_binding` and `immune_escape`) are written into all output files except Auspice tree JSON. This omission is now fixed, and these values are set as tree node attributes. This allows to see the values and colorings for phenotype values on the tree page, and when loading the output tree JSON file into Auspice.
+
+### Fix length of 3' unsequenced aminoacid ranges in Nextclade Web
+
+Nextclade Web was showing right boundary of the unsequenced AA range on the 3' end of peptide sequences incorrectly - the range was longer than expected. The calculations were using length of a gene in nucleotides, where there should be length in codons. This is now fixed.
+
+### Fix incorrect indices in mutation badges 
+
+The mutation badges in various places in Nextclade Web could show position "0", even though they are supposed to be 1-based. This was due to a programming mistake, which is now corrected.
+
+### Fix `input-pcr-primers` and `input-virus-properties` URL params in Nextclade Web
+
+The `input-pcr-primers` and `input-virus-properties` URL params were swapped in the code accidentally, so one was incorrectly setting the other. This is now fixed.
+
+### Ensure translation warnings in CLI
+
+Due to an omission, Nextclade CLI and Nextalign CLI since v2 did not print sequence translation-related warnings to the console. This is now fixed.
+
+### Fix Google Search Console warnings
+
+We resolved warnings in Google Search Console: added canonical URL meta tag, and added `noindex` tag for non-release deployments. This should improve Nextclade appearance in Google Search.
+
+### Internal changes:
+
+ - freeze wasm-pack version to 0.10.3
+
+
+## Nextclade Web 2.12.0, Nextclade CLI 2.12.0 (2023-02-28)
+
+### Improve tooltip for "missing" column in Nextclade Web
+
+This column's tooltip now also shows ranges of unsequenced regions, i.e. contiguous ranges of nucleotide characters absent at the 5' and 3' end of the original query sequence, as compared to the reference sequence. To put it differently, these are the ranges that are to the left and right of the alignment range - from 0 to `alignmentStart` and from `alignmentEnd` to the length of the reference sequence. These regions may appear after alignment step, where Nextclade or Nextalign might insert characters `-` on the 5' and 3' ends to fill the query sequence to the length of the reference sequence. Just like it does with the characters that are absent from the inner parts of the query sequence (which we then call "deletions"). If found, the unsequenced regions are also shown as two light-grey rectangles at either or both ends of the sequence in sequence view column in Nextclade Web.
+
+Unsequenced regions are not to be confused with the missing nucleotides, which are also shown in the same tooltip. Missing nucleotides are the `N` characters present in the original query sequence. They are not introduced nor modified by Nextclade and Nextalign, and are only detected and counted.
+
+It seems that there is no consensus in the bioinformatics community about the notation and naming of either of these events (e.g. which character to use and how to call these ranges). Be thoughtful about these regions when working with the results of Nextclade and Nextalign, especially if you analyze:
+
+ - sequences from different sources (different labs may use different conventions)
+ - sequences that are partial (have large unsequenced ranges on 5' and 3' end and large deletions in the body)
+ - sequences of low quality (e.g. lots of `N`s and large deletions in the body)
+ - sequences that are already aligned (e.g. have some form of padding on 5' and 3' ends)
+ - sequences that are processed in some way (e.g. replacement or filling with `N` or `-`, or even filling from a consensus genome)
+
+If you find strange or inconsistent results, we encourage you to inspect the input and output sequences in an alignment viewer on per-sequence basis and to contact the authors of individual sequences to clarify their conventions and intent.
+
+### Fix alignment range in CSV and TSV outputs
+
+In CSV and TSV outputs, the values in columns `alignmentStart` and `alignmentEnd` were emitted in 0-based numbering. This was unexpected - by convention, CSV and TSV files have all ranges in 1-based format. This is now fixed.
+
+### Add new columns in CSV and TSV outputs
+
+We added new columns in CSV and TSV outputs:
+
+ - `unknownAaRanges` - list of detected contiguous ranges of unknown aminoacid (character `X`)
+ - `totalUnknownAa` - total number of unknown aminoacids (character `X`)
+
+### Internal changes
+
+ - Upgrade Auspice to 2.43.0 ([changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md))
+ - Upgrade Rust to 1.67.1 ([changelog](https://github.com/rust-lang/rust/blob/master/RELEASES.md))
+
+
+## Nextclade Web 2.11.0, Nextclade CLI 2.11.0 (2023-01-31)
+
+### IMPORTANT: ensure `index` column is written to CSV/TSV output files in case of error
+
+The new column `index` was correctly written when analysis of a sample succeeds. However, for analyses which ended up with an error (e.g. "Unable to align") this column was mistakenly missing. In this version we fix this omission.
+
+### Fix gene map width in Nextclade Web
+
+Gene map (genome annotation) was misaligned with sequence views (not matching their width). This has been fixed in this version.
+
+### Add table row indices to results table in Nextclade Web
+
+We added a column with index of the row in the table. This is useful for visual search and counting of sorted and filtered results.
+
+Not to be confused with sequence index. Row indices always start with 0 and sorted in ascending order, and do not change their position when sorting or filtering the results.
+
+These indices are not a part of output files. Nextclade CLI is not affected.
+
+### Improve error messages
+
+Errors due to failure of sequence alignment are reworded and hopefully are more complete and comprehensible now.
+Additionally, we improved error message when reference sequence fails to read.
+
+### Always show action buttons on results page in Nextclade Web
+
+On smaller screens the "Download", "Tree" and other action buttons were not visible by default and horizontal scrolling were required to see them. We changed the layout such that the panel with buttons does not overflow along with table and so the buttons are always visible. Table is still scrollable.
+
+### Improve wording on main page of Nextclade Web
+
+We improved text on main page as well as descriptions inside HTML markup, adding more concrete information and keywords. This should be more pleasant to read and might improve Nextclade ranking in search engines.
+
+
+## Nextclade CLI 2.10.1 (2023-01-24)
+
+### Ensure `--output-all`, `--output-tsv`, `--output-csv` can be used together again in Nextclade CLI
+
+This fixes a regression introduced in Nextclade CLI 2.10.0, where `--output-all`, `--output-tsv`, `--output-csv` arguments became mutually exclusive. This was not intended and now resolved.
+
+This bug was breaking out bioconda checks, so Nextclade CLI version 2.10.0 will not be available in bioconda. Use 2.10.1 instead.
+
+Nextclade Web is not affected.
+
+
+## Nextclade Web 2.10.0, Nextclade CLI 2.10.0 (2023-01-24)
+
+### Add motifs search
+
+Nextclade datasets can now be configured to search for motifs in the translated sequences, given a regular expression.
+
+At the same time, we released new versions of the following Influenza datasets, which use this feature to detect glycosylation motifs:
+
+ - Influenza A H1N1pdm HA (flu_h1n1pdm_ha), with reference MW626062
+ - Influenza A H3N2 HA (flu_h3n2_ha), with reference EPI1857216
+
+If you run the analysis with the latest version of these datasets, you can find the results in the `glycosylaiton` column or field of output files or in "Glyc." column in Nextclade Web.
+
+If you want to configure your own datasets for motifs search, see an example configuration in the `aaMotifs` property of `virus_properties.json` of these datasets: [link](https://github.com/nextstrain/nextclade_data/blob/bc2974ab3bf5a9198e68f5f54db095dc3d6e968b/data/datasets/flu_h3n2_ha/references/EPI1857216/versions/2023-01-19T12%3A00%3A00Z/files/virus_properties.json#L35-L55).
+
+
+### Allow to chose columns written into CSV and TSV outputs
+
+You can now select a subset of columns to be included into CSV and TSV output files of Nextclade Web (available in the "Download" dialog) and Nextclade CLI (available with `--output-csv` and `--output-tsv`). You can either chose individual columns or categories of related columns.
+
+In Nextclade Web, in the "Download" dialog, click "Configure columns", then check or uncheck columns or categories you want to keep. Note that this configuration persists across different Nextclade runs.
+
+In Nextclade CLI, use `--output-columns-selection` flag. This flag accepts a comma-separated list of column names and/or column category names. Individual columns and categories can be mixed together. You can find a list of column names in the full output file. The following categories are currently available: all, general, ref-muts, priv-muts, errs-warns, qc, primers, dynamic. Another way to receive both lists is to add a non-existent or misspelled name to the list. The error message will then display all possible columns and categories.
+
+Note that because of this feature the order of columns might be different compared to previous versions of Nextclade.
+
+
+### Add URL parameter for running analysis of example sequences
+
+You can now launch the analysis of example sequences (as provided by the dataset) in Nextclade Web, by using the special keyword `example` in the `input-fasta` URL parameter. For example, navigating to this URL will run the analysis of example SARS-CoV-2 sequences (same as choosing "SARS-CoV-2" and then clicking "Load example" in the UI):
+
+```
+https://clades.nextstrain.org/?dataset-name=sars-cov-2&input-fasta=example
+```
+
+This could useful for example for testing new datasets:
+
+```
+https://clades.nextstrain.org/?dataset-url=http://example.com/my-dataset-dir&input-fasta=example
+```
+
+### Add `index` column to CSV and TSV outputs
+
+The `index` field is already present in other output formats. In this version CSV and TSV output files gain `index` column as well, which contains the index (integer signifying location) of a corresponding record in the input fasta file or files. Note that this is not the same as row index, because CSV/TSV rows can be emitted in an unspecified order in Nextclade CLI (but this can be changed with `--in-order` flag; which is set by default in Nextclade Web).
+
+Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
+
+
+## Nextclade Web 2.9.1, Nextclade CLI 2.9.1 (2022-12-09)
+
+### Set default weights in "private mutations" QC check to 1
+
+This fixes the bug when the QC score is 0 (good) when the following QC fields are missing from `qc.json`:
+
+```
+.privateMutations.weightLabeledSubstitutions
+.privateMutations.weightReversionSubstitutions
+.privateMutations.weightUnlabeledSubstitutions
+```
+
+In this case Nextclade assumed value of 0, which lead to QC score of 0 always. Not all datasets were adjusted for the new `qc.json` format in time and some had these fields missing - notably the flu datasets. So these datasets were erroneously showing perfect QC score for the "private mutations" rule. 
+
+In this version we set these weights to 1.0 if they are missing, which fixes the incorrect QC scores. Some of the sequences will now correctly show worse QC scores.
+
+
+### Fix dataset selector in Nextclade Web when there are datasets with the same name, but different reference sequences
+
+The dataset selector on the main page on nextclade Web did not allow selecting datasets with the same name, but different reference sequences. This did not affect users so far, but we are about to release new Influenza datasets, which were affected. In this version we resolve the problem by keeping track of datasets not just by name, but by a combination of all attribute values (the `.attributes[]` entries in the datasets index JSON file).
+
+
+### Ensure non-default references in "dataset list" command of Nextclade CLI are shown
+
+This introduces special value `all` for `--reference` argument of `nextclade dataset list` command. And it is now set as default. When it's in force, datasets with all reference sequences are included into the displayed list. This resolves the problem where non-default references are not show in the list.
+
+
+### Internal changes
+
+ - We are now submitting PRs to bioconda automatically, which should reduce the delay of updates there
+
+
+## Nextclade Web 2.9.0, Nextclade CLI 2.9.0 (2022-12-06)
+
+### Increase requirements for supported Linux distributions for GNU flavor of Nextclade CLI
+
+Due to malfunction of package repositories of Debian 7, we had to switch automated builds of the "gnu" flavor of Nextclade CLI from Debian 7 to CentOS 7. This increases minimum required version of glibc to 2.17. The list or Linux distributions we tested the new version of Nextclade on is [here](https://github.com/nextstrain/nextclade/blob/9f2b9a620a7bc9a068909634a4fc3f29757c059f/tests/test-linux-distros#L18-L62). For users of older Linux distributions (with glibc < 2.17) we suggest to use "musl" flavor of Nextclade CLI, which does not depend on glibc, but might be substantially slower. Users of Nextclade CLI on macOS and Windows and users of Nextclade Web are not affected.
+
+### Add gene length validation in GFF3 parser
+
+Nextclade will now check if genes have length divisible by 3 in gene maps and will fail with an error if it's not the case.
+
+### Fix translated (internationalized) strings in Nextclade Web
+
+We fixed missing spaces between words in some of the languages and fixes some of the translations.
+
+### Internal changes
+
+ - build Linux binaries on CentOS 7
+ - migrate CI to GitHub Actions
+ - upgrade Rust to 1.65.0
+
+
 ## Nextclade Web 2.8.1 (2022-11-01)
 
 ### Fix translated (internationalized) text on Tree page

@@ -152,6 +152,6 @@ pub fn find_non_acgt(seq: &[Nuc]) -> Vec<Genotype<Nuc>> {
   seq
     .iter()
     .enumerate()
-    .filter_map(|(pos, nuc)| (!nuc.is_acgt()).then(|| Genotype { pos, qry: *nuc }))
+    .filter_map(|(pos, nuc)| (!nuc.is_acgt()).then_some(Genotype { pos, qry: *nuc }))
     .collect_vec()
 }

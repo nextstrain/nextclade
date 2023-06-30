@@ -1,18 +1,24 @@
 use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::analyze::find_aa_motifs::find_aa_motifs;
+use nextclade::analyze::find_aa_motifs_changes::AaMotifsMap;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
-use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
+use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene::Gene;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;
+use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use nextclade::make_internal_report;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
+use nextclade::translate::aa_alignment_ranges::calculate_aa_alignment_range_in_place;
 use nextclade::translate::translate_genes::TranslationMap;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
@@ -20,6 +26,7 @@ use nextclade::tree::tree_attach_new_nodes::{tree_attach_new_nodes_in_place, tre
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
+use nextclade::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use typescript_definitions::TypescriptDefinition;
@@ -102,6 +109,8 @@ pub struct AnalysisInitialData {
   genome_size: usize,
   clade_node_attr_key_descs: String,
   phenotype_attr_descs: String,
+  aa_motifs_descs: String,
+  csv_column_config_default: String,
 }
 
 #[wasm_bindgen]
@@ -145,6 +154,7 @@ impl AnalysisResult {
 pub struct Nextclade {
   ref_seq: Vec<Nuc>,
   ref_peptides: TranslationMap,
+  aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
   primers: Vec<PcrPrimer>,
   tree: AuspiceTree,
@@ -154,7 +164,9 @@ pub struct Nextclade {
   gap_open_close_aa: Vec<i32>,
   clade_node_attr_key_descs: Vec<CladeNodeAttrKeyDesc>,
   phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
+  aa_motifs_descs: Vec<AaMotifsDesc>,
   aln_params: AlignPairwiseParams,
+  include_nearest_node_info: bool,
 }
 
 impl Nextclade {
@@ -187,14 +199,36 @@ impl Nextclade {
 
     let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &alignment_params);
 
-    let ref_peptides =
-      translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+    let ref_peptides = {
+      let mut ref_peptides =
+        translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+
+      ref_peptides
+        .iter_mut()
+        .try_for_each(|(name, translation)| -> Result<(), Report> {
+          let gene = gene_map
+            .get(&translation.gene_name)
+            .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+          translation.alignment_range = Range::new(0, gene.len_codon());
+
+          Ok(())
+        })?;
+
+      ref_peptides
+    };
+
+    let aa_motifs_ref = find_aa_motifs(
+      &virus_properties.aa_motifs,
+      &ref_peptides.values().cloned().collect_vec(),
+    )?;
 
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
     tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides)?;
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
     let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);
+
+    let aa_motifs_descs = virus_properties.aa_motifs.clone();
 
     let qc_config = QcConfig::from_str(qc_config_str).wrap_err("When parsing QC config JSON")?;
 
@@ -203,6 +237,7 @@ impl Nextclade {
     Ok(Self {
       ref_seq,
       ref_peptides,
+      aa_motifs_ref,
       gene_map,
       primers,
       tree,
@@ -212,7 +247,9 @@ impl Nextclade {
       gap_open_close_aa,
       clade_node_attr_key_descs,
       phenotype_attr_descs,
+      aa_motifs_descs,
       aln_params: alignment_params,
+      include_nearest_node_info: false, // Never emit nearest node info in web, to reduce output size
     })
   }
 
@@ -223,6 +260,8 @@ impl Nextclade {
       genome_size: self.ref_seq.len(),
       clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
       phenotype_attr_descs: json_stringify(&self.phenotype_attr_descs)?,
+      aa_motifs_descs: json_stringify(&self.aa_motifs_descs)?,
+      csv_column_config_default: json_stringify(&CsvColumnConfig::default())?,
     })
   }
 
@@ -241,6 +280,7 @@ impl Nextclade {
       qry_seq,
       &self.ref_seq,
       &self.ref_peptides,
+      &self.aa_motifs_ref,
       &self.gene_map,
       &self.primers,
       &self.tree,
@@ -249,6 +289,7 @@ impl Nextclade {
       &self.gap_open_close_nuc,
       &self.gap_open_close_aa,
       &self.aln_params,
+      self.include_nearest_node_info,
     ) {
       Ok((qry_seq_aligned_stripped, translations, nextclade_outputs)) => {
         let nextclade_outputs_str =

@@ -8,6 +8,7 @@ import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
+import { areDatasetsEqual } from 'src/types'
 
 export function getDefaultDatasetServer(): string {
   let datasetServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
@@ -25,6 +26,7 @@ export const datasetServerUrlAtom = atom<string>({
 
 export interface Datasets {
   datasets: Dataset[]
+  defaultDataset: Dataset
   defaultDatasetName: string
   defaultDatasetNameFriendly: string
 }
@@ -33,40 +35,32 @@ export const datasetsAtom = atom<Datasets>({
   key: 'datasets',
 })
 
-const datasetCurrentNameStorageAtom = atom<string | undefined>({
-  key: 'datasetCurrentNameStorage',
+const datasetCurrentStorageAtom = atom<Dataset | undefined>({
+  key: 'datasetCurrentStorage',
   default: undefined,
   effects: [persistAtom],
-})
-
-export const datasetCurrentNameAtom = selector<string | undefined>({
-  key: 'datasetCurrentName',
-  get({ get }) {
-    return get(datasetCurrentNameStorageAtom)
-  },
-  set({ get, set, reset }, newDatasetCurrentName: string | undefined | DefaultValue) {
-    const datasetCurrentName = get(datasetCurrentNameStorageAtom)
-    if (isDefaultValue(newDatasetCurrentName) || isNil(newDatasetCurrentName)) {
-      reset(datasetCurrentNameStorageAtom)
-    } else if (datasetCurrentName !== newDatasetCurrentName) {
-      const { datasets } = get(datasetsAtom)
-      const dataset = datasets.find((dataset) => dataset.attributes.name.value === newDatasetCurrentName)
-      if (dataset) {
-        set(datasetCurrentNameStorageAtom, dataset.attributes.name.value)
-        set(viewedGeneAtom, dataset.params?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
-        reset(inputResetAtom)
-      }
-    }
-  },
 })
 
 export const datasetCurrentAtom = selector<Dataset | undefined>({
   key: 'datasetCurrent',
   get({ get }) {
-    const { datasets } = get(datasetsAtom)
-    const datasetCurrentName = get(datasetCurrentNameAtom)
-    return datasets.find((dataset) => dataset.attributes.name.value === datasetCurrentName)
+    return get(datasetCurrentStorageAtom)
   },
+  set({ get, set, reset }, dataset: Dataset | undefined | DefaultValue) {
+    const datasetCurrent = get(datasetCurrentStorageAtom)
+    if (isDefaultValue(dataset) || isNil(dataset)) {
+      reset(datasetCurrentStorageAtom)
+    } else if (!areDatasetsEqual(datasetCurrent, dataset)) {
+      set(datasetCurrentStorageAtom, dataset)
+      set(viewedGeneAtom, dataset.params?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
+      reset(inputResetAtom)
+    }
+  },
+})
+
+export const datasetUpdatedAtom = atom<Dataset | undefined>({
+  key: 'datasetUpdated',
+  default: undefined,
 })
 
 export const geneOrderPreferenceAtom = selector({

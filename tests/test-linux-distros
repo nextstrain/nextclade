@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap "exit 0" INT
+
+#
+# Run Nextclade on different Linux distros, to ensure compatibility.
+# We are mostly concerned about old distros with old glibc, libgcc and kernel.
+#
+# Dependencies:
+#   sudo apt-get install -y bash parallel
+
+function abspath() {
+  readlink -m "$1"
+}
+
+export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade>"}"
+export VOLUME="$(abspath "${NEXTCLADE_BIN}"):/nextclade"
+export RUN_COMMAND="/nextclade dataset list >/dev/null"
+
+distros=(
+  "debian:8.0"
+  "debian:9.0"
+  "debian:10.0"
+  "debian:11.0"
+  "debian:stable"
+  "debian:testing"
+  "debian:sid"
+  "debian:latest"
+  "ubuntu:12.04"
+  "ubuntu:14.04"
+  "ubuntu:16.04"
+  "ubuntu:18.04"
+  "ubuntu:20.04"
+  "ubuntu:22.04"
+  "ubuntu:latest"
+  "amazonlinux:2017.12.0.20171212.2"
+  "amazonlinux:2.0.20180622.1"
+  "amazonlinux:2.0.20190115"
+  "amazonlinux:2.0.20191217.0"
+  "amazonlinux:2.0.20200207.1"
+  "amazonlinux:2.0.20210126.0"
+  "amazonlinux:2.0.20220121.0"
+  "amazonlinux:latest"
+  "centos:7.2.1511"
+  "centos:7.5.1804"
+  "centos:8.1.1911"
+  "centos:8.4.2105"
+  "centos:latest"
+  "fedora:27"
+  "fedora:30"
+  "fedora:33"
+  "fedora:36"
+  "fedora:latest"
+  "oraclelinux:7.2"
+  "oraclelinux:8.0"
+  "oraclelinux:8.6"
+  "registry.access.redhat.com/ubi8/ubi"
+  "registry.access.redhat.com/ubi9/ubi"
+  "opensuse/archive:13.2"
+  "opensuse/leap:15.2"
+  "opensuse/tumbleweed:latest"
+  "archlinux:latest"
+)
+
+function run_one_distro() {
+  distro=$1
+  docker pull -q "$distro" >/dev/null
+  if ! docker run -i --rm -v "${VOLUME}" "$distro" bash -c "${RUN_COMMAND}"; then
+    echo "Failed running '${RUN_COMMAND}' on '$distro'"
+    exit 1
+  fi
+}
+export -f run_one_distro
+
+parallel --jobs="${#distros[@]}" run_one_distro ::: "${distros[@]}"

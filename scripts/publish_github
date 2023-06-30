@@ -23,11 +23,10 @@ THIS_DIR="$(
 )"
 
 artifacts_dir=
-repo_name=
-user_name=
+repo=
 git_sha=
 
-: "${1:?--artifacts_dir, --repo_name, --user_name, --git_sha are required.}"
+: "${1:?--artifacts_dir, --repo, --git_sha are required.}"
 : "${GITHUB_TOKEN:? Env var \$GITHUB_TOKEN is required.}"
 
 while [ "${1:-}" != "" ]; do
@@ -37,14 +36,9 @@ while [ "${1:-}" != "" ]; do
     artifacts_dir=$1
     shift
     ;;
-  --repo_name)
+  --repo)
     shift
-    repo_name=$1
-    shift
-    ;;
-  --user_name)
-    shift
-    user_name=$1
+    repo=$1
     shift
     ;;
   --git_sha)
@@ -60,16 +54,15 @@ while [ "${1:-}" != "" ]; do
 done
 
 [ -z "$artifacts_dir" ] && echo "--artifacts_dir is required" >/dev/stderr && exit 1
-[ -z "$repo_name" ] && echo "--repo_name is required" >/dev/stderr && exit 1
-[ -z "$user_name" ] && echo "--user_name is required" >/dev/stderr && exit 1
+[ -z "$repo" ] && echo "--repo is required" >/dev/stderr && exit 1
 [ -z "$git_sha" ] && echo "--git_sha is required" >/dev/stderr && exit 1
 
 version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 prerelease_flag=${release_type:+--prerelease}
 
-# Check auth
-gh auth status >/dev/null
+## Check auth
+#gh auth status >/dev/null
 
 # shellcheck disable=SC2086
 # Create a release.
@@ -80,12 +73,12 @@ gh auth status >/dev/null
   else
     cat docs/assets/prerelease-warning.md
   fi
-  git cliff --unreleased
+  git cliff --current
   cat docs/assets/release-instructions.md
 ) |
   gh release create \
     "${version}" \
-    --repo "${user_name}/${repo_name}" \
+    --repo "${repo}" \
     --title "${version}" \
     --target "${git_sha}" \
     --notes-file - \
@@ -95,18 +88,18 @@ gh auth status >/dev/null
 # Looks like the release appears not immediately, and if an upload is following too quickly
 # it fails because it cannot find the release. So let's wait for an arbitrary amount of
 # time here until the release is live.
-while [ "release not found" == "$(gh release view "${version}" --repo "${user_name}/${repo_name}" 2>&1 || true)" ]; do
+while [ "release not found" == "$(gh release view "${version}" --repo "${repo}" 2>&1 || true)" ]; do
   echo "Waiting for release to go online"
   sleep 2
 done
 
 # Check the release once again, in case of other errors
-gh release view "${version}" --repo "${user_name}/${repo_name}" >/dev/null
+gh release view "${version}" --repo "${repo}" >/dev/null
 
 # Upload files
 gh release upload \
   "${version}" \
-  --repo "${user_name}/${repo_name}" \
+  --repo "${repo}" \
   --clobber \
   ${artifacts_dir}/* >/dev/null
 
@@ -117,7 +110,7 @@ react_to_release() {
   release_id=$(curl -fsSL \
     -H "Accept: application/vnd.github.v3+json" \
     -H "Authorization: token ${GITHUB_TOKEN}" \
-    "https://api.github.com/repos/${user_name}/${repo_name}/releases/tags/${version}" |
+    "https://api.github.com/repos/${repo}/releases/tags/${version}" |
     jq ".id")
 
   if [ -n "$release_id" ]; then
@@ -125,9 +118,9 @@ react_to_release() {
       -X POST \
       -H "Accept: application/vnd.github.v3+json" \
       -H "Authorization: token ${GITHUB_TOKEN}" \
-      "https://api.github.com/repos/${user_name}/${repo_name}/releases/${release_id}/reactions" \
+      "https://api.github.com/repos/${repo}/releases/${release_id}/reactions" \
       -d "{\"content\":\"$emoji\"}" >/dev/null
   fi
 }
 
-react_to_release 'rocket' || true
+react_to_release 'hooray'

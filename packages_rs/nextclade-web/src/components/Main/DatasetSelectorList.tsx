@@ -4,6 +4,7 @@ import { ListGroup, ListGroupItem } from 'reactstrap'
 import styled from 'styled-components'
 
 import type { Dataset } from 'src/types'
+import { areDatasetsEqual } from 'src/types'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
@@ -60,8 +61,9 @@ export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick 
 export interface DatasetSelectorListProps {
   datasets: Dataset[]
   searchTerm: string
-  datasetHighlighted?: string
-  onDatasetHighlighted(dataset: string): void
+  datasetHighlighted?: Dataset
+
+  onDatasetHighlighted(dataset?: Dataset): void
 }
 
 export function DatasetSelectorList({
@@ -70,10 +72,7 @@ export function DatasetSelectorList({
   datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback(
-    (dataset: Dataset) => () => onDatasetHighlighted(dataset.attributes.name.value),
-    [onDatasetHighlighted],
-  )
+  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -93,10 +92,10 @@ export function DatasetSelectorList({
         {[itemsStartWith, itemsInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
-              key={dataset.attributes.name.value}
+              key={dataset.id}
               dataset={dataset}
               onClick={onItemClick(dataset)}
-              isCurrent={dataset.attributes.name.value === datasetHighlighted}
+              isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
             />
           )),
         )}
@@ -104,10 +103,10 @@ export function DatasetSelectorList({
         {[itemsNotInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
-              key={dataset.attributes.name.value}
+              key={dataset.id}
               dataset={dataset}
               onClick={onItemClick(dataset)}
-              isCurrent={dataset.attributes.name.value === datasetHighlighted}
+              isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
               isDimmed
             />
           )),

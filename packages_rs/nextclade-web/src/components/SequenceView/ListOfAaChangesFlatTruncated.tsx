@@ -35,7 +35,7 @@ export function ListOfAaChangesFlatTruncated({
       <tbody>
         <tr className="mb-2">
           <td colSpan={2}>
-            <h6>{t('Aminoacid changes ({{count}})', { count: changes.length })}</h6>
+            <h6>{t('Aminoacid changes ({{ n }})', { n: changes.length })}</h6>
           </td>
         </tr>
 

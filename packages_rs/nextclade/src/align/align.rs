@@ -41,7 +41,7 @@ pub fn align_nuc(
   let min_len: usize = params.min_length;
   if qry_len < min_len {
     return make_error!(
-      "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}"
+      "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence."
     );
   }
 
@@ -363,7 +363,7 @@ mod tests {
   fn general_case(ctx: Context) -> Result<(), Report> {
     let ref_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTGAGCCTTTGT"       )?;
     let qry_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATCAAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT"     )?;
-    let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTG----GCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
+    let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCT----AGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
     let qry_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT")?;
 
     let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;

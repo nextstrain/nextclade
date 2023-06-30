@@ -1,0 +1,376 @@
+# Build CLI binaries and publish them to GitHub Releases
+name: cli
+
+on:
+  push:
+    branches: ['master', 'staging-cli', 'release-cli']
+
+  pull_request:
+
+  repository_dispatch:
+    types: build
+
+  workflow_dispatch:
+
+  workflow_call:
+
+concurrency:
+  group: cli-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+env:
+  GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
+
+jobs:
+
+  builder-docker-image:
+    name: "Run 'builder-docker-image.yml' workflow"
+    uses: ./.github/workflows/builder-docker-image.yml
+    secrets: inherit
+    concurrency:
+      group: cli-builder-docker-image-workflow_call-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+      cancel-in-progress: true
+
+  build-cli:
+    name: "Build CLI (${{ matrix.arch }})"
+    needs: [ builder-docker-image ]
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - aarch64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-gnu
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+
+    steps:
+      - name: "Setup environment (release)"
+        if: endsWith(github.ref, '/release-cli')
+        run: |
+          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Setup environment (staging)"
+        if: endsWith(github.ref, '/staging-cli')
+        run: |
+          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Setup environment (master)"
+        if: ${{ !endsWith(github.ref, '/staging-cli') && !endsWith(github.ref, '/release-cli') }}
+        run: |
+          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx (${{ matrix.arch }})"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-
+            cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .cache/docker/.cargo
+            .build/
+          key: cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
+            cache-v1-cargo-${{ runner.os }}-${{ matrix.arch }}-
+            cache-v1-cargo-${{ runner.os }}-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: nextstrainbot
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: "Build docker image (${{ matrix.arch }})"
+        run: |
+          CROSS="${{ matrix.arch }}" ./docker-dev docker-image-build-push
+
+      - name: "Build CLI (${{ matrix.arch }})"
+        run: |
+          CROSS="${{ matrix.arch }}" ./docker-dev build-release
+
+      - name: "Upload build artifacts (${{ matrix.arch }})"
+        uses: actions/upload-artifact@v3
+        with:
+          name: out
+          path: ./.out/*
+
+
+  run-unit-tests:
+    name: "Run unit tests"
+    needs: [ builder-docker-image ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-unit-tests-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-unit-tests-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-unit-tests-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .cache/docker/.cargo
+            .build/
+          key: cache-v1-cargo-unit-tests-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-unit-tests-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            cache-v1-cargo-unit-tests-${{ runner.os }}-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|g" .env
+
+      - name: "Run unit tests"
+        run: |
+          ./docker-dev test
+
+
+  run-lints:
+    name: "Run lints"
+    needs: [ builder-docker-image ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-lints-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-lints-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-lints-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .cache/docker/.cargo
+            .build/
+          key: cache-v1-cargo-lints-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-lints-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            cache-v1-cargo-lints-${{ runner.os }}-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|g" .env
+
+      - name: "Run lints"
+        run: |
+          ./docker-dev lint-ci
+
+
+  run-smoke-tests:
+    name: "Run smoke tests (linux)"
+    needs: [ build-cli ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Install dependencies"
+        run: |
+          mkdir -p "${HOME}/bin"
+          export PATH="${HOME}/bin:${PATH}"
+          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: "out"
+          path: ".out"
+
+      - name: "Run smoke tests (linux)"
+        run: |
+          chmod +x ./.out/*
+          ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
+
+#  run-smoke-tests-mac:
+#    name: "Run smoke tests (mac)"
+#    needs: [ build-cli ]
+#    runs-on: macos-latest
+#
+#    steps:
+#      - name: "Checkout code"
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 1
+#          submodules: true
+#
+#      - name: "Download build artifacts"
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: "out"
+#          path: ".out"
+#
+#      - name: "Run smoke tests (mac)"
+#        run: |
+#          chmod +x ./.out/*
+#          ./tests/run-smoke-tests ./.out/nextclade-x86_64-apple-darwin
+
+
+  run-linux-distros-test:
+    name: "Run Linux distros compatibility test"
+    needs: [ build-cli ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: "out"
+          path: ".out"
+
+      - name: "Test Linux distros compatibility"
+        run: |
+          chmod +x ./.out/nextclade-x86_64-unknown-linux-gnu
+          ./tests/test-linux-distros ./.out/nextclade-x86_64-unknown-linux-gnu
+
+
+  publish-to-github-releases:
+    name: "Publish to GitHub Releases"
+    needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test ]
+    if: endsWith(github.ref, '/release-cli')
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: "out"
+          path: ".out"
+
+      - name: "Install deploy dependencies"
+        run: |
+          mkdir -p "${HOME}/bin"
+          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
+          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+
+      - name: "Publish build artifacts to GitHub releases"
+        run: |
+          export PATH="${PATH}:${HOME}/bin"
+          export GITHUB_TOKEN="${{ secrets.GH_TOKEN_NEXTSTRAIN_BOT_REPO }}"
+          ./scripts/publish_github \
+            --artifacts_dir ".out" \
+            --repo "${{ github.repository }}" \
+            --git_sha "${{ github.sha }}"
+
+  publish-to-docker-hub:
+    name: "Publish to Docker Hub"
+    needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test ]
+    if: endsWith(github.ref, '/release-cli')
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: "out"
+          path: ".out"
+
+      - name: "Install deploy dependencies"
+        run: |
+          mkdir -p "${HOME}/bin"
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+          chmod +x "${HOME}/bin/dasel"
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: nextstrainbot
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: "Build and publish Docker container images to Docker Hub"
+        run: |
+          export PATH="${PATH}:${HOME}/bin"
+          chmod +x ./.out/*
+          ./scripts/publish_docker --push

@@ -6,8 +6,10 @@ import { uniq } from 'lodash'
 import getWithMDX from '@next/mdx'
 import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
-import intercept from 'intercept-stdout'
 
+import type { AppJson } from 'src/components/Layout/UpdateNotification'
+
+import { RELEASE_URL } from './../../src/constants'
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getGitBranch } from '../../lib/getGitBranch'
 import { getBuildNumber } from '../../lib/getBuildNumber'
@@ -29,12 +31,7 @@ import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withResolve from './withResolve'
 import withUrlAsset from './withUrlAsset'
 import withWasm from './withWasm'
-
-// Ignore recoil warning messages in stdout
-// https://github.com/facebookexperimental/Recoil/issues/733
-if (process.env.NODE_ENV === 'development') {
-  intercept((text: string) => (text.includes('Duplicate atom key') ? '' : text))
-}
+import { getWithAppJson } from './withAppJson'
 
 const {
   // BABEL_ENV,
@@ -64,9 +61,8 @@ const clientEnv = {
   DOMAIN,
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
+  BLOCK_SEARCH_INDEXING: DOMAIN === RELEASE_URL ? '0' : '1',
 }
-
-console.info(`Client-side Environment:\n${JSON.stringify(clientEnv, null, 2)}`)
 
 const nextConfig: NextConfig = {
   distDir: `.build/${process.env.NODE_ENV}/tmp`,
@@ -170,6 +166,19 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
 
 const withRobotsTxt = getWithRobotsTxt(`User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`)
 
+const withAppJson = getWithAppJson({
+  name: pkg.name,
+  version: pkg.version,
+  branchName: getGitBranch(),
+  commitHash: getGitCommitHash(),
+  buildNumber: getBuildNumber(),
+  buildUrl: getBuildUrl(),
+  domain: DOMAIN,
+  domainStripped: DOMAIN_STRIPPED,
+  dataFullDomain: DATA_FULL_DOMAIN,
+  blockSearchIndexing: DOMAIN === RELEASE_URL ? '0' : '1',
+} as AppJson)
+
 const config = withPlugins(
   [
     [withIgnore],
@@ -185,6 +194,7 @@ const config = withPlugins(
     [withRaw],
     [withResolve],
     [withRobotsTxt],
+    [withAppJson],
     [withUrlAsset],
     [withWasm],
     PRODUCTION && [withoutDebugPackage],

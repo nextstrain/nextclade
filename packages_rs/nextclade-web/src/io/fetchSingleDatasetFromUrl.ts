@@ -15,6 +15,7 @@ export async function fetchSingleDatasetFromUrl(
   const tag = await axiosFetchOrUndefined<DatasetTag>(urljoin(datasetRootUrl, 'tag.json'))
 
   const currentDataset: Dataset = {
+    id: '0',
     enabled: true,
     attributes: {
       name: {
@@ -62,6 +63,7 @@ export async function fetchSingleDatasetFromUrl(
   }
 
   const datasets = [currentDataset]
+  const defaultDataset = currentDataset
   const currentDatasetName = currentDataset.attributes.name.value
   const defaultDatasetName = currentDatasetName
   const defaultDatasetNameFriendly = currentDataset.attributes.name.valueFriendly ?? currentDatasetName
@@ -84,7 +86,7 @@ export async function fetchSingleDatasetFromUrl(
     Object.entries(currentDataset.files).filter(([filename, _]) => !['tag.json', 'sequences.fasta'].includes(filename)),
   )
 
-  return { datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }
+  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
 }
 
 export class ErrorDatasetFileMissing extends Error {

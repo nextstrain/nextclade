@@ -3,6 +3,7 @@ use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
+use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
@@ -52,6 +53,8 @@ fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
 /// Positions of nucleotides in the sequences change after alignment due to insertion stripping. Some operations are
 /// done in alignment space, while others in reference space. This struct allows for conversion of position indices
 /// from one space to another.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CoordMap {
   aln_to_ref_table: Vec<usize>,
   ref_to_aln_table: Vec<usize>,

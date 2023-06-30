@@ -8,8 +8,7 @@ function abspath() {
   readlink -m "$1"
 }
 
-
-declare -a TARGETS=(
+targets=(
   "aarch64-apple-darwin"
   "aarch64-unknown-linux-gnu"
   "aarch64-unknown-linux-musl"
@@ -19,9 +18,11 @@ declare -a TARGETS=(
   "x86_64-unknown-linux-musl"
 )
 
-
-for target in "${TARGETS[@]}"; do
+function run_one() {
+  target=${1:?}
   printf "\nBuilding for %s\n" "${target}"
-  CROSS=${target} ./docker-dev br nextalign
-done
+  CROSS=${target} ./docker-dev br
+}
+export -f run_one
 
+parallel --jobs="${#targets[@]}" run_one ::: "${targets[@]}"

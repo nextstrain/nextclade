@@ -1,14 +1,13 @@
 import React, { HTMLProps, useCallback, useState } from 'react'
-
 import classNames from 'classnames'
 import { ThreeDots } from 'react-loader-spinner'
 import { Button, Col, Container, Input, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
-
+import type { Dataset } from 'src/types'
+import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
 const DatasetSelectorContainer = styled(Container)`
@@ -48,17 +47,16 @@ const Spinner = styled(ThreeDots)`
 
 export interface DatasetSelectorProps {
   searchTerm: string
+
   setSearchTerm(searchTerm: string): void
 }
 
 export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorProps) {
   const { t } = useTranslationSafe()
   const [error, setError] = useState<string | undefined>()
-  const { datasets, defaultDatasetName } = useRecoilValue(datasetsAtom)
-  const [datasetCurrentName, setDatasetCurrent] = useRecoilState(datasetCurrentNameAtom)
-  const [datasetHighlighted, setDatasetHighlighted] = useState<string | undefined>(
-    datasetCurrentName ?? defaultDatasetName,
-  )
+  const { datasets } = useRecoilValue(datasetsAtom)
+  const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetCurrentAtom)
+  const [datasetHighlighted, setDatasetHighlighted] = useState<Dataset | undefined>(datasetCurrent)
 
   const onSearchTermChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

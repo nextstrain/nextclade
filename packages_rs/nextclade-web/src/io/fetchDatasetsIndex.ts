@@ -1,4 +1,4 @@
-import { mapValues } from 'lodash'
+import { first, mapValues, sortBy } from 'lodash'
 import semver from 'semver'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import urljoin from 'url-join'
@@ -54,13 +54,21 @@ export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, dat
 
   return {
     datasets,
+    defaultDataset,
     defaultDatasetName: value,
     defaultDatasetNameFriendly: valueFriendly ?? value,
   }
 }
 
+/** Find the latest dataset, optionally by name, ref and tag */
 export function findDataset(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
-  return datasets.find((dataset) => {
+  const datasetsFound = filterDatasets(datasets, name, refAccession, tag)
+  return first(sortBy(datasetsFound, (dataset) => dataset.attributes.tag))
+}
+
+/** Find the datasets given name, ref and tag */
+export function filterDatasets(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
+  return datasets.filter((dataset) => {
     let isMatch = dataset.attributes.name.value === name
 
     if (refAccession) {

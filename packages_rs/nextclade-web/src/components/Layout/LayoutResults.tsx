@@ -4,6 +4,7 @@ import styled from 'styled-components'
 
 import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
+import { UpdateNotification } from './UpdateNotification'
 
 export const LayoutContainer = styled.div`
   max-width: 100vw;
@@ -23,7 +24,6 @@ const Header = styled.header`
 const MainContent = styled.main`
   flex-grow: 1;
   flex-basis: 100%;
-  overflow: auto;
   min-height: 2em;
 `
 
@@ -38,7 +38,10 @@ export function LayoutResults({ children }: PropsWithChildren<HTMLProps<HTMLDivE
         <NavigationBar />
       </Header>
 
-      <MainContent>{children}</MainContent>
+      <MainContent>
+        <UpdateNotification />
+        {children}
+      </MainContent>
 
       <Footer>
         <FooterContent />

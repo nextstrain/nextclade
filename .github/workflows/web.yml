@@ -1,0 +1,231 @@
+# Build web app and deploy it
+name: web
+
+on:
+  push:
+    branches: ['master', 'staging', 'release']
+
+  pull_request:
+
+  repository_dispatch:
+    types: build
+
+  workflow_dispatch:
+
+  workflow_call:
+
+concurrency:
+  group: web-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+env:
+  GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
+
+jobs:
+  build-web:
+    name: "Build Web"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Setup environment (release)"
+        if: endsWith(github.ref, '/release')
+        run: |
+          echo "ENV_NAME=release" >> $GITHUB_ENV
+          echo "FULL_DOMAIN=https://clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Setup environment (staging)"
+        if: endsWith(github.ref, '/staging')
+        run: |
+          echo "ENV_NAME=staging" >> $GITHUB_ENV
+          echo "FULL_DOMAIN=https://staging.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=staging.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Setup environment (master)"
+        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
+        run: |
+          echo "ENV_NAME=master" >> $GITHUB_ENV
+          echo "FULL_DOMAIN=https://master.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=master.clades.nextstrain.org" >> $GITHUB_ENV
+
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Get docker build checksum"
+        id: docker-build-checksum
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+
+      - name: "Setup cache for Docker buildx"
+        uses: actions/cache@v3
+        with:
+          path: .cache/docker/buildx
+          key: cache-v1-buildx-${{ runner.os }}-wasm32-unknown-unknown-${{ steps.docker-build-checksum.outputs.checksum }}
+          restore-keys: |
+            cache-v1-buildx-${{ runner.os }}-wasm32-unknown-unknown-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
+            cache-v1-buildx-${{ runner.os }}-
+
+      - name: "Setup cache for Rust and Cargo"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .build/
+            .cache/docker/.cargo
+            packages_rs/nextclade-web/.build/docker
+          key: cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
+            cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-cargo-${{ runner.os }}-
+
+      - name: "Setup cache for web app"
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages_rs/nextclade-web/.build/production/tmp/cache
+            packages_rs/nextclade-web/.cache
+            packages_rs/nextclade-web/node_modules
+          key: cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
+            cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v1-web-${{ runner.os }}-
+
+      - name: "Prepare .env file"
+        run: |
+          cp .env.example .env
+          sed -i -e "s|FULL_DOMAIN=autodetect|FULL_DOMAIN=${FULL_DOMAIN}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: nextstrainbot
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: "Build docker image"
+        run: |
+          CROSS="wasm32-unknown-unknown" ./docker-dev docker-image-build-push
+
+      - name: "Install Node.js packages"
+        run: |
+          ./docker-dev web yarn install
+
+      - name: "Build WebAssembly module"
+        run: |
+          ./docker-dev wasm-release
+
+      - name: "Build web app"
+        run: |
+          ./docker-dev web-release
+
+      - name: "Lint web app code"
+        run: |
+          ./docker-dev web yarn lint:ci
+
+      - name: "Lint Rust code"
+        run: |
+          ./docker-dev lint-ci
+
+      - name: "Upload build artifacts"
+        uses: actions/upload-artifact@v3
+        with:
+          name: out
+          path: "packages_rs/nextclade-web/.build/production/web"
+
+
+  deploy-web:
+    name: "Deploy Web"
+    if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+    needs: [ build-web ]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: "Setup environment (release)"
+        if: endsWith(github.ref, '/release')
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.RELEASE_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.RELEASE_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.RELEASE_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=${{ secrets.RELEASE_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{ secrets.RELEASE_AWS_S3_BUCKET }}" >> $GITHUB_ENV
+
+      - name: "Setup environment (staging)"
+        if: endsWith(github.ref, '/staging')
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.STAGING_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=${{ secrets.STAGING_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{ secrets.STAGING_AWS_S3_BUCKET }}" >> $GITHUB_ENV
+
+      - name: "Setup environment (master)"
+        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.MASTER_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.MASTER_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.MASTER_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=${{ secrets.MASTER_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{ secrets.MASTER_AWS_S3_BUCKET }}" >> $GITHUB_ENV
+
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: "out"
+          path: "packages_rs/nextclade-web/.build/production/web"
+
+      - name: "Install deploy dependencies"
+        run: |
+          mkdir -p "${HOME}/bin"
+          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+
+          sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
+
+          pushd /tmp >/dev/null
+            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -oqq awscliv2.zip
+            sudo ./aws/install --update
+          popd >/dev/null
+          aws --version
+
+      - name: "Deploy web app"
+        run: |
+          ./scripts/deploy_web.sh
+
+      - name: "Create and push git tag"
+        if: ${{ endsWith(github.ref, '/release') }}
+        run: |
+
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
+
+          pushd packages_rs/nextclade-web  >/dev/null
+
+          export version=$(node -e "\
+            const pkg = require('./package.json'); \
+            console.log(pkg.version) \
+          ")
+
+          popd >/dev/null
+
+          git tag "web-${version}"
+          git push origin "web-${version}"

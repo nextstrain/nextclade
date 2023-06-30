@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/prefer-object-from-entries */
+
 // Adds additional headers to the response, including CORS.
 // Suited for serving files and APIs.
 //
@@ -41,7 +43,7 @@ function filterHeaders(headers) {
   }, {})
 }
 
-function modifyHeaders({ request, response }) {
+function modifyHeaders({ /* request, */ response }) {
   let newHeaders = addHeaders(NEW_HEADERS)
 
   newHeaders = {

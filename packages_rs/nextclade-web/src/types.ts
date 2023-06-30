@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { Tagged } from 'src/helpers/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
+import { isEqual, isNil } from 'lodash'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -350,6 +351,29 @@ export interface PhenotypeValue {
   value: number
 }
 
+export interface AaMotif {
+  name: string
+  gene: string
+  position: number
+  seq: string
+}
+
+export interface AaMotifMutation {
+  name: string
+  gene: string
+  position: number
+  refSeq: string
+  qrySeq: string
+}
+
+export interface AaMotifChanges {
+  preserved: AaMotifMutation[]
+  gained: AaMotifMutation[]
+  lost: AaMotifMutation[]
+  ambiguous: AaMotifMutation[]
+  total: number
+}
+
 export interface AnalysisResult {
   index: number
   seqName: string
@@ -377,6 +401,7 @@ export interface AnalysisResult {
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number
+  aaAlignmentRanges: Record<string, Range>
   alignedQuery: string
   nucleotideComposition: Record<string, number>
   pcrPrimerChanges: PcrPrimerChange[]
@@ -390,6 +415,8 @@ export interface AnalysisResult {
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]
   missingGenes: string[]
+  aaMotifs: Record<string, AaMotif[]>
+  aaMotifsChanges: Record<string, AaMotifChanges>
 }
 
 export interface AnalysisError {
@@ -410,6 +437,7 @@ export interface Translation {
   seq: string
   insertions: AminoacidInsertion[]
   frameShifts: FrameShift[]
+  alignmentRange: Range
 }
 
 /** Represents a named interval in the genome */
@@ -565,6 +593,7 @@ export interface DatasetTag {
 }
 
 export interface Dataset {
+  id: string
   enabled: boolean
   attributes: DatasetAttributes
   comment: string
@@ -572,6 +601,10 @@ export interface Dataset {
   files: DatasetFiles
   params: DatasetParams
   zipBundle: string
+}
+
+export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
+  return !isNil(left) && !isNil(right) && isEqual(left.attributes, right.attributes)
 }
 
 export interface DatasetsIndexV2Json {
@@ -583,4 +616,19 @@ export interface PhenotypeAttrDesc {
   name: string
   nameFriendly: string
   description: string
+}
+
+export interface AaMotifsDesc {
+  name: string
+  nameShort: string
+  nameFriendly: string
+  description: string
+}
+
+export type CsvColumnConfigMap = Record<string, Record<string, boolean>>
+
+export interface CsvColumnConfig {
+  categories: CsvColumnConfigMap
+  individual: string[]
+  includeDynamic: boolean
 }

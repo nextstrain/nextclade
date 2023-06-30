@@ -9,26 +9,32 @@ ARG GID
 ENV TERM="xterm-256color"
 ENV HOME="/home/user"
 
-RUN set -x \
-  && mkdir -p ${HOME}/src \
-  && \
-    if [ -z "$(getent group ${GID})" ]; then \
-      addgroup --system --gid ${GID} ${GROUP}; \
-    else \
-      groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
-    fi \
-  && \
-    if [ -z "$(getent passwd ${UID})" ]; then \
-      useradd \
-        --system \
-        --create-home --home-dir ${HOME} \
-        --shell /bin/bash \
-        --gid ${GROUP} \
-        --groups sudo \
-        --uid ${UID} \
-        ${USER}; \
-    fi \
-  && touch ${HOME}/.hushlogin
+# Make a user and group
+RUN set -x >/dev/null \
+&& \
+  if [ -z "$(getent group ${GID})" ]; then \
+    addgroup --system --gid ${GID} ${GROUP}; \
+  else \
+    groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
+  fi \
+&& \
+  if [ -z "$(getent passwd ${UID})" ]; then \
+    useradd \
+      --system \
+      --create-home --home-dir ${HOME} \
+      --shell /bin/bash \
+      --gid ${GROUP} \
+      --groups sudo \
+      --uid ${UID} \
+      ${USER}; \
+  fi \
+&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g' \
+&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD:ALL/g' \
+&& sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
+&& echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& touch ${HOME}/.hushlogin \
+&& chown -R ${UID}:${GID} "${HOME}"
 
 RUN set -x \
   && chown -R ${USER}:${GROUP} ${HOME}

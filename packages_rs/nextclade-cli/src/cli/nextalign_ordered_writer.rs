@@ -1,6 +1,6 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
-use log::warn;
+use log::{info, warn};
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::gene_map::GeneMap;
@@ -36,12 +36,12 @@ impl<'a> NextalignOrderedWriter<'a> {
     let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
 
     let fasta_peptide_writer = output_translations
-      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, &output_translations))?;
+      .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
     let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
 
     let errors_csv_writer =
-      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, &output_errors))?;
+      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
 
     Ok(Self {
       fasta_writer,
@@ -88,6 +88,7 @@ impl<'a> NextalignOrderedWriter<'a> {
           warnings,
           missing_genes,
           is_reverse_complement,
+          ..
         } = output;
 
         if let Some(fasta_writer) = &mut self.fasta_writer {
@@ -102,6 +103,10 @@ impl<'a> NextalignOrderedWriter<'a> {
 
         if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
           insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
+        }
+
+        for warning in warnings {
+          info!("In sequence #{index} '{seq_name}': {}", warning.warning);
         }
 
         if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
