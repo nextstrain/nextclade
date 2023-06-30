@@ -2,39 +2,140 @@ use crate::align::align::align_aa;
 use crate::align::insertions_strip::{insertions_strip, Insertion};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::count_gaps::GapCounts;
+use crate::coord::coord_map_global::CoordMapGlobal;
+use crate::coord::coord_map_local::CoordMapLocal;
+use crate::coord::position::PositionLike;
+use crate::coord::range::{AaRefRange, Range};
+use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
-use crate::io::aa::Aa;
-use crate::io::gene_map::GeneMap;
-use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::Nuc;
-use crate::translate::coord_map::CoordMap;
+use crate::gene::gene_map::GeneMap;
+use crate::translate::extract::extract_cds_from_aln;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
 use crate::translate::translate::translate;
+use crate::types::outputs::PeptideWarning;
 use crate::utils::collections::{first, last};
-use crate::utils::range::Range;
+use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use indexmap::IndexMap;
 use itertools::Itertools;
+use num_traits::clamp_max;
+use rayon::iter::Either;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
-/// Results of the translation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Translation {
-  pub gene_name: String,
+  pub genes: IndexMap<String, GeneTranslation>,
+}
+
+impl Translation {
+  pub fn get_gene<S: AsRef<str>>(&self, gene_name: S) -> Result<&GeneTranslation, Report> {
+    let gene_name = gene_name.as_ref();
+    self.genes.get(gene_name).ok_or_else(|| {
+      make_internal_report!("When looking up a gene translation: gene '{gene_name}' is expected, but not found")
+    })
+  }
+
+  pub fn get_cds<S: AsRef<str>>(&self, cds_name: S) -> Result<&CdsTranslation, Report> {
+    let cds_name = cds_name.as_ref();
+    self
+      .genes
+      .iter()
+      .find_map(|(_, gene)| gene.cdses.get(cds_name))
+      .ok_or_else(|| {
+        make_internal_report!("When looking up a CDS translation: CDS '{cds_name}' is expected, but not found")
+      })
+  }
+
+  #[must_use]
+  pub fn is_empty(&self) -> bool {
+    self.genes.is_empty()
+  }
+
+  #[must_use]
+  pub fn len(&self) -> usize {
+    self.genes.len()
+  }
+
+  #[must_use]
+  pub fn contains(&self, gene_name: &str) -> bool {
+    self.genes.contains_key(gene_name)
+  }
+
+  pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &GeneTranslation)> + '_ {
+    self.genes.iter()
+  }
+
+  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = (&String, &mut GeneTranslation)> + '_ {
+    self.genes.iter_mut()
+  }
+
+  pub fn into_iter_genes(self) -> impl Iterator<Item = (String, GeneTranslation)> {
+    self.genes.into_iter()
+  }
+
+  pub fn genes(&self) -> impl Iterator<Item = &GeneTranslation> + '_ {
+    self.genes.values()
+  }
+
+  pub fn iter_cdses(&self) -> impl Iterator<Item = (&String, &CdsTranslation)> + '_ {
+    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+  }
+
+  pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = (&String, &mut CdsTranslation)> + '_ {
+    self.genes.iter_mut().flat_map(|(_, gene)| gene.cdses.iter_mut())
+  }
+
+  pub fn into_iter_cdses(self) -> impl Iterator<Item = (String, CdsTranslation)> {
+    self.genes.into_iter().flat_map(|(_, gene)| gene.cdses.into_iter())
+  }
+
+  pub fn cdses(&self) -> impl Iterator<Item = &CdsTranslation> + '_ {
+    self.genes.iter().flat_map(|(_, gene)| gene.cdses.values())
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GeneTranslation {
+  pub gene: Gene,
+  pub cdses: IndexMap<String, CdsTranslation>,
+  pub warnings: Vec<PeptideWarning>,
+}
+
+impl GeneTranslation {
+  pub fn get_cds<S: AsRef<str>>(&self, cds_name: S) -> Result<&CdsTranslation, Report> {
+    let cds_name = cds_name.as_ref();
+    self.cdses.get(cds_name).ok_or_else(|| {
+      make_internal_report!(
+        "When looking up a CDS translation: CDS '{cds_name}' in gene '{}' is expected, but not found",
+        self.gene.name
+      )
+    })
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CdsTranslation {
+  pub name: String,
+
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,
+
   pub insertions: Vec<Insertion<Aa>>,
   pub frame_shifts: Vec<FrameShift>,
-  pub alignment_range: Range,
+  pub alignment_ranges: Vec<AaRefRange>,
+  pub unsequenced_ranges: Vec<AaRefRange>,
 }
-
-pub type TranslationMap = BTreeMap<String, Translation>;
 
 /// Results of the aminoacid alignment parameters estimation
 pub struct PeptideAlignmentParams {
@@ -88,18 +189,18 @@ pub fn mask_nuc_frame_shifts_in_place(seq: &mut [Nuc], frame_shifts: &[FrameShif
     let mut current = frame_shift.nuc_rel.begin;
     let end = frame_shift.nuc_rel.end;
     while current < end {
-      if !seq[current].is_gap() {
-        seq[current] = Nuc::N;
+      if !seq[current.as_usize()].is_gap() {
+        seq[current.as_usize()] = Nuc::N;
       }
-      current += 1;
+      current = current + 1;
     }
   }
 }
 
-pub fn fill_range_inplace(seq: &mut [Aa], range: &Range, letter: Aa) {
+pub fn fill_range_inplace<P: PositionLike>(seq: &mut [Aa], range: &Range<P>, letter: Aa) {
   // TODO: this is a very C-like function. Try to replace the indexed loop with something more idiomatic
-  let mut current = range.begin;
-  let end = range.end;
+  let mut current = range.begin.as_usize();
+  let end = clamp_max(range.end.as_usize(), seq.len());
   while current < end {
     seq[current] = letter;
     current += 1;
@@ -111,31 +212,34 @@ pub fn fill_range_inplace(seq: &mut [Aa], range: &Range, letter: Aa) {
 /// and we cover them with `X`.
 pub fn mask_peptide_frame_shifts_in_place(seq: &mut [Aa], frame_shifts: &[FrameShift]) {
   for frame_shift in frame_shifts {
-    fill_range_inplace(seq, &frame_shift.gaps_leading.codon, Aa::Gap);
+    fill_range_inplace(seq, &frame_shift.gaps_leading, Aa::Gap);
     fill_range_inplace(seq, &frame_shift.codon, Aa::X);
-    fill_range_inplace(seq, &frame_shift.gaps_trailing.codon, Aa::Gap);
+    fill_range_inplace(seq, &frame_shift.gaps_trailing, Aa::Gap);
   }
 }
 
-pub fn translate_gene(
+pub fn translate_cds(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  gene: &Gene,
-  ref_peptide: &Translation,
+  cds: &Cds,
+  ref_cds_translation: &CdsTranslation,
   gap_open_close_aa: &[i32],
-  coord_map: &CoordMap,
+  coord_map_global: &CoordMapGlobal,
   params: &AlignPairwiseParams,
-) -> Result<Translation, Report> {
-  let mut ref_gene_seq = coord_map.extract_gene(ref_seq, gene);
-  let mut qry_gene_seq = coord_map.extract_gene(qry_seq, gene);
+) -> Result<CdsTranslation, Report> {
+  let mut ref_cds_seq = extract_cds_from_aln(ref_seq, cds, coord_map_global);
+  let mut qry_cds_seq = extract_cds_from_aln(qry_seq, cds, coord_map_global);
 
-  let ref_gaps = GapCounts::new(&ref_gene_seq);
-  let qry_gaps = GapCounts::new(&qry_gene_seq);
+  // Coordinate map local to this CDS
+  let coord_map_local = CoordMapLocal::new(&ref_cds_seq);
 
-  if ref_gene_seq.is_empty() || qry_gaps.is_all_gaps() {
+  let ref_gaps = GapCounts::new(&ref_cds_seq);
+  let qry_gaps = GapCounts::new(&qry_cds_seq);
+
+  if qry_cds_seq.is_empty() || qry_gaps.is_all_gaps() {
     return make_error!(
       "When processing gene \"{}\": The extracted gene sequence is empty or consists entirely from gaps",
-      &gene.gene_name
+      &cds.name
     );
   }
 
@@ -143,25 +247,25 @@ pub fn translate_gene(
   // TODO: Think about qry insertions, they will also be free?
   let aa_params = AlignPairwiseParams {
     // Set to false for internal genes
-    left_terminal_gaps_free: first(&qry_gene_seq)?.is_gap(),
-    right_terminal_gaps_free: last(&qry_gene_seq)?.is_gap(),
+    left_terminal_gaps_free: first(&qry_cds_seq)?.is_gap(),
+    right_terminal_gaps_free: last(&qry_cds_seq)?.is_gap(),
     ..*params
   };
 
   // Make sure subsequent gap stripping does not introduce frame shift
-  protect_first_codon_in_place(&mut ref_gene_seq);
-  protect_first_codon_in_place(&mut qry_gene_seq);
+  protect_first_codon_in_place(&mut ref_cds_seq);
+  protect_first_codon_in_place(&mut qry_cds_seq);
 
   // NOTE: frame shift detection should be performed on unstripped genes
-  let nuc_rel_frame_shifts = frame_shifts_detect(&qry_gene_seq, &ref_gene_seq);
-  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_gene_seq, coord_map, gene);
+  let nuc_rel_frame_shifts = frame_shifts_detect(&qry_cds_seq, &ref_cds_seq);
+  let frame_shifts = frame_shifts_transform_coordinates(&nuc_rel_frame_shifts, &qry_cds_seq, &coord_map_local, cds)?;
 
-  mask_nuc_frame_shifts_in_place(&mut qry_gene_seq, &frame_shifts);
+  mask_nuc_frame_shifts_in_place(&mut qry_cds_seq, &frame_shifts);
 
   // Strip all GAP characters to "forget" gaps introduced during alignment
-  remove_gaps_in_place(&mut qry_gene_seq);
+  remove_gaps_in_place(&mut qry_cds_seq);
 
-  let query_peptide = translate(&qry_gene_seq, gene, params)?;
+  let query_peptide = translate(&qry_cds_seq, cds, params);
 
   // Instead of performing seed matching, like we do for nucleotide alignment, here we estimate parameters
   // by counting gaps in the aligned nucleotide sequences;
@@ -169,7 +273,7 @@ pub fn translate_gene(
 
   let alignment = align_aa(
     &query_peptide.seq,
-    &ref_peptide.seq,
+    &ref_cds_translation.seq,
     gap_open_close_aa,
     &aa_params,
     band_width,
@@ -180,12 +284,13 @@ pub fn translate_gene(
 
   mask_peptide_frame_shifts_in_place(&mut stripped.qry_seq, &frame_shifts);
 
-  Ok(Translation {
-    gene_name: gene.gene_name.clone(),
+  Ok(CdsTranslation {
+    name: cds.name.clone(),
     seq: stripped.qry_seq,
     insertions: stripped.insertions,
     frame_shifts,
-    alignment_range: Range::default(),
+    alignment_ranges: vec![],
+    unsequenced_ranges: vec![],
   })
 }
 
@@ -195,33 +300,49 @@ pub fn translate_gene(
 pub fn translate_genes(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
-  coord_map: &CoordMap,
+  coord_map_global: &CoordMapGlobal,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<IndexMap<String, Result<Translation, Report>>, Report> {
-  gene_map
-    .iter()
-    .map(
-      |(gene_name, gene)| -> Result<(String, Result<Translation, Report>), Report> {
-        let ref_peptide = ref_peptides.get(&gene.gene_name).ok_or(make_internal_report!(
-          "Reference peptide not found for gene {}",
-          &gene.gene_name
-        ))?;
+) -> Result<Translation, Report> {
+  let genes: IndexMap<String, GeneTranslation> = gene_map
+    .iter_genes()
+    .map(|(gene_name, gene)| {
+      let ref_gene_translation = ref_peptides.get_gene(&gene.name)?;
 
-        let res = translate_gene(
-          qry_seq,
-          ref_seq,
-          gene,
-          ref_peptide,
-          gap_open_close_aa,
-          coord_map,
-          params,
-        );
+      let (cdses, warnings): (IndexMap<String, CdsTranslation>, Vec<PeptideWarning>) =
+        gene.cdses.iter().partition_map(|cds| {
+          let ref_cds_translation = ref_gene_translation.get_cds(&cds.name).unwrap();
 
-        Ok((gene_name.clone(), res))
-      },
-    )
-    .collect::<Result<IndexMap<String, Result<Translation, Report>>, Report>>()
+          // Treat translation errors as warnings
+          match translate_cds(
+            qry_seq,
+            ref_seq,
+            cds,
+            ref_cds_translation,
+            gap_open_close_aa,
+            coord_map_global,
+            params,
+          ) {
+            Ok(translation) => Either::Left((cds.name.clone(), translation)),
+            Err(report) => Either::Right(PeptideWarning {
+              gene_name: cds.name.clone(),
+              warning: report_to_string(&report),
+            }),
+          }
+        });
+
+      Ok((
+        gene_name.clone(),
+        GeneTranslation {
+          gene: gene.clone(),
+          cdses,
+          warnings,
+        },
+      ))
+    })
+    .collect::<Result<IndexMap<String, GeneTranslation>, Report>>()?;
+
+  Ok(Translation { genes })
 }

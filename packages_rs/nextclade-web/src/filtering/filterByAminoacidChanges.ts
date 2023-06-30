@@ -3,15 +3,14 @@ import { intersectionWith, isNil } from 'lodash'
 import { AMINOACID_GAP } from 'src/constants'
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
-import type { AminoacidSubstitution, NextcladeResult } from 'src/types'
+import type { AaSub, NextcladeResult } from 'src/types'
 import { splitFilterString } from './splitFilterString'
 
-export function aminoacidChangesAreEqual(actual: AminoacidSubstitution, filter: Partial<AminoacidSubstitution>) {
-  const geneMatch = isNil(filter.gene) || (filter.gene ?? '').toLowerCase() === actual.gene.toLowerCase()
-  const posMatch = isNil(filter.codon) || (filter.codon ?? -1) === actual.codon
-  const refNucMatch = isNil(filter.refAA) || (filter.refAA ?? '').toLowerCase() === (actual.refAA ?? '').toLowerCase()
-  const queryNucMatch =
-    isNil(filter.queryAA) || (filter.queryAA ?? '').toLowerCase() === (actual.queryAA ?? '').toLowerCase()
+export function aminoacidChangesAreEqual(actual: AaSub, filter: Partial<AaSub>) {
+  const geneMatch = isNil(filter.cdsName) || (filter.cdsName ?? '').toLowerCase() === actual.cdsName.toLowerCase()
+  const posMatch = isNil(filter.pos) || (filter.pos ?? -1) === actual.pos
+  const refNucMatch = isNil(filter.refAa) || (filter.refAa ?? '').toLowerCase() === (actual.refAa ?? '').toLowerCase()
+  const queryNucMatch = isNil(filter.qryAa) || (filter.qryAa ?? '').toLowerCase() === (actual.qryAa ?? '').toLowerCase()
   return geneMatch && posMatch && refNucMatch && queryNucMatch
 }
 
@@ -25,9 +24,9 @@ export function filterByAminoacidChanges(aaFilter: string) {
     const { aaSubstitutions, aaDeletions } = result.result.analysisResult
 
     // Make deletions look like substitutions
-    const aaDeletionsLikeSubstitutions: AminoacidSubstitution[] = aaDeletions.map((del) => ({
+    const aaDeletionsLikeSubstitutions: AaSub[] = aaDeletions.map((del) => ({
       ...del,
-      queryAA: AMINOACID_GAP,
+      qryAa: AMINOACID_GAP,
     }))
 
     // We want to search for both, the substitutions and deletions

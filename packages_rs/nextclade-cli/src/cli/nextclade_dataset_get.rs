@@ -1,12 +1,12 @@
 use crate::cli::nextclade_cli::NextcladeDatasetGetArgs;
-use crate::dataset::dataset::{Dataset, DatasetsIndexJson};
 use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_attributes};
-use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_download};
+use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_download, download_datasets_index_json};
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use log::{info, LevelFilter};
+use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::{getenv, make_error};
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
@@ -22,7 +22,7 @@ pub fn nextclade_dataset_http_get(
   DatasetHttpGetParams { name, reference, tag }: DatasetHttpGetParams,
   attributes: &[String],
 ) -> Result<Dataset, Report> {
-  let DatasetsIndexJson { datasets, .. } = DatasetsIndexJson::download(http)?;
+  let DatasetsIndexJson { datasets, .. } = download_datasets_index_json(http)?;
 
   // Parse attribute key-value pairs
   let mut attributes = parse_dataset_attributes(attributes)?;

@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react'
 
 import type { AnalysisResult } from 'src/types'
+import { rangeLen } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -21,7 +22,7 @@ export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
   const { index, deletions, aaDeletions, seqName } = analysisResult
   const id = getSafeId('col-gaps', { index, seqName })
 
-  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
+  const totalGaps = deletions.reduce((acc, curr) => acc + rangeLen(curr.range), 0)
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>

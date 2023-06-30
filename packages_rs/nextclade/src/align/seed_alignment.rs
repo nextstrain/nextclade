@@ -2,7 +2,7 @@ use crate::align::band_2d::full_matrix;
 use crate::align::band_2d::{simple_stripes, Stripe};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 use crate::make_error;
 use crate::utils::collections::last;
 use eyre::Report;

@@ -1,23 +1,23 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::alphabet::aa::from_aa_seq;
+use crate::alphabet::nuc::{from_nuc, from_nuc_seq, Nuc};
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
+use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
-use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::io::aa::{from_aa_seq, Aa};
+use crate::coord::range::NucRefGlobalRange;
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
-use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::Translation;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
 };
 use crate::utils::num::is_int;
-use crate::utils::range::Range;
 use crate::{make_error, o};
 use edit_distance::edit_distance;
 use eyre::Report;
@@ -36,7 +36,9 @@ use strum::VariantNames;
 use strum_macros::{Display, EnumString, EnumVariantNames};
 
 // List of categories of CSV columns
-#[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, Hash, EnumString, EnumVariantNames)]
+#[derive(
+  Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, EnumVariantNames,
+)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum CsvColumnCategory {
@@ -53,7 +55,7 @@ pub enum CsvColumnCategory {
 pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
 
 // Configuration for enabling/disabling CSV columns or categories of them
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
@@ -315,8 +317,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       total_aminoacid_insertions,
       unknown_aa_ranges,
       total_unknown_aa,
-      alignment_start,
-      alignment_end,
+      alignment_range,
       alignment_score,
       pcr_primer_changes,
       total_pcr_primer_changes,
@@ -332,7 +333,6 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       is_reverse_complement,
       warnings,
       aa_motifs,
-      aa_motifs_changes,
       ..
     } = nextclade_outputs;
 
@@ -425,8 +425,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       &format_pcr_primer_changes(pcr_primer_changes, ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry("alignmentScore", &alignment_score)?;
-    self.add_entry("alignmentStart", &(alignment_start + 1).to_string())?;
-    self.add_entry("alignmentEnd", &alignment_end.to_string())?;
+    self.add_entry("alignmentStart", &(alignment_range.begin + 1).to_string())?;
+    self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
@@ -635,8 +635,8 @@ impl NextcladeResultsCsvFileWriter {
 }
 
 #[inline]
-pub fn format_nuc_substitutions(substitutions: &[NucSubFull], delimiter: &str) -> String {
-  substitutions.iter().map(|sub| sub.sub.to_string()).join(delimiter)
+pub fn format_nuc_substitutions(substitutions: &[NucSub], delimiter: &str) -> String {
+  substitutions.iter().map(ToString::to_string).join(delimiter)
 }
 
 #[inline]
@@ -650,18 +650,15 @@ pub fn format_nuc_substitutions_labeled(substitutions: &[NucSubLabeled], delimit
     .iter()
     .map(|sub| {
       let labels = sub.labels.join("&");
-      let sub = sub.sub.to_string();
+      let sub = sub.substitution.to_string();
       format!("{sub}|{labels}")
     })
     .join(delimiter)
 }
 
 #[inline]
-pub fn format_nuc_deletions(deletions: &[NucDelFull], delimiter: &str) -> String {
-  deletions
-    .iter()
-    .map(|del| del.del.to_range().to_string())
-    .join(delimiter)
+pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> String {
+  deletions.iter().map(|del| del.range().to_string()).join(delimiter)
 }
 
 #[inline]
@@ -682,7 +679,7 @@ pub fn format_non_acgtns(non_acgtns: &[NucRange], delimiter: &str) -> String {
     .iter()
     .map(|non_acgtn| {
       let nuc = from_nuc(non_acgtn.letter);
-      let range = &non_acgtn.to_range().to_string();
+      let range = &non_acgtn.range().to_string();
       format!("{nuc}:{range}")
     })
     .join(delimiter)
@@ -692,7 +689,7 @@ pub fn format_non_acgtns(non_acgtns: &[NucRange], delimiter: &str) -> String {
 pub fn format_missings(missings: &[NucRange], delimiter: &str) -> String {
   missings
     .iter()
-    .map(|missing| missing.to_range().to_string())
+    .map(|missing| missing.range().to_string())
     .join(delimiter)
 }
 
@@ -709,25 +706,25 @@ pub fn format_pcr_primer_changes(pcr_primer_changes: &[PcrPrimerChange], delimit
 }
 
 #[inline]
-pub fn format_aa_substitutions(substitutions: &[AaSubFull], delimiter: &str) -> String {
-  substitutions.iter().map(|sub| sub.sub.to_string()).join(delimiter)
+pub fn format_aa_substitutions(aa_subs: &[AaSub], delimiter: &str) -> String {
+  aa_subs.iter().map(ToString::to_string).join(delimiter)
 }
 
 #[inline]
-pub fn format_aa_deletions(substitutions: &[AaDelFull], delimiter: &str) -> String {
-  substitutions.iter().map(|del| del.del.to_string()).join(delimiter)
-}
-
-#[inline]
-pub fn format_aa_insertion(AaIns { gene, ins, pos }: &AaIns) -> String {
-  let ins_str = from_aa_seq(ins);
-  let pos_one_based = pos + 1;
-  format!("{gene}:{pos_one_based}:{ins_str}")
+pub fn format_aa_deletions(aa_dels: &[AaDel], delimiter: &str) -> String {
+  aa_dels.iter().map(ToString::to_string).join(delimiter)
 }
 
 #[inline]
 pub fn format_aa_insertions(insertions: &[AaIns], delimiter: &str) -> String {
-  insertions.iter().map(format_aa_insertion).join(delimiter)
+  insertions
+    .iter()
+    .map(|AaIns { gene, ins, pos }: &AaIns| {
+      let ins_str = from_aa_seq(ins);
+      let pos_one_based = pos + 1;
+      format!("{gene}:{pos_one_based}:{ins_str}")
+    })
+    .join(delimiter)
 }
 
 #[inline]
@@ -736,7 +733,7 @@ pub fn format_unknown_aa_ranges(unknown_aa_ranges: &[GeneAaRange], delimiter: &s
     .iter()
     .flat_map(|GeneAaRange { gene_name, ranges, .. }: &GeneAaRange| {
       ranges.iter().map(move |range| {
-        let range_str = range.to_range().to_string();
+        let range_str = range.range().to_string();
         format!("{gene_name}:{range_str}")
       })
     })
@@ -756,36 +753,11 @@ pub fn format_frame_shifts(frame_shifts: &[FrameShift], delimiter: &str) -> Stri
 }
 
 #[inline]
-pub fn format_aa_insertions_from_translations(translations: &[Translation], delimiter: &str) -> String {
-  translations
-    .iter()
-    .map(
-      |Translation {
-         gene_name, insertions, ..
-       }| {
-        insertions
-          .iter()
-          .cloned()
-          .map(|Insertion::<Aa> { pos, ins }| {
-            format_aa_insertion(&AaIns {
-              gene: gene_name.clone(),
-              pos,
-              ins,
-            })
-          })
-          .join(";")
-      },
-    )
-    .filter(|s| !s.is_empty())
-    .join(delimiter)
-}
-
-#[inline]
 pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = Range::new(snp.start, snp.end).to_string();
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
       let number_of_snps = snp.number_of_snps;
       format!("{range}:{number_of_snps}")
     })
@@ -832,10 +804,10 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
     .map(
       |AaMotif {
          name,
-         gene,
+         cds,
          position,
          seq,
-       }| format!("{gene}:{}:{seq}", position + 1),
+       }| format!("{}:{}:{seq}", cds, position + 1),
     )
     .join(";")
 }

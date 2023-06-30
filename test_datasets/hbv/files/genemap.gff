@@ -1,0 +1,16 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region NC_003977.2 1 3182
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=10407
+NC_003977.2	RefSeq	region	1	3182	.	+	.	ID=NC_003977.2:1..3182;Dbxref=taxon:10407;Is_circular=true;gbkey=Src;genome=genomic;mol_type=genomic DNA;strain=ayw
+NC_003977.2	RefSeq	gene	1376	1840	.	.	.	Name=X;ID=gene-X
+NC_003977.2	RefSeq	CDS	1376	1840	.	+	0	Name=X;gene=X;Parent=gene-X;gbkey=CDS;locus_tag=HBVgp3;product=X protein;protein_id=YP_009173867.1;ID=cds-YP_009173867.1;Dbxref=GenBank:YP_009173867.1,GeneID:944566
+NC_003977.2	RefSeq	gene	1816	4807	.	.	.	Name=C;gene=C;ID=gene-C
+NC_003977.2	RefSeq	CDS	1816	2454	.	+	0	Name=pre-capsid;gene=C;Parent=gene-C;gbkey=CDS;locus_tag=HBVgp4;Note=precursor;protein_id=YP_009173857.1;ID=cds-YP_009173857.1;product=pre-capsid protein;Dbxref=GOA:P03146,InterPro:IPR002006,UniProtKB/Swiss-Prot:P03146,GenBank:YP_009173857.1,GeneID:944568
+NC_003977.2	RefSeq	CDS	1903	2454	.	+	0	Name=capsid;gene=C;Parent=gene-C;gbkey=CDS;locus_tag=HBVgp4;product=capsid protein;protein_id=YP_009173868.3;ID=cds-YP_009173868.3;Dbxref=GenBank:YP_009173868.3,GeneID:944568
+NC_003977.2	RefSeq	CDS	2309	4807	.	+	0	Name=pol;gene=P;Parent=gene-C;gbkey=CDS;locus_tag=HBVgp1;product=polymerase;protein_id=YP_009173866.1;ID=cds-YP_009173866.1;Dbxref=GenBank:YP_009173866.1,GeneID:944565
+NC_003977.2	RefSeq	gene	2850	4019	.	.	.	Name=S;ID=gene-S
+NC_003977.2	RefSeq	CDS	2850	4019	.	+	0	Name=envL;gene=S;Parent=gene-S;gbkey=CDS;locus_tag=HBVgp2;protein_id=YP_009173869.1;ID=cds-YP_009173869.1;product=large envelope protein;Dbxref=GenBank:YP_009173869.1,GeneID:944569
+NC_003977.2	RefSeq	CDS	3174	4019	.	+	0	Name=envM;gene=S;Parent=gene-S;gbkey=CDS;locus_tag=HBVgp2;protein_id=YP_009173870.1;ID=cds-YP_009173870.1;product=middle envelope protein;Dbxref=GenBank:YP_009173870.1,GeneID:944569
+NC_003977.2	RefSeq	CDS	157	837	.	+	0	Name=envS;gene=S;Parent=gene-S;gbkey=CDS;locus_tag=HBVgp2;protein_id=YP_009173871.1;ID=cds-YP_009173871.1;product=small envelope protein;Dbxref=GenBank:YP_009173871.1,GeneID:944569

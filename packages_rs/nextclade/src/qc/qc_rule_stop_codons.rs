@@ -1,14 +1,9 @@
-use crate::align::backtrace::AlignmentOutput;
-use crate::io::aa::Aa;
-use crate::io::nuc::Nuc;
 use crate::qc::qc_config::{QcRulesConfigStopCodons, StopCodonLocation};
 use crate::qc::qc_run::{QcRule, QcStatus};
-use crate::translate::translate_genes::Translation;
-use crate::utils::error::keep_ok;
-use eyre::Report;
+use crate::translate::translate_genes::{CdsTranslation, Translation};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultStopCodons {
   pub score: f64,
@@ -25,25 +20,21 @@ impl QcRule for QcResultStopCodons {
   }
 }
 
-pub fn rule_stop_codons(translations: &[Translation], config: &QcRulesConfigStopCodons) -> Option<QcResultStopCodons> {
+pub fn rule_stop_codons(translation: &Translation, config: &QcRulesConfigStopCodons) -> Option<QcResultStopCodons> {
   if !config.enabled {
     return None;
   }
 
   let mut stop_codons = Vec::<StopCodonLocation>::new();
   let mut stop_codons_ignored = Vec::<StopCodonLocation>::new();
-  for translation in translations {
-    let Translation {
-      gene_name,
-      seq: peptide,
-      ..
-    } = translation;
+  for cds_tr in translation.cdses() {
+    let CdsTranslation { name, seq: peptide, .. } = cds_tr;
 
     let len_minus_one = peptide.len() - 1; // Minus one to ignore valid stop codon at the end
     for (codon, aa) in peptide.iter().enumerate().take(len_minus_one) {
       if aa.is_stop() {
         let stop_codon = StopCodonLocation {
-          gene_name: gene_name.clone(),
+          gene_name: name.clone(),
           codon,
         };
 

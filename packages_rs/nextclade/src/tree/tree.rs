@@ -3,10 +3,11 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::graph::edge::GraphEdge;
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, GraphNodeKey};
-use crate::io::aa::Aa;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::nuc::Nuc;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
-use crate::io::nuc::Nuc;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -33,7 +34,7 @@ impl GraphEdge for AuspiceTreeEdge {}
 
 pub type AuspiceGraph = Graph<AuspiceTreeNode, AuspiceTreeEdge>;
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttr {
   pub value: String,
 
@@ -50,7 +51,7 @@ impl TreeNodeAttr {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrF64 {
   pub value: f64,
 
@@ -67,7 +68,7 @@ impl TreeNodeAttrF64 {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
@@ -75,7 +76,7 @@ pub struct TreeBranchAttrs {
   pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrs {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub div: Option<f64>,
@@ -139,15 +140,15 @@ pub struct TreeNodeAttrs {
 #[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
   pub id: usize,
-  pub substitutions: BTreeMap<usize, Nuc>,
-  pub mutations: BTreeMap<usize, Nuc>,
+  pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
+  pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub private_mutations: PrivateMutationsMinimal,
-  pub aa_substitutions: BTreeMap<String, BTreeMap<usize, Aa>>,
-  pub aa_mutations: BTreeMap<String, BTreeMap<usize, Aa>>,
+  pub aa_substitutions: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
+  pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   pub is_ref_node: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeNode {
   pub name: String,
 
@@ -200,7 +201,7 @@ impl AuspiceTreeNode {
 
 impl GraphNode for AuspiceTreeNode {}
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CladeNodeAttrKeyDesc {
   pub name: String,
@@ -210,17 +211,17 @@ pub struct CladeNodeAttrKeyDesc {
   pub hide_in_web: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   pub clade_node_attrs: Option<Vec<CladeNodeAttrKeyDesc>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
   pub nextclade: Option<AuspiceMetaExtensionsNextclade>,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 pub struct AuspiceColoring {
   #[serde(rename = "type")]
   pub type_: String,
@@ -234,7 +235,7 @@ pub struct AuspiceColoring {
   pub scale: Vec<[String; 2]>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceDisplayDefaults {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub branch_label: Option<String>,
@@ -246,7 +247,7 @@ pub struct AuspiceDisplayDefaults {
   pub distance_measure: Option<String>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
   pub extensions: Option<AuspiceMetaExtensions>,
 
@@ -314,7 +315,7 @@ pub struct TreeTempData {
   pub divergence_units: DivergenceUnits,
 }
 
-#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTree {
   pub meta: AuspiceTreeMeta,
 

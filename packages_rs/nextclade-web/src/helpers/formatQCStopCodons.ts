@@ -2,13 +2,12 @@ import { uniq } from 'lodash'
 
 import type { QcResultStopCodons } from 'src/types'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QcStatus } from 'src/types'
 
 export function formatQCStopCodons<TFunction extends TFunctionInterface>(
   t: TFunction,
   qcStopCodons?: QcResultStopCodons,
 ) {
-  if (!qcStopCodons || qcStopCodons.status === QcStatus.good) {
+  if (!qcStopCodons || qcStopCodons.status === 'good') {
     return undefined
   }
 

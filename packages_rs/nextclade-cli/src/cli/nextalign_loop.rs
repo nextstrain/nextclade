@@ -6,10 +6,10 @@ use eyre::{Report, WrapErr};
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing};
+use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
+use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use nextclade::io::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::gff3::read_gff3_file;
-use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing};
 use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::types::outputs::NextalignOutputs;
@@ -60,11 +60,13 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
   let gene_map = match input_gene_map {
     Some(input_gene_map) => {
-      let gene_map = read_gff3_file(&input_gene_map)?;
+      let gene_map = GeneMap::from_file(input_gene_map)?;
       filter_gene_map(Some(gene_map), &genes)?
     }
     None => GeneMap::new(),
   };
+
+  info!("Gene map:\n{}", gene_map_to_table_string(&gene_map)?);
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, &gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);

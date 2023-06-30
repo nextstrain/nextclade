@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use nextclade::align::seed_match::seed_match;
-use nextclade::io::nuc::to_nuc_seq;
+use nextclade::alphabet::nuc::to_nuc_seq;
 
 pub fn bench_seed_match(c: &mut Criterion) {
   let kmer = black_box(to_nuc_seq("ACG").unwrap());

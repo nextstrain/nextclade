@@ -1,101 +1,155 @@
-use crate::utils::range::Range;
+use crate::features::feature_group::FeatureGroup;
+use crate::gene::cds::Cds;
+use crate::utils::collections::take_exactly_one;
+use eyre::{eyre, Report, WrapErr};
+use itertools::Itertools;
+use maplit::hashmap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema)]
 pub enum GeneStrand {
   #[serde(rename = "+")]
   Forward,
   #[serde(rename = "-")]
   Reverse,
-  #[serde(rename = ".")]
-  Unknown,
+}
+
+impl Default for GeneStrand {
+  fn default() -> Self {
+    Self::Forward
+  }
+}
+
+impl Display for GeneStrand {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    self.serialize(f)
+  }
 }
 
 impl From<bio_types::strand::Strand> for GeneStrand {
   fn from(s: bio_types::strand::Strand) -> Self {
     match s {
-      bio_types::strand::Strand::Forward => Self::Forward,
+      // NOTE: assume 'forward' strand by default because 'unknown' does not make sense in this application
+      bio_types::strand::Strand::Forward | bio_types::strand::Strand::Unknown => Self::Forward,
       bio_types::strand::Strand::Reverse => Self::Reverse,
-      bio_types::strand::Strand::Unknown => Self::Unknown,
     }
   }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Gene {
-  pub gene_name: String,
-  pub start: usize,
-  pub end: usize,
-  pub strand: GeneStrand,
-  pub frame: i32,
+  pub index: usize,
+  pub id: String,
+  pub name: String,
+  pub cdses: Vec<Cds>,
+  pub exceptions: Vec<String>,
+  pub attributes: HashMap<String, Vec<String>>,
+  #[serde(skip)]
+  pub source_record: Option<String>,
+  pub compat_is_cds: bool,
+  pub color: Option<String>,
 }
 
 impl Gene {
-  #[inline]
-  pub const fn len(&self) -> usize {
-    self.end - self.start
+  pub fn from_feature_group(feature_group: &FeatureGroup) -> Result<Self, Report> {
+    assert_eq!(feature_group.feature_type, "gene");
+
+    let feature = take_exactly_one(&feature_group.features).wrap_err_with(|| {
+      eyre!(
+        "When processing feature group '{}' ('{}') of type '{}': genes must consist of exactly one feature",
+        feature_group.name,
+        feature_group.id,
+        feature_group.feature_type
+      )
+    })?;
+
+    let mut cdses = find_cdses(&feature_group.children)?;
+
+    // HACK: COMPAT: If there are no CDSes in this gene, then pretend the whole gene is a CDS
+    if cdses.is_empty() {
+      cdses.push(Cds::from_gene(feature)?);
+    }
+
+    Ok(Self {
+      index: feature.index,
+      id: feature.id.clone(),
+      name: feature.name.clone(),
+      cdses,
+      exceptions: feature.exceptions.clone(),
+      attributes: feature.attributes.clone(),
+      source_record: feature.source_record.clone(),
+      compat_is_cds: false,
+      color: None,
+    })
+  }
+
+  /// HACK: COMPATIBILITY: if there are no gene records, pretend that CDS records describe full genes
+  pub fn from_cds(cds: &Cds) -> Result<Self, Report> {
+    let index = 0;
+    let id = cds.segments.iter().map(|seg| &seg.id).unique().join("+");
+    let name = cds.segments.iter().map(|seg| &seg.name).unique().join("+");
+    let exceptions = cds
+      .segments
+      .iter()
+      .flat_map(|seg| &seg.exceptions)
+      .unique()
+      .cloned()
+      .collect_vec();
+
+    Ok(Self {
+      index,
+      id,
+      name,
+      cdses: vec![cds.clone()],
+      exceptions,
+      attributes: hashmap!(),
+      source_record: None,
+      compat_is_cds: true,
+      color: None,
+    })
   }
 
   #[inline]
-  pub const fn len_codon(&self) -> usize {
-    (self.len() - self.len() % 3) / 3
+  pub fn len(&self) -> usize {
+    self.cdses.iter().map(Cds::len).sum()
   }
 
   #[inline]
-  pub const fn is_empty(&self) -> bool {
+  pub fn is_empty(&self) -> bool {
     self.len() == 0
   }
 
-  /// Converts relative nucleotide position inside gene (relative to gene start) to absolute position in the
-  /// reference nucleotide sequence
   #[inline]
-  pub fn nuc_rel_to_abs(&self, nuc_ref_rel: usize) -> usize {
-    debug_assert!(
-      nuc_ref_rel < self.len(),
-      "Position should be within the gene:\nnuc_ref_rel={nuc_ref_rel:},\ngene.len()={self:#?}"
-    );
-
-    if self.strand == GeneStrand::Reverse {
-      self.end - nuc_ref_rel
-    } else {
-      self.start + nuc_ref_rel
-    }
+  pub fn len_codon(&self) -> usize {
+    (self.len() - self.len() % 3) / 3
   }
 
-  /// Converts codon index into absolute position in the reference nucleotide sequence
-  #[inline]
-  pub const fn codon_to_nuc_position(&self, codon: usize) -> usize {
-    codon * 3
+  pub fn name_and_type(&self) -> String {
+    format!("Gene '{}'", self.name)
+  }
+}
+
+pub fn find_cdses(feature_groups: &[FeatureGroup]) -> Result<Vec<Cds>, Report> {
+  let mut cdses = vec![];
+  feature_groups
+    .iter()
+    .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, &mut cdses))?;
+  Ok(cdses)
+}
+
+fn find_cdses_recursive(feature_group: &FeatureGroup, cdses: &mut Vec<Cds>) -> Result<(), Report> {
+  if feature_group.feature_type == "CDS" {
+    let cds = Cds::from_feature_group(feature_group)
+      .wrap_err_with(|| eyre!("When processing CDS, '{}'", feature_group.name))?;
+    cdses.push(cds);
   }
 
-  /// Converts a range of codon indices into a range of nucleotides within the gene
-  #[inline]
-  pub const fn codon_to_nuc_range(&self, codon_range: &Range) -> Range {
-    let &Range { begin, end } = codon_range;
-    Range {
-      begin: self.codon_to_nuc_position(begin),
-      end: self.codon_to_nuc_position(end),
-    }
-  }
-
-  /// Converts nucleotide position to codon index
-  #[inline]
-  pub const fn nuc_to_codon_position(&self, nuc_rel_ref: usize) -> usize {
-    // Make sure the nucleotide position is adjusted to codon boundary before the division
-    // TODO: ensure that adjustment direction is correct for reverse strands
-    let nuc_rel_ref_adj = nuc_rel_ref + (3 - nuc_rel_ref % 3) % 3;
-
-    nuc_rel_ref_adj / 3
-  }
-
-  /// Converts a nucleotide range within the gene to a range of codon indices
-  #[inline]
-  pub const fn nuc_to_codon_range(&self, nuc_rel_ref: &Range) -> Range {
-    let &Range { begin, end } = nuc_rel_ref;
-    Range {
-      begin: self.nuc_to_codon_position(begin),
-      end: self.nuc_to_codon_position(end),
-    }
-  }
+  feature_group
+    .children
+    .iter()
+    .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, cdses))
 }

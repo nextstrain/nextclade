@@ -1,5 +1,5 @@
+use crate::gene::gene_map::GeneMap;
 use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
-use crate::io::gene_map::GeneMap;
 use crate::io::nextclade_csv::format_failed_genes;
 use crate::types::outputs::PeptideWarning;
 use eyre::Report;
@@ -7,7 +7,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorCsvEntry<'a, 'b> {
   pub seq_name: &'a str,
@@ -58,7 +58,7 @@ impl<'a> ErrorsCsvWriter<'a> {
   }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorsFromWeb {
   seq_name: String,

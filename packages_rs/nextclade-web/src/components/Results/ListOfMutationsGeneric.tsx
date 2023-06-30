@@ -1,13 +1,13 @@
 import React from 'react'
 
-import type { NucleotideSubstitution } from 'src/types'
+import type { NucSub } from 'src/types'
 import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 
 export interface ListOfMutationsGenericProps {
-  substitutions: NucleotideSubstitution[]
+  substitutions: NucSub[]
 }
 
 export function ListOfMutationsGeneric({ substitutions }: ListOfMutationsGenericProps) {

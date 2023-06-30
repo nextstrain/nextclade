@@ -66,6 +66,12 @@ export interface DatasetSelectorListProps {
   onDatasetHighlighted(dataset?: Dataset): void
 }
 
+function generateDatasetId(dataset: Dataset) {
+  return Object.entries(dataset.attributes)
+    .map(([key, attr]) => `${key}=${attr.value}`)
+    .join(';')
+}
+
 export function DatasetSelectorList({
   datasets,
   searchTerm,
@@ -92,7 +98,7 @@ export function DatasetSelectorList({
         {[itemsStartWith, itemsInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
-              key={dataset.id}
+              key={generateDatasetId(dataset)}
               dataset={dataset}
               onClick={onItemClick(dataset)}
               isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
@@ -103,7 +109,7 @@ export function DatasetSelectorList({
         {[itemsNotInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
-              key={dataset.id}
+              key={generateDatasetId(dataset)}
               dataset={dataset}
               onClick={onItemClick(dataset)}
               isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}

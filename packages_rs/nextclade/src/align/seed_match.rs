@@ -1,6 +1,6 @@
 use std::cmp;
 
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 
 pub struct SeedMatchResult {
   pub ref_pos: usize,
@@ -66,7 +66,7 @@ pub fn seed_match<L: Letter<L>>(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
+  use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

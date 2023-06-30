@@ -24,9 +24,10 @@ import {
   analysisResultAtom,
   analysisResultsAtom,
   analysisStatusGlobalAtom,
+  cdsesAtom,
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
-  geneMapAtom,
+  genesAtom,
   genomeSizeAtom,
   phenotypeAttrDescsAtom,
   treeAtom,
@@ -68,14 +69,18 @@ export function useRunAnalysis() {
             set(analysisStatusGlobalAtom, status)
           },
           onInitialData({
-            geneMap,
+            genes,
             genomeSize,
             cladeNodeAttrKeyDescs,
             phenotypeAttrDescs,
             aaMotifsDescs,
             csvColumnConfig,
           }) {
-            set(geneMapAtom, geneMap)
+            set(genesAtom, genes)
+            set(
+              cdsesAtom,
+              genes.flatMap((gene) => gene.cdses),
+            )
             set(genomeSizeAtom, genomeSize)
             set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs)
             set(phenotypeAttrDescsAtom, phenotypeAttrDescs)

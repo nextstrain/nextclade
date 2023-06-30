@@ -1,10 +1,10 @@
+use crate::alphabet::nuc::is_nuc_match;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primers::PcrPrimer;
-use crate::io::nuc::is_nuc_match;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PcrPrimerChange {
   pub primer: PcrPrimer,
@@ -49,5 +49,5 @@ fn should_report_primer_mutation(sub: &NucSub, primer: &PcrPrimer) -> bool {
   return !primer
     .non_acgts
     .iter()
-    .any(|non_acgt| non_acgt.pos == sub.pos && is_nuc_match(non_acgt.qry, sub.qry));
+    .any(|non_acgt| non_acgt.pos == sub.pos && is_nuc_match(non_acgt.qry, sub.qry_nuc));
 }

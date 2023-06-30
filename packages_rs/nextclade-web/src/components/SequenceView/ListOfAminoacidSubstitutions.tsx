@@ -2,17 +2,17 @@ import React from 'react'
 import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
 
-import type { AminoacidSubstitution } from 'src/types'
+import type { AaSub } from 'src/types'
 import { geneOrderPreferenceAtom } from 'src/state/dataset.state'
 import { formatAAMutation } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
-import { sortByGenes } from './sortByGenes'
+import { sortByCdsName } from './sortByCdsName'
 
 export interface ListOfAminoacidMutationsProps {
-  aminoacidSubstitutions: AminoacidSubstitution[]
+  aminoacidSubstitutions: AaSub[]
 }
 
 export function ListOfAminoacidSubstitutions({ aminoacidSubstitutions }: ListOfAminoacidMutationsProps) {
@@ -24,7 +24,7 @@ export function ListOfAminoacidSubstitutions({ aminoacidSubstitutions }: ListOfA
   const maxRows = Math.min(8, totalMutations)
   const numCols = 8
   const substitutionsSelected = copy(aminoacidSubstitutions)
-    .sort(sortByGenes(geneOrderPreference))
+    .sort(sortByCdsName(geneOrderPreference))
     .slice(0, maxRows * numCols)
 
   const columns = splitToRows(substitutionsSelected, { maxRows })

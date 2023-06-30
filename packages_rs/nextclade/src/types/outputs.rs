@@ -1,44 +1,47 @@
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
-use crate::analyze::aa_changes_group::AaChangeGroup;
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::alphabet::nuc::Nuc;
+use crate::analyze::aa_changes::AaChangesGroup;
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
-use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
+use crate::analyze::nuc_del::NucDelRange;
+use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
+use crate::coord::coord_map_global::CoordMapGlobal;
+use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::io::json::json_parse;
-use crate::io::nuc::Nuc;
 use crate::qc::qc_run::QcResult;
-use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use crate::utils::range::Range;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PeptideWarning {
   pub gene_name: String,
   pub warning: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextalignOutputs {
-  pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
-  pub translations: Vec<Translation>,
+  pub stripped: StripInsertionsResult<Nuc>,
+  pub translation: Translation,
+  pub aa_insertions: Vec<AaIns>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,
-  pub coord_map: CoordMap,
+  pub coord_map_global: CoordMapGlobal,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeValue {
   pub name: String,
@@ -46,14 +49,14 @@ pub struct PhenotypeValue {
   pub value: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
-  pub substitutions: Vec<NucSubFull>,
+  pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
-  pub deletions: Vec<NucDelFull>,
+  pub deletions: Vec<NucDelRange>,
   pub total_deletions: usize,
   pub insertions: Vec<Insertion<Nuc>>,
   pub total_insertions: usize,
@@ -66,19 +69,20 @@ pub struct NextcladeOutputs {
   pub nucleotide_composition: BTreeMap<Nuc, usize>,
   pub frame_shifts: Vec<FrameShift>,
   pub total_frame_shifts: usize,
-  pub aa_substitutions: Vec<AaSubFull>,
+  pub aa_substitutions: Vec<AaSub>,
   pub total_aminoacid_substitutions: usize,
-  pub aa_deletions: Vec<AaDelFull>,
+  pub aa_deletions: Vec<AaDel>,
   pub total_aminoacid_deletions: usize,
   pub aa_insertions: Vec<AaIns>,
   pub total_aminoacid_insertions: usize,
   pub unknown_aa_ranges: Vec<GeneAaRange>,
   pub total_unknown_aa: usize,
-  pub aa_changes_groups: Vec<AaChangeGroup>,
-  pub alignment_start: usize,
-  pub alignment_end: usize,
+  pub aa_changes_groups: Vec<AaChangesGroup>,
+  pub nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>>,
+  pub alignment_range: NucRefGlobalRange,
   pub alignment_score: i32,
-  pub aa_alignment_ranges: BTreeMap<String, Range>,
+  pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
+  pub aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
   pub clade: String,
@@ -109,7 +113,7 @@ impl NextcladeOutputs {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeErrorOutputs {
   pub index: usize,
