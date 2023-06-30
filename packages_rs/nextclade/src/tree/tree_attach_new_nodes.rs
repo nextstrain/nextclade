@@ -1,12 +1,11 @@
 use super::tree::DivergenceUnits;
-use crate::analyze::aa_del::AaDelMinimal;
-use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::virus_properties::VirusProperties;
 use crate::io::aa::Aa;
@@ -284,7 +283,7 @@ fn add_child(
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",
-    result.alignment_start, result.alignment_end, result.alignment_score
+    result.alignment_range.begin, result.alignment_range.end, result.alignment_score
   );
 
   let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
@@ -397,7 +396,7 @@ fn convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations: &PrivateNuc
   let dels_as_subs = private_nuc_mutations
     .private_deletions
     .iter()
-    .map(NucDelMinimal::to_sub)
+    .map(NucSub::from)
     .collect_vec();
 
   let mut subs = concat_to_vec(&private_nuc_mutations.private_substitutions, &dels_as_subs);
@@ -410,13 +409,13 @@ fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMut
   let dels_as_subs = private_aa_mutations
     .private_deletions
     .iter()
-    .map(AaDelMinimal::to_sub)
+    .map(AaDel::to_sub)
     .collect_vec();
 
   let mut subs = concat_to_vec(&private_aa_mutations.private_substitutions, &dels_as_subs);
   subs.sort();
 
-  subs.iter().map(AaSubMinimal::to_string_without_gene).collect_vec()
+  subs.iter().map(AaSub::to_string_without_gene).collect_vec()
 }
 
 fn recalculate_private_mutations(

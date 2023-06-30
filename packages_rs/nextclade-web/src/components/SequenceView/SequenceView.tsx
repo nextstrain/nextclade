@@ -39,7 +39,7 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const { index, seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts, insertions } =
+  const { index, seqName, substitutions, missing, deletions, alignmentRange, frameShifts, insertions, nucToAaMuts } =
     sequence
 
   const { t } = useTranslationSafe()
@@ -64,6 +64,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         index={index}
         seqName={seqName}
         substitution={substitution}
+        nucToAaMuts={nucToAaMuts}
         pixelsPerBase={pixelsPerBase}
       />
     )
@@ -72,7 +73,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const missingViews = missing.map((oneMissing) => {
     return (
       <SequenceMarkerMissing
-        key={oneMissing.begin}
+        key={oneMissing.range.begin}
         index={index}
         seqName={seqName}
         missing={oneMissing}
@@ -84,10 +85,11 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const deletionViews = deletions.map((deletion) => {
     return (
       <SequenceMarkerGap
-        key={deletion.start}
+        key={deletion.range.begin}
         index={index}
         seqName={seqName}
         deletion={deletion}
+        nucToAaMuts={nucToAaMuts}
         pixelsPerBase={pixelsPerBase}
       />
     )
@@ -107,7 +109,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
 
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
-      key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
+      key={`${frameShift.geneName}_${frameShift.nucAbs.map((na) => na.begin).join('-')}`}
       index={index}
       seqName={seqName}
       frameShift={frameShift}
@@ -141,7 +143,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         <SequenceMarkerUnsequencedStart
           index={index}
           seqName={seqName}
-          alignmentStart={alignmentStart}
+          alignmentStart={alignmentRange.begin}
           pixelsPerBase={pixelsPerBase}
         />
         {mutationViews}
@@ -152,7 +154,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
           index={index}
           seqName={seqName}
           genomeSize={genomeSize}
-          alignmentEnd={alignmentEnd}
+          alignmentEnd={alignmentRange.end}
           pixelsPerBase={pixelsPerBase}
         />
         {frameShiftMarkers}

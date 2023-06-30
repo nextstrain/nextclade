@@ -4,7 +4,7 @@ import { shade } from 'polished'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
-import type { Aminoacid, AminoacidInsertion, Nucleotide, NucleotideInsertion } from 'src/types'
+import type { Aminoacid, AaIns, Nucleotide, NucleotideInsertion } from 'src/types'
 import { getTextColor } from 'src/helpers/getTextColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
@@ -166,7 +166,7 @@ export function ListOfInsertionsNuc({ insertions }: ListOfInsertionsNucProps) {
 }
 
 export interface ListOfInsertionsAaProps {
-  insertions: AminoacidInsertion[]
+  insertions: AaIns[]
   totalInsertions: number
   isAminoacid?: boolean
 }

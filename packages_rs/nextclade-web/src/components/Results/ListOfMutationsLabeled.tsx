@@ -3,15 +3,14 @@ import React, { useMemo } from 'react'
 import { uniq } from 'lodash'
 import styled from 'styled-components'
 
-import type { NucleotideSubstitutionSimpleLabeled } from 'src/types'
-import { convertSimpleSubToSub } from 'src/types'
+import type { NucSubLabeled } from 'src/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 const MutationLabelBadge = styled.span`
   background-color: ${(props) => props.theme.gray300};
-  border-radius: 3;
+  border-radius: 3px;
   box-shadow: ${(props) => props.theme.shadows.slight};
   margin: 3px 5px;
   padding: 0 3px;
@@ -27,7 +26,7 @@ export function MutationLabelBadgeComponent({ label }: MutationLabelProps) {
 }
 
 export interface ListOfMutationsLabeledProps {
-  mutationsLabeled: NucleotideSubstitutionSimpleLabeled[]
+  mutationsLabeled: NucSubLabeled[]
 }
 
 export function ListOfMutationsLabeled({ mutationsLabeled }: ListOfMutationsLabeledProps) {
@@ -36,8 +35,6 @@ export function ListOfMutationsLabeled({ mutationsLabeled }: ListOfMutationsLabe
   const labeledMutationRows = useMemo(
     () =>
       mutationsLabeled.map(({ substitution, labels }) => {
-        const substitutionConverted = convertSimpleSubToSub(substitution)
-
         let labelsTruncated = uniq(labels)
         let labelsTruncatedStr = ''
         if (labels.length > 6) {
@@ -50,9 +47,9 @@ export function ListOfMutationsLabeled({ mutationsLabeled }: ListOfMutationsLabe
         ))
 
         return (
-          <tr key={substitutionConverted.pos}>
+          <tr key={substitution.pos}>
             <td>
-              <NucleotideMutationBadge mutation={substitutionConverted} />
+              <NucleotideMutationBadge mutation={substitution} />
             </td>
             <td>
               <span>{labelComponents}</span>

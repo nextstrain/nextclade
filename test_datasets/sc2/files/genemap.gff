@@ -1,0 +1,18 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region NC_045512.2 1 29903
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=2697049
+NC_045512.2	RefSeq	region	1	29903	.	+	.	ID=NC_045512.2:1..29903;Dbxref=taxon:2697049;collection-date=Dec-2019;country=China;gb-acronym=SARS-CoV-2;gbkey=Src;genome=genomic;isolate=Wuhan-Hu-1;mol_type=genomic RNA;nat-host=Homo sapiens;old-name=Wuhan seafood market pneumonia virus
+NC_045512.2	RefSeq	CDS	266	13468	.	+	0	Name=orf1ab;gbkey=CDS;gene=ORF1ab;locus_tag=GU280_gp01;protein_id=YP_009724389.1;ID=cds-YP_009724389.1;exception=ribosomal slippage;product=ORF1ab polyprotein;Dbxref=GenBank:YP_009724389.1,GeneID:43740578;Note=pp1ab%3B translated by -1 ribosomal frameshift
+NC_045512.2	RefSeq	CDS	13468	21555	.	+	0	Name=orf1ab;gbkey=CDS;gene=ORF1ab;locus_tag=GU280_gp01;protein_id=YP_009724389.1;ID=cds-YP_009724389.1;exception=ribosomal slippage;product=ORF1ab polyprotein;Dbxref=GenBank:YP_009724389.1,GeneID:43740578;Note=pp1ab%3B translated by -1 ribosomal frameshift
+NC_045512.2	RefSeq	CDS	266	13483	.	+	0	Name=orf1a;gbkey=CDS;Note=pp1a;gene=ORF1ab;locus_tag=GU280_gp01;protein_id=YP_009725295.1;product=ORF1a polyprotein;ID=cds-YP_009725295.1;Dbxref=GenBank:YP_009725295.1,GeneID:43740578
+NC_045512.2	RefSeq	CDS	21563	25384	.	+	0	Name=D;gene=S;gbkey=CDS;locus_tag=GU280_gp02;protein_id=YP_009724390.1;ID=cds-YP_009724390.1;product=surface glycoprotein;Note=structural protein%3B spike protein;Dbxref=GenBank:YP_009724390.1,GeneID:43740568
+NC_045512.2	RefSeq	CDS	25393	26220	.	+	0	Name=orf3a;gbkey=CDS;gene=ORF3a;locus_tag=GU280_gp03;product=ORF3a protein;protein_id=YP_009724391.1;ID=cds-YP_009724391.1;Dbxref=GenBank:YP_009724391.1,GeneID:43740569
+NC_045512.2	RefSeq	CDS	26245	26472	.	+	0	Name=E;gene=E;gbkey=CDS;locus_tag=GU280_gp04;protein_id=YP_009724392.1;product=envelope protein;ID=cds-YP_009724392.1;Dbxref=GenBank:YP_009724392.1,GeneID:43740570;Note=ORF4%3B structural protein%3B E protein
+NC_045512.2	RefSeq	CDS	26523	27191	.	+	0	Name=M;gene=M;gbkey=CDS;locus_tag=GU280_gp05;protein_id=YP_009724393.1;ID=cds-YP_009724393.1;product=membrane glycoprotein;Note=ORF5%3B structural protein;Dbxref=GenBank:YP_009724393.1,GeneID:43740571
+NC_045512.2	RefSeq	CDS	27202	27387	.	+	0	Name=orf6;gbkey=CDS;gene=ORF6;locus_tag=GU280_gp06;product=ORF6 protein;protein_id=YP_009724394.1;ID=cds-YP_009724394.1;Dbxref=GenBank:YP_009724394.1,GeneID:43740572
+NC_045512.2	RefSeq	CDS	27394	27759	.	+	0	Name=orf7a;gbkey=CDS;gene=ORF7a;locus_tag=GU280_gp07;product=ORF7a protein;protein_id=YP_009724395.1;ID=cds-YP_009724395.1;Dbxref=GenBank:YP_009724395.1,GeneID:43740573
+NC_045512.2	RefSeq	CDS	27756	27887	.	+	0	Name=orf7b;gbkey=CDS;gene=ORF7b;product=ORF7b;locus_tag=GU280_gp08;protein_id=YP_009725318.1;ID=cds-YP_009725318.1;Dbxref=GenBank:YP_009725318.1,GeneID:43740574
+NC_045512.2	RefSeq	CDS	27894	28259	.	+	0	Name=orf8;gbkey=CDS;gene=ORF8;locus_tag=GU280_gp09;product=ORF8 protein;protein_id=YP_009724396.1;ID=cds-YP_009724396.1;Dbxref=GenBank:YP_009724396.1,GeneID:43740577
+NC_045512.2	RefSeq	CDS	28274	29533	.	+	0	Name=N;gene=N;gbkey=CDS;locus_tag=GU280_gp10;protein_id=YP_009724397.2;ID=cds-YP_009724397.2;Note=ORF9%3B structural protein;product=nucleocapsid phosphoprotein;Dbxref=GenBank:YP_009724397.2,GeneID:43740575

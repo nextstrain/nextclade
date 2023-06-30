@@ -1,0 +1,23 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ViralProj68289
+#!genome-build-accession NCBI_Assembly:GCF_000892175.1
+##sequence-region NC_015692.1 1 7686
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=889813
+NC_015692.1	RefSeq	region	1	7686	.	+	.	ID=NC_015692.1:1..7686;Dbxref=taxon:889813;Is_circular=true;gbkey=Src;genome=genomic;isolate=CgPV2;mol_type=genomic DNA;nat-host=Colobus guereza
+NC_015692.1	RefSeq	gene	1	450	.	+	.	ID=gene-CgPV2_gp1;Dbxref=GeneID:10842545;Name=E6;gbkey=Gene;gene=E6;gene_biotype=protein_coding;locus_tag=CgPV2_gp1
+NC_015692.1	RefSeq	CDS	1	450	.	+	0	ID=cds-YP_004646338.1;Parent=gene-CgPV2_gp1;Dbxref=Genbank:YP_004646338.1,GeneID:10842545;Name=YP_004646338.1;gbkey=CDS;gene=E6;locus_tag=CgPV2_gp1;product=E6;protein_id=YP_004646338.1
+NC_015692.1	RefSeq	gene	447	752	.	+	.	ID=gene-CgPV2_gp2;Dbxref=GeneID:10842539;Name=E7;gbkey=Gene;gene=E7;gene_biotype=protein_coding;locus_tag=CgPV2_gp2
+NC_015692.1	RefSeq	CDS	447	752	.	+	0	ID=cds-YP_004646339.1;Parent=gene-CgPV2_gp2;Dbxref=Genbank:YP_004646339.1,GeneID:10842539;Name=YP_004646339.1;gbkey=CDS;gene=E7;locus_tag=CgPV2_gp2;product=E7;protein_id=YP_004646339.1
+NC_015692.1	RefSeq	gene	739	2550	.	+	.	ID=gene-CgPV2_gp3;Dbxref=GeneID:10842544;Name=E1;gbkey=Gene;gene=E1;gene_biotype=protein_coding;locus_tag=CgPV2_gp3
+NC_015692.1	RefSeq	CDS	739	2550	.	+	0	ID=cds-YP_004646340.1;Parent=gene-CgPV2_gp3;Dbxref=Genbank:YP_004646340.1,GeneID:10842544;Name=YP_004646340.1;gbkey=CDS;gene=E1;locus_tag=CgPV2_gp3;product=E1;protein_id=YP_004646340.1
+NC_015692.1	RefSeq	gene	2492	3979	.	+	.	ID=gene-CgPV2_gp4;Dbxref=GeneID:10842540;Name=E2;gbkey=Gene;gene=E2;gene_biotype=protein_coding;locus_tag=CgPV2_gp4
+NC_015692.1	RefSeq	CDS	2492	3979	.	+	0	ID=cds-YP_004646341.1;Parent=gene-CgPV2_gp4;Dbxref=Genbank:YP_004646341.1,GeneID:10842540;Name=YP_004646341.1;gbkey=CDS;gene=E2;locus_tag=CgPV2_gp4;product=E2;protein_id=YP_004646341.1
+NC_015692.1	RefSeq	gene	3337	3678	.	+	.	ID=gene-CgPV2_gp5;Dbxref=GeneID:10842541;Name=E4;gbkey=Gene;gene=E4;gene_biotype=other;locus_tag=CgPV2_gp5
+NC_015692.1	RefSeq	sequence_feature	3337	3678	.	+	.	ID=id-CgPV2_gp5;Dbxref=GeneID:10842541;Note=similar to E4 protein;gbkey=misc_feature;gene=E4;locus_tag=CgPV2_gp5
+NC_015692.1	RefSeq	gene	4055	5605	.	+	.	ID=gene-CgPV2_gp6;Dbxref=GeneID:10842542;Name=L2;gbkey=Gene;gene=L2;gene_biotype=protein_coding;locus_tag=CgPV2_gp6
+NC_015692.1	RefSeq	CDS	4055	5605	.	+	0	ID=cds-YP_004646342.1;Parent=gene-CgPV2_gp6;Dbxref=Genbank:YP_004646342.1,GeneID:10842542;Name=YP_004646342.1;gbkey=CDS;gene=L2;locus_tag=CgPV2_gp6;product=L2;protein_id=YP_004646342.1
+NC_015692.1	RefSeq	gene	5621	7171	.	+	.	ID=gene-CgPV2_gp7;Dbxref=GeneID:10842543;Name=L1;gbkey=Gene;gene=L1;gene_biotype=protein_coding;locus_tag=CgPV2_gp7
+NC_015692.1	RefSeq	CDS	5621	7171	.	+	0	ID=cds-YP_004646343.1;Parent=gene-CgPV2_gp7;Dbxref=Genbank:YP_004646343.1,GeneID:10842543;Name=YP_004646343.1;gbkey=CDS;gene=L1;locus_tag=CgPV2_gp7;product=L1;protein_id=YP_004646343.1
+###

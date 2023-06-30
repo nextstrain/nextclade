@@ -1,0 +1,36 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ViralProj15025
+#!genome-build-accession NCBI_Assembly:GCF_000854845.1
+##sequence-region NC_001498.1 1 15894
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=11234
+NC_001498.1	RefSeq	region	1	15894	.	+	.	ID=NC_001498.1:1..15894;Dbxref=taxon:11234;gbkey=Src;genome=genomic;mol_type=viral cRNA;old-name=Measles virus;strain=Ichinose-B95a
+NC_001498.1	RefSeq	gene	56	1744	.	+	.	ID=gene-MeVgp1;Dbxref=GeneID:1489804;Name=N;gbkey=Gene;gene=N;gene_biotype=protein_coding;locus_tag=MeVgp1
+NC_001498.1	RefSeq	mRNA	56	1744	.	+	.	ID=rna-MeVgp1;Parent=gene-MeVgp1;Dbxref=GeneID:1489804;gbkey=mRNA;gene=N;locus_tag=MeVgp1;product=gene N
+NC_001498.1	RefSeq	exon	56	1744	.	+	.	ID=exon-MeVgp1-1;Parent=rna-MeVgp1;Dbxref=GeneID:1489804;gbkey=mRNA;gene=N;locus_tag=MeVgp1;product=gene N
+NC_001498.1	RefSeq	CDS	108	1685	.	+	0	ID=cds-NP_056918.1;Parent=rna-MeVgp1;Dbxref=Genbank:NP_056918.1,GeneID:1489804;Name=NP_056918.1;gbkey=CDS;gene=N;locus_tag=MeVgp1;product=nucleocapsid protein;protein_id=NP_056918.1
+NC_001498.1	RefSeq	gene	1748	3402	.	+	.	ID=gene-MeVgp2;Dbxref=GeneID:1489805;Name=P/V/C;gbkey=Gene;gene=P/V/C;gene_biotype=protein_coding;gene_synonym=P;locus_tag=MeVgp2
+NC_001498.1	RefSeq	CDS	1807	2499	.	+	0	ID=cds-YP_003873249.2;Parent=gene-MeVgp2;Dbxref=Genbank:YP_003873249.2,GeneID:1489805;Name=YP_003873249.2;Note=translated from P/V/C mRNA modified by co-transcriptional insertion of non-templated G at genome position 2499 nt;exception=RNA editing;experiment=antibody studies of V protein in tissue culture cells,in vitro translation of synthetic RNA;gbkey=CDS;gene=P/V/C;locus_tag=MeVgp2;product=V protein;protein_id=YP_003873249.2
+NC_001498.1	RefSeq	CDS	2499	2705	.	+	0	ID=cds-YP_003873249.2;Parent=gene-MeVgp2;Dbxref=Genbank:YP_003873249.2,GeneID:1489805;Name=YP_003873249.2;Note=translated from P/V/C mRNA modified by co-transcriptional insertion of non-templated G at genome position 2499 nt;exception=RNA editing;experiment=antibody studies of V protein in tissue culture cells,in vitro translation of synthetic RNA;gbkey=CDS;gene=P/V/C;locus_tag=MeVgp2;product=V protein;protein_id=YP_003873249.2
+NC_001498.1	RefSeq	mRNA	1748	3402	.	+	.	ID=rna-MeVgp2;Parent=gene-MeVgp2;Dbxref=GeneID:1489805;Note=three proteins are translated from this mRNA%3B translation of phosphoprotein is initiated from an alternative site%3B V protein is translated from mRNA modified by the addition of a non-templated G;experiment=cDNA sequencing;gbkey=mRNA;gene=P/V/C;locus_tag=MeVgp2;product=P/V/C
+NC_001498.1	RefSeq	exon	1748	3402	.	+	.	ID=exon-MeVgp2-1;Parent=rna-MeVgp2;Dbxref=GeneID:1489805;Note=three proteins are translated from this mRNA%3B translation of phosphoprotein is initiated from an alternative site%3B V protein is translated from mRNA modified by the addition of a non-templated G;experiment=cDNA sequencing;gbkey=mRNA;gene=P/V/C;locus_tag=MeVgp2;product=P/V/C
+NC_001498.1	RefSeq	CDS	1807	3330	.	+	0	ID=cds-NP_056919.1;Parent=rna-MeVgp2;Dbxref=Genbank:NP_056919.1,GeneID:1489805;Name=NP_056919.1;gbkey=CDS;gene=P/V/C;locus_tag=MeVgp2;product=phosphoprotein;protein_id=NP_056919.1
+NC_001498.1	RefSeq	CDS	1829	2389	.	+	0	ID=cds-NP_056920.1;Parent=rna-MeVgp2;Dbxref=Genbank:NP_056920.1,GeneID:1489805;Name=NP_056920.1;Note=translated from overlapping reading frame in P/V/C mRNA using alternative start site;experiment=antibody studies of C protein in tissue culture cells;gbkey=CDS;gene=P/V/C;locus_tag=MeVgp2;product=C protein;protein_id=NP_056920.1
+NC_001498.1	RefSeq	gene	3406	4872	.	+	.	ID=gene-MeVgp3;Dbxref=GeneID:1489803;Name=M;gbkey=Gene;gene=M;gene_biotype=protein_coding;locus_tag=MeVgp3
+NC_001498.1	RefSeq	mRNA	3406	4872	.	+	.	ID=rna-MeVgp3;Parent=gene-MeVgp3;Dbxref=GeneID:1489803;gbkey=mRNA;gene=M;locus_tag=MeVgp3;product=M gene
+NC_001498.1	RefSeq	exon	3406	4872	.	+	.	ID=exon-MeVgp3-1;Parent=rna-MeVgp3;Dbxref=GeneID:1489803;gbkey=mRNA;gene=M;locus_tag=MeVgp3;product=M gene
+NC_001498.1	RefSeq	CDS	3438	4445	.	+	0	ID=cds-NP_056921.1;Parent=rna-MeVgp3;Dbxref=Genbank:NP_056921.1,GeneID:1489803;Name=NP_056921.1;gbkey=CDS;gene=M;locus_tag=MeVgp3;product=matrix protein;protein_id=NP_056921.1
+NC_001498.1	RefSeq	gene	4876	7247	.	+	.	ID=gene-MeVgp4;Dbxref=GeneID:1489800;Name=F;gbkey=Gene;gene=F;gene_biotype=protein_coding;locus_tag=MeVgp4
+NC_001498.1	RefSeq	mRNA	4876	7247	.	+	.	ID=rna-MeVgp4;Parent=gene-MeVgp4;Dbxref=GeneID:1489800;gbkey=mRNA;gene=F;locus_tag=MeVgp4;product=F gene
+NC_001498.1	RefSeq	exon	4876	7247	.	+	.	ID=exon-MeVgp4-1;Parent=rna-MeVgp4;Dbxref=GeneID:1489800;gbkey=mRNA;gene=F;locus_tag=MeVgp4;product=F gene
+NC_001498.1	RefSeq	CDS	5458	7110	.	+	0	ID=cds-NP_056922.1;Parent=rna-MeVgp4;Dbxref=Genbank:NP_056922.1,GeneID:1489800;Name=NP_056922.1;gbkey=CDS;gene=F;locus_tag=MeVgp4;product=fusion protein;protein_id=NP_056922.1
+NC_001498.1	RefSeq	gene	7251	9208	.	+	.	ID=gene-MeVgp5;Dbxref=GeneID:1489801;Name=H;gbkey=Gene;gene=H;gene_biotype=protein_coding;locus_tag=MeVgp5
+NC_001498.1	RefSeq	mRNA	7251	9208	.	+	.	ID=rna-MeVgp5;Parent=gene-MeVgp5;Dbxref=GeneID:1489801;gbkey=mRNA;gene=H;locus_tag=MeVgp5;product=H gene
+NC_001498.1	RefSeq	exon	7251	9208	.	+	.	ID=exon-MeVgp5-1;Parent=rna-MeVgp5;Dbxref=GeneID:1489801;gbkey=mRNA;gene=H;locus_tag=MeVgp5;product=H gene
+NC_001498.1	RefSeq	CDS	7271	9124	.	+	0	ID=cds-NP_056923.1;Parent=rna-MeVgp5;Dbxref=Genbank:NP_056923.1,GeneID:1489801;Name=NP_056923.1;gbkey=CDS;gene=H;locus_tag=MeVgp5;product=hemagglutinin protein;protein_id=NP_056923.1
+NC_001498.1	RefSeq	gene	9212	15854	.	+	.	ID=gene-MeVgp6;Dbxref=GeneID:1489802;Name=L;gbkey=Gene;gene=L;gene_biotype=protein_coding;locus_tag=MeVgp6
+NC_001498.1	RefSeq	mRNA	9212	15854	.	+	.	ID=rna-MeVgp6;Parent=gene-MeVgp6;Dbxref=GeneID:1489802;gbkey=mRNA;gene=L;locus_tag=MeVgp6;product=L gene
+NC_001498.1	RefSeq	exon	9212	15854	.	+	.	ID=exon-MeVgp6-1;Parent=rna-MeVgp6;Dbxref=GeneID:1489802;gbkey=mRNA;gene=L;locus_tag=MeVgp6;product=L gene
+NC_001498.1	RefSeq	CDS	9234	15785	.	+	0	ID=cds-NP_056924.1;Parent=rna-MeVgp6;Dbxref=Genbank:NP_056924.1,GeneID:1489802;Name=NP_056924.1;gbkey=CDS;gene=L;locus_tag=MeVgp6;product=large polymerase protein;protein_id=NP_056924.1
+###

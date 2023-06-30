@@ -1,40 +1,53 @@
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::{from_nuc, Nuc};
+use crate::analyze::nuc_del::NucDel;
+use crate::coord::position::NucRefGlobalPosition;
 use crate::gene::genotype::Genotype;
-use crate::io::letter::Letter;
-use crate::io::nuc::{from_nuc, Nuc};
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-const NUC_MUT_REGEX: &str = r"((?P<ref>[A-Z-])(?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
+#[serde(rename_all = "camelCase")]
 pub struct NucSub {
-  #[serde(rename = "refNuc")]
-  pub reff: Nuc,
-  pub pos: usize,
-
-  #[serde(rename = "queryNuc")]
-  pub qry: Nuc,
+  pub pos: NucRefGlobalPosition,
+  pub ref_nuc: Nuc,
+  pub qry_nuc: Nuc,
 }
 
 impl NucSub {
   /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
   pub fn is_del(&self) -> bool {
-    self.qry.is_gap()
+    self.qry_nuc.is_gap()
   }
 
   pub const fn genotype(&self) -> Genotype<Nuc> {
     Genotype {
       pos: self.pos,
-      qry: self.qry,
+      qry: self.qry_nuc,
     }
   }
 }
+
+impl Display for NucSub {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    write!(
+      f,
+      "{}{}{}",
+      from_nuc(self.ref_nuc),
+      self.pos + 1,
+      from_nuc(self.qry_nuc)
+    )
+  }
+}
+
+const NUC_MUT_REGEX: &str = r"((?P<ref>[A-Z-])(?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
 impl FromStr for NucSub {
   type Err = Report;
@@ -51,9 +64,13 @@ impl FromStr for NucSub {
       return match (captures.name("ref"), captures.name("pos"), captures.name("qry")) {
         (Some(reff), Some(pos), Some(qry)) => {
           let reff = Nuc::from_string(reff.as_str())?;
-          let pos = parse_pos(pos.as_str())?;
+          let pos = parse_pos(pos.as_str())?.into();
           let qry = Nuc::from_string(qry.as_str())?;
-          Ok(Self { reff, pos, qry })
+          Ok(Self {
+            ref_nuc: reff,
+            pos,
+            qry_nuc: qry,
+          })
         }
         _ => make_error!("Unable to parse nucleotide mutation: '{s}'"),
       };
@@ -62,30 +79,19 @@ impl FromStr for NucSub {
   }
 }
 
-impl ToString for NucSub {
-  fn to_string(&self) -> String {
-    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    format!("{}{}{}", from_nuc(self.reff), self.pos + 1, from_nuc(self.qry))
+impl From<&NucDel> for NucSub {
+  fn from(del: &NucDel) -> Self {
+    Self {
+      pos: del.pos,
+      ref_nuc: del.ref_nuc,
+      qry_nuc: Nuc::Gap,
+    }
   }
 }
 
-/// Order substitutions by position, then ref character, then query character
-impl Ord for NucSub {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
-  }
-}
-
-impl PartialOrd for NucSub {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
-  }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSubLabeled {
-  #[serde(rename = "substitution")]
-  pub sub: NucSub,
+  pub substitution: NucSub,
   pub labels: Vec<String>,
 }

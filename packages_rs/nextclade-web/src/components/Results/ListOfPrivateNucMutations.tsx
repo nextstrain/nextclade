@@ -15,22 +15,22 @@ export interface ListOfPrivateNucMutationsProps {
 export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListOfPrivateNucMutationsProps) {
   const { t } = useTranslationSafe()
 
-  const { reversions, labeled, unlabeled } = privateNucMutationsInternal
+  const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutationsInternal
 
   return (
     <div className="d-flex">
       <div className="mr-auto">
         <UlInvisible className="pl-2">
-          {reversions.length > 0 && (
+          {reversionSubstitutions.length > 0 && (
             <LiInvisible>
               <TableSlim className="mb-0">
                 <tbody>
                   <tr>
-                    <td>{t('Reversions ({{ n }})', { n: reversions.length })}</td>
+                    <td>{t('Reversions ({{ n }})', { n: reversionSubstitutions.length })}</td>
                   </tr>
                   <tr>
                     <td>
-                      <ListOfMutationsGeneric substitutions={reversions} />
+                      <ListOfMutationsGeneric substitutions={reversionSubstitutions} />
                     </td>
                   </tr>
                 </tbody>
@@ -38,16 +38,16 @@ export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListO
             </LiInvisible>
           )}
 
-          {labeled.length > 0 && (
+          {labeledSubstitutions.length > 0 && (
             <LiInvisible>
               <TableSlim className="mb-0">
                 <tbody>
                   <tr>
-                    <td>{t('Labeled private mutations ({{ n }})', { n: labeled.length })}</td>
+                    <td>{t('Labeled private mutations ({{ n }})', { n: labeledSubstitutions.length })}</td>
                   </tr>
                   <tr>
                     <td>
-                      <ListOfMutationsLabeled mutationsLabeled={labeled} />
+                      <ListOfMutationsLabeled mutationsLabeled={labeledSubstitutions} />
                     </td>
                   </tr>
                 </tbody>
@@ -55,16 +55,16 @@ export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListO
             </LiInvisible>
           )}
 
-          {unlabeled.length > 0 && (
+          {unlabeledSubstitutions.length > 0 && (
             <LiInvisible>
               <TableSlim className="mb-0">
                 <tbody>
                   <tr>
-                    <td>{t('Unlabeled private mutations ({{ n }})', { n: unlabeled.length })}</td>
+                    <td>{t('Unlabeled private mutations ({{ n }})', { n: unlabeledSubstitutions.length })}</td>
                   </tr>
                   <tr>
                     <td>
-                      <ListOfMutationsGeneric substitutions={unlabeled} />
+                      <ListOfMutationsGeneric substitutions={unlabeledSubstitutions} />
                     </td>
                   </tr>
                 </tbody>

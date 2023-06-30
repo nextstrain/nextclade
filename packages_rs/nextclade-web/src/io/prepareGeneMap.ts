@@ -9,10 +9,19 @@ export function prepareGeneMap(geneMapUnsafe: unknown) {
   }
 
   const geneMapRaw = JSON.parse(geneMapUnsafe) as Record<string, Gene>
-  const geneMap: Gene[] = Object.entries(geneMapRaw).map(([_0, gene], i) => {
-    const color = GENOTYPE_COLORS[(i + 1) % GENOTYPE_COLORS.length]
-    return { ...gene, color }
+
+  const genes: Gene[] = Object.values(geneMapRaw).map((gene, i) => {
+    const geneColor = getColorFromIndex(i)
+    const cdses = gene.cdses.map((cds) => {
+      const segments = cds.segments.map((cdsSeg) => ({ ...cdsSeg, color: geneColor }))
+      return { ...cds, segments, color: geneColor }
+    })
+    return { ...gene, cdses, color: geneColor }
   })
 
-  return geneMap
+  return genes
+}
+
+function getColorFromIndex(i: number): string {
+  return GENOTYPE_COLORS[(i + 1) % GENOTYPE_COLORS.length]
 }

@@ -3,34 +3,34 @@ use crate::cli::nextclade_cli::{
 };
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::{
-  dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFiles,
+  dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFilesContent,
 };
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
+use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
 use nextclade::io::nextclade_csv::CsvColumnConfig;
-use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
+use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place_subtree;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use nextclade::utils::range::Range;
-use nextclade::{make_error, make_internal_report};
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
-  pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report>,
+  pub outputs_or_err: Result<(Vec<Nuc>, Translation, NextcladeOutputs), Report>,
 }
 
 pub struct DatasetFilePaths {
@@ -42,7 +42,10 @@ pub struct DatasetFilePaths {
   input_gene_map: PathBuf,
 }
 
-pub fn nextclade_get_inputs(run_args: &NextcladeRunArgs, genes: &Option<Vec<String>>) -> Result<DatasetFiles, Report> {
+pub fn nextclade_get_inputs(
+  run_args: &NextcladeRunArgs,
+  genes: &Option<Vec<String>>,
+) -> Result<DatasetFilesContent, Report> {
   if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
     dataset_str_download_and_load(run_args, dataset_name, genes)
       .wrap_err_with(|| format!("When downloading dataset '{dataset_name}'"))
@@ -104,7 +107,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     alignment_params,
   } = run_args.clone();
 
-  let DatasetFiles {
+  let DatasetFilesContent {
     ref_record,
     virus_properties,
     mut tree,
@@ -126,32 +129,21 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   alignment_params.merge_opt(run_args.alignment_params);
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
+  info!("Gene map:\n{}", gene_map_to_table_string(gene_map)?);
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &{
-    let mut ref_peptides =
-      translate_genes_ref(ref_seq, gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+  let ref_translation =
+    &translate_genes_ref(ref_seq, gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
-    ref_peptides
-      .iter_mut()
-      .try_for_each(|(name, translation)| -> Result<(), Report> {
-        let gene = gene_map
-          .get(&translation.gene_name)
-          .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
-        translation.alignment_range = Range::new(0, gene.len_codon());
+  let ref_cds_translations = ref_translation
+    .genes()
+    .flat_map(|gene| gene.cdses.values())
+    .cloned()
+    .collect_vec();
 
-        Ok(())
-      })?;
-
-    ref_peptides
-  };
-
-  let aa_motifs_ref = &find_aa_motifs(
-    &virus_properties.aa_motifs,
-    &ref_peptides.values().cloned().collect_vec(),
-  )?;
+  let aa_motifs_ref = &find_aa_motifs(&virus_properties.aa_motifs, ref_translation)?;
 
   let should_keep_outputs = output_tree.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
@@ -171,7 +163,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
-    tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides).unwrap();
+    tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
     let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
@@ -198,6 +190,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       let gap_open_close_nuc = &gap_open_close_nuc;
       let gap_open_close_aa = &gap_open_close_aa;
       let alignment_params = &alignment_params;
+      let ref_translation = &ref_translation;
       let primers = &primers;
       let tree = &tree;
       let qc_config = &qc_config;
@@ -221,7 +214,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               &seq_name,
               &qry_seq,
               ref_seq,
-              ref_peptides,
+              ref_translation,
               aa_motifs_ref,
               gene_map,
               primers,
@@ -277,7 +270,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
       if include_reference {
         output_writer
-          .write_ref(&ref_record, ref_peptides)
+          .write_ref(&ref_record, ref_translation)
           .wrap_err("When writing output record for ref sequence")
           .unwrap();
       }

@@ -2,8 +2,7 @@ import React, { useMemo } from 'react'
 import { range } from 'lodash'
 import { XAxis, ComposedChart, ResponsiveContainer } from 'recharts'
 import { useRecoilValue } from 'recoil'
-
-import { geneMapAtom, genomeSizeAtom } from 'src/state/results.state'
+import { cdsesAtom, genomeSizeAtom } from 'src/state/results.state'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { getAxisLength } from './getAxisLength'
 
@@ -26,16 +25,16 @@ export function getTickSize(axisLength: number) {
 
 export function GeneMapAxis() {
   const genomeSize = useRecoilValue(genomeSizeAtom)
-  const geneMap = useRecoilValue(geneMapAtom)
+  const cdses = useRecoilValue(cdsesAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
 
   const { ticks, domain } = useMemo(() => {
-    const length = getAxisLength(genomeSize, viewedGene, geneMap)
+    const length = getAxisLength(genomeSize, viewedGene, cdses)
     const tickSize = getTickSize(length)
     const domain: [number, number] = [0, length]
     const ticks = range(0, length, tickSize)
     return { ticks, domain }
-  }, [geneMap, genomeSize, viewedGene])
+  }, [cdses, genomeSize, viewedGene])
 
   return (
     <ResponsiveContainer width="100%" height={30}>

@@ -1,16 +1,16 @@
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, nextclade_dataset_http_get, DatasetHttpGetParams};
-use crate::dataset::dataset::Dataset;
 use crate::io::http_client::{HttpClient, ProxyConfig};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
+use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaRecord};
 use nextclade::io::fs::absolute_path;
-use nextclade::io::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::gff3::{read_gff3_file, read_gff3_str};
+use nextclade::io::json::json_parse_bytes;
 use nextclade::make_error;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::tree::tree::AuspiceTree;
@@ -21,6 +21,11 @@ use std::io::{BufReader, Read, Seek};
 use std::path::Path;
 use std::str::FromStr;
 use zip::ZipArchive;
+
+#[inline]
+pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsIndexJson, Report> {
+  json_parse_bytes(http.get(&"/index_v2.json")?.as_slice())
+}
 
 pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
   let output_dir = &absolute_path(output_dir)?;
@@ -51,7 +56,7 @@ pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_fil
     .wrap_err_with(|| format!("When writing downloaded dataset zip file to {output_file_path:#?}"))
 }
 
-pub struct DatasetFiles {
+pub struct DatasetFilesContent {
   pub ref_record: FastaRecord,
   pub virus_properties: VirusProperties,
   pub tree: AuspiceTree,
@@ -62,7 +67,7 @@ pub struct DatasetFiles {
 
 pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Result<String, Report> {
   let mut s = String::new();
-  let bytes = zip.by_name(name)?.read_to_string(&mut s);
+  zip.by_name(name)?.read_to_string(&mut s)?;
   Ok(s)
 }
 
@@ -70,7 +75,7 @@ pub fn dataset_zip_load(
   run_args: &NextcladeRunArgs,
   dataset_zip: impl AsRef<Path>,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFiles, Report> {
+) -> Result<DatasetFilesContent, Report> {
   let file = File::open(dataset_zip)?;
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
@@ -101,11 +106,11 @@ pub fn dataset_zip_load(
   )?;
 
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
-    || filter_gene_map(Some(read_gff3_str(&zip_read_str(&mut zip, "genemap.gff")?)?), genes),
-    |input_gene_map| filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes),
+    || filter_gene_map(Some(GeneMap::from_str(zip_read_str(&mut zip, "genemap.gff")?)?), genes),
+    |input_gene_map| filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes),
   )?;
 
-  Ok(DatasetFiles {
+  Ok(DatasetFilesContent {
     ref_record,
     virus_properties,
     tree,
@@ -120,7 +125,7 @@ pub fn dataset_dir_load(
   run_args: NextcladeRunArgs,
   dataset_dir: impl AsRef<Path>,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFiles, Report> {
+) -> Result<DatasetFilesContent, Report> {
   let input_dataset = dataset_dir.as_ref();
   dataset_load_files(DatasetFilePaths {
     input_ref: &run_args.inputs.input_ref.unwrap_or_else(|| input_dataset.join("reference.fasta")),
@@ -135,7 +140,7 @@ pub fn dataset_dir_load(
 pub fn dataset_individual_files_load(
   run_args: &NextcladeRunArgs,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFiles, Report> {
+) -> Result<DatasetFilesContent, Report> {
   #[rustfmt::skip]
   let required_args = &[
     (String::from("--input-ref"), &run_args.inputs.input_ref),
@@ -200,14 +205,14 @@ pub fn dataset_load_files(
     input_gene_map,
   }: DatasetFilePaths,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFiles, Report> {
+) -> Result<DatasetFilesContent, Report> {
   let ref_record = read_one_fasta(input_ref)?;
   let primers = PcrPrimer::from_path(input_pcr_primers, &ref_record.seq)?;
 
-  Ok(DatasetFiles {
+  Ok(DatasetFilesContent {
     ref_record,
     virus_properties: VirusProperties::from_path(input_virus_properties)?,
-    gene_map: filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes)?,
+    gene_map: filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes)?,
     tree: AuspiceTree::from_path(input_tree)?,
     qc_config: QcConfig::from_path(input_qc_config)?,
     primers,
@@ -218,7 +223,7 @@ pub fn dataset_str_download_and_load(
   run_args: &NextcladeRunArgs,
   dataset_name: &str,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFiles, Report> {
+) -> Result<DatasetFilesContent, Report> {
   let verbose = log::max_level() > LevelFilter::Info;
   let mut http = HttpClient::new(&run_args.inputs.server, &ProxyConfig::default(), verbose)?;
 
@@ -271,7 +276,7 @@ pub fn dataset_str_download_and_load(
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
     || {
       filter_gene_map(
-        Some(read_gff3_str(&dataset_file_http_get(
+        Some(GeneMap::from_str(dataset_file_http_get(
           &mut http,
           &dataset,
           "genemap.gff",
@@ -279,10 +284,10 @@ pub fn dataset_str_download_and_load(
         genes,
       )
     },
-    |input_gene_map| filter_gene_map(Some(read_gff3_file(&input_gene_map)?), genes),
+    |input_gene_map| filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes),
   )?;
 
-  Ok(DatasetFiles {
+  Ok(DatasetFilesContent {
     ref_record,
     virus_properties,
     tree,
