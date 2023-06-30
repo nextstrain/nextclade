@@ -104,10 +104,7 @@ impl GffCommonInfo {
     let range = NucRefGlobalRange::new(start.into(), end.into());
 
     // NOTE: assume 'forward' strand by default because 'unknown' does not make sense in this application
-    let strand = GeneStrand::Forward;
-    // let strand = record
-    //   .strand()
-    //   .map_or(GeneStrand::Forward, |strand| GeneStrand::from(strand));
+    let strand = record.strand().map_or(GeneStrand::Forward, GeneStrand::from);
 
     let attr_keys = record.attributes().keys().sorted().unique().collect_vec();
 
