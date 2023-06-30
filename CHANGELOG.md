@@ -8,11 +8,11 @@ Nextclade now treats genes only as containers for CDSes ("CDS" - is [coding sequ
 
 ##### Handle fragmentation of genetic features.
 
-A CDS can consist of multiple fragments. They are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is the translated, mutations are detected etc. This implementation allows to handle slippage and  splicing. 
+Handle fragmentation of genetic features. A CDS can consist of multiple fragments. They are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is then translated and the resulting polypeptides are analyzed (mutations are detected etc). This implementation allows to handle slippage and splicing. 
 
 ##### Handle circular genomes.
 
-If genome annotation describes a CDS fragment as circular (wrapping around origin), Nextclade splits it into multiple linear (non-wrapping) fragments.
+If genome annotation describes a CDS fragment as circular (wrapping around origin), Nextclade splits it into multiple linear (non-wrapping) fragments. The translation and analysis is then performed as if it was a linear genome.
 
 ##### Parse regions, genes and CDSes from GFF3 file
 
@@ -24,7 +24,7 @@ The `featuretree` program reads the GFF3 file and displays how features are arra
 
 ##### Genome annotation widget in Nextclade Web
 
-Genome annotation widget in Nextclade Web now shows CDS fragments instead of genes.
+Genome annotations widget in Nextclade Web now shows CDS fragments instead of genes.
 
 
 
@@ -32,7 +32,7 @@ Genome annotation widget in Nextclade Web now shows CDS fragments instead of gen
 
 #### Ensure type safety across programming language boundaries
 
-The new features caused change in major internal data structure and made them more complex. We now generate JSON schema and Typescript typings from Rust code. This allows to find mismatches between parts written indifferent languages, and to avoid bugs related to data types.
+The new features caused change in major internal data structures and made them more complex. We now generate JSON schema and Typescript typings from Rust code. This allows to find mismatches between parts written in different languages, and to avoid bugs related to data types.
 
 #### Make positions and ranges in different coord spaces type-safe
 
