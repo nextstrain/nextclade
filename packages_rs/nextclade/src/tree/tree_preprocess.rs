@@ -43,7 +43,7 @@ pub fn tree_preprocess_in_place(
   Ok(())
 }
 
-pub fn tree_preprocess_in_place_impl_recursive(
+fn tree_preprocess_in_place_impl_recursive(
   id: &mut usize,
   node: &mut AuspiceTreeNode,
   parent_nuc_muts: &mut BTreeMap<NucRefGlobalPosition, Nuc>,

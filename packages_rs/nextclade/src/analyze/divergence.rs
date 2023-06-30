@@ -10,7 +10,7 @@ pub fn calculate_divergence(
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
 
   // Divergence is just number of substitutions compared to the parent node
-  let mut this_div = private_mutations.total_private_substitutions as f64;
+  let mut this_div = private_mutations.private_substitutions.len() as f64;
 
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.

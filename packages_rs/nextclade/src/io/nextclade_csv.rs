@@ -5,7 +5,6 @@ use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
-use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
