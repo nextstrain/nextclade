@@ -34,7 +34,7 @@ impl NucSub {
   }
 
   #[must_use]
-  pub fn invert(&self) -> Self {
+  pub const fn invert(&self) -> Self {
     Self {
       ref_nuc: self.qry_nuc,
       pos: self.pos,

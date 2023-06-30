@@ -1,3 +1,5 @@
+#![allow(deprecated)] // FIXME
+
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use wasm_bindgen::prelude::{JsError, JsValue};

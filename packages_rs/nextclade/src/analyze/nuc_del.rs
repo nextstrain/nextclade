@@ -48,7 +48,7 @@ pub struct NucDel {
 }
 
 impl NucDel {
-  pub fn to_sub(&self) -> NucSub {
+  pub const fn to_sub(&self) -> NucSub {
     NucSub {
       ref_nuc: self.ref_nuc,
       pos: self.pos,
