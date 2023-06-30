@@ -187,6 +187,7 @@ pub struct InternalMutations {
   pub alignment_range: NucRefGlobalRange,
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Eq, Hash, PartialEq, Copy)]
 pub enum NodeType {
   TreeNode(TreeNode),
