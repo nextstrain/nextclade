@@ -153,7 +153,7 @@ async function prepareResultsNdjson(snapshot: Snapshot, worker: ExportWorker) {
 export function useExportNdjson() {
   return useResultsExport(async (filename, snapshot, worker) => {
     const ndjsonStr = await prepareResultsNdjson(snapshot, worker)
-    saveFile(ndjsonStr, filename, 'application/x-ndjson')
+    saveFile(ndjsonStr, filename, 'application/x-ndjson;charset=utf-8')
   })
 }
 
@@ -229,15 +229,17 @@ async function preparePeptideFiles(snapshot: Snapshot) {
   const filesMap = new Map<string, ZipFileDescription>()
 
   for (const { seqName, queryPeptides } of peptides) {
-    for (const { geneName, seq } of queryPeptides) {
-      const file = filesMap.get(geneName)
-      const fastaEntry = `>${seqName}\n${seq}\n`
-      if (file) {
-        file.data = `${file.data}${fastaEntry}`
-      } else {
-        let filename = DEFAULT_EXPORT_PARAMS.filenamePeptidesTemplate
-        filename = filename.replace('{{GENE}}', geneName)
-        filesMap.set(geneName, { filename, data: fastaEntry })
+    for (const [_, { cdses }] of Object.entries(queryPeptides.genes)) {
+      for (const [_, { name, seq }] of Object.entries(cdses)) {
+        const file = filesMap.get(name)
+        const fastaEntry = `>${seqName}\n${seq}\n`
+        if (file) {
+          file.data = `${file.data}${fastaEntry}`
+        } else {
+          let filename = DEFAULT_EXPORT_PARAMS.filenamePeptidesTemplate
+          filename = filename.replace('{{GENE}}', name)
+          filesMap.set(name, { filename, data: fastaEntry })
+        }
       }
     }
   }

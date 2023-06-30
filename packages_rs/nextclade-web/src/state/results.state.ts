@@ -2,7 +2,7 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { AaMotifsDesc, CsvColumnConfig, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, Cds, CsvColumnConfig, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
@@ -235,24 +235,40 @@ export const genomeSizeAtom = atom<number>({
   key: 'genomeSize',
 })
 
-export const geneMapAtom = atom<Gene[]>({
-  key: 'geneMap',
+export const genesAtom = atom<Gene[]>({
+  key: 'genes',
   default: [],
 })
 
 export const geneNamesAtom = selector<string[]>({
   key: 'geneNames',
-  get: ({ get }) => get(geneMapAtom).map((gene) => gene.geneName),
+  get: ({ get }) => get(genesAtom).map((gene) => gene.name),
 })
 
 export const geneAtom = selectorFamily<Gene | undefined, string>({
   key: 'gene',
   get:
-    (geneName) =>
-    ({ get }) => {
-      const geneMap = get(geneMapAtom)
-      return geneMap.find((gene) => gene.geneName === geneName)
-    },
+    (name) =>
+    ({ get }) =>
+      get(genesAtom).find((gene) => gene.name === name),
+})
+
+export const cdsesAtom = atom<Cds[]>({
+  key: 'cdses',
+  default: [],
+})
+
+export const cdsNamesAtom = selector<string[]>({
+  key: 'cdsNames',
+  get: ({ get }) => get(cdsesAtom).map((cds) => cds.name),
+})
+
+export const cdsAtom = selectorFamily<Cds | undefined, string>({
+  key: 'cds',
+  get:
+    (name) =>
+    ({ get }) =>
+      get(cdsesAtom).find((cds) => cds.name === name),
 })
 
 export const treeAtom = atom<AuspiceJsonV2 | undefined>({

@@ -1,14 +1,14 @@
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::position::PositionLike;
 use crate::qc::qc_config::QcRulesConfigSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use itertools::Itertools;
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
-use std::cmp::max;
 use std::collections::VecDeque;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteredSnp {
   pub start: usize,
@@ -16,7 +16,7 @@ pub struct ClusteredSnp {
   pub number_of_snps: usize,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct QcResultSnpClusters {
   pub score: f64,
   pub status: QcStatus,
@@ -63,15 +63,15 @@ pub fn rule_snp_clusters(
   })
 }
 
-fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnpClusters) -> Vec<Vec<i64>> {
-  let mut current_cluster = VecDeque::<i64>::new();
-  let mut all_clusters = Vec::<Vec<i64>>::new();
-  let mut previous_pos: i64 = -1;
+fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnpClusters) -> Vec<Vec<isize>> {
+  let mut current_cluster = VecDeque::<isize>::new();
+  let mut all_clusters = Vec::<Vec<isize>>::new();
+  let mut previous_pos: isize = -1;
   for mutation in private_nuc_mutations {
-    let pos = mutation.pos as i64;
+    let pos = mutation.pos.as_isize();
     current_cluster.push_back(pos);
 
-    while current_cluster[0] < (pos - config.window_size as i64) {
+    while current_cluster[0] < (pos - config.window_size as isize) {
       current_cluster.pop_front();
     }
 
@@ -98,8 +98,8 @@ fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnp
   all_clusters
 }
 
-fn process_snp_clusters(snp_clusters: Vec<Vec<i64>>) -> Vec<ClusteredSnp> {
-  let mut result = Vec::<ClusteredSnp>::new();
+fn process_snp_clusters(snp_clusters: Vec<Vec<isize>>) -> Vec<ClusteredSnp> {
+  let mut result = vec![];
   result.reserve(snp_clusters.len());
   for cluster in snp_clusters {
     result.push(ClusteredSnp {

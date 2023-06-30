@@ -1,40 +1,33 @@
-use crate::analyze::aa_changes::AaSub;
-use crate::analyze::aa_sub::AaSubMinimal;
-use crate::io::aa::Aa;
+use crate::alphabet::aa::{from_aa, Aa};
+use crate::analyze::aa_sub::AaSub;
+use crate::coord::position::AaRefPosition;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AaDelMinimal {
-  #[serde(rename = "refAA")]
-  pub reff: Aa,
-
-  #[serde(rename = "codon")]
-  pub pos: usize,
+pub struct AaDel {
+  pub cds_name: String,
+  pub pos: AaRefPosition,
+  pub ref_aa: Aa,
 }
 
-impl AaDelMinimal {
+impl AaDel {
   /// Converts deletion to substitution to Gap
   #[inline]
-  pub const fn to_sub(&self) -> AaSubMinimal {
-    AaSubMinimal {
-      reff: self.reff,
+  pub fn to_sub(&self) -> AaSub {
+    AaSub {
+      cds_name: self.cds_name.clone(),
+      ref_aa: self.ref_aa,
       pos: self.pos,
-      qry: Aa::Gap,
+      qry_aa: Aa::Gap,
     }
   }
 }
 
-/// Order deletions by position, then ref character
-impl Ord for AaDelMinimal {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff).cmp(&(other.pos, other.reff))
-  }
-}
-
-impl PartialOrd for AaDelMinimal {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
+impl Display for AaDel {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
+    write!(f, "{}:{}{}-", self.cds_name, from_aa(self.ref_aa), self.pos + 1)
   }
 }

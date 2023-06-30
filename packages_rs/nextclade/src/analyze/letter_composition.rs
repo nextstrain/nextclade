@@ -1,4 +1,4 @@
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 use std::collections::BTreeMap;
 
 /// Counts occurrences of letters in the sequence

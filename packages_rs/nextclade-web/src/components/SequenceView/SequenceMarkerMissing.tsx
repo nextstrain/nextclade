@@ -37,15 +37,15 @@ export function SequenceMarkerMissingUnmemoed({ index, seqName, missing, pixelsP
     return null
   }
 
-  const { begin, end } = missing // prettier-ignore
+  const { begin, end } = missing.range // prettier-ignore
 
-  const id = getSafeId('missing-marker', { index, seqName, ...missing })
+  const id = getSafeId('missing-marker', { index, seqName, ...missing.range })
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = begin * pixelsPerBase - halfNuc
 
-  const rangeStr = formatRange(begin, end)
+  const rangeStr = formatRange(missing.range)
 
   return (
     <rect
@@ -65,4 +65,5 @@ export function SequenceMarkerMissingUnmemoed({ index, seqName, missing, pixelsP
     </rect>
   )
 }
+
 export const SequenceMarkerMissing = React.memo(SequenceMarkerMissingUnmemoed)

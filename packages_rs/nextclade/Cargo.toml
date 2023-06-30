@@ -25,8 +25,10 @@ clap_complete_fig = "3.1.4"
 color-eyre = "0.6.1"
 csv = "1.1.6"
 ctor = "0.1.22"
-env_logger = "0.9.0"
+derive_more = "0.99.17"
 edit-distance = "2.1.0"
+either = "1.8.1"
+env_logger = "0.9.0"
 eyre = "0.6.8"
 flate2 = "1.0.24"
 getrandom = "0.2.6"
@@ -35,6 +37,7 @@ itertools = "0.10.3"
 lazy_static = "1.4.0"
 log = "0.4.16"
 maplit = "1.0.2"
+multimap = "0.8.3"
 num = "0.4.0"
 num-traits = "0.2.14"
 num_cpus = "1.13.1"
@@ -43,13 +46,18 @@ owo-colors = "3.3.0"
 pretty_assertions = "1.2.1"
 rayon = "1.5.2"
 regex = "1.5.5"
+schemars = { version = "0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
+semver = "1.0.9"
 serde = { version = "1.0.136", features = ["derive"] }
+serde_repr = "0.1.12"
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 serde_stacker = { version = "0.1.6" }
+serde_yaml = "0.9.19"
 strum = "0.24.0"
 strum_macros = "0.24.0"
 tinytemplate = "1.2.1"
 traversal = "0.1.2"
+urlencoding = "2.1.2"
 validator = { version = "0.14.0", features = ["derive"] }
 zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "deflate", "time"] }
 

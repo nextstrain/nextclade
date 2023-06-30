@@ -1,45 +1,92 @@
-import React, { SVGProps, useCallback, useState } from 'react'
+import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
-
-import type { FrameShift } from 'src/types'
+import type { FrameShift, Range } from 'src/types'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { geneMapAtom } from 'src/state/results.state'
 import { SeqMarkerFrameShiftState, seqMarkerFrameShiftStateAtom } from 'src/state/seqViewSettings.state'
+import { cdsAtom } from 'src/state/results.state'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
 
-export interface MissingViewProps extends SVGProps<SVGRectElement> {
+export interface FrameShiftMarkerProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
   frameShift: FrameShift
   pixelsPerBase: number
 }
 
-function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPerBase, ...rest }: MissingViewProps) {
+export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed)
+
+function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPerBase }: FrameShiftMarkerProps) {
+  const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
+
+  const frameShiftSegments = useMemo(
+    () =>
+      nucAbs.map((nucAbs) => {
+        const id = getSafeId('frame-shift-nuc-marker', {
+          index,
+          seqName,
+          codon,
+          nucAbs,
+          gapsTrailing,
+          gapsLeading,
+          pixelsPerBase,
+        })
+
+        return (
+          <SequenceMarkerFrameShiftSegment
+            key={id}
+            identifier={id}
+            index={index}
+            geneName={geneName}
+            codon={codon}
+            nucAbs={nucAbs}
+            gapsTrailing={gapsTrailing}
+            gapsLeading={gapsLeading}
+            pixelsPerBase={pixelsPerBase}
+          />
+        )
+      }),
+    [codon, gapsLeading, gapsTrailing, geneName, index, nucAbs, pixelsPerBase, seqName],
+  )
+
+  // eslint-disable-next-line react/jsx-no-useless-fragment
+  return <>{frameShiftSegments}</>
+}
+
+export interface FrameShiftMarkerSegmentProps extends SVGProps<SVGRectElement> {
+  identifier: string
+  index: number
+  geneName: string
+  codon: Range
+  nucAbs: Range
+  gapsTrailing: Range
+  gapsLeading: Range
+  pixelsPerBase: number
+}
+
+function SequenceMarkerFrameShiftSegment({
+  identifier,
+  geneName,
+  codon,
+  nucAbs,
+  gapsTrailing,
+  gapsLeading,
+  pixelsPerBase,
+}: FrameShiftMarkerSegmentProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const geneMap = useRecoilValue(geneMapAtom)
-
   const seqMarkerFrameShiftState = useRecoilValue(seqMarkerFrameShiftStateAtom)
-
-  if (seqMarkerFrameShiftState === SeqMarkerFrameShiftState.Off) {
-    return null
-  }
-
-  const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
-  const id = getSafeId('frame-shift-nuc-marker', { index, seqName, ...frameShift })
-
-  const gene = geneMap.find((gene) => geneName === gene.geneName)
-  if (!gene) {
+  const cds = useRecoilValue(cdsAtom(geneName))
+  if (!cds || seqMarkerFrameShiftState === SeqMarkerFrameShiftState.Off) {
     return null
   }
 
@@ -51,11 +98,11 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = nucAbs.begin * pixelsPerBase - halfNuc
 
-  const codonRangeStr = formatRange(codon.begin, codon.end)
-  const nucRangeStr = formatRange(nucAbs.begin, nucAbs.end)
+  const codonRangeStr = formatRange(codon)
+  const nucRangeStr = formatRange(nucAbs)
 
   return (
-    <g id={id}>
+    <g>
       <rect
         fill={frameShiftBorderColor}
         x={x - 1}
@@ -66,17 +113,16 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
         height={7}
       />
       <rect
-        id={id}
+        id={identifier}
         fill={frameShiftColor}
         x={x}
         y={2.5}
         width={width}
         height="5"
-        {...rest}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
-        <Tooltip target={id} isOpen={showTooltip} fullWidth>
+        <Tooltip target={identifier} isOpen={showTooltip} fullWidth>
           <h5>{t('Frame shift')}</h5>
 
           <TableSlim borderless className="mb-1">
@@ -111,12 +157,12 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
 
               <tr>
                 <td>{t('Leading deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsLeading.codon.begin, gapsLeading.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsLeading)}</td>
               </tr>
 
               <tr>
                 <td>{t('Trailing deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsTrailing.codon.begin, gapsTrailing.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsTrailing)}</td>
               </tr>
             </tbody>
           </TableSlim>
@@ -125,5 +171,3 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
     </g>
   )
 }
-
-export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed)

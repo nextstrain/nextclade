@@ -92,7 +92,7 @@ async function getInitialData(): Promise<LaunchAnalysisInitialData> {
   initialData.free()
 
   return {
-    geneMap: prepareGeneMap(gene_map),
+    genes: prepareGeneMap(gene_map),
     genomeSize: Number(genome_size),
     cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
     phenotypeAttrDescs: JSON.parse(phenotype_attr_descs) as PhenotypeAttrDesc[],
@@ -123,7 +123,7 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
     if (result) {
       const { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
 
-      const queryPeptides = JSON.parse(query_peptides) as Translation[]
+      const queryPeptides = JSON.parse(query_peptides) as Translation
       const analysisResult = JSON.parse(analysis_result) as AnalysisResult
 
       return {

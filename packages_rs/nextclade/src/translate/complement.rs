@@ -1,4 +1,4 @@
-use crate::io::nuc::Nuc;
+use crate::alphabet::nuc::Nuc;
 
 pub const fn complement(nuc: Nuc) -> Nuc {
   match nuc {

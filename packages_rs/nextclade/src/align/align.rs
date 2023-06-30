@@ -4,9 +4,9 @@ use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::seed_alignment;
-use crate::io::aa::Aa;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use crate::translate::complement::reverse_complement_in_place;
 use eyre::Report;
@@ -88,8 +88,8 @@ mod tests {
   // rstest fixtures are passed by value
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  use crate::io::gene_map::GeneMap;
-  use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
+  use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
+  use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

@@ -1,7 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTheme } from 'styled-components'
 
-import type { AminoacidInsertion } from 'src/types'
+import type { AaIns } from 'src/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -11,7 +11,7 @@ import { ListOfInsertionsAa } from 'src/components/Results/ListOfInsertions'
 export interface MissingViewProps extends SVGProps<SVGPolygonElement> {
   index: number
   seqName: string
-  insertion: AminoacidInsertion
+  insertion: AaIns
   pixelsPerAa: number
 }
 

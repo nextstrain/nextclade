@@ -1,6 +1,6 @@
 use crate::align::band_2d::Band2d;
 use crate::align::score_matrix::{MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use serde::{Deserialize, Serialize};
 use std::cmp;
@@ -9,7 +9,7 @@ const fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
   si - band_width + mean_shift
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 pub struct AlignmentOutput<T> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
@@ -102,8 +102,8 @@ mod tests {
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::params::AlignPairwiseParams;
   use crate::align::score_matrix;
-  use crate::io::gene_map::GeneMap;
-  use crate::io::nuc::{to_nuc_seq, Nuc};
+  use crate::alphabet::nuc::{to_nuc_seq, Nuc};
+  use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

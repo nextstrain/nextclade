@@ -5,9 +5,9 @@ import React from 'react'
 const CIRCLE_SZE_PX = 20
 
 const statusColors = {
-  [QcStatus.good]: '#68b844',
-  [QcStatus.mediocre]: '#e4902f',
-  [QcStatus.bad]: '#da4e3c',
+  good: '#68b844',
+  mediocre: '#e4902f',
+  bad: '#da4e3c',
 }
 
 export const CircleBase = styled.div<{ color: string }>`

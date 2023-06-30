@@ -45,10 +45,10 @@ export interface ResultsTableRowResultProps {
 }
 
 export function getQcRowColor(qcStatus: QcStatus) {
-  if (qcStatus === QcStatus.mediocre) {
+  if (qcStatus === 'mediocre') {
     return '#ffeeaa'
   }
-  if (qcStatus === QcStatus.bad) {
+  if (qcStatus === 'bad') {
     return '#eeaaaa'
   }
   return 'transparent'

@@ -1,26 +1,25 @@
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
+use crate::analyze::nuc_del::{NucDel, NucDelRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
-use crate::analyze::virus_properties::{LabelMap, MutationLabelMaps, NucLabelMap, VirusProperties};
-use crate::gene::genotype::{Genotype, GenotypeLabeled};
-use crate::io::aa::Aa;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
+use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::range::NucRefGlobalRange;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateNucMutations {
   /// All private substitution mutations
   pub private_substitutions: Vec<NucSub>,
 
   /// All private deletion mutations
-  pub private_deletions: Vec<NucDelMinimal>,
+  pub private_deletions: Vec<NucDel>,
 
   /// A subset of `private_substitutions` which are reversions
   pub reversion_substitutions: Vec<NucSub>,
@@ -61,9 +60,9 @@ pub struct PrivateNucMutations {
 pub fn find_private_nuc_mutations(
   node: &AuspiceTreeNode,
   substitutions: &[NucSub],
-  deletions: &[NucDel],
+  deletions: &[NucDelRange],
   missing: &[NucRange],
-  alignment_range: &Range,
+  alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
   virus_properties: &VirusProperties,
 ) -> PrivateNucMutations {
@@ -71,7 +70,7 @@ pub fn find_private_nuc_mutations(
 
   // Remember which positions we cover while iterating sequence mutations,
   // to be able to skip them when we iterate over node mutations
-  let mut seq_positions_mutated_or_deleted = BTreeSet::<usize>::new();
+  let mut seq_positions_mutated_or_deleted = BTreeSet::<NucRefGlobalPosition>::new();
 
   // Iterate over sequence substitutions
   let non_reversion_substitutions =
@@ -128,9 +127,9 @@ pub fn find_private_nuc_mutations(
 ///
 /// This function is generic and is suitable for both nucleotide and aminoacid substitutions.
 fn process_seq_substitutions(
-  node_mut_map: &BTreeMap<usize, Nuc>,
+  node_mut_map: &BTreeMap<NucRefGlobalPosition, Nuc>,
   substitutions: &[NucSub],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucSub> {
   let mut non_reversion_substitutions = Vec::<NucSub>::new();
 
@@ -138,7 +137,7 @@ fn process_seq_substitutions(
     let pos = seq_mut.pos;
     seq_positions_mutated_or_deleted.insert(pos);
 
-    if seq_mut.qry.is_unknown() {
+    if seq_mut.qry_nuc.is_unknown() {
       // Cases 5/6: Unknown in sequence
       // Action: Skip nucleotide N and aminoacid X in sequence.
       //         We don't know whether they match the node character or not,
@@ -151,19 +150,19 @@ fn process_seq_substitutions(
         // Case 3: Mutation in sequence but not in node, i.e. a newly occurred mutation.
         // Action: Add the sequence mutation itself.
         non_reversion_substitutions.push(NucSub {
-          reff: seq_mut.reff,
+          ref_nuc: seq_mut.ref_nuc,
           pos,
-          qry: seq_mut.qry,
+          qry_nuc: seq_mut.qry_nuc,
         });
       }
       Some(node_qry) => {
-        if &seq_mut.qry != node_qry {
+        if &seq_mut.qry_nuc != node_qry {
           // Case 2: Mutation in sequence and in node, but the query character is not the same.
           // Action: Add mutation from node query character to sequence query character.
           non_reversion_substitutions.push(NucSub {
-            reff: *node_qry,
+            ref_nuc: *node_qry,
             pos,
-            qry: seq_mut.qry,
+            qry_nuc: seq_mut.qry_nuc,
           });
         }
       }
@@ -185,37 +184,35 @@ fn process_seq_substitutions(
 /// two specializations are provided below. This is due to deletions having different data structure for nucleotides
 /// and for amino acids (range vs point).
 fn process_seq_deletions(
-  node_mut_map: &BTreeMap<usize, Nuc>,
-  deletions: &[NucDel],
+  node_mut_map: &BTreeMap<NucRefGlobalPosition, Nuc>,
+  deletions: &[NucDelRange],
   ref_seq: &[Nuc],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
-) -> Vec<NucDelMinimal> {
-  let mut non_reversion_deletions = Vec::<NucDelMinimal>::new();
+  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
+) -> Vec<NucDel> {
+  let mut non_reversion_deletions = Vec::<NucDel>::new();
 
   for del in deletions {
-    let start = del.start;
-    let end = del.end();
-
     #[allow(clippy::needless_range_loop)]
-    for pos in start..end {
+    for pos in del.range().iter() {
       seq_positions_mutated_or_deleted.insert(pos);
 
       match node_mut_map.get(&pos) {
         None => {
           // Case 3: Deletion in sequence but not in node, i.e. this is a newly occurred deletion.
           // Action: Add the sequence deletion itself (take refNuc from reference sequence).
-          non_reversion_deletions.push(NucDelMinimal {
-            reff: ref_seq[pos],
+          non_reversion_deletions.push(NucDel {
+            ref_nuc: ref_seq[pos.as_usize()],
             pos,
           });
         }
         Some(node_qry) => {
           if !node_qry.is_gap() {
-            {
-              // Case 2: Mutation in node but deletion in sequence (mutation to '-'), i.e. the query character is not the
-              // same. Action: Add deletion of node query character.
-              non_reversion_deletions.push(NucDelMinimal { reff: *node_qry, pos });
-            }
+            // Case 2: Mutation in node but deletion in sequence (mutation to '-'), i.e. the query character is not the
+            // same. Action: Add deletion of node query character.
+            non_reversion_deletions.push(NucDel {
+              ref_nuc: *node_qry,
+              pos,
+            });
           }
         }
       }
@@ -233,11 +230,11 @@ fn process_seq_deletions(
 
 /// Iterates over node mutations, compares node and sequence mutations and finds reversion mutations.
 fn find_reversions(
-  node_mut_map: &BTreeMap<usize, Nuc>,
+  node_mut_map: &BTreeMap<NucRefGlobalPosition, Nuc>,
   missing: &[NucRange],
-  alignment_range: &Range,
+  alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<usize>,
+  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucSub> {
   let mut reversion_substitutions = Vec::<NucSub>::new();
 
@@ -251,9 +248,9 @@ fn find_reversions(
       // the character to ref seq.
       // Action: Add mutation from node query character to character in reference sequence.
       reversion_substitutions.push(NucSub {
-        reff: *node_qry,
+        ref_nuc: *node_qry,
         pos,
-        qry: ref_seq[pos],
+        qry_nuc: ref_seq[pos.as_usize()],
       });
     }
   }
@@ -277,7 +274,7 @@ fn label_private_mutations(
     // If not, add it to the unlabelled list.
     match substitution_label_map.get(&substitution.genotype()) {
       Some(labels) => labeled_substitutions.push(NucSubLabeled {
-        sub: substitution.clone(),
+        substitution: substitution.clone(),
         labels: labels.clone(),
       }),
       None => {

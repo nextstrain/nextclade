@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import type { DeepReadonly } from 'ts-essentials'
-import type { AnalysisResult, NucleotideMissing } from 'src/types'
+import type { AnalysisResult, NucleotideMissing, Range } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { Col, Row } from 'reactstrap'
@@ -23,7 +23,7 @@ export function ColumnMissing({ analysisResult }: ColumnMissingProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { index, missing, seqName, totalMissing, alignmentStart, alignmentEnd } = analysisResult
+  const { index, missing, seqName, totalMissing, alignmentRange } = analysisResult
   const id = getSafeId('col-missing', { index, seqName })
 
   return (
@@ -38,7 +38,7 @@ export function ColumnMissing({ analysisResult }: ColumnMissingProps) {
 
         <Row noGutters>
           <Col>
-            <AlignmentRangeTable alignmentStart={alignmentStart} alignmentEnd={alignmentEnd} />
+            <AlignmentRangeTable alignmentRange={alignmentRange} />
           </Col>
         </Row>
       </Tooltip>
@@ -54,9 +54,9 @@ export interface ListOfMissingProps {
 export function ListOfMissing({ missing, totalMissing }: ListOfMissingProps) {
   const { t } = useTranslationSafe()
 
-  let missingItems = missing.map(({ begin, end }) => {
-    const range = formatRangeMaybeEmpty(begin, end)
-    return <Li key={range}>{range}</Li>
+  let missingItems = missing.map(({ range }) => {
+    const rangeStr = formatRangeMaybeEmpty(range)
+    return <Li key={rangeStr}>{rangeStr}</Li>
   })
 
   missingItems = truncateList(missingItems, LIST_OF_MISSING_TOOLTIP_MAX_ITEMS, t('...more'))
@@ -73,16 +73,15 @@ export function ListOfMissing({ missing, totalMissing }: ListOfMissingProps) {
 }
 
 export interface AlignmentRangeTableProps {
-  alignmentStart: number
-  alignmentEnd: number
+  alignmentRange: Range
 }
 
-export function AlignmentRangeTable({ alignmentStart, alignmentEnd }: AlignmentRangeTableProps) {
+export function AlignmentRangeTable({ alignmentRange }: AlignmentRangeTableProps) {
   const { t } = useTranslationSafe()
   const genomeSize = useRecoilValue(genomeSizeAtom)
 
-  const totalBegin = alignmentStart
-  const totalEnd = genomeSize - alignmentEnd
+  const totalBegin = alignmentRange.begin
+  const totalEnd = genomeSize - alignmentRange.end
   const total = totalBegin + totalEnd
 
   return (
@@ -106,20 +105,18 @@ export function AlignmentRangeTable({ alignmentStart, alignmentEnd }: AlignmentR
         <tbody>
           <tr>
             <td>{t("5' end")}</td>
-            <td>{formatRangeMaybeEmpty(0, alignmentStart)}</td>
+            <td>{formatRangeMaybeEmpty({ begin: 0, end: alignmentRange.begin })}</td>
             <td>{totalBegin}</td>
           </tr>
           <tr>
             <td>{t("3' end")}</td>
-            <td>{formatRangeMaybeEmpty(alignmentEnd, genomeSize)}</td>
+            <td>{formatRangeMaybeEmpty({ begin: alignmentRange.end, end: genomeSize })}</td>
             <td>{totalEnd}</td>
           </tr>
         </tbody>
       </TableSlimWithBorders>
       <small>
-        <p className="my-0 py-0">
-          {t('Alignment range: {{range}}', { range: formatRange(alignmentStart, alignmentEnd) })}
-        </p>
+        <p className="my-0 py-0">{t('Alignment range: {{range}}', { range: formatRange(alignmentRange) })}</p>
         <p className="my-0 py-0">{t('Genome length: {{length}}', { length: genomeSize })}</p>
       </small>
     </>

@@ -1,15 +1,12 @@
-use crate::analyze::aa_changes::AaSub;
-use crate::analyze::aa_sub_full::AaSubFull;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::virus_properties::{PhenotypeAttrDesc, PhenotypeData, VirusProperties};
 use itertools::Itertools;
 use num_traits::real::Real;
 
-pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[AaSubFull]) -> f64 {
+pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[AaSub]) -> f64 {
   let aa_substitutions = aa_substitutions
     .iter()
-    .filter_map(|AaSubFull { sub, .. }| {
-      (sub.gene == phenotype_data.gene && phenotype_data.aa_range.contains(sub.pos)).then_some(sub)
-    })
+    .filter_map(|sub| (sub.cds_name == phenotype_data.gene && phenotype_data.aa_range.contains(sub.pos)).then_some(sub))
     .collect_vec();
 
   let phenotype: f64 = phenotype_data
@@ -18,7 +15,7 @@ pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[A
     .map(|phenotype_data| {
       let phenotype_for_antibody: f64 = aa_substitutions
         .iter()
-        .map(|AaSub { pos, qry, .. }| phenotype_data.get_coeff(*pos, *qry))
+        .map(|AaSub { pos, qry_aa: qry, .. }| phenotype_data.get_coeff(*pos, *qry))
         .sum();
       phenotype_data.weight * (-phenotype_for_antibody).exp()
     })

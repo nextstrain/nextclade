@@ -1,6 +1,6 @@
-use crate::io::aa::Aa;
-use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
-use crate::io::nuc::Nuc;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::alphabet::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
 use color_eyre::SectionExt;
 use eyre::Report;
@@ -10,10 +10,11 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
 
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<T>,
@@ -44,7 +45,7 @@ impl<T: Letter<T>> PartialOrd for Insertion<T> {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct StripInsertionsResult<T: Letter<T>> {
   pub qry_seq: Vec<T>,
   pub insertions: Vec<Insertion<T>>,
@@ -101,12 +102,13 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
   }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaIns {
   pub gene: String,
   pub pos: i32,
 
+  #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<Aa>,
@@ -125,14 +127,14 @@ impl PartialOrd for AaIns {
   }
 }
 
-pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
-  translations
-    .iter()
-    .flat_map(|tr| {
-      tr.insertions.iter().cloned().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene: tr.gene_name.clone(),
-        pos,
-        ins,
+pub fn get_aa_insertions(translation: &Translation) -> Vec<AaIns> {
+  translation
+    .iter_cdses()
+    .flat_map(|(cds_name, cds_tr)| {
+      cds_tr.insertions.iter().map(|Insertion::<Aa> { pos, ins }| AaIns {
+        gene: cds_name.clone(),
+        pos: *pos,
+        ins: ins.clone(),
       })
     })
     .sorted()
@@ -142,7 +144,7 @@ pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::io::nuc::to_nuc_seq;
+  use crate::alphabet::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::rstest;

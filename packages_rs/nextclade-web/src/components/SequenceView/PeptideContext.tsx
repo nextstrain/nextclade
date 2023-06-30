@@ -1,19 +1,13 @@
 import React, { useMemo } from 'react'
-
 import styled, { useTheme } from 'styled-components'
 import { Table as ReactstrapTable } from 'reactstrap'
-
-import type { Aminoacid, AminoacidChange, AminoacidChangesGroup, Nucleotide } from 'src/types'
-import { safeZip, safeZip3 } from 'src/helpers/safeZip'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { first, isNil, last } from 'lodash'
-import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
-
 import { desaturate, lighten } from 'polished'
+import type { AaChangeWithContext, Aminoacid, AaChangesGroup, Nucleotide } from 'src/types'
+import { safeZip } from 'src/helpers/safeZip'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
-
-const pastel = (c: string) => lighten(0.25)(desaturate(0.33)(c))
 
 export const Table = styled(ReactstrapTable)<{ $width: number }>`
   table-layout: fixed;
@@ -50,12 +44,16 @@ export const TrNuc = styled.tr`
   margin: 0;
 `
 
-export const TdNuc = styled.td<{ $color?: string; $shouldHighlight?: boolean }>`
+export const TdNuc = styled.td<{ $color?: string; $background?: string }>`
   width: 20px;
   height: 20px;
-  background: ${(props) => (props.$shouldHighlight ? props.$color : '#efefef')};
+  background: ${(props) => props.$background ?? '#efefef'};
   padding: 0;
   margin: 0;
+
+  * {
+    color: ${(props) => props.$color};
+  }
 `
 
 export const TdAa = styled.td<{ $color?: string; $background?: string }>`
@@ -77,7 +75,7 @@ export const TdAxis = styled.td`
   background: #efefef;
 `
 
-export const NucleotideText = styled.pre<{ $shouldHighlight?: boolean }>`
+export const NucleotideText = styled.pre`
   display: inline;
   font-size: 0.7rem;
   padding: 0;
@@ -107,19 +105,20 @@ export const AminoacidPositionText = styled.pre`
 
 export interface PeptideContextAminoacidProps {
   aa?: Aminoacid
+  shouldHighlight?: boolean
 }
 
-export function PeptideContextAminoacid({ aa }: PeptideContextAminoacidProps) {
+export function PeptideContextAminoacid({ aa, shouldHighlight = true }: PeptideContextAminoacidProps) {
   const theme = useTheme()
 
   const { color, background } = useMemo(() => {
     if (aa) {
-      const background = getAminoacidColor(aa)
+      const background = shouldHighlight ? getAminoacidColor(aa) : '#d6d6d6'
       const color = getTextColor(theme, background)
       return { color, background }
     }
     return {}
-  }, [aa, theme])
+  }, [aa, shouldHighlight, theme])
 
   return (
     <TdAa colSpan={3} $color={color} $background={background}>
@@ -134,40 +133,53 @@ export interface PeptideContextNucleotideProps {
 }
 
 export function PeptideContextNucleotide({ nuc, shouldHighlight }: PeptideContextNucleotideProps) {
-  const color = useMemo(() => pastel(getNucleotideColor(nuc as Nucleotide)), [nuc])
+  const theme = useTheme()
+  const { color, background } = useMemo(() => {
+    const background = shouldHighlight
+      ? lighten(0.1)(desaturate(0.1)(getNucleotideColor(nuc as Nucleotide)))
+      : '#efefef'
+    const color = getTextColor(theme, background)
+    return { color, background }
+  }, [nuc, shouldHighlight, theme])
   return (
-    <TdNuc $color={color} $shouldHighlight={shouldHighlight}>
-      <NucleotideText $shouldHighlight={shouldHighlight}>{nuc}</NucleotideText>
+    <TdNuc $background={background} $color={color}>
+      <NucleotideText>{nuc}</NucleotideText>
     </TdNuc>
   )
 }
 
 export interface PeptideContextCodonProps {
-  refCodon: string
-  queryCodon: string
-  change?: AminoacidChange
-  codon?: number
-  nucBegin?: number
+  change: AaChangeWithContext
 }
 
-export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBegin }: PeptideContextCodonProps) {
-  const refAA = change?.refAA
-  const queryAA = change?.queryAA
-  const highlight: boolean[] = safeZip(refCodon.split(''), queryCodon.split('')).map(([ref, query]) => ref !== query)
+export function PeptideContextCodon({
+  change: { pos, nucPos, qryAa, refAa, qryTriplet, refTriplet },
+}: PeptideContextCodonProps) {
+  const { codonOneBased, nucBeginOneBased, qry, ref, refNucs, qryNucs } = useMemo(() => {
+    const shouldHighlightNucs: boolean[] = safeZip(qryTriplet.split(''), refTriplet.split('')).map(
+      ([ref, query]) => ref !== query,
+    )
 
-  const codonOneBased = useMemo(() => {
-    if (isNil(codon)) {
-      return 0
-    }
-    return codon + 1
-  }, [codon])
+    const codonOneBased = pos + 1
 
-  const nucBeginNeBased = useMemo(() => {
-    if (isNil(nucBegin)) {
-      return 0
-    }
-    return nucBegin + 1
-  }, [nucBegin])
+    const nucBeginOneBased = nucPos + 1
+
+    const shouldHighlightAa = qryAa !== refAa
+    const qry = <PeptideContextAminoacid aa={qryAa} shouldHighlight={shouldHighlightAa} />
+    const ref = <PeptideContextAminoacid aa={refAa} shouldHighlight={shouldHighlightAa} />
+
+    const refNucs = refTriplet.split('').map((nuc, i) => (
+      // eslint-disable-next-line react/no-array-index-key
+      <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} shouldHighlight={shouldHighlightNucs[i]} />
+    ))
+
+    const qryNucs = qryTriplet.split('').map((nuc, i) => (
+      // eslint-disable-next-line react/no-array-index-key
+      <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} shouldHighlight={shouldHighlightNucs[i]} />
+    ))
+
+    return { codonOneBased, nucBeginOneBased, qry, ref, refNucs, qryNucs }
+  }, [pos, nucPos, qryAa, qryTriplet, refAa, refTriplet])
 
   return (
     <td>
@@ -179,31 +191,17 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
             </TdNuc>
           </TrNuc>
 
-          <TrNuc>
-            <PeptideContextAminoacid aa={refAA} />
-          </TrNuc>
+          <TrNuc>{ref}</TrNuc>
 
-          <TrNuc>
-            {refCodon.split('').map((nuc, i) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} />
-            ))}
-          </TrNuc>
+          <TrNuc>{refNucs}</TrNuc>
 
-          <TrNuc>
-            {queryCodon.split('').map((nuc, i) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <PeptideContextNucleotide key={`${nuc}-${i}`} nuc={nuc} shouldHighlight={highlight[i]} />
-            ))}
-          </TrNuc>
+          <TrNuc>{qryNucs}</TrNuc>
 
-          <TrNuc>
-            <PeptideContextAminoacid aa={queryAA} />
-          </TrNuc>
+          <TrNuc>{qry}</TrNuc>
 
           <TrNuc>
             <TdAxis colSpan={3}>
-              <NucleotidePositionText>{nucBeginNeBased}</NucleotidePositionText>
+              <NucleotidePositionText>{nucBeginOneBased}</NucleotidePositionText>
             </TdAxis>
           </TrNuc>
         </TableBodyNuc>
@@ -232,96 +230,30 @@ export function PeptideContextEllipsis() {
 }
 
 export interface PeptideContextProps {
-  group: AminoacidChangesGroup
-  strand?: string
+  group: AaChangesGroup
 }
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion, sonarjs/no-identical-functions */
-export function PeptideContext({ group, strand }: PeptideContextProps) {
+export function PeptideContext({ group }: PeptideContextProps) {
   const { t } = useTranslationSafe()
 
-  const { width, codonsBefore, codonsBegin, ellipsis, codonsEnd, codonsAfter } = useMemo(() => {
-    const { changes, contextNucRange, codonAaRange, refContext, queryContext } = group
+  const { width, codonsBegin, ellipsis, codonsEnd } = useMemo(() => {
+    const { changes } = group
 
-    const refCodons = refContext.match(/.{1,3}/g)!
-    const queryCodons = queryContext.match(/.{1,3}/g)!
-
-    const firstRefCodon = first(refCodons)!
-    const lastRefCodon = last(refCodons)!
-
-    const firstQryCodon = first(queryCodons)!
-    const lastQryCodon = last(queryCodons)!
-
-    const changesAndCodons = safeZip3(changes, refCodons.slice(1, -1), queryCodons.slice(1, -1))
-
-    let itemsBegin = changesAndCodons
-    let itemsEnd: typeof changesAndCodons = []
-    if (changesAndCodons.length > 6) {
-      itemsBegin = changesAndCodons.slice(0, 3)
-      itemsEnd = changesAndCodons.slice(-3)
+    let itemsBegin = changes
+    let itemsEnd: typeof changes = []
+    let ellipsis = null
+    if (changes.length > 8) {
+      itemsBegin = changes.slice(0, 4)
+      itemsEnd = changes.slice(-4)
+      ellipsis = <PeptideContextEllipsis />
     }
 
-    const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
+    const width = (itemsBegin.length + itemsEnd.length + 2) * 60 + 60
+    const codonsBegin = itemsBegin.map((change) => <PeptideContextCodon key={change.pos} change={change} />)
+    const codonsEnd = itemsEnd.map((change) => <PeptideContextCodon key={change.pos} change={change} />)
 
-    const leftCodonPos = strand === '+' ? contextNucRange.begin : contextNucRange.end - 1
-    const codonsBefore = (
-      <PeptideContextCodon
-        refCodon={firstRefCodon}
-        queryCodon={firstQryCodon}
-        codon={codonAaRange.begin - 1}
-        nucBegin={leftCodonPos}
-      />
-    )
-
-    const rightCodonPos = strand === '+' ? contextNucRange.end - 3 : contextNucRange.begin + 2
-    const codonsAfter = (
-      <PeptideContextCodon
-        refCodon={lastRefCodon}
-        queryCodon={lastQryCodon}
-        codon={codonAaRange.end}
-        nucBegin={rightCodonPos}
-      />
-    )
-
-    const ellipsis = itemsEnd.length > 0 ? <PeptideContextEllipsis /> : null
-
-    const codonsBegin = itemsBegin.map(([change, refCodon, queryCodon]) => {
-      const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
-      return (
-        <PeptideContextCodon
-          key={change.codon}
-          refCodon={refCodon}
-          queryCodon={queryCodon}
-          change={change}
-          codon={change.codon}
-          nucBegin={nucBegin}
-        />
-      )
-    })
-
-    const codonsEnd = itemsEnd.map(([change, refCodon, queryCodon]) => {
-      const nucBegin = strand === '+' ? change.codonNucRange.begin : change.codonNucRange.end - 1
-      return (
-        <PeptideContextCodon
-          key={change.codon}
-          refCodon={refCodon}
-          queryCodon={queryCodon}
-          change={change}
-          codon={change.codon}
-          nucBegin={nucBegin}
-        />
-      )
-    })
-
-    return {
-      width,
-      codonsBefore,
-      codonsBegin,
-      ellipsis,
-      codonsEnd,
-      codonsAfter,
-    }
-  }, [group, strand])
+    return { width, codonsBegin, ellipsis, codonsEnd }
+  }, [group])
 
   return (
     <Table borderless className="mb-1 mx-2" $width={width}>
@@ -352,11 +284,9 @@ export function PeptideContext({ group, strand }: PeptideContextProps) {
             </TableNuc>
           </td>
 
-          {codonsBefore}
           {codonsBegin}
           {ellipsis}
           {codonsEnd}
-          {codonsAfter}
         </tr>
       </tbody>
     </Table>
