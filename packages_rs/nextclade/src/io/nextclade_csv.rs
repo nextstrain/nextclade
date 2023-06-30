@@ -662,10 +662,6 @@ pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> Strin
   deletions.iter().map(|del| del.range().to_string()).join(delimiter)
 }
 
-pub fn format_nuc_deletions_small(deletions: &[NucDel], delimiter: &str) -> String {
-  deletions.iter().map(|del| del.to_range().to_string()).join(delimiter)
-}
-
 #[inline]
 pub fn format_nuc_insertions(nuc_insertions: &[Insertion<Nuc>], delimiter: &str) -> String {
   nuc_insertions

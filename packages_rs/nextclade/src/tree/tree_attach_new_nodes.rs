@@ -1,4 +1,7 @@
 use super::tree::DivergenceUnits;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_divergence;
@@ -8,15 +11,12 @@ use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::virus_properties::VirusProperties;
-use crate::io::aa::Aa;
-use crate::io::gene_map::GeneMap;
-use crate::io::letter::Letter;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
+use crate::gene::gene_map::GeneMap;
 use crate::io::nextclade_csv::{
-  format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_nuc_deletions_small,
-  format_pcr_primer_changes,
+  format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
-use crate::io::nuc::Nuc;
-use crate::translate::translate_genes::TranslationMap;
+use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
   AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
 };
@@ -26,7 +26,6 @@ use crate::tree::tree_builder::{
 use crate::tree::tree_preprocess::{map_aa_muts, map_nuc_muts};
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
-use crate::utils::range::Range;
 use crate::{
   extract_enum_value,
   tree::tree_builder::{Graph, InternalMutations, NodeType, TreeNode},
@@ -63,7 +62,7 @@ pub fn tree_attach_new_nodes_in_place_subtree(
   tree: &mut AuspiceTree,
   results: &[NextcladeOutputs],
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   virus_properties: &VirusProperties,
 ) {
@@ -91,7 +90,7 @@ fn tree_attach_new_nodes_impl_in_place_recursive_subtree(
   results: &[NextcladeOutputs],
   attachment_positions: &HashMap<usize, Vec<usize>>,
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   virus_properties: &VirusProperties,
   div_units: &DivergenceUnits,
@@ -144,7 +143,7 @@ fn attach_new_nodes(
   results: &[NextcladeOutputs],
   positions: &Vec<usize>,
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   virus_properties: &VirusProperties,
   div_units: &DivergenceUnits,
@@ -186,7 +185,7 @@ fn attach_subtree(
   results: &[NextcladeOutputs],
   vertices: &HashMap<NodeType, InternalMutations>,
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   virus_properties: &VirusProperties,
   div_units: &DivergenceUnits,
@@ -422,7 +421,7 @@ fn recalculate_private_mutations(
   node: &mut AuspiceTreeNode,
   result: &InternalMutations,
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   virus_properties: &VirusProperties,
   div_units: &DivergenceUnits,
@@ -432,20 +431,14 @@ fn recalculate_private_mutations(
     &result.substitutions,
     &result.deletions,
     &result.missing,
-    &Range::new(result.alignment_start, result.alignment_end),
+    &result.alignment_range,
     ref_seq,
     virus_properties,
   );
-  let aa_subst = result
-    .aa_substitutions
-    .iter()
-    .map(|s| s.sub.clone())
-    .collect::<Vec<_>>();
-  let aa_dels = result.aa_deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
   let private_aa_mut = find_private_aa_mutations(
     node,
-    &aa_subst,
-    &aa_dels,
+    &result.aa_substitutions,
+    &result.aa_deletions,
     &result.unknown_aa_ranges,
     ref_peptides,
     gene_map,
@@ -462,7 +455,7 @@ fn compute_child(
   index: usize,
   result: &InternalMutations,
   ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
+  ref_peptides: &Translation,
   gene_map: &GeneMap,
   virus_properties: &VirusProperties,
   div_units: &DivergenceUnits,
@@ -495,7 +488,7 @@ fn compute_child(
       placement_prior: None,
       alignment: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
-      gaps: Some(TreeNodeAttr::new(&format_nuc_deletions_small(&result.deletions, ", "))),
+      gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
       non_acgtns: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       has_pcr_primer_changes: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       pcr_primer_changes: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
@@ -507,12 +500,13 @@ fn compute_child(
     tmp: TreeNodeTempData::default(),
     other: serde_json::Value::default(),
   };
-  let nuc_muts: BTreeMap<usize, Nuc> = map_nuc_muts(&new_node, ref_seq, &node.tmp.mutations).unwrap();
-  let nuc_subs: BTreeMap<usize, Nuc> = nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
+  let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(&new_node, ref_seq, &node.tmp.mutations).unwrap();
+  let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
+    nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-  let aa_muts: BTreeMap<String, BTreeMap<usize, Aa>> =
+  let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> =
     map_aa_muts(&new_node, ref_peptides, &node.tmp.aa_mutations).unwrap();
-  let aa_subs: BTreeMap<String, BTreeMap<usize, Aa>> = aa_muts
+  let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
     .clone()
     .into_iter()
     .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))

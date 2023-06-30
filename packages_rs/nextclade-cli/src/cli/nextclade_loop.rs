@@ -291,7 +291,14 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   });
 
   if let Some(output_tree) = output_tree {
-    tree_attach_new_nodes_in_place_subtree(&mut tree, &outputs, ref_seq, ref_peptides, gene_map, &virus_properties);
+    tree_attach_new_nodes_in_place_subtree(
+      &mut tree,
+      &outputs,
+      ref_seq,
+      ref_translation,
+      gene_map,
+      &virus_properties,
+    );
     json_write(output_tree, &tree)?;
   }
 

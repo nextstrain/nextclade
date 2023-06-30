@@ -1,17 +1,16 @@
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
+use crate::alphabet::aa::Aa;
+use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
-use crate::analyze::letter_ranges::LetterRange;
 use crate::analyze::letter_ranges::{AaRange, GeneAaRange, NucRange};
-use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
+use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::io::aa::Aa;
-use crate::io::nuc::Nuc;
-use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
+use crate::coord::range::{NucRefGlobalRange, Range};
 use crate::translate::translate::decode;
 use crate::tree::tree::AuspiceTreeNode;
 use crate::tree::tree_find_nearest_node::tree_calculate_node_distance;
 use crate::types::outputs::NextcladeOutputs;
-use crate::utils::range::Range;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use std::cmp;
@@ -26,12 +25,10 @@ static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub fn calculate_distance_results(
   subst1: &Vec<NucSub>,
   subst2: &Vec<NucSub>,
-  del1: &[NucDelMinimal],
-  del2: &[NucDelMinimal],
-  missings1: &[LetterRange<Nuc>],
-  missings2: &[LetterRange<Nuc>],
-  aln_range1: &Range,
-  aln_range2: &Range,
+  missings1: &[NucRange],
+  missings2: &[NucRange],
+  aln_range1: &NucRefGlobalRange,
+  aln_range2: &NucRefGlobalRange,
 ) -> f64 {
   let total_mut_1 = subst1.len() as i64;
   let total_mut_2 = subst2.len() as i64;
@@ -43,7 +40,7 @@ pub fn calculate_distance_results(
   while (i < subst1.len()) && (j < subst2.len()) {
     if subst1[i].pos == subst2[j].pos {
       // position is also mutated in node
-      if subst1[i].qry == subst2[j].qry {
+      if subst1[i].qry_nuc == subst2[j].qry_nuc {
         shared_differences += 1; // the exact mutation is shared between node and seq
       } else {
         shared_sites += 1; // the same position is mutated, but the states are different
@@ -77,7 +74,7 @@ pub fn calculate_distance_matrix(
   node: &mut AuspiceTreeNode,
   results: &[NextcladeOutputs],
   positions: &Vec<usize>,
-  masked_ranges: &[Range],
+  masked_ranges: &[NucRefGlobalRange],
 ) -> (DMatrix<f64>, Vec<NodeType>) {
   // compute element order vector
   let new_internal = TreeNode::new(node.tmp.id);
@@ -96,27 +93,17 @@ pub fn calculate_distance_matrix(
   for i in 0..size {
     let v1 = positions[i];
     let results1 = &results[v1];
-    let arr = results1
-      .substitutions
-      .iter()
-      .map(|x| x.sub.clone())
-      .collect::<Vec<NucSub>>();
     let dist_to_node = tree_calculate_node_distance(
       node,
-      &arr,
+      &results1.substitutions,
       &results1.missing,
-      &Range::new(results1.alignment_start, results1.alignment_end),
+      &results1.alignment_range,
       masked_ranges,
     ) as f64;
     distance_matrix[(i + 1, 0)] = dist_to_node;
     distance_matrix[(0, i + 1)] = dist_to_node;
     let subst1 = &results1.private_nuc_mutations.private_substitutions;
-    let del1 = &results1.private_nuc_mutations.private_deletions;
     let missings1 = &results1.missing;
-    let aln_range1 = &Range {
-      begin: results1.alignment_start,
-      end: results1.alignment_end,
-    };
     for j in 0..size {
       if i >= j {
         continue;
@@ -125,13 +112,15 @@ pub fn calculate_distance_matrix(
         let v2 = positions[j];
         let results2 = &results[v2];
         let subst2 = &results2.private_nuc_mutations.private_substitutions;
-        let del2 = &results2.private_nuc_mutations.private_deletions;
         let missings2 = &results2.missing;
-        let aln_range2 = &Range {
-          begin: results2.alignment_start,
-          end: results2.alignment_end,
-        };
-        let dist = calculate_distance_results(subst1, subst2, del1, del2, missings1, missings2, aln_range1, aln_range2);
+        let dist = calculate_distance_results(
+          subst1,
+          subst2,
+          missings1,
+          missings2,
+          &results1.alignment_range,
+          &results2.alignment_range,
+        );
         distance_matrix[(i + 1, j + 1)] = dist;
         distance_matrix[(j + 1, i + 1)] = dist;
       }
@@ -190,13 +179,12 @@ impl TreeNode {
 #[derive(Clone, Debug)]
 pub struct InternalMutations {
   pub substitutions: Vec<NucSub>,
-  pub deletions: Vec<NucDel>,
+  pub deletions: Vec<NucDelRange>,
   pub missing: Vec<NucRange>,
-  pub aa_substitutions: Vec<AaSubFull>,
-  pub aa_deletions: Vec<AaDelFull>,
+  pub aa_substitutions: Vec<AaSub>,
+  pub aa_deletions: Vec<AaDel>,
   pub unknown_aa_ranges: Vec<GeneAaRange>,
-  pub alignment_start: usize,
-  pub alignment_end: usize,
+  pub alignment_range: NucRefGlobalRange,
 }
 
 #[derive(Clone, Eq, Hash, PartialEq, Copy)]
@@ -350,25 +338,18 @@ pub fn add_mutations_to_vertices(
         aa_substitutions,
         aa_deletions,
         unknown_aa_ranges,
-        alignment_start,
-        alignment_end,
+        alignment_range,
         ..
       } = result;
-      let substitutions_ = result.substitutions.iter().map(|s| s.sub.clone()).collect::<Vec<_>>();
-      let deletions_ = result.deletions.iter().map(|s| s.del.clone()).collect::<Vec<_>>();
-      let missing_ = missing.clone();
-      let aa_substitutions_ = aa_substitutions.clone();
-      let aa_deletions_ = aa_deletions.clone();
-      let unknown_aa_ranges_ = unknown_aa_ranges.clone();
+
       let vert = InternalMutations {
-        substitutions: substitutions_,
-        deletions: deletions_,
-        missing: missing_,
-        aa_substitutions: aa_substitutions_,
-        aa_deletions: aa_deletions_,
-        unknown_aa_ranges: unknown_aa_ranges_,
-        alignment_start: *alignment_start,
-        alignment_end: *alignment_end,
+        substitutions: substitutions.clone(),
+        deletions: deletions.clone(),
+        missing: missing.clone(),
+        aa_substitutions: aa_substitutions.clone(),
+        aa_deletions: aa_deletions.clone(),
+        unknown_aa_ranges: unknown_aa_ranges.clone(),
+        alignment_range: alignment_range.clone(),
       };
       vertices.insert(t_n, vert);
     } else if let NodeType::NewInternalNode(_) = t_n {
@@ -385,8 +366,8 @@ fn join_nuc_sub(
   subst2: &Vec<NucSub>,
   range1: &[NucRange],
   range2: &[NucRange],
-  aln_range1: &Range,
-  aln_range2: &Range,
+  aln_range1: &NucRefGlobalRange,
+  aln_range2: &NucRefGlobalRange,
 ) -> Vec<NucSub> {
   let mut shared_substitutions = Vec::<NucSub>::new();
   let mut i = 0;
@@ -394,7 +375,7 @@ fn join_nuc_sub(
   while (i < subst1.len()) && (j < subst2.len()) {
     if subst1[i].pos == subst2[j].pos {
       // position is also mutated in node
-      if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
+      if subst1[i].ref_nuc == subst2[j].ref_nuc && subst1[i].qry_nuc == subst2[j].qry_nuc {
         shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
       }
       i += 1;
@@ -421,7 +402,7 @@ fn join_nuc_sub_small(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> Vec<NucSub>
   while (i < subst1.len()) && (j < subst2.len()) {
     if subst1[i].pos == subst2[j].pos {
       // position is also mutated in node
-      if subst1[i].reff == subst2[j].reff && subst1[i].qry == subst2[j].qry {
+      if subst1[i].ref_nuc == subst2[j].ref_nuc && subst1[i].qry_nuc == subst2[j].qry_nuc {
         shared_substitutions.push(subst1[i].clone()); // the exact mutation is shared between node and seq
       }
       i += 1;
@@ -435,18 +416,16 @@ fn join_nuc_sub_small(subst1: &Vec<NucSub>, subst2: &Vec<NucSub>) -> Vec<NucSub>
   shared_substitutions
 }
 
-fn join_nuc_del(deletions1: &Vec<NucDel>, deletions2: &Vec<NucDel>) -> Vec<NucDel> {
-  let mut shared_deletions = Vec::<NucDel>::new();
+fn join_nuc_del(deletions1: &Vec<NucDelRange>, deletions2: &Vec<NucDelRange>) -> Vec<NucDelRange> {
+  let mut shared_deletions = Vec::<NucDelRange>::new();
   for del1 in deletions1 {
     for del2 in deletions2 {
-      let potential_start = cmp::max(del1.start, del2.start);
-      let potential_end = cmp::min(del1.start + del1.length, del2.start + del2.length);
+      // TODO: is this supposed to be a range intersection?
+      let potential_start = cmp::max(del1.range().begin, del2.range().end);
+      let potential_end = cmp::min(del1.range().end, del2.range().end);
       if potential_start < potential_end {
         // del1 and del2 overlap
-        shared_deletions.push(NucDel {
-          start: potential_start,
-          length: (potential_end - potential_start),
-        });
+        shared_deletions.push(NucDelRange::new(potential_start, potential_end));
       }
     }
   }
@@ -474,18 +453,13 @@ pub fn compute_vertex_mutations(
     &child_vertices[1].substitutions,
     &child_vertices[0].missing,
     &child_vertices[1].missing,
-    &Range {
-      begin: child_vertices[0].alignment_start,
-      end: child_vertices[0].alignment_end,
-    },
-    &Range {
-      begin: child_vertices[1].alignment_start,
-      end: child_vertices[1].alignment_end,
-    },
+    &child_vertices[0].alignment_range,
+    &child_vertices[1].alignment_range,
   );
 
   //let shared_substitutions = join_nuc_sub_small(&child_vertices.get(0).unwrap().substitutions, &child_vertices.get(1).unwrap().substitutions);
-  let mut shared_aa_substitutions = Vec::<AaSubFull>::new();
+  let shared_aa_substitutions = Vec::<AaSub>::new();
+
   for qmut1 in &child_vertices[1].aa_substitutions {
     for qmut2 in &child_vertices[0].aa_substitutions {
       let join_shared_nuc_subst = join_nuc_sub_small(&qmut1.nuc_substitutions, &qmut2.nuc_substitutions);
@@ -522,12 +496,12 @@ pub fn compute_vertex_mutations(
 
   let shared_deletions = join_nuc_del(&child_vertices[1].deletions, &child_vertices[0].deletions);
 
-  let mut shared_aa_deletions = Vec::<AaDelFull>::new();
+  let mut shared_aa_deletions = Vec::<AaDel>::new();
   for del1 in &child_vertices[1].aa_deletions {
     for del2 in &child_vertices[0].aa_deletions {
-      if del1.del == del2.del {
+      if del1 == del2 {
         // del1 and del2 overlap
-        shared_aa_deletions.push(AaDelFull::from_aa_del(&del1.del));
+        shared_aa_deletions.push(del1.clone());
       }
     }
   }
@@ -535,13 +509,13 @@ pub fn compute_vertex_mutations(
   let mut shared_missings = Vec::<NucRange>::new();
   for mis1 in &child_vertices[1].missing {
     for mis2 in &child_vertices[0].missing {
-      let potential_start = cmp::max(mis1.begin, mis2.begin);
-      let potential_end = cmp::min(mis1.end, mis2.end);
+      // FIXME: is this a range intersection?
+      let potential_start = cmp::max(mis1.range.begin, mis2.range.begin);
+      let potential_end = cmp::min(mis1.range.end, mis2.range.end);
       if potential_start < potential_end {
         // missings overlap
         shared_missings.push(NucRange {
-          begin: potential_start,
-          end: potential_end,
+          range: Range::new(potential_start, potential_end),
           letter: Nuc::N,
         });
       }
@@ -553,19 +527,17 @@ pub fn compute_vertex_mutations(
     for mis2 in &child_vertices[0].unknown_aa_ranges {
       if mis1.gene_name == mis2.gene_name {
         let mut shared_missings_per_gene = Vec::<AaRange>::new();
-        let mut shared_length_per_gene = 0;
+        let mut shared_length_per_gene = 0_usize;
         for range1 in &mis1.ranges {
           for range2 in &mis2.ranges {
-            let potential_start = cmp::max(range1.begin, range2.begin);
-            let potential_end = cmp::min(range1.end, range2.end);
+            // FIXME: is this a range intersection?
+            let potential_start = cmp::max(range1.range.begin, range2.range.begin);
+            let potential_end = cmp::min(range1.range.end, range2.range.end);
             if potential_start < potential_end {
+              let range = Range::new(potential_start, potential_end);
               // missings overlap
-              shared_missings_per_gene.push(AaRange {
-                begin: potential_start,
-                end: potential_end,
-                letter: Aa::X,
-              });
-              shared_length_per_gene += potential_end - potential_start;
+              shared_length_per_gene += range.len();
+              shared_missings_per_gene.push(AaRange { range, letter: Aa::X });
             }
           }
         }
@@ -581,6 +553,18 @@ pub fn compute_vertex_mutations(
     }
   }
 
+  // FIXME: is this a range intersection?
+  let alignment_range = Range::new(
+    cmp::max(
+      child_vertices[1].alignment_range.begin,
+      child_vertices[0].alignment_range.begin,
+    ),
+    cmp::min(
+      child_vertices[1].alignment_range.end,
+      child_vertices[0].alignment_range.end,
+    ),
+  );
+
   InternalMutations {
     substitutions: shared_substitutions,
     deletions: shared_deletions,
@@ -588,8 +572,7 @@ pub fn compute_vertex_mutations(
     aa_substitutions: shared_aa_substitutions,
     aa_deletions: shared_aa_deletions,
     unknown_aa_ranges: shared_unknown_aa_ranges,
-    alignment_start: cmp::max(child_vertices[1].alignment_start, child_vertices[0].alignment_start),
-    alignment_end: cmp::min(child_vertices[1].alignment_end, child_vertices[0].alignment_end),
+    alignment_range,
   }
 }
 
@@ -597,48 +580,35 @@ pub fn compute_vertex_mutations(
 fn test_distance_metric() {
   let seq1 = vec![
     NucSub {
-      reff: Nuc::T,
-      pos: 13,
-      qry: Nuc::A,
+      ref_nuc: Nuc::T,
+      pos: 13.into(),
+      qry_nuc: Nuc::A,
     },
     NucSub {
-      reff: Nuc::T,
-      pos: 14,
-      qry: Nuc::A,
+      ref_nuc: Nuc::T,
+      pos: 14.into(),
+      qry_nuc: Nuc::A,
     },
   ];
   let seq2 = vec![
     NucSub {
-      reff: Nuc::T,
-      pos: 13,
-      qry: Nuc::T,
+      ref_nuc: Nuc::T,
+      pos: 13.into(),
+      qry_nuc: Nuc::T,
     },
     NucSub {
-      reff: Nuc::T,
-      pos: 14,
-      qry: Nuc::A,
+      ref_nuc: Nuc::T,
+      pos: 14.into(),
+      qry_nuc: Nuc::A,
     },
     NucSub {
-      reff: Nuc::T,
-      pos: 18,
-      qry: Nuc::A,
+      ref_nuc: Nuc::T,
+      pos: 18.into(),
+      qry_nuc: Nuc::A,
     },
   ];
-  let del1 = Vec::<NucDelMinimal>::new();
-  let del2 = Vec::<NucDelMinimal>::new();
-  let missings1 = Vec::<LetterRange<Nuc>>::new();
-  let missings2 = Vec::<LetterRange<Nuc>>::new();
-  let aln_range1 = Range { begin: 0, end: 100 };
-  let aln_range2 = Range { begin: 0, end: 100 };
-  let dist = calculate_distance_results(
-    &seq1,
-    &seq2,
-    &del1,
-    &del2,
-    &missings1,
-    &missings2,
-    &aln_range1,
-    &aln_range2,
-  );
+  let missings = Vec::<NucRange>::new();
+  let aln_range = NucRefGlobalRange::from_usize(0, 100);
+  let dist = calculate_distance_results(&seq1, &seq2, &missings, &missings, &aln_range, &aln_range);
   assert_eq!(dist, 2.0);
 }
