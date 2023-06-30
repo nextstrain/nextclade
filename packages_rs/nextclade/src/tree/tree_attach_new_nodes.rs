@@ -8,7 +8,7 @@ use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
-use crate::analyze::virus_properties::{MutationLabelMaps, VirusProperties};
+use crate::analyze::virus_properties::VirusProperties;
 use crate::io::aa::Aa;
 use crate::io::gene_map::GeneMap;
 use crate::io::letter::Letter;
@@ -30,14 +30,12 @@ use crate::utils::collections::concat_to_vec;
 use crate::utils::range::Range;
 use crate::{
   extract_enum_value,
-  tree::tree_builder::{Graph, InternalMutations, NewInternalNode, NewSeqNode, NodeType, TreeNode},
+  tree::tree_builder::{Graph, InternalMutations, NodeType, TreeNode},
 };
-use assert2::__assert2_impl::print;
 use itertools::{chain, Itertools};
 use serde_json::json;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::collections::HashSet;
 
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
   tree_attach_new_nodes_impl_in_place_recursive(&mut tree.tree, results);
@@ -153,7 +151,7 @@ fn attach_new_nodes(
   div_units: &DivergenceUnits,
 ) {
   //compute subtree
-  let dist_results = calculate_distance_matrix(node, results, positions);
+  let dist_results = calculate_distance_matrix(node, results, positions, &virus_properties.placement_mask_ranges);
   let dist_matrix = dist_results.0;
   let element_order = dist_results.1;
   let g = build_undirected_subtree(dist_matrix, element_order);
@@ -495,6 +493,7 @@ fn compute_child(
       region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+      placement_prior: None,
       alignment: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
       gaps: Some(TreeNodeAttr::new(&format_nuc_deletions_small(&result.deletions, ", "))),

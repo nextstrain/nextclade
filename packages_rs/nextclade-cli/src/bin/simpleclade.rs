@@ -10,6 +10,8 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
 use nextclade::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use nextclade::analyze::divergence::calculate_divergence;
+use nextclade::analyze::find_aa_motifs::find_aa_motifs;
+use nextclade::analyze::find_aa_motifs_changes::{find_aa_motifs_changes, AaMotifsMap};
 use nextclade::analyze::find_private_aa_mutations::find_private_aa_mutations;
 use nextclade::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use nextclade::analyze::letter_composition::get_letter_composition;
@@ -25,19 +27,24 @@ use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::gene_map::GeneMap;
 use nextclade::io::json::json_write;
 use nextclade::io::letter::Letter;
+use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
+use nextclade::make_internal_report;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::qc_run;
+use nextclade::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
+use nextclade::translate::coord_map::CoordMap;
 use nextclade::translate::frame_shifts_flatten::frame_shifts_flatten;
 use nextclade::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::AuspiceTree;
-use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
-use nextclade::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
+use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place_subtree;
+use nextclade::tree::tree_find_nearest_node::tree_find_nearest_nodes;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::{NextalignOutputs, NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::{global_init, setup_logger};
+use nextclade::utils::range::Range;
 use nextclade_cli::cli::nextclade_cli::{
   nextclade_get_output_filenames, NextcladeArgs, NextcladeCommands, NextcladeRunArgs, NextcladeRunInputArgs,
   NextcladeRunOutputArgs,
@@ -45,7 +52,7 @@ use nextclade_cli::cli::nextclade_cli::{
 use nextclade_cli::cli::nextclade_loop::{nextclade_get_inputs, NextcladeRecord};
 use nextclade_cli::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use nextclade_cli::dataset::dataset_download::DatasetFiles;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 #[ctor]
 fn init() {
@@ -95,10 +102,12 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_json,
         output_csv,
         output_tsv,
+        output_columns_selection,
         output_tree,
         output_insertions,
         output_errors,
         include_reference,
+        include_nearest_node_info,
         in_order,
         replace_unknown,
         ..
@@ -116,7 +125,7 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     primers,
   } = nextclade_get_inputs(&run_args, &genes)?;
 
-  let ref_seq = &to_nuc_seq(&ref_record.seq)?;
+  let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
 
   let mut alignment_params = AlignPairwiseParams::default();
 
@@ -133,12 +142,41 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
+  let ref_peptides = &{
+    let mut ref_peptides =
+      translate_genes_ref(ref_seq, gene_map, &alignment_params).wrap_err("When translating reference genes")?;
+
+    ref_peptides
+      .iter_mut()
+      .try_for_each(|(name, translation)| -> Result<(), Report> {
+        let gene = gene_map
+          .get(&translation.gene_name)
+          .ok_or_else(|| make_internal_report!("Gene not found in gene map: '{}'", &translation.gene_name))?;
+        translation.alignment_range = Range::new(0, gene.len_codon());
+
+        Ok(())
+      })?;
+
+    ref_peptides
+  };
+
+  let aa_motifs_ref = &find_aa_motifs(
+    &virus_properties.aa_motifs,
+    &ref_peptides.values().cloned().collect_vec(),
+  )?;
 
   let should_keep_outputs = output_tree.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
+
+  let aa_motifs_keys = &virus_properties
+    .aa_motifs
+    .iter()
+    .map(|desc| desc.name.clone())
+    .collect_vec();
+
+  let csv_column_config = CsvColumnConfig::new(&output_columns_selection)?;
 
   tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides)?;
   let clade_node_attrs = tree.clade_node_attr_descs();
@@ -147,6 +185,7 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     gene_map,
     clade_node_attrs,
     phenotype_attrs,
+    aa_motifs_keys,
     &output_fasta,
     &output_json,
     &output_ndjson,
@@ -155,6 +194,7 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     &output_insertions,
     &output_errors,
     &output_translations,
+    &csv_column_config,
     in_order,
   )
   .wrap_err("When creating output writer")?;
@@ -190,6 +230,7 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         &qry_seq,
         ref_seq,
         ref_peptides,
+        aa_motifs_ref,
         gene_map,
         &primers,
         &tree,
@@ -198,6 +239,7 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         gap_open_close_nuc,
         gap_open_close_aa,
         &alignment_params,
+        include_nearest_node_info,
       )
     });
 
@@ -219,7 +261,7 @@ fn simpleclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   }
 
   if let Some(output_tree) = output_tree {
-    tree_attach_new_nodes_in_place(&mut tree, &outputs);
+    tree_attach_new_nodes_in_place_subtree(&mut tree, &outputs, ref_seq, ref_peptides, gene_map, &virus_properties);
     json_write(output_tree, &tree)?;
   }
 
@@ -232,6 +274,7 @@ pub fn simpleclade_run_one(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
+  aa_motifs_ref: &AaMotifsMap,
   gene_map: &GeneMap,
   primers: &[PcrPrimer],
   tree: &AuspiceTree,
@@ -240,14 +283,16 @@ pub fn simpleclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
+  include_nearest_node_info: bool,
 ) -> Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report> {
   let NextalignOutputs {
     stripped,
     alignment,
-    translations,
+    mut translations,
     warnings,
     missing_genes,
     is_reverse_complement,
+    coord_map,
   } = simplealign_run_one(
     index,
     seq_name,
@@ -264,11 +309,13 @@ pub fn simpleclade_run_one(
     substitutions,
     deletions,
     alignment_range,
-  } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
+  } = find_nuc_changes(&stripped.qry_seq, ref_seq);
 
   let alignment_start = alignment_range.begin;
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
+
+  calculate_aa_alignment_ranges_in_place(&alignment_range, gene_map, &coord_map, &mut translations)?;
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();
@@ -294,7 +341,7 @@ pub fn simpleclade_run_one(
     aa_substitutions,
     aa_deletions,
   } = find_aa_changes(
-    &stripped.ref_seq,
+    ref_seq,
     &stripped.qry_seq,
     ref_peptides,
     &translations,
@@ -311,9 +358,25 @@ pub fn simpleclade_run_one(
   let unknown_aa_ranges = find_aa_letter_ranges(&translations, Aa::X);
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
-  let TreeFindNearestNodeOutput { node, distance } =
-    tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
+  let nearest_node_candidates = tree_find_nearest_nodes(
+    tree,
+    &substitutions,
+    &missing,
+    &alignment_range,
+    &virus_properties.placement_mask_ranges,
+  );
+  let node = nearest_node_candidates[0].node;
   let nearest_node_id = node.tmp.id;
+
+  let nearest_nodes = include_nearest_node_info.then_some(
+    nearest_node_candidates
+    .iter()
+    // Choose all nodes with distance equal to the distance of the nearest node
+    .filter(|n| n.distance == nearest_node_candidates[0].distance)
+    .map(|n| n.node.name.clone())
+    .collect_vec(),
+  );
+
   let clade = node.clade();
 
   let clade_node_attr_keys = tree.clade_node_attr_descs();
@@ -379,6 +442,9 @@ pub fn simpleclade_run_one(
       .collect_vec()
   });
 
+  let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translations)?;
+  let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_peptides, &translations)?;
+
   let qc = qc_run(
     &private_nuc_mutations,
     &nucleotide_composition,
@@ -387,6 +453,17 @@ pub fn simpleclade_run_one(
     &frame_shifts,
     qc_config,
   );
+
+  let aa_alignment_ranges: BTreeMap<String, Range> = translations
+    .iter()
+    .filter_map(|tr| {
+      if tr.alignment_range.is_empty() {
+        None
+      } else {
+        Some((tr.gene_name.clone(), tr.alignment_range.clone()))
+      }
+    })
+    .collect();
 
   Ok((
     stripped.qry_seq,
@@ -419,6 +496,7 @@ pub fn simpleclade_run_one(
       alignment_start,
       alignment_end,
       alignment_score,
+      aa_alignment_ranges,
       pcr_primer_changes,
       total_pcr_primer_changes,
       clade,
@@ -429,9 +507,12 @@ pub fn simpleclade_run_one(
       divergence,
       coverage,
       phenotype_values,
+      aa_motifs,
+      aa_motifs_changes,
       qc,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,
+      nearest_nodes,
       is_reverse_complement,
     },
   ))
@@ -448,51 +529,59 @@ pub fn simplealign_run_one(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<NextalignOutputs, Report> {
-  let alignment = align_nuc(index, seq_name, qry_seq, ref_seq, gap_open_close_nuc, params)?;
+  match align_nuc(index, seq_name, qry_seq, ref_seq, gap_open_close_nuc, params) {
+    Err(report) => Err(report),
 
-  let translations = translate_genes(
-    &alignment.qry_seq,
-    &alignment.ref_seq,
-    ref_peptides,
-    gene_map,
-    gap_open_close_aa,
-    params,
-  )?;
+    Ok(alignment) => {
+      let coord_map = CoordMap::new(&alignment.ref_seq);
 
-  let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
+      let translations = translate_genes(
+        &alignment.qry_seq,
+        &alignment.ref_seq,
+        ref_peptides,
+        gene_map,
+        &coord_map,
+        gap_open_close_aa,
+        params,
+      )?;
 
-  let (translations, mut warnings): (Vec<Translation>, Vec<PeptideWarning>) =
-    translations.into_iter().partition_map(|(gene_name, res)| match res {
-      Ok(tr) => Either::Left(tr),
-      Err(err) => Either::Right(PeptideWarning {
-        gene_name,
-        warning: report_to_string(&err),
-      }),
-    });
+      let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
-  let present_genes: HashSet<String> = translations.iter().map(|tr| &tr.gene_name).cloned().collect();
+      let (translations, mut warnings): (Vec<Translation>, Vec<PeptideWarning>) =
+        translations.into_iter().partition_map(|(gene_name, res)| match res {
+          Ok(tr) => Either::Left(tr),
+          Err(err) => Either::Right(PeptideWarning {
+            gene_name,
+            warning: report_to_string(&err),
+          }),
+        });
 
-  let missing_genes = gene_map
-    .iter()
-    .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then(|| gene_name))
-    .cloned()
-    .collect_vec();
+      let present_genes: HashSet<String> = translations.iter().map(|tr| &tr.gene_name).cloned().collect();
 
-  let is_reverse_complement = alignment.is_reverse_complement;
+      let missing_genes = gene_map
+        .iter()
+        .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then_some(gene_name))
+        .cloned()
+        .collect_vec();
 
-  if is_reverse_complement {
-    warnings.push(PeptideWarning {
+      let is_reverse_complement = alignment.is_reverse_complement;
+
+      if is_reverse_complement {
+        warnings.push(PeptideWarning {
       gene_name: "nuc".to_owned(),
       warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
     });
-  }
+      }
 
-  Ok(NextalignOutputs {
-    stripped,
-    alignment,
-    translations,
-    warnings,
-    missing_genes,
-    is_reverse_complement,
-  })
+      Ok(NextalignOutputs {
+        stripped,
+        alignment,
+        translations,
+        warnings,
+        missing_genes,
+        is_reverse_complement,
+        coord_map,
+      })
+    }
+  }
 }

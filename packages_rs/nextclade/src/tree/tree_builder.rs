@@ -1,57 +1,24 @@
-use crate::align::insertions_strip::{get_aa_insertions, NucIns};
-use crate::align::params::AlignPairwiseParams;
-use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
-use crate::analyze::aa_changes_group::group_adjacent_aa_subs_and_dels;
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
-use crate::analyze::divergence::calculate_divergence;
-use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
-use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
-use crate::analyze::letter_composition::get_letter_composition;
-use crate::analyze::letter_ranges::{find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, LetterRange};
+use crate::analyze::letter_ranges::LetterRange;
 use crate::analyze::letter_ranges::{AaRange, GeneAaRange, NucRange};
-use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
-use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::analyze::nuc_sub::NucSub;
-use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
-use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
-use crate::analyze::pcr_primers::PcrPrimer;
-use crate::analyze::phenotype::calculate_phenotype;
-use crate::analyze::virus_properties::{PhenotypeData, VirusProperties};
-use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
-use crate::io::fasta::{FastaReader, FastaRecord};
-use crate::io::gene_map::GeneMap;
-use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
-use crate::io::nuc::{from_nuc_seq, to_nuc_seq, to_nuc_seq_replacing};
-use crate::qc::qc_config::QcConfig;
-use crate::qc::qc_run::qc_run;
-use crate::run::nextalign_run_one::nextalign_run_one;
-use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
+use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
 use crate::translate::translate::decode;
-use crate::translate::translate_genes::{Translation, TranslationMap};
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
-use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
-use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
-use crate::utils::range::Range;
-use assert2::__assert2_impl::print;
-use eyre::Report;
-use itertools::Itertools;
-use nalgebra::{DMatrix, DVector};
-use serde::__private::de;
-use std::collections::HashMap;
-//use ndarray::prelude::*;
+use crate::tree::tree::AuspiceTreeNode;
 use crate::tree::tree_find_nearest_node::tree_calculate_node_distance;
-use core::cmp::{max, min};
+use crate::types::outputs::NextcladeOutputs;
+use crate::utils::range::Range;
+use itertools::Itertools;
+use nalgebra::DMatrix;
 use std::cmp;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::hash::Hash;
-use std::{
-  sync::atomic::{AtomicUsize, Ordering},
-  thread,
-};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -110,6 +77,7 @@ pub fn calculate_distance_matrix(
   node: &mut AuspiceTreeNode,
   results: &[NextcladeOutputs],
   positions: &Vec<usize>,
+  masked_ranges: &[Range],
 ) -> (DMatrix<f64>, Vec<NodeType>) {
   // compute element order vector
   let new_internal = TreeNode::new(node.tmp.id);
@@ -138,6 +106,7 @@ pub fn calculate_distance_matrix(
       &arr,
       &results1.missing,
       &Range::new(results1.alignment_start, results1.alignment_end),
+      masked_ranges,
     ) as f64;
     distance_matrix[(i + 1, 0)] = dist_to_node;
     distance_matrix[(0, i + 1)] = dist_to_node;

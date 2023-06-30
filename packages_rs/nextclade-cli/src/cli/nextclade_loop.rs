@@ -5,12 +5,11 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::{
   dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load, DatasetFiles,
 };
-use assert2::__assert2_impl::print;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use nextclade::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional};
+use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
@@ -21,12 +20,11 @@ use nextclade::io::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree_attach_new_nodes::{tree_attach_new_nodes_in_place, tree_attach_new_nodes_in_place_subtree};
+use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place_subtree;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::range::Range;
 use nextclade::{make_error, make_internal_report};
-use serde::de::value::SeqAccessDeserializer;
 use std::path::PathBuf;
 
 pub struct NextcladeRecord {
@@ -237,7 +235,6 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
             )
           });
 
-
           let record = NextcladeRecord {
             index,
             seq_name,
@@ -307,5 +304,3 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   Ok(())
 }
-
-

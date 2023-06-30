@@ -57,7 +57,7 @@ fn get_prior(node: &AuspiceTreeNode) -> f64 {
 }
 
 /// Calculates distance metric between a given query sample and a tree node
-fn tree_calculate_node_distance(
+pub fn tree_calculate_node_distance(
   node: &AuspiceTreeNode,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
