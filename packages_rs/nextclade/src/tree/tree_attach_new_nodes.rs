@@ -1,4 +1,3 @@
-use super::tree::DivergenceUnits;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
@@ -18,7 +17,8 @@ use crate::io::nextclade_csv::{
 };
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
+  AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
+  AUSPICE_UNKNOWN_VALUE,
 };
 use crate::tree::tree_builder::{
   add_mutations_to_vertices, build_directed_subtree, build_undirected_subtree, calculate_distance_matrix,
