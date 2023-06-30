@@ -1559,6 +1559,7 @@ dependencies = [
 name = "nextclade"
 version = "2.14.0"
 dependencies = [
+ "approx",
  "assert2",
  "atty",
  "auto_ops",

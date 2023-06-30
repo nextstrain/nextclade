@@ -576,39 +576,46 @@ pub fn compute_vertex_mutations(
   }
 }
 
-#[test]
-fn test_distance_metric() {
-  let seq1 = vec![
-    NucSub {
-      ref_nuc: Nuc::T,
-      pos: 13.into(),
-      qry_nuc: Nuc::A,
-    },
-    NucSub {
-      ref_nuc: Nuc::T,
-      pos: 14.into(),
-      qry_nuc: Nuc::A,
-    },
-  ];
-  let seq2 = vec![
-    NucSub {
-      ref_nuc: Nuc::T,
-      pos: 13.into(),
-      qry_nuc: Nuc::T,
-    },
-    NucSub {
-      ref_nuc: Nuc::T,
-      pos: 14.into(),
-      qry_nuc: Nuc::A,
-    },
-    NucSub {
-      ref_nuc: Nuc::T,
-      pos: 18.into(),
-      qry_nuc: Nuc::A,
-    },
-  ];
-  let missings = Vec::<NucRange>::new();
-  let aln_range = NucRefGlobalRange::from_usize(0, 100);
-  let dist = calculate_distance_results(&seq1, &seq2, &missings, &missings, &aln_range, &aln_range);
-  assert_eq!(dist, 2.0);
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use approx::assert_ulps_eq;
+  use rstest::rstest;
+
+  #[rstest]
+  fn test_distance_metric() {
+    let seq1 = vec![
+      NucSub {
+        ref_nuc: Nuc::T,
+        pos: 13.into(),
+        qry_nuc: Nuc::A,
+      },
+      NucSub {
+        ref_nuc: Nuc::T,
+        pos: 14.into(),
+        qry_nuc: Nuc::A,
+      },
+    ];
+    let seq2 = vec![
+      NucSub {
+        ref_nuc: Nuc::T,
+        pos: 13.into(),
+        qry_nuc: Nuc::T,
+      },
+      NucSub {
+        ref_nuc: Nuc::T,
+        pos: 14.into(),
+        qry_nuc: Nuc::A,
+      },
+      NucSub {
+        ref_nuc: Nuc::T,
+        pos: 18.into(),
+        qry_nuc: Nuc::A,
+      },
+    ];
+    let missings = Vec::<NucRange>::new();
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let dist = calculate_distance_results(&seq1, &seq2, &missings, &missings, &aln_range, &aln_range);
+    assert_ulps_eq!(dist, 2.0);
+  }
 }
