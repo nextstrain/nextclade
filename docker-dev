@@ -374,7 +374,7 @@ DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null ||
   [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
 
-  export DOCKER_BUILDKIT=1
+  # export DOCKER_BUILDKIT=1
   export BUILDKIT_PROGRESS=plain
   export PROGRESS_NO_TRUNC=1
 
@@ -400,7 +400,13 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
   BUILDX_CACHE_DIR="${CACHE_DIR}/buildx"
 
-  ${NICE} docker buildx build -q \
+  mkdir -p "${BUILDX_CACHE_DIR}"
+
+  if [ "${VERBOSE:=0}" != "1" ]; then
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} -q"
+  fi
+
+  ${NICE} docker buildx build \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \

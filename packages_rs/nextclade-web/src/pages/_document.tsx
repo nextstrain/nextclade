@@ -53,6 +53,19 @@ const disableErrorPopup = {
 }
 
 /**
+ *
+ * Prevent indexing by search engines
+ * https://developers.google.com/search/docs/crawling-indexing/block-indexing
+ *
+ */
+function NoIndex() {
+  if (process.env.BLOCK_SEARCH_INDEXING !== '1') {
+    return null
+  }
+  return <meta name="robots" content="noindex" />
+}
+
+/**
  * Disables Next.js error popup in dev mode, so that the behavior is consistent with production.
  * Put this component into Document's Head.
  */
@@ -87,6 +100,9 @@ export default class Document extends NextDocument {
       <Html lang="en">
         <Head>
           <DisableNextJsErrorPopup />
+
+          <NoIndex />
+          <link rel="canonical" href={DOMAIN} />
 
           <meta charSet="utf8" />
           <title>{PROJECT_NAME}</title>

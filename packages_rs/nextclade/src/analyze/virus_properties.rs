@@ -21,6 +21,10 @@ struct VirusPropertiesRaw {
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
+  #[serde(default = "Vec::new")]
+  pub aa_motifs: Vec<AaMotifsDesc>,
+  #[serde(default = "Vec::new")]
+  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
 }
 
 /// Contains external configuration and data specific for a particular pathogen
@@ -31,6 +35,10 @@ pub struct VirusProperties {
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
+  #[serde(default = "Vec::new")]
+  pub aa_motifs: Vec<AaMotifsDesc>,
+  #[serde(default = "Vec::new")]
+  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
@@ -101,12 +109,34 @@ pub struct PhenotypeData {
   pub data: Vec<PhenotypeDataEntry>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeAttrDesc {
   pub name: String,
   pub name_friendly: String,
   pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AaMotifsDesc {
+  pub name: String,
+  pub name_short: String,
+  pub name_friendly: String,
+  pub description: String,
+  pub motifs: Vec<String>,
+
+  #[serde(default = "Vec::new")]
+  pub include_genes: Vec<CountAaMotifsGeneDesc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct CountAaMotifsGeneDesc {
+  pub gene: String,
+
+  #[serde(default = "Vec::new")]
+  pub ranges: Vec<Range>,
 }
 
 impl FromStr for VirusProperties {
@@ -128,6 +158,8 @@ impl FromStr for VirusProperties {
       alignment_params: raw.alignment_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
       phenotype_data: raw.phenotype_data,
+      aa_motifs: raw.aa_motifs,
+      placement_mask_ranges: raw.placement_mask_ranges,
     })
   }
 }

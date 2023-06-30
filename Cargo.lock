@@ -830,6 +830,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "edit-distance"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbbaaaf38131deb9ca518a274a45bfdb8771f139517b073b16c2d3d32ae5037b"
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1462,7 +1468,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade"
-version = "2.9.1"
+version = "2.14.0"
 dependencies = [
  "assert2",
  "atty",
@@ -1480,6 +1486,7 @@ dependencies = [
  "csv",
  "ctor",
  "derive_more",
+ "edit-distance",
  "env_logger",
  "eyre",
  "flate2",
@@ -1488,6 +1495,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "log",
+ "maplit",
  "num",
  "num-traits",
  "num_cpus",
@@ -1513,7 +1521,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-cli"
-version = "2.9.1"
+version = "2.14.0"
 dependencies = [
  "assert2",
  "clap 3.1.18",
@@ -1552,7 +1560,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-web"
-version = "2.9.1"
+version = "2.14.0"
 dependencies = [
  "assert2",
  "console_error_panic_hook",

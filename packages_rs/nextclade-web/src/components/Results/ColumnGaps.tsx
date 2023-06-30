@@ -30,7 +30,7 @@ export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
         <TableSlim borderless className="mb-1">
           <tbody>
             <tr>
-              <th>{t('Nucleotide deletions ({{n}})', { n: totalGaps })}</th>
+              <th>{t('Nucleotide deletions ({{ n }})', { n: totalGaps })}</th>
             </tr>
             <tr>
               <td>
@@ -39,7 +39,7 @@ export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
             </tr>
 
             <tr>
-              <th>{t('Aminoacid deletions ({{n}})', { n: aaDeletions.length })}</th>
+              <th>{t('Aminoacid deletions ({{ n }})', { n: aaDeletions.length })}</th>
             </tr>
             <tr>
               <td>

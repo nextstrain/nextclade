@@ -18,7 +18,7 @@ use crate::tree::tree_builder::convert_private_mutations_to_node_branch_attrs;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use assert2::__assert2_impl::print;
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use serde_json::json;
 use std::collections::{BTreeMap, HashSet};
 
@@ -57,14 +57,21 @@ pub fn create_new_auspice_node(
     )
   };
 
-  #[allow(clippy::from_iter_instead_of_collect)]
-  let other = serde_json::Value::from_iter(
-    result
-      .custom_node_attributes
-      .clone()
-      .into_iter()
-      .map(|(key, val)| (key, json!({ "value": val }))),
-  );
+  let custom_node_attributes_json = result
+    .custom_node_attributes
+    .clone()
+    .into_iter()
+    .map(|(key, val)| (key, json!({ "value": val })))
+    .collect_vec();
+
+  let phenotype_values_json = result.phenotype_values.as_ref().map_or(vec![], |phenotype_values| {
+    phenotype_values
+      .iter()
+      .map(|val| (val.name.clone(), json!({ "value": val.value.to_string() })))
+      .collect_vec()
+  });
+
+  let other: serde_json::Value = chain!(phenotype_values_json, custom_node_attributes_json).collect();
 
   AuspiceTreeNode {
     name: format!("{}_new", result.seq_name),
@@ -79,14 +86,14 @@ pub fn create_new_auspice_node(
       region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      alignment: Some(TreeNodeAttr::new(&alignment)),
+      placement_prior: None,alignment: Some(TreeNodeAttr::new(&alignment)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
       gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
       non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
       has_pcr_primer_changes,
       pcr_primer_changes,
-      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
       qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
+        missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
       other,
     },
     children: vec![],

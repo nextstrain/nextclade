@@ -7,6 +7,7 @@ import styled from 'styled-components'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { MainInputFormRunStep } from 'src/components/Main/MainInputFormRunStep'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 
 export const Container = styled(ContainerBase)`
   display: flex;
@@ -32,6 +33,9 @@ export const Centered = styled.section`
 export function MainInputForm() {
   const [searchTerm, setSearchTerm] = useState('')
   const currentDataset = useRecoilValue(datasetCurrentAtom)
+
+  // This periodically fetches dataset index and updates the list of datasets.
+  useUpdatedDatasetIndex()
 
   const FormBody = useMemo(
     () =>

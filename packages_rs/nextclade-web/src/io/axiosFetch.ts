@@ -19,7 +19,6 @@ export async function axiosFetch<TData = unknown>(
   options?: AxiosRequestConfig,
 ): Promise<TData> {
   if (isNil(url)) {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new ErrorInternal(`Attempted to fetch from an invalid URL: '${url}'`)
   }
 
@@ -74,7 +73,6 @@ export async function axiosHead<TData = unknown>(
   options?: AxiosRequestConfig,
 ): Promise<TData> {
   if (isNil(url)) {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new ErrorInternal(`Attempted to fetch from an invalid URL: '${url}'`)
   }
 

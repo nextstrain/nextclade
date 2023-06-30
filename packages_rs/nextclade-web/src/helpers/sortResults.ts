@@ -26,11 +26,6 @@ export interface Sorting {
   direction: SortDirection
 }
 
-export interface SortingKeyBased {
-  key: string
-  direction: SortDirection
-}
-
 export function defaultNumber(direction: SortDirection) {
   return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
 }
@@ -184,17 +179,41 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
   return results
 }
 
-export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKeyBased) {
+export interface SortingKeyBased {
+  key: string
+  direction: SortDirection
+}
+
+export function sortCustomNodeAttribute(results: NextcladeResult[], sorting: SortingKeyBased) {
+  const { key, direction } = sorting
+  return orderBy(
+    results,
+    (result) => {
+      // Replace nullish values with empty strings, such that they could be sorted lexicographically
+      return get(result.result?.analysisResult?.customNodeAttributes, key) ?? ''
+    },
+    direction,
+  )
+}
+
+export function sortPhenotypeValue(results: NextcladeResult[], sorting: SortingKeyBased) {
   const { key, direction } = sorting
   return orderBy(
     results,
     (result) => {
       return (
-        get(result.result?.analysisResult?.customNodeAttributes ?? {}, key) ??
-        result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ??
-        defaultNumber(direction)
+        result.result?.analysisResult?.phenotypeValues?.find((ph) => ph.name === key)?.value ?? defaultNumber(direction)
       )
     },
+    direction,
+  )
+}
+
+export function sortMotifs(results: NextcladeResult[], sorting: SortingKeyBased) {
+  const { key, direction } = sorting
+  return orderBy(
+    results,
+    (result) => get(result.result?.analysisResult?.aaMotifs, key)?.length ?? defaultNumber(direction),
     direction,
   )
 }

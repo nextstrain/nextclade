@@ -52,7 +52,7 @@ macro_rules! make_internal_error {
   ($($arg:tt)*) => {
     {
       let msg_external = std::format!($($arg)*);
-      let msg = std::format!("{msg_external}. This is an internal error. Please report it to developers.");
+      let msg = std::format!("{msg_external}. This is an internal error. Please report it to developers");
       Err(eyre::eyre!(msg))
     }
   };
@@ -65,7 +65,7 @@ macro_rules! make_internal_report {
   ($($arg:tt)*) => {
     {
       let msg_external = std::format!($($arg)*);
-      let msg = std::format!("{msg_external}. This is an internal error. Please report it to developers.");
+      let msg = std::format!("{msg_external}. This is an internal error. Please report it to developers");
       eyre::eyre!(msg)
     }
   };

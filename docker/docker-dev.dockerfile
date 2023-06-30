@@ -54,6 +54,7 @@ ARG CLANG_VERSION
 # Install required packages if running Debian or Ubuntu
 RUN set -euxo pipefail >/dev/null \
 && if [[ "$DOCKER_BASE_IMAGE" != debian* ]] && [[ "$DOCKER_BASE_IMAGE" != ubuntu* ]]; then exit 0; fi \
+&& if grep stretch "/etc/apt/sources.list"; then printf "deb http://archive.debian.org/debian/ stretch main non-free contrib\ndeb http://archive.debian.org/debian-security/ stretch/updates main non-free contrib\n" > "/etc/apt/sources.list"; fi \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
@@ -234,12 +235,8 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install executable dependencies
 RUN set -euxo pipefail >/dev/null \
-&& cargo quickinstall cargo-audit \
-&& cargo quickinstall cargo-deny \
-&& cargo quickinstall cargo-edit \
 && cargo quickinstall cargo-watch \
-&& cargo quickinstall wasm-pack \
-&& cargo quickinstall xargo
+&& cargo quickinstall wasm-pack --version 0.10.3
 
 # Setup bash
 RUN set -euxo pipefail >/dev/null \

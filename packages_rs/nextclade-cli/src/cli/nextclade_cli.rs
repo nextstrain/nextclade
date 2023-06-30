@@ -364,6 +364,7 @@ pub struct NextcladeRunInputArgs {
   pub server: Url,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunOutputArgs {
   /// REMOVED. Use `--output-all` instead
@@ -498,6 +499,22 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tsv: Option<PathBuf>,
 
+  /// Restricts columns written into tabular output files (CSV and TSV).
+  ///
+  /// Should contain a comma-separated list of individual column names and/or column category names to include into both CSV and TSV outputs.
+  ///
+  /// If this flag is omitted, or if category 'all' is present in the list, then all other entries are ignored and all columns are written.
+  ///
+  /// Only valid together with one or multiple of flags: `--output-csv`, `--output-tsv`, `--output-all`.
+  #[clap(
+    long,
+    short = 'C',
+    takes_value = true,
+    multiple_values = true,
+    use_value_delimiter = true
+  )]
+  pub output_columns_selection: Vec<String>,
+
   /// Path to output phylogenetic tree with input sequences placed onto it, in Auspice JSON V2 format.
   ///
   /// For file format description see: https://nextstrain.org/docs/bioinformatics/data-formats
@@ -539,6 +556,10 @@ pub struct NextcladeRunOutputArgs {
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
   #[clap(long)]
   pub include_reference: bool,
+
+  /// Whether to include the list of nearest nodes to the outputs
+  #[clap(long)]
+  pub include_nearest_node_info: bool,
 
   /// Emit output sequences in-order.
   ///
@@ -796,6 +817,22 @@ pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), R
   Ok(())
 }
 
+pub fn nextclade_check_column_config_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
+  let NextcladeRunOutputArgs {
+    output_all,
+    output_csv,
+    output_tsv,
+    output_columns_selection,
+    ..
+  } = &run_args.outputs;
+
+  if !output_columns_selection.is_empty() && [output_all, output_csv, output_tsv].iter().all(|arg| arg.is_none()) {
+    return make_error!("The `--output-columns-selection` argument configures column-based output formats and can only be used when one or more of the column-based file outputs is requested, i.e. together with one or multiple of `--output-all`, `--output-csv`, `--output-tsv`.");
+  }
+
+  Ok(())
+}
+
 pub fn nextclade_parse_cli_args() -> Result<(), Report> {
   let args = NextcladeArgs::parse();
 
@@ -807,6 +844,7 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     }
     NextcladeCommands::Run(mut run_args) => {
       nextclade_check_removed_args(&run_args)?;
+      nextclade_check_column_config_args(&run_args)?;
       nextclade_get_output_filenames(&mut run_args).wrap_err("When deducing output filenames")?;
       nextclade_run(*run_args)
     }

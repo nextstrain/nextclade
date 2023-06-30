@@ -7,6 +7,9 @@ import getWithMDX from '@next/mdx'
 import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
 
+import type { AppJson } from 'src/components/Layout/UpdateNotification'
+
+import { RELEASE_URL } from './../../src/constants'
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getGitBranch } from '../../lib/getGitBranch'
 import { getBuildNumber } from '../../lib/getBuildNumber'
@@ -28,6 +31,7 @@ import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withResolve from './withResolve'
 import withUrlAsset from './withUrlAsset'
 import withWasm from './withWasm'
+import { getWithAppJson } from './withAppJson'
 
 const {
   // BABEL_ENV,
@@ -57,6 +61,7 @@ const clientEnv = {
   DOMAIN,
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
+  BLOCK_SEARCH_INDEXING: DOMAIN === RELEASE_URL ? '0' : '1',
 }
 
 const nextConfig: NextConfig = {
@@ -161,6 +166,19 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
 
 const withRobotsTxt = getWithRobotsTxt(`User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`)
 
+const withAppJson = getWithAppJson({
+  name: pkg.name,
+  version: pkg.version,
+  branchName: getGitBranch(),
+  commitHash: getGitCommitHash(),
+  buildNumber: getBuildNumber(),
+  buildUrl: getBuildUrl(),
+  domain: DOMAIN,
+  domainStripped: DOMAIN_STRIPPED,
+  dataFullDomain: DATA_FULL_DOMAIN,
+  blockSearchIndexing: DOMAIN === RELEASE_URL ? '0' : '1',
+} as AppJson)
+
 const config = withPlugins(
   [
     [withIgnore],
@@ -176,6 +194,7 @@ const config = withPlugins(
     [withRaw],
     [withResolve],
     [withRobotsTxt],
+    [withAppJson],
     [withUrlAsset],
     [withWasm],
     PRODUCTION && [withoutDebugPackage],

@@ -61,8 +61,8 @@ version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-c
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 prerelease_flag=${release_type:+--prerelease}
 
-# Check auth
-gh auth status >/dev/null
+## Check auth
+#gh auth status >/dev/null
 
 # shellcheck disable=SC2086
 # Create a release.
@@ -73,7 +73,7 @@ gh auth status >/dev/null
   else
     cat docs/assets/prerelease-warning.md
   fi
-  git cliff --unreleased
+  git cliff --current
   cat docs/assets/release-instructions.md
 ) |
   gh release create \

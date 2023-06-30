@@ -21,6 +21,10 @@ defaults:
   run:
     shell: bash -euxo pipefail {0}
 
+env:
+  GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
+
 jobs:
 
   publish-to-bioconda:

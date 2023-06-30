@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRecoilValue } from 'recoil'
-import { get } from 'lodash'
+import { get, isNil } from 'lodash'
 import styled, { useTheme } from 'styled-components'
 import { shade } from 'polished'
 
@@ -77,13 +77,13 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
   return (
     <MutationBadgeBox>
       <MutationWrapper>
-        {refNuc && (
+        {!isNil(refNuc) && (
           <ColoredText $background={refBg} $color={refFg}>
             {refNuc}
           </ColoredText>
         )}
-        {pos && <PositionText>{posOneBased}</PositionText>}
-        {queryNuc && (
+        {!isNil(pos) && <PositionText>{posOneBased}</PositionText>}
+        {!isNil(queryNuc) && (
           <ColoredText $background={queryBg} $color={queryFg}>
             {queryNuc}
           </ColoredText>

@@ -30,9 +30,14 @@ sudo apt-get install --yes libssl-dev pkg-config
 # Prepare dotenv file with default values
 cp .env.example .env
 
-# Build and run Nextclade in debug mode (convenient for development, fast to build, slow to run, has debug info)
-# Nextclade dataset is expected to be in ./data_dev/, refer to Nextclade dataset information 
+# Build Nextclade and use it to download a dataset to ./data_dev/
+# In later commands, a dataset is expected to be in ./data_dev/, refer to Nextclade dataset information 
 # (https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html#download-a-dataset)
+cargo run --bin=nextclade -- dataset \
+  get --name=sars-cov-2 \
+  --output-dir=data_dev/
+
+# Build and run Nextclade in debug mode (convenient for development, fast to build, slow to run, has debug info)
 # Refer to the user documentation for explanation of Nextclade CLI flags (https://docs.nextstrain.org/projects/nextclade/en/stable/)
 cargo run --bin=nextclade -- run \
   data_dev/sequences.fasta \
@@ -72,6 +77,23 @@ The WebAssembly module shares the algorithms Rust code with Nextclade CLI. So bu
 Install Node.js version 14+ (latest LTS release is recommended), by either downloading it from the official website: https://nodejs.org/en/download/, or by using [nvm](https://github.com/nvm-sh/nvm). We don't recommend using Node.js from the package manager of your operating system, and neither from conda or other sources.
 
 Let's build the WebAssembly module:
+
+<details>
+<summary>Show extra requirements for macOS</summary>
+
+For macOS, you will also have to install llvm: 
+
+```bash
+brew install llvm
+```
+
+Furthermore, you will need to set the following environment variables before invoking `yarn wasm-prod`:
+
+```bash
+export CC=/opt/homebrew/opt/llvm/bin/clang
+export AR=/opt/homebrew/opt/llvm/bin/llvm-ar 
+```
+</details>
 
 ```bash
 # Clone Nextclade git repository
@@ -138,11 +160,43 @@ Rust code is linted with [Clippy](https://github.com/rust-lang/rust-clippy):
 cargo clippy
 ```
 
-Clippy is configured in `clippy.toml` and `.cargo/config.toml`.
+Automatic fixes can be applied using:
+
+```bash
+cargo clippy --fix
+```
+
+Clippy is configured in `clippy.toml` and in `.cargo/config.toml`.
+
+For routine development, it is recommended to configure your text editor to see the Rust compiler and linter errors.
+
+##### In [VSCode](https://code.visualstudio.com/):
+
+Make sure you have ["Rust Analyzer" extension](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) (and not deprecated "Rust" extension), and configure it to use clippy: hit Ctrl+Shit+P, then find "Preferences: Open user settings (JSON)", then add:
+
+```
+"rust-analyzer.check.command": "clippy",
+```
+
+Now the warnings and errors will be shown as yellow and red squiggles. If you mouse hover a squiggle, there will appear a tooltip with explanation and a link to even more details. Sometimes there will be a link in the bottom of the tooltip to apply a "Quick fix" for this particular mistake. And there is also a light bulb in the editor to do the same.
+
+You can disable the pesky inline type hints (for all languages) by adding this to your preferences JSON:
+
+```
+"editor.parameterHints.enabled": false,
+"editor.inlayHints.enabled": "off",
+```
+
+An extension ["Error lens"](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) allows to see error and warning text inline in the editor.
+
+##### In Intellij CLion:
+
+In main menu, "File | Settings | Languages & Frameworks | Rust | External Linters", set "External tool" to "Clippy" and check the checkbox "Run external linter to analyze code on the fly".
+
 
 #### Linting Typescript and JavaScript
 
-The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) as a part of development command, but the same lints also be ran separately:
+The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) as a part of development command, but the same lints also be run separately:
 
 ```bash
 cd packages_rs/nextclade-web
@@ -171,7 +225,7 @@ yarn format:fix
 - Build a fresh dataset directory as described in the [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data) repo. At the time of writing it simply means to run `./scripts/rebuild` and to observe the `data_output/` created, containing the dataset files and associated index files
 - Serve datasets directory locally using any static file server. [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) should be enabled on the server. For example, using `serve` package from NPM:
   ```bash
-  npx serve --cors --listen=tcp://0.0.0.0:27722 data_output/
+  npx serve@latest --cors --listen=tcp://0.0.0.0:27722 data_output/
   ```
   In this example, files should be available at
   ```
