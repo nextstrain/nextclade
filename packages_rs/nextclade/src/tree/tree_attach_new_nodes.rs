@@ -202,7 +202,7 @@ fn attach_subtree(
   let nodes_to_attach = pre_nodes_to_attach;
 
   for v in nodes_to_attach {
-    let t_n = (*v).0;
+    let t_n = v.0;
     let vertex_result = vertices.get(&t_n).unwrap();
     if let NodeType::NewSeqNode(_) = t_n {
       let index = extract_enum_value!(t_n, NodeType::NewSeqNode(c) => c);
@@ -473,7 +473,7 @@ fn compute_child(
   //private_nuc_mut.total_private_substitutions = private_nuc_mut.total_private_substitutions - private_nuc_mut.total_reversion_substitutions;
 
   let mut new_node = AuspiceTreeNode {
-    name: format!("{}_new_subtree", index),
+    name: format!("{index}_new_subtree"),
     branch_attrs: TreeBranchAttrs {
       mutations,
       other: serde_json::Value::default(),

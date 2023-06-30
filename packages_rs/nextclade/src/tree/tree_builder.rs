@@ -308,7 +308,7 @@ fn build_directed_subtree_recursive(
   let nodes_to_attach = subtree.adjacency.get(graph_node);
 
   for v in nodes_to_attach.unwrap() {
-    let t_n = (*v).0;
+    let t_n = v.0;
     if seen_nodes.contains(&t_n) {
       continue;
     }
@@ -327,7 +327,7 @@ pub fn add_mutations_to_vertices(
   let nodes_to_attach = directed_subtree.adjacency.get(graph_node);
 
   for v in nodes_to_attach.unwrap() {
-    let t_n = (*v).0;
+    let t_n = v.0;
     if let NodeType::NewSeqNode(_) = t_n {
       let index = extract_enum_value!(t_n, NodeType::NewSeqNode(c) => c);
       let result = &results[index.0];
@@ -440,7 +440,7 @@ pub fn compute_vertex_mutations(
   let nodes_to_attach = directed_subtree.adjacency.get(graph_node);
   let mut child_vertices = Vec::<&InternalMutations>::new();
   for v in nodes_to_attach.unwrap() {
-    let index = (*v).0;
+    let index = v.0;
     let ch = vertices.get(&index).unwrap();
     child_vertices.push(ch);
   }
