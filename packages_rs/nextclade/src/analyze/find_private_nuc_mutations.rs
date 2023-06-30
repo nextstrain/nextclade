@@ -1,5 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::aa_sub::AaSub;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
@@ -12,16 +13,13 @@ use crate::utils::collections::concat_to_vec;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::aa_del::AaDelMinimal;
-use super::aa_sub::AaSubMinimal;
-
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct PrivateMutationsMinimal {
   /// All private nuc mutations
   pub private_nuc_substitutions: Vec<NucSub>,
-  pub private_nuc_deletions: Vec<NucDelMinimal>,
+  pub private_nuc_deletions: Vec<NucDel>,
   /// All private aa mutations
-  pub private_aa_mutations: BTreeMap<String, Vec<AaSubMinimal>>,
+  pub private_aa_mutations: BTreeMap<String, Vec<AaSub>>,
 }
 
 impl PrivateMutationsMinimal {
@@ -33,7 +31,7 @@ impl PrivateMutationsMinimal {
       private_aa_mutations: self
         .private_aa_mutations
         .iter()
-        .map(|(gene, subs)| (gene.clone(), subs.iter().map(AaSubMinimal::invert).collect()))
+        .map(|(gene, subs)| (gene.clone(), subs.iter().map(AaSub::invert).collect()))
         .collect(),
     }
   }

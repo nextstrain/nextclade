@@ -1,21 +1,17 @@
-use std::collections::{BTreeMap, HashSet};
-
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
+use crate::analyze::divergence::calculate_divergence;
+use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::nuc_sub::NucSub;
+use crate::graph::node::GraphNodeKey;
+use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
+use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
+use crate::types::outputs::NextcladeOutputs;
+use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
-
-use crate::{
-  analyze::{
-    aa_del::AaDelMinimal, aa_sub::AaSubMinimal, divergence::calculate_divergence,
-    find_private_nuc_mutations::PrivateMutationsMinimal, nuc_del::NucDelMinimal, nuc_sub::NucSub,
-  },
-  graph::node::GraphNodeKey,
-  types::outputs::NextcladeOutputs,
-  utils::collections::concat_to_vec,
-};
-
-use super::{
-  tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits},
-  tree_attach_new_nodes::create_new_auspice_node,
-};
+use regex::internal::Input;
+use std::collections::{BTreeMap, HashSet};
+use crate::analyze::nuc_del::NucDel;
 
 pub fn graph_attach_new_nodes_in_place(
   graph: &mut AuspiceGraph,
@@ -39,17 +35,17 @@ pub fn graph_attach_new_node_in_place(
 ) {
   let id = result.nearest_node_id;
 
-  let mut private_aa_mutations = BTreeMap::<String, Vec<AaSubMinimal>>::new();
-  for string in result.private_aa_mutations.keys() {
-    let subs = result.private_aa_mutations[string].private_substitutions.clone();
-    let dels = result.private_aa_mutations[string]
+  let mut private_aa_mutations = BTreeMap::<String, Vec<AaSub>>::new();
+  for key in result.private_aa_mutations.keys() {
+    let subs = result.private_aa_mutations[key].private_substitutions.clone();
+    let dels = result.private_aa_mutations[key]
       .private_deletions
       .iter()
-      .map(AaDelMinimal::to_sub)
+      .map(AaDel::to_sub)
       .collect_vec();
     let mut value = concat_to_vec(&subs, &dels);
     value.sort();
-    private_aa_mutations.insert(string.clone(), value);
+    private_aa_mutations.insert(key.clone(), value);
   }
 
   //check if new seq is in between nearest node and a neighbor of nearest node
@@ -116,8 +112,8 @@ fn split_mutations(
   while (i < mut1.private_nuc_substitutions.len()) && (j < mut2.private_nuc_substitutions.len()) {
     if mut1.private_nuc_substitutions[i].pos == mut2.private_nuc_substitutions[j].pos {
       // position is also mutated in node
-      if mut1.private_nuc_substitutions[i].reff == mut2.private_nuc_substitutions[j].reff
-        && mut1.private_nuc_substitutions[i].qry == mut2.private_nuc_substitutions[j].qry
+      if mut1.private_nuc_substitutions[i].ref_nuc == mut2.private_nuc_substitutions[j].ref_nuc
+        && mut1.private_nuc_substitutions[i].qry_nuc == mut2.private_nuc_substitutions[j].qry_nuc
       {
         shared_substitutions.push(mut1.private_nuc_substitutions[i].clone()); // the exact mutation is shared between node and seq
       } else {
@@ -144,9 +140,9 @@ fn split_mutations(
   }
   let mut i = 0;
   let mut j = 0;
-  let mut shared_deletions = Vec::<NucDelMinimal>::new();
-  let mut vect1_not_shared_deletions = Vec::<NucDelMinimal>::new();
-  let mut vect2_not_shared_deletions = Vec::<NucDelMinimal>::new();
+  let mut shared_deletions = Vec::<NucDel>::new();
+  let mut vect1_not_shared_deletions = Vec::<NucDel>::new();
+  let mut vect2_not_shared_deletions = Vec::<NucDel>::new();
 
   while (i < mut1.private_nuc_deletions.len()) && (j < mut2.private_nuc_deletions.len()) {
     if mut1.private_nuc_deletions[i].pos == mut2.private_nuc_deletions[j].pos {
@@ -170,9 +166,9 @@ fn split_mutations(
     vect2_not_shared_deletions.push(mut2.private_nuc_deletions[j].clone());
     j += 1;
   }
-  let mut shared_substitutions_map = BTreeMap::<String, Vec<AaSubMinimal>>::new();
-  let mut vect1_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSubMinimal>>::new();
-  let mut vect2_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSubMinimal>>::new();
+  let mut shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
+  let mut vect1_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
+  let mut vect2_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
 
   let keys_mut1 = mut1
     .private_aa_mutations
@@ -190,15 +186,15 @@ fn split_mutations(
   for gene_name in shared_keys.clone() {
     let v1 = &mut1.private_aa_mutations[gene_name];
     let v2 = &mut2.private_aa_mutations[gene_name];
-    let mut shared_substitutions = Vec::<AaSubMinimal>::new();
-    let mut vect1_not_shared_substitutions = Vec::<AaSubMinimal>::new();
-    let mut vect2_not_shared_substitutions = Vec::<AaSubMinimal>::new();
+    let mut shared_substitutions = Vec::<AaSub>::new();
+    let mut vect1_not_shared_substitutions = Vec::<AaSub>::new();
+    let mut vect2_not_shared_substitutions = Vec::<AaSub>::new();
     let mut i = 0;
     let mut j = 0;
     while (i < v1.len()) && (j < v2.len()) {
       if v1[i].pos == v2[j].pos {
         // position is also mutated in node
-        if v1[i].reff == v2[j].reff && v1[i].qry == v2[j].qry {
+        if v1[i].ref_aa == v2[j].ref_aa && v1[i].qry_aa == v2[j].qry_aa {
           shared_substitutions.push(v1[i].clone()); // the exact mutation is shared between node and seq
         } else {
           vect1_not_shared_substitutions.push(v1[i].clone());
@@ -458,7 +454,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   let dels_as_subs = mutations
     .private_nuc_deletions
     .iter()
-    .map(NucDelMinimal::to_sub)
+    .map(NucDel::to_sub)
     .collect_vec();
 
   let mut mutations_value = concat_to_vec(&mutations.private_nuc_substitutions, &dels_as_subs);
@@ -474,7 +470,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
 
     let string_aa_mutations = aa_mutations
       .iter()
-      .map(AaSubMinimal::to_string_without_gene)
+      .map(AaSub::to_string_without_gene)
       .collect_vec();
     branch_attrs.insert(gene_name.clone(), string_aa_mutations);
   }

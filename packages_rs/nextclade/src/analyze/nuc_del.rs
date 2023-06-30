@@ -1,4 +1,5 @@
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
@@ -44,4 +45,14 @@ impl NucDelRange {
 pub struct NucDel {
   pub pos: NucRefGlobalPosition,
   pub ref_nuc: Nuc,
+}
+
+impl NucDel {
+  pub fn to_sub(&self) -> NucSub {
+    NucSub {
+      ref_nuc: self.ref_nuc,
+      pos: self.pos,
+      qry_nuc: Nuc::Gap,
+    }
+  }
 }

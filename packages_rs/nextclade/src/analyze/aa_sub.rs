@@ -38,11 +38,12 @@ impl AaSub {
   }
 
   #[must_use]
-  pub const fn invert(&self) -> AaSubMinimal {
-    AaSubMinimal {
-      reff: self.qry,
+  pub fn invert(&self) -> Self {
+    Self {
+      cds_name: self.cds_name.clone(),
+      ref_aa: self.qry_aa,
       pos: self.pos,
-      qry: self.reff,
+      qry_aa: self.ref_aa,
     }
   }
 }

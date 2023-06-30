@@ -2,11 +2,10 @@ use clap::Parser;
 use ctor::ctor;
 use eyre::{Report, WrapErr};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::alphabet::nuc::to_nuc_seq;
 use nextclade::graph::graph::convert_graph_to_auspice_tree;
 use nextclade::graph::node::GraphNodeKey;
-use nextclade::io::json::json_parse;
 use nextclade::io::json::json_write;
-use nextclade::io::nuc::to_nuc_seq;
 use nextclade::make_internal_report;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::{
@@ -18,8 +17,7 @@ use nextclade_cli::cli::nextclade_cli::{
   nextclade_get_output_filenames, NextcladeArgs, NextcladeCommands, NextcladeRunArgs,
 };
 use nextclade_cli::cli::nextclade_loop::nextclade_get_inputs;
-use nextclade_cli::dataset::dataset_download::DatasetFiles;
-use serde_json::Value;
+use nextclade_cli::dataset::dataset_download::DatasetFilesContent;
 
 #[ctor]
 fn init() {
@@ -45,7 +43,7 @@ fn main() -> Result<(), Report> {
 }
 
 fn graph_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
-  let DatasetFiles {
+  let DatasetFilesContent {
     ref_record,
     mut tree,
     ref gene_map,

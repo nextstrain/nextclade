@@ -1,24 +1,22 @@
-use crate::analyze::aa_del::AaDelMinimal;
-use crate::analyze::aa_sub::AaSubMinimal;
-use crate::analyze::find_private_nuc_mutations::{PrivateMutationsMinimal, PrivateNucMutations};
-use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::graph::graph::Graph;
 use crate::graph::node::GraphNodeKey;
-use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
+use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
   AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
   AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
-use crate::{make_error, make_internal_report};
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
 use num::Float;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -92,8 +90,8 @@ pub fn tree_preprocess_in_place_impl_recursive(
 
 pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> PrivateMutationsMinimal {
   let mut nuc_sub = Vec::<NucSub>::new();
-  let mut nuc_del = Vec::<NucDelMinimal>::new();
-  let mut aa_sub = BTreeMap::<String, Vec<AaSubMinimal>>::new();
+  let mut nuc_del = Vec::<NucDel>::new();
+  let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
   match node.branch_attrs.mutations.get("nuc") {
     None => PrivateMutationsMinimal {
       private_nuc_substitutions: nuc_sub,
@@ -108,8 +106,8 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> PrivateMutationsMi
           Err(e) => panic!("Cannot read mutation: {e:?}"),
         };
         if mutation.is_del() {
-          let del = NucDelMinimal {
-            reff: mutation.reff,
+          let del = NucDel {
+            ref_nuc: mutation.ref_nuc,
             pos: mutation.pos,
           };
           nuc_del.push(del);
@@ -119,10 +117,10 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> PrivateMutationsMi
       }
       for (k, v) in &node.branch_attrs.mutations {
         if k != "nuc" {
-          let mut aa_sub_vec = Vec::<AaSubMinimal>::new();
-          let aa_del_vec = Vec::<AaDelMinimal>::new();
+          let mut aa_sub_vec = Vec::<AaSub>::new();
+          let aa_del_vec = Vec::<AaDel>::new();
           for mutation_str in v {
-            let mutation = AaSubMinimal::from_str(mutation_str);
+            let mutation = AaSub::from_str(mutation_str);
             let mutation = match mutation {
               Ok(n) => n,
               Err(e) => panic!("Cannot read mutation: {e:?}"),

@@ -13,9 +13,9 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
+use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::convert_graph_to_auspice_tree;
 use nextclade::graph::node::GraphNodeKey;
-use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
@@ -154,7 +154,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
-  let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides).unwrap();
+  let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
 
   let aa_motifs_keys = &virus_properties
     .aa_motifs

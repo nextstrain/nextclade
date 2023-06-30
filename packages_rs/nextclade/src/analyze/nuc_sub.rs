@@ -32,12 +32,13 @@ impl NucSub {
       qry: self.qry_nuc,
     }
   }
+
   #[must_use]
-  pub const fn invert(&self) -> NucSub {
-    NucSub {
-      reff: self.qry,
+  pub fn invert(&self) -> Self {
+    Self {
+      ref_nuc: self.qry_nuc,
       pos: self.pos,
-      qry: self.reff,
+      qry_nuc: self.ref_nuc,
     }
   }
 }
