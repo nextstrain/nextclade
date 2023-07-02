@@ -238,7 +238,7 @@ pub fn gff_record_to_string(record: &GffRecord) -> Result<String, Report> {
   {
     let mut writer = GffWriter::new(&mut buf, GffType::GFF3);
     writer.write(record)?;
-  }
+  };
   Ok(String::from_utf8(buf)?)
 }
 

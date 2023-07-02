@@ -26,9 +26,7 @@ impl FeatureTree {
     let filename = filename.as_ref();
     let mut file = open_file_or_stdin(&Some(filename))?;
     let mut buf = vec![];
-    {
-      file.read_to_end(&mut buf)?;
-    }
+    file.read_to_end(&mut buf)?;
     Self::from_gff3_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
@@ -39,9 +37,7 @@ impl FeatureTree {
 
   pub fn to_pretty_string(&self) -> Result<String, Report> {
     let mut buf = Vec::<u8>::new();
-    {
-      format_sequence_region_features(&mut buf, &self.seq_regions)?;
-    }
+    format_sequence_region_features(&mut buf, &self.seq_regions)?;
     Ok(String::from_utf8(buf)?)
   }
 }

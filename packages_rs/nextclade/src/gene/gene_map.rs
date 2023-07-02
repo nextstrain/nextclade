@@ -4,9 +4,9 @@ use crate::features::sequence_region::SequenceRegion;
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::{find_cdses, Gene};
-use crate::utils::collections::take_exactly_one;
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
+use crate::utils::collections::take_exactly_one;
 use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};
@@ -42,9 +42,7 @@ impl GeneMap {
     let filename = filename.as_ref();
     let mut file = open_file_or_stdin(&Some(filename))?;
     let mut buf = vec![];
-    {
-      file.read_to_end(&mut buf)?;
-    }
+    file.read_to_end(&mut buf)?;
     Self::from_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
