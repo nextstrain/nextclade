@@ -1,19 +1,14 @@
 //! Inspired by clap-verbosity-flag:
 //! https://github.com/rust-cli/clap-verbosity-flag
-use clap::Args;
-use lazy_static::lazy_static;
+use clap::{ArgAction, Args};
 use log::{Level, LevelFilter};
 use std::fmt::{Display, Formatter, Result};
 use std::marker::PhantomData;
 
-lazy_static! {
-  static ref VERBOSITIES: &'static [&'static str] = &["off", "error", "warn", "info", "debug", "trace"];
-}
-
 #[derive(Args, Debug, Clone)]
 pub struct Verbosity<L: LogLevel = ErrorLevel> {
   /// Set verbosity level of console output [default: warn]
-  #[clap(long, global = true, possible_values(VERBOSITIES.iter()))]
+  #[clap(long, global = true, value_parser = ["off", "error", "warn", "info", "debug", "trace"])]
   #[clap(conflicts_with = "quiet", conflicts_with = "verbose", conflicts_with = "silent")]
   #[clap(display_order = 900)]
   pub verbosity: Option<LevelFilter>,
@@ -25,16 +20,16 @@ pub struct Verbosity<L: LogLevel = ErrorLevel> {
   pub silent: bool,
 
   /// Make console output more verbose. Add multiple occurrences to increase verbosity further.
-  #[clap(long, short = 'v', parse(from_occurrences), global = true)]
+  #[clap(long, short = 'v', action = ArgAction::Count, global = true)]
   #[clap(conflicts_with = "quiet", conflicts_with = "verbosity", conflicts_with = "silent")]
   #[clap(display_order = 902)]
-  pub verbose: i8,
+  pub verbose: u8,
 
   /// Make console output more quiet. Add multiple occurrences to make output even more quiet.
-  #[clap(long, short = 'q', parse(from_occurrences), global = true)]
+  #[clap(long, short = 'q', action = ArgAction::Count, global = true)]
   #[clap(conflicts_with = "verbose", conflicts_with = "verbosity")]
   #[clap(display_order = 903)]
-  pub quiet: i8,
+  pub quiet: u8,
 
   #[clap(skip)]
   pub phantom: PhantomData<L>,
@@ -71,7 +66,7 @@ impl<L: LogLevel> Verbosity<L> {
   }
 
   fn verbosity(&self) -> i8 {
-    level_value(L::default()) - self.quiet + self.verbose
+    level_value(L::default()) - self.quiet as i8 + self.verbose as i8
   }
 }
 

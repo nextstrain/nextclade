@@ -1,8 +1,8 @@
-use clap::{ArgEnum, Parser};
+use clap::{Parser, ValueEnum};
 use optfield::optfield;
 use serde::{Deserialize, Serialize};
 
-#[derive(ArgEnum, Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(ValueEnum, Copy, Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum GapAlignmentSide {
   Left,
@@ -73,12 +73,12 @@ pub struct AlignPairwiseParams {
 
   /// Retry seed matching step with a reverse complement if the first attempt failed
   #[clap(long)]
-  #[clap(takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
+  #[clap(num_args=0..=1, default_missing_value = "true")]
   pub retry_reverse_complement: bool,
 
   /// If this flag is present, the amino acid sequences will be truncated at the first stop codon, if mutations or sequencing errors cause premature stop codons to be present. No amino acid mutations in the truncated region will be recorded.
   #[clap(long)]
-  #[clap(takes_value = false, forbid_empty_values = false, default_missing_value = "true")]
+  #[clap(num_args=0..=1, default_missing_value = "true")]
   pub no_translate_past_stop: bool,
 
   // Internal alignment parameter
@@ -99,7 +99,7 @@ pub struct AlignPairwiseParams {
 
   /// Whether to align gaps on the left or right side if equally parsimonious.
   /// Left aligning gaps is the convention, right align is Nextclade's historic default
-  #[clap(long, arg_enum)]
+  #[clap(long, value_enum)]
   pub gap_alignment_side: GapAlignmentSide,
 }
 

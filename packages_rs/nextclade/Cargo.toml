@@ -13,57 +13,65 @@ publish = false
 crate-type = ["lib"]
 
 [dependencies]
-assert2 = "0.3.6"
-auto_ops = "0.3.0"
-bio = "0.41.0"
-bio-types = "0.12.1"
-chrono = { version = "0.4.19", default-features = false, features = ["clock", "std", "wasmbind"] }
-clap = { version = "3.1.8", features = ["derive"] }
-clap-verbosity-flag = "1.0.0"
-clap_complete = "3.1.1"
-clap_complete_fig = "3.1.4"
-color-eyre = "0.6.1"
-csv = "1.1.6"
-ctor = "0.1.22"
-env_logger = "0.9.0"
-edit-distance = "2.1.0"
-eyre = "0.6.8"
-flate2 = "1.0.24"
-getrandom = "0.2.6"
-indexmap = { version = "1.8.1", features = ["serde"] }
-itertools = "0.10.3"
-lazy_static = "1.4.0"
-log = "0.4.16"
-maplit = "1.0.2"
-num = "0.4.0"
-num-traits = "0.2.14"
-num_cpus = "1.13.1"
-optfield = "0.2.0"
-owo-colors = "3.3.0"
-pretty_assertions = "1.2.1"
-rayon = "1.5.2"
-regex = "1.5.5"
-serde = { version = "1.0.136", features = ["derive"] }
-serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
-serde_stacker = { version = "0.1.6" }
-strum = "0.24.0"
-strum_macros = "0.24.0"
-tinytemplate = "1.2.1"
-traversal = "0.1.2"
-validator = { version = "0.14.0", features = ["derive"] }
-zip = { version = "0.6.2", default-features = false, features = ["aes-crypto", "deflate", "time"] }
+assert2 = "=0.3.11"
+auto_ops = "=0.3.0"
+bio = "=1.3.1"
+bio-types = "=1.0.0"
+chrono = { version = "=0.4.26", default-features = false, features = ["clock", "std", "wasmbind"] }
+clap = { version = "=4.3.10", features = ["derive"] }
+clap-verbosity-flag = "=2.0.1"
+clap_complete = "=4.3.1"
+clap_complete_fig = "=4.3.1"
+color-eyre = "=0.6.2"
+csv = "=1.2.2"
+ctor = "=0.2.2"
+derive_more = "=0.99.17"
+edit-distance = "=2.1.0"
+either = "=1.8.1"
+env_logger = "=0.10.0"
+eyre = "=0.6.8"
+flate2 = "=1.0.26"
+getrandom = "=0.2.10"
+indexmap = { version = "=1.9.3", features = ["serde"] }
+itertools = "=0.11.0"
+lazy_static = "=1.4.0"
+log = "=0.4.19"
+maplit = "=1.0.2"
+multimap = "=0.8.3"
+num = "=0.4.0"
+num-traits = "=0.2.15"
+num_cpus = "=1.16.0"
+optfield = "=0.3.0"
+owo-colors = "=3.5.0"
+pretty_assertions = "=1.3.0"
+rayon = "=1.7.0"
+regex = "=1.8.4"
+schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap"] }
+semver = "=1.0.17"
+serde = { version = "=1.0.164", features = ["derive"] }
+serde_repr = "=0.1.12"
+serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+serde_stacker = { version = "=0.1.8" }
+serde_yaml = "=0.9.22"
+strum = "=0.25.0"
+strum_macros = "=0.25.0"
+tinytemplate = "=1.2.1"
+traversal = "=0.1.2"
+urlencoding = "=2.1.2"
+validator = { version = "=0.16.1", features = ["derive"] }
+zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", "deflate", "time"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-atty = "0.2.14"
-bzip2 = "0.4.3"
-xz2 = "0.1.7"
-zstd = { version = "0.11.2", features = ["zstdmt"] }
+atty = "=0.2.14"
+bzip2 = "=0.4.4"
+xz2 = "=0.1.7"
+zstd = { version = "=0.12.3", features = ["zstdmt"] }
 
 [dev-dependencies]
-assert2 = "0.3.6"
-criterion = { version = "0.3.5", features = ["html_reports"] }
-rstest = "0.12.0"
-rstest_reuse = "0.3.0"
+assert2 = "=0.3.11"
+criterion = { version = "=0.5.1", features = ["html_reports"] }
+rstest = "=0.17.0"
+rstest_reuse = "=0.5.0"
 
 
 [[bench]]
