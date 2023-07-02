@@ -254,16 +254,14 @@ pub struct AuspiceTreeMeta {
 
 #[repr(u8)]
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Default)]
 pub enum DivergenceUnits {
   NumSubstitutionsPerYearPerSite,
+  #[default]
   NumSubstitutionsPerYear,
 }
 
-impl Default for DivergenceUnits {
-  fn default() -> Self {
-    DivergenceUnits::NumSubstitutionsPerYear
-  }
-}
+
 
 impl DivergenceUnits {
   ///

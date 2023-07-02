@@ -15,17 +15,15 @@ use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum QcStatus {
+  #[default]
   Good,
   Mediocre,
   Bad,
 }
 
-impl Default for QcStatus {
-  fn default() -> Self {
-    QcStatus::Good
-  }
-}
+
 
 impl ToString for QcStatus {
   fn to_string(&self) -> String {

@@ -7,6 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Aa {
   A,
   B,
@@ -39,6 +40,7 @@ pub enum Aa {
   Stop,
 
   #[serde(rename = "-")]
+  #[default]
   Gap,
 }
 
@@ -55,11 +57,7 @@ impl ToString for Aa {
   }
 }
 
-impl Default for Aa {
-  fn default() -> Self {
-    Aa::Gap
-  }
-}
+
 
 impl ScoreMatrixLookup<Aa> for Aa {
   fn lookup_match_score(x: Aa, y: Aa) -> i32 {
