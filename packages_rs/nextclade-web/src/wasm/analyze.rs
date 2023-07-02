@@ -73,8 +73,8 @@ pub struct NextcladeParams {
 
 #[wasm_bindgen]
 impl NextcladeParams {
-  pub fn from_js(params: &NextcladeParamsPojo) -> Result<NextcladeParams, JsError> {
-    deserialize_js_value::<NextcladeParams>(params)
+  pub fn from_js(params: NextcladeParamsPojo) -> Result<NextcladeParams, JsError> {
+    deserialize_js_value::<NextcladeParams>(params.into())
   }
 }
 
@@ -93,8 +93,8 @@ pub struct AnalysisInput {
 
 #[wasm_bindgen]
 impl AnalysisInput {
-  pub fn from_js(input: &AnalysisInputPojo) -> Result<AnalysisInput, JsError> {
-    deserialize_js_value::<AnalysisInput>(input)
+  pub fn from_js(input: AnalysisInputPojo) -> Result<AnalysisInput, JsError> {
+    deserialize_js_value::<AnalysisInput>(input.into())
   }
 }
 

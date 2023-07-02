@@ -6,7 +6,6 @@ use std::str::FromStr;
 pub fn report_to_string(report: &Report) -> String {
   let strings: Vec<String> = report
     .chain()
-    .into_iter()
     .map(std::string::ToString::to_string)
     .collect();
   strings.join(": ")

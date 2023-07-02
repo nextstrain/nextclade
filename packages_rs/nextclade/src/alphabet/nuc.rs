@@ -6,6 +6,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema, Hash)]
+#[derive(Default)]
 pub enum Nuc {
   T,
   A,
@@ -24,6 +25,7 @@ pub enum Nuc {
   N,
 
   #[serde(rename = "-")]
+    #[default]
   Gap,
 }
 
@@ -45,11 +47,7 @@ impl Nuc {
   }
 }
 
-impl Default for Nuc {
-  fn default() -> Self {
-    Nuc::Gap
-  }
-}
+
 
 impl ScoreMatrixLookup<Nuc> for Nuc {
   fn lookup_match_score(x: Nuc, y: Nuc) -> i32 {

@@ -109,7 +109,6 @@ pub fn parse_csv<T: for<'de> Deserialize<'de>, S: AsRef<str>>(data: S) -> Result
     .from_reader(data.as_ref().as_bytes());
   reader
     .into_deserialize::<T>()
-    .into_iter()
     .map(to_eyre_error)
     .collect::<Result<Vec<T>, Report>>()
 }

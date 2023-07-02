@@ -9,7 +9,7 @@ where
   T: Serialize + Debug,
   U: From<JsValue>,
 {
-  JsValue::from_serde::<T>(value)
+  serde_wasm_bindgen::to_value(value)
     // We want a concrete struct type `U` as output
     .map(U::from)
     // In case of error we throw a JS exception
@@ -22,15 +22,15 @@ where
   })
 }
 
-pub fn deserialize_js_value<T>(value: &JsValue) -> Result<T, JsError>
+pub fn deserialize_js_value<T>(value: JsValue) -> Result<T, JsError>
 where
   T: for<'de> Deserialize<'de> + Debug,
 {
-  value.into_serde::<T>().map_err(|report| {
+  serde_wasm_bindgen::from_value(value).map_err(|report| {
     let message = report.to_string();
     let type_name = std::any::type_name::<T>();
     JsError::new(&format!(
-      "{message:}.\nWhen deserializing 'JsValue' into '{type_name:}'.\nThe input value was:\n  {value:#?}"
+      "{message:}. When deserializing 'JsValue' into '{type_name:}'."
     ))
   })
 }
