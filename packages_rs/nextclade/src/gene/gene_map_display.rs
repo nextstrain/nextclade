@@ -19,9 +19,7 @@ const INDENT_WIDTH: usize = 2;
 
 pub fn gene_map_to_table_string(gene_map: &GeneMap) -> Result<String, Report> {
   let mut buf = Vec::<u8>::new();
-  {
-    format_gene_map(&mut buf, gene_map)?;
-  }
+  format_gene_map(&mut buf, gene_map)?;
   Ok(String::from_utf8(buf)?)
 }
 
