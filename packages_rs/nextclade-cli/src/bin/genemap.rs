@@ -1,4 +1,4 @@
-use clap::{AppSettings, Parser, ValueHint};
+use clap::{Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
 use log::LevelFilter;
@@ -17,9 +17,8 @@ fn init() {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "genemap", trailing_var_arg = true)]
+#[clap(name = "genemap")]
 #[clap(author, version)]
-#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
 pub struct GenemapArgs {
   #[clap(value_hint = ValueHint::FilePath)]

@@ -1,4 +1,4 @@
-use clap::{AppSettings, Parser, ValueHint};
+use clap::{Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
 use log::LevelFilter;
@@ -30,9 +30,8 @@ fn init() {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "generate_jsonschema", trailing_var_arg = true)]
+#[clap(name = "generate_jsonschema")]
 #[clap(author, version)]
-#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
 pub struct FeaturemapArgs {
   /// Path to output directory

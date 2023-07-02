@@ -1,4 +1,4 @@
-use clap::{AppSettings, Parser, ValueHint};
+use clap::{Parser, ValueHint};
 use ctor::ctor;
 use eyre::Report;
 use log::LevelFilter;
@@ -16,9 +16,8 @@ fn init() {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "featuremap", trailing_var_arg = true)]
+#[clap(name = "featuremap")]
 #[clap(author, version)]
-#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
 pub struct FeaturemapArgs {
   /// Path to input GFF3 file
