@@ -1,11 +1,11 @@
 use crate::cli::nextalign_loop::nextalign_run;
+use crate::cli::nextclade_cli::{check_shells, SHELLS};
 use crate::cli::verbosity::{Verbosity, WarnLevel};
-use clap::{AppSettings, ArgEnum, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
 use nextclade::make_error;
@@ -16,14 +16,9 @@ use std::path::PathBuf;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-lazy_static! {
-  static ref SHELLS: &'static [&'static str] = &["bash", "elvish", "fish", "fig", "powershell", "zsh"];
-}
-
 #[derive(Parser, Debug)]
-#[clap(name = "nextalign", trailing_var_arg = true)]
+#[clap(name = "nextalign")]
 #[clap(author, version)]
-#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
 /// Viral sequence alignment and translation.
 ///
@@ -56,7 +51,7 @@ pub enum NextalignCommands {
   ///
   Completions {
     /// Name of the shell to generate appropriate completions
-    #[clap(value_name = "SHELL", default_value_t = String::from("bash"), possible_values(SHELLS.iter()))]
+    #[clap(value_name = "SHELL", default_value_t = String::from("bash"), value_parser = check_shells)]
     shell: String,
   },
 
@@ -66,7 +61,7 @@ pub enum NextalignCommands {
   Run(Box<NextalignRunArgs>),
 }
 
-#[derive(Copy, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, EnumIter)]
+#[derive(Copy, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, EnumIter)]
 pub enum NextalignOutputSelection {
   All,
   Fasta,
@@ -127,8 +122,7 @@ pub struct NextalignRunInputArgs {
   #[clap(
     long,
     short = 'g',
-    takes_value = true,
-    multiple_values = true,
+    num_args=1..,
     use_value_delimiter = true
   )]
   #[clap(value_hint = ValueHint::FilePath)]
@@ -163,7 +157,7 @@ pub struct NextalignRunOutputArgs {
   ///
   /// Only valid together with `--output-all` flag.
   #[clap(long, short = 'n')]
-  #[clap(requires = "output-all")]
+  #[clap(requires = "output_all")]
   pub output_basename: Option<String>,
 
   /// Restricts outputs for `--output-all` flag.
@@ -176,12 +170,11 @@ pub struct NextalignRunOutputArgs {
   #[clap(
     long,
     short = 's',
-    takes_value = true,
-    multiple_values = true,
+    num_args=1..,
     use_value_delimiter = true
   )]
-  #[clap(requires = "output-all")]
-  #[clap(arg_enum)]
+  #[clap(requires = "output_all")]
+  #[clap(value_enum)]
   pub output_selection: Vec<NextalignOutputSelection>,
 
   /// Path to output FASTA file with aligned sequences.

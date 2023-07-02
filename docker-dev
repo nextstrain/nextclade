@@ -375,7 +375,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
 
   # export DOCKER_BUILDKIT=1
-  export BUILDKIT_PROGRESS=plain
+#  export BUILDKIT_PROGRESS=plain
   export PROGRESS_NO_TRUNC=1
 
   ADDITIONAL_DOCKER_BUILD_ARGS=
@@ -472,7 +472,7 @@ elif [ "${BUILD}" == "1" ]; then
 elif [ "${SMOKE_TEST}" == "1" ]; then
   COMMAND="./tests/run-smoke-tests 'cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} --bin=nextclade'"
 elif [ "${WASM}" == "1" ]; then
-  COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn wasm-${RELEASE}\""
+  COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn install && yarn wasm-${RELEASE}\""
 elif [ "${WEB}" == "1" ]; then
   PORTS="-p 3000:3000"
   COMMAND=${COMMAND:=yarn install && yarn ${RELEASE}}

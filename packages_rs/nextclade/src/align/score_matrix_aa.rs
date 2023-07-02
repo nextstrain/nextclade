@@ -38,5 +38,5 @@ static SCORING_MATRIX_AA: &[i32; SCORING_MATRIX_AA_SIZE] = &[
   ];
 
 pub fn lookup_aa_scoring_matrix(x: Aa, y: Aa) -> i32 {
-  SCORING_MATRIX_AA[(x as usize * NUM_COLS + y as usize)]
+  SCORING_MATRIX_AA[x as usize * NUM_COLS + y as usize]
 }

@@ -3,7 +3,7 @@ use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
 use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
-use clap::{AppSettings, ArgEnum, ArgGroup, CommandFactory, Parser, Subcommand, ValueHint};
+use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
@@ -24,13 +24,19 @@ use url::Url;
 const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
 lazy_static! {
-  static ref SHELLS: &'static [&'static str] = &["bash", "elvish", "fish", "fig", "powershell", "zsh"];
+  pub static ref SHELLS: Vec<&'static str> = ["bash", "elvish", "fish", "fig", "powershell", "zsh"].to_vec();
+}
+
+pub fn check_shells(value: &str) -> Result<String, Report> {
+  SHELLS
+    .contains(&value)
+    .then_some(value.to_owned())
+    .ok_or_else(|| eyre!("Unknown shell: '{value}'. Possible values: {}", SHELLS.join(", ")))
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "nextclade", trailing_var_arg = true)]
+#[clap(name = "nextclade")]
 #[clap(author, version)]
-#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
 /// Viral genome alignment, mutation calling, clade assignment, quality checks and phylogenetic placement.
 ///
@@ -63,7 +69,7 @@ pub enum NextcladeCommands {
   ///
   Completions {
     /// Name of the shell to generate appropriate completions
-    #[clap(value_name = "SHELL", default_value_t = String::from("bash"), possible_values(SHELLS.iter()))]
+    #[clap(value_name = "SHELL", default_value_t = String::from("bash"), value_parser = check_shells)]
     shell: String,
   },
 
@@ -216,7 +222,7 @@ pub struct NextcladeDatasetGetArgs {
   pub proxy_config: ProxyConfig,
 }
 
-#[derive(Copy, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, EnumIter)]
+#[derive(Copy, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, EnumIter)]
 pub enum NextcladeOutputSelection {
   All,
   Fasta,
@@ -350,8 +356,7 @@ pub struct NextcladeRunInputArgs {
   #[clap(
     long,
     short = 'g',
-    takes_value = true,
-    multiple_values = true,
+    num_args=1..,
     use_value_delimiter = true
   )]
   #[clap(value_hint = ValueHint::FilePath)]
@@ -393,7 +398,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Only valid together with `--output-all` flag.
   #[clap(long, short = 'n')]
-  #[clap(requires = "output-all")]
+  #[clap(requires = "output_all")]
   pub output_basename: Option<String>,
 
   /// Restricts outputs for `--output-all` flag.
@@ -406,12 +411,11 @@ pub struct NextcladeRunOutputArgs {
   #[clap(
     long,
     short = 's',
-    takes_value = true,
-    multiple_values = true,
+    num_args=1..,
     use_value_delimiter = true
   )]
-  #[clap(requires = "output-all")]
-  #[clap(arg_enum)]
+  #[clap(requires = "output_all")]
+  #[clap(value_enum)]
   pub output_selection: Vec<NextcladeOutputSelection>,
 
   /// Path to output FASTA file with aligned sequences.
@@ -509,8 +513,7 @@ pub struct NextcladeRunOutputArgs {
   #[clap(
     long,
     short = 'C',
-    takes_value = true,
-    multiple_values = true,
+    num_args=1..,
     use_value_delimiter = true
   )]
   pub output_columns_selection: Vec<String>,
@@ -613,7 +616,7 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
     return Ok(());
   }
 
-  let generator = <Shell as ArgEnum>::from_str(&shell.to_lowercase(), true)
+  let generator = <Shell as ValueEnum>::from_str(&shell.to_lowercase(), true)
     .map_err(|err| eyre!("{}: Possible values: {}", err, SHELLS.join(", ")))?;
 
   let bin_name = command.get_name().to_owned();

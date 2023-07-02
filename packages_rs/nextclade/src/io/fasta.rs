@@ -120,7 +120,6 @@ impl<'a> FastaReader<'a> {
         .line
         .trim_end()
         .chars()
-        .into_iter()
         .filter(|c| is_char_allowed(*c))
         .map(|c| c.to_ascii_uppercase());
 

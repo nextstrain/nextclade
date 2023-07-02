@@ -90,22 +90,21 @@ if ! command cargo &>/dev/null; then
   which rustc
   ls -al "$(which rustc)"
 
-  # Install cargo-quickinstall
-  export CARGO_QUICKINSTALL_VERSION="0.2.6"
-  curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall"
-  chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
-
-  # Install wasm-bindgen
-  export WASM_BINDGEN_CLI_VERSION="0.2.80"
+  export WASM_BINDGEN_CLI_VERSION="0.2.87"
   curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen"
   chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
-  which wasm-bindgen
+  export BINARYEN_VERSION="114"
+  curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*'
+  chmod +x ${CARGO_HOME}/bin/wasm*
 
-  # Install wasm-pack
-  export WASM_PACK_VERSION="0.10.2"
+  export WASM_PACK_VERSION="0.12.1"
   curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack"
   chmod +x "${CARGO_HOME}/bin/wasm-pack"
+
+  export CARGO_WATCH_VERSION="8.4.0"
+  curl -sSL "https://github.com/watchexec/cargo-watch/releases/download/v${CARGO_WATCH_VERSION}/cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu.tar.xz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xJ "cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu/cargo-watch"
+  chmod +x "${CARGO_HOME}/bin/cargo-watch"
 
   which wasm-pack
 fi
