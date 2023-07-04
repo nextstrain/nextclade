@@ -167,16 +167,6 @@ pub fn create_stripes(
   excess_bandwidth: i32,
   max_indel: usize,
 ) -> Result<Vec<Stripe>, Report> {
-  let mut seed_matches = seed_matches.to_vec();
-
-  // Discard seed matches right at the terminals of the ref sequence
-  if seed_matches[0].ref_pos == 0 {
-    seed_matches = seed_matches[1..].to_vec();
-  }
-  if seed_matches[seed_matches.len() - 1].ref_pos == ref_len as usize - 1 {
-    seed_matches = seed_matches[0..(seed_matches.len() - 1)].to_vec();
-  }
-
   // Vec shifts contains offsets of each seed match
   let mut shifts = vec![0; seed_matches.len() + 4];
 
@@ -233,7 +223,7 @@ pub fn create_stripes(
   // Add stripes after the last seed match
   robust_stripes = add_robust_stripes(
     robust_stripes,
-    last(&seed_matches)?.ref_pos as i32,
+    last(seed_matches)?.ref_pos as i32,
     ref_len + 1,
     qry_len,
     *last(&robust_shifts)?,
