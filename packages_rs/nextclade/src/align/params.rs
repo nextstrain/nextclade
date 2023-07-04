@@ -101,6 +101,21 @@ pub struct AlignPairwiseParams {
   /// Left aligning gaps is the convention, right align is Nextclade's historic default
   #[clap(long, value_enum)]
   pub gap_alignment_side: GapAlignmentSide,
+
+  #[clap(long)]
+  pub kmer_length: usize,
+
+  #[clap(long)]
+  pub kmer_distance: usize,
+
+  #[clap(long)]
+  pub min_match_length: usize,
+
+  #[clap(long)]
+  pub allowed_mismatches: usize,
+
+  #[clap(long)]
+  pub window_size: usize,
 }
 
 impl Default for AlignPairwiseParams {
@@ -126,6 +141,11 @@ impl Default for AlignPairwiseParams {
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
       gap_alignment_side: GapAlignmentSide::Right,
+      kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
+      kmer_distance: 10,     // Distance between successive kmers
+      min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
+      allowed_mismatches: 8, // Ns count as mismatches
+      window_size: 30,
     }
   }
 }
