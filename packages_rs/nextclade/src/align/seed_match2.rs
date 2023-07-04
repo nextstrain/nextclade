@@ -63,8 +63,8 @@ impl Index {
     let ref_seq = ref_seq.as_bytes();
 
     let alphabet = alphabets::dna::iupac_alphabet();
-    let suffix_array = suffix_array(&ref_seq);
-    let burrow_wheeler_transform = bwt(&ref_seq, &suffix_array);
+    let suffix_array = suffix_array(ref_seq);
+    let burrow_wheeler_transform = bwt(ref_seq, &suffix_array);
     let less = less(&burrow_wheeler_transform, &alphabet);
     let occ = Occ::new(&burrow_wheeler_transform, 1, &alphabet);
     let fm_index = FMIndex::new(burrow_wheeler_transform, less, occ);
@@ -227,7 +227,7 @@ impl<'r> CodonSpacedIndex<'r> {
 
       // If match is already in extended range, move on
       if matches.contains_key(&index_match.offset) {
-        let good_ranges = matches.get(&index_match.offset).unwrap();
+        let good_ranges = &matches[&index_match.offset];
         // Find largest qrypos smaller or equal to index_match.qrypos
         // good_ranges.
         let this_match = vec![(index_match.qry_index, index_match.qry_index + config.kmer_length)].to_interval_set();
@@ -239,7 +239,7 @@ impl<'r> CodonSpacedIndex<'r> {
         }
       }
 
-      let extended_match = index_match.extend_seed(qry_seq, &self.ref_seq, config);
+      let extended_match = index_match.extend_seed(qry_seq, self.ref_seq, config);
 
       // Insert extended range into matches map
       // Simple case if there's no good range with this offset yet
@@ -254,7 +254,7 @@ impl<'r> CodonSpacedIndex<'r> {
         );
       // Get ranges overlapped by extended match
       } else {
-        let good_ranges = matches.get(&index_match.offset).unwrap();
+        let good_ranges = &matches[&index_match.offset];
         matches.insert(
           index_match.offset,
           vec![(
@@ -344,7 +344,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
 
         let (best_chain_score, index) = triplets
           .as_slice()
-          .into_iter()
+          .iter()
           .filter(|triplet| triplet.ref_end <= matches[endpoint.j].ref_index)
           .map(|triplet| (triplet.score, Some(triplet.j)))
           .next()
@@ -366,7 +366,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
 
         let add_match = triplets
           .as_slice()
-          .into_iter()
+          .iter()
           .filter(|triplet| triplet.ref_end < matches[endpoint.j].ref_index + matches[endpoint.j].length)
           .map(|triplet| triplet.score <= scores[endpoint.j])
           .next()
@@ -378,7 +378,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
             score: scores[endpoint.j],
             j: endpoint.j,
           };
-          triplets.push(added_triplet.clone());
+          triplets.push(added_triplet);
           // Sort descending by ref_end
           triplets.sort_by(|b, a| a.ref_end.cmp(&b.ref_end));
           triplets.retain(|triplet| triplet.ref_end < added_triplet.ref_end || triplet.score >= added_triplet.score);
@@ -390,7 +390,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
   // Reconstruct optimal chain
   let mut optimal_chain = Vec::<SeedMatch2>::new();
 
-  let mut chain_end_index = Some(triplets.get(0).unwrap().j);
+  let mut chain_end_index = Some(triplets[0].j);
 
   loop {
     if chain_end_index.is_none() {
@@ -411,7 +411,7 @@ pub fn get_seed_matches2(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwis
   let index = CodonSpacedIndex::from_sequence(ref_seq);
 
   let matches = index
-    .extended_matches(qry_seq, &params)
+    .extended_matches(qry_seq, params)
     .into_iter()
     .filter(|m| m.length > params.min_match_length)
     .collect_vec();
