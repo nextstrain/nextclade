@@ -72,7 +72,7 @@ impl TreeNodeAttrF64 {
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
-  pub labels: serde_json::Value,
+  pub labels: Option<serde_json::Value>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

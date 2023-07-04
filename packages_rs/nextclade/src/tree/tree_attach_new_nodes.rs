@@ -71,7 +71,7 @@ pub fn create_new_auspice_node(
     name: format!("{}_new", result.seq_name),
     branch_attrs: TreeBranchAttrs {
       mutations,
-      labels: serde_json::Value::default(),
+      labels: None,
       other: serde_json::Value::default(),
     },
     node_attrs: TreeNodeAttrs {
