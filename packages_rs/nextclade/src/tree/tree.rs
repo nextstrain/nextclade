@@ -1,11 +1,11 @@
+use crate::alphabet::aa::Aa;
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::graph::edge::GraphEdge;
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, GraphNodeKey};
-use crate::alphabet::aa::Aa;
-use crate::alphabet::nuc::Nuc;
-use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
@@ -72,6 +72,7 @@ impl TreeNodeAttrF64 {
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub labels: Option<serde_json::Value>,
 
   #[serde(flatten)]
@@ -275,15 +276,12 @@ pub struct AuspiceTreeMeta {
 }
 
 #[repr(u8)]
-#[derive(Debug, Clone, Eq, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub enum DivergenceUnits {
   NumSubstitutionsPerYearPerSite,
   #[default]
   NumSubstitutionsPerYear,
 }
-
-
 
 impl DivergenceUnits {
   ///
