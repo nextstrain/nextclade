@@ -420,11 +420,11 @@ pub fn get_seed_matches2(
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
   if (sum_of_seed_length as f64) < ((qry_seq.len() as f64) * params.min_seed_cover) {
     return make_error!(
-      "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {}% \
+      "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
       (configurable using 'min seed cover' CLI flag or virus property). This is likely due to low quality of the \
       provided sequence, or due to using incorrect reference sequence.",
-      sum_of_seed_length as f64 / (qry_seq.len() as f64),
-      params.min_seed_cover * 100.0
+      100.0 * (sum_of_seed_length as f64) / (qry_seq.len() as f64),
+      100.0 * params.min_seed_cover
     );
   }
 
