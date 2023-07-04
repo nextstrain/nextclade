@@ -1,25 +1,20 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::{self, calculate_divergence};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::{PrivateMutationsMinimal, PrivateNucMutations};
 use crate::analyze::nuc_sub::NucSub;
-use crate::graph::node::{GraphNodeKey, Node};
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
-use crate::make_internal_report;
 use crate::tree::tree::{
-  AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
-  AUSPICE_UNKNOWN_VALUE,
+  AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::tree::tree_builder::convert_private_mutations_to_node_branch_attrs;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
-use assert2::__assert2_impl::print;
 use itertools::{chain, Itertools};
 use serde_json::json;
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
   tree_attach_new_nodes_impl_in_place_recursive(&mut tree.tree, results);
@@ -85,14 +80,15 @@ pub fn create_new_auspice_node(
       region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      placement_prior: None,alignment: Some(TreeNodeAttr::new(&alignment)),
+      placement_prior: None,
+      alignment: Some(TreeNodeAttr::new(&alignment)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
       gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
       non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
       has_pcr_primer_changes,
       pcr_primer_changes,
       qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
-        missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
+      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
       other,
     },
     children: vec![],
@@ -100,8 +96,6 @@ pub fn create_new_auspice_node(
     other: serde_json::Value::default(),
   }
 }
-
-use super::tree::{AuspiceGraph, DivergenceUnits};
 
 fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs]) {
   // Attach only to a reference node.

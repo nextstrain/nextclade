@@ -15,7 +15,6 @@ use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::convert_graph_to_auspice_tree;
-use nextclade::graph::node::GraphNodeKey;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
