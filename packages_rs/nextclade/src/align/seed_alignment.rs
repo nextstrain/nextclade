@@ -138,46 +138,23 @@ pub fn seed_alignment(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwisePa
   let qry_len_i = qry_len_u as i32;
   let ref_len_i = ref_len_u as i32;
 
-  // for very short sequences, use full square
   if ref_len_u + qry_len_u < (5 * params.seed_length) {
+    // for very short sequences, use full square
     let stripes = full_matrix(ref_len_u, qry_len_u);
     trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
-    return Ok(stripes);
-  };
-
-  // otherwise, determine seed matches roughly regularly spaced along the query sequence
-  let (seed_matches, num_seeds) = get_seed_matches2(qry_seq, ref_seq, params);
-
-  let num_seed_matches = seed_matches.len();
-
-  if num_seed_matches < 2 {
-    return make_error!("Unable to align: not enough matches. Details: number of seed matches: {num_seed_matches}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
-  }
-
-  let match_rate = if num_seeds != 0 {
-    (num_seed_matches as f64) / (num_seeds as f64)
+    Ok(stripes)
   } else {
-    0.0
-  };
-
-  if params.min_match_rate > match_rate {
-    return make_error!(
-      "Unable to align: low seed matching rate. \
-    Details: number of seeds: {num_seeds}, number of seed matches: {num_seed_matches}, \
-    matching rate: {match_rate:5.3}, required matching rate: {:5.3}. This is likely due to a low quality \
-    of the provided sequence, or due to using incorrect reference sequence.",
-      params.min_match_rate
-    );
+    // otherwise, determine seed matches roughly regularly spaced along the query sequence
+    let seed_matches = get_seed_matches2(qry_seq, ref_seq, params)?;
+    create_stripes(
+      &seed_matches,
+      qry_len_i,
+      ref_len_i,
+      params.terminal_bandwidth,
+      params.excess_bandwidth,
+      params.max_indel,
+    )
   }
-
-  create_stripes(
-    &seed_matches,
-    qry_len_i,
-    ref_len_i,
-    params.terminal_bandwidth,
-    params.excess_bandwidth,
-    params.max_indel,
-  )
 }
 
 /// construct the band in the alignment matrix. this band is organized as "stripes"

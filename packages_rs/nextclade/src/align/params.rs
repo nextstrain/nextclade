@@ -103,6 +103,9 @@ pub struct AlignPairwiseParams {
   pub gap_alignment_side: GapAlignmentSide,
 
   #[clap(long)]
+  pub min_seed_cover: f64,
+
+  #[clap(long)]
   pub kmer_length: usize,
 
   #[clap(long)]
@@ -141,6 +144,7 @@ impl Default for AlignPairwiseParams {
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
       gap_alignment_side: GapAlignmentSide::Right,
+      min_seed_cover: 0.33,
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
       kmer_distance: 10,     // Distance between successive kmers
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low

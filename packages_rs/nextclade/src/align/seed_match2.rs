@@ -1,10 +1,12 @@
 use crate::align::params::AlignPairwiseParams;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::{from_nuc_seq, Nuc};
+use crate::make_error;
 use bio::alphabets;
 use bio::data_structures::bwt::{bwt, less, Less, Occ, BWT};
 use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
+use eyre::Report;
 use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
@@ -400,7 +402,11 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
   optimal_chain
 }
 
-pub fn get_seed_matches2(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwiseParams) -> (Vec<SeedMatch2>, i32) {
+pub fn get_seed_matches2(
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  params: &AlignPairwiseParams,
+) -> Result<Vec<SeedMatch2>, Report> {
   let index = CodonSpacedIndex::from_sequence(ref_seq);
 
   let matches = index
@@ -411,7 +417,16 @@ pub fn get_seed_matches2(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwis
 
   let seed_matches = chain_seeds(&matches);
 
-  let n_seeds = 0; // FIXME: ???
+  let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
+  if (sum_of_seed_length as f64) < ((qry_seq.len() as f64) * params.min_seed_cover) {
+    return make_error!(
+      "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {}% \
+      (configurable using 'min seed cover' CLI flag or virus property). This is likely due to low quality of the \
+      provided sequence, or due to using incorrect reference sequence.",
+      sum_of_seed_length as f64 / (qry_seq.len() as f64),
+      params.min_seed_cover * 100.0
+    );
+  }
 
-  (seed_matches, n_seeds)
+  Ok(seed_matches)
 }
