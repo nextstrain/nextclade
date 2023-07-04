@@ -5,8 +5,9 @@ use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema, Hash)]
-#[derive(Default)]
+#[derive(
+  Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema, Hash, Default,
+)]
 pub enum Nuc {
   T,
   A,
@@ -25,7 +26,7 @@ pub enum Nuc {
   N,
 
   #[serde(rename = "-")]
-    #[default]
+  #[default]
   Gap,
 }
 
@@ -46,8 +47,6 @@ impl Nuc {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N)
   }
 }
-
-
 
 impl ScoreMatrixLookup<Nuc> for Nuc {
   fn lookup_match_score(x: Nuc, y: Nuc) -> i32 {
