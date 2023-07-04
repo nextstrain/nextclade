@@ -168,7 +168,6 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
-    tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
     let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
