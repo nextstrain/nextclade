@@ -297,8 +297,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     outputs.sort_by_key(|result| result.private_nuc_mutations.total_private_substitutions);
 
     // Attach sequences to graph in greedy approach, building a tree
-    graph_attach_new_nodes_in_place(&mut graph, &outputs, &tree.tmp.divergence_units, ref_seq.len());
-    graph.ladderize_tree()?;
+    graph_attach_new_nodes_in_place(&mut graph, &outputs, &tree.tmp.divergence_units, ref_seq.len())?;
 
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
     tree.tree = root;

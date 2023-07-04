@@ -299,17 +299,15 @@ impl Nextclade {
     }
   }
 
-  pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {
+  pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> Result<&AuspiceTree, Report> {
     graph_attach_new_nodes_in_place(
       &mut self.graph,
       nextclade_outputs,
       &self.tree.tmp.divergence_units,
       self.ref_seq.len(),
-    );
-    self.graph.ladderize_tree().unwrap();
+    )?;
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&self.graph).unwrap();
     self.tree.tree = root;
-
-    &self.tree
+    Ok(&self.tree)
   }
 }

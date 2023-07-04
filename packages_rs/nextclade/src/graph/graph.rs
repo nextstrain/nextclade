@@ -4,7 +4,7 @@ use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
-use eyre::{eyre, Report};
+use eyre::{eyre, ContextCompat, Report};
 use itertools::Itertools;
 
 pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
@@ -371,7 +371,7 @@ where
     new_edge_order_map: &mut HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
   ) {
     let node = self.get_node(node_key).unwrap();
-    let pre_outbound_order = node.outbound().iter().map(std::clone::Clone::clone).collect_vec();
+    let pre_outbound_order = node.outbound().iter().copied().collect_vec();
     let order_outbound_nodes = pre_outbound_order
       .iter()
       .map(|edge_key| self.get_edge(*edge_key).expect("Node not found").target())
@@ -392,29 +392,33 @@ where
   pub fn ladderize_tree(&mut self) -> Result<(), Report> {
     let new_edge_order_map = self.get_ladderize_map()?;
     let node_key = self.roots[0];
-    self.ladderize_tree_recursive(node_key, &new_edge_order_map)?;
-
-    Ok(())
+    self.ladderize_tree_recursive(node_key, &new_edge_order_map)
   }
 
-  pub fn ladderize_tree_recursive(
+  fn ladderize_tree_recursive(
     &mut self,
     node_key: GraphNodeKey,
     new_edge_order_map: &HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
   ) -> Result<(), Report> {
-    let node = self.get_node_mut(node_key).unwrap();
-    match new_edge_order_map.get(&node_key) {
-      Some(new_edge_order) => {
-        node.outbound_mut().clear();
-        for edge_key in new_edge_order {
-          node.outbound_mut().push(*edge_key);
-        }
-        for edge_key in new_edge_order {
-          self.ladderize_tree_recursive(self.get_edge(*edge_key).unwrap().target(), new_edge_order_map)?;
-        }
-      }
-      None => println!("error in ladderizing tree."),
+    let node = self
+      .get_node_mut(node_key)
+      .wrap_err_with(|| eyre!("Node with key {node_key} not found in graph"))?;
+
+    let new_edge_order = new_edge_order_map
+      .get(&node_key)
+      .wrap_err_with(|| eyre!("Node with key {node_key} not found in edge order map"))?;
+
+    node.outbound_mut().clear();
+    for edge_key in new_edge_order {
+      node.outbound_mut().push(*edge_key);
     }
+    for edge_key in new_edge_order {
+      self.ladderize_tree_recursive(
+        self.get_edge(*edge_key).expect("Edge not found").target(),
+        new_edge_order_map,
+      )?;
+    }
+
     Ok(())
   }
 }

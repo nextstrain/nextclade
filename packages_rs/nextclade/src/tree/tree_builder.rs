@@ -2,29 +2,31 @@ use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
+use eyre::Report;
 use itertools::Itertools;
 use regex::internal::Input;
 use std::collections::{BTreeMap, HashSet};
-use crate::analyze::nuc_del::NucDel;
 
 pub fn graph_attach_new_nodes_in_place(
   graph: &mut AuspiceGraph,
   results: &[NextcladeOutputs],
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
-) {
+) -> Result<(), Report> {
   // Look for a query sample result for which this node was decided to be nearest
   for result in results {
     let r_name = result.seq_name.clone();
     println!("Attaching new node for {r_name}");
     graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len);
   }
+  graph.ladderize_tree()
 }
 
 pub fn graph_attach_new_node_in_place(
@@ -451,11 +453,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   mutations: &PrivateMutationsMinimal,
 ) -> BTreeMap<String, Vec<String>> {
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
-  let dels_as_subs = mutations
-    .private_nuc_deletions
-    .iter()
-    .map(NucDel::to_sub)
-    .collect_vec();
+  let dels_as_subs = mutations.private_nuc_deletions.iter().map(NucDel::to_sub).collect_vec();
 
   let mut mutations_value = concat_to_vec(&mutations.private_nuc_substitutions, &dels_as_subs);
   mutations_value.sort();
@@ -468,10 +466,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   for gene_name in keys {
     let aa_mutations = &mutations.private_aa_mutations[gene_name];
 
-    let string_aa_mutations = aa_mutations
-      .iter()
-      .map(AaSub::to_string_without_gene)
-      .collect_vec();
+    let string_aa_mutations = aa_mutations.iter().map(AaSub::to_string_without_gene).collect_vec();
     branch_attrs.insert(gene_name.clone(), string_aa_mutations);
   }
 
