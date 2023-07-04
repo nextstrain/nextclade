@@ -23,8 +23,6 @@ pub enum QcStatus {
   Bad,
 }
 
-
-
 impl ToString for QcStatus {
   fn to_string(&self) -> String {
     match self {

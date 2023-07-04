@@ -136,7 +136,7 @@ impl FromStr for QcConfig {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s)
+    json_parse(s).wrap_err("When parsing QC config")
   }
 }
 

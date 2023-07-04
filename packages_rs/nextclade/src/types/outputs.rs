@@ -17,7 +17,7 @@ use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -105,11 +105,11 @@ pub struct NextcladeOutputs {
 
 impl NextcladeOutputs {
   pub fn from_str(s: &str) -> Result<NextcladeOutputs, Report> {
-    json_parse(s)
+    json_parse(s).wrap_err("When parsing Nextclade output")
   }
 
   pub fn many_from_str(s: &str) -> Result<Vec<NextcladeOutputs>, Report> {
-    json_parse(s)
+    json_parse(s).wrap_err("When parsing Nextclade outputs")
   }
 }
 

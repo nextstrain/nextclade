@@ -252,15 +252,12 @@ pub struct AuspiceTreeMeta {
 }
 
 #[repr(u8)]
-#[derive(Debug, Clone, Eq, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub enum DivergenceUnits {
   NumSubstitutionsPerYearPerSite,
   #[default]
   NumSubstitutionsPerYear,
 }
-
-
 
 impl DivergenceUnits {
   ///
