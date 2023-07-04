@@ -5,8 +5,7 @@ use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema, Default)]
 pub enum Aa {
   A,
   B,
@@ -55,8 +54,6 @@ impl ToString for Aa {
     String::from(from_aa(*self))
   }
 }
-
-
 
 impl ScoreMatrixLookup<Aa> for Aa {
   fn lookup_match_score(x: Aa, y: Aa) -> i32 {
