@@ -134,6 +134,7 @@ mod tests {
 
       branch_attrs: TreeBranchAttrs {
         mutations: BTreeMap::new(),
+        labels: serde_json::Value::default(),
         other: serde_json::Value::default(),
       },
 
