@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.2.0",
+  "privateMutations": {
+    "enabled": true
+  },
+  "missingData": {
+    "enabled": true
+  },
+  "snpClusters": {
+    "enabled": true
+  },
+  "mixedSites": {
+    "enabled": true
+  },
+  "frameShifts": {
+    "enabled": true
+  },
+  "stopCodons": {
+    "enabled": true
+  }
+}

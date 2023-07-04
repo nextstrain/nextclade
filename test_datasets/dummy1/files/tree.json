@@ -1,0 +1,109 @@
+{
+    "meta": {
+        "title": "Dummy nextclade reference tree",
+        "data_provenance": [
+            {
+                "name": "fictional data"
+            }
+        ],
+        "display_defaults": {}
+    },
+    "tree": {
+        "name": "NODE_0000000",
+        "node_attrs": {
+            "div": 0,
+            "clade_membership": {
+                "value": "unassigned"
+            }
+        },
+        "branch_attrs": {
+            "mutations": {
+                "nuc": []
+            }
+        },
+        "children": [
+            {
+                "name": "A",
+                "node_attrs": {
+                    "div": 0.016,
+                    "clade_membership": {
+                        "value": "unassigned"
+                    }
+                },
+                "branch_attrs": {
+                    "mutations": {
+                        "nuc": [
+                            "A1G",
+                            "A2G"
+                        ],
+                        "HA1": [
+                            "K1G"
+                        ]
+                    }
+                },
+                "children": []
+            },
+            {
+                "name": "NODE_0000001",
+                "node_attrs": {
+                    "div": 0.008,
+                    "clade_membership": {
+                        "value": "unassigned"
+                    }
+                },
+                "branch_attrs": {
+                    "mutations": {
+                        "nuc": [
+                            "A3C"
+                        ],
+                        "HA1": [
+                            "K1N"
+                        ]
+                    }
+                },
+                "children": [
+                    {
+                        "name": "B",
+                        "node_attrs": {
+                            "div": 0.016,
+                            "clade_membership": {
+                                "value": "unassigned"
+                            }
+                        },
+                        "branch_attrs": {
+                            "mutations": {
+                                "nuc": [
+                                    "A4C"
+                                ],
+                                "HA1": [
+                                    "K2Q"
+                                ]
+                            }
+                        },
+                        "children": []
+                    },
+                    {
+                        "name": "C",
+                        "node_attrs": {
+                            "div": 0.016,
+                            "clade_membership": {
+                                "value": "unassigned"
+                            }
+                        },
+                        "branch_attrs": {
+                            "mutations": {
+                                "nuc": [
+                                    "A5G"
+                                ],
+                                "HA1": [
+                                    "K2R"
+                                ]
+                            }
+                        },
+                        "children": []
+                    }
+                ]
+            }
+        ]
+    }
+}
