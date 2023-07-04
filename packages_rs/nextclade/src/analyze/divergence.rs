@@ -1,5 +1,4 @@
-use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::tree::tree::{AuspiceTreeNode, DivergenceUnits};
+use crate::tree::tree::DivergenceUnits;
 
 pub fn calculate_divergence(
   parent_div: f64,
