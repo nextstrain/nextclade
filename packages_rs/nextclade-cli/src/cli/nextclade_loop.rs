@@ -24,7 +24,6 @@ use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::tree::AuspiceTreeNode;
-use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
@@ -154,6 +153,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
   let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
+  let clade_node_attrs = tree.clade_node_attr_descs();
 
   let aa_motifs_keys = &virus_properties
     .aa_motifs
@@ -167,8 +167,6 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
-
-    let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
 
@@ -293,27 +291,18 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       }
     });
   });
-  //add sequences with less private mutations first to avoid un-treelike behavior in the graph
-  outputs.sort_by(|a, b| {
-    a.private_nuc_mutations
-      .total_private_substitutions
-      .cmp(&b.private_nuc_mutations.total_private_substitutions)
-  });
-  let mut tree_g = tree.clone();
+
   if let Some(output_tree) = run_args.outputs.output_tree {
-    //attach sequences to graph in greedy approach, building a tree
+    // Add sequences with less private mutations first to avoid un-treelike behavior in the graph
+    outputs.sort_by_key(|result| result.private_nuc_mutations.total_private_substitutions);
+
+    // Attach sequences to graph in greedy approach, building a tree
     graph_attach_new_nodes_in_place(&mut graph, &outputs, &tree.tmp.divergence_units, ref_seq.len());
-    //ladderize tree prior to output
     graph.ladderize_tree()?;
 
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
-    tree_g.tree = root;
+    tree.tree = root;
 
-    let graph_tree_name = output_tree.with_extension("graph.json");
-    json_write(graph_tree_name, &tree_g)?;
-
-    //output when using tree
-    tree_attach_new_nodes_in_place(&mut tree, &outputs);
     json_write(output_tree, &tree)?;
   }
 

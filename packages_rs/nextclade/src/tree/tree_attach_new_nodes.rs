@@ -7,7 +7,7 @@ use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
-  AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
+  AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::tree::tree_builder::convert_private_mutations_to_node_branch_attrs;
 use crate::types::outputs::NextcladeOutputs;
@@ -15,10 +15,6 @@ use crate::utils::collections::concat_to_vec;
 use itertools::{chain, Itertools};
 use serde_json::json;
 use std::collections::BTreeMap;
-
-pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
-  tree_attach_new_nodes_impl_in_place_recursive(&mut tree.tree, results);
-}
 
 pub fn create_new_auspice_node(
   result: &NextcladeOutputs,
@@ -96,55 +92,6 @@ pub fn create_new_auspice_node(
     tmp: TreeNodeTempData::default(),
     other: serde_json::Value::default(),
   }
-}
-
-fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, results: &[NextcladeOutputs]) {
-  // Attach only to a reference node.
-  // If it's not a reference node, we can stop here, because there can be no reference nodes down the tree.
-  if !node.tmp.is_ref_node {
-    return;
-  }
-
-  for child in &mut node.children {
-    tree_attach_new_nodes_impl_in_place_recursive(child, results);
-  }
-
-  // Look for a query sample result for which this node was decided to be nearest
-  for result in results {
-    if node.tmp.id == result.nearest_node_id {
-      attach_new_node(node, result);
-    }
-  }
-}
-
-/// Attaches a new node to the reference tree
-fn attach_new_node(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  debug_assert!(node.is_ref_node());
-  debug_assert_eq!(node.tmp.id, result.nearest_node_id);
-
-  if node.is_leaf() {
-    add_aux_node(node);
-  }
-
-  add_child(node, result);
-}
-
-fn add_aux_node(node: &mut AuspiceTreeNode) {
-  debug_assert!(node.is_ref_node());
-
-  let mut aux_node = node.clone();
-  aux_node.branch_attrs.mutations.clear();
-  // Remove other branch attrs like labels to prevent duplication
-  aux_node.branch_attrs.other = serde_json::Value::default();
-  node.children.push(aux_node);
-
-  node.name = format!("{}_parent", node.name);
-}
-
-fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  let new_node = create_new_auspice_node(result, None, None);
-
-  node.children.insert(0, new_node);
 }
 
 fn convert_mutations_to_node_branch_attrs(result: &NextcladeOutputs) -> BTreeMap<String, Vec<String>> {

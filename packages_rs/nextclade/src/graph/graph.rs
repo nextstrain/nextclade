@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
-use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode};
+use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, Report};
 use itertools::Itertools;
