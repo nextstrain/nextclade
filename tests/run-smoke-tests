@@ -27,6 +27,7 @@ dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | sel
 dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
 all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
 num_datasets=$(echo "${all_datasets}" | wc -l)
+JOBS="${JOBS:=${num_datasets}}"
 
 function run_one_test() {
   name_and_ref=$1
@@ -50,4 +51,4 @@ function run_one_test() {
 }
 export -f run_one_test
 
-parallel --jobs="${num_datasets}" run_one_test ::: "${all_datasets}"
+parallel --jobs="${JOBS}" run_one_test ::: "${all_datasets}"
