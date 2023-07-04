@@ -92,17 +92,17 @@ impl Index {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SeedMatch2 {
-  ref_index: usize,
-  qry_index: usize,
-  length: usize,
-  offset: isize,
+  pub ref_pos: usize,
+  pub qry_pos: usize,
+  pub length: usize,
+  pub offset: isize,
 }
 
 impl SeedMatch2 {
   fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> SeedMatch2 {
     let SeedMatch2 {
-      mut ref_index,
-      mut qry_index,
+      mut ref_pos,
+      mut qry_pos,
       mut length,
       ..
     } = self.clone();
@@ -115,14 +115,14 @@ impl SeedMatch2 {
     let mut forward_mismatches = 0;
 
     while forward_mismatches < config.allowed_mismatches
-      && ref_index + length < ref_seq_len
-      && qry_index + length < qry_seq_len
+      && ref_pos + length < ref_seq_len
+      && qry_pos + length < qry_seq_len
     {
       if mismatch_queue.pop_front().unwrap() {
         forward_mismatches = forward_mismatches.saturating_sub(1);
       }
 
-      if ref_seq[ref_index + length] != qry_seq[qry_index + length] {
+      if ref_seq[ref_pos + length] != qry_seq[qry_pos + length] {
         forward_mismatches += 1;
         mismatch_queue.push_back(true);
       } else {
@@ -136,28 +136,28 @@ impl SeedMatch2 {
 
     let mut backward_mismatches = 0;
 
-    while backward_mismatches < config.allowed_mismatches && ref_index > 0 && qry_index > 0 {
+    while backward_mismatches < config.allowed_mismatches && ref_pos > 0 && qry_pos > 0 {
       if mismatch_queue.pop_front().unwrap() {
         backward_mismatches = backward_mismatches.saturating_sub(1);
       }
 
-      if ref_seq[ref_index - 1] != qry_seq[qry_index - 1] {
+      if ref_seq[ref_pos - 1] != qry_seq[qry_pos - 1] {
         backward_mismatches += 1;
         mismatch_queue.push_back(true);
       } else {
         mismatch_queue.push_back(false);
       }
 
-      ref_index -= 1;
-      qry_index -= 1;
+      ref_pos -= 1;
+      qry_pos -= 1;
       length += 1;
     }
 
     length = length.saturating_sub(2 * config.window_size);
 
     SeedMatch2 {
-      ref_index,
-      qry_index,
+      ref_pos,
+      qry_pos,
       length,
       offset: self.offset,
     }
@@ -201,8 +201,8 @@ impl<'r> CodonSpacedIndex<'r> {
               let unskipped_qry_index = skipped_qry_index * 3 / 2 + skipped_qry_offset;
               let unskipped_ref_index = skipped_ref_index * 3 / 2 + skipped_ref_offset;
               matches.push(SeedMatch2 {
-                qry_index: unskipped_qry_index,
-                ref_index: unskipped_ref_index,
+                qry_pos: unskipped_qry_index,
+                ref_pos: unskipped_ref_index,
                 length: 0,
                 offset: unskipped_ref_index as isize - unskipped_qry_index as isize,
               });
@@ -230,7 +230,7 @@ impl<'r> CodonSpacedIndex<'r> {
         let good_ranges = &matches[&index_match.offset];
         // Find largest qrypos smaller or equal to index_match.qrypos
         // good_ranges.
-        let this_match = vec![(index_match.qry_index, index_match.qry_index + config.kmer_length)].to_interval_set();
+        let this_match = vec![(index_match.qry_pos, index_match.qry_pos + config.kmer_length)].to_interval_set();
 
         let overlap = this_match.intersection(good_ranges);
 
@@ -246,23 +246,16 @@ impl<'r> CodonSpacedIndex<'r> {
       if !matches.contains_key(&index_match.offset) {
         matches.insert(
           index_match.offset,
-          vec![(
-            extended_match.qry_index,
-            extended_match.qry_index + extended_match.length,
-          )]
-          .to_interval_set(),
+          vec![(extended_match.qry_pos, extended_match.qry_pos + extended_match.length)].to_interval_set(),
         );
       // Get ranges overlapped by extended match
       } else {
         let good_ranges = &matches[&index_match.offset];
         matches.insert(
           index_match.offset,
-          vec![(
-            extended_match.qry_index,
-            extended_match.qry_index + extended_match.length,
-          )]
-          .to_interval_set()
-          .union(good_ranges),
+          vec![(extended_match.qry_pos, extended_match.qry_pos + extended_match.length)]
+            .to_interval_set()
+            .union(good_ranges),
         );
       }
     }
@@ -274,8 +267,8 @@ impl<'r> CodonSpacedIndex<'r> {
         intervals
           .iter()
           .map(|interval| SeedMatch2 {
-            qry_index: interval.lower(),
-            ref_index: (interval.lower() as isize + offset) as usize,
+            qry_pos: interval.lower(),
+            ref_pos: (interval.lower() as isize + offset) as usize,
             length: interval.upper() - interval.lower(),
             offset: *offset,
           })
@@ -319,12 +312,12 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
   let mut endpoints = Vec::<Endpoint>::with_capacity(2 * matches.len());
   for (match_no, match_) in matches.iter().enumerate() {
     endpoints.push(Endpoint {
-      qry_pos: match_.qry_index.to_owned(),
+      qry_pos: match_.qry_pos.to_owned(),
       side: EndpointSide::Start,
       j: match_no,
     });
     endpoints.push(Endpoint {
-      qry_pos: match_.qry_index + match_.length,
+      qry_pos: match_.qry_pos + match_.length,
       side: EndpointSide::End,
       j: match_no,
     });
@@ -345,7 +338,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
         let (best_chain_score, index) = triplets
           .as_slice()
           .iter()
-          .filter(|triplet| triplet.ref_end <= matches[endpoint.j].ref_index)
+          .filter(|triplet| triplet.ref_end <= matches[endpoint.j].ref_pos)
           .map(|triplet| (triplet.score, Some(triplet.j)))
           .next()
           .unwrap_or((0, None));
@@ -367,14 +360,14 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
         let add_match = triplets
           .as_slice()
           .iter()
-          .filter(|triplet| triplet.ref_end < matches[endpoint.j].ref_index + matches[endpoint.j].length)
+          .filter(|triplet| triplet.ref_end < matches[endpoint.j].ref_pos + matches[endpoint.j].length)
           .map(|triplet| triplet.score <= scores[endpoint.j])
           .next()
           .unwrap_or(true);
 
         if add_match {
           let added_triplet = Triplet {
-            ref_end: matches[endpoint.j].ref_index + matches[endpoint.j].length,
+            ref_end: matches[endpoint.j].ref_pos + matches[endpoint.j].length,
             score: scores[endpoint.j],
             j: endpoint.j,
           };

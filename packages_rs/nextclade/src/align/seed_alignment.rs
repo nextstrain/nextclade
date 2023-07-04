@@ -1,13 +1,15 @@
 use crate::align::band_2d::full_matrix;
-use crate::align::band_2d::{simple_stripes, Stripe};
+use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
+use crate::align::seed_match2::{get_seed_matches2, SeedMatch2};
 use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use crate::utils::collections::last;
 use eyre::Report;
-use log::{trace, warn};
-use num_traits::{clamp, clamp_max, clamp_min};
+use log::trace;
+use num_traits::clamp;
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
@@ -130,11 +132,7 @@ pub fn get_seed_matches<L: Letter<L>>(
 
 /// Determine rough positioning of qry to reference sequence by approximate seed matching
 /// Returns vector of stripes, that is a band within which the alignment is expected to lie
-pub fn seed_alignment<L: Letter<L>>(
-  qry_seq: &[L],
-  ref_seq: &[L],
-  params: &AlignPairwiseParams,
-) -> Result<Vec<Stripe>, Report> {
+pub fn seed_alignment(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwiseParams) -> Result<Vec<Stripe>, Report> {
   let qry_len_u = qry_seq.len();
   let ref_len_u = ref_seq.len();
   let qry_len_i = qry_len_u as i32;
@@ -148,7 +146,7 @@ pub fn seed_alignment<L: Letter<L>>(
   };
 
   // otherwise, determine seed matches roughly regularly spaced along the query sequence
-  let (seed_matches, num_seeds) = get_seed_matches(qry_seq, ref_seq, params);
+  let (seed_matches, num_seeds) = get_seed_matches2(qry_seq, ref_seq, params);
 
   let num_seed_matches = seed_matches.len();
 
@@ -185,7 +183,7 @@ pub fn seed_alignment<L: Letter<L>>(
 /// construct the band in the alignment matrix. this band is organized as "stripes"
 /// that define the query sequence range for each reference position
 pub fn create_stripes(
-  seed_matches: &[SeedMatch],
+  seed_matches: &[SeedMatch2],
   qry_len: i32,
   ref_len: i32,
   terminal_bandwidth: i32,
@@ -317,15 +315,17 @@ mod tests {
   #[rstest]
   fn test_create_stripes_basic() -> Result<(), Report> {
     let seed_matches = vec![
-      SeedMatch {
+      SeedMatch2 {
         qry_pos: 5,
         ref_pos: 10,
-        score: 0,
+        length: 0,
+        offset: 0,
       },
-      SeedMatch {
+      SeedMatch2 {
         qry_pos: 20,
         ref_pos: 30,
-        score: 0,
+        length: 0,
+        offset: 0,
       },
     ];
 
