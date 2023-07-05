@@ -452,7 +452,10 @@ pub fn get_seed_matches2(
 
   if matches.is_empty() {
     return make_error!(
-      "Unable to align: seed alignment was unable to find any matches that were extendable to at least {} nucleotides.",
+      "Unable to align: seed alignment was unable to find any matches that are long enough. \
+      Only matches of at least {} nucleotides long are considered \
+      (configurable using 'min match length' CLI flag or dataset property). \
+      This is likely due to low quality of the provided sequence, or due to using incorrect reference sequence.",
       params.min_match_length
     );
   }
@@ -463,7 +466,7 @@ pub fn get_seed_matches2(
   if (sum_of_seed_length as f64) < ((qry_seq.len() as f64) * params.min_seed_cover) {
     return make_error!(
       "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
-      (configurable using 'min seed cover' CLI flag or virus property). This is likely due to low quality of the \
+      (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
       provided sequence, or due to using incorrect reference sequence.",
       100.0 * (sum_of_seed_length as f64) / (qry_seq.len() as f64),
       100.0 * params.min_seed_cover
