@@ -134,7 +134,6 @@ impl SeedMatch2 {
 
       length += 1;
     }
-
     // determine the longest stretch of matches in the window before extension stopped
     // crop the extended seed at the end of the that stretch.
     let mut crop = 0;
@@ -148,7 +147,7 @@ impl SeedMatch2 {
       }
       if current_match_stretch > longest_match_stretch {
         longest_match_stretch = current_match_stretch;
-        crop = pos;
+        crop = pos + 1;
       }
     }
     // reduce the length of the seed
@@ -185,7 +184,7 @@ impl SeedMatch2 {
       }
       if current_match_stretch > longest_match_stretch {
         longest_match_stretch = current_match_stretch;
-        crop = pos;
+        crop = pos + 1;
       }
     }
 
@@ -480,15 +479,15 @@ mod tests {
   fn extends_seed_general_case() -> Result<(), Report> {
     //             0         1         2         3         4         5         6         7         8         9
     //             0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
-    //                                                    |---------|
+    //                                                     |-------|
     let ref_seq = "CGCATCGCTGATCGTACGATCGTACTGGTACTGCACTCTAAAAAAAAAACGTGCTGACTGCACTGCATTTATACGATTCTCTCTTCCGACTGTCGACTG";
     let qry_seq =    "TCGCTGATCGTACGATCCGTACTGGTACTGCACTCAAAAAAAAAAAGGTGCTGACTGCACTGCATTTATAGATTCTCTCTTCCGACTGTCGA";
     //                                 |----------------------------------------------------|
     //                012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
     //                0         1         2         3         4         5         6         7         8         9
 
-    let input    = SeedMatch2 { ref_pos: 40, qry_pos: 38, length: 10, offset: 0 };
-    let expected = SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 52, offset: 0 };
+    let input    = SeedMatch2 { ref_pos: 40, qry_pos: 37, length: 8, offset: 0 };
+    let expected = SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 53, offset: 0 };
     let actual = input.extend_seed(&to_nuc_seq(qry_seq)?, &to_nuc_seq(ref_seq)?, &AlignPairwiseParams::default());
 
     assert_eq!(expected, actual);
