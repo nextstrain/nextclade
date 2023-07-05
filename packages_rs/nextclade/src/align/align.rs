@@ -103,6 +103,7 @@ mod tests {
   fn ctx() -> Context {
     let params = AlignPairwiseParams {
       min_length: 3,
+      min_match_length: 10,
       ..AlignPairwiseParams::default()
     };
 
