@@ -12,9 +12,8 @@ pub fn calculate_divergence(
   // Divergence is just number of substitutions compared to the parent node
   let mut this_div = private_mutations
     .iter()
-    .filter(|m| m.qry_nuc != Nuc::GAP && m.qry_nuc != Nuc::GAP && m.qry_nuc != Nuc::N)
+    .filter(|m| m.ref_nuc != Nuc::GAP && m.qry_nuc != Nuc::GAP && m.qry_nuc != Nuc::N)
     .count() as f64;
-
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.
   if &DivergenceUnits::NumSubstitutionsPerYearPerSite == divergence_units {
