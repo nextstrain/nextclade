@@ -10,6 +10,7 @@ use eyre::Report;
 use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
+use std::cmp::min;
 use std::collections::{BTreeMap, VecDeque};
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
@@ -109,21 +110,21 @@ impl SeedMatch2 {
       ..
     } = self.clone();
 
-    let ref_seq_len = ref_seq.len();
-    let qry_seq_len = qry_seq.len();
+    let max_length = min(ref_seq.len() - ref_pos, qry_seq.len() - qry_pos);
 
+    // vector of boolean indicating whether the large window_size position in the
+    // extension was matching or not.
     let mut mismatch_queue = VecDeque::from(vec![false; config.window_size]);
-
+    // counter to keep track of total number of mismatches in window
     let mut forward_mismatches = 0;
 
-    while forward_mismatches < config.allowed_mismatches
-      && ref_pos + length < ref_seq_len
-      && qry_pos + length < qry_seq_len
-    {
+    while forward_mismatches < config.allowed_mismatches && length < max_length {
+      // remove first position in queue, decrement mismatch counter in case of mismatch
       if mismatch_queue.pop_front().unwrap() {
         forward_mismatches = forward_mismatches.saturating_sub(1);
       }
 
+      // determine whether extension is match
       if ref_seq[ref_pos + length] != qry_seq[qry_pos + length] {
         forward_mismatches += 1;
         mismatch_queue.push_back(true);
@@ -134,10 +135,28 @@ impl SeedMatch2 {
       length += 1;
     }
 
+    // determine the longest stretch of matches in the window before extension stopped
+    // crop the extended seed at the end of the that stretch.
+    let mut crop = 0;
+    let mut longest_match_stretch = 0;
+    let mut current_match_stretch = 0;
+    for (pos, &mismatch) in mismatch_queue.iter().enumerate() {
+      if mismatch {
+        current_match_stretch = 0;
+      } else {
+        current_match_stretch += 1;
+      }
+      if current_match_stretch > longest_match_stretch {
+        longest_match_stretch = current_match_stretch;
+        crop = pos;
+      }
+    }
+    // reduce the length of the seed
+    length -= config.window_size - crop;
+
+    // repeat in other direction
     mismatch_queue = VecDeque::from(vec![false; config.window_size]);
-
     let mut backward_mismatches = 0;
-
     while backward_mismatches < config.allowed_mismatches && ref_pos > 0 && qry_pos > 0 {
       if mismatch_queue.pop_front().unwrap() {
         backward_mismatches = backward_mismatches.saturating_sub(1);
@@ -155,7 +174,24 @@ impl SeedMatch2 {
       length += 1;
     }
 
-    length = length.saturating_sub(2 * config.window_size);
+    let mut crop = 0;
+    let mut longest_match_stretch = 0;
+    let mut current_match_stretch = 0;
+    for (pos, &mismatch) in mismatch_queue.iter().enumerate() {
+      if mismatch {
+        current_match_stretch = 0;
+      } else {
+        current_match_stretch += 1;
+      }
+      if current_match_stretch > longest_match_stretch {
+        longest_match_stretch = current_match_stretch;
+        crop = pos;
+      }
+    }
+
+    length -= config.window_size - crop;
+    ref_pos += config.window_size - crop;
+    qry_pos += config.window_size - crop;
 
     SeedMatch2 {
       ref_pos,
