@@ -10,6 +10,7 @@ use itertools::Itertools;
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::seed_match2::CodonSpacedIndex;
 use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
@@ -117,6 +118,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   } = nextclade_get_inputs(&run_args, &genes)?;
 
   let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
+  let seed_index = &CodonSpacedIndex::from_sequence(ref_seq);
 
   let mut alignment_params = AlignPairwiseParams::default();
 
@@ -214,6 +216,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               &seq_name,
               &qry_seq,
               ref_seq,
+              seed_index,
               ref_translation,
               aa_motifs_ref,
               gene_map,

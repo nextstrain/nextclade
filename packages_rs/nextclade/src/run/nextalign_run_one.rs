@@ -1,6 +1,7 @@
 use crate::align::align::align_nuc;
 use crate::align::insertions_strip::{get_aa_insertions, insertions_strip};
 use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_match2::CodonSpacedIndex;
 use crate::alphabet::nuc::Nuc;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::gene::gene_map::GeneMap;
@@ -15,13 +16,22 @@ pub fn nextalign_run_one(
   seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
+  seed_index: &CodonSpacedIndex,
   ref_peptides: &Translation,
   gene_map: &GeneMap,
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<NextalignOutputs, Report> {
-  match align_nuc(index, seq_name, qry_seq, ref_seq, gap_open_close_nuc, params) {
+  match align_nuc(
+    index,
+    seq_name,
+    qry_seq,
+    ref_seq,
+    seed_index,
+    gap_open_close_nuc,
+    params,
+  ) {
     Err(report) => Err(report),
 
     Ok(alignment) => {

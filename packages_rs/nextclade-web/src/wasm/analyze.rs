@@ -2,6 +2,7 @@ use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::{Report, WrapErr};
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::seed_match2::CodonSpacedIndex;
 use nextclade::alphabet::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::find_aa_motifs_changes::AaMotifsMap;
@@ -148,6 +149,7 @@ impl AnalysisResult {
 
 pub struct Nextclade {
   ref_seq: Vec<Nuc>,
+  seed_index: CodonSpacedIndex,
   ref_peptides: Translation,
   aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
@@ -188,6 +190,8 @@ impl Nextclade {
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
 
+    let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
+
     let gene_map = GeneMap::from_str(gene_map_str).wrap_err("When parsing gene map")?;
 
     let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &alignment_params);
@@ -213,6 +217,7 @@ impl Nextclade {
 
     Ok(Self {
       ref_seq,
+      seed_index,
       ref_peptides: ref_translation,
       aa_motifs_ref,
       gene_map,
@@ -256,6 +261,7 @@ impl Nextclade {
       qry_seq_name,
       qry_seq,
       &self.ref_seq,
+      &self.seed_index,
       &self.ref_peptides,
       &self.aa_motifs_ref,
       &self.gene_map,

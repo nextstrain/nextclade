@@ -2,7 +2,7 @@ use crate::align::band_2d::full_matrix;
 use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
-use crate::align::seed_match2::{get_seed_matches2, SeedMatch2};
+use crate::align::seed_match2::{CodonSpacedIndex, get_seed_matches2, SeedMatch2};
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
@@ -132,7 +132,12 @@ pub fn get_seed_matches<L: Letter<L>>(
 
 /// Determine rough positioning of qry to reference sequence by approximate seed matching
 /// Returns vector of stripes, that is a band within which the alignment is expected to lie
-pub fn seed_alignment(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwiseParams) -> Result<Vec<Stripe>, Report> {
+pub fn seed_alignment(
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  seed_index: &CodonSpacedIndex,
+  params: &AlignPairwiseParams,
+) -> Result<Vec<Stripe>, Report> {
   let qry_len_u = qry_seq.len();
   let ref_len_u = ref_seq.len();
   let qry_len_i = qry_len_u as i32;
@@ -145,7 +150,7 @@ pub fn seed_alignment(qry_seq: &[Nuc], ref_seq: &[Nuc], params: &AlignPairwisePa
     Ok(stripes)
   } else {
     // otherwise, determine seed matches roughly regularly spaced along the query sequence
-    let seed_matches = get_seed_matches2(qry_seq, ref_seq, params)?;
+    let seed_matches = get_seed_matches2(qry_seq, ref_seq, seed_index, params)?;
     create_stripes(
       &seed_matches,
       qry_len_i,

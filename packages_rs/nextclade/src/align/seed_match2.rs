@@ -201,20 +201,19 @@ impl SeedMatch2 {
   }
 }
 
-struct CodonSpacedIndex<'r> {
+pub struct CodonSpacedIndex {
   indexes: [Index; 3],
-  ref_seq: &'r [Nuc],
 }
 
-impl<'r> CodonSpacedIndex<'r> {
-  fn from_sequence(ref_seq: &'r [Nuc]) -> Self {
+impl CodonSpacedIndex {
+  pub fn from_sequence(ref_seq: &[Nuc]) -> Self {
     // Instead of taking every third, skip every third
     let indexes = [
       Index::from_sequence(ref_seq, 0, 3),
       Index::from_sequence(ref_seq, 1, 3),
       Index::from_sequence(ref_seq, 2, 3),
     ];
-    Self { indexes, ref_seq }
+    Self { indexes }
   }
 
   /// Returns Index hits in unskipped coordinates
@@ -253,7 +252,7 @@ impl<'r> CodonSpacedIndex<'r> {
   }
 
   /// Returns extended matches for given query sequence in natural coordinates
-  fn extended_matches(&self, qry_seq: &[Nuc], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
+  fn extended_matches(&self, qry_seq: &[Nuc], ref_seq: &[Nuc], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
     let index_matches = self.index_matches(qry_seq, config);
 
     let mut matches = BTreeMap::<isize, IntervalSet<usize>>::new();
@@ -276,7 +275,7 @@ impl<'r> CodonSpacedIndex<'r> {
         }
       }
 
-      let extended_match = index_match.extend_seed(qry_seq, self.ref_seq, config);
+      let extended_match = index_match.extend_seed(qry_seq, ref_seq, config);
 
       // Insert extended range into matches map
       // Simple case if there's no good range with this offset yet
@@ -440,12 +439,11 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
 pub fn get_seed_matches2(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
+  seed_index: &CodonSpacedIndex,
   params: &AlignPairwiseParams,
 ) -> Result<Vec<SeedMatch2>, Report> {
-  let index = CodonSpacedIndex::from_sequence(ref_seq);
-
-  let matches = index
-    .extended_matches(qry_seq, params)
+  let matches = seed_index
+    .extended_matches(qry_seq, ref_seq, params)
     .into_iter()
     .filter(|m| m.length > params.min_match_length)
     .collect_vec();
