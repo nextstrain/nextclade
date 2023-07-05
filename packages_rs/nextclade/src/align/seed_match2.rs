@@ -466,3 +466,32 @@ pub fn get_seed_matches2(
 
   Ok(seed_matches)
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::alphabet::nuc::to_nuc_seq;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  #[rustfmt::skip]
+  #[rstest]
+  fn test_me() -> Result<(), Report> {
+    //             0         1         2         3         4         5         6         7         8         9
+    //             0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+    //                                                    |---------|
+    let ref_seq = "CGCATCGCTGATCGTACGATCGTACTGGTACTGCACTCTAAAAAAAAAACGTGCTGACTGCACTGCATTTATACGATTCTCTCTTCCGACTGTCGACTG";
+    let qry_seq =    "TCGCTGATCGTACGATCCGTACTGGTACTGCACTCAAAAAAAAAAAGGTGCTGACTGCACTGCATTTATAGATTCTCTCTTCCGACTGTCGA";
+    //                                 |----------------------------------------------------|
+    //                012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
+    //                0         1         2         3         4         5         6         7         8         9
+
+    let input    = SeedMatch2 { ref_pos: 40, qry_pos: 38, length: 10, offset: 0 };
+    let expected = SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 52, offset: 0 };
+    let actual = input.extend_seed(&to_nuc_seq(qry_seq)?, &to_nuc_seq(ref_seq)?, &AlignPairwiseParams::default());
+
+    assert_eq!(expected, actual);
+    Ok(())
+  }
+}
