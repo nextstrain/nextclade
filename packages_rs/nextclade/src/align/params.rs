@@ -102,23 +102,31 @@ pub struct AlignPairwiseParams {
   #[clap(long, value_enum)]
   pub gap_alignment_side: GapAlignmentSide,
 
-  #[clap(long)]
-  pub min_seed_cover: f64,
-
+  /// Length of exactly matching kmers used in the seed alignment of the query to the reference.
   #[clap(long)]
   pub kmer_length: usize,
 
+  /// Interval of successive kmers on the query sequence. Should be small compared to the query length.
   #[clap(long)]
   pub kmer_distance: usize,
 
-  #[clap(long)]
-  pub min_match_length: usize,
-
+  /// Exactly matching kmers are extended to the left and right until less
+  /// than `allowed_mismatches` are observed in a window.
   #[clap(long)]
   pub allowed_mismatches: usize,
 
+  /// Size of the window within which mismatches are accumulated during seed extension
   #[clap(long)]
   pub window_size: usize,
+
+  /// Minimum length of extended kmers
+  #[clap(long)]
+  pub min_match_length: usize,
+
+  /// Fraction of the query sequence that has to be covered by extended seeds
+  /// to proceed with the banded alignment.
+  #[clap(long)]
+  pub min_seed_cover: f64,
 }
 
 impl Default for AlignPairwiseParams {
