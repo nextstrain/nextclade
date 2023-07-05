@@ -344,7 +344,7 @@ pub fn add_to_middle_node(
   let parent_div = new_middle_node.node_attrs.div.unwrap_or(0.0);
   let divergence_middle_node = calculate_divergence(
     parent_div,
-    new_private_mutations_middle_node.private_nuc_substitutions.len(),
+    &new_private_mutations_middle_node.private_nuc_substitutions,
     divergence_units,
     ref_seq_len,
   );
@@ -362,7 +362,7 @@ pub fn add_to_middle_node(
   let string_private_mutations_target = convert_private_mutations_to_node_branch_attrs(&new_private_mutations_target);
   let divergence = calculate_divergence(
     divergence_middle_node,
-    new_private_mutations_target.private_nuc_substitutions.len(),
+    &new_private_mutations_target.private_nuc_substitutions,
     divergence_units,
     ref_seq_len,
   );
@@ -431,7 +431,7 @@ pub fn attach_node(
   //Attach only to a reference node.
   let divergence_new_node = calculate_divergence(
     nearest_node_div,
-    new_private_mutations.private_nuc_substitutions.len(),
+    &new_private_mutations.private_nuc_substitutions,
     divergence_units,
     ref_seq_len,
   );

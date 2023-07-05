@@ -1,13 +1,19 @@
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
+use crate::analyze::nuc_sub::NucSub;
 use crate::tree::tree::DivergenceUnits;
 
 pub fn calculate_divergence(
   parent_div: f64,
-  number_private_mutations: usize,
+  private_mutations: &Vec<NucSub>,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
   // Divergence is just number of substitutions compared to the parent node
-  let mut this_div = number_private_mutations as f64;
+  let mut this_div = private_mutations
+    .iter()
+    .filter(|m| m.qry_nuc != Nuc::GAP && m.qry_nuc != Nuc::GAP && m.qry_nuc != Nuc::N)
+    .count() as f64;
 
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.

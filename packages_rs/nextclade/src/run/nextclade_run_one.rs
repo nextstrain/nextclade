@@ -167,7 +167,7 @@ pub fn nextclade_run_one(
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
   let divergence = calculate_divergence(
     parent_div,
-    private_nuc_mutations.private_substitutions.len(),
+    &private_nuc_mutations.private_substitutions,
     &tree.tmp.divergence_units,
     ref_seq.len(),
   );
