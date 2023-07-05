@@ -58,7 +58,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
-  let seed_index = &CodonSpacedIndex::from_sequence(&ref_seq);
+  let seed_index = &CodonSpacedIndex::from_sequence(ref_seq);
 
   let gene_map = match input_gene_map {
     Some(input_gene_map) => {
