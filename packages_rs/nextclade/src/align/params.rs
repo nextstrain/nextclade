@@ -110,8 +110,8 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub kmer_distance: usize,
 
-  /// Exactly matching kmers are extended to the left and right until less
-  /// than `allowed_mismatches` are observed in a window.
+  /// Exactly matching kmers are extended to the left and right until more
+  /// than `allowed_mismatches` are observed in a sliding window (`window_size`).
   #[clap(long)]
   pub allowed_mismatches: usize,
 
