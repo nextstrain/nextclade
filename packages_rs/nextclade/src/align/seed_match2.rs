@@ -450,6 +450,13 @@ pub fn get_seed_matches2(
     .filter(|m| m.length > params.min_match_length)
     .collect_vec();
 
+  if matches.is_empty() {
+    return make_error!(
+      "Unable to align: seed alignment was unable to find any matches that were extendable to at least {} nucleotides.",
+      params.min_match_length
+    );
+  }
+
   let seed_matches = chain_seeds(&matches);
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
