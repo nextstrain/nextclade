@@ -99,155 +99,164 @@ pub fn graph_attach_new_node_in_place(
 }
 
 fn split_mutations(
-  mut1: &PrivateMutationsMinimal,
-  mut2: &PrivateMutationsMinimal,
+  left: &PrivateMutationsMinimal,
+  right: &PrivateMutationsMinimal,
 ) -> (
   PrivateMutationsMinimal,
   PrivateMutationsMinimal,
   PrivateMutationsMinimal,
 ) {
-  let mut shared_substitutions = Vec::<NucSub>::new();
-  let mut vect1_not_shared_substitutions = Vec::<NucSub>::new();
-  let mut vect2_not_shared_substitutions = Vec::<NucSub>::new();
+  let mut shared_subs = Vec::<NucSub>::new();
+  let mut private_subs_left = Vec::<NucSub>::new();
+  let mut private_subs_right = Vec::<NucSub>::new();
   let mut i = 0;
   let mut j = 0;
-  while (i < mut1.nuc_subs.len()) && (j < mut2.nuc_subs.len()) {
-    if mut1.nuc_subs[i].pos == mut2.nuc_subs[j].pos {
+  while (i < left.nuc_subs.len()) && (j < right.nuc_subs.len()) {
+    if left.nuc_subs[i].pos == right.nuc_subs[j].pos {
       // position is also mutated in node
-      if mut1.nuc_subs[i].ref_nuc == mut2.nuc_subs[j].ref_nuc && mut1.nuc_subs[i].qry_nuc == mut2.nuc_subs[j].qry_nuc {
-        shared_substitutions.push(mut1.nuc_subs[i].clone()); // the exact mutation is shared between node and seq
+      if left.nuc_subs[i].ref_nuc == right.nuc_subs[j].ref_nuc && left.nuc_subs[i].qry_nuc == right.nuc_subs[j].qry_nuc
+      {
+        shared_subs.push(left.nuc_subs[i].clone()); // the exact mutation is shared between node and seq
       } else {
-        vect1_not_shared_substitutions.push(mut1.nuc_subs[i].clone());
-        vect2_not_shared_substitutions.push(mut2.nuc_subs[j].clone());
+        private_subs_left.push(left.nuc_subs[i].clone());
+        private_subs_right.push(right.nuc_subs[j].clone());
       }
       i += 1;
       j += 1;
-    } else if mut1.nuc_subs[i].pos < mut2.nuc_subs[j].pos {
-      vect1_not_shared_substitutions.push(mut1.nuc_subs[i].clone());
+    } else if left.nuc_subs[i].pos < right.nuc_subs[j].pos {
+      private_subs_left.push(left.nuc_subs[i].clone());
       i += 1;
     } else {
-      vect2_not_shared_substitutions.push(mut2.nuc_subs[j].clone());
+      private_subs_right.push(right.nuc_subs[j].clone());
       j += 1;
     }
   }
-  while i < mut1.nuc_subs.len() {
-    vect1_not_shared_substitutions.push(mut1.nuc_subs[i].clone());
+  while i < left.nuc_subs.len() {
+    private_subs_left.push(left.nuc_subs[i].clone());
     i += 1;
   }
-  while j < mut2.nuc_subs.len() {
-    vect2_not_shared_substitutions.push(mut2.nuc_subs[j].clone());
+  while j < right.nuc_subs.len() {
+    private_subs_right.push(right.nuc_subs[j].clone());
     j += 1;
   }
+
+  ////////////////////////////////////////////////////////////////////////
+
   let mut i = 0;
   let mut j = 0;
-  let mut shared_deletions = Vec::<NucDel>::new();
-  let mut vect1_not_shared_deletions = Vec::<NucDel>::new();
-  let mut vect2_not_shared_deletions = Vec::<NucDel>::new();
+  let mut shared_dels = Vec::<NucDel>::new();
+  let mut private_dels_left = Vec::<NucDel>::new();
+  let mut private_dels_right = Vec::<NucDel>::new();
 
-  while (i < mut1.nuc_dels.len()) && (j < mut2.nuc_dels.len()) {
-    if mut1.nuc_dels[i].pos == mut2.nuc_dels[j].pos {
+  while (i < left.nuc_dels.len()) && (j < right.nuc_dels.len()) {
+    if left.nuc_dels[i].pos == right.nuc_dels[j].pos {
       // position is also a deletion in node
-      shared_deletions.push(mut1.nuc_dels[i].clone()); // the exact mutation is shared between node and seq
+      shared_dels.push(left.nuc_dels[i].clone()); // the exact mutation is shared between node and seq
       i += 1;
       j += 1;
-    } else if mut1.nuc_dels[i].pos < mut2.nuc_dels[j].pos {
-      vect1_not_shared_deletions.push(mut1.nuc_dels[i].clone());
+    } else if left.nuc_dels[i].pos < right.nuc_dels[j].pos {
+      private_dels_left.push(left.nuc_dels[i].clone());
       i += 1;
     } else {
-      vect2_not_shared_deletions.push(mut2.nuc_dels[j].clone());
+      private_dels_right.push(right.nuc_dels[j].clone());
       j += 1;
     }
   }
-  while i < mut1.nuc_dels.len() {
-    vect1_not_shared_deletions.push(mut1.nuc_dels[i].clone());
+  while i < left.nuc_dels.len() {
+    private_dels_left.push(left.nuc_dels[i].clone());
     i += 1;
   }
-  while j < mut2.nuc_dels.len() {
-    vect2_not_shared_deletions.push(mut2.nuc_dels[j].clone());
+  while j < right.nuc_dels.len() {
+    private_dels_right.push(right.nuc_dels[j].clone());
     j += 1;
   }
-  let mut shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
-  let mut vect1_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
-  let mut vect2_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
 
-  let keys_mut1 = mut1
+  ////////////////////////////////////////////////////////////////////////
+
+  let mut shared_aa_subs = BTreeMap::<String, Vec<AaSub>>::new();
+  let mut private_aa_subs_left = BTreeMap::<String, Vec<AaSub>>::new();
+  let mut private_aa_subs_right = BTreeMap::<String, Vec<AaSub>>::new();
+
+  let keys_mut_left = left
     .aa_muts
     .keys()
     .map(std::clone::Clone::clone)
     .collect::<HashSet<_>>();
-  let keys_mut2 = mut2
+  let keys_mut_right = right
     .aa_muts
     .keys()
     .map(std::clone::Clone::clone)
     .collect::<HashSet<_>>();
-  let mut shared_keys = keys_mut1.intersection(&keys_mut2).collect_vec();
+  let mut shared_keys = keys_mut_left.intersection(&keys_mut_right).collect_vec();
   shared_keys.sort();
 
   for gene_name in shared_keys.clone() {
-    let v1 = &mut1.aa_muts[gene_name];
-    let v2 = &mut2.aa_muts[gene_name];
-    let mut shared_substitutions = Vec::<AaSub>::new();
-    let mut vect1_not_shared_substitutions = Vec::<AaSub>::new();
-    let mut vect2_not_shared_substitutions = Vec::<AaSub>::new();
+    let aa_muts_left = &left.aa_muts[gene_name];
+    let aa_muts_right = &right.aa_muts[gene_name];
+    let mut shared_aa_subs_for_gene = Vec::<AaSub>::new();
+    let mut private_aa_subs_for_gene_left = Vec::<AaSub>::new();
+    let mut private_aa_subs_for_gene_right = Vec::<AaSub>::new();
     let mut i = 0;
     let mut j = 0;
-    while (i < v1.len()) && (j < v2.len()) {
-      if v1[i].pos == v2[j].pos {
+    while (i < aa_muts_left.len()) && (j < aa_muts_right.len()) {
+      if aa_muts_left[i].pos == aa_muts_right[j].pos {
         // position is also mutated in node
-        if v1[i].ref_aa == v2[j].ref_aa && v1[i].qry_aa == v2[j].qry_aa {
-          shared_substitutions.push(v1[i].clone()); // the exact mutation is shared between node and seq
+        if aa_muts_left[i].ref_aa == aa_muts_right[j].ref_aa && aa_muts_left[i].qry_aa == aa_muts_right[j].qry_aa {
+          shared_aa_subs_for_gene.push(aa_muts_left[i].clone()); // the exact mutation is shared between node and seq
         } else {
-          vect1_not_shared_substitutions.push(v1[i].clone());
-          vect2_not_shared_substitutions.push(v2[j].clone());
+          private_aa_subs_for_gene_left.push(aa_muts_left[i].clone());
+          private_aa_subs_for_gene_right.push(aa_muts_right[j].clone());
         }
         i += 1;
         j += 1;
-      } else if v1[i].pos < v2[j].pos {
-        vect1_not_shared_substitutions.push(v1[i].clone());
+      } else if aa_muts_left[i].pos < aa_muts_right[j].pos {
+        private_aa_subs_for_gene_left.push(aa_muts_left[i].clone());
         i += 1;
       } else {
-        vect2_not_shared_substitutions.push(v2[j].clone());
+        private_aa_subs_for_gene_right.push(aa_muts_right[j].clone());
         j += 1;
       }
     }
-    while i < v1.len() {
-      vect1_not_shared_substitutions.push(v1[i].clone());
+    while i < aa_muts_left.len() {
+      private_aa_subs_for_gene_left.push(aa_muts_left[i].clone());
       i += 1;
     }
-    while j < v2.len() {
-      vect2_not_shared_substitutions.push(v2[j].clone());
+    while j < aa_muts_right.len() {
+      private_aa_subs_for_gene_right.push(aa_muts_right[j].clone());
       j += 1;
     }
-    shared_substitutions_map.insert(gene_name.to_string(), shared_substitutions);
-    vect1_not_shared_substitutions_map.insert(gene_name.to_string(), vect1_not_shared_substitutions);
-    vect2_not_shared_substitutions_map.insert(gene_name.to_string(), vect2_not_shared_substitutions);
+    shared_aa_subs.insert(gene_name.to_string(), shared_aa_subs_for_gene);
+    private_aa_subs_left.insert(gene_name.to_string(), private_aa_subs_for_gene_left);
+    private_aa_subs_right.insert(gene_name.to_string(), private_aa_subs_for_gene_right);
   }
-  for (k, v) in &mut1.aa_muts {
+  for (k, v) in &left.aa_muts {
     if !shared_keys.contains(&k) {
-      vect1_not_shared_substitutions_map.insert(k.to_string(), v.clone());
+      private_aa_subs_left.insert(k.to_string(), v.clone());
     }
   }
-  for (k, v) in &mut2.aa_muts {
+  for (k, v) in &right.aa_muts {
     if !shared_keys.contains(&k) {
-      vect2_not_shared_substitutions_map.insert(k.to_string(), v.clone());
+      private_aa_subs_right.insert(k.to_string(), v.clone());
     }
   }
 
+  ////////////////////////////////////////////////////////////////////////
+
   (
     PrivateMutationsMinimal {
-      nuc_subs: shared_substitutions,
-      nuc_dels: shared_deletions,
-      aa_muts: shared_substitutions_map,
+      nuc_subs: shared_subs,
+      nuc_dels: shared_dels,
+      aa_muts: shared_aa_subs,
     },
     PrivateMutationsMinimal {
-      nuc_subs: vect1_not_shared_substitutions,
-      nuc_dels: vect1_not_shared_deletions,
-      aa_muts: vect1_not_shared_substitutions_map,
+      nuc_subs: private_subs_left,
+      nuc_dels: private_dels_left,
+      aa_muts: private_aa_subs_left,
     },
     PrivateMutationsMinimal {
-      nuc_subs: vect2_not_shared_substitutions,
-      nuc_dels: vect2_not_shared_deletions,
-      aa_muts: vect2_not_shared_substitutions_map,
+      nuc_subs: private_subs_right,
+      nuc_dels: private_dels_right,
+      aa_muts: private_aa_subs_right,
     },
   )
 }
