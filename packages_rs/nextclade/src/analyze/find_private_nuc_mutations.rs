@@ -15,21 +15,19 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct PrivateMutationsMinimal {
-  /// All private nuc mutations
-  pub private_nuc_substitutions: Vec<NucSub>,
-  pub private_nuc_deletions: Vec<NucDel>,
-  /// All private aa mutations
-  pub private_aa_mutations: BTreeMap<String, Vec<AaSub>>,
+  pub nuc_subs: Vec<NucSub>,
+  pub nuc_dels: Vec<NucDel>,
+  pub aa_muts: BTreeMap<String, Vec<AaSub>>,
 }
 
 impl PrivateMutationsMinimal {
   #[must_use]
   pub fn invert(&self) -> PrivateMutationsMinimal {
     PrivateMutationsMinimal {
-      private_nuc_substitutions: self.private_nuc_substitutions.iter().map(NucSub::invert).collect(),
-      private_nuc_deletions: self.private_nuc_deletions.clone(),
-      private_aa_mutations: self
-        .private_aa_mutations
+      nuc_subs: self.nuc_subs.iter().map(NucSub::invert).collect(),
+      nuc_dels: self.nuc_dels.clone(),
+      aa_muts: self
+        .aa_muts
         .iter()
         .map(|(gene, subs)| (gene.clone(), subs.iter().map(AaSub::invert).collect()))
         .collect(),

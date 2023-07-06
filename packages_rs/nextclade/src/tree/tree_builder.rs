@@ -52,9 +52,9 @@ pub fn graph_attach_new_node_in_place(
 
   //check if new seq is in between nearest node and a neighbor of nearest node
   let mutations_seq = PrivateMutationsMinimal {
-    private_nuc_substitutions: result.private_nuc_mutations.private_substitutions.clone(),
-    private_nuc_deletions: result.private_nuc_mutations.private_deletions.clone(),
-    private_aa_mutations,
+    nuc_subs: result.private_nuc_mutations.private_substitutions.clone(),
+    nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
+    aa_muts: private_aa_mutations,
   };
   let closest_neighbor = get_closest_neighbor(graph, id, &mutations_seq);
   let nearest_node_id = closest_neighbor.0;
@@ -111,33 +111,31 @@ fn split_mutations(
   let mut vect2_not_shared_substitutions = Vec::<NucSub>::new();
   let mut i = 0;
   let mut j = 0;
-  while (i < mut1.private_nuc_substitutions.len()) && (j < mut2.private_nuc_substitutions.len()) {
-    if mut1.private_nuc_substitutions[i].pos == mut2.private_nuc_substitutions[j].pos {
+  while (i < mut1.nuc_subs.len()) && (j < mut2.nuc_subs.len()) {
+    if mut1.nuc_subs[i].pos == mut2.nuc_subs[j].pos {
       // position is also mutated in node
-      if mut1.private_nuc_substitutions[i].ref_nuc == mut2.private_nuc_substitutions[j].ref_nuc
-        && mut1.private_nuc_substitutions[i].qry_nuc == mut2.private_nuc_substitutions[j].qry_nuc
-      {
-        shared_substitutions.push(mut1.private_nuc_substitutions[i].clone()); // the exact mutation is shared between node and seq
+      if mut1.nuc_subs[i].ref_nuc == mut2.nuc_subs[j].ref_nuc && mut1.nuc_subs[i].qry_nuc == mut2.nuc_subs[j].qry_nuc {
+        shared_substitutions.push(mut1.nuc_subs[i].clone()); // the exact mutation is shared between node and seq
       } else {
-        vect1_not_shared_substitutions.push(mut1.private_nuc_substitutions[i].clone());
-        vect2_not_shared_substitutions.push(mut2.private_nuc_substitutions[j].clone());
+        vect1_not_shared_substitutions.push(mut1.nuc_subs[i].clone());
+        vect2_not_shared_substitutions.push(mut2.nuc_subs[j].clone());
       }
       i += 1;
       j += 1;
-    } else if mut1.private_nuc_substitutions[i].pos < mut2.private_nuc_substitutions[j].pos {
-      vect1_not_shared_substitutions.push(mut1.private_nuc_substitutions[i].clone());
+    } else if mut1.nuc_subs[i].pos < mut2.nuc_subs[j].pos {
+      vect1_not_shared_substitutions.push(mut1.nuc_subs[i].clone());
       i += 1;
     } else {
-      vect2_not_shared_substitutions.push(mut2.private_nuc_substitutions[j].clone());
+      vect2_not_shared_substitutions.push(mut2.nuc_subs[j].clone());
       j += 1;
     }
   }
-  while i < mut1.private_nuc_substitutions.len() {
-    vect1_not_shared_substitutions.push(mut1.private_nuc_substitutions[i].clone());
+  while i < mut1.nuc_subs.len() {
+    vect1_not_shared_substitutions.push(mut1.nuc_subs[i].clone());
     i += 1;
   }
-  while j < mut2.private_nuc_substitutions.len() {
-    vect2_not_shared_substitutions.push(mut2.private_nuc_substitutions[j].clone());
+  while j < mut2.nuc_subs.len() {
+    vect2_not_shared_substitutions.push(mut2.nuc_subs[j].clone());
     j += 1;
   }
   let mut i = 0;
@@ -146,26 +144,26 @@ fn split_mutations(
   let mut vect1_not_shared_deletions = Vec::<NucDel>::new();
   let mut vect2_not_shared_deletions = Vec::<NucDel>::new();
 
-  while (i < mut1.private_nuc_deletions.len()) && (j < mut2.private_nuc_deletions.len()) {
-    if mut1.private_nuc_deletions[i].pos == mut2.private_nuc_deletions[j].pos {
+  while (i < mut1.nuc_dels.len()) && (j < mut2.nuc_dels.len()) {
+    if mut1.nuc_dels[i].pos == mut2.nuc_dels[j].pos {
       // position is also a deletion in node
-      shared_deletions.push(mut1.private_nuc_deletions[i].clone()); // the exact mutation is shared between node and seq
+      shared_deletions.push(mut1.nuc_dels[i].clone()); // the exact mutation is shared between node and seq
       i += 1;
       j += 1;
-    } else if mut1.private_nuc_deletions[i].pos < mut2.private_nuc_deletions[j].pos {
-      vect1_not_shared_deletions.push(mut1.private_nuc_deletions[i].clone());
+    } else if mut1.nuc_dels[i].pos < mut2.nuc_dels[j].pos {
+      vect1_not_shared_deletions.push(mut1.nuc_dels[i].clone());
       i += 1;
     } else {
-      vect2_not_shared_deletions.push(mut2.private_nuc_deletions[j].clone());
+      vect2_not_shared_deletions.push(mut2.nuc_dels[j].clone());
       j += 1;
     }
   }
-  while i < mut1.private_nuc_deletions.len() {
-    vect1_not_shared_deletions.push(mut1.private_nuc_deletions[i].clone());
+  while i < mut1.nuc_dels.len() {
+    vect1_not_shared_deletions.push(mut1.nuc_dels[i].clone());
     i += 1;
   }
-  while j < mut2.private_nuc_deletions.len() {
-    vect2_not_shared_deletions.push(mut2.private_nuc_deletions[j].clone());
+  while j < mut2.nuc_dels.len() {
+    vect2_not_shared_deletions.push(mut2.nuc_dels[j].clone());
     j += 1;
   }
   let mut shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
@@ -173,12 +171,12 @@ fn split_mutations(
   let mut vect2_not_shared_substitutions_map = BTreeMap::<String, Vec<AaSub>>::new();
 
   let keys_mut1 = mut1
-    .private_aa_mutations
+    .aa_muts
     .keys()
     .map(std::clone::Clone::clone)
     .collect::<HashSet<_>>();
   let keys_mut2 = mut2
-    .private_aa_mutations
+    .aa_muts
     .keys()
     .map(std::clone::Clone::clone)
     .collect::<HashSet<_>>();
@@ -186,8 +184,8 @@ fn split_mutations(
   shared_keys.sort();
 
   for gene_name in shared_keys.clone() {
-    let v1 = &mut1.private_aa_mutations[gene_name];
-    let v2 = &mut2.private_aa_mutations[gene_name];
+    let v1 = &mut1.aa_muts[gene_name];
+    let v2 = &mut2.aa_muts[gene_name];
     let mut shared_substitutions = Vec::<AaSub>::new();
     let mut vect1_not_shared_substitutions = Vec::<AaSub>::new();
     let mut vect2_not_shared_substitutions = Vec::<AaSub>::new();
@@ -224,12 +222,12 @@ fn split_mutations(
     vect1_not_shared_substitutions_map.insert(gene_name.to_string(), vect1_not_shared_substitutions);
     vect2_not_shared_substitutions_map.insert(gene_name.to_string(), vect2_not_shared_substitutions);
   }
-  for (k, v) in &mut1.private_aa_mutations {
+  for (k, v) in &mut1.aa_muts {
     if !shared_keys.contains(&k) {
       vect1_not_shared_substitutions_map.insert(k.to_string(), v.clone());
     }
   }
-  for (k, v) in &mut2.private_aa_mutations {
+  for (k, v) in &mut2.aa_muts {
     if !shared_keys.contains(&k) {
       vect2_not_shared_substitutions_map.insert(k.to_string(), v.clone());
     }
@@ -237,19 +235,19 @@ fn split_mutations(
 
   (
     PrivateMutationsMinimal {
-      private_nuc_substitutions: shared_substitutions,
-      private_nuc_deletions: shared_deletions,
-      private_aa_mutations: shared_substitutions_map,
+      nuc_subs: shared_substitutions,
+      nuc_dels: shared_deletions,
+      aa_muts: shared_substitutions_map,
     },
     PrivateMutationsMinimal {
-      private_nuc_substitutions: vect1_not_shared_substitutions,
-      private_nuc_deletions: vect1_not_shared_deletions,
-      private_aa_mutations: vect1_not_shared_substitutions_map,
+      nuc_subs: vect1_not_shared_substitutions,
+      nuc_dels: vect1_not_shared_deletions,
+      aa_muts: vect1_not_shared_substitutions_map,
     },
     PrivateMutationsMinimal {
-      private_nuc_substitutions: vect2_not_shared_substitutions,
-      private_nuc_deletions: vect2_not_shared_deletions,
-      private_aa_mutations: vect2_not_shared_substitutions_map,
+      nuc_subs: vect2_not_shared_substitutions,
+      nuc_dels: vect2_not_shared_deletions,
+      aa_muts: vect2_not_shared_substitutions_map,
     },
   )
 }
@@ -283,14 +281,13 @@ pub fn get_closest_neighbor(
     let reverted_parent_mutations = parent_mutations.invert();
     let (shared_substitutions, p_not_shared_substitutions, seq_not_shared_substitutions) =
       split_mutations(&reverted_parent_mutations, seq_private_mutations);
-    if !shared_substitutions.private_nuc_substitutions.is_empty()
-      && shared_substitutions.private_nuc_substitutions.len()
-        == reverted_parent_mutations.private_nuc_substitutions.len()
+    if !shared_substitutions.nuc_subs.is_empty()
+      && shared_substitutions.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len()
     {
       closest_neighbor = get_closest_neighbor(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
       found = true;
-    } else if shared_substitutions.private_nuc_substitutions.len() > closest_neighbor_dist {
-      closest_neighbor_dist = shared_substitutions.private_nuc_substitutions.len();
+    } else if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
+      closest_neighbor_dist = shared_substitutions.nuc_subs.len();
       closest_neighbor = (
         node_key,
         parent_key.as_usize(),
@@ -307,14 +304,14 @@ pub fn get_closest_neighbor(
       let child_mutations = child.payload().tmp.private_mutations.clone();
       let (shared_substitutions, c_not_shared_substitutions, seq_not_shared_substitutions) =
         split_mutations(&child_mutations, seq_private_mutations);
-      if !shared_substitutions.private_nuc_substitutions.is_empty()
-        && shared_substitutions.private_nuc_substitutions.len() == child_mutations.private_nuc_substitutions.len()
+      if !shared_substitutions.nuc_subs.is_empty()
+        && shared_substitutions.nuc_subs.len() == child_mutations.nuc_subs.len()
       {
         closest_neighbor = get_closest_neighbor(graph, child_key.as_usize(), &seq_not_shared_substitutions);
         break;
       }
-      if shared_substitutions.private_nuc_substitutions.len() > closest_neighbor_dist {
-        closest_neighbor_dist = shared_substitutions.private_nuc_substitutions.len();
+      if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
+        closest_neighbor_dist = shared_substitutions.nuc_subs.len();
         closest_neighbor = (
           node_key,
           child_key.as_usize(),
@@ -344,7 +341,7 @@ pub fn add_to_middle_node(
   let parent_div = new_middle_node.node_attrs.div.unwrap_or(0.0);
   let divergence_middle_node = calculate_divergence(
     parent_div,
-    &new_private_mutations_middle_node.private_nuc_substitutions,
+    &new_private_mutations_middle_node.nuc_subs,
     divergence_units,
     ref_seq_len,
   );
@@ -362,7 +359,7 @@ pub fn add_to_middle_node(
   let string_private_mutations_target = convert_private_mutations_to_node_branch_attrs(&new_private_mutations_target);
   let divergence = calculate_divergence(
     divergence_middle_node,
-    &new_private_mutations_target.private_nuc_substitutions,
+    &new_private_mutations_target.nuc_subs,
     divergence_units,
     ref_seq_len,
   );
@@ -431,7 +428,7 @@ pub fn attach_node(
   //Attach only to a reference node.
   let divergence_new_node = calculate_divergence(
     nearest_node_div,
-    &new_private_mutations.private_nuc_substitutions,
+    &new_private_mutations.nuc_subs,
     divergence_units,
     ref_seq_len,
   );
@@ -453,18 +450,18 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   mutations: &PrivateMutationsMinimal,
 ) -> BTreeMap<String, Vec<String>> {
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
-  let dels_as_subs = mutations.private_nuc_deletions.iter().map(NucDel::to_sub).collect_vec();
+  let dels_as_subs = mutations.nuc_dels.iter().map(NucDel::to_sub).collect_vec();
 
-  let mut mutations_value = concat_to_vec(&mutations.private_nuc_substitutions, &dels_as_subs);
+  let mut mutations_value = concat_to_vec(&mutations.nuc_subs, &dels_as_subs);
   mutations_value.sort();
   let string_mutations_value = mutations_value.iter().map(NucSub::to_string).collect_vec();
 
   branch_attrs.insert("nuc".to_owned(), string_mutations_value);
 
-  let keys = mutations.private_aa_mutations.keys().collect_vec();
+  let keys = mutations.aa_muts.keys().collect_vec();
 
   for gene_name in keys {
-    let aa_mutations = &mutations.private_aa_mutations[gene_name];
+    let aa_mutations = &mutations.aa_muts[gene_name];
 
     let string_aa_mutations = aa_mutations.iter().map(AaSub::to_string_without_gene).collect_vec();
     branch_attrs.insert(gene_name.clone(), string_aa_mutations);

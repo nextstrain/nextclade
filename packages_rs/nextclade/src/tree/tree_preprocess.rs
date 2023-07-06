@@ -93,9 +93,9 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMuta
   let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
   match node.branch_attrs.mutations.get("nuc") {
     None => Ok(PrivateMutationsMinimal {
-      private_nuc_substitutions: nuc_sub,
-      private_nuc_deletions: nuc_del,
-      private_aa_mutations: aa_sub,
+      nuc_subs: nuc_sub,
+      nuc_dels: nuc_del,
+      aa_muts: aa_sub,
     }),
     Some(mutations) => {
       for mutation_str in mutations {
@@ -121,9 +121,9 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMuta
         }
       }
       Ok(PrivateMutationsMinimal {
-        private_nuc_substitutions: nuc_sub,
-        private_nuc_deletions: nuc_del,
-        private_aa_mutations: aa_sub,
+        nuc_subs: nuc_sub,
+        nuc_dels: nuc_del,
+        aa_muts: aa_sub,
       })
     }
   }
