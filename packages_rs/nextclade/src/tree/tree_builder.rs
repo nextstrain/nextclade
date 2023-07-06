@@ -103,6 +103,10 @@ struct SplitMutationsResult {
   right: PrivateMutationsMinimal,
 }
 
+/// Split mutations into 3 groups:
+///  - shared
+///  - belonging only to left argument
+///  - belonging only to the right argument
 fn split_mutations(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutationsResult {
   let mut shared_subs = Vec::<NucSub>::new();
   let mut private_subs_left = Vec::<NucSub>::new();
