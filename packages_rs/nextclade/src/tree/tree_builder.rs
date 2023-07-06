@@ -434,7 +434,7 @@ pub fn attach_node(
   );
   let new_private_mutations_pre = new_private_mutations.clone();
   let mut new_graph_node: AuspiceTreeNode =
-    create_new_auspice_node(result, Some(new_private_mutations_pre), Some(divergence_new_node));
+    create_new_auspice_node(result, &new_private_mutations_pre, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations;
   new_graph_node.tmp.id = graph.num_nodes();
 

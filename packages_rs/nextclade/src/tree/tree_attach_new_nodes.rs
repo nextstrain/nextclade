@@ -14,21 +14,13 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use itertools::{chain, Itertools};
 use serde_json::json;
-use std::collections::BTreeMap;
 
 pub fn create_new_auspice_node(
   result: &NextcladeOutputs,
-  new_private_mutations: Option<PrivateMutationsMinimal>,
-  new_divergence: Option<f64>,
+  new_private_mutations: &PrivateMutationsMinimal,
+  new_divergence: f64,
 ) -> AuspiceTreeNode {
-  let mutations = match new_private_mutations {
-    Some(new_private_mutations) => convert_private_mutations_to_node_branch_attrs(&new_private_mutations),
-    None => convert_mutations_to_node_branch_attrs(result),
-  };
-  let divergence = match new_divergence {
-    Some(new_divergence) => new_divergence,
-    None => result.divergence,
-  };
+  let mutations = convert_private_mutations_to_node_branch_attrs(new_private_mutations);
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",
@@ -71,7 +63,7 @@ pub fn create_new_auspice_node(
       other: serde_json::Value::default(),
     },
     node_attrs: TreeNodeAttrs {
-      div: Some(divergence),
+      div: Some(new_divergence),
       clade_membership: TreeNodeAttr::new(&result.clade),
       node_type: Some(TreeNodeAttr::new("New")),
       region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
@@ -92,30 +84,6 @@ pub fn create_new_auspice_node(
     tmp: TreeNodeTempData::default(),
     other: serde_json::Value::default(),
   }
-}
-
-fn convert_mutations_to_node_branch_attrs(result: &NextcladeOutputs) -> BTreeMap<String, Vec<String>> {
-  let NextcladeOutputs {
-    private_nuc_mutations,
-    private_aa_mutations,
-    ..
-  } = result;
-
-  let mut mutations = BTreeMap::<String, Vec<String>>::new();
-
-  mutations.insert(
-    "nuc".to_owned(),
-    convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations),
-  );
-
-  for (gene_name, aa_mutations) in private_aa_mutations {
-    mutations.insert(
-      gene_name.clone(),
-      convert_aa_mutations_to_node_branch_attrs(aa_mutations),
-    );
-  }
-
-  mutations
 }
 
 fn convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations: &PrivateNucMutations) -> Vec<String> {
