@@ -35,8 +35,6 @@ pub fn graph_attach_new_node_in_place(
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) {
-  let id = result.nearest_node_id;
-
   let mut private_aa_mutations = BTreeMap::<String, Vec<AaSub>>::new();
   for key in result.private_aa_mutations.keys() {
     let subs = result.private_aa_mutations[key].private_substitutions.clone();
@@ -56,7 +54,7 @@ pub fn graph_attach_new_node_in_place(
     nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
     aa_muts: private_aa_mutations,
   };
-  let closest_neighbor = get_closest_neighbor(graph, id, &mutations_seq);
+  let closest_neighbor = get_closest_neighbor(graph, result.nearest_node_id, &mutations_seq);
   let nearest_node_id = closest_neighbor.0;
 
   if nearest_node_id != closest_neighbor.1 {
