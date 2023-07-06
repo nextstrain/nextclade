@@ -54,7 +54,7 @@ pub fn graph_attach_new_node_in_place(
     nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
     aa_muts: private_aa_mutations,
   };
-  let closest_neighbor = get_closest_neighbor(graph, result.nearest_node_id, &mutations_seq);
+  let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq);
   let nearest_node_id = closest_neighbor.0;
 
   if nearest_node_id != closest_neighbor.1 {
@@ -250,7 +250,7 @@ fn split_mutations(
   )
 }
 
-pub fn get_closest_neighbor(
+pub fn get_closest_neighbor_recursively(
   graph: &AuspiceGraph,
   node_key: usize,
   seq_private_mutations: &PrivateMutationsMinimal,
@@ -286,7 +286,7 @@ pub fn get_closest_neighbor(
     if !shared_substitutions.nuc_subs.is_empty()
       && shared_substitutions.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len()
     {
-      closest_neighbor = get_closest_neighbor(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
+      closest_neighbor = get_closest_neighbor_recursively(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
       found = true;
     }
     // TODO: describe condition
@@ -315,7 +315,7 @@ pub fn get_closest_neighbor(
       if !shared_substitutions.nuc_subs.is_empty()
         && shared_substitutions.nuc_subs.len() == child_mutations.nuc_subs.len()
       {
-        closest_neighbor = get_closest_neighbor(graph, child_key.as_usize(), &seq_not_shared_substitutions);
+        closest_neighbor = get_closest_neighbor_recursively(graph, child_key.as_usize(), &seq_not_shared_substitutions);
         break;
       }
       // TODO: describe condition
