@@ -294,8 +294,8 @@ pub fn get_closest_neighbor_recursively(
     let reverted_parent_mutations = parent_mutations.invert();
 
     let SplitMutationsResult {
-      shared: shared_substitutions,
       left: p_not_shared_substitutions,
+      shared: shared_substitutions,
       right: seq_not_shared_substitutions,
     } = split_mutations(&reverted_parent_mutations, seq_private_mutations);
 
