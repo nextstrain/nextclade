@@ -24,7 +24,7 @@ pub fn graph_attach_new_nodes_in_place(
   for result in results {
     let r_name = result.seq_name.clone();
     println!("Attaching new node for {r_name}");
-    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len);
+    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len)?;
   }
   graph.ladderize_tree()
 }
@@ -34,7 +34,7 @@ pub fn graph_attach_new_node_in_place(
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
-) {
+) -> Result<(), Report> {
   let mut private_aa_mutations = BTreeMap::<String, Vec<AaSub>>::new();
   for key in result.private_aa_mutations.keys() {
     let subs = result.private_aa_mutations[key].private_substitutions.clone();
@@ -54,19 +54,19 @@ pub fn graph_attach_new_node_in_place(
     nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
     aa_muts: private_aa_mutations,
   };
-  let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq);
-  let nearest_node_id = closest_neighbor.0;
+  let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq)?;
+  let nearest_node_id = closest_neighbor.source_key;
 
-  if nearest_node_id != closest_neighbor.1 {
+  if nearest_node_id != closest_neighbor.target_key {
     //if there exists a child that shares private mutations with new seq, create middle node between that child and the nearest_node
     //attach seq to middle node
     let mut source_key = nearest_node_id;
-    let mut target_key = closest_neighbor.1;
+    let mut target_key = closest_neighbor.target_key;
 
     //check if next nearest node is parent or child
     let parent_key = graph.parent_key_of_by_key(GraphNodeKey::new(nearest_node_id));
     if let Some(parent_key) = parent_key {
-      if closest_neighbor.1 == parent_key.as_usize() {
+      if closest_neighbor.target_key == parent_key.as_usize() {
         source_key = parent_key.as_usize();
         target_key = nearest_node_id;
       }
@@ -75,9 +75,9 @@ pub fn graph_attach_new_node_in_place(
       graph,
       source_key,
       target_key,
-      closest_neighbor.3,
-      closest_neighbor.4,
-      closest_neighbor.2,
+      closest_neighbor.var_3,
+      closest_neighbor.var_4,
+      closest_neighbor.var_2,
       result,
       divergence_units,
       ref_seq_len,
@@ -88,12 +88,14 @@ pub fn graph_attach_new_node_in_place(
     attach_node(
       graph,
       nearest_node_id,
-      closest_neighbor.2,
+      closest_neighbor.var_2,
       result,
       divergence_units,
       ref_seq_len,
     );
   }
+
+  Ok(())
 }
 
 fn split_mutations(
@@ -250,25 +252,28 @@ fn split_mutations(
   )
 }
 
+#[derive(Debug, Clone)]
+pub struct ClosestNeighbor {
+  source_key: usize,
+  target_key: usize,
+  var_2: PrivateMutationsMinimal,
+  var_3: PrivateMutationsMinimal,
+  var_4: PrivateMutationsMinimal,
+}
+
 pub fn get_closest_neighbor_recursively(
   graph: &AuspiceGraph,
   node_key: usize,
   seq_private_mutations: &PrivateMutationsMinimal,
-) -> (
-  usize,
-  usize,
-  PrivateMutationsMinimal,
-  PrivateMutationsMinimal,
-  PrivateMutationsMinimal,
-) {
+) -> Result<ClosestNeighbor, Report> {
   let pre_new_seq_private_mutations = seq_private_mutations.clone();
-  let mut closest_neighbor = (
-    node_key,
-    node_key,
-    pre_new_seq_private_mutations,
-    PrivateMutationsMinimal::default(),
-    PrivateMutationsMinimal::default(),
-  );
+  let mut closest_neighbor = ClosestNeighbor {
+    source_key: node_key,
+    target_key: node_key,
+    var_2: pre_new_seq_private_mutations,
+    var_3: PrivateMutationsMinimal::default(),
+    var_4: PrivateMutationsMinimal::default(),
+  };
   let mut found = false;
   let mut closest_neighbor_dist = 0;
   let node = graph.get_node(GraphNodeKey::new(node_key)).expect("Node not found");
@@ -286,19 +291,19 @@ pub fn get_closest_neighbor_recursively(
     if !shared_substitutions.nuc_subs.is_empty()
       && shared_substitutions.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len()
     {
-      closest_neighbor = get_closest_neighbor_recursively(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
+      closest_neighbor = get_closest_neighbor_recursively(graph, parent_key.as_usize(), &seq_not_shared_substitutions)?;
       found = true;
     }
     // TODO: describe condition
     else if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
       closest_neighbor_dist = shared_substitutions.nuc_subs.len();
-      closest_neighbor = (
-        node_key,
-        parent_key.as_usize(),
-        seq_not_shared_substitutions,
-        p_not_shared_substitutions.invert(),
-        shared_substitutions.invert(),
-      );
+      closest_neighbor = ClosestNeighbor {
+        source_key: node_key,
+        target_key: parent_key.as_usize(),
+        var_2: seq_not_shared_substitutions,
+        var_3: p_not_shared_substitutions.invert(),
+        var_4: shared_substitutions.invert(),
+      };
     }
   }
 
@@ -315,23 +320,24 @@ pub fn get_closest_neighbor_recursively(
       if !shared_substitutions.nuc_subs.is_empty()
         && shared_substitutions.nuc_subs.len() == child_mutations.nuc_subs.len()
       {
-        closest_neighbor = get_closest_neighbor_recursively(graph, child_key.as_usize(), &seq_not_shared_substitutions);
+        closest_neighbor =
+          get_closest_neighbor_recursively(graph, child_key.as_usize(), &seq_not_shared_substitutions)?;
         break;
       }
       // TODO: describe condition
       if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
         closest_neighbor_dist = shared_substitutions.nuc_subs.len();
-        closest_neighbor = (
-          node_key,
-          child_key.as_usize(),
-          seq_not_shared_substitutions,
-          shared_substitutions,
-          c_not_shared_substitutions,
-        );
+        closest_neighbor = ClosestNeighbor {
+          source_key: node_key,
+          target_key: child_key.as_usize(),
+          var_2: seq_not_shared_substitutions,
+          var_3: shared_substitutions,
+          var_4: c_not_shared_substitutions,
+        };
       }
     }
   }
-  closest_neighbor
+  Ok(closest_neighbor)
 }
 
 pub fn add_to_middle_node(
