@@ -98,14 +98,14 @@ pub fn graph_attach_new_node_in_place(
   Ok(())
 }
 
-fn split_mutations(
-  left: &PrivateMutationsMinimal,
-  right: &PrivateMutationsMinimal,
-) -> (
-  PrivateMutationsMinimal,
-  PrivateMutationsMinimal,
-  PrivateMutationsMinimal,
-) {
+#[derive(Debug, Clone)]
+struct SplitMutationsResult {
+  left: PrivateMutationsMinimal,
+  shared: PrivateMutationsMinimal,
+  right: PrivateMutationsMinimal,
+}
+
+fn split_mutations(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutationsResult {
   let mut shared_subs = Vec::<NucSub>::new();
   let mut private_subs_left = Vec::<NucSub>::new();
   let mut private_subs_right = Vec::<NucSub>::new();
@@ -242,23 +242,23 @@ fn split_mutations(
 
   ////////////////////////////////////////////////////////////////////////
 
-  (
-    PrivateMutationsMinimal {
-      nuc_subs: shared_subs,
-      nuc_dels: shared_dels,
-      aa_muts: shared_aa_subs,
-    },
-    PrivateMutationsMinimal {
+  SplitMutationsResult {
+    left: PrivateMutationsMinimal {
       nuc_subs: private_subs_left,
       nuc_dels: private_dels_left,
       aa_muts: private_aa_subs_left,
     },
-    PrivateMutationsMinimal {
+    shared: PrivateMutationsMinimal {
+      nuc_subs: shared_subs,
+      nuc_dels: shared_dels,
+      aa_muts: shared_aa_subs,
+    },
+    right: PrivateMutationsMinimal {
       nuc_subs: private_subs_right,
       nuc_dels: private_dels_right,
       aa_muts: private_aa_subs_right,
     },
-  )
+  }
 }
 
 #[derive(Debug, Clone)]
@@ -293,8 +293,11 @@ pub fn get_closest_neighbor_recursively(
     let parent_mutations = node.payload().tmp.private_mutations.clone();
     let reverted_parent_mutations = parent_mutations.invert();
 
-    let (shared_substitutions, p_not_shared_substitutions, seq_not_shared_substitutions) =
-      split_mutations(&reverted_parent_mutations, seq_private_mutations);
+    let SplitMutationsResult {
+      shared: shared_substitutions,
+      left: p_not_shared_substitutions,
+      right: seq_not_shared_substitutions,
+    } = split_mutations(&reverted_parent_mutations, seq_private_mutations);
 
     // TODO: describe condition
     if !shared_substitutions.nuc_subs.is_empty()
@@ -322,8 +325,11 @@ pub fn get_closest_neighbor_recursively(
       let child = graph.get_node(child_key).expect("Node not found");
       let child_mutations = child.payload().tmp.private_mutations.clone();
 
-      let (shared_substitutions, c_not_shared_substitutions, seq_not_shared_substitutions) =
-        split_mutations(&child_mutations, seq_private_mutations);
+      let SplitMutationsResult {
+        left: c_not_shared_substitutions,
+        shared: shared_substitutions,
+        right: seq_not_shared_substitutions,
+      } = split_mutations(&child_mutations, seq_private_mutations);
 
       // TODO: describe condition
       if !shared_substitutions.nuc_subs.is_empty()
