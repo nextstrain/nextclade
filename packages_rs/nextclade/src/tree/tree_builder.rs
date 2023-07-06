@@ -75,9 +75,7 @@ pub fn graph_attach_new_node_in_place(
       graph,
       source_key,
       target_key,
-      closest_neighbor.subs_target_only,
-      closest_neighbor.subs_shared,
-      closest_neighbor.subs_qry_only,
+      &closest_neighbor,
       result,
       divergence_units,
       ref_seq_len,
@@ -88,7 +86,7 @@ pub fn graph_attach_new_node_in_place(
     attach_node(
       graph,
       nearest_node_id,
-      closest_neighbor.subs_qry_only,
+      &closest_neighbor.subs_qry_only,
       result,
       divergence_units,
       ref_seq_len,
@@ -341,8 +339,8 @@ pub fn get_closest_neighbor_recursively(
           source_key: node_key,
           target_key: child_key.as_usize(),
           subs_qry_only,
-          subs_target_only: subs_shared,
-          subs_shared: subs_child_only,
+          subs_target_only: subs_child_only,
+          subs_shared,
         };
       }
     }
@@ -354,14 +352,16 @@ pub fn add_to_middle_node(
   graph: &mut AuspiceGraph,
   source_key: usize,
   target_key: usize,
-  new_private_mutations_middle_node: PrivateMutationsMinimal,
-  new_private_mutations_target: PrivateMutationsMinimal,
-  new_private_mutations_seq: PrivateMutationsMinimal,
+  closest_neighbor: &ClosestNeighbor,
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) {
   let mut new_middle_node: AuspiceTreeNode = graph.get_node(GraphNodeKey::new(source_key)).unwrap().payload().clone();
+
+  let new_private_mutations_middle_node = &closest_neighbor.subs_shared;
+  let new_private_mutations_target = &closest_neighbor.subs_target_only;
+  let new_private_mutations_seq = &closest_neighbor.subs_qry_only;
 
   let parent_div = new_middle_node.node_attrs.div.unwrap_or(0.0);
   let divergence_middle_node = calculate_divergence(
@@ -371,8 +371,8 @@ pub fn add_to_middle_node(
     ref_seq_len,
   );
   let string_private_mutations_middle_node =
-    convert_private_mutations_to_node_branch_attrs(&new_private_mutations_middle_node);
-  new_middle_node.tmp.private_mutations = new_private_mutations_middle_node;
+    convert_private_mutations_to_node_branch_attrs(new_private_mutations_middle_node);
+  new_middle_node.tmp.private_mutations = new_private_mutations_middle_node.clone();
   new_middle_node.node_attrs.div = Some(divergence_middle_node);
   new_middle_node.branch_attrs.mutations = string_private_mutations_middle_node;
   new_middle_node.name = format!("{target_key}_internal");
@@ -381,14 +381,14 @@ pub fn add_to_middle_node(
 
   //alter private mutations of target
   let mut target = graph.get_node_mut(GraphNodeKey::new(target_key)).unwrap().payload_mut();
-  let string_private_mutations_target = convert_private_mutations_to_node_branch_attrs(&new_private_mutations_target);
+  let string_private_mutations_target = convert_private_mutations_to_node_branch_attrs(new_private_mutations_target);
   let divergence = calculate_divergence(
     divergence_middle_node,
     &new_private_mutations_target.nuc_subs,
     divergence_units,
     ref_seq_len,
   );
-  target.tmp.private_mutations = new_private_mutations_target;
+  target.tmp.private_mutations = new_private_mutations_target.clone();
   target.branch_attrs.mutations = string_private_mutations_target;
 
   //create node between nearest_node and nearest child
@@ -415,7 +415,7 @@ pub fn add_to_middle_node(
 pub fn attach_node(
   graph: &mut AuspiceGraph,
   nearest_node_id: usize,
-  new_private_mutations: PrivateMutationsMinimal,
+  new_private_mutations: &PrivateMutationsMinimal,
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
@@ -460,7 +460,7 @@ pub fn attach_node(
   let new_private_mutations_pre = new_private_mutations.clone();
   let mut new_graph_node: AuspiceTreeNode =
     create_new_auspice_node(result, &new_private_mutations_pre, divergence_new_node);
-  new_graph_node.tmp.private_mutations = new_private_mutations;
+  new_graph_node.tmp.private_mutations = new_private_mutations.clone();
   new_graph_node.tmp.id = graph.num_nodes();
 
   // Create and add the new node to the graph.
