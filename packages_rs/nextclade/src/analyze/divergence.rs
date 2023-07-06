@@ -5,7 +5,7 @@ use crate::tree::tree::DivergenceUnits;
 
 pub fn calculate_divergence(
   parent_div: f64,
-  private_mutations: &Vec<NucSub>,
+  private_mutations: &[NucSub],
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
