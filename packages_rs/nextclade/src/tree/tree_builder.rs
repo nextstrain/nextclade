@@ -272,19 +272,25 @@ pub fn get_closest_neighbor(
   let mut found = false;
   let mut closest_neighbor_dist = 0;
   let node = graph.get_node(GraphNodeKey::new(node_key)).expect("Node not found");
+
   //first check how close to parent new sequence is
   let parent_key = graph.parent_key_of_by_key(GraphNodeKey::new(node_key));
   if let Some(parent_key) = parent_key {
     let parent_mutations = node.payload().tmp.private_mutations.clone();
     let reverted_parent_mutations = parent_mutations.invert();
+
     let (shared_substitutions, p_not_shared_substitutions, seq_not_shared_substitutions) =
       split_mutations(&reverted_parent_mutations, seq_private_mutations);
+
+    // TODO: describe condition
     if !shared_substitutions.nuc_subs.is_empty()
       && shared_substitutions.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len()
     {
       closest_neighbor = get_closest_neighbor(graph, parent_key.as_usize(), &seq_not_shared_substitutions);
       found = true;
-    } else if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
+    }
+    // TODO: describe condition
+    else if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
       closest_neighbor_dist = shared_substitutions.nuc_subs.len();
       closest_neighbor = (
         node_key,
@@ -295,19 +301,24 @@ pub fn get_closest_neighbor(
       );
     }
   }
+
   //check if new sequence is actually closer to a child
   if !found {
     for child_key in graph.iter_child_keys_of(node) {
       let child = graph.get_node(child_key).expect("Node not found");
       let child_mutations = child.payload().tmp.private_mutations.clone();
+
       let (shared_substitutions, c_not_shared_substitutions, seq_not_shared_substitutions) =
         split_mutations(&child_mutations, seq_private_mutations);
+
+      // TODO: describe condition
       if !shared_substitutions.nuc_subs.is_empty()
         && shared_substitutions.nuc_subs.len() == child_mutations.nuc_subs.len()
       {
         closest_neighbor = get_closest_neighbor(graph, child_key.as_usize(), &seq_not_shared_substitutions);
         break;
       }
+      // TODO: describe condition
       if shared_substitutions.nuc_subs.len() > closest_neighbor_dist {
         closest_neighbor_dist = shared_substitutions.nuc_subs.len();
         closest_neighbor = (
