@@ -1,6 +1,9 @@
 use crate::graph::edge::GraphEdgeKey;
 use core::fmt::{Debug, Display};
 use derive_more::Display;
+use schemars::gen::SchemaGenerator;
+use schemars::schema::Schema;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub trait GraphNode: Clone + Debug {}
 
@@ -18,6 +21,32 @@ impl GraphNodeKey {
   #[must_use]
   pub const fn as_usize(self) -> usize {
     self.0
+  }
+}
+
+impl<'de> Deserialize<'de> for GraphNodeKey {
+  fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let i = u64::deserialize(deserializer)?;
+    Ok(GraphNodeKey::new(i as usize))
+  }
+}
+
+impl Serialize for GraphNodeKey {
+  fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
+  where
+    Ser: Serializer,
+  {
+    serializer.serialize_u64(self.0 as u64)
+  }
+}
+
+impl schemars::JsonSchema for GraphNodeKey {
+  fn schema_name() -> String {
+    "GraphNodeKey".to_owned()
+  }
+
+  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<usize>()
   }
 }
 

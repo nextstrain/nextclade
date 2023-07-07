@@ -4,7 +4,7 @@ use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::graph::edge::GraphEdge;
 use crate::graph::graph::Graph;
-use crate::graph::node::GraphNode;
+use crate::graph::node::{GraphNode, GraphNodeKey};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
@@ -141,7 +141,7 @@ pub struct TreeNodeAttrs {
 /// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
 #[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
-  pub id: usize,
+  pub id: GraphNodeKey,
   pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub private_mutations: PrivateMutationsMinimal,

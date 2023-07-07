@@ -64,10 +64,10 @@ pub fn graph_attach_new_node_in_place(
     let mut target_key = closest_neighbor.target_key;
 
     //check if next nearest node is parent or child
-    let parent_key = graph.parent_key_of_by_key(GraphNodeKey::new(nearest_node_id));
+    let parent_key = graph.parent_key_of_by_key(nearest_node_id);
     if let Some(parent_key) = parent_key {
-      if closest_neighbor.target_key == parent_key.as_usize() {
-        source_key = parent_key.as_usize();
+      if closest_neighbor.target_key == parent_key {
+        source_key = parent_key;
         target_key = nearest_node_id;
       }
     }
@@ -265,8 +265,8 @@ fn split_mutations(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
 
 #[derive(Debug, Clone)]
 pub struct ClosestNeighbor {
-  source_key: usize,
-  target_key: usize,
+  source_key: GraphNodeKey,
+  target_key: GraphNodeKey,
   subs_qry_only: PrivateMutationsMinimal,
   subs_target_only: PrivateMutationsMinimal,
   subs_shared: PrivateMutationsMinimal,
@@ -274,7 +274,7 @@ pub struct ClosestNeighbor {
 
 pub fn get_closest_neighbor_recursively(
   graph: &AuspiceGraph,
-  node_key: usize,
+  node_key: GraphNodeKey,
   seq_private_mutations: &PrivateMutationsMinimal,
 ) -> Result<ClosestNeighbor, Report> {
   let pre_new_seq_private_mutations = seq_private_mutations.clone();
@@ -287,10 +287,10 @@ pub fn get_closest_neighbor_recursively(
   };
   let mut found = false;
   let mut closest_neighbor_dist = 0;
-  let node = graph.get_node(GraphNodeKey::new(node_key)).expect("Node not found");
+  let node = graph.get_node(node_key).expect("Node not found");
 
   //first check how close to parent new sequence is
-  let parent_key = graph.parent_key_of_by_key(GraphNodeKey::new(node_key));
+  let parent_key = graph.parent_key_of_by_key(node_key);
   if let Some(parent_key) = parent_key {
     let parent_mutations = node.payload().tmp.private_mutations.clone();
     let reverted_parent_mutations = parent_mutations.invert();
@@ -303,7 +303,7 @@ pub fn get_closest_neighbor_recursively(
 
     // TODO: describe condition
     if !subs_shared.nuc_subs.is_empty() && subs_shared.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len() {
-      closest_neighbor = get_closest_neighbor_recursively(graph, parent_key.as_usize(), &subs_qry_only)?;
+      closest_neighbor = get_closest_neighbor_recursively(graph, parent_key, &subs_qry_only)?;
       found = true;
     }
     // TODO: describe condition
@@ -311,7 +311,7 @@ pub fn get_closest_neighbor_recursively(
       closest_neighbor_dist = subs_shared.nuc_subs.len();
       closest_neighbor = ClosestNeighbor {
         source_key: node_key,
-        target_key: parent_key.as_usize(),
+        target_key: parent_key,
         subs_qry_only,
         subs_target_only: subs_parent_only.invert(),
         subs_shared: subs_shared.invert(),
@@ -333,7 +333,7 @@ pub fn get_closest_neighbor_recursively(
 
       // TODO: describe condition
       if !subs_shared.nuc_subs.is_empty() && subs_shared.nuc_subs.len() == child_mutations.nuc_subs.len() {
-        closest_neighbor = get_closest_neighbor_recursively(graph, child_key.as_usize(), &subs_qry_only)?;
+        closest_neighbor = get_closest_neighbor_recursively(graph, child_key, &subs_qry_only)?;
         break;
       }
       // TODO: describe condition
@@ -341,7 +341,7 @@ pub fn get_closest_neighbor_recursively(
         closest_neighbor_dist = subs_shared.nuc_subs.len();
         closest_neighbor = ClosestNeighbor {
           source_key: node_key,
-          target_key: child_key.as_usize(),
+          target_key: child_key,
           subs_qry_only,
           subs_target_only: subs_child_only,
           subs_shared,
@@ -354,15 +354,15 @@ pub fn get_closest_neighbor_recursively(
 
 pub fn add_to_middle_node(
   graph: &mut AuspiceGraph,
-  source_key: usize,
-  target_key: usize,
+  source_key: GraphNodeKey,
+  target_key: GraphNodeKey,
   closest_neighbor: &ClosestNeighbor,
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> Result<(), Report> {
   let (new_middle_node_key, divergence_middle_node) = {
-    let mut new_middle_node: AuspiceTreeNode = graph.get_node(GraphNodeKey::new(source_key)).unwrap().payload().clone();
+    let mut new_middle_node: AuspiceTreeNode = graph.get_node(source_key).unwrap().payload().clone();
 
     let parent_div = new_middle_node.node_attrs.div.unwrap_or(0.0);
     let divergence_middle_node = calculate_divergence(
@@ -377,7 +377,7 @@ pub fn add_to_middle_node(
     new_middle_node.branch_attrs.mutations =
       convert_private_mutations_to_node_branch_attrs(&closest_neighbor.subs_shared);
     new_middle_node.name = format!("{target_key}_internal");
-    new_middle_node.tmp.id = graph.num_nodes();
+    new_middle_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
 
     let new_middle_node_key = graph.add_node(new_middle_node);
 
@@ -385,7 +385,7 @@ pub fn add_to_middle_node(
   };
 
   // Alter private mutations of target
-  let mut target = graph.get_node_mut(GraphNodeKey::new(target_key)).unwrap().payload_mut();
+  let mut target = graph.get_node_mut(target_key).unwrap().payload_mut();
   let divergence = calculate_divergence(
     divergence_middle_node,
     &closest_neighbor.subs_target_only.nuc_subs,
@@ -398,7 +398,7 @@ pub fn add_to_middle_node(
   // Create node between nearest_node and nearest child
   graph.insert_node_before(
     new_middle_node_key,
-    GraphNodeKey::new(target_key),
+    target_key,
     AuspiceTreeEdge::new(), // Edge payloads are currently dummy
     AuspiceTreeEdge::new(), // Edge payloads are currently dummy
   )?;
@@ -406,7 +406,7 @@ pub fn add_to_middle_node(
   // Attach seq to new_middle_node
   attach_node(
     graph,
-    new_middle_node_key.as_usize(),
+    new_middle_node_key,
     &closest_neighbor.subs_qry_only,
     result,
     divergence_units,
@@ -418,39 +418,28 @@ pub fn add_to_middle_node(
 
 pub fn attach_node(
   graph: &mut AuspiceGraph,
-  nearest_node_id: usize,
+  nearest_node_id: GraphNodeKey,
   new_private_mutations: &PrivateMutationsMinimal,
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) {
-  let nearest_node_clone = graph
-    .get_node(GraphNodeKey::new(nearest_node_id))
-    .unwrap()
-    .payload()
-    .clone();
+  let nearest_node_clone = graph.get_node(nearest_node_id).unwrap().payload().clone();
   let nearest_node_div = nearest_node_clone.node_attrs.div.unwrap_or(0.0);
   //check if node is a leaf, then it contains a sequence and we need to create a new node to be visible in the tree
-  if graph.is_leaf_key(GraphNodeKey::new(nearest_node_id)) {
-    let target = graph
-      .get_node_mut(GraphNodeKey::new(nearest_node_id))
-      .unwrap()
-      .payload_mut();
+  if graph.is_leaf_key(nearest_node_id) {
+    let target = graph.get_node_mut(nearest_node_id).unwrap().payload_mut();
     target.name = format!("{}_parent", target.name);
 
     let mut new_terminal_node = nearest_node_clone;
     new_terminal_node.branch_attrs.mutations.clear();
     new_terminal_node.branch_attrs.other = serde_json::Value::default();
     new_terminal_node.tmp.private_mutations = PrivateMutationsMinimal::default();
-    new_terminal_node.tmp.id = graph.num_nodes();
+    new_terminal_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
 
     let new_terminal_key = graph.add_node(new_terminal_node);
     graph
-      .add_edge(
-        GraphNodeKey::new(nearest_node_id),
-        new_terminal_key,
-        AuspiceTreeEdge::new(),
-      )
+      .add_edge(nearest_node_id, new_terminal_key, AuspiceTreeEdge::new())
       .map_err(|err| println!("{err:?}"))
       .ok();
   }
@@ -465,12 +454,12 @@ pub fn attach_node(
   let mut new_graph_node: AuspiceTreeNode =
     create_new_auspice_node(result, &new_private_mutations_pre, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
-  new_graph_node.tmp.id = graph.num_nodes();
+  new_graph_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
 
   // Create and add the new node to the graph.
   let new_node_key = graph.add_node(new_graph_node);
   graph
-    .add_edge(GraphNodeKey::new(nearest_node_id), new_node_key, AuspiceTreeEdge::new())
+    .add_edge(nearest_node_id, new_node_key, AuspiceTreeEdge::new())
     .map_err(|err| println!("{err:?}"))
     .ok();
 }

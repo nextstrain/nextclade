@@ -74,7 +74,7 @@ pub fn tree_preprocess_in_place_impl_recursive(
   node.tmp.aa_substitutions = aa_subs;
   node.tmp.is_ref_node = true;
   let graph_node_key = graph.add_node(node.clone());
-  node.tmp.id = graph_node_key.as_usize();
+  node.tmp.id = graph_node_key;
 
   node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
