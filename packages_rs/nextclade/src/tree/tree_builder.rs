@@ -48,7 +48,7 @@ pub fn graph_attach_new_node_in_place(
     private_aa_mutations.insert(key.clone(), value);
   }
 
-  //check if new seq is in between nearest node and a neighbor of nearest node
+  // Check if new seq is in between nearest node and a neighbor of nearest node
   let mutations_seq = PrivateMutationsMinimal {
     nuc_subs: result.private_nuc_mutations.private_substitutions.clone(),
     nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
@@ -58,12 +58,12 @@ pub fn graph_attach_new_node_in_place(
   let nearest_node_id = closest_neighbor.source_key;
 
   if nearest_node_id != closest_neighbor.target_key {
-    //if there exists a child that shares private mutations with new seq, create middle node between that child and the nearest_node
-    //attach seq to middle node
+    // If there exists a child that shares private mutations with new seq,
+    // then create middle node between that child and the nearest_node attach seq to middle node
     let mut source_key = nearest_node_id;
     let mut target_key = closest_neighbor.target_key;
 
-    //check if next nearest node is parent or child
+    // Check if next nearest node is parent or child
     let parent_key = graph.parent_key_of_by_key(nearest_node_id);
     if let Some(parent_key) = parent_key {
       if closest_neighbor.target_key == parent_key {
@@ -81,8 +81,8 @@ pub fn graph_attach_new_node_in_place(
       ref_seq_len,
     )?;
   } else {
-    //if nearest_node is terminal create dummy empty terminal node with nearest_node's name (so that nearest_node) stays a terminal)
-    //and attach new node to nearest_node (same id, now called {name}_parent)
+    // If nearest_node is terminal, then create dummy empty terminal node with nearest_node's name
+    // (so that nearest_node stays a terminal) and attach new node to nearest_node (same id, now called {name}_parent)
     attach_node(
       graph,
       nearest_node_id,
@@ -115,7 +115,7 @@ fn split_mutations(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
   let mut j = 0;
   while (i < left.nuc_subs.len()) && (j < right.nuc_subs.len()) {
     if left.nuc_subs[i].pos == right.nuc_subs[j].pos {
-      // position is also mutated in node
+      // Position is also mutated in node
       if left.nuc_subs[i].ref_nuc == right.nuc_subs[j].ref_nuc && left.nuc_subs[i].qry_nuc == right.nuc_subs[j].qry_nuc
       {
         subs_shared.push(left.nuc_subs[i].clone()); // the exact mutation is shared between node and seq
@@ -152,7 +152,7 @@ fn split_mutations(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
 
   while (i < left.nuc_dels.len()) && (j < right.nuc_dels.len()) {
     if left.nuc_dels[i].pos == right.nuc_dels[j].pos {
-      // position is also a deletion in node
+      // Position is also a deletion in node
       dels_shared.push(left.nuc_dels[i].clone()); // the exact mutation is shared between node and seq
       i += 1;
       j += 1;
@@ -202,7 +202,7 @@ fn split_mutations(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
     let mut j = 0;
     while (i < aa_muts_left.len()) && (j < aa_muts_right.len()) {
       if aa_muts_left[i].pos == aa_muts_right[j].pos {
-        // position is also mutated in node
+        // Position is also mutated in node
         if aa_muts_left[i].ref_aa == aa_muts_right[j].ref_aa && aa_muts_left[i].qry_aa == aa_muts_right[j].qry_aa {
           aa_subs_for_gene_shared.push(aa_muts_left[i].clone()); // the exact mutation is shared between node and seq
         } else {
@@ -289,7 +289,7 @@ pub fn get_closest_neighbor_recursively(
   let mut closest_neighbor_dist = 0;
   let node = graph.get_node(node_key).expect("Node not found");
 
-  //first check how close to parent new sequence is
+  // First check how close to parent new sequence is
   let parent_key = graph.parent_key_of_by_key(node_key);
   if let Some(parent_key) = parent_key {
     let parent_mutations = node.payload().tmp.private_mutations.clone();
@@ -319,7 +319,7 @@ pub fn get_closest_neighbor_recursively(
     }
   }
 
-  //check if new sequence is actually closer to a child
+  // Check if new sequence is actually closer to a child
   if !found {
     for child_key in graph.iter_child_keys_of(node) {
       let child = graph.get_node(child_key).expect("Node not found");
@@ -426,7 +426,7 @@ pub fn attach_node(
 ) {
   let nearest_node_clone = graph.get_node(nearest_node_id).unwrap().payload().clone();
   let nearest_node_div = nearest_node_clone.node_attrs.div.unwrap_or(0.0);
-  //check if node is a leaf, then it contains a sequence and we need to create a new node to be visible in the tree
+  // Check if node is a leaf, then it contains a sequence and we need to create a new node to be visible in the tree
   if graph.is_leaf_key(nearest_node_id) {
     let target = graph.get_node_mut(nearest_node_id).unwrap().payload_mut();
     target.name = format!("{}_parent", target.name);
@@ -443,7 +443,7 @@ pub fn attach_node(
       .map_err(|err| println!("{err:?}"))
       .ok();
   }
-  //Attach only to a reference node.
+  // Attach only to a reference node.
   let divergence_new_node = calculate_divergence(
     nearest_node_div,
     &new_private_mutations.nuc_subs,
