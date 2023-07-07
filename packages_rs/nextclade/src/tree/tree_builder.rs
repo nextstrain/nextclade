@@ -79,7 +79,7 @@ pub fn graph_attach_new_node_in_place(
       result,
       divergence_units,
       ref_seq_len,
-    );
+    )?;
   } else {
     //if nearest_node is terminal create dummy empty terminal node with nearest_node's name (so that nearest_node) stays a terminal)
     //and attach new node to nearest_node (same id, now called {name}_parent)
@@ -360,7 +360,7 @@ pub fn add_to_middle_node(
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
-) {
+) -> Result<(), Report> {
   let (new_middle_node_key, divergence_middle_node) = {
     let mut new_middle_node: AuspiceTreeNode = graph.get_node(GraphNodeKey::new(source_key)).unwrap().payload().clone();
 
@@ -396,15 +396,12 @@ pub fn add_to_middle_node(
   target.branch_attrs.mutations = convert_private_mutations_to_node_branch_attrs(&closest_neighbor.subs_target_only);
 
   // Create node between nearest_node and nearest child
-  graph
-    .insert_node_before(
-      new_middle_node_key,
-      GraphNodeKey::new(target_key),
-      AuspiceTreeEdge::new(), // Edge payloads are currently dummy
-      AuspiceTreeEdge::new(), // Edge payloads are currently dummy
-    )
-    .map_err(|err| println!("{err:?}"))
-    .ok();
+  graph.insert_node_before(
+    new_middle_node_key,
+    GraphNodeKey::new(target_key),
+    AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+    AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+  )?;
 
   // Attach seq to new_middle_node
   attach_node(
@@ -415,6 +412,8 @@ pub fn add_to_middle_node(
     divergence_units,
     ref_seq_len,
   );
+
+  Ok(())
 }
 
 pub fn attach_node(
