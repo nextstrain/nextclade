@@ -431,7 +431,7 @@ pub fn attach_node(
     .clone();
   let nearest_node_div = nearest_node_clone.node_attrs.div.unwrap_or(0.0);
   //check if node is a leaf, then it contains a sequence and we need to create a new node to be visible in the tree
-  if graph.key_in_leaves(GraphNodeKey::new(nearest_node_id)) {
+  if graph.is_leaf_key(GraphNodeKey::new(nearest_node_id)) {
     let target = graph
       .get_node_mut(GraphNodeKey::new(nearest_node_id))
       .unwrap()

@@ -150,7 +150,7 @@ where
     self.leaves.iter().filter_map(|idx| self.get_node(*idx))
   }
 
-  pub fn key_in_leaves(&self, key: GraphNodeKey) -> bool {
+  pub fn is_leaf_key(&self, key: GraphNodeKey) -> bool {
     self.leaves.contains(&key)
   }
 
@@ -215,7 +215,7 @@ where
       self.edges.push(new_edge);
     }
     //check if source is a leaf, if so remove from leaves
-    if self.key_in_leaves(source_key) {
+    if self.is_leaf_key(source_key) {
       self.leaves.retain(|&x| x != source_key);
     }
 
@@ -334,7 +334,7 @@ where
     }
     let root_index = self.roots[0];
     let mut terminal_count_map = HashMap::<GraphNodeKey, usize>::new();
-    self.get_terminal_number_map_recursive(root_index, &mut terminal_count_map);
+    self.get_terminal_number_map_recursive(root_index, &mut terminal_count_map)?;
     let mut new_edge_order_map = HashMap::<GraphNodeKey, Vec<GraphEdgeKey>>::new();
     self.get_ladderize_map_recursive(root_index, &terminal_count_map, &mut new_edge_order_map);
     Ok(new_edge_order_map)
@@ -344,12 +344,14 @@ where
     &self,
     node_key: GraphNodeKey,
     terminal_count_map: &mut HashMap<GraphNodeKey, usize>,
-  ) {
-    let node = self.get_node(node_key).unwrap();
+  ) -> Result<(), Report> {
+    let node = self
+      .get_node(node_key)
+      .ok_or_else(|| eyre!("Unable to find node {node_key}"))?;
     for child in self.iter_child_keys_of(node) {
-      self.get_terminal_number_map_recursive(child, terminal_count_map);
+      self.get_terminal_number_map_recursive(child, terminal_count_map)?;
     }
-    if self.key_in_leaves(node_key) {
+    if self.is_leaf_key(node_key) {
       terminal_count_map.insert(node_key, 1);
     } else {
       let mut num_terminals = 0;
@@ -359,6 +361,7 @@ where
       }
       terminal_count_map.insert(node_key, num_terminals);
     }
+    Ok(())
   }
 
   pub fn get_ladderize_map_recursive(
