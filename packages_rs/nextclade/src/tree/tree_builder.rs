@@ -294,28 +294,32 @@ pub fn get_closest_neighbor_recursively(
     let parent_mutations = node.payload().tmp.private_mutations.clone();
     let reverted_parent_mutations = parent_mutations.invert();
 
-    let SplitMutationsResult {
-      left: subs_parent_only,
-      shared: subs_shared,
-      right: subs_qry_only,
-    } = split_mutations(&reverted_parent_mutations, seq_private_mutations);
+    // FIXME: duplicated code begin ////////////////////////////////////////////////
+    {
+      let SplitMutationsResult {
+        left: subs_parent_only,
+        shared: subs_shared,
+        right: subs_qry_only,
+      } = split_mutations(&reverted_parent_mutations, seq_private_mutations);
 
-    // TODO: describe condition
-    if !subs_shared.nuc_subs.is_empty() && subs_shared.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len() {
-      closest_neighbor = get_closest_neighbor_recursively(graph, parent_key, &subs_qry_only)?;
-      found = true;
+      // TODO: describe condition
+      if !subs_shared.nuc_subs.is_empty() && subs_shared.nuc_subs.len() == reverted_parent_mutations.nuc_subs.len() {
+        closest_neighbor = get_closest_neighbor_recursively(graph, parent_key, &subs_qry_only)?;
+        found = true; // FIXME: subtle difference in duplicated code; side effect
+      }
+      // TODO: describe condition
+      else if subs_shared.nuc_subs.len() > closest_neighbor_dist {
+        closest_neighbor_dist = subs_shared.nuc_subs.len();
+        closest_neighbor = ClosestNeighbor {
+          source_key: node_key,
+          target_key: parent_key,
+          subs_qry_only,
+          subs_target_only: subs_parent_only.invert(),
+          subs_shared: subs_shared.invert(),
+        };
+      }
     }
-    // TODO: describe condition
-    else if subs_shared.nuc_subs.len() > closest_neighbor_dist {
-      closest_neighbor_dist = subs_shared.nuc_subs.len();
-      closest_neighbor = ClosestNeighbor {
-        source_key: node_key,
-        target_key: parent_key,
-        subs_qry_only,
-        subs_target_only: subs_parent_only.invert(),
-        subs_shared: subs_shared.invert(),
-      };
-    }
+    // FIXME: duplicated code end ////////////////////////////////////////////////
   }
 
   // Check if new sequence is actually closer to a child
@@ -324,28 +328,32 @@ pub fn get_closest_neighbor_recursively(
       let child = graph.get_node(child_key).expect("Node not found");
       let child_mutations = child.payload().tmp.private_mutations.clone();
 
-      let SplitMutationsResult {
-        left: subs_child_only,
-        shared: subs_shared,
-        right: subs_qry_only,
-      } = split_mutations(&child_mutations, seq_private_mutations);
+      // FIXME: duplicated code begin ////////////////////////////////////////////////
+      {
+        let SplitMutationsResult {
+          left: subs_child_only,
+          shared: subs_shared,
+          right: subs_qry_only,
+        } = split_mutations(&child_mutations, seq_private_mutations);
 
-      // TODO: describe condition
-      if !subs_shared.nuc_subs.is_empty() && subs_shared.nuc_subs.len() == child_mutations.nuc_subs.len() {
-        closest_neighbor = get_closest_neighbor_recursively(graph, child_key, &subs_qry_only)?;
-        break;
+        // TODO: describe condition
+        if !subs_shared.nuc_subs.is_empty() && subs_shared.nuc_subs.len() == child_mutations.nuc_subs.len() {
+          closest_neighbor = get_closest_neighbor_recursively(graph, child_key, &subs_qry_only)?;
+          break; // FIXME: subtle difference in duplicated code; no side effect
+        }
+        // TODO: describe condition
+        if subs_shared.nuc_subs.len() > closest_neighbor_dist {
+          closest_neighbor_dist = subs_shared.nuc_subs.len();
+          closest_neighbor = ClosestNeighbor {
+            source_key: node_key,
+            target_key: child_key,
+            subs_qry_only,
+            subs_target_only: subs_child_only,
+            subs_shared,
+          };
+        }
       }
-      // TODO: describe condition
-      if subs_shared.nuc_subs.len() > closest_neighbor_dist {
-        closest_neighbor_dist = subs_shared.nuc_subs.len();
-        closest_neighbor = ClosestNeighbor {
-          source_key: node_key,
-          target_key: child_key,
-          subs_qry_only,
-          subs_target_only: subs_child_only,
-          subs_shared,
-        };
-      }
+      // FIXME: duplicated code end ////////////////////////////////////////////////
     }
   }
   Ok(closest_neighbor)
