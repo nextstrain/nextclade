@@ -4,7 +4,7 @@ use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
-use eyre::{eyre, ContextCompat, Report};
+use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 
 pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
@@ -36,6 +36,17 @@ where
     }
   }
 
+  pub fn get_exactly_one_root(&self) -> Result<&Node<N>, Report> {
+    if let &[one] = self.roots.as_slice() {
+      Ok(self.iter_roots().next().unwrap())
+    } else {
+      make_internal_error!(
+        "Only trees with exactly one root are currently supported, but found '{}'",
+        self.roots.len()
+      )
+    }
+  }
+
   /// Retrieve ID of parent node, of a given node
   ///
   /// Assumes there is always only 0 or 1 parents
@@ -47,10 +58,7 @@ where
   ///
   /// Assumes there is always only 0 or 1 parents
   pub fn parent_key_of_by_key(&self, node_key: GraphNodeKey) -> Option<GraphNodeKey> {
-    let node = self
-      .get_node(node_key)
-      .ok_or_else(|| make_internal_report!("Node with id '{node_key}' expected to exist, but not found"))
-      .unwrap();
+    let node = self.get_node(node_key).unwrap(); // FIXME
     self.parent_key_of(node)
   }
 
@@ -60,7 +68,9 @@ where
     node
       .inbound()
       .iter()
-      .filter_map(|edge_key| self.get_edge(*edge_key))
+      .filter_map(
+        |edge_key| self.get_edge(*edge_key).ok(), // FIXME: ignores errors
+      )
       .map(Edge::source)
   }
 
@@ -70,32 +80,43 @@ where
     node
       .outbound()
       .iter()
-      .filter_map(|edge_key| self.get_edge(*edge_key))
+      .filter_map(
+        |edge_key| self.get_edge(*edge_key).ok(), // FIXME: ignores errors
+      )
       .map(Edge::target)
   }
 
   pub fn iter_child_keys_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = GraphNodeKey> + '_ {
-    let node = self
-      .get_node(node_key)
-      .ok_or_else(|| make_internal_report!("Node with id '{node_key}' expected to exist, but not found"))
-      .unwrap();
+    let node = self.get_node(node_key).unwrap();
     self.iter_child_keys_of(node)
   }
 
-  pub fn get_node(&self, index: GraphNodeKey) -> Option<&Node<N>> {
-    self.nodes.get(index.as_usize())
+  pub fn get_node(&self, node_key: GraphNodeKey) -> Result<&Node<N>, Report> {
+    self
+      .nodes
+      .get(node_key.as_usize())
+      .ok_or_else(|| make_internal_report!("Node with id '{node_key}' expected to exist, but not found"))
   }
 
-  pub fn get_node_mut(&mut self, index: GraphNodeKey) -> Option<&mut Node<N>> {
-    self.nodes.get_mut(index.as_usize())
+  pub fn get_node_mut(&mut self, node_key: GraphNodeKey) -> Result<&mut Node<N>, Report> {
+    self
+      .nodes
+      .get_mut(node_key.as_usize())
+      .ok_or_else(|| make_internal_report!("Node with id '{node_key}' expected to exist, but not found"))
   }
 
-  pub fn get_edge(&self, index: GraphEdgeKey) -> Option<&Edge<E>> {
-    self.edges.get(index.as_usize())
+  pub fn get_edge(&self, edge_key: GraphEdgeKey) -> Result<&Edge<E>, Report> {
+    self
+      .edges
+      .get(edge_key.as_usize())
+      .ok_or_else(|| make_internal_report!("Edge with id '{edge_key}' expected to exist, but not found"))
   }
 
-  pub fn get_edge_mut(&mut self, index: GraphEdgeKey) -> Option<&mut Edge<E>> {
-    self.edges.get_mut(index.as_usize())
+  pub fn get_edge_mut(&mut self, edge_key: GraphEdgeKey) -> Result<&mut Edge<E>, Report> {
+    self
+      .edges
+      .get_mut(edge_key.as_usize())
+      .ok_or_else(|| make_internal_report!("Edge with id '{edge_key}' expected to exist, but not found"))
   }
 
   #[inline]
@@ -135,7 +156,9 @@ where
 
   #[inline]
   pub fn iter_roots(&self) -> impl Iterator<Item = &Node<N>> + '_ {
-    self.roots.iter().filter_map(|idx| self.get_node(*idx))
+    self.roots.iter().filter_map(
+      |idx| self.get_node(*idx).ok(), // FIXME: ignores errors
+    )
   }
 
   // FIXME
@@ -147,7 +170,9 @@ where
 
   #[inline]
   pub fn iter_leaves(&self) -> impl Iterator<Item = &Node<N>> + '_ {
-    self.leaves.iter().filter_map(|idx| self.get_node(*idx))
+    self.leaves.iter().filter_map(
+      |idx| self.get_node(*idx).ok(), // FIXME: ignores errors
+    )
   }
 
   pub fn is_leaf_key(&self, key: GraphNodeKey) -> bool {
@@ -201,7 +226,7 @@ where
     {
       let source = self
         .get_node(source_key)
-        .ok_or_else(|| eyre!("When adding a graph edge {source_key}->{target_key}: Node {source_key} not found."))?;
+        .wrap_err_with(|| format!("When adding a graph edge {source_key}->{target_key}"))?;
 
       let already_connected = source
         .outbound()
@@ -214,7 +239,8 @@ where
 
       self.edges.push(new_edge);
     }
-    //check if source is a leaf, if so remove from leaves
+
+    // Check if source is a leaf, if so remove from leaves
     if self.is_leaf_key(source_key) {
       self.leaves.retain(|&x| x != source_key);
     }
@@ -222,35 +248,50 @@ where
     {
       let source = self
         .get_node_mut(source_key)
-        .ok_or_else(|| eyre!("When adding a graph edge {source_key}->{target_key}: Node {source_key} not found."))?;
+        .wrap_err_with(|| format!("When adding a graph edge {source_key}->{target_key}"))?;
       source.outbound_mut().push(edge_key);
     }
     {
       let target = self
         .get_node_mut(target_key)
-        .ok_or_else(|| eyre!("When adding a graph edge {source_key}->{target_key}: Node {target_key} not found."))?;
+        .wrap_err_with(|| format!("When adding a graph edge {source_key}->{target_key}"))?;
       target.inbound_mut().push(edge_key);
     }
     Ok(())
   }
 
   pub fn remove_edge(&mut self, edge_key: GraphEdgeKey) -> Result<&Edge<E>, Report> {
-    //remove edge from source.outbound_edges
-    let source_key = self.get_edge(edge_key).unwrap().source();
-    let source = self
-      .get_node_mut(source_key)
-      .ok_or_else(|| eyre!("Error when adding a graph edge {edge_key} "))?;
-    source.outbound_mut().retain(|&x| x != edge_key);
-    //remove edge from target.inbound_edges
-    let target_key = self.get_edge(edge_key).unwrap().target();
-    let target = self
-      .get_node_mut(target_key)
-      .ok_or_else(|| eyre!("Error when adding a graph edge {edge_key} "))?;
-    target.inbound_mut().retain(|&x| x != edge_key);
+    // Remove edge from source.outbound_edges
+    {
+      let source_key = self
+        .get_edge(edge_key)
+        .wrap_err_with(|| format!("When removing edge {edge_key}"))?
+        .source();
+
+      let source = self
+        .get_node_mut(source_key)
+        .wrap_err_with(|| format!("When removing edge {edge_key}"))?;
+
+      source.outbound_mut().retain(|&x| x != edge_key);
+    }
+
+    // Remove edge from target.inbound_edges
+    {
+      let target_key = self
+        .get_edge(edge_key)
+        .wrap_err_with(|| format!("When removing edge {edge_key}"))?
+        .target();
+
+      let target = self
+        .get_node_mut(target_key)
+        .wrap_err_with(|| format!("When removing edge {edge_key}"))?;
+
+      target.inbound_mut().retain(|&x| x != edge_key);
+    }
 
     self
       .get_edge(edge_key)
-      .ok_or_else(|| eyre!("Error when removing a graph edge {edge_key} "))
+      .wrap_err_with(|| format!("When removing edge {edge_key}"))
   }
 
   /// Given a new node ID and insertion target ID, insert a new node between target and the parent of the target
@@ -267,7 +308,7 @@ where
   ) -> Result<GraphNodeKey, Report> {
     let insert_before = self
       .get_node(target_node_key)
-      .ok_or_else(|| eyre!("When inserting a graph node: the target node '{target_node_key}' not found."))?;
+      .wrap_err_with(|| format!("When inserting a graph node {new_node_key} before node {target_node_key}"))?;
 
     match insert_before.inbound() {
       [] => {
@@ -289,7 +330,8 @@ where
 
         Ok(())
       }
-      _ => make_internal_error!("Multiple parent nodes are not supported"),
+      _ => make_internal_error!("Multiple parent nodes are not supported")
+        .wrap_err_with(|| format!("When inserting a graph node {new_node_key} before node {target_node_key}")),
     }?;
 
     self.build_ref()?;
@@ -325,18 +367,11 @@ where
   }
 
   pub fn get_ladderize_map(&self) -> Result<HashMap<GraphNodeKey, Vec<GraphEdgeKey>>, Report> {
-    let roots = self.iter_roots().collect_vec();
-    if roots.len() != 1 {
-      return make_internal_error!(
-        "Only trees with exactly one root are supported, but found '{}'",
-        roots.len()
-      );
-    }
-    let root_index = self.roots[0];
+    let root = self.get_exactly_one_root()?;
     let mut terminal_count_map = HashMap::<GraphNodeKey, usize>::new();
-    self.get_terminal_number_map_recursive(root_index, &mut terminal_count_map)?;
+    self.get_terminal_number_map_recursive(root.key(), &mut terminal_count_map)?;
     let mut new_edge_order_map = HashMap::<GraphNodeKey, Vec<GraphEdgeKey>>::new();
-    self.get_ladderize_map_recursive(root_index, &terminal_count_map, &mut new_edge_order_map);
+    self.get_ladderize_map_recursive(root.key(), &terminal_count_map, &mut new_edge_order_map)?;
     Ok(new_edge_order_map)
   }
 
@@ -345,12 +380,12 @@ where
     node_key: GraphNodeKey,
     terminal_count_map: &mut HashMap<GraphNodeKey, usize>,
   ) -> Result<(), Report> {
-    let node = self
-      .get_node(node_key)
-      .ok_or_else(|| eyre!("Unable to find node {node_key}"))?;
+    let node = self.get_node(node_key).wrap_err("When preparing terminal number map")?;
+
     for child in self.iter_child_keys_of(node) {
       self.get_terminal_number_map_recursive(child, terminal_count_map)?;
     }
+
     if self.is_leaf_key(node_key) {
       terminal_count_map.insert(node_key, 1);
     } else {
@@ -361,6 +396,7 @@ where
       }
       terminal_count_map.insert(node_key, num_terminals);
     }
+
     Ok(())
   }
 
@@ -369,24 +405,30 @@ where
     node_key: GraphNodeKey,
     terminal_count_map: &HashMap<GraphNodeKey, usize>,
     new_edge_order_map: &mut HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
-  ) {
-    let node = self.get_node(node_key).unwrap();
+  ) -> Result<(), Report> {
+    let node = self.get_node(node_key).wrap_err("When preparing ladderize map")?;
+
     let pre_outbound_order = node.outbound().iter().copied().collect_vec();
     let order_outbound_nodes = pre_outbound_order
       .iter()
       .map(|edge_key| self.get_edge(*edge_key).expect("Node not found").target())
       .map(|node_key| terminal_count_map.get(&node_key).expect("Node not found"))
       .collect_vec();
+
     let mut zipped = pre_outbound_order
       .into_iter()
       .zip(order_outbound_nodes.into_iter())
       .collect::<Vec<_>>();
     zipped.sort_by(|&(_, a), &(_, b)| a.cmp(b));
+
     let sorted_outbound: Vec<GraphEdgeKey> = zipped.into_iter().map(|(a, _)| a).collect();
     new_edge_order_map.insert(node_key, sorted_outbound);
+
     for child in self.iter_child_keys_of(node) {
-      self.get_ladderize_map_recursive(child, terminal_count_map, new_edge_order_map);
+      self.get_ladderize_map_recursive(child, terminal_count_map, new_edge_order_map)?;
     }
+
+    Ok(())
   }
 
   pub fn ladderize_tree(&mut self) -> Result<(), Report> {
@@ -424,15 +466,7 @@ where
 }
 
 pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTreeNode, Report> {
-  let roots = graph.iter_roots().collect_vec();
-  if roots.len() != 1 {
-    return make_internal_error!(
-      "Only trees with exactly one root are supported, but found '{}'",
-      roots.len()
-    );
-  }
-  let root = roots[0];
-
+  let root = graph.get_exactly_one_root()?;
   convert_graph_to_auspice_tree_recursive(graph, root)
 }
 
