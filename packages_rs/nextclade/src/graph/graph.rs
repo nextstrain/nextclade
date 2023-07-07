@@ -278,13 +278,10 @@ where
       }
       [edge_key] => {
         // This was an internal or leaf node. First we remove inbound edge.
-        let edge = self.remove_edge(*edge_key);
-        let parent_node_key = match edge {
-          Ok(edge) => edge.source(),
-          Err(e) => panic!("Cannot find nearest node: {e:?}"),
-        };
+        let edge = self.remove_edge(*edge_key)?;
 
         // Add left edge: from parent to new node
+        let parent_node_key = edge.source();
         self.add_edge(parent_node_key, new_node_key, edge_payload_left)?;
 
         // Add right edge: from new node to the insertion target node
