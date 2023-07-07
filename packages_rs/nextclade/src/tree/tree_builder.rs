@@ -55,22 +55,21 @@ pub fn graph_attach_new_node_in_place(
     aa_muts: private_aa_mutations,
   };
   let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq)?;
-  let nearest_node_id = closest_neighbor.source_key;
 
-  if nearest_node_id != closest_neighbor.target_key {
+  if closest_neighbor.source_key != closest_neighbor.target_key {
     // If there exists a child that shares private mutations with new seq,
     // then create middle node between that child and the nearest_node attach seq to middle node
-    let mut source_key = nearest_node_id;
+    let mut source_key = closest_neighbor.source_key;
     let mut target_key = closest_neighbor.target_key;
 
     // Check if next nearest node is parent or child
-    let parent_key = graph.parent_key_of_by_key(nearest_node_id);
-    if let Some(parent_key) = parent_key {
-      if closest_neighbor.target_key == parent_key {
+    if let Some(parent_key) = graph.parent_key_of_by_key(closest_neighbor.source_key) {
+      if parent_key == closest_neighbor.target_key {
         source_key = parent_key;
-        target_key = nearest_node_id;
+        target_key = closest_neighbor.source_key;
       }
     }
+
     add_to_middle_node(
       graph,
       source_key,
@@ -85,7 +84,7 @@ pub fn graph_attach_new_node_in_place(
     // (so that nearest_node stays a terminal) and attach new node to nearest_node (same id, now called {name}_parent)
     attach_node(
       graph,
-      nearest_node_id,
+      closest_neighbor.source_key,
       &closest_neighbor.subs_qry_only,
       result,
       divergence_units,
