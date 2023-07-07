@@ -361,41 +361,41 @@ pub fn add_to_middle_node(
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) {
-  let mut new_middle_node: AuspiceTreeNode = graph.get_node(GraphNodeKey::new(source_key)).unwrap().payload().clone();
+  let (new_middle_node_key, divergence_middle_node) = {
+    let mut new_middle_node: AuspiceTreeNode = graph.get_node(GraphNodeKey::new(source_key)).unwrap().payload().clone();
 
-  let new_private_mutations_middle_node = &closest_neighbor.subs_shared;
-  let new_private_mutations_target = &closest_neighbor.subs_target_only;
-  let new_private_mutations_seq = &closest_neighbor.subs_qry_only;
+    let parent_div = new_middle_node.node_attrs.div.unwrap_or(0.0);
+    let divergence_middle_node = calculate_divergence(
+      parent_div,
+      &closest_neighbor.subs_shared.nuc_subs,
+      divergence_units,
+      ref_seq_len,
+    );
 
-  let parent_div = new_middle_node.node_attrs.div.unwrap_or(0.0);
-  let divergence_middle_node = calculate_divergence(
-    parent_div,
-    &new_private_mutations_middle_node.nuc_subs,
-    divergence_units,
-    ref_seq_len,
-  );
-  let string_private_mutations_middle_node =
-    convert_private_mutations_to_node_branch_attrs(new_private_mutations_middle_node);
-  new_middle_node.tmp.private_mutations = new_private_mutations_middle_node.clone();
-  new_middle_node.node_attrs.div = Some(divergence_middle_node);
-  new_middle_node.branch_attrs.mutations = string_private_mutations_middle_node;
-  new_middle_node.name = format!("{target_key}_internal");
-  new_middle_node.tmp.id = graph.num_nodes();
-  let new_middle_node_key = graph.add_node(new_middle_node);
+    new_middle_node.tmp.private_mutations = closest_neighbor.subs_shared.clone();
+    new_middle_node.node_attrs.div = Some(divergence_middle_node);
+    new_middle_node.branch_attrs.mutations =
+      convert_private_mutations_to_node_branch_attrs(&closest_neighbor.subs_shared);
+    new_middle_node.name = format!("{target_key}_internal");
+    new_middle_node.tmp.id = graph.num_nodes();
 
-  //alter private mutations of target
+    let new_middle_node_key = graph.add_node(new_middle_node);
+
+    (new_middle_node_key, divergence_middle_node)
+  };
+
+  // Alter private mutations of target
   let mut target = graph.get_node_mut(GraphNodeKey::new(target_key)).unwrap().payload_mut();
-  let string_private_mutations_target = convert_private_mutations_to_node_branch_attrs(new_private_mutations_target);
   let divergence = calculate_divergence(
     divergence_middle_node,
-    &new_private_mutations_target.nuc_subs,
+    &closest_neighbor.subs_target_only.nuc_subs,
     divergence_units,
     ref_seq_len,
   );
-  target.tmp.private_mutations = new_private_mutations_target.clone();
-  target.branch_attrs.mutations = string_private_mutations_target;
+  target.tmp.private_mutations = closest_neighbor.subs_target_only.clone();
+  target.branch_attrs.mutations = convert_private_mutations_to_node_branch_attrs(&closest_neighbor.subs_target_only);
 
-  //create node between nearest_node and nearest child
+  // Create node between nearest_node and nearest child
   graph
     .insert_node_before(
       new_middle_node_key,
@@ -405,11 +405,12 @@ pub fn add_to_middle_node(
     )
     .map_err(|err| println!("{err:?}"))
     .ok();
-  //attach seq to new_middle_node
+
+  // Attach seq to new_middle_node
   attach_node(
     graph,
     new_middle_node_key.as_usize(),
-    new_private_mutations_seq,
+    &closest_neighbor.subs_qry_only,
     result,
     divergence_units,
     ref_seq_len,
