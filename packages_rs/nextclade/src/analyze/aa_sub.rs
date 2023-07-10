@@ -13,7 +13,7 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 /// Represents aminoacid substitution
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaSub {
   pub cds_name: String,
