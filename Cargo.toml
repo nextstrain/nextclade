@@ -2,8 +2,9 @@
 
 members = [
   "packages_rs/*",
+  "packages_rs/3rdparty/bio_inline",
 ]
 
 exclude = [
-  "packages_rs/3rdparty"
+  "packages_rs/3rdparty",
 ]
