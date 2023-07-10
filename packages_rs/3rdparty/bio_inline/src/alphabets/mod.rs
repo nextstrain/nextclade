@@ -25,6 +25,7 @@ pub type SymbolRanks = VecMap<u8>;
 
 /// Representation of an alphabet.
 #[derive(Default, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[must_use]
 pub struct Alphabet {
   pub symbols: BitSet,
 }
@@ -323,7 +324,7 @@ impl RankTransform {
       text: text.into_iter(),
       ranks: self,
       bits,
-      mask: 1usize.checked_shl(q * bits).unwrap_or(0).wrapping_sub(1),
+      mask: 1_usize.checked_shl(q * bits).unwrap_or(0).wrapping_sub(1),
       qgram: 0,
     };
 

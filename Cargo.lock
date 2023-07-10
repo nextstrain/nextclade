@@ -290,6 +290,7 @@ dependencies = [
  "num",
  "num-integer",
  "num-traits",
+ "rand",
  "serde",
  "vec_map",
 ]

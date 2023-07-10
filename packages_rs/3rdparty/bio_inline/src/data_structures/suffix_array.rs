@@ -258,9 +258,9 @@ pub fn suffix_array(text: &[u8]) -> RawSuffixArray {
   let mut sais = Sais::new(n);
 
   match alphabet.len() + sentinel_count {
-    a if a <= std::u8::MAX as usize => sais.construct(&transform_text::<u8>(text, &alphabet, sentinel_count)),
-    a if a <= std::u16::MAX as usize => sais.construct(&transform_text::<u16>(text, &alphabet, sentinel_count)),
-    a if a <= std::u32::MAX as usize => sais.construct(&transform_text::<u32>(text, &alphabet, sentinel_count)),
+    a if u8::try_from(a).is_ok() => sais.construct(&transform_text::<u8>(text, &alphabet, sentinel_count)),
+    a if u16::try_from(a).is_ok() => sais.construct(&transform_text::<u16>(text, &alphabet, sentinel_count)),
+    a if u32::try_from(a).is_ok() => sais.construct(&transform_text::<u32>(text, &alphabet, sentinel_count)),
     _ => sais.construct(&transform_text::<u64>(text, &alphabet, sentinel_count)),
   }
 
@@ -306,7 +306,7 @@ pub fn lcp<SA: Deref<Target = RawSuffixArray>>(text: &[u8], pos: SA) -> LCPArray
   }
 
   let mut lcp = SmallInts::from_elem(-1, n + 1);
-  let mut l = 0usize;
+  let mut l = 0_usize;
   for (p, &r) in rank.iter().enumerate().take(n - 1) {
     // since the sentinel has rank 0 and is excluded above,
     // we will never have a negative index below
@@ -578,11 +578,11 @@ impl Sais {
 
     let lms_substring_count = self.lms_pos.len();
 
-    if lms_substring_count <= std::u8::MAX as usize {
+    if u8::try_from(lms_substring_count).is_ok() {
       self.sort_lms_suffixes::<T, u8>(text, pos_types, lms_substring_count);
-    } else if lms_substring_count <= std::u16::MAX as usize {
+    } else if u16::try_from(lms_substring_count).is_ok() {
       self.sort_lms_suffixes::<T, u16>(text, pos_types, lms_substring_count);
-    } else if lms_substring_count <= std::u32::MAX as usize {
+    } else if u32::try_from(lms_substring_count).is_ok() {
       self.sort_lms_suffixes::<T, u32>(text, pos_types, lms_substring_count);
     } else {
       self.sort_lms_suffixes::<T, u64>(text, pos_types, lms_substring_count);
@@ -696,6 +696,8 @@ impl PosTypes {
 
 #[cfg(test)]
 mod tests {
+  #![allow(clippy::string_add, clippy::needless_range_loop)]
+
   use super::*;
   use super::{transform_text, PosTypes, Sais};
   use crate::alphabets::{dna, Alphabet};
@@ -799,13 +801,9 @@ mod tests {
     let mut rng = rand::thread_rng();
     let alpha = [b'A', b'T', b'C', b'G', b'N'];
     let seqs = (0..num_seqs)
-      .into_iter()
       .map(|_| {
         let len = rng.gen_range((seq_len / 2)..=seq_len);
-        (0..len)
-          .into_iter()
-          .map(|_| *alpha.choose(&mut rng).unwrap())
-          .collect::<Vec<u8>>()
+        (0..len).map(|_| *alpha.choose(&mut rng).unwrap()).collect::<Vec<u8>>()
       })
       .collect::<Vec<_>>();
     let mut res = seqs.join(&b'$');
@@ -840,20 +838,17 @@ mod tests {
       ),
     ];
     let num_rand = 100;
-    let rand_cases = (0..num_rand)
-      .into_iter()
-      .map(|i| rand_seqs(10, i * 10))
-      .collect::<Vec<_>>();
+    let rand_cases = (0..num_rand).map(|i| rand_seqs(10, i * 10)).collect::<Vec<_>>();
     for i in 0..num_rand {
       test_cases.push((&rand_cases[i], "rand test case"));
     }
 
-    for &(text, test_name) in test_cases.iter() {
+    for &(text, test_name) in &test_cases {
       let pos = suffix_array(text);
       for i in 0..(pos.len() - 2) {
         // Check that every element in the suffix array is lexically <= the next elem
-        let cur = str_from_pos(&pos, &text, i);
-        let next = str_from_pos(&pos, &text, i + 1);
+        let cur = str_from_pos(&pos, text, i);
+        let next = str_from_pos(&pos, text, i + 1);
 
         assert!(
           cur <= next,
@@ -890,15 +885,12 @@ mod tests {
              (&b"TACTCCGCTAGGGACACCTAAATAGATACTCGCAAAGGCGACTGATATATCCTTAGGTCGAAGAGATACCAGAGAAATAGTAGGTCTTAGGCTAGTCCTT$AAGGACTAGCCTAAGACCTACTATTTCTCTGGTATCTCTTCGACCTAAGGATATATCAGTCGCCTTTGCGAGTATCTATTTAGGTGTCCCTAGCGGAGTA$TAGGGACACCTAAATAGATACTCGCAAAGGCGACTGATATATCCTTAGGTCGAAGAGATACCAGAGAAATAGTAGGTCTTAGGCTAGTCCTTGTCCAGTA$TACTGGACAAGGACTAGCCTAAGACCTACTATTTCTCTGGTATCTCTTCGACCTAAGGATATATCAGTCGCCTTTGCGAGTATCTATTTAGGTGTCCCTA$ACGCACCCCGGCATTCGTCGACTCTACACTTAGTGGAACATACAAATTCGCTCGCAGGAGCGCCTCATACATTCTAACGCAGTGATCTTCGGCTGAGACT$AGTCTCAGCCGAAGATCACTGCGTTAGAATGTATGAGGCGCTCCTGCGAGCGAATTTGTATGTTCCACTAAGTGTAGAGTCGACGAATGCCGGGGTGCGT$"[..], "complex sentinels"),
              ];
     let num_rand = 100;
-    let rand_cases = (0..num_rand)
-      .into_iter()
-      .map(|i| rand_seqs(10, i * 10))
-      .collect::<Vec<_>>();
+    let rand_cases = (0..num_rand).map(|i| rand_seqs(10, i * 10)).collect::<Vec<_>>();
     for i in 0..num_rand {
       test_cases.push((&rand_cases[i], "rand test case"));
     }
 
-    for &(text, test_name) in test_cases.iter() {
+    for &(text, test_name) in &test_cases {
       for &sample_rate in &[2, 3, 5, 16] {
         let alphabet = dna::n_alphabet();
         let sa = suffix_array(text);
@@ -908,7 +900,7 @@ mod tests {
         let sampled = sa.sample(text, &bwt, &less, &occ, sample_rate);
 
         for i in 0..sa.len() {
-          let sa_idx = sa.get(i).unwrap();
+          let sa_idx = sa[i];
           let sampled_idx = sampled.get(i).unwrap();
           assert_eq!(
             sa_idx,

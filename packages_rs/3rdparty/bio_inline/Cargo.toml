@@ -19,3 +19,6 @@ vec_map = { version = "=0.8.2", features = ["serde"] }
 [features]
 generic-simd = ["bytecount/generic-simd"]
 runtime-dispatch-simd = ["bytecount/runtime-dispatch-simd"]
+
+[dev-dependencies]
+rand = "=0.8.5"

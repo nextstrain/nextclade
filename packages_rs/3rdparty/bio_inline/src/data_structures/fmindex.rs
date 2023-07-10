@@ -457,7 +457,7 @@ impl<DBWT: Borrow<BWT>, DLess: Borrow<Less>, DOcc: Borrow<Occ>> FMDIndex<DBWT, D
       let mut next_i0 = i0 + 1; // this always works since:
                                 // if we have a SMEM overlapping i0, it is at least 1bp long.
                                 // If we don't have a smem, then we'll reiterate from i0+1
-      for (_, p, l) in curr_smems.iter() {
+      for (_, p, l) in &curr_smems {
         if p + l > next_i0 {
           next_i0 = p + l;
         }
@@ -807,9 +807,9 @@ mod tests {
     let read_pos = 0;
 
     for i in 0..read.len() {
-      println!("i {}", i);
+      println!("i {i}");
       let intervals = fmdindex.smems(read, i, 0);
-      println!("{:?}", intervals);
+      println!("{intervals:?}");
       let matches = intervals
         .iter()
         .flat_map(|interval| interval.0.forward().occ(&sa))

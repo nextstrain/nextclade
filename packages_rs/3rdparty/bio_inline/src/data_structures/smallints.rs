@@ -58,7 +58,7 @@ impl<S: Integer + Bounded + NumCast + Copy, B: Integer + NumCast + Copy> Default
 impl<S: Integer + Bounded + NumCast + Copy, B: Integer + NumCast + Copy> SmallInts<S, B> {
   /// Create a new instance.
   pub fn new() -> Self {
-    Default::default()
+    Self::default()
   }
 
   /// Create a new instance with a given capacity.
@@ -149,7 +149,7 @@ impl<S: Integer + Bounded + NumCast + Copy, B: Integer + NumCast + Copy> SmallIn
     if v < S::max_value() {
       cast(v)
     } else {
-      self.bigints.get(&i).cloned()
+      self.bigints.get(&i).copied()
     }
   }
 }

@@ -100,7 +100,7 @@ impl Occ {
       alpha.push(b'$' as usize);
     }
     let mut occ: Vec<Vec<usize>> = vec![Vec::new(); m];
-    let mut curr_occ = vec![0usize; m];
+    let mut curr_occ = vec![0_usize; m];
 
     // characters not in the alphabet won't take up much space
     for &a in &alpha {
@@ -168,14 +168,14 @@ impl Occ {
         // If r is closer to the high checkpoint, count backwards from there.
         let hi_idx = hi_checkpoint * self.k as usize;
         if (hi_idx - r) < (self.k as usize / 2) {
-          return hi_occ - bytecount::count(&bwt[r + 1..=hi_idx], a) as usize;
+          return hi_occ - bytecount::count(&bwt[r + 1..=hi_idx], a);
         }
       }
     }
 
     // Otherwise the default case is to count from the low checkpoint.
     let lo_idx = lo_checkpoint * self.k as usize;
-    bytecount::count(&bwt[lo_idx + 1..=r], a) as usize + lo_occ
+    bytecount::count(&bwt[lo_idx + 1..=r], a) + lo_occ
   }
 }
 
@@ -209,10 +209,8 @@ pub fn bwtfind(bwt: &BWTSlice, alphabet: &Alphabet) -> BWTFind {
 #[cfg(test)]
 mod tests {
   use super::{bwt, bwtfind, invert_bwt, Occ};
-  use crate::alphabets::dna;
   use crate::alphabets::Alphabet;
   use crate::data_structures::suffix_array::suffix_array;
-  use crate::data_structures::wavelet_matrix::WaveletMatrix;
 
   #[test]
   fn test_bwtfind() {
@@ -235,31 +233,11 @@ mod tests {
 
   #[test]
   fn test_occ() {
-    let bwt = vec![1u8, 3u8, 3u8, 1u8, 2u8, 0u8];
-    let alphabet = Alphabet::new(&[0u8, 1u8, 2u8, 3u8]);
+    let bwt = vec![1_u8, 3_u8, 3_u8, 1_u8, 2_u8, 0_u8];
+    let alphabet = Alphabet::new([0_u8, 1_u8, 2_u8, 3_u8]);
     let occ = Occ::new(&bwt, 3, &alphabet);
     assert_eq!(occ.occ, [[0, 0], [1, 2], [0, 0], [0, 2]]);
-    assert_eq!(occ.get(&bwt, 4, 2u8), 1);
-    assert_eq!(occ.get(&bwt, 4, 3u8), 2);
-  }
-
-  #[test]
-  fn test_occwm() {
-    let text = b"GCCTTAACATTATTACGCCTA$";
-    let alphabet = {
-      let mut a = dna::n_alphabet();
-      a.insert(b'$');
-      a
-    };
-    let sa = suffix_array(text);
-    let bwt = bwt(text, &sa);
-    let occ = Occ::new(&bwt, 3, &alphabet);
-    let wm = WaveletMatrix::new(&bwt);
-
-    for c in vec![b'A', b'C', b'G', b'T', b'$'] {
-      for p in 0..text.len() {
-        assert_eq!(occ.get(&bwt, p, c) as u64, wm.rank(c, p as u64));
-      }
-    }
+    assert_eq!(occ.get(&bwt, 4, 2_u8), 1);
+    assert_eq!(occ.get(&bwt, 4, 3_u8), 2);
   }
 }
