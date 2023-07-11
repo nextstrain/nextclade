@@ -62,6 +62,15 @@ pub fn graph_attach_new_node_in_place(
   let (nearest_node_key, private_mutations) = finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq)?;
   let nearest_node = graph.get_node(nearest_node_key)?;
 
+  knit_into_graph(
+    graph,
+    nearest_node,
+    result,
+    &private_mutations,
+    divergence_units,
+    ref_seq_len,
+  );
+
   // FIXME: new code end
 
   let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq)?;
@@ -396,4 +405,76 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   }
 
   branch_attrs
+}
+
+pub fn knit_into_graph(
+  graph: &mut AuspiceGraph,
+  target_key: GraphNodeKey,
+  result: &NextcladeOutputs,
+  private_mutations: &PrivateMutationsMinimal,
+  divergence_units: &DivergenceUnits,
+  ref_seq_len: usize,
+) -> Result<(), Report> {
+  let target_node = graph.get_node(target_key)?;
+  // determine mutations shared between the private mutations of the new node
+  // and the branch leading to the target node
+  let shared_muts = split_muts(&target_node.payload().tmp.private_mutations.invert(), private_mutations);
+
+  // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
+  if target_node.is_leaf() || !shared_muts.shared.nuc_subs.is_empty() {
+    // generate new internal node
+    let mut new_middle_node: AuspiceTreeNode = graph.get_node(target_key).unwrap().payload().clone();
+
+    // fetch the parent of the target to get its divergence
+    // FIXME: could be done by substracting from target_node rather than adding to parent
+    let parent_key = graph.parent_key_of_by_key(target_key).unwrap();
+    let parent_node = graph.get_node(parent_key)?;
+    let parent_div = parent_node.node_attrs.div.unwrap_or(0.0);
+    let divergence_middle_node =
+      calculate_divergence(parent_div, &shared_muts.shared.nuc_subs, divergence_units, ref_seq_len);
+
+    // add private mutations, divergence, name and branch attrs to new internal node
+    // the mutations are inverted in the shared mutations struct, so have to invert them back
+    new_middle_node.tmp.private_mutations = shared_muts.shared.invert();
+    new_middle_node.node_attrs.div = Some(divergence_middle_node);
+    new_middle_node.branch_attrs.mutations =
+      convert_private_mutations_to_node_branch_attrs(&new_middle_node.tmp.private_mutations);
+    new_middle_node.name = format!("{target_key}_internal");
+    new_middle_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
+
+    // Add node between target_node and its parent
+    let new_middle_node_key = graph.add_node(new_middle_node);
+    graph.insert_node_before(
+      new_middle_node_key,
+      target_key,
+      AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+      AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+    )?;
+    // update the mutations on the branch from the new_middle_node to the target node (without the shared mutations)
+    // the mutations are inverted in the shared mutations struct, so have to invert them back
+    target_node.tmp.private_mutations = shared_muts.left.invert();
+    target_node.branch_attrs.mutations =
+      convert_private_mutations_to_node_branch_attrs(&target_node.tmp.private_mutations);
+
+    // attach the new node as child to the new_middle_node with its mutations
+    attach_node(
+      graph,
+      new_middle_node_key,
+      &shared_muts.right,
+      result,
+      divergence_units,
+      ref_seq_len,
+    );
+  } else {
+    //can simply attach node
+    attach_node(
+      graph,
+      target_key,
+      private_mutations,
+      result,
+      divergence_units,
+      ref_seq_len,
+    )
+  }
+  Ok(())
 }
