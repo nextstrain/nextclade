@@ -415,8 +415,8 @@ pub fn knit_into_graph(
   ref_seq_len: usize,
 ) -> Result<(), Report> {
   // the target node will be the sister of the new node defined by "private mutations" and the "result"
-  let mut target_node = graph.get_node_mut(target_key)?;
-  let mut target_node_auspice = target_node.payload_mut();
+  let target_node = graph.get_node(target_key)?;
+  let target_node_auspice = target_node.payload();
 
   // determine mutations shared between the private mutations of the new node
   // and the branch leading to the target node
@@ -424,25 +424,27 @@ pub fn knit_into_graph(
 
   // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
   if target_node.is_leaf() || !shared_muts.shared.nuc_subs.is_empty() {
-    // generate new internal node
-    let mut new_internal_node: AuspiceTreeNode = target_node_auspice.clone();
-
     // fetch the parent of the target to get its divergence
     // FIXME: could be done by substracting from target_node rather than adding to parent
-    let parent_key = graph.parent_key_of_by_key(target_key).unwrap();
-    let parent_node = graph.get_node(parent_key)?;
-    let parent_div = parent_node.payload().node_attrs.div.unwrap_or(0.0);
-    let divergence_middle_node =
-      calculate_divergence(parent_div, &shared_muts.shared.nuc_subs, divergence_units, ref_seq_len);
+    let divergence_middle_node = {
+      let parent_node = graph.parent_of_by_key(target_key).unwrap();
+      let parent_div = parent_node.payload().node_attrs.div.unwrap_or(0.0);
+      calculate_divergence(parent_div, &shared_muts.shared.nuc_subs, divergence_units, ref_seq_len)
+    };
 
+    // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
     // the mutations are inverted in the shared mutations struct, so have to invert them back
-    new_internal_node.tmp.private_mutations = shared_muts.shared.invert();
-    new_internal_node.node_attrs.div = Some(divergence_middle_node);
-    new_internal_node.branch_attrs.mutations =
-      convert_private_mutations_to_node_branch_attrs(&new_internal_node.tmp.private_mutations);
-    new_internal_node.name = format!("{target_key}_internal");
-    new_internal_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
+    let new_internal_node = {
+      let mut new_internal_node: AuspiceTreeNode = target_node_auspice.clone();
+      new_internal_node.tmp.private_mutations = shared_muts.shared.invert();
+      new_internal_node.node_attrs.div = Some(divergence_middle_node);
+      new_internal_node.branch_attrs.mutations =
+        convert_private_mutations_to_node_branch_attrs(&new_internal_node.tmp.private_mutations);
+      new_internal_node.name = format!("{target_key}_internal");
+      new_internal_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
+      new_internal_node
+    };
 
     // Add node between target_node and its parent
     let new_internal_node_key = graph.add_node(new_internal_node);
@@ -452,8 +454,11 @@ pub fn knit_into_graph(
       AuspiceTreeEdge::new(), // Edge payloads are currently dummy
       AuspiceTreeEdge::new(), // Edge payloads are currently dummy
     )?;
+
     // update the mutations on the branch from the new_internal_node to the target node (without the shared mutations)
     // the mutations are inverted in the shared mutations struct, so have to invert them back
+    let target_node = graph.get_node_mut(target_key)?;
+    let mut target_node_auspice = target_node.payload_mut();
     target_node_auspice.tmp.private_mutations = shared_muts.left.invert();
     target_node_auspice.branch_attrs.mutations =
       convert_private_mutations_to_node_branch_attrs(&target_node_auspice.tmp.private_mutations);
