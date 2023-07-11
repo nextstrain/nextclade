@@ -100,10 +100,7 @@ where
 {
   let left: HashSet<&T> = left.collect();
   let right: HashSet<&T> = right.collect();
-  left
-    .difference(&right)
-    .map(|x| (*x).to_owned())
-    .collect_vec()
+  left.difference(&right).map(|x| (*x).to_owned()).collect_vec()
 }
 
 /// Calculates set union of private mutations
