@@ -481,7 +481,7 @@ pub fn knit_into_graph(
       result,
       divergence_units,
       ref_seq_len,
-    )
+    );
   }
   Ok(())
 }
