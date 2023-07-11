@@ -68,7 +68,7 @@ pub fn graph_attach_new_node_in_place(
     &private_mutations,
     divergence_units,
     ref_seq_len,
-  );
+  )?;
 
   // FIXME: new code end
 
