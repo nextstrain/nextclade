@@ -72,43 +72,43 @@ pub fn graph_attach_new_node_in_place(
 
   // FIXME: new code end
 
-  let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq)?;
+  // let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq)?;
 
-  if closest_neighbor.source_key != closest_neighbor.target_key {
-    // If there exists a child that shares private mutations with new seq,
-    // then create middle node between that child and the nearest_node attach seq to middle node
-    let mut source_key = closest_neighbor.source_key;
-    let mut target_key = closest_neighbor.target_key;
+  // if closest_neighbor.source_key != closest_neighbor.target_key {
+  //   // If there exists a child that shares private mutations with new seq,
+  //   // then create middle node between that child and the nearest_node attach seq to middle node
+  //   let mut source_key = closest_neighbor.source_key;
+  //   let mut target_key = closest_neighbor.target_key;
 
-    // Check if next nearest node is parent or child
-    if let Some(parent_key) = graph.parent_key_of_by_key(closest_neighbor.source_key) {
-      if parent_key == closest_neighbor.target_key {
-        source_key = parent_key;
-        target_key = closest_neighbor.source_key;
-      }
-    }
+  //   // Check if next nearest node is parent or child
+  //   if let Some(parent_key) = graph.parent_key_of_by_key(closest_neighbor.source_key) {
+  //     if parent_key == closest_neighbor.target_key {
+  //       source_key = parent_key;
+  //       target_key = closest_neighbor.source_key;
+  //     }
+  //   }
 
-    add_to_middle_node(
-      graph,
-      source_key,
-      target_key,
-      &closest_neighbor,
-      result,
-      divergence_units,
-      ref_seq_len,
-    )?;
-  } else {
-    // If nearest_node is terminal, then create dummy empty terminal node with nearest_node's name
-    // (so that nearest_node stays a terminal) and attach new node to nearest_node (same id, now called {name}_parent)
-    attach_node(
-      graph,
-      closest_neighbor.source_key,
-      &closest_neighbor.subs_qry_only,
-      result,
-      divergence_units,
-      ref_seq_len,
-    );
-  }
+  //   add_to_middle_node(
+  //     graph,
+  //     source_key,
+  //     target_key,
+  //     &closest_neighbor,
+  //     result,
+  //     divergence_units,
+  //     ref_seq_len,
+  //   )?;
+  // } else {
+  //   // If nearest_node is terminal, then create dummy empty terminal node with nearest_node's name
+  //   // (so that nearest_node stays a terminal) and attach new node to nearest_node (same id, now called {name}_parent)
+  //   attach_node(
+  //     graph,
+  //     closest_neighbor.source_key,
+  //     &closest_neighbor.subs_qry_only,
+  //     result,
+  //     divergence_units,
+  //     ref_seq_len,
+  //   );
+  // }
 
   Ok(())
 }
@@ -126,14 +126,14 @@ pub fn finetune_nearest_node(
       nearest_node_key,
       split_muts(
         &nearest_node.payload().tmp.private_mutations.invert(),
-        seq_private_mutations,
+        &private_mutations,
       ),
     )]);
 
     for child in graph.iter_children_of(nearest_node) {
       shared_muts_counts.insert(
         child.key(),
-        split_muts(&child.payload().tmp.private_mutations, seq_private_mutations),
+        split_muts(&child.payload().tmp.private_mutations, &private_mutations),
       );
     }
 
@@ -144,14 +144,14 @@ pub fn finetune_nearest_node(
 
     let n_shared_muts = max_shared_muts.shared.nuc_subs.len();
     if n_shared_muts > 0 {
-      if best_node_key == nearest_node.key() && max_shared_muts.left.nuc_subs.is_empty() {
+      if best_node_key == nearest_node_key && max_shared_muts.left.nuc_subs.is_empty() {
         // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
         // FIXME: what if there's no parent?
         nearest_node = graph
           .parent_of_by_key(best_node_key)
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
         private_mutations = set_difference_of_muts(&private_mutations, &max_shared_muts.shared);
-      } else if best_node_key == nearest_node.key() {
+      } else if best_node_key == nearest_node_key {
         // The best node is the current node. Break.
         break;
       } else {
@@ -421,6 +421,9 @@ pub fn knit_into_graph(
   // determine mutations shared between the private mutations of the new node
   // and the branch leading to the target node
   let shared_muts = split_muts(&target_node_auspice.tmp.private_mutations.invert(), private_mutations);
+  // note that since we split inverted mutations with the private mutations, those
+  // .left are the ones on the common branch (not reverted) and those shared are
+  // the mutations that lead to the target_node but not the new node
 
   // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
   if target_node.is_leaf() || !shared_muts.shared.nuc_subs.is_empty() {
@@ -429,7 +432,7 @@ pub fn knit_into_graph(
     let divergence_middle_node = {
       let parent_node = graph.parent_of_by_key(target_key).unwrap();
       let parent_div = parent_node.payload().node_attrs.div.unwrap_or(0.0);
-      calculate_divergence(parent_div, &shared_muts.shared.nuc_subs, divergence_units, ref_seq_len)
+      calculate_divergence(parent_div, &shared_muts.left.nuc_subs, divergence_units, ref_seq_len)
     };
 
     // generate new internal node
@@ -437,7 +440,7 @@ pub fn knit_into_graph(
     // the mutations are inverted in the shared mutations struct, so have to invert them back
     let new_internal_node = {
       let mut new_internal_node: AuspiceTreeNode = target_node_auspice.clone();
-      new_internal_node.tmp.private_mutations = shared_muts.shared.invert();
+      new_internal_node.tmp.private_mutations = shared_muts.left.invert();
       new_internal_node.node_attrs.div = Some(divergence_middle_node);
       new_internal_node.branch_attrs.mutations =
         convert_private_mutations_to_node_branch_attrs(&new_internal_node.tmp.private_mutations);
@@ -459,7 +462,7 @@ pub fn knit_into_graph(
     // the mutations are inverted in the shared mutations struct, so have to invert them back
     let target_node = graph.get_node_mut(target_key)?;
     let mut target_node_auspice = target_node.payload_mut();
-    target_node_auspice.tmp.private_mutations = shared_muts.left.invert();
+    target_node_auspice.tmp.private_mutations = shared_muts.shared.invert();
     target_node_auspice.branch_attrs.mutations =
       convert_private_mutations_to_node_branch_attrs(&target_node_auspice.tmp.private_mutations);
 
