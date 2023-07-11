@@ -114,42 +114,49 @@ pub fn finetune_nearest_node(
   let mut private_mutations = seq_private_mutations.clone();
 
   loop {
-    let mut shared_muts_counts = {
-      let SplitMutsResult {
-        shared: subs_shared, ..
-      } = split_muts(&nearest_node.payload().tmp.private_mutations, seq_private_mutations);
-      HashMap::<GraphNodeKey, usize>::from([(nearest_node_key, subs_shared.nuc_subs.len())])
-    };
+    let mut shared_muts_counts = HashMap::<GraphNodeKey, SplitMutsResult>::from([(
+      nearest_node_key,
+      split_muts(
+        &nearest_node.payload().tmp.private_mutations.invert(),
+        seq_private_mutations,
+      ),
+    )]);
 
     for child in graph.iter_children_of(nearest_node) {
-      let SplitMutsResult {
-        shared: subs_shared, ..
-      } = split_muts(&child.payload().tmp.private_mutations, seq_private_mutations);
-      shared_muts_counts.insert(child.key(), subs_shared.nuc_subs.len());
+      shared_muts_counts.insert(
+        child.key(),
+        split_muts(&child.payload().tmp.private_mutations, seq_private_mutations),
+      );
     }
 
-    let (best_node_key, n_shared_muts) = shared_muts_counts
+    let (best_node_key, max_shared_muts) = shared_muts_counts
       .into_iter()
-      .max_by_key(|(_, n_shared_muts)| *n_shared_muts)
+      .max_by_key(|(_, split_result)| split_result.shared.nuc_subs.len())
       .ok_or_else(|| make_internal_report!("Shared mutations map cannot be empty"))?;
 
+    let n_shared_muts = max_shared_muts.shared.nuc_subs.len();
     if n_shared_muts > 0 {
-      if best_node_key == nearest_node.key() && seq_private_mutations.nuc_subs.len() == n_shared_muts {
-        // All private mutations are shared with the branch to the parent. Move up to the parent.
+      if best_node_key == nearest_node.key() && max_shared_muts.left.nuc_subs.is_empty() {
+        // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
         // FIXME: what if there's no parent?
         nearest_node = graph
           .parent_of_by_key(best_node_key)
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
+        private_mutations = set_difference_of_muts(&private_mutations, &max_shared_muts.shared);
       } else if best_node_key == nearest_node.key() {
         // The best node is the current node. Break.
         break;
       } else {
         // The best node is child
         nearest_node = graph.get_node(best_node_key)?;
+        //subtract the shared mutations from the private mutations struct
+        private_mutations = set_difference_of_muts(&private_mutations, &max_shared_muts.shared);
+        // add the inverted remaining mutations on that branch
+        if max_shared_muts.left.nuc_subs.len() > 0 {
+          // a bit waste full, because we redo this in the next iteration
+          private_mutations = set_union_of_muts(&private_mutations, &max_shared_muts.left.invert());
+        }
       }
-
-      // TODO
-      private_mutations = set_difference_of_muts(&private_mutations, &nearest_node.payload().tmp.private_mutations);
     } else {
       break;
     }
