@@ -5,7 +5,8 @@ use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
-use crate::tree::split_muts::{split_muts, SplitMutsResult};
+use crate::make_internal_report;
+use crate::tree::split_muts::{set_difference_of_muts, split_muts, SplitMutsResult};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::types::outputs::NextcladeOutputs;
@@ -13,7 +14,7 @@ use crate::utils::collections::concat_to_vec;
 use eyre::Report;
 use itertools::Itertools;
 use regex::internal::Input;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 pub fn graph_attach_new_nodes_in_place(
   graph: &mut AuspiceGraph,
@@ -55,6 +56,14 @@ pub fn graph_attach_new_node_in_place(
     nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
     aa_muts: private_aa_mutations,
   };
+
+  // FIXME: new code begin
+
+  let (nearest_node_key, private_mutations) = finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq)?;
+  let nearest_node = graph.get_node(nearest_node_key)?;
+
+  // FIXME: new code end
+
   let closest_neighbor = get_closest_neighbor_recursively(graph, result.nearest_node_id, &mutations_seq)?;
 
   if closest_neighbor.source_key != closest_neighbor.target_key {
@@ -94,6 +103,59 @@ pub fn graph_attach_new_node_in_place(
   }
 
   Ok(())
+}
+
+pub fn finetune_nearest_node(
+  graph: &AuspiceGraph,
+  nearest_node_key: GraphNodeKey,
+  seq_private_mutations: &PrivateMutationsMinimal,
+) -> Result<(GraphNodeKey, PrivateMutationsMinimal), Report> {
+  let mut nearest_node = graph.get_node(nearest_node_key)?;
+  let mut private_mutations = seq_private_mutations.clone();
+
+  loop {
+    let mut shared_muts_counts = {
+      let SplitMutsResult {
+        shared: subs_shared, ..
+      } = split_muts(&nearest_node.payload().tmp.private_mutations, seq_private_mutations);
+      HashMap::<GraphNodeKey, usize>::from([(nearest_node_key, subs_shared.nuc_subs.len())])
+    };
+
+    for child in graph.iter_children_of(nearest_node) {
+      let SplitMutsResult {
+        shared: subs_shared, ..
+      } = split_muts(&child.payload().tmp.private_mutations, seq_private_mutations);
+      shared_muts_counts.insert(child.key(), subs_shared.nuc_subs.len());
+    }
+
+    let (best_node_key, n_shared_muts) = shared_muts_counts
+      .into_iter()
+      .max_by_key(|(_, n_shared_muts)| *n_shared_muts)
+      .ok_or_else(|| make_internal_report!("Shared mutations map cannot be empty"))?;
+
+    if n_shared_muts > 0 {
+      if best_node_key == nearest_node.key() && seq_private_mutations.nuc_subs.len() == n_shared_muts {
+        // All private mutations are shared with the branch to the parent. Move up to the parent.
+        // FIXME: what if there's no parent?
+        nearest_node = graph
+          .parent_of_by_key(best_node_key)
+          .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
+      } else if best_node_key == nearest_node.key() {
+        // The best node is the current node. Break.
+        break;
+      } else {
+        // The best node is child
+        nearest_node = graph.get_node(best_node_key)?;
+      }
+
+      // TODO
+      private_mutations = set_difference_of_muts(&private_mutations, &nearest_node.payload().tmp.private_mutations);
+    } else {
+      break;
+    }
+  }
+
+  Ok((nearest_node.key(), private_mutations))
 }
 
 #[derive(Debug, Clone)]
