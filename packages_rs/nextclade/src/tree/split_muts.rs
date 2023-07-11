@@ -86,8 +86,6 @@ pub fn set_difference_of_muts(
   //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
   let aa_muts = difference(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
 
-  let aa_muts = difference(aa_muts.iter(), aa_muts.iter());
-
   PrivateMutationsMinimal {
     nuc_subs: difference(left.nuc_subs.iter(), right.nuc_subs.iter()),
     nuc_dels: difference(left.nuc_dels.iter(), right.nuc_dels.iter()),
