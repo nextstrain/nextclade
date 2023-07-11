@@ -160,7 +160,7 @@ pub fn finetune_nearest_node(
         //subtract the shared mutations from the private mutations struct
         private_mutations = set_difference_of_muts(&private_mutations, &max_shared_muts.shared);
         // add the inverted remaining mutations on that branch
-        if max_shared_muts.left.nuc_subs.len() > 0 {
+        if !max_shared_muts.left.nuc_subs.is_empty() {
           // a bit waste full, because we redo this in the next iteration
           private_mutations = set_union_of_muts(&private_mutations, &max_shared_muts.left.invert());
         }

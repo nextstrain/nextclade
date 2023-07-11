@@ -102,7 +102,6 @@ where
   let right: HashSet<&T> = right.collect();
   left
     .difference(&right)
-    .into_iter()
     .map(|x| (*x).to_owned())
     .collect_vec()
 }
@@ -127,5 +126,5 @@ where
 {
   let left: HashSet<&T> = left.collect();
   let right: HashSet<&T> = right.collect();
-  left.union(&right).into_iter().map(|x| (*x).to_owned()).collect_vec()
+  left.union(&right).map(|x| (*x).to_owned()).collect_vec()
 }
