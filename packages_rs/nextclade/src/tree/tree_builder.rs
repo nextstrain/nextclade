@@ -6,7 +6,7 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
 use crate::make_internal_report;
-use crate::tree::split_muts::{set_difference_of_muts, split_muts, SplitMutsResult};
+use crate::tree::split_muts::{set_difference_of_muts, set_union_of_muts, split_muts, SplitMutsResult};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::types::outputs::NextcladeOutputs;
