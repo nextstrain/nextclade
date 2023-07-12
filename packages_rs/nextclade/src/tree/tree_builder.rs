@@ -156,20 +156,20 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   mutations: &PrivateMutationsMinimal,
 ) -> BTreeMap<String, Vec<String>> {
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
+
   let dels_as_subs = mutations.nuc_dels.iter().map(NucDel::to_sub).collect_vec();
-
-  let mut mutations_value = concat_to_vec(&mutations.nuc_subs, &dels_as_subs);
-  mutations_value.sort();
-  let string_mutations_value = mutations_value.iter().map(NucSub::to_string).collect_vec();
-
+  let mutations_value = concat_to_vec(&mutations.nuc_subs, &dels_as_subs);
+  let string_mutations_value = mutations_value.iter().sorted().map(NucSub::to_string).collect_vec();
   branch_attrs.insert("nuc".to_owned(), string_mutations_value);
 
   let keys = mutations.aa_muts.keys().collect_vec();
-
   for gene_name in keys {
     let aa_mutations = &mutations.aa_muts[gene_name];
-
-    let string_aa_mutations = aa_mutations.iter().map(AaSub::to_string_without_gene).collect_vec();
+    let string_aa_mutations = aa_mutations
+      .iter()
+      .sorted()
+      .map(AaSub::to_string_without_gene)
+      .collect_vec();
     branch_attrs.insert(gene_name.clone(), string_aa_mutations);
   }
 
