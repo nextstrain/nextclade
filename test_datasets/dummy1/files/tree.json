@@ -25,7 +25,7 @@
             {
                 "name": "A",
                 "node_attrs": {
-                    "div": 0.016,
+                    "div": 0.016666666666666666,
                     "clade_membership": {
                         "value": "unassigned"
                     }
@@ -46,7 +46,7 @@
             {
                 "name": "NODE_0000001",
                 "node_attrs": {
-                    "div": 0.008,
+                    "div": 0.008333333333333333,
                     "clade_membership": {
                         "value": "unassigned"
                     }
@@ -65,7 +65,7 @@
                     {
                         "name": "B",
                         "node_attrs": {
-                            "div": 0.016,
+                            "div": 0.016666666666666666,
                             "clade_membership": {
                                 "value": "unassigned"
                             }
@@ -85,7 +85,7 @@
                     {
                         "name": "C",
                         "node_attrs": {
-                            "div": 0.016,
+                            "div": 0.016666666666666666,
                             "clade_membership": {
                                 "value": "unassigned"
                             }
