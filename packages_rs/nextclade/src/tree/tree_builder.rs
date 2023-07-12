@@ -142,6 +142,7 @@ pub fn attach_to_internal_node(
   result: &NextcladeOutputs,
   divergence_new_node: f64,
 ) {
+  //generated auspice payload for new node
   let mut new_graph_node: AuspiceTreeNode = create_new_auspice_node(result, new_private_mutations, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
   new_graph_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
@@ -200,8 +201,7 @@ pub fn knit_into_graph(
 
   // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
   if target_node.is_leaf() || !shared_muts.shared.nuc_subs.is_empty() {
-    // fetch the parent of the target to get its divergence
-    // FIXME: could be done by substracting from target_node rather than adding to parent
+    // determine divergence of new internal node by substracting shared reversions from target_node
     let divergence_middle_node =
       target_node_div - calculate_branchlength(&shared_muts.shared.nuc_subs, divergence_units, ref_seq_len);
 
