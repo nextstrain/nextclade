@@ -298,6 +298,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   });
 
   if let Some(output_tree) = output_tree {
+    outputs.sort_by_key(|o| o.index);
     tree_attach_new_nodes_in_place(&mut tree, &outputs);
     json_write(output_tree, &tree)?;
   }
