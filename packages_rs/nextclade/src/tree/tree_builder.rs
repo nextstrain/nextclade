@@ -18,12 +18,17 @@ use std::collections::{BTreeMap, HashMap};
 
 pub fn graph_attach_new_nodes_in_place(
   graph: &mut AuspiceGraph,
-  results: &[NextcladeOutputs],
+  mut results: Vec<NextcladeOutputs>,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> Result<(), Report> {
+  // Add sequences with less private mutations first to avoid un-treelike behavior in the graph.
+  // And then also sort by the index in the original fasta inputs, to avoid non-deterministic order due to differences
+  // in thread scheduling.
+  results.sort_by_key(|result| (result.private_nuc_mutations.total_private_substitutions, result.index));
+
   // Look for a query sample result for which this node was decided to be nearest
-  for result in results {
+  for result in &results {
     let r_name = result.seq_name.clone();
     println!("Attaching new node for {r_name}");
     graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len)?;

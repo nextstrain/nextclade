@@ -299,10 +299,10 @@ impl Nextclade {
     }
   }
 
-  pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> Result<&AuspiceTree, Report> {
+  pub fn get_output_tree(&mut self, results: Vec<NextcladeOutputs>) -> Result<&AuspiceTree, Report> {
     graph_attach_new_nodes_in_place(
       &mut self.graph,
-      nextclade_outputs,
+      results,
       &self.tree.tmp.divergence_units,
       self.ref_seq.len(),
     )?;
