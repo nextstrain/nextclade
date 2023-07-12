@@ -7,6 +7,7 @@ use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use crate::utils::collections::last;
+use assert2::__assert2_impl::print;
 use eyre::Report;
 use log::trace;
 use num_traits::clamp;
@@ -158,6 +159,7 @@ pub fn seed_alignment(
       params.terminal_bandwidth,
       params.excess_bandwidth,
       params.max_indel,
+      params.allowed_mismatches,
     )
   }
 }
@@ -171,71 +173,120 @@ pub fn create_stripes(
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
   max_indel: usize,
+  allowed_mismatches: usize,
 ) -> Result<Vec<Stripe>, Report> {
-  // Vec shifts contains offsets of each seed match
-  let mut shifts = vec![0; seed_matches.len() + 4];
+  // Build stripes per window
+  // pub struct SeedMatch2 {
+  //   pub ref_pos: usize,
+  //   pub qry_pos: usize,
+  //   pub length: usize,
+  //   pub offset: isize,
+  // }
+  // Add terminal stripe
+  // Start at 0, end at ref_start of first seed
+  let mut stripes = Vec::new();
 
-  for i in 0..seed_matches.len() {
-    let shift = seed_matches[i].qry_pos as i32 - seed_matches[i].ref_pos as i32;
-    shifts[i + 2] = shift;
+  let first_seed = seed_matches
+    .first()
+    .expect("No seed matches found, but should have been caught earlier");
+
+  // Stripe index along ref sequence
+  let mut i = 0;
+
+  // TODO: Extend to within the seed body, maybe by allowed mismatches
+  while i < first_seed.ref_pos + allowed_mismatches {
+    stripes.push(Stripe::new(
+      clamp(
+        i as isize + first_seed.offset - terminal_bandwidth as isize,
+        0,
+        qry_len as isize,
+      ),
+      clamp(
+        i as isize + first_seed.offset + terminal_bandwidth as isize + 1,
+        1,
+        qry_len as isize + 1,
+      ),
+    ));
+    i += 1;
   }
 
-  // Pad shifts at terminals for robust width determination
-  shifts[0] = shifts[2];
-  shifts[1] = shifts[2];
-  let shifts_len = shifts.len();
-  shifts[shifts_len - 2] = shifts[shifts_len - 3];
-  shifts[shifts_len - 1] = shifts[shifts_len - 3];
-
-  let mut robust_shifts = Vec::with_capacity(seed_matches.len() + 1);
-
-  // For each stripe segment, consider seed offsets of previous and following segment
-  for slice in shifts.windows(4) {
-    let min = slice.iter().min().unwrap();
-    let max = slice.iter().max().unwrap();
+  // Iterate over pairs of seeds
+  for seed_match in seed_matches.windows(2) {
+    let min = seed_match.iter().map(|x| x.offset).min().unwrap();
+    let max = seed_match.iter().map(|x| x.offset).max().unwrap();
     let width = max - min;
     // Prevent huge widths, which would require massive amount of memory
     if width as usize > max_indel {
       return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
     }
-    robust_shifts.push((*min, *max));
+    // First stripe along the seed body
+    while i < seed_match[0].ref_pos + seed_match[0].length - allowed_mismatches {
+      stripes.push(Stripe::new(
+        clamp(
+          i as isize + min - (allowed_mismatches / 2) as isize,
+          0,
+          qry_len as isize,
+        ),
+        clamp(
+          i as isize + max + (allowed_mismatches / 2) as isize + 1,
+          1,
+          qry_len as isize + 1,
+        ),
+      ));
+      i += 1;
+    }
+    // Then stripe the box between seeds
+    while i < seed_match[1].ref_pos + allowed_mismatches {
+      stripes.push(Stripe::new(
+        clamp(i as isize + min - excess_bandwidth as isize, 0, qry_len as isize),
+        clamp(
+          i as isize + max + excess_bandwidth as isize + 1,
+          1,
+          qry_len as isize + 1,
+        ),
+      ));
+      i += 1;
+    }
+  }
+  // Introduce last_seed variable
+  let last_seed = seed_matches.last().unwrap();
+
+  // Finally, add terminal stripe
+  while i <= ref_len as usize {
+    stripes.push(Stripe::new(
+      clamp(
+        i as isize + last_seed.offset - terminal_bandwidth as isize,
+        0,
+        qry_len as isize,
+      ),
+      clamp(
+        i as isize + last_seed.offset + terminal_bandwidth as isize + 1,
+        1,
+        qry_len as isize + 1,
+      ),
+    ));
+    i += 1;
   }
 
-  let mut robust_stripes = Vec::with_capacity(robust_shifts.len());
+  let robust_stripes = regularize_stripes(stripes, qry_len as usize);
 
-  // Add stripes from ref_pos=0 to the first seed match
-  robust_stripes = add_robust_stripes(
-    robust_stripes,
-    0,
-    seed_matches[0].ref_pos as i32,
-    qry_len,
-    robust_shifts[0],
-    terminal_bandwidth,
-  );
+  println!("{:#?}", robust_stripes);
 
-  // Add stripes between successive seed matches
-  for i in 1..robust_shifts.len() - 1 {
-    robust_stripes = add_robust_stripes(
-      robust_stripes,
-      seed_matches[i - 1].ref_pos as i32,
-      seed_matches[i].ref_pos as i32,
-      qry_len,
-      robust_shifts[i],
-      excess_bandwidth,
-    );
+  // Print average stripe width
+  let mut stripe_width_sum = 0;
+  // Print minimal stripe width
+  let mut stripe_min = qry_len;
+  // Print maximal stripe width
+  let mut stripe_max = 0;
+  for stripe in &robust_stripes {
+    stripe_width_sum += stripe.end - stripe.begin;
+    stripe_min = std::cmp::min(stripe_min, (stripe.end - stripe.begin) as i32);
+    stripe_max = std::cmp::max(stripe_max, (stripe.end - stripe.begin) as i32);
   }
-
-  // Add stripes after the last seed match
-  robust_stripes = add_robust_stripes(
-    robust_stripes,
-    last(seed_matches)?.ref_pos as i32,
-    ref_len + 1,
-    qry_len,
-    *last(&robust_shifts)?,
-    terminal_bandwidth,
-  );
-
-  robust_stripes = regularize_stripes(robust_stripes, qry_len as usize);
+  let stripe_width_avg = stripe_width_sum as f64 / robust_stripes.len() as f64;
+  println!("Average stripe width: {stripe_width_avg:.2}");
+  // println!("Minimal stripe width: {stripe_min}");
+  // println!("Maximal stripe width: {stripe_max}");
 
   Ok(robust_stripes)
 }
