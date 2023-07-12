@@ -43,9 +43,10 @@ function run_one_test() {
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="$DATASET_DIR/${name}/${reference:-default}" \
     --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
     --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
-    --output-columns-selection=general,ref-muts,priv-muts,qc,primers,dynamic \
+    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
+    --output-json="$OUT_DIR/${name}/${reference:-default}/nextclade.json" \
+    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.auspice.json" \
     "$DATASET_DIR/${name}/${reference:-default}/sequences.fasta"
 }
 export -f run_one_test
