@@ -1,4 +1,8 @@
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_sub::AaSub;
+use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
+use crate::analyze::find_private_nuc_mutations::{PrivateMutationsMinimal, PrivateNucMutations};
+use crate::analyze::nuc_sub::NucSub;
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
@@ -7,6 +11,7 @@ use crate::tree::tree::{
 };
 use crate::tree::tree_builder::convert_private_mutations_to_node_branch_attrs;
 use crate::types::outputs::NextcladeOutputs;
+use crate::utils::collections::concat_to_vec;
 use itertools::{chain, Itertools};
 use serde_json::json;
 
@@ -79,4 +84,30 @@ pub fn create_new_auspice_node(
     tmp: TreeNodeTempData::default(),
     other: serde_json::Value::default(),
   }
+}
+
+fn convert_nuc_mutations_to_node_branch_attrs(private_nuc_mutations: &PrivateNucMutations) -> Vec<String> {
+  let dels_as_subs = private_nuc_mutations
+    .private_deletions
+    .iter()
+    .map(NucSub::from)
+    .collect_vec();
+
+  let mut subs = concat_to_vec(&private_nuc_mutations.private_substitutions, &dels_as_subs);
+  subs.sort();
+
+  subs.iter().map(NucSub::to_string).collect_vec()
+}
+
+fn convert_aa_mutations_to_node_branch_attrs(private_aa_mutations: &PrivateAaMutations) -> Vec<String> {
+  let dels_as_subs = private_aa_mutations
+    .private_deletions
+    .iter()
+    .map(AaDel::to_sub)
+    .collect_vec();
+
+  let mut subs = concat_to_vec(&private_aa_mutations.private_substitutions, &dels_as_subs);
+  subs.sort();
+
+  subs.iter().map(AaSub::to_string_without_gene).collect_vec()
 }
