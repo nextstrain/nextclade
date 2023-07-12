@@ -4,7 +4,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
-use crate::analyze::divergence::calculate_divergence;
+use crate::analyze::divergence::calculate_branchlength;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::{find_aa_motifs_changes, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::find_private_aa_mutations;
@@ -165,12 +165,12 @@ pub fn nextclade_run_one(
     gene_map,
   );
   let parent_div = node.node_attrs.div.unwrap_or(0.0);
-  let divergence = calculate_divergence(
-    parent_div,
-    &private_nuc_mutations.private_substitutions,
-    &tree.tmp.divergence_units,
-    ref_seq.len(),
-  );
+  let divergence = parent_div
+    + calculate_branchlength(
+      &private_nuc_mutations.private_substitutions,
+      &tree.tmp.divergence_units,
+      ref_seq.len(),
+    );
 
   let total_aligned_nucs = alignment_range.len();
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;

@@ -2,13 +2,12 @@ use crate::alphabet::letter::Letter;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::tree::DivergenceUnits;
 
-pub fn calculate_divergence(
-  parent_div: f64,
+pub fn calculate_branchlength(
   private_mutations: &[NucSub],
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
-  // Divergence is just number of substitutions compared to the parent node
+  // divergence is just number of substitutions possibly normalized by ref_seq_len
 
   // FIXME: this filtering probably should not be here. Private "substitutions" (the parameter name says
   //   `private_mutations`, but outside of this function this is called `private_substitutions`) should not contain
@@ -24,5 +23,5 @@ pub fn calculate_divergence(
     this_div /= ref_seq_len as f64;
   }
 
-  parent_div + this_div
+  this_div
 }

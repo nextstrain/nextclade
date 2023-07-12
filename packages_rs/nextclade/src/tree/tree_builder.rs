@@ -1,6 +1,6 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::calculate_divergence;
+use crate::analyze::divergence::calculate_branchlength;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
@@ -135,43 +135,14 @@ pub fn finetune_nearest_node(
   Ok((nearest_node.key(), private_mutations))
 }
 
-pub fn attach_node(
+pub fn attach_to_internal_node(
   graph: &mut AuspiceGraph,
   nearest_node_id: GraphNodeKey,
   new_private_mutations: &PrivateMutationsMinimal,
   result: &NextcladeOutputs,
-  divergence_units: &DivergenceUnits,
-  ref_seq_len: usize,
+  divergence_new_node: f64,
 ) {
-  let nearest_node_clone = graph.get_node(nearest_node_id).unwrap().payload().clone();
-  let nearest_node_div = nearest_node_clone.node_attrs.div.unwrap_or(0.0);
-  // Check if node is a leaf, then it contains a sequence and we need to create a new node to be visible in the tree
-  if graph.is_leaf_key(nearest_node_id) {
-    let target = graph.get_node_mut(nearest_node_id).unwrap().payload_mut();
-    target.name = format!("{}_parent", target.name);
-
-    let mut new_terminal_node = nearest_node_clone;
-    new_terminal_node.branch_attrs.mutations.clear();
-    new_terminal_node.branch_attrs.other = serde_json::Value::default();
-    new_terminal_node.tmp.private_mutations = PrivateMutationsMinimal::default();
-    new_terminal_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
-
-    let new_terminal_key = graph.add_node(new_terminal_node);
-    graph
-      .add_edge(nearest_node_id, new_terminal_key, AuspiceTreeEdge::new())
-      .map_err(|err| println!("{err:?}"))
-      .ok();
-  }
-  // Attach only to a reference node.
-  let divergence_new_node = calculate_divergence(
-    nearest_node_div,
-    &new_private_mutations.nuc_subs,
-    divergence_units,
-    ref_seq_len,
-  );
-  let new_private_mutations_pre = new_private_mutations.clone();
-  let mut new_graph_node: AuspiceTreeNode =
-    create_new_auspice_node(result, &new_private_mutations_pre, divergence_new_node);
+  let mut new_graph_node: AuspiceTreeNode = create_new_auspice_node(result, new_private_mutations, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
   new_graph_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
 
@@ -218,6 +189,7 @@ pub fn knit_into_graph(
   // the target node will be the sister of the new node defined by "private mutations" and the "result"
   let target_node = graph.get_node(target_key)?;
   let target_node_auspice = target_node.payload();
+  let target_node_div = &target_node_auspice.node_attrs.div.unwrap_or(0.0);
 
   // determine mutations shared between the private mutations of the new node
   // and the branch leading to the target node
@@ -230,11 +202,8 @@ pub fn knit_into_graph(
   if target_node.is_leaf() || !shared_muts.shared.nuc_subs.is_empty() {
     // fetch the parent of the target to get its divergence
     // FIXME: could be done by substracting from target_node rather than adding to parent
-    let divergence_middle_node = {
-      let parent_node = graph.parent_of_by_key(target_key).unwrap();
-      let parent_div = parent_node.payload().node_attrs.div.unwrap_or(0.0);
-      calculate_divergence(parent_div, &shared_muts.left.nuc_subs, divergence_units, ref_seq_len)
-    };
+    let divergence_middle_node =
+      target_node_div - calculate_branchlength(&shared_muts.shared.nuc_subs, divergence_units, ref_seq_len);
 
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
@@ -268,23 +237,21 @@ pub fn knit_into_graph(
       convert_private_mutations_to_node_branch_attrs(&target_node_auspice.tmp.private_mutations);
 
     // attach the new node as child to the new_internal_node with its mutations
-    attach_node(
+    attach_to_internal_node(
       graph,
       new_internal_node_key,
       &shared_muts.right,
       result,
-      divergence_units,
-      ref_seq_len,
+      divergence_middle_node + calculate_branchlength(&shared_muts.right.nuc_subs, divergence_units, ref_seq_len),
     );
   } else {
     //can simply attach node
-    attach_node(
+    attach_to_internal_node(
       graph,
       target_key,
       private_mutations,
       result,
-      divergence_units,
-      ref_seq_len,
+      target_node_div + calculate_branchlength(&shared_muts.right.nuc_subs, divergence_units, ref_seq_len),
     );
   }
   Ok(())
