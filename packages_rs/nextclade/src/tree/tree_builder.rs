@@ -166,7 +166,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   branch_attrs.insert("nuc".to_owned(), nuc_muts);
 
   for (gene_name, aa_muts) in &mutations.aa_muts {
-    if aa_muts.is_empty() {
+    if !aa_muts.is_empty() {
       let aa_muts = aa_muts.iter().sorted().map(AaSub::to_string_without_gene).collect_vec();
       branch_attrs.insert(gene_name.clone(), aa_muts);
     }
