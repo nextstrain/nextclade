@@ -293,8 +293,8 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   });
 
   if let Some(output_tree) = run_args.outputs.output_tree {
-    // Add sequences with less private mutations first to avoid un-treelike behavior in the graph
-    outputs.sort_by_key(|result| result.private_nuc_mutations.total_private_substitutions);
+    // Add sequences with less private mutations first to avoid un-treelike behavior in the graph. And then also sort by the index in the original fasta inputs, to avoid non-deterministoc order due to differences in thread scheduling.
+    outputs.sort_by_key(|result| (result.private_nuc_mutations.total_private_substitutions, result.index));
 
     // Attach sequences to graph in greedy approach, building a tree
     graph_attach_new_nodes_in_place(&mut graph, &outputs, &tree.tmp.divergence_units, ref_seq.len())?;
