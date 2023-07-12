@@ -85,12 +85,12 @@ pub fn finetune_nearest_node(
   nearest_node_key: GraphNodeKey,
   seq_private_mutations: &PrivateMutationsMinimal,
 ) -> Result<(GraphNodeKey, PrivateMutationsMinimal), Report> {
+  let mut current_best_node_key = nearest_node_key;
   let mut nearest_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
-
   loop {
     let mut shared_muts_counts = HashMap::<GraphNodeKey, SplitMutsResult>::from([(
-      nearest_node_key,
+      current_best_node_key,
       split_muts(
         &nearest_node.payload().tmp.private_mutations.invert(),
         &private_mutations,
@@ -111,7 +111,7 @@ pub fn finetune_nearest_node(
 
     let n_shared_muts = max_shared_muts.shared.nuc_subs.len();
     if n_shared_muts > 0 {
-      if best_node_key == nearest_node_key && max_shared_muts.left.nuc_subs.is_empty() {
+      if best_node_key == current_best_node_key && max_shared_muts.left.nuc_subs.is_empty() {
         // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
         // FIXME: what if there's no parent?
         nearest_node = graph
@@ -132,11 +132,15 @@ pub fn finetune_nearest_node(
           private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert());
         }
       }
+    } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
+      nearest_node = graph
+        .parent_of_by_key(best_node_key)
+        .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
     } else {
       break;
     }
+    current_best_node_key = nearest_node.key();
   }
-
   Ok((nearest_node.key(), private_mutations))
 }
 
