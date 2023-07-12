@@ -9,6 +9,7 @@ use crate::make_error;
 use crate::utils::collections::last;
 use assert2::__assert2_impl::print;
 use eyre::Report;
+use itertools::all;
 use log::trace;
 use num_traits::clamp;
 
@@ -208,6 +209,8 @@ pub fn create_stripes(
   }
 
   // Iterate over pairs of seeds
+  // Need to add a final stripe to seed_matches to ensure that the last stripe is added
+  let body_bandwidth = (allowed_mismatches + 1) / 2;
   for seed_match in seed_matches.windows(2) {
     let min = seed_match.iter().map(|x| -x.offset).min().unwrap();
     let max = seed_match.iter().map(|x| -x.offset).max().unwrap();
@@ -217,64 +220,87 @@ pub fn create_stripes(
       return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
     }
     // First stripe along the seed body
-    while i < seed_match[0].ref_pos + seed_match[0].length - allowed_mismatches {
-      stripes.push(Stripe::new(
-        clamp(
-          i as isize - seed_match[0].offset - (allowed_mismatches / 2) as isize,
-          0,
-          qry_len as isize,
-        ),
-        clamp(
-          i as isize - seed_match[0].offset + (allowed_mismatches / 2) as isize + 1,
-          1,
-          qry_len as isize + 1,
-        ),
-      ));
-      i += 1;
-    }
-    // Then stripe the box between seeds
-    while i < seed_match[1].ref_pos + allowed_mismatches {
-      stripes.push(Stripe::new(
-        clamp(i as isize + min - excess_bandwidth as isize, 0, qry_len as isize),
-        clamp(
-          i as isize + max + excess_bandwidth as isize + 1,
-          1,
-          qry_len as isize + 1,
-        ),
-      ));
-      i += 1;
-    }
+    i = add_stripes_for_match(
+      i,
+      &mut stripes,
+      &seed_match[0],
+      body_bandwidth,
+      qry_len,
+      min,
+      max,
+      excess_bandwidth,
+      seed_match[1].ref_pos + allowed_mismatches,
+    );
   }
   // Introduce last_seed variable
   let last_seed = seed_matches.last().unwrap();
 
-  // Finally, add terminal stripe
-  while i <= ref_len as usize {
+  // Add stripes for last seed
+  add_stripes_for_match(
+    i,
+    &mut stripes,
+    last_seed,
+    body_bandwidth,
+    qry_len,
+    -last_seed.offset,
+    -last_seed.offset,
+    terminal_bandwidth,
+    ref_len as usize + 1,
+  );
+
+  let robust_stripes = regularize_stripes(stripes, qry_len as usize);
+
+  // For debugging of stripes and matches:
+  write_stripes_to_file(&robust_stripes, "stripes.csv");
+  write_matches_to_file(seed_matches, "matches.csv");
+  // Usefully visualized using `python scripts/visualize-stripes.py`
+  //
+  // print_stripe_stats(&robust_stripes);
+
+  Ok(robust_stripes)
+}
+
+fn add_stripes_for_match(
+  i: usize,
+  stripes: &mut Vec<Stripe>,
+  seed_match: &SeedMatch2,
+  body_bandwidth: usize,
+  qry_len: i32,
+  min: isize,
+  max: isize,
+  excess_bandwidth: i32,
+  i_stop: usize,
+) -> usize {
+  let mut i = i;
+  while i < seed_match.ref_pos + seed_match.length - 2 * body_bandwidth {
     stripes.push(Stripe::new(
       clamp(
-        i as isize - last_seed.offset - terminal_bandwidth as isize,
+        i as isize - seed_match.offset - body_bandwidth as isize,
         0,
         qry_len as isize,
       ),
       clamp(
-        i as isize - last_seed.offset + terminal_bandwidth as isize + 1,
+        i as isize - seed_match.offset + body_bandwidth as isize + 1,
         1,
         qry_len as isize + 1,
       ),
     ));
     i += 1;
   }
-
-  let robust_stripes = regularize_stripes(stripes, qry_len as usize);
-
-  // For debugging of stripes and matches:
-  // write_stripes_to_file(&robust_stripes, "stripes.csv");
-  // write_matches_to_file(seed_matches, "matches.csv");
-  // Usefully visualized using `python scripts/visualize-stripes.py`
-  //
-  // print_stripe_stats(&robust_stripes);
-
-  Ok(robust_stripes)
+  // Then stripe the box between seeds
+  // while i < seed_match[1].ref_pos + body_bandwidth {
+  while i < i_stop {
+    stripes.push(Stripe::new(
+      clamp(i as isize + min - excess_bandwidth as isize, 0, qry_len as isize),
+      clamp(
+        i as isize + max + excess_bandwidth as isize + 1,
+        1,
+        qry_len as isize + 1,
+      ),
+    ));
+    i += 1;
+  }
+  i
 }
 
 fn print_stripe_stats(stripes: &[Stripe]) {
