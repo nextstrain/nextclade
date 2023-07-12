@@ -78,10 +78,7 @@ where
 }
 
 /// Calculates set difference of private mutations
-pub fn set_difference_of_muts(
-  left: &PrivateMutationsMinimal,
-  right: &PrivateMutationsMinimal,
-) -> PrivateMutationsMinimal {
+pub fn difference_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
   // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
   //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
   let aa_muts = difference(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
@@ -104,7 +101,7 @@ where
 }
 
 /// Calculates set union of private mutations
-pub fn set_union_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
+pub fn union_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
   // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
   //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
   let aa_muts = union(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());

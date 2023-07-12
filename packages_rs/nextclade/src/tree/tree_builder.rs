@@ -6,7 +6,7 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
 use crate::make_internal_report;
-use crate::tree::split_muts::{set_difference_of_muts, set_union_of_muts, split_muts, SplitMutsResult};
+use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::types::outputs::NextcladeOutputs;
@@ -112,7 +112,7 @@ pub fn finetune_nearest_node(
         nearest_node = graph
           .parent_of_by_key(best_node_key)
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
-        private_mutations = set_difference_of_muts(&private_mutations, &max_shared_muts.shared);
+        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared);
       } else if best_node_key == nearest_node_key {
         // The best node is the current node. Break.
         break;
@@ -120,11 +120,11 @@ pub fn finetune_nearest_node(
         // The best node is child
         nearest_node = graph.get_node(best_node_key)?;
         //subtract the shared mutations from the private mutations struct
-        private_mutations = set_difference_of_muts(&private_mutations, &max_shared_muts.shared);
+        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared);
         // add the inverted remaining mutations on that branch
         if !max_shared_muts.left.nuc_subs.is_empty() {
           // a bit waste full, because we redo this in the next iteration
-          private_mutations = set_union_of_muts(&private_mutations, &max_shared_muts.left.invert());
+          private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert());
         }
       }
     } else {
