@@ -205,7 +205,7 @@ pub fn knit_into_graph(
 
   // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
   if target_node.is_leaf() || !muts_target_node.nuc_subs.is_empty() {
-    // determine divergence of new internal node by substracting shared reversions from target_node
+    // determine divergence of new internal node by subtracting shared reversions from target_node
     let divergence_middle_node =
       target_node_div - calculate_branch_length(&muts_target_node.nuc_subs, divergence_units, ref_seq_len);
 
