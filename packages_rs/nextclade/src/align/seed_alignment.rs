@@ -325,7 +325,7 @@ fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
   }
 }
 
-fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
+pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
   use std::io::Write;
   let mut file = std::fs::File::create(filename).unwrap();
   writeln!(file, "ref_pos,qry_pos,length").unwrap();
