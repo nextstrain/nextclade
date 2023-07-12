@@ -62,6 +62,24 @@ where
     self.parent_key_of(node)
   }
 
+  /// Retrieve parent of a given node
+  ///
+  /// Assumes there is always only 0 or 1 parents
+  pub fn parent_of<'n>(&'n self, node: &'n Node<N>) -> Option<&Node<N>> {
+    self
+      .parent_key_of(node)
+      .map(|parent_key| self.get_node_or_crash(parent_key))
+  }
+
+  /// Retrieve parent node of a node given its ID
+  ///
+  /// Assumes there is always only 0 or 1 parents
+  pub fn parent_of_by_key(&self, node_key: GraphNodeKey) -> Option<&Node<N>> {
+    self
+      .parent_key_of_by_key(node_key)
+      .map(|parent_key| self.get_node_or_crash(parent_key))
+  }
+
   /// Retrieve keys of parent nodes of a given node.
   pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = GraphNodeKey> + '_ {
     // Parents are the source nodes of inbound edges
@@ -91,11 +109,29 @@ where
     self.iter_child_keys_of(node)
   }
 
+  /// Retrieve child nodes of a given node.
+  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = &Node<N>> {
+    self
+      .iter_child_keys_of(node)
+      .map(|child_key| self.get_node_or_crash(child_key))
+  }
+
+  /// Retrieve child nodes of a node, given its key
+  pub fn iter_children_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = &Node<N>> {
+    self
+      .iter_child_keys_of_by_key(node_key)
+      .map(|child_key| self.get_node_or_crash(child_key))
+  }
+
   pub fn get_node(&self, node_key: GraphNodeKey) -> Result<&Node<N>, Report> {
     self
       .nodes
       .get(node_key.as_usize())
       .ok_or_else(|| make_internal_report!("Node with id '{node_key}' expected to exist, but not found"))
+  }
+
+  fn get_node_or_crash(&self, node_key: GraphNodeKey) -> &Node<N> {
+    self.get_node(node_key).unwrap()
   }
 
   pub fn get_node_mut(&mut self, node_key: GraphNodeKey) -> Result<&mut Node<N>, Report> {

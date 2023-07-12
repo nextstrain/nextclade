@@ -76,3 +76,52 @@ where
     right: right.difference(&left).cloned().collect(),
   }
 }
+
+/// Calculates set difference of private mutations
+pub fn set_difference_of_muts(
+  left: &PrivateMutationsMinimal,
+  right: &PrivateMutationsMinimal,
+) -> PrivateMutationsMinimal {
+  // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
+  //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
+  let aa_muts = difference(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
+
+  PrivateMutationsMinimal {
+    nuc_subs: difference(left.nuc_subs.iter(), right.nuc_subs.iter()),
+    nuc_dels: difference(left.nuc_dels.iter(), right.nuc_dels.iter()),
+    aa_muts: group_by_cds(aa_muts.into_iter()), // TODO: This grouping might not be needed (see above)
+  }
+}
+
+fn difference<'t, T, I>(left: I, right: I) -> Vec<T>
+where
+  T: 't + Ord + Clone + Hash,
+  I: Iterator<Item = &'t T>,
+{
+  let left: HashSet<&T> = left.collect();
+  let right: HashSet<&T> = right.collect();
+  left.difference(&right).map(|x| (*x).to_owned()).collect_vec()
+}
+
+/// Calculates set union of private mutations
+pub fn set_union_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
+  // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
+  //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
+  let aa_muts = union(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
+
+  PrivateMutationsMinimal {
+    nuc_subs: union(left.nuc_subs.iter(), right.nuc_subs.iter()),
+    nuc_dels: union(left.nuc_dels.iter(), right.nuc_dels.iter()),
+    aa_muts: group_by_cds(aa_muts.into_iter()), // TODO: This grouping might not be needed (see above)
+  }
+}
+
+fn union<'t, T, I>(left: I, right: I) -> Vec<T>
+where
+  T: 't + Ord + Clone + Hash,
+  I: Iterator<Item = &'t T>,
+{
+  let left: HashSet<&T> = left.collect();
+  let right: HashSet<&T> = right.collect();
+  left.union(&right).map(|x| (*x).to_owned()).collect_vec()
+}
