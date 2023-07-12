@@ -175,34 +175,31 @@ pub fn create_stripes(
   max_indel: usize,
   allowed_mismatches: usize,
 ) -> Result<Vec<Stripe>, Report> {
-  // Build stripes per window
-  // pub struct SeedMatch2 {
-  //   pub ref_pos: usize,
-  //   pub qry_pos: usize,
-  //   pub length: usize,
-  //   pub offset: isize,
-  // }
+  // Beware: offsets obey
+  // qry_pos = ref_pos - offset
+  // Hence the use of -offset below
+  // This is the opposite of the definition of shifts in previous version of create_stripes
+
   // Add terminal stripe
   // Start at 0, end at ref_start of first seed
   let mut stripes = Vec::new();
 
-  let first_seed = seed_matches
-    .first()
-    .expect("No seed matches found, but should have been caught earlier");
-
   // Stripe index along ref sequence
   let mut i = 0;
 
+  let first_seed = seed_matches
+    .first()
+    .expect("No seed matches found, but should have been caught earlier");
   // TODO: Extend to within the seed body, maybe by allowed mismatches
   while i < first_seed.ref_pos + allowed_mismatches {
     stripes.push(Stripe::new(
       clamp(
-        i as isize + first_seed.offset - terminal_bandwidth as isize,
+        i as isize - first_seed.offset - terminal_bandwidth as isize,
         0,
         qry_len as isize,
       ),
       clamp(
-        i as isize + first_seed.offset + terminal_bandwidth as isize + 1,
+        i as isize - first_seed.offset + terminal_bandwidth as isize + 1,
         1,
         qry_len as isize + 1,
       ),
@@ -212,8 +209,8 @@ pub fn create_stripes(
 
   // Iterate over pairs of seeds
   for seed_match in seed_matches.windows(2) {
-    let min = seed_match.iter().map(|x| x.offset).min().unwrap();
-    let max = seed_match.iter().map(|x| x.offset).max().unwrap();
+    let min = seed_match.iter().map(|x| -x.offset).min().unwrap();
+    let max = seed_match.iter().map(|x| -x.offset).max().unwrap();
     let width = max - min;
     // Prevent huge widths, which would require massive amount of memory
     if width as usize > max_indel {
@@ -223,12 +220,12 @@ pub fn create_stripes(
     while i < seed_match[0].ref_pos + seed_match[0].length - allowed_mismatches {
       stripes.push(Stripe::new(
         clamp(
-          i as isize + min - (allowed_mismatches / 2) as isize,
+          i as isize - seed_match[0].offset - (allowed_mismatches / 2) as isize,
           0,
           qry_len as isize,
         ),
         clamp(
-          i as isize + max + (allowed_mismatches / 2) as isize + 1,
+          i as isize - seed_match[0].offset + (allowed_mismatches / 2) as isize + 1,
           1,
           qry_len as isize + 1,
         ),
@@ -255,12 +252,12 @@ pub fn create_stripes(
   while i <= ref_len as usize {
     stripes.push(Stripe::new(
       clamp(
-        i as isize + last_seed.offset - terminal_bandwidth as isize,
+        i as isize - last_seed.offset - terminal_bandwidth as isize,
         0,
         qry_len as isize,
       ),
       clamp(
-        i as isize + last_seed.offset + terminal_bandwidth as isize + 1,
+        i as isize - last_seed.offset + terminal_bandwidth as isize + 1,
         1,
         qry_len as isize + 1,
       ),
@@ -270,25 +267,45 @@ pub fn create_stripes(
 
   let robust_stripes = regularize_stripes(stripes, qry_len as usize);
 
-  println!("{:#?}", robust_stripes);
-
-  // Print average stripe width
-  let mut stripe_width_sum = 0;
-  // Print minimal stripe width
-  let mut stripe_min = qry_len;
-  // Print maximal stripe width
-  let mut stripe_max = 0;
-  for stripe in &robust_stripes {
-    stripe_width_sum += stripe.end - stripe.begin;
-    stripe_min = std::cmp::min(stripe_min, (stripe.end - stripe.begin) as i32);
-    stripe_max = std::cmp::max(stripe_max, (stripe.end - stripe.begin) as i32);
-  }
-  let stripe_width_avg = stripe_width_sum as f64 / robust_stripes.len() as f64;
-  println!("Average stripe width: {stripe_width_avg:.2}");
-  // println!("Minimal stripe width: {stripe_min}");
-  // println!("Maximal stripe width: {stripe_max}");
+  // For debugging of stripes and matches:
+  // write_stripes_to_file(&robust_stripes, "stripes.csv");
+  // write_matches_to_file(seed_matches, "matches.csv");
+  // Usefully visualized using `python scripts/visualize-stripes.py`
+  //
+  // print_stripe_stats(&robust_stripes);
 
   Ok(robust_stripes)
+}
+
+fn print_stripe_stats(stripes: &[Stripe]) {
+  let mut stripe_lengths = Vec::new();
+  for stripe in stripes {
+    stripe_lengths.push(stripe.end - stripe.begin);
+  }
+  stripe_lengths.sort_unstable();
+  let median = stripe_lengths[stripe_lengths.len() / 2];
+  let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
+  let max = stripe_lengths[stripe_lengths.len() - 1];
+  let min = stripe_lengths[0];
+  println!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
+}
+
+fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
+  use std::io::Write;
+  let mut file = std::fs::File::create(filename).unwrap();
+  writeln!(file, "ref,begin,end").unwrap();
+  for (i, stripe) in stripes.iter().enumerate() {
+    writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
+  }
+}
+
+fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
+  use std::io::Write;
+  let mut file = std::fs::File::create(filename).unwrap();
+  writeln!(file, "ref_pos,qry_pos,length").unwrap();
+  for match_ in matches {
+    writeln!(file, "{},{},{}", match_.ref_pos, match_.qry_pos, match_.length).unwrap();
+  }
 }
 
 /// Chop off unreachable parts of the stripes.
@@ -354,6 +371,7 @@ mod tests {
 
     let terminal_bandwidth = 5;
     let excess_bandwidth = 2;
+    let allowed_mismatches = 2;
     let max_indel = 100;
     let qry_len = 30;
     let ref_len = 40;
@@ -365,6 +383,7 @@ mod tests {
       terminal_bandwidth,
       excess_bandwidth,
       max_indel,
+      allowed_mismatches,
     );
 
     Ok(())
