@@ -1,6 +1,6 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::calculate_branchlength;
+use crate::analyze::divergence::calculate_branch_length;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
@@ -203,7 +203,7 @@ pub fn knit_into_graph(
   if target_node.is_leaf() || !shared_muts.shared.nuc_subs.is_empty() {
     // determine divergence of new internal node by substracting shared reversions from target_node
     let divergence_middle_node =
-      target_node_div - calculate_branchlength(&shared_muts.shared.nuc_subs, divergence_units, ref_seq_len);
+      target_node_div - calculate_branch_length(&shared_muts.shared.nuc_subs, divergence_units, ref_seq_len);
 
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
@@ -242,7 +242,7 @@ pub fn knit_into_graph(
       new_internal_node_key,
       &shared_muts.right,
       result,
-      divergence_middle_node + calculate_branchlength(&shared_muts.right.nuc_subs, divergence_units, ref_seq_len),
+      divergence_middle_node + calculate_branch_length(&shared_muts.right.nuc_subs, divergence_units, ref_seq_len),
     );
   } else {
     //can simply attach node
@@ -251,7 +251,7 @@ pub fn knit_into_graph(
       target_key,
       private_mutations,
       result,
-      target_node_div + calculate_branchlength(&shared_muts.right.nuc_subs, divergence_units, ref_seq_len),
+      target_node_div + calculate_branch_length(&shared_muts.right.nuc_subs, divergence_units, ref_seq_len),
     );
   }
   Ok(())

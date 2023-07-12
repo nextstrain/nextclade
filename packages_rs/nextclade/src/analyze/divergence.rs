@@ -2,7 +2,7 @@ use crate::alphabet::letter::Letter;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::tree::DivergenceUnits;
 
-pub fn calculate_branchlength(
+pub fn calculate_branch_length(
   private_mutations: &[NucSub],
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
