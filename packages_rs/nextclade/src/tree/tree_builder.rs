@@ -165,12 +165,14 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   let keys = mutations.aa_muts.keys().collect_vec();
   for gene_name in keys {
     let aa_mutations = &mutations.aa_muts[gene_name];
-    let string_aa_mutations = aa_mutations
-      .iter()
-      .sorted()
-      .map(AaSub::to_string_without_gene)
-      .collect_vec();
-    branch_attrs.insert(gene_name.clone(), string_aa_mutations);
+    if aa_mutations.is_empty() {
+      let string_aa_mutations = aa_mutations
+        .iter()
+        .sorted()
+        .map(AaSub::to_string_without_gene)
+        .collect_vec();
+      branch_attrs.insert(gene_name.clone(), string_aa_mutations);
+    }
   }
 
   branch_attrs
