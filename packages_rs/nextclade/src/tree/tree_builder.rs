@@ -141,7 +141,7 @@ pub fn attach_to_internal_node(
   new_private_mutations: &PrivateMutationsMinimal,
   result: &NextcladeOutputs,
   divergence_new_node: f64,
-) {
+) -> Result<(), Report> {
   //generated auspice payload for new node
   let mut new_graph_node: AuspiceTreeNode = create_new_auspice_node(result, new_private_mutations, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
@@ -149,10 +149,7 @@ pub fn attach_to_internal_node(
 
   // Create and add the new node to the graph.
   let new_node_key = graph.add_node(new_graph_node);
-  graph
-    .add_edge(nearest_node_id, new_node_key, AuspiceTreeEdge::new())
-    .map_err(|err| println!("{err:?}"))
-    .ok();
+  graph.add_edge(nearest_node_id, new_node_key, AuspiceTreeEdge::new())
 }
 
 pub fn convert_private_mutations_to_node_branch_attrs(
@@ -247,7 +244,7 @@ pub fn knit_into_graph(
       &muts_new_node,
       result,
       divergence_middle_node + calculate_branch_length(&muts_new_node.nuc_subs, divergence_units, ref_seq_len),
-    );
+    )?;
   } else {
     //can simply attach node
     attach_to_internal_node(
@@ -256,7 +253,7 @@ pub fn knit_into_graph(
       private_mutations,
       result,
       target_node_div + calculate_branch_length(&muts_new_node.nuc_subs, divergence_units, ref_seq_len),
-    );
+    )?;
   }
   Ok(())
 }
