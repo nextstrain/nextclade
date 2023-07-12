@@ -158,20 +158,17 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
 
   let dels_as_subs = mutations.nuc_dels.iter().map(NucDel::to_sub).collect_vec();
-  let mutations_value = concat_to_vec(&mutations.nuc_subs, &dels_as_subs);
-  let string_mutations_value = mutations_value.iter().sorted().map(NucSub::to_string).collect_vec();
-  branch_attrs.insert("nuc".to_owned(), string_mutations_value);
+  let nuc_muts = concat_to_vec(&mutations.nuc_subs, &dels_as_subs)
+    .iter()
+    .sorted()
+    .map(NucSub::to_string)
+    .collect_vec();
+  branch_attrs.insert("nuc".to_owned(), nuc_muts);
 
-  let keys = mutations.aa_muts.keys().collect_vec();
-  for gene_name in keys {
-    let aa_mutations = &mutations.aa_muts[gene_name];
-    if aa_mutations.is_empty() {
-      let string_aa_mutations = aa_mutations
-        .iter()
-        .sorted()
-        .map(AaSub::to_string_without_gene)
-        .collect_vec();
-      branch_attrs.insert(gene_name.clone(), string_aa_mutations);
+  for (gene_name, aa_muts) in &mutations.aa_muts {
+    if aa_muts.is_empty() {
+      let aa_muts = aa_muts.iter().sorted().map(AaSub::to_string_without_gene).collect_vec();
+      branch_attrs.insert(gene_name.clone(), aa_muts);
     }
   }
 
