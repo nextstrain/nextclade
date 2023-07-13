@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 pub struct TreeBuilderParams {
   /// Disable greedy tree builder algorithm
   #[clap(long)]
-  #[clap(num_args=0..=1, default_missing_value = "false")]
+  #[clap(num_args=0..=1, default_missing_value = "true")]
   pub without_greedy_tree_builder: bool,
 }
 
