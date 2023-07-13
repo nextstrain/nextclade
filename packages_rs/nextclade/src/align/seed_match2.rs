@@ -1,4 +1,5 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_alignment::write_matches_to_file;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::{from_nuc_seq, Nuc};
 use crate::make_error;
@@ -10,7 +11,7 @@ use eyre::Report;
 use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
-use std::cmp::min;
+use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
@@ -248,6 +249,7 @@ impl CodonSpacedIndex {
         }
       }
     }
+    // write_matches_to_file(&matches, "unextended_matches.csv");
     matches
   }
 
@@ -255,49 +257,42 @@ impl CodonSpacedIndex {
   fn extended_matches(&self, qry_seq: &[Nuc], ref_seq: &[Nuc], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
     let index_matches = self.index_matches(qry_seq, config);
 
+    // matches is dict for Offset -> IntervalSet
     let mut matches = BTreeMap::<isize, IntervalSet<usize>>::new();
 
+    let empty_interval_set = Vec::<(usize, usize)>::new().to_interval_set();
+
     for index_match in index_matches {
-      // Check if offset already in matches
-      // Check if qry_index within range
+      let interval_set_for_this_offset = matches.get(&index_match.offset).unwrap_or(&empty_interval_set);
 
-      // If match is already in extended range, move on
-      if matches.contains_key(&index_match.offset) {
-        let good_ranges = &matches[&index_match.offset];
-        // Find largest qrypos smaller or equal to index_match.qrypos
-        // good_ranges.
-        let this_match = vec![(index_match.qry_pos, index_match.qry_pos + config.kmer_length)].to_interval_set();
+      let overlap = vec![(index_match.qry_pos, index_match.qry_pos + config.kmer_length)]
+        .to_interval_set()
+        .intersection(interval_set_for_this_offset);
 
-        let overlap = this_match.intersection(good_ranges);
-
-        if !overlap.is_empty() {
-          continue;
-        }
+      // Don't need to extend if seed in known range
+      if !overlap.is_empty() {
+        continue;
       }
 
       let extended_match = index_match.extend_seed(qry_seq, ref_seq, config);
 
-      // Insert extended range into matches map
-      // Simple case if there's no good range with this offset yet
-      if !matches.contains_key(&index_match.offset) {
-        matches.insert(
-          index_match.offset,
-          vec![(extended_match.qry_pos, extended_match.qry_pos + extended_match.length)].to_interval_set(),
-        );
-      // Get ranges overlapped by extended match
-      } else {
-        let good_ranges = &matches[&index_match.offset];
-        matches.insert(
-          index_match.offset,
-          vec![(extended_match.qry_pos, extended_match.qry_pos + extended_match.length)]
-            .to_interval_set()
-            .union(good_ranges),
-        );
+      if extended_match.length < config.min_match_length {
+        continue;
       }
+
+      // Insert extended range into matches map
+      let extended_interval_set = vec![(
+        max(extended_match.qry_pos, 0),
+        min(extended_match.qry_pos + extended_match.length, qry_seq.len()),
+      )]
+      .to_interval_set()
+      .union(interval_set_for_this_offset);
+
+      matches.insert(index_match.offset, extended_interval_set);
     }
 
     // Transform to Vec<SeedMatch>
-    matches
+    let result: Vec<SeedMatch2> = matches
       .iter()
       .flat_map(|(offset, intervals)| {
         intervals
@@ -310,12 +305,16 @@ impl CodonSpacedIndex {
           })
           .collect::<Vec<SeedMatch2>>()
       })
-      .collect()
+      .collect();
+
+    // write_matches_to_file(&result, "raw_matches.csv");
+
+    result
   }
 }
 
 /// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
-/// Right now, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
+/// TODO: Currently, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
 /// Input matches are already merged
 /// Optional TODO: Use binary search tree instead of vecs
 fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
@@ -448,6 +447,8 @@ pub fn get_seed_matches2(
     .filter(|m| m.length > params.min_match_length)
     .collect_vec();
 
+  // write_matches_to_file(&matches, "matches.csv");
+
   if matches.is_empty() {
     return make_error!(
       "Unable to align: seed alignment was unable to find any matches that are long enough. \
@@ -459,16 +460,20 @@ pub fn get_seed_matches2(
   }
 
   let seed_matches = chain_seeds(&matches);
+  // write_matches_to_file(&matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
-  if (sum_of_seed_length as f64) < ((qry_seq.len() as f64) * params.min_seed_cover) {
-    return make_error!(
-      "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
-      (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
-      provided sequence, or due to using incorrect reference sequence.",
-      100.0 * (sum_of_seed_length as f64) / (qry_seq.len() as f64),
-      100.0 * params.min_seed_cover
-    );
+  if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
+    let query_knowns = qry_seq.iter().filter(|n| n.is_acgt()).count();
+    if (sum_of_seed_length as f64 / query_knowns as f64) < params.min_seed_cover {
+      return make_error!(
+        "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
+        (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
+        provided sequence, or due to using incorrect reference sequence.",
+        100.0 * (sum_of_seed_length as f64) / (query_knowns as f64),
+        100.0 * params.min_seed_cover
+      );
+    }
   }
 
   Ok(seed_matches)
