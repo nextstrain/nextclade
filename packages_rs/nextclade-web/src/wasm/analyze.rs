@@ -18,6 +18,7 @@ use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
+use nextclade::tree::params::TreeBuilderParams;
 use nextclade::tree::tree::{AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
@@ -162,7 +163,8 @@ pub struct Nextclade {
   clade_node_attr_key_descs: Vec<CladeNodeAttrKeyDesc>,
   phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   aa_motifs_descs: Vec<AaMotifsDesc>,
-  aln_params: AlignPairwiseParams,
+  alignment_params: AlignPairwiseParams,
+  tree_builder_params: TreeBuilderParams,
   include_nearest_node_info: bool,
 }
 
@@ -180,12 +182,23 @@ impl Nextclade {
     let virus_properties =
       VirusProperties::from_str(virus_properties_str).wrap_err("When parsing virus properties JSON")?;
 
-    let mut alignment_params = AlignPairwiseParams::default();
+    let alignment_params = {
+      let mut alignment_params = AlignPairwiseParams::default();
+      // Merge alignment params coming from virus_properties into alignment_params
+      if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
+        alignment_params.merge_opt(alignment_params_from_file.clone());
+      }
+      alignment_params
+    };
 
-    // Merge alignment params coming from virus_properties into alignment_params
-    if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
-      alignment_params.merge_opt(alignment_params_from_file.clone());
-    }
+    let tree_builder_params = {
+      let mut tree_builder_params = TreeBuilderParams::default();
+      // Merge alignment params coming from virus_properties into alignment_params
+      if let Some(tree_builder_params_from_file) = &virus_properties.tree_builder_params {
+        tree_builder_params.merge_opt(tree_builder_params_from_file.clone());
+      }
+      tree_builder_params
+    };
 
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
@@ -229,7 +242,8 @@ impl Nextclade {
       clade_node_attr_key_descs,
       phenotype_attr_descs,
       aa_motifs_descs,
-      aln_params: alignment_params,
+      alignment_params,
+      tree_builder_params,
       include_nearest_node_info: false, // Never emit nearest node info in web, to reduce output size
     })
   }
@@ -269,7 +283,7 @@ impl Nextclade {
       &self.virus_properties,
       &self.gap_open_close_nuc,
       &self.gap_open_close_aa,
-      &self.aln_params,
+      &self.alignment_params,
       self.include_nearest_node_info,
     ) {
       Ok((qry_seq_aligned_stripped, translations, nextclade_outputs)) => {
@@ -305,6 +319,7 @@ impl Nextclade {
       results,
       &self.tree.tmp.divergence_units,
       self.ref_seq.len(),
+      &self.tree_builder_params,
     )?;
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&self.graph).unwrap();
     self.tree.tree = root;

@@ -6,6 +6,7 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
 use crate::make_internal_report;
+use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
@@ -21,6 +22,7 @@ pub fn graph_attach_new_nodes_in_place(
   mut results: Vec<NextcladeOutputs>,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
+  params: &TreeBuilderParams,
 ) -> Result<(), Report> {
   // Add sequences with less private mutations first to avoid un-treelike behavior in the graph.
   // And then also sort by the index in the original fasta inputs, to avoid non-deterministic order due to differences
@@ -31,7 +33,7 @@ pub fn graph_attach_new_nodes_in_place(
   for result in &results {
     let r_name = result.seq_name.clone();
     println!("Attaching new node for {r_name}");
-    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len)?;
+    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len, params)?;
   }
   graph.ladderize_tree()
 }
@@ -41,6 +43,7 @@ pub fn graph_attach_new_node_in_place(
   result: &NextcladeOutputs,
   divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
+  params: &TreeBuilderParams,
 ) -> Result<(), Report> {
   let mut private_aa_mutations = BTreeMap::<String, Vec<AaSub>>::new();
   for key in result.private_aa_mutations.keys() {
@@ -62,9 +65,14 @@ pub fn graph_attach_new_node_in_place(
     aa_muts: private_aa_mutations,
   };
 
-  // for the attachment on the reference tree ('result') fine tune the position
-  // on the updated graph to minimize the number of private mutations
-  let (nearest_node_key, private_mutations) = finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq)?;
+  let (nearest_node_key, private_mutations) = if params.without_greedy_tree_builder {
+    // Skip tree fine-tuning
+    (result.nearest_node_id, mutations_seq)
+  } else {
+    // for the attachment on the reference tree ('result') fine tune the position
+    // on the updated graph to minimize the number of private mutations
+    finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq)?
+  };
 
   // add the new node at the fine tuned position while accounting for shared mutations
   // on the branch leading to the nearest node.

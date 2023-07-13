@@ -7,6 +7,7 @@ use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::gene::genotype::Genotype;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
+use crate::tree::params::TreeBuilderParamsOptional;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -20,6 +21,7 @@ use validator::Validate;
 struct VirusPropertiesRaw {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
+  pub tree_builder_params: Option<TreeBuilderParamsOptional>,
   pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
   #[serde(default)]
@@ -34,6 +36,7 @@ struct VirusPropertiesRaw {
 pub struct VirusProperties {
   pub schema_version: String,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
+  pub tree_builder_params: Option<TreeBuilderParamsOptional>,
   pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
   #[serde(default)]
@@ -157,6 +160,7 @@ impl FromStr for VirusProperties {
     Ok(Self {
       schema_version: raw.schema_version,
       alignment_params: raw.alignment_params,
+      tree_builder_params: raw.tree_builder_params,
       nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
       phenotype_data: raw.phenotype_data,
       aa_motifs: raw.aa_motifs,

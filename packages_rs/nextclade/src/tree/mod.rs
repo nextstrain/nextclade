@@ -1,3 +1,4 @@
+pub mod params;
 pub mod split_muts;
 pub mod tree;
 pub mod tree_attach_new_nodes;

@@ -23,6 +23,7 @@ use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
+use nextclade::tree::params::TreeBuilderParams;
 use nextclade::tree::tree::AuspiceTreeNode;
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
@@ -106,6 +107,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         ..
       },
     other: NextcladeRunOtherArgs { jobs },
+    tree_builder_params,
     alignment_params,
   } = run_args.clone();
 
@@ -120,17 +122,36 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
 
-  let mut alignment_params = AlignPairwiseParams::default();
+  let alignment_params = {
+    let mut alignment_params = AlignPairwiseParams::default();
 
-  // Merge alignment params coming from virus_properties into alignment_params
-  if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
-    alignment_params.merge_opt(alignment_params_from_file.clone());
-  }
+    // Merge alignment params coming from virus_properties into alignment_params
+    if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
+      alignment_params.merge_opt(alignment_params_from_file.clone());
+    }
 
-  // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(run_args.alignment_params);
+    // Merge alignment params coming from CLI arguments
+    alignment_params.merge_opt(run_args.alignment_params);
+
+    alignment_params
+  };
+
+  let tree_builder_params = {
+    let mut tree_builder_params = TreeBuilderParams::default();
+
+    // Merge tree builder params coming from virus_properties into alignment_params
+    if let Some(tree_builder_params_from_file) = &virus_properties.tree_builder_params {
+      tree_builder_params.merge_opt(tree_builder_params_from_file.clone());
+    }
+
+    // Merge tree builder params coming from CLI arguments
+    tree_builder_params.merge_opt(run_args.tree_builder_params);
+
+    tree_builder_params
+  };
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
+  info!("Tree builder parameters (final):\n{tree_builder_params:#?}");
   info!("Gene map:\n{}", gene_map_to_table_string(gene_map)?);
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
@@ -294,7 +315,13 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   if let Some(output_tree) = run_args.outputs.output_tree {
     // Attach sequences to graph in greedy approach, building a tree
-    graph_attach_new_nodes_in_place(&mut graph, outputs, &tree.tmp.divergence_units, ref_seq.len())?;
+    graph_attach_new_nodes_in_place(
+      &mut graph,
+      outputs,
+      &tree.tmp.divergence_units,
+      ref_seq.len(),
+      &tree_builder_params,
+    )?;
 
     let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
     tree.tree = root;
