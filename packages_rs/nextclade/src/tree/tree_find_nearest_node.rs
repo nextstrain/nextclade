@@ -24,7 +24,7 @@ pub fn graph_find_nearest_nodes<'node>(
 ) -> Result<Vec<TreePlacementInfo<'node>>, Report> {
   // Iterate over tree nodes and calculate distance metric between the sample and each node
   let nodes_by_placement_score = graph
-    .iter_node_payloads()
+    .iter_depth_first_preorder()?
     .map(|node| {
       let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
       let prior = get_prior(node);

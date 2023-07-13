@@ -1,11 +1,11 @@
-use std::collections::{HashMap, HashSet};
-
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
+use crate::graph::traversal_dfs_pre::GraphDepthFirstPreorderIterator;
 use crate::tree::tree::{AuspiceGraph, AuspiceTree, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 #[allow(clippy::partial_pub_fields)]
@@ -81,7 +81,7 @@ where
   }
 
   /// Retrieve keys of parent nodes of a given node.
-  pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
     // Parents are the source nodes of inbound edges
     node
       .inbound()
@@ -93,7 +93,7 @@ where
   }
 
   /// Retrieve keys of child nodes of a given node.
-  pub fn iter_child_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_child_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
     // Children are the target nodes of outbound edges
     node
       .outbound()
@@ -104,20 +104,23 @@ where
       .map(Edge::target)
   }
 
-  pub fn iter_child_keys_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_child_keys_of_by_key(
+    &self,
+    node_key: GraphNodeKey,
+  ) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
     let node = self.get_node(node_key).unwrap();
     self.iter_child_keys_of(node)
   }
 
   /// Retrieve child nodes of a given node.
-  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = &Node<N>> {
+  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = &Node<N>> {
     self
       .iter_child_keys_of(node)
       .map(|child_key| self.get_node_or_crash(child_key))
   }
 
   /// Retrieve child nodes of a node, given its key
-  pub fn iter_children_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = &Node<N>> {
+  pub fn iter_children_of_by_key(&self, node_key: GraphNodeKey) -> impl DoubleEndedIterator<Item = &Node<N>> {
     self
       .iter_child_keys_of_by_key(node_key)
       .map(|child_key| self.get_node_or_crash(child_key))
@@ -170,24 +173,34 @@ where
     self.leaves.len()
   }
 
+  /// Iterate nodes in unspecified order
   #[inline]
   pub fn iter_nodes(&self) -> impl Iterator<Item = &Node<N>> + '_ {
     self.nodes.iter()
   }
 
+  /// Iterate nodes in unspecified order. Mutable version.
   #[inline]
   pub fn iter_nodes_mut(&mut self) -> impl Iterator<Item = &mut Node<N>> + '_ {
     self.nodes.iter_mut()
   }
 
+  /// Iterate node payloads in unspecified order.
   #[inline]
   pub fn iter_node_payloads(&self) -> impl Iterator<Item = &N> + '_ {
     self.nodes.iter().map(Node::payload)
   }
 
+  /// Iterate node payloads in unspecified order. Mutable version.
   #[inline]
   pub fn iter_node_payloads_mut(&mut self) -> impl Iterator<Item = &mut N> + '_ {
     self.nodes.iter_mut().map(Node::payload_mut)
+  }
+
+  /// Iterate nodes in depth-first preorder fashion.
+  #[inline]
+  pub fn iter_depth_first_preorder(&self) -> Result<GraphDepthFirstPreorderIterator<'_, N, E, D>, Report> {
+    GraphDepthFirstPreorderIterator::new(self)
   }
 
   #[inline]
@@ -195,6 +208,11 @@ where
     self.roots.iter().filter_map(
       |idx| self.get_node(*idx).ok(), // FIXME: ignores errors
     )
+  }
+
+  #[inline]
+  pub fn iter_root_keys(&self) -> impl Iterator<Item = GraphNodeKey> + '_ {
+    self.roots.iter().copied()
   }
 
   // FIXME
@@ -498,23 +516,6 @@ where
     }
 
     Ok(())
-  }
-
-  /// Synchronously traverse graph in depth-first preorder fashion forward (from roots to leaves, along edge directions).
-  ///
-  /// Guarantees that for each visited node, all of it parents (recursively) are visited before
-  /// the node itself is visited.
-  pub fn iter_depth_first_preorder_forward(&self, mut explorer: impl FnMut(&Node<N>)) {
-    let mut stack: Vec<GraphNodeKey> = self.roots.clone();
-    let mut visited = HashSet::<GraphNodeKey>::new();
-    while let Some(key) = stack.pop() {
-      if !visited.contains(&key) {
-        let node = self.get_node(key).unwrap();
-        stack.extend(self.iter_child_keys_of(node));
-        explorer(node);
-        visited.insert(key);
-      }
-    }
   }
 }
 
