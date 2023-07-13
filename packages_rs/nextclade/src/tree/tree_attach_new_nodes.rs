@@ -61,7 +61,7 @@ pub fn create_new_auspice_node(
         aa: Some(convert_private_mutations_to_node_branch_attrs_aa_labels(
           &new_private_mutations.aa_muts,
         )),
-        clade: Some(result.clade.clone()),
+        clade: None,
         other: serde_json::Value::default(),
       }),
       other: serde_json::Value::default(),
