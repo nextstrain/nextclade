@@ -7,9 +7,12 @@ use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
-  AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
+  AuspiceTreeNode, TreeBranchAttrs, TreeBranchAttrsLabels, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
+  AUSPICE_UNKNOWN_VALUE,
 };
-use crate::tree::tree_builder::convert_private_mutations_to_node_branch_attrs;
+use crate::tree::tree_builder::{
+  convert_private_mutations_to_node_branch_attrs, convert_private_mutations_to_node_branch_attrs_aa_labels,
+};
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use itertools::{chain, Itertools};
@@ -59,7 +62,13 @@ pub fn create_new_auspice_node(
     name: format!("{}_new", result.seq_name),
     branch_attrs: TreeBranchAttrs {
       mutations,
-      labels: None,
+      labels: Some(TreeBranchAttrsLabels {
+        aa: Some(convert_private_mutations_to_node_branch_attrs_aa_labels(
+          &new_private_mutations.aa_muts,
+        )),
+        clade: Some(result.clade.clone()),
+        other: serde_json::Value::default(),
+      }),
       other: serde_json::Value::default(),
     },
     node_attrs: TreeNodeAttrs {

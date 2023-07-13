@@ -68,11 +68,23 @@ impl TreeNodeAttrF64 {
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+pub struct TreeBranchAttrsLabels {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub aa: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub clade: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub labels: Option<serde_json::Value>,
+  pub labels: Option<TreeBranchAttrsLabels>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

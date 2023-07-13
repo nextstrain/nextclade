@@ -7,7 +7,7 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
 use crate::make_internal_report;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
-use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits};
+use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeBranchAttrsLabels};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
@@ -184,6 +184,17 @@ pub fn convert_private_mutations_to_node_branch_attrs(
   branch_attrs
 }
 
+pub fn convert_private_mutations_to_node_branch_attrs_aa_labels(aa_muts: &BTreeMap<String, Vec<AaSub>>) -> String {
+  aa_muts
+    .iter()
+    .filter(|(_, aa_muts)| !aa_muts.is_empty())
+    .map(|(gene_name, aa_muts)| {
+      let aa_muts = aa_muts.iter().sorted().map(AaSub::to_string_without_gene).join(", ");
+      format!("{gene_name}: {aa_muts}")
+    })
+    .join("; ")
+}
+
 pub fn knit_into_graph(
   graph: &mut AuspiceGraph,
   target_key: GraphNodeKey,
@@ -223,6 +234,11 @@ pub fn knit_into_graph(
       new_internal_node.node_attrs.div = Some(divergence_middle_node);
       new_internal_node.branch_attrs.mutations =
         convert_private_mutations_to_node_branch_attrs(&new_internal_node.tmp.private_mutations);
+      if let Some(labels) = &mut new_internal_node.branch_attrs.labels {
+        labels.aa = Some(convert_private_mutations_to_node_branch_attrs_aa_labels(
+          &new_internal_node.tmp.private_mutations.aa_muts,
+        ));
+      }
       new_internal_node.name = format!("{target_key}_internal");
       new_internal_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
       new_internal_node
@@ -244,6 +260,11 @@ pub fn knit_into_graph(
     target_node_auspice.tmp.private_mutations = muts_target_node.invert();
     target_node_auspice.branch_attrs.mutations =
       convert_private_mutations_to_node_branch_attrs(&target_node_auspice.tmp.private_mutations);
+    if let Some(labels) = &mut target_node_auspice.branch_attrs.labels {
+      labels.aa = Some(convert_private_mutations_to_node_branch_attrs_aa_labels(
+        &target_node_auspice.tmp.private_mutations.aa_muts,
+      ));
+    }
 
     // attach the new node as child to the new_internal_node with its mutations
     attach_to_internal_node(
