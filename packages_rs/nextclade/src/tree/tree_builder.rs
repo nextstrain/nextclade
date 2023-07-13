@@ -127,7 +127,7 @@ pub fn finetune_nearest_node(
           .parent_of_by_key(best_node_key)
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
         private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared);
-      } else if best_node_key == nearest_node_key {
+      } else if best_node_key == current_best_node_key {
         // The best node is the current node. Break.
         break;
       } else {
