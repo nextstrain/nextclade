@@ -83,7 +83,8 @@ for _, row in df_matches.iterrows():
             x=x_values,
             y=y_values,
             mode="lines",
-            line=dict(color="blue",width=5),
+            # line=dict(color="blue",width=5),
+            line=dict(color="blue"),
             showlegend=False,
         )
     )

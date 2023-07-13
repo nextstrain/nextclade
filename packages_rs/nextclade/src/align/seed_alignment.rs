@@ -1,3 +1,7 @@
+use std::cmp::max;
+use std::cmp::min;
+use std::default;
+
 use crate::align::band_2d::full_matrix;
 use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
@@ -6,8 +10,10 @@ use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex, SeedMatch2}
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
+use crate::utils::collections::first;
 use crate::utils::collections::last;
 use assert2::__assert2_impl::print;
+use bio::alignment::poa::Traceback;
 use eyre::Report;
 use itertools::all;
 use log::trace;
@@ -165,8 +171,73 @@ pub fn seed_alignment(
   }
 }
 
-/// construct the band in the alignment matrix. this band is organized as "stripes"
-/// that define the query sequence range for each reference position
+#[derive(Clone, Copy)]
+// Default qry_len is qry_len
+struct TrapezoidOffsetParams {
+  ref_start: usize,
+  ref_end: usize,
+  offset: isize,
+  extra_bandwidth: usize,
+  qry_len: usize,
+}
+
+#[derive(Clone, Copy)]
+struct TrapezoidDirectParams {
+  ref_start: usize,
+  ref_end: usize,
+  qry_start: usize,
+  qry_end: usize,
+  qry_len: usize,
+}
+
+/// Adds trapezoid of stripes from ref_start to ref_end (exclusive)
+/// centered on match with offset and extra margin on both sides
+fn add_trapezoid_stripes(stripes: &mut Vec<Stripe>, params: TrapezoidOffsetParams) {
+  let TrapezoidOffsetParams {
+    ref_start,
+    ref_end,
+    offset,
+    extra_bandwidth,
+    qry_len,
+  } = params;
+  let mut qry_start = ref_start as isize - offset - extra_bandwidth as isize;
+  let full_width = extra_bandwidth * 2 + 1;
+  for ref_pos in ref_start..ref_end {
+    let stripe = Stripe {
+      begin: clamp(qry_start, 0, qry_len as isize) as usize,
+      end: clamp(qry_start + full_width as isize, 0, qry_len as isize + 1) as usize,
+    };
+    stripes.push(stripe);
+    qry_start += 1;
+  }
+}
+
+/// Adds trapezoid of stripes from ref_start to ref_end (exclusive)
+/// and qry_start to qry_end (exclusive) with safety_margin
+fn add_direct_trapezoid_stripes(stripes: &mut Vec<Stripe>, params: TrapezoidDirectParams) {
+  let TrapezoidDirectParams {
+    ref_start,
+    ref_end,
+    qry_start,
+    qry_end,
+    qry_len,
+  } = params;
+  let mut ref_pos = ref_start;
+  let mut qry_pos = qry_start;
+  let full_width = qry_end - qry_start;
+  for _ in ref_start..ref_end {
+    let stripe = Stripe {
+      begin: clamp(qry_pos, 0, qry_len),
+      end: clamp(qry_pos + full_width, 0, qry_len + 1),
+    };
+    stripes.push(stripe);
+    ref_pos += 1;
+    qry_pos += 1;
+  }
+}
+
+/// Takes in seed matches and returns a vector of stripes
+/// Stripes define the query sequence range for each reference position
 pub fn create_stripes(
   seed_matches: &[SeedMatch2],
   qry_len: i32,
@@ -176,162 +247,103 @@ pub fn create_stripes(
   max_indel: usize,
   allowed_mismatches: usize,
 ) -> Result<Vec<Stripe>, Report> {
+  // High level idea:
+  // 1. Stripes are half-width=allowed_mismatches/2 along the body of the seed matches
+  // 2. Between seed matches, stripes are a trapezoid extended along each match with extra
+  // half-width=excess_bandwidth
+  // 3. Sequence terminal start and end are like body but with extra half-width=terminal_bandwidth
+  // 4. To be safe, we don't use the narrow "body-width" for the terminal "allowed_mismatches"
+  // of each match, that is, the trapezoid is extended into seed matches by allowed_mimatches
+
   // Beware: offsets obey
   // qry_pos = ref_pos - offset
-  // Hence the use of -offset below
   // This is the opposite of the definition of shifts in previous version of create_stripes
 
-  // Add terminal stripe
-  // Start at 0, end at ref_start of first seed
   let mut stripes = Vec::new();
 
   // Stripe index along ref sequence
-  let mut i = 0;
 
   let first_seed = seed_matches
     .first()
     .expect("No seed matches found, but should have been caught earlier");
-  // TODO: Extend to within the seed body, maybe by allowed mismatches
-  while i < first_seed.ref_pos + allowed_mismatches {
-    stripes.push(Stripe::new(
-      clamp(
-        i as isize - first_seed.offset - terminal_bandwidth as isize,
-        0,
-        qry_len as isize,
-      ),
-      clamp(
-        i as isize - first_seed.offset + terminal_bandwidth as isize + 1,
-        1,
-        qry_len as isize + 1,
-      ),
-    ));
-    i += 1;
-  }
+
+  // Add start stripes until first seed match
+  add_trapezoid_stripes(
+    &mut stripes,
+    TrapezoidOffsetParams {
+      ref_start: 0,
+      ref_end: first_seed.ref_pos + allowed_mismatches,
+      offset: first_seed.offset,
+      extra_bandwidth: terminal_bandwidth as usize,
+      qry_len: qry_len as usize,
+    },
+  );
 
   // Iterate over pairs of seeds
   // Need to add a final stripe to seed_matches to ensure that the last stripe is added
-  let body_bandwidth = (allowed_mismatches + 1) / 2;
-  for seed_match in seed_matches.windows(2) {
-    let min = seed_match.iter().map(|x| -x.offset).min().unwrap();
-    let max = seed_match.iter().map(|x| -x.offset).max().unwrap();
-    let width = max - min;
-    // Prevent huge widths, which would require massive amount of memory
-    if width as usize > max_indel {
-      return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
-    }
-    // First stripe along the seed body
-    i = add_stripes_for_match(
-      i,
+  for seed_match_index in 0..seed_matches.len() {
+    let seed_match = &seed_matches[seed_match_index];
+
+    let ref_start_body = seed_match.ref_pos + allowed_mismatches;
+    let ref_end_body = seed_match.ref_pos + seed_match.length - allowed_mismatches;
+    let offset_body = seed_match.offset;
+    let extra_bandwidth_body = (allowed_mismatches * 2 + 1) / 2;
+
+    // Add body stripes for the current seed match
+    add_trapezoid_stripes(
       &mut stripes,
-      &seed_match[0],
-      body_bandwidth,
-      qry_len,
-      min,
-      max,
-      excess_bandwidth,
-      seed_match[1].ref_pos + allowed_mismatches,
+      TrapezoidOffsetParams {
+        ref_start: ref_start_body,
+        ref_end: ref_end_body,
+        offset: offset_body,
+        extra_bandwidth: extra_bandwidth_body,
+        qry_len: qry_len as usize,
+      },
     );
+
+    // Two cases: end or not
+    // If end: need to calculate gab offset and bandwidth differently
+    if let Some(next_seed_match) = seed_matches.get(seed_match_index + 1) {
+      // Not the last seed match
+      // Add gap stripes between the current and next seed match
+      let left_offset = max(seed_match.offset, next_seed_match.offset);
+      let right_offset = min(seed_match.offset, next_seed_match.offset);
+      add_direct_trapezoid_stripes(
+        &mut stripes,
+        TrapezoidDirectParams {
+          ref_start: ref_end_body,
+          ref_end: next_seed_match.ref_pos + allowed_mismatches,
+          qry_start: (ref_end_body as isize - left_offset - excess_bandwidth as isize) as usize,
+          qry_end: (ref_end_body as isize - right_offset + excess_bandwidth as isize) as usize,
+          qry_len: qry_len as usize,
+        },
+      );
+    } else {
+      // Add gap stripes for the last, terminal match
+      add_trapezoid_stripes(
+        &mut stripes,
+        TrapezoidOffsetParams {
+          ref_start: ref_end_body,
+          ref_end: ref_len as usize + 1,
+          offset: seed_match.offset,
+          extra_bandwidth: terminal_bandwidth as usize,
+          qry_len: qry_len as usize,
+        },
+      );
+    }
   }
-  // Introduce last_seed variable
-  let last_seed = seed_matches.last().unwrap();
 
-  // Add stripes for last seed
-  add_stripes_for_match(
-    i,
-    &mut stripes,
-    last_seed,
-    body_bandwidth,
-    qry_len,
-    -last_seed.offset,
-    -last_seed.offset,
-    terminal_bandwidth,
-    ref_len as usize + 1,
-  );
-
-  let robust_stripes = regularize_stripes(stripes, qry_len as usize);
+  let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
 
   // For debugging of stripes and matches:
-  // write_stripes_to_file(&robust_stripes, "stripes.csv");
-  // write_matches_to_file(seed_matches, "matches.csv");
+  write_stripes_to_file(&regularized_stripes, "stripes.csv");
+  write_matches_to_file(seed_matches, "matches.csv");
   // Usefully visualized using `python scripts/visualize-stripes.py`
   //
-  // print_stripe_stats(&robust_stripes);
+  trace_stripe_stats(&regularized_stripes);
+  trace_matches(seed_matches);
 
-  Ok(robust_stripes)
-}
-
-fn add_stripes_for_match(
-  i: usize,
-  stripes: &mut Vec<Stripe>,
-  seed_match: &SeedMatch2,
-  body_bandwidth: usize,
-  qry_len: i32,
-  min: isize,
-  max: isize,
-  excess_bandwidth: i32,
-  i_stop: usize,
-) -> usize {
-  let mut i = i;
-  while i < seed_match.ref_pos + seed_match.length - 2 * body_bandwidth {
-    stripes.push(Stripe::new(
-      clamp(
-        i as isize - seed_match.offset - body_bandwidth as isize,
-        0,
-        qry_len as isize,
-      ),
-      clamp(
-        i as isize - seed_match.offset + body_bandwidth as isize + 1,
-        1,
-        qry_len as isize + 1,
-      ),
-    ));
-    i += 1;
-  }
-  // Then stripe the box between seeds
-  // while i < seed_match[1].ref_pos + body_bandwidth {
-  while i < i_stop {
-    stripes.push(Stripe::new(
-      clamp(i as isize + min - excess_bandwidth as isize, 0, qry_len as isize),
-      clamp(
-        i as isize + max + excess_bandwidth as isize + 1,
-        1,
-        qry_len as isize + 1,
-      ),
-    ));
-    i += 1;
-  }
-  i
-}
-
-fn print_stripe_stats(stripes: &[Stripe]) {
-  let mut stripe_lengths = Vec::new();
-  for stripe in stripes {
-    stripe_lengths.push(stripe.end - stripe.begin);
-  }
-  stripe_lengths.sort_unstable();
-  let median = stripe_lengths[stripe_lengths.len() / 2];
-  let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
-  let max = stripe_lengths[stripe_lengths.len() - 1];
-  let min = stripe_lengths[0];
-  println!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
-}
-
-fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
-  use std::io::Write;
-  let mut file = std::fs::File::create(filename).unwrap();
-  writeln!(file, "ref,begin,end").unwrap();
-  for (i, stripe) in stripes.iter().enumerate() {
-    writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
-  }
-}
-
-pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
-  use std::io::Write;
-  let mut file = std::fs::File::create(filename).unwrap();
-  writeln!(file, "ref_pos,qry_pos,length").unwrap();
-  for match_ in matches {
-    writeln!(file, "{},{},{}", match_.ref_pos, match_.qry_pos, match_.length).unwrap();
-  }
+  Ok(regularized_stripes)
 }
 
 /// Chop off unreachable parts of the stripes.
@@ -353,23 +365,47 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
   stripes
 }
 
-/// add stripes of constant width between ref_start and ref_stop
-/// incrementing the query position along with ref_pos
-fn add_robust_stripes(
-  mut stripes: Vec<Stripe>,
-  ref_start: i32,
-  ref_end: i32,
-  qry_len: i32,
-  shift: (i32, i32),
-  extra_bandwidth: i32,
-) -> Vec<Stripe> {
-  for i in ref_start..ref_end {
-    stripes.push(Stripe::new(
-      clamp(i + shift.0 - extra_bandwidth, 0, qry_len),
-      clamp(i + shift.1 + extra_bandwidth + 1, 1, qry_len + 1),
-    ));
+fn trace_stripe_stats(stripes: &[Stripe]) {
+  let mut stripe_lengths = Vec::new();
+  for stripe in stripes {
+    stripe_lengths.push(stripe.end - stripe.begin);
   }
-  stripes
+  stripe_lengths.sort_unstable();
+  let median = stripe_lengths[stripe_lengths.len() / 2];
+  let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
+  let max = stripe_lengths[stripe_lengths.len() - 1];
+  let min = stripe_lengths[0];
+  trace!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
+}
+
+fn trace_matches(matches: &[SeedMatch2]) {
+  for (i, seed) in matches.iter().enumerate() {
+    trace!(
+      "Match {}: ref_pos: {}, qry_offset: {}, length: {}",
+      i,
+      seed.ref_pos,
+      -seed.offset,
+      seed.length,
+    );
+  }
+}
+
+fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
+  use std::io::Write;
+  let mut file = std::fs::File::create(filename).unwrap();
+  writeln!(file, "ref,begin,end").unwrap();
+  for (i, stripe) in stripes.iter().enumerate() {
+    writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
+  }
+}
+
+pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
+  use std::io::Write;
+  let mut file = std::fs::File::create(filename).unwrap();
+  writeln!(file, "ref_pos,qry_pos,length").unwrap();
+  for match_ in matches {
+    writeln!(file, "{},{},{}", match_.ref_pos, match_.qry_pos, match_.length).unwrap();
+  }
 }
 
 #[cfg(test)]

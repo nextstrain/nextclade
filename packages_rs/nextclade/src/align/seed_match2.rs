@@ -440,7 +440,7 @@ pub fn get_seed_matches2(
     .filter(|m| m.length > params.min_match_length)
     .collect_vec();
 
-  write_matches_to_file(&matches, "matches.csv");
+  // write_matches_to_file(&matches, "matches.csv");
 
   if matches.is_empty() {
     return make_error!(
@@ -453,7 +453,7 @@ pub fn get_seed_matches2(
   }
 
   let seed_matches = chain_seeds(&matches);
-  write_matches_to_file(&matches, "chained_matches.csv");
+  // write_matches_to_file(&matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
   if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
