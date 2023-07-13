@@ -37,7 +37,7 @@ pub fn convert_auspice_tree_to_graph(
         // TODO: Use auspice extension field to pass info on divergence units, rather than guess
         divergence_units: DivergenceUnits::guess_from_max_divergence(max_divergence),
       },
-      other: Default::default(),
+      other: serde_json::Value::default(),
     });
 
     auspice_add_metadata_in_place(&mut graph.data.meta);
