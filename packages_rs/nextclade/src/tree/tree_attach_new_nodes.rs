@@ -1,8 +1,4 @@
-use crate::analyze::aa_del::AaDel;
-use crate::analyze::aa_sub::AaSub;
-use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
-use crate::analyze::find_private_nuc_mutations::{PrivateMutationsMinimal, PrivateNucMutations};
-use crate::analyze::nuc_sub::NucSub;
+use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
@@ -14,7 +10,6 @@ use crate::tree::tree_builder::{
   convert_private_mutations_to_node_branch_attrs, convert_private_mutations_to_node_branch_attrs_aa_labels,
 };
 use crate::types::outputs::NextcladeOutputs;
-use crate::utils::collections::concat_to_vec;
 use itertools::{chain, Itertools};
 use serde_json::json;
 
