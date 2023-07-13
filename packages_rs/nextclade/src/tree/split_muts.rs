@@ -105,7 +105,7 @@ pub fn union_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMin
   // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
   //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
   let aa_muts = union(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
-
+  //FIXME: if left and right contain nuc_subs at the same position (l1 -> l2) and (r1 -> r2), merge to `l1 -> r2` if l2==r1 or `r1 -> l2` if `l1==r1`
   PrivateMutationsMinimal {
     nuc_subs: union(left.nuc_subs.iter(), right.nuc_subs.iter()),
     nuc_dels: union(left.nuc_dels.iter(), right.nuc_dels.iter()),
