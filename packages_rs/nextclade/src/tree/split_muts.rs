@@ -3,10 +3,12 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams};
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::PositionLike;
+use crate::make_internal_error;
 use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
 use regex::internal::Input;
 use std::collections::BTreeMap;
+use std::fmt::Display;
 use std::hash::Hash;
 
 #[derive(Debug, Clone)]
@@ -96,7 +98,7 @@ fn split_3_way<P, L, M>(left: &[M], right: &[M]) -> Result<Split3WayResult<M>, R
 where
   P: PositionLike,
   L: Letter<L>,
-  M: AbstractMutation<P, L> + Clone + Ord,
+  M: AbstractMutation<P, L> + Clone + Ord + Display,
 {
   let mut subset_shared = Vec::with_capacity(left.len() + right.len());
   let mut subset_left = Vec::with_capacity(left.len());
@@ -112,6 +114,12 @@ where
   // While there are elements in both left and right iterator
   while let (Some(left), Some(right)) = (left_curr, right_curr) {
     if left.pos() == right.pos() {
+      if left.ref_letter() != right.ref_letter() {
+        return make_internal_error!(
+          "Found mutations with the same position, but different reference letters: {left} and {right}"
+        );
+      }
+
       if left.ref_letter() == right.ref_letter() && left.qry_letter() == right.qry_letter() {
         subset_shared.push(left.clone());
       } else {
@@ -186,7 +194,7 @@ fn union<P, L, M>(left: &[M], right: &[M]) -> Result<Vec<M>, Report>
 where
   P: PositionLike,
   L: Letter<L>,
-  M: AbstractMutation<P, L> + Clone + Ord,
+  M: AbstractMutation<P, L> + Clone + Ord + Display,
 {
   let mut union = Vec::with_capacity(left.len() + right.len());
 
@@ -212,6 +220,8 @@ where
           ref_letter: left.ref_letter(),
           qry_letter: right.qry_letter(),
         }));
+      } else {
+        return make_internal_error!("Found mutations which cannot be merged: {left} and {right}");
       }
       left_curr = left_iter.next();
       right_curr = right_iter.next();
