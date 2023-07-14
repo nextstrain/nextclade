@@ -124,11 +124,12 @@ where
       right_curr = right_iter.next();
     }
   }
-  if left_curr.is_some() {
-    subset_left.push(left_curr.unwrap().clone());
+
+  if let Some(left_curr) = left_curr {
+    subset_left.push(left_curr.clone());
   }
-  if right_curr.is_some() {
-    subset_right.push(right_curr.unwrap().clone());
+  if let Some(right_curr) = right_curr {
+    subset_right.push(right_curr.clone());
   }
 
   // At this point one of the iterators is empty.
@@ -216,11 +217,12 @@ where
       right_curr = right_iter.next();
     }
   }
-  if left_curr.is_some() {
-    union.push(left_curr.unwrap().clone());
+
+  if let Some(left_curr) = left_curr {
+    union.push(left_curr.clone());
   }
-  if right_curr.is_some() {
-    union.push(right_curr.unwrap().clone());
+  if let Some(right_curr) = right_curr {
+    union.push(right_curr.clone());
   }
 
   // At this point one of the iterators is empty. Clone muts from the other iterator into the union as is.
@@ -295,8 +297,9 @@ where
       right_curr = right_iter.next();
     }
   }
-  if left_curr.is_some() {
-    diff.push(left_curr.unwrap().clone());
+
+  if let Some(left_curr) = left_curr {
+    diff.push(left_curr.clone());
   }
 
   // At this point one of the iterators is empty. Clone muts from the other iterator into the difference.
