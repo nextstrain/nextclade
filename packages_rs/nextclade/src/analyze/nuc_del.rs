@@ -4,6 +4,7 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
@@ -82,5 +83,11 @@ impl NucDel {
       pos: self.pos,
       qry_nuc: Nuc::Gap,
     }
+  }
+}
+
+impl Display for NucDel {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    self.to_sub().fmt(f)
   }
 }

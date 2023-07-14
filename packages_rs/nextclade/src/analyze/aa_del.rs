@@ -56,7 +56,6 @@ impl AaDel {
 
 impl Display for AaDel {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
-    write!(f, "{}:{}{}-", self.cds_name, from_aa(self.ref_aa), self.pos + 1)
+    self.to_sub().fmt(f)
   }
 }
