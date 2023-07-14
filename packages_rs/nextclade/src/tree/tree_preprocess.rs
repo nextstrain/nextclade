@@ -162,8 +162,8 @@ fn map_aa_muts_for_one_gene(
         }
 
         // If mutation reverts amino acid back to what reference had, remove it from the map
-        let ref_nuc = ref_peptide[mutation.pos.as_usize()];
-        if ref_nuc == mutation.qry_aa {
+        let ref_aa = ref_peptide[mutation.pos.as_usize()];
+        if ref_aa == mutation.qry_aa {
           aa_muts.remove(&mutation.pos);
         } else {
           aa_muts.insert(mutation.pos, mutation.qry_aa);
