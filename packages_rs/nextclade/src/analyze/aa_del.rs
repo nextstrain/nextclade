@@ -1,5 +1,6 @@
 use crate::alphabet::aa::{from_aa, Aa};
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -10,6 +11,34 @@ pub struct AaDel {
   pub cds_name: String,
   pub pos: AaRefPosition,
   pub ref_aa: Aa,
+}
+
+impl AbstractMutation<AaRefPosition, Aa> for AaDel {
+  fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
+    Self {
+      cds_name: self.cds_name.clone(),
+      pos: params.pos,
+      ref_aa: params.ref_letter,
+    }
+  }
+}
+
+impl QryLetter<Aa> for AaDel {
+  fn qry_letter(&self) -> Aa {
+    Aa::Gap
+  }
+}
+
+impl RefLetter<Aa> for AaDel {
+  fn ref_letter(&self) -> Aa {
+    self.ref_aa
+  }
+}
+
+impl Pos<AaRefPosition> for AaDel {
+  fn pos(&self) -> AaRefPosition {
+    self.pos
+  }
 }
 
 impl AaDel {

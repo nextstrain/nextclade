@@ -1,7 +1,11 @@
+use crate::alphabet::letter::Letter;
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams};
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
-use itertools::Itertools;
-use std::collections::{BTreeMap, HashSet};
+use crate::coord::position::PositionLike;
+use itertools::{chain, Itertools};
+use regex::internal::Input;
+use std::collections::BTreeMap;
 use std::hash::Hash;
 
 #[derive(Debug, Clone)]
@@ -11,114 +15,281 @@ pub struct SplitMutsResult {
   pub right: PrivateMutationsMinimal,
 }
 
-/// Split mutations into 3 groups:
-///  - shared
-///  - belonging only to left argument
-///  - belonging only to the right argument
+/// Splits 2 sets of mutations (left and right), with respect to their positions, into 3 subsets:
+///  - shared: mutations contained in both sets
+///  - left: mutations contained only in the left set
+///  - right: mutations contained only in the right set
 pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutsResult {
-  // TODO: conversions between vecs and sets and back involves copying. Even though these sets are small, we might
-  //   optimize this code. For example, we can stick with sets everywhere, instead of vecs.
-  let subs = split_3_way(left.nuc_subs.iter(), right.nuc_subs.iter());
-  let dels = split_3_way(left.nuc_dels.iter(), right.nuc_dels.iter());
+  let Split3WayResult {
+    left: subs_left,
+    shared: subs_shared,
+    right: subs_right,
+  } = split_3_way(&left.nuc_subs, &right.nuc_subs);
 
-  // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
-  //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
-  let aa_muts = split_3_way(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
+  let Split3WayResult {
+    left: dels_left,
+    shared: dels_shared,
+    right: dels_right,
+  } = split_3_way(&left.nuc_dels, &right.nuc_dels);
+
+  let SplitAaMutsResult {
+    aa_muts_left,
+    aa_muts_shared,
+    aa_muts_right,
+  } = split_aa_muts(&left.aa_muts, &right.aa_muts);
 
   SplitMutsResult {
     left: PrivateMutationsMinimal {
-      nuc_subs: subs.left.into_iter().collect_vec(),
-      nuc_dels: dels.left.into_iter().collect_vec(),
-      aa_muts: group_by_cds(aa_muts.left.into_iter()), // TODO: This grouping might not be needed (see above)
+      nuc_subs: subs_left,
+      nuc_dels: dels_left,
+      aa_muts: aa_muts_left,
     },
     shared: PrivateMutationsMinimal {
-      nuc_subs: subs.shared.into_iter().collect_vec(),
-      nuc_dels: dels.shared.into_iter().collect_vec(),
-      aa_muts: group_by_cds(aa_muts.shared.into_iter()), // TODO: This grouping might not be needed (see above)
+      nuc_subs: subs_shared,
+      nuc_dels: dels_shared,
+      aa_muts: aa_muts_shared,
     },
     right: PrivateMutationsMinimal {
-      nuc_subs: subs.right.into_iter().collect_vec(),
-      nuc_dels: dels.right.into_iter().collect_vec(),
-      aa_muts: group_by_cds(aa_muts.right.into_iter()), // TODO: This grouping might not be needed (see above)
+      nuc_subs: subs_right,
+      nuc_dels: dels_right,
+      aa_muts: aa_muts_right,
     },
   }
 }
 
-// Group aminoacid mutations (provided in the form of iterator) by CDS
-fn group_by_cds(aa_muts: impl Iterator<Item = AaSub>) -> BTreeMap<String, Vec<AaSub>> {
-  aa_muts
-    .into_group_map_by(|aa_mut: &AaSub| aa_mut.cds_name.clone())
-    .into_iter()
-    .collect()
+#[derive(Debug, Clone)]
+struct SplitAaMutsResult {
+  pub aa_muts_left: BTreeMap<String, Vec<AaSub>>,
+  pub aa_muts_shared: BTreeMap<String, Vec<AaSub>>,
+  pub aa_muts_right: BTreeMap<String, Vec<AaSub>>,
+}
+
+fn split_aa_muts(left: &BTreeMap<String, Vec<AaSub>>, right: &BTreeMap<String, Vec<AaSub>>) -> SplitAaMutsResult {
+  let mut aa_muts_left = BTreeMap::<String, Vec<AaSub>>::new();
+  let mut aa_muts_shared = BTreeMap::<String, Vec<AaSub>>::new();
+  let mut aa_muts_right = BTreeMap::<String, Vec<AaSub>>::new();
+  for (cds_name, left, right) in zip_aa_muts(left, right) {
+    let split = split_3_way(&left, &right);
+    aa_muts_left.insert(cds_name.clone(), split.left);
+    aa_muts_shared.insert(cds_name.clone(), split.shared);
+    aa_muts_right.insert(cds_name.clone(), split.right);
+  }
+  SplitAaMutsResult {
+    aa_muts_left,
+    aa_muts_shared,
+    aa_muts_right,
+  }
 }
 
 #[derive(Debug, Clone)]
 struct Split3WayResult<T> {
-  pub left: HashSet<T>,
-  pub shared: HashSet<T>,
-  pub right: HashSet<T>,
+  pub left: Vec<T>,
+  pub shared: Vec<T>,
+  pub right: Vec<T>,
 }
 
-/// Splits elements of 2 iterators (left and right) into 3 sets:
-///  - shared: elements contained in both sets
-///  - left: elements contained only in the left set
-///  - right: elements contained only in the right set
-fn split_3_way<'t, T, I>(left: I, right: I) -> Split3WayResult<T>
+fn split_3_way<P, L, M>(left: &[M], right: &[M]) -> Split3WayResult<M>
 where
-  T: 't + Ord + Clone + Hash,
-  I: Iterator<Item = &'t T>,
+  P: PositionLike,
+  L: Letter<L>,
+  M: AbstractMutation<P, L> + Clone + Ord,
 {
-  let left: HashSet<T> = left.cloned().collect();
-  let right: HashSet<T> = right.cloned().collect();
+  let mut subset_shared = Vec::with_capacity(left.len() + right.len());
+  let mut subset_left = Vec::with_capacity(left.len());
+  let mut subset_right = Vec::with_capacity(right.len());
+
+  // Sort iterators so that we can iterate in unison
+  let mut left_iter = left.iter().sorted();
+  let mut right_iter = right.iter().sorted();
+
+  let mut left_curr = left_iter.next();
+  let mut right_curr = right_iter.next();
+
+  // While there are elements in both left and right iterator
+  while let (Some(left), Some(right)) = (left_curr, right_curr) {
+    if left.pos() == right.pos() {
+      if left.ref_letter() == right.ref_letter() && left.qry_letter() == right.qry_letter() {
+        subset_shared.push(left.clone());
+      } else {
+        subset_left.push(left.clone());
+        subset_right.push(right.clone());
+      }
+      left_curr = left_iter.next();
+      right_curr = right_iter.next();
+    } else if left.pos() < right.pos() {
+      subset_left.push(left.clone());
+      left_curr = left_iter.next();
+    } else {
+      subset_right.push(right.clone());
+      right_curr = right_iter.next();
+    }
+  }
+
+  // At this point one of the iterators is empty.
+  // Clone remaining items from the other iterator into their corresponding set.
+  subset_left.extend(left_iter.cloned());
+  subset_right.extend(right_iter.cloned());
+
+  // Save some memory
+  subset_left.shrink_to_fit();
+  subset_shared.shrink_to_fit();
+  subset_right.shrink_to_fit();
+
+  // Make sure results are ordered
+  subset_left.sort();
+  subset_shared.sort();
+  subset_right.sort();
+
   Split3WayResult {
-    left: left.difference(&right).cloned().collect(),
-    shared: left.intersection(&right).cloned().collect(),
-    right: right.difference(&left).cloned().collect(),
+    left: subset_left,
+    shared: subset_shared,
+    right: subset_right,
   }
 }
 
-/// Calculates set difference of private mutations
-pub fn difference_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
-  // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
-  //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
-  let aa_muts = difference(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
-
-  PrivateMutationsMinimal {
-    nuc_subs: difference(left.nuc_subs.iter(), right.nuc_subs.iter()),
-    nuc_dels: difference(left.nuc_dels.iter(), right.nuc_dels.iter()),
-    aa_muts: group_by_cds(aa_muts.into_iter()), // TODO: This grouping might not be needed (see above)
-  }
-}
-
-fn difference<'t, T, I>(left: I, right: I) -> Vec<T>
-where
-  T: 't + Ord + Clone + Hash,
-  I: Iterator<Item = &'t T>,
-{
-  let left: HashSet<&T> = left.collect();
-  let right: HashSet<&T> = right.collect();
-  left.difference(&right).map(|x| (*x).to_owned()).collect_vec()
-}
-
-/// Calculates set union of private mutations
+/// Calculates set-union of 2 sets of mutations, with respect to their positions.
 pub fn union_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
-  // TODO: We might not need to ungroup aa mutations (by different CDSes) here and then group them again later.
-  //   The grouping could be done if and when it is needed (closer to the place where it is used, if at all).
-  let aa_muts = union(left.aa_muts.values().flatten(), right.aa_muts.values().flatten());
-  //FIXME: if left and right contain nuc_subs at the same position (l1 -> l2) and (r1 -> r2), merge to `l1 -> r2` if l2==r1 or `r1 -> l2` if `l1==r1`
   PrivateMutationsMinimal {
-    nuc_subs: union(left.nuc_subs.iter(), right.nuc_subs.iter()),
-    nuc_dels: union(left.nuc_dels.iter(), right.nuc_dels.iter()),
-    aa_muts: group_by_cds(aa_muts.into_iter()), // TODO: This grouping might not be needed (see above)
+    nuc_subs: union(&left.nuc_subs, &right.nuc_subs),
+    nuc_dels: union(&left.nuc_dels, &right.nuc_dels),
+    aa_muts: union_of_aa_muts(&left.aa_muts, &right.aa_muts),
   }
 }
 
-fn union<'t, T, I>(left: I, right: I) -> Vec<T>
+fn union_of_aa_muts(
+  left: &BTreeMap<String, Vec<AaSub>>,
+  right: &BTreeMap<String, Vec<AaSub>>,
+) -> BTreeMap<String, Vec<AaSub>> {
+  zip_aa_muts(left, right)
+    .map(|(cds_name, left, right)| (cds_name, union(&left, &right)))
+    .collect()
+}
+
+fn union<P, L, M>(left: &[M], right: &[M]) -> Vec<M>
 where
-  T: 't + Ord + Clone + Hash,
-  I: Iterator<Item = &'t T>,
+  P: PositionLike,
+  L: Letter<L>,
+  M: AbstractMutation<P, L> + Clone + Ord,
 {
-  let left: HashSet<&T> = left.collect();
-  let right: HashSet<&T> = right.collect();
-  left.union(&right).map(|x| (*x).to_owned()).collect_vec()
+  let mut union = Vec::with_capacity(left.len() + right.len());
+
+  // Sort iterators so that we can iterate in unison
+  let mut left_iter = left.iter().sorted();
+  let mut right_iter = right.iter().sorted();
+
+  let mut left_curr = left_iter.next();
+  let mut right_curr = right_iter.next();
+
+  // While there are elements in both left and right iterator
+  while let (Some(left), Some(right)) = (left_curr, right_curr) {
+    if left.pos() == right.pos() {
+      if left.ref_letter() == right.qry_letter() {
+        union.push(left.clone_with(MutParams {
+          pos: left.pos(),
+          ref_letter: right.ref_letter(),
+          qry_letter: left.qry_letter(),
+        }));
+      } else if left.qry_letter() == right.ref_letter() {
+        union.push(left.clone_with(MutParams {
+          pos: left.pos(),
+          ref_letter: left.ref_letter(),
+          qry_letter: right.qry_letter(),
+        }));
+      }
+      left_curr = left_iter.next();
+      right_curr = right_iter.next();
+    }
+    // If positions don't match, copy muts as is
+    else if left.pos() < right.pos() {
+      union.push(left.to_owned());
+      left_curr = left_iter.next();
+    }
+    // If positions don't match, copy muts as is
+    else {
+      union.push(right.to_owned());
+      right_curr = right_iter.next();
+    }
+  }
+
+  // At this point one of the iterators is empty. Clone muts from the other iterator into the union as is.
+  union.extend(left_iter.cloned());
+  union.extend(right_iter.cloned());
+
+  union.sort();
+
+  union
+}
+
+/// Calculates set-difference of 2 sets of mutations, with respect to their positions.
+pub fn difference_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
+  PrivateMutationsMinimal {
+    nuc_subs: difference(&left.nuc_subs, &right.nuc_subs),
+    nuc_dels: difference(&left.nuc_dels, &right.nuc_dels),
+    aa_muts: difference_of_aa_muts(&left.aa_muts, &right.aa_muts),
+  }
+}
+
+fn difference_of_aa_muts(
+  left: &BTreeMap<String, Vec<AaSub>>,
+  right: &BTreeMap<String, Vec<AaSub>>,
+) -> BTreeMap<String, Vec<AaSub>> {
+  zip_aa_muts(left, right)
+    .map(|(cds_name, left, right)| (cds_name, difference(&left, &right)))
+    .collect()
+}
+
+fn difference<P, L, M>(left: &[M], right: &[M]) -> Vec<M>
+where
+  P: PositionLike,
+  L: Letter<L>,
+  M: AbstractMutation<P, L> + Clone + Ord,
+{
+  let mut diff = Vec::with_capacity(left.len() + right.len());
+
+  // Sort iterators so that we can iterate in unison
+  let mut left_iter = left.iter().sorted();
+  let mut right_iter = right.iter().sorted();
+
+  let mut left_curr = left_iter.next();
+  let mut right_curr = right_iter.next();
+
+  // While there are elements in both left and right iterator
+  while let (Some(left), Some(right)) = (left_curr, right_curr) {
+    // Same position: this mutation is excluded from the result. Advance both iterators.
+    if left.pos() == right.pos() {
+      right_curr = right_iter.next();
+      left_curr = left_iter.next();
+    }
+    // Left position is smaller: include it and advance left iterator.
+    else if left.pos() < right.pos() {
+      diff.push(left.clone());
+      left_curr = left_iter.next();
+    }
+    // Right position is smaller: include it and advance right iterator.
+    else if right.pos() < left.pos() {
+      diff.push(right.clone());
+      right_curr = right_iter.next();
+    }
+  }
+
+  // At this point one of the iterators is empty. Clone muts from the other iterator into the difference.
+  diff.extend(left_iter.cloned());
+  diff.extend(right_iter.cloned());
+
+  diff.sort();
+
+  diff
+}
+
+/// Iterate over 2 sets of aminoacid mutations, separately for each CDS. If there are no mutations in one of the
+/// sets, then an empty list is yielded. Only CDSes present in one or both of the sets are considered.
+fn zip_aa_muts<'a>(
+  left: &'a BTreeMap<String, Vec<AaSub>>,
+  right: &'a BTreeMap<String, Vec<AaSub>>,
+) -> impl Iterator<Item = (String, Vec<AaSub>, Vec<AaSub>)> + 'a {
+  chain!(left.keys(), right.keys()).unique().cloned().map(|cds_name| {
+    let aa_muts_left = left.get(&cds_name).cloned().unwrap_or_default();
+    let aa_muts_right = right.get(&cds_name).cloned().unwrap_or_default();
+    (cds_name, aa_muts_left, aa_muts_right)
+  })
 }

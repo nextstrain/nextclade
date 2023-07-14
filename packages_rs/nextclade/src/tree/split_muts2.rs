@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, HashSet};
 ///  - shared
 ///  - belonging only to left argument
 ///  - belonging only to the right argument
-fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutsResult {
+pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutsResult {
   let mut subs_shared = Vec::<NucSub>::new();
   let mut subs_left = Vec::<NucSub>::new();
   let mut subs_right = Vec::<NucSub>::new();
