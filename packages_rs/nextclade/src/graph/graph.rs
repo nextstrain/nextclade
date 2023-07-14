@@ -1,6 +1,5 @@
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
-use crate::graph::traversal_dfs_pre::GraphDepthFirstPreorderIterator;
 use crate::tree::tree::{AuspiceGraph, AuspiceTree, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
@@ -197,11 +196,11 @@ where
     self.nodes.iter_mut().map(Node::payload_mut)
   }
 
-  /// Iterate nodes in depth-first preorder fashion.
-  #[inline]
-  pub fn iter_depth_first_preorder(&self) -> Result<GraphDepthFirstPreorderIterator<'_, N, E, D>, Report> {
-    GraphDepthFirstPreorderIterator::new(self)
-  }
+  // /// Iterate nodes in depth-first preorder fashion.
+  // #[inline]
+  // pub fn iter_depth_first_preorder(&self) -> Result<GraphDepthFirstPreorderIterator<'_, N, E, D>, Report> {
+  //   GraphDepthFirstPreorderIterator::new(self)
+  // }
 
   #[inline]
   pub fn iter_roots(&self) -> impl Iterator<Item = &Node<N>> + '_ {

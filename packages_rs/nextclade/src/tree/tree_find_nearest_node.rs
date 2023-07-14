@@ -6,6 +6,7 @@ use crate::coord::range::{NucRefGlobalRange, Range};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode, TreeNodeAttr};
 use eyre::Report;
 use itertools::Itertools;
+use traversal::DftPre;
 
 /// Distance and placement prior for a ref tree node
 pub struct TreePlacementInfo<'node> {
@@ -23,15 +24,17 @@ pub fn graph_find_nearest_nodes<'node>(
   masked_ranges: &[NucRefGlobalRange],
 ) -> Result<Vec<TreePlacementInfo<'node>>, Report> {
   // Iterate over tree nodes and calculate distance metric between the sample and each node
-  let nodes_by_placement_score = graph
-    .iter_depth_first_preorder()?
-    .map(|node| {
-      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
-      let prior = get_prior(node);
-      TreePlacementInfo { node, distance, prior }
-    })
-    .sorted_by(|a, b| a.distance.cmp(&b.distance).then(b.prior.total_cmp(&a.prior)))
-    .collect_vec();
+  let nodes_by_placement_score = DftPre::new(graph.get_exactly_one_root()?, |node| {
+    graph.iter_children_of(node).into_iter()
+  })
+  .map(|(_, node)| {
+    let node = node.payload();
+    let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
+    let prior = get_prior(node);
+    TreePlacementInfo { node, distance, prior }
+  })
+  .sorted_by(|a, b| a.distance.cmp(&b.distance).then(b.prior.total_cmp(&a.prior)))
+  .collect_vec();
 
   Ok(if nodes_by_placement_score.is_empty() {
     // Unlikely case: if there's no nodes, return parent
