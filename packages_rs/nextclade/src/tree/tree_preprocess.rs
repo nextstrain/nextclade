@@ -12,6 +12,7 @@ use crate::tree::tree::{
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use maplit::btreemap;
 use num::Float;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -122,13 +123,13 @@ fn map_aa_muts(
   ref_translation
     .cdses()
     //We iterate over all genes that we have ref_peptides for
-    .map(|ref_cds_tr| match parent_aa_muts.get(&ref_cds_tr.name) {
-      Some(aa_muts) => (
+    .map(|ref_cds_tr| {
+      let empty = btreemap! {};
+      let aa_muts = parent_aa_muts.get(&ref_cds_tr.name).unwrap_or(&empty);
+      (
         ref_cds_tr.name.clone(),
         map_aa_muts_for_one_gene(&ref_cds_tr.name, node, &ref_cds_tr.seq, aa_muts),
-      ),
-      // Initialize aa_muts, default dictionary style
-      None => (ref_cds_tr.name.clone(), Ok(BTreeMap::new())),
+      )
     })
     .map(|(name, muts)| -> Result<_, Report>  {
       Ok((name, muts?))
