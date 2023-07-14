@@ -3,6 +3,7 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams};
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::PositionLike;
+use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
 use regex::internal::Input;
 use std::collections::BTreeMap;
@@ -19,26 +20,26 @@ pub struct SplitMutsResult {
 ///  - shared: mutations contained in both sets
 ///  - left: mutations contained only in the left set
 ///  - right: mutations contained only in the right set
-pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutsResult {
+pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> Result<SplitMutsResult, Report> {
   let Split3WayResult {
     left: subs_left,
     shared: subs_shared,
     right: subs_right,
-  } = split_3_way(&left.nuc_subs, &right.nuc_subs);
+  } = split_3_way(&left.nuc_subs, &right.nuc_subs).wrap_err("When splitting private substitutions")?;
 
   let Split3WayResult {
     left: dels_left,
     shared: dels_shared,
     right: dels_right,
-  } = split_3_way(&left.nuc_dels, &right.nuc_dels);
+  } = split_3_way(&left.nuc_dels, &right.nuc_dels).wrap_err("When splitting private substitutions")?;
 
   let SplitAaMutsResult {
     aa_muts_left,
     aa_muts_shared,
     aa_muts_right,
-  } = split_aa_muts(&left.aa_muts, &right.aa_muts);
+  } = split_aa_muts(&left.aa_muts, &right.aa_muts).wrap_err("When splitting private substitutions")?;
 
-  SplitMutsResult {
+  Ok(SplitMutsResult {
     left: PrivateMutationsMinimal {
       nuc_subs: subs_left,
       nuc_dels: dels_left,
@@ -54,7 +55,7 @@ pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinima
       nuc_dels: dels_right,
       aa_muts: aa_muts_right,
     },
-  }
+  })
 }
 
 #[derive(Debug, Clone)]
@@ -64,21 +65,24 @@ struct SplitAaMutsResult {
   pub aa_muts_right: BTreeMap<String, Vec<AaSub>>,
 }
 
-fn split_aa_muts(left: &BTreeMap<String, Vec<AaSub>>, right: &BTreeMap<String, Vec<AaSub>>) -> SplitAaMutsResult {
+fn split_aa_muts(
+  left: &BTreeMap<String, Vec<AaSub>>,
+  right: &BTreeMap<String, Vec<AaSub>>,
+) -> Result<SplitAaMutsResult, Report> {
   let mut aa_muts_left = BTreeMap::<String, Vec<AaSub>>::new();
   let mut aa_muts_shared = BTreeMap::<String, Vec<AaSub>>::new();
   let mut aa_muts_right = BTreeMap::<String, Vec<AaSub>>::new();
   for (cds_name, left, right) in zip_aa_muts(left, right) {
-    let split = split_3_way(&left, &right);
+    let split = split_3_way(&left, &right)?;
     aa_muts_left.insert(cds_name.clone(), split.left);
     aa_muts_shared.insert(cds_name.clone(), split.shared);
     aa_muts_right.insert(cds_name.clone(), split.right);
   }
-  SplitAaMutsResult {
+  Ok(SplitAaMutsResult {
     aa_muts_left,
     aa_muts_shared,
     aa_muts_right,
-  }
+  })
 }
 
 #[derive(Debug, Clone)]
@@ -88,7 +92,7 @@ struct Split3WayResult<T> {
   pub right: Vec<T>,
 }
 
-fn split_3_way<P, L, M>(left: &[M], right: &[M]) -> Split3WayResult<M>
+fn split_3_way<P, L, M>(left: &[M], right: &[M]) -> Result<Split3WayResult<M>, Report>
 where
   P: PositionLike,
   L: Letter<L>,
@@ -147,32 +151,35 @@ where
   subset_shared.sort();
   subset_right.sort();
 
-  Split3WayResult {
+  Ok(Split3WayResult {
     left: subset_left,
     shared: subset_shared,
     right: subset_right,
-  }
+  })
 }
 
 /// Calculates set-union of 2 sets of mutations, with respect to their positions.
-pub fn union_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
-  PrivateMutationsMinimal {
-    nuc_subs: union(&left.nuc_subs, &right.nuc_subs),
-    nuc_dels: union(&left.nuc_dels, &right.nuc_dels),
-    aa_muts: union_of_aa_muts(&left.aa_muts, &right.aa_muts),
-  }
+pub fn union_of_muts(
+  left: &PrivateMutationsMinimal,
+  right: &PrivateMutationsMinimal,
+) -> Result<PrivateMutationsMinimal, Report> {
+  Ok(PrivateMutationsMinimal {
+    nuc_subs: union(&left.nuc_subs, &right.nuc_subs)?,
+    nuc_dels: union(&left.nuc_dels, &right.nuc_dels)?,
+    aa_muts: union_of_aa_muts(&left.aa_muts, &right.aa_muts)?,
+  })
 }
 
 fn union_of_aa_muts(
   left: &BTreeMap<String, Vec<AaSub>>,
   right: &BTreeMap<String, Vec<AaSub>>,
-) -> BTreeMap<String, Vec<AaSub>> {
+) -> Result<BTreeMap<String, Vec<AaSub>>, Report> {
   zip_aa_muts(left, right)
-    .map(|(cds_name, left, right)| (cds_name, union(&left, &right)))
+    .map(|(cds_name, left, right)| Ok((cds_name, union(&left, &right)?)))
     .collect()
 }
 
-fn union<P, L, M>(left: &[M], right: &[M]) -> Vec<M>
+fn union<P, L, M>(left: &[M], right: &[M]) -> Result<Vec<M>, Report>
 where
   P: PositionLike,
   L: Letter<L>,
@@ -231,28 +238,31 @@ where
 
   union.sort();
 
-  union
+  Ok(union)
 }
 
 /// Calculates set-difference of 2 sets of mutations, with respect to their positions.
-pub fn difference_of_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> PrivateMutationsMinimal {
-  PrivateMutationsMinimal {
-    nuc_subs: difference(&left.nuc_subs, &right.nuc_subs),
-    nuc_dels: difference(&left.nuc_dels, &right.nuc_dels),
-    aa_muts: difference_of_aa_muts(&left.aa_muts, &right.aa_muts),
-  }
+pub fn difference_of_muts(
+  left: &PrivateMutationsMinimal,
+  right: &PrivateMutationsMinimal,
+) -> Result<PrivateMutationsMinimal, Report> {
+  Ok(PrivateMutationsMinimal {
+    nuc_subs: difference(&left.nuc_subs, &right.nuc_subs)?,
+    nuc_dels: difference(&left.nuc_dels, &right.nuc_dels)?,
+    aa_muts: difference_of_aa_muts(&left.aa_muts, &right.aa_muts)?,
+  })
 }
 
 fn difference_of_aa_muts(
   left: &BTreeMap<String, Vec<AaSub>>,
   right: &BTreeMap<String, Vec<AaSub>>,
-) -> BTreeMap<String, Vec<AaSub>> {
+) -> Result<BTreeMap<String, Vec<AaSub>>, Report> {
   zip_aa_muts(left, right)
-    .map(|(cds_name, left, right)| (cds_name, difference(&left, &right)))
+    .map(|(cds_name, left, right)| Ok((cds_name, difference(&left, &right)?)))
     .collect()
 }
 
-fn difference<P, L, M>(left: &[M], right: &[M]) -> Vec<M>
+fn difference<P, L, M>(left: &[M], right: &[M]) -> Result<Vec<M>, Report>
 where
   P: PositionLike,
   L: Letter<L>,
@@ -306,7 +316,7 @@ where
   diff.extend(left_iter.cloned());
   diff.sort();
 
-  diff
+  Ok(diff)
 }
 
 /// Iterate over 2 sets of aminoacid mutations, separately for each CDS. If there are no mutations in one of the

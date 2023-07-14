@@ -103,13 +103,13 @@ pub fn finetune_nearest_node(
       split_muts(
         &nearest_node.payload().tmp.private_mutations.invert(),
         &private_mutations,
-      ),
+      )?,
     )]);
 
     for child in graph.iter_children_of(nearest_node) {
       shared_muts_counts.insert(
         child.key(),
-        split_muts(&child.payload().tmp.private_mutations, &private_mutations),
+        split_muts(&child.payload().tmp.private_mutations, &private_mutations)?,
       );
     }
 
@@ -126,7 +126,7 @@ pub fn finetune_nearest_node(
         nearest_node = graph
           .parent_of_by_key(best_node_key)
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
-        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared);
+        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared)?;
       } else if best_node_key == current_best_node_key {
         // The best node is the current node. Break.
         break;
@@ -134,11 +134,11 @@ pub fn finetune_nearest_node(
         // The best node is child
         nearest_node = graph.get_node(best_node_key)?;
         //subtract the shared mutations from the private mutations struct
-        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared);
+        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared)?;
         // add the inverted remaining mutations on that branch
         // even if there are no left-over nuc_subs because they are shared, the can be
         // changes in the same codon that still need handling
-        private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert());
+        private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert())?;
       }
     } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
       nearest_node = graph
@@ -240,7 +240,7 @@ pub fn knit_into_graph(
       left: muts_common_branch_inverted, // Mutations on the common branch (not reverted)
       shared: muts_target_node_inverted, // Mutations that lead to the target_node but not the new node
       right: muts_new_node,
-    } = split_muts(&target_node_auspice.tmp.private_mutations.invert(), private_mutations);
+    } = split_muts(&target_node_auspice.tmp.private_mutations.invert(), private_mutations)?;
     // note that since we split inverted mutations with the private mutations, those
     // .left are the ones on the common branch (not reverted) and those shared are
     // the mutations that lead to the target_node but not the new node
