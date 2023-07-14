@@ -136,10 +136,9 @@ pub fn finetune_nearest_node(
         //subtract the shared mutations from the private mutations struct
         private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared);
         // add the inverted remaining mutations on that branch
-        if !max_shared_muts.left.nuc_subs.is_empty() {
-          // a bit waste full, because we redo this in the next iteration
-          private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert());
-        }
+        // even if there are no left-over nuc_subs because they are shared, the can be
+        // changes in the same codon that still need handling
+        private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert());
       }
     } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
       nearest_node = graph

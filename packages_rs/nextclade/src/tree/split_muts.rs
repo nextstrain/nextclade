@@ -124,6 +124,12 @@ where
       right_curr = right_iter.next();
     }
   }
+  if left_curr.is_some() {
+    subset_left.push(left_curr.unwrap().clone());
+  }
+  if right_curr.is_some() {
+    subset_right.push(right_curr.unwrap().clone());
+  }
 
   // At this point one of the iterators is empty.
   // Clone remaining items from the other iterator into their corresponding set.
@@ -210,6 +216,12 @@ where
       right_curr = right_iter.next();
     }
   }
+  if left_curr.is_some() {
+    union.push(left_curr.unwrap().clone());
+  }
+  if right_curr.is_some() {
+    union.push(right_curr.unwrap().clone());
+  }
 
   // At this point one of the iterators is empty. Clone muts from the other iterator into the union as is.
   union.extend(left_iter.cloned());
@@ -257,6 +269,13 @@ where
   while let (Some(left), Some(right)) = (left_curr, right_curr) {
     // Same position: this mutation is excluded from the result. Advance both iterators.
     if left.pos() == right.pos() {
+      if (left.ref_letter() == right.ref_letter()) && (left.qry_letter() != right.qry_letter()) {
+        diff.push(left.clone_with(MutParams {
+          pos: left.pos(),
+          ref_letter: right.qry_letter(),
+          qry_letter: left.qry_letter(),
+        }));
+      }
       right_curr = right_iter.next();
       left_curr = left_iter.next();
     }
@@ -267,15 +286,15 @@ where
     }
     // Right position is smaller: include it and advance right iterator.
     else if right.pos() < left.pos() {
-      diff.push(right.clone());
       right_curr = right_iter.next();
     }
+  }
+  if left_curr.is_some() {
+    diff.push(left_curr.unwrap().clone());
   }
 
   // At this point one of the iterators is empty. Clone muts from the other iterator into the difference.
   diff.extend(left_iter.cloned());
-  diff.extend(right_iter.cloned());
-
   diff.sort();
 
   diff
