@@ -12,7 +12,7 @@ use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, Divergen
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use regex::internal::Input;
 use std::collections::{BTreeMap, HashMap};
@@ -33,9 +33,14 @@ pub fn graph_attach_new_nodes_in_place(
   for result in &results {
     let r_name = result.seq_name.clone();
     println!("Attaching new node for {r_name}");
-    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len, params)?;
+    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len, params).wrap_err_with(|| {
+      format!(
+        "When attaching the new node for query sequence '{}' to the tree",
+        result.seq_name
+      )
+    })?;
   }
-  graph.ladderize_tree()
+  graph.ladderize_tree().wrap_err("When ladderizing the resulting tree")
 }
 
 pub fn graph_attach_new_node_in_place(
@@ -103,13 +108,24 @@ pub fn finetune_nearest_node(
       split_muts(
         &nearest_node.payload().tmp.private_mutations.invert(),
         &private_mutations,
-      )?,
+      )
+      .wrap_err_with(|| {
+        format!(
+          "When splitting mutations between query sequence and the nearest node '{}'",
+          nearest_node.payload().name
+        )
+      })?,
     )]);
 
     for child in graph.iter_children_of(nearest_node) {
       shared_muts_counts.insert(
         child.key(),
-        split_muts(&child.payload().tmp.private_mutations, &private_mutations)?,
+        split_muts(&child.payload().tmp.private_mutations, &private_mutations).wrap_err_with(|| {
+          format!(
+            "When splitting mutations between query sequence and the child node '{}'",
+            child.payload().name
+          )
+        })?,
       );
     }
 
@@ -126,7 +142,13 @@ pub fn finetune_nearest_node(
         nearest_node = graph
           .parent_of_by_key(best_node_key)
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
-        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared)?;
+
+        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
+          format!(
+            "When calculating difference of mutations between query sequence and the candidate parent node '{}'",
+            nearest_node.payload().name
+          )
+        })?;
       } else if best_node_key == current_best_node_key {
         // The best node is the current node. Break.
         break;
@@ -134,11 +156,21 @@ pub fn finetune_nearest_node(
         // The best node is child
         nearest_node = graph.get_node(best_node_key)?;
         //subtract the shared mutations from the private mutations struct
-        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared)?;
+        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
+          format!(
+            "When calculating difference of mutations between query sequence and the candidate child node '{}'",
+            nearest_node.payload().name
+          )
+        })?;
         // add the inverted remaining mutations on that branch
         // even if there are no left-over nuc_subs because they are shared, the can be
         // changes in the same codon that still need handling
-        private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert())?;
+        private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert()).wrap_err_with(|| {
+          format!(
+            "When calculating union of mutations between query sequence and the candidate child node '{}'",
+            graph.get_node(best_node_key).expect("Node not found").payload().name
+          )
+        })?;
       }
     } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
       nearest_node = graph
@@ -240,7 +272,12 @@ pub fn knit_into_graph(
       left: muts_common_branch_inverted, // Mutations on the common branch (not reverted)
       shared: muts_target_node_inverted, // Mutations that lead to the target_node but not the new node
       right: muts_new_node,
-    } = split_muts(&target_node_auspice.tmp.private_mutations.invert(), private_mutations)?;
+    } = split_muts(&target_node_auspice.tmp.private_mutations.invert(), private_mutations).wrap_err_with(|| {
+      format!(
+        "When splitting mutations between query sequence and the candidate parent node '{}'",
+        target_node_auspice.name
+      )
+    })?;
     // note that since we split inverted mutations with the private mutations, those
     // .left are the ones on the common branch (not reverted) and those shared are
     // the mutations that lead to the target_node but not the new node
