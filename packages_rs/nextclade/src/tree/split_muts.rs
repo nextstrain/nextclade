@@ -275,6 +275,12 @@ where
           ref_letter: right.qry_letter(),
           qry_letter: left.qry_letter(),
         }));
+      } else if (left.qry_letter() == right.qry_letter()) && (left.ref_letter() != right.ref_letter()) {
+        diff.push(left.clone_with(MutParams {
+          pos: left.pos(),
+          ref_letter: left.ref_letter(),
+          qry_letter: right.ref_letter(),
+        }));
       }
       right_curr = right_iter.next();
       left_curr = left_iter.next();
