@@ -20,7 +20,6 @@ use std::collections::{BTreeMap, HashMap};
 pub fn graph_attach_new_nodes_in_place(
   graph: &mut AuspiceGraph,
   mut results: Vec<NextcladeOutputs>,
-  divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
   params: &TreeBuilderParams,
 ) -> Result<(), Report> {
@@ -33,7 +32,7 @@ pub fn graph_attach_new_nodes_in_place(
   for result in &results {
     let r_name = result.seq_name.clone();
     println!("Attaching new node for {r_name}");
-    graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len, params).wrap_err_with(|| {
+    graph_attach_new_node_in_place(graph, result, ref_seq_len, params).wrap_err_with(|| {
       format!(
         "When attaching the new node for query sequence '{}' to the tree",
         result.seq_name
@@ -46,7 +45,6 @@ pub fn graph_attach_new_nodes_in_place(
 pub fn graph_attach_new_node_in_place(
   graph: &mut AuspiceGraph,
   result: &NextcladeOutputs,
-  divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
   params: &TreeBuilderParams,
 ) -> Result<(), Report> {
@@ -81,15 +79,7 @@ pub fn graph_attach_new_node_in_place(
 
   // add the new node at the fine tuned position while accounting for shared mutations
   // on the branch leading to the nearest node.
-  knit_into_graph(
-    graph,
-    nearest_node_key,
-    result,
-    &private_mutations,
-    divergence_units,
-    ref_seq_len,
-    params,
-  )?;
+  knit_into_graph(graph, nearest_node_key, result, &private_mutations, ref_seq_len, params)?;
 
   Ok(())
 }
@@ -259,10 +249,11 @@ pub fn knit_into_graph(
   target_key: GraphNodeKey,
   result: &NextcladeOutputs,
   private_mutations: &PrivateMutationsMinimal,
-  divergence_units: &DivergenceUnits,
   ref_seq_len: usize,
   params: &TreeBuilderParams,
 ) -> Result<(), Report> {
+  let divergence_units = graph.data.tmp.divergence_units;
+
   // the target node will be the sister of the new node defined by "private mutations" and the "result"
   let target_node = graph.get_node(target_key)?;
   let target_node_auspice = target_node.payload();

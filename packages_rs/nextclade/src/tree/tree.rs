@@ -2,9 +2,9 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
-use crate::graph::edge::GraphEdge;
+use crate::graph::edge::{Edge, GraphEdge};
 use crate::graph::graph::Graph;
-use crate::graph::node::{GraphNode, GraphNodeKey};
+use crate::graph::node::{GraphNode, GraphNodeKey, Node};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
@@ -31,7 +31,28 @@ impl AuspiceTreeEdge {
 
 impl GraphEdge for AuspiceTreeEdge {}
 
-pub type AuspiceGraph = Graph<AuspiceTreeNode, AuspiceTreeEdge>;
+pub type AuspiceGraphNode = Node<AuspiceTreeNode>;
+pub type AuspiceGraphEdge = Edge<AuspiceTreeNode>;
+
+#[derive(Debug, Clone, Default)]
+pub struct GraphTempData {
+  pub max_divergence: f64,
+  pub divergence_units: DivergenceUnits,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuspiceGraphMeta {
+  pub meta: AuspiceTreeMeta,
+
+  #[serde(skip)]
+  #[serde(default)]
+  pub tmp: GraphTempData,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+pub type AuspiceGraph = Graph<AuspiceTreeNode, AuspiceTreeEdge, AuspiceGraphMeta>;
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttr {
@@ -286,8 +307,24 @@ pub struct AuspiceTreeMeta {
   pub other: serde_json::Value,
 }
 
+impl AuspiceTreeMeta {
+  #[rustfmt::skip]
+  pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
+    self
+      .extensions.as_ref()?
+      .nextclade.as_ref()?
+      .clade_node_attrs.as_deref()
+  }
+
+  /// Extracts a list of descriptions of clade-like node attributes.
+  /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
+  pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
+    self.clade_node_attr_descs_maybe().unwrap_or(&[])
+  }
+}
+
 #[repr(u8)]
-#[derive(Debug, Clone, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 pub enum DivergenceUnits {
   NumSubstitutionsPerYearPerSite,
   #[default]
@@ -318,21 +355,11 @@ impl DivergenceUnits {
   }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct TreeTempData {
-  pub max_divergence: f64,
-  pub divergence_units: DivergenceUnits,
-}
-
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTree {
   pub meta: AuspiceTreeMeta,
 
   pub tree: AuspiceTreeNode,
-
-  #[serde(skip)]
-  #[serde(default)]
-  pub tmp: TreeTempData,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -407,19 +434,5 @@ impl AuspiceTree {
   /// Iterates over nodes and applies a function to each. Mutable version.
   pub fn map_nodes_mut(&mut self, action: fn((usize, &mut AuspiceTreeNode))) {
     Self::map_nodes_mut_rec(0, &mut self.tree, action);
-  }
-
-  #[rustfmt::skip]
-  pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
-    self.meta
-      .extensions.as_ref()?
-      .nextclade.as_ref()?
-      .clade_node_attrs.as_deref()
-  }
-
-  /// Extracts a list of descriptions of clade-like node attributes.
-  /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
-  pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
-    self.clade_node_attr_descs_maybe().unwrap_or(&[])
   }
 }

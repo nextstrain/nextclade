@@ -6,13 +6,12 @@ use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
-use crate::graph::graph::Graph;
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
-  AUSPICE_UNKNOWN_VALUE,
+  AuspiceColoring, AuspiceGraph, AuspiceGraphMeta, AuspiceTree, AuspiceTreeEdge, AuspiceTreeMeta, AuspiceTreeNode,
+  DivergenceUnits, GraphTempData, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
@@ -22,15 +21,36 @@ use num::Float;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-pub fn tree_preprocess_in_place(
-  tree: &mut AuspiceTree,
+pub fn convert_auspice_tree_to_graph(
+  mut tree: AuspiceTree,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<AuspiceGraph, Report> {
+  let mut graph = {
+    // TODO: Avoid another full tree iteration by merging this one into the main pass
+    let max_divergence = get_max_divergence_recursively(&tree.tree);
+
+    let mut graph = AuspiceGraph::new(AuspiceGraphMeta {
+      meta: tree.meta,
+      tmp: GraphTempData {
+        max_divergence,
+        // TODO: Use auspice extension field to pass info on divergence units, rather than guess
+        divergence_units: DivergenceUnits::guess_from_max_divergence(max_divergence),
+      },
+      other: Default::default(),
+    });
+
+    auspice_add_metadata_in_place(&mut graph.data.meta);
+
+    graph
+  };
+
   let mut parent_nuc_muts = BTreeMap::<NucRefGlobalPosition, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<AaRefPosition, Aa>>::new();
 
-  let mut graph = Graph::<AuspiceTreeNode, AuspiceTreeEdge>::new();
+  // TODO: This needs some cleanup. We no longer need to preprocess the existing tree. We only need to construct
+  //   the graph - i.e. to add nodes and edges with already "preprocessed" payloads. The tree is no longer used
+  //   anywhere else.
   tree_preprocess_in_place_impl_recursive(
     &mut tree.tree,
     &mut parent_nuc_muts,
@@ -39,13 +59,6 @@ pub fn tree_preprocess_in_place(
     ref_seq,
     ref_translation,
   )?;
-
-  // TODO: Avoid second full tree iteration by merging it into the one that is just above
-  tree.tmp.max_divergence = get_max_divergence_recursively(&tree.tree);
-  // TODO: Use auspice extension field to pass info on divergence units, rather than guess
-  tree.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(tree.tmp.max_divergence);
-
-  tree_add_metadata(tree);
 
   graph.build()
 }
@@ -241,7 +254,7 @@ fn pair(key: &str, val: &str) -> [String; 2] {
   [key.to_owned(), val.to_owned()]
 }
 
-fn tree_add_metadata(tree: &mut AuspiceTree) {
+fn auspice_add_metadata_in_place(meta: &mut AuspiceTreeMeta) {
   let new_colorings: Vec<AuspiceColoring> = vec![
     AuspiceColoring {
       key: "Node type".to_owned(),
@@ -267,9 +280,9 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     },
   ];
 
-  tree.meta.colorings = concat_to_vec(&new_colorings, &tree.meta.colorings);
+  meta.colorings = concat_to_vec(&new_colorings, &meta.colorings);
 
-  tree.meta.colorings.iter_mut().for_each(|coloring| {
+  meta.colorings.iter_mut().for_each(|coloring| {
     let key: &str = &coloring.key;
     match key {
       "region" | "country" | "division" => {
@@ -279,11 +292,11 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     }
   });
 
-  tree.meta.display_defaults.branch_label = Some("clade".to_owned());
-  tree.meta.display_defaults.color_by = Some("clade_membership".to_owned());
-  tree.meta.display_defaults.distance_measure = Some("div".to_owned());
+  meta.display_defaults.branch_label = Some("clade".to_owned());
+  meta.display_defaults.color_by = Some("clade_membership".to_owned());
+  meta.display_defaults.distance_measure = Some("div".to_owned());
 
-  tree.meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
+  meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
 
   let new_filters = vec![
     "clade_membership".to_owned(),
@@ -292,7 +305,7 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     "Has PCR primer changes".to_owned(),
   ];
 
-  tree.meta.filters = concat_to_vec(&new_filters, &tree.meta.filters);
+  meta.filters = concat_to_vec(&new_filters, &meta.filters);
 
-  tree.meta.geo_resolutions = None;
+  meta.geo_resolutions = None;
 }

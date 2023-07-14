@@ -19,9 +19,9 @@ use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::params::TreeBuilderParams;
-use nextclade::tree::tree::{AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
+use nextclade::tree::tree::{AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
-use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
+use nextclade::tree::tree_preprocess::convert_auspice_tree_to_graph;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use serde::{Deserialize, Serialize};
@@ -154,8 +154,7 @@ pub struct Nextclade {
   aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
   primers: Vec<PcrPrimer>,
-  tree: AuspiceTree,
-  graph: Graph<AuspiceTreeNode, AuspiceTreeEdge>,
+  graph: AuspiceGraph,
   qc_config: QcConfig,
   virus_properties: VirusProperties,
   gap_open_close_nuc: Vec<i32>,
@@ -214,10 +213,9 @@ impl Nextclade {
 
     let aa_motifs_ref = find_aa_motifs(&virus_properties.aa_motifs, &ref_translation)?;
 
-    let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
-
-    let graph = tree_preprocess_in_place(&mut tree, &ref_seq, &ref_translation)?;
-    let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
+    let tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
+    let graph = convert_auspice_tree_to_graph(tree, &ref_seq, &ref_translation)?;
+    let clade_node_attr_key_descs = graph.data.meta.clade_node_attr_descs().to_vec();
 
     let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);
 
@@ -233,7 +231,6 @@ impl Nextclade {
       aa_motifs_ref,
       gene_map,
       primers,
-      tree,
       graph,
       qc_config,
       virus_properties,
@@ -278,7 +275,7 @@ impl Nextclade {
       &self.aa_motifs_ref,
       &self.gene_map,
       &self.primers,
-      &self.tree,
+      &self.graph,
       &self.qc_config,
       &self.virus_properties,
       &self.gap_open_close_nuc,
@@ -313,16 +310,8 @@ impl Nextclade {
     }
   }
 
-  pub fn get_output_tree(&mut self, results: Vec<NextcladeOutputs>) -> Result<&AuspiceTree, Report> {
-    graph_attach_new_nodes_in_place(
-      &mut self.graph,
-      results,
-      &self.tree.tmp.divergence_units,
-      self.ref_seq.len(),
-      &self.tree_builder_params,
-    )?;
-    let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&self.graph).unwrap();
-    self.tree.tree = root;
-    Ok(&self.tree)
+  pub fn get_output_tree(&mut self, results: Vec<NextcladeOutputs>) -> Result<AuspiceTree, Report> {
+    graph_attach_new_nodes_in_place(&mut self.graph, results, self.ref_seq.len(), &self.tree_builder_params)?;
+    convert_graph_to_auspice_tree(&self.graph)
   }
 }

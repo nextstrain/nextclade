@@ -1,17 +1,15 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
-use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode};
+use crate::tree::tree::{AuspiceGraph, AuspiceTree, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 
-pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
-pub type NodeEdgePayloadPair<N, E> = (N, E);
-
 #[derive(Debug)]
-pub struct Graph<N, E>
+#[allow(clippy::partial_pub_fields)]
+pub struct Graph<N, E, D>
 where
   N: GraphNode,
   E: GraphEdge,
@@ -20,19 +18,21 @@ where
   edges: Vec<Edge<E>>,
   roots: Vec<GraphNodeKey>,
   leaves: Vec<GraphNodeKey>,
+  pub data: D,
 }
 
-impl<N, E> Graph<N, E>
+impl<N, E, D> Graph<N, E, D>
 where
   N: GraphNode,
   E: GraphEdge,
 {
-  pub const fn new() -> Self {
+  pub const fn new(meta: D) -> Self {
     Self {
       nodes: Vec::new(),
       edges: Vec::new(),
       roots: vec![],
       leaves: vec![],
+      data: meta,
     }
   }
 
@@ -397,7 +397,7 @@ where
     Ok(())
   }
 
-  pub fn build(mut self) -> Result<Graph<N, E>, Report> {
+  pub fn build(mut self) -> Result<Graph<N, E, D>, Report> {
     self.build_ref()?;
     Ok(self)
   }
@@ -499,11 +499,33 @@ where
 
     Ok(())
   }
+
+  /// Synchronously traverse graph in depth-first preorder fashion forward (from roots to leaves, along edge directions).
+  ///
+  /// Guarantees that for each visited node, all of it parents (recursively) are visited before
+  /// the node itself is visited.
+  pub fn iter_depth_first_preorder_forward(&self, mut explorer: impl FnMut(&Node<N>)) {
+    let mut stack: Vec<GraphNodeKey> = self.roots.clone();
+    let mut visited = HashSet::<GraphNodeKey>::new();
+    while let Some(key) = stack.pop() {
+      if !visited.contains(&key) {
+        let node = self.get_node(key).unwrap();
+        stack.extend(self.iter_child_keys_of(node));
+        explorer(node);
+        visited.insert(key);
+      }
+    }
+  }
 }
 
-pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTreeNode, Report> {
+pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree, Report> {
   let root = graph.get_exactly_one_root()?;
-  convert_graph_to_auspice_tree_recursive(graph, root)
+  let tree = convert_graph_to_auspice_tree_recursive(graph, root)?;
+  Ok(AuspiceTree {
+    meta: graph.data.meta.clone(),
+    tree,
+    other: serde_json::Value::default(),
+  })
 }
 
 fn convert_graph_to_auspice_tree_recursive(

@@ -75,7 +75,7 @@ impl NextcladeWasm {
   pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
     let tree = jserr(self.nextclade.get_output_tree(nextclade_outputs))?;
-    jserr(json_stringify(tree))
+    jserr(json_stringify(&tree))
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct

@@ -26,7 +26,7 @@ use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::params::TreeBuilderParams;
 use nextclade::tree::tree::AuspiceTreeNode;
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
-use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
+use nextclade::tree::tree_preprocess::convert_auspice_tree_to_graph;
 use nextclade::types::outputs::NextcladeOutputs;
 use std::path::PathBuf;
 
@@ -114,7 +114,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let DatasetFilesContent {
     ref_record,
     virus_properties,
-    mut tree,
+    tree,
     ref gene_map,
     qc_config,
     primers,
@@ -173,8 +173,8 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
-  let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
-  let clade_node_attrs = tree.clade_node_attr_descs();
+  let mut graph = convert_auspice_tree_to_graph(tree, ref_seq, ref_translation).unwrap();
+  let clade_node_attrs = graph.data.meta.clade_node_attr_descs();
 
   let aa_motifs_keys = &virus_properties
     .aa_motifs
@@ -215,7 +215,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       let alignment_params = &alignment_params;
       let ref_translation = &ref_translation;
       let primers = &primers;
-      let tree = &tree;
+      let graph = &graph;
       let qc_config = &qc_config;
       let virus_properties = &virus_properties;
 
@@ -241,7 +241,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               aa_motifs_ref,
               gene_map,
               primers,
-              tree,
+              graph,
               qc_config,
               virus_properties,
               gap_open_close_nuc,
@@ -314,18 +314,9 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   });
 
   if let Some(output_tree) = run_args.outputs.output_tree {
-    // Attach sequences to graph in greedy approach, building a tree
-    graph_attach_new_nodes_in_place(
-      &mut graph,
-      outputs,
-      &tree.tmp.divergence_units,
-      ref_seq.len(),
-      &tree_builder_params,
-    )?;
+    graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &tree_builder_params)?;
 
-    let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
-    tree.tree = root;
-
+    let tree = convert_graph_to_auspice_tree(&graph)?;
     json_write(output_tree, &tree)?;
   }
 
