@@ -1,6 +1,3 @@
-use std::cmp::max;
-use std::cmp::min;
-
 use crate::align::band_2d::full_matrix;
 use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
@@ -12,7 +9,12 @@ use crate::make_error;
 use crate::utils::collections::first;
 use eyre::Report;
 use log::trace;
+use num_traits::abs;
 use num_traits::clamp;
+use num_traits::clamp_min;
+use std::cmp::max;
+use std::cmp::min;
+use std::collections::BTreeMap;
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
@@ -166,6 +168,10 @@ pub fn seed_alignment(
   }
 }
 
+fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> usize {
+  abs(seed2.offset - seed1.offset) as usize
+}
+
 /// Takes in seed matches and returns a vector of stripes
 /// Stripes define the query sequence range for each reference position
 pub fn create_stripes(
@@ -182,163 +188,181 @@ pub fn create_stripes(
   // 2. Between seed matches, stripes are a trapezoid extended along each match with extra
   // half-width=excess_bandwidth
   // 3. Sequence terminal start and end are like body but with extra half-width=terminal_bandwidth
-  // 4. To be safe, we don't use the narrow "body-width" for the terminal "allowed_mismatches"
+  // 4. To be safe, we don't use the narrow "body-width" for the terminal "allowed_mismatches" + abs(shift to adjacent stripe)
   // of each match, that is, the trapezoid is extended into seed matches by allowed_mimatches
 
   // Beware: offsets obey
   // qry_pos = ref_pos - offset
   // This is the opposite of the definition of shifts in previous version of create_stripes
+  trace_matches(seed_matches);
 
-  let mut stripes = Vec::new();
+  let body_bandwidth = (allowed_mismatches + 1) / 2;
 
-  // Stripe index along ref sequence
+  let seed1 = seed_matches.first().unwrap();
 
-  let first_seed = seed_matches
-    .first()
-    .expect("No seed matches found, but should have been caught earlier");
+  // Add terminal start box
+  let mut trapezoids = vec![TrapezoidOffsetParams {
+    ref_start: 0,
+    ref_end: seed1.ref_pos + allowed_mismatches,
+    offset: seed1.offset,
+    extra_bandwidth: terminal_bandwidth as usize,
+  }
+  .to_direct_params()];
 
-  // Add start stripes until first seed match
-  add_trapezoid_stripes(
-    &mut stripes,
+  for w in seed_matches.windows(2) {
+    let (seed1, seed2) = (w[0].clone(), w[1].clone());
+    let abs_shift = abs_shift(&seed1, &seed2);
+
+    // Add body trapezoid
+    trapezoids.push(
+      TrapezoidOffsetParams {
+        ref_start: seed1.ref_pos,
+        ref_end: seed1.ref_pos + seed1.length,
+        offset: seed1.offset,
+        extra_bandwidth: body_bandwidth,
+      }
+      .to_direct_params(),
+    );
+
+    trace!("Absolute shift: {}", abs_shift);
+
+    let previous = trapezoids.last().unwrap();
+    let box_start = previous.ref_end - allowed_mismatches - abs_shift;
+    let box_end = seed2.ref_pos + allowed_mismatches + abs_shift;
+
+    // Add gap trapezoid
+    trapezoids.push(TrapezoidDirectParams {
+      ref_start: box_start,
+      ref_end: box_end,
+      qry_start: box_start as isize - max(seed1.offset, seed2.offset) - excess_bandwidth as isize,
+      qry_end: box_start as isize - min(seed1.offset, seed2.offset) + excess_bandwidth as isize,
+    });
+  }
+
+  let last_match = seed_matches.last().unwrap();
+  // Add last body trapezoid
+  trapezoids.push(
     TrapezoidOffsetParams {
-      ref_start: 0,
-      ref_end: first_seed.ref_pos + allowed_mismatches,
-      offset: first_seed.offset,
-      extra_bandwidth: terminal_bandwidth as usize,
-      qry_len: qry_len as usize,
-    },
+      ref_start: last_match.ref_pos,
+      ref_end: last_match.ref_pos + last_match.length,
+      offset: last_match.offset,
+      extra_bandwidth: body_bandwidth,
+    }
+    .to_direct_params(),
   );
+
+  // Make last gap wider by making extra_bandwidth = terminal_bandwidth
+  trapezoids.push(
+    TrapezoidOffsetParams {
+      ref_start: trapezoids.last().unwrap().ref_end - allowed_mismatches,
+      ref_end: ref_len as usize + 1,
+      offset: last_match.offset,
+      extra_bandwidth: terminal_bandwidth as usize,
+    }
+    .to_direct_params(),
+  );
+
+  // dbg!(&trapezoids);
+
+  // Create stripes from trapezoids
+  // map from ref_pos to Vec<Stripe>
+  // let multi_stripes:
+  let multi_stripes = trapezoids
+    .into_iter()
+    .fold(BTreeMap::<usize, Vec<Stripe>>::new(), |acc, trapezoid_params| {
+      add_direct_trapezoid_stripes(acc, trapezoid_params)
+    });
+
+  let mut stripes: Vec<Stripe> = vec![];
+  for ref_pos in 0..=ref_len {
+    let stripe = match multi_stripes.get(&(ref_pos as usize)) {
+      Some(multi_stripe) => Stripe {
+        begin: multi_stripe.iter().map(|stripe| stripe.begin).min().unwrap(),
+        end: multi_stripe.iter().map(|stripe| stripe.end).max().unwrap(),
+      },
+      None => Stripe {
+        begin: 0,
+        end: qry_len as usize + 1,
+      },
+    };
+    stripes.push(stripe);
+  }
+
+  // dbg!(&stripes);
 
   // Iterate over pairs of seeds
   // Need to add a final stripe to seed_matches to ensure that the last stripe is added
-  for seed_match_index in 0..seed_matches.len() {
-    let seed_match = &seed_matches[seed_match_index];
 
-    let ref_start_body = seed_match.ref_pos + allowed_mismatches;
-    let ref_end_body = seed_match.ref_pos + seed_match.length - allowed_mismatches;
-    let offset_body = seed_match.offset;
-    let extra_bandwidth_body = (allowed_mismatches * 2 + 1) / 2;
+  // If debuggin
 
-    // Add body stripes for the current seed match
-    add_trapezoid_stripes(
-      &mut stripes,
-      TrapezoidOffsetParams {
-        ref_start: ref_start_body,
-        ref_end: ref_end_body,
-        offset: offset_body,
-        extra_bandwidth: extra_bandwidth_body,
-        qry_len: qry_len as usize,
-      },
-    );
-
-    // Two cases: end or not
-    // If end: need to calculate gab offset and bandwidth differently
-    if let Some(next_seed_match) = seed_matches.get(seed_match_index + 1) {
-      // Not the last seed match
-      // Add gap stripes between the current and next seed match
-      let left_offset = max(seed_match.offset, next_seed_match.offset);
-      let right_offset = min(seed_match.offset, next_seed_match.offset);
-      add_direct_trapezoid_stripes(
-        &mut stripes,
-        TrapezoidDirectParams {
-          ref_start: ref_end_body,
-          ref_end: next_seed_match.ref_pos + allowed_mismatches,
-          qry_start: (ref_end_body as isize - left_offset - excess_bandwidth as isize) as usize,
-          qry_end: (ref_end_body as isize - right_offset + excess_bandwidth as isize) as usize,
-          qry_len: qry_len as usize,
-        },
-      );
-    } else {
-      // Add gap stripes for the last, terminal match
-      add_trapezoid_stripes(
-        &mut stripes,
-        TrapezoidOffsetParams {
-          ref_start: ref_end_body,
-          ref_end: ref_len as usize + 1,
-          offset: seed_match.offset,
-          extra_bandwidth: terminal_bandwidth as usize,
-          qry_len: qry_len as usize,
-        },
-      );
-    }
-  }
-
+  // write_stripes_to_file(&stripes, "stripes.csv");
   let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
 
   // For debugging of stripes and matches:
-  write_stripes_to_file(&regularized_stripes, "stripes.csv");
-  write_matches_to_file(seed_matches, "matches.csv");
+  // write_stripes_to_file(&regularized_stripes, "stripes.csv");
+  // write_matches_to_file(seed_matches, "matches.csv");
   // Usefully visualized using `python scripts/visualize-stripes.py`
   //
   trace_stripe_stats(&regularized_stripes);
-  trace_matches(seed_matches);
 
   Ok(regularized_stripes)
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 // Default qry_len is qry_len
 struct TrapezoidOffsetParams {
   ref_start: usize,
   ref_end: usize,
   offset: isize,
   extra_bandwidth: usize,
-  qry_len: usize,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct TrapezoidDirectParams {
   ref_start: usize,
   ref_end: usize,
-  qry_start: usize,
-  qry_end: usize,
-  qry_len: usize,
+  qry_start: isize,
+  qry_end: isize,
 }
 
-/// Adds trapezoid of stripes from ref_start to ref_end (exclusive)
-/// centered on match with offset and extra margin on both sides
-fn add_trapezoid_stripes(stripes: &mut Vec<Stripe>, params: TrapezoidOffsetParams) {
-  let TrapezoidOffsetParams {
-    ref_start,
-    ref_end,
-    offset,
-    extra_bandwidth,
-    qry_len,
-  } = params;
-  let mut qry_start = ref_start as isize - offset - extra_bandwidth as isize;
-  let full_width = extra_bandwidth * 2 + 1;
-  for ref_pos in ref_start..ref_end {
-    let stripe = Stripe {
-      begin: clamp(qry_start, 0, qry_len as isize) as usize,
-      end: clamp(qry_start + full_width as isize, 0, qry_len as isize + 1) as usize,
-    };
-    stripes.push(stripe);
-    qry_start += 1;
+// Implement a function on TrapezoidOffsetParams to convert to TrapezoidDirectParams
+impl TrapezoidOffsetParams {
+  const fn to_direct_params(self) -> TrapezoidDirectParams {
+    TrapezoidDirectParams {
+      ref_start: self.ref_start,
+      ref_end: self.ref_end,
+      qry_start: self.ref_start as isize - self.offset - self.extra_bandwidth as isize,
+      qry_end: self.ref_start as isize - self.offset + self.extra_bandwidth as isize,
+    }
   }
 }
 
 /// Adds trapezoid of stripes from ref_start to ref_end (exclusive)
 /// and qry_start to qry_end (exclusive) with safety_margin
-fn add_direct_trapezoid_stripes(stripes: &mut Vec<Stripe>, params: TrapezoidDirectParams) {
+fn add_direct_trapezoid_stripes(
+  mut stripe_map: BTreeMap<usize, Vec<Stripe>>,
+  params: TrapezoidDirectParams,
+) -> BTreeMap<usize, Vec<Stripe>> {
   let TrapezoidDirectParams {
     ref_start,
     ref_end,
     qry_start,
     qry_end,
-    qry_len,
   } = params;
   let mut ref_pos = ref_start;
   let mut qry_pos = qry_start;
   let full_width = qry_end - qry_start;
+  assert!(ref_end > ref_start);
   for _ in ref_start..ref_end {
     let stripe = Stripe {
-      begin: clamp(qry_pos, 0, qry_len),
-      end: clamp(qry_pos + full_width, 0, qry_len + 1),
+      begin: usize::try_from(qry_pos).unwrap_or(0),
+      end: usize::try_from(qry_pos + full_width).unwrap_or(0),
     };
-    stripes.push(stripe);
+    stripe_map.entry(ref_pos).or_default().push(stripe);
     ref_pos += 1;
     qry_pos += 1;
   }
+  stripe_map
 }
 
 /// Chop off unreachable parts of the stripes.
@@ -363,6 +387,10 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
 fn trace_stripe_stats(stripes: &[Stripe]) {
   let mut stripe_lengths = Vec::new();
   for stripe in stripes {
+    assert!(
+      stripe.begin <= stripe.end,
+      "Stripe begin must be <= stripe end for stripe {stripe:?}",
+    );
     stripe_lengths.push(stripe.end - stripe.begin);
   }
   stripe_lengths.sort_unstable();
