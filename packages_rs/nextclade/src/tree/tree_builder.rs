@@ -103,7 +103,7 @@ pub fn finetune_nearest_node(
   let mut nearest_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
   loop {
-    let mut shared_muts_counts = HashMap::<GraphNodeKey, SplitMutsResult>::from([(
+    let mut shared_muts_neighbors = HashMap::<GraphNodeKey, SplitMutsResult>::from([(
       current_best_node_key,
       split_muts(
         &nearest_node.payload().tmp.private_mutations.invert(),
@@ -118,7 +118,7 @@ pub fn finetune_nearest_node(
     )]);
 
     for child in graph.iter_children_of(nearest_node) {
-      shared_muts_counts.insert(
+      shared_muts_neighbors.insert(
         child.key(),
         split_muts(&child.payload().tmp.private_mutations, &private_mutations).wrap_err_with(|| {
           format!(
@@ -129,7 +129,7 @@ pub fn finetune_nearest_node(
       );
     }
 
-    let (best_node_key, max_shared_muts) = shared_muts_counts
+    let (best_node_key, max_shared_muts) = shared_muts_neighbors
       .into_iter()
       .max_by_key(|(_, split_result)| split_result.shared.nuc_subs.len())
       .ok_or_else(|| make_internal_report!("Shared mutations map cannot be empty"))?;
@@ -177,7 +177,7 @@ pub fn finetune_nearest_node(
       // auxillary nodes.
 
       // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
-      // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_counts`
+      // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_neighbors`
       // and the `max_shared_muts` is automatically the `nearest_node_key`. Less error prone would be
       // to fetch the shared muts corresponding to current_best_node_key
       private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
