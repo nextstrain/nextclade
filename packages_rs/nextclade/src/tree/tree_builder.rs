@@ -173,6 +173,19 @@ pub fn finetune_nearest_node(
         })?;
       }
     } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
+      // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
+      // auxillary nodes.
+
+      // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
+      // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_counts`
+      // and the `max_shared_muts` is automatically the `nearest_node_key`. Less error prone would be
+      // to fetch the shared muts corresponding to current_best_node_key
+      private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
+        format!(
+          "When subtracting mutations from zero-length parent node '{}'",
+          nearest_node.payload().name
+        )
+      })?;
       nearest_node = graph
         .parent_of_by_key(best_node_key)
         .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
@@ -254,7 +267,6 @@ pub fn knit_into_graph(
   let target_node = graph.get_node(target_key)?;
   let target_node_auspice = target_node.payload();
   let target_node_div = &target_node_auspice.node_attrs.div.unwrap_or(0.0);
-
   let KnitMuts {
     muts_common_branch,
     muts_target_node,
