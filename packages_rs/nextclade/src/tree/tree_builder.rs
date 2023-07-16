@@ -315,6 +315,9 @@ pub fn knit_into_graph(
       new_internal_node.node_attrs.div = Some(divergence_middle_node);
       new_internal_node.branch_attrs.mutations =
         convert_private_mutations_to_node_branch_attrs(&new_internal_node.tmp.private_mutations);
+      if let Some(labels) = &mut new_internal_node.branch_attrs.labels {
+        labels.clade = None; //nuke existing clade labels
+      }
       set_branch_attrs_aa_labels(&mut new_internal_node);
 
       new_internal_node.name = format!("{target_key}_internal");
