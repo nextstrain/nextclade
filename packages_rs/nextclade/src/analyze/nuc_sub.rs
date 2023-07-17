@@ -1,5 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::{from_nuc, Nuc};
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_del::NucDel;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::gene::genotype::Genotype;
@@ -20,6 +21,34 @@ pub struct NucSub {
   pub qry_nuc: Nuc,
 }
 
+impl AbstractMutation<NucRefGlobalPosition, Nuc> for NucSub {
+  fn clone_with(&self, params: MutParams<NucRefGlobalPosition, Nuc>) -> Self {
+    Self {
+      pos: params.pos,
+      ref_nuc: params.ref_letter,
+      qry_nuc: params.qry_letter,
+    }
+  }
+}
+
+impl QryLetter<Nuc> for NucSub {
+  fn qry_letter(&self) -> Nuc {
+    self.qry_nuc
+  }
+}
+
+impl RefLetter<Nuc> for NucSub {
+  fn ref_letter(&self) -> Nuc {
+    self.ref_nuc
+  }
+}
+
+impl Pos<NucRefGlobalPosition> for NucSub {
+  fn pos(&self) -> NucRefGlobalPosition {
+    self.pos
+  }
+}
+
 impl NucSub {
   /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
   pub fn is_del(&self) -> bool {
@@ -30,6 +59,15 @@ impl NucSub {
     Genotype {
       pos: self.pos,
       qry: self.qry_nuc,
+    }
+  }
+
+  #[must_use]
+  pub const fn invert(&self) -> Self {
+    Self {
+      ref_nuc: self.qry_nuc,
+      pos: self.pos,
+      qry_nuc: self.ref_nuc,
     }
   }
 }

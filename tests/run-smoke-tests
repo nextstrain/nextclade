@@ -27,6 +27,7 @@ dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | sel
 dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
 all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
 num_datasets=$(echo "${all_datasets}" | wc -l)
+JOBS="${JOBS:=${num_datasets}}"
 
 function run_one_test() {
   name_and_ref=$1
@@ -43,11 +44,12 @@ function run_one_test() {
   ${NEXTCLADE_BIN} run --in-order --include-reference \
     --input-dataset="$DATASET_DIR/${name}/${reference:-default}" \
     --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
     --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
-    --output-columns-selection=general,ref-muts,priv-muts,qc,primers,dynamic \
+    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
+    --output-json="$OUT_DIR/${name}/${reference:-default}/nextclade.json" \
+    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.auspice.json" \
     "$DATASET_DIR/${name}/${reference:-default}/sequences.fasta"
 }
 export -f run_one_test
 
-parallel --jobs="${num_datasets}" run_one_test ::: "${all_datasets}"
+parallel --jobs="${JOBS}" run_one_test ::: "${all_datasets}"

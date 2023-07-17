@@ -251,7 +251,7 @@ jobs:
       - name: "Run smoke tests (linux)"
         run: |
           chmod +x ./.out/*
-          ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
+          JOBS=2 ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
 
 #  run-smoke-tests-mac:
 #    name: "Run smoke tests (mac)"
