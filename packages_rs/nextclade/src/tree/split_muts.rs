@@ -347,3 +347,61 @@ fn zip_aa_muts<'a>(
     (cds_name, aa_muts_left, aa_muts_right)
   })
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::analyze::nuc_sub::NucSub;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+  use std::str::FromStr;
+
+  fn to_nuc_subs(muts: &[&str]) -> Vec<NucSub> {
+    muts.iter().map(|m| NucSub::from_str(m).unwrap()).collect_vec()
+  }
+
+  fn from_nuc_subs(muts: &[NucSub]) -> Vec<String> {
+    muts.iter().map(NucSub::to_string).collect_vec()
+  }
+
+  #[rstest]
+  fn calculates_split_3_way_of_nuc_subs() -> Result<(), Report> {
+    let Split3WayResult { left, shared, right } = split_3_way(
+      &to_nuc_subs(&["A1G", "A3C", "C4G"]),
+      &to_nuc_subs(&["C2T", "A3C", "C4T"]),
+    )?;
+    assert_eq!(from_nuc_subs(&left), &["A1G", "C4G"]);
+    assert_eq!(from_nuc_subs(&shared), &["A3C"]);
+    assert_eq!(from_nuc_subs(&right), &["C2T", "C4T"]);
+    Ok(())
+  }
+
+  #[rstest]
+  fn calculates_difference_of_nuc_subs() -> Result<(), Report> {
+    let actual = difference(
+      &to_nuc_subs(&["A1G", "C2T", "A3C", "C4G"]),
+      &to_nuc_subs(&["C2T", "G3C", "C4A"]),
+    )?;
+
+    // at pos 3: left is A->C, we subtract G->C ==> A->G (diff first, then right to yield left)
+    // at pos 4: left is C->G, we subtract C->A ==> A->G (right first, then diff)
+
+    assert_eq!(from_nuc_subs(&actual), &["A1G", "A3G", "A4G"]);
+    Ok(())
+  }
+
+  #[rstest]
+  fn calculates_union_of_nuc_subs() -> Result<(), Report> {
+    let actual = union(
+      &to_nuc_subs(&["A1G", "A3G", "A4G"]),
+      &to_nuc_subs(&["C2T", "G3C", "C4A"]),
+    )?;
+
+    // at pos 3: A->G->C ==> A->C (left first)
+    // at pos 4: C->A->G ==> C->G (right first)
+
+    assert_eq!(from_nuc_subs(&actual), &["A1G", "C2T", "A3C", "C4G"]);
+    Ok(())
+  }
+}
