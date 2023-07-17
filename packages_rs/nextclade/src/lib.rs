@@ -5,6 +5,7 @@ pub mod constants;
 pub mod coord;
 pub mod features;
 pub mod gene;
+pub mod graph;
 pub mod io;
 pub mod qc;
 pub mod run;

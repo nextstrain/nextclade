@@ -2,12 +2,17 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
+use crate::graph::graph::Graph;
+use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
+  AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
+  AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
@@ -21,15 +26,16 @@ pub fn tree_preprocess_in_place(
   tree: &mut AuspiceTree,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
-) -> Result<(), Report> {
+) -> Result<AuspiceGraph, Report> {
   let mut parent_nuc_muts = BTreeMap::<NucRefGlobalPosition, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<AaRefPosition, Aa>>::new();
-  let mut id = 0_usize;
+
+  let mut graph = Graph::<AuspiceTreeNode, AuspiceTreeEdge>::new();
   tree_preprocess_in_place_impl_recursive(
-    &mut id,
     &mut tree.tree,
     &mut parent_nuc_muts,
     &mut parent_aa_muts,
+    &mut graph,
     ref_seq,
     ref_translation,
   )?;
@@ -41,17 +47,17 @@ pub fn tree_preprocess_in_place(
 
   tree_add_metadata(tree);
 
-  Ok(())
+  graph.build()
 }
 
-fn tree_preprocess_in_place_impl_recursive(
-  id: &mut usize,
+pub fn tree_preprocess_in_place_impl_recursive(
   node: &mut AuspiceTreeNode,
   parent_nuc_muts: &mut BTreeMap<NucRefGlobalPosition, Nuc>,
   parent_aa_muts: &mut BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
+  graph: &mut AuspiceGraph,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
-) -> Result<(), Report> {
+) -> Result<GraphNodeKey, Report> {
   let mut nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
   let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
     nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
@@ -63,21 +69,66 @@ fn tree_preprocess_in_place_impl_recursive(
     .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
     .collect();
 
-  node.tmp.id = *id;
   node.tmp.mutations = nuc_muts.clone();
+  node.tmp.private_mutations = calc_node_private_mutations(node)?;
   node.tmp.substitutions = nuc_subs;
   node.tmp.aa_mutations = aa_muts.clone();
   node.tmp.aa_substitutions = aa_subs;
   node.tmp.is_ref_node = true;
+  let graph_node_key = graph.add_node(node.clone());
+  node.tmp.id = graph_node_key;
 
   node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
   for child in &mut node.children {
-    *id += 1;
-    tree_preprocess_in_place_impl_recursive(id, child, &mut nuc_muts, &mut aa_muts, ref_seq, ref_translation)?;
+    let graph_child_key =
+      tree_preprocess_in_place_impl_recursive(child, &mut nuc_muts, &mut aa_muts, graph, ref_seq, ref_translation)?;
+    graph.add_edge(graph_node_key, graph_child_key, AuspiceTreeEdge::new())?;
   }
 
-  Ok(())
+  Ok(graph_node_key)
+}
+
+pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMutationsMinimal, Report> {
+  let mut nuc_sub = Vec::<NucSub>::new();
+  let mut nuc_del = Vec::<NucDel>::new();
+  let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
+  match node.branch_attrs.mutations.get("nuc") {
+    None => Ok(PrivateMutationsMinimal {
+      nuc_subs: nuc_sub,
+      nuc_dels: nuc_del,
+      aa_muts: aa_sub,
+    }),
+    Some(mutations) => {
+      for mutation_str in mutations {
+        let mutation = NucSub::from_str(mutation_str)?;
+        if mutation.is_del() {
+          let del = NucDel {
+            ref_nuc: mutation.ref_nuc,
+            pos: mutation.pos,
+          };
+          nuc_del.push(del);
+        } else {
+          nuc_sub.push(mutation);
+        }
+      }
+      for (gene, muts) in &node.branch_attrs.mutations {
+        if gene != "nuc" {
+          let mut aa_sub_vec = Vec::<AaSub>::new();
+          for mutation_str in muts {
+            let mutation = AaSub::from_str(&format!("{gene}:{mutation_str}"))?;
+            aa_sub_vec.push(mutation);
+          }
+          aa_sub.insert(gene.to_string(), aa_sub_vec);
+        }
+      }
+      Ok(PrivateMutationsMinimal {
+        nuc_subs: nuc_sub,
+        nuc_dels: nuc_del,
+        aa_muts: aa_sub,
+      })
+    }
+  }
 }
 
 fn map_nuc_muts(

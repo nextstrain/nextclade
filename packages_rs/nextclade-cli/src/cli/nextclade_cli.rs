@@ -11,6 +11,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
+use nextclade::tree::params::TreeBuilderParamsOptional;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -601,6 +602,9 @@ pub struct NextcladeRunArgs {
   #[clap(flatten, next_help_heading = "  Outputs")]
   pub outputs: NextcladeRunOutputArgs,
 
+  #[clap(flatten, next_help_heading = "  Phylogenetic tree parameters")]
+  pub tree_builder_params: TreeBuilderParamsOptional,
+
   #[clap(flatten, next_help_heading = "  Alignment parameters")]
   pub alignment_params: AlignPairwiseParamsOptional,
 
@@ -629,19 +633,6 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
 pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result<(), Report> {
   let NextcladeRunArgs {
-    inputs:
-      NextcladeRunInputArgs {
-        input_fastas,
-        input_dataset,
-        input_ref,
-        input_tree,
-        input_qc_config,
-        input_virus_properties,
-        input_pcr_primers,
-        input_gene_map,
-        genes,
-        ..
-      },
     outputs:
       NextcladeRunOutputArgs {
         output_all,
@@ -656,12 +647,9 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         output_tree,
         output_insertions,
         output_errors,
-        include_reference,
-        in_order,
         ..
       },
-    other: NextcladeRunOtherArgs { jobs },
-    alignment_params,
+    ..
   } = run_args;
 
   // If `--output-all` is provided, then we need to deduce default output filenames,

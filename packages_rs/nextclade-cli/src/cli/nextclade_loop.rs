@@ -14,6 +14,7 @@ use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
+use nextclade::graph::graph::convert_graph_to_auspice_tree;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
@@ -22,7 +23,9 @@ use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
-use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::params::TreeBuilderParams;
+use nextclade::tree::tree::AuspiceTreeNode;
+use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use std::path::PathBuf;
@@ -104,6 +107,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         ..
       },
     other: NextcladeRunOtherArgs { jobs },
+    tree_builder_params,
     alignment_params,
   } = run_args.clone();
 
@@ -118,17 +122,36 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
 
-  let mut alignment_params = AlignPairwiseParams::default();
+  let alignment_params = {
+    let mut alignment_params = AlignPairwiseParams::default();
 
-  // Merge alignment params coming from virus_properties into alignment_params
-  if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
-    alignment_params.merge_opt(alignment_params_from_file.clone());
-  }
+    // Merge alignment params coming from virus_properties into alignment_params
+    if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
+      alignment_params.merge_opt(alignment_params_from_file.clone());
+    }
 
-  // Merge alignment params coming from CLI arguments
-  alignment_params.merge_opt(run_args.alignment_params);
+    // Merge alignment params coming from CLI arguments
+    alignment_params.merge_opt(run_args.alignment_params);
+
+    alignment_params
+  };
+
+  let tree_builder_params = {
+    let mut tree_builder_params = TreeBuilderParams::default();
+
+    // Merge tree builder params coming from virus_properties into alignment_params
+    if let Some(tree_builder_params_from_file) = &virus_properties.tree_builder_params {
+      tree_builder_params.merge_opt(tree_builder_params_from_file.clone());
+    }
+
+    // Merge tree builder params coming from CLI arguments
+    tree_builder_params.merge_opt(run_args.tree_builder_params);
+
+    tree_builder_params
+  };
 
   info!("Alignment parameters (final):\n{alignment_params:#?}");
+  info!("Tree builder parameters (final):\n{tree_builder_params:#?}");
   info!("Gene map:\n{}", gene_map_to_table_string(gene_map)?);
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
@@ -150,6 +173,9 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
+  let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
+  let clade_node_attrs = tree.clade_node_attr_descs();
+
   let aa_motifs_keys = &virus_properties
     .aa_motifs
     .iter()
@@ -162,9 +188,6 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
-
-    tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
-    let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
 
@@ -290,9 +313,19 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     });
   });
 
-  if let Some(output_tree) = output_tree {
-    outputs.sort_by_key(|o| (o.private_nuc_mutations.total_private_substitutions, o.index));
-    tree_attach_new_nodes_in_place(&mut tree, &outputs);
+  if let Some(output_tree) = run_args.outputs.output_tree {
+    // Attach sequences to graph in greedy approach, building a tree
+    graph_attach_new_nodes_in_place(
+      &mut graph,
+      outputs,
+      &tree.tmp.divergence_units,
+      ref_seq.len(),
+      &tree_builder_params,
+    )?;
+
+    let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
+    tree.tree = root;
+
     json_write(output_tree, &tree)?;
   }
 
