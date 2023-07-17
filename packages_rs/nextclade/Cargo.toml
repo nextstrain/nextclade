@@ -8,6 +8,7 @@ homepage = "https://clades.nextstrain.org/"
 edition = "2021"
 license = "MIT"
 publish = false
+build = "build.rs"
 
 [lib]
 crate-type = ["lib"]
@@ -49,10 +50,11 @@ regex = "=1.8.4"
 schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap"] }
 semver = "=1.0.17"
 serde = { version = "=1.0.164", features = ["derive"] }
-serde_repr = "=0.1.12"
 serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+serde_repr = "=0.1.12"
 serde_stacker = { version = "=0.1.8" }
 serde_yaml = "=0.9.22"
+shadow-rs = { version = "=0.23.0", features = ["git2", "tzdb", "document-features"] }
 strum = "=0.25.0"
 strum_macros = "=0.25.0"
 tinytemplate = "=1.2.1"
@@ -67,12 +69,14 @@ bzip2 = "=0.4.4"
 xz2 = "=0.1.7"
 zstd = { version = "=0.12.3", features = ["zstdmt"] }
 
+[build-dependencies]
+shadow-rs = { version = "=0.23.0", features = ["git2", "tzdb", "document-features"] }
+
 [dev-dependencies]
 assert2 = "=0.3.11"
 criterion = { version = "=0.5.1", features = ["html_reports"] }
 rstest = "=0.17.0"
 rstest_reuse = "=0.5.0"
-
 
 [[bench]]
 name = "bench_create_stripes"

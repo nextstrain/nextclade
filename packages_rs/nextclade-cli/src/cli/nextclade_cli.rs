@@ -12,11 +12,13 @@ use lazy_static::lazy_static;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
 use nextclade::tree::params::TreeBuilderParamsOptional;
+use nextclade::utils::build_info::get_build_info;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
+use std::process::exit;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -50,11 +52,23 @@ pub fn check_shells(value: &str) -> Result<String, Report> {
 /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
 pub struct NextcladeArgs {
   #[clap(subcommand)]
-  pub command: NextcladeCommands,
+  pub command: Option<NextcladeCommands>,
 
   /// Make output more quiet or more verbose
   #[clap(flatten, next_help_heading = "  Verbosity")]
   pub verbosity: Verbosity<WarnLevel>,
+
+  /// Detailed version information
+  #[clap(long, short = 'W', global = true)]
+  pub version_detailed: bool,
+
+  /// Full version information
+  #[clap(long, short = 'X', global = true)]
+  pub version_full: bool,
+
+  /// Full version information in JSON format
+  #[clap(long, short = 'Y', global = true)]
+  pub version_json: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -824,24 +838,39 @@ pub fn nextclade_check_column_config_args(run_args: &NextcladeRunArgs) -> Result
   Ok(())
 }
 
+#[allow(clippy::exit)]
 pub fn nextclade_parse_cli_args() -> Result<(), Report> {
   let args = NextcladeArgs::parse();
 
   setup_logger(args.verbosity.get_filter_level());
 
+  if args.version_detailed {
+    println!("{}", get_build_info().detailed()?);
+    exit(0);
+  } else if args.version_full {
+    println!("{}", get_build_info().full()?);
+    exit(0);
+  } else if args.version_json {
+    println!("{}", get_build_info().json()?);
+    exit(0);
+  }
+
   match args.command {
-    NextcladeCommands::Completions { shell } => {
+    Some(NextcladeCommands::Completions { shell }) => {
       generate_completions(&shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))
     }
-    NextcladeCommands::Run(mut run_args) => {
+    Some(NextcladeCommands::Run(mut run_args)) => {
       nextclade_check_removed_args(&run_args)?;
       nextclade_check_column_config_args(&run_args)?;
       nextclade_get_output_filenames(&mut run_args).wrap_err("When deducing output filenames")?;
       nextclade_run(*run_args)
     }
-    NextcladeCommands::Dataset(dataset_command) => match dataset_command.command {
+    Some(NextcladeCommands::Dataset(dataset_command)) => match dataset_command.command {
       NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
       NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
     },
+    _ => {
+      make_error!("Nextclade requires a command as the first argument. Please type `nextclade --help` for more info.")
+    }
   }
 }
