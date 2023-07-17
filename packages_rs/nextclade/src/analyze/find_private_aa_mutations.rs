@@ -5,6 +5,7 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::GeneAaRange;
 use crate::coord::position::{AaRefPosition, PositionLike};
+use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
@@ -33,6 +34,7 @@ pub fn find_private_aa_mutations(
   aa_substitutions: &[AaSub],
   aa_deletions: &[AaDel],
   aa_unknowns: &[GeneAaRange],
+  aa_unsequenced_ranges: &BTreeMap<String, Vec<AaRefRange>>,
   ref_peptides: &Translation,
   gene_map: &GeneMap,
 ) -> BTreeMap<String, PrivateAaMutations> {
@@ -43,6 +45,9 @@ pub fn find_private_aa_mutations(
       None => None,
       Some(node_mut_map) => {
         let ref_peptide = ref_peptides.get_cds(&cds.name).unwrap();
+
+        let empty = vec![];
+        let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
 
         let aa_substitutions = aa_substitutions
           .iter()
@@ -59,6 +64,7 @@ pub fn find_private_aa_mutations(
           &aa_substitutions,
           &aa_deletions,
           &aa_unknowns,
+          aa_unsequenced_ranges,
           &ref_peptide.seq,
         );
 
@@ -74,6 +80,7 @@ pub fn find_private_aa_mutations_for_one_gene(
   aa_substitutions: &[&AaSub],
   aa_deletions: &[&AaDel],
   aa_unknowns: &[&GeneAaRange],
+  aa_unsequenced_ranges: &[AaRefRange],
   ref_peptide: &[Aa],
 ) -> PrivateAaMutations {
   // Remember which positions we cover while iterating sequence mutations,
@@ -101,6 +108,7 @@ pub fn find_private_aa_mutations_for_one_gene(
     cds,
     node_mut_map,
     aa_unknowns,
+    aa_unsequenced_ranges,
     ref_peptide,
     &mut seq_positions_mutated_or_deleted,
   );
@@ -239,6 +247,7 @@ fn find_reversions(
   cds: &Cds,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_unknowns: &[&GeneAaRange],
+  aa_unsequenced_ranges: &[AaRefRange],
   ref_peptide: &[Aa],
   seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,
 ) -> Vec<AaSub> {
@@ -247,7 +256,7 @@ fn find_reversions(
   for (pos, node_qry) in node_mut_map {
     let pos = *pos;
     let seq_has_no_mut_or_del_here = !seq_positions_mutated_or_deleted.contains(&pos);
-    let pos_is_sequenced = is_aa_sequenced(pos, aa_unknowns);
+    let pos_is_sequenced = is_aa_sequenced(pos, aa_unknowns, aa_unsequenced_ranges);
     if seq_has_no_mut_or_del_here && pos_is_sequenced {
       // Case 4: Mutation in node, but not in sequence. This is a so-called reversion or un-deletion.
       // State in sequence reverts the character to ref seq. (the case when un-deleted state is mutated in

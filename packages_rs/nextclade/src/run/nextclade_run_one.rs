@@ -156,11 +156,36 @@ pub fn nextclade_run_one(
     virus_properties,
   );
 
+  let aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
+    .cdses()
+    .map(|tr| {
+      let alignment_ranges = tr
+        .alignment_ranges
+        .iter()
+        .filter_map(|alignment_range| (!alignment_range.is_empty()).then_some(alignment_range.clone()))
+        .collect_vec();
+      (tr.name.clone(), alignment_ranges)
+    })
+    .collect();
+
+  let aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
+    .cdses()
+    .map(|tr| {
+      let unsequenced_ranges = tr
+        .unsequenced_ranges
+        .iter()
+        .filter_map(|unsequenced_range| (!unsequenced_range.is_empty()).then_some(unsequenced_range.clone()))
+        .collect_vec();
+      (tr.name.clone(), unsequenced_ranges)
+    })
+    .collect();
+
   let private_aa_mutations = find_private_aa_mutations(
     node,
     &aa_substitutions,
     &aa_deletions,
     &unknown_aa_ranges,
+    &aa_unsequenced_ranges,
     ref_peptides,
     gene_map,
   );
@@ -205,30 +230,6 @@ pub fn nextclade_run_one(
     &frame_shifts,
     qc_config,
   );
-
-  let aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
-    .cdses()
-    .map(|tr| {
-      let alignment_ranges = tr
-        .alignment_ranges
-        .iter()
-        .filter_map(|alignment_range| (!alignment_range.is_empty()).then_some(alignment_range.clone()))
-        .collect_vec();
-      (tr.name.clone(), alignment_ranges)
-    })
-    .collect();
-
-  let aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
-    .cdses()
-    .map(|tr| {
-      let unsequenced_ranges = tr
-        .unsequenced_ranges
-        .iter()
-        .filter_map(|unsequenced_range| (!unsequenced_range.is_empty()).then_some(unsequenced_range.clone()))
-        .collect_vec();
-      (tr.name.clone(), unsequenced_ranges)
-    })
-    .collect();
 
   Ok((
     stripped.qry_seq,
