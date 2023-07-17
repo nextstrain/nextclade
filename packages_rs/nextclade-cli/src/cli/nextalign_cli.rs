@@ -9,10 +9,12 @@ use itertools::Itertools;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
 use nextclade::make_error;
+use nextclade::utils::build_info::get_build_info;
 use nextclade::utils::global_init::setup_logger;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
+use std::process::exit;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -31,11 +33,23 @@ use strum_macros::EnumIter;
 /// Please read short help with `nextalign -h` and extended help with `nextalign --help`. Each subcommand has its own help, for example: `nextclade run --help`.
 pub struct NextalignArgs {
   #[clap(subcommand)]
-  pub command: NextalignCommands,
+  pub command: Option<NextalignCommands>,
 
   /// Make output more quiet or more verbose
   #[clap(flatten, next_help_heading = "  Verbosity")]
   pub verbosity: Verbosity<WarnLevel>,
+
+  /// Detailed version information
+  #[clap(long, short = 'W', global = true)]
+  pub version_detailed: bool,
+
+  /// Full version information
+  #[clap(long, short = 'X', global = true)]
+  pub version_full: bool,
+
+  /// Full version information in JSON format
+  #[clap(long, short = 'Y', global = true)]
+  pub version_json: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -446,19 +460,34 @@ pub fn nextalign_check_removed_args(run_args: &mut NextalignRunArgs) -> Result<(
   Ok(())
 }
 
+#[allow(clippy::exit)]
 pub fn nextalign_handle_cli_args() -> Result<(), Report> {
   let args = NextalignArgs::parse();
 
   setup_logger(args.verbosity.get_filter_level());
 
+  if args.version_detailed {
+    println!("{}", get_build_info().detailed()?);
+    exit(0);
+  } else if args.version_full {
+    println!("{}", get_build_info().full()?);
+    exit(0);
+  } else if args.version_json {
+    println!("{}", get_build_info().json()?);
+    exit(0);
+  }
+
   match args.command {
-    NextalignCommands::Completions { shell } => {
+    Some(NextalignCommands::Completions { shell }) => {
       generate_completions(&shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))
     }
-    NextalignCommands::Run(mut run_args) => {
+    Some(NextalignCommands::Run(mut run_args)) => {
       nextalign_check_removed_args(&mut run_args)?;
       nextalign_get_output_filenames(&mut run_args).wrap_err("When deducing output filenames")?;
       nextalign_run(*run_args)
+    }
+    _ => {
+      make_error!("Nextalign requires a command as the first argument. Please type `nextalign --help` for more info.")
     }
   }
 }
