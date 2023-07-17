@@ -17,12 +17,13 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::{PhenotypeData, VirusProperties};
-use crate::coord::range::AaRefRange;
 use crate::gene::gene_map::GeneMap;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
-use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
+use crate::translate::aa_alignment_ranges::{
+  calculate_aa_alignment_ranges_in_place, gather_aa_alignment_ranges, GatherAaAlignmentRangesResult,
+};
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceTree;
@@ -30,7 +31,6 @@ use crate::tree::tree_find_nearest_node::tree_find_nearest_nodes;
 use crate::types::outputs::{NextalignOutputs, NextcladeOutputs, PhenotypeValue};
 use eyre::Report;
 use itertools::Itertools;
-use std::collections::BTreeMap;
 
 pub fn nextclade_run_one(
   index: usize,
@@ -156,29 +156,12 @@ pub fn nextclade_run_one(
     virus_properties,
   );
 
-  let aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
-    .cdses()
-    .map(|tr| {
-      let alignment_ranges = tr
-        .alignment_ranges
-        .iter()
-        .filter_map(|alignment_range| (!alignment_range.is_empty()).then_some(alignment_range.clone()))
-        .collect_vec();
-      (tr.name.clone(), alignment_ranges)
-    })
-    .collect();
+  let GatherAaAlignmentRangesResult {
+    aa_alignment_ranges,
+    aa_unsequenced_ranges,
+  } = gather_aa_alignment_ranges(&translation, gene_map);
 
-  let aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>> = translation
-    .cdses()
-    .map(|tr| {
-      let unsequenced_ranges = tr
-        .unsequenced_ranges
-        .iter()
-        .filter_map(|unsequenced_range| (!unsequenced_range.is_empty()).then_some(unsequenced_range.clone()))
-        .collect_vec();
-      (tr.name.clone(), unsequenced_ranges)
-    })
-    .collect();
+  dbg!(&aa_alignment_ranges, &aa_unsequenced_ranges);
 
   let private_aa_mutations = find_private_aa_mutations(
     node,
