@@ -54,7 +54,7 @@ pub fn create_new_auspice_node(
   let other: serde_json::Value = chain!(phenotype_values_json, custom_node_attributes_json).collect();
 
   AuspiceTreeNode {
-    name: format!("{}_new", result.seq_name),
+    name: result.seq_name.clone(),
     branch_attrs: TreeBranchAttrs {
       mutations,
       labels: Some(TreeBranchAttrsLabels {

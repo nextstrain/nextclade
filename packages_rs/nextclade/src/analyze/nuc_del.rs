@@ -1,8 +1,10 @@
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
@@ -47,6 +49,33 @@ pub struct NucDel {
   pub ref_nuc: Nuc,
 }
 
+impl AbstractMutation<NucRefGlobalPosition, Nuc> for NucDel {
+  fn clone_with(&self, params: MutParams<NucRefGlobalPosition, Nuc>) -> Self {
+    Self {
+      pos: params.pos,
+      ref_nuc: params.ref_letter,
+    }
+  }
+}
+
+impl QryLetter<Nuc> for NucDel {
+  fn qry_letter(&self) -> Nuc {
+    Nuc::Gap
+  }
+}
+
+impl RefLetter<Nuc> for NucDel {
+  fn ref_letter(&self) -> Nuc {
+    self.ref_nuc
+  }
+}
+
+impl Pos<NucRefGlobalPosition> for NucDel {
+  fn pos(&self) -> NucRefGlobalPosition {
+    self.pos
+  }
+}
+
 impl NucDel {
   pub const fn to_sub(&self) -> NucSub {
     NucSub {
@@ -54,5 +83,11 @@ impl NucDel {
       pos: self.pos,
       qry_nuc: Nuc::Gap,
     }
+  }
+}
+
+impl Display for NucDel {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    self.to_sub().fmt(f)
   }
 }

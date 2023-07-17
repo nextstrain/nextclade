@@ -2,6 +2,7 @@ use crate::alphabet::aa::{from_aa, Aa};
 use crate::alphabet::letter::Letter;
 use crate::analyze::aa_changes::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
@@ -20,6 +21,35 @@ pub struct AaSub {
   pub pos: AaRefPosition,
   pub ref_aa: Aa,
   pub qry_aa: Aa,
+}
+
+impl AbstractMutation<AaRefPosition, Aa> for AaSub {
+  fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
+    Self {
+      cds_name: self.cds_name.clone(),
+      pos: params.pos,
+      ref_aa: params.ref_letter,
+      qry_aa: params.qry_letter,
+    }
+  }
+}
+
+impl QryLetter<Aa> for AaSub {
+  fn qry_letter(&self) -> Aa {
+    self.qry_aa
+  }
+}
+
+impl RefLetter<Aa> for AaSub {
+  fn ref_letter(&self) -> Aa {
+    self.ref_aa
+  }
+}
+
+impl Pos<AaRefPosition> for AaSub {
+  fn pos(&self) -> AaRefPosition {
+    self.pos
+  }
 }
 
 impl AaSub {

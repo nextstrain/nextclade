@@ -265,10 +265,9 @@ fn find_reversions(
     let pos = *pos;
     let seq_has_no_mut_or_del_here = !seq_positions_mutated_or_deleted.contains(&pos);
     let pos_is_sequenced = is_nuc_sequenced(pos, missing, alignment_range);
-    let is_not_node_deletion = !node_qry.is_gap();
-    if seq_has_no_mut_or_del_here && pos_is_sequenced && is_not_node_deletion {
+    if seq_has_no_mut_or_del_here && pos_is_sequenced {
       // Case 4: Mutation in node, but not in sequence. This is a so-called reversion. Mutation in sequence reverts
-      // the character to ref seq.
+      // the character to ref seq. This can also happen at deleted sites.
       // Action: Add mutation from node query character to character in reference sequence.
       reversion_substitutions.push(NucSub {
         ref_nuc: *node_qry,

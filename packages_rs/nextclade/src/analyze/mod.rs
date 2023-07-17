@@ -1,6 +1,7 @@
 pub mod aa_changes;
 pub mod aa_del;
 pub mod aa_sub;
+pub mod abstract_mutation;
 pub mod count_gaps;
 pub mod divergence;
 pub mod find_aa_motifs;
