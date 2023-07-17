@@ -1,0 +1,5 @@
+eval:
+  branch: feat/better-stripes-for-better-seeds
+
+base:
+  branch: master
