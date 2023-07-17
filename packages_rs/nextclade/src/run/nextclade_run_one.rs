@@ -161,8 +161,6 @@ pub fn nextclade_run_one(
     aa_unsequenced_ranges,
   } = gather_aa_alignment_ranges(&translation, gene_map);
 
-  dbg!(&aa_alignment_ranges, &aa_unsequenced_ranges);
-
   let private_aa_mutations = find_private_aa_mutations(
     node,
     &aa_substitutions,
