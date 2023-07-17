@@ -69,8 +69,7 @@ pub fn graph_preprocess_in_place_recursive(
     node.tmp.aa_substitutions = aa_subs;
     node.tmp.is_ref_node = true;
     node.tmp.id = graph_node_key;
-
-    node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
+    // node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
     (nuc_muts, aa_muts)
   };
