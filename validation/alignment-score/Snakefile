@@ -16,6 +16,11 @@ wildcard_constraints:
     build_type2="[^/\._]+",
 
 
+rule all:
+    input:
+        "results/sars-cov-2/default_diff.tsv",
+
+
 rule clone:
     """
     Checkout eval branch into new directory
