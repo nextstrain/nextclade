@@ -534,11 +534,8 @@ fn convert_graph_to_auspice_tree_recursive(
 ) -> Result<AuspiceTreeNode, Report> {
   let mut payload = node.payload().clone();
 
-  let children = graph
-    .iter_child_keys_of(node)
-    .map(|child_key| graph.get_node(child_key).expect("Node not found"));
-
-  payload.children = children
+  payload.children = graph
+    .iter_children_of(node)
     .map(|child| convert_graph_to_auspice_tree_recursive(graph, child))
     .collect::<Result<Vec<AuspiceTreeNode>, Report>>()?;
 
