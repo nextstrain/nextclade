@@ -280,10 +280,14 @@ pub struct AuspiceDisplayDefaults {
 
   #[serde(skip_serializing_if = "Option::is_none")]
   pub distance_measure: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub extensions: Option<AuspiceMetaExtensions>,
 
   #[serde(skip_serializing_if = "Vec::<AuspiceColoring>::is_empty")]

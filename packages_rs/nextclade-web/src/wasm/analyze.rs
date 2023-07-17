@@ -10,7 +10,7 @@ use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene::Gene;
 use nextclade::gene::gene_map::GeneMap;
-use nextclade::graph::graph::{convert_graph_to_auspice_tree, Graph};
+use nextclade::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree, Graph};
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::json::json_stringify;
 use nextclade::io::nextclade_csv::CsvColumnConfig;
@@ -21,7 +21,7 @@ use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::params::TreeBuilderParams;
 use nextclade::tree::tree::{AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
-use nextclade::tree::tree_preprocess::convert_auspice_tree_to_graph;
+use nextclade::tree::tree_preprocess::graph_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use serde::{Deserialize, Serialize};
@@ -214,7 +214,8 @@ impl Nextclade {
     let aa_motifs_ref = find_aa_motifs(&virus_properties.aa_motifs, &ref_translation)?;
 
     let tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
-    let graph = convert_auspice_tree_to_graph(tree, &ref_seq, &ref_translation)?;
+    let mut graph = convert_auspice_tree_to_graph(tree)?;
+    graph_preprocess_in_place(&mut graph, &ref_seq, &ref_translation)?;
     let clade_node_attr_key_descs = graph.data.meta.clade_node_attr_descs().to_vec();
 
     let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);

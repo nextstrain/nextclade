@@ -10,93 +10,73 @@ use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceColoring, AuspiceGraph, AuspiceGraphMeta, AuspiceTree, AuspiceTreeEdge, AuspiceTreeMeta, AuspiceTreeNode,
-  DivergenceUnits, GraphTempData, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
+  AuspiceColoring, AuspiceGraph, AuspiceTreeMeta, AuspiceTreeNode, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use maplit::btreemap;
-use num::Float;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-pub fn convert_auspice_tree_to_graph(
-  mut tree: AuspiceTree,
+pub fn graph_preprocess_in_place(
+  graph: &mut AuspiceGraph,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
-) -> Result<AuspiceGraph, Report> {
-  let mut graph = {
-    // TODO: Avoid another full tree iteration by merging this one into the main pass
-    let max_divergence = get_max_divergence_recursively(&tree.tree);
-
-    let mut graph = AuspiceGraph::new(AuspiceGraphMeta {
-      meta: tree.meta,
-      tmp: GraphTempData {
-        max_divergence,
-        // TODO: Use auspice extension field to pass info on divergence units, rather than guess
-        divergence_units: DivergenceUnits::guess_from_max_divergence(max_divergence),
-      },
-      other: serde_json::Value::default(),
-    });
-
-    auspice_add_metadata_in_place(&mut graph.data.meta);
-
-    graph
-  };
-
+) -> Result<(), Report> {
   let mut parent_nuc_muts = BTreeMap::<NucRefGlobalPosition, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<AaRefPosition, Aa>>::new();
 
-  // TODO: This needs some cleanup. We no longer need to preprocess the existing tree. We only need to construct
-  //   the graph - i.e. to add nodes and edges with already "preprocessed" payloads. The tree is no longer used
-  //   anywhere else.
-  tree_preprocess_in_place_impl_recursive(
-    &mut tree.tree,
+  let root_key = graph.get_exactly_one_root()?.key();
+  graph_preprocess_in_place_recursive(
+    graph,
+    root_key,
     &mut parent_nuc_muts,
     &mut parent_aa_muts,
-    &mut graph,
     ref_seq,
     ref_translation,
   )?;
 
-  graph.build()
+  Ok(())
 }
 
-pub fn tree_preprocess_in_place_impl_recursive(
-  node: &mut AuspiceTreeNode,
+pub fn graph_preprocess_in_place_recursive(
+  graph: &mut AuspiceGraph,
+  graph_node_key: GraphNodeKey,
   parent_nuc_muts: &mut BTreeMap<NucRefGlobalPosition, Nuc>,
   parent_aa_muts: &mut BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
-  graph: &mut AuspiceGraph,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<GraphNodeKey, Report> {
-  let mut nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
-  let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
-    nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
+  let (mut nuc_muts, mut aa_muts) = {
+    let node = graph.get_node_mut(graph_node_key)?.payload_mut();
 
-  let mut aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
-  let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
-    .clone()
-    .into_iter()
-    .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
-    .collect();
+    let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
+    let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
+      nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-  node.tmp.mutations = nuc_muts.clone();
-  node.tmp.private_mutations = calc_node_private_mutations(node)?;
-  node.tmp.substitutions = nuc_subs;
-  node.tmp.aa_mutations = aa_muts.clone();
-  node.tmp.aa_substitutions = aa_subs;
-  node.tmp.is_ref_node = true;
-  let graph_node_key = graph.add_node(node.clone());
-  node.tmp.id = graph_node_key;
+    let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
+    let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
+      .clone()
+      .into_iter()
+      .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
+      .collect();
 
-  node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
+    node.tmp.mutations = nuc_muts.clone();
+    node.tmp.private_mutations = calc_node_private_mutations(node)?;
+    node.tmp.substitutions = nuc_subs;
+    node.tmp.aa_mutations = aa_muts.clone();
+    node.tmp.aa_substitutions = aa_subs;
+    node.tmp.is_ref_node = true;
+    node.tmp.id = graph_node_key;
 
-  for child in &mut node.children {
-    let graph_child_key =
-      tree_preprocess_in_place_impl_recursive(child, &mut nuc_muts, &mut aa_muts, graph, ref_seq, ref_translation)?;
-    graph.add_edge(graph_node_key, graph_child_key, AuspiceTreeEdge::new())?;
+    node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
+
+    (nuc_muts, aa_muts)
+  };
+
+  for child_key in graph.iter_child_keys_of_by_key(graph_node_key).collect_vec() {
+    graph_preprocess_in_place_recursive(graph, child_key, &mut nuc_muts, &mut aa_muts, ref_seq, ref_translation)?;
   }
 
   Ok(graph_node_key)
@@ -239,22 +219,11 @@ fn map_aa_muts_for_one_gene(
   }
 }
 
-fn get_max_divergence_recursively(node: &AuspiceTreeNode) -> f64 {
-  let div = node.node_attrs.div.unwrap_or(-f64::infinity());
-
-  let mut child_div = -f64::infinity();
-  node.children.iter().for_each(|child| {
-    child_div = child_div.max(get_max_divergence_recursively(child));
-  });
-
-  div.max(child_div)
-}
-
 fn pair(key: &str, val: &str) -> [String; 2] {
   [key.to_owned(), val.to_owned()]
 }
 
-fn auspice_add_metadata_in_place(meta: &mut AuspiceTreeMeta) {
+pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
   let new_colorings: Vec<AuspiceColoring> = vec![
     AuspiceColoring {
       key: "Node type".to_owned(),

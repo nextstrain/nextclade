@@ -14,7 +14,7 @@ use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
-use nextclade::graph::graph::convert_graph_to_auspice_tree;
+use nextclade::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
@@ -24,9 +24,8 @@ use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::params::TreeBuilderParams;
-use nextclade::tree::tree::AuspiceTreeNode;
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
-use nextclade::tree::tree_preprocess::convert_auspice_tree_to_graph;
+use nextclade::tree::tree_preprocess::graph_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use std::path::PathBuf;
 
@@ -173,7 +172,8 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
-  let mut graph = convert_auspice_tree_to_graph(tree, ref_seq, ref_translation).unwrap();
+  let mut graph = convert_auspice_tree_to_graph(tree)?;
+  graph_preprocess_in_place(&mut graph, ref_seq, ref_translation)?;
   let clade_node_attrs = graph.data.meta.clade_node_attr_descs();
 
   let aa_motifs_keys = &virus_properties
@@ -315,7 +315,6 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   if let Some(output_tree) = run_args.outputs.output_tree {
     graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &tree_builder_params)?;
-
     let tree = convert_graph_to_auspice_tree(&graph)?;
     json_write(output_tree, &tree)?;
   }
