@@ -119,6 +119,7 @@ rule diff_tsv:
         tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
     output:
         diff="results/{dataset_name}/{seq_type}_diff.tsv",
+        diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.txt",
     shell:
         """
         # Don't fail snakemake on error exit code
@@ -132,5 +133,21 @@ rule diff_tsv:
             exit $error
         else
             echo "Files are the same"
+            touch {output.diff_seqs}
+            exit 0
         fi
+        # Extract sequence names of differing sequences
+        grep -E '^<|^>' {output.diff} | awk '{{print $3}}' | sort | uniq > {output.diff_seqs}
+        """
+
+
+rule get_differing_seqs:
+    input:
+        diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.txt",
+        sequences="sequences/{dataset_name}",
+    output:
+        diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.fasta",
+    shell:
+        """
+        seqkit grep -w0 -f {input.diff_seqs} {input.sequences}/* > {output.diff_seqs}
         """

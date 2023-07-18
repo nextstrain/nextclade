@@ -8,6 +8,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use crate::utils::collections::first;
 use eyre::Report;
+use log::debug;
 use log::trace;
 use num_traits::abs;
 use num_traits::clamp;
@@ -398,7 +399,7 @@ fn trace_stripe_stats(stripes: &[Stripe]) {
   let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
   let max = stripe_lengths[stripe_lengths.len() - 1];
   let min = stripe_lengths[0];
-  trace!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
+  debug!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
 }
 
 fn trace_matches(matches: &[SeedMatch2]) {
