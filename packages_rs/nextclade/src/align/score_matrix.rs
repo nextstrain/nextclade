@@ -139,14 +139,14 @@ pub fn score_matrix<T: Letter<T>>(
           if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
             // extension better than opening (and ^ extension allowed positionally)
             tmp_score = r_gap_extend;
-            tmp_path = REF_GAP_EXTEND;
+            tmp_path += REF_GAP_EXTEND;
           } else {
             // opening better than extension
             tmp_score = r_gap_open;
           }
           // could factor out tmp_score, replacing with ref_gaps but maybe less readable
           ref_gaps = tmp_score;
-          if score + left_align < tmp_score {
+          if score - left_align < tmp_score {
             score = tmp_score;
             origin = REF_GAP_MATRIX;
           }
@@ -172,7 +172,7 @@ pub fn score_matrix<T: Letter<T>>(
             tmp_score = q_gap_open;
           }
           qry_gaps[qpos] = tmp_score;
-          if score + left_align < tmp_score {
+          if score - left_align < tmp_score {
             score = tmp_score;
             origin = QRY_GAP_MATRIX;
           }
@@ -186,7 +186,6 @@ pub fn score_matrix<T: Letter<T>>(
       scores[(ri, qpos)] = score;
     }
   }
-
   ScoreMatrixResult { scores, paths }
 }
 
