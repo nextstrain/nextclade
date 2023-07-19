@@ -8,7 +8,7 @@ import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { omit } from 'lodash'
 
 import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/types'
-import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import type { NextcladeParamsPojo, OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
 import { FastaParserWorker } from 'src/workers/FastaParserThread'
@@ -33,7 +33,7 @@ class LauncherWorkerImpl {
   analysisResultsObservable = new Subject<NextcladeResult>()
 
   // Relays tree result from webworker to the main thread
-  treeObservable = new Subject<AuspiceJsonV2>()
+  treeObservable = new Subject<OutputTreesPojo>()
 
   fastaParser!: FastaParserWorker
 
@@ -69,8 +69,8 @@ class LauncherWorkerImpl {
       )
       await this.pool.completed()
 
-      const tree = await this.pool.getOutputTree()
-      this.treeObservable.next(tree)
+      const trees = await this.pool.getOutputTrees()
+      this.treeObservable.next(trees)
 
       this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.done)
       this.analysisResultsObservable.complete()
@@ -146,7 +146,7 @@ const worker = {
     }
     return ThreadsObservable.from(launcher.analysisResultsObservable)
   },
-  getTreeObservable(): ThreadsObservable<AuspiceJsonV2> {
+  getTreeObservable(): ThreadsObservable<OutputTreesPojo> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getTreeObservable')
     }
