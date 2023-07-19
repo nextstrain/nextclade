@@ -103,16 +103,16 @@ pub struct SeedMatch2 {
 }
 
 impl SeedMatch2 {
-  fn ref_end(&self) -> usize {
+  const fn ref_end(&self) -> usize {
     self.ref_pos + self.length
   }
-  fn qry_end(&self) -> usize {
+  const fn qry_end(&self) -> usize {
     self.qry_pos + self.length
   }
-  fn ref_start(&self) -> usize {
+  const fn ref_start(&self) -> usize {
     self.ref_pos
   }
-  fn qry_start(&self) -> usize {
+  const fn qry_start(&self) -> usize {
     self.qry_pos
   }
   fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> SeedMatch2 {
@@ -121,7 +121,7 @@ impl SeedMatch2 {
       mut qry_pos,
       mut length,
       ..
-    } = self.clone();
+    } = self;
 
     let max_length = min(ref_seq.len() - ref_pos, qry_seq.len() - qry_pos);
 
@@ -439,7 +439,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
       break;
     }
     let index = chain_end_index.unwrap();
-    let next_match = matches[index].clone();
+    let next_match = matches[index];
     optimal_chain.push(next_match);
 
     chain_end_index = previous_match[index];
@@ -453,21 +453,14 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
 /// Throw out matches that are now too short
 /// Trace basic stats of chopping process
 fn chop_matches(matches: &[SeedMatch2], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
+  // TODO: Make more efficient and profile
+  // TODO: Fix bug now that ref_end < ref_start is possible
+  // TODO: Fix validation script to work if there's a new commit, check for new commits
   // Generate union of all start/end points for both ref and qry of all matches
   // Make it a hash set to remove duplicates
   let matches = matches.to_vec();
   let ref_terminals: HashSet<usize> = matches.iter().flat_map(|m| [m.ref_pos, m.ref_pos + m.length]).collect();
   let qry_terminals: HashSet<usize> = matches.iter().flat_map(|m| [m.qry_pos, m.qry_pos + m.length]).collect();
-
-  // Sort matches by ref_pos start
-  // Put matches in hash map by ref_pos start
-  // let mut matches_by_ref_pos: BTreeMap<usize, Vec<SeedMatch2>> =
-  //   matches
-  //     .iter()
-  //     .fold(BTreeMap::<usize, Vec<SeedMatch2>>::new(), |mut acc, m| {
-  //       acc.entry(m.ref_pos).or_default().push(m.clone());
-  //       acc
-  //     });
 
   // Make a dict of offsets, having an interval set of all matches (starting with ref_pos)
   // Then do same but for qry_pos
@@ -476,10 +469,13 @@ fn chop_matches(matches: &[SeedMatch2], config: &AlignPairwiseParams) -> Vec<See
   let empty_interval_set = Vec::<(usize, usize)>::new().to_interval_set();
   let mut ref_intervals = BTreeMap::<isize, IntervalSet<usize>>::new();
 
-  for _match in matches {
-    let interval_set_for_this_offset = ref_intervals.get(&_match.offset).unwrap_or(&empty_interval_set);
-    let this_match_interval = vec![(_match.ref_pos, _match.ref_pos + _match.length)].to_interval_set();
-    ref_intervals.insert(_match.offset, this_match_interval.union(interval_set_for_this_offset));
+  for this_match in matches {
+    let interval_set_for_this_offset = ref_intervals.get(&this_match.offset).unwrap_or(&empty_interval_set);
+    let this_match_interval = vec![(this_match.ref_pos, this_match.ref_pos + this_match.length)].to_interval_set();
+    ref_intervals.insert(
+      this_match.offset,
+      this_match_interval.union(interval_set_for_this_offset),
+    );
   }
   let mut chopped_intervals = BTreeMap::<isize, IntervalSet<usize>>::new();
   for (offset, interval_set) in ref_intervals {
@@ -516,6 +512,7 @@ fn chop_matches(matches: &[SeedMatch2], config: &AlignPairwiseParams) -> Vec<See
     })
     .filter(|m| m.length >= config.min_match_length)
     .collect_vec();
+  // Only do this in debug mode
   write_matches_to_file(&result, "chopped_matches.csv");
   result
 }
@@ -547,6 +544,8 @@ pub fn get_seed_matches2(
   let chopped_matches = chop_matches(&matches, params);
 
   let seed_matches = chain_seeds(&chopped_matches);
+
+  //TODO: Join again
   // write_matches_to_file(&matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
