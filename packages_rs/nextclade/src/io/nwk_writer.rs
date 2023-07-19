@@ -58,6 +58,6 @@ where
       .map(|child_key| convert_graph_to_nwk_recursive(graph, child_key, node.divergence()))
       .collect::<Result<Vec<String>, Report>>()?
       .join(",");
-    format!("({children}:{branch_length})")
+    format!("({children}):{branch_length}")
   })
 }
