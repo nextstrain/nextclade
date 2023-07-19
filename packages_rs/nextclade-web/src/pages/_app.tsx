@@ -16,7 +16,6 @@ import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
-  primersCsvInputAtom,
   qcConfigInputAtom,
   qrySeqInputsStorageAtom,
   refSeqInputAtom,
@@ -132,7 +131,6 @@ export function RecoilStateInitializer() {
         set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
         set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
         set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
-        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
         set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
 
         if (!isEmpty(inputFastas)) {

@@ -1,7 +1,7 @@
-/* eslint-disable camelcase */
 import 'regenerator-runtime'
 
 import type { CladeNodeAttrDesc } from 'auspice'
+import { AnalysisInitialData } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
@@ -13,13 +13,11 @@ import type {
   CsvColumnConfig,
   ErrorsFromWeb,
   FastaRecord,
+  NextcladeParamsRaw,
   NextcladeResult,
   PhenotypeAttrDesc,
-  Translation,
 } from 'src/types'
-import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
-import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
-import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
+import { NextcladeWasm } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
@@ -60,10 +58,8 @@ export class ErrorBothResultsAndErrorAreNull extends ErrorInternal {
 let nextcladeWasm: NextcladeWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
-async function create(params_pojo: NextcladeParamsPojo) {
-  const params = NextcladeParams.from_js(params_pojo)
-  nextcladeWasm = new NextcladeWasm(params)
-  params.free()
+async function create(params: NextcladeParamsRaw) {
+  nextcladeWasm = new NextcladeWasm(JSON.stringify(params))
 }
 
 /** Destroys the underlying WebAssembly module. */
@@ -76,28 +72,15 @@ async function destroy() {
   nextcladeWasm = undefined
 }
 
-async function getInitialData(): Promise<LaunchAnalysisInitialData> {
+async function getInitialData(): Promise<AnalysisInitialData> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getInitialData')
   }
-  const initialData = nextcladeWasm.get_initial_data()
-  const {
-    gene_map,
-    genome_size,
-    clade_node_attr_key_descs,
-    phenotype_attr_descs,
-    aa_motifs_descs,
-    csv_column_config_default,
-  } = initialData.to_js()
-  initialData.free()
-
+  const aaa = nextcladeWasm.get_initial_data()
+  const initialData = JSON.parse(aaa) as AnalysisInitialData
   return {
-    genes: prepareGeneMap(gene_map),
-    genomeSize: Number(genome_size),
-    cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
-    phenotypeAttrDescs: JSON.parse(phenotype_attr_descs) as PhenotypeAttrDesc[],
-    aaMotifsDescs: JSON.parse(aa_motifs_descs) as AaMotifsDesc[],
-    csvColumnConfig: JSON.parse(csv_column_config_default) as CsvColumnConfig,
+    ...initialData,
+    geneMap: prepareGeneMap(initialData.geneMap),
   }
 }
 
@@ -106,49 +89,12 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('analyze')
   }
-
-  const { index, seqName, seq } = record
-
-  const input = AnalysisInput.from_js({
-    qry_index: index,
-    qry_seq_name: seqName,
-    qry_seq_str: seq,
-  })
-
-  const output = nextcladeWasm.analyze(input)
-
-  try {
-    const { result, error } = output.to_js()
-
-    if (result) {
-      const { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
-
-      const queryPeptides = JSON.parse(query_peptides) as Translation
-      const analysisResult = JSON.parse(analysis_result) as AnalysisResult
-
-      return {
-        index,
-        seqName,
-        result: {
-          query,
-          queryPeptides,
-          analysisResult,
-        },
-      }
-    }
-
-    if (error) {
-      return {
-        index,
-        seqName,
-        error,
-      }
-    }
-
+  const input = JSON.stringify(record)
+  const output = JSON.parse(nextcladeWasm.analyze(input)) as NextcladeResult
+  if (!output.result && !output.error) {
     throw new ErrorBothResultsAndErrorAreNull()
-  } finally {
-    output.free()
   }
+  return output
 }
 
 // export async function getCladeNodeAttrKeyDescs(): Promise<string> {
@@ -181,25 +127,25 @@ export async function parseRefSequence(refFastaStr: string) {
   return NextcladeWasm.parse_ref_seq_fasta(refFastaStr)
 }
 
-export async function parseTree(treeJsonStr: string) {
-  NextcladeWasm.validate_tree_json(treeJsonStr)
-}
-
-export async function parseGeneMapGffString(geneMapGffStr: string) {
-  return NextcladeWasm.parse_gene_map_gff(geneMapGffStr)
-}
-
-export async function parsePcrPrimerCsvRowsStr(pcrPrimersCsvStr: string, refSeqStr: string) {
-  NextcladeWasm.validate_primers_csv(pcrPrimersCsvStr, refSeqStr)
-}
-
-export async function parseQcConfigString(qcConfigJsonStr: string) {
-  NextcladeWasm.validate_qc_config(qcConfigJsonStr)
-}
-
-export async function parseVirusJsonString(virusJsonStr: string) {
-  NextcladeWasm.validate_virus_properties_json(virusJsonStr)
-}
+// export async function parseTree(treeJsonStr: string) {
+//   NextcladeWasm.validate_tree_json(treeJsonStr)
+// }
+//
+// export async function parseGeneMapGffString(geneMapGffStr: string) {
+//   return NextcladeWasm.parse_gene_map_gff(geneMapGffStr)
+// }
+//
+// export async function parsePcrPrimerCsvRowsStr(pcrPrimersCsvStr: string, refSeqStr: string) {
+//   NextcladeWasm.validate_primers_csv(pcrPrimersCsvStr, refSeqStr)
+// }
+//
+// export async function parseQcConfigString(qcConfigJsonStr: string) {
+//   NextcladeWasm.validate_qc_config(qcConfigJsonStr)
+// }
+//
+// export async function parseVirusJsonString(virusJsonStr: string) {
+//   NextcladeWasm.validate_virus_properties_json(virusJsonStr)
+// }
 
 export async function serializeResultsJson(
   outputs: AnalysisResult[],
@@ -257,11 +203,11 @@ const worker = {
   getOutputTree,
   parseSequencesStreaming,
   parseRefSequence,
-  parseTree,
-  parseGeneMapGffString,
-  parsePcrPrimerCsvRowsStr,
-  parseQcConfigString,
-  parseVirusJsonString,
+  // parseTree,
+  // parseGeneMapGffString,
+  // parsePcrPrimerCsvRowsStr,
+  // parseQcConfigString,
+  // parseVirusJsonString,
   serializeResultsJson,
   serializeResultsCsv,
   serializeResultsNdjson,
