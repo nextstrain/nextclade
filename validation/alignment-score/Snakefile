@@ -8,6 +8,8 @@ snakemake --eval-branch <branch> --base-branch <branch>
 ```
 """
 
+# TODO: Don't fail when nextclade errors, but output error into file, otherwise diffs are misleading
+
 
 wildcard_constraints:
     dataset_name="[^/]+",
@@ -54,7 +56,7 @@ rule clone:
     Build release
     """
     output:
-        dir=directory("{build_type}_build/src"),
+        dir=directory("{build_type}_build/src/"),
     params:
         branch=lambda w: config[w.build_type]["branch"],
         url="https://github.com/nextstrain/nextclade.git",
@@ -64,24 +66,53 @@ rule clone:
         """
 
 
-rule build:
+rule pull:
     """
-    Build eval branch
+    Pull latest changes from branches
     """
     input:
         dir="{build_type}_build/src",
     output:
-        dir=directory("{build_type}_build/bin"),
+        hash="{build_type}_build/hash.txt",
     params:
         branch=lambda w: config[w.build_type]["branch"],
     shell:
         """
         cd {input.dir}
         git checkout {params.branch}
-        cargo build --release
+        git pull
         cd -
-        mkdir -p {output.dir}
-        cp {input.dir}/target/release/nextclade {output.dir}
+        cat {input.dir}/.git/refs/heads/{params.branch} > {output.hash}
+        """
+
+
+rule pull_all:
+    """
+    Pull latest changes from branches
+    """
+    input:
+        expand("{build_type}_build/hash.txt", build_type=["base", "eval"]),
+
+
+rule build:
+    """
+    Build binary
+    """
+    input:
+        dir="{build_type}_build/src",
+        hash="{build_type}_build/hash.txt",
+    output:
+        bin="{build_type}_build/bin/nextclade",
+    params:
+        branch=lambda w: config[w.build_type]["branch"],
+    shell:
+        """
+        cd {input.dir}
+        git checkout {params.branch}
+        cargo build --release --bin nextclade
+        cd -
+        mkdir -p {wildcards.build_type}_build/bin
+        cp {input.dir}/target/release/nextclade {output.bin}
         """
 
 
