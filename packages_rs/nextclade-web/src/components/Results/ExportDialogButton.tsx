@@ -272,7 +272,7 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
         HelpMain={t('Phylogenetic tree with sequences placed onto it, in Auspice JSON format.')}
         HelpDetails={
           <>
-            {t('The tree is in Nextstrain format.')} {t('Can be viewed locally with Nextstrain Auspice or in ')}
+            {t('Can be viewed locally with Nextstrain Auspice or in ')}
             <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
             {'.'}
           </>
@@ -287,8 +287,10 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
         HelpMain={t('Phylogenetic tree with sequences placed onto it, in Newick format.')}
         HelpDetails={
           <>
-            {t('The tree is in Nextstrain format.')} {t('Can be viewed for example in ')}
+            {t('Can be viewed in most tree viewers, including ')}
             <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
+            {' or '}
+            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
             {'.'}
           </>
         }
