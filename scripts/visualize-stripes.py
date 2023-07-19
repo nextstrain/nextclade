@@ -23,7 +23,8 @@ def prepare_data(df, column):
 
 
 df_new = pd.read_csv("stripes.csv")
-df_matches = pd.read_csv("matches.csv")
+df_raw_matches = pd.read_csv("raw_matches.csv")
+df_chained_matches = pd.read_csv("chained_matches.csv")
 # df_old = pd.read_csv("../nextclade_master/stripes_old.csv")
 
 # Prepare data for line segments
@@ -40,7 +41,7 @@ fig.add_trace(
         x=x_values_new_begin,
         y=y_values_new,
         mode="lines",
-        line=dict(color="black"),
+        line=dict(color="black", width=2),
         name="New Data Begin",
     )
 )
@@ -49,7 +50,7 @@ fig.add_trace(
         x=x_values_new_end,
         y=y_values_new,
         mode="lines",
-        line=dict(color="black"),
+        line=dict(color="black", width=2),
         name="New Data End",
     )
 )
@@ -75,7 +76,7 @@ fig.add_trace(
 # )
 
 # Add match line segments from old data
-for _, row in df_matches.iterrows():
+for _, row in df_raw_matches.iterrows():
     x_values = [row["qry_pos"], row["qry_pos"] + row["length"]]
     y_values = [row["ref_pos"], row["ref_pos"] + row["length"]]
     fig.add_trace(
@@ -83,8 +84,20 @@ for _, row in df_matches.iterrows():
             x=x_values,
             y=y_values,
             mode="lines",
-            # line=dict(color="blue",width=5),
-            line=dict(color="blue"),
+            line=dict(color="blue",width=1),
+            showlegend=False,
+        )
+    )
+
+for _, row in df_chained_matches.iterrows():
+    x_values = [row["qry_pos"], row["qry_pos"] + row["length"]]
+    y_values = [row["ref_pos"], row["ref_pos"] + row["length"]]
+    fig.add_trace(
+        go.Scatter(
+            x=x_values,
+            y=y_values,
+            mode="lines",
+            line=dict(color="red",width=2),
             showlegend=False,
         )
     )

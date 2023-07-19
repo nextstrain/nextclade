@@ -8,11 +8,11 @@ use bio::data_structures::bwt::{bwt, less, Less, Occ, BWT};
 use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
 use eyre::Report;
-use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
+use gcollections::ops::{Bounded, Difference, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
 use std::cmp::{max, min};
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::{BTreeMap, HashSet, VecDeque};
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
 struct SkipEvery<I> {
@@ -94,7 +94,7 @@ impl Index {
   }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SeedMatch2 {
   pub ref_pos: usize,
   pub qry_pos: usize,
@@ -103,6 +103,18 @@ pub struct SeedMatch2 {
 }
 
 impl SeedMatch2 {
+  fn ref_end(&self) -> usize {
+    self.ref_pos + self.length
+  }
+  fn qry_end(&self) -> usize {
+    self.qry_pos + self.length
+  }
+  fn ref_start(&self) -> usize {
+    self.ref_pos
+  }
+  fn qry_start(&self) -> usize {
+    self.qry_pos
+  }
   fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> SeedMatch2 {
     let SeedMatch2 {
       mut ref_pos,
@@ -338,6 +350,8 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
     j: usize,
   }
 
+  write_matches_to_file(matches, "raw_matches.csv");
+
   // Scores vec maps a particular seed match to optimal score
   let mut scores: Vec<usize> = vec![0; matches.len()];
   // previous_match is used for backtracking
@@ -435,6 +449,77 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
   optimal_chain
 }
 
+/// Chops matches that overlap with other matches
+/// Throw out matches that are now too short
+/// Trace basic stats of chopping process
+fn chop_matches(matches: &[SeedMatch2], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
+  // Generate union of all start/end points for both ref and qry of all matches
+  // Make it a hash set to remove duplicates
+  let matches = matches.to_vec();
+  let ref_terminals: HashSet<usize> = matches.iter().flat_map(|m| [m.ref_pos, m.ref_pos + m.length]).collect();
+  let qry_terminals: HashSet<usize> = matches.iter().flat_map(|m| [m.qry_pos, m.qry_pos + m.length]).collect();
+
+  // Sort matches by ref_pos start
+  // Put matches in hash map by ref_pos start
+  // let mut matches_by_ref_pos: BTreeMap<usize, Vec<SeedMatch2>> =
+  //   matches
+  //     .iter()
+  //     .fold(BTreeMap::<usize, Vec<SeedMatch2>>::new(), |mut acc, m| {
+  //       acc.entry(m.ref_pos).or_default().push(m.clone());
+  //       acc
+  //     });
+
+  // Make a dict of offsets, having an interval set of all matches (starting with ref_pos)
+  // Then do same but for qry_pos
+  // matches is dict for Offset -> IntervalSet
+
+  let empty_interval_set = Vec::<(usize, usize)>::new().to_interval_set();
+  let mut ref_intervals = BTreeMap::<isize, IntervalSet<usize>>::new();
+
+  for _match in matches {
+    let interval_set_for_this_offset = ref_intervals.get(&_match.offset).unwrap_or(&empty_interval_set);
+    let this_match_interval = vec![(_match.ref_pos, _match.ref_pos + _match.length)].to_interval_set();
+    ref_intervals.insert(_match.offset, this_match_interval.union(interval_set_for_this_offset));
+  }
+  let mut chopped_intervals = BTreeMap::<isize, IntervalSet<usize>>::new();
+  for (offset, interval_set) in ref_intervals {
+    let mut interval_set = interval_set.clone();
+    // Split interval set at all ref_terminals
+    for chop_pos in &ref_terminals {
+      interval_set = interval_set.difference(chop_pos);
+    }
+    for chop_pos in &qry_terminals {
+      let qry_chop_pos = *chop_pos as isize - offset;
+      let Ok(qry_chop_pos_usize) = usize::try_from(qry_chop_pos) else {
+        continue;
+      };
+      interval_set = interval_set.difference(&qry_chop_pos_usize);
+    }
+    chopped_intervals.insert(offset, interval_set);
+  }
+
+  // Transform to Vec<SeedMatch>
+
+  // Split matches at all ref/qry_terminals
+  let result = chopped_intervals
+    .into_iter()
+    .flat_map(|(offset, interval_set)| {
+      interval_set
+        .iter()
+        .map(|interval| SeedMatch2 {
+          ref_pos: (interval.lower() as isize) as usize,
+          qry_pos: (interval.lower() as isize - offset) as usize,
+          length: interval.upper() - interval.lower(),
+          offset,
+        })
+        .collect::<Vec<SeedMatch2>>()
+    })
+    .filter(|m| m.length >= config.min_match_length)
+    .collect_vec();
+  write_matches_to_file(&result, "chopped_matches.csv");
+  result
+}
+
 pub fn get_seed_matches2(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
@@ -459,7 +544,9 @@ pub fn get_seed_matches2(
     );
   }
 
-  let seed_matches = chain_seeds(&matches);
+  let chopped_matches = chop_matches(&matches, params);
+
+  let seed_matches = chain_seeds(&chopped_matches);
   // write_matches_to_file(&matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
