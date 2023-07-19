@@ -14,11 +14,38 @@ wildcard_constraints:
     build_type="[^/\._]+",
     build_type1="[^/\._]+",
     build_type2="[^/\._]+",
+    seq_type="[^/]+",
+
+
+datasets = [
+    "sars-cov-2",
+    "sars-cov-2-21L",
+    "MPXV",
+    "hMPXV",
+    "hMPXV_B1",
+    "flu_h1n1pdm_ha",
+    "flu_h1n1pdm_na",
+    "flu_h3n2_ha",
+    "flu_h3n2_na",
+    "flu_vic_ha",
+    "flu_vic_na",
+    "flu_yam_ha",
+    "rsv_a",
+    "rsv_b",
+    "sars-cov-2-no-recomb",
+]
+
+outputs = [
+    "default_diff.tsv",
+    "default_diff_seqs.fasta",
+]
 
 
 rule all:
     input:
-        "results/sars-cov-2/default_diff.tsv",
+        expand(
+            "results/{dataset_name}/{outputs}", dataset_name=datasets, outputs=outputs
+        ),
 
 
 rule clone:
@@ -71,24 +98,25 @@ rule bin_version:
 
 rule download_dataset:
     input:
-        bin="{build_type}_build/bin/nextclade",
+        bin="eval_build/bin/nextclade",
     output:
-        sequences="dataset/{dataset_name}/{build_type}/sequences.fasta",
-        zip="dataset/{dataset_name}/{build_type}.zip",
+        sequences="sequences/{dataset_name}/sequences.fasta",
+        zip="dataset/{dataset_name}.zip",
     params:
-        dir="dataset/{dataset_name}/{build_type}",
+        dir="dataset/{dataset_name}",
     shell:
         """
         ./{input.bin} dataset get -n {wildcards.dataset_name} --output-zip {output.zip}
         ./{input.bin} dataset get -n {wildcards.dataset_name} --output-dir {params.dir}
+        cp {params.dir}/sequences.fasta {output.sequences}
         """
 
 
 rule run_nextclade_on_dataset_sequences:
     input:
         bin="{build_type}_build/bin/nextclade",
-        dataset="dataset/{dataset_name}/{build_type}.zip",
-        sequences="dataset/{dataset_name}/{build_type}/sequences.fasta",
+        dataset="dataset/{dataset_name}.zip",
+        sequences="sequences/{dataset_name}/sequences.fasta",
     output:
         tsv="results/{dataset_name}/{build_type}/default.tsv",
     shell:
@@ -101,7 +129,7 @@ rule run_nextclade_on_custom_sequences:
     input:
         bin="{build_type}_build/bin/nextclade",
         sequences="sequences/{dataset_name}",
-        dataset="dataset/{dataset_name}/{build_type}.zip",
+        dataset="dataset/{dataset_name}.zip",
     output:
         tsv="results/{dataset_name}/{build_type}/custom.tsv",
     shell:
@@ -144,10 +172,12 @@ rule diff_tsv:
 rule get_differing_seqs:
     input:
         diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.txt",
-        sequences="sequences/{dataset_name}",
+        sequences="sequences/{dataset_name}/sequences.fasta",
     output:
         diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.fasta",
+    params:
+        seq_dir="sequences/{dataset_name}",
     shell:
         """
-        seqkit grep -w0 -f {input.diff_seqs} {input.sequences}/* > {output.diff_seqs}
+        seqkit grep -w0 -f {input.diff_seqs} {params.seq_dir}/* > {output.diff_seqs}
         """
