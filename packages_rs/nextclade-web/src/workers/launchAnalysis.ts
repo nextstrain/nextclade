@@ -1,5 +1,5 @@
 import { concurrent } from 'fasy'
-import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import type { CladeNodeAttrDesc } from 'auspice'
 import { isEmpty, merge } from 'lodash'
 import { OutputTreesPojo } from 'src/gen/nextclade-wasm'
 

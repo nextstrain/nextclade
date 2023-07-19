@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
-import { AuspiceJsonV2 } from 'auspice'
 
 import type { CladeNodeAttrDesc } from 'auspice'
 import type { Thread } from 'threads'
@@ -250,13 +249,6 @@ async function serializeErrorsCsv(errors: ErrorsFromWeb[]) {
   return NextcladeWasm.serialize_errors_csv(JSON.stringify(errors))
 }
 
-async function getOutputTreeNwk() {
-  if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('getOutputTreeNwk')
-  }
-  return nextcladeWasm.get_output_tree_nwk()
-}
-
 const worker = {
   create,
   destroy,
@@ -275,7 +267,6 @@ const worker = {
   serializeResultsNdjson,
   serializeInsertionsCsv,
   serializeErrorsCsv,
-  getOutputTreeNwk,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },

@@ -1,5 +1,3 @@
-import type { AuspiceJsonV2 } from 'auspice'
-
 import type { AnalysisResult, FastaRecord } from 'src/types'
 import type { NextcladeParamsPojo, OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'

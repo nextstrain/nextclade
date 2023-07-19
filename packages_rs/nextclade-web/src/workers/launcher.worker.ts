@@ -1,6 +1,5 @@
 import 'regenerator-runtime'
 
-import type { AuspiceJsonV2 } from 'auspice'
 import { AlgorithmGlobalStatus } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
