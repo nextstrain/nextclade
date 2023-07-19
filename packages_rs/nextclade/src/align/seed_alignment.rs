@@ -211,7 +211,7 @@ pub fn create_stripes(
   .to_direct_params()];
 
   for w in seed_matches.windows(2) {
-    let (seed1, seed2) = (w[0].clone(), w[1].clone());
+    let (seed1, seed2) = (w[0], w[1]);
     let abs_shift = abs_shift(&seed1, &seed2);
 
     // Add body trapezoid
