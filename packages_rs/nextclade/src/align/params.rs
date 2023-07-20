@@ -154,7 +154,7 @@ impl Default for AlignPairwiseParams {
       gap_alignment_side: GapAlignmentSide::Right,
       min_seed_cover: 0.33,
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
-      kmer_distance: 10,     // Distance between successive kmers
+      kmer_distance: 100,    // Distance between successive kmers
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
       allowed_mismatches: 8, // Ns count as mismatches
       window_size: 30,
