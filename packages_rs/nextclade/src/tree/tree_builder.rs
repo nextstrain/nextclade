@@ -14,6 +14,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use maplit::hashmap;
 use regex::internal::Input;
 use std::collections::{BTreeMap, HashMap};
 
@@ -103,19 +104,23 @@ pub fn finetune_nearest_node(
   let mut nearest_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
   loop {
-    let mut shared_muts_neighbors = HashMap::<GraphNodeKey, SplitMutsResult>::from([(
-      current_best_node_key,
-      split_muts(
-        &nearest_node.payload().tmp.private_mutations.invert(),
-        &private_mutations,
-      )
-      .wrap_err_with(|| {
-        format!(
-          "When splitting mutations between query sequence and the nearest node '{}'",
-          nearest_node.payload().name
+    let mut shared_muts_neighbors = if nearest_node.is_root() {
+      hashmap! {}
+    } else {
+      HashMap::<GraphNodeKey, SplitMutsResult>::from([(
+        current_best_node_key,
+        split_muts(
+          &nearest_node.payload().tmp.private_mutations.invert(),
+          &private_mutations,
         )
-      })?,
-    )]);
+        .wrap_err_with(|| {
+          format!(
+            "When splitting mutations between query sequence and the nearest node '{}'",
+            nearest_node.payload().name
+          )
+        })?,
+      )])
+    };
 
     for child in graph.iter_children_of(nearest_node) {
       shared_muts_neighbors.insert(
