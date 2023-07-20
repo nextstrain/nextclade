@@ -172,9 +172,12 @@ pub fn finetune_nearest_node(
           )
         })?;
       }
-    } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
+    } else if nearest_node.is_leaf()
+      && !nearest_node.is_root()
+      && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty()
+    {
       // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
-      // auxillary nodes.
+      // auxiliary nodes.
 
       // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
       // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_neighbors`
