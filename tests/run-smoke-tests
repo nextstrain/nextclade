@@ -72,9 +72,13 @@ function run_one_experimental_test() {
   fi
 
   sequences="$DATASET_DIR/${name}/files/sequences.fasta"
+  msg_no_sequences=""
   if [ ! -f "${sequences}" ]; then
     sequences="$DATASET_DIR/${name}/files/reference.fasta"
+    msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
   fi
+
+  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'${msg_no_sequences}"
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="$DATASET_DIR/${name}/files" \
