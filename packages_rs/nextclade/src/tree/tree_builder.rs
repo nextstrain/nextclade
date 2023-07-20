@@ -271,7 +271,7 @@ pub fn knit_into_graph(
     muts_common_branch,
     muts_target_node,
     muts_new_node,
-  } = if params.without_greedy_tree_builder {
+  } = if params.without_greedy_tree_builder || target_node.is_root() {
     KnitMuts {
       muts_common_branch: target_node_auspice.tmp.private_mutations.clone(), // Keep target node muts unchanged.
       muts_target_node: PrivateMutationsMinimal::default(),                  // Don't subtract any shared mutations.
