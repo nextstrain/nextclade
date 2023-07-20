@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155
 set -euo pipefail
 trap "exit 0" INT
 
@@ -23,11 +24,11 @@ export THIS_DIR
 export DATASET_DIR="$THIS_DIR/../tmp/smoke-tests/dataset"
 export OUT_DIR="$THIS_DIR/../tmp/smoke-tests/result"
 
-dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value' | sort | uniq)
-dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
-all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
-num_datasets=$(echo "${all_datasets}" | wc -l)
-JOBS="${JOBS:=${num_datasets}}"
+export dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value' | sort | uniq)
+export dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
+export all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
+export num_datasets=$(echo "${all_datasets}" | wc -l)
+export JOBS="${JOBS:=${num_datasets}}"
 
 function run_one_test() {
   name_and_ref=$1
@@ -52,15 +53,17 @@ function run_one_test() {
 }
 export -f run_one_test
 
-parallel --jobs="${JOBS}" run_one_test ::: "${all_datasets}"
+function run_many_tests() {
+  parallel --jobs=+0 run_one_test ::: "${all_datasets}"
+}
+export -f run_many_tests
+
+
 
 
 # Additional experimental datasets. This should probably be removed after release of this branch.
-
-export DATASET_DIR="$THIS_DIR/../test_datasets"
-
-all_experimental_datasets="$(ls "${DATASET_DIR}")"
-
+export DATASET_DIR_EXPERIMENTAL="$THIS_DIR/../test_datasets"
+export all_experimental_datasets="$(ls "${DATASET_DIR_EXPERIMENTAL}")"
 
 function run_one_experimental_test() {
   name=$1
@@ -71,17 +74,17 @@ function run_one_experimental_test() {
     return
   fi
 
-  sequences="$DATASET_DIR/${name}/files/sequences.fasta"
+  sequences="${DATASET_DIR_EXPERIMENTAL}/${name}/files/sequences.fasta"
   msg_no_sequences=""
   if [ ! -f "${sequences}" ]; then
-    sequences="$DATASET_DIR/${name}/files/reference.fasta"
+    sequences="${DATASET_DIR_EXPERIMENTAL}/${name}/files/reference.fasta"
     msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
   fi
 
   echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'${msg_no_sequences}"
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
-    --input-dataset="$DATASET_DIR/${name}/files" \
+    --input-dataset="${DATASET_DIR_EXPERIMENTAL}/${name}/files" \
     --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
     --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
     --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
@@ -91,4 +94,12 @@ function run_one_experimental_test() {
 }
 export -f run_one_experimental_test
 
-parallel --jobs="${JOBS}" run_one_experimental_test ::: "${all_experimental_datasets}"
+function run_many_experimental_tests() {
+  parallel --jobs=+0 run_one_experimental_test ::: "${all_experimental_datasets}"
+}
+export -f run_many_experimental_tests
+
+
+
+parallel --jobs=2 ::: run_many_tests run_many_experimental_tests
+
