@@ -14,6 +14,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use maplit::hashmap;
 use regex::internal::Input;
 use std::collections::{BTreeMap, HashMap};
 
@@ -97,25 +98,29 @@ pub fn finetune_nearest_node(
   nearest_node_key: GraphNodeKey,
   seq_private_mutations: &PrivateMutationsMinimal,
 ) -> Result<(GraphNodeKey, PrivateMutationsMinimal), Report> {
-  let mut current_best_node_key = nearest_node_key;
-  let mut nearest_node = graph.get_node(nearest_node_key)?;
+  let mut current_best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
   loop {
-    let mut shared_muts_neighbors = HashMap::<GraphNodeKey, SplitMutsResult>::from([(
-      current_best_node_key,
-      split_muts(
-        &nearest_node.payload().tmp.private_mutations.invert(),
-        &private_mutations,
-      )
-      .wrap_err_with(|| {
-        format!(
-          "When splitting mutations between query sequence and the nearest node '{}'",
-          nearest_node.payload().name
+    let mut shared_muts_neighbors = if current_best_node.is_root() {
+      // don't include node if node is root as we don't attach nodes above the root
+      hashmap! {}
+    } else {
+      HashMap::<GraphNodeKey, SplitMutsResult>::from([(
+        current_best_node.key(),
+        split_muts(
+          &current_best_node.payload().tmp.private_mutations.invert(),
+          &private_mutations,
         )
-      })?,
-    )]);
+        .wrap_err_with(|| {
+          format!(
+            "When splitting mutations between query sequence and the nearest node '{}'",
+            current_best_node.payload().name
+          )
+        })?,
+      )])
+    };
 
-    for child in graph.iter_children_of(nearest_node) {
+    for child in graph.iter_children_of(current_best_node) {
       shared_muts_neighbors.insert(
         child.key(),
         split_muts(&child.payload().tmp.private_mutations, &private_mutations).wrap_err_with(|| {
@@ -127,72 +132,82 @@ pub fn finetune_nearest_node(
       );
     }
 
-    let (best_node_key, max_shared_muts) = shared_muts_neighbors
+    let best = shared_muts_neighbors
       .into_iter()
-      .max_by_key(|(_, split_result)| split_result.shared.nuc_subs.len())
-      .ok_or_else(|| make_internal_report!("Shared mutations map cannot be empty"))?;
+      .max_by_key(|(_, split_result)| split_result.shared.nuc_subs.len());
 
-    let n_shared_muts = max_shared_muts.shared.nuc_subs.len();
-    if n_shared_muts > 0 {
-      if best_node_key == current_best_node_key && max_shared_muts.left.nuc_subs.is_empty() {
-        // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
-        // FIXME: what if there's no parent?
-        nearest_node = graph
-          .parent_of_by_key(best_node_key)
-          .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
+    match best {
+      None => return Ok((current_best_node.key(), private_mutations)), // No parents, no children. Nothing to do
 
-        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
-          format!(
-            "When calculating difference of mutations between query sequence and the candidate parent node '{}'",
-            nearest_node.payload().name
-          )
-        })?;
-      } else if best_node_key == current_best_node_key {
-        // The best node is the current node. Break.
-        break;
-      } else {
-        // The best node is child
-        nearest_node = graph.get_node(best_node_key)?;
-        //subtract the shared mutations from the private mutations struct
-        private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
-          format!(
-            "When calculating difference of mutations between query sequence and the candidate child node '{}'",
-            nearest_node.payload().name
-          )
-        })?;
-        // add the inverted remaining mutations on that branch
-        // even if there are no left-over nuc_subs because they are shared, the can be
-        // changes in the same codon that still need handling
-        private_mutations = union_of_muts(&private_mutations, &max_shared_muts.left.invert()).wrap_err_with(|| {
-          format!(
-            "When calculating union of mutations between query sequence and the candidate child node '{}'",
-            graph.get_node(best_node_key).expect("Node not found").payload().name
-          )
-        })?;
+      Some((best_node_key, max_shared_muts)) => {
+        let n_shared_muts = max_shared_muts.shared.nuc_subs.len();
+        if n_shared_muts > 0 {
+          if best_node_key == current_best_node.key() && max_shared_muts.left.nuc_subs.is_empty() {
+            // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
+            // FIXME: what if there's no parent?
+            current_best_node = graph
+              .parent_of_by_key(best_node_key)
+              .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
+
+            private_mutations =
+              difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
+                format!(
+                  "When calculating difference of mutations between query sequence and the candidate parent node '{}'",
+                  current_best_node.payload().name
+                )
+              })?;
+          } else if best_node_key == current_best_node.key() {
+            // The best node is the current node. Break.
+            break;
+          } else {
+            // The best node is child
+            current_best_node = graph.get_node(best_node_key)?;
+            //subtract the shared mutations from the private mutations struct
+            private_mutations =
+              difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
+                format!(
+                  "When calculating difference of mutations between query sequence and the candidate child node '{}'",
+                  current_best_node.payload().name
+                )
+              })?;
+            // add the inverted remaining mutations on that branch
+            // even if there are no left-over nuc_subs because they are shared, the can be
+            // changes in the same codon that still need handling
+            private_mutations =
+              union_of_muts(&private_mutations, &max_shared_muts.left.invert()).wrap_err_with(|| {
+                format!(
+                  "When calculating union of mutations between query sequence and the candidate child node '{}'",
+                  graph.get_node(best_node_key).expect("Node not found").payload().name
+                )
+              })?;
+          }
+        } else if current_best_node.is_leaf()
+          && !current_best_node.is_root()
+          && current_best_node.payload().tmp.private_mutations.nuc_subs.is_empty()
+        {
+          // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
+          // auxiliary nodes.
+
+          // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
+          // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_neighbors`
+          // and the `max_shared_muts` is automatically the `current_best_node.key()`. Less error prone would be
+          // to fetch the shared muts corresponding to current_best_node.key()
+          private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
+            format!(
+              "When subtracting mutations from zero-length parent node '{}'",
+              current_best_node.payload().name
+            )
+          })?;
+          current_best_node = graph
+            .parent_of_by_key(best_node_key)
+            .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
+        } else {
+          break;
+        }
       }
-    } else if nearest_node.is_leaf() && nearest_node.payload().tmp.private_mutations.nuc_subs.is_empty() {
-      // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
-      // auxillary nodes.
-
-      // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
-      // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_neighbors`
-      // and the `max_shared_muts` is automatically the `nearest_node_key`. Less error prone would be
-      // to fetch the shared muts corresponding to current_best_node_key
-      private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
-        format!(
-          "When subtracting mutations from zero-length parent node '{}'",
-          nearest_node.payload().name
-        )
-      })?;
-      nearest_node = graph
-        .parent_of_by_key(best_node_key)
-        .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
-    } else {
-      break;
     }
-    current_best_node_key = nearest_node.key();
   }
-  Ok((nearest_node.key(), private_mutations))
+  Ok((current_best_node.key(), private_mutations))
 }
 
 pub fn attach_to_internal_node(
@@ -269,7 +284,8 @@ pub fn knit_into_graph(
     muts_common_branch,
     muts_target_node,
     muts_new_node,
-  } = if params.without_greedy_tree_builder {
+  } = if params.without_greedy_tree_builder || target_node.is_root() {
+    // don't split branch if node is root as we don't attach nodes above the root
     KnitMuts {
       muts_common_branch: target_node_auspice.tmp.private_mutations.clone(), // Keep target node muts unchanged.
       muts_target_node: PrivateMutationsMinimal::default(),                  // Don't subtract any shared mutations.
