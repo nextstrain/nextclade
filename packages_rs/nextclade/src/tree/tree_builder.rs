@@ -98,7 +98,6 @@ pub fn finetune_nearest_node(
   nearest_node_key: GraphNodeKey,
   seq_private_mutations: &PrivateMutationsMinimal,
 ) -> Result<(GraphNodeKey, PrivateMutationsMinimal), Report> {
-  let mut current_best_node_key = nearest_node_key;
   let mut current_best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
   loop {
@@ -107,7 +106,7 @@ pub fn finetune_nearest_node(
       hashmap! {}
     } else {
       HashMap::<GraphNodeKey, SplitMutsResult>::from([(
-        current_best_node_key,
+        current_best_node.key(),
         split_muts(
           &current_best_node.payload().tmp.private_mutations.invert(),
           &private_mutations,
@@ -143,7 +142,7 @@ pub fn finetune_nearest_node(
       Some((best_node_key, max_shared_muts)) => {
         let n_shared_muts = max_shared_muts.shared.nuc_subs.len();
         if n_shared_muts > 0 {
-          if best_node_key == current_best_node_key && max_shared_muts.left.nuc_subs.is_empty() {
+          if best_node_key == current_best_node.key() && max_shared_muts.left.nuc_subs.is_empty() {
             // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
             // FIXME: what if there's no parent?
             current_best_node = graph
@@ -157,7 +156,7 @@ pub fn finetune_nearest_node(
                   current_best_node.payload().name
                 )
               })?;
-          } else if best_node_key == current_best_node_key {
+          } else if best_node_key == current_best_node.key() {
             // The best node is the current node. Break.
             break;
           } else {
@@ -191,8 +190,8 @@ pub fn finetune_nearest_node(
 
           // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
           // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_neighbors`
-          // and the `max_shared_muts` is automatically the `current_best_node_key`. Less error prone would be
-          // to fetch the shared muts corresponding to current_best_node_key
+          // and the `max_shared_muts` is automatically the `current_best_node.key()`. Less error prone would be
+          // to fetch the shared muts corresponding to current_best_node.key()
           private_mutations = difference_of_muts(&private_mutations, &max_shared_muts.shared).wrap_err_with(|| {
             format!(
               "When subtracting mutations from zero-length parent node '{}'",
@@ -205,7 +204,6 @@ pub fn finetune_nearest_node(
         } else {
           break;
         }
-        current_best_node_key = current_best_node.key();
       }
     }
   }
