@@ -19,6 +19,7 @@ use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::json_write;
 use nextclade::io::nextclade_csv::CsvColumnConfig;
+use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
@@ -97,6 +98,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_tsv,
         output_columns_selection,
         output_tree,
+        output_tree_nwk,
         output_insertions,
         output_errors,
         include_reference,
@@ -167,7 +169,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let aa_motifs_ref = &find_aa_motifs(&virus_properties.aa_motifs, ref_translation)?;
 
-  let should_keep_outputs = output_tree.is_some();
+  let should_keep_outputs = output_tree.is_some() || output_tree_nwk.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
@@ -313,10 +315,17 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     });
   });
 
-  if let Some(output_tree) = run_args.outputs.output_tree {
+  if output_tree.is_some() || output_tree_nwk.is_some() {
     graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &tree_builder_params)?;
-    let tree = convert_graph_to_auspice_tree(&graph)?;
-    json_write(output_tree, &tree)?;
+
+    if let Some(output_tree) = output_tree {
+      let tree = convert_graph_to_auspice_tree(&graph)?;
+      json_write(output_tree, &tree)?;
+    }
+
+    if let Some(output_tree_nwk) = output_tree_nwk {
+      nwk_write_to_file(output_tree_nwk, &graph)?;
+    }
   }
 
   Ok(())

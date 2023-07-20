@@ -10,16 +10,17 @@ use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene::Gene;
 use nextclade::gene::gene_map::GeneMap;
-use nextclade::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree, Graph};
+use nextclade::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::json::json_stringify;
 use nextclade::io::nextclade_csv::CsvColumnConfig;
+use nextclade::io::nwk_writer::convert_graph_to_nwk_string;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::params::TreeBuilderParams;
-use nextclade::tree::tree::{AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
+use nextclade::tree::tree::{AuspiceGraph, AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::graph_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
@@ -311,8 +312,17 @@ impl Nextclade {
     }
   }
 
-  pub fn get_output_tree(&mut self, results: Vec<NextcladeOutputs>) -> Result<AuspiceTree, Report> {
+  pub fn get_output_trees(&mut self, results: Vec<NextcladeOutputs>) -> Result<OutputTrees, Report> {
     graph_attach_new_nodes_in_place(&mut self.graph, results, self.ref_seq.len(), &self.tree_builder_params)?;
-    convert_graph_to_auspice_tree(&self.graph)
+    let auspice = convert_graph_to_auspice_tree(&self.graph)?;
+    let nwk = convert_graph_to_nwk_string(&self.graph)?;
+    Ok(OutputTrees { auspice, nwk })
   }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypescriptDefinition)]
+#[wasm_bindgen]
+pub struct OutputTrees {
+  auspice: AuspiceTree,
+  nwk: String,
 }

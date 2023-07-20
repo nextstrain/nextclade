@@ -1,6 +1,7 @@
 import { concurrent } from 'fasy'
-import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import type { CladeNodeAttrDesc } from 'auspice'
 import { isEmpty, merge } from 'lodash'
+import { OutputTreesPojo } from 'src/gen/nextclade-wasm'
 
 import type {
   AaMotifsDesc,
@@ -41,7 +42,7 @@ export interface LaunchAnalysisCallbacks {
   onInitialData: (data: LaunchAnalysisInitialData) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
-  onTree: (tree: AuspiceJsonV2) => void
+  onTree: (trees: OutputTreesPojo) => void
   onError: (error: Error) => void
   onComplete: () => void
 }

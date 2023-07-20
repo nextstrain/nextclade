@@ -4,6 +4,7 @@ import { changeColorBy } from 'auspice/src/actions/colors'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
+import { OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
@@ -31,6 +32,7 @@ import {
   genomeSizeAtom,
   phenotypeAttrDescsAtom,
   treeAtom,
+  treeNwkAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, LaunchAnalysisInputs } from 'src/workers/launchAnalysis'
@@ -98,10 +100,11 @@ export function useRunAnalysis() {
           onError(error) {
             set(globalErrorAtom, error)
           },
-          onTree(tree: AuspiceJsonV2) {
-            set(treeAtom, tree)
+          onTree({ auspice, nwk }: OutputTreesPojo) {
+            set(treeAtom, auspice)
+            set(treeNwkAtom, nwk)
 
-            const auspiceState = createAuspiceState(tree, dispatch)
+            const auspiceState = createAuspiceState(auspice as AuspiceJsonV2, dispatch)
             dispatch(auspiceStartClean(auspiceState))
             dispatch(changeColorBy())
             dispatch(treeFilterByNodeType(['New']))

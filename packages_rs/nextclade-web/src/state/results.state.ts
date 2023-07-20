@@ -276,6 +276,11 @@ export const treeAtom = atom<AuspiceJsonV2 | undefined>({
   default: undefined,
 })
 
+export const treeNwkAtom = atom<string | undefined>({
+  key: 'treeNwk',
+  default: undefined,
+})
+
 export const hasTreeAtom = selector<boolean>({
   key: 'hasTree',
   get({ get }) {

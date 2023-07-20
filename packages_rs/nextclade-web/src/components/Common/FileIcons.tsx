@@ -15,6 +15,7 @@ export const DEFAULT_ICON_SIZE = 50 as const
 
 export const DEFAULT_ICON_COLORS = {
   fasta: '#66b51d',
+  nwk: '#559184',
   csv: '#55aa55',
   tsv: '#7777cc',
   json: '#bb7e38',
@@ -85,6 +86,18 @@ export function FileIconFasta({ size }: FileIconProps) {
       type={'code2'}
       labelColor={DEFAULT_ICON_COLORS.fasta}
       glyphColor={DEFAULT_ICON_COLORS.fasta}
+    />
+  )
+}
+
+export function FileIconNwk({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'nwk'}
+      type={'document'}
+      labelColor={DEFAULT_ICON_COLORS.nwk}
+      glyphColor={DEFAULT_ICON_COLORS.nwk}
     />
   )
 }

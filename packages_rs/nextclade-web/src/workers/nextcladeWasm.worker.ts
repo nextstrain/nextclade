@@ -19,7 +19,7 @@ import type {
 } from 'src/types'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
-import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
+import { NextcladeWasm, NextcladeParams, AnalysisInput, OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
@@ -159,11 +159,11 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 // }
 
 /** Retrieves the output tree from the WebAssembly module. */
-export async function getOutputTree(analysisResultsJsonStr: string): Promise<string> {
+export async function getOutputTrees(analysisResultsJsonStr: string): Promise<OutputTreesPojo> {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('getOutputTree')
+    throw new ErrorModuleNotInitialized('getOutputTrees')
   }
-  return nextcladeWasm.get_output_tree(analysisResultsJsonStr)
+  return JSON.parse(nextcladeWasm.get_output_trees(analysisResultsJsonStr))
 }
 
 export async function parseSequencesStreaming(fastaStr: string) {
@@ -254,7 +254,7 @@ const worker = {
   destroy,
   getInitialData,
   analyze,
-  getOutputTree,
+  getOutputTrees,
   parseSequencesStreaming,
   parseRefSequence,
   parseTree,

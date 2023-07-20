@@ -5,6 +5,7 @@ use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::graph::edge::{Edge, GraphEdge};
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
+use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
@@ -235,6 +236,18 @@ impl AuspiceTreeNode {
 }
 
 impl GraphNode for AuspiceTreeNode {}
+
+impl HasDivergence for AuspiceTreeNode {
+  fn divergence(&self) -> f64 {
+    self.node_attrs.div.unwrap_or_default()
+  }
+}
+
+impl HasName for AuspiceTreeNode {
+  fn name(&self) -> &str {
+    &self.name
+  }
+}
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]

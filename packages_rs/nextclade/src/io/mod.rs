@@ -12,6 +12,7 @@ pub mod insertions_csv;
 pub mod json;
 pub mod ndjson;
 pub mod nextclade_csv;
+pub mod nwk_writer;
 pub mod parse_pos;
 pub mod results_json;
 pub mod yaml;

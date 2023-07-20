@@ -1,7 +1,5 @@
-import type { AuspiceJsonV2 } from 'auspice'
-
 import type { AnalysisResult, FastaRecord } from 'src/types'
-import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import type { NextcladeParamsPojo, OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
 import { PoolExtended } from 'src/workers/ThreadPoolExtended'
@@ -49,9 +47,8 @@ export class AnalysisWorkerPool {
     return result
   }
 
-  public async getOutputTree() {
-    const treeStr = await this.pool.queue((worker) => worker.getOutputTree(JSON.stringify(this.results)))
-    return JSON.parse(treeStr) as AuspiceJsonV2
+  public async getOutputTrees(): Promise<OutputTreesPojo> {
+    return this.pool.queue((worker) => worker.getOutputTrees(JSON.stringify(this.results)))
   }
 
   public async destroy() {
