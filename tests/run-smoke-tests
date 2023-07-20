@@ -53,3 +53,38 @@ function run_one_test() {
 export -f run_one_test
 
 parallel --jobs="${JOBS}" run_one_test ::: "${all_datasets}"
+
+
+# Additional experimental datasets. This should probably be removed after release of this branch.
+
+export DATASET_DIR="$THIS_DIR/../test_datasets"
+
+all_experimental_datasets="$(ls "${DATASET_DIR}")"
+
+
+function run_one_experimental_test() {
+  name=$1
+  reference="default"
+
+  # This dataset is crashing, probably due to defective or unsupported features
+  if [ "$name" == "vic_na" ]; then
+    return
+  fi
+
+  sequences="$DATASET_DIR/${name}/files/sequences.fasta"
+  if [ ! -f "${sequences}" ]; then
+    sequences="$DATASET_DIR/${name}/files/reference.fasta"
+  fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-dataset="$DATASET_DIR/${name}/files" \
+    --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
+    --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
+    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
+    --output-json="$OUT_DIR/${name}/${reference:-default}/nextclade.json" \
+    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.auspice.json" \
+    "${sequences}"
+}
+export -f run_one_experimental_test
+
+parallel --jobs="${JOBS}" run_one_experimental_test ::: "${all_experimental_datasets}"

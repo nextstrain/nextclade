@@ -32,8 +32,6 @@ pub fn graph_attach_new_nodes_in_place(
 
   // Look for a query sample result for which this node was decided to be nearest
   for result in &results {
-    let r_name = result.seq_name.clone();
-    println!("Attaching new node for {r_name}");
     graph_attach_new_node_in_place(graph, result, divergence_units, ref_seq_len, params).wrap_err_with(|| {
       format!(
         "When attaching the new node for query sequence '{}' to the tree",
