@@ -227,15 +227,18 @@ pub fn create_stripes(
     trace!("Absolute shift: {}", abs_shift);
 
     let previous = trapezoids.last().unwrap();
-    let box_start = previous.ref_end - allowed_mismatches - abs_shift;
+    let box_start = previous.ref_end as isize - (allowed_mismatches + abs_shift) as isize;
     let box_end = seed2.ref_pos + allowed_mismatches + abs_shift;
 
     // Add gap trapezoid
     trapezoids.push(TrapezoidDirectParams {
-      ref_start: box_start,
+      ref_start: max(0, box_start) as usize,
       ref_end: box_end,
-      qry_start: box_start as isize - max(seed1.offset, seed2.offset) - excess_bandwidth as isize,
-      qry_end: box_start as isize - min(seed1.offset, seed2.offset) + excess_bandwidth as isize,
+      qry_start: max(
+        0,
+        box_start - max(seed1.offset, seed2.offset) - excess_bandwidth as isize,
+      ),
+      qry_end: box_start - min(seed1.offset, seed2.offset) + excess_bandwidth as isize,
     });
   }
 

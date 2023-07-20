@@ -38,7 +38,6 @@ pub fn score_matrix<T: Letter<T>>(
   let band_size = paths.data_len();
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
-
   let left_align = match params.gap_alignment_side {
     GapAlignmentSide::Left => 1,
     GapAlignmentSide::Right => 0,

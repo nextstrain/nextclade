@@ -13,6 +13,7 @@ use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
 use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
+use std::thread::current;
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
 struct SkipEvery<I> {
@@ -103,7 +104,7 @@ pub struct SeedMatch2 {
 }
 
 impl SeedMatch2 {
-  fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> SeedMatch2 {
+  fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
     let SeedMatch2 {
       mut ref_pos,
       mut qry_pos,
@@ -192,13 +193,31 @@ impl SeedMatch2 {
     length -= config.window_size - crop;
     ref_pos += config.window_size - crop;
     qry_pos += config.window_size - crop;
-
-    SeedMatch2 {
-      ref_pos,
-      qry_pos,
-      length,
-      offset: self.offset,
+    if length < config.min_match_length {
+      return vec![];
     }
+
+    let mut chopped_matches = Vec::with_capacity(length / config.min_match_length + 1);
+    let mut current_ref_pos = ref_pos;
+    let mut current_qry_pos = qry_pos;
+    let max_pos = ref_pos + length - config.min_match_length;
+    while current_ref_pos < max_pos {
+      chopped_matches.push(SeedMatch2 {
+        ref_pos: current_ref_pos,
+        qry_pos: current_qry_pos,
+        length: config.min_match_length,
+        offset: self.offset,
+      });
+      current_ref_pos += config.min_match_length;
+      current_qry_pos += config.min_match_length;
+    }
+    chopped_matches.push(SeedMatch2 {
+      ref_pos: max_pos,
+      qry_pos: qry_pos + length - config.min_match_length,
+      offset: self.offset,
+      length: config.min_match_length,
+    });
+    chopped_matches
   }
 }
 
@@ -249,7 +268,7 @@ impl CodonSpacedIndex {
         }
       }
     }
-    // write_matches_to_file(&matches, "unextended_matches.csv");
+    //write_matches_to_file(&matches, "unextended_matches.csv");
     matches
   }
 
@@ -261,6 +280,7 @@ impl CodonSpacedIndex {
     let mut matches = BTreeMap::<isize, IntervalSet<usize>>::new();
 
     let empty_interval_set = Vec::<(usize, usize)>::new().to_interval_set();
+    let mut collected_matches = Vec::new();
 
     for index_match in index_matches {
       let interval_set_for_this_offset = matches.get(&index_match.offset).unwrap_or(&empty_interval_set);
@@ -274,42 +294,27 @@ impl CodonSpacedIndex {
         continue;
       }
 
-      let extended_match = index_match.extend_seed(qry_seq, ref_seq, config);
-
-      if extended_match.length < config.min_match_length {
+      let extended_matches = index_match.extend_seed(qry_seq, ref_seq, config);
+      if extended_matches.is_empty() {
         continue;
       }
-
       // Insert extended range into matches map
       let extended_interval_set = vec![(
-        max(extended_match.qry_pos, 0),
-        min(extended_match.qry_pos + extended_match.length, qry_seq.len()),
+        max(extended_matches[0].qry_pos, 0),
+        min(
+          extended_matches.last().unwrap().qry_pos + extended_matches.last().unwrap().length,
+          qry_seq.len(),
+        ),
       )]
       .to_interval_set()
       .union(interval_set_for_this_offset);
 
       matches.insert(index_match.offset, extended_interval_set);
+      collected_matches.extend(extended_matches.iter().cloned());
     }
 
-    // Transform to Vec<SeedMatch>
-    let result: Vec<SeedMatch2> = matches
-      .iter()
-      .flat_map(|(offset, intervals)| {
-        intervals
-          .iter()
-          .map(|interval| SeedMatch2 {
-            qry_pos: interval.lower(),
-            ref_pos: (interval.lower() as isize + offset) as usize,
-            length: interval.upper() - interval.lower(),
-            offset: *offset,
-          })
-          .collect::<Vec<SeedMatch2>>()
-      })
-      .collect();
-
     // write_matches_to_file(&result, "raw_matches.csv");
-
-    result
+    collected_matches
   }
 }
 
@@ -432,7 +437,21 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
   }
   optimal_chain.reverse();
 
-  optimal_chain
+  let mut merged_seeds: Vec<SeedMatch2> = Vec::with_capacity(optimal_chain.len());
+  let mut current_seed = optimal_chain[0].clone();
+  for seed in &optimal_chain[1..optimal_chain.len()] {
+    if seed.qry_pos == current_seed.qry_pos + current_seed.length
+      && seed.ref_pos == current_seed.ref_pos + current_seed.length
+    {
+      current_seed.length += seed.length;
+    } else {
+      merged_seeds.push(current_seed);
+      current_seed = seed.clone();
+    }
+  }
+  merged_seeds.push(current_seed);
+  merged_seeds.shrink_to_fit();
+  merged_seeds
 }
 
 pub fn get_seed_matches2(
@@ -444,7 +463,6 @@ pub fn get_seed_matches2(
   let matches = seed_index
     .extended_matches(qry_seq, ref_seq, params)
     .into_iter()
-    .filter(|m| m.length > params.min_match_length)
     .collect_vec();
 
   // write_matches_to_file(&matches, "matches.csv");
@@ -460,7 +478,7 @@ pub fn get_seed_matches2(
   }
 
   let seed_matches = chain_seeds(&matches);
-  // write_matches_to_file(&matches, "chained_matches.csv");
+  write_matches_to_file(&seed_matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
   if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
@@ -500,7 +518,7 @@ mod tests {
     //                0         1         2         3         4         5         6         7         8         9
 
     let input    = SeedMatch2 { ref_pos: 40, qry_pos: 37, length: 8, offset: 0 };
-    let expected = SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 53, offset: 0 };
+    let expected = vec![SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 40, offset: 0 }, SeedMatch2{ ref_pos: 33, qry_pos: 30, length: 40, offset: 0 }];
     let actual = input.extend_seed(&to_nuc_seq(qry_seq)?, &to_nuc_seq(ref_seq)?, &AlignPairwiseParams::default());
 
     assert_eq!(expected, actual);
