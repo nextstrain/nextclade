@@ -54,7 +54,7 @@ function run_one_test() {
 export -f run_one_test
 
 function run_many_tests() {
-  parallel --jobs=+0 run_one_test ::: "${all_datasets}"
+  parallel --keep-order --jobs=+0 run_one_test ::: "${all_datasets}"
 }
 export -f run_many_tests
 
@@ -95,11 +95,11 @@ function run_one_experimental_test() {
 export -f run_one_experimental_test
 
 function run_many_experimental_tests() {
-  parallel --jobs=+0 run_one_experimental_test ::: "${all_experimental_datasets}"
+  parallel --keep-order --jobs=+0 run_one_experimental_test ::: "${all_experimental_datasets}"
 }
 export -f run_many_experimental_tests
 
 
 
-parallel --jobs=2 ::: run_many_tests run_many_experimental_tests
+parallel --ungroup --keep-order --jobs=2 ::: run_many_tests run_many_experimental_tests
 
