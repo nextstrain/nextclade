@@ -260,7 +260,7 @@ impl CodonSpacedIndex {
                 qry_pos: unskipped_qry_index,
                 ref_pos: unskipped_ref_index,
                 length: 0,
-                offset: unskipped_ref_index as isize - unskipped_qry_index as isize,
+                offset: unskipped_qry_index as isize - unskipped_ref_index as isize,
               });
             }
           }
@@ -313,7 +313,7 @@ impl CodonSpacedIndex {
       collected_matches.extend(extended_matches.iter().cloned());
     }
 
-    // write_matches_to_file(&result, "raw_matches.csv");
+    // write_matches_to_file(&collected_matches, "raw_matches.csv");
     collected_matches
   }
 }
@@ -478,7 +478,7 @@ pub fn get_seed_matches2(
   }
 
   let seed_matches = chain_seeds(&matches);
-  write_matches_to_file(&seed_matches, "chained_matches.csv");
+  // write_matches_to_file(&seed_matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
   if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
