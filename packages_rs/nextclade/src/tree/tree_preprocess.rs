@@ -58,11 +58,14 @@ pub fn tree_preprocess_in_place_impl_recursive(
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<GraphNodeKey, Report> {
-  let mut nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
+  let mut nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)
+    .wrap_err_with(|| format!("When retrieving nuc mutations from reference tree node {}", node.name))?;
   let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
     nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-  let mut aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
+  let mut aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> =
+    map_aa_muts(node, ref_translation, parent_aa_muts)
+      .wrap_err_with(|| format!("When retrieving aa mutations from reference tree node {}", node.name))?;
   let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
     .clone()
     .into_iter()
@@ -146,12 +149,31 @@ fn map_nuc_muts(
 
         if ref_seq.len() < mutation.pos.as_usize() {
           return make_error!(
-            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the position is outside of reference sequence length ({}). This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Check that you are using a correct dataset.", ref_seq.len()
+            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the position ({}) is outside of reference sequence length ({}). This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should correspond to the root of the reference tree. Check that you are using a correct dataset.", mutation.pos.as_usize(), ref_seq.len()
           );
         }
 
-        // If mutation reverts nucleotide back to what reference had, remove it from the map
         let ref_nuc = ref_seq[mutation.pos.as_usize()];
+
+        // Check that reference sequence and reference tree are compatible
+        if let Some(tree_nuc) = nuc_muts.get(&mutation.pos) {
+          // If the position is already in the map, we should check that the state before the mutation is consistent
+          // with the <from><pos><to> structure of the sub.
+          if &mutation.ref_nuc != tree_nuc {
+            // TODO: write proper message
+            return make_error!(
+              "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the state before the mutation is inconsistent. Mutation contains '{}', but tree node contains '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should correspond to the root of the reference tree. Check that you are using a correct dataset." , mutation.ref_nuc.to_string(), tree_nuc.to_string()
+            );
+          }
+        } else if mutation.ref_nuc != ref_nuc {
+          // If the mutation is not in the map yet, we should check that mutation.ref_nuc==ref_nuc.
+          return make_error!(
+              "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the state before the mutation is inconsistent. Mutation contains '{}', but reference sequence contains '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should correspond to the root of the reference tree. Check that you are using a correct dataset.",
+            mutation.ref_nuc.to_string(), ref_nuc.to_string()
+            );
+        }
+
+        // If mutation reverts nucleotide back to what reference had, remove it from the map
         if ref_nuc == mutation.qry_nuc {
           nuc_muts.remove(&mutation.pos);
         } else {
