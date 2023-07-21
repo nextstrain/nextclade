@@ -144,9 +144,9 @@ function OptionLabelFullGenome({ isMenu: _ }: { isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
     <Indent>
-      <Badge $color="#54AD56" className="mr-1 px-2 py-1" title={t('Full genome')}>
+      <BadgeWide $color="#54AD56" className="mr-1 px-2 py-1" title={t('Full genome')}>
         {t('Full genome')}
-      </Badge>
+      </BadgeWide>
     </Indent>
   )
 }
@@ -205,6 +205,10 @@ function OptionLabelProtein({ protein, isMenu = false }: { protein: Protein; isM
 const Badge = styled(BadgeBase)<{ $color?: string }>`
   background-color: ${(props) => props.$color ?? props.theme.gray600};
   font-size: 1rem;
+`
+
+const BadgeWide = styled(Badge)<{ $color?: string }>`
+  width: 100%;
 `
 
 // noinspection CssReplaceWithShorthandSafely
