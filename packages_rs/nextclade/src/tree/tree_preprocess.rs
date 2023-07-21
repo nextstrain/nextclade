@@ -235,8 +235,27 @@ fn map_aa_muts_for_one_gene(
         );
         }
 
-        // If mutation reverts amino acid back to what reference had, remove it from the map
         let ref_aa = ref_peptide[mutation.pos.as_usize()];
+
+        // Check that reference sequence and reference tree are compatible
+        if let Some(tree_aa) = aa_muts.get(&mutation.pos) {
+          // If the position is already in the map, we should check that the state before the mutation is consistent
+          // with the <from><pos><to> structure of the sub.
+          if &mutation.ref_aa != tree_aa {
+            // TODO: write proper message
+            return make_error!(
+              "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the state before the mutation is inconsistent. Mutation contains '{}', but tree node contains '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should correspond to the root of the reference tree. Check that you are using a correct dataset." , mutation.ref_aa.to_string(), tree_aa.to_string()
+            );
+          }
+        } else if mutation.ref_aa != ref_aa {
+          // If the mutation is not in the map yet, we should check that mutation.ref_aa==ref_aa.
+          return make_error!(
+              "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the state before the mutation is inconsistent. Mutation contains '{}', but reference sequence contains '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should correspond to the root of the reference tree. Check that you are using a correct dataset.",
+            mutation.ref_aa.to_string(), ref_aa.to_string()
+            );
+        }
+
+        // If mutation reverts amino acid back to what reference had, remove it from the map
         if ref_aa == mutation.qry_aa {
           aa_muts.remove(&mutation.pos);
         } else {
