@@ -284,7 +284,7 @@ pub fn create_stripes(
     look_back_length = max(look_back_length, current_seed.offset - current_broad_seed.left_offset);
   }
   // terminate previous trapezoid where the new one will start and push
-  current_broad_seed.ref_end = (current_seed_end as isize - look_back_length) as usize;
+  current_broad_seed.ref_end = max(0, current_seed_end as isize - look_back_length) as usize;
   broad_seeds.push(current_broad_seed);
 
   current_broad_seed = TrapezoidDirectParams {
