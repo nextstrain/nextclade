@@ -38,6 +38,11 @@ function run_one_test() {
   name="${arr[0]}"
   reference="${arr[1]}"
 
+  # This dataset is crashing, due to a defect in the dataset
+  if [ "$name" == "sars-cov-2-21L" ]; then
+    return
+  fi
+
   echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'"
 
   ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}/${reference:-default}"
