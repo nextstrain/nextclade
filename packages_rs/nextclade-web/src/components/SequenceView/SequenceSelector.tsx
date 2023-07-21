@@ -79,10 +79,10 @@ export function SequenceSelector() {
     return {
       menuPortal: (base) => ({ ...base, zIndex: 9999 }),
       menuList: (base) => ({ ...base, fontSize: '1rem' }),
-      option: (base) => ({ ...base, fontSize: '1rem', padding: '2px 8px' }),
+      option: (base) => ({ ...base, fontSize: '1.1rem', padding: '2px 8px' }),
       singleValue: (base, state) => ({
         ...base,
-        fontSize: '1rem',
+        fontSize: '1.1rem',
         display: state.selectProps.menuIsOpen ? 'none' : 'block',
       }),
     }
@@ -204,6 +204,7 @@ function OptionLabelProtein({ protein, isMenu = false }: { protein: Protein; isM
 
 const Badge = styled(BadgeBase)<{ $color?: string }>`
   background-color: ${(props) => props.$color ?? props.theme.gray600};
+  font-size: 1rem;
 `
 
 // noinspection CssReplaceWithShorthandSafely
