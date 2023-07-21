@@ -5,6 +5,8 @@ use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
 use itertools::Itertools;
+use maplit::btreemap;
+use std::collections::BTreeMap;
 
 pub fn calculate_aa_alignment_ranges_in_place(
   global_alignment_range: &NucRefGlobalRange,
@@ -64,4 +66,52 @@ fn calculate_aa_unsequenced_ranges(sequenced: &[AaRefRange], cds_tr_len: usize) 
   }
 
   unsequenced
+}
+
+pub struct GatherAaAlignmentRangesResult {
+  pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
+  pub aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
+}
+
+/// Collects aminoacid alignment ranges across all CDSes, including CDSes missing from translation.
+pub fn gather_aa_alignment_ranges(translation: &Translation, gene_map: &GeneMap) -> GatherAaAlignmentRangesResult {
+  let mut res = GatherAaAlignmentRangesResult {
+    aa_alignment_ranges: btreemap! {},
+    aa_unsequenced_ranges: btreemap! {},
+  };
+
+  for cds in gene_map.iter_cdses() {
+    if let Ok(cds_tr) = translation.get_cds(&cds.name) {
+      // CDS is present in the translation. Collect aligned and sequenced ranged from all CDS fragments.
+      let alignment_ranges = cds_tr
+        .alignment_ranges
+        .iter()
+        .filter_map(|alignment_range| (!alignment_range.is_empty()).then_some(alignment_range.clone()))
+        .collect_vec();
+      res.aa_alignment_ranges.insert(cds.name.clone(), alignment_ranges);
+
+      let unsequenced_ranges = cds_tr
+        .unsequenced_ranges
+        .iter()
+        .filter_map(|unsequenced_range| (!unsequenced_range.is_empty()).then_some(unsequenced_range.clone()))
+        .collect_vec();
+
+      res.aa_unsequenced_ranges.insert(cds.name.clone(), unsequenced_ranges);
+    } else {
+      // The entire CDS is missing from translation. Mark each CDS fragment as unsequenced.
+      res.aa_alignment_ranges.insert(cds.name.clone(), vec![]);
+
+      let aa_unsequenced_ranges = cds
+        .segments
+        .iter()
+        .map(|cds_seg| local_to_codon_range_exclusive(&cds_seg.range_local))
+        .collect_vec();
+
+      res
+        .aa_unsequenced_ranges
+        .insert(cds.name.clone(), aa_unsequenced_ranges);
+    }
+  }
+
+  res
 }

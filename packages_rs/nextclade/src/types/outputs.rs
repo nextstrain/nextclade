@@ -13,6 +13,7 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::graph::node::GraphNodeKey;
 use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
@@ -94,7 +95,7 @@ pub struct NextcladeOutputs {
   pub coverage: f64,
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
-  pub nearest_node_id: usize,
+  pub nearest_node_id: GraphNodeKey,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub nearest_nodes: Option<Vec<String>>,
   pub is_reverse_complement: bool,

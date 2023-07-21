@@ -1,0 +1,3 @@
+#DUMMY
+ref	dummy	region	1	120	.	+	.	ID=ref
+ref	dummy	CDS	1	15	.	+	0	Name=HA1;gene=HA1
