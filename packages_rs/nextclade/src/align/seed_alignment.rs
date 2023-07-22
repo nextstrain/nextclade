@@ -237,11 +237,10 @@ pub fn create_stripes(
       look_back_length = max(look_back_length, mean_offset - current_band.left_offset);
     }
     // terminate previous trapezoid where the new one will start and push
-    if (current_seed_end - look_back_length) > 0 {
+    // condition should always be satisfied. otherwise band is discarded
+    if (current_seed_end - look_back_length) > current_band.ref_start {
       current_band.ref_end = current_seed_end - look_back_length;
       bands.push(current_band);
-    } else {
-      current_band.ref_end = 0;
     }
 
     // generate trapezoid for the gap between seeds and push
@@ -292,6 +291,7 @@ pub fn create_stripes(
   };
   bands.push(current_band);
 
+  // construct strips from the ordered bands
   let mut stripes = Vec::<Stripe>::with_capacity(ref_len as usize + 1);
   for band in bands {
     for ref_pos in band.ref_start..band.ref_end {
@@ -303,14 +303,9 @@ pub fn create_stripes(
   }
   // write_stripes_to_file(&stripes, "stripes.csv");
 
+  // trim stripes to reachable regions
   let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
-
-  // For debugging of stripes and matches:
-  // write_stripes_to_file(&regularized_stripes, "regularized_stripes.csv");
-  // write_matches_to_file(seed_matches, "matches.csv");
-  // Usefully visualized using `python scripts/visualize-stripes.py`
-  //
-  trace_stripe_stats(&regularized_stripes);
+  // trace_stripe_stats(&regularized_stripes);
 
   Ok(regularized_stripes)
 }
