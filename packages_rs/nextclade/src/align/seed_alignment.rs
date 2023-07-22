@@ -222,9 +222,9 @@ pub fn create_stripes(
     look_back_length = shift + excess_bandwidth;
     look_forward_length = shift + excess_bandwidth;
     // rewind the bands until the ref_start of the last one preceeds the one to add
-    while current_band.ref_start > max(0, current_seed_end - look_back_length) {
-      current_band = if let Some(tmp_seed) = bands.pop() {
-        tmp_seed
+    while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
+      current_band = if let Some(tmp_band) = bands.pop() {
+        tmp_band
       } else {
         // we rewound all the way to the beginning, add a new terminal
         TrapezoidDirectParams {
@@ -265,7 +265,7 @@ pub fn create_stripes(
 
   look_back_length = max(terminal_bandwidth, look_back_length);
   // rewind the bands until the ref_start of the last one preceeds the one too add
-  while current_band.ref_start > max(0, current_seed_end - look_back_length) {
+  while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
     current_band = if let Some(tmp_seed) = bands.pop() {
       tmp_seed
     } else {
