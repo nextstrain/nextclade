@@ -216,8 +216,7 @@ pub fn create_stripes(
   }
 
   // loop over remaining seeds in chain
-  for chain_index in 1..chain.len() {
-    let next_seed = &chain[chain_index];
+  for next_seed in chain.iter().skip(1) {
     let mean_offset = (next_seed.offset + current_seed.offset) / 2; // offset of gap seed
     let shift = abs_shift(current_seed, next_seed) / 2; // distance from mean offset
     look_back_length = shift + excess_bandwidth;
@@ -297,7 +296,7 @@ pub fn create_stripes(
   for broad_seed in broad_seeds {
     for ref_pos in broad_seed.ref_start..broad_seed.ref_end {
       stripes.push(Stripe {
-        begin: min(qry_len - allowed_mismatches, max(0, ref_pos + broad_seed.left_offset)) as usize,
+        begin: (ref_pos + broad_seed.left_offset).clamp(0, qry_len - allowed_mismatches) as usize,
         end: min(qry_len + 1, ref_pos + broad_seed.right_offset) as usize,
       });
     }
