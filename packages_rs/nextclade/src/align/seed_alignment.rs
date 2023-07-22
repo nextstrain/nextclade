@@ -237,9 +237,9 @@ pub fn create_stripes(
       look_back_length = max(look_back_length, mean_offset - current_band.left_offset);
     }
     // terminate previous trapezoid where the new one will start and push
-    // condition should always be satisfied. otherwise band is discarded
-    if (current_seed_end - look_back_length) > current_band.ref_start {
-      current_band.ref_end = current_seed_end - look_back_length;
+    // condition should always be satisfied. otherwise band is discarded and the next band starts at 0
+    current_band.ref_end = max(0, current_seed_end - look_back_length);
+    if current_band.ref_end > 0 {
       bands.push(current_band);
     }
 
@@ -281,7 +281,9 @@ pub fn create_stripes(
   }
   // terminate previous trapezoid where the new one will start and push
   current_band.ref_end = max(0, current_seed_end - look_back_length);
-  bands.push(current_band);
+  if current_band.ref_end > 0 {
+    bands.push(current_band);
+  }
 
   current_band = TrapezoidDirectParams {
     ref_start: current_band.ref_end,
