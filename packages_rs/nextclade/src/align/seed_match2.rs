@@ -13,7 +13,6 @@ use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
 use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
-use std::thread::current;
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
 struct SkipEvery<I> {
