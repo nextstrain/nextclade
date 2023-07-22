@@ -78,6 +78,10 @@ function run_one_experimental_test() {
   if [ "$name" == "vic_na" ]; then
     return
   fi
+  # this isn't actually a dataset
+  if [ "$name" == "seed_matching" ]; then
+    return
+  fi
 
   sequences="${DATASET_DIR_EXPERIMENTAL}/${name}/files/sequences.fasta"
   msg_no_sequences=""
