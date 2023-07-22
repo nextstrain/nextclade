@@ -1833,6 +1833,7 @@ dependencies = [
  "schemars",
  "semver 1.0.17",
  "serde",
+ "serde_json",
  "strum 0.25.0",
  "strum_macros 0.25.0",
  "url",

@@ -65,8 +65,8 @@ zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 atty = "=0.2.14"
-bzip2 = "=0.4.4"
-xz2 = "=0.1.7"
+bzip2 = { version = "=0.4.4", features = ["static"] }
+xz2 = { version = "=0.1.7", features = ["static"] }
 zstd = { version = "=0.12.3", features = ["zstdmt"] }
 
 [dev-dependencies]

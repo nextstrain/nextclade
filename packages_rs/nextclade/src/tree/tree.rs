@@ -1,6 +1,10 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
+use crate::graph::edge::GraphEdge;
+use crate::graph::graph::Graph;
+use crate::graph::node::{GraphNode, GraphNodeKey};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
@@ -15,6 +19,19 @@ use validator::Validate;
 // HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
 // https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
 pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
+
+#[derive(Clone, Debug)]
+pub struct AuspiceTreeEdge; // Edge payload is empty. Branch attributes are currently stored on nodes.
+
+impl AuspiceTreeEdge {
+  pub const fn new() -> Self {
+    Self {}
+  }
+}
+
+impl GraphEdge for AuspiceTreeEdge {}
+
+pub type AuspiceGraph = Graph<AuspiceTreeNode, AuspiceTreeEdge>;
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttr {
@@ -51,8 +68,23 @@ impl TreeNodeAttrF64 {
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+pub struct TreeBranchAttrsLabels {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub aa: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub clade: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub labels: Option<TreeBranchAttrsLabels>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -119,11 +151,12 @@ pub struct TreeNodeAttrs {
 
 /// Temporary data internal to Nextclade.
 /// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
-  pub id: usize,
+  pub id: GraphNodeKey,
   pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
+  pub private_mutations: PrivateMutationsMinimal,
   pub aa_substitutions: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   pub is_ref_node: bool,
@@ -179,6 +212,8 @@ impl AuspiceTreeNode {
       .collect()
   }
 }
+
+impl GraphNode for AuspiceTreeNode {}
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
