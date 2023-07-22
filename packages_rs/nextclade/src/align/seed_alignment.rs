@@ -143,14 +143,12 @@ pub fn seed_alignment(
   seed_index: &CodonSpacedIndex,
   params: &AlignPairwiseParams,
 ) -> Result<Vec<Stripe>, Report> {
-  let qry_len_u = qry_seq.len();
-  let ref_len_u = ref_seq.len();
-  let qry_len_i = qry_len_u as i32;
-  let ref_len_i = ref_len_u as i32;
+  let qry_len = qry_seq.len();
+  let ref_len = ref_seq.len();
 
-  if ref_len_u + qry_len_u < (5 * params.seed_length) {
+  if ref_len + qry_len < (10 * params.seed_length) {
     // for very short sequences, use full square
-    let stripes = full_matrix(ref_len_u, qry_len_u);
+    let stripes = full_matrix(ref_len, qry_len);
     trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
     Ok(stripes)
   } else {
@@ -158,12 +156,12 @@ pub fn seed_alignment(
     let seed_matches = get_seed_matches2(qry_seq, ref_seq, seed_index, params)?;
     create_stripes(
       &seed_matches,
-      qry_len_u,
-      ref_len_u,
+      qry_len as isize,
+      ref_len as isize,
       params.terminal_bandwidth as isize,
       params.excess_bandwidth as isize,
-      params.max_indel,
-      params.allowed_mismatches,
+      params.max_indel as isize,
+      params.allowed_mismatches as isize,
     )
   }
 }
@@ -176,12 +174,12 @@ fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> isize {
 /// Stripes define the query sequence range for each reference position
 pub fn create_stripes(
   chain: &[SeedMatch2],
-  qry_len: usize,
-  ref_len: usize,
+  qry_len: isize,
+  ref_len: isize,
   terminal_bandwidth: isize,
   excess_bandwidth: isize,
-  max_indel: usize,
-  allowed_mismatches: usize,
+  max_indel: isize,
+  allowed_mismatches: isize,
 ) -> Result<Vec<Stripe>, Report> {
   // This function steps through the chained seeds and determines and appropriate band
   // defined via stripes in query coordinates. These bands will later be chopped to reachable ranges
@@ -195,13 +193,13 @@ pub fn create_stripes(
   let mut broad_seeds = Vec::<TrapezoidDirectParams>::with_capacity(2 * chain.len() + 2);
 
   let mut current_seed = &chain[0];
-  let mut current_seed_end = current_seed.ref_pos + current_seed.length;
+  let mut current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   // make initial trapezoid starting at 0 and extending into match by terminal_bandwidth
   let mut look_back_length = terminal_bandwidth;
   let mut look_forward_length = terminal_bandwidth;
   let mut current_broad_seed = TrapezoidDirectParams {
     ref_start: 0,
-    ref_end: min(current_seed.ref_pos + look_forward_length as usize, ref_len),
+    ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len),
     left_offset: current_seed.offset - terminal_bandwidth,
     right_offset: current_seed.offset + terminal_bandwidth,
   };
@@ -212,8 +210,8 @@ pub fn create_stripes(
     current_broad_seed = TrapezoidDirectParams {
       ref_start: current_broad_seed.ref_end,
       ref_end: min(current_seed_end, ref_len + 1),
-      left_offset: current_seed.offset - allowed_mismatches as isize,
-      right_offset: current_seed.offset + allowed_mismatches as isize,
+      left_offset: current_seed.offset - allowed_mismatches,
+      right_offset: current_seed.offset + allowed_mismatches,
     };
   }
 
@@ -225,14 +223,14 @@ pub fn create_stripes(
     look_back_length = shift + excess_bandwidth;
     look_forward_length = shift + excess_bandwidth;
     // rewind the broad seeds until the ref_start of the last one preceeds the one too add
-    while current_broad_seed.ref_start as isize > max(0, current_seed_end as isize - look_back_length) {
+    while current_broad_seed.ref_start > max(0, current_seed_end - look_back_length) {
       current_broad_seed = if let Some(tmp_seed) = broad_seeds.pop() {
         tmp_seed
       } else {
         // we rewound all the way to the beginning, add a new terminal
         TrapezoidDirectParams {
           ref_start: 0,
-          ref_end: min(current_seed.ref_pos + look_forward_length as usize, ref_len + 1),
+          ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1),
           left_offset: current_seed.offset - look_back_length,
           right_offset: current_seed.offset + look_back_length,
         }
@@ -240,8 +238,8 @@ pub fn create_stripes(
       look_back_length = max(look_back_length, mean_offset - current_broad_seed.left_offset);
     }
     // terminate previous trapezoid where the new one will start and push
-    if (current_seed_end as isize - look_back_length) > 0 {
-      current_broad_seed.ref_end = (current_seed_end as isize - look_back_length) as usize;
+    if (current_seed_end - look_back_length) > 0 {
+      current_broad_seed.ref_end = current_seed_end - look_back_length;
       broad_seeds.push(current_broad_seed);
     } else {
       current_broad_seed.ref_end = 0;
@@ -250,7 +248,7 @@ pub fn create_stripes(
     // generate trapezoid for the gap between seeds and push
     current_broad_seed = TrapezoidDirectParams {
       ref_start: current_broad_seed.ref_end,
-      ref_end: next_seed.ref_pos + look_forward_length as usize,
+      ref_end: next_seed.ref_pos as isize + look_forward_length,
       left_offset: mean_offset - look_back_length - excess_bandwidth,
       right_offset: mean_offset + look_back_length + excess_bandwidth,
     };
@@ -259,24 +257,24 @@ pub fn create_stripes(
     // generate new current trapezoid for the body of the next seed
     current_broad_seed = TrapezoidDirectParams {
       ref_start: current_broad_seed.ref_end,
-      ref_end: next_seed.ref_pos + next_seed.length,
-      left_offset: next_seed.offset - allowed_mismatches as isize,
-      right_offset: next_seed.offset + allowed_mismatches as isize,
+      ref_end: (next_seed.ref_pos + next_seed.length) as isize,
+      left_offset: next_seed.offset - allowed_mismatches,
+      right_offset: next_seed.offset + allowed_mismatches,
     };
     current_seed = next_seed;
-    current_seed_end = current_seed.ref_pos + current_seed.length;
+    current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   }
 
   look_back_length = max(terminal_bandwidth, look_back_length);
   // rewind the broad seeds until the ref_start of the last one preceeds the one too add
-  while current_broad_seed.ref_start as isize > max(0, current_seed_end as isize - look_back_length) {
+  while current_broad_seed.ref_start > max(0, current_seed_end - look_back_length) {
     current_broad_seed = if let Some(tmp_seed) = broad_seeds.pop() {
       tmp_seed
     } else {
       // we rewound all the way to the beginning, add a new terminal
       TrapezoidDirectParams {
         ref_start: 0,
-        ref_end: min(current_seed.ref_pos + look_back_length as usize, ref_len + 1),
+        ref_end: min(current_seed.ref_pos as isize + look_back_length, ref_len + 1),
         left_offset: current_seed.offset - look_back_length,
         right_offset: current_seed.offset + look_back_length,
       }
@@ -284,7 +282,7 @@ pub fn create_stripes(
     look_back_length = max(look_back_length, current_seed.offset - current_broad_seed.left_offset);
   }
   // terminate previous trapezoid where the new one will start and push
-  current_broad_seed.ref_end = max(0, current_seed_end as isize - look_back_length) as usize;
+  current_broad_seed.ref_end = max(0, current_seed_end - look_back_length);
   broad_seeds.push(current_broad_seed);
 
   current_broad_seed = TrapezoidDirectParams {
@@ -295,21 +293,18 @@ pub fn create_stripes(
   };
   broad_seeds.push(current_broad_seed);
 
-  let mut stripes = Vec::<Stripe>::with_capacity(ref_len + 1);
+  let mut stripes = Vec::<Stripe>::with_capacity(ref_len as usize + 1);
   for broad_seed in broad_seeds {
-    for ref_pos in broad_seed.ref_start as isize..broad_seed.ref_end as isize {
+    for ref_pos in broad_seed.ref_start..broad_seed.ref_end {
       stripes.push(Stripe {
-        begin: min(
-          qry_len - allowed_mismatches,
-          max(0, ref_pos + broad_seed.left_offset) as usize,
-        ),
-        end: min(qry_len + 1, (ref_pos + broad_seed.right_offset) as usize),
+        begin: min(qry_len - allowed_mismatches, max(0, ref_pos + broad_seed.left_offset)) as usize,
+        end: min(qry_len + 1, ref_pos + broad_seed.right_offset) as usize,
       });
     }
   }
   // write_stripes_to_file(&stripes, "stripes.csv");
 
-  let regularized_stripes = regularize_stripes(stripes, qry_len);
+  let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
 
   // For debugging of stripes and matches:
   // write_stripes_to_file(&regularized_stripes, "regularized_stripes.csv");
@@ -324,16 +319,16 @@ pub fn create_stripes(
 #[derive(Clone, Copy, Debug)]
 // Default qry_len is qry_len
 struct TrapezoidOffsetParams {
-  ref_start: usize,
-  ref_end: usize,
+  ref_start: isize,
+  ref_end: isize,
   offset: isize,
   bandwidth: usize,
 }
 
 #[derive(Clone, Copy, Debug)]
 struct TrapezoidDirectParams {
-  ref_start: usize,
-  ref_end: usize,
+  ref_start: isize,
+  ref_end: isize,
   left_offset: isize,
   right_offset: isize,
 }
