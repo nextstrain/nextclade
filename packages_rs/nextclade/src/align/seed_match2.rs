@@ -511,7 +511,7 @@ fn chop_matches(matches: &[SeedMatch2], config: &AlignPairwiseParams) -> Vec<See
         })
         .collect::<Vec<SeedMatch2>>()
     })
-    // .filter(|m| m.length >= config.min_match_length)
+    .filter(|m| m.length >= 2) // Keep all stripes of at least 2 nt length
     .collect_vec();
   // Only do this in debug mode
   #[cfg(debug_assertions)]
