@@ -228,7 +228,7 @@ pub fn create_stripes(
     trace!("Absolute shift: {}", abs_shift);
 
     let previous = trapezoids.last().unwrap();
-    let box_start = previous.ref_end - allowed_mismatches - abs_shift;
+    let box_start = previous.ref_end.saturating_sub(allowed_mismatches + abs_shift);
     let box_end = seed2.ref_pos + allowed_mismatches + abs_shift;
 
     // Add gap trapezoid
