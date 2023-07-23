@@ -40,6 +40,8 @@ datasets = [
 outputs = [
     "default_diff.tsv",
     "default_diff_seqs.fasta",
+    "default_diff_columns.tsv",
+    "default_diff_alignment_score.tsv",
 ]
 
 
@@ -150,9 +152,10 @@ rule run_nextclade_on_dataset_sequences:
         sequences="sequences/{dataset_name}/sequences.fasta",
     output:
         tsv="results/{dataset_name}/{build_type}/default.tsv",
+        alignment="results/{dataset_name}/{build_type}/alignment.fasta",
     shell:
         """
-        ./{input.bin} run --input-dataset {input.dataset} {input.sequences} --output-tsv {output.tsv}
+        ./{input.bin} run --input-dataset {input.dataset} {input.sequences} --output-tsv {output.tsv} --output-fasta {output.alignment}
         """
 
 
@@ -211,4 +214,35 @@ rule get_differing_seqs:
     shell:
         """
         seqkit grep -w0 -f {input.diff_seqs} {params.seq_dir}/* > {output.diff_seqs}
+        """
+
+
+rule tsv_column_diff:
+    input:
+        tsv1="results/{dataset_name}/base/{seq_type}.tsv",
+        tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
+    output:
+        diff="results/{dataset_name}/{seq_type}_diff_columns.tsv",
+    shell:
+        """
+        python scripts/tsv-diff.py \
+        --base-tsv-path {input.tsv1} \
+        --eval-tsv-path {input.tsv2} \
+        > {output.diff}
+        """
+
+
+rule alignment_score_diff:
+    input:
+        tsv1="results/{dataset_name}/base/{seq_type}.tsv",
+        tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
+    output:
+        diff="results/{dataset_name}/{seq_type}_diff_alignment_score.tsv",
+    shell:
+        """
+        python scripts/tsv-diff.py \
+        --base-tsv-path {input.tsv1} \
+        --eval-tsv-path {input.tsv2} \
+        --columns alignmentScore \
+        > {output.diff}
         """

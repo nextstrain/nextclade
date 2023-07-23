@@ -414,6 +414,7 @@ fn trace_matches(matches: &[SeedMatch2]) {
   }
 }
 
+#[cfg(debug_assertions)]
 fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
   use std::io::Write;
   let mut file = std::fs::File::create(filename).unwrap();
@@ -423,6 +424,7 @@ fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
   }
 }
 
+#[cfg(debug_assertions)]
 pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
   use std::io::Write;
   let mut file = std::fs::File::create(filename).unwrap();

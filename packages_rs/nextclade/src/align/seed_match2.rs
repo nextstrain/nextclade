@@ -350,6 +350,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
     j: usize,
   }
 
+  #[cfg(debug_assertions)]
   write_matches_to_file(matches, "raw_matches.csv");
 
   // Scores vec maps a particular seed match to optimal score
@@ -513,6 +514,7 @@ fn chop_matches(matches: &[SeedMatch2], config: &AlignPairwiseParams) -> Vec<See
     .filter(|m| m.length >= config.min_match_length)
     .collect_vec();
   // Only do this in debug mode
+  #[cfg(debug_assertions)]
   write_matches_to_file(&result, "chopped_matches.csv");
   result
 }
