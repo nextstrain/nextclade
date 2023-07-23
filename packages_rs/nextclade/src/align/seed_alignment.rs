@@ -300,7 +300,9 @@ pub fn create_stripes(
   let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
 
   // For debugging of stripes and matches:
+  #[cfg(debug_assertions)]
   write_stripes_to_file(&regularized_stripes, "stripes.csv");
+  #[cfg(debug_assertions)]
   write_matches_to_file(seed_matches, "chained_matches.csv");
   // Usefully visualized using `python scripts/visualize-stripes.py`
   //
