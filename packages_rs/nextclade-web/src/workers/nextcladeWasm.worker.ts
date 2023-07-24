@@ -97,13 +97,6 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   return output
 }
 
-// export async function getCladeNodeAttrKeyDescs(): Promise<string> {
-//   if (!nextcladeWasm) {
-//     throw new ErrorModuleNotInitialized()
-//   }
-//   return nextcladeWasm.get_clade_node_attr_key_descs()
-// }
-
 /** Retrieves the output tree from the WebAssembly module. */
 export async function getOutputTree(analysisResultsJsonStr: string): Promise<string> {
   if (!nextcladeWasm) {
@@ -126,26 +119,6 @@ export async function parseSequencesStreaming(fastaStr: string) {
 export async function parseRefSequence(refFastaStr: string) {
   return NextcladeWasm.parse_ref_seq_fasta(refFastaStr)
 }
-
-// export async function parseTree(treeJsonStr: string) {
-//   NextcladeWasm.validate_tree_json(treeJsonStr)
-// }
-//
-// export async function parseGeneMapGffString(geneMapGffStr: string) {
-//   return NextcladeWasm.parse_gene_map_gff(geneMapGffStr)
-// }
-//
-// export async function parsePcrPrimerCsvRowsStr(pcrPrimersCsvStr: string, refSeqStr: string) {
-//   NextcladeWasm.validate_primers_csv(pcrPrimersCsvStr, refSeqStr)
-// }
-//
-// export async function parseQcConfigString(qcConfigJsonStr: string) {
-//   NextcladeWasm.validate_qc_config(qcConfigJsonStr)
-// }
-//
-// export async function parseVirusJsonString(virusJsonStr: string) {
-//   NextcladeWasm.validate_virus_properties_json(virusJsonStr)
-// }
 
 export async function serializeResultsJson(
   outputs: AnalysisResult[],
@@ -203,11 +176,6 @@ const worker = {
   getOutputTree,
   parseSequencesStreaming,
   parseRefSequence,
-  // parseTree,
-  // parseGeneMapGffString,
-  // parsePcrPrimerCsvRowsStr,
-  // parseQcConfigString,
-  // parseVirusJsonString,
   serializeResultsJson,
   serializeResultsCsv,
   serializeResultsNdjson,

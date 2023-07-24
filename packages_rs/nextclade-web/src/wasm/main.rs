@@ -89,36 +89,6 @@ impl NextcladeWasm {
     let record = jserr(read_one_fasta_str(ref_seq_str))?;
     jserr(json_stringify(&record, JsonPretty(false)))
   }
-  //
-  // /// Checks that a string containing Auspice tree in JSON format is correct
-  // pub fn validate_tree_json(tree_json_str: &str) -> Result<(), JsError> {
-  //   jserr(AuspiceTree::from_str(tree_json_str))?;
-  //   Ok(())
-  // }
-  //
-  // /// Checks that a string containing gene map in GFF format is correct
-  // pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
-  //   let gene_map = jserr(GeneMap::from_str(gene_map_gff_str))?;
-  //   jserr(json_stringify(&gene_map, JsonPretty(false)))
-  // }
-  //
-  // /// Checks that a string containing PCT primers in CSV format is correct
-  // pub fn validate_primers_csv(pcr_primers_csv_str: &str, ref_seq_str: &str) -> Result<(), JsError> {
-  //   jserr(PcrPrimer::from_str(pcr_primers_csv_str, ref_seq_str))?;
-  //   Ok(())
-  // }
-  //
-  // /// Checks that a string containing QC config in JSON format is correct
-  // pub fn validate_qc_config(qc_json_str: &str) -> Result<(), JsError> {
-  //   jserr(QcConfig::from_str(qc_json_str))?;
-  //   Ok(())
-  // }
-  //
-  // /// Checks that a string containing virus properties in JSON format is correct
-  // pub fn validate_virus_properties_json(virus_properties_json_str: &str) -> Result<(), JsError> {
-  //   jserr(VirusProperties::from_str(virus_properties_json_str))?;
-  //   Ok(())
-  // }
 
   #[allow(clippy::needless_pass_by_value)]
   pub fn serialize_results_json(
