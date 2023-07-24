@@ -331,7 +331,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     }
 
     if let Some(output_graph) = run_args.outputs.output_graph {
-      json_write(output_graph, &graph)?;
+      json_write(output_graph, &graph, JsonPretty(true))?;
     }
   }
 
