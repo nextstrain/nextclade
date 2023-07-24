@@ -9,7 +9,7 @@ use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
-use crate::tree::tree::AuspiceTreeNode;
+use crate::tree::tree::AuspiceGraphNodePayload;
 use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ pub struct PrivateAaMutations {
 ///
 /// For a simpler version with explanation see the sister function for nucleotide mutations
 pub fn find_private_aa_mutations(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   aa_substitutions: &[AaSub],
   aa_deletions: &[AaDel],
   aa_unknowns: &[GeneAaRange],

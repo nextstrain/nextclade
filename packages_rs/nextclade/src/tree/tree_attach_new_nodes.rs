@@ -3,7 +3,7 @@ use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
-  AuspiceTreeNode, TreeBranchAttrs, TreeBranchAttrsLabels, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
+  AuspiceGraphNodePayload, TreeBranchAttrs, TreeBranchAttrsLabels, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
   AUSPICE_UNKNOWN_VALUE,
 };
 use crate::tree::tree_builder::{
@@ -17,7 +17,7 @@ pub fn create_new_auspice_node(
   result: &NextcladeOutputs,
   new_private_mutations: &PrivateMutationsMinimal,
   new_divergence: f64,
-) -> AuspiceTreeNode {
+) -> AuspiceGraphNodePayload {
   let mutations = convert_private_mutations_to_node_branch_attrs(new_private_mutations);
 
   let alignment = format!(
@@ -53,7 +53,7 @@ pub fn create_new_auspice_node(
 
   let other: serde_json::Value = chain!(phenotype_values_json, custom_node_attributes_json).collect();
 
-  AuspiceTreeNode {
+  AuspiceGraphNodePayload {
     name: result.seq_name.clone(),
     branch_attrs: TreeBranchAttrs {
       mutations,
@@ -84,7 +84,6 @@ pub fn create_new_auspice_node(
       missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
       other,
     },
-    children: vec![],
     tmp: TreeNodeTempData::default(),
     other: serde_json::Value::default(),
   }

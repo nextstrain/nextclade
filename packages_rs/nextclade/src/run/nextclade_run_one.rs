@@ -129,25 +129,25 @@ pub fn nextclade_run_one(
     &alignment_range,
     &virus_properties.placement_mask_ranges,
   )?;
-  let node = nearest_node_candidates[0].node;
-  let nearest_node_id = node.tmp.id;
+  let nearest_node_key = nearest_node_candidates[0].node_key;
+  let nearest_node = graph.get_node(nearest_node_key)?.payload();
 
   let nearest_nodes = include_nearest_node_info.then_some(
     nearest_node_candidates
     .iter()
     // Choose all nodes with distance equal to the distance of the nearest node
     .filter(|n| n.distance == nearest_node_candidates[0].distance)
-    .map(|n| n.node.name.clone())
-    .collect_vec(),
+    .map(|n| Ok(graph.get_node(n.node_key)?.payload().name.clone()))
+    .collect::<Result<Vec<String>, Report>>()?,
   );
 
-  let clade = node.clade();
+  let clade = nearest_node.clade();
 
   let clade_node_attr_keys = graph.data.meta.clade_node_attr_descs();
-  let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
+  let clade_node_attrs = nearest_node.get_clade_node_attrs(clade_node_attr_keys);
 
   let private_nuc_mutations = find_private_nuc_mutations(
-    node,
+    nearest_node,
     &substitutions,
     &deletions,
     &missing,
@@ -162,7 +162,7 @@ pub fn nextclade_run_one(
   } = gather_aa_alignment_ranges(&translation, gene_map);
 
   let private_aa_mutations = find_private_aa_mutations(
-    node,
+    nearest_node,
     &aa_substitutions,
     &aa_deletions,
     &unknown_aa_ranges,
@@ -170,7 +170,7 @@ pub fn nextclade_run_one(
     ref_peptides,
     gene_map,
   );
-  let parent_div = node.node_attrs.div.unwrap_or(0.0);
+  let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
   let divergence = parent_div
     + calculate_branch_length(
       &private_nuc_mutations.private_substitutions,
@@ -259,7 +259,7 @@ pub fn nextclade_run_one(
       aa_motifs_changes,
       qc,
       custom_node_attributes: clade_node_attrs,
-      nearest_node_id,
+      nearest_node_id: nearest_node_key,
       nearest_nodes,
       is_reverse_complement,
     },

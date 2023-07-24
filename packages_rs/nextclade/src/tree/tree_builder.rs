@@ -8,7 +8,7 @@ use crate::graph::node::GraphNodeKey;
 use crate::make_internal_report;
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
-use crate::tree::tree::{AuspiceGraph, AuspiceTreeEdge, AuspiceTreeNode, TreeBranchAttrsLabels};
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::tree::tree_preprocess::add_auspice_metadata_in_place;
 use crate::types::outputs::NextcladeOutputs;
@@ -214,13 +214,13 @@ pub fn attach_to_internal_node(
   divergence_new_node: f64,
 ) -> Result<(), Report> {
   //generated auspice payload for new node
-  let mut new_graph_node: AuspiceTreeNode = create_new_auspice_node(result, new_private_mutations, divergence_new_node);
+  let mut new_graph_node: AuspiceGraphNodePayload =
+    create_new_auspice_node(result, new_private_mutations, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
-  new_graph_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
 
   // Create and add the new node to the graph.
   let new_node_key = graph.add_node(new_graph_node);
-  graph.add_edge(nearest_node_id, new_node_key, AuspiceTreeEdge::new())
+  graph.add_edge(nearest_node_id, new_node_key, AuspiceGraphEdgePayload::new())
 }
 
 pub fn convert_private_mutations_to_node_branch_attrs(
@@ -321,7 +321,7 @@ pub fn knit_into_graph(
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
     let new_internal_node = {
-      let mut new_internal_node: AuspiceTreeNode = target_node_auspice.clone();
+      let mut new_internal_node: AuspiceGraphNodePayload = target_node_auspice.clone();
       new_internal_node.tmp.private_mutations = muts_common_branch;
       new_internal_node.node_attrs.div = Some(divergence_middle_node);
       new_internal_node.branch_attrs.mutations =
@@ -332,7 +332,6 @@ pub fn knit_into_graph(
       set_branch_attrs_aa_labels(&mut new_internal_node);
 
       new_internal_node.name = format!("{target_key}_internal");
-      new_internal_node.tmp.id = GraphNodeKey::new(graph.num_nodes()); // FIXME: HACK: assumes keys are indices in node array
       new_internal_node
     };
 
@@ -341,8 +340,8 @@ pub fn knit_into_graph(
     graph.insert_node_before(
       new_internal_node_key,
       target_key,
-      AuspiceTreeEdge::new(), // Edge payloads are currently dummy
-      AuspiceTreeEdge::new(), // Edge payloads are currently dummy
+      AuspiceGraphEdgePayload::new(), // Edge payloads are currently dummy
+      AuspiceGraphEdgePayload::new(), // Edge payloads are currently dummy
     )?;
 
     // update the mutations on the branch from the new_internal_node to the target node (without the shared mutations)
@@ -375,7 +374,7 @@ pub fn knit_into_graph(
   Ok(())
 }
 
-fn set_branch_attrs_aa_labels(node: &mut AuspiceTreeNode) {
+fn set_branch_attrs_aa_labels(node: &mut AuspiceGraphNodePayload) {
   let aa_labels = convert_private_mutations_to_node_branch_attrs_aa_labels(&node.tmp.private_mutations.aa_muts);
   if let Some(labels) = &mut node.branch_attrs.labels {
     labels.aa = Some(aa_labels);

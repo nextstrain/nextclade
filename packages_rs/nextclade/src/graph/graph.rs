@@ -1,8 +1,10 @@
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
+use crate::graph::traits::HasDivergence;
 use crate::io::json::is_json_value_null;
 use crate::tree::tree::{
-  AuspiceGraph, AuspiceGraphMeta, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, GraphTempData,
+  AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphMeta, AuspiceGraphNodePayload, AuspiceTree, AuspiceTreeNode,
+  DivergenceUnits, GraphTempData,
 };
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
@@ -11,9 +13,6 @@ use num_traits::Float;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
-pub type NodeEdgePayloadPair<N, E> = (N, E);
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[allow(clippy::partial_pub_fields)]
@@ -544,7 +543,7 @@ where
   }
 }
 
-impl Graph<AuspiceTreeNode, AuspiceTreeEdge, AuspiceGraphMeta> {
+impl Graph<AuspiceGraphNodePayload, AuspiceGraphEdgePayload, AuspiceGraphMeta> {
   pub fn to_auspice_tree(&self) -> Result<AuspiceTree, Report> {
     convert_graph_to_auspice_tree(self)
   }
@@ -566,60 +565,52 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
 
 fn convert_graph_to_auspice_tree_recursive(
   graph: &AuspiceGraph,
-  node: &Node<AuspiceTreeNode>,
+  node: &Node<AuspiceGraphNodePayload>,
 ) -> Result<AuspiceTreeNode, Report> {
-  let mut payload = node.payload().clone();
-
-  payload.children = graph
+  let children = graph
     .iter_children_of(node)
     .map(|child| convert_graph_to_auspice_tree_recursive(graph, child))
-    .collect::<Result<Vec<AuspiceTreeNode>, Report>>()?;
-
-  Ok(payload)
+    .collect::<Result<Vec<_>, Report>>()?;
+  Ok(AuspiceTreeNode::from_graph_node_payload(node.payload(), children))
 }
 
 pub fn convert_auspice_tree_to_graph(tree: AuspiceTree) -> Result<AuspiceGraph, Report> {
-  // TODO: Avoid another full tree iteration by merging this one into the main pass
-  let max_divergence = get_max_divergence_recursively(&tree.tree);
-
   let mut graph = AuspiceGraph::new(AuspiceGraphMeta {
     meta: tree.meta,
-    tmp: GraphTempData {
-      max_divergence,
-      // TODO: Use auspice extension field to pass info on divergence units, rather than guess
-      divergence_units: DivergenceUnits::guess_from_max_divergence(max_divergence),
-    },
+    tmp: GraphTempData::default(),
     other: serde_json::Value::default(),
   });
 
   convert_auspice_tree_to_graph_recursive(&tree.tree, &mut graph)?;
+  let mut graph = graph.build()?;
 
-  graph.build()
+  {
+    let max_divergence = get_max_divergence(&graph);
+    graph.data.tmp.max_divergence = max_divergence;
+    graph.data.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(max_divergence);
+  }
+
+  Ok(graph)
 }
 
 fn convert_auspice_tree_to_graph_recursive(
   node: &AuspiceTreeNode,
   graph: &mut AuspiceGraph,
 ) -> Result<GraphNodeKey, Report> {
-  let graph_node_key = graph.add_node(node.clone());
-  let graph_node = graph.get_node_mut(graph_node_key)?;
-  graph_node.payload_mut().tmp.id = graph_node.key();
+  let graph_node_key = graph.add_node(node.into());
 
   for child in &node.children {
     let graph_child_key = convert_auspice_tree_to_graph_recursive(child, graph)?;
-    graph.add_edge(graph_node_key, graph_child_key, AuspiceTreeEdge::new())?;
+    graph.add_edge(graph_node_key, graph_child_key, AuspiceGraphEdgePayload::new())?;
   }
 
   Ok(graph_node_key)
 }
 
-fn get_max_divergence_recursively(node: &AuspiceTreeNode) -> f64 {
-  let div = node.node_attrs.div.unwrap_or(-f64::infinity());
-
-  let mut child_div = -f64::infinity();
-  node.children.iter().for_each(|child| {
-    child_div = child_div.max(get_max_divergence_recursively(child));
-  });
-
-  div.max(child_div)
+fn get_max_divergence<N: GraphNode + HasDivergence, E: GraphEdge, D>(graph: &Graph<N, E, D>) -> f64 {
+  graph
+    .iter_nodes()
+    .map(|node| node.payload().divergence())
+    .max_by(f64::total_cmp)
+    .unwrap_or(f64::infinity())
 }

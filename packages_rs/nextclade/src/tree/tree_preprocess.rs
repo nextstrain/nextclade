@@ -10,7 +10,7 @@ use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceColoring, AuspiceGraph, AuspiceTreeMeta, AuspiceTreeNode, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
+  AuspiceColoring, AuspiceGraph, AuspiceGraphNodePayload, AuspiceTreeMeta, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
@@ -52,11 +52,11 @@ pub fn graph_preprocess_in_place_recursive(
     let node = graph.get_node_mut(graph_node_key)?.payload_mut();
 
     let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)
-    .wrap_err_with(|| format!("When retrieving nuc mutations from reference tree node {}", node.name))?;let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
+      .wrap_err_with(|| format!("When retrieving nuc mutations from reference tree node {}", node.name))?;
+    let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
       nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-    let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> =
-    map_aa_muts(node, ref_translation, parent_aa_muts)
+    let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)
       .wrap_err_with(|| format!("When retrieving aa mutations from reference tree node {}", node.name))?;
     let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
       .clone()
@@ -69,8 +69,6 @@ pub fn graph_preprocess_in_place_recursive(
     node.tmp.substitutions = nuc_subs;
     node.tmp.aa_mutations = aa_muts.clone();
     node.tmp.aa_substitutions = aa_subs;
-    node.tmp.is_ref_node = true;
-    node.tmp.id = graph_node_key;
     // node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
     (nuc_muts, aa_muts)
@@ -83,7 +81,7 @@ pub fn graph_preprocess_in_place_recursive(
   Ok(graph_node_key)
 }
 
-pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMutationsMinimal, Report> {
+pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<PrivateMutationsMinimal, Report> {
   let mut nuc_sub = Vec::<NucSub>::new();
   let mut nuc_del = Vec::<NucDel>::new();
   let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
@@ -126,7 +124,7 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMuta
 }
 
 fn map_nuc_muts(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   ref_seq: &[Nuc],
   parent_nuc_muts: &BTreeMap<NucRefGlobalPosition, Nuc>,
 ) -> Result<BTreeMap<NucRefGlobalPosition, Nuc>, Report> {
@@ -182,7 +180,7 @@ fn map_nuc_muts(
 /// This function is necessary as there are many genes
 // TODO: Treat "nuc" just as another gene, thus reduce duplicate
 fn map_aa_muts(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   ref_translation: &Translation,
   parent_aa_muts: &BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
 ) -> Result<BTreeMap<String, BTreeMap<AaRefPosition, Aa>>, Report> {
@@ -205,7 +203,7 @@ fn map_aa_muts(
 
 fn map_aa_muts_for_one_gene(
   gene_name: &str,
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   ref_peptide: &[Aa],
   parent_aa_muts: &BTreeMap<AaRefPosition, Aa>,
 ) -> Result<BTreeMap<AaRefPosition, Aa>, Report> {

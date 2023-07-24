@@ -8,7 +8,7 @@ use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
-use crate::tree::tree::AuspiceTreeNode;
+use crate::tree::tree::AuspiceGraphNodePayload;
 use crate::utils::collections::concat_to_vec;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -81,7 +81,7 @@ pub struct PrivateNucMutations {
 /// At this point sequence have not yet become a new node on the tree, but is described by the results of the previous
 /// analysis steps.
 pub fn find_private_nuc_mutations(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   substitutions: &[NucSub],
   deletions: &[NucDelRange],
   missing: &[NucRange],
