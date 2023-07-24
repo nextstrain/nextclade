@@ -232,16 +232,19 @@ pub fn create_stripes(
           max_offset: current_seed.offset + look_back_length,
         }
       };
-      look_back_length = max(look_back_length, mean_offset - current_band.min_offset);
+      // increase look-back-length to cover absorbed previous bands
+      look_back_length = max(
+        max(look_back_length, mean_offset - current_band.min_offset),
+        current_band.max_offset - mean_offset,
+      );
     }
-    // terminate previous trapezoid where the new one will start and push
-    // condition should always be satisfied. otherwise band is discarded and the next band starts at 0
+    // terminate previous trapezoid where the new one will start and push unless band is empty
     current_band.ref_end = max(0, current_seed_end - look_back_length);
-    if current_band.ref_end > 0 {
+    if current_band.ref_end > current_band.ref_start {
       bands.push(current_band);
     }
 
-    // generate trapezoid for the gap between seeds and push
+    // generate trapezoid for the gap between seeds that goes look-forward-length into the next seed and push
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
       ref_end: next_seed.ref_pos as isize + look_forward_length,
@@ -279,7 +282,7 @@ pub fn create_stripes(
   }
   // terminate previous trapezoid where the new one will start and push
   current_band.ref_end = max(0, current_seed_end - look_back_length);
-  if current_band.ref_end > 0 {
+  if current_band.ref_end > current_band.ref_start {
     bands.push(current_band);
   }
 
@@ -297,7 +300,7 @@ pub fn create_stripes(
     for ref_pos in band.ref_start..band.ref_end {
       stripes.push(Stripe {
         begin: (ref_pos + band.min_offset).clamp(0, qry_len - minimal_bandwidth) as usize,
-        end: min(qry_len + 1, ref_pos + band.max_offset) as usize,
+        end: min(qry_len, ref_pos + band.max_offset) as usize + 1,
       });
     }
   }
