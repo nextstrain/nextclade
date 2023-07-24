@@ -4,4 +4,6 @@ BASEDIR=$(dirname "$0")
 
 cd "$BASEDIR" || exit
 
-snakemake
+# Pass all arguments given to this script on to snakemake
+ARGS=("$@")
+snakemake "${ARGS[@]}"
