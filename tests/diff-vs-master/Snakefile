@@ -71,24 +71,6 @@ rule clone:
         """
 
 
-rule pull:
-    """
-    Pull latest changes from branches
-    """
-    input:
-        dir="base_build/src",
-    output:
-        hash="base_build/hash.txt",
-    params:
-        branch=lambda w: config[w.build_type]["branch"],
-    shell:
-        """
-        cd {input.dir}
-        git checkout {params.branch}
-        git pull
-        """
-
-
 rule build_base:
     """
     Build base branch binary
@@ -102,7 +84,9 @@ rule build_base:
     shell:
         """
         cd {input.dir}
+        git pull
         git checkout {params.branch}
+        git pull
         cargo build --release --bin nextclade
         cd -
         mkdir -p base_build/bin

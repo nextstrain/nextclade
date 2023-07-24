@@ -6,4 +6,4 @@ cd "$BASEDIR" || exit
 
 # Pass all arguments given to this script on to snakemake
 ARGS=("$@")
-snakemake "${ARGS[@]}"
+snakemake "${ARGS[@]}" 2>&1 | tee run.log
