@@ -1,5 +1,14 @@
 {
-    "schemaVersion": "1.10.0",
-    "nucMutLabelMap": {},
-    "nucMutLabelMapReverse": {}
+  "schemaVersion": "1.10.0",
+  "nucMutLabelMap": {},
+  "nucMutLabelMapReverse": {},
+  "alignmentParams": {
+    "terminal_bandwidth": 50,
+    "excess_bandwidth": 50,
+    "gap_alignment_side": "right",
+    "allowed_mismatches": 10,
+    "kmer_length": 8,
+    "kmer_distance": 30,
+    "min_match_length": 40
   }
+}
