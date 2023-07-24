@@ -300,7 +300,7 @@ pub fn create_stripes(
     for ref_pos in band.ref_start..band.ref_end {
       stripes.push(Stripe {
         begin: (ref_pos + band.min_offset).clamp(0, qry_len - minimal_bandwidth) as usize,
-        end: min(qry_len, ref_pos + band.max_offset) as usize + 1,
+        end: (ref_pos + band.max_offset).clamp(0, qry_len) as usize + 1,
       });
     }
   }
