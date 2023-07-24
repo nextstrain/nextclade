@@ -5,6 +5,7 @@ use crate::align::seed_match::seed_match;
 use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex, SeedMatch2};
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
+use crate::coord::position::LocalSpace;
 use crate::make_error;
 use crate::utils::collections::first;
 use eyre::Report;
@@ -169,6 +170,46 @@ fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> isize {
   abs(seed2.offset - seed1.offset)
 }
 
+fn rewind_band(
+  current_seed: &SeedMatch2,
+  current_band: TrapezoidDirectParams,
+  bands: &mut Vec<TrapezoidDirectParams>,
+  mean_offset: isize,
+  look_forward_length: isize,
+  look_back_length: isize,
+  ref_len: isize,
+) -> isize {
+  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
+  let mut current_band = current_band;
+  let mut look_back_length = look_back_length;
+
+  // rewind the bands until the ref_start of the last one preceeds the one to add
+  while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
+    current_band = if let Some(tmp_band) = bands.pop() {
+      tmp_band
+    } else {
+      // we rewound all the way to the beginning, add a new terminal
+      TrapezoidDirectParams {
+        ref_start: 0,
+        ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1),
+        min_offset: current_seed.offset - look_back_length,
+        max_offset: current_seed.offset + look_back_length,
+      }
+    };
+    // increase look-back-length to cover absorbed previous bands
+    look_back_length = max(
+      max(look_back_length, mean_offset - current_band.min_offset),
+      current_band.max_offset - mean_offset,
+    );
+  }
+  // terminate previous trapezoid where the new one will start and push unless band is empty
+  current_band.ref_end = max(0, current_seed_end - look_back_length);
+  if current_band.ref_end > current_band.ref_start {
+    bands.push(current_band);
+  }
+  look_back_length
+}
+
 /// Takes in seed matches and returns a vector of stripes
 /// Stripes define the query sequence range for each reference position
 pub fn create_stripes(
@@ -191,7 +232,6 @@ pub fn create_stripes(
   let mut bands = Vec::<TrapezoidDirectParams>::with_capacity(2 * chain.len() + 2);
 
   let mut current_seed = &chain[0];
-  let mut current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   // make initial trapezoid starting at 0 and extending into match by terminal_bandwidth
   let mut look_back_length = terminal_bandwidth;
   let mut look_forward_length = terminal_bandwidth;
@@ -203,11 +243,12 @@ pub fn create_stripes(
   };
 
   // add body for first seed match starting were the previous ends
+  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   if current_seed_end > current_band.ref_end {
     bands.push(current_band);
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
-      ref_end: min(current_seed_end, ref_len + 1),
+      ref_end: current_seed_end,
       min_offset: current_seed.offset - minimal_bandwidth,
       max_offset: current_seed.offset + minimal_bandwidth,
     };
@@ -217,32 +258,16 @@ pub fn create_stripes(
   for next_seed in chain.iter().skip(1) {
     let mean_offset = (next_seed.offset + current_seed.offset) / 2; // offset of gap seed
     let shift = abs_shift(current_seed, next_seed) / 2; // distance from mean offset
-    look_back_length = shift + excess_bandwidth;
     look_forward_length = shift + excess_bandwidth;
-    // rewind the bands until the ref_start of the last one preceeds the one to add
-    while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
-      current_band = if let Some(tmp_band) = bands.pop() {
-        tmp_band
-      } else {
-        // we rewound all the way to the beginning, add a new terminal
-        TrapezoidDirectParams {
-          ref_start: 0,
-          ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1),
-          min_offset: current_seed.offset - look_back_length,
-          max_offset: current_seed.offset + look_back_length,
-        }
-      };
-      // increase look-back-length to cover absorbed previous bands
-      look_back_length = max(
-        max(look_back_length, mean_offset - current_band.min_offset),
-        current_band.max_offset - mean_offset,
-      );
-    }
-    // terminate previous trapezoid where the new one will start and push unless band is empty
-    current_band.ref_end = max(0, current_seed_end - look_back_length);
-    if current_band.ref_end > current_band.ref_start {
-      bands.push(current_band);
-    }
+    look_back_length = rewind_band(
+      current_seed,
+      current_band,
+      &mut bands,
+      mean_offset,
+      look_forward_length,
+      shift + excess_bandwidth,
+      ref_len,
+    );
 
     // generate trapezoid for the gap between seeds that goes look-forward-length into the next seed and push
     current_band = TrapezoidDirectParams {
@@ -251,40 +276,30 @@ pub fn create_stripes(
       min_offset: mean_offset - look_back_length - excess_bandwidth,
       max_offset: mean_offset + look_back_length + excess_bandwidth,
     };
-    bands.push(current_band);
 
     // generate new current trapezoid for the body of the next seed
-    current_band = TrapezoidDirectParams {
-      ref_start: current_band.ref_end,
-      ref_end: (next_seed.ref_pos + next_seed.length) as isize,
-      min_offset: next_seed.offset - minimal_bandwidth,
-      max_offset: next_seed.offset + minimal_bandwidth,
-    };
+    let next_seed_end = (next_seed.ref_pos + next_seed.length) as isize;
+    if (next_seed.ref_pos + next_seed.length) as isize > current_band.ref_end {
+      bands.push(current_band);
+      current_band = TrapezoidDirectParams {
+        ref_start: current_band.ref_end,
+        ref_end: next_seed_end,
+        min_offset: next_seed.offset - minimal_bandwidth,
+        max_offset: next_seed.offset + minimal_bandwidth,
+      };
+    }
     current_seed = next_seed;
-    current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   }
 
-  look_back_length = max(terminal_bandwidth, look_back_length);
-  // rewind the bands until the ref_start of the last one preceeds the one too add
-  while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
-    current_band = if let Some(tmp_seed) = bands.pop() {
-      tmp_seed
-    } else {
-      // we rewound all the way to the beginning, add a new terminal
-      TrapezoidDirectParams {
-        ref_start: 0,
-        ref_end: min(current_seed.ref_pos as isize + look_back_length, ref_len + 1),
-        min_offset: current_seed.offset - look_back_length,
-        max_offset: current_seed.offset + look_back_length,
-      }
-    };
-    look_back_length = max(look_back_length, current_seed.offset - current_band.min_offset);
-  }
-  // terminate previous trapezoid where the new one will start and push
-  current_band.ref_end = max(0, current_seed_end - look_back_length);
-  if current_band.ref_end > current_band.ref_start {
-    bands.push(current_band);
-  }
+  look_back_length = rewind_band(
+    current_seed,
+    current_band,
+    &mut bands,
+    current_seed.offset,
+    look_forward_length,
+    max(terminal_bandwidth, look_back_length),
+    ref_len,
+  );
 
   current_band = TrapezoidDirectParams {
     ref_start: current_band.ref_end,
