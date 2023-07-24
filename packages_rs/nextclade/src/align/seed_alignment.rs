@@ -200,8 +200,8 @@ pub fn create_stripes(
   let mut current_band = TrapezoidDirectParams {
     ref_start: 0,
     ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len),
-    left_offset: current_seed.offset - terminal_bandwidth,
-    right_offset: current_seed.offset + terminal_bandwidth,
+    min_offset: current_seed.offset - terminal_bandwidth,
+    max_offset: current_seed.offset + terminal_bandwidth,
   };
 
   // add body for first seed match starting were the previous ends
@@ -210,8 +210,8 @@ pub fn create_stripes(
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
       ref_end: min(current_seed_end, ref_len + 1),
-      left_offset: current_seed.offset - allowed_mismatches,
-      right_offset: current_seed.offset + allowed_mismatches,
+      min_offset: current_seed.offset - allowed_mismatches,
+      max_offset: current_seed.offset + allowed_mismatches,
     };
   }
 
@@ -230,11 +230,11 @@ pub fn create_stripes(
         TrapezoidDirectParams {
           ref_start: 0,
           ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1),
-          left_offset: current_seed.offset - look_back_length,
-          right_offset: current_seed.offset + look_back_length,
+          min_offset: current_seed.offset - look_back_length,
+          max_offset: current_seed.offset + look_back_length,
         }
       };
-      look_back_length = max(look_back_length, mean_offset - current_band.left_offset);
+      look_back_length = max(look_back_length, mean_offset - current_band.min_offset);
     }
     // terminate previous trapezoid where the new one will start and push
     // condition should always be satisfied. otherwise band is discarded and the next band starts at 0
@@ -247,8 +247,8 @@ pub fn create_stripes(
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
       ref_end: next_seed.ref_pos as isize + look_forward_length,
-      left_offset: mean_offset - look_back_length - excess_bandwidth,
-      right_offset: mean_offset + look_back_length + excess_bandwidth,
+      min_offset: mean_offset - look_back_length - excess_bandwidth,
+      max_offset: mean_offset + look_back_length + excess_bandwidth,
     };
     bands.push(current_band);
 
@@ -256,8 +256,8 @@ pub fn create_stripes(
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
       ref_end: (next_seed.ref_pos + next_seed.length) as isize,
-      left_offset: next_seed.offset - allowed_mismatches,
-      right_offset: next_seed.offset + allowed_mismatches,
+      min_offset: next_seed.offset - allowed_mismatches,
+      max_offset: next_seed.offset + allowed_mismatches,
     };
     current_seed = next_seed;
     current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
@@ -273,11 +273,11 @@ pub fn create_stripes(
       TrapezoidDirectParams {
         ref_start: 0,
         ref_end: min(current_seed.ref_pos as isize + look_back_length, ref_len + 1),
-        left_offset: current_seed.offset - look_back_length,
-        right_offset: current_seed.offset + look_back_length,
+        min_offset: current_seed.offset - look_back_length,
+        max_offset: current_seed.offset + look_back_length,
       }
     };
-    look_back_length = max(look_back_length, current_seed.offset - current_band.left_offset);
+    look_back_length = max(look_back_length, current_seed.offset - current_band.min_offset);
   }
   // terminate previous trapezoid where the new one will start and push
   current_band.ref_end = max(0, current_seed_end - look_back_length);
@@ -288,8 +288,8 @@ pub fn create_stripes(
   current_band = TrapezoidDirectParams {
     ref_start: current_band.ref_end,
     ref_end: ref_len + 1,
-    left_offset: current_seed.offset - look_back_length,
-    right_offset: current_seed.offset + look_back_length,
+    min_offset: current_seed.offset - look_back_length,
+    max_offset: current_seed.offset + look_back_length,
   };
   bands.push(current_band);
 
@@ -298,8 +298,8 @@ pub fn create_stripes(
   for band in bands {
     for ref_pos in band.ref_start..band.ref_end {
       stripes.push(Stripe {
-        begin: (ref_pos + band.left_offset).clamp(0, qry_len - allowed_mismatches) as usize,
-        end: min(qry_len + 1, ref_pos + band.right_offset) as usize,
+        begin: (ref_pos + band.min_offset).clamp(0, qry_len - allowed_mismatches) as usize,
+        end: min(qry_len + 1, ref_pos + band.max_offset) as usize,
       });
     }
   }
@@ -325,8 +325,8 @@ struct TrapezoidOffsetParams {
 struct TrapezoidDirectParams {
   ref_start: isize,
   ref_end: isize,
-  left_offset: isize,
-  right_offset: isize,
+  min_offset: isize,
+  max_offset: isize,
 }
 
 // Implement a function on TrapezoidOffsetParams to convert to TrapezoidDirectParams
@@ -335,8 +335,8 @@ impl TrapezoidOffsetParams {
     TrapezoidDirectParams {
       ref_start: self.ref_start,
       ref_end: self.ref_end,
-      left_offset: self.offset - self.bandwidth as isize,
-      right_offset: self.offset + self.bandwidth as isize,
+      min_offset: self.offset - self.bandwidth as isize,
+      max_offset: self.offset + self.bandwidth as isize,
     }
   }
 }
