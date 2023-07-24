@@ -111,6 +111,7 @@ cp .env.example .env
 
 # Install wasm-pack
 cargo install wasm-pack
+cargo install wasm-opt
 
 cd packages_rs/nextclade-web
 
