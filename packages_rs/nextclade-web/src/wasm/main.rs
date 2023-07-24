@@ -35,7 +35,6 @@ pub struct NextcladeWasm {
 
 #[wasm_bindgen]
 impl NextcladeWasm {
-  #[wasm_bindgen(constructor)]
   pub fn new(params: &str) -> Result<NextcladeWasm, JsError> {
     let params_raw: NextcladeParamsRaw =
       jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;

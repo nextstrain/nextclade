@@ -59,7 +59,7 @@ let nextcladeWasm: NextcladeWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
 async function create(params: NextcladeParamsRaw) {
-  nextcladeWasm = new NextcladeWasm(JSON.stringify(params))
+  nextcladeWasm = NextcladeWasm.new(JSON.stringify(params))
 }
 
 /** Destroys the underlying WebAssembly module. */
