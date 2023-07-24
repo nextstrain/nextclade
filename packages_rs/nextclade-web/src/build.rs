@@ -7,12 +7,12 @@ use nextclade::io::errors_csv::ErrorsFromWeb;
 use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::ensure_dir;
-use nextclade::io::json::json_write_impl;
+use nextclade::io::json::{json_write_impl, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::QcResult;
 use nextclade::run::nextclade_wasm::{
-  AnalysisInitialData, AnalysisInput, NextcladeResult, NextcladeParams, NextcladeParamsRaw,
+  AnalysisInitialData, AnalysisInput, NextcladeParams, NextcladeParamsRaw, NextcladeResult,
 };
 use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
@@ -31,7 +31,7 @@ fn main() -> Result<(), Report> {
 /// Create JSON schema file from a given Rust struct type and write it to a specified file.
 fn write_jsonschema<T: JsonSchema>(output_file: impl AsRef<Path>) -> Result<(), Report> {
   let schema = schema_for!(T);
-  json_write_impl(create_file_or_stdout(output_file)?, &schema)
+  json_write_impl(create_file_or_stdout(output_file)?, &schema, JsonPretty(true))
 }
 
 // Dummy struct containing the types we want to expose (recursively).

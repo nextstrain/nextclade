@@ -4,7 +4,7 @@ use eyre::Report;
 use log::LevelFilter;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
-use nextclade::io::json::{json_stringify, json_write};
+use nextclade::io::json::{json_stringify, json_write, JsonPretty};
 use nextclade::io::yaml::yaml_write;
 use nextclade::utils::global_init::global_init;
 use nextclade::utils::global_init::setup_logger;
@@ -44,12 +44,12 @@ fn main() -> Result<(), Report> {
     if output.to_string_lossy().ends_with("yaml") || output.to_string_lossy().ends_with("yml") {
       yaml_write(output, &gene_map)?;
     } else {
-      json_write(output, &gene_map)?;
+      json_write(output, &gene_map, JsonPretty(true))?;
     }
   }
 
   if args.json {
-    println!("{}\n", json_stringify(&gene_map)?);
+    println!("{}\n", json_stringify(&gene_map, JsonPretty(true))?);
   } else {
     println!("{}", gene_map_to_table_string(&gene_map)?);
   }

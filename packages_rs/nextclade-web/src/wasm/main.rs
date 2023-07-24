@@ -4,7 +4,7 @@ use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::insertions_csv::insertions_to_csv_string;
-use nextclade::io::json::{json_parse, json_stringify};
+use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw};
@@ -66,14 +66,14 @@ impl NextcladeWasm {
 
   pub fn get_initial_data(&self) -> Result<String, JsError> {
     let initial_data = jserr(self.nextclade.get_initial_data())?;
-    jserr(json_stringify(&initial_data))
+    jserr(json_stringify(&initial_data, JsonPretty(false)))
   }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
   pub fn analyze(&mut self, input: &str) -> Result<String, JsError> {
     let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
     let result = jserr(self.nextclade.run(&input))?;
-    jserr(json_stringify(&result))
+    jserr(json_stringify(&result, JsonPretty(false)))
   }
 
   /// Takes ALL analysis results, runs tree placement and returns output tree.
@@ -81,13 +81,13 @@ impl NextcladeWasm {
   pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
     let tree = jserr(self.nextclade.get_output_tree(nextclade_outputs))?;
-    jserr(json_stringify(tree))
+    jserr(json_stringify(tree, JsonPretty(false)))
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct
   pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<String, JsError> {
     let record = jserr(read_one_fasta_str(ref_seq_str))?;
-    jserr(json_stringify(&record))
+    jserr(json_stringify(&record, JsonPretty(false)))
   }
   //
   // /// Checks that a string containing Auspice tree in JSON format is correct
@@ -99,7 +99,7 @@ impl NextcladeWasm {
   // /// Checks that a string containing gene map in GFF format is correct
   // pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
   //   let gene_map = jserr(GeneMap::from_str(gene_map_gff_str))?;
-  //   jserr(json_stringify(&gene_map))
+  //   jserr(json_stringify(&gene_map, JsonPretty(false)))
   // }
   //
   // /// Checks that a string containing PCT primers in CSV format is correct

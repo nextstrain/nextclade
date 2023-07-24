@@ -8,7 +8,7 @@ use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::getenv;
 use nextclade::io::dataset::DatasetsIndexJson;
-use nextclade::io::json::json_stringify;
+use nextclade::io::json::{json_stringify, JsonPretty};
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
 
@@ -99,7 +99,7 @@ pub fn nextclade_dataset_list(
     .collect_vec();
 
   if json {
-    println!("{}", json_stringify(&filtered)?);
+    println!("{}", json_stringify(&filtered, JsonPretty(true))?);
   } else {
     if filtered.is_empty() {
       return Ok(());
