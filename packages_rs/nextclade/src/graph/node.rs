@@ -1,8 +1,10 @@
 use crate::graph::edge::GraphEdgeKey;
+use crate::io::json::is_json_value_null;
 use core::fmt::{Debug, Display};
 use derive_more::Display;
 use schemars::gen::SchemaGenerator;
 use schemars::schema::Schema;
+use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub trait GraphNode: Clone + Debug {}
@@ -51,9 +53,10 @@ impl schemars::JsonSchema for GraphNodeKey {
 }
 
 /// Internal representation of a node in a graph
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Node<N: GraphNode> {
   key: GraphNodeKey,
+  #[serde(skip_serializing_if = "is_json_value_null")]
   data: N,
   outbound_edges: Vec<GraphEdgeKey>,
   inbound_edges: Vec<GraphEdgeKey>,
