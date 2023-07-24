@@ -1,19 +1,14 @@
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use nextclade::analyze::pcr_primers::PcrPrimer;
-use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::insertions_csv::insertions_to_csv_string;
 use nextclade::io::json::{json_parse, json_stringify};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
-use nextclade::qc::qc_config::QcConfig;
-use nextclade::run::nextclade_wasm::{
-  AnalysisInitialData, AnalysisInput, NextcladeResult, Nextclade, NextcladeParams, NextcladeParamsRaw,
-};
-use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
+use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw};
+use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
 use std::io::Read;
