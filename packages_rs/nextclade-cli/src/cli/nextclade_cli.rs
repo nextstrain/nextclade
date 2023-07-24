@@ -520,6 +520,22 @@ pub struct NextcladeRunOutputArgs {
   )]
   pub output_columns_selection: Vec<String>,
 
+  /// Path to output phylogenetic graph with input sequences placed onto it, in Nextclade graph JSON format.
+  ///
+  /// Currently this format is not stable and not documented. It can change at any time without a warning. Use it at own risk.
+  ///
+  /// Due to format limitations, it is only feasible to construct the tree for at most a few hundred to a few thousand
+  /// sequences. If the tree is not needed, omitting this flag reduces processing time and memory consumption.
+  ///
+  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::AnyPath)]
+  pub output_graph: Option<PathBuf>,
+
   /// Path to output phylogenetic tree with input sequences placed onto it, in Auspice JSON V2 format.
   ///
   /// For file format description see: https://nextstrain.org/docs/bioinformatics/data-formats

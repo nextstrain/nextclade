@@ -1,5 +1,6 @@
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
+use crate::io::json::is_json_value_null;
 use crate::tree::tree::{
   AuspiceGraph, AuspiceGraphMeta, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, GraphTempData,
 };
@@ -7,9 +8,14 @@ use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use num_traits::Float;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
+pub type NodeEdgePayloadPair<N, E> = (N, E);
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[allow(clippy::partial_pub_fields)]
 pub struct Graph<N, E, D>
 where
@@ -18,9 +24,14 @@ where
 {
   nodes: Vec<Node<N>>,
   edges: Vec<Edge<E>>,
+  #[serde(skip)]
   roots: Vec<GraphNodeKey>,
+  #[serde(skip)]
   leaves: Vec<GraphNodeKey>,
+  #[serde(skip_serializing_if = "is_json_value_null")]
   pub data: D,
+  #[serde(flatten)]
+  other: serde_json::Value,
 }
 
 impl<N, E, D> Graph<N, E, D>
@@ -28,13 +39,14 @@ where
   N: GraphNode,
   E: GraphEdge,
 {
-  pub const fn new(meta: D) -> Self {
+  pub fn new(meta: D) -> Self {
     Self {
       nodes: Vec::new(),
       edges: Vec::new(),
       roots: vec![],
       leaves: vec![],
       data: meta,
+      other: serde_json::Value::default(),
     }
   }
 

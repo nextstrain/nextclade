@@ -9,7 +9,7 @@ use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
@@ -21,12 +21,28 @@ use validator::Validate;
 // https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
 pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
 
-#[derive(Clone, Debug)]
+#[derive(Clone, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeEdge; // Edge payload is empty. Branch attributes are currently stored on nodes.
 
 impl AuspiceTreeEdge {
   pub const fn new() -> Self {
     Self {}
+  }
+}
+
+impl<'de> Deserialize<'de> for AuspiceTreeEdge {
+  fn deserialize<D: Deserializer<'de>>(_deserializer: D) -> Result<Self, D::Error> {
+    Ok(AuspiceTreeEdge)
+  }
+}
+
+impl Serialize for AuspiceTreeEdge {
+  fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
+  where
+    Ser: Serializer,
+  {
+ 
+    serializer.serialize_none()
   }
 }
 
