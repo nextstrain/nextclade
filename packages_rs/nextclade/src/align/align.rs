@@ -88,6 +88,7 @@ mod tests {
   // rstest fixtures are passed by value
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::align::params::GapAlignmentSide;
   use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
   use crate::gene::gene_map::GeneMap;
   use eyre::Report;
@@ -103,6 +104,8 @@ mod tests {
   fn ctx() -> Context {
     let params = AlignPairwiseParams {
       min_length: 3,
+      penalty_gap_open: 5,
+      gap_alignment_side: GapAlignmentSide::Right,
       ..AlignPairwiseParams::default()
     };
 
@@ -301,11 +304,11 @@ mod tests {
   }
 
   #[rstest]
-  fn aligns_ambiguous_gap_placing(ctx: Context) -> Result<(), Report> {
+  fn aligns_ambiguous_gap_placing_right(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let qry_seq = to_nuc_seq("ACATCTTC"   )?;
-    let ref_seq = to_nuc_seq("ACATATACTTC")?;
-    let qry_aln = to_nuc_seq("ACAT---CTTC")?;
+    let ref_seq = to_nuc_seq("ACATAGTCTTC")?;
+    let qry_aln = to_nuc_seq("ACA---TCTTC")?;
 
     let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
@@ -315,11 +318,32 @@ mod tests {
   }
 
   #[rstest]
+  fn aligns_ambiguous_gap_placing_left(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let qry_seq = to_nuc_seq("ACATCTTC"   )?;
+    let ref_seq = to_nuc_seq("ACATAGTCTTC")?;
+    let qry_aln = to_nuc_seq("ACAT---CTTC")?;
+
+    let params = AlignPairwiseParams {
+      min_length: 3,
+      penalty_gap_open: 5,
+      gap_alignment_side: GapAlignmentSide::Left,
+      ..AlignPairwiseParams::default()
+    };
+
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &params)?;
+
+    assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
   fn aligns_ambiguous_gap_placing_case_reversed(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
-    let qry_seq = to_nuc_seq("ACATATACTTG")?;
+    let qry_seq = to_nuc_seq("ACATAGTCTTG")?;
     let ref_seq = to_nuc_seq("ACATCTTG")?;
-    let ref_aln = to_nuc_seq("ACAT---CTTG")?;
+    let ref_aln = to_nuc_seq("ACA---TCTTG")?;
 
     let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
@@ -355,6 +379,20 @@ mod tests {
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
+  fn preferentially_gap_unknown(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let ref_seq = to_nuc_seq("ACATATACTTG")?;
+    let qry_seq = to_nuc_seq("ACATNATACTTG")?;
+    let ref_aln = to_nuc_seq("ACAT-ATACTTG")?;
+
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
     Ok(())
   }
 

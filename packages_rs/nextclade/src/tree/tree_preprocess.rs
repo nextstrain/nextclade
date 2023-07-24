@@ -51,11 +51,13 @@ pub fn graph_preprocess_in_place_recursive(
   let (mut nuc_muts, mut aa_muts) = {
     let node = graph.get_node_mut(graph_node_key)?.payload_mut();
 
-    let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)?;
-    let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
+    let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)
+    .wrap_err_with(|| format!("When retrieving nuc mutations from reference tree node {}", node.name))?;let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
       nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
 
-    let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)?;
+    let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> =
+    map_aa_muts(node, ref_translation, parent_aa_muts)
+      .wrap_err_with(|| format!("When retrieving aa mutations from reference tree node {}", node.name))?;
     let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
       .clone()
       .into_iter()
@@ -138,12 +140,33 @@ fn map_nuc_muts(
 
         if ref_seq.len() < mutation.pos.as_usize() {
           return make_error!(
-            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the position is outside of reference sequence length ({}). This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Check that you are using a correct dataset.", ref_seq.len()
+            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the position ({}) is outside of reference sequence length ({}). This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should correspond to the root of the reference tree. Check that you are using a correct dataset.", mutation.pos.as_usize(), ref_seq.len()
           );
         }
 
-        // If mutation reverts nucleotide back to what reference had, remove it from the map
         let ref_nuc = ref_seq[mutation.pos.as_usize()];
+
+        // Check that reference sequence and reference tree are compatible.
+        //
+        // A mutation on a branch like C24T implies that the sequence at position 24 changes from the parent state C to the child state T. For these mutations to be consistent with each other, the parent state of the mutation needs to match the parent state on the tree. One can in principle accumulate all these mutations without knowing the parent state (as we did up to know before checking the parent state), but we use the parent state in union and difference to figure out the order of mutations. When we take the union of A5G and G5T, we know that this has to have been A->G->T and we error if we are asked to take a union of something like this A5C and T5G as they can't be chained.
+        //
+        // We also use the mutations on the tree for placement of nodes and to identify private amino acid mutations and they are accumulated along the path from the root to each node in the mutation map. Here is it critical that these mutations in the mutation map are consistent with the reference sequence against we align. This is the case when the reference sequence matches the root of the tree, or if all differences between the reference and the root of the tree are encoded in mutations in the branch that is leading to the root
+        if let Some(tree_nuc) = nuc_muts.get(&mutation.pos) {
+          // If the mutation is in the map (observed on the path from the root node to this node), we should check that mutation is consistent with the map.
+          if &mutation.ref_nuc != tree_nuc {
+            return make_error!(
+              "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the origin state of the mutation is inconsistent with the state at the parental branch. Mutations origin state is '{}', but tree (inferred from previous mutations at this position on the path from the root to the node) has state '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should either correspond to the root of the reference tree or the root of the reference tree needs to account for difference between the tree and reference sequence. Please check that your reference tree is consistent with your reference sequence." , mutation.ref_nuc.to_string(), tree_nuc.to_string()
+            );
+          }
+        } else if mutation.ref_nuc != ref_nuc {
+          // If the mutation is not in the map yet (not observed on the path from the root node to this node), we should check that mutation is consistent with the ref sequence.
+          return make_error!(
+            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the origin state of the mutation is inconsistent with the state at the parental branch. Mutations origin state is '{}', but tree (inferred from the reference sequence as no prior mutations were observed at this position) has state '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should either correspond to the root of the reference tree or the root of the reference tree needs to account for difference between the tree and reference sequence. Please check that your reference tree is consistent with your reference sequence.",
+            mutation.ref_nuc.to_string(), ref_nuc.to_string()
+            );
+        }
+
+        // If mutation reverts nucleotide back to what reference had, remove it from the map
         if ref_nuc == mutation.qry_nuc {
           nuc_muts.remove(&mutation.pos);
         } else {
@@ -205,8 +228,26 @@ fn map_aa_muts_for_one_gene(
         );
         }
 
-        // If mutation reverts amino acid back to what reference had, remove it from the map
         let ref_aa = ref_peptide[mutation.pos.as_usize()];
+
+        // Check that reference sequence and reference tree are compatible
+        if let Some(tree_aa) = aa_muts.get(&mutation.pos) {
+          // If the mutation is in the map (observed on the path from the root node to this node), we should check that mutation is consistent with the map.
+          if &mutation.ref_aa != tree_aa {
+            // TODO: write proper message
+            return make_error!(
+              "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the origin state of the mutation is inconsistent with the state at the parental branch. Mutations origin state is '{}', but tree (inferred from previous mutations at this position on the path from the root to the node) has state '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should either correspond to the root of the reference tree or the root of the reference tree needs to account for difference between the tree and reference sequence. Please check that your reference tree is consistent with your reference sequence." , mutation.ref_aa.to_string(), tree_aa.to_string()
+            );
+          }
+        } else if mutation.ref_aa != ref_aa {
+          // If the mutation is not in the map yet (not observed on the path from the root node to this node), we should check that mutation is consistent with the ref sequence.
+          return make_error!(
+            "Encountered a mutation ({mutation_str}) in reference tree branch attributes, for which the origin state of the mutation is inconsistent with the state at the parental branch. Mutations origin state is '{}', but tree (inferred from the reference sequence as no prior mutations were observed at this position) has state '{}'. This is likely an inconsistency between reference tree and reference sequence in the Nextclade dataset. Reference sequence should either correspond to the root of the reference tree or the root of the reference tree needs to account for difference between the tree and reference sequence. Please check that your reference tree is consistent with your reference sequence.",
+            mutation.ref_aa.to_string(), ref_aa.to_string()
+            );
+        }
+
+        // If mutation reverts amino acid back to what reference had, remove it from the map
         if ref_aa == mutation.qry_aa {
           aa_muts.remove(&mutation.pos);
         } else {

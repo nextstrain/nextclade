@@ -9,13 +9,23 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Link } from 'src/components/Link/Link'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-import BrandLogo from 'src/assets/img/nextstrain_logo.svg'
+import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
 
 import { CitationButton } from 'src/components/Citation/CitationButton'
 import { WhatsNewButton } from './WhatsNewButton'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { NavigationLogo } from './NavigationLogo'
 import { SettingsButton } from './SettingsButton'
+
+const BRAND_LOGO_SIZE = 36
+const BRAND_LOGO_MARGIN = 10
+
+export const BrandLogo = styled(BrandLogoBase)`
+  width: ${BRAND_LOGO_SIZE}px;
+  height: ${BRAND_LOGO_SIZE}px;
+  margin-left: ${BRAND_LOGO_MARGIN}px;
+  margin-right: ${BRAND_LOGO_MARGIN}px;
+`
 
 export const NavLinkContainer = styled.div`
   width: 50px;
@@ -91,7 +101,7 @@ export function NavigationBar() {
       data-testid="NavigationBar"
     >
       <Link className="navbar-brand d-flex" href="/" role="button">
-        <BrandLogo className="navigation-bar-product-logo" />
+        <BrandLogo />
         <NavigationLogo />
       </Link>
 
