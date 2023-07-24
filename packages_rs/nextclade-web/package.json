@@ -116,6 +116,7 @@
     "luxon": "2.3.2",
     "marked": "4.0.14",
     "memoize-one": "6.0.0",
+    "msgpackr": "1.9.5",
     "next": "12.1.6",
     "next-compose-plugins": "2.2.1",
     "numbro": "2.3.6",

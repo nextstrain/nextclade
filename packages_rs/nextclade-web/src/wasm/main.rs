@@ -4,7 +4,7 @@ use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::insertions_csv::insertions_to_csv_string;
-use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
+use nextclade::io::messagepack::{messagepack_from_bytes, messagepack_to_bytes};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw};
@@ -30,9 +30,9 @@ pub struct NextcladeWasm {
 
 #[wasm_bindgen]
 impl NextcladeWasm {
-  pub fn new(params: &str) -> Result<NextcladeWasm, JsError> {
+  pub fn new(params: &[u8]) -> Result<NextcladeWasm, JsError> {
     let params_raw: NextcladeParamsRaw =
-      jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
+      jserr(messagepack_from_bytes(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
 
     let params: NextcladeParams =
       jserr(NextcladeParams::from_raw(&params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
@@ -64,55 +64,57 @@ impl NextcladeWasm {
     Ok(())
   }
 
-  pub fn get_initial_data(&self) -> Result<String, JsError> {
+  pub fn get_initial_data(&self) -> Result<Vec<u8>, JsError> {
     let initial_data = jserr(self.nextclade.get_initial_data())?;
-    jserr(json_stringify(&initial_data, JsonPretty(false)))
+    jserr(messagepack_to_bytes(&initial_data))
   }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
-  pub fn analyze(&mut self, input: &str) -> Result<String, JsError> {
-    let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
+  pub fn analyze(&mut self, input: &[u8]) -> Result<Vec<u8>, JsError> {
+    let input: FastaRecord = jserr(messagepack_from_bytes(input).wrap_err("When parsing FASTA record JSON"))?;
     let result = jserr(self.nextclade.run(&input))?;
-    jserr(json_stringify(&result, JsonPretty(false)))
+    jserr(messagepack_to_bytes(&result))
   }
 
   /// Takes ALL analysis results, runs tree placement and returns output tree.
   /// This should only run once, in one of the webworkers.
-  pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
+  pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &[u8]) -> Result<Vec<u8>, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
     let tree = jserr(self.nextclade.get_output_tree(nextclade_outputs))?;
-    jserr(json_stringify(tree, JsonPretty(false)))
+    jserr(messagepack_to_bytes(tree))
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct
-  pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<String, JsError> {
+  pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<Vec<u8>, JsError> {
     let record = jserr(read_one_fasta_str(ref_seq_str))?;
-    jserr(json_stringify(&record, JsonPretty(false)))
+    jserr(messagepack_to_bytes(&record))
   }
 
   #[allow(clippy::needless_pass_by_value)]
   pub fn serialize_results_json(
-    outputs_json_str: &str,
-    errors_json_str: &str,
-    clade_node_attrs_json_str: &str,
-    phenotype_attrs_json_str: &str,
+    outputs_json_str: &[u8],
+    errors_json_str: &[u8],
+    clade_node_attrs_json_str: &[u8],
+    phenotype_attrs_json_str: &[u8],
     nextclade_web_version: Option<String>,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
-      json_parse(outputs_json_str).wrap_err("When serializing results into JSON: When parsing outputs JSON internally"),
+      messagepack_from_bytes(outputs_json_str)
+        .wrap_err("When serializing results into JSON: When parsing outputs JSON internally"),
     )?;
 
     let errors: Vec<NextcladeErrorOutputs> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing results into JSON: When parsing errors JSON internally"),
+      messagepack_from_bytes(errors_json_str)
+        .wrap_err("When serializing results into JSON: When parsing errors JSON internally"),
     )?;
 
     let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
-      json_parse(clade_node_attrs_json_str)
+      messagepack_from_bytes(clade_node_attrs_json_str)
         .wrap_err("When serializing results JSON: When parsing clade node attrs JSON internally"),
     )?;
 
     let phenotype_attrs: Vec<PhenotypeAttrDesc> = jserr(
-      json_parse(phenotype_attrs_json_str)
+      messagepack_from_bytes(phenotype_attrs_json_str)
         .wrap_err("When serializing results JSON: When parsing phenotypes attr keys JSON internally"),
     )?;
 
@@ -128,48 +130,51 @@ impl NextcladeWasm {
     )
   }
 
-  pub fn serialize_results_ndjson(outputs_json_str: &str, errors_json_str: &str) -> Result<String, JsError> {
+  pub fn serialize_results_ndjson(outputs_json_str: &[u8], errors_json_str: &[u8]) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
-      json_parse(outputs_json_str)
+      messagepack_from_bytes(outputs_json_str)
         .wrap_err("When serializing results into NDJSON: When parsing outputs JSON internally"),
     )?;
 
     let errors: Vec<NextcladeErrorOutputs> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing results into NDJSON: When parsing errors JSON internally"),
+      messagepack_from_bytes(errors_json_str)
+        .wrap_err("When serializing results into NDJSON: When parsing errors JSON internally"),
     )?;
 
     jserr(results_to_ndjson_string(&outputs, &errors))
   }
 
   pub fn serialize_results_csv(
-    outputs_json_str: &str,
-    errors_json_str: &str,
-    clade_node_attrs_json_str: &str,
-    phenotype_attrs_json_str: &str,
-    aa_motifs_keys_json_str: &str,
+    outputs_json_str: &[u8],
+    errors_json_str: &[u8],
+    clade_node_attrs_json_str: &[u8],
+    phenotype_attrs_json_str: &[u8],
+    aa_motifs_keys_json_str: &[u8],
     delimiter: char,
-    csv_colum_config_json_str: &str,
+    csv_colum_config_json_str: &[u8],
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
-      json_parse(outputs_json_str).wrap_err("When serializing results into CSV: When parsing outputs JSON internally"),
+      messagepack_from_bytes(outputs_json_str)
+        .wrap_err("When serializing results into CSV: When parsing outputs JSON internally"),
     )?;
 
     let errors: Vec<NextcladeErrorOutputs> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
+      messagepack_from_bytes(errors_json_str)
+        .wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
     )?;
 
     let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
-      json_parse(clade_node_attrs_json_str)
+      messagepack_from_bytes(clade_node_attrs_json_str)
         .wrap_err("When serializing results into CSV: When parsing clade node attrs JSON internally"),
     )?;
 
     let phenotype_attrs: Vec<PhenotypeAttrDesc> = jserr(
-      json_parse(phenotype_attrs_json_str)
+      messagepack_from_bytes(phenotype_attrs_json_str)
         .wrap_err("When serializing results into CSV: When parsing phenotypes attr keys JSON internally"),
     )?;
 
     let aa_motifs_descs: Vec<AaMotifsDesc> = jserr(
-      json_parse(aa_motifs_keys_json_str)
+      messagepack_from_bytes(aa_motifs_keys_json_str)
         .wrap_err("When serializing results into CSV: When parsing AA motifs keys JSON internally"),
     )?;
 
@@ -178,7 +183,7 @@ impl NextcladeWasm {
     let aa_motifs_keys = aa_motifs_descs.into_iter().map(|desc| desc.name).collect_vec();
 
     let csv_colum_config: CsvColumnConfig = jserr(
-      json_parse(csv_colum_config_json_str)
+      messagepack_from_bytes(csv_colum_config_json_str)
         .wrap_err("When serializing results JSON: When parsing CSV column config JSON internally"),
     )?;
 
@@ -193,22 +198,24 @@ impl NextcladeWasm {
     ))
   }
 
-  pub fn serialize_insertions_csv(outputs_json_str: &str, errors_json_str: &str) -> Result<String, JsError> {
+  pub fn serialize_insertions_csv(outputs_json_str: &[u8], errors_json_str: &[u8]) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
-      json_parse(outputs_json_str)
+      messagepack_from_bytes(outputs_json_str)
         .wrap_err("When serializing insertions into CSV: When parsing outputs JSON internally"),
     )?;
 
     let errors: Vec<NextcladeErrorOutputs> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
+      messagepack_from_bytes(errors_json_str)
+        .wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
     )?;
 
     jserr(insertions_to_csv_string(&outputs, &errors))
   }
 
-  pub fn serialize_errors_csv(errors_json_str: &str) -> Result<String, JsError> {
+  pub fn serialize_errors_csv(errors_json_str: &[u8]) -> Result<String, JsError> {
     let errors: Vec<ErrorsFromWeb> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing errors into CSV: When parsing outputs JSON internally"),
+      messagepack_from_bytes(errors_json_str)
+        .wrap_err("When serializing errors into CSV: When parsing outputs JSON internally"),
     )?;
 
     jserr(errors_to_csv_string(&errors))

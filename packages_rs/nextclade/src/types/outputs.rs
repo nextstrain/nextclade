@@ -15,6 +15,7 @@ use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::graph::node::GraphNodeKey;
 use crate::io::json::json_parse;
+use crate::io::messagepack::messagepack_from_bytes;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
@@ -105,12 +106,8 @@ pub struct NextcladeOutputs {
 }
 
 impl NextcladeOutputs {
-  pub fn from_str(s: &str) -> Result<NextcladeOutputs, Report> {
-    json_parse(s).wrap_err("When parsing Nextclade output")
-  }
-
-  pub fn many_from_str(s: &str) -> Result<Vec<NextcladeOutputs>, Report> {
-    json_parse(s).wrap_err("When parsing Nextclade outputs")
+  pub fn many_from_str(s: &[u8]) -> Result<Vec<NextcladeOutputs>, Report> {
+    messagepack_from_bytes(s).wrap_err("When parsing Nextclade outputs")
   }
 }
 

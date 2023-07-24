@@ -10,6 +10,7 @@ pub mod fs;
 pub mod gff3;
 pub mod insertions_csv;
 pub mod json;
+pub mod messagepack;
 pub mod ndjson;
 pub mod nextclade_csv;
 pub mod parse_pos;

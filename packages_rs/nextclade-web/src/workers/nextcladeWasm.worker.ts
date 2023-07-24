@@ -1,7 +1,8 @@
 import 'regenerator-runtime'
 
-import type { CladeNodeAttrDesc } from 'auspice'
-import { AnalysisInitialData } from 'src/types'
+import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import { messagepackDeserialize, messagepackSerialize } from 'src/io/messagepack'
+import { AnalysisInitialData, NextcladeOutputs } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
@@ -59,7 +60,7 @@ let nextcladeWasm: NextcladeWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
 async function create(params: NextcladeParamsRaw) {
-  nextcladeWasm = NextcladeWasm.new(JSON.stringify(params))
+  nextcladeWasm = NextcladeWasm.new(messagepackSerialize(params))
 }
 
 /** Destroys the underlying WebAssembly module. */
@@ -76,8 +77,7 @@ async function getInitialData(): Promise<AnalysisInitialData> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getInitialData')
   }
-  const aaa = nextcladeWasm.get_initial_data()
-  const initialData = JSON.parse(aaa) as AnalysisInitialData
+  const initialData: AnalysisInitialData = messagepackDeserialize(nextcladeWasm.get_initial_data())
   return {
     ...initialData,
     geneMap: prepareGeneMap(initialData.geneMap),
@@ -89,8 +89,8 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('analyze')
   }
-  const input = JSON.stringify(record)
-  const output = JSON.parse(nextcladeWasm.analyze(input)) as NextcladeResult
+  const input = messagepackSerialize(record)
+  const output: NextcladeResult = messagepackDeserialize(nextcladeWasm.analyze(input))
   if (!output.result && !output.error) {
     throw new ErrorBothResultsAndErrorAreNull()
   }
@@ -98,11 +98,11 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 }
 
 /** Retrieves the output tree from the WebAssembly module. */
-export async function getOutputTree(analysisResultsJsonStr: string): Promise<string> {
+export async function getOutputTree(nextcladeOutputs: NextcladeOutputs[]): Promise<AuspiceJsonV2> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getOutputTree')
   }
-  return nextcladeWasm.get_output_tree(analysisResultsJsonStr)
+  return messagepackDeserialize(nextcladeWasm.get_output_tree(messagepackSerialize(nextcladeOutputs)))
 }
 
 export async function parseSequencesStreaming(fastaStr: string) {
@@ -128,16 +128,16 @@ export async function serializeResultsJson(
   nextcladeWebVersion: string,
 ) {
   return NextcladeWasm.serialize_results_json(
-    JSON.stringify(outputs),
-    JSON.stringify(errors),
-    JSON.stringify(cladeNodeAttrsJson),
-    JSON.stringify(phenotypeAttrsJson),
+    messagepackSerialize(outputs),
+    messagepackSerialize(errors),
+    messagepackSerialize(cladeNodeAttrsJson),
+    messagepackSerialize(phenotypeAttrsJson),
     nextcladeWebVersion,
   )
 }
 
 export async function serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {
-  return NextcladeWasm.serialize_results_ndjson(JSON.stringify(results), JSON.stringify(errors))
+  return NextcladeWasm.serialize_results_ndjson(messagepackSerialize(results), messagepackSerialize(errors))
 }
 
 export async function serializeResultsCsv(
@@ -150,22 +150,22 @@ export async function serializeResultsCsv(
   csvColumnConfig: CsvColumnConfig,
 ) {
   return NextcladeWasm.serialize_results_csv(
-    JSON.stringify(results),
-    JSON.stringify(errors),
-    JSON.stringify(cladeNodeAttrsJson),
-    JSON.stringify(phenotypeAttrsJson),
-    JSON.stringify(aaMotifsDescs),
+    messagepackSerialize(results),
+    messagepackSerialize(errors),
+    messagepackSerialize(cladeNodeAttrsJson),
+    messagepackSerialize(phenotypeAttrsJson),
+    messagepackSerialize(aaMotifsDescs),
     delimiter,
-    JSON.stringify(csvColumnConfig),
+    messagepackSerialize(csvColumnConfig),
   )
 }
 
 async function serializeInsertionsCsv(results: AnalysisResult[], errors: AnalysisError[]) {
-  return NextcladeWasm.serialize_insertions_csv(JSON.stringify(results), JSON.stringify(errors))
+  return NextcladeWasm.serialize_insertions_csv(messagepackSerialize(results), messagepackSerialize(errors))
 }
 
 async function serializeErrorsCsv(errors: ErrorsFromWeb[]) {
-  return NextcladeWasm.serialize_errors_csv(JSON.stringify(errors))
+  return NextcladeWasm.serialize_errors_csv(messagepackSerialize(errors))
 }
 
 const worker = {

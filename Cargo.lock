@@ -1725,6 +1725,7 @@ dependencies = [
  "pretty_assertions",
  "rayon",
  "regex",
+ "rmp-serde",
  "rstest",
  "rstest_reuse",
  "schemars",
@@ -1798,6 +1799,7 @@ dependencies = [
  "js-sys",
  "log",
  "nextclade",
+ "rmp-serde",
  "schemars",
  "serde",
  "serde-wasm-bindgen",
@@ -2288,6 +2290,28 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi",
+]
+
+[[package]]
+name = "rmp"
+version = "0.8.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f9860a6cc38ed1da53456442089b4dfa35e7cedaa326df63017af88385e6b20"
+dependencies = [
+ "byteorder",
+ "num-traits",
+ "paste",
+]
+
+[[package]]
+name = "rmp-serde"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5b13be192e0220b8afb7222aa5813cb62cc269ebb5cac346ca6487681d2913e"
+dependencies = [
+ "byteorder",
+ "rmp",
+ "serde",
 ]
 
 [[package]]
