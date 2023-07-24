@@ -63,7 +63,7 @@ rule clone:
     output:
         dir=directory("base_build/src/"),
     params:
-        branch=lambda w: config["base"]["branch"],
+        branch=lambda w: config["base_branch"],
         url="https://github.com/nextstrain/nextclade.git",
     shell:
         """
@@ -80,7 +80,7 @@ rule build_base:
     output:
         bin="base_build/bin/nextclade",
     params:
-        branch=lambda w: config["base"]["branch"],
+        branch=lambda w: config["base_branch"],
     shell:
         """
         cd {input.dir}
