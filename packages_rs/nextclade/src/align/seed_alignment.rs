@@ -160,7 +160,6 @@ pub fn seed_alignment(
       ref_len as isize,
       params.terminal_bandwidth as isize,
       params.excess_bandwidth as isize,
-      params.max_indel as isize,
       params.allowed_mismatches as isize,
     )
   }
@@ -178,8 +177,7 @@ pub fn create_stripes(
   ref_len: isize,
   terminal_bandwidth: isize,
   excess_bandwidth: isize,
-  max_indel: isize,
-  allowed_mismatches: isize,
+  minimal_bandwidth: isize,
 ) -> Result<Vec<Stripe>, Report> {
   // This function steps through the chained seeds and determines and appropriate band
   // defined via stripes in query coordinates. These bands will later be chopped to reachable ranges
@@ -210,8 +208,8 @@ pub fn create_stripes(
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
       ref_end: min(current_seed_end, ref_len + 1),
-      min_offset: current_seed.offset - allowed_mismatches,
-      max_offset: current_seed.offset + allowed_mismatches,
+      min_offset: current_seed.offset - minimal_bandwidth,
+      max_offset: current_seed.offset + minimal_bandwidth,
     };
   }
 
@@ -256,8 +254,8 @@ pub fn create_stripes(
     current_band = TrapezoidDirectParams {
       ref_start: current_band.ref_end,
       ref_end: (next_seed.ref_pos + next_seed.length) as isize,
-      min_offset: next_seed.offset - allowed_mismatches,
-      max_offset: next_seed.offset + allowed_mismatches,
+      min_offset: next_seed.offset - minimal_bandwidth,
+      max_offset: next_seed.offset + minimal_bandwidth,
     };
     current_seed = next_seed;
     current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
@@ -298,7 +296,7 @@ pub fn create_stripes(
   for band in bands {
     for ref_pos in band.ref_start..band.ref_end {
       stripes.push(Stripe {
-        begin: (ref_pos + band.min_offset).clamp(0, qry_len - allowed_mismatches) as usize,
+        begin: (ref_pos + band.min_offset).clamp(0, qry_len - minimal_bandwidth) as usize,
         end: min(qry_len + 1, ref_pos + band.max_offset) as usize,
       });
     }
@@ -443,7 +441,6 @@ mod tests {
       ref_len,
       terminal_bandwidth,
       excess_bandwidth,
-      max_indel,
       allowed_mismatches,
     );
 
