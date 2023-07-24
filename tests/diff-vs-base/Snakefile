@@ -134,10 +134,11 @@ rule run_nextclade_on_dataset_sequences:
         tsv="results/{dataset_name}/{build_type}/default.tsv",
         alignment="results/{dataset_name}/{build_type}/alignment.fasta",
         stderr="results/{dataset_name}/{build_type}/errors.txt",
+    threads: 4
     shell:
         """
-        ./{input.bin} run \
-        --input-dataset {input.dataset} \
+        ./{input.bin} run -j {threads} \
+        --input-dataset {input.dataset} --in-order \
         {input.sequences} \
         --output-tsv {output.tsv} \
         --output-fasta {output.alignment} \
@@ -154,10 +155,11 @@ rule run_nextclade_on_custom_sequences:
         dataset="dataset/{dataset_name}.zip",
     output:
         tsv="results/{dataset_name}/{build_type}/custom.tsv",
+    threads: 4
     shell:
         """
-        ./{input.bin} run \
-        --input-dataset {input.dataset} \
+        ./{input.bin} run -j {threads} \
+        --input-dataset {input.dataset}  --in-order \
         --output-tsv {output.tsv} \
         {input.sequences}/*
         """
@@ -233,4 +235,22 @@ rule alignment_score_diff:
         --eval-tsv-path {input.tsv2} \
         --columns alignmentScore \
         > {output.diff}
+        """
+
+rule clean:
+    """
+    Remove results and eval directories
+    """
+    shell:
+        """
+        rm -rf results eval_build
+        """
+
+rule clobber:
+    """
+    Remove dataset, results, base, and eval directories
+    """
+    shell:
+        """
+        rm -rf results eval_build base_build dataset
         """
