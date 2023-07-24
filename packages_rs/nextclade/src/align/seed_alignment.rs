@@ -170,6 +170,8 @@ fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> isize {
   abs(seed2.offset - seed1.offset)
 }
 
+// Function that processes a seed, adds a band, rewind the band vector as necessary
+// to accommodate any extended band width implied by look-back-length
 struct RewindResult {
   look_back_length: isize,
   current_ref_end: isize,
@@ -223,6 +225,7 @@ fn extend_and_rewind(
   if current_band.ref_end > current_band.ref_start {
     bands.push(current_band);
   }
+  // return the updated look-back-length and the end of the current band
   RewindResult {
     look_back_length,
     current_ref_end: current_band.ref_end,
@@ -250,8 +253,8 @@ pub fn create_stripes(
 
   let mut bands = Vec::<TrapezoidDirectParams>::with_capacity(2 * chain.len() + 2);
 
-  let mut current_seed = &chain[0];
   // make initial trapezoid starting at 0 and extending into match by terminal_bandwidth
+  let mut current_seed = &chain[0];
   let mut look_back_length = terminal_bandwidth;
   let mut look_forward_length = terminal_bandwidth;
   let mut current_ref_end = min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1);
@@ -267,6 +270,8 @@ pub fn create_stripes(
     let mean_offset = (next_seed.offset + current_seed.offset) / 2; // offset of gap seed
     let shift = abs_shift(current_seed, next_seed) / 2; // distance from mean offset
     look_forward_length = shift + excess_bandwidth;
+
+    // attempt to add new a band for current_seed, then rewind as necessary to accommodate shift
     RewindResult {
       look_back_length,
       current_ref_end,
@@ -291,6 +296,7 @@ pub fn create_stripes(
     current_seed = next_seed;
   }
 
+  // process the final seed (different offset)
   RewindResult {
     look_back_length,
     current_ref_end,
@@ -304,7 +310,7 @@ pub fn create_stripes(
     minimal_bandwidth,
     ref_len,
   );
-
+  // add band that extends all the way to the end
   current_band = TrapezoidDirectParams {
     ref_start: current_ref_end,
     ref_end: ref_len + 1,
