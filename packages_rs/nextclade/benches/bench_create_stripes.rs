@@ -35,7 +35,6 @@ pub fn bench_create_stripes(c: &mut Criterion) {
         ref_len,
         terminal_bandwidth,
         excess_bandwidth,
-        max_indel,
         allowed_mismatches,
       )
     });

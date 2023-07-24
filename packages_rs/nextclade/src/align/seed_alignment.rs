@@ -339,32 +339,11 @@ pub fn create_stripes(
 }
 
 #[derive(Clone, Copy, Debug)]
-// Default qry_len is qry_len
-struct TrapezoidOffsetParams {
-  ref_start: isize,
-  ref_end: isize,
-  offset: isize,
-  bandwidth: usize,
-}
-
-#[derive(Clone, Copy, Debug)]
 struct TrapezoidDirectParams {
   ref_start: isize,
   ref_end: isize,
   min_offset: isize,
   max_offset: isize,
-}
-
-// Implement a function on TrapezoidOffsetParams to convert to TrapezoidDirectParams
-impl TrapezoidOffsetParams {
-  const fn to_direct_params(self) -> TrapezoidDirectParams {
-    TrapezoidDirectParams {
-      ref_start: self.ref_start,
-      ref_end: self.ref_end,
-      min_offset: self.offset - self.bandwidth as isize,
-      max_offset: self.offset + self.bandwidth as isize,
-    }
-  }
 }
 
 /// Chop off unreachable parts of the stripes.
