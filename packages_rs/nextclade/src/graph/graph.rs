@@ -612,5 +612,5 @@ fn get_max_divergence<N: GraphNode + HasDivergence, E: GraphEdge, D>(graph: &Gra
     .iter_nodes()
     .map(|node| node.payload().divergence())
     .max_by(f64::total_cmp)
-    .unwrap_or(f64::infinity())
+    .unwrap_or_else(f64::infinity)
 }
