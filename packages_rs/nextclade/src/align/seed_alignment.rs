@@ -174,18 +174,30 @@ struct RewindResult {
   look_back_length: isize,
   current_ref_end: isize,
 }
-fn rewind_band(
+fn extend_and_rewind(
   current_seed: &SeedMatch2,
   current_band: TrapezoidDirectParams,
   bands: &mut Vec<TrapezoidDirectParams>,
   mean_offset: isize,
   look_forward_length: isize,
   look_back_length: isize,
+  minimal_bandwidth: isize,
   ref_len: isize,
 ) -> RewindResult {
   let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   let mut current_band = current_band;
   let mut look_back_length = look_back_length;
+  // generate new current trapezoid for the body of the next seed
+  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
+  if current_seed_end > current_band.ref_end {
+    bands.push(current_band);
+    current_band = TrapezoidDirectParams {
+      ref_start: current_band.ref_end,
+      ref_end: current_seed_end,
+      min_offset: current_seed.offset - minimal_bandwidth,
+      max_offset: current_seed.offset + minimal_bandwidth,
+    };
+  }
 
   // rewind the bands until the ref_start of the last one preceeds the one to add
   while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
@@ -250,18 +262,6 @@ pub fn create_stripes(
     max_offset: current_seed.offset + terminal_bandwidth,
   };
 
-  // add body for first seed match starting were the previous ends
-  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
-  if current_seed_end > current_band.ref_end {
-    bands.push(current_band);
-    current_band = TrapezoidDirectParams {
-      ref_start: current_band.ref_end,
-      ref_end: current_seed_end,
-      min_offset: current_seed.offset - minimal_bandwidth,
-      max_offset: current_seed.offset + minimal_bandwidth,
-    };
-  }
-
   // loop over remaining seeds in chain
   for next_seed in chain.iter().skip(1) {
     let mean_offset = (next_seed.offset + current_seed.offset) / 2; // offset of gap seed
@@ -270,13 +270,14 @@ pub fn create_stripes(
     RewindResult {
       look_back_length,
       current_ref_end,
-    } = rewind_band(
+    } = extend_and_rewind(
       current_seed,
       current_band,
       &mut bands,
       mean_offset,
       look_forward_length,
       shift + excess_bandwidth,
+      minimal_bandwidth,
       ref_len,
     );
 
@@ -287,31 +288,20 @@ pub fn create_stripes(
       min_offset: mean_offset - look_back_length - excess_bandwidth,
       max_offset: mean_offset + look_back_length + excess_bandwidth,
     };
-
-    // generate new current trapezoid for the body of the next seed
-    let next_seed_end = (next_seed.ref_pos + next_seed.length) as isize;
-    if (next_seed.ref_pos + next_seed.length) as isize > current_band.ref_end {
-      bands.push(current_band);
-      current_band = TrapezoidDirectParams {
-        ref_start: current_band.ref_end,
-        ref_end: next_seed_end,
-        min_offset: next_seed.offset - minimal_bandwidth,
-        max_offset: next_seed.offset + minimal_bandwidth,
-      };
-    }
     current_seed = next_seed;
   }
 
   RewindResult {
     look_back_length,
     current_ref_end,
-  } = rewind_band(
+  } = extend_and_rewind(
     current_seed,
     current_band,
     &mut bands,
     current_seed.offset,
     look_forward_length,
     max(terminal_bandwidth, look_back_length),
+    minimal_bandwidth,
     ref_len,
   );
 
