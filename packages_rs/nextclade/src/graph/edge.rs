@@ -1,7 +1,12 @@
 use crate::graph::node::GraphNodeKey;
+use crate::io::json::is_json_value_null;
 use core::fmt::Debug;
 use core::fmt::{Display, Formatter};
 use derive_more::Display;
+use schemars::gen::SchemaGenerator;
+use schemars::schema::Schema;
+use schemars::JsonSchema;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub trait GraphEdge: Clone + Debug {}
 
@@ -22,14 +27,41 @@ impl GraphEdgeKey {
   }
 }
 
+impl<'de> Deserialize<'de> for GraphEdgeKey {
+  fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let i = u64::deserialize(deserializer)?;
+    Ok(GraphEdgeKey::new(i as usize))
+  }
+}
+
+impl Serialize for GraphEdgeKey {
+  fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
+  where
+    Ser: Serializer,
+  {
+    serializer.serialize_u64(self.0 as u64)
+  }
+}
+
+impl schemars::JsonSchema for GraphEdgeKey {
+  fn schema_name() -> String {
+    "GraphEdgeKey".to_owned()
+  }
+
+  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<usize>()
+  }
+}
+
 /// Edge representing a connection between two nodes. Relevant data can be
 /// stored in the edge atomically. Edge's target and source node's are
 /// weak references and can't outlive the nodes they represent.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Edge<E: GraphEdge> {
   key: GraphEdgeKey,
   source: GraphNodeKey,
   target: GraphNodeKey,
+  #[serde(skip_serializing_if = "is_json_value_null")]
   data: E,
 }
 
