@@ -1,5 +1,6 @@
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_match2::CodonSpacedIndex;
 use crate::alphabet::nuc::{to_nuc_seq, Nuc};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
@@ -108,6 +109,7 @@ pub struct NextcladeResult {
 
 pub struct Nextclade {
   ref_seq: Vec<Nuc>,
+  seed_index: CodonSpacedIndex,
   ref_translation: Translation,
   aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
@@ -134,6 +136,8 @@ impl Nextclade {
       qc_config,
       virus_properties,
     } = params;
+
+    let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
 
     let alignment_params = {
       let mut alignment_params = AlignPairwiseParams::default();
@@ -172,6 +176,7 @@ impl Nextclade {
 
     Ok(Self {
       ref_seq,
+      seed_index,
       ref_translation,
       aa_motifs_ref,
       gene_map,
@@ -210,6 +215,7 @@ impl Nextclade {
       &input.seq_name,
       &qry_seq,
       &self.ref_seq,
+      &self.seed_index,
       &self.ref_translation,
       &self.aa_motifs_ref,
       &self.gene_map,
