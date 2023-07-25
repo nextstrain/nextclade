@@ -12,13 +12,13 @@ import type {
   LetterRangeFor_AaAnd_Position, // eslint-disable-line camelcase
   LetterRangeFor_NucAnd_Position, // eslint-disable-line camelcase
   NextcladeErrorOutputs,
-  NextcladeOutputs,
+  NextcladeResult,
   Nuc,
   NucSub,
   NucSubLabeled,
   PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
-  Translation,
+  NextcladeOutputs,
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
 
@@ -34,9 +34,9 @@ export type Nucleotide = Nuc
 export type Aminoacid = Aa
 export type NucleotideRange = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
 export type AminoacidRange = LetterRangeFor_AaAnd_Position // eslint-disable-line camelcase
-export type AnalysisResult = NextcladeOutputs
 export type NucleotideInsertion = InsertionFor_Nuc // eslint-disable-line camelcase
 export type NucleotideMissing = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
+export type AnalysisResult = NextcladeOutputs
 export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
@@ -136,19 +136,6 @@ export interface AlgorithmInput {
   description: string
 
   getContent(): Promise<string>
-}
-
-export interface NextcladeResult {
-  index: number
-  seqName: string
-  result?: AnalysisOutput
-  error?: string
-}
-
-export interface AnalysisOutput {
-  query: string
-  queryPeptides: Translation
-  analysisResult: AnalysisResult
 }
 
 export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {

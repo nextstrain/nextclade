@@ -78,11 +78,10 @@
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && yarn run:node tools/monkeyPatch.ts",
     "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
     "serve-data": "babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\" ./tools/server/dataServer.ts",
-    "wasm-dev": "yarn run-s jsonschema:generate types:generate wasm-dev:generate",
+    "wasm-dev": "yarn run-s wasm-dev:generate types:generate",
     "wasm-dev:generate": "cargo build -q --profile=opt-dev --package=nextclade-web --lib --target=wasm32-unknown-unknown --target-dir=.build/docker/wasm-dev/ && wasm-bindgen .build/docker/wasm-dev/wasm32-unknown-unknown/opt-dev/nextclade_web.wasm --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm && wasm-opt -O --optimize-level=1 --shrink-level=1 .build/docker/wasm-dev/wasm32-unknown-unknown/opt-dev/nextclade_web.wasm -o .build/wasm-prod/nextclade-wasm.wasm && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
-    "wasm-prod": "yarn run-s jsonschema:generate types:generate wasm-prod:generate",
+    "wasm-prod": "yarn run-s wasm-prod:generate types:generate",
     "wasm-prod:generate": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web --locked && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
-    "jsonschema:generate": "cd ../.. && cargo -q run --bin=generate_jsonschema -- -o packages_rs/nextclade-web/src/gen",
     "types:clear": "rimraf src/gen/_SchemaRoot.d.ts",
     "types:generate": "yarn run:node:prod tools/generateTypes.js -i src/gen/_SchemaRoot.json -o src/gen/_SchemaRoot.d.ts"
   },
