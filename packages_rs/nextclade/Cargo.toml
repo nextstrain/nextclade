@@ -61,6 +61,7 @@ tinytemplate = "=1.2.1"
 traversal = "=0.1.2"
 urlencoding = "=2.1.2"
 validator = { version = "=0.16.1", features = ["derive"] }
+wasm-bindgen = { version = "=0.2.87", features = ["serde-serialize"] }
 zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", "deflate", "time"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

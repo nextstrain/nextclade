@@ -4,7 +4,7 @@ import { Snapshot, useRecoilCallback } from 'recoil'
 import type { AnalysisError, AnalysisOutput, ErrorsFromWeb } from 'src/types'
 import type { ExportParams } from 'src/components/Results/ExportDialogButton'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { notUndefined } from 'src/helpers/notUndefined'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
@@ -56,7 +56,7 @@ async function mapGoodResults<T>(snapshot: Snapshot, mapFn: (result: AnalysisOut
   const results = await snapshot.getPromise(analysisResultsAtom)
 
   return results
-    .filter((result) => notUndefined(result.result))
+    .filter((result) => notUndefinedOrNull(result.result))
     .map((result) => {
       if (!result.result) {
         throw new ErrorInternal('When preparing analysis results for export: expected result to be non-nil')
@@ -69,7 +69,7 @@ async function mapErrors<T>(snapshot: Snapshot, mapFn: (result: AnalysisError) =
   const results = await snapshot.getPromise(analysisResultsAtom)
 
   return results
-    .filter((result) => notUndefined(result.error))
+    .filter((result) => notUndefinedOrNull(result.error))
     .map(({ error, seqName, index }) => {
       if (!error) {
         throw new ErrorInternal('When preparing analysis errors for export: expected error to be non-nil')
@@ -221,15 +221,15 @@ export function useExportErrorsCsv() {
 }
 
 async function preparePeptideFiles(snapshot: Snapshot) {
-  const peptides = await mapGoodResults(snapshot, ({ queryPeptides, analysisResult: { seqName } }) => ({
+  const peptides = await mapGoodResults(snapshot, ({ translation, analysisResult: { seqName } }) => ({
     seqName,
-    queryPeptides,
+    translation,
   }))
 
   const filesMap = new Map<string, ZipFileDescription>()
 
-  for (const { seqName, queryPeptides } of peptides) {
-    for (const [_, { cdses }] of Object.entries(queryPeptides.genes)) {
+  for (const { seqName, translation } of peptides) {
+    for (const [_, { cdses }] of Object.entries(translation.genes)) {
       for (const [_, { name, seq }] of Object.entries(cdses)) {
         const file = filesMap.get(name)
         const fastaEntry = `>${seqName}\n${seq}\n`

@@ -6,7 +6,6 @@ import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 
 import {
   geneMapErrorAtom,
-  primersCsvErrorAtom,
   qcConfigErrorAtom,
   refSeqErrorAtom,
   refTreeErrorAtom,
@@ -14,14 +13,13 @@ import {
 } from 'src/state/error.state'
 import {
   geneMapInputAtom,
-  primersCsvInputAtom,
   qcConfigInputAtom,
   refSeqInputAtom,
   refTreeInputAtom,
   virusPropertiesInputAtom,
 } from 'src/state/inputs.state'
 
-import { FileIconCsv, FileIconFasta, FileIconGff, FileIconJson } from 'src/components/Common/FileIcons'
+import { FileIconFasta, FileIconGff, FileIconJson } from 'src/components/Common/FileIcons'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 
 export function FilePickerAdvanced() {
@@ -47,11 +45,6 @@ export function FilePickerAdvanced() {
   const virusPropertiesError = useRecoilValue(virusPropertiesErrorAtom)
   const resetVirusProperties = useResetRecoilState(virusPropertiesInputAtom)
 
-  const [primersCsv, setPrimersCsv] = useRecoilState(primersCsvInputAtom)
-  const primersCsvError = useRecoilValue(primersCsvErrorAtom)
-  const resetPrimersCsv = useResetRecoilState(primersCsvInputAtom)
-
-  const iconCsv = useMemo(() => <FileIconCsv size={30} />, [])
   const iconFasta = useMemo(() => <FileIconFasta size={30} />, [])
   const iconGff = useMemo(() => <FileIconGff size={30} />, [])
   const iconJson = useMemo(() => <FileIconJson size={30} />, [])
@@ -122,19 +115,6 @@ export function FilePickerAdvanced() {
           error={geneMapError}
           onRemove={resetGeneMap}
           onInput={setGeneMap}
-        />
-
-        <FilePicker
-          className="my-3"
-          compact
-          icon={iconCsv}
-          title={t('PCR primers')}
-          exampleUrl="https://example.com/pcr_primers.csv"
-          pasteInstructions={t('Enter PCR primers data in CSV format')}
-          input={primersCsv}
-          error={primersCsvError}
-          onRemove={resetPrimersCsv}
-          onInput={setPrimersCsv}
         />
       </Col>
     </Row>
