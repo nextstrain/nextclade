@@ -1,16 +1,17 @@
-use std::collections::HashMap;
-
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
 use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode};
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
 pub type NodeEdgePayloadPair<N, E> = (N, E);
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Graph<N, E>
 where
   N: GraphNode,
@@ -18,8 +19,12 @@ where
 {
   nodes: Vec<Node<N>>,
   edges: Vec<Edge<E>>,
+  #[serde(skip)]
   roots: Vec<GraphNodeKey>,
+  #[serde(skip)]
   leaves: Vec<GraphNodeKey>,
+  #[serde(flatten)]
+  other: serde_json::Value,
 }
 
 impl<N, E> Graph<N, E>
@@ -27,12 +32,13 @@ where
   N: GraphNode,
   E: GraphEdge,
 {
-  pub const fn new() -> Self {
+  pub fn new() -> Self {
     Self {
       nodes: Vec::new(),
       edges: Vec::new(),
       roots: vec![],
       leaves: vec![],
+      other: serde_json::Value::default(),
     }
   }
 
