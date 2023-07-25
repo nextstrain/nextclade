@@ -1,5 +1,6 @@
 use crate::align::insertions_strip::NucIns;
 use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_match2::CodonSpacedIndex;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
@@ -37,6 +38,7 @@ pub fn nextclade_run_one(
   seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
+  seed_index: &CodonSpacedIndex,
   ref_peptides: &Translation,
   aa_motifs_ref: &AaMotifsMap,
   gene_map: &GeneMap,
@@ -63,6 +65,7 @@ pub fn nextclade_run_one(
     seq_name,
     qry_seq,
     ref_seq,
+    seed_index,
     ref_peptides,
     gene_map,
     gap_open_close_nuc,

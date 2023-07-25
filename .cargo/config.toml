@@ -6,6 +6,11 @@ codegen-units = 4096
 incremental = true
 lto = "off"
 
+[profile.profiling]
+inherits = "release"
+debug = 1
+strip = false
+
 # Optimize dependencies even in debug mode
 [profile.dev.package."*"]
 opt-level = 2

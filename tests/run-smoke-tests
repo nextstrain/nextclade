@@ -47,7 +47,7 @@ function run_one_test() {
 
   ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}/${reference:-default}"
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --in-order --include-reference \
     --input-dataset="$DATASET_DIR/${name}/${reference:-default}" \
     --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
     --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
@@ -76,6 +76,10 @@ function run_one_experimental_test() {
 
   # This dataset is crashing, probably due to defective or unsupported features
   if [ "$name" == "vic_na" ]; then
+    return
+  fi
+  # this isn't actually a dataset
+  if [ "$name" == "seed_matching" ]; then
     return
   fi
 
