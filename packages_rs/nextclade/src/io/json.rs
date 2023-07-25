@@ -5,6 +5,15 @@ use serde_json::{de::Read, Deserializer};
 use std::io::Write;
 use std::path::Path;
 
+/// Check whether a serde value serializes to null.
+///
+/// This is useful to skip a generic struct field even if we don't know the exact type
+///
+/// Usage: add attribute `#[serde(skip_serializing_if = "is_json_value_null")]` to a struct field you want to skip
+pub fn is_json_value_null<T: Serialize>(t: &T) -> bool {
+  serde_json::to_value(t).unwrap_or(serde_json::Value::Null).is_null()
+}
+
 /// Mitigates recursion limit error when parsing large JSONs
 /// See https://github.com/serde-rs/json/issues/334
 pub fn deserialize_without_recursion_limit<'de, R: Read<'de>, T: Deserialize<'de>>(
