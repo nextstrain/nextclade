@@ -413,7 +413,15 @@ mod tests {
     let ref_seq = to_nuc_seq("ACATAGTCTTC")?;
     let qry_aln = to_nuc_seq("ACA---TCTTC")?;
 
-    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(
+      0,
+      "",
+      &qry_seq,
+      &ref_seq,
+      &CodonSpacedIndex::from_sequence(&ref_seq),
+      &ctx.gap_open_close,
+      &ctx.params,
+    )?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -524,7 +532,15 @@ mod tests {
     let qry_seq = to_nuc_seq("ACATNATACTTG")?;
     let ref_aln = to_nuc_seq("ACAT-ATACTTG")?;
 
-    let result = align_nuc(0, "", &qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+    let result = align_nuc(
+      0,
+      "",
+      &qry_seq,
+      &ref_seq,
+      &CodonSpacedIndex::from_sequence(&ref_seq),
+      &ctx.gap_open_close,
+      &ctx.params,
+    )?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));

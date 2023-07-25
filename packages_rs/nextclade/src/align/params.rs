@@ -139,22 +139,22 @@ impl Default for AlignPairwiseParams {
       penalty_gap_open_out_of_frame: 8,
       penalty_mismatch: 1,
       score_match: 3,
-      max_indel: 400,
-      seed_length: 21,
-      min_seeds: 10,
-      min_match_rate: 0.3,
-      seed_spacing: 100,
-      mismatches_allowed: 3,
+      max_indel: 400,        // to be replaced
+      seed_length: 21,       // obsolete
+      min_seeds: 10,         // obsolete
+      min_match_rate: 0.3,   // obsolete
+      seed_spacing: 100,     // obsolete
+      mismatches_allowed: 3, // obsolete
       retry_reverse_complement: false,
       no_translate_past_stop: false,
       left_terminal_gaps_free: true,
       right_terminal_gaps_free: true,
+      gap_alignment_side: GapAlignmentSide::Right,
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
-      gap_alignment_side: GapAlignmentSide::Right,
       min_seed_cover: 0.33,
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
-      kmer_distance: 10,     // Distance between successive kmers
+      kmer_distance: 50,     // Distance between successive kmers
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
       allowed_mismatches: 8, // Ns count as mismatches
       window_size: 30,
