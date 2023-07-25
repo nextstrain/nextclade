@@ -215,7 +215,7 @@ rule tsv_column_diff:
         diff="results/{dataset_name}/{seq_type}_diff_columns.tsv",
     shell:
         """
-        python scripts/tsv-diff.py \
+        python3 scripts/tsv-diff.py \
         --base-tsv-path {input.tsv1} \
         --eval-tsv-path {input.tsv2} \
         > {output.diff}
@@ -230,7 +230,7 @@ rule alignment_score_diff:
         diff="results/{dataset_name}/{seq_type}_diff_alignment_score.tsv",
     shell:
         """
-        python scripts/tsv-diff.py \
+        python3 scripts/tsv-diff.py \
         --base-tsv-path {input.tsv1} \
         --eval-tsv-path {input.tsv2} \
         --columns alignmentScore \
