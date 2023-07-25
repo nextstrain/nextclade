@@ -1,13 +1,21 @@
 use crate::align::band_2d::full_matrix;
-use crate::align::band_2d::{simple_stripes, Stripe};
+use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
+use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex, SeedMatch2};
 use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::Nuc;
+use crate::coord::position::LocalSpace;
 use crate::make_error;
-use crate::utils::collections::last;
+use crate::utils::collections::first;
 use eyre::Report;
-use log::{trace, warn};
-use num_traits::{clamp, clamp_max, clamp_min};
+use log::trace;
+use num_traits::abs;
+use num_traits::clamp;
+use num_traits::clamp_min;
+use std::cmp::max;
+use std::cmp::min;
+use std::collections::BTreeMap;
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
@@ -130,144 +138,212 @@ pub fn get_seed_matches<L: Letter<L>>(
 
 /// Determine rough positioning of qry to reference sequence by approximate seed matching
 /// Returns vector of stripes, that is a band within which the alignment is expected to lie
-pub fn seed_alignment<L: Letter<L>>(
-  qry_seq: &[L],
-  ref_seq: &[L],
+pub fn seed_alignment(
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  seed_index: &CodonSpacedIndex,
   params: &AlignPairwiseParams,
 ) -> Result<Vec<Stripe>, Report> {
-  let qry_len_u = qry_seq.len();
-  let ref_len_u = ref_seq.len();
-  let qry_len_i = qry_len_u as i32;
-  let ref_len_i = ref_len_u as i32;
+  let qry_len = qry_seq.len();
+  let ref_len = ref_seq.len();
 
-  // for very short sequences, use full square
-  if ref_len_u + qry_len_u < (5 * params.seed_length) {
-    let stripes = full_matrix(ref_len_u, qry_len_u);
+  if ref_len + qry_len < (10 * params.seed_length) {
+    // for very short sequences, use full square
+    let stripes = full_matrix(ref_len, qry_len);
     trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
-    return Ok(stripes);
-  };
-
-  // otherwise, determine seed matches roughly regularly spaced along the query sequence
-  let (seed_matches, num_seeds) = get_seed_matches(qry_seq, ref_seq, params);
-
-  let num_seed_matches = seed_matches.len();
-
-  if num_seed_matches < 2 {
-    return make_error!("Unable to align: not enough matches. Details: number of seed matches: {num_seed_matches}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
-  }
-
-  let match_rate = if num_seeds != 0 {
-    (num_seed_matches as f64) / (num_seeds as f64)
+    Ok(stripes)
   } else {
-    0.0
-  };
-
-  if params.min_match_rate > match_rate {
-    return make_error!(
-      "Unable to align: low seed matching rate. \
-    Details: number of seeds: {num_seeds}, number of seed matches: {num_seed_matches}, \
-    matching rate: {match_rate:5.3}, required matching rate: {:5.3}. This is likely due to a low quality \
-    of the provided sequence, or due to using incorrect reference sequence.",
-      params.min_match_rate
-    );
+    // otherwise, determine seed matches roughly regularly spaced along the query sequence
+    let seed_matches = get_seed_matches2(qry_seq, ref_seq, seed_index, params)?;
+    create_stripes(
+      &seed_matches,
+      qry_len as isize,
+      ref_len as isize,
+      params.terminal_bandwidth as isize,
+      params.excess_bandwidth as isize,
+      params.allowed_mismatches as isize,
+    )
   }
-
-  create_stripes(
-    &seed_matches,
-    qry_len_i,
-    ref_len_i,
-    params.terminal_bandwidth,
-    params.excess_bandwidth,
-    params.max_indel,
-  )
 }
 
-/// construct the band in the alignment matrix. this band is organized as "stripes"
-/// that define the query sequence range for each reference position
-pub fn create_stripes(
-  seed_matches: &[SeedMatch],
-  qry_len: i32,
-  ref_len: i32,
-  terminal_bandwidth: i32,
-  excess_bandwidth: i32,
-  max_indel: usize,
-) -> Result<Vec<Stripe>, Report> {
-  let mut seed_matches = seed_matches.to_vec();
+fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> isize {
+  abs(seed2.offset - seed1.offset)
+}
 
-  // Discard seed matches right at the terminals of the ref sequence
-  if seed_matches[0].ref_pos == 0 {
-    seed_matches = seed_matches[1..].to_vec();
-  }
-  if seed_matches[seed_matches.len() - 1].ref_pos == ref_len as usize - 1 {
-    seed_matches = seed_matches[0..(seed_matches.len() - 1)].to_vec();
-  }
-
-  // Vec shifts contains offsets of each seed match
-  let mut shifts = vec![0; seed_matches.len() + 4];
-
-  for i in 0..seed_matches.len() {
-    let shift = seed_matches[i].qry_pos as i32 - seed_matches[i].ref_pos as i32;
-    shifts[i + 2] = shift;
-  }
-
-  // Pad shifts at terminals for robust width determination
-  shifts[0] = shifts[2];
-  shifts[1] = shifts[2];
-  let shifts_len = shifts.len();
-  shifts[shifts_len - 2] = shifts[shifts_len - 3];
-  shifts[shifts_len - 1] = shifts[shifts_len - 3];
-
-  let mut robust_shifts = Vec::with_capacity(seed_matches.len() + 1);
-
-  // For each stripe segment, consider seed offsets of previous and following segment
-  for slice in shifts.windows(4) {
-    let min = slice.iter().min().unwrap();
-    let max = slice.iter().max().unwrap();
-    let width = max - min;
-    // Prevent huge widths, which would require massive amount of memory
-    if width as usize > max_indel {
-      return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence.");
-    }
-    robust_shifts.push((*min, *max));
+// Function that processes a seed, adds a band, rewind the band vector as necessary
+// to accommodate any extended band width implied by look-back-length
+struct RewindResult {
+  look_back_length: isize,
+  current_ref_end: isize,
+}
+fn extend_and_rewind(
+  current_seed: &SeedMatch2,
+  current_band: TrapezoidDirectParams,
+  bands: &mut Vec<TrapezoidDirectParams>,
+  mean_offset: isize,
+  look_forward_length: isize,
+  look_back_length: isize,
+  minimal_bandwidth: isize,
+  ref_len: isize,
+) -> RewindResult {
+  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
+  let mut current_band = current_band;
+  let mut look_back_length = look_back_length;
+  // generate new current trapezoid for the body of the next seed
+  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
+  if current_seed_end > current_band.ref_end {
+    bands.push(current_band);
+    current_band = TrapezoidDirectParams {
+      ref_start: current_band.ref_end,
+      ref_end: current_seed_end,
+      min_offset: current_seed.offset - minimal_bandwidth,
+      max_offset: current_seed.offset + minimal_bandwidth,
+    };
   }
 
-  let mut robust_stripes = Vec::with_capacity(robust_shifts.len());
-
-  // Add stripes from ref_pos=0 to the first seed match
-  robust_stripes = add_robust_stripes(
-    robust_stripes,
-    0,
-    seed_matches[0].ref_pos as i32,
-    qry_len,
-    robust_shifts[0],
-    terminal_bandwidth,
-  );
-
-  // Add stripes between successive seed matches
-  for i in 1..robust_shifts.len() - 1 {
-    robust_stripes = add_robust_stripes(
-      robust_stripes,
-      seed_matches[i - 1].ref_pos as i32,
-      seed_matches[i].ref_pos as i32,
-      qry_len,
-      robust_shifts[i],
-      excess_bandwidth,
+  // rewind the bands until the ref_start of the last one preceeds the one to add
+  while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
+    current_band = if let Some(tmp_band) = bands.pop() {
+      tmp_band
+    } else {
+      // we rewound all the way to the beginning, add a new terminal
+      TrapezoidDirectParams {
+        ref_start: 0,
+        ref_end: min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1),
+        min_offset: current_seed.offset - look_back_length,
+        max_offset: current_seed.offset + look_back_length,
+      }
+    };
+    // increase look-back-length to cover absorbed previous bands
+    look_back_length = max(
+      max(look_back_length, mean_offset - current_band.min_offset),
+      current_band.max_offset - mean_offset,
     );
   }
+  // terminate previous trapezoid where the new one will start and push unless band is empty
+  current_band.ref_end = max(0, current_seed_end - look_back_length);
+  if current_band.ref_end > current_band.ref_start {
+    bands.push(current_band);
+  }
+  // return the updated look-back-length and the end of the current band
+  RewindResult {
+    look_back_length,
+    current_ref_end: current_band.ref_end,
+  }
+}
 
-  // Add stripes after the last seed match
-  robust_stripes = add_robust_stripes(
-    robust_stripes,
-    last(&seed_matches)?.ref_pos as i32,
-    ref_len + 1,
-    qry_len,
-    *last(&robust_shifts)?,
-    terminal_bandwidth,
+/// Takes in seed matches and returns a vector of stripes
+/// Stripes define the query sequence range for each reference position
+pub fn create_stripes(
+  chain: &[SeedMatch2],
+  qry_len: isize,
+  ref_len: isize,
+  terminal_bandwidth: isize,
+  excess_bandwidth: isize,
+  minimal_bandwidth: isize,
+) -> Result<Vec<Stripe>, Report> {
+  // This function steps through the chained seeds and determines and appropriate band
+  // defined via stripes in query coordinates. These bands will later be chopped to reachable ranges
+
+  // the broad idea is the following:
+  // pre: deal with a special case the beginning and allow for terminal bandwidth
+  // within: for each pair of chained seed (current and next), add a Trapezoid centered at the junction
+  //         and a body Trapezoid for next. Extend the gap Trapezoid into the current and next
+  // post: deal with the terminal trapezoid and allow of terminal bandwidth
+
+  let mut bands = Vec::<TrapezoidDirectParams>::with_capacity(2 * chain.len() + 2);
+
+  // make initial trapezoid starting at 0 and extending into match by terminal_bandwidth
+  let mut current_seed = &chain[0];
+  let mut look_back_length = terminal_bandwidth;
+  let mut look_forward_length = terminal_bandwidth;
+  let mut current_ref_end = min(current_seed.ref_pos as isize + look_forward_length, ref_len + 1);
+  let mut current_band = TrapezoidDirectParams {
+    ref_start: 0,
+    ref_end: current_ref_end,
+    min_offset: current_seed.offset - terminal_bandwidth,
+    max_offset: current_seed.offset + terminal_bandwidth,
+  };
+
+  // loop over remaining seeds in chain
+  for next_seed in chain.iter().skip(1) {
+    let mean_offset = (next_seed.offset + current_seed.offset) / 2; // offset of gap seed
+    let shift = abs_shift(current_seed, next_seed) / 2; // distance from mean offset
+    look_forward_length = shift + excess_bandwidth;
+
+    // attempt to add new a band for current_seed, then rewind as necessary to accommodate shift
+    RewindResult {
+      look_back_length,
+      current_ref_end,
+    } = extend_and_rewind(
+      current_seed,
+      current_band,
+      &mut bands,
+      mean_offset,
+      look_forward_length,
+      shift + excess_bandwidth,
+      minimal_bandwidth,
+      ref_len,
+    );
+
+    // generate trapezoid for the gap between seeds that goes look-forward-length into the next seed and push
+    current_band = TrapezoidDirectParams {
+      ref_start: current_ref_end,
+      ref_end: next_seed.ref_pos as isize + look_forward_length,
+      min_offset: mean_offset - look_back_length - excess_bandwidth,
+      max_offset: mean_offset + look_back_length + excess_bandwidth,
+    };
+    current_seed = next_seed;
+  }
+
+  // process the final seed (different offset)
+  RewindResult {
+    look_back_length,
+    current_ref_end,
+  } = extend_and_rewind(
+    current_seed,
+    current_band,
+    &mut bands,
+    current_seed.offset,
+    look_forward_length,
+    max(terminal_bandwidth, look_back_length),
+    minimal_bandwidth,
+    ref_len,
   );
+  // add band that extends all the way to the end
+  current_band = TrapezoidDirectParams {
+    ref_start: current_ref_end,
+    ref_end: ref_len + 1,
+    min_offset: current_seed.offset - look_back_length,
+    max_offset: current_seed.offset + look_back_length,
+  };
+  bands.push(current_band);
 
-  robust_stripes = regularize_stripes(robust_stripes, qry_len as usize);
+  // construct strips from the ordered bands
+  let mut stripes = Vec::<Stripe>::with_capacity(ref_len as usize + 1);
+  for band in bands {
+    for ref_pos in band.ref_start..band.ref_end {
+      stripes.push(Stripe {
+        begin: (ref_pos + band.min_offset).clamp(0, qry_len - minimal_bandwidth) as usize,
+        end: (ref_pos + band.max_offset).clamp(0, qry_len) as usize + 1,
+      });
+    }
+  }
+  // write_stripes_to_file(&stripes, "stripes.csv");
 
-  Ok(robust_stripes)
+  // trim stripes to reachable regions
+  let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
+  // trace_stripe_stats(&regularized_stripes);
+
+  Ok(regularized_stripes)
+}
+
+#[derive(Clone, Copy, Debug)]
+struct TrapezoidDirectParams {
+  ref_start: isize,
+  ref_end: isize,
+  min_offset: isize,
+  max_offset: isize,
 }
 
 /// Chop off unreachable parts of the stripes.
@@ -289,23 +365,51 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
   stripes
 }
 
-/// add stripes of constant width between ref_start and ref_stop
-/// incrementing the query position along with ref_pos
-fn add_robust_stripes(
-  mut stripes: Vec<Stripe>,
-  ref_start: i32,
-  ref_end: i32,
-  qry_len: i32,
-  shift: (i32, i32),
-  extra_bandwidth: i32,
-) -> Vec<Stripe> {
-  for i in ref_start..ref_end {
-    stripes.push(Stripe::new(
-      clamp(i + shift.0 - extra_bandwidth, 0, qry_len),
-      clamp(i + shift.1 + extra_bandwidth + 1, 1, qry_len + 1),
-    ));
+fn trace_stripe_stats(stripes: &[Stripe]) {
+  let mut stripe_lengths = Vec::new();
+  for stripe in stripes {
+    assert!(
+      stripe.begin <= stripe.end,
+      "Stripe begin must be <= stripe end for stripe {stripe:?}",
+    );
+    stripe_lengths.push(stripe.end - stripe.begin);
   }
-  stripes
+  stripe_lengths.sort_unstable();
+  let median = stripe_lengths[stripe_lengths.len() / 2];
+  let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
+  let max = stripe_lengths[stripe_lengths.len() - 1];
+  let min = stripe_lengths[0];
+  trace!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
+}
+
+fn trace_matches(matches: &[SeedMatch2]) {
+  for (i, seed) in matches.iter().enumerate() {
+    trace!(
+      "Match {}: ref_pos: {}, qry_offset: {}, length: {}",
+      i,
+      seed.ref_pos,
+      -seed.offset,
+      seed.length,
+    );
+  }
+}
+
+fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
+  use std::io::Write;
+  let mut file = std::fs::File::create(filename).unwrap();
+  writeln!(file, "ref,begin,end").unwrap();
+  for (i, stripe) in stripes.iter().enumerate() {
+    writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
+  }
+}
+
+pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
+  use std::io::Write;
+  let mut file = std::fs::File::create(filename).unwrap();
+  writeln!(file, "ref_pos,qry_pos,length").unwrap();
+  for match_ in matches {
+    writeln!(file, "{},{},{}", match_.ref_pos, match_.qry_pos, match_.length).unwrap();
+  }
 }
 
 #[cfg(test)]
@@ -317,20 +421,23 @@ mod tests {
   #[rstest]
   fn test_create_stripes_basic() -> Result<(), Report> {
     let seed_matches = vec![
-      SeedMatch {
+      SeedMatch2 {
         qry_pos: 5,
         ref_pos: 10,
-        score: 0,
+        length: 0,
+        offset: 0,
       },
-      SeedMatch {
+      SeedMatch2 {
         qry_pos: 20,
         ref_pos: 30,
-        score: 0,
+        length: 0,
+        offset: 0,
       },
     ];
 
     let terminal_bandwidth = 5;
     let excess_bandwidth = 2;
+    let allowed_mismatches = 2;
     let max_indel = 100;
     let qry_len = 30;
     let ref_len = 40;
@@ -341,7 +448,7 @@ mod tests {
       ref_len,
       terminal_bandwidth,
       excess_bandwidth,
-      max_indel,
+      allowed_mismatches,
     );
 
     Ok(())

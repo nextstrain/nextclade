@@ -79,7 +79,8 @@ pub fn backtrace<T: Letter<T>>(
       // origin = 0 and current_matrix = 0
       // Why would this ever happen?
       // Mistake in score_matrix?
-      unreachable!("Problem in backtrace: origin = 0 and current_matrix = 0 before (0,0) reached. Please share the sequence with the developers.");
+      // TODO: This actually does seem to be reachable, at least when band is width 0, i.e. a line
+      unreachable!("Problem in backtrace: origin = 0 and current_matrix = 0 before (0,0) reached. Please share the sequence with the developers.\nr_pos = {}, q_pos = {}, origin = {}, current_matrix = {}", r_pos, q_pos, origin, current_matrix);
     }
   }
 

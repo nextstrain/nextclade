@@ -6,6 +6,7 @@ use eyre::{Report, WrapErr};
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::seed_match2::CodonSpacedIndex;
 use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
@@ -57,6 +58,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq).wrap_err("When reading reference sequence")?;
+  let seed_index = &CodonSpacedIndex::from_sequence(ref_seq);
 
   let gene_map = match input_gene_map {
     Some(input_gene_map) => {
@@ -120,6 +122,7 @@ pub fn nextalign_run(run_args: NextalignRunArgs) -> Result<(), Report> {
               &seq_name,
               &qry_seq,
               ref_seq,
+              seed_index,
               ref_peptides,
               gene_map,
               gap_open_close_nuc,
