@@ -3,12 +3,12 @@
   "nucMutLabelMap": {},
   "nucMutLabelMapReverse": {},
   "alignmentParams": {
-    "terminal_bandwidth": 50,
     "excess_bandwidth": 50,
-    "gap_alignment_side": "right",
-    "allowed_mismatches": 10,
-    "kmer_length": 8,
-    "kmer_distance": 30,
-    "min_match_length": 40
+    "terminal_bandwidth": 50,
+    "kmer_length": 10,
+    "kmer_distance": 50,
+    "min_match_length": 40,
+    "allowed_mismatches": 8,
+    "window_size": 30
   }
 }
