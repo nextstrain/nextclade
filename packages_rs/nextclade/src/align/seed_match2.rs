@@ -1,4 +1,5 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_alignment::write_matches_to_file;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::{from_nuc_seq, Nuc};
 use crate::make_error;
@@ -10,7 +11,7 @@ use eyre::Report;
 use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
-use std::cmp::min;
+use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
@@ -102,7 +103,7 @@ pub struct SeedMatch2 {
 }
 
 impl SeedMatch2 {
-  fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> SeedMatch2 {
+  fn extend_seed<L: Letter<L>>(&self, qry_seq: &[L], ref_seq: &[L], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
     let SeedMatch2 {
       mut ref_pos,
       mut qry_pos,
@@ -191,13 +192,31 @@ impl SeedMatch2 {
     length -= config.window_size - crop;
     ref_pos += config.window_size - crop;
     qry_pos += config.window_size - crop;
-
-    SeedMatch2 {
-      ref_pos,
-      qry_pos,
-      length,
-      offset: self.offset,
+    if length < config.min_match_length {
+      return vec![];
     }
+
+    let mut chopped_matches = Vec::with_capacity(length / config.min_match_length + 1);
+    let mut current_ref_pos = ref_pos;
+    let mut current_qry_pos = qry_pos;
+    let max_pos = ref_pos + length - config.min_match_length;
+    while current_ref_pos < max_pos {
+      chopped_matches.push(SeedMatch2 {
+        ref_pos: current_ref_pos,
+        qry_pos: current_qry_pos,
+        length: config.min_match_length,
+        offset: self.offset,
+      });
+      current_ref_pos += config.min_match_length;
+      current_qry_pos += config.min_match_length;
+    }
+    chopped_matches.push(SeedMatch2 {
+      ref_pos: max_pos,
+      qry_pos: qry_pos + length - config.min_match_length,
+      offset: self.offset,
+      length: config.min_match_length,
+    });
+    chopped_matches
   }
 }
 
@@ -240,7 +259,7 @@ impl CodonSpacedIndex {
                 qry_pos: unskipped_qry_index,
                 ref_pos: unskipped_ref_index,
                 length: 0,
-                offset: unskipped_ref_index as isize - unskipped_qry_index as isize,
+                offset: unskipped_qry_index as isize - unskipped_ref_index as isize,
               });
             }
           }
@@ -248,6 +267,7 @@ impl CodonSpacedIndex {
         }
       }
     }
+    //write_matches_to_file(&matches, "unextended_matches.csv");
     matches
   }
 
@@ -255,67 +275,50 @@ impl CodonSpacedIndex {
   fn extended_matches(&self, qry_seq: &[Nuc], ref_seq: &[Nuc], config: &AlignPairwiseParams) -> Vec<SeedMatch2> {
     let index_matches = self.index_matches(qry_seq, config);
 
+    // matches is dict for Offset -> IntervalSet
     let mut matches = BTreeMap::<isize, IntervalSet<usize>>::new();
 
+    let empty_interval_set = Vec::<(usize, usize)>::new().to_interval_set();
+    let mut collected_matches = Vec::new();
+
     for index_match in index_matches {
-      // Check if offset already in matches
-      // Check if qry_index within range
+      let interval_set_for_this_offset = matches.get(&index_match.offset).unwrap_or(&empty_interval_set);
 
-      // If match is already in extended range, move on
-      if matches.contains_key(&index_match.offset) {
-        let good_ranges = &matches[&index_match.offset];
-        // Find largest qrypos smaller or equal to index_match.qrypos
-        // good_ranges.
-        let this_match = vec![(index_match.qry_pos, index_match.qry_pos + config.kmer_length)].to_interval_set();
+      let overlap = vec![(index_match.qry_pos, index_match.qry_pos + config.kmer_length)]
+        .to_interval_set()
+        .intersection(interval_set_for_this_offset);
 
-        let overlap = this_match.intersection(good_ranges);
-
-        if !overlap.is_empty() {
-          continue;
-        }
+      // Don't need to extend if seed in known range
+      if !overlap.is_empty() {
+        continue;
       }
 
-      let extended_match = index_match.extend_seed(qry_seq, ref_seq, config);
-
+      let extended_matches = index_match.extend_seed(qry_seq, ref_seq, config);
+      if extended_matches.is_empty() {
+        continue;
+      }
       // Insert extended range into matches map
-      // Simple case if there's no good range with this offset yet
-      if !matches.contains_key(&index_match.offset) {
-        matches.insert(
-          index_match.offset,
-          vec![(extended_match.qry_pos, extended_match.qry_pos + extended_match.length)].to_interval_set(),
-        );
-      // Get ranges overlapped by extended match
-      } else {
-        let good_ranges = &matches[&index_match.offset];
-        matches.insert(
-          index_match.offset,
-          vec![(extended_match.qry_pos, extended_match.qry_pos + extended_match.length)]
-            .to_interval_set()
-            .union(good_ranges),
-        );
-      }
+      let extended_interval_set = vec![(
+        max(extended_matches[0].qry_pos, 0),
+        min(
+          extended_matches.last().unwrap().qry_pos + extended_matches.last().unwrap().length,
+          qry_seq.len(),
+        ),
+      )]
+      .to_interval_set()
+      .union(interval_set_for_this_offset);
+
+      matches.insert(index_match.offset, extended_interval_set);
+      collected_matches.extend(extended_matches.iter().cloned());
     }
 
-    // Transform to Vec<SeedMatch>
-    matches
-      .iter()
-      .flat_map(|(offset, intervals)| {
-        intervals
-          .iter()
-          .map(|interval| SeedMatch2 {
-            qry_pos: interval.lower(),
-            ref_pos: (interval.lower() as isize + offset) as usize,
-            length: interval.upper() - interval.lower(),
-            offset: *offset,
-          })
-          .collect::<Vec<SeedMatch2>>()
-      })
-      .collect()
+    // write_matches_to_file(&collected_matches, "raw_matches.csv");
+    collected_matches
   }
 }
 
 /// Chain seeds using algorithm in "Algorithms on Strings, Trees and Sequences" by Dan Gusfield, chapter 13.3, page 326, "The two-dimensional chain problem"
-/// Right now, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
+/// TODO: Currently, overlap leads to exclusivity. We should add matches chopped at overlap start/end points.
 /// Input matches are already merged
 /// Optional TODO: Use binary search tree instead of vecs
 fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
@@ -433,7 +436,21 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
   }
   optimal_chain.reverse();
 
-  optimal_chain
+  let mut merged_seeds: Vec<SeedMatch2> = Vec::with_capacity(optimal_chain.len());
+  let mut current_seed = optimal_chain[0].clone();
+  for seed in &optimal_chain[1..optimal_chain.len()] {
+    if seed.qry_pos == current_seed.qry_pos + current_seed.length
+      && seed.ref_pos == current_seed.ref_pos + current_seed.length
+    {
+      current_seed.length += seed.length;
+    } else {
+      merged_seeds.push(current_seed);
+      current_seed = seed.clone();
+    }
+  }
+  merged_seeds.push(current_seed);
+  merged_seeds.shrink_to_fit();
+  merged_seeds
 }
 
 pub fn get_seed_matches2(
@@ -445,8 +462,9 @@ pub fn get_seed_matches2(
   let matches = seed_index
     .extended_matches(qry_seq, ref_seq, params)
     .into_iter()
-    .filter(|m| m.length > params.min_match_length)
     .collect_vec();
+
+  // write_matches_to_file(&matches, "matches.csv");
 
   if matches.is_empty() {
     return make_error!(
@@ -459,16 +477,20 @@ pub fn get_seed_matches2(
   }
 
   let seed_matches = chain_seeds(&matches);
+  // write_matches_to_file(&seed_matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
-  if (sum_of_seed_length as f64) < ((qry_seq.len() as f64) * params.min_seed_cover) {
-    return make_error!(
-      "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
-      (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
-      provided sequence, or due to using incorrect reference sequence.",
-      100.0 * (sum_of_seed_length as f64) / (qry_seq.len() as f64),
-      100.0 * params.min_seed_cover
-    );
+  if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
+    let query_knowns = qry_seq.iter().filter(|n| n.is_acgt()).count();
+    if (sum_of_seed_length as f64 / query_knowns as f64) < params.min_seed_cover {
+      return make_error!(
+        "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
+        (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
+        provided sequence, or due to using incorrect reference sequence.",
+        100.0 * (sum_of_seed_length as f64) / (query_knowns as f64),
+        100.0 * params.min_seed_cover
+      );
+    }
   }
 
   Ok(seed_matches)
@@ -495,7 +517,7 @@ mod tests {
     //                0         1         2         3         4         5         6         7         8         9
 
     let input    = SeedMatch2 { ref_pos: 40, qry_pos: 37, length: 8, offset: 0 };
-    let expected = SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 53, offset: 0 };
+    let expected = vec![SeedMatch2 { ref_pos: 20, qry_pos: 17, length: 40, offset: 0 }, SeedMatch2{ ref_pos: 33, qry_pos: 30, length: 40, offset: 0 }];
     let actual = input.extend_seed(&to_nuc_seq(qry_seq)?, &to_nuc_seq(ref_seq)?, &AlignPairwiseParams::default());
 
     assert_eq!(expected, actual);
