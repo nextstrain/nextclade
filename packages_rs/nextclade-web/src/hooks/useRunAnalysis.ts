@@ -1,10 +1,9 @@
-import type { AuspiceJsonV2 } from 'auspice'
+import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
-import { OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
@@ -13,7 +12,6 @@ import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
-  primersCsvInputAtom,
   qcConfigInputAtom,
   qrySeqInputsStorageAtom,
   refSeqInputAtom,
@@ -58,12 +56,11 @@ export function useRunAnalysis() {
         const csvColumnConfig = getPromise(csvColumnConfigAtom)
 
         const inputs: LaunchAnalysisInputs = {
-          ref_seq_str: getPromise(refSeqInputAtom),
-          gene_map_str: getPromise(geneMapInputAtom),
-          tree_str: getPromise(refTreeInputAtom),
-          qc_config_str: getPromise(qcConfigInputAtom),
-          virus_properties_str: getPromise(virusPropertiesInputAtom),
-          pcr_primers_str: getPromise(primersCsvInputAtom),
+          refSeq: getPromise(refSeqInputAtom),
+          geneMap: getPromise(geneMapInputAtom),
+          tree: getPromise(refTreeInputAtom),
+          qcConfig: getPromise(qcConfigInputAtom),
+          virusProperties: getPromise(virusPropertiesInputAtom),
         }
 
         const callbacks: LaunchAnalysisCallbacks = {
@@ -71,23 +68,26 @@ export function useRunAnalysis() {
             set(analysisStatusGlobalAtom, status)
           },
           onInitialData({
-            genes,
+            geneMap,
             genomeSize,
             cladeNodeAttrKeyDescs,
             phenotypeAttrDescs,
             aaMotifsDescs,
-            csvColumnConfig,
+            csvColumnConfigDefault,
           }) {
+            const genes = Object.values(geneMap.genes)
             set(genesAtom, genes)
-            set(
-              cdsesAtom,
-              genes.flatMap((gene) => gene.cdses),
-            )
+
+            const cdses = Object.values(geneMap.genes).flatMap((gene) => gene.cdses)
+            set(cdsesAtom, cdses)
             set(genomeSizeAtom, genomeSize)
-            set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs)
+
+            // FIXME: This type is duplicated. One comes from handwritten Auspice typings,
+            //  another from JSON-schema generated types
+            set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs as unknown as CladeNodeAttrDesc[])
             set(phenotypeAttrDescsAtom, phenotypeAttrDescs)
             set(aaMotifsDescsAtom, aaMotifsDescs)
-            set(csvColumnConfigAtom, csvColumnConfig)
+            set(csvColumnConfigAtom, csvColumnConfigDefault)
           },
           onParsedFasta(/* record */) {
             // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.
@@ -100,11 +100,11 @@ export function useRunAnalysis() {
           onError(error) {
             set(globalErrorAtom, error)
           },
-          onTree({ auspice, nwk }: OutputTreesPojo) {
-            set(treeAtom, auspice)
+          onTree({ auspice, nwk }) {
+            set(treeAtom, auspice as unknown as AuspiceJsonV2)
             set(treeNwkAtom, nwk)
 
-            const auspiceState = createAuspiceState(auspice as AuspiceJsonV2, dispatch)
+            const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
             dispatch(auspiceStartClean(auspiceState))
             dispatch(changeColorBy())
             dispatch(treeFilterByNodeType(['New']))

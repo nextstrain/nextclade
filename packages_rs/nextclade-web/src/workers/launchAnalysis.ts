@@ -1,60 +1,48 @@
 import { concurrent } from 'fasy'
-import type { CladeNodeAttrDesc } from 'auspice'
 import { isEmpty, merge } from 'lodash'
-import { OutputTreesPojo } from 'src/gen/nextclade-wasm'
 
 import type {
-  AaMotifsDesc,
   AlgorithmInput,
   Dataset,
   FastaRecordId,
-  Gene,
   NextcladeResult,
   CsvColumnConfig,
+  NextcladeParams,
+  NextcladeParamsRaw,
+  AnalysisInitialData,
+  OutputTrees,
 } from 'src/types'
-import { AlgorithmGlobalStatus, PhenotypeAttrDesc } from 'src/types'
-import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import { AlgorithmGlobalStatus } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 export interface LaunchAnalysisInputs {
-  ref_seq_str: Promise<AlgorithmInput | undefined>
-  gene_map_str: Promise<AlgorithmInput | undefined>
-  tree_str: Promise<AlgorithmInput | undefined>
-  qc_config_str: Promise<AlgorithmInput | undefined>
-  virus_properties_str: Promise<AlgorithmInput | undefined>
-  pcr_primers_str: Promise<AlgorithmInput | undefined>
-}
-
-export interface LaunchAnalysisInitialData {
-  genes: Gene[]
-  genomeSize: number
-  cladeNodeAttrKeyDescs: CladeNodeAttrDesc[]
-  phenotypeAttrDescs: PhenotypeAttrDesc[]
-  aaMotifsDescs: AaMotifsDesc[]
-  csvColumnConfig: CsvColumnConfig
+  refSeq: Promise<AlgorithmInput | undefined>
+  geneMap: Promise<AlgorithmInput | undefined>
+  tree: Promise<AlgorithmInput | undefined>
+  qcConfig: Promise<AlgorithmInput | undefined>
+  virusProperties: Promise<AlgorithmInput | undefined>
 }
 
 export interface LaunchAnalysisCallbacks {
   onGlobalStatus: (record: AlgorithmGlobalStatus) => void
-  onInitialData: (data: LaunchAnalysisInitialData) => void
+  onInitialData: (data: AnalysisInitialData) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
-  onTree: (trees: OutputTreesPojo) => void
+  onTree: (trees: OutputTrees) => void
   onError: (error: Error) => void
   onComplete: () => void
 }
 
 /** Maps input field names to the dataset field names, so that we know which one to take */
 const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, string> = {
-  ref_seq_str: 'reference.fasta',
-  gene_map_str: 'genemap.gff',
-  tree_str: 'tree.json',
-  qc_config_str: 'qc.json',
-  virus_properties_str: 'virus_properties.json',
-  pcr_primers_str: 'primers.csv',
+  refSeq: 'reference.fasta',
+  geneMap: 'genemap.gff',
+  tree: 'tree.json',
+  qcConfig: 'qc.json',
+  virusProperties: 'virus_properties.json',
 }
 
 export async function launchAnalysis(
@@ -97,7 +85,7 @@ export async function launchAnalysis(
     try {
       const initialData = await launcherWorker.getInitialData()
 
-      initialData.csvColumnConfig = merge(initialData.csvColumnConfig, csvColumnConfig)
+      initialData.csvColumnConfigDefault = merge(initialData.csvColumnConfigDefault, csvColumnConfig)
 
       onInitialData(initialData)
 
@@ -127,19 +115,16 @@ type Entry<T, V> = [keyof T, V]
 type LaunchAnalysisInputsEntry = Entry<LaunchAnalysisInputs, Promise<AlgorithmInput | undefined>>
 
 /** Resolves all param inputs into strings */
-async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsPojo> {
+async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsRaw> {
   const paramInputsEntries = Object.entries(paramInputs) as LaunchAnalysisInputsEntry[]
 
   return Object.fromEntries(
-    await concurrent.map(
-      async ([key, input]: LaunchAnalysisInputsEntry): Promise<Entry<NextcladeParamsPojo, string>> => {
-        const datasetKey = DATASET_FILE_NAME_MAPPING[key]
-        const content = await resolveInput(await input, dataset.files[datasetKey])
-        return [key as keyof NextcladeParamsPojo, content]
-      },
-      paramInputsEntries,
-    ),
-  ) as unknown as NextcladeParamsPojo
+    await concurrent.map(async ([key, input]: LaunchAnalysisInputsEntry): Promise<Entry<NextcladeParams, string>> => {
+      const datasetKey = DATASET_FILE_NAME_MAPPING[key]
+      const content = await resolveInput(await input, dataset.files[datasetKey])
+      return [key as keyof NextcladeParams, content]
+    }, paramInputsEntries),
+  ) as unknown as NextcladeParamsRaw
 }
 
 async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string) {

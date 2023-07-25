@@ -130,7 +130,7 @@ pub fn to_aa(letter: char) -> Result<Aa, Report> {
     'X' => Ok(Aa::X),
     '*' => Ok(Aa::Stop),
     '-' => Ok(Aa::Gap),
-    _ => make_error!("Unknown nucleotide: {letter}"),
+    _ => make_error!("Unknown amino acid: {letter}"),
   }
 }
 

@@ -1,13 +1,12 @@
 import 'regenerator-runtime'
 
-import { AlgorithmGlobalStatus } from 'src/types'
+import { AlgorithmGlobalStatus, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { omit } from 'lodash'
 
 import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/types'
-import type { NextcladeParamsPojo, OutputTreesPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
 import { FastaParserWorker } from 'src/workers/FastaParserThread'
@@ -32,7 +31,7 @@ class LauncherWorkerImpl {
   analysisResultsObservable = new Subject<NextcladeResult>()
 
   // Relays tree result from webworker to the main thread
-  treeObservable = new Subject<OutputTreesPojo>()
+  treeObservable = new Subject<OutputTrees>()
 
   fastaParser!: FastaParserWorker
 
@@ -40,13 +39,13 @@ class LauncherWorkerImpl {
 
   private constructor() {}
 
-  public static async create(numThreads: number, params: NextcladeParamsPojo) {
+  public static async create(numThreads: number, params: NextcladeParamsRaw) {
     const self = new LauncherWorkerImpl()
     await self.init(numThreads, params)
     return self
   }
 
-  private async init(numThreads: number, params: NextcladeParamsPojo) {
+  private async init(numThreads: number, params: NextcladeParamsRaw) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
   }
@@ -105,7 +104,7 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(numThreads: number, params: NextcladeParamsPojo) {
+  async init(numThreads: number, params: NextcladeParamsRaw) {
     launcher = await LauncherWorkerImpl.create(numThreads, params)
   },
   async getInitialData() {
@@ -145,7 +144,7 @@ const worker = {
     }
     return ThreadsObservable.from(launcher.analysisResultsObservable)
   },
-  getTreeObservable(): ThreadsObservable<OutputTreesPojo> {
+  getTreeObservable(): ThreadsObservable<OutputTrees> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getTreeObservable')
     }

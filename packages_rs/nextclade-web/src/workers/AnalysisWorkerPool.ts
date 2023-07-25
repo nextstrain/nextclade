@@ -1,6 +1,4 @@
-import type { AnalysisResult, FastaRecord } from 'src/types'
-import type { NextcladeParamsPojo, OutputTreesPojo } from 'src/gen/nextclade-wasm'
-import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
+import type { AnalysisInitialData, AnalysisResult, FastaRecord, NextcladeParamsRaw } from 'src/types'
 import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
 import { PoolExtended } from 'src/workers/ThreadPoolExtended'
 
@@ -11,13 +9,13 @@ export class AnalysisWorkerPool {
 
   private constructor() {}
 
-  public static async create(numThreads: number, params: NextcladeParamsPojo) {
+  public static async create(numThreads: number, params: NextcladeParamsRaw) {
     const self = new AnalysisWorkerPool()
     await self.init(numThreads, params)
     return self
   }
 
-  private async init(numThreads: number, params: NextcladeParamsPojo) {
+  private async init(numThreads: number, params: NextcladeParamsRaw) {
     // Spawn the pool of WebWorkers
     const nextcladeWorkerModule = new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), {
       name: 'nextcladeWebWorker',
@@ -33,7 +31,7 @@ export class AnalysisWorkerPool {
     await this.pool.forEachWorker(async (worker) => worker.create(params))
   }
 
-  public async getInitialData(): Promise<LaunchAnalysisInitialData> {
+  public async getInitialData(): Promise<AnalysisInitialData> {
     return this.pool.queue((worker) => worker.getInitialData())
   }
 
@@ -47,7 +45,7 @@ export class AnalysisWorkerPool {
     return result
   }
 
-  public async getOutputTrees(): Promise<OutputTreesPojo> {
+  public async getOutputTrees() {
     return this.pool.queue((worker) => worker.getOutputTrees(JSON.stringify(this.results)))
   }
 

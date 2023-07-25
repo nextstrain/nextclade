@@ -1,17 +1,14 @@
-use crate::wasm::analyze::{AnalysisInitialData, AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use nextclade::analyze::pcr_primers::PcrPrimer;
-use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::insertions_csv::insertions_to_csv_string;
-use nextclade::io::json::{json_parse, json_stringify};
+use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
-use nextclade::qc::qc_config::QcConfig;
-use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
+use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw};
+use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
 use std::io::Read;
@@ -33,9 +30,15 @@ pub struct NextcladeWasm {
 
 #[wasm_bindgen]
 impl NextcladeWasm {
-  #[wasm_bindgen(constructor)]
-  pub fn new(params: &NextcladeParams) -> Result<NextcladeWasm, JsError> {
-    let nextclade = jserr(Nextclade::new(params).wrap_err_with(|| "When initializing Nextclade runner"))?;
+  pub fn new(params: &str) -> Result<NextcladeWasm, JsError> {
+    let params_raw: NextcladeParamsRaw =
+      jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
+
+    let params: NextcladeParams =
+      jserr(NextcladeParams::from_raw(&params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
+
+    let nextclade: Nextclade = jserr(Nextclade::new(params).wrap_err_with(|| "When initializing Nextclade runner"))?;
+
     Ok(Self { nextclade })
   }
 
@@ -61,13 +64,16 @@ impl NextcladeWasm {
     Ok(())
   }
 
-  pub fn get_initial_data(&self) -> Result<AnalysisInitialData, JsError> {
-    jserr(self.nextclade.get_initial_data())
+  pub fn get_initial_data(&self) -> Result<String, JsError> {
+    let initial_data = jserr(self.nextclade.get_initial_data())?;
+    jserr(json_stringify(&initial_data, JsonPretty(false)))
   }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
-  pub fn analyze(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {
-    jserr(self.nextclade.run(input))
+  pub fn analyze(&mut self, input: &str) -> Result<String, JsError> {
+    let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
+    let result = jserr(self.nextclade.run(&input))?;
+    jserr(json_stringify(&result, JsonPretty(false)))
   }
 
   /// Takes ALL analysis results, runs tree placement and returns output tree.
@@ -75,43 +81,13 @@ impl NextcladeWasm {
   pub fn get_output_trees(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
     let trees = jserr(self.nextclade.get_output_trees(nextclade_outputs))?;
-    jserr(json_stringify(&trees))
+    jserr(json_stringify(&trees, JsonPretty(false)))
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct
   pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<String, JsError> {
     let record = jserr(read_one_fasta_str(ref_seq_str))?;
-    jserr(json_stringify(&record))
-  }
-
-  /// Checks that a string containing Auspice tree in JSON format is correct
-  pub fn validate_tree_json(tree_json_str: &str) -> Result<(), JsError> {
-    jserr(AuspiceTree::from_str(tree_json_str))?;
-    Ok(())
-  }
-
-  /// Checks that a string containing gene map in GFF format is correct
-  pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
-    let gene_map = jserr(GeneMap::from_str(gene_map_gff_str))?;
-    jserr(json_stringify(&gene_map))
-  }
-
-  /// Checks that a string containing PCT primers in CSV format is correct
-  pub fn validate_primers_csv(pcr_primers_csv_str: &str, ref_seq_str: &str) -> Result<(), JsError> {
-    jserr(PcrPrimer::from_str(pcr_primers_csv_str, ref_seq_str))?;
-    Ok(())
-  }
-
-  /// Checks that a string containing QC config in JSON format is correct
-  pub fn validate_qc_config(qc_json_str: &str) -> Result<(), JsError> {
-    jserr(QcConfig::from_str(qc_json_str))?;
-    Ok(())
-  }
-
-  /// Checks that a string containing virus properties in JSON format is correct
-  pub fn validate_virus_properties_json(virus_properties_json_str: &str) -> Result<(), JsError> {
-    jserr(VirusProperties::from_str(virus_properties_json_str))?;
-    Ok(())
+    jserr(json_stringify(&record, JsonPretty(false)))
   }
 
   #[allow(clippy::needless_pass_by_value)]

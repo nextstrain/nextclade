@@ -17,7 +17,7 @@ use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
-use nextclade::io::json::json_write;
+use nextclade::io::json::{json_write, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::make_error;
@@ -321,7 +321,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
     if let Some(output_tree) = output_tree {
       let tree = convert_graph_to_auspice_tree(&graph)?;
-      json_write(output_tree, &tree)?;
+      json_write(output_tree, &tree, JsonPretty(true))?;
     }
 
     if let Some(output_tree_nwk) = output_tree_nwk {
@@ -329,7 +329,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     }
 
     if let Some(output_graph) = run_args.outputs.output_graph {
-      json_write(output_graph, &graph)?;
+      json_write(output_graph, &graph, JsonPretty(true))?;
     }
   }
 
