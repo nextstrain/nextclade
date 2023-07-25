@@ -212,6 +212,11 @@ RUN set -euxo pipefail >/dev/null \
 && rustup default "${RUST_TOOLCHAIN}"
 
 RUN set -euxo pipefail >/dev/null \
+&& export SEQKIT_VERSION="2.5.0" \
+&& curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "seqkit" \
+&& chmod +x "${CARGO_HOME}/bin/seqkit"
+
+RUN set -euxo pipefail >/dev/null \
 && export CARGO_BINSTALL_VERSION="1.0.0" \
 && curl -sSL "https://github.com/cargo-bins/cargo-binstall/releases/download/v${CARGO_BINSTALL_VERSION}/cargo-binstall-x86_64-unknown-linux-gnu.tgz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-binstall" \
 && chmod +x "${CARGO_HOME}/bin/cargo-binstall"
