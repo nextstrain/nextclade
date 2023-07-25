@@ -87,7 +87,7 @@ rule build_base:
         git pull
         git checkout {params.branch}
         git pull
-        cargo build --release --bin nextclade
+        cargo build --quiet --release --bin nextclade
         cd -
         mkdir -p base_build/bin
         cp {input.dir}/target/release/nextclade {output.bin}
@@ -102,7 +102,7 @@ rule build_eval:
         bin="eval_build/bin/nextclade",
     shell:
         """
-        cargo build --release --bin nextclade
+        cargo build --quiet --release --bin nextclade
         # Need to move up to cargo project root to find nextclade binary
         # There's probably a better way to do this
         cp "../../target/release/nextclade" {output.bin}
