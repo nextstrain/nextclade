@@ -103,17 +103,16 @@ pub fn finetune_nearest_node(
 
   loop {
     let mut best_node = current_best_node;
-    let mut best_split_result: SplitMutsResult;
-    let mut n_shared_muts = if current_best_node.is_root() {
+    let (mut best_split_result, mut n_shared_muts) = if current_best_node.is_root() {
       // don't include node if node is root as we don't attach nodes above the root
-      best_split_result = SplitMutsResult {
+      let best_split_result = SplitMutsResult {
         left: private_mutations.clone(),
         right: PrivateMutationsMinimal::default(),
         shared: PrivateMutationsMinimal::default(),
       };
-      0
+      (best_split_result, 0)
     } else {
-      best_split_result = split_muts(
+      let best_split_result = split_muts(
         &current_best_node.payload().tmp.private_mutations.invert(),
         &private_mutations,
       )
@@ -123,7 +122,8 @@ pub fn finetune_nearest_node(
           current_best_node.payload().name
         )
       })?;
-      best_split_result.shared.nuc_subs.len()
+      let n_shared_muts = best_split_result.shared.nuc_subs.len();
+      (best_split_result, n_shared_muts)
     };
 
     for child in graph.iter_children_of(current_best_node) {
