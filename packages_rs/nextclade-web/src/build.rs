@@ -12,7 +12,7 @@ use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::QcResult;
 use nextclade::run::nextclade_wasm::{
-  AnalysisInitialData, AnalysisInput, NextcladeParams, NextcladeParamsRaw, NextcladeResult,
+  AnalysisInitialData, AnalysisInput, NextcladeParams, NextcladeParamsRaw, NextcladeResult, OutputTrees,
 };
 use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
@@ -66,4 +66,5 @@ struct _SchemaRoot {
   _19: NextcladeResult,
   _21: NextcladeParams,
   _22: NextcladeParamsRaw,
+  _23: OutputTrees,
 }

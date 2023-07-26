@@ -2,9 +2,10 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
-use crate::graph::edge::GraphEdge;
+use crate::graph::edge::{Edge, GraphEdge};
 use crate::graph::graph::Graph;
-use crate::graph::node::{GraphNode, GraphNodeKey};
+use crate::graph::node::{GraphNode, Node};
+use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
@@ -21,33 +22,53 @@ use validator::Validate;
 pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
 
 #[derive(Clone, schemars::JsonSchema, Validate, Debug)]
-pub struct AuspiceTreeEdge; // Edge payload is empty. Branch attributes are currently stored on nodes.
+pub struct AuspiceGraphEdgePayload; // Edge payload is empty. Branch attributes are currently stored on nodes.
 
-impl AuspiceTreeEdge {
+impl AuspiceGraphEdgePayload {
   pub const fn new() -> Self {
     Self {}
   }
 }
 
-impl<'de> Deserialize<'de> for AuspiceTreeEdge {
+impl<'de> Deserialize<'de> for AuspiceGraphEdgePayload {
   fn deserialize<D: Deserializer<'de>>(_deserializer: D) -> Result<Self, D::Error> {
-    Ok(AuspiceTreeEdge)
+    Ok(AuspiceGraphEdgePayload)
   }
 }
 
-impl Serialize for AuspiceTreeEdge {
+impl Serialize for AuspiceGraphEdgePayload {
   fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
   where
     Ser: Serializer,
   {
- 
     serializer.serialize_none()
   }
 }
 
-impl GraphEdge for AuspiceTreeEdge {}
+impl GraphEdge for AuspiceGraphEdgePayload {}
 
-pub type AuspiceGraph = Graph<AuspiceTreeNode, AuspiceTreeEdge>;
+pub type AuspiceGraphNode = Node<AuspiceGraphNodePayload>;
+pub type AuspiceGraphEdge = Edge<AuspiceGraphNodePayload>;
+
+#[derive(Debug, Clone, Default)]
+pub struct GraphTempData {
+  pub max_divergence: f64,
+  pub divergence_units: DivergenceUnits,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuspiceGraphMeta {
+  pub meta: AuspiceTreeMeta,
+
+  #[serde(skip)]
+  #[serde(default)]
+  pub tmp: GraphTempData,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+pub type AuspiceGraph = Graph<AuspiceGraphNodePayload, AuspiceGraphEdgePayload, AuspiceGraphMeta>;
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttr {
@@ -169,26 +190,20 @@ pub struct TreeNodeAttrs {
 /// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
 #[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
-  pub id: GraphNodeKey,
   pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub private_mutations: PrivateMutationsMinimal,
   pub aa_substitutions: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
-  pub is_ref_node: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
-pub struct AuspiceTreeNode {
+pub struct AuspiceGraphNodePayload {
   pub name: String,
 
   pub branch_attrs: TreeBranchAttrs,
 
   pub node_attrs: TreeNodeAttrs,
-
-  #[serde(skip_serializing_if = "Vec::is_empty")]
-  #[serde(default)]
-  pub children: Vec<AuspiceTreeNode>,
 
   #[serde(skip)]
   #[serde(default)]
@@ -198,15 +213,31 @@ pub struct AuspiceTreeNode {
   pub other: serde_json::Value,
 }
 
-impl AuspiceTreeNode {
-  pub fn is_leaf(&self) -> bool {
-    self.children.is_empty()
+impl From<AuspiceTreeNode> for AuspiceGraphNodePayload {
+  fn from(node: AuspiceTreeNode) -> Self {
+    Self {
+      name: node.name,
+      branch_attrs: node.branch_attrs,
+      node_attrs: node.node_attrs,
+      tmp: TreeNodeTempData::default(),
+      other: serde_json::Value::default(),
+    }
   }
+}
 
-  pub const fn is_ref_node(&self) -> bool {
-    self.tmp.is_ref_node
+impl From<&AuspiceTreeNode> for AuspiceGraphNodePayload {
+  fn from(node: &AuspiceTreeNode) -> Self {
+    Self {
+      name: node.name.clone(),
+      branch_attrs: node.branch_attrs.clone(),
+      node_attrs: node.node_attrs.clone(),
+      tmp: TreeNodeTempData::default(),
+      other: serde_json::Value::default(),
+    }
   }
+}
 
+impl AuspiceGraphNodePayload {
   /// Extracts clade of the node
   pub fn clade(&self) -> String {
     self.node_attrs.clade_membership.value.clone()
@@ -229,7 +260,47 @@ impl AuspiceTreeNode {
   }
 }
 
-impl GraphNode for AuspiceTreeNode {}
+impl GraphNode for AuspiceGraphNodePayload {}
+
+impl HasDivergence for AuspiceGraphNodePayload {
+  fn divergence(&self) -> f64 {
+    self.node_attrs.div.unwrap_or_default()
+  }
+}
+
+impl HasName for AuspiceGraphNodePayload {
+  fn name(&self) -> &str {
+    &self.name
+  }
+}
+
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+pub struct AuspiceTreeNode {
+  pub name: String,
+
+  pub branch_attrs: TreeBranchAttrs,
+
+  pub node_attrs: TreeNodeAttrs,
+
+  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default)]
+  pub children: Vec<AuspiceTreeNode>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl AuspiceTreeNode {
+  pub fn from_graph_node_payload(node: &AuspiceGraphNodePayload, children: Vec<AuspiceTreeNode>) -> Self {
+    Self {
+      name: node.name.clone(),
+      branch_attrs: node.branch_attrs.clone(),
+      node_attrs: node.node_attrs.clone(),
+      children,
+      other: serde_json::Value::default(),
+    }
+  }
+}
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -275,10 +346,14 @@ pub struct AuspiceDisplayDefaults {
 
   #[serde(skip_serializing_if = "Option::is_none")]
   pub distance_measure: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub extensions: Option<AuspiceMetaExtensions>,
 
   #[serde(skip_serializing_if = "Vec::<AuspiceColoring>::is_empty")]
@@ -302,8 +377,24 @@ pub struct AuspiceTreeMeta {
   pub other: serde_json::Value,
 }
 
+impl AuspiceTreeMeta {
+  #[rustfmt::skip]
+  pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
+    self
+      .extensions.as_ref()?
+      .nextclade.as_ref()?
+      .clade_node_attrs.as_deref()
+  }
+
+  /// Extracts a list of descriptions of clade-like node attributes.
+  /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
+  pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
+    self.clade_node_attr_descs_maybe().unwrap_or(&[])
+  }
+}
+
 #[repr(u8)]
-#[derive(Debug, Clone, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 pub enum DivergenceUnits {
   NumSubstitutionsPerYearPerSite,
   #[default]
@@ -334,21 +425,11 @@ impl DivergenceUnits {
   }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct TreeTempData {
-  pub max_divergence: f64,
-  pub divergence_units: DivergenceUnits,
-}
-
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTree {
   pub meta: AuspiceTreeMeta,
 
   pub tree: AuspiceTreeNode,
-
-  #[serde(skip)]
-  #[serde(default)]
-  pub tmp: TreeTempData,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -423,19 +504,5 @@ impl AuspiceTree {
   /// Iterates over nodes and applies a function to each. Mutable version.
   pub fn map_nodes_mut(&mut self, action: fn((usize, &mut AuspiceTreeNode))) {
     Self::map_nodes_mut_rec(0, &mut self.tree, action);
-  }
-
-  #[rustfmt::skip]
-  pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
-    self.meta
-      .extensions.as_ref()?
-      .nextclade.as_ref()?
-      .clade_node_attrs.as_deref()
-  }
-
-  /// Extracts a list of descriptions of clade-like node attributes.
-  /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
-  pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
-    self.clade_node_attr_descs_maybe().unwrap_or(&[])
   }
 }

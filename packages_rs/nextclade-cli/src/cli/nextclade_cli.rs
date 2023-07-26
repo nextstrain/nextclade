@@ -232,6 +232,7 @@ pub enum NextcladeOutputSelection {
   Csv,
   Tsv,
   Tree,
+  TreeNwk,
   Translations,
   Insertions,
   Errors,
@@ -551,6 +552,19 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree: Option<PathBuf>,
 
+  /// Path to output phylogenetic tree with input sequences placed onto it, in Newick format (New Hampshire tree format)
+  ///
+  /// For file format description see: https://en.wikipedia.org/wiki/Newick_format
+  ///
+  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::AnyPath)]
+  pub output_tree_nwk: Option<PathBuf>,
+
   /// Path to output CSV file that contain insertions stripped from the reference alignment.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
@@ -661,6 +675,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         output_csv,
         output_tsv,
         output_tree,
+        output_tree_nwk,
         output_insertions,
         output_errors,
         ..
@@ -727,6 +742,10 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
     if output_selection.contains(&NextcladeOutputSelection::Tree) {
       output_tree.get_or_insert(add_extension(&default_output_file_path, "auspice.json"));
+    }
+
+    if output_selection.contains(&NextcladeOutputSelection::TreeNwk) {
+      output_tree_nwk.get_or_insert(add_extension(&default_output_file_path, "nwk"));
     }
   }
 

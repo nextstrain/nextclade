@@ -1,7 +1,7 @@
 import 'regenerator-runtime'
 
 import type { CladeNodeAttrDesc } from 'auspice'
-import { AnalysisInitialData } from 'src/types'
+import { AnalysisInitialData, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
@@ -17,10 +17,10 @@ import type {
   NextcladeResult,
   PhenotypeAttrDesc,
 } from 'src/types'
-import { NextcladeWasm } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
+import { NextcladeWasm } from 'src/gen/nextclade-wasm'
 
 const gSubject = new Subject<FastaRecord>()
 
@@ -98,11 +98,11 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 }
 
 /** Retrieves the output tree from the WebAssembly module. */
-export async function getOutputTree(analysisResultsJsonStr: string): Promise<string> {
+export async function getOutputTrees(analysisResultsJsonStr: string): Promise<OutputTrees> {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('getOutputTree')
+    throw new ErrorModuleNotInitialized('getOutputTrees')
   }
-  return nextcladeWasm.get_output_tree(analysisResultsJsonStr)
+  return JSON.parse(nextcladeWasm.get_output_trees(analysisResultsJsonStr))
 }
 
 export async function parseSequencesStreaming(fastaStr: string) {
@@ -173,7 +173,7 @@ const worker = {
   destroy,
   getInitialData,
   analyze,
-  getOutputTree,
+  getOutputTrees,
   parseSequencesStreaming,
   parseRefSequence,
   serializeResultsJson,

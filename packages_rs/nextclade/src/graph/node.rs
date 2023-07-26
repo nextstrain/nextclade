@@ -60,7 +60,6 @@ pub struct Node<N: GraphNode> {
   data: N,
   outbound_edges: Vec<GraphEdgeKey>,
   inbound_edges: Vec<GraphEdgeKey>,
-  is_visited: bool,
 }
 
 impl<N> PartialEq<Self> for Node<N>
@@ -85,7 +84,6 @@ where
       data,
       outbound_edges: Vec::new(),
       inbound_edges: Vec::new(),
-      is_visited: false,
     }
   }
 
@@ -151,21 +149,5 @@ where
   #[must_use]
   pub fn inbound_mut(&mut self) -> &mut Vec<GraphEdgeKey> {
     &mut self.inbound_edges
-  }
-
-  #[inline]
-  #[must_use]
-  pub const fn is_visited(&self) -> bool {
-    self.is_visited
-  }
-
-  #[inline]
-  pub fn mark_as_visited(&mut self) {
-    self.is_visited = true;
-  }
-
-  #[inline]
-  pub fn mark_as_not_visited(&mut self) {
-    self.is_visited = false;
   }
 }

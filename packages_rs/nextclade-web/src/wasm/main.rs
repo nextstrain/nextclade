@@ -78,10 +78,10 @@ impl NextcladeWasm {
 
   /// Takes ALL analysis results, runs tree placement and returns output tree.
   /// This should only run once, in one of the webworkers.
-  pub fn get_output_tree(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
+  pub fn get_output_trees(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
-    let tree = jserr(self.nextclade.get_output_tree(nextclade_outputs))?;
-    jserr(json_stringify(tree, JsonPretty(false)))
+    let trees = jserr(self.nextclade.get_output_trees(nextclade_outputs))?;
+    jserr(json_stringify(&trees, JsonPretty(false)))
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct

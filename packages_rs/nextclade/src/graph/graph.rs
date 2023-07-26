@@ -1,18 +1,22 @@
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
-use crate::tree::tree::{AuspiceGraph, AuspiceTreeNode};
+use crate::graph::traits::HasDivergence;
+use crate::io::json::is_json_value_null;
+use crate::tree::tree::{
+  AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphMeta, AuspiceGraphNodePayload, AuspiceTree, AuspiceTreeNode,
+  DivergenceUnits, GraphTempData,
+};
 use crate::{make_error, make_internal_error, make_internal_report};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
+use num_traits::Float;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-pub type NodeEdgePair<N, E> = (Node<N>, Edge<E>);
-pub type NodeEdgePayloadPair<N, E> = (N, E);
-
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct Graph<N, E>
+#[allow(clippy::partial_pub_fields)]
+pub struct Graph<N, E, D>
 where
   N: GraphNode,
   E: GraphEdge,
@@ -23,28 +27,42 @@ where
   roots: Vec<GraphNodeKey>,
   #[serde(skip)]
   leaves: Vec<GraphNodeKey>,
+  #[serde(skip_serializing_if = "is_json_value_null")]
+  pub data: D,
   #[serde(flatten)]
   other: serde_json::Value,
 }
 
-impl<N, E> Graph<N, E>
+impl<N, E, D> Graph<N, E, D>
 where
   N: GraphNode,
   E: GraphEdge,
 {
-  pub fn new() -> Self {
+  pub fn new(meta: D) -> Self {
     Self {
       nodes: Vec::new(),
       edges: Vec::new(),
       roots: vec![],
       leaves: vec![],
+      data: meta,
       other: serde_json::Value::default(),
     }
   }
 
   pub fn get_exactly_one_root(&self) -> Result<&Node<N>, Report> {
     if let &[one] = self.roots.as_slice() {
-      Ok(self.iter_roots().next().unwrap())
+      self.get_node(one)
+    } else {
+      make_internal_error!(
+        "Only trees with exactly one root are currently supported, but found '{}'",
+        self.roots.len()
+      )
+    }
+  }
+
+  pub fn get_exactly_one_root_mut(&mut self) -> Result<&mut Node<N>, Report> {
+    if let &[one] = self.roots.as_slice() {
+      self.get_node_mut(one)
     } else {
       make_internal_error!(
         "Only trees with exactly one root are currently supported, but found '{}'",
@@ -87,7 +105,7 @@ where
   }
 
   /// Retrieve keys of parent nodes of a given node.
-  pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
     // Parents are the source nodes of inbound edges
     node
       .inbound()
@@ -99,7 +117,7 @@ where
   }
 
   /// Retrieve keys of child nodes of a given node.
-  pub fn iter_child_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_child_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
     // Children are the target nodes of outbound edges
     node
       .outbound()
@@ -110,20 +128,23 @@ where
       .map(Edge::target)
   }
 
-  pub fn iter_child_keys_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_child_keys_of_by_key(
+    &self,
+    node_key: GraphNodeKey,
+  ) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
     let node = self.get_node(node_key).unwrap();
     self.iter_child_keys_of(node)
   }
 
   /// Retrieve child nodes of a given node.
-  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl Iterator<Item = &Node<N>> {
+  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = &Node<N>> {
     self
       .iter_child_keys_of(node)
       .map(|child_key| self.get_node_or_crash(child_key))
   }
 
   /// Retrieve child nodes of a node, given its key
-  pub fn iter_children_of_by_key(&self, node_key: GraphNodeKey) -> impl Iterator<Item = &Node<N>> {
+  pub fn iter_children_of_by_key(&self, node_key: GraphNodeKey) -> impl DoubleEndedIterator<Item = &Node<N>> {
     self
       .iter_child_keys_of_by_key(node_key)
       .map(|child_key| self.get_node_or_crash(child_key))
@@ -176,31 +197,46 @@ where
     self.leaves.len()
   }
 
+  /// Iterate nodes in unspecified order
   #[inline]
   pub fn iter_nodes(&self) -> impl Iterator<Item = &Node<N>> + '_ {
     self.nodes.iter()
   }
 
+  /// Iterate nodes in unspecified order. Mutable version.
   #[inline]
   pub fn iter_nodes_mut(&mut self) -> impl Iterator<Item = &mut Node<N>> + '_ {
     self.nodes.iter_mut()
   }
 
+  /// Iterate node payloads in unspecified order.
   #[inline]
   pub fn iter_node_payloads(&self) -> impl Iterator<Item = &N> + '_ {
     self.nodes.iter().map(Node::payload)
   }
 
+  /// Iterate node payloads in unspecified order. Mutable version.
   #[inline]
   pub fn iter_node_payloads_mut(&mut self) -> impl Iterator<Item = &mut N> + '_ {
     self.nodes.iter_mut().map(Node::payload_mut)
   }
+
+  // /// Iterate nodes in depth-first preorder fashion.
+  // #[inline]
+  // pub fn iter_depth_first_preorder(&self) -> Result<GraphDepthFirstPreorderIterator<'_, N, E, D>, Report> {
+  //   GraphDepthFirstPreorderIterator::new(self)
+  // }
 
   #[inline]
   pub fn iter_roots(&self) -> impl Iterator<Item = &Node<N>> + '_ {
     self.roots.iter().filter_map(
       |idx| self.get_node(*idx).ok(), // FIXME: ignores errors
     )
+  }
+
+  #[inline]
+  pub fn iter_root_keys(&self) -> impl Iterator<Item = GraphNodeKey> + '_ {
+    self.roots.iter().copied()
   }
 
   // FIXME
@@ -403,7 +439,7 @@ where
     Ok(())
   }
 
-  pub fn build(mut self) -> Result<Graph<N, E>, Report> {
+  pub fn build(mut self) -> Result<Graph<N, E, D>, Report> {
     self.build_ref()?;
     Ok(self)
   }
@@ -507,24 +543,74 @@ where
   }
 }
 
-pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTreeNode, Report> {
+impl Graph<AuspiceGraphNodePayload, AuspiceGraphEdgePayload, AuspiceGraphMeta> {
+  pub fn to_auspice_tree(&self) -> Result<AuspiceTree, Report> {
+    convert_graph_to_auspice_tree(self)
+  }
+
+  pub fn from_auspice_tree(tree: AuspiceTree) -> Result<AuspiceGraph, Report> {
+    convert_auspice_tree_to_graph(tree)
+  }
+}
+
+pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree, Report> {
   let root = graph.get_exactly_one_root()?;
-  convert_graph_to_auspice_tree_recursive(graph, root)
+  let tree = convert_graph_to_auspice_tree_recursive(graph, root)?;
+  Ok(AuspiceTree {
+    meta: graph.data.meta.clone(),
+    tree,
+    other: serde_json::Value::default(),
+  })
 }
 
 fn convert_graph_to_auspice_tree_recursive(
   graph: &AuspiceGraph,
-  node: &Node<AuspiceTreeNode>,
+  node: &Node<AuspiceGraphNodePayload>,
 ) -> Result<AuspiceTreeNode, Report> {
-  let mut payload = node.payload().clone();
-
   let children = graph
-    .iter_child_keys_of(node)
-    .map(|child_key| graph.get_node(child_key).expect("Node not found"));
-
-  payload.children = children
+    .iter_children_of(node)
     .map(|child| convert_graph_to_auspice_tree_recursive(graph, child))
-    .collect::<Result<Vec<AuspiceTreeNode>, Report>>()?;
+    .collect::<Result<Vec<_>, Report>>()?;
+  Ok(AuspiceTreeNode::from_graph_node_payload(node.payload(), children))
+}
 
-  Ok(payload)
+pub fn convert_auspice_tree_to_graph(tree: AuspiceTree) -> Result<AuspiceGraph, Report> {
+  let mut graph = AuspiceGraph::new(AuspiceGraphMeta {
+    meta: tree.meta,
+    tmp: GraphTempData::default(),
+    other: serde_json::Value::default(),
+  });
+
+  convert_auspice_tree_to_graph_recursive(&tree.tree, &mut graph)?;
+  let mut graph = graph.build()?;
+
+  {
+    let max_divergence = get_max_divergence(&graph);
+    graph.data.tmp.max_divergence = max_divergence;
+    graph.data.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(max_divergence);
+  }
+
+  Ok(graph)
+}
+
+fn convert_auspice_tree_to_graph_recursive(
+  node: &AuspiceTreeNode,
+  graph: &mut AuspiceGraph,
+) -> Result<GraphNodeKey, Report> {
+  let graph_node_key = graph.add_node(node.into());
+
+  for child in &node.children {
+    let graph_child_key = convert_auspice_tree_to_graph_recursive(child, graph)?;
+    graph.add_edge(graph_node_key, graph_child_key, AuspiceGraphEdgePayload::new())?;
+  }
+
+  Ok(graph_node_key)
+}
+
+fn get_max_divergence<N: GraphNode + HasDivergence, E: GraphEdge, D>(graph: &Graph<N, E, D>) -> f64 {
+  graph
+    .iter_nodes()
+    .map(|node| node.payload().divergence())
+    .max_by(f64::total_cmp)
+    .unwrap_or_else(f64::infinity)
 }

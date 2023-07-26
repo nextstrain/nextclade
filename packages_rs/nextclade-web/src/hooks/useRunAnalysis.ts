@@ -30,6 +30,7 @@ import {
   genomeSizeAtom,
   phenotypeAttrDescsAtom,
   treeAtom,
+  treeNwkAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, LaunchAnalysisInputs } from 'src/workers/launchAnalysis'
@@ -99,10 +100,11 @@ export function useRunAnalysis() {
           onError(error) {
             set(globalErrorAtom, error)
           },
-          onTree(tree: AuspiceJsonV2) {
-            set(treeAtom, tree)
+          onTree({ auspice, nwk }) {
+            set(treeAtom, auspice as unknown as AuspiceJsonV2)
+            set(treeNwkAtom, nwk)
 
-            const auspiceState = createAuspiceState(tree, dispatch)
+            const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
             dispatch(auspiceStartClean(auspiceState))
             dispatch(changeColorBy())
             dispatch(treeFilterByNodeType(['New']))

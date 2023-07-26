@@ -14,6 +14,7 @@ import {
   csvColumnConfigAtom,
   phenotypeAttrDescsAtom,
   treeAtom,
+  treeNwkAtom,
 } from 'src/state/results.state'
 import { ExportWorker } from 'src/workers/ExportThread'
 
@@ -26,6 +27,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameJson: 'nextclade.json',
   filenameNdjson: 'nextclade.ndjson',
   filenameTree: 'nextclade.auspice.json',
+  filenameTreeNwk: 'nextclade.nwk',
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
   filenameInsertionsCsv: 'nextclade.insertions.csv',
@@ -172,6 +174,21 @@ export function useExportTree() {
   })
 }
 
+export async function prepareOutputTreeNwk(snapshot: Snapshot) {
+  const treeNwk = await snapshot.getPromise(treeNwkAtom)
+  if (!treeNwk) {
+    throw new ErrorInternal('When exporting nwk tree: the nwk tree data is not ready')
+  }
+  return treeNwk
+}
+
+export function useExportTreeNwk() {
+  return useResultsExport(async (filename, snapshot, _) => {
+    const nwk = await prepareOutputTreeNwk(snapshot)
+    saveFile(nwk, filename, 'text/x-nh;charset=utf-8')
+  })
+}
+
 async function prepareInsertionsCsv(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
   const errors = await mapErrors(snapshot, (err) => err)
@@ -260,6 +277,7 @@ export function useExportZip() {
     const tsvStr = await prepareResultsCsv(snapshot, worker, '\t')
     const jsonStr = await prepareResultsJson(snapshot, worker)
     const treeJsonStr = await prepareOutputTree(snapshot)
+    const treeNwkStr = await prepareOutputTreeNwk(snapshot)
     const fastaStr = await prepareOutputFasta(snapshot)
     const insertionsCsvStr = await prepareInsertionsCsv(snapshot, worker)
     const errorsCsvStr = await prepareErrorsCsv(snapshot, worker)
@@ -271,6 +289,7 @@ export function useExportZip() {
       { filename: DEFAULT_EXPORT_PARAMS.filenameTsv, data: tsvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameJson, data: jsonStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeJsonStr },
+      { filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeNwkStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameFasta, data: fastaStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameInsertionsCsv, data: insertionsCsvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameErrorsCsv, data: errorsCsvStr },

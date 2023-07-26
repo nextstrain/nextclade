@@ -8,20 +8,22 @@ use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::GeneMap;
-use crate::graph::graph::{convert_graph_to_auspice_tree, Graph};
+use crate::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
 use crate::io::fasta::{read_one_fasta_str, FastaRecord};
 use crate::io::nextclade_csv::CsvColumnConfig;
+use crate::io::nwk_writer::convert_graph_to_nwk_string;
 use crate::qc::qc_config::QcConfig;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::params::TreeBuilderParams;
-use crate::tree::tree::{AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, CladeNodeAttrKeyDesc};
+use crate::tree::tree::{AuspiceGraph, AuspiceTree, CladeNodeAttrKeyDesc};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
-use crate::tree::tree_preprocess::tree_preprocess_in_place;
+use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::error::report_to_string;
 use eyre::{Report, WrapErr};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -108,17 +110,16 @@ pub struct NextcladeResult {
 pub struct Nextclade {
   ref_seq: Vec<Nuc>,
   seed_index: CodonSpacedIndex,
-  ref_peptides: Translation,
+  ref_translation: Translation,
   aa_motifs_ref: AaMotifsMap,
   gene_map: GeneMap,
   primers: Vec<PcrPrimer>,
-  tree: AuspiceTree,
-  graph: Graph<AuspiceTreeNode, AuspiceTreeEdge>,
+  graph: AuspiceGraph,
   qc_config: QcConfig,
   virus_properties: VirusProperties,
   gap_open_close_nuc: Vec<i32>,
   gap_open_close_aa: Vec<i32>,
-  clade_node_attr_key_descs: Vec<CladeNodeAttrKeyDesc>,
+  clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
   phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   aa_motifs_descs: Vec<AaMotifsDesc>,
   alignment_params: AlignPairwiseParams,
@@ -131,7 +132,7 @@ impl Nextclade {
     let NextcladeParams {
       ref_seq,
       gene_map,
-      mut tree,
+      tree,
       qc_config,
       virus_properties,
     } = params;
@@ -165,8 +166,9 @@ impl Nextclade {
 
     let aa_motifs_ref = find_aa_motifs(&virus_properties.aa_motifs, &ref_translation)?;
 
-    let graph = tree_preprocess_in_place(&mut tree, &ref_seq, &ref_translation)?;
-    let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
+    let mut graph = convert_auspice_tree_to_graph(tree)?;
+    graph_preprocess_in_place(&mut graph, &ref_seq, &ref_translation)?;
+    let clade_node_attrs = graph.data.meta.clade_node_attr_descs().to_vec();
 
     let phenotype_attr_descs = get_phenotype_attr_descs(&virus_properties);
 
@@ -175,17 +177,16 @@ impl Nextclade {
     Ok(Self {
       ref_seq,
       seed_index,
-      ref_peptides: ref_translation,
+      ref_translation,
       aa_motifs_ref,
       gene_map,
       primers: vec![], // FIXME
-      tree,
       graph,
       qc_config,
       virus_properties,
       gap_open_close_nuc,
       gap_open_close_aa,
-      clade_node_attr_key_descs,
+      clade_node_attrs,
       phenotype_attr_descs,
       aa_motifs_descs,
       alignment_params,
@@ -199,7 +200,7 @@ impl Nextclade {
     Ok(AnalysisInitialData {
       gene_map: self.gene_map.clone(),
       genome_size: self.ref_seq.len(),
-      clade_node_attr_key_descs: self.clade_node_attr_key_descs.clone(),
+      clade_node_attr_key_descs: self.clade_node_attrs.clone(),
       phenotype_attr_descs: self.phenotype_attr_descs.clone(),
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       csv_column_config_default: CsvColumnConfig::default(),
@@ -215,11 +216,11 @@ impl Nextclade {
       &qry_seq,
       &self.ref_seq,
       &self.seed_index,
-      &self.ref_peptides,
+      &self.ref_translation,
       &self.aa_motifs_ref,
       &self.gene_map,
       &self.primers,
-      &self.tree,
+      &self.graph,
       &self.qc_config,
       &self.virus_properties,
       &self.gap_open_close_nuc,
@@ -249,16 +250,16 @@ impl Nextclade {
     }
   }
 
-  pub fn get_output_tree(&mut self, results: Vec<NextcladeOutputs>) -> Result<&AuspiceTree, Report> {
-    graph_attach_new_nodes_in_place(
-      &mut self.graph,
-      results,
-      &self.tree.tmp.divergence_units,
-      self.ref_seq.len(),
-      &self.tree_builder_params,
-    )?;
-    let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&self.graph).unwrap();
-    self.tree.tree = root;
-    Ok(&self.tree)
+  pub fn get_output_trees(&mut self, results: Vec<NextcladeOutputs>) -> Result<OutputTrees, Report> {
+    graph_attach_new_nodes_in_place(&mut self.graph, results, self.ref_seq.len(), &self.tree_builder_params)?;
+    let auspice = convert_graph_to_auspice_tree(&self.graph)?;
+    let nwk = convert_graph_to_nwk_string(&self.graph)?;
+    Ok(OutputTrees { auspice, nwk })
   }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct OutputTrees {
+  auspice: AuspiceTree,
+  nwk: String,
 }

@@ -4,7 +4,7 @@ use crate::tree::tree::DivergenceUnits;
 
 pub fn calculate_branch_length(
   private_mutations: &[NucSub],
-  divergence_units: &DivergenceUnits,
+  divergence_units: DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
   // divergence is just number of substitutions possibly normalized by ref_seq_len
@@ -19,7 +19,7 @@ pub fn calculate_branch_length(
 
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.
-  if &DivergenceUnits::NumSubstitutionsPerYearPerSite == divergence_units {
+  if DivergenceUnits::NumSubstitutionsPerYearPerSite == divergence_units {
     this_div /= ref_seq_len as f64;
   }
 

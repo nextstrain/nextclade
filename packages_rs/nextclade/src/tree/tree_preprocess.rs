@@ -6,93 +6,82 @@ use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
-use crate::graph::graph::Graph;
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{
-  AuspiceColoring, AuspiceGraph, AuspiceTree, AuspiceTreeEdge, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr,
-  AUSPICE_UNKNOWN_VALUE,
+  AuspiceColoring, AuspiceGraph, AuspiceGraphNodePayload, AuspiceTreeMeta, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use maplit::btreemap;
-use num::Float;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-pub fn tree_preprocess_in_place(
-  tree: &mut AuspiceTree,
+pub fn graph_preprocess_in_place(
+  graph: &mut AuspiceGraph,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
-) -> Result<AuspiceGraph, Report> {
+) -> Result<(), Report> {
   let mut parent_nuc_muts = BTreeMap::<NucRefGlobalPosition, Nuc>::new();
   let mut parent_aa_muts = BTreeMap::<String, BTreeMap<AaRefPosition, Aa>>::new();
 
-  let mut graph = Graph::<AuspiceTreeNode, AuspiceTreeEdge>::new();
-  tree_preprocess_in_place_impl_recursive(
-    &mut tree.tree,
+  let root_key = graph.get_exactly_one_root()?.key();
+  graph_preprocess_in_place_recursive(
+    graph,
+    root_key,
     &mut parent_nuc_muts,
     &mut parent_aa_muts,
-    &mut graph,
     ref_seq,
     ref_translation,
   )?;
 
-  // TODO: Avoid second full tree iteration by merging it into the one that is just above
-  tree.tmp.max_divergence = get_max_divergence_recursively(&tree.tree);
-  // TODO: Use auspice extension field to pass info on divergence units, rather than guess
-  tree.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(tree.tmp.max_divergence);
-
-  tree_add_metadata(tree);
-
-  graph.build()
+  Ok(())
 }
 
-pub fn tree_preprocess_in_place_impl_recursive(
-  node: &mut AuspiceTreeNode,
+pub fn graph_preprocess_in_place_recursive(
+  graph: &mut AuspiceGraph,
+  graph_node_key: GraphNodeKey,
   parent_nuc_muts: &mut BTreeMap<NucRefGlobalPosition, Nuc>,
   parent_aa_muts: &mut BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
-  graph: &mut AuspiceGraph,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<GraphNodeKey, Report> {
-  let mut nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)
-    .wrap_err_with(|| format!("When retrieving nuc mutations from reference tree node {}", node.name))?;
-  let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
-    nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
+  let (mut nuc_muts, mut aa_muts) = {
+    let node = graph.get_node_mut(graph_node_key)?.payload_mut();
 
-  let mut aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> =
-    map_aa_muts(node, ref_translation, parent_aa_muts)
+    let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)
+      .wrap_err_with(|| format!("When retrieving nuc mutations from reference tree node {}", node.name))?;
+    let nuc_subs: BTreeMap<NucRefGlobalPosition, Nuc> =
+      nuc_muts.clone().into_iter().filter(|(_, nuc)| !nuc.is_gap()).collect();
+
+    let aa_muts: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = map_aa_muts(node, ref_translation, parent_aa_muts)
       .wrap_err_with(|| format!("When retrieving aa mutations from reference tree node {}", node.name))?;
-  let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
-    .clone()
-    .into_iter()
-    .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
-    .collect();
+    let aa_subs: BTreeMap<String, BTreeMap<AaRefPosition, Aa>> = aa_muts
+      .clone()
+      .into_iter()
+      .map(|(gene, aa_muts)| (gene, aa_muts.into_iter().filter(|(_, aa)| !aa.is_gap()).collect()))
+      .collect();
 
-  node.tmp.mutations = nuc_muts.clone();
-  node.tmp.private_mutations = calc_node_private_mutations(node)?;
-  node.tmp.substitutions = nuc_subs;
-  node.tmp.aa_mutations = aa_muts.clone();
-  node.tmp.aa_substitutions = aa_subs;
-  node.tmp.is_ref_node = true;
-  let graph_node_key = graph.add_node(node.clone());
-  node.tmp.id = graph_node_key;
+    node.tmp.mutations = nuc_muts.clone();
+    node.tmp.private_mutations = calc_node_private_mutations(node)?;
+    node.tmp.substitutions = nuc_subs;
+    node.tmp.aa_mutations = aa_muts.clone();
+    node.tmp.aa_substitutions = aa_subs;
+    // node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
-  node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
+    (nuc_muts, aa_muts)
+  };
 
-  for child in &mut node.children {
-    let graph_child_key =
-      tree_preprocess_in_place_impl_recursive(child, &mut nuc_muts, &mut aa_muts, graph, ref_seq, ref_translation)?;
-    graph.add_edge(graph_node_key, graph_child_key, AuspiceTreeEdge::new())?;
+  for child_key in graph.iter_child_keys_of_by_key(graph_node_key).collect_vec() {
+    graph_preprocess_in_place_recursive(graph, child_key, &mut nuc_muts, &mut aa_muts, ref_seq, ref_translation)?;
   }
 
   Ok(graph_node_key)
 }
 
-pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMutationsMinimal, Report> {
+pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<PrivateMutationsMinimal, Report> {
   let mut nuc_sub = Vec::<NucSub>::new();
   let mut nuc_del = Vec::<NucDel>::new();
   let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
@@ -135,7 +124,7 @@ pub fn calc_node_private_mutations(node: &AuspiceTreeNode) -> Result<PrivateMuta
 }
 
 fn map_nuc_muts(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   ref_seq: &[Nuc],
   parent_nuc_muts: &BTreeMap<NucRefGlobalPosition, Nuc>,
 ) -> Result<BTreeMap<NucRefGlobalPosition, Nuc>, Report> {
@@ -191,7 +180,7 @@ fn map_nuc_muts(
 /// This function is necessary as there are many genes
 // TODO: Treat "nuc" just as another gene, thus reduce duplicate
 fn map_aa_muts(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   ref_translation: &Translation,
   parent_aa_muts: &BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
 ) -> Result<BTreeMap<String, BTreeMap<AaRefPosition, Aa>>, Report> {
@@ -214,7 +203,7 @@ fn map_aa_muts(
 
 fn map_aa_muts_for_one_gene(
   gene_name: &str,
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   ref_peptide: &[Aa],
   parent_aa_muts: &BTreeMap<AaRefPosition, Aa>,
 ) -> Result<BTreeMap<AaRefPosition, Aa>, Report> {
@@ -268,22 +257,11 @@ fn map_aa_muts_for_one_gene(
   }
 }
 
-fn get_max_divergence_recursively(node: &AuspiceTreeNode) -> f64 {
-  let div = node.node_attrs.div.unwrap_or(-f64::infinity());
-
-  let mut child_div = -f64::infinity();
-  node.children.iter().for_each(|child| {
-    child_div = child_div.max(get_max_divergence_recursively(child));
-  });
-
-  div.max(child_div)
-}
-
 fn pair(key: &str, val: &str) -> [String; 2] {
   [key.to_owned(), val.to_owned()]
 }
 
-fn tree_add_metadata(tree: &mut AuspiceTree) {
+pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
   let new_colorings: Vec<AuspiceColoring> = vec![
     AuspiceColoring {
       key: "Node type".to_owned(),
@@ -309,9 +287,9 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     },
   ];
 
-  tree.meta.colorings = concat_to_vec(&new_colorings, &tree.meta.colorings);
+  meta.colorings = concat_to_vec(&new_colorings, &meta.colorings);
 
-  tree.meta.colorings.iter_mut().for_each(|coloring| {
+  meta.colorings.iter_mut().for_each(|coloring| {
     let key: &str = &coloring.key;
     match key {
       "region" | "country" | "division" => {
@@ -321,11 +299,11 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     }
   });
 
-  tree.meta.display_defaults.branch_label = Some("clade".to_owned());
-  tree.meta.display_defaults.color_by = Some("clade_membership".to_owned());
-  tree.meta.display_defaults.distance_measure = Some("div".to_owned());
+  meta.display_defaults.branch_label = Some("clade".to_owned());
+  meta.display_defaults.color_by = Some("clade_membership".to_owned());
+  meta.display_defaults.distance_measure = Some("div".to_owned());
 
-  tree.meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
+  meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
 
   let new_filters = vec![
     "clade_membership".to_owned(),
@@ -334,7 +312,7 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     "Has PCR primer changes".to_owned(),
   ];
 
-  tree.meta.filters = concat_to_vec(&new_filters, &tree.meta.filters);
+  meta.filters = concat_to_vec(&new_filters, &meta.filters);
 
-  tree.meta.geo_resolutions = None;
+  meta.geo_resolutions = None;
 }

@@ -1,7 +1,6 @@
 import 'regenerator-runtime'
 
-import type { AuspiceJsonV2 } from 'auspice'
-import { AlgorithmGlobalStatus, NextcladeParamsRaw } from 'src/types'
+import { AlgorithmGlobalStatus, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
@@ -32,7 +31,7 @@ class LauncherWorkerImpl {
   analysisResultsObservable = new Subject<NextcladeResult>()
 
   // Relays tree result from webworker to the main thread
-  treeObservable = new Subject<AuspiceJsonV2>()
+  treeObservable = new Subject<OutputTrees>()
 
   fastaParser!: FastaParserWorker
 
@@ -68,8 +67,8 @@ class LauncherWorkerImpl {
       )
       await this.pool.completed()
 
-      const tree = await this.pool.getOutputTree()
-      this.treeObservable.next(tree)
+      const trees = await this.pool.getOutputTrees()
+      this.treeObservable.next(trees)
 
       this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.done)
       this.analysisResultsObservable.complete()
@@ -145,7 +144,7 @@ const worker = {
     }
     return ThreadsObservable.from(launcher.analysisResultsObservable)
   },
-  getTreeObservable(): ThreadsObservable<AuspiceJsonV2> {
+  getTreeObservable(): ThreadsObservable<OutputTrees> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getTreeObservable')
     }

@@ -27,6 +27,7 @@ import {
   FileIconFasta,
   FileIconJson,
   FileIconNdjson,
+  FileIconNwk,
   FileIconTsv,
   FileIconZip,
 } from 'src/components/Common/FileIcons'
@@ -40,6 +41,7 @@ import {
   useExportNdjson,
   useExportPeptides,
   useExportTree,
+  useExportTreeNwk,
   useExportTsv,
   useExportZip,
 } from 'src/hooks/useExportResults'
@@ -116,6 +118,7 @@ export interface ExportParams {
   filenameJson: string
   filenameNdjson: string
   filenameTree: string
+  filenameTreeNwk: string
   filenameFasta: string
   filenamePeptidesZip: string
   filenameInsertionsCsv: string
@@ -209,6 +212,7 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
   const exportNdjson = useExportNdjson()
   const exportPeptides = useExportPeptides()
   const exportTree = useExportTree()
+  const exportTreeNwk = useExportTreeNwk()
   const exportInsertionsCsv = useExportInsertionsCsv()
   const exportErrorsCsv = useExportErrorsCsv()
 
@@ -265,16 +269,33 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
       <ExportFileElement
         Icon={FileIconJson}
         filename={exportParams.filenameTree}
-        HelpMain={t('Phylogenetic tree with sequences placed onto it.')}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in Auspice JSON format.')}
         HelpDetails={
           <>
-            {t('The tree is in Nextstrain format.')} {t('Can be viewed locally with Nextstrain Auspice or in ')}
+            {t('Can be viewed locally with Nextstrain Auspice or in ')}
             <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
             {'.'}
           </>
         }
         HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in Auspice JSON v2 format.')}
         onDownload={exportTree}
+      />
+
+      <ExportFileElement
+        Icon={FileIconNwk}
+        filename={exportParams.filenameTreeNwk}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in Newick format.')}
+        HelpDetails={
+          <>
+            {t('Can be viewed in most tree viewers, including ')}
+            <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
+            {' or '}
+            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
+            {'.'}
+          </>
+        }
+        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in Newick format')}
+        onDownload={exportTreeNwk}
       />
 
       <ExportFileElement

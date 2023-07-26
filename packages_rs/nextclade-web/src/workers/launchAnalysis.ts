@@ -1,5 +1,4 @@
 import { concurrent } from 'fasy'
-import type { AuspiceJsonV2 } from 'auspice'
 import { isEmpty, merge } from 'lodash'
 
 import type {
@@ -11,6 +10,7 @@ import type {
   NextcladeParams,
   NextcladeParamsRaw,
   AnalysisInitialData,
+  OutputTrees,
 } from 'src/types'
 import { AlgorithmGlobalStatus } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
@@ -31,7 +31,7 @@ export interface LaunchAnalysisCallbacks {
   onInitialData: (data: AnalysisInitialData) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
-  onTree: (tree: AuspiceJsonV2) => void
+  onTree: (trees: OutputTrees) => void
   onError: (error: Error) => void
   onComplete: () => void
 }

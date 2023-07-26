@@ -3,49 +3,56 @@ use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::range::{NucRefGlobalRange, Range};
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
+use crate::graph::node::GraphNodeKey;
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload, TreeNodeAttr};
+use eyre::Report;
 use itertools::Itertools;
+use traversal::DftPre;
 
 /// Distance and placement prior for a ref tree node
-pub struct TreePlacementInfo<'node> {
-  pub node: &'node AuspiceTreeNode,
+pub struct TreePlacementInfo {
+  pub node_key: GraphNodeKey,
   pub distance: i64,
   pub prior: f64, // prior in non-log scale
 }
 
 /// For a given query sample, finds nearest node on the reference tree (according to the distance metric)
-pub fn tree_find_nearest_nodes<'node>(
-  tree: &'node AuspiceTree,
+pub fn graph_find_nearest_nodes(
+  graph: &AuspiceGraph,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &NucRefGlobalRange,
   masked_ranges: &[NucRefGlobalRange],
-) -> Vec<TreePlacementInfo<'node>> {
+) -> Result<Vec<TreePlacementInfo>, Report> {
   // Iterate over tree nodes and calculate distance metric between the sample and each node
-  let nodes_by_placement_score = tree
-    .iter_depth_first_preorder()
+  let nodes_by_placement_score = DftPre::new(graph.get_exactly_one_root()?, |node| graph.iter_children_of(node))
     .map(|(_, node)| {
-      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
-      let prior = get_prior(node);
-      TreePlacementInfo { node, distance, prior }
+      let node_payload = node.payload();
+      let distance = tree_calculate_node_distance(node_payload, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
+      let prior = get_prior(node_payload);
+      TreePlacementInfo {
+        node_key: node.key(),
+        distance,
+        prior,
+      }
     })
     .sorted_by(|a, b| a.distance.cmp(&b.distance).then(b.prior.total_cmp(&a.prior)))
     .collect_vec();
 
-  if nodes_by_placement_score.is_empty() {
+  Ok(if nodes_by_placement_score.is_empty() {
     // Unlikely case: if there's no nodes, return parent
     vec![TreePlacementInfo {
-      node: &tree.tree,
+      node_key: graph.get_exactly_one_root()?.key(),
       distance: 0,
       prior: 1.0,
     }]
   } else {
     nodes_by_placement_score
-  }
+  })
 }
 
 /// Gets non-log scale prior from node attributes
-fn get_prior(node: &AuspiceTreeNode) -> f64 {
+fn get_prior(node: &AuspiceGraphNodePayload) -> f64 {
   10.0_f64.powf(
     node
       .node_attrs
@@ -58,7 +65,7 @@ fn get_prior(node: &AuspiceTreeNode) -> f64 {
 
 /// Calculates distance metric between a given query sample and a tree node
 fn tree_calculate_node_distance(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
   aln_range: &NucRefGlobalRange,
@@ -128,8 +135,8 @@ mod tests {
 
   /// Default node for testing
   #[fixture]
-  fn default_node() -> AuspiceTreeNode {
-    AuspiceTreeNode {
+  fn default_node() -> AuspiceGraphNodePayload {
+    AuspiceGraphNodePayload {
       name: "Test".to_owned(),
 
       branch_attrs: TreeBranchAttrs {
@@ -159,8 +166,6 @@ mod tests {
         missing_genes: None,
         other: serde_json::Value::default(),
       },
-
-      children: vec![],
 
       tmp: TreeNodeTempData::default(),
 
@@ -213,7 +218,7 @@ mod tests {
     .collect()
   }
 
-  fn node_with_simple_nuc_subs() -> AuspiceTreeNode {
+  fn node_with_simple_nuc_subs() -> AuspiceGraphNodePayload {
     let mut node = default_node();
     node.tmp.substitutions = simple_node_nuc_subs();
     node

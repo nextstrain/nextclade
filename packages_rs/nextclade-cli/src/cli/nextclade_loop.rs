@@ -15,19 +15,19 @@ use nextclade::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use nextclade::analyze::find_aa_motifs::find_aa_motifs;
 use nextclade::analyze::phenotype::get_phenotype_attr_descs;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
-use nextclade::graph::graph::convert_graph_to_auspice_tree;
+use nextclade::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::fs::has_extension;
 use nextclade::io::json::{json_write, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
+use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::make_error;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::tree::params::TreeBuilderParams;
-use nextclade::tree::tree::AuspiceTreeNode;
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
-use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
+use nextclade::tree::tree_preprocess::graph_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use std::path::PathBuf;
 
@@ -99,6 +99,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         output_tsv,
         output_columns_selection,
         output_tree,
+        output_tree_nwk,
         output_graph,
         output_insertions,
         output_errors,
@@ -116,7 +117,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let DatasetFilesContent {
     ref_record,
     virus_properties,
-    mut tree,
+    tree,
     ref gene_map,
     qc_config,
     primers,
@@ -171,13 +172,14 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let aa_motifs_ref = &find_aa_motifs(&virus_properties.aa_motifs, ref_translation)?;
 
-  let should_keep_outputs = output_tree.is_some() || output_graph.is_some();
+  let should_keep_outputs = output_tree.is_some() || output_tree_nwk.is_some() || output_graph.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
   let phenotype_attrs = &get_phenotype_attr_descs(&virus_properties);
 
-  let mut graph = tree_preprocess_in_place(&mut tree, ref_seq, ref_translation).unwrap();
-  let clade_node_attrs = tree.clade_node_attr_descs();
+  let mut graph = convert_auspice_tree_to_graph(tree)?;
+  graph_preprocess_in_place(&mut graph, ref_seq, ref_translation)?;
+  let clade_node_attrs = graph.data.meta.clade_node_attr_descs();
 
   let aa_motifs_keys = &virus_properties
     .aa_motifs
@@ -218,7 +220,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       let alignment_params = &alignment_params;
       let ref_translation = &ref_translation;
       let primers = &primers;
-      let tree = &tree;
+      let graph = &graph;
       let qc_config = &qc_config;
       let virus_properties = &virus_properties;
 
@@ -245,7 +247,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
               aa_motifs_ref,
               gene_map,
               primers,
-              tree,
+              graph,
               qc_config,
               virus_properties,
               gap_open_close_nuc,
@@ -317,20 +319,16 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     });
   });
 
-  if output_tree.is_some() || output_graph.is_some() {
-    // Attach sequences to graph in greedy approach, building a tree
-    graph_attach_new_nodes_in_place(
-      &mut graph,
-      outputs,
-      &tree.tmp.divergence_units,
-      ref_seq.len(),
-      &tree_builder_params,
-    )?;
+  if output_tree.is_some() || output_tree_nwk.is_some() || output_graph.is_some() {
+    graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &tree_builder_params)?;
 
-    if let Some(output_tree) = run_args.outputs.output_tree {
-      let root: AuspiceTreeNode = convert_graph_to_auspice_tree(&graph)?;
-      tree.tree = root;
+    if let Some(output_tree) = output_tree {
+      let tree = convert_graph_to_auspice_tree(&graph)?;
       json_write(output_tree, &tree, JsonPretty(true))?;
+    }
+
+    if let Some(output_tree_nwk) = output_tree_nwk {
+      nwk_write_to_file(output_tree_nwk, &graph)?;
     }
 
     if let Some(output_graph) = run_args.outputs.output_graph {
