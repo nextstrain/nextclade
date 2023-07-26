@@ -1,7 +1,7 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::is_sequenced::is_nuc_sequenced;
+use crate::analyze::is_sequenced::{is_nuc_non_acgtn, is_nuc_sequenced};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
@@ -87,6 +87,7 @@ pub fn find_private_nuc_mutations(
   missing: &[NucRange],
   alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
+  non_acgtns: &[NucRange],
   virus_properties: &VirusProperties,
 ) -> PrivateNucMutations {
   let node_mut_map = &node.tmp.mutations;
@@ -109,6 +110,7 @@ pub fn find_private_nuc_mutations(
     missing,
     alignment_range,
     ref_seq,
+    non_acgtns,
     &mut seq_positions_mutated_or_deleted,
   );
 
@@ -257,6 +259,7 @@ fn find_reversions(
   missing: &[NucRange],
   alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
+  non_acgtns: &[NucRange],
   seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucSub> {
   let mut reversion_substitutions = Vec::<NucSub>::new();
@@ -265,7 +268,8 @@ fn find_reversions(
     let pos = *pos;
     let seq_has_no_mut_or_del_here = !seq_positions_mutated_or_deleted.contains(&pos);
     let pos_is_sequenced = is_nuc_sequenced(pos, missing, alignment_range);
-    if seq_has_no_mut_or_del_here && pos_is_sequenced {
+    let pos_is_non_acgtn = is_nuc_non_acgtn(pos, non_acgtns);
+    if seq_has_no_mut_or_del_here && pos_is_sequenced && !pos_is_non_acgtn {
       // Case 4: Mutation in node, but not in sequence. This is a so-called reversion. Mutation in sequence reverts
       // the character to ref seq. This can also happen at deleted sites.
       // Action: Add mutation from node query character to character in reference sequence.

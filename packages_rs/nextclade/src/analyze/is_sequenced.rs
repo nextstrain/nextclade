@@ -1,3 +1,4 @@
+use crate::alphabet::letter::Letter;
 use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
@@ -10,6 +11,13 @@ pub fn is_nuc_sequenced(pos: NucRefGlobalPosition, qry_missing: &[NucRange], aln
   let is_missing = qry_missing.iter().any(|missing| missing.contains_pos(pos));
   let within_alignment = aln_range.contains(pos);
   within_alignment && !is_missing
+}
+
+/// Decides whether a given position in nucleotide sequence contains n.
+pub fn is_nuc_non_acgtn(pos: NucRefGlobalPosition, non_acgtns: &[NucRange]) -> bool {
+  non_acgtns
+    .iter()
+    .any(|NucRange { range, letter }| range.contains(pos) && !letter.is_gap())
 }
 
 /// Decides whether a given position in peptide is considered "sequenced".
