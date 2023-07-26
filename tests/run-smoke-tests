@@ -52,8 +52,8 @@ function run_one_test() {
     --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
     --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
     --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
-    --output-json="$OUT_DIR/${name}/${reference:-default}/nextclade.json" \
-    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.auspice.json" \
+    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.json" \
+    --output-graph="$OUT_DIR/${name}/${reference:-default}/graph.json" \
     "$DATASET_DIR/${name}/${reference:-default}/sequences.fasta"
 }
 export -f run_one_test
@@ -97,8 +97,8 @@ function run_one_experimental_test() {
     --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
     --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
     --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
-    --output-json="$OUT_DIR/${name}/${reference:-default}/nextclade.json" \
-    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.auspice.json" \
+    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.json" \
+    --output-graph="$OUT_DIR/${name}/${reference:-default}/graph.json" \
     "${sequences}"
 }
 export -f run_one_experimental_test
