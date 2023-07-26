@@ -9,9 +9,8 @@ use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
-use nextclade::tree::params::TreeBuilderParamsOptional;
+use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -586,39 +585,10 @@ pub struct NextcladeRunOutputArgs {
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_errors: Option<PathBuf>,
-
-  /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
-  #[clap(long)]
-  pub include_reference: bool,
-
-  /// Whether to include the list of nearest nodes to the outputs
-  #[clap(long)]
-  pub include_nearest_node_info: bool,
-
-  /// Emit output sequences in-order.
-  ///
-  /// With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors).
-  /// By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences.
-  ///
-  /// This option is only relevant when `--jobs` is greater than 1 or is omitted.
-  ///
-  /// Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.
-  #[clap(long)]
-  pub in_order: bool,
-
-  /// Replace unknown nucleotide characters with 'N'
-  ///
-  /// By default, the sequences containing unknown nucleotide characters are skipped with a warning - they
-  /// are not analyzed and not included into results. If this flag is provided, then before the alignment,
-  /// all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences.
-  ///
-  /// The following characters are considered known:  '-', 'A', 'B', 'C', 'D', 'G', 'H', 'K', 'M', 'N', 'R', 'S', 'T', 'V', 'W', 'Y'
-  #[clap(long)]
-  pub replace_unknown: bool,
 }
 
 #[derive(Parser, Debug, Clone)]
-pub struct NextcladeRunOtherArgs {
+pub struct NextcladeRunOtherParams {
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
   #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
   pub jobs: usize,
@@ -632,14 +602,11 @@ pub struct NextcladeRunArgs {
   #[clap(flatten, next_help_heading = "  Outputs")]
   pub outputs: NextcladeRunOutputArgs,
 
-  #[clap(flatten, next_help_heading = "  Phylogenetic tree parameters")]
-  pub tree_builder_params: TreeBuilderParamsOptional,
-
-  #[clap(flatten, next_help_heading = "  Alignment parameters")]
-  pub alignment_params: AlignPairwiseParamsOptional,
+  #[clap(flatten)]
+  pub params: NextcladeInputParamsOptional,
 
   #[clap(flatten, next_help_heading = "  Other")]
-  pub other: NextcladeRunOtherArgs,
+  pub other_params: NextcladeRunOtherParams,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {

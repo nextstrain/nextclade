@@ -1,5 +1,4 @@
 use crate::align::insertions_strip::NucIns;
-use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match2::CodonSpacedIndex;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
@@ -22,6 +21,8 @@ use crate::gene::gene_map::GeneMap;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
+use crate::run::nextclade_wasm::AnalysisOutput;
+use crate::run::params::NextcladeInputParams;
 use crate::translate::aa_alignment_ranges::{
   calculate_aa_alignment_ranges_in_place, gather_aa_alignment_ranges, GatherAaAlignmentRangesResult,
 };
@@ -48,9 +49,8 @@ pub fn nextclade_run_one(
   virus_properties: &VirusProperties,
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
-  params: &AlignPairwiseParams,
-  include_nearest_node_info: bool,
-) -> Result<(Vec<Nuc>, Translation, NextcladeOutputs), Report> {
+  params: &NextcladeInputParams,
+) -> Result<AnalysisOutput, Report> {
   let NextalignOutputs {
     alignment,
     stripped,
@@ -70,7 +70,7 @@ pub fn nextclade_run_one(
     gene_map,
     gap_open_close_nuc,
     gap_open_close_aa,
-    params,
+    &params.alignment,
   )?;
 
   let alignment_score = alignment.alignment_score;
@@ -135,7 +135,7 @@ pub fn nextclade_run_one(
   let nearest_node_key = nearest_node_candidates[0].node_key;
   let nearest_node = graph.get_node(nearest_node_key)?.payload();
 
-  let nearest_nodes = include_nearest_node_info.then_some(
+  let nearest_nodes = params.general.include_nearest_node_info.then_some(
     nearest_node_candidates
     .iter()
     // Choose all nodes with distance equal to the distance of the nearest node
@@ -216,10 +216,10 @@ pub fn nextclade_run_one(
     qc_config,
   );
 
-  Ok((
-    stripped.qry_seq,
+  Ok(AnalysisOutput {
+    query: stripped.qry_seq,
     translation,
-    NextcladeOutputs {
+    analysis_result: NextcladeOutputs {
       index,
       seq_name: seq_name.to_owned(),
       substitutions,
@@ -267,5 +267,5 @@ pub fn nextclade_run_one(
       nearest_nodes,
       is_reverse_complement,
     },
-  ))
+  })
 }

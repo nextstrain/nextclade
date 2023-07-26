@@ -1,3 +1,4 @@
+use crate::cli::nextclade_cli::NextcladeRunOutputArgs;
 use crate::cli::nextclade_loop::NextcladeRecord;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -11,6 +12,8 @@ use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
 use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
 use nextclade::io::results_json::ResultsJsonWriter;
+use nextclade::run::nextclade_wasm::AnalysisOutput;
+use nextclade::run::params::NextcladeInputParams;
 use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::NextcladeOutputs;
@@ -18,7 +21,6 @@ use nextclade::utils::error::report_to_string;
 use nextclade::utils::option::OptionMapRefFallible;
 use std::collections::HashMap;
 use std::hash::Hasher;
-use std::path::PathBuf;
 
 /// Writes output files, potentially preserving the initial order of records (same as in the inputs)
 pub struct NextcladeOrderedWriter<'a> {
@@ -41,32 +43,29 @@ impl<'a> NextcladeOrderedWriter<'a> {
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
     aa_motifs_keys: &[String],
-    output_fasta: &Option<PathBuf>,
-    output_json: &Option<PathBuf>,
-    output_ndjson: &Option<PathBuf>,
-    output_csv: &Option<PathBuf>,
-    output_tsv: &Option<PathBuf>,
-    output_insertions: &Option<PathBuf>,
-    output_errors: &Option<PathBuf>,
-    output_translations: &Option<String>,
     csv_column_config: &CsvColumnConfig,
-    in_order: bool,
+    output_params: &NextcladeRunOutputArgs,
+    params: &NextcladeInputParams,
   ) -> Result<Self, Report> {
-    let fasta_writer = output_fasta.map_ref_fallible(FastaWriter::from_path)?;
+    let fasta_writer = output_params.output_fasta.map_ref_fallible(FastaWriter::from_path)?;
 
-    let fasta_peptide_writer = output_translations
+    let fasta_peptide_writer = output_params
+      .output_translations
       .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
-    let insertions_csv_writer = output_insertions.map_ref_fallible(InsertionsCsvWriter::new)?;
+    let insertions_csv_writer = output_params
+      .output_insertions
+      .map_ref_fallible(InsertionsCsvWriter::new)?;
 
-    let errors_csv_writer =
-      output_errors.map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
+    let errors_csv_writer = output_params
+      .output_errors
+      .map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
 
-    let output_json_writer = output_json.map_ref_fallible(|output_json| {
+    let output_json_writer = output_params.output_json.map_ref_fallible(|output_json| {
       ResultsJsonWriter::new(output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
     })?;
 
-    let output_ndjson_writer = output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;
+    let output_ndjson_writer = output_params.output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;
 
     let clade_node_attr_keys = clade_node_attr_key_descs
       .iter()
@@ -78,7 +77,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
       .map(|desc| desc.name.clone())
       .collect_vec();
 
-    let output_csv_writer = output_csv.map_ref_fallible(|output_csv| {
+    let output_csv_writer = output_params.output_csv.map_ref_fallible(|output_csv| {
       NextcladeResultsCsvFileWriter::new(
         output_csv,
         b';',
@@ -89,7 +88,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
       )
     })?;
 
-    let output_tsv_writer = output_tsv.map_ref_fallible(|output_tsv| {
+    let output_tsv_writer = output_params.output_tsv.map_ref_fallible(|output_tsv| {
       NextcladeResultsCsvFileWriter::new(
         output_tsv,
         b'\t',
@@ -111,7 +110,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
       errors_csv_writer,
       expected_index: 0,
       queue: HashMap::<usize, NextcladeRecord>::new(),
-      in_order,
+      in_order: params.general.in_order,
     })
   }
 
@@ -141,7 +140,11 @@ impl<'a> NextcladeOrderedWriter<'a> {
     } = record;
 
     match outputs_or_err {
-      Ok((qry_seq_stripped, translation, nextclade_outputs)) => {
+      Ok(AnalysisOutput {
+        query,
+        translation,
+        analysis_result,
+      }) => {
         let NextcladeOutputs {
           warnings,
           insertions,
@@ -149,10 +152,10 @@ impl<'a> NextcladeOrderedWriter<'a> {
           missing_genes,
           is_reverse_complement,
           ..
-        } = &nextclade_outputs;
+        } = &analysis_result;
 
         if let Some(fasta_writer) = &mut self.fasta_writer {
-          fasta_writer.write(&seq_name, &from_nuc_seq(&qry_seq_stripped), *is_reverse_complement)?;
+          fasta_writer.write(&seq_name, &from_nuc_seq(&query), *is_reverse_complement)?;
         }
 
         if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
@@ -174,19 +177,19 @@ impl<'a> NextcladeOrderedWriter<'a> {
         }
 
         if let Some(output_csv_writer) = &mut self.output_csv_writer {
-          output_csv_writer.write(&nextclade_outputs)?;
+          output_csv_writer.write(&analysis_result)?;
         }
 
         if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
-          output_tsv_writer.write(&nextclade_outputs)?;
+          output_tsv_writer.write(&analysis_result)?;
         }
 
         if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
-          output_ndjson_writer.write(&nextclade_outputs)?;
+          output_ndjson_writer.write(&analysis_result)?;
         }
 
         if let Some(output_json_writer) = &mut self.output_json_writer {
-          output_json_writer.write(nextclade_outputs);
+          output_json_writer.write(analysis_result);
         }
       }
       Err(report) => {

@@ -7,7 +7,8 @@ use nextclade::io::insertions_csv::insertions_to_csv_string;
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
-use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw};
+use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult};
+use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
@@ -34,10 +35,14 @@ impl NextcladeWasm {
     let params_raw: NextcladeParamsRaw =
       jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
 
-    let params: NextcladeParams =
+    let inputs: NextcladeParams =
       jserr(NextcladeParams::from_raw(&params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
 
-    let nextclade: Nextclade = jserr(Nextclade::new(params).wrap_err_with(|| "When initializing Nextclade runner"))?;
+    // FIXME: pass params from the frontend
+    let params = NextcladeInputParamsOptional::default();
+
+    let nextclade: Nextclade =
+      jserr(Nextclade::new(inputs, &params).wrap_err_with(|| "When initializing Nextclade runner"))?;
 
     Ok(Self { nextclade })
   }
@@ -72,7 +77,22 @@ impl NextcladeWasm {
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
   pub fn analyze(&mut self, input: &str) -> Result<String, JsError> {
     let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
-    let result = jserr(self.nextclade.run(&input))?;
+
+    let result = jserr(match self.nextclade.run(&input) {
+      Ok(result) => Ok(NextcladeResult {
+        index: input.index,
+        seq_name: input.seq_name.clone(),
+        result: Some(result),
+        error: None,
+      }),
+      Err(err) => Ok(NextcladeResult {
+        index: input.index,
+        seq_name: input.seq_name.clone(),
+        result: None,
+        error: Some(report_to_string(&err)),
+      }),
+    })?;
+
     jserr(json_stringify(&result, JsonPretty(false)))
   }
 
