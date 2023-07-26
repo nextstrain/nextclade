@@ -14,9 +14,8 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use maplit::hashmap;
 use regex::internal::Input;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 pub fn graph_attach_new_nodes_in_place(
   graph: &mut AuspiceGraph,
