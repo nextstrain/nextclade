@@ -559,7 +559,7 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
   Ok(AuspiceTree {
     meta: graph.data.meta.clone(),
     tree,
-    other: serde_json::Value::default(),
+    other: graph.data.other.clone(),
   })
 }
 
@@ -578,7 +578,7 @@ pub fn convert_auspice_tree_to_graph(tree: AuspiceTree) -> Result<AuspiceGraph, 
   let mut graph = AuspiceGraph::new(AuspiceGraphMeta {
     meta: tree.meta,
     tmp: GraphTempData::default(),
-    other: serde_json::Value::default(),
+    other: tree.other,
   });
 
   convert_auspice_tree_to_graph_recursive(&tree.tree, &mut graph)?;
