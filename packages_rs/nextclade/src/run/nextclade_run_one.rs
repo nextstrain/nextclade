@@ -156,6 +156,7 @@ pub fn nextclade_run_one(
     &missing,
     &alignment_range,
     ref_seq,
+    &non_acgtns,
     virus_properties,
   );
 
