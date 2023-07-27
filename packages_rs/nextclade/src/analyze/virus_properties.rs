@@ -10,6 +10,7 @@ use crate::io::json::json_parse;
 use crate::qc::qc_config::QcConfig;
 use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;
+use crate::utils::boolean::{bool_false, bool_true};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -17,14 +18,20 @@ use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
 
+const PATHOGEN_JSON_SCHEMA_VERSION: &str = "3.0.0";
+
 /// Contains external configuration and data specific for a particular pathogen
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
   pub schema_version: String,
-  pub attributes: VirusPropertiesAttributes,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub attributes: Option<VirusPropertiesAttributes>,
+  #[serde(default = "bool_false")]
   pub deprecated: bool,
+  #[serde(default = "bool_true")]
   pub enabled: bool,
+  #[serde(default = "bool_true")]
   pub experimental: bool,
   pub default_gene: Option<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -59,8 +66,11 @@ pub struct VirusPropertiesAttribute {
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VirusPropertiesAttributes {
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub name: Option<VirusPropertiesAttribute>,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub reference: Option<VirusPropertiesAttribute>,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub tag: Option<VirusPropertiesAttribute>,
   #[serde(flatten)]
   pub other: serde_json::Value,
