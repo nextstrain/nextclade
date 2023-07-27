@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2155
+set -euo pipefail
+trap "exit 0" INT
+
+
+export NEXTCLADE_BIN="${1:? "Usage: ${0} path_to_nextclade"}"
+export NEXTCLADE_BIN
+
+THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+export THIS_DIR
+
+# FIXME: hardcoded path. Assumes `nextclade_data` is a sibling directory to `nextclade` directory.
+export INPUT_DATASETS_DIR="${THIS_DIR}/../../nextclade_data/data_v3"
+
+export OUT_DIR="$THIS_DIR/../tmp_v3/smoke-tests/result"
+
+function run_one_experimental_test() {
+  dataset_dir=$1
+  name="$(basename "$(dirname "$dataset_dir")")"
+  reference="$(basename "$dataset_dir")"
+
+  # This dataset is crashing, probably due to defective or unsupported features
+  if [ "$name" == "vic_na" ]; then
+    return
+  fi
+
+  # This dataset is crashing, due to a defect in the dataset
+  if [ "$name" == "sars-cov-2-21L" ]; then
+    return
+  fi
+
+  sequences="$dataset_dir/sequences.fasta"
+  msg_no_sequences=""
+  if [ ! -f "${sequences}" ]; then
+    sequences="$dataset_dir/reference.fasta"
+    msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
+  fi
+
+  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'${msg_no_sequences}"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-dataset="${dataset_dir}/" \
+    --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
+    --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
+    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
+    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.json" \
+    --output-graph="$OUT_DIR/${name}/${reference:-default}/graph.json" \
+    "${sequences}"
+}
+export -f run_one_experimental_test
+
+find "${INPUT_DATASETS_DIR}" -iname "pathogen.json" -exec dirname '{}' \; |
+  parallel --keep-order --jobs=+0 run_one_experimental_test
