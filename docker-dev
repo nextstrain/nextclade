@@ -545,10 +545,8 @@ ${NICE} docker run --rm \
 if [ -n "${CROSS:-}" ] && [ -n "${RELEASE:-}" ] && { [ "${BUILD:-}" == 1 ] || [ "${RUN:-}" == 1 ]; }; then
   mkdir -p .out/
   if [[ "${CROSS}" == *windows* ]]; then
-    cp "${BUILD_DIR}/${CROSS}/release/nextalign.exe" ".out/nextalign-${CROSS}.exe"
     cp "${BUILD_DIR}/${CROSS}/release/nextclade.exe" ".out/nextclade-${CROSS}.exe"
   else
-    cp "${BUILD_DIR}/${CROSS}/release/nextalign" ".out/nextalign-${CROSS}"
     cp "${BUILD_DIR}/${CROSS}/release/nextclade" ".out/nextclade-${CROSS}"
   fi
 fi
