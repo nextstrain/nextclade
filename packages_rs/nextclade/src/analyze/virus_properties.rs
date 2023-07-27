@@ -163,7 +163,7 @@ pub struct AaMotifsDesc {
   pub description: String,
   pub motifs: Vec<String>,
 
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub include_genes: Vec<CountAaMotifsGeneDesc>,
 }
 
@@ -172,7 +172,7 @@ pub struct AaMotifsDesc {
 pub struct CountAaMotifsGeneDesc {
   pub gene: String,
 
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ranges: Vec<AaRefRange>,
 }
 
