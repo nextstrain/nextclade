@@ -3,6 +3,7 @@ use crate::alphabet::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
 use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt::{Display, Formatter};
 
 #[repr(u8)]
 #[derive(
@@ -30,12 +31,6 @@ pub enum Nuc {
   Gap,
 }
 
-impl ToString for Nuc {
-  fn to_string(&self) -> String {
-    String::from(from_nuc(*self))
-  }
-}
-
 impl Nuc {
   #[inline]
   pub const fn is_acgt(self) -> bool {
@@ -51,6 +46,12 @@ impl Nuc {
 impl ScoreMatrixLookup<Nuc> for Nuc {
   fn lookup_match_score(x: Nuc, y: Nuc) -> i32 {
     lookup_nuc_scoring_matrix(x, y)
+  }
+}
+
+impl Display for Nuc {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", from_nuc(*self))
   }
 }
 
