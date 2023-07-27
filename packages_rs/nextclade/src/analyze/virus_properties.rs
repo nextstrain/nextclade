@@ -7,6 +7,7 @@ use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
+use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::qc::qc_config::QcConfig;
 use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;
@@ -17,8 +18,6 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
-
-const PATHOGEN_JSON_SCHEMA_VERSION: &str = "3.0.0";
 
 /// Contains external configuration and data specific for a particular pathogen
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
@@ -180,6 +179,15 @@ impl FromStr for VirusProperties {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
+    SchemaVersion::check_warn(
+      s,
+      &SchemaVersionParams {
+        name: "pathogen.json",
+        ver_from: Some("3.0.0"),
+        ver_to: Some("3.0.0"),
+      },
+    );
+
     json_parse::<VirusProperties>(s)
   }
 }
