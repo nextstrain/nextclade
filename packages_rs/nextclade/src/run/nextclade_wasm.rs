@@ -3,7 +3,6 @@ use crate::align::seed_match2::CodonSpacedIndex;
 use crate::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
-use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::GeneMap;
@@ -11,7 +10,6 @@ use crate::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspic
 use crate::io::fasta::{read_one_fasta_str, FastaRecord};
 use crate::io::nextclade_csv::CsvColumnConfig;
 use crate::io::nwk_writer::convert_graph_to_nwk_string;
-use crate::qc::qc_config::QcConfig;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::translate::translate_genes::Translation;
@@ -32,9 +30,7 @@ pub struct NextcladeParams {
   pub ref_record: FastaRecord,
   pub gene_map: GeneMap,
   pub tree: AuspiceTree,
-  pub qc_config: QcConfig,
   pub virus_properties: VirusProperties,
-  pub primers: Vec<PcrPrimer>,
 }
 
 impl NextcladeParams {
@@ -42,7 +38,6 @@ impl NextcladeParams {
     let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
     let tree = AuspiceTree::from_str(&raw.tree).wrap_err("When parsing reference tree Auspice JSON v2")?;
     let gene_map = GeneMap::from_str(&raw.gene_map).wrap_err("When parsing gene map")?;
-    let qc_config = QcConfig::from_str(&raw.qc_config).wrap_err("When parsing QC config JSON")?;
     let virus_properties =
       VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing virus properties JSON")?;
 
@@ -50,9 +45,7 @@ impl NextcladeParams {
       ref_record,
       gene_map,
       tree,
-      qc_config,
       virus_properties,
-      primers: vec![], // FIXME
     })
   }
 }
@@ -111,9 +104,7 @@ pub struct Nextclade {
   pub ref_translation: Translation,
   pub aa_motifs_ref: AaMotifsMap,
   pub gene_map: GeneMap,
-  pub primers: Vec<PcrPrimer>,
   pub graph: AuspiceGraph,
-  pub qc_config: QcConfig,
   pub virus_properties: VirusProperties,
   pub gap_open_close_nuc: Vec<i32>,
   pub gap_open_close_aa: Vec<i32>,
@@ -129,9 +120,7 @@ impl Nextclade {
       ref_record,
       gene_map,
       tree,
-      qc_config,
       virus_properties,
-      primers,
     } = inputs;
 
     let params = NextcladeInputParams::from_optional(params, &virus_properties);
@@ -164,9 +153,7 @@ impl Nextclade {
       ref_translation,
       aa_motifs_ref,
       gene_map,
-      primers,
       graph,
-      qc_config,
       virus_properties,
       gap_open_close_nuc,
       gap_open_close_aa,
@@ -204,9 +191,7 @@ impl Nextclade {
         &self.ref_translation,
         &self.aa_motifs_ref,
         &self.gene_map,
-        &self.primers,
         &self.graph,
-        &self.qc_config,
         &self.virus_properties,
         &self.gap_open_close_nuc,
         &self.gap_open_close_aa,

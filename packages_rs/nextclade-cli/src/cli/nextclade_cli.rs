@@ -302,13 +302,10 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_tree: Option<PathBuf>,
 
-  /// Path to a JSON file containing configuration of Quality Control rules.
-  ///
-  /// Overrides path to `qc.json` in the dataset (`--input-dataset`).
-  ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// REMOVED. Merged into pathogen.json, see `--input-pathogen`
   #[clap(long, short = 'Q')]
   #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_qc_config: Option<PathBuf>,
 
   /// Path to a JSON file containing configuration and data specific to a pathogen.
@@ -318,15 +315,12 @@ pub struct NextcladeRunInputArgs {
   /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'R')]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_virus_properties: Option<PathBuf>,
+  pub input_pathogen_json: Option<PathBuf>,
 
-  /// Path to a CSV file containing a list of custom PCR primer sites. This information is used to report mutations in these sites.
-  ///
-  /// Overrides path to `primers.csv` in the dataset (`--input-dataset`).
-  ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// REMOVED. Merged into pathogen.json, see `--input-pathogen`
   #[clap(long, short = 'p')]
   #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_pcr_primers: Option<PathBuf>,
 
   /// Path to a .gff file containing the gene map (genome annotation).
@@ -798,9 +792,41 @@ For more information, type
 
   nextclade run --help"#;
 
+const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-config` is removed in favor of `--input-pathogen-json`.
+
+Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+   https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` is removed in favor of `--input-pathogen-json`.
+
+Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+   https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
     return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
+  }
+
+  if run_args.inputs.input_qc_config.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}");
+  }
+
+  if run_args.inputs.input_pcr_primers.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}");
   }
 
   if run_args.outputs.output_dir.is_some() {

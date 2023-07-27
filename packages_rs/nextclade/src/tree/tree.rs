@@ -2,6 +2,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
+use crate::coord::range::NucRefGlobalRange;
 use crate::graph::edge::{Edge, GraphEdge};
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, Node};
@@ -314,11 +315,16 @@ pub struct CladeNodeAttrKeyDesc {
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub clade_node_attrs: Option<Vec<CladeNodeAttrKeyDesc>>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub placement_mask_ranges: Vec<NucRefGlobalRange>,
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub nextclade: Option<AuspiceMetaExtensionsNextclade>,
 }
 
@@ -378,6 +384,18 @@ pub struct AuspiceTreeMeta {
 }
 
 impl AuspiceTreeMeta {
+  pub fn placement_mask_ranges_maybe(&self) -> Option<&[NucRefGlobalRange]> {
+    Some(
+      self
+        .extensions
+        .as_ref()?
+        .nextclade
+        .as_ref()?
+        .placement_mask_ranges
+        .as_slice(),
+    )
+  }
+
   #[rustfmt::skip]
   pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
     self

@@ -1,5 +1,5 @@
 use eyre::Report;
-use nextclade::analyze::pcr_primers::PcrPrimer;
+use nextclade::analyze::pcr_primer_changes::PcrPrimer;
 use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::dataset::{DatasetTagJson, DatasetsIndexJson};

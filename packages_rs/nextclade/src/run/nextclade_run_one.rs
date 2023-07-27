@@ -14,11 +14,9 @@ use crate::analyze::letter_ranges::{find_aa_letter_ranges, find_letter_ranges, f
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
-use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::{PhenotypeData, VirusProperties};
 use crate::gene::gene_map::GeneMap;
-use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextalign_run_one::nextalign_run_one;
 use crate::run::nextclade_wasm::AnalysisOutput;
@@ -43,9 +41,7 @@ pub fn nextclade_run_one(
   ref_peptides: &Translation,
   aa_motifs_ref: &AaMotifsMap,
   gene_map: &GeneMap,
-  primers: &[PcrPrimer],
   graph: &AuspiceGraph,
-  qc_config: &QcConfig,
   virus_properties: &VirusProperties,
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
@@ -97,7 +93,7 @@ pub fn nextclade_run_one(
 
   let nucleotide_composition = get_letter_composition(&stripped.qry_seq);
 
-  let pcr_primer_changes = get_pcr_primer_changes(&substitutions, primers);
+  let pcr_primer_changes = get_pcr_primer_changes(&substitutions, &virus_properties.primers);
   let total_pcr_primer_changes = pcr_primer_changes.iter().map(|pc| pc.substitutions.len()).sum();
 
   let frame_shifts = frame_shifts_flatten(&translation);
@@ -125,13 +121,7 @@ pub fn nextclade_run_one(
   let unknown_aa_ranges = find_aa_letter_ranges(&translation, Aa::X);
   let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
 
-  let nearest_node_candidates = graph_find_nearest_nodes(
-    graph,
-    &substitutions,
-    &missing,
-    &alignment_range,
-    &virus_properties.placement_mask_ranges,
-  )?;
+  let nearest_node_candidates = graph_find_nearest_nodes(graph, &substitutions, &missing, &alignment_range)?;
   let nearest_node_key = nearest_node_candidates[0].node_key;
   let nearest_node = graph.get_node(nearest_node_key)?.payload();
 
@@ -207,13 +197,16 @@ pub fn nextclade_run_one(
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_peptides, &translation)?;
 
+  // FIXME: make it optional
+  let qc_config = virus_properties.qc.clone().unwrap_or_default();
+
   let qc = qc_run(
     &private_nuc_mutations,
     &nucleotide_composition,
     total_missing,
     &translation,
     &frame_shifts,
-    qc_config,
+    &qc_config,
   );
 
   Ok(AnalysisOutput {

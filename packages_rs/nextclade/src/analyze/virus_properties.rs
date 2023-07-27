@@ -1,12 +1,13 @@
 use crate::align::params::AlignPairwiseParamsOptional;
 use crate::alphabet::aa::Aa;
-use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::pcr_primer_changes::PcrPrimer;
 use crate::coord::position::AaRefPosition;
-use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
+use crate::qc::qc_config::QcConfig;
 use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;
 use eyre::{Report, WrapErr};
@@ -16,47 +17,66 @@ use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
 
-/// Raw JSON version of the `VirusProperties` struct
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
-#[serde(rename_all = "camelCase")]
-struct VirusPropertiesRaw {
-  pub schema_version: String,
-  pub general_params: Option<NextcladeGeneralParamsOptional>,
-  pub alignment_params: Option<AlignPairwiseParamsOptional>,
-  pub tree_builder_params: Option<TreeBuilderParamsOptional>,
-  pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
-  pub phenotype_data: Option<Vec<PhenotypeData>>,
-  #[serde(default)]
-  pub aa_motifs: Vec<AaMotifsDesc>,
-  #[serde(default)]
-  pub placement_mask_ranges: Vec<NucRefGlobalRange>, // 0-based, end-exclusive
-}
-
 /// Contains external configuration and data specific for a particular pathogen
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
   pub schema_version: String,
+  pub attributes: VirusPropertiesAttributes,
+  pub deprecated: bool,
+  pub enabled: bool,
+  pub experimental: bool,
+  pub default_gene: Option<String>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub gene_order_preference: Vec<String>,
+  #[serde(default)]
+  pub mut_labels: LabelledMutationsConfig,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub primers: Vec<PcrPrimer>,
+  pub qc: Option<QcConfig>,
   pub general_params: Option<NextcladeGeneralParamsOptional>,
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
   pub tree_builder_params: Option<TreeBuilderParamsOptional>,
-  pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
   pub phenotype_data: Option<Vec<PhenotypeData>>,
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motifs: Vec<AaMotifsDesc>,
-  #[serde(default)]
-  pub placement_mask_ranges: Vec<NucRefGlobalRange>, // 0-based, end-exclusive
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct VirusPropertiesAttribute {
+  pub value: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub value_friendly: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub is_default: Option<bool>,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct VirusPropertiesAttributes {
+  pub name: Option<VirusPropertiesAttribute>,
+  pub reference: Option<VirusPropertiesAttribute>,
+  pub tag: Option<VirusPropertiesAttribute>,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
 pub type LabelMap<L> = BTreeMap<Genotype<L>, Vec<String>>;
 pub type NucLabelMap = LabelMap<Nuc>;
 
-/// External data that contains labels assigned to many mutations
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct MutationLabelMaps<L: Letter<L>> {
-  pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
+pub struct LabelledMutationsConfig {
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub nuc_mut_label_map: BTreeMap<Genotype<Nuc>, Vec<String>>,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
@@ -150,26 +170,7 @@ impl FromStr for VirusProperties {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let raw = json_parse::<VirusPropertiesRaw>(s)?;
-
-    let mut substitution_label_map = NucLabelMap::new();
-    for (mut_str, labels) in raw.nuc_mut_label_map {
-      let genotype = Genotype::<Nuc>::from_str(&mut_str)?;
-      if !genotype.qry.is_gap() {
-        substitution_label_map.insert(genotype, labels);
-      }
-    }
-
-    Ok(Self {
-      schema_version: raw.schema_version,
-      general_params: raw.general_params,
-      alignment_params: raw.alignment_params,
-      tree_builder_params: raw.tree_builder_params,
-      nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
-      phenotype_data: raw.phenotype_data,
-      aa_motifs: raw.aa_motifs,
-      placement_mask_ranges: raw.placement_mask_ranges,
-    })
+    json_parse::<VirusProperties>(s)
   }
 }
 

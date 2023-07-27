@@ -4,7 +4,6 @@ use crate::io::http_client::{HttpClient, ProxyConfig};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::LevelFilter;
-use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
@@ -12,7 +11,6 @@ use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::fs::absolute_path;
 use nextclade::io::json::json_parse_bytes;
 use nextclade::make_error;
-use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -82,23 +80,18 @@ pub fn dataset_zip_load(
     AuspiceTree::from_path,
   )?;
 
-  let qc_config = run_args.inputs.input_qc_config.as_ref().map_or_else(
-    || QcConfig::from_str(&zip_read_str(&mut zip, "qc.json")?),
-    QcConfig::from_path,
-  )?;
-
-  let virus_properties = run_args.inputs.input_virus_properties.as_ref().map_or_else(
-    || VirusProperties::from_str(&zip_read_str(&mut zip, "virus_properties.json")?),
+  let virus_properties = run_args.inputs.input_pathogen_json.as_ref().map_or_else(
+    || VirusProperties::from_str(&zip_read_str(&mut zip, "pathogen.json")?),
     VirusProperties::from_path,
   )?;
 
-  let primers = run_args.inputs.input_pcr_primers.as_ref().map_or_else(
-    || PcrPrimer::from_str(&zip_read_str(&mut zip, "primers.csv")?, &ref_record.seq),
-    |input_pcr_primers| PcrPrimer::from_path(input_pcr_primers, &ref_record.seq),
-  )?;
-
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
-    || filter_gene_map(Some(GeneMap::from_str(zip_read_str(&mut zip, "genemap.gff")?)?), genes),
+    || {
+      filter_gene_map(
+        Some(GeneMap::from_str(zip_read_str(&mut zip, "genome_annotation.gff3")?)?),
+        genes,
+      )
+    },
     |input_gene_map| filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes),
   )?;
 
@@ -106,9 +99,7 @@ pub fn dataset_zip_load(
     ref_record,
     gene_map,
     tree,
-    qc_config,
     virus_properties,
-    primers,
   })
 }
 
@@ -122,10 +113,8 @@ pub fn dataset_dir_load(
   dataset_load_files(DatasetFilePaths {
     input_ref: &run_args.inputs.input_ref.unwrap_or_else(|| input_dataset.join("reference.fasta")),
     input_tree: &run_args.inputs.input_tree.unwrap_or_else(|| input_dataset.join("tree.json")),
-    input_qc_config: &run_args.inputs.input_qc_config.unwrap_or_else(|| input_dataset.join("qc.json")),
-    input_virus_properties: &run_args.inputs.input_virus_properties.unwrap_or_else(|| input_dataset.join("virus_properties.json")),
-    input_pcr_primers: &run_args.inputs.input_pcr_primers.unwrap_or_else(|| input_dataset.join("primers.csv")),
-    input_gene_map: &run_args.inputs.input_gene_map.unwrap_or_else(|| input_dataset.join("genemap.gff")),
+    input_virus_properties: &run_args.inputs.input_pathogen_json.unwrap_or_else(|| input_dataset.join("pathogen.json")),
+    input_gene_map: &run_args.inputs.input_gene_map.unwrap_or_else(|| input_dataset.join("genome_annotation.gff3")),
   }, genes)
 }
 
@@ -138,9 +127,7 @@ pub fn dataset_individual_files_load(
     (String::from("--input-ref"), &run_args.inputs.input_ref),
     (String::from("--input-tree"), &run_args.inputs.input_tree),
     (String::from("--input-gene-map"), &run_args.inputs.input_gene_map),
-    (String::from("--input-qc-config"), &run_args.inputs.input_qc_config),
-    (String::from("--input-pcr-primers"), &run_args.inputs.input_pcr_primers),
-    (String::from("--input-virus-properties"), &run_args.inputs.input_virus_properties),
+    (String::from("--input-pathogen-json"), &run_args.inputs.input_pathogen_json),
   ];
 
   #[allow(clippy::single_match_else)]
@@ -150,16 +137,12 @@ pub fn dataset_individual_files_load(
       (_, Some(input_ref)),
       (_, Some(input_tree)),
       (_, Some(input_gene_map)),
-      (_, Some(input_qc_config)),
-      (_, Some(input_pcr_primers)),
       (_, Some(input_virus_properties)),
     ] => {
       dataset_load_files(DatasetFilePaths {
         input_ref,
         input_tree,
-        input_qc_config,
         input_virus_properties,
-        input_pcr_primers,
         input_gene_map,
       }, genes)
     },
@@ -181,9 +164,7 @@ pub fn dataset_individual_files_load(
 pub struct DatasetFilePaths<'a> {
   input_ref: &'a Path,
   input_tree: &'a Path,
-  input_qc_config: &'a Path,
   input_virus_properties: &'a Path,
-  input_pcr_primers: &'a Path,
   input_gene_map: &'a Path,
 }
 
@@ -191,23 +172,17 @@ pub fn dataset_load_files(
   DatasetFilePaths {
     input_ref,
     input_tree,
-    input_qc_config,
     input_virus_properties,
-    input_pcr_primers,
     input_gene_map,
   }: DatasetFilePaths,
   genes: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let ref_record = read_one_fasta(input_ref)?;
-  let primers = PcrPrimer::from_path(input_pcr_primers, &ref_record.seq)?;
-
   Ok(NextcladeParams {
     ref_record,
     virus_properties: VirusProperties::from_path(input_virus_properties)?,
     gene_map: filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes)?,
     tree: AuspiceTree::from_path(input_tree)?,
-    qc_config: QcConfig::from_path(input_qc_config)?,
-    primers,
   })
 }
 
@@ -245,24 +220,9 @@ pub fn dataset_str_download_and_load(
     AuspiceTree::from_path,
   )?;
 
-  let qc_config = run_args.inputs.input_qc_config.as_ref().map_or_else(
-    || QcConfig::from_str(&dataset_file_http_get(&mut http, &dataset, "qc.json")?),
-    QcConfig::from_path,
-  )?;
-
-  let virus_properties = run_args.inputs.input_virus_properties.as_ref().map_or_else(
+  let virus_properties = run_args.inputs.input_pathogen_json.as_ref().map_or_else(
     || VirusProperties::from_str(&dataset_file_http_get(&mut http, &dataset, "virus_properties.json")?),
     VirusProperties::from_path,
-  )?;
-
-  let primers = run_args.inputs.input_pcr_primers.as_ref().map_or_else(
-    || {
-      PcrPrimer::from_str(
-        &dataset_file_http_get(&mut http, &dataset, "primers.csv")?,
-        &ref_record.seq,
-      )
-    },
-    |input_pcr_primers| PcrPrimer::from_path(input_pcr_primers, &ref_record.seq),
   )?;
 
   let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
@@ -283,8 +243,6 @@ pub fn dataset_str_download_and_load(
     ref_record,
     gene_map,
     tree,
-    qc_config,
     virus_properties,
-    primers,
   })
 }
