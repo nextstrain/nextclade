@@ -23,7 +23,7 @@ pub fn graph_find_nearest_nodes(
   qry_missing: &[NucRange],
   aln_range: &NucRefGlobalRange,
 ) -> Result<Vec<TreePlacementInfo>, Report> {
-  let masked_ranges = graph.data.meta.placement_mask_ranges_maybe().unwrap_or_default();
+  let masked_ranges = graph.data.meta.placement_mask_ranges();
 
   // Iterate over tree nodes and calculate distance metric between the sample and each node
   let nodes_by_placement_score = DftPre::new(graph.get_exactly_one_root()?, |node| graph.iter_children_of(node))

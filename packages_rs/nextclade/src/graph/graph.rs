@@ -557,6 +557,7 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
   let root = graph.get_exactly_one_root()?;
   let tree = convert_graph_to_auspice_tree_recursive(graph, root)?;
   Ok(AuspiceTree {
+    version: graph.data.auspice_tree_version.clone(),
     meta: graph.data.meta.clone(),
     tree,
     other: graph.data.other.clone(),
@@ -576,6 +577,7 @@ fn convert_graph_to_auspice_tree_recursive(
 
 pub fn convert_auspice_tree_to_graph(tree: AuspiceTree) -> Result<AuspiceGraph, Report> {
   let mut graph = AuspiceGraph::new(AuspiceGraphMeta {
+    auspice_tree_version: tree.version,
     meta: tree.meta,
     tmp: GraphTempData::default(),
     other: tree.other,
