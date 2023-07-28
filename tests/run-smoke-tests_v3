@@ -33,6 +33,11 @@ function run_one_experimental_test() {
     return
   fi
 
+  # Temporarily rename default reference
+  if [ "$reference" == "UNKNOWN" ]; then
+    reference="default"
+  fi
+
   sequences="$dataset_dir/sequences.fasta"
   msg_no_sequences=""
   if [ ! -f "${sequences}" ]; then
@@ -44,11 +49,11 @@ function run_one_experimental_test() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${dataset_dir}/" \
-    --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
-    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
-    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.json" \
-    --output-graph="$OUT_DIR/${name}/${reference:-default}/graph.json" \
+    --output-translations="$OUT_DIR/${name}_${reference:-default}/translations/gene_{gene}.translation.fasta" \
+    --output-fasta="$OUT_DIR/${name}_${reference:-default}/aligned.fasta" \
+    --output-tsv="$OUT_DIR/${name}_${reference:-default}/nextclade.tsv" \
+    --output-tree="$OUT_DIR/${name}_${reference:-default}/tree.json" \
+    --output-graph="$OUT_DIR/${name}_${reference:-default}/graph.json" \
     "${sequences}"
 }
 export -f run_one_experimental_test
