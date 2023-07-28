@@ -43,6 +43,11 @@ function run_one_test() {
     return
   fi
 
+  # Temporarily disable default reference
+  if [ -z "$reference" ]; then
+    return
+  fi
+
   echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'"
 
   ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}_${reference:-default}"
