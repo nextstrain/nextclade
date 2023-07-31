@@ -48,37 +48,6 @@ pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
 
   ////////////////////////////////////////////////////////////////////////
 
-  let mut i = 0;
-  let mut j = 0;
-  let mut dels_shared = Vec::<NucDel>::new();
-  let mut dels_left = Vec::<NucDel>::new();
-  let mut dels_right = Vec::<NucDel>::new();
-
-  while (i < left.nuc_dels.len()) && (j < right.nuc_dels.len()) {
-    if left.nuc_dels[i].pos == right.nuc_dels[j].pos {
-      // Position is also a deletion in node
-      dels_shared.push(left.nuc_dels[i].clone()); // the exact mutation is shared between node and seq
-      i += 1;
-      j += 1;
-    } else if left.nuc_dels[i].pos < right.nuc_dels[j].pos {
-      dels_left.push(left.nuc_dels[i].clone());
-      i += 1;
-    } else {
-      dels_right.push(right.nuc_dels[j].clone());
-      j += 1;
-    }
-  }
-  while i < left.nuc_dels.len() {
-    dels_left.push(left.nuc_dels[i].clone());
-    i += 1;
-  }
-  while j < right.nuc_dels.len() {
-    dels_right.push(right.nuc_dels[j].clone());
-    j += 1;
-  }
-
-  ////////////////////////////////////////////////////////////////////////
-
   let mut aa_subs_shared = BTreeMap::<String, Vec<AaSub>>::new();
   let mut aa_subs_left = BTreeMap::<String, Vec<AaSub>>::new();
   let mut aa_subs_right = BTreeMap::<String, Vec<AaSub>>::new();
@@ -151,17 +120,14 @@ pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
   SplitMutsResult {
     left: PrivateMutationsMinimal {
       nuc_subs: subs_left,
-      nuc_dels: dels_left,
       aa_muts: aa_subs_left,
     },
     shared: PrivateMutationsMinimal {
       nuc_subs: subs_shared,
-      nuc_dels: dels_shared,
       aa_muts: aa_subs_shared,
     },
     right: PrivateMutationsMinimal {
       nuc_subs: subs_right,
-      nuc_dels: dels_right,
       aa_muts: aa_subs_right,
     },
   }

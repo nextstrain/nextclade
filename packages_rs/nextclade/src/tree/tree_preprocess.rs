@@ -83,26 +83,16 @@ pub fn graph_preprocess_in_place_recursive(
 
 pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<PrivateMutationsMinimal, Report> {
   let mut nuc_sub = Vec::<NucSub>::new();
-  let mut nuc_del = Vec::<NucDel>::new();
   let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
   match node.branch_attrs.mutations.get("nuc") {
     None => Ok(PrivateMutationsMinimal {
       nuc_subs: nuc_sub,
-      nuc_dels: nuc_del,
       aa_muts: aa_sub,
     }),
     Some(mutations) => {
       for mutation_str in mutations {
         let mutation = NucSub::from_str(mutation_str)?;
-        if mutation.is_del() {
-          let del = NucDel {
-            ref_nuc: mutation.ref_nuc,
-            pos: mutation.pos,
-          };
-          nuc_del.push(del);
-        } else {
-          nuc_sub.push(mutation);
-        }
+        nuc_sub.push(mutation);
       }
       for (gene, muts) in &node.branch_attrs.mutations {
         if gene != "nuc" {
@@ -116,7 +106,6 @@ pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<Pri
       }
       Ok(PrivateMutationsMinimal {
         nuc_subs: nuc_sub,
-        nuc_dels: nuc_del,
         aa_muts: aa_sub,
       })
     }

@@ -65,10 +65,19 @@ pub fn graph_attach_new_node_in_place(
     private_aa_mutations.insert(key.clone(), value);
   }
 
+  let nuc_subs = concat_to_vec(
+    &result.private_nuc_mutations.private_substitutions,
+    &result
+      .private_nuc_mutations
+      .private_deletions
+      .iter()
+      .map(NucDel::to_sub)
+      .collect_vec(),
+  );
+
   // Check if new seq is in between nearest node and a neighbor of nearest node
   let mutations_seq = PrivateMutationsMinimal {
-    nuc_subs: result.private_nuc_mutations.private_substitutions.clone(),
-    nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
+    nuc_subs,
     aa_muts: private_aa_mutations,
   };
 
@@ -224,12 +233,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
 ) -> BTreeMap<String, Vec<String>> {
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
 
-  let dels_as_subs = mutations.nuc_dels.iter().map(NucDel::to_sub).collect_vec();
-  let nuc_muts = concat_to_vec(&mutations.nuc_subs, &dels_as_subs)
-    .iter()
-    .sorted()
-    .map(NucSub::to_string)
-    .collect_vec();
+  let nuc_muts = mutations.nuc_subs.iter().sorted().map(NucSub::to_string).collect_vec();
   branch_attrs.insert("nuc".to_owned(), nuc_muts);
 
   for (gene_name, aa_muts) in &mutations.aa_muts {
