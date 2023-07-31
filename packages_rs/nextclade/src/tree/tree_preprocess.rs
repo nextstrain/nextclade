@@ -2,7 +2,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
@@ -81,11 +81,11 @@ pub fn graph_preprocess_in_place_recursive(
   Ok(graph_node_key)
 }
 
-pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<PrivateMutationsMinimal, Report> {
+pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<BranchMutations, Report> {
   let mut nuc_sub = Vec::<NucSub>::new();
   let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
   match node.branch_attrs.mutations.get("nuc") {
-    None => Ok(PrivateMutationsMinimal {
+    None => Ok(BranchMutations {
       nuc_muts: nuc_sub,
       aa_muts: aa_sub,
     }),
@@ -104,7 +104,7 @@ pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<Pri
           aa_sub.insert(gene.to_string(), aa_sub_vec);
         }
       }
-      Ok(PrivateMutationsMinimal {
+      Ok(BranchMutations {
         nuc_muts: nuc_sub,
         aa_muts: aa_sub,
       })

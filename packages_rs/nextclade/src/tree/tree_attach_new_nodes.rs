@@ -1,4 +1,4 @@
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
@@ -15,7 +15,7 @@ use serde_json::json;
 
 pub fn create_new_auspice_node(
   result: &NextcladeOutputs,
-  new_private_mutations: &PrivateMutationsMinimal,
+  new_private_mutations: &BranchMutations,
   new_divergence: f64,
 ) -> AuspiceGraphNodePayload {
   let mutations = convert_private_mutations_to_node_branch_attrs(new_private_mutations);

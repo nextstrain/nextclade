@@ -14,15 +14,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
-pub struct PrivateMutationsMinimal {
+pub struct BranchMutations {
   pub nuc_muts: Vec<NucSub>,
   pub aa_muts: BTreeMap<String, Vec<AaSub>>,
 }
 
-impl PrivateMutationsMinimal {
+impl BranchMutations {
   #[must_use]
-  pub fn invert(&self) -> PrivateMutationsMinimal {
-    PrivateMutationsMinimal {
+  pub fn invert(&self) -> BranchMutations {
+    BranchMutations {
       nuc_muts: self.nuc_muts.iter().map(NucSub::invert).collect(),
       aa_muts: self
         .aa_muts

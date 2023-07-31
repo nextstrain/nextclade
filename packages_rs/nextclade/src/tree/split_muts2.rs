@@ -1,5 +1,5 @@
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::split_muts::SplitMutsResult;
@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, HashSet};
 ///  - shared
 ///  - belonging only to left argument
 ///  - belonging only to the right argument
-pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutsResult {
+pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMutsResult {
   let mut subs_shared = Vec::<NucSub>::new();
   let mut subs_left = Vec::<NucSub>::new();
   let mut subs_right = Vec::<NucSub>::new();
@@ -118,15 +118,15 @@ pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
   ////////////////////////////////////////////////////////////////////////
 
   SplitMutsResult {
-    left: PrivateMutationsMinimal {
+    left: BranchMutations {
       nuc_muts: subs_left,
       aa_muts: aa_subs_left,
     },
-    shared: PrivateMutationsMinimal {
+    shared: BranchMutations {
       nuc_muts: subs_shared,
       aa_muts: aa_subs_shared,
     },
-    right: PrivateMutationsMinimal {
+    right: BranchMutations {
       nuc_muts: subs_right,
       aa_muts: aa_subs_right,
     },
