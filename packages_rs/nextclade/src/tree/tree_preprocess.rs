@@ -86,7 +86,7 @@ pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<Pri
   let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
   match node.branch_attrs.mutations.get("nuc") {
     None => Ok(PrivateMutationsMinimal {
-      nuc_subs: nuc_sub,
+      nuc_muts: nuc_sub,
       aa_muts: aa_sub,
     }),
     Some(mutations) => {
@@ -105,7 +105,7 @@ pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<Pri
         }
       }
       Ok(PrivateMutationsMinimal {
-        nuc_subs: nuc_sub,
+        nuc_muts: nuc_sub,
         aa_muts: aa_sub,
       })
     }

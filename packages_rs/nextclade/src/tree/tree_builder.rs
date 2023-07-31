@@ -77,7 +77,7 @@ pub fn graph_attach_new_node_in_place(
 
   // Check if new seq is in between nearest node and a neighbor of nearest node
   let mutations_seq = PrivateMutationsMinimal {
-    nuc_subs,
+    nuc_muts: nuc_subs,
     aa_muts: private_aa_mutations,
   };
 
@@ -126,7 +126,7 @@ pub fn finetune_nearest_node(
           current_best_node.payload().name
         )
       })?;
-      let n_shared_muts = best_split_result.shared.nuc_subs.len();
+      let n_shared_muts = best_split_result.shared.nuc_muts.len();
       (best_split_result, n_shared_muts)
     };
 
@@ -138,7 +138,7 @@ pub fn finetune_nearest_node(
             child.payload().name
           )
         })?;
-      let tmp_n_shared_muts = tmp_split_result.shared.nuc_subs.len();
+      let tmp_n_shared_muts = tmp_split_result.shared.nuc_muts.len();
       if tmp_n_shared_muts > n_shared_muts {
         n_shared_muts = tmp_n_shared_muts;
         best_split_result = tmp_split_result;
@@ -147,7 +147,7 @@ pub fn finetune_nearest_node(
     }
 
     if n_shared_muts > 0 {
-      if best_node.key() == current_best_node.key() && best_split_result.left.nuc_subs.is_empty() {
+      if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
         // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
         // FIXME: what if there's no parent?
         current_best_node = graph
@@ -186,7 +186,7 @@ pub fn finetune_nearest_node(
       }
     } else if current_best_node.is_leaf()
       && !current_best_node.is_root()
-      && current_best_node.payload().tmp.private_mutations.nuc_subs.is_empty()
+      && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
     {
       // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
       // auxiliary nodes.
@@ -233,7 +233,7 @@ pub fn convert_private_mutations_to_node_branch_attrs(
 ) -> BTreeMap<String, Vec<String>> {
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
 
-  let nuc_muts = mutations.nuc_subs.iter().sorted().map(NucSub::to_string).collect_vec();
+  let nuc_muts = mutations.nuc_muts.iter().sorted().map(NucSub::to_string).collect_vec();
   branch_attrs.insert("nuc".to_owned(), nuc_muts);
 
   for (gene_name, aa_muts) in &mutations.aa_muts {
@@ -313,10 +313,10 @@ pub fn knit_into_graph(
     }
   };
   // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
-  if target_node.is_leaf() || !muts_target_node.nuc_subs.is_empty() {
+  if target_node.is_leaf() || !muts_target_node.nuc_muts.is_empty() {
     // determine divergence of new internal node by subtracting shared reversions from target_node
     let divergence_middle_node =
-      target_node_div - calculate_branch_length(&muts_target_node.nuc_subs, divergence_units, ref_seq_len);
+      target_node_div - calculate_branch_length(&muts_target_node.nuc_muts, divergence_units, ref_seq_len);
 
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
@@ -359,7 +359,7 @@ pub fn knit_into_graph(
       new_internal_node_key,
       &muts_new_node,
       result,
-      divergence_middle_node + calculate_branch_length(&muts_new_node.nuc_subs, divergence_units, ref_seq_len),
+      divergence_middle_node + calculate_branch_length(&muts_new_node.nuc_muts, divergence_units, ref_seq_len),
     )?;
   } else {
     //can simply attach node
@@ -368,7 +368,7 @@ pub fn knit_into_graph(
       target_key,
       private_mutations,
       result,
-      target_node_div + calculate_branch_length(&muts_new_node.nuc_subs, divergence_units, ref_seq_len),
+      target_node_div + calculate_branch_length(&muts_new_node.nuc_muts, divergence_units, ref_seq_len),
     )?;
   }
   Ok(())

@@ -17,32 +17,32 @@ pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
   let mut subs_right = Vec::<NucSub>::new();
   let mut i = 0;
   let mut j = 0;
-  while (i < left.nuc_subs.len()) && (j < right.nuc_subs.len()) {
-    if left.nuc_subs[i].pos == right.nuc_subs[j].pos {
+  while (i < left.nuc_muts.len()) && (j < right.nuc_muts.len()) {
+    if left.nuc_muts[i].pos == right.nuc_muts[j].pos {
       // Position is also mutated in node
-      if left.nuc_subs[i].ref_nuc == right.nuc_subs[j].ref_nuc && left.nuc_subs[i].qry_nuc == right.nuc_subs[j].qry_nuc
+      if left.nuc_muts[i].ref_nuc == right.nuc_muts[j].ref_nuc && left.nuc_muts[i].qry_nuc == right.nuc_muts[j].qry_nuc
       {
-        subs_shared.push(left.nuc_subs[i].clone()); // the exact mutation is shared between node and seq
+        subs_shared.push(left.nuc_muts[i].clone()); // the exact mutation is shared between node and seq
       } else {
-        subs_left.push(left.nuc_subs[i].clone());
-        subs_right.push(right.nuc_subs[j].clone());
+        subs_left.push(left.nuc_muts[i].clone());
+        subs_right.push(right.nuc_muts[j].clone());
       }
       i += 1;
       j += 1;
-    } else if left.nuc_subs[i].pos < right.nuc_subs[j].pos {
-      subs_left.push(left.nuc_subs[i].clone());
+    } else if left.nuc_muts[i].pos < right.nuc_muts[j].pos {
+      subs_left.push(left.nuc_muts[i].clone());
       i += 1;
     } else {
-      subs_right.push(right.nuc_subs[j].clone());
+      subs_right.push(right.nuc_muts[j].clone());
       j += 1;
     }
   }
-  while i < left.nuc_subs.len() {
-    subs_left.push(left.nuc_subs[i].clone());
+  while i < left.nuc_muts.len() {
+    subs_left.push(left.nuc_muts[i].clone());
     i += 1;
   }
-  while j < right.nuc_subs.len() {
-    subs_right.push(right.nuc_subs[j].clone());
+  while j < right.nuc_muts.len() {
+    subs_right.push(right.nuc_muts[j].clone());
     j += 1;
   }
 
@@ -119,15 +119,15 @@ pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
 
   SplitMutsResult {
     left: PrivateMutationsMinimal {
-      nuc_subs: subs_left,
+      nuc_muts: subs_left,
       aa_muts: aa_subs_left,
     },
     shared: PrivateMutationsMinimal {
-      nuc_subs: subs_shared,
+      nuc_muts: subs_shared,
       aa_muts: aa_subs_shared,
     },
     right: PrivateMutationsMinimal {
-      nuc_subs: subs_right,
+      nuc_muts: subs_right,
       aa_muts: aa_subs_right,
     },
   }

@@ -27,7 +27,7 @@ pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinima
     left: subs_left,
     shared: subs_shared,
     right: subs_right,
-  } = split_3_way(&left.nuc_subs, &right.nuc_subs).wrap_err("When splitting private nucleotide substitutions")?;
+  } = split_3_way(&left.nuc_muts, &right.nuc_muts).wrap_err("When splitting private nucleotide substitutions")?;
 
   let SplitAaMutsResult {
     aa_muts_left,
@@ -37,15 +37,15 @@ pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinima
 
   Ok(SplitMutsResult {
     left: PrivateMutationsMinimal {
-      nuc_subs: subs_left,
+      nuc_muts: subs_left,
       aa_muts: aa_muts_left,
     },
     shared: PrivateMutationsMinimal {
-      nuc_subs: subs_shared,
+      nuc_muts: subs_shared,
       aa_muts: aa_muts_shared,
     },
     right: PrivateMutationsMinimal {
-      nuc_subs: subs_right,
+      nuc_muts: subs_right,
       aa_muts: aa_muts_right,
     },
   })
@@ -163,7 +163,7 @@ pub fn union_of_muts(
   right: &PrivateMutationsMinimal,
 ) -> Result<PrivateMutationsMinimal, Report> {
   Ok(PrivateMutationsMinimal {
-    nuc_subs: union(&left.nuc_subs, &right.nuc_subs)
+    nuc_muts: union(&left.nuc_muts, &right.nuc_muts)
       .wrap_err("When calculating union of private nucleotide substitutions")?,
     aa_muts: union_of_aa_muts(&left.aa_muts, &right.aa_muts)
       .wrap_err("When calculating union of private aminoacid mutations")?,
@@ -249,7 +249,7 @@ pub fn difference_of_muts(
   right: &PrivateMutationsMinimal,
 ) -> Result<PrivateMutationsMinimal, Report> {
   Ok(PrivateMutationsMinimal {
-    nuc_subs: difference(&left.nuc_subs, &right.nuc_subs)
+    nuc_muts: difference(&left.nuc_muts, &right.nuc_muts)
       .wrap_err("When calculating union of private nucleotide substitutions")?,
     aa_muts: difference_of_aa_muts(&left.aa_muts, &right.aa_muts)
       .wrap_err("When calculating union of private aminoacid mutations")?,
