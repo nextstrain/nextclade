@@ -5,17 +5,12 @@ use crate::align::seed_match::seed_match;
 use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex, SeedMatch2};
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
-use crate::coord::position::LocalSpace;
-use crate::make_error;
-use crate::utils::collections::first;
 use eyre::Report;
 use log::trace;
 use num_traits::abs;
 use num_traits::clamp;
-use num_traits::clamp_min;
 use std::cmp::max;
 use std::cmp::min;
-use std::collections::BTreeMap;
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
@@ -323,10 +318,10 @@ pub fn create_stripes(
   let mut stripes = Vec::<Stripe>::with_capacity(ref_len as usize + 1);
   for band in bands {
     for ref_pos in band.ref_start..band.ref_end {
-      stripes.push(Stripe {
-        begin: (ref_pos + band.min_offset).clamp(0, qry_len - minimal_bandwidth) as usize,
-        end: (ref_pos + band.max_offset).clamp(0, qry_len) as usize + 1,
-      });
+      stripes.push(Stripe::new(
+        (ref_pos + band.min_offset).clamp(0, qry_len - minimal_bandwidth),
+        (ref_pos + band.max_offset).clamp(0, qry_len) + 1,
+      ));
     }
   }
   // write_stripes_to_file(&stripes, "stripes.csv");
@@ -351,15 +346,17 @@ struct TrapezoidDirectParams {
 fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
   // assure stripe begin are non-decreasing -- such states would be unreachable in the alignment
   let stripes_len = stripes.len();
-  stripes[0].begin = 0;
+  stripes[0].set_begin(0);
   for i in 1..stripes_len {
-    stripes[i].begin = clamp(stripes[i].begin, stripes[i - 1].begin, qry_len);
+    let begin = clamp(stripes[i].begin(), stripes[i - 1].begin(), qry_len);
+    stripes[i].set_begin(begin);
   }
 
   // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
-  stripes[stripes_len - 1].end = qry_len + 1;
+  stripes[stripes_len - 1].set_end(qry_len + 1);
   for i in (0..(stripes_len - 1)).rev() {
-    stripes[i].end = clamp(stripes[i].end, 1, stripes[i + 1].end);
+    let end = clamp(stripes[i].end(), 1, stripes[i + 1].end());
+    stripes[i].set_end(end);
   }
 
   stripes
@@ -369,10 +366,10 @@ fn trace_stripe_stats(stripes: &[Stripe]) {
   let mut stripe_lengths = Vec::new();
   for stripe in stripes {
     assert!(
-      stripe.begin <= stripe.end,
+      stripe.begin() <= stripe.end(),
       "Stripe begin must be <= stripe end for stripe {stripe:?}",
     );
-    stripe_lengths.push(stripe.end - stripe.begin);
+    stripe_lengths.push(stripe.end() - stripe.begin());
   }
   stripe_lengths.sort_unstable();
   let median = stripe_lengths[stripe_lengths.len() / 2];
@@ -399,7 +396,7 @@ fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
   let mut file = std::fs::File::create(filename).unwrap();
   writeln!(file, "ref,begin,end").unwrap();
   for (i, stripe) in stripes.iter().enumerate() {
-    writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
+    writeln!(file, "{i},{begin},{end}", begin = stripe.begin(), end = stripe.end()).unwrap();
   }
 }
 

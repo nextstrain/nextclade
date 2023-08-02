@@ -1,63 +1,82 @@
-use num_traits::{NumCast, ToPrimitive};
+use crate::coord::position::{PositionLike, PositionLikeAttrs};
+use crate::coord::range::Range;
+use assert2::assert;
+use num_traits::{AsPrimitive, NumCast, ToPrimitive};
 use std::fmt::{self, Display};
 use std::ops::{Index, IndexMut};
 
 /// Describes data layout of a single row in `Band2d`
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Stripe {
-  pub begin: usize,
-  pub end: usize,
+  pub range: Range<isize>,
 }
 
 impl Stripe {
   #[inline]
-  pub fn new<T, U>(begin: T, end: U) -> Stripe
-  where
-    T: NumCast + Copy,
-    U: NumCast + Copy,
-  {
+  pub fn new(begin: isize, end: isize) -> Stripe {
     Stripe {
-      begin: begin.to_usize().unwrap(),
-      end: end.to_usize().unwrap(),
+      range: Range::from_isize(begin, end),
     }
   }
 
   #[inline]
-  pub const fn len(&self) -> usize {
-    self.end - self.begin
+  #[must_use]
+  pub fn begin(&self) -> usize {
+    self.range.begin.as_usize()
   }
 
   #[inline]
-  pub const fn is_empty(&self) -> bool {
-    self.end == self.begin
+  #[must_use]
+  pub fn end(&self) -> usize {
+    self.range.end.as_usize()
+  }
+
+  #[inline]
+  pub fn set_begin(&mut self, begin: impl AsPrimitive<isize>) {
+    self.range = Range::from_isize(begin.as_(), self.range.end)
+  }
+
+  #[inline]
+  pub fn set_end(&mut self, end: impl AsPrimitive<isize>) {
+    self.range = Range::from_isize(self.range.begin, end.as_())
+  }
+
+  #[inline]
+  pub fn len(&self) -> usize {
+    self.end() - self.begin()
+  }
+
+  #[inline]
+  pub fn is_empty(&self) -> bool {
+    self.end() == self.begin()
   }
 }
 
-pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_len: usize, qry_len: usize) -> Vec<Stripe> {
+pub fn simple_stripes(mean_shift: isize, band_width: usize, ref_len: usize, qry_len: usize) -> Vec<Stripe> {
   // Begin runs diagonally, with max(0, mean_shift - band_width + i)
   // End runs diagonally, with min(qry_len, mean_shift + band_width + i)
 
   // TODO: Increase by start/end bands
   let mut stripes = Vec::<Stripe>::with_capacity(ref_len + 1);
-  let band_width_i32 = band_width.to_i32().unwrap();
-  let ref_len_i32 = ref_len.to_i32().unwrap();
-  let qry_len_i32 = qry_len.to_i32().unwrap();
-  for i in 0..=ref_len_i32 {
-    let begin = num::clamp(-mean_shift - band_width_i32 + i, 0, qry_len_i32);
-    let end = num::clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_len_i32 + 1);
+  let band_width = band_width as isize;
+  let ref_len = ref_len as isize;
+  let qry_len = qry_len as isize;
+  for i in 0..=ref_len {
+    let begin = num::clamp(-mean_shift - band_width + i, 0, qry_len);
+    let end = num::clamp(-mean_shift + band_width + i + 1, 1, qry_len + 1);
     stripes.push(Stripe::new(begin, end));
   }
   // Make sure first and last stripe can reach origin/end
-  stripes[0].begin = 0;
-  stripes[ref_len].end = qry_len + 1;
+  stripes[0].set_begin(0);
+  stripes[ref_len as usize].set_end(qry_len + 1);
   stripes
 }
 
 pub fn full_matrix(ref_len: usize, qry_len: usize) -> Vec<Stripe> {
   let mut stripes = Vec::<Stripe>::with_capacity(ref_len + 1);
-  let ref_len_i32 = ref_len.to_i32().unwrap();
-  let qry_len_i32 = qry_len.to_i32().unwrap();
-  for i in 0..=ref_len_i32 {
+  let ref_len = ref_len as isize;
+  let qry_len = qry_len as isize;
+  for i in 0..=ref_len {
     stripes.push(Stripe::new(0, qry_len + 1));
   }
   stripes
@@ -124,13 +143,13 @@ where
     let col = index2d.1.to_usize().unwrap();
     let stripe = &self.stripes[row];
     assert!(
-      stripe.begin <= col && col < stripe.end,
+      stripe.begin() <= col && col < stripe.end(),
       "Stripe col out of bounds: stripe.begin = {}, stripe.end = {}, col = {}",
-      stripe.begin,
-      stripe.end,
+      stripe.begin(),
+      stripe.end(),
       col
     );
-    self.row_start_points[row] + (col - stripe.begin)
+    self.row_start_points[row] + (col - stripe.begin())
   }
 }
 
@@ -141,7 +160,7 @@ fn calculate_dimensions(stripes: &[Stripe]) -> (usize, usize, Vec<usize>) {
   row_start_points[0] = 0;
   for (i, stripe) in stripes.iter().enumerate() {
     row_start_points[i + 1] = row_start_points[i] + stripe.len();
-    n_cols = n_cols.max(stripe.end);
+    n_cols = n_cols.max(stripe.end());
   }
   (n_rows, n_cols, row_start_points)
 }
@@ -168,7 +187,7 @@ impl<T: Default + Clone + Display> fmt::Debug for Band2d<T> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for i in 0..self.n_rows {
       for j in 0..self.n_cols {
-        if self.stripes[i].begin <= j && j < self.stripes[i].end {
+        if self.stripes[i].begin() <= j && j < self.stripes[i].end() {
           write!(f, "{:2} ", self[(i, j)])?;
         } else {
           write!(f, " - ")?;
@@ -209,12 +228,12 @@ mod tests {
   #[rstest]
   fn test_band_2d_internals() -> Result<(), Report> {
     let stripes = vec![
-      Stripe { begin: 0, end: 3 },
-      Stripe { begin: 1, end: 6 },
-      Stripe { begin: 2, end: 6 },
-      Stripe { begin: 3, end: 7 },
-      Stripe { begin: 4, end: 8 },
-      Stripe { begin: 5, end: 8 },
+      Stripe::new(0, 3),
+      Stripe::new(1, 6),
+      Stripe::new(2, 6),
+      Stripe::new(3, 7),
+      Stripe::new(4, 8),
+      Stripe::new(5, 8),
     ];
 
     let mut band = Band2d::<i32>::new(&stripes);
@@ -242,12 +261,12 @@ mod tests {
   #[rstest]
   fn test_simple_stripes() -> Result<(), Report> {
     let expected_stripes = vec![
-      Stripe { begin: 0, end: 3 },
-      Stripe { begin: 0, end: 4 },
-      Stripe { begin: 0, end: 5 },
-      Stripe { begin: 1, end: 6 },
-      Stripe { begin: 2, end: 7 },
-      Stripe { begin: 3, end: 8 },
+      Stripe::new(0, 3),
+      Stripe::new(0, 4),
+      Stripe::new(0, 5),
+      Stripe::new(1, 6),
+      Stripe::new(2, 7),
+      Stripe::new(3, 8),
     ];
 
     let result = simple_stripes(0, 2, 5, 7);
@@ -260,12 +279,12 @@ mod tests {
   #[rstest]
   fn test_simple_stripes_without_origin_in_band() -> Result<(), Report> {
     let expected_stripes = vec![
-      Stripe { begin: 0, end: 1 },
-      Stripe { begin: 0, end: 1 },
-      Stripe { begin: 0, end: 2 },
-      Stripe { begin: 0, end: 3 },
-      Stripe { begin: 1, end: 4 },
-      Stripe { begin: 2, end: 6 },
+      Stripe::new(0, 1),
+      Stripe::new(0, 1),
+      Stripe::new(0, 2),
+      Stripe::new(0, 3),
+      Stripe::new(1, 4),
+      Stripe::new(2, 6),
     ];
 
     let result = simple_stripes(2, 1, 5, 5);

@@ -465,3 +465,11 @@ impl_ops_for_pos!(NucAlnLocalPosition);
 impl_ops_for_pos!(NucRefLocalPosition);
 impl_ops_for_pos!(AaAlnPosition);
 impl_ops_for_pos!(AaRefPosition);
+
+impl PositionLikeAttrs for isize {}
+
+impl PositionLike for isize {
+  fn as_isize(&self) -> isize {
+    *self
+  }
+}
