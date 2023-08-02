@@ -1,6 +1,7 @@
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match2::CodonSpacedIndex;
+use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::{to_nuc_seq, Nuc};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
@@ -93,6 +94,9 @@ pub struct AnalysisInitialData {
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AnalysisOutput {
+  #[schemars(with = "String")]
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
   query: Vec<Nuc>,
   translation: Translation,
   analysis_result: NextcladeOutputs,
