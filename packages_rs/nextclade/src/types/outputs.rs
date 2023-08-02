@@ -39,7 +39,6 @@ pub struct NextalignOutputs {
   pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub is_reverse_complement: bool,
-  pub coord_map_global: CoordMapGlobal,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
