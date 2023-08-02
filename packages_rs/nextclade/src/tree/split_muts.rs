@@ -1,7 +1,7 @@
 use crate::alphabet::letter::Letter;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams};
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::coord::position::PositionLike;
 use crate::make_internal_error;
 use eyre::{Report, WrapErr};
@@ -13,27 +13,21 @@ use std::hash::Hash;
 
 #[derive(Debug, Clone)]
 pub struct SplitMutsResult {
-  pub left: PrivateMutationsMinimal,
-  pub shared: PrivateMutationsMinimal,
-  pub right: PrivateMutationsMinimal,
+  pub left: BranchMutations,
+  pub shared: BranchMutations,
+  pub right: BranchMutations,
 }
 
 /// Splits 2 sets of mutations (left and right), with respect to their positions, into 3 subsets:
 ///  - shared: mutations contained in both sets
 ///  - left: mutations contained only in the left set
 ///  - right: mutations contained only in the right set
-pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> Result<SplitMutsResult, Report> {
+pub fn split_muts(left: &BranchMutations, right: &BranchMutations) -> Result<SplitMutsResult, Report> {
   let Split3WayResult {
     left: subs_left,
     shared: subs_shared,
     right: subs_right,
-  } = split_3_way(&left.nuc_subs, &right.nuc_subs).wrap_err("When splitting private nucleotide substitutions")?;
-
-  let Split3WayResult {
-    left: dels_left,
-    shared: dels_shared,
-    right: dels_right,
-  } = split_3_way(&left.nuc_dels, &right.nuc_dels).wrap_err("When splitting private nucleotide deletions")?;
+  } = split_3_way(&left.nuc_muts, &right.nuc_muts).wrap_err("When splitting private nucleotide substitutions")?;
 
   let SplitAaMutsResult {
     aa_muts_left,
@@ -42,19 +36,16 @@ pub fn split_muts(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinima
   } = split_aa_muts(&left.aa_muts, &right.aa_muts).wrap_err("When splitting private aminoacid mutations")?;
 
   Ok(SplitMutsResult {
-    left: PrivateMutationsMinimal {
-      nuc_subs: subs_left,
-      nuc_dels: dels_left,
+    left: BranchMutations {
+      nuc_muts: subs_left,
       aa_muts: aa_muts_left,
     },
-    shared: PrivateMutationsMinimal {
-      nuc_subs: subs_shared,
-      nuc_dels: dels_shared,
+    shared: BranchMutations {
+      nuc_muts: subs_shared,
       aa_muts: aa_muts_shared,
     },
-    right: PrivateMutationsMinimal {
-      nuc_subs: subs_right,
-      nuc_dels: dels_right,
+    right: BranchMutations {
+      nuc_muts: subs_right,
       aa_muts: aa_muts_right,
     },
   })
@@ -167,15 +158,10 @@ where
 }
 
 /// Calculates set-union of 2 sets of mutations, with respect to their positions.
-pub fn union_of_muts(
-  left: &PrivateMutationsMinimal,
-  right: &PrivateMutationsMinimal,
-) -> Result<PrivateMutationsMinimal, Report> {
-  Ok(PrivateMutationsMinimal {
-    nuc_subs: union(&left.nuc_subs, &right.nuc_subs)
+pub fn union_of_muts(left: &BranchMutations, right: &BranchMutations) -> Result<BranchMutations, Report> {
+  Ok(BranchMutations {
+    nuc_muts: union(&left.nuc_muts, &right.nuc_muts)
       .wrap_err("When calculating union of private nucleotide substitutions")?,
-    nuc_dels: union(&left.nuc_dels, &right.nuc_dels)
-      .wrap_err("When calculating union of private nucleotide deletions")?,
     aa_muts: union_of_aa_muts(&left.aa_muts, &right.aa_muts)
       .wrap_err("When calculating union of private aminoacid mutations")?,
   })
@@ -255,15 +241,10 @@ where
 }
 
 /// Calculates set-difference of 2 sets of mutations, with respect to their positions.
-pub fn difference_of_muts(
-  left: &PrivateMutationsMinimal,
-  right: &PrivateMutationsMinimal,
-) -> Result<PrivateMutationsMinimal, Report> {
-  Ok(PrivateMutationsMinimal {
-    nuc_subs: difference(&left.nuc_subs, &right.nuc_subs)
+pub fn difference_of_muts(left: &BranchMutations, right: &BranchMutations) -> Result<BranchMutations, Report> {
+  Ok(BranchMutations {
+    nuc_muts: difference(&left.nuc_muts, &right.nuc_muts)
       .wrap_err("When calculating union of private nucleotide substitutions")?,
-    nuc_dels: difference(&left.nuc_dels, &right.nuc_dels)
-      .wrap_err("When calculating union of private nucleotide deletions")?,
     aa_muts: difference_of_aa_muts(&left.aa_muts, &right.aa_muts)
       .wrap_err("When calculating union of private aminoacid mutations")?,
   })

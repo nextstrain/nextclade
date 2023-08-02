@@ -1,6 +1,7 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::divergence::count_nuc_muts;
 use crate::analyze::is_sequenced::{is_nuc_non_acgtn, is_nuc_sequenced};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
@@ -14,18 +15,16 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
-pub struct PrivateMutationsMinimal {
-  pub nuc_subs: Vec<NucSub>,
-  pub nuc_dels: Vec<NucDel>,
+pub struct BranchMutations {
+  pub nuc_muts: Vec<NucSub>,
   pub aa_muts: BTreeMap<String, Vec<AaSub>>,
 }
 
-impl PrivateMutationsMinimal {
+impl BranchMutations {
   #[must_use]
-  pub fn invert(&self) -> PrivateMutationsMinimal {
-    PrivateMutationsMinimal {
-      nuc_subs: self.nuc_subs.iter().map(NucSub::invert).collect(),
-      nuc_dels: self.nuc_dels.clone(),
+  pub fn invert(&self) -> BranchMutations {
+    BranchMutations {
+      nuc_muts: self.nuc_muts.iter().map(NucSub::invert).collect(),
       aa_muts: self
         .aa_muts
         .iter()

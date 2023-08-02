@@ -1,5 +1,5 @@
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::split_muts::SplitMutsResult;
@@ -11,69 +11,38 @@ use std::collections::{BTreeMap, HashSet};
 ///  - shared
 ///  - belonging only to left argument
 ///  - belonging only to the right argument
-pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinimal) -> SplitMutsResult {
+pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMutsResult {
   let mut subs_shared = Vec::<NucSub>::new();
   let mut subs_left = Vec::<NucSub>::new();
   let mut subs_right = Vec::<NucSub>::new();
   let mut i = 0;
   let mut j = 0;
-  while (i < left.nuc_subs.len()) && (j < right.nuc_subs.len()) {
-    if left.nuc_subs[i].pos == right.nuc_subs[j].pos {
+  while (i < left.nuc_muts.len()) && (j < right.nuc_muts.len()) {
+    if left.nuc_muts[i].pos == right.nuc_muts[j].pos {
       // Position is also mutated in node
-      if left.nuc_subs[i].ref_nuc == right.nuc_subs[j].ref_nuc && left.nuc_subs[i].qry_nuc == right.nuc_subs[j].qry_nuc
+      if left.nuc_muts[i].ref_nuc == right.nuc_muts[j].ref_nuc && left.nuc_muts[i].qry_nuc == right.nuc_muts[j].qry_nuc
       {
-        subs_shared.push(left.nuc_subs[i].clone()); // the exact mutation is shared between node and seq
+        subs_shared.push(left.nuc_muts[i].clone()); // the exact mutation is shared between node and seq
       } else {
-        subs_left.push(left.nuc_subs[i].clone());
-        subs_right.push(right.nuc_subs[j].clone());
+        subs_left.push(left.nuc_muts[i].clone());
+        subs_right.push(right.nuc_muts[j].clone());
       }
       i += 1;
       j += 1;
-    } else if left.nuc_subs[i].pos < right.nuc_subs[j].pos {
-      subs_left.push(left.nuc_subs[i].clone());
+    } else if left.nuc_muts[i].pos < right.nuc_muts[j].pos {
+      subs_left.push(left.nuc_muts[i].clone());
       i += 1;
     } else {
-      subs_right.push(right.nuc_subs[j].clone());
+      subs_right.push(right.nuc_muts[j].clone());
       j += 1;
     }
   }
-  while i < left.nuc_subs.len() {
-    subs_left.push(left.nuc_subs[i].clone());
+  while i < left.nuc_muts.len() {
+    subs_left.push(left.nuc_muts[i].clone());
     i += 1;
   }
-  while j < right.nuc_subs.len() {
-    subs_right.push(right.nuc_subs[j].clone());
-    j += 1;
-  }
-
-  ////////////////////////////////////////////////////////////////////////
-
-  let mut i = 0;
-  let mut j = 0;
-  let mut dels_shared = Vec::<NucDel>::new();
-  let mut dels_left = Vec::<NucDel>::new();
-  let mut dels_right = Vec::<NucDel>::new();
-
-  while (i < left.nuc_dels.len()) && (j < right.nuc_dels.len()) {
-    if left.nuc_dels[i].pos == right.nuc_dels[j].pos {
-      // Position is also a deletion in node
-      dels_shared.push(left.nuc_dels[i].clone()); // the exact mutation is shared between node and seq
-      i += 1;
-      j += 1;
-    } else if left.nuc_dels[i].pos < right.nuc_dels[j].pos {
-      dels_left.push(left.nuc_dels[i].clone());
-      i += 1;
-    } else {
-      dels_right.push(right.nuc_dels[j].clone());
-      j += 1;
-    }
-  }
-  while i < left.nuc_dels.len() {
-    dels_left.push(left.nuc_dels[i].clone());
-    i += 1;
-  }
-  while j < right.nuc_dels.len() {
-    dels_right.push(right.nuc_dels[j].clone());
+  while j < right.nuc_muts.len() {
+    subs_right.push(right.nuc_muts[j].clone());
     j += 1;
   }
 
@@ -149,19 +118,16 @@ pub fn split_muts2(left: &PrivateMutationsMinimal, right: &PrivateMutationsMinim
   ////////////////////////////////////////////////////////////////////////
 
   SplitMutsResult {
-    left: PrivateMutationsMinimal {
-      nuc_subs: subs_left,
-      nuc_dels: dels_left,
+    left: BranchMutations {
+      nuc_muts: subs_left,
       aa_muts: aa_subs_left,
     },
-    shared: PrivateMutationsMinimal {
-      nuc_subs: subs_shared,
-      nuc_dels: dels_shared,
+    shared: BranchMutations {
+      nuc_muts: subs_shared,
       aa_muts: aa_subs_shared,
     },
-    right: PrivateMutationsMinimal {
-      nuc_subs: subs_right,
-      nuc_dels: dels_right,
+    right: BranchMutations {
+      nuc_muts: subs_right,
       aa_muts: aa_subs_right,
     },
   }
