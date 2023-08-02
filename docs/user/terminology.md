@@ -100,7 +100,7 @@ Before [Plylogenetic placement](#phylogenetic-placement) all nodes of the tree a
 
 Root node of the reference tree. This is the parent node for all other nodes.
 
-The root node corresponds to the [Reference](#reference-sequence).
+The root node corresponds to the [Reference sequence](#reference-sequence).
 
 ### New node
 
@@ -136,7 +136,7 @@ Numeric range of nucleotide positions signifying begin and end of the [aligned s
 
 A virus variant, typically one of a several co-circulating. in Nextstrain, clades are defined by their combination of signature mutations.
 
-See also: [Wikipedia: Clade](https://en.wikipedia.org/wiki/Clade) 
+See also: [Wikipedia: Clade](https://en.wikipedia.org/wiki/Clade)
 
 ### Phylogenetic placement
 
@@ -147,6 +147,18 @@ See [Algorithm: phylogenetic placement](algorithm#phylogenetic-placement) for mo
 ### Analysis
 
 The process of performing various steps within the Nextclade algorithm.
+
+### Branch length
+
+Branches in a phylogenetic tree connect parent and child nodes. Their length corresponds to a distance between parent and child. In general, this distance can have many different qualities and could for example correspond to calendar time, morphological distance, or genetic distance. The latter -- genetic distance -- is the most common distance metric in phylogenetic trees and is measured as the number of substitutions between the parent and the child sequence. This measure is often normalized by the length of the sequence, converting the number of substitutions into the fraction of positions of the genome that changed along the branch. When probabilistic models of sequence evolution are used, branch length is typically the *expected* number or fraction of substitutions. Insertions and deletions are often ignored in the calculation of branch length since they can involve a large number of positions and differences between sequences due to insertions and deletions cannot be treated on a position-by-position basis as single nucleotide changes.
+
+### Divergence
+
+Sequence divergence describes the cumulative distance of a node in the tree from the [root](#root-node) of the tree and is calculated by summing all [length of branches](#branch-length) on the path from the [root](#root-node) to the node. Annotation of a tree with [branch length](#branch-length) and divergences is thus equivalent.
+
+#### Private Mutations
+
+Nextclade introduces the concept of *private mutations*. These are the differences between a [query sequence](#query-sequence) and the sequence of the most similar [node](#reference-node) of the [reference tree](#reference-tree-concept). When [attaching](#phylogenetic-placement) the query sequence as a new node in the tree, these private mutations are the mutations that map to the branch from the nearest reference node to the new node corresponding to the query sequence and determine the length of this branch.
 
 ### Frame
 
