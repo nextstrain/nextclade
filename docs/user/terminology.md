@@ -162,8 +162,17 @@ Nextclade introduces the concept of *private mutations*. These are the differenc
 
 ### Frame
 
-Reading frame [...]
+Synonyms: **Reading frame**
+
+A particular way to split nucleotide sequence into triplets. Each frame corresponds to one of the possible translations of a sequence.
+
+See [Wikipedia - Reading frame](https://en.wikipedia.org/wiki/Reading_frame)
 
 ### Frame shift
 
-[...]
+Shift of the [reading frame](#frame). In context of Nextclade they can either be:
+
+- biological corresponding to the real situation in the genome of the pathogen, for example due to insertions and/or deletions of length not divisible by 3, or due to programmed ribosomal frame shift in certain pathogens
+- non-biological, occurring due to defects during sequencing, assembly or processing of [query sequences](#query-sequence).
+
+See [Wikipedia - Ribosomal frameshift](https://en.wikipedia.org/wiki/Ribosomal_frameshift)
