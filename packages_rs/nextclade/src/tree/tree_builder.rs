@@ -1,6 +1,6 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::calculate_branch_length;
+use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts};
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
@@ -126,7 +126,7 @@ pub fn finetune_nearest_node(
           current_best_node.payload().name
         )
       })?;
-      let n_shared_muts = best_split_result.shared.n_nuc_muts();
+      let n_shared_muts = count_nuc_muts(&best_split_result.shared.nuc_muts);
       (best_split_result, n_shared_muts)
     };
 
@@ -138,7 +138,7 @@ pub fn finetune_nearest_node(
             child.payload().name
           )
         })?;
-      let tmp_n_shared_muts = tmp_split_result.shared.n_nuc_muts();
+      let tmp_n_shared_muts = count_nuc_muts(&tmp_split_result.shared.nuc_muts);
       if tmp_n_shared_muts > n_shared_muts {
         n_shared_muts = tmp_n_shared_muts;
         best_split_result = tmp_split_result;
