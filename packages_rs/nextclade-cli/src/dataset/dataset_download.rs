@@ -75,10 +75,10 @@ pub fn dataset_zip_load(
     read_one_fasta,
   )?;
 
-  let tree = run_args.inputs.input_tree.as_ref().map_or_else(
+  let tree = Some(run_args.inputs.input_tree.as_ref().map_or_else(
     || AuspiceTree::from_str(&zip_read_str(&mut zip, "tree.json")?),
     AuspiceTree::from_path,
-  )?;
+  )?);
 
   let virus_properties = run_args.inputs.input_pathogen_json.as_ref().map_or_else(
     || VirusProperties::from_str(&zip_read_str(&mut zip, "pathogen.json")?),
@@ -182,7 +182,7 @@ pub fn dataset_load_files(
     ref_record,
     virus_properties: VirusProperties::from_path(input_virus_properties)?,
     gene_map: filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes)?,
-    tree: AuspiceTree::from_path(input_tree)?,
+    tree: Some(AuspiceTree::from_path(input_tree)?),
   })
 }
 
@@ -215,10 +215,10 @@ pub fn dataset_str_download_and_load(
     read_one_fasta,
   )?;
 
-  let tree = run_args.inputs.input_tree.as_ref().map_or_else(
+  let tree = Some(run_args.inputs.input_tree.as_ref().map_or_else(
     || AuspiceTree::from_str(&dataset_file_http_get(&mut http, &dataset, "tree.json")?),
     AuspiceTree::from_path,
-  )?;
+  )?);
 
   let virus_properties = run_args.inputs.input_pathogen_json.as_ref().map_or_else(
     || VirusProperties::from_str(&dataset_file_http_get(&mut http, &dataset, "virus_properties.json")?),

@@ -19,6 +19,9 @@ use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
 
+const PATHOGEN_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
+const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
+
 /// Contains external configuration and data specific for a particular pathogen
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -48,6 +51,29 @@ pub struct VirusProperties {
   pub aa_motifs: Vec<AaMotifsDesc>,
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl Default for VirusProperties {
+  fn default() -> Self {
+    Self {
+      schema_version: PATHOGEN_JSON_SCHEMA_VERSION_FROM.to_owned(),
+      attributes: None,
+      deprecated: false,
+      enabled: true,
+      experimental: true,
+      default_gene: None,
+      gene_order_preference: vec![],
+      mut_labels: LabelledMutationsConfig::default(),
+      primers: vec![],
+      qc: None,
+      general_params: None,
+      alignment_params: None,
+      tree_builder_params: None,
+      phenotype_data: None,
+      aa_motifs: vec![],
+      other: serde_json::Value::default(),
+    }
+  }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
@@ -183,8 +209,8 @@ impl FromStr for VirusProperties {
       s,
       &SchemaVersionParams {
         name: "pathogen.json",
-        ver_from: Some("3.0.0"),
-        ver_to: Some("3.0.0"),
+        ver_from: Some(PATHOGEN_JSON_SCHEMA_VERSION_FROM),
+        ver_to: Some(PATHOGEN_JSON_SCHEMA_VERSION_TO),
       },
     );
 

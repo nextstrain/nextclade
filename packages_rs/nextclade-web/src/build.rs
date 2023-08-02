@@ -44,7 +44,7 @@ fn write_jsonschema<T: JsonSchema>(output_file: impl AsRef<Path>) -> Result<(), 
 /// it. Instead, See the actual types in the `definitions` property of JSON schema.
 #[derive(Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-struct _SchemaRoot {
+struct _SchemaRoot<'a> {
   _1: GeneMap,
   _2: Translation,
   _3: AuspiceTree,
@@ -61,7 +61,7 @@ struct _SchemaRoot {
   _14: PhenotypeAttrDesc,
   _15: FastaRecord,
   _16: DatasetTagJson,
-  _17: AnalysisInitialData,
+  _17: AnalysisInitialData<'a>,
   _18: AnalysisInput,
   _19: NextcladeResult,
   _21: NextcladeParams,

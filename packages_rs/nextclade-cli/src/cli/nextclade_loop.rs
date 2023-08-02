@@ -16,7 +16,9 @@ use nextclade::io::json::{json_write, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::make_error;
-use nextclade::run::nextclade_wasm::{AnalysisOutput, Nextclade, NextcladeParams};
+use nextclade::run::nextclade_wasm::{
+  AnalysisInitialData, AnalysisOutput, Nextclade, NextcladeParams, NextcladeStateWithGraph,
+};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use std::path::PathBuf;
@@ -152,17 +154,20 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     let writer = s.spawn(move || {
       let nextclade = &nextclade;
 
-      let aa_motif_keys = nextclade
-        .aa_motifs_descs
-        .iter()
-        .map(|desc| desc.name.clone())
-        .collect_vec();
+      let AnalysisInitialData {
+        genome_size,
+        gene_map,
+        clade_node_attr_key_descs,
+        phenotype_attr_descs,
+        aa_motif_keys,
+        ..
+      } = nextclade.get_initial_data();
 
       let mut output_writer = NextcladeOrderedWriter::new(
         &nextclade.gene_map,
-        &nextclade.clade_node_attrs,
-        &nextclade.phenotype_attr_descs,
-        &aa_motif_keys,
+        clade_node_attr_key_descs,
+        phenotype_attr_descs,
+        aa_motif_keys,
         &csv_column_config,
         &run_args.outputs,
         &nextclade.params,
@@ -195,25 +200,23 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   if should_write_tree {
     let Nextclade {
-      ref_seq,
-      mut graph,
-      params,
-      ..
+      ref_seq, params, graph, ..
     } = nextclade;
+    if let Some(mut graph) = graph {
+      graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &params.tree_builder)?;
 
-    graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &params.tree_builder)?;
+      if let Some(output_tree) = output_tree {
+        let tree = convert_graph_to_auspice_tree(&graph)?;
+        json_write(output_tree, &tree, JsonPretty(true))?;
+      }
 
-    if let Some(output_tree) = output_tree {
-      let tree = convert_graph_to_auspice_tree(&graph)?;
-      json_write(output_tree, &tree, JsonPretty(true))?;
-    }
+      if let Some(output_tree_nwk) = output_tree_nwk {
+        nwk_write_to_file(output_tree_nwk, &graph)?;
+      }
 
-    if let Some(output_tree_nwk) = output_tree_nwk {
-      nwk_write_to_file(output_tree_nwk, &graph)?;
-    }
-
-    if let Some(output_graph) = run_args.outputs.output_graph {
-      json_write(output_graph, &graph, JsonPretty(true))?;
+      if let Some(output_graph) = run_args.outputs.output_graph {
+        json_write(output_graph, &graph, JsonPretty(true))?;
+      }
     }
   }
 

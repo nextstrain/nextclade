@@ -35,7 +35,7 @@ impl PrivateMutationsMinimal {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateNucMutations {
   /// All private substitution mutations

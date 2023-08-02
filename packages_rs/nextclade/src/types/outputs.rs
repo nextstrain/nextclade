@@ -1,5 +1,4 @@
-use crate::align::backtrace::AlignmentOutput;
-use crate::align::insertions_strip::{AaIns, Insertion, StripInsertionsResult};
+use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
@@ -11,13 +10,11 @@ use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::graph::node::GraphNodeKey;
 use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::Translation;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -27,19 +24,6 @@ use std::collections::BTreeMap;
 pub struct PeptideWarning {
   pub gene_name: String,
   pub warning: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct NextalignOutputs {
-  pub alignment: AlignmentOutput<Nuc>,
-  pub stripped: StripInsertionsResult<Nuc>,
-  pub translation: Translation,
-  pub aa_insertions: Vec<AaIns>,
-  pub warnings: Vec<PeptideWarning>,
-  pub missing_genes: Vec<String>,
-  pub is_reverse_complement: bool,
-  pub coord_map_global: CoordMapGlobal,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]

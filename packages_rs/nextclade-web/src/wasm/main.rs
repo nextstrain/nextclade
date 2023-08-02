@@ -36,7 +36,7 @@ impl NextcladeWasm {
       jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
 
     let inputs: NextcladeParams =
-      jserr(NextcladeParams::from_raw(&params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
+      jserr(NextcladeParams::from_raw(params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
 
     // FIXME: pass params from the frontend
     let params = NextcladeInputParamsOptional::default();
@@ -70,7 +70,7 @@ impl NextcladeWasm {
   }
 
   pub fn get_initial_data(&self) -> Result<String, JsError> {
-    let initial_data = jserr(self.nextclade.get_initial_data())?;
+    let initial_data = self.nextclade.get_initial_data();
     jserr(json_stringify(&initial_data, JsonPretty(false)))
   }
 
