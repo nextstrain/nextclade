@@ -74,7 +74,7 @@ pub fn align_aa(
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
   band_width: usize,
-  mean_shift: i32,
+  mean_shift: isize,
 ) -> AlignmentOutput<Aa> {
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 

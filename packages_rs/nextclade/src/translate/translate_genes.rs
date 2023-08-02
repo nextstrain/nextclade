@@ -140,7 +140,7 @@ pub struct CdsTranslation {
 /// Results of the aminoacid alignment parameters estimation
 pub struct PeptideAlignmentParams {
   band_width: usize,
-  mean_shift: i32,
+  mean_shift: isize,
 }
 
 /// Deduces aminoacid alignment params from nucleotide alignment.
@@ -149,8 +149,8 @@ pub struct PeptideAlignmentParams {
 pub const fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapCounts) -> PeptideAlignmentParams {
   const BASE_BAND_WIDTH: usize = 5; // An arbitrary magic number to give some additional room for alignment
   let band_width = (qry_gaps.internal + ref_gaps.internal) / 3 + BASE_BAND_WIDTH;
-  let mean_shift =
-    (qry_gaps.leading as i32 - ref_gaps.leading as i32) / 3 + (qry_gaps.internal as i32 - ref_gaps.internal as i32) / 6;
+  let mean_shift = (qry_gaps.leading as isize - ref_gaps.leading as isize) / 3
+    + (qry_gaps.internal as isize - ref_gaps.internal as isize) / 6;
   PeptideAlignmentParams { band_width, mean_shift }
 }
 

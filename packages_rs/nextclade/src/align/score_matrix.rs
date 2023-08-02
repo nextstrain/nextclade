@@ -59,7 +59,7 @@ pub fn score_matrix<T: Letter<T>>(
   scores[(0, 0)] = 0;
 
   // Initialize first row (start at + 1 since [(0,0)] is already set)
-  for qpos in (stripes[0].begin + 1)..stripes[0].end {
+  for qpos in (stripes[0].begin() + 1)..stripes[0].end() {
     paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
     if params.left_terminal_gaps_free {
       // Left terminal qry insertion  is free
@@ -80,7 +80,7 @@ pub fn score_matrix<T: Letter<T>>(
   for ri in 1..=ref_len {
     let mut ref_gaps = NO_ALIGN;
 
-    for qpos in stripes[ri].begin..stripes[ri].end {
+    for qpos in stripes[ri].begin()..stripes[ri].end() {
       let mut tmp_path = 0;
       let mut score = NO_ALIGN; // Needs to be very negative so that one path is always the best
       let mut origin = 0;
@@ -112,7 +112,7 @@ pub fn score_matrix<T: Letter<T>>(
         // no gap -- match case
 
         // TODO: Double bounds check -> wasteful, make better
-        if qpos > stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
+        if qpos > stripes[ri - 1].begin() && qpos - 1 < stripes[ri - 1].end() {
           // ^ If stripes allow to move up diagonally to upper left
           score = if qry_seq[qpos - 1].is_unknown() || ref_seq[ri - 1].is_unknown() {
             // no need to look-up match score since unknown matches with everything.
@@ -129,7 +129,7 @@ pub fn score_matrix<T: Letter<T>>(
         // check the scores of a reference gap
         // if qpos == stripes.begin: ref gap not allowed
         // thus path skipped
-        if qpos > stripes[ri].begin {
+        if qpos > stripes[ri].begin() {
           if ri != ref_len || !params.right_terminal_gaps_free {
             //normal case, not at end of ref sequence
             r_gap_extend = ref_gaps - params.penalty_gap_extend;
@@ -140,7 +140,7 @@ pub fn score_matrix<T: Letter<T>>(
             r_gap_extend = ref_gaps;
             r_gap_open = scores[(ri, qpos - 1)];
           }
-          if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
+          if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin() + 1 {
             // extension better than opening (and ^ extension allowed positionally)
             tmp_score = r_gap_extend;
             tmp_path += REF_GAP_EXTEND;
@@ -157,7 +157,7 @@ pub fn score_matrix<T: Letter<T>>(
         }
 
         // check the scores of a query gap
-        if qpos < stripes[ri - 1].end {
+        if qpos < stripes[ri - 1].end() {
           // need stripe above to move from, otherwise no scores[(ri-1, qpos)] not existing
           if qpos != query_size || !params.right_terminal_gaps_free {
             //normal case, not at end of query sequence
@@ -168,7 +168,7 @@ pub fn score_matrix<T: Letter<T>>(
             q_gap_extend = qry_gaps[qpos];
             q_gap_open = scores[(ri - 1, qpos)];
           }
-          if q_gap_extend >= q_gap_open && qpos < stripes[ri - 2].end {
+          if q_gap_extend >= q_gap_open && qpos < stripes[ri - 2].end() {
             // extension better than opening (and ^ extension allowed positionally)
             tmp_score = q_gap_extend;
             tmp_path += QRY_GAP_EXTEND;
