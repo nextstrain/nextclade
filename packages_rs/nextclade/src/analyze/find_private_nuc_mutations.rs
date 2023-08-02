@@ -31,6 +31,16 @@ impl BranchMutations {
         .collect(),
     }
   }
+
+  /// Calculate number of nuc muts, only considering ACGT characters
+  #[must_use]
+  pub fn n_nuc_muts(&self) -> usize {
+    self
+      .nuc_muts
+      .iter()
+      .filter(|m| m.ref_nuc.is_acgt() && m.qry_nuc.is_acgt())
+      .count()
+  }
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
