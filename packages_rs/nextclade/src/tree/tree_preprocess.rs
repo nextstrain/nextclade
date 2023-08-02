@@ -82,34 +82,29 @@ pub fn graph_preprocess_in_place_recursive(
 }
 
 pub fn calc_node_private_mutations(node: &AuspiceGraphNodePayload) -> Result<BranchMutations, Report> {
-  let mut nuc_sub = Vec::<NucSub>::new();
-  let mut aa_sub = BTreeMap::<String, Vec<AaSub>>::new();
-  match node.branch_attrs.mutations.get("nuc") {
-    None => Ok(BranchMutations {
-      nuc_muts: nuc_sub,
-      aa_muts: aa_sub,
-    }),
-    Some(mutations) => {
-      for mutation_str in mutations {
-        let mutation = NucSub::from_str(mutation_str)?;
-        nuc_sub.push(mutation);
-      }
-      for (gene, muts) in &node.branch_attrs.mutations {
-        if gene != "nuc" {
-          let mut aa_sub_vec = Vec::<AaSub>::new();
-          for mutation_str in muts {
-            let mutation = AaSub::from_str(&format!("{gene}:{mutation_str}"))?;
-            aa_sub_vec.push(mutation);
-          }
-          aa_sub.insert(gene.to_string(), aa_sub_vec);
-        }
-      }
-      Ok(BranchMutations {
-        nuc_muts: nuc_sub,
-        aa_muts: aa_sub,
-      })
-    }
-  }
+  let nuc_muts = node
+    .branch_attrs
+    .mutations
+    .get("nuc")
+    .iter()
+    .flat_map(|mutations| mutations.iter().map(|m| NucSub::from_str(m)))
+    .collect::<Result<Vec<NucSub>, Report>>()?;
+
+  let aa_muts = node
+    .branch_attrs
+    .mutations
+    .iter()
+    .filter(|(cds_name, _)| cds_name != &"nuc")
+    .map(|(cds_name, muts)| {
+      let muts = muts
+        .iter()
+        .map(|m| AaSub::from_str(&format!("{cds_name}:{m}")))
+        .collect::<Result<Vec<AaSub>, Report>>()?;
+      Ok((cds_name.clone(), muts))
+    })
+    .collect::<Result<BTreeMap<String, Vec<AaSub>>, Report>>()?;
+
+  Ok(BranchMutations { nuc_muts, aa_muts })
 }
 
 fn map_nuc_muts(
