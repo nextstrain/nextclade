@@ -189,7 +189,7 @@ fn extend_and_rewind(
   let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   let mut current_band = current_band;
   let mut look_back_length = look_back_length;
-  // generate new current trapezoid for the body of the next seed
+  // generate new current trapezoid for the body of the current seed
   let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   if current_seed_end > current_band.ref_end {
     bands.push(current_band);
@@ -200,6 +200,10 @@ fn extend_and_rewind(
       max_offset: current_seed.offset + minimal_bandwidth,
     };
   }
+  look_back_length = max(
+    max(look_back_length, mean_offset - current_band.min_offset),
+    current_band.max_offset - mean_offset,
+  );
 
   // rewind the bands until the ref_start of the last one preceeds the one to add
   while current_band.ref_start > max(0, current_seed_end - look_back_length - 1) {
@@ -286,7 +290,7 @@ pub fn create_stripes(
       ref_len,
     );
 
-    // generate trapezoid for the gap between seeds that goes look-forward-length into the next seed and push
+    // generate trapezoid for the gap between seeds that goes look-forward-length into the next seed
     current_band = TrapezoidDirectParams {
       ref_start: current_ref_end,
       ref_end: next_seed.ref_pos as isize + look_forward_length,
@@ -333,7 +337,6 @@ pub fn create_stripes(
 
   // trim stripes to reachable regions
   let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
-  // trace_stripe_stats(&regularized_stripes);
 
   Ok(regularized_stripes)
 }
@@ -359,7 +362,7 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
   // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
   stripes[stripes_len - 1].end = qry_len + 1;
   for i in (0..(stripes_len - 1)).rev() {
-    stripes[i].end = clamp(stripes[i].end, 1, stripes[i + 1].end);
+    stripes[i].end = clamp(stripes[i].end, stripes[i].begin + 1, stripes[i + 1].end);
   }
 
   stripes
