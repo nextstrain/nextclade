@@ -339,7 +339,11 @@ pub fn create_stripes(
   let (regularized_stripes, band_area) = regularize_stripes(stripes, qry_len as usize);
   let CLI_PARAM_MAXIMAL_BAND_AREA = 500_000_000;
   if band_area > CLI_PARAM_MAXIMAL_BAND_AREA {
-    make_error!("Alignment matrix size {band_area} exceeds maximal value {CLI_PARAM_MAXIMAL_BAND_AREA}. Can be set via flag '--maximal-band-area'!")
+    return make_error!(
+      "Alignment matrix size {} exceeds maximal value {}. Can be set via flag '--maximal-band-area'!",
+      band_area,
+      CLI_PARAM_MAXIMAL_BAND_AREA
+    );
   }
 
   Ok(regularized_stripes)
