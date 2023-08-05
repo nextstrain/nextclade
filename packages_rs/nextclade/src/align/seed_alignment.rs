@@ -336,7 +336,11 @@ pub fn create_stripes(
   // write_stripes_to_file(&stripes, "stripes.csv");
 
   // trim stripes to reachable regions
-  let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
+  let (regularized_stripes, band_area) = regularize_stripes(stripes, qry_len as usize);
+  let CLI_PARAM_MAXIMAL_BAND_AREA = 500_000_000;
+  if band_area > CLI_PARAM_MAXIMAL_BAND_AREA {
+    make_error!("Alignment matrix size {band_area} exceeds maximal value {CLI_PARAM_MAXIMAL_BAND_AREA}. Can be set via flag '--maximal-band-area'!")
+  }
 
   Ok(regularized_stripes)
 }
@@ -351,7 +355,7 @@ struct TrapezoidDirectParams {
 
 /// Chop off unreachable parts of the stripes.
 /// Overhanging parts are pruned
-fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
+fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>, usize) {
   // assure stripe begin are non-decreasing -- such states would be unreachable in the alignment
   let stripes_len = stripes.len();
   stripes[0].begin = 0;
@@ -361,11 +365,13 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
 
   // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
   stripes[stripes_len - 1].end = qry_len + 1;
+  let mut band_area = stripes[stripes_len - 1].end - stripes[stripes_len - 1].begin;
   for i in (0..(stripes_len - 1)).rev() {
     stripes[i].end = clamp(stripes[i].end, stripes[i].begin + 1, stripes[i + 1].end);
+    band_area += stripes[i].end - stripes[i].begin;
   }
 
-  stripes
+  (stripes, band_area)
 }
 
 fn trace_stripe_stats(stripes: &[Stripe]) {
