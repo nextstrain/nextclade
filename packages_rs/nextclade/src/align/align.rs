@@ -104,10 +104,12 @@ pub fn align_nuc(
         allowed_mismatches *= 2;
         attempt += 1;
       } else {
-        info!(
-          "Succeeded with alignment without hitting boundary. alignment score {}",
-          alignment.alignment_score
-        );
+        if attempt > 0 {
+          info!(
+            "Succeeded with alignment without hitting boundary. alignment score {}",
+            alignment.alignment_score
+          );
+        }
         return Ok(alignment);
       }
       if attempt > 3 {

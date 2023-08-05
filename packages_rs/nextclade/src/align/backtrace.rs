@@ -101,9 +101,6 @@ pub fn backtrace<T: Letter<T>>(
 
   aln_qry.reverse();
   aln_ref.reverse();
-  if hit_boundary {
-    warn!("Hit band boundary!");
-  }
 
   AlignmentOutput {
     qry_seq: aln_qry,
