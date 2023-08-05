@@ -1,10 +1,10 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
-use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
+use crate::align::band_2d::{full_matrix, simple_stripes};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
-use crate::align::seed_alignment::seed_alignment;
-use crate::align::seed_match2::CodonSpacedIndex;
+use crate::align::seed_alignment::create_alignment_band;
+use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
@@ -12,6 +12,8 @@ use crate::make_error;
 use crate::translate::complement::reverse_complement_in_place;
 use eyre::Report;
 use log::{info, trace, warn};
+
+use super::seed_match;
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -40,6 +42,7 @@ pub fn align_nuc(
   params: &AlignPairwiseParams,
 ) -> Result<AlignmentOutput<Nuc>, Report> {
   let qry_len: usize = qry_seq.len();
+  let ref_len: usize = ref_seq.len();
   let min_len: usize = params.min_length;
   if qry_len < min_len {
     return make_error!(
@@ -47,21 +50,72 @@ pub fn align_nuc(
     );
   }
 
-  #[allow(clippy::map_err_ignore)]
-  match seed_alignment(qry_seq, ref_seq, seed_index, params) {
-    Ok(stripes) => Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)),
-    Err(report) => {
-      if params.retry_reverse_complement {
-        info!("When processing sequence #{index} '{seq_name}': Seed matching failed. Retrying reverse complement");
-        let mut qry_seq = qry_seq.to_owned();
-        reverse_complement_in_place(&mut qry_seq);
-        let stripes = seed_alignment(&qry_seq, ref_seq, seed_index, params).map_err(|_| report)?;
-        let mut result = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
-        result.is_reverse_complement = true;
-        warn!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to the fasta header in the nucleotide alignment.");
-        Ok(result)
+  if ref_len + qry_len < (10 * params.seed_length) {
+    // for very short sequences, use full square
+    let stripes = full_matrix(ref_len, qry_len);
+    trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
+    Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes))
+  } else {
+    // otherwise, determine seed matches roughly regularly spaced along the query sequence
+    let mut is_reverse_complemented = false;
+    let mut rev_complement;
+    let seq_to_aln;
+    let seed_matches;
+    match get_seed_matches2(qry_seq, ref_seq, seed_index, params) {
+      Ok(matches) => {
+        seed_matches = matches;
+        seq_to_aln = qry_seq;
+      }
+      Err(report) => {
+        if params.retry_reverse_complement {
+          rev_complement = qry_seq.to_owned();
+          reverse_complement_in_place(&mut rev_complement);
+          seed_matches = get_seed_matches2(&rev_complement, ref_seq, seed_index, params).map_err(|_| report)?;
+          is_reverse_complemented = true;
+          seq_to_aln = &rev_complement;
+        } else {
+          return Err(report);
+        }
+      }
+    }
+
+    let mut terminal_bandwidth = params.terminal_bandwidth as isize;
+    let mut excess_bandwidth = params.excess_bandwidth as isize;
+    let mut allowed_mismatches = params.allowed_mismatches as isize;
+    let mut attempt = 0;
+    loop {
+      let stripes = create_alignment_band(
+        &seed_matches,
+        qry_len as isize,
+        ref_len as isize,
+        terminal_bandwidth,
+        excess_bandwidth,
+        allowed_mismatches,
+      )?;
+      let mut alignment = align_pairwise(seq_to_aln, ref_seq, gap_open_close, params, &stripes);
+      alignment.is_reverse_complement = is_reverse_complemented;
+      if alignment.hit_boundary {
+        info!(
+          "Hit boundary, increasing alignment band parameters. alignment score {}",
+          alignment.alignment_score
+        );
+        terminal_bandwidth *= 2;
+        excess_bandwidth *= 2;
+        allowed_mismatches *= 2;
+        attempt += 1;
       } else {
-        Err(report)
+        info!(
+          "Succeeded with alignment without hitting boundary. alignment score {}",
+          alignment.alignment_score
+        );
+        return Ok(alignment);
+      }
+      if attempt > 3 {
+        warn!(
+          "Attempted to increase alignment band parameters 3 times, still hitting the boundary.  alignment score {}",
+          alignment.alignment_score
+        );
+        return Ok(alignment);
       }
     }
   }

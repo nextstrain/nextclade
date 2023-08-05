@@ -136,36 +136,6 @@ pub fn get_seed_matches<L: Letter<L>>(
   (seed_matches, n_seeds)
 }
 
-/// Determine rough positioning of qry to reference sequence by approximate seed matching
-/// Returns vector of stripes, that is a band within which the alignment is expected to lie
-pub fn seed_alignment(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
-  seed_index: &CodonSpacedIndex,
-  params: &AlignPairwiseParams,
-) -> Result<Vec<Stripe>, Report> {
-  let qry_len = qry_seq.len();
-  let ref_len = ref_seq.len();
-
-  if ref_len + qry_len < (10 * params.seed_length) {
-    // for very short sequences, use full square
-    let stripes = full_matrix(ref_len, qry_len);
-    trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
-    Ok(stripes)
-  } else {
-    // otherwise, determine seed matches roughly regularly spaced along the query sequence
-    let seed_matches = get_seed_matches2(qry_seq, ref_seq, seed_index, params)?;
-    create_stripes(
-      &seed_matches,
-      qry_len as isize,
-      ref_len as isize,
-      params.terminal_bandwidth as isize,
-      params.excess_bandwidth as isize,
-      params.allowed_mismatches as isize,
-    )
-  }
-}
-
 fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> isize {
   abs(seed2.offset - seed1.offset)
 }
@@ -238,7 +208,7 @@ fn extend_and_rewind(
 
 /// Takes in seed matches and returns a vector of stripes
 /// Stripes define the query sequence range for each reference position
-pub fn create_stripes(
+pub fn create_alignment_band(
   chain: &[SeedMatch2],
   qry_len: isize,
   ref_len: isize,
@@ -445,7 +415,7 @@ mod tests {
     let qry_len = 30;
     let ref_len = 40;
 
-    let result = create_stripes(
+    let result = create_alignment_band(
       &seed_matches,
       qry_len,
       ref_len,
