@@ -43,18 +43,23 @@ function run_one_test() {
     return
   fi
 
+  # Temporarily disable default reference
+  if [ -z "$reference" ]; then
+    return
+  fi
+
   echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'"
 
-  ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}/${reference:-default}"
+  ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}_${reference:-default}"
 
   ${NEXTCLADE_BIN} run --in-order --include-reference \
-    --input-dataset="$DATASET_DIR/${name}/${reference:-default}" \
-    --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
-    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
-    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.json" \
-    --output-graph="$OUT_DIR/${name}/${reference:-default}/graph.json" \
-    "$DATASET_DIR/${name}/${reference:-default}/sequences.fasta"
+    --input-dataset="$DATASET_DIR/${name}_${reference:-default}" \
+    --output-translations="$OUT_DIR/${name}_${reference:-default}/translations/gene_{gene}.translation.fasta" \
+    --output-fasta="$OUT_DIR/${name}_${reference:-default}/aligned.fasta" \
+    --output-tsv="$OUT_DIR/${name}_${reference:-default}/nextclade.tsv" \
+    --output-tree="$OUT_DIR/${name}_${reference:-default}/tree.json" \
+    --output-graph="$OUT_DIR/${name}_${reference:-default}/graph.json" \
+    "$DATASET_DIR/${name}_${reference:-default}/sequences.fasta"
 }
 export -f run_one_test
 
@@ -94,11 +99,11 @@ function run_one_experimental_test() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${DATASET_DIR_EXPERIMENTAL}/${name}/files" \
-    --output-translations="$OUT_DIR/${name}/${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/${name}/${reference:-default}/aligned.fasta" \
-    --output-tsv="$OUT_DIR/${name}/${reference:-default}/nextclade.tsv" \
-    --output-tree="$OUT_DIR/${name}/${reference:-default}/tree.json" \
-    --output-graph="$OUT_DIR/${name}/${reference:-default}/graph.json" \
+    --output-translations="$OUT_DIR/${name}_${reference:-default}/translations/gene_{gene}.translation.fasta" \
+    --output-fasta="$OUT_DIR/${name}_${reference:-default}/aligned.fasta" \
+    --output-tsv="$OUT_DIR/${name}_${reference:-default}/nextclade.tsv" \
+    --output-tree="$OUT_DIR/${name}_${reference:-default}/tree.json" \
+    --output-graph="$OUT_DIR/${name}_${reference:-default}/graph.json" \
     "${sequences}"
 }
 export -f run_one_experimental_test

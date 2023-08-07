@@ -1,7 +1,7 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::calculate_branch_length;
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts};
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::GraphNodeKey;
@@ -65,10 +65,19 @@ pub fn graph_attach_new_node_in_place(
     private_aa_mutations.insert(key.clone(), value);
   }
 
+  let nuc_subs = concat_to_vec(
+    &result.private_nuc_mutations.private_substitutions,
+    &result
+      .private_nuc_mutations
+      .private_deletions
+      .iter()
+      .map(NucDel::to_sub)
+      .collect_vec(),
+  );
+
   // Check if new seq is in between nearest node and a neighbor of nearest node
-  let mutations_seq = PrivateMutationsMinimal {
-    nuc_subs: result.private_nuc_mutations.private_substitutions.clone(),
-    nuc_dels: result.private_nuc_mutations.private_deletions.clone(),
+  let mutations_seq = BranchMutations {
+    nuc_muts: nuc_subs,
     aa_muts: private_aa_mutations,
   };
 
@@ -91,8 +100,8 @@ pub fn graph_attach_new_node_in_place(
 pub fn finetune_nearest_node(
   graph: &AuspiceGraph,
   nearest_node_key: GraphNodeKey,
-  seq_private_mutations: &PrivateMutationsMinimal,
-) -> Result<(GraphNodeKey, PrivateMutationsMinimal), Report> {
+  seq_private_mutations: &BranchMutations,
+) -> Result<(GraphNodeKey, BranchMutations), Report> {
   let mut current_best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
@@ -102,8 +111,8 @@ pub fn finetune_nearest_node(
       // don't include node if node is root as we don't attach nodes above the root
       let best_split_result = SplitMutsResult {
         left: private_mutations.clone(),
-        right: PrivateMutationsMinimal::default(),
-        shared: PrivateMutationsMinimal::default(),
+        right: BranchMutations::default(),
+        shared: BranchMutations::default(),
       };
       (best_split_result, 0)
     } else {
@@ -117,7 +126,7 @@ pub fn finetune_nearest_node(
           current_best_node.payload().name
         )
       })?;
-      let n_shared_muts = best_split_result.shared.nuc_subs.len();
+      let n_shared_muts = count_nuc_muts(&best_split_result.shared.nuc_muts);
       (best_split_result, n_shared_muts)
     };
 
@@ -129,7 +138,7 @@ pub fn finetune_nearest_node(
             child.payload().name
           )
         })?;
-      let tmp_n_shared_muts = tmp_split_result.shared.nuc_subs.len();
+      let tmp_n_shared_muts = count_nuc_muts(&tmp_split_result.shared.nuc_muts);
       if tmp_n_shared_muts > n_shared_muts {
         n_shared_muts = tmp_n_shared_muts;
         best_split_result = tmp_split_result;
@@ -138,7 +147,7 @@ pub fn finetune_nearest_node(
     }
 
     if n_shared_muts > 0 {
-      if best_node.key() == current_best_node.key() && best_split_result.left.nuc_subs.is_empty() {
+      if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
         // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
         // FIXME: what if there's no parent?
         current_best_node = graph
@@ -177,7 +186,7 @@ pub fn finetune_nearest_node(
       }
     } else if current_best_node.is_leaf()
       && !current_best_node.is_root()
-      && current_best_node.payload().tmp.private_mutations.nuc_subs.is_empty()
+      && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
     {
       // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
       // auxiliary nodes.
@@ -205,7 +214,7 @@ pub fn finetune_nearest_node(
 pub fn attach_to_internal_node(
   graph: &mut AuspiceGraph,
   nearest_node_id: GraphNodeKey,
-  new_private_mutations: &PrivateMutationsMinimal,
+  new_private_mutations: &BranchMutations,
   result: &NextcladeOutputs,
   divergence_new_node: f64,
 ) -> Result<(), Report> {
@@ -219,17 +228,10 @@ pub fn attach_to_internal_node(
   graph.add_edge(nearest_node_id, new_node_key, AuspiceGraphEdgePayload::new())
 }
 
-pub fn convert_private_mutations_to_node_branch_attrs(
-  mutations: &PrivateMutationsMinimal,
-) -> BTreeMap<String, Vec<String>> {
+pub fn convert_private_mutations_to_node_branch_attrs(mutations: &BranchMutations) -> BTreeMap<String, Vec<String>> {
   let mut branch_attrs = BTreeMap::<String, Vec<String>>::new();
 
-  let dels_as_subs = mutations.nuc_dels.iter().map(NucDel::to_sub).collect_vec();
-  let nuc_muts = concat_to_vec(&mutations.nuc_subs, &dels_as_subs)
-    .iter()
-    .sorted()
-    .map(NucSub::to_string)
-    .collect_vec();
+  let nuc_muts = mutations.nuc_muts.iter().sorted().map(NucSub::to_string).collect_vec();
   branch_attrs.insert("nuc".to_owned(), nuc_muts);
 
   for (gene_name, aa_muts) in &mutations.aa_muts {
@@ -254,16 +256,16 @@ pub fn convert_private_mutations_to_node_branch_attrs_aa_labels(aa_muts: &BTreeM
 }
 
 struct KnitMuts {
-  muts_common_branch: PrivateMutationsMinimal,
-  muts_target_node: PrivateMutationsMinimal,
-  muts_new_node: PrivateMutationsMinimal,
+  muts_common_branch: BranchMutations,
+  muts_target_node: BranchMutations,
+  muts_new_node: BranchMutations,
 }
 
 pub fn knit_into_graph(
   graph: &mut AuspiceGraph,
   target_key: GraphNodeKey,
   result: &NextcladeOutputs,
-  private_mutations: &PrivateMutationsMinimal,
+  private_mutations: &BranchMutations,
   ref_seq_len: usize,
   params: &TreeBuilderParams,
 ) -> Result<(), Report> {
@@ -281,7 +283,7 @@ pub fn knit_into_graph(
     // don't split branch if node is root as we don't attach nodes above the root
     KnitMuts {
       muts_common_branch: target_node_auspice.tmp.private_mutations.clone(), // Keep target node muts unchanged.
-      muts_target_node: PrivateMutationsMinimal::default(),                  // Don't subtract any shared mutations.
+      muts_target_node: BranchMutations::default(),                          // Don't subtract any shared mutations.
       muts_new_node: private_mutations.clone(),                              // Keep private muts unchanged.
     }
   } else {
@@ -309,10 +311,10 @@ pub fn knit_into_graph(
     }
   };
   // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
-  if target_node.is_leaf() || !muts_target_node.nuc_subs.is_empty() {
+  if target_node.is_leaf() || !muts_target_node.nuc_muts.is_empty() {
     // determine divergence of new internal node by subtracting shared reversions from target_node
     let divergence_middle_node =
-      target_node_div - calculate_branch_length(&muts_target_node.nuc_subs, divergence_units, ref_seq_len);
+      target_node_div - calculate_branch_length(&muts_target_node.nuc_muts, divergence_units, ref_seq_len);
 
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
@@ -355,7 +357,7 @@ pub fn knit_into_graph(
       new_internal_node_key,
       &muts_new_node,
       result,
-      divergence_middle_node + calculate_branch_length(&muts_new_node.nuc_subs, divergence_units, ref_seq_len),
+      divergence_middle_node + calculate_branch_length(&muts_new_node.nuc_muts, divergence_units, ref_seq_len),
     )?;
   } else {
     //can simply attach node
@@ -364,7 +366,7 @@ pub fn knit_into_graph(
       target_key,
       private_mutations,
       result,
-      target_node_div + calculate_branch_length(&muts_new_node.nuc_subs, divergence_units, ref_seq_len),
+      target_node_div + calculate_branch_length(&muts_new_node.nuc_muts, divergence_units, ref_seq_len),
     )?;
   }
   Ok(())

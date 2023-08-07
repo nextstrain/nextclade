@@ -1,6 +1,6 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::find_private_nuc_mutations::PrivateMutationsMinimal;
+use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::NucRefGlobalRange;
 use crate::graph::edge::{Edge, GraphEdge};
@@ -197,7 +197,7 @@ pub struct TreeNodeAttrs {
 pub struct TreeNodeTempData {
   pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
-  pub private_mutations: PrivateMutationsMinimal,
+  pub private_mutations: BranchMutations,
   pub aa_substitutions: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
 }
