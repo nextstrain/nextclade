@@ -3,14 +3,13 @@ use std::path::PathBuf;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nextclade::align::params::AlignPairwiseParams;
-use nextclade::align::seed_alignment::seed_alignment;
-use nextclade::align::seed_match2::CodonSpacedIndex;
+use nextclade::align::seed_alignment::create_alignment_band;
+use nextclade::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
 use nextclade::alphabet::nuc::to_nuc_seq;
 use nextclade::gene::gene_map::GeneMap;
 
 pub fn bench_seed_alignment(c: &mut Criterion) {
   let params = AlignPairwiseParams::default();
-  let gene_map = GeneMap::new();
 
   let test_data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("test_data");
   let ref_path = test_data_dir.join("reference.fasta");
@@ -24,7 +23,18 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
   let mut group = c.benchmark_group("seed_alignment");
   group.bench_function("seed_match", |b| {
     b.iter(|| {
-      seed_alignment(&qry_seq, &ref_seq, &seed_index, &params).unwrap();
+      let SeedMatchesResult { seed_matches, .. } =
+        get_seed_matches_maybe_reverse_complement(&qry_seq, &ref_seq, &seed_index, &params).unwrap();
+
+      create_alignment_band(
+        &seed_matches,
+        qry_seq.len() as isize,
+        ref_seq.len() as isize,
+        params.terminal_bandwidth as isize,
+        params.excess_bandwidth as isize,
+        params.allowed_mismatches as isize,
+      )
+      .unwrap();
     });
   });
   group.finish();
