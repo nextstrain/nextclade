@@ -10,7 +10,7 @@ use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use eyre::{Report, WrapErr};
-use log::{info, trace, warn};
+use log::{info, trace};
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -50,7 +50,7 @@ pub fn align_nuc(
   if ref_len + qry_len < (10 * params.seed_length) {
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
-    trace!("Nucleotide alignment: Band construction: short sequences, using full matrix");
+    trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix");
     return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
   }
 
@@ -65,7 +65,9 @@ pub fn align_nuc(
   let mut terminal_bandwidth = params.terminal_bandwidth as isize;
   let mut excess_bandwidth = params.excess_bandwidth as isize;
   let mut allowed_mismatches = params.allowed_mismatches as isize;
+
   let mut attempt = 0;
+
   loop {
     let stripes = create_alignment_band(
       &seed_matches,
@@ -75,31 +77,25 @@ pub fn align_nuc(
       excess_bandwidth,
       allowed_mismatches,
     )?;
-    let mut alignment = align_pairwise(seq_to_aln, ref_seq, gap_open_close, params, &stripes);
-    alignment.is_reverse_complement = is_reverse_complemented;
+
+    let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+    alignment.is_reverse_complement = is_reverse_complement;
+
     if alignment.hit_boundary {
-      info!(
-        "Hit boundary, increasing alignment band parameters. alignment score {}",
-        alignment.alignment_score
-      );
       terminal_bandwidth *= 2;
       excess_bandwidth *= 2;
       allowed_mismatches *= 2;
       attempt += 1;
+      info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt, alignment.alignment_score);
     } else {
       if attempt > 0 {
-        info!(
-          "Succeeded with alignment without hitting boundary. alignment score {}",
-          alignment.alignment_score
-        );
+        info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
       }
       return Ok(alignment);
     }
+
     if attempt > 3 {
-      warn!(
-        "Attempted to increase alignment band parameters 3 times, still hitting the boundary.  alignment score {}",
-        alignment.alignment_score
-      );
+      info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Alignment score was: {}", alignment.alignment_score);
       return Ok(alignment);
     }
   }
