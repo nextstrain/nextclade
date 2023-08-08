@@ -127,6 +127,10 @@ pub struct AlignPairwiseParams {
   /// to proceed with the banded alignment.
   #[clap(long)]
   pub min_seed_cover: f64,
+
+  /// Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
+  #[clap(long)]
+  pub max_alignment_attempts: usize,
 }
 
 impl Default for AlignPairwiseParams {
@@ -158,6 +162,7 @@ impl Default for AlignPairwiseParams {
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
       allowed_mismatches: 8, // Ns count as mismatches
       window_size: 30,
+      max_alignment_attempts: 3,
     }
   }
 }

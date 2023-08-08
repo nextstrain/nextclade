@@ -94,7 +94,7 @@ pub fn align_nuc(
       return Ok(alignment);
     }
 
-    if attempt > 3 {
+    if attempt > params.max_alignment_attempts {
       info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Alignment score was: {}", alignment.alignment_score);
       return Ok(alignment);
     }
