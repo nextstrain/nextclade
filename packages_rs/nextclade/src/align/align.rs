@@ -4,16 +4,13 @@ use crate::align::band_2d::{full_matrix, simple_stripes};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::create_alignment_band;
-use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex};
+use crate::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
-use crate::translate::complement::reverse_complement_in_place;
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use log::{info, trace, warn};
-
-use super::seed_match;
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -58,27 +55,12 @@ pub fn align_nuc(
   }
 
   // otherwise, determine seed matches roughly regularly spaced along the query sequence
-  let mut is_reverse_complemented = false;
-  let mut rev_complement;
-  let seq_to_aln;
-  let seed_matches;
-  match get_seed_matches2(qry_seq, ref_seq, seed_index, params) {
-    Ok(matches) => {
-      seed_matches = matches;
-      seq_to_aln = qry_seq;
-    }
-    Err(report) => {
-      if params.retry_reverse_complement {
-        rev_complement = qry_seq.to_owned();
-        reverse_complement_in_place(&mut rev_complement);
-        seed_matches = get_seed_matches2(&rev_complement, ref_seq, seed_index, params).map_err(|_| report)?;
-        is_reverse_complemented = true;
-        seq_to_aln = &rev_complement;
-      } else {
-        return Err(report);
-      }
-    }
-  }
+  let SeedMatchesResult {
+    qry_seq,
+    seed_matches,
+    is_reverse_complement,
+  } = get_seed_matches_maybe_reverse_complement(qry_seq, ref_seq, seed_index, params)
+    .wrap_err("When calculating seed matches")?;
 
   let mut terminal_bandwidth = params.terminal_bandwidth as isize;
   let mut excess_bandwidth = params.excess_bandwidth as isize;
