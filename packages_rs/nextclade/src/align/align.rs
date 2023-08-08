@@ -41,9 +41,9 @@ pub fn align_nuc(
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<AlignmentOutput<Nuc>, Report> {
-  let qry_len: usize = qry_seq.len();
-  let ref_len: usize = ref_seq.len();
-  let min_len: usize = params.min_length;
+  let qry_len = qry_seq.len();
+  let ref_len = ref_seq.len();
+  let min_len = params.min_length;
   if qry_len < min_len {
     return make_error!(
       "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence."
