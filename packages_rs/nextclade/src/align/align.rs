@@ -53,7 +53,7 @@ pub fn align_nuc(
   if ref_len + qry_len < (10 * params.seed_length) {
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
-    trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
+    trace!("Nucleotide alignment: Band construction: short sequences, using full matrix");
     return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
   }
 
