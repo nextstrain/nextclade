@@ -57,70 +57,70 @@ pub fn align_nuc(
     return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
   }
 
-    // otherwise, determine seed matches roughly regularly spaced along the query sequence
-    let mut is_reverse_complemented = false;
-    let mut rev_complement;
-    let seq_to_aln;
-    let seed_matches;
-    match get_seed_matches2(qry_seq, ref_seq, seed_index, params) {
-      Ok(matches) => {
-        seed_matches = matches;
-        seq_to_aln = qry_seq;
-      }
-      Err(report) => {
-        if params.retry_reverse_complement {
-          rev_complement = qry_seq.to_owned();
-          reverse_complement_in_place(&mut rev_complement);
-          seed_matches = get_seed_matches2(&rev_complement, ref_seq, seed_index, params).map_err(|_| report)?;
-          is_reverse_complemented = true;
-          seq_to_aln = &rev_complement;
-        } else {
-          return Err(report);
-        }
-      }
+  // otherwise, determine seed matches roughly regularly spaced along the query sequence
+  let mut is_reverse_complemented = false;
+  let mut rev_complement;
+  let seq_to_aln;
+  let seed_matches;
+  match get_seed_matches2(qry_seq, ref_seq, seed_index, params) {
+    Ok(matches) => {
+      seed_matches = matches;
+      seq_to_aln = qry_seq;
     }
-
-    let mut terminal_bandwidth = params.terminal_bandwidth as isize;
-    let mut excess_bandwidth = params.excess_bandwidth as isize;
-    let mut allowed_mismatches = params.allowed_mismatches as isize;
-    let mut attempt = 0;
-    loop {
-      let stripes = create_alignment_band(
-        &seed_matches,
-        qry_len as isize,
-        ref_len as isize,
-        terminal_bandwidth,
-        excess_bandwidth,
-        allowed_mismatches,
-      )?;
-      let mut alignment = align_pairwise(seq_to_aln, ref_seq, gap_open_close, params, &stripes);
-      alignment.is_reverse_complement = is_reverse_complemented;
-      if alignment.hit_boundary {
-        info!(
-          "Hit boundary, increasing alignment band parameters. alignment score {}",
-          alignment.alignment_score
-        );
-        terminal_bandwidth *= 2;
-        excess_bandwidth *= 2;
-        allowed_mismatches *= 2;
-        attempt += 1;
+    Err(report) => {
+      if params.retry_reverse_complement {
+        rev_complement = qry_seq.to_owned();
+        reverse_complement_in_place(&mut rev_complement);
+        seed_matches = get_seed_matches2(&rev_complement, ref_seq, seed_index, params).map_err(|_| report)?;
+        is_reverse_complemented = true;
+        seq_to_aln = &rev_complement;
       } else {
-        if attempt > 0 {
-          info!(
-            "Succeeded with alignment without hitting boundary. alignment score {}",
-            alignment.alignment_score
-          );
-        }
-        return Ok(alignment);
-      }
-      if attempt > 3 {
-        warn!(
-          "Attempted to increase alignment band parameters 3 times, still hitting the boundary.  alignment score {}",
-          alignment.alignment_score
-        );
-        return Ok(alignment);
+        return Err(report);
       }
     }
+  }
+
+  let mut terminal_bandwidth = params.terminal_bandwidth as isize;
+  let mut excess_bandwidth = params.excess_bandwidth as isize;
+  let mut allowed_mismatches = params.allowed_mismatches as isize;
+  let mut attempt = 0;
+  loop {
+    let stripes = create_alignment_band(
+      &seed_matches,
+      qry_len as isize,
+      ref_len as isize,
+      terminal_bandwidth,
+      excess_bandwidth,
+      allowed_mismatches,
+    )?;
+    let mut alignment = align_pairwise(seq_to_aln, ref_seq, gap_open_close, params, &stripes);
+    alignment.is_reverse_complement = is_reverse_complemented;
+    if alignment.hit_boundary {
+      info!(
+        "Hit boundary, increasing alignment band parameters. alignment score {}",
+        alignment.alignment_score
+      );
+      terminal_bandwidth *= 2;
+      excess_bandwidth *= 2;
+      allowed_mismatches *= 2;
+      attempt += 1;
+    } else {
+      if attempt > 0 {
+        info!(
+          "Succeeded with alignment without hitting boundary. alignment score {}",
+          alignment.alignment_score
+        );
+      }
+      return Ok(alignment);
+    }
+    if attempt > 3 {
+      warn!(
+        "Attempted to increase alignment band parameters 3 times, still hitting the boundary.  alignment score {}",
+        alignment.alignment_score
+      );
+      return Ok(alignment);
+    }
+  }
 }
 
 /// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
