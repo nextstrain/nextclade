@@ -54,8 +54,9 @@ pub fn align_nuc(
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
     trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
-    Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes))
-  } else {
+    return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
+  }
+
     // otherwise, determine seed matches roughly regularly spaced along the query sequence
     let mut is_reverse_complemented = false;
     let mut rev_complement;
@@ -120,7 +121,6 @@ pub fn align_nuc(
         return Ok(alignment);
       }
     }
-  }
 }
 
 /// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
