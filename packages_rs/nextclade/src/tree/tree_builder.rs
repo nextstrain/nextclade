@@ -153,37 +153,29 @@ pub fn finetune_nearest_node(
         current_best_node = graph
           .parent_of_by_key(best_node.key())
           .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
-
-        private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
-          format!(
-            "When calculating difference of mutations between query sequence and the candidate parent node '{}'",
-            current_best_node.payload().name
-          )
-        })?;
       } else if best_node.key() == current_best_node.key() {
         // The best node is the current node. Break.
         break;
       } else {
         // The best node is child
         current_best_node = graph.get_node(best_node.key())?;
-        //subtract the shared mutations from the private mutations struct
-        private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
-          format!(
-            "When calculating difference of mutations between query sequence and the candidate child node '{}'",
-            current_best_node.payload().name
-          )
-        })?;
-        // add the inverted remaining mutations on that branch
-        // even if there are no left-over nuc_subs because they are shared, the can be
-        // changes in the same codon that still need handling
-        private_mutations =
-          union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
-            format!(
-              "When calculating union of mutations between query sequence and the candidate child node '{}'",
-              graph.get_node(best_node.key()).expect("Node not found").payload().name
-            )
-          })?;
       }
+      //subtract the shared mutations from the private mutations struct
+      private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
+        format!(
+          "When calculating difference of mutations between query sequence and the candidate child node '{}'",
+          current_best_node.payload().name
+        )
+      })?;
+      // add the inverted remaining mutations on that branch
+      // even if there are no left-over nuc_subs because they are shared, there can be
+      // changes in the amino acid sequences due to mutations in the same codon that still need handling
+      private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
+        format!(
+          "When calculating union of mutations between query sequence and the candidate child node '{}'",
+          graph.get_node(best_node.key()).expect("Node not found").payload().name
+        )
+      })?;
     } else if current_best_node.is_leaf()
       && !current_best_node.is_root()
       && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
