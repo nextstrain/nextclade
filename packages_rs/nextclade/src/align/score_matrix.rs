@@ -11,6 +11,7 @@ pub const QRY_GAP_MATRIX: i8 = 1 << 2;
 // these are the override flags for gap extension
 pub const REF_GAP_EXTEND: i8 = 1 << 3;
 pub const QRY_GAP_EXTEND: i8 = 1 << 4;
+pub const BOUNDARY: i8 = 1 << 5;
 
 const NO_ALIGN: i32 = -1_000_000_000; //very negative to be able to process unalignable seqs
 
@@ -111,9 +112,8 @@ pub fn score_matrix<T: Letter<T>>(
         // if the position is within the query sequence
         // no gap -- match case
 
-        // TODO: Double bounds check -> wasteful, make better
+        // ^ If stripes allow to move up diagonally to upper left
         if qpos > stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
-          // ^ If stripes allow to move up diagonally to upper left
           score = if qry_seq[qpos - 1].is_unknown() || ref_seq[ri - 1].is_unknown() {
             // no need to look-up match score since unknown matches with everything.
             // reduce match score by 1 to de-prioritize matches with unknown states.
@@ -124,6 +124,8 @@ pub fn score_matrix<T: Letter<T>>(
             scores[(ri - 1, qpos - 1)] - params.penalty_mismatch
           };
           origin = MATCH;
+        } else {
+          tmp_path = tmp_path | BOUNDARY; // mark boundary when at the boundary of the stripe.
         }
 
         // check the scores of a reference gap
@@ -154,6 +156,8 @@ pub fn score_matrix<T: Letter<T>>(
             score = tmp_score;
             origin = REF_GAP_MATRIX;
           }
+        } else {
+          tmp_path = tmp_path | BOUNDARY; // mark boundary if no ref gap allowed due to stripes
         }
 
         // check the scores of a query gap
@@ -182,7 +186,11 @@ pub fn score_matrix<T: Letter<T>>(
           }
         } else {
           qry_gaps[qpos] = NO_ALIGN;
+          tmp_path = tmp_path | BOUNDARY; // mark boundary if no ref gap allowed due to stripes
         }
+      }
+      if ri < ref_len && (qpos + 1 < stripes[ri + 1].begin) {
+        tmp_path = tmp_path | BOUNDARY; // mark boundary if next reference position is not reachable by match
       }
 
       tmp_path += origin;

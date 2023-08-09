@@ -1,5 +1,5 @@
 use crate::align::band_2d::{Band2d, Stripe};
-use crate::align::score_matrix::{MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
+use crate::align::score_matrix::{BOUNDARY, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
 use crate::alphabet::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use log::warn;
@@ -24,7 +24,6 @@ pub fn backtrace<T: Letter<T>>(
   ref_seq: &[T],
   scores: &Band2d<i32>,
   paths: &Band2d<i8>,
-  stripes: &[Stripe],
 ) -> AlignmentOutput<T> {
   let num_cols = scores.num_cols();
   let num_rows = scores.num_rows();
@@ -46,16 +45,7 @@ pub fn backtrace<T: Letter<T>>(
   // Do backtrace in the aligned region
   while r_pos > 0 || q_pos > 0 {
     origin = paths[(r_pos, q_pos)];
-    if !hit_boundary
-      && r_pos > 0
-      && r_pos < num_rows - 1
-      && q_pos > 0
-      && q_pos < num_cols - 1
-      && (q_pos == stripes[r_pos].begin
-        || q_pos == stripes[r_pos].end - 1
-        || q_pos >= stripes[r_pos - 1].end
-        || q_pos < stripes[r_pos + 1].begin)
-    {
+    if (origin & BOUNDARY) > 0 {
       hit_boundary = true;
     }
 
@@ -184,7 +174,7 @@ mod tests {
       hit_boundary: false,
     };
 
-    let output = backtrace(&qry_seq, &ref_seq, &scores, &paths, &stripes);
+    let output = backtrace(&qry_seq, &ref_seq, &scores, &paths);
 
     assert_eq!(expected_output, output);
     // assert_eq!(expected_paths, result.paths);

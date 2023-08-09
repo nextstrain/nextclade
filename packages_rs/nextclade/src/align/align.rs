@@ -25,7 +25,7 @@ fn align_pairwise<T: Letter<T>>(
 
   let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
-  backtrace(qry_seq, ref_seq, &scores, &paths, stripes)
+  backtrace(qry_seq, ref_seq, &scores, &paths)
 }
 
 /// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
