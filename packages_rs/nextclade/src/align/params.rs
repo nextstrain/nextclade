@@ -47,6 +47,10 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub score_match: i32,
 
+  /// Maximum area of the alignment band. Alignments with large bands are slow to compute and require substantial memory in the current implementation. Alignment of sequences requiring band with area larger than this value, will not be attempted and a warning will be emitted.
+  #[clap(long)]
+  pub max_band_area: usize,
+
   /// Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Alignment of sequences with indels longer that this value, will not be attempted and a warning will be emitted.
   #[clap(long)]
   pub max_indel: usize,
@@ -143,7 +147,8 @@ impl Default for AlignPairwiseParams {
       penalty_gap_open_out_of_frame: 8,
       penalty_mismatch: 1,
       score_match: 3,
-      max_indel: 400,        // to be replaced
+      max_band_area: 500_000_000,
+      max_indel: 400,        // obsolete
       seed_length: 21,       // obsolete
       min_seeds: 10,         // obsolete
       min_match_rate: 0.3,   // obsolete

@@ -33,6 +33,7 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
         params.terminal_bandwidth as isize,
         params.excess_bandwidth as isize,
         params.allowed_mismatches as isize,
+        params.max_band_area,
       )
       .unwrap();
     });

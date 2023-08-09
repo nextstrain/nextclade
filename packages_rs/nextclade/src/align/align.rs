@@ -74,6 +74,7 @@ pub fn align_nuc(
       terminal_bandwidth,
       excess_bandwidth,
       allowed_mismatches,
+      params.max_band_area,
     )?;
 
     let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
