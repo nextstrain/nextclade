@@ -35,11 +35,13 @@ where
 
 - ``$` M_{unknown} `$`` is number of undetermined (sites) - sites that are mutated in the reference node but are missing in the query sequence. For these we can't tell whether the reference node agrees with the query sequence
 
-The nearest reference node is then chosen as the one having the lowest distance metric ``$` D `$``. A new node is created and attached (placed) as a child to that nearest node. It is given the attributes describing the corresponding query sequence (name, mutations, divergence etc.)
+The nearest reference node is then chosen as the one having the lowest distance metric ``$` D `$``.
+If multiple candidate attachment nodes with the same distance exist, Nextclade can use a "placement prior" to pick the most likely node based on its prevalence in the overall sequence data.
+Note that this option exists only when such placement information is coded into the reference tree of the dataset.
 
 This operation is repeated for each query sequence, until all of them are placed onto the tree.
 
-New nodes are never considered as a targets for the initial placement such that information derived from the placement on the reference tree (see for example [clade assignment](06-clade-assignment.md)) does not depend on other query sequences.
+Other query sequences are never considered as targets for the initial placement such that information derived from the placement on the reference tree (see for example [clade assignment](06-clade-assignment.md)) does not depend on other query sequences.
 Note, however, that Nextclade now supports a greedy type of tree-building performed at the final step of the analysis that will consider relation-ships between query sequences (see [tree building](#tree-building)).
 
 Mutations that separate the query sequence and the nearest node in the reference tree are designated "private mutations". Mutations that are the same is the query sequence and in the nearest node we call "shared mutations".
@@ -48,10 +50,10 @@ Sequencing errors and sequence assembly problems are expected to give rise to mo
 
 ### Tree building
 After all query sequences have been assigned their initial placement on the tree, Nextclade will resolve local phylogenetic relationships between the query sequences and refine the tree (optional in CLI, data set specific in the web app).
-Nextclade will sort query sequences by the number of mutations to their closest reference node and will start refining their attachment positions starting with the queries closest to the reference tree.
+Nextclade sorts query sequences by the number of mutations to their closest reference node and will start refining their attachment positions starting with the queries closest to the reference tree.
 For each query sequence, it will check whether there are some mutations shared with branches in the immediate neighborhood.
 If such mutations exist, the corresponding branches will be split to optimally position the query, or, if all mutations on a branch are shared with another branch, the query will be moved along this branch to a new position.
-This procedure is repeated until no further local improvement is possible.
+This procedure is repeated until no further local improvement is possible and a new node corresponding to the query (along with necessary internal nodes) is added to the tree.
 The position of the next sequence will now be refined on the tree with the previous sequences already attached at their refined positions, gradually building up the phylogenetic structure among the query sequences.
 Such a greedy tree-building approach works the diversity of the population is well represented by the reference tree and remaining diversity among the query sequences is small.
 
