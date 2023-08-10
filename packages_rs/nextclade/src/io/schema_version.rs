@@ -20,7 +20,7 @@ pub struct SchemaVersionParams<'s> {
 impl SchemaVersion {
   /// Parse JSON file and check `schemaVersion` field against provided max version, and return an error if not compatible.
   pub fn check_err(
-    json_str: &str,
+    json_str: impl AsRef<str>,
     SchemaVersionParams { name, ver_from, ver_to }: &SchemaVersionParams,
   ) -> Result<SchemaVersion, Report> {
     let sv: SchemaVersion = json_parse(json_str)?;
@@ -41,7 +41,7 @@ impl SchemaVersion {
   }
 
   /// Parse JSON file and check `schemaVersion` field against provided max version, and print a warning if not compatible.
-  pub fn check_warn(json_str: &str, params: &SchemaVersionParams) {
+  pub fn check_warn(json_str: impl AsRef<str>, params: &SchemaVersionParams) {
     if let Err(report) = Self::check_err(json_str, params) {
       warn!("{}", report_to_string(&report));
     }

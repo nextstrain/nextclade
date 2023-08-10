@@ -3,6 +3,7 @@ pub mod concat;
 pub mod console;
 pub mod csv;
 pub mod dataset;
+pub mod dataset_collection;
 pub mod errors_csv;
 pub mod fasta;
 pub mod file;
