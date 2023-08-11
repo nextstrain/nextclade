@@ -7,7 +7,6 @@ import { ErrorContent } from 'src/components/Error/ErrorContent'
 import { RestartButton } from 'src/components/Error/ErrorStyles'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import styled from 'styled-components'
 
 export const Container = styled(ContainerBase)`
@@ -72,8 +71,6 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
   return (
     <LayoutResults>
       <MainContent>
-        <MainSectionTitle />
-
         <Row noGutters>
           <Col className="text-center text-danger">
             <h2>{titleText}</h2>
