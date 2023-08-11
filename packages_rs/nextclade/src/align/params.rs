@@ -47,6 +47,10 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub score_match: i32,
 
+  /// Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted.
+  #[clap(long)]
+  pub max_band_area: usize,
+
   /// Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Alignment of sequences with indels longer that this value, will not be attempted and a warning will be emitted.
   #[clap(long)]
   pub max_indel: usize,
@@ -127,6 +131,10 @@ pub struct AlignPairwiseParams {
   /// to proceed with the banded alignment.
   #[clap(long)]
   pub min_seed_cover: f64,
+
+  /// Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
+  #[clap(long)]
+  pub max_alignment_attempts: usize,
 }
 
 impl Default for AlignPairwiseParams {
@@ -139,12 +147,13 @@ impl Default for AlignPairwiseParams {
       penalty_gap_open_out_of_frame: 8,
       penalty_mismatch: 1,
       score_match: 3,
-      max_indel: 400,        // to be replaced
-      seed_length: 21,       // obsolete
-      min_seeds: 10,         // obsolete
-      min_match_rate: 0.3,   // obsolete
-      seed_spacing: 100,     // obsolete
-      mismatches_allowed: 3, // obsolete
+      max_band_area: 500_000_000, // requires around 500Mb for paths, 2GB for the scores
+      max_indel: 400,             // obsolete
+      seed_length: 21,            // obsolete
+      min_seeds: 10,              // obsolete
+      min_match_rate: 0.3,        // obsolete
+      seed_spacing: 100,          // obsolete
+      mismatches_allowed: 3,      // obsolete
       retry_reverse_complement: false,
       no_translate_past_stop: false,
       left_terminal_gaps_free: true,
@@ -158,6 +167,7 @@ impl Default for AlignPairwiseParams {
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
       allowed_mismatches: 8, // Ns count as mismatches
       window_size: 30,
+      max_alignment_attempts: 3,
     }
   }
 }
