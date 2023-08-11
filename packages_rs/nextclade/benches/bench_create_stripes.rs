@@ -24,6 +24,7 @@ pub fn bench_create_stripes(c: &mut Criterion) {
   let ref_len = black_box(40);
   let max_indel = black_box(400);
   let allowed_mismatches = black_box(2);
+  let max_band_area = black_box(500_000_000);
 
   let mut group = c.benchmark_group("create_stripes");
   group.throughput(Throughput::Bytes(qry_len as u64));
@@ -36,6 +37,7 @@ pub fn bench_create_stripes(c: &mut Criterion) {
         terminal_bandwidth,
         excess_bandwidth,
         allowed_mismatches,
+        max_band_area,
       )
     });
   });

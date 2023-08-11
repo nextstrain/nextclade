@@ -21,8 +21,6 @@ fn align_pairwise<T: Letter<T>>(
 ) -> AlignmentOutput<T> {
   trace!("Align pairwise: started. Params: {params:?}");
 
-  let max_indel = params.max_indel;
-
   let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
   backtrace(qry_seq, ref_seq, &scores, &paths)
@@ -76,6 +74,7 @@ pub fn align_nuc(
       terminal_bandwidth,
       excess_bandwidth,
       allowed_mismatches,
+      params.max_band_area,
     )?;
 
     let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
