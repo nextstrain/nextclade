@@ -1,4 +1,6 @@
+use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
+use eyre::Report;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -22,15 +24,16 @@ pub struct DatasetCollection {
 }
 
 impl DatasetCollection {
-  pub fn from_str(s: impl AsRef<str>) {
+  pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
     SchemaVersion::check_warn(
-      s,
+      &s,
       &SchemaVersionParams {
         name: "collection.json",
         ver_from: Some(COLLECTION_JSON_SCHEMA_VERSION_FROM),
         ver_to: Some(COLLECTION_JSON_SCHEMA_VERSION_TO),
       },
     );
+    json_parse(s)
   }
 }
 
@@ -85,20 +88,34 @@ pub struct DatasetCollectionMeta {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCapabilities {
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub examples: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub genome_annotation: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub tree: Option<bool>,
+  pub files: DatasetFiles,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub qc: Vec<String>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub primers: Option<bool>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetFiles {
+  pub reference: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub genome_annotation: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub tree_json: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub pathogen_json: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub examples: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub readme: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub changelog: Option<String>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
