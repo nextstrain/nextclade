@@ -1,19 +1,12 @@
 import React, { useMemo, useState } from 'react'
-
 import { useRecoilValue } from 'recoil'
-import { Container as ContainerBase } from 'reactstrap'
+import { Col, Container, Row } from 'reactstrap'
+import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
 import styled from 'styled-components'
-
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { MainInputFormRunStep } from 'src/components/Main/MainInputFormRunStep'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
-
-export const Container = styled(ContainerBase)`
-  display: flex;
-  margin: 0;
-  padding: 0;
-`
 
 export const Centered = styled.section`
   margin: auto;
@@ -49,7 +42,17 @@ export function MainInputForm() {
 
   return (
     <Container fluid>
-      <Centered>{FormBody}</Centered>
+      <Row noGutters className="flex-column-reverse flex-lg-row">
+        <Col lg={6}>
+          <DatasetContentSection
+            changelogUrl="https://raw.githubusercontent.com/nextstrain/nextclade_data/v3/CHANGELOG.md"
+            readmeUrl="https://raw.githubusercontent.com/nextstrain/nextclade_data/v3/data_v3/sars-cov-2/MN908947/README.md"
+          />
+        </Col>
+        <Col lg={6}>
+          <Centered>{FormBody}</Centered>
+        </Col>
+      </Row>
     </Container>
   )
 }
