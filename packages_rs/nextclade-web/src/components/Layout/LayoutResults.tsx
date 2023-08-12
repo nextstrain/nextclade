@@ -1,51 +1,64 @@
 import React, { PropsWithChildren, HTMLProps } from 'react'
-
+import { Container as ContainerBase } from 'reactstrap'
 import styled from 'styled-components'
 
 import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 import { UpdateNotification } from './UpdateNotification'
 
-export const LayoutContainer = styled.div`
-  max-width: 100vw;
-  max-height: 100vh;
-  margin: 0;
-  width: 100%;
-  height: 100%;
+const FOOTER_HEIGHT = 38
+
+const Container = styled(ContainerBase)`
   display: flex;
   flex-direction: column;
-  flex-wrap: nowrap;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
 `
 
-const Header = styled.header`
-  flex-shrink: 0;
+const HeaderContainer = styled.header`
+  position: sticky;
+  top: 0;
+  width: 100%;
+  box-shadow: ${(props) => props.theme.shadows.large};
+  margin-bottom: 1rem;
+  z-index: 100;
 `
 
-const MainContent = styled.main`
-  flex-grow: 1;
-  flex-basis: 100%;
-  min-height: 2em;
+const MainContainer = styled.main`
+  display: flex;
+  flex-direction: column;
+  padding-bottom: ${FOOTER_HEIGHT + 10}px;
 `
 
-const Footer = styled.footer`
-  flex-shrink: 0;
+const FooterContainer = styled.footer`
+  position: fixed;
+  height: ${FOOTER_HEIGHT}px;
+  width: 100%;
+  bottom: 0;
+  padding: 8px 10px;
+  box-shadow: ${(props) => props.theme.shadows.large};
+  z-index: 100;
+  background-color: ${(props) => props.theme.white};
+  opacity: 1;
 `
 
 export function LayoutResults({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
-    <LayoutContainer>
-      <Header>
+    <Container fluid>
+      <HeaderContainer>
         <NavigationBar />
-      </Header>
+      </HeaderContainer>
 
-      <MainContent>
+      <MainContainer>
         <UpdateNotification />
         {children}
-      </MainContent>
+      </MainContainer>
 
-      <Footer>
+      <FooterContainer>
         <FooterContent />
-      </Footer>
-    </LayoutContainer>
+      </FooterContainer>
+    </Container>
   )
 }

@@ -1,30 +1,17 @@
 import React from 'react'
-
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
-import { Col, Container, Row } from 'reactstrap'
+import { Col, Row } from 'reactstrap'
 import styled from 'styled-components'
-
 import { PROJECT_NAME, COMPANY_NAME } from 'src/constants'
 import { getCopyrightYearRange } from 'src/helpers/getCopyrightYearRange'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { getVersionString } from 'src/helpers/getVersionString'
-
 import LogoBedfordlab from 'src/assets/img/bedfordlab.svg'
 import LogoBiozentrum from 'src/assets/img/biozentrum_square.svg'
 import LogoSib from 'src/assets/img/sib.logo.svg'
 import LogoFredHutch from 'src/assets/img/fred_hutch.svg'
 import LogoNeherlab from 'src/assets/img/neherlab.svg'
-// impoas from from 'src/assets/img/nextstrain_logo.svg'
-// impoas from from 'src/assets/img/unibas.svg'
 import LogoVercel from 'src/assets/img/powered-by-vercel.svg'
-
-const FooterContainer = styled(Container)`
-  background-color: #2a2a2a;
-  color: #c4cdd5;
-  padding: 6px 10px;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-`
 
 const CopyrightText = styled.div`
   font-size: 0.75rem;
@@ -81,46 +68,44 @@ export default function Footer() {
   const copyrightYearRange = getCopyrightYearRange()
 
   return (
-    <FooterContainer fluid tag="footer">
-      <Row noGutters>
-        <Col className="d-flex">
-          <CopyrightText className="mr-auto my-auto">
-            {t('{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}', {
-              PROJECT_NAME,
-              copyrightYearRange,
-              COMPANY_NAME,
-            })}
-          </CopyrightText>
+    <Row noGutters>
+      <Col className="d-flex">
+        <CopyrightText className="mr-auto my-auto">
+          {t('{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}', {
+            PROJECT_NAME,
+            copyrightYearRange,
+            COMPANY_NAME,
+          })}
+        </CopyrightText>
 
-          <LogoContainer className="mx-auto">
-            <LogoLink url="https://neherlab.org">
-              <LogoNeherlab />
-            </LogoLink>
+        <LogoContainer className="mx-auto">
+          <LogoLink url="https://neherlab.org">
+            <LogoNeherlab />
+          </LogoLink>
 
-            <LogoLink url="https://www.biozentrum.unibas.ch">
-              <LogoBiozentrum />
-            </LogoLink>
+          <LogoLink url="https://www.biozentrum.unibas.ch">
+            <LogoBiozentrum />
+          </LogoLink>
 
-            <LogoLink url="https://www.sib.swiss">
-              <LogoSib />
-            </LogoLink>
+          <LogoLink url="https://www.sib.swiss">
+            <LogoSib />
+          </LogoLink>
 
-            <LogoLink url="https://bedford.io">
-              <LogoBedfordlab />
-            </LogoLink>
+          <LogoLink url="https://bedford.io">
+            <LogoBedfordlab />
+          </LogoLink>
 
-            <LogoLink url="https://www.fredhutch.org">
-              <LogoFredHutch />
-            </LogoLink>
+          <LogoLink url="https://www.fredhutch.org">
+            <LogoFredHutch />
+          </LogoLink>
 
-            <LogoLink className="my-auto" url="https://vercel.com/?utm_source=nextstrain">
-              <LogoVercel />
-            </LogoLink>
-          </LogoContainer>
+          <LogoLink className="my-auto" url="https://vercel.com/?utm_source=nextstrain">
+            <LogoVercel />
+          </LogoLink>
+        </LogoContainer>
 
-          <VersionText className="ml-auto my-auto">{getVersionString()}</VersionText>
-        </Col>
-      </Row>
-    </FooterContainer>
+        <VersionText className="ml-auto my-auto">{getVersionString()}</VersionText>
+      </Col>
+    </Row>
   )
 }

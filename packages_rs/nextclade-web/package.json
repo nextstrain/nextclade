@@ -109,6 +109,7 @@
     "i18next": "19.3.2",
     "immutable": "4.0.0",
     "intercept-stdout": "0.1.2",
+    "is-absolute-url": "3.0.3",
     "jschardet": "3.0.0",
     "jsonexport": "3.2.0",
     "jszip": "3.9.1",
