@@ -4,7 +4,8 @@ set -euo pipefail
 trap "exit 0" INT
 
 
-export NEXTCLADE_BIN="${1:? "Usage: ${0} path_to_nextclade"}"
+export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade> <path_to_datasets_collection_dir>"}"
+export INPUT_DATASETS_DIR="${2:? "Usage: ${0} <path_to_nextclade> <path_to_datasets_collection_dir>"}"
 export NEXTCLADE_BIN
 
 THIS_DIR=$(
@@ -12,9 +13,6 @@ THIS_DIR=$(
   pwd
 )
 export THIS_DIR
-
-# FIXME: hardcoded path. Assumes `nextclade_data` is a sibling directory to `nextclade` directory.
-export INPUT_DATASETS_DIR="${THIS_DIR}/../../nextclade_data/data_v3"
 
 export OUT_DIR="$THIS_DIR/../tmp_v3/smoke-tests/result"
 
