@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
-set -euxo pipefail
+set -euo pipefail
 trap "exit 0" INT
 
 
@@ -16,7 +16,109 @@ export THIS_DIR
 
 export OUT_DIR="$THIS_DIR/../tmp_v3/smoke-tests/result"
 
-function run_one_experimental_test() {
+
+function run_with_dataset_dir() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${OUT_DIR}/${name}/with_dataset"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-dataset="${dataset_dir}" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_dataset_dir
+
+
+function run_with_dataset_zip() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${OUT_DIR}/${name}/with_dataset"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-dataset="${dataset_dir}/dataset.zip" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_dataset_zip
+
+
+function run_with_ref_only() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${OUT_DIR}/${name}/with_ref_only"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_only
+
+
+function run_with_ref_and_annotation() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${OUT_DIR}/${name}/with_ref_and_annotation"
+
+  if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --input-gene-map="${dataset_dir}/genome_annotation.gff3" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_and_annotation
+
+
+function run_with_ref_and_tree() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${OUT_DIR}/${name}/with_ref_and_tree"
+
+  if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --input-tree="${dataset_dir}/tree.json" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_and_tree
+
+
+function run_with_ref_and_annotation_and_tree() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${OUT_DIR}/${name}/with_ref_and_annotation_and_tree"
+
+  if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
+  if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --input-gene-map="${dataset_dir}/genome_annotation.gff3" \
+    --input-tree="${dataset_dir}/tree.json" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_and_annotation_and_tree
+
+
+function run_single_dataset() {
   dataset_dir=$1
   name="$(realpath --relative-to="$INPUT_DATASETS_DIR" "$dataset_dir")"
 
@@ -44,16 +146,14 @@ function run_one_experimental_test() {
 
   echo "Running '${NEXTCLADE_BIN}' for '${name}'${msg_no_sequences}"
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
-    --input-dataset="${dataset_dir}/" \
-    --output-translations="$OUT_DIR/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/aligned.fasta" \
-    --output-tsv="$OUT_DIR/nextclade.tsv" \
-    --output-tree="$OUT_DIR/tree.json" \
-    --output-graph="$OUT_DIR/graph.json" \
-    "${sequences}"
+  run_with_dataset_dir                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_dataset_zip                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_only                       "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation             "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_tree                   "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation_and_tree    "${name}" "${dataset_dir}" "${sequences}"
 }
-export -f run_one_experimental_test
+export -f run_single_dataset
 
 find "${INPUT_DATASETS_DIR}" -iname "pathogen.json" -exec dirname '{}' \; |
-  parallel --keep-order --jobs=+0 run_one_experimental_test
+  parallel --keep-order --jobs=+0 run_single_dataset
