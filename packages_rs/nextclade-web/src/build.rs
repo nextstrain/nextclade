@@ -6,7 +6,6 @@ use nextclade::io::dataset::{
   Dataset, DatasetAttributeValue, DatasetAttributes, DatasetCapabilities, DatasetCollectionMeta, DatasetCollectionUrl,
   DatasetsIndexJson,
 };
-use nextclade::io::errors_csv::ErrorsFromWeb;
 use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::ensure_dir;
@@ -57,7 +56,6 @@ struct _SchemaRoot<'a> {
   _7: NextcladeOutputs,
   _9: CsvColumnConfig,
   _10: NextcladeErrorOutputs,
-  _11: ErrorsFromWeb,
   _12: VirusProperties,
   _13: CladeNodeAttrKeyDesc,
   _14: PhenotypeAttrDesc,

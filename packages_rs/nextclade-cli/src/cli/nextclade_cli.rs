@@ -253,8 +253,6 @@ pub enum NextcladeOutputSelection {
   Tree,
   TreeNwk,
   Translations,
-  Insertions,
-  Errors,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -400,7 +398,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// If both the `--output-all` and individual `--output-*` flags are provided, each individual flag overrides the corresponding default output path.
   ///
-  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-insertions`, `--output-errors`
+  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`.
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
@@ -578,26 +576,16 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree_nwk: Option<PathBuf>,
 
-  /// Path to output CSV file that contain insertions stripped from the reference alignment.
-  ///
-  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
-  ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
-  ///
-  /// If the required directory tree does not exist, it will be created.
+  /// REMOVED. The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub output_insertions: Option<PathBuf>,
 
-  /// Path to output CSV file containing errors and warnings occurred during processing
-  ///
-  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
-  ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
-  ///
-  /// If the required directory tree does not exist, it will be created.
+  /// REMOVED. The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`.
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub output_errors: Option<PathBuf>,
 }
 
@@ -657,8 +645,6 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         output_tsv,
         output_tree,
         output_tree_nwk,
-        output_insertions,
-        output_errors,
         ..
       },
     ..
@@ -682,14 +668,6 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
     if output_selection.contains(&NextcladeOutputSelection::Fasta) {
       output_fasta.get_or_insert(add_extension(&default_output_file_path, "aligned.fasta"));
-    }
-
-    if output_selection.contains(&NextcladeOutputSelection::Insertions) {
-      output_insertions.get_or_insert(add_extension(&default_output_file_path, "insertions.csv"));
-    }
-
-    if output_selection.contains(&NextcladeOutputSelection::Errors) {
-      output_errors.get_or_insert(add_extension(&default_output_file_path, "errors.csv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Translations) {
@@ -756,8 +734,6 @@ Example for bash shell:
     output_csv,
     output_tsv,
     output_tree,
-    output_insertions,
-    output_errors,
   ]
   .iter()
   .all(|o| o.is_none())
@@ -775,9 +751,7 @@ At least one of the following flags is required:
   --output-csv
   --output-tsv
   --output-tree
-  --output-translations
-  --output-insertions
-  --output-errors"#
+  --output-translations"#
     );
   }
 
@@ -822,7 +796,7 @@ For more information, type
 
 Read Nextclade documentation at:
 
-   https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
 
 const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` is removed in favor of `--input-pathogen-json`.
 
@@ -834,7 +808,31 @@ For more information, type
 
 Read Nextclade documentation at:
 
-   https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+const ERROR_MSG_OUTPUT_INSERTIONS_REMOVED: &str = r#"The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
+
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+const ERROR_MSG_OUTPUT_ERRORS_REMOVED: &str = r#"The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`.
+
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
 
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
@@ -851,6 +849,14 @@ pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), R
 
   if run_args.outputs.output_dir.is_some() {
     return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
+  }
+
+  if run_args.outputs.output_insertions.is_some() {
+    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}");
+  }
+
+  if run_args.outputs.output_errors.is_some() {
+    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}");
   }
 
   Ok(())

@@ -6,9 +6,7 @@ use log::{info, warn};
 use nextclade::alphabet::nuc::from_nuc_seq;
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::gene::gene_map::GeneMap;
-use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
-use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
 use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
 use nextclade::io::results_json::ResultsJsonWriter;
@@ -23,23 +21,21 @@ use std::collections::HashMap;
 use std::hash::Hasher;
 
 /// Writes output files, potentially preserving the initial order of records (same as in the inputs)
-pub struct NextcladeOrderedWriter<'a> {
+pub struct NextcladeOrderedWriter {
   fasta_writer: Option<FastaWriter>,
   fasta_peptide_writer: Option<FastaPeptideWriter>,
   output_json_writer: Option<ResultsJsonWriter>,
   output_ndjson_writer: Option<NdjsonFileWriter>,
   output_csv_writer: Option<NextcladeResultsCsvFileWriter>,
   output_tsv_writer: Option<NextcladeResultsCsvFileWriter>,
-  insertions_csv_writer: Option<InsertionsCsvWriter>,
-  errors_csv_writer: Option<ErrorsCsvWriter<'a>>,
   expected_index: usize,
   queue: HashMap<usize, NextcladeRecord>,
   in_order: bool,
 }
 
-impl<'a> NextcladeOrderedWriter<'a> {
+impl NextcladeOrderedWriter {
   pub fn new(
-    gene_map: &'a GeneMap,
+    gene_map: &GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
     aa_motifs_keys: &[String],
@@ -52,14 +48,6 @@ impl<'a> NextcladeOrderedWriter<'a> {
     let fasta_peptide_writer = output_params
       .output_translations
       .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
-
-    let insertions_csv_writer = output_params
-      .output_insertions
-      .map_ref_fallible(InsertionsCsvWriter::new)?;
-
-    let errors_csv_writer = output_params
-      .output_errors
-      .map_ref_fallible(|output_errors| ErrorsCsvWriter::new(gene_map, output_errors))?;
 
     let output_json_writer = output_params.output_json.map_ref_fallible(|output_json| {
       ResultsJsonWriter::new(output_json, clade_node_attr_key_descs, phenotype_attr_key_desc)
@@ -106,8 +94,6 @@ impl<'a> NextcladeOrderedWriter<'a> {
       output_ndjson_writer,
       output_csv_writer,
       output_tsv_writer,
-      insertions_csv_writer,
-      errors_csv_writer,
       expected_index: 0,
       queue: HashMap::<usize, NextcladeRecord>::new(),
       in_order: params.general.in_order,
@@ -164,16 +150,8 @@ impl<'a> NextcladeOrderedWriter<'a> {
           }
         }
 
-        if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
-          insertions_csv_writer.write(&seq_name, insertions, aa_insertions)?;
-        }
-
         for warning in warnings {
           info!("In sequence #{index} '{seq_name}': {}", warning.warning);
-        }
-
-        if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
-          errors_csv_writer.write_aa_errors(&seq_name, warnings, missing_genes)?;
         }
 
         if let Some(output_csv_writer) = &mut self.output_csv_writer {
@@ -197,12 +175,6 @@ impl<'a> NextcladeOrderedWriter<'a> {
         warn!(
           "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
         );
-        if let Some(insertions_csv_writer) = &mut self.insertions_csv_writer {
-          insertions_csv_writer.write(&seq_name, &[], &[])?;
-        }
-        if let Some(errors_csv_writer) = &mut self.errors_csv_writer {
-          errors_csv_writer.write_nuc_error(&seq_name, &cause)?;
-        }
         if let Some(output_csv_writer) = &mut self.output_csv_writer {
           output_csv_writer.write_nuc_error(index, &seq_name, &cause)?;
         }
@@ -270,7 +242,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
   }
 }
 
-impl<'a> Drop for NextcladeOrderedWriter<'a> {
+impl Drop for NextcladeOrderedWriter {
   fn drop(&mut self) {
     self.finish().wrap_err("When finalizing output writer").unwrap();
   }

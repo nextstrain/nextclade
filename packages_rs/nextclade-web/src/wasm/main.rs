@@ -1,9 +1,7 @@
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
-use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
-use nextclade::io::insertions_csv::insertions_to_csv_string;
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
@@ -211,27 +209,6 @@ impl NextcladeWasm {
       delimiter as u8,
       &csv_colum_config,
     ))
-  }
-
-  pub fn serialize_insertions_csv(outputs_json_str: &str, errors_json_str: &str) -> Result<String, JsError> {
-    let outputs: Vec<NextcladeOutputs> = jserr(
-      json_parse(outputs_json_str)
-        .wrap_err("When serializing insertions into CSV: When parsing outputs JSON internally"),
-    )?;
-
-    let errors: Vec<NextcladeErrorOutputs> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
-    )?;
-
-    jserr(insertions_to_csv_string(&outputs, &errors))
-  }
-
-  pub fn serialize_errors_csv(errors_json_str: &str) -> Result<String, JsError> {
-    let errors: Vec<ErrorsFromWeb> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing errors into CSV: When parsing outputs JSON internally"),
-    )?;
-
-    jserr(errors_to_csv_string(&errors))
   }
 }
 
