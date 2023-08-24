@@ -271,7 +271,7 @@ fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment
 fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result<(), Report> {
   if segment.range.begin > segment.range.end {
     return make_error!(
-      "Gene map is invalid: In genomic feature '{}': Feature start > end: {} > {}",
+      "Genome annotation is invalid: In genomic feature '{}': Feature start > end: {} > {}. Please report this to dataset authors.",
       segment.name,
       segment.range.begin + 1,
       segment.range.end + 1,
@@ -284,7 +284,7 @@ fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result
 
     if segment.range.begin < landmark_start {
       return make_error!(
-      "Gene map is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}",
+      "Genome annotation is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}. Please report this to dataset authors.",
       segment.name,
       segment.range.begin + 1,
       landmark_start + 1,
@@ -294,7 +294,7 @@ fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result
 
     if !allow_overflow && segment.range.end > landmark_end {
       return make_error!(
-      "Gene map is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}",
+      "Genome annotation is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}. Please report this to dataset authors.",
       segment.name,
       segment.range.end + 1,
       landmark_start + 1,

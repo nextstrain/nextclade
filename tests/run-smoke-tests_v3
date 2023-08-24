@@ -72,7 +72,7 @@ function run_with_ref_and_annotation() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
-    --input-gene-map="${dataset_dir}/genome_annotation.gff3" \
+    --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
@@ -109,7 +109,7 @@ function run_with_ref_and_annotation_and_tree() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
-    --input-gene-map="${dataset_dir}/genome_annotation.gff3" \
+    --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --input-tree="${dataset_dir}/tree.json" \
     --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
     --output-all="${out_dir}" \

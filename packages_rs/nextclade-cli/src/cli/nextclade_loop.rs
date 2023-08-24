@@ -49,7 +49,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   let csv_column_config = CsvColumnConfig::new(&output_columns_selection)?;
 
   info!("Parameters (final):\n{:#?}", &nextclade.params);
-  info!("Gene map:\n{}", gene_map_to_table_string(&nextclade.gene_map)?);
+  info!("Genome annotation:\n{}", gene_map_to_table_string(&nextclade.gene_map)?);
 
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;

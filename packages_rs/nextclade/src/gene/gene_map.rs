@@ -159,7 +159,7 @@ impl GeneMap {
   }
 }
 
-/// Filters gene map according to the list of requested genes.
+/// Filters genome annotation according to the list of requested genes.
 pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMap {
   if let Some(genes) = genes {
     let gene_map: BTreeMap<String, Gene> = gene_map
@@ -171,7 +171,7 @@ pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMa
     if !requested_genes_not_in_genemap.is_empty() {
       warn!(
         "The following genes were requested through `--genes` \
-           but not found in the gene map: \
+           but not found in the genome annotation: \
            `{requested_genes_not_in_genemap}`",
       );
     }
@@ -189,7 +189,7 @@ fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: 
 
 pub fn convert_feature_tree_to_gene_map(feature_tree: &FeatureTree) -> Result<GeneMap, Report> {
   let seq_region = take_exactly_one(&feature_tree.seq_regions)
-    .wrap_err_with(|| eyre!("Only feature trees with exactly one sequence region are supported. Please keep exactly one sequence region in gene map."))?;
+    .wrap_err_with(|| eyre!("Only feature trees with exactly one sequence region are supported. Please keep exactly one sequence region in genome annotation."))?;
   convert_seq_region_to_gene_map(seq_region)
 }
 
@@ -198,7 +198,7 @@ fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap
 
   if genes.is_empty() {
     return make_error!(
-      "Gene map: unable to find any genes or CDSes. Please make sure the genome annotation is correct."
+      "Genome annotation: unable to find any genes or CDSes. Please make sure the genome annotation is correct."
     );
   }
 

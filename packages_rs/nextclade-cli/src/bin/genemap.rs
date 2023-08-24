@@ -23,7 +23,7 @@ fn init() {
 pub struct GenemapArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_gene_map: PathBuf,
+  pub input_annotation: PathBuf,
 
   /// Path to output file
   #[clap(long, short = 'o')]
@@ -38,7 +38,7 @@ pub struct GenemapArgs {
 fn main() -> Result<(), Report> {
   let args = GenemapArgs::parse();
   setup_logger(LevelFilter::Warn);
-  let gene_map = GeneMap::from_path(args.input_gene_map)?;
+  let gene_map = GeneMap::from_path(args.input_annotation)?;
 
   if let Some(output) = args.output {
     if output.to_string_lossy().ends_with("yaml") || output.to_string_lossy().ends_with("yml") {

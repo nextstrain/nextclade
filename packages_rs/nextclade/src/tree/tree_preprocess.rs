@@ -201,7 +201,7 @@ fn map_aa_muts_for_one_gene(
 
         if ref_peptide.len() < mutation.pos.as_usize() {
           return make_error!(
-          "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and gene map in the Nextclade dataset",
+          "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and genome annotation in the Nextclade dataset",
           node.name,
           gene_name,
           mutation.to_string_without_gene(),

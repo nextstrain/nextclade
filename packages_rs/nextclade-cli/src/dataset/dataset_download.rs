@@ -101,7 +101,7 @@ pub fn dataset_zip_load(
     .wrap_err("When reading reference sequence from dataset")?
     .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
-  let gene_map = read_from_path_or_zip(&run_args.inputs.input_gene_map, &mut zip, "genome_annotation.gff3")?
+  let gene_map = read_from_path_or_zip(&run_args.inputs.input_annotation, &mut zip, "genome_annotation.gff3")?
     .map_ref_fallible(GeneMap::from_str)
     .wrap_err("When reading genome annotation from dataset")?
     .map(|gene_map| filter_gene_map(gene_map, genes))
@@ -152,7 +152,7 @@ pub fn dataset_dir_load(
     input_ref,
     input_tree,
     input_pathogen_json,
-    input_gene_map,
+    input_annotation,
     ..
   } = &run_args.inputs;
 
@@ -167,7 +167,7 @@ pub fn dataset_dir_load(
     .unwrap_or_else(|| dataset_dir.join(&virus_properties.files.reference));
   let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
 
-  let gene_map = input_gene_map
+  let gene_map = input_annotation
     .clone()
     .or_else(|| {
       virus_properties
@@ -252,7 +252,7 @@ pub fn dataset_individual_files_load(
 
       let gene_map = run_args
         .inputs
-        .input_gene_map
+        .input_annotation
         .as_ref()
         .map_ref_fallible(GeneMap::from_path)
         .wrap_err("When reading genome annotation")?
@@ -281,7 +281,7 @@ pub struct DatasetFilePaths<'a> {
   input_ref: &'a Path,
   input_tree: &'a Option<PathBuf>,
   input_pathogen_json: &'a Option<PathBuf>,
-  input_gene_map: &'a Option<PathBuf>,
+  input_annotation: &'a Option<PathBuf>,
 }
 
 pub fn read_from_path_or_url(
@@ -343,7 +343,7 @@ pub fn dataset_str_download_and_load(
   let gene_map = read_from_path_or_url(
     &mut http,
     &dataset,
-    &run_args.inputs.input_gene_map,
+    &run_args.inputs.input_annotation,
     &dataset.files.genome_annotation,
   )?
   .map_ref_fallible(GeneMap::from_str)

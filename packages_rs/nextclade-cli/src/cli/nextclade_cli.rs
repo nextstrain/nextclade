@@ -341,15 +341,15 @@ pub struct NextcladeRunInputArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_pcr_primers: Option<PathBuf>,
 
-  /// Path to a .gff file containing the gene map (genome annotation).
+  /// Path to a GFF3 file containing (genome annotation).
   ///
-  /// Gene map (sometimes also called 'genome annotation') is used to find coding regions. If not supplied, coding regions will
+  /// Genome annotation is used to find coding regions. If not supplied, coding regions will
   /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
   /// alignment will not be informed by codon boundaries
   ///
-  /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the gene map will be used.
+  /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the genome annotation will be used.
   ///
-  /// Overrides path to `genemap.gff` provided by `--input-dataset`.
+  /// Overrides genome annotation provided by the dataset (`--input-dataset` or `--dataset-name`).
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
@@ -357,13 +357,13 @@ pub struct NextcladeRunInputArgs {
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm', alias = "genemap")]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_gene_map: Option<PathBuf>,
+  pub input_annotation: Option<PathBuf>,
 
   /// Comma-separated list of names of genes to use.
   ///
   /// This defines which peptides will be written into outputs, and which genes will be taken into account during
-  /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If
-  /// this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used.
+  /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the genome annotation. If
+  /// this flag is not supplied or its value is an empty string, then all genes found in the genome annotation will be used.
   ///
   /// Requires `--input-gene-map` to be specified.
   #[clap(
