@@ -104,6 +104,7 @@ pub enum NextcladeDatasetCommands {
   Get(NextcladeDatasetGetArgs),
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
 pub struct NextcladeDatasetListArgs {
@@ -120,11 +121,11 @@ pub struct NextcladeDatasetListArgs {
   #[clap(default_value = "all")]
   pub reference: String,
 
-  /// Restrict list to datasets with this version tag. Equivalent to `--attribute='tag=<value>'`.
+  /// Restrict list to datasets with this version.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
-  pub tag: String,
+  pub updated_at: String,
 
   /// Restrict list to only datasets with a given combination of attribute key-value pairs.
   /// Keys and values are separated with an equality sign.
@@ -134,13 +135,33 @@ pub struct NextcladeDatasetListArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub attribute: Vec<String>,
 
-  /// Include dataset version tags that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
+  /// Include dataset versions that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
   #[clap(long)]
   pub include_incompatible: bool,
 
-  /// Include older dataset version tags, additional to the latest.
+  /// Include older dataset versions, additionally to the latest versions.
   #[clap(long)]
   pub include_old: bool,
+
+  /// Include deprecated datasets.
+  ///
+  /// Authors can mark a dataset as deprecated to express that the dataset will no longer be updated and/or supported. Reach out to dataset authors for concrete details.
+  #[clap(long)]
+  pub include_deprecated: bool,
+
+  /// Include experimental datasets.
+  ///
+  /// Authors can mark a dataset as experimental when development of the dataset is still in progress, or if the dataset is incomplete or of lower quality than usual. Use at own risk. Reach out to dataset authors if interested in further development and stabilizing of a particular dataset, and consider contributing.
+  #[clap(long)]
+  pub include_experimental: bool,
+
+  /// Include community datasets.
+  ///
+  /// Community datasets are the datasets provided by the members of the broader Nextclade community. These datasets may vary in quality and completeness. Depending on authors' goals, these datasets may be created for specific purposes, rather than for general use.
+  ///
+  /// Nextclade team is unable to verify correctness of these datasets and does not provide support for them. For all questions regarding a concrete community dataset, please read its documentation and reach out to its authors.
+  #[clap(long)]
+  pub include_community: bool,
 
   /// Print output in JSON format.
   #[clap(long)]
@@ -176,11 +197,10 @@ pub struct NextcladeDatasetGetArgs {
 
   /// Version tag of the dataset to download.
   /// If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
-  /// Equivalent to `--attribute='tag=<value>'`.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
-  pub tag: String,
+  pub updated_at: String,
 
   /// Download dataset with a given combination of attribute key-value pairs.
   /// Keys and values are separated with an equality sign.
@@ -260,12 +280,12 @@ pub struct NextcladeRunInputArgs {
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
-  /// If this flag is not provided, the following individual input flags are required: `--input-root-seq`,
-  /// `--input-tree`, `--input-qc-config`, and the following individual input files are recommended: `--input-gene-map`,
-  /// `--input-pcr-primers`.
+  /// If this flag is not provided, no dataset will be loaded and individual input files have to be provided instead. In this case  `--input-ref` is required and `--input-gene-map`, `--input-tree` and `--input-pathogen-json` are optional.
   ///
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
+  ///
+  /// Please refer to Nextclade documentation for more details about Nextclade datasets and their files.
   #[clap(long, short = 'D')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub input_dataset: Option<PathBuf>,
@@ -302,7 +322,7 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_tree: Option<PathBuf>,
 
-  /// REMOVED. Merged into pathogen.json, see `--input-pathogen`
+  /// REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
   #[clap(long, short = 'Q')]
   #[clap(value_hint = ValueHint::FilePath)]
   #[clap(hide_long_help = true, hide_short_help = true)]

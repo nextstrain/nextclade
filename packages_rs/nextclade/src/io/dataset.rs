@@ -1,127 +1,210 @@
-use eyre::WrapErr;
-use semver::Version;
+use crate::io::json::json_parse;
+use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
+use eyre::Report;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
-use std::str::FromStr;
+use std::collections::BTreeMap;
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+const COLLECTION_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
+const COLLECTION_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct DatasetCompatibilityRange {
-  pub min: Option<String>,
-  pub max: Option<String>,
-}
+pub struct DatasetsIndexJson {
+  pub meta: DatasetCollectionMeta,
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatasetCompatibility {
-  pub nextclade_cli: DatasetCompatibilityRange,
-  pub nextclade_web: DatasetCompatibilityRange,
-}
+  pub datasets: Vec<Dataset>,
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatasetAttributeValue {
-  pub is_default: bool,
-  pub value: String,
-  pub value_friendly: Option<String>,
-}
+  pub updated_at: String,
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatasetAttributes {
-  pub name: DatasetAttributeValue,
-  pub reference: DatasetAttributeValue,
-  pub tag: DatasetAttributeValue,
-
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub url: Option<DatasetAttributeValue>,
+  pub schema_version: String,
 
   #[serde(flatten)]
-  pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
+  pub other: serde_json::Value,
 }
 
-// TODO: move to VirusProperties
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatasetParams {
-  pub default_gene: Option<String>,
-  pub gene_order_preference: Option<Vec<String>>,
+impl DatasetsIndexJson {
+  pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
+    SchemaVersion::check_warn(
+      &s,
+      &SchemaVersionParams {
+        name: "collection.json",
+        ver_from: Some(COLLECTION_JSON_SCHEMA_VERSION_FROM),
+        ver_to: Some(COLLECTION_JSON_SCHEMA_VERSION_TO),
+      },
+    );
+    json_parse(s)
+  }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Dataset {
-  pub enabled: bool,
+  pub schema_version: String,
+
+  pub path: String,
+
+  pub url: String,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub deprecated: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub enabled: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub experimental: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub community: Option<bool>,
+
   pub attributes: DatasetAttributes,
-  pub comment: String,
-  pub compatibility: DatasetCompatibility,
-  pub files: BTreeMap<String, String>,
-  pub params: Option<DatasetParams>,
-  pub zip_bundle: String,
+
+  pub files: DatasetFiles,
+
+  pub capabilities: DatasetCapabilities,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub versions: Vec<String>,
+
+  pub updated_at: String,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 impl Dataset {
-  #[inline]
+  pub fn is_compatible(&self, _nextclade_version: &str) -> bool {
+    self.schema_version.as_str() >= COLLECTION_JSON_SCHEMA_VERSION_FROM
+      && self.schema_version.as_str() <= COLLECTION_JSON_SCHEMA_VERSION_TO
+  }
+
+  pub fn is_deprecated(&self) -> bool {
+    self.experimental.unwrap_or(false)
+  }
+
+  pub fn is_enabled(&self) -> bool {
+    self.enabled.unwrap_or(false)
+  }
+
+  pub fn is_experimental(&self) -> bool {
+    self.experimental.unwrap_or(false)
+  }
+
+  pub fn is_community(&self) -> bool {
+    self.community.unwrap_or(false)
+  }
+
   pub const fn is_latest(&self) -> bool {
-    self.attributes.tag.is_default
-  }
-
-  pub fn is_compatible(&self, cli_version: &str) -> bool {
-    let this_version = Version::parse(cli_version)
-      .wrap_err_with(|| format!("Unable to parse version: '{cli_version}'"))
-      .unwrap();
-
-    let DatasetCompatibilityRange { min, max } = &self.compatibility.nextclade_cli;
-
-    let mut compatible = true;
-    if let Some(min) = min {
-      let min_version = Version::parse(min)
-        .wrap_err_with(|| format!("Unable to parse dataset min version: '{min}'"))
-        .unwrap();
-      compatible = compatible && (this_version >= min_version);
-    }
-    if let Some(max) = max {
-      let max_version = Version::parse(max)
-        .wrap_err_with(|| format!("Unable to parse dataset max version: '{max}'"))
-        .unwrap();
-      compatible = compatible && (this_version < max_version);
-    }
-    compatible
+    // FIXME: versioning no longer works this way
+    true
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct DatasetsIndexJson {
-  pub schema: String,
-  pub datasets: Vec<Dataset>,
+pub struct DatasetCollectionMeta {
+  pub id: String,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub title: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub maintainers: Vec<DatasetCollectionUrl>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub urls: Vec<DatasetCollectionUrl>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
-pub struct DatasetFileUrls {
-  pub ref_record: String,
-  pub virus_properties: String,
-  pub tree: String,
-  pub gene_map: String,
-  pub qc_config: String,
-  pub primers: String,
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetCapabilities {
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub qc: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub primers: Option<bool>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
-// TODO: consider replacing the same fields in DatasetsIndexJson with this struct
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct DatasetTagJson {
-  pub enabled: bool,
-  pub attributes: DatasetAttributes,
-  pub comment: String,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub compatibility: Option<DatasetCompatibility>,
-  pub files: DatasetFileUrls,
-  pub params: DatasetParams,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub zip_bundle: Option<String>,
-  #[serde(skip_serializing_if = "serde_json::Value::is_null")]
-  pub metadata: serde_json::Value,
+pub struct DatasetFiles {
+  pub reference: String,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub genome_annotation: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub tree_json: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub examples: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub readme: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub changelog: Option<String>,
+
+  #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub rest_files: BTreeMap<String, DatasetAttributeValue>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetAttributeValue {
+  pub value: String,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub value_friendly: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub is_default: Option<bool>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl DatasetAttributeValue {
+  pub fn is_default(&self) -> bool {
+    self.is_default.unwrap_or(false)
+  }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetAttributes {
+  pub name: DatasetAttributeValue,
+
+  pub reference: DatasetAttributeValue,
+
+  #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetCollectionUrl {
+  pub name: String,
+
+  pub url: String,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }

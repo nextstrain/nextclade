@@ -3,10 +3,9 @@ import semver from 'semver'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import urljoin from 'url-join'
 
-import { Dataset, DatasetsIndexV2Json } from 'src/types'
+import { Dataset, DatasetsIndexJson, DatasetsIndexV2Json } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-const DATA_INDEX_FILE = 'index_v2.json'
 const thisVersion = process.env.PACKAGE_VERSION ?? ''
 
 export function isEnabled(dataset: Dataset) {
@@ -84,5 +83,5 @@ export function filterDatasets(datasets: Dataset[], name?: string, refAccession?
 }
 
 export async function fetchDatasetsIndex(datasetServerUrl: string) {
-  return axiosFetch<DatasetsIndexV2Json>(urljoin(datasetServerUrl, DATA_INDEX_FILE))
+  return axiosFetch<DatasetsIndexJson>(urljoin(datasetServerUrl, 'index.json'))
 }

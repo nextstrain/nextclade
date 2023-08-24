@@ -2,63 +2,23 @@ use crate::cli::nextclade_cli::{
   NextcladeRunArgs, NextcladeRunInputArgs, NextcladeRunOtherParams, NextcladeRunOutputArgs,
 };
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
-use crate::dataset::dataset_download::{
-  dataset_dir_load, dataset_individual_files_load, dataset_str_download_and_load, dataset_zip_load,
-};
+use crate::dataset::dataset_download::nextclade_get_inputs;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
 use log::info;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::convert_graph_to_auspice_tree;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
-use nextclade::io::fs::has_extension;
 use nextclade::io::json::{json_write, JsonPretty};
 use nextclade::io::nextclade_csv::CsvColumnConfig;
 use nextclade::io::nwk_writer::nwk_write_to_file;
-use nextclade::make_error;
-use nextclade::run::nextclade_wasm::{
-  AnalysisInitialData, AnalysisOutput, Nextclade, NextcladeParams, NextcladeStateWithGraph,
-};
+use nextclade::run::nextclade_wasm::{AnalysisInitialData, AnalysisOutput, Nextclade};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use std::path::PathBuf;
 
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
   pub outputs_or_err: Result<AnalysisOutput, Report>,
-}
-
-pub struct DatasetFilePaths {
-  input_ref: PathBuf,
-  input_tree: PathBuf,
-  input_qc_config: PathBuf,
-  input_virus_properties: PathBuf,
-  input_pcr_primers: PathBuf,
-  input_gene_map: PathBuf,
-}
-
-pub fn nextclade_get_inputs(
-  run_args: &NextcladeRunArgs,
-  genes: &Option<Vec<String>>,
-) -> Result<NextcladeParams, Report> {
-  if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
-    dataset_str_download_and_load(run_args, dataset_name, genes)
-      .wrap_err_with(|| format!("When downloading dataset '{dataset_name}'"))
-  } else if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
-    if input_dataset.is_file() && has_extension(input_dataset, "zip") {
-      dataset_zip_load(run_args, input_dataset, genes)
-    } else if input_dataset.is_dir() {
-      dataset_dir_load(run_args.clone(), input_dataset, genes)
-    } else {
-      make_error!(
-        "--input-dataset: path is invalid. \
-        Expected a directory path or a zip archive file path, but got: '{input_dataset:#?}'"
-      )
-    }
-  } else {
-    dataset_individual_files_load(run_args, genes)
-  }
 }
 
 pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {

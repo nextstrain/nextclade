@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
-set -euo pipefail
+set -euxo pipefail
 trap "exit 0" INT
 
 
@@ -18,22 +18,21 @@ export OUT_DIR="$THIS_DIR/../tmp_v3/smoke-tests/result"
 
 function run_one_experimental_test() {
   dataset_dir=$1
-  name="$(basename "$(dirname "$dataset_dir")")"
-  reference="$(basename "$dataset_dir")"
+  name="$(realpath --relative-to="$INPUT_DATASETS_DIR" "$dataset_dir")"
 
   # This dataset is crashing, probably due to defective or unsupported features
-  if [ "$name" == "vic_na" ]; then
+  if [[ "$name" =~ vic_na* ]]; then
     return
   fi
 
   # This dataset is crashing, due to a defect in the dataset
-  if [ "$name" == "sars-cov-2-21L" ]; then
+  if [[ "$name" == sars-cov-2-21L* ]]; then
     return
   fi
 
-  # Temporarily rename default reference
-  if [ "$reference" == "UNKNOWN" ]; then
-    reference="default"
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" == flu/h3n2/ha* ]]; then
+    return
   fi
 
   sequences="$dataset_dir/sequences.fasta"
@@ -43,15 +42,15 @@ function run_one_experimental_test() {
     msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
   fi
 
-  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'${msg_no_sequences}"
+  echo "Running '${NEXTCLADE_BIN}' for '${name}'${msg_no_sequences}"
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${dataset_dir}/" \
-    --output-translations="$OUT_DIR/${name}_${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/${name}_${reference:-default}/aligned.fasta" \
-    --output-tsv="$OUT_DIR/${name}_${reference:-default}/nextclade.tsv" \
-    --output-tree="$OUT_DIR/${name}_${reference:-default}/tree.json" \
-    --output-graph="$OUT_DIR/${name}_${reference:-default}/graph.json" \
+    --output-translations="$OUT_DIR/translations/gene_{gene}.translation.fasta" \
+    --output-fasta="$OUT_DIR/aligned.fasta" \
+    --output-tsv="$OUT_DIR/nextclade.tsv" \
+    --output-tree="$OUT_DIR/tree.json" \
+    --output-graph="$OUT_DIR/graph.json" \
     "${sequences}"
 }
 export -f run_one_experimental_test

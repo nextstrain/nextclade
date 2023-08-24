@@ -2,10 +2,9 @@ use eyre::Report;
 use nextclade::analyze::pcr_primer_changes::PcrPrimer;
 use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene_map::GeneMap;
-use nextclade::io::dataset::{DatasetTagJson, DatasetsIndexJson};
-use nextclade::io::dataset_collection::{
-  DatasetAttributeValue, DatasetAttributes, DatasetCapabilities, DatasetCollection, DatasetCollectionMeta,
-  DatasetCollectionUrl, DatasetInfo,
+use nextclade::io::dataset::{
+  Dataset, DatasetAttributeValue, DatasetAttributes, DatasetCapabilities, DatasetCollectionMeta, DatasetCollectionUrl,
+  DatasetsIndexJson,
 };
 use nextclade::io::errors_csv::ErrorsFromWeb;
 use nextclade::io::fasta::FastaRecord;
@@ -56,7 +55,6 @@ struct _SchemaRoot<'a> {
   _5: QcResult,
   _6: PcrPrimer,
   _7: NextcladeOutputs,
-  _8: DatasetsIndexJson,
   _9: CsvColumnConfig,
   _10: NextcladeErrorOutputs,
   _11: ErrorsFromWeb,
@@ -64,15 +62,14 @@ struct _SchemaRoot<'a> {
   _13: CladeNodeAttrKeyDesc,
   _14: PhenotypeAttrDesc,
   _15: FastaRecord,
-  _16: DatasetTagJson,
   _17: AnalysisInitialData<'a>,
   _18: AnalysisInput,
   _19: NextcladeResult,
   _20: NextcladeParams,
   _21: NextcladeParamsRaw,
   _22: OutputTrees,
-  _23: DatasetCollection,
-  _24: DatasetInfo,
+  _23: DatasetsIndexJson,
+  _24: Dataset,
   _25: DatasetCollectionMeta,
   _26: DatasetCapabilities,
   _27: DatasetAttributeValue,

@@ -7,7 +7,7 @@ use eyre::Report;
 use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::getenv;
-use nextclade::io::dataset::DatasetsIndexJson;
+use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::json::{json_stringify, JsonPretty};
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
@@ -16,10 +16,13 @@ pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
     mut name,
     mut reference,
-    mut tag,
+    updated_at,
     attribute,
     include_incompatible,
     include_old,
+    include_deprecated,
+    include_experimental,
+    include_community,
     json,
     server,
     proxy_config,
@@ -39,21 +42,21 @@ pub fn nextclade_dataset_list(
   if let Some(attr_reference) = attributes.remove("reference") {
     reference = attr_reference;
   }
-  if let Some(attr_tag) = attributes.remove("tag") {
-    tag = attr_tag;
-  }
 
   let filtered = datasets
     .into_iter()
-    .filter(|dataset| dataset.enabled)
+    .filter(Dataset::is_enabled)
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
-      if tag == "latest" {
+      if updated_at == "latest" {
         let is_not_old = include_old || dataset.is_latest();
         let is_compatible = include_incompatible || dataset.is_compatible(THIS_VERSION);
-        is_compatible && is_not_old
+        let is_not_deprecated = include_deprecated || !dataset.is_deprecated();
+        let is_not_experimental = include_experimental || !dataset.is_experimental();
+        let is_not_community = include_community || !dataset.is_community();
+        is_compatible && is_not_old && is_not_deprecated && is_not_experimental && is_not_community
       } else {
-        dataset.attributes.tag.value == tag
+        dataset.updated_at == updated_at
       }
     })
     // Filter by reference sequence
@@ -61,7 +64,7 @@ pub fn nextclade_dataset_list(
       if reference == "all" {
         true
       } else if reference == "default" {
-        dataset.attributes.reference.is_default
+        dataset.attributes.reference.is_default()
       } else {
         dataset.attributes.reference.value == reference
       }
@@ -77,7 +80,7 @@ pub fn nextclade_dataset_list(
         let is_attr_matches = match dataset.attributes.rest_attrs.get(key) {
           Some(attr) => {
             if val == "default" {
-              attr.is_default
+              attr.is_default()
             } else {
               &attr.value == val
             }
@@ -89,12 +92,10 @@ pub fn nextclade_dataset_list(
       should_include
     })
     .sorted_by_key(|dataset| (
-      !dataset.attributes.name.is_default,
+      !dataset.attributes.name.is_default(),
       dataset.attributes.name.value.to_ascii_lowercase(),
-      !dataset.attributes.reference.is_default,
+      !dataset.attributes.reference.is_default(),
       dataset.attributes.reference.value.to_ascii_lowercase(),
-      !dataset.attributes.tag.is_default,
-      dataset.attributes.tag.value.to_ascii_lowercase(),
     ))
     .collect_vec();
 
@@ -108,7 +109,7 @@ pub fn nextclade_dataset_list(
     let table = format_dataset_table(&filtered);
 
     let attributes_fmt = {
-      let attributes_fmt = format_attribute_list(&name, &reference, &tag, &attributes);
+      let attributes_fmt = format_attribute_list(&name, &reference, &updated_at, &attributes);
       if attributes_fmt.is_empty() {
         "".to_owned()
       } else {

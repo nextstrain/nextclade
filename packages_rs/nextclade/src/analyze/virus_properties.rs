@@ -5,6 +5,7 @@ use crate::analyze::pcr_primer_changes::PcrPrimer;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
+use crate::io::dataset::DatasetFiles;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
@@ -27,53 +28,47 @@ const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
   pub schema_version: String,
+
   #[serde(skip_serializing_if = "Option::is_none")]
   pub attributes: Option<VirusPropertiesAttributes>,
+
+  pub files: DatasetFiles,
+
   #[serde(default = "bool_false")]
   pub deprecated: bool,
+
   #[serde(default = "bool_true")]
   pub enabled: bool,
+
   #[serde(default = "bool_true")]
   pub experimental: bool,
+
   pub default_gene: Option<String>,
+
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub gene_order_preference: Vec<String>,
+
   #[serde(default)]
   pub mut_labels: LabelledMutationsConfig,
+
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub primers: Vec<PcrPrimer>,
+
   pub qc: Option<QcConfig>,
+
   pub general_params: Option<NextcladeGeneralParamsOptional>,
+
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
+
   pub tree_builder_params: Option<TreeBuilderParamsOptional>,
+
   pub phenotype_data: Option<Vec<PhenotypeData>>,
+
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motifs: Vec<AaMotifsDesc>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
-}
-
-impl Default for VirusProperties {
-  fn default() -> Self {
-    Self {
-      schema_version: PATHOGEN_JSON_SCHEMA_VERSION_FROM.to_owned(),
-      attributes: None,
-      deprecated: false,
-      enabled: true,
-      experimental: true,
-      default_gene: None,
-      gene_order_preference: vec![],
-      mut_labels: LabelledMutationsConfig::default(),
-      primers: vec![],
-      qc: None,
-      general_params: None,
-      alignment_params: None,
-      tree_builder_params: None,
-      phenotype_data: None,
-      aa_motifs: vec![],
-      other: serde_json::Value::default(),
-    }
-  }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
@@ -201,10 +196,15 @@ pub struct CountAaMotifsGeneDesc {
   pub ranges: Vec<AaRefRange>,
 }
 
-impl FromStr for VirusProperties {
-  type Err = Report;
+impl VirusProperties {
+  pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
+    let filepath = filepath.as_ref();
+    let data =
+      read_file_to_string(filepath).wrap_err_with(|| format!("When reading pathogen.json file: {filepath:#?}"))?;
+    Self::from_str(&data)
+  }
 
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
+  pub fn from_str(s: &impl AsRef<str>) -> Result<Self, Report> {
     SchemaVersion::check_warn(
       s,
       &SchemaVersionParams {
@@ -214,15 +214,6 @@ impl FromStr for VirusProperties {
       },
     );
 
-    json_parse::<VirusProperties>(s)
-  }
-}
-
-impl VirusProperties {
-  pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
-    let data =
-      read_file_to_string(filepath).wrap_err_with(|| format!("When reading virus properties file {filepath:#?}"))?;
-    Self::from_str(&data).wrap_err_with(|| format!("When parsing virus properties file {filepath:#?}"))
+    json_parse::<VirusProperties>(s).wrap_err("When parsing pathogen.json file")
   }
 }

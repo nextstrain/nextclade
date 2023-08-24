@@ -3,7 +3,7 @@ use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_at
 use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_download, download_datasets_index_json};
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
-use eyre::{eyre, Report, WrapErr};
+use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{info, LevelFilter};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
@@ -14,12 +14,16 @@ const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
 pub struct DatasetHttpGetParams<'s> {
   pub name: &'s str,
   pub reference: &'s str,
-  pub tag: &'s str,
+  pub updated_at: &'s str,
 }
 
 pub fn nextclade_dataset_http_get(
   http: &mut HttpClient,
-  DatasetHttpGetParams { name, reference, tag }: DatasetHttpGetParams,
+  DatasetHttpGetParams {
+    name,
+    reference,
+    updated_at: tag,
+  }: DatasetHttpGetParams,
   attributes: &[String],
 ) -> Result<Dataset, Report> {
   let DatasetsIndexJson { datasets, .. } = download_datasets_index_json(http)?;
@@ -48,21 +52,24 @@ pub fn nextclade_dataset_http_get(
 
   let mut filtered = datasets
     .into_iter()
-    .filter(|dataset| dataset.enabled)
+    .filter(Dataset::is_enabled)
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
       if tag == "latest" {
-        let is_not_old = dataset.is_latest();
-        let is_compatible = dataset.is_compatible(THIS_VERSION);
-        is_compatible && is_not_old
+        let is_not_old =  dataset.is_latest();
+        let is_compatible =  dataset.is_compatible(THIS_VERSION);
+        let is_not_deprecated =  !dataset.is_deprecated();
+        let is_not_experimental =  !dataset.is_experimental();
+        let is_not_community =  !dataset.is_community();
+        is_compatible && is_not_old && is_not_deprecated && is_not_experimental && is_not_community
       } else {
-        dataset.attributes.tag.value == tag
+        dataset.updated_at == tag
       }
     })
     // Filter by reference sequence
     .filter(|dataset| {
       if reference == "default" {
-        dataset.attributes.reference.is_default
+        dataset.attributes.reference.is_default()
       } else {
         dataset.attributes.reference.value == reference
       }
@@ -78,7 +85,7 @@ pub fn nextclade_dataset_http_get(
         let is_attr_matches = match dataset.attributes.rest_attrs.get(key) {
           Some(attr) => {
             if val == "default" {
-              attr.is_default
+              attr.is_default()
             } else {
               &attr.value == val
             }
@@ -121,7 +128,7 @@ pub fn nextclade_dataset_get(args: &NextcladeDatasetGetArgs) -> Result<(), Repor
     DatasetHttpGetParams {
       name: &args.name,
       reference: &args.reference,
-      tag: &args.tag,
+      updated_at: &args.updated_at,
     },
     &args.attribute,
   )?;
@@ -137,15 +144,15 @@ pub fn nextclade_dataset_get(args: &NextcladeDatasetGetArgs) -> Result<(), Repor
   Ok(())
 }
 
-pub fn dataset_file_http_get(http: &mut HttpClient, dataset: &Dataset, filename: &str) -> Result<String, Report> {
-  let url = dataset
-    .files
-    .get(filename)
-    .ok_or_else(|| eyre!("File not found in the dataset: '{}'", filename))?;
-
+pub fn dataset_file_http_get(
+  http: &mut HttpClient,
+  dataset: &Dataset,
+  filename: impl AsRef<str>,
+) -> Result<String, Report> {
+  let url = format!("{}/{}", dataset.url, filename.as_ref());
   let content = http
     .get(&url)
-    .wrap_err_with(|| format!("Dataset file download failed: '{url}'"))?;
+    .wrap_err_with(|| format!("Dataset file download failed: '{}'", http.root.join(&url).unwrap()))?;
 
   let content_string = String::from_utf8(content)?;
 

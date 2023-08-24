@@ -37,25 +37,20 @@ pub struct NextcladeParams {
 
 impl NextcladeParams {
   pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Self, Report> {
+    let virus_properties =
+      VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing virus properties JSON")?;
+
     let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
 
     let tree = raw
       .tree
-      .map(|tree| AuspiceTree::from_str(&tree).wrap_err("When parsing reference tree Auspice JSON v2"))
+      .map(|tree| AuspiceTree::from_str(tree).wrap_err("When parsing reference tree Auspice JSON v2"))
       .transpose()?;
 
     let gene_map = raw.gene_map.map_or_else(
       || Ok(GeneMap::new()), // If genome annotation is not provided, use an empty one
       |gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"),
     )?;
-
-    let virus_properties = raw
-      .virus_properties
-      .map(|virus_properties| {
-        VirusProperties::from_str(&virus_properties).wrap_err("When parsing virus properties JSON")
-      })
-      .transpose()?
-      .unwrap_or_default();
 
     Ok(Self {
       ref_record,
@@ -74,7 +69,7 @@ pub struct NextcladeParamsRaw {
   pub gene_map: Option<String>,
   pub tree: Option<String>,
   pub qc_config: Option<String>,
-  pub virus_properties: Option<String>,
+  pub virus_properties: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]

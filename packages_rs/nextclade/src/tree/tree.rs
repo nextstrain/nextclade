@@ -481,20 +481,16 @@ pub type AuspiceTreeNodeIter<'a> = Iter<'a, AuspiceTreeNode>;
 
 pub type AuspiceTreeNodeIterFn<'a> = fn(&'a AuspiceTreeNode) -> AuspiceTreeNodeIter<'_>;
 
-impl FromStr for AuspiceTree {
-  type Err = Report;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s).wrap_err("When parsing Auspice Tree JSON contents")
-  }
-}
-
 impl AuspiceTree {
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let data =
       read_file_to_string(filepath).wrap_err_with(|| format!("When reading Auspice Tree JSON file {filepath:#?}"))?;
-    Self::from_str(&data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {filepath:#?}"))
+    Self::from_str(data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {filepath:#?}"))
+  }
+
+  pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
+    json_parse(s).wrap_err("When parsing Auspice Tree JSON contents")
   }
 
   pub fn to_string_pretty(&self) -> Result<String, Report> {

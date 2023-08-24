@@ -48,7 +48,7 @@ impl NextcladeWasm {
   }
 
   pub fn parse_query_sequences(qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
-    let mut reader = jserr(FastaReader::from_str(qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
+    let mut reader = jserr(FastaReader::from_str(&qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
 
     loop {
       let mut record = FastaRecord::default();
