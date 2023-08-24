@@ -254,8 +254,7 @@ pub fn dataset_individual_files_load(
         .inputs
         .input_gene_map
         .as_ref()
-        .and_then(|input_gene_map| read_file_to_string(input_gene_map).ok())
-        .map_ref_fallible(GeneMap::from_str)
+        .map_ref_fallible(GeneMap::from_path)
         .wrap_err("When reading genome annotation")?
         .map(|gen_map| filter_gene_map(gen_map, genes))
         .unwrap_or_default();
@@ -264,8 +263,7 @@ pub fn dataset_individual_files_load(
         .inputs
         .input_tree
         .as_ref()
-        .and_then(|input_tree| read_file_to_string(input_tree).ok())
-        .map_ref_fallible(AuspiceTree::from_str)
+        .map_ref_fallible(AuspiceTree::from_path)
         .wrap_err("When reading reference tree JSON")?;
 
       Ok(NextcladeParams {
