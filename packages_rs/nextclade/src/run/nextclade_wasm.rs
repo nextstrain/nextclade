@@ -23,6 +23,7 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
@@ -135,7 +136,6 @@ pub struct Nextclade {
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
 }
 
-#[derive(Default)]
 pub struct InitialStateWithAa {
   pub gap_open_close_nuc: GapScoreMap,
   pub gap_open_close_aa: GapScoreMap,
@@ -185,7 +185,13 @@ impl Nextclade {
         aa_motifs_ref,
       }
     } else {
-      InitialStateWithAa::default()
+      let gap_open_close = get_gap_open_close_scores_flat(&ref_seq, &params.alignment);
+      InitialStateWithAa {
+        gap_open_close_nuc: gap_open_close.clone(),
+        gap_open_close_aa: gap_open_close,
+        ref_translation: Translation::default(),
+        aa_motifs_ref: BTreeMap::default(),
+      }
     };
 
     let graph = tree
