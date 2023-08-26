@@ -69,7 +69,6 @@ pub struct NextcladeParamsRaw {
   pub ref_seq: String,
   pub gene_map: Option<String>,
   pub tree: Option<String>,
-  pub qc_config: Option<String>,
   pub virus_properties: String,
 }
 

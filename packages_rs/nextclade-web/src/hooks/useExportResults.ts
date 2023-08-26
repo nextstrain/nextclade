@@ -1,7 +1,7 @@
-/* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops,sonarjs/no-duplicate-string */
+/* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops */
 import { Snapshot, useRecoilCallback } from 'recoil'
 
-import type { AnalysisError, AnalysisOutput, ErrorsFromWeb } from 'src/types'
+import type { AnalysisError, AnalysisOutput } from 'src/types'
 import type { ExportParams } from 'src/components/Results/ExportDialogButton'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
@@ -30,8 +30,6 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameTreeNwk: 'nextclade.nwk',
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
-  filenameInsertionsCsv: 'nextclade.insertions.csv',
-  filenameErrorsCsv: 'nextclade.errors.csv',
   filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
@@ -189,54 +187,6 @@ export function useExportTreeNwk() {
   })
 }
 
-async function prepareInsertionsCsv(snapshot: Snapshot, worker: ExportWorker) {
-  const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
-  const errors = await mapErrors(snapshot, (err) => err)
-  return worker.serializeInsertionsCsv(results, errors)
-}
-
-export function useExportInsertionsCsv() {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareInsertionsCsv(snapshot, worker)
-    saveFile(csvStr, filename, 'text/csv;charset=utf-8')
-  })
-}
-
-async function prepareErrorsCsv(snapshot: Snapshot, worker: ExportWorker) {
-  const results = await snapshot.getPromise(analysisResultsAtom)
-
-  const errors: ErrorsFromWeb[] = results.map(({ seqName, result, error }) => {
-    if (result) {
-      return {
-        seqName,
-        errors: '',
-        failedGenes: result.analysisResult.missingGenes,
-        warnings: result.analysisResult.warnings,
-      }
-    }
-
-    if (error) {
-      return {
-        seqName,
-        errors: error,
-        failedGenes: [],
-        warnings: [],
-      }
-    }
-
-    throw new ErrorInternal('When preparing errors for export: Expected either result or error to be non-nil')
-  })
-
-  return worker.serializeErrorsCsv(errors)
-}
-
-export function useExportErrorsCsv() {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareErrorsCsv(snapshot, worker)
-    saveFile(csvStr, filename, 'text/csv;charset=utf-8')
-  })
-}
-
 async function preparePeptideFiles(snapshot: Snapshot) {
   const peptides = await mapGoodResults(snapshot, ({ translation, analysisResult: { seqName } }) => ({
     seqName,
@@ -279,8 +229,6 @@ export function useExportZip() {
     const treeJsonStr = await prepareOutputTree(snapshot)
     const treeNwkStr = await prepareOutputTreeNwk(snapshot)
     const fastaStr = await prepareOutputFasta(snapshot)
-    const insertionsCsvStr = await prepareInsertionsCsv(snapshot, worker)
-    const errorsCsvStr = await prepareErrorsCsv(snapshot, worker)
     const peptideFiles = await preparePeptideFiles(snapshot)
 
     const files: ZipFileDescription[] = [
@@ -291,8 +239,6 @@ export function useExportZip() {
       { filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeJsonStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeNwkStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameFasta, data: fastaStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameInsertionsCsv, data: insertionsCsvStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameErrorsCsv, data: errorsCsvStr },
     ]
 
     await saveZip({ filename, files })
