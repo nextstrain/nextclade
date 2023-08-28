@@ -1,4 +1,16 @@
 {
   "editor.formatOnSave": true,
-  "editor.formatOnSaveMode": "file"
+  "editor.formatOnSaveMode": "file",
+  "editor.tabSize": 4,
+  "[rust]": {
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.tabSize": 2
+  },
+  "[python]": {
+    "editor.tabSize": 4
+  },
+  // This one forces the tab to be **space**
+  "editor.insertSpaces": true,
 }

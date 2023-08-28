@@ -114,11 +114,7 @@ pub fn score_matrix<T: Letter<T>>(
 
         // ^ If stripes allow to move up diagonally to upper left
         if qpos > stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
-          score = if qry_seq[qpos - 1].is_unknown() || ref_seq[ri - 1].is_unknown() {
-            // no need to look-up match score since unknown matches with everything.
-            // reduce match score by 1 to de-prioritize matches with unknown states.
-            scores[(ri - 1, qpos - 1)] + params.score_match - 1
-          } else if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
+          score = if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
             scores[(ri - 1, qpos - 1)] + params.score_match
           } else {
             scores[(ri - 1, qpos - 1)] - params.penalty_mismatch
