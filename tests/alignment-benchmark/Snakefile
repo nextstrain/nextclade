@@ -1,14 +1,10 @@
 """
-Compare two branches for changes in alignment scores
-Output sequences where alignments differ
-Provide quick diagnostics
+Benchmark impact of parameter changes on speed and accuracy of nextclade
 Run as:
 ```bash
-snakemake --eval-branch <branch> --base-branch <branch>
+snakemake
 ```
 """
-
-# TODO: Don't fail when nextclade errors, but output error into file, otherwise diffs are misleading
 
 
 wildcard_constraints:
@@ -22,28 +18,26 @@ wildcard_constraints:
 # List of datasets to run on (TODO: Get from dataset list)
 datasets = [
     "sars-cov-2",
-    # "sars-cov-2-21L", # Currently breaks due to wrong root mutations
-    "MPXV",
-    "hMPXV",
-    "hMPXV_B1",
-    "flu_h1n1pdm_ha",
-    "flu_h1n1pdm_na",
-    "flu_h3n2_ha",
-    "flu_h3n2_na",
-    "flu_vic_ha",
-    "flu_vic_na",
-    "flu_yam_ha",
-    "rsv_a",
-    "rsv_b",
-    "sars-cov-2-no-recomb",
+    # "sars-cov-2-21L",
+    # "MPXV",
+    # "hMPXV",
+    # "hMPXV_B1",
+    # "flu_h1n1pdm_ha",
+    # "flu_h1n1pdm_na",
+    # "flu_h3n2_ha",
+    # "flu_h3n2_na",
+    # "flu_vic_ha",
+    # "flu_vic_na",
+    # "flu_yam_ha",
+    # "rsv_a",
+    # "rsv_b",
+    # "sars-cov-2-no-recomb",
 ]
 
 # Default outputs to produce
 outputs = [
-    "default_diff.tsv",
-    "default_diff_seqs.fasta",
-    "default_diff_columns.tsv",
-    "default_diff_alignment_score.tsv",
+    "custom_diff_alignment_score.tsv",
+    "run_time.csv",
 ]
 
 
@@ -54,51 +48,12 @@ rule all:
         ),
 
 
-# TODO: Use current directory for "eval", easiest to use cargo run
-rule clone:
-    """
-    Checkout eval branch into new directory
-    Build release
-    """
-    output:
-        dir=directory("base_build/src/"),
-    params:
-        branch=lambda w: config["base_branch"],
-        url="https://github.com/nextstrain/nextclade.git",
-    shell:
-        """
-        git clone --filter=blob:none -b {params.branch} {params.url} {output.dir}
-        """
-
-
-rule build_base:
-    """
-    Build base branch binary
-    """
-    input:
-        dir="base_build/src",
-    output:
-    params:
-        branch=lambda w: config["base_branch"],
-    shell:
-        """
-        cd {input.dir}
-        git pull
-        git checkout {params.branch}
-        git pull
-        cargo build --quiet --release --bin nextclade
-        cd -
-        mkdir -p base_build/bin
-        cp {input.dir}/target/release/nextclade {output.bin}
-        """
-
-
 rule build_eval:
     """
     Build (or recycle) eval branch binary
     """
     output:
-        bin="eval_build/bin/nextclade",
+        bin="bin/nextclade",
     shell:
         """
         cargo build --quiet --release --bin nextclade
@@ -124,99 +79,105 @@ rule download_dataset:
         """
 
 
-rule run_nextclade_on_dataset_sequences:
+rule run_nextclade:
     input:
-        bin="{build_type}_build/bin/nextclade",
-        dataset="dataset/{dataset_name}.zip",
-        sequences="sequences/{dataset_name}/sequences.fasta",
-    output:
-        tsv="results/{dataset_name}/{build_type}/default.tsv",
-        alignment="results/{dataset_name}/{build_type}/alignment.fasta",
-        stderr="results/{dataset_name}/{build_type}/errors.txt",
-    threads: 4
-    shell:
-        """
-        ./{input.bin} run -j {threads} \
-        --input-dataset {input.dataset} --in-order \
-        {input.sequences} \
-        --output-tsv {output.tsv} \
-        --output-fasta {output.alignment} \
-        2> {output.stderr} \
-        || echo "Nextclade build {wildcards.build_type} failed for {wildcards.dataset_name}"
-        touch {output}
-        """
-
-
-rule run_nextclade_on_custom_sequences:
-    input:
-        bin="{build_type}_build/bin/nextclade",
+        bin="bin/nextclade",
         sequences="sequences/{dataset_name}",
         dataset="dataset/{dataset_name}.zip",
     output:
-        tsv="results/{dataset_name}/{build_type}/custom.tsv",
-    threads: 4
+        tsv="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}/nextclade.tsv",
+        runtime="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}/runtime.csv",
+    threads: workflow.cores
     shell:
         """
-        ./{input.bin} run -j {threads} \
-        --input-dataset {input.dataset}  --in-order \
+        hyperfine --runs 1 \
+        --command-name "{wildcards.dataset_name};exc_{wildcards.excess};term_{wildcards.term};retry_{wildcards.retry};mis_{wildcards.mis};wind_{wildcards.wind};minml_{wildcards.minml}" \
+        --export-csv {output.runtime} \
+        './{input.bin} run -j {threads} \
+        --input-dataset {input.dataset} \
         --output-tsv {output.tsv} \
-        {input.sequences}/*
+        --excess-bandwidth {wildcards.excess} \
+        --terminal-bandwidth {wildcards.term} \
+        --max-alignment-attempts {wildcards.retry} \
+        --gap-alignment-side right \
+        --allowed-mismatches {wildcards.mis} \
+        --window-size {wildcards.wind} \
+        --min-match-length {wildcards.minml} \
+        {input.sequences}/*'
         """
 
 
-rule diff_tsv:
+# Uses nextclade binary in PATH
+rule run_nextclade_old:
     input:
-        tsv1="results/{dataset_name}/base/{seq_type}.tsv",
-        tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
+        sequences="sequences/{dataset_name}",
+        dataset="dataset/{dataset_name}.zip",
     output:
-        diff="results/{dataset_name}/{seq_type}_diff.tsv",
-        diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.txt",
+        tsv="results/{dataset_name}/old/nextclade.tsv",
+        runtime="results/{dataset_name}/old/runtime.csv",
+    threads: workflow.cores
     shell:
         """
-        # Don't fail snakemake on error exit code
-        set +e
-        diff <(sort {input.tsv1}) <(sort {input.tsv2}) > {output.diff}
-        error=$?
-        if [ $error -eq 1 ]; then
-            echo "Files differ"
-        elif [ $error -gt 1 ]; then
-            echo "Something went wrong"
-            exit $error
-        else
-            echo "Files are the same"
-            touch {output.diff_seqs}
-            exit 0
-        fi
-        # Extract sequence names of differing sequences
-        grep -E '^<|^>' {output.diff} | awk '{{print $3}}' | sort | uniq > {output.diff_seqs}
-        """
-
-
-rule get_differing_seqs:
-    input:
-        diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.txt",
-        sequences="sequences/{dataset_name}/sequences.fasta",
-    output:
-        diff_seqs="results/{dataset_name}/{seq_type}_diff_seqs.fasta",
-    params:
-        seq_dir="sequences/{dataset_name}",
-    shell:
-        """
-        seqkit grep -w0 -f {input.diff_seqs} {params.seq_dir}/* > {output.diff_seqs}
+        hyperfine \
+        --runs 1 \
+        --command-name "old" \
+        --export-csv {output.runtime} \
+            'nextclade run -j 10 \
+            --input-dataset {input.dataset} \
+            --output-tsv {output.tsv} \
+            --gap-alignment-side right \
+            {input.sequences}/*'
         """
 
 
 rule tsv_column_diff:
     input:
-        tsv1="results/{dataset_name}/base/{seq_type}.tsv",
-        tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
+        tsv1="results/{dataset_name}/{para1}/nextclade.tsv",
+        tsv2="results/{dataset_name}/{para2}/nextclade.tsv",
     output:
-        diff="results/{dataset_name}/{seq_type}_diff_columns.tsv",
+        diff="results/{dataset_name}/{para1}:{para2}/diff_columns.tsv",
     shell:
         """
         python3 scripts/tsv-diff.py \
         --base-tsv-path {input.tsv1} \
         --eval-tsv-path {input.tsv2} \
+        > {output.diff}
+        """
+
+
+rule tsv_column_diff_old:
+    input:
+        tsv1="results/{dataset_name}/old/nextclade.tsv",
+        tsv2="results/{dataset_name}/{para}/nextclade.tsv",
+    output:
+        diff="results/{dataset_name}/{para}/diff_columns.tsv",
+    shell:
+        """
+        # Add --score-correct if N penalty active
+        python3 scripts/tsv-diff.py \
+        --base-tsv-path {input.tsv1} \
+        --eval-tsv-path {input.tsv2} \
+        > {output.diff}
+        """
+
+
+# TODO: Deal with newly aligning sequences, present in one, not the other
+rule compare_vs_old:
+    input:
+        oldtsv="results/{dataset_name}/old/nextclade.tsv",
+        oldruntime="results/{dataset_name}/old/runtime.csv",
+        newtsv="results/{dataset_name}/{para}/nextclade.tsv",
+        newruntime="results/{dataset_name}/{para}/runtime.csv",
+    output:
+        diff="results/{dataset_name}/{para}/new_vs_old.tsv",
+    shell:
+        """
+        python3 scripts/new-old-diff.py \
+        --old-tsv-path {input.oldtsv} \
+        --old-runtime {input.oldruntime} \
+        --new-tsv-path {input.newtsv} \
+        --new-runtime {input.newruntime} \
+        --params {wildcards.para} \
         > {output.diff}
         """
 
@@ -236,6 +197,18 @@ rule alignment_score_diff:
         > {output.diff}
         """
 
+
+rule join_summary:
+    output:
+        summary="results/{dataset_name}/runtime.csv",
+    params:
+        new="results/{dataset_name}/new/new_vs_old.tsv",
+    shell:
+        """
+        tsv-append -H {params.new} >{output.runtimes}
+        """
+
+
 rule clean:
     """
     Remove results and eval directories
@@ -244,6 +217,7 @@ rule clean:
         """
         rm -rf results eval_build
         """
+
 
 rule clobber:
     """

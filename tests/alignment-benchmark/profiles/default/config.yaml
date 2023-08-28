@@ -1,4 +1,4 @@
-cores: all
+cores: 10
 configfile: profiles/default/config_dict.yaml
 printshellcmds: true
 rerun-incomplete: true

@@ -10,6 +10,7 @@ def main(
     base_tsv_path: str = "validation/alignment-score/results/sars-cov-2/base/custom.tsv",
     eval_tsv_path: str = "validation/alignment-score/results/sars-cov-2/eval/custom.tsv",
     columns: str = "all",
+    score_correct: bool = False,
 ):
     import os
     import polars as pl
@@ -18,13 +19,21 @@ def main(
     if os.path.getsize(base_tsv_path) == 0:
         # Write to stdout that file is empty -> indicates error
         with open("/dev/stdout", "w") as outfile:
-            outfile.write(f"Base file {base_tsv_path} is empty, probably nextclade errored")
-        raise ValueError(f"Base file {base_tsv_path} is empty, probably nextclade errored")
+            outfile.write(
+                f"Base file {base_tsv_path} is empty, probably nextclade errored"
+            )
+        raise ValueError(
+            f"Base file {base_tsv_path} is empty, probably nextclade errored"
+        )
     if os.path.getsize(eval_tsv_path) == 0:
         # Write to stdout that file is empty -> indicates error
         with open("/dev/stdout", "w") as outfile:
-            outfile.write(f"Eval file {eval_tsv_path} is empty, probably nextclade errored")
-        raise ValueError(f"Eval file {eval_tsv_path} is empty, probably nextclade errored")
+            outfile.write(
+                f"Eval file {eval_tsv_path} is empty, probably nextclade errored"
+            )
+        raise ValueError(
+            f"Eval file {eval_tsv_path} is empty, probably nextclade errored"
+        )
 
     # base_tsv_path = "validation/alignment-score/results/sars-cov-2/base/custom.tsv"
     # eval_tsv_path = "validation/alignment-score/results/sars-cov-2/eval/custom.tsv"
@@ -60,8 +69,34 @@ def main(
     # Column wise diff
     column_diff = dict()
 
+    # Reorder df.columns
+    # Move alignmentScore, alignmentStart, alignmentEnd, totalSubstitutions, totalDeletions, totalInsertions, totalFrameShifts, substitutions, deletions, insertions, and clade to front
+    first_columns = [
+        "alignmentScore",
+        "alignmentStart",
+        "alignmentEnd",
+        "totalSubstitutions",
+        "totalDeletions",
+        "totalInsertions",
+        "totalFrameShifts",
+        "substitutions",
+        "deletions",
+        "insertions",
+        "clade",
+    ]
+    columns = first_columns + [
+        column for column in df.columns if column not in first_columns
+    ]
+
+    # Add totalMissing_eval to alignmentScore_eval
+    if score_correct:
+      df = df.with_columns(
+          alignmentScore_eval=pl.col("alignmentScore_eval") + pl.col("totalMissing_eval")
+      )
+
+
     with open("/dev/stdout", "w") as outfile:
-        for column in df.columns:
+        for column in columns:
             if (
                 column.startswith("index")
                 or column.startswith("seqName")
@@ -84,17 +119,17 @@ def main(
                         seqName=pl.col("seqName"),
                         new_in_eval=(
                             eval_col.str.split(by=",")
-                            .list.difference(base_col.str.split(by=","))
+                            .list.set_difference(base_col.str.split(by=","))
                             .list.join(",")
                         ),
                         gone_in_eval=(
                             base_col.str.split(by=",")
-                            .list.difference(eval_col.str.split(by=","))
+                            .list.set_difference(eval_col.str.split(by=","))
                             .list.join(",")
                         ),
                         shared=(
                             eval_col.str.split(by=",")
-                            .list.intersection(base_col.str.split(by=","))
+                            .list.set_intersection(base_col.str.split(by=","))
                             .list.join(",")
                         ),
                         base=base_col,
@@ -102,6 +137,17 @@ def main(
                     )
                     commadiff.to_pandas().to_csv(outfile, sep="\t", index=False)
                     outfile.write("\n")
+                elif df.schema[column] in pl.NUMERIC_DTYPES:
+                    differencediff = differing_rows.select(
+                        index=pl.col("index"),
+                        seqName=pl.col("seqName"),
+                        difference=eval_col - base_col,
+                        base=base_col,
+                        eval=eval_col,
+                    )
+                    differencediff.to_pandas().to_csv(
+                        outfile, sep="\t", index=False
+                    )
                 else:
                     differing_rows.to_pandas().to_csv(
                         outfile, sep="\t", index=False
