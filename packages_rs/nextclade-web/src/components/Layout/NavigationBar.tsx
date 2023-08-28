@@ -15,39 +15,51 @@ import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
 import { CitationButton } from 'src/components/Citation/CitationButton'
-import { NextcladeTextLogo as NavigationLogoBase } from 'src/components/Layout/NextcladeTextLogo'
+import { NextcladeTextLogo } from 'src/components/Layout/NextcladeTextLogo'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
 const LOGO_SIZE = 30
 
 export const Navbar = styled(NavbarBase)`
+  height: 38px;
   display: flex;
-  box-shadow: none !important;
-  margin: 0;
-  padding: 6px 10px;
+  vertical-align: middle;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: ${(props) => props.theme.shadows.large};
 `
 
-export const Nav = styled(NavBase)``
+export const Nav = styled(NavBase)`
+  display: flex;
+  vertical-align: middle;
+  padding: 0 !important;
+  margin: 0 !important;
+`
 
 export const NavItem = styled(NavItemBase)`
   padding: 0 0.5rem;
   flex-grow: 0;
   flex-shrink: 0;
+  margin: 0 !important;
 `
 
 const NavbarBrand = styled(NavbarBrandBase)`
   display: flex;
-  padding: 0;
+  flex: 1;
+  padding: 0 !important;
+  margin: 0 !important;
 `
 
 const BrandLogo = styled(BrandLogoBase)`
   width: ${LOGO_SIZE}px;
   height: ${LOGO_SIZE}px;
-  margin: 0 1rem;
+  padding: 0 !important;
+  margin-left: 0.5rem;
 `
 
-const NavigationLogo = styled(NavigationLogoBase)`
-  margin: auto;
+const BrandText = styled(NextcladeTextLogo)`
+  margin-left: 1rem;
+  margin-right: 1rem;
 `
 
 export const NavLinkLocalStyle = styled(LinkSmart)<{ $active: boolean; disabled?: boolean }>`
@@ -153,7 +165,7 @@ export function NavigationBar() {
       <Nav>
         <NavbarBrand tag={Link} href="/">
           <BrandLogo />
-          <NavigationLogo />
+          <BrandText />
         </NavbarBrand>
 
         {linksLeft}

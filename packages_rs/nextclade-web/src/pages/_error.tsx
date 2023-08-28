@@ -5,7 +5,7 @@ import get from 'lodash/get'
 
 import { ErrorContent } from 'src/components/Error/ErrorContent'
 import { RestartButton } from 'src/components/Error/ErrorStyles'
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
@@ -69,7 +69,7 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
   }, [error])
 
   return (
-    <LayoutResults>
+    <Layout>
       <MainContent>
         <Row noGutters>
           <Col className="text-center text-danger">
@@ -85,7 +85,7 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
           </Col>
         </Row>
       </MainContent>
-    </LayoutResults>
+    </Layout>
   )
 }
 

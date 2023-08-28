@@ -13,7 +13,8 @@ const DatasetSelectorContainer = styled(Container)`
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100% !important;
+  height: 100%;
+  overflow: hidden;
   padding: 0;
 `
 
@@ -25,6 +26,8 @@ const DatasetSelectorTitle = styled.h4`
 const DatasetSelectorListContainer = styled.section`
   display: flex;
   width: 100%;
+  height: 100%;
+  overflow: hidden;
 `
 
 const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
@@ -97,28 +100,28 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
         </Col>
       </Row>
 
-      {/* <Row noGutters className="mt-2 h-100"> */}
-      {/*   <Col className="h-100"> */}
-      {/* <DatasetSelectorListContainer> */}
-      {!isBusy && (
-        <DatasetSelectorList
-          datasets={datasets}
-          datasetHighlighted={datasetHighlighted}
-          searchTerm={searchTerm}
-          onDatasetHighlighted={setDatasetHighlighted}
-        />
-      )}
+      <Row noGutters className="mt-2 h-100 overflow-hidden">
+        <Col className="h-100 overflow-hidden">
+          <DatasetSelectorListContainer>
+            {!isBusy && (
+              <DatasetSelectorList
+                datasets={datasets}
+                datasetHighlighted={datasetHighlighted}
+                searchTerm={searchTerm}
+                onDatasetHighlighted={setDatasetHighlighted}
+              />
+            )}
 
-      {isBusy && (
-        <SpinnerWrapper>
-          <SpinnerWrapperInternal>
-            <Spinner color="#aaa" width={20} height={20} />
-          </SpinnerWrapperInternal>
-        </SpinnerWrapper>
-      )}
-      {/* </DatasetSelectorListContainer> */}
-      {/* </Col> */}
-      {/* </Row> */}
+            {isBusy && (
+              <SpinnerWrapper>
+                <SpinnerWrapperInternal>
+                  <Spinner color="#aaa" width={20} height={20} />
+                </SpinnerWrapperInternal>
+              </SpinnerWrapper>
+            )}
+          </DatasetSelectorListContainer>
+        </Col>
+      </Row>
 
       <Row noGutters className="mt-2">
         <Col className="d-flex">

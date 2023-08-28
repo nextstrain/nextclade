@@ -1,12 +1,12 @@
 import React from 'react'
 
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { MainInputForm } from 'src/components/Main/MainInputForm'
 
 export function MainPage() {
   return (
-    <LayoutResults>
+    <Layout>
       <MainInputForm />
-    </LayoutResults>
+    </Layout>
   )
 }
