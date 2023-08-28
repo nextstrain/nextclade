@@ -38,10 +38,13 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
   const { attributes, official, deprecated, enabled, experimental, path, version } = dataset
   const { name, reference } = attributes
 
-  const updatedAt = useMemo(
-    () => (version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : ''),
-    [version?.updatedAt],
-  )
+  const updatedAt = useMemo(() => {
+    let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : 'unknown'
+    if (version?.tag === 'unreleased') {
+      updatedAt = `${updatedAt} (unreleased)`
+    }
+    return updatedAt
+  }, [version?.tag, version?.updatedAt])
 
   if (!enabled) {
     return null

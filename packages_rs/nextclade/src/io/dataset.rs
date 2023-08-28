@@ -127,7 +127,9 @@ impl Dataset {
 #[serde(rename_all = "camelCase")]
 pub struct DatasetVersion {
   pub tag: String,
-  pub updated_at: String,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub updated_at: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
