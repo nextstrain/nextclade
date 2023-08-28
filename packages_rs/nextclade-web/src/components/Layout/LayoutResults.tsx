@@ -1,12 +1,12 @@
 import React, { PropsWithChildren, HTMLProps } from 'react'
-import { Container as ContainerBase } from 'reactstrap'
+import { Col, Container as ContainerBase, Row } from 'reactstrap'
 import styled from 'styled-components'
 
 import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 import { UpdateNotification } from './UpdateNotification'
 
-const FOOTER_HEIGHT = 38
+export const FOOTER_HEIGHT = 38
 
 const Container = styled(ContainerBase)`
   display: flex;
@@ -29,7 +29,31 @@ const HeaderContainer = styled.header`
 const MainContainer = styled.main`
   display: flex;
   flex-direction: column;
-  padding-bottom: ${FOOTER_HEIGHT + 10}px;
+  height: calc(100% - ${FOOTER_HEIGHT}px);
+`
+
+const ScreenHeightRow = styled(Row)`
+  display: flex;
+  flex: 0;
+  flex-direction: row;
+  height: calc(100% - ${FOOTER_HEIGHT}px);
+  width: 100%;
+
+  //@media (max-width: 767.98px) {
+  //  margin: 0;
+  //}
+`
+
+const ScreenHeightCol = styled(Col)`
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  height: calc(100% - ${FOOTER_HEIGHT}px);
+
+  //@media (max-width: 767.98px) {
+  //  margin: 0;
+  //}
 `
 
 const FooterContainer = styled.footer`
@@ -53,7 +77,9 @@ export function LayoutResults({ children }: PropsWithChildren<HTMLProps<HTMLDivE
 
       <MainContainer>
         <UpdateNotification />
-        {children}
+        <ScreenHeightRow>
+          <ScreenHeightCol>{children}</ScreenHeightCol>
+        </ScreenHeightRow>
       </MainContainer>
 
       <FooterContainer>

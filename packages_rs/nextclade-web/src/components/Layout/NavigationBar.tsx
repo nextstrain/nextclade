@@ -104,7 +104,7 @@ export function NavigationBar() {
         title: t('Configure Nextclade'),
       },
     ].map((desc) => {
-      return <NavLinkImpl key={desc.url} desc={desc} active={pathname === desc.url} />
+      return <NavLinkImpl key={desc.url ?? desc.title} desc={desc} active={pathname === desc.url} />
     })
   }, [hasRan, hasTree, pathname, t])
 
@@ -116,12 +116,12 @@ export function NavigationBar() {
       },
       {
         url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web.html',
-        title: t('Nextclade documentation'),
+        title: t('Nextclade Web documentation'),
         content: t('Docs'),
       },
       {
         url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html',
-        title: t('Nextclade documentation'),
+        title: t('Nextclade CLI documentation'),
         content: t('CLI'),
       },
       {
@@ -144,7 +144,7 @@ export function NavigationBar() {
         content: <LanguageSwitcher />,
       },
     ].map((desc) => {
-      return <NavLinkImpl key={desc.url} desc={desc} active={pathname === desc.url} />
+      return <NavLinkImpl key={desc.title} desc={desc} active={pathname === desc.url} />
     })
   }, [pathname, t])
 

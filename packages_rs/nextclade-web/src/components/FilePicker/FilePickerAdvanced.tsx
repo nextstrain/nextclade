@@ -4,20 +4,8 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 
-import {
-  geneMapErrorAtom,
-  qcConfigErrorAtom,
-  refSeqErrorAtom,
-  refTreeErrorAtom,
-  virusPropertiesErrorAtom,
-} from 'src/state/error.state'
-import {
-  geneMapInputAtom,
-  qcConfigInputAtom,
-  refSeqInputAtom,
-  refTreeInputAtom,
-  virusPropertiesInputAtom,
-} from 'src/state/inputs.state'
+import { geneMapErrorAtom, refSeqErrorAtom, refTreeErrorAtom, virusPropertiesErrorAtom } from 'src/state/error.state'
+import { geneMapInputAtom, refSeqInputAtom, refTreeInputAtom, virusPropertiesInputAtom } from 'src/state/inputs.state'
 
 import { FileIconFasta, FileIconGff, FileIconJson } from 'src/components/Common/FileIcons'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
@@ -36,10 +24,6 @@ export function FilePickerAdvanced() {
   const [refTree, setRefTree] = useRecoilState(refTreeInputAtom)
   const refTreeError = useRecoilValue(refTreeErrorAtom)
   const resetRefTree = useResetRecoilState(refTreeInputAtom)
-
-  const [qcConfig, setQcConfig] = useRecoilState(qcConfigInputAtom)
-  const qcConfigError = useRecoilValue(qcConfigErrorAtom)
-  const resetQcConfig = useResetRecoilState(qcConfigInputAtom)
 
   const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesInputAtom)
   const virusPropertiesError = useRecoilValue(virusPropertiesErrorAtom)
@@ -76,19 +60,6 @@ export function FilePickerAdvanced() {
           error={refSeqError}
           onRemove={resetRefSeq}
           onInput={setRefSeq}
-        />
-
-        <FilePicker
-          className="my-3"
-          compact
-          icon={iconJson}
-          title={t('Quality control')}
-          exampleUrl="https://example.com/qc.json"
-          pasteInstructions={t('Enter QC config in JSON format')}
-          input={qcConfig}
-          error={qcConfigError}
-          onRemove={resetQcConfig}
-          onInput={setQcConfig}
         />
 
         <FilePicker

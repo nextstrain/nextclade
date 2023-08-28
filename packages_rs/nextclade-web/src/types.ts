@@ -4,8 +4,6 @@ import type {
   Cds,
   CdsSegment,
   Dataset,
-  DatasetFileUrls,
-  DatasetTagJson,
   DatasetsIndexJson,
   FastaRecord,
   InsertionFor_Nuc, // eslint-disable-line camelcase
@@ -40,8 +38,6 @@ export type AnalysisResult = NextcladeOutputs
 export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
-export type DatasetTag = DatasetTagJson
-export type DatasetFiles = DatasetFileUrls
 
 export interface PrivateMutationsInternal {
   reversionSubstitutions: NucSub[]

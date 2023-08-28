@@ -41,13 +41,12 @@ export async function initializeDatasets(urlQuery: ParsedUrlQuery, datasetServer
 
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
-  const { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly } =
-    getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
+  const { datasets } = getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
 
   // Check if URL params specify dataset params and try to find the corresponding dataset
   const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
 
-  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
+  return { datasets, currentDataset }
 }
 
 /** Refetch dataset index periodically and update the local copy of if */
@@ -84,14 +83,14 @@ export function useUpdatedDataset() {
   useQuery(
     'currentDatasetState',
     async () => {
-      const name = datasetCurrent?.attributes.name.value
+      const path = datasetCurrent?.path
       const refAccession = datasetCurrent?.attributes.reference.value
-      const tag = datasetCurrent?.attributes.tag.value
-      if (!isNil(name) && !isNil(refAccession) && !isNil(tag)) {
-        const candidateDatasets = filterDatasets(datasets, name, refAccession)
+      const updatedAt = datasetCurrent?.version?.updatedAt
+      if (!isNil(refAccession) && !isNil(updatedAt)) {
+        const candidateDatasets = filterDatasets(datasets, path, refAccession)
         const updatedDataset = candidateDatasets.find((candidate) => {
-          const candidateTag = candidate.attributes.tag.value
-          return candidateTag > tag
+          const candidateTag = candidate.version?.updatedAt
+          return candidateTag && candidateTag > updatedAt
         })
         setDatasetUpdated(updatedDataset)
       }

@@ -147,7 +147,7 @@
     "react-window": "1.8.7",
     "reactstrap": "8.10.1",
     "recharts": "2.1.9",
-    "recoil": "0.7.6",
+    "recoil": "0.7.7",
     "recoil-persist": "4.2.0",
     "redux": "4.2.0",
     "redux-saga": "1.1.3",

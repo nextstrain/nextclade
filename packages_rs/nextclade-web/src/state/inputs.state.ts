@@ -45,11 +45,6 @@ export const refTreeInputAtom = atom<AlgorithmInput | undefined>({
   default: undefined,
 })
 
-export const qcConfigInputAtom = atom<AlgorithmInput | undefined>({
-  key: 'qcConfigInput',
-  default: undefined,
-})
-
 export const virusPropertiesInputAtom = atom<AlgorithmInput | undefined>({
   key: 'virusPropertiesInput',
   default: undefined,
@@ -66,13 +61,9 @@ export const hasRequiredInputsAtom = selector({
 export const inputCustomizationCounterAtom = selector<number>({
   key: 'inputCustomizationCounterAtom',
   get: ({ get }) => {
-    return [
-      get(refSeqInputAtom),
-      get(geneMapInputAtom),
-      get(refTreeInputAtom),
-      get(qcConfigInputAtom),
-      get(virusPropertiesInputAtom),
-    ].filter(notUndefinedOrNull).length
+    return [get(refSeqInputAtom), get(geneMapInputAtom), get(refTreeInputAtom), get(virusPropertiesInputAtom)].filter(
+      notUndefinedOrNull,
+    ).length
   },
 })
 
@@ -85,7 +76,6 @@ export const inputResetAtom = selector<undefined>({
     reset(refSeqInputAtom)
     reset(geneMapInputAtom)
     reset(refTreeInputAtom)
-    reset(qcConfigInputAtom)
     reset(virusPropertiesInputAtom)
   },
 })

@@ -1,5 +1,6 @@
 import classnames from 'classnames'
 import React, { PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react'
+import styled from 'styled-components'
 import {
   Nav as NavBase,
   NavItem as NavItemBase,
@@ -9,17 +10,13 @@ import {
   NavItemProps,
   TabPaneProps,
 } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
 import { MarkdownRemote } from 'src/components/Common/Markdown'
-import styled from 'styled-components'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 
-export interface DatasetContentSectionProps {
-  readmeUrl: string
-  changelogUrl: string
-}
-
-export function DatasetContentSection({ readmeUrl, changelogUrl }: DatasetContentSectionProps) {
+export function DatasetContentSection() {
   const [activeTabId, setActiveTabId] = useState(0)
-
+  const currentDataset = useRecoilValue(datasetCurrentAtom)
   return (
     <ContentSection>
       <Nav tabs>
@@ -33,10 +30,10 @@ export function DatasetContentSection({ readmeUrl, changelogUrl }: DatasetConten
 
       <TabContent activeTab={activeTabId}>
         <TabContentPane tabId={0} activeTabId={activeTabId}>
-          <MarkdownRemote url={readmeUrl} />
+          {currentDataset?.files.readme && <MarkdownRemote url={currentDataset?.files.readme} />}
         </TabContentPane>
         <TabContentPane tabId={1} activeTabId={activeTabId}>
-          <MarkdownRemote url={changelogUrl} />
+          {currentDataset?.files.changelog && <MarkdownRemote url={currentDataset?.files.changelog} />}
         </TabContentPane>
       </TabContent>
     </ContentSection>
