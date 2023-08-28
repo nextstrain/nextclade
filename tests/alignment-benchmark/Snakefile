@@ -65,7 +65,7 @@ rule build_eval:
 
 rule download_dataset:
     input:
-        bin="eval_build/bin/nextclade",
+        bin="bin/nextclade",
     output:
         sequences="sequences/{dataset_name}/sequences.fasta",
         zip="dataset/{dataset_name}.zip",
@@ -221,9 +221,9 @@ default_params = {
 }
 
 exc_sweep = []
-for exc in range(0, 5):
+for exc in range(1, 10):
     default = default_params.copy()
-    default["retry"] = exc
+    default["mis"] = exc
     exc_sweep.append(default)
 
 print(exc_sweep)
