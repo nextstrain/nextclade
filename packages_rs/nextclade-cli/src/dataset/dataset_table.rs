@@ -4,6 +4,7 @@ use comfy_table::{ContentArrangement, Table};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
+use nextclade::o;
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
@@ -22,7 +23,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
   for dataset in filtered.iter() {
     let Dataset {
-      attributes, updated_at, ..
+      attributes, version, ..
     } = dataset;
 
     let DatasetAttributes {
@@ -44,7 +45,9 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     table.add_row([
       format_attr_value(name),
       format_attr_value(reference),
-      updated_at.clone(),
+      version
+        .as_ref()
+        .map_or_else(|| o!(""), |version| version.updated_at.clone()),
       format_attributes(&attrs),
     ]);
   }

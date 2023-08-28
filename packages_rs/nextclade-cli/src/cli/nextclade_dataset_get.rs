@@ -63,7 +63,7 @@ pub fn nextclade_dataset_http_get(
         let is_not_community =  !dataset.is_community();
         is_compatible && is_not_old && is_not_deprecated && is_not_experimental && is_not_community
       } else {
-        dataset.updated_at == tag
+        dataset.is_tag(tag)
       }
     })
     // Filter by reference sequence

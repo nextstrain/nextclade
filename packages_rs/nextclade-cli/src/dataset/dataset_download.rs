@@ -6,7 +6,7 @@ use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::dataset::{Dataset, DatasetFiles, DatasetsIndexJson};
+use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes, DatasetFiles, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::fs::{absolute_path, has_extension, read_file_to_string};
 use nextclade::io::json::json_parse_bytes;
@@ -220,7 +220,22 @@ pub fn dataset_individual_files_load(
           // explicitly through args. Let's create an dummy value to avoid making the field optional
           VirusProperties {
             schema_version: "".to_owned(),
-            attributes: None,
+            attributes: DatasetAttributes {
+              name: DatasetAttributeValue {
+                value: "".to_owned(),
+                value_friendly: None,
+                is_default: None,
+                other: serde_json::Value::default(),
+              },
+              reference: DatasetAttributeValue {
+                value: "".to_owned(),
+                value_friendly: None,
+                is_default: None,
+                other: serde_json::Value::default(),
+              },
+              rest_attrs: BTreeMap::default(),
+              other: serde_json::Value::default(),
+            },
             files: DatasetFiles {
               reference: "".to_owned(),
               genome_annotation: None,
@@ -244,6 +259,8 @@ pub fn dataset_individual_files_load(
             tree_builder_params: None,
             phenotype_data: None,
             aa_motifs: vec![],
+            versions: vec![],
+            version: None,
             other: serde_json::Value::default(),
           }
         });

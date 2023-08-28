@@ -1,6 +1,7 @@
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use eyre::Report;
+use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -65,9 +66,10 @@ pub struct Dataset {
   pub capabilities: DatasetCapabilities,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub versions: Vec<String>,
+  pub versions: Vec<DatasetVersion>,
 
-  pub updated_at: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub version: Option<DatasetVersion>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -95,10 +97,24 @@ impl Dataset {
     self.community.unwrap_or(false)
   }
 
-  pub const fn is_latest(&self) -> bool {
-    // FIXME: versioning no longer works this way
-    true
+  pub fn is_latest(&self) -> bool {
+    self.versions.iter().sorted().next() == self.version.as_ref()
   }
+
+  pub fn is_tag(&self, tag: impl AsRef<str>) -> bool {
+    if let Some(version) = &self.version {
+      version.tag == tag.as_ref()
+    } else {
+      false
+    }
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetVersion {
+  pub tag: String,
+  pub updated_at: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

@@ -5,7 +5,7 @@ use crate::analyze::pcr_primer_changes::PcrPrimer;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
-use crate::io::dataset::DatasetFiles;
+use crate::io::dataset::{DatasetAttributes, DatasetFiles, DatasetVersion};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
@@ -29,8 +29,7 @@ const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 pub struct VirusProperties {
   pub schema_version: String,
 
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub attributes: Option<VirusPropertiesAttributes>,
+  pub attributes: DatasetAttributes,
 
   pub files: DatasetFiles,
 
@@ -67,31 +66,12 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motifs: Vec<AaMotifsDesc>,
 
-  #[serde(flatten)]
-  pub other: serde_json::Value,
-}
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub versions: Vec<DatasetVersion>,
 
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
-#[serde(rename_all = "camelCase")]
-pub struct VirusPropertiesAttribute {
-  pub value: String,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub value_friendly: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub is_default: Option<bool>,
-  #[serde(flatten)]
-  pub other: serde_json::Value,
-}
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub version: Option<DatasetVersion>,
 
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
-#[serde(rename_all = "camelCase")]
-pub struct VirusPropertiesAttributes {
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub name: Option<VirusPropertiesAttribute>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub reference: Option<VirusPropertiesAttribute>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub tag: Option<VirusPropertiesAttribute>,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
