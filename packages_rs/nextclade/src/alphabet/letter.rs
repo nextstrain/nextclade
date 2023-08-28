@@ -1,6 +1,7 @@
 use color_eyre::{Section, SectionExt};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serializer};
+use std::fmt::Display;
 
 /// Allows to lookup scores for nucleotides and amino acids in a generic way
 pub trait ScoreMatrixLookup<T> {
@@ -8,7 +9,7 @@ pub trait ScoreMatrixLookup<T> {
 }
 
 /// Generic representation of a character defining nucleotide or amino acid
-pub trait Letter<L>: Copy + Eq + Ord + ScoreMatrixLookup<L> {
+pub trait Letter<L>: Copy + Display + Eq + Ord + ScoreMatrixLookup<L> {
   const GAP: L;
 
   fn is_gap(&self) -> bool;

@@ -34,7 +34,7 @@ impl BranchMutations {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateNucMutations {
   /// All private substitution mutations
@@ -115,7 +115,7 @@ pub fn find_private_nuc_mutations(
 
   let (labeled_substitutions, unlabeled_substitutions) = label_private_mutations(
     &non_reversion_substitutions,
-    &virus_properties.nuc_mut_label_maps.substitution_label_map,
+    &virus_properties.mut_labels.nuc_mut_label_map,
   );
 
   let mut private_substitutions = concat_to_vec(&reversion_substitutions, &non_reversion_substitutions);

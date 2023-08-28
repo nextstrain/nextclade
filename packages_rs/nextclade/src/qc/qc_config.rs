@@ -79,6 +79,7 @@ pub struct FrameShiftLocation {
 #[serde(default)]
 pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ignored_frame_shifts: Vec<FrameShiftLocation>,
   pub score_weight: f64,
 }
@@ -105,6 +106,7 @@ pub struct StopCodonLocation {
 #[serde(default)]
 pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ignored_stop_codons: Vec<StopCodonLocation>,
   pub score_weight: f64,
 }

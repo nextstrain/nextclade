@@ -2,6 +2,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
+use crate::coord::range::NucRefGlobalRange;
 use crate::graph::edge::{Edge, GraphEdge};
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, Node};
@@ -54,10 +55,14 @@ pub type AuspiceGraphEdge = Edge<AuspiceGraphNodePayload>;
 pub struct GraphTempData {
   pub max_divergence: f64,
   pub divergence_units: DivergenceUnits,
+  pub other: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuspiceGraphMeta {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub auspice_tree_version: Option<String>,
+
   pub meta: AuspiceTreeMeta,
 
   #[serde(skip)]
@@ -302,24 +307,50 @@ impl AuspiceTreeNode {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CladeNodeAttrKeyDesc {
   pub name: String,
   pub display_name: String,
-  pub description: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
   #[serde(default)]
   pub hide_in_web: bool,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
-  pub clade_node_attrs: Option<Vec<CladeNodeAttrKeyDesc>>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub placement_mask_ranges: Vec<NucRefGlobalRange>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+impl AuspiceMetaExtensionsNextclade {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
-  pub nextclade: Option<AuspiceMetaExtensionsNextclade>,
+  #[serde(default, skip_serializing_if = "AuspiceMetaExtensionsNextclade::is_empty")]
+  pub nextclade: AuspiceMetaExtensionsNextclade,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl AuspiceMetaExtensions {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema, Validate)]
@@ -334,9 +365,12 @@ pub struct AuspiceColoring {
   #[serde(skip_serializing_if = "Vec::is_empty")]
   #[serde(default)]
   pub scale: Vec<[String; 2]>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceDisplayDefaults {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub branch_label: Option<String>,
@@ -351,23 +385,27 @@ pub struct AuspiceDisplayDefaults {
   pub other: serde_json::Value,
 }
 
+impl AuspiceDisplayDefaults {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub extensions: Option<AuspiceMetaExtensions>,
+  #[serde(default, skip_serializing_if = "AuspiceMetaExtensions::is_empty")]
+  pub extensions: AuspiceMetaExtensions,
 
-  #[serde(skip_serializing_if = "Vec::<AuspiceColoring>::is_empty")]
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub colorings: Vec<AuspiceColoring>,
 
-  #[serde(skip_serializing_if = "Vec::<String>::is_empty")]
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub panels: Vec<String>,
 
-  #[serde(skip_serializing_if = "Vec::<String>::is_empty")]
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub filters: Vec<String>,
 
+  #[serde(default, skip_serializing_if = "AuspiceDisplayDefaults::is_empty")]
   pub display_defaults: AuspiceDisplayDefaults,
 
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -378,18 +416,19 @@ pub struct AuspiceTreeMeta {
 }
 
 impl AuspiceTreeMeta {
-  #[rustfmt::skip]
-  pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
-    self
-      .extensions.as_ref()?
-      .nextclade.as_ref()?
-      .clade_node_attrs.as_deref()
+  const fn extensions_nextclade(&self) -> &AuspiceMetaExtensionsNextclade {
+    &self.extensions.nextclade
   }
 
-  /// Extracts a list of descriptions of clade-like node attributes.
+  /// Extract placement masks
+  pub fn placement_mask_ranges(&self) -> &[NucRefGlobalRange] {
+    self.extensions_nextclade().placement_mask_ranges.as_slice()
+  }
+
+  /// Extract a list of descriptions of clade-like node attributes.
   /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
   pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
-    self.clade_node_attr_descs_maybe().unwrap_or(&[])
+    self.extensions_nextclade().clade_node_attrs.as_slice()
   }
 }
 
@@ -427,6 +466,9 @@ impl DivergenceUnits {
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTree {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub version: Option<String>,
+
   pub meta: AuspiceTreeMeta,
 
   pub tree: AuspiceTreeNode,
@@ -439,20 +481,16 @@ pub type AuspiceTreeNodeIter<'a> = Iter<'a, AuspiceTreeNode>;
 
 pub type AuspiceTreeNodeIterFn<'a> = fn(&'a AuspiceTreeNode) -> AuspiceTreeNodeIter<'_>;
 
-impl FromStr for AuspiceTree {
-  type Err = Report;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s).wrap_err("When parsing Auspice Tree JSON contents")
-  }
-}
-
 impl AuspiceTree {
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let data =
       read_file_to_string(filepath).wrap_err_with(|| format!("When reading Auspice Tree JSON file {filepath:#?}"))?;
-    Self::from_str(&data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {filepath:#?}"))
+    Self::from_str(data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {filepath:#?}"))
+  }
+
+  pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
+    json_parse(s).wrap_err("When parsing Auspice Tree JSON contents")
   }
 
   pub fn to_string_pretty(&self) -> Result<String, Report> {

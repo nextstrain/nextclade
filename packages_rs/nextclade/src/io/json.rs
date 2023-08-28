@@ -25,8 +25,8 @@ pub fn deserialize_without_recursion_limit<'de, R: Read<'de>, T: Deserialize<'de
   Ok(obj)
 }
 
-pub fn json_parse<T: for<'de> Deserialize<'de>>(s: &str) -> Result<T, Report> {
-  let mut de = Deserializer::from_str(s);
+pub fn json_parse<T: for<'de> Deserialize<'de>>(s: impl AsRef<str>) -> Result<T, Report> {
+  let mut de = Deserializer::from_str(s.as_ref());
   deserialize_without_recursion_limit(&mut de)
 }
 

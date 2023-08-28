@@ -57,17 +57,17 @@ jobs:
       - name: "Setup environment (release)"
         if: endsWith(github.ref, '/release-cli')
         run: |
-          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
         if: endsWith(github.ref, '/staging-cli')
         run: |
-          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
         if: ${{ !endsWith(github.ref, '/staging-cli') && !endsWith(github.ref, '/release-cli') }}
         run: |
-          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Checkout code"
         uses: actions/checkout@v3

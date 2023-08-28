@@ -19,7 +19,7 @@ use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::path::Path;
 
-#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[must_use]
 pub struct GeneMap {
   pub genes: BTreeMap<String, Gene>,
@@ -38,7 +38,7 @@ impl GeneMap {
     convert_feature_tree_to_gene_map(feature_tree)
   }
 
-  pub fn from_file<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
+  pub fn from_path<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
     let filename = filename.as_ref();
     let mut file = open_file_or_stdin(&Some(filename))?;
     let mut buf = vec![];
@@ -159,52 +159,25 @@ impl GeneMap {
   }
 }
 
-/// Filters gene map according to the list of requested genes.
-///
-/// Here are the possible combinations:
-///
-/// | --genemap  | --genes |                 behavior                   |
-/// |------------|---------|--------------------------------------------|
-/// |     +      |    +    | Take only specified genes                  |
-/// |     +      |         | Take all genes                             |
-/// |            |    +    | Error                                      |
-/// |            |         | Skip translation and codon penalties       |
-pub fn filter_gene_map(gene_map: Option<GeneMap>, genes: &Option<Vec<String>>) -> Result<GeneMap, Report> {
-  match (gene_map, genes) {
-    // Both gene map and list of genes are provided. Retain only requested genes.
-    (Some(gene_map), Some(genes)) => {
-      let gene_map: BTreeMap<String, Gene> = gene_map
-        .into_iter_genes()
-        .filter(|(gene_name, ..)| genes.contains(gene_name))
-        .collect();
+/// Filters genome annotation according to the list of requested genes.
+pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMap {
+  if let Some(genes) = genes {
+    let gene_map: BTreeMap<String, Gene> = gene_map
+      .into_iter_genes()
+      .filter(|(gene_name, ..)| genes.contains(gene_name))
+      .collect();
 
-      let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
-      if !requested_genes_not_in_genemap.is_empty() {
-        warn!(
-          "The following genes were requested through `--genes` \
-           but not found in the gene map: \
+    let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
+    if !requested_genes_not_in_genemap.is_empty() {
+      warn!(
+        "The following genes were requested through `--genes` \
+           but not found in the genome annotation: \
            `{requested_genes_not_in_genemap}`",
-        );
-      }
-      Ok(GeneMap::from_genes(gene_map))
+      );
     }
-
-    // Only gene map is provided. Take all the genes.
-    (Some(gene_map), None) => Ok(gene_map),
-
-    // Gene list is provided, but no gene map. This is illegal.
-    (None, Some(_)) => {
-      make_error!(
-        "List of genes via '--genes' can only be specified \
-         when a gene map (genome annotation) is provided"
-      )
-    }
-
-    // Nothing is provided. Create an empty gene map.
-    // This disables codon-aware alignment, translation, AA mutations, frame shifts, and everything else that relies
-    // on gene information.
-    (None, None) => Ok(GeneMap::new()),
+    return GeneMap::from_genes(gene_map);
   }
+  gene_map
 }
 
 fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: &[String]) -> String {
@@ -216,7 +189,7 @@ fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: 
 
 pub fn convert_feature_tree_to_gene_map(feature_tree: &FeatureTree) -> Result<GeneMap, Report> {
   let seq_region = take_exactly_one(&feature_tree.seq_regions)
-    .wrap_err_with(|| eyre!("Only feature trees with exactly one sequence region are supported. Please keep exactly one sequence region in gene map."))?;
+    .wrap_err_with(|| eyre!("Only feature trees with exactly one sequence region are supported. Please keep exactly one sequence region in genome annotation."))?;
   convert_seq_region_to_gene_map(seq_region)
 }
 
@@ -225,7 +198,7 @@ fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap
 
   if genes.is_empty() {
     return make_error!(
-      "Gene map: unable to find any genes or CDSes. Please make sure the genome annotation is correct."
+      "Genome annotation: unable to find any genes or CDSes. Please make sure the genome annotation is correct."
     );
   }
 

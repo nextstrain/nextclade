@@ -11,7 +11,6 @@ import type {
   AnalysisError,
   AnalysisResult,
   CsvColumnConfig,
-  ErrorsFromWeb,
   FastaRecord,
   NextcladeParamsRaw,
   NextcladeResult,
@@ -160,14 +159,6 @@ export async function serializeResultsCsv(
   )
 }
 
-async function serializeInsertionsCsv(results: AnalysisResult[], errors: AnalysisError[]) {
-  return NextcladeWasm.serialize_insertions_csv(JSON.stringify(results), JSON.stringify(errors))
-}
-
-async function serializeErrorsCsv(errors: ErrorsFromWeb[]) {
-  return NextcladeWasm.serialize_errors_csv(JSON.stringify(errors))
-}
-
 const worker = {
   create,
   destroy,
@@ -179,8 +170,6 @@ const worker = {
   serializeResultsJson,
   serializeResultsCsv,
   serializeResultsNdjson,
-  serializeInsertionsCsv,
-  serializeErrorsCsv,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },

@@ -7,7 +7,7 @@ import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 
 import type { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 import { ButtonBack } from 'src/components/Results/ButtonBack'
 import { Tree } from './Tree'
@@ -100,7 +100,7 @@ function TreePageDisconnected({ treeMeta }: TreePageProps) {
   )
 
   return (
-    <LayoutResults>
+    <Layout>
       <Container>
         <Header>
           <HeaderLeft>
@@ -135,7 +135,7 @@ function TreePageDisconnected({ treeMeta }: TreePageProps) {
           </AuspiceContainer>
         </MainContent>
       </Container>
-    </LayoutResults>
+    </Layout>
   )
 }
 

@@ -1,9 +1,11 @@
 use eyre::Report;
-use nextclade::analyze::pcr_primers::PcrPrimer;
+use nextclade::analyze::pcr_primer_changes::PcrPrimer;
 use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene_map::GeneMap;
-use nextclade::io::dataset::{DatasetTagJson, DatasetsIndexJson};
-use nextclade::io::errors_csv::ErrorsFromWeb;
+use nextclade::io::dataset::{
+  Dataset, DatasetAttributeValue, DatasetAttributes, DatasetCapabilities, DatasetCollectionMeta, DatasetCollectionUrl,
+  DatasetsIndexJson,
+};
 use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::ensure_dir;
@@ -44,7 +46,7 @@ fn write_jsonschema<T: JsonSchema>(output_file: impl AsRef<Path>) -> Result<(), 
 /// it. Instead, See the actual types in the `definitions` property of JSON schema.
 #[derive(Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-struct _SchemaRoot {
+struct _SchemaRoot<'a> {
   _1: GeneMap,
   _2: Translation,
   _3: AuspiceTree,
@@ -52,19 +54,23 @@ struct _SchemaRoot {
   _5: QcResult,
   _6: PcrPrimer,
   _7: NextcladeOutputs,
-  _8: DatasetsIndexJson,
   _9: CsvColumnConfig,
   _10: NextcladeErrorOutputs,
-  _11: ErrorsFromWeb,
   _12: VirusProperties,
   _13: CladeNodeAttrKeyDesc,
   _14: PhenotypeAttrDesc,
   _15: FastaRecord,
-  _16: DatasetTagJson,
-  _17: AnalysisInitialData,
+  _17: AnalysisInitialData<'a>,
   _18: AnalysisInput,
   _19: NextcladeResult,
-  _21: NextcladeParams,
-  _22: NextcladeParamsRaw,
-  _23: OutputTrees,
+  _20: NextcladeParams,
+  _21: NextcladeParamsRaw,
+  _22: OutputTrees,
+  _23: DatasetsIndexJson,
+  _24: Dataset,
+  _25: DatasetCollectionMeta,
+  _26: DatasetCapabilities,
+  _27: DatasetAttributeValue,
+  _28: DatasetAttributes,
+  _29: DatasetCollectionUrl,
 }

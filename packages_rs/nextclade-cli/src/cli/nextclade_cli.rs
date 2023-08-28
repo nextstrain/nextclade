@@ -9,9 +9,8 @@ use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::add_extension;
-use nextclade::tree::params::TreeBuilderParamsOptional;
+use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -105,6 +104,7 @@ pub enum NextcladeDatasetCommands {
   Get(NextcladeDatasetGetArgs),
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
 pub struct NextcladeDatasetListArgs {
@@ -121,11 +121,11 @@ pub struct NextcladeDatasetListArgs {
   #[clap(default_value = "all")]
   pub reference: String,
 
-  /// Restrict list to datasets with this version tag. Equivalent to `--attribute='tag=<value>'`.
+  /// Restrict list to datasets with this version.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
-  pub tag: String,
+  pub updated_at: String,
 
   /// Restrict list to only datasets with a given combination of attribute key-value pairs.
   /// Keys and values are separated with an equality sign.
@@ -135,13 +135,33 @@ pub struct NextcladeDatasetListArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub attribute: Vec<String>,
 
-  /// Include dataset version tags that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
+  /// Include dataset versions that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
   #[clap(long)]
   pub include_incompatible: bool,
 
-  /// Include older dataset version tags, additional to the latest.
+  /// Include older dataset versions, additionally to the latest versions.
   #[clap(long)]
   pub include_old: bool,
+
+  /// Include deprecated datasets.
+  ///
+  /// Authors can mark a dataset as deprecated to express that the dataset will no longer be updated and/or supported. Reach out to dataset authors for concrete details.
+  #[clap(long)]
+  pub include_deprecated: bool,
+
+  /// Include experimental datasets.
+  ///
+  /// Authors can mark a dataset as experimental when development of the dataset is still in progress, or if the dataset is incomplete or of lower quality than usual. Use at own risk. Reach out to dataset authors if interested in further development and stabilizing of a particular dataset, and consider contributing.
+  #[clap(long)]
+  pub include_experimental: bool,
+
+  /// Include community datasets.
+  ///
+  /// Community datasets are the datasets provided by the members of the broader Nextclade community. These datasets may vary in quality and completeness. Depending on authors' goals, these datasets may be created for specific purposes, rather than for general use.
+  ///
+  /// Nextclade team is unable to verify correctness of these datasets and does not provide support for them. For all questions regarding a concrete community dataset, please read its documentation and reach out to its authors.
+  #[clap(long)]
+  pub include_community: bool,
 
   /// Print output in JSON format.
   #[clap(long)]
@@ -177,11 +197,10 @@ pub struct NextcladeDatasetGetArgs {
 
   /// Version tag of the dataset to download.
   /// If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
-  /// Equivalent to `--attribute='tag=<value>'`.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
-  pub tag: String,
+  pub updated_at: String,
 
   /// Download dataset with a given combination of attribute key-value pairs.
   /// Keys and values are separated with an equality sign.
@@ -234,15 +253,13 @@ pub enum NextcladeOutputSelection {
   Tree,
   TreeNwk,
   Translations,
-  Insertions,
-  Errors,
 }
 
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunInputArgs {
   /// Path to one or multiple FASTA files with input sequences
   ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". If no files provided, the plain fasta input is read from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". If no files provided, the plain fasta input is read from standard input (stdin).
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
@@ -261,12 +278,12 @@ pub struct NextcladeRunInputArgs {
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
-  /// If this flag is not provided, the following individual input flags are required: `--input-root-seq`,
-  /// `--input-tree`, `--input-qc-config`, and the following individual input files are recommended: `--input-gene-map`,
-  /// `--input-pcr-primers`.
+  /// If this flag is not provided, no dataset will be loaded and individual input files have to be provided instead. In this case  `--input-ref` is required and `--input-gene-map`, `--input-tree` and `--input-pathogen-json` are optional.
   ///
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
+  ///
+  /// Please refer to Nextclade documentation for more details about Nextclade datasets and their files.
   #[clap(long, short = 'D')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub input_dataset: Option<PathBuf>,
@@ -287,7 +304,7 @@ pub struct NextcladeRunInputArgs {
   ///
   /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
   ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'r', visible_alias("reference"), visible_alias("input-root-seq"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
@@ -298,61 +315,55 @@ pub struct NextcladeRunInputArgs {
   ///
   /// Overrides path to `tree.json` in the dataset (`--input-dataset`).
   ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'a')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_tree: Option<PathBuf>,
 
-  /// Path to a JSON file containing configuration of Quality Control rules.
-  ///
-  /// Overrides path to `qc.json` in the dataset (`--input-dataset`).
-  ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
   #[clap(long, short = 'Q')]
   #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_qc_config: Option<PathBuf>,
 
   /// Path to a JSON file containing configuration and data specific to a pathogen.
   ///
   /// Overrides path to `virus_properties.json` in the dataset (`--input-dataset`).
   ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'R')]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_virus_properties: Option<PathBuf>,
+  pub input_pathogen_json: Option<PathBuf>,
 
-  /// Path to a CSV file containing a list of custom PCR primer sites. This information is used to report mutations in these sites.
-  ///
-  /// Overrides path to `primers.csv` in the dataset (`--input-dataset`).
-  ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// REMOVED. Merged into pathogen.json, see `--input-pathogen`
   #[clap(long, short = 'p')]
   #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_pcr_primers: Option<PathBuf>,
 
-  /// Path to a .gff file containing the gene map (genome annotation).
+  /// Path to a GFF3 file containing (genome annotation).
   ///
-  /// Gene map (sometimes also called 'genome annotation') is used to find coding regions. If not supplied, coding regions will
+  /// Genome annotation is used to find coding regions. If not supplied, coding regions will
   /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
   /// alignment will not be informed by codon boundaries
   ///
-  /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the gene map will be used.
+  /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the genome annotation will be used.
   ///
-  /// Overrides path to `genemap.gff` provided by `--input-dataset`.
+  /// Overrides genome annotation provided by the dataset (`--input-dataset` or `--dataset-name`).
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
   ///
-  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm', alias = "genemap")]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub input_gene_map: Option<PathBuf>,
+  pub input_annotation: Option<PathBuf>,
 
   /// Comma-separated list of names of genes to use.
   ///
   /// This defines which peptides will be written into outputs, and which genes will be taken into account during
-  /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If
-  /// this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used.
+  /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the genome annotation. If
+  /// this flag is not supplied or its value is an empty string, then all genes found in the genome annotation will be used.
   ///
   /// Requires `--input-gene-map` to be specified.
   #[clap(
@@ -387,7 +398,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// If both the `--output-all` and individual `--output-*` flags are provided, each individual flag overrides the corresponding default output path.
   ///
-  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`, `--output-insertions`, `--output-errors`
+  /// At least one of the output flags is required: `--output-all`, `--output-fasta`, `--output-ndjson`, `--output-json`, `--output-csv`, `--output-tsv`, `--output-tree`, `--output-translations`.
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'O')]
@@ -424,7 +435,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
@@ -438,7 +449,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   ///
@@ -455,7 +466,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'N')]
@@ -468,7 +479,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'J')]
@@ -483,7 +494,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'c')]
@@ -498,7 +509,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 't')]
@@ -529,7 +540,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long)]
@@ -545,7 +556,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'T')]
@@ -558,67 +569,28 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
   ///
   /// If the required directory tree does not exist, it will be created.
   #[clap(long)]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree_nwk: Option<PathBuf>,
 
-  /// Path to output CSV file that contain insertions stripped from the reference alignment.
-  ///
-  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
-  ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
-  ///
-  /// If the required directory tree does not exist, it will be created.
+  /// REMOVED. The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
   #[clap(long, short = 'I')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub output_insertions: Option<PathBuf>,
 
-  /// Path to output CSV file containing errors and warnings occurred during processing
-  ///
-  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
-  ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zstd", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
-  ///
-  /// If the required directory tree does not exist, it will be created.
+  /// REMOVED. The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`.
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
   pub output_errors: Option<PathBuf>,
-
-  /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
-  #[clap(long)]
-  pub include_reference: bool,
-
-  /// Whether to include the list of nearest nodes to the outputs
-  #[clap(long)]
-  pub include_nearest_node_info: bool,
-
-  /// Emit output sequences in-order.
-  ///
-  /// With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors).
-  /// By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences.
-  ///
-  /// This option is only relevant when `--jobs` is greater than 1 or is omitted.
-  ///
-  /// Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.
-  #[clap(long)]
-  pub in_order: bool,
-
-  /// Replace unknown nucleotide characters with 'N'
-  ///
-  /// By default, the sequences containing unknown nucleotide characters are skipped with a warning - they
-  /// are not analyzed and not included into results. If this flag is provided, then before the alignment,
-  /// all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences.
-  ///
-  /// The following characters are considered known:  '-', 'A', 'B', 'C', 'D', 'G', 'H', 'K', 'M', 'N', 'R', 'S', 'T', 'V', 'W', 'Y'
-  #[clap(long)]
-  pub replace_unknown: bool,
 }
 
 #[derive(Parser, Debug, Clone)]
-pub struct NextcladeRunOtherArgs {
+pub struct NextcladeRunOtherParams {
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
   #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
   pub jobs: usize,
@@ -632,14 +604,11 @@ pub struct NextcladeRunArgs {
   #[clap(flatten, next_help_heading = "  Outputs")]
   pub outputs: NextcladeRunOutputArgs,
 
-  #[clap(flatten, next_help_heading = "  Phylogenetic tree parameters")]
-  pub tree_builder_params: TreeBuilderParamsOptional,
-
-  #[clap(flatten, next_help_heading = "  Alignment parameters")]
-  pub alignment_params: AlignPairwiseParamsOptional,
+  #[clap(flatten)]
+  pub params: NextcladeInputParamsOptional,
 
   #[clap(flatten, next_help_heading = "  Other")]
-  pub other: NextcladeRunOtherArgs,
+  pub other_params: NextcladeRunOtherParams,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
@@ -676,8 +645,6 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         output_tsv,
         output_tree,
         output_tree_nwk,
-        output_insertions,
-        output_errors,
         ..
       },
     ..
@@ -701,14 +668,6 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
     if output_selection.contains(&NextcladeOutputSelection::Fasta) {
       output_fasta.get_or_insert(add_extension(&default_output_file_path, "aligned.fasta"));
-    }
-
-    if output_selection.contains(&NextcladeOutputSelection::Insertions) {
-      output_insertions.get_or_insert(add_extension(&default_output_file_path, "insertions.csv"));
-    }
-
-    if output_selection.contains(&NextcladeOutputSelection::Errors) {
-      output_errors.get_or_insert(add_extension(&default_output_file_path, "errors.csv"));
     }
 
     if output_selection.contains(&NextcladeOutputSelection::Translations) {
@@ -775,8 +734,6 @@ Example for bash shell:
     output_csv,
     output_tsv,
     output_tree,
-    output_insertions,
-    output_errors,
   ]
   .iter()
   .all(|o| o.is_none())
@@ -794,9 +751,7 @@ At least one of the following flags is required:
   --output-csv
   --output-tsv
   --output-tree
-  --output-translations
-  --output-insertions
-  --output-errors"#
+  --output-translations"#
     );
   }
 
@@ -831,13 +786,77 @@ For more information, type
 
   nextclade run --help"#;
 
+const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-config` is removed in favor of `--input-pathogen-json`.
+
+Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` is removed in favor of `--input-pathogen-json`.
+
+Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+const ERROR_MSG_OUTPUT_INSERTIONS_REMOVED: &str = r#"The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
+
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+const ERROR_MSG_OUTPUT_ERRORS_REMOVED: &str = r#"The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`.
+
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
+
+For more information, type
+
+  nextclade run --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
     return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
   }
 
+  if run_args.inputs.input_qc_config.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}");
+  }
+
+  if run_args.inputs.input_pcr_primers.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}");
+  }
+
   if run_args.outputs.output_dir.is_some() {
     return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
+  }
+
+  if run_args.outputs.output_insertions.is_some() {
+    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}");
+  }
+
+  if run_args.outputs.output_errors.is_some() {
+    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}");
   }
 
   Ok(())

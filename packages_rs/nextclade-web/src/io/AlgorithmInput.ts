@@ -102,6 +102,6 @@ export class AlgorithmInputDefault implements AlgorithmInput {
   }
 
   public async getContent(): Promise<string> {
-    return axiosFetchRaw(this.dataset.files['sequences.fasta'])
+    return axiosFetchRaw(this.dataset.files.examples)
   }
 }

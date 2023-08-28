@@ -9,10 +9,11 @@ use crate::analyze::count_gaps::GapCounts;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::coord_map_local::CoordMapLocal;
 use crate::coord::position::PositionLike;
-use crate::coord::range::{AaRefRange, Range};
+use crate::coord::range::{AaRefRange, NucRefGlobalRange, Range};
 use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
+use crate::translate::aa_alignment_ranges::calculate_aa_alignment_ranges_in_place;
 use crate::translate::extract::extract_cds_from_aln;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_transform_coordinates, FrameShift};
@@ -28,7 +29,7 @@ use num_traits::clamp_max;
 use rayon::iter::Either;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Translation {
   pub genes: IndexMap<String, GeneTranslation>,
@@ -303,6 +304,7 @@ pub fn translate_genes(
   ref_peptides: &Translation,
   gene_map: &GeneMap,
   coord_map_global: &CoordMapGlobal,
+  global_alignment_range: &NucRefGlobalRange,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
@@ -344,5 +346,10 @@ pub fn translate_genes(
     })
     .collect::<Result<IndexMap<String, GeneTranslation>, Report>>()?;
 
-  Ok(Translation { genes })
+  let mut translation = Translation { genes };
+
+  // FIXME: Avoid another loop
+  calculate_aa_alignment_ranges_in_place(global_alignment_range, &mut translation, gene_map)?;
+
+  Ok(translation)
 }

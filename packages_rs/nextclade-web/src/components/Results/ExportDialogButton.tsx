@@ -34,9 +34,7 @@ import {
 import {
   DEFAULT_EXPORT_PARAMS,
   useExportCsv,
-  useExportErrorsCsv,
   useExportFasta,
-  useExportInsertionsCsv,
   useExportJson,
   useExportNdjson,
   useExportPeptides,
@@ -121,8 +119,6 @@ export interface ExportParams {
   filenameTreeNwk: string
   filenameFasta: string
   filenamePeptidesZip: string
-  filenameInsertionsCsv: string
-  filenameErrorsCsv: string
   filenamePeptidesTemplate: string
 }
 
@@ -213,8 +209,6 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
   const exportPeptides = useExportPeptides()
   const exportTree = useExportTree()
   const exportTreeNwk = useExportTreeNwk()
-  const exportInsertionsCsv = useExportInsertionsCsv()
-  const exportErrorsCsv = useExportErrorsCsv()
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
@@ -316,26 +310,6 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
         )}
         HelpDownload={t('Download aligned peptides in FASTA format, one file per gene, all in a zip archive.')}
         onDownload={exportPeptides}
-      />
-
-      <ExportFileElement
-        Icon={FileIconCsv}
-        filename={exportParams.filenameInsertionsCsv}
-        HelpMain={t('Insertions in CSV format.')}
-        HelpDetails={t('Contains insertions stripped from aligned sequences.')}
-        HelpDownload={t('Download insertions in CSV format')}
-        onDownload={exportInsertionsCsv}
-      />
-
-      <ExportFileElement
-        Icon={FileIconCsv}
-        filename={exportParams.filenameErrorsCsv}
-        HelpMain={t('Errors, warnings, and failed genes in CSV format.')}
-        HelpDetails={t(
-          'Contains a list of errors, a list of warnings and a list of genes that failed processing, per sequence, in CSV format.',
-        )}
-        HelpDownload={t('Download warnings, and failed genes in CSV format')}
-        onDownload={exportErrorsCsv}
       />
 
       <ExportFileElement

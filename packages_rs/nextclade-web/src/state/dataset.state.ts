@@ -26,9 +26,6 @@ export const datasetServerUrlAtom = atom<string>({
 
 export interface Datasets {
   datasets: Dataset[]
-  defaultDataset: Dataset
-  defaultDatasetName: string
-  defaultDatasetNameFriendly: string
 }
 
 export const datasetsAtom = atom<Datasets>({
@@ -52,7 +49,8 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
       reset(datasetCurrentStorageAtom)
     } else if (!areDatasetsEqual(datasetCurrent, dataset)) {
       set(datasetCurrentStorageAtom, dataset)
-      set(viewedGeneAtom, dataset.params?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
+      // FIXME
+      // set(viewedGeneAtom, dataset?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
       reset(inputResetAtom)
     }
   },
@@ -66,6 +64,8 @@ export const datasetUpdatedAtom = atom<Dataset | undefined>({
 export const geneOrderPreferenceAtom = selector({
   key: 'geneOrderPreference',
   get({ get }) {
-    return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
+    // FIXME
+    // return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
+    return []
   },
 })

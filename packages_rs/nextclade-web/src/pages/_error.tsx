@@ -5,9 +5,8 @@ import get from 'lodash/get'
 
 import { ErrorContent } from 'src/components/Error/ErrorContent'
 import { RestartButton } from 'src/components/Error/ErrorStyles'
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import styled from 'styled-components'
 
 export const Container = styled(ContainerBase)`
@@ -70,10 +69,8 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
   }, [error])
 
   return (
-    <LayoutResults>
+    <Layout>
       <MainContent>
-        <MainSectionTitle />
-
         <Row noGutters>
           <Col className="text-center text-danger">
             <h2>{titleText}</h2>
@@ -88,7 +85,7 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
           </Col>
         </Row>
       </MainContent>
-    </LayoutResults>
+    </Layout>
   )
 }
 

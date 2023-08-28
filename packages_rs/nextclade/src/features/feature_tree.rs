@@ -184,7 +184,7 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
   validate(&features)?;
 
   if features.is_empty() {
-    return make_error!("Gene map contains no features. This is not allowed.");
+    return make_error!("Genome annotation file contains no features. This is not allowed. Either add features to the file, or remove the file. Please report this to dataset authors.");
   }
 
   process_circular_features(&mut features)?;
@@ -212,7 +212,7 @@ fn process_circular_features(features: &mut [Feature]) -> Result<(), Report> {
       });
 
     if has_circular && landmark.is_none() {
-      return make_error!("Gene map is invalid: There are circular features in the genome, and this requires a landmark feature to be present. However, in genomic feature '{}', the column 'seqid' (column 0) refers to feature '{}', but the feature with such 'ID' attribute is not found. Make sure that the column 'seqid' (column 0) contains an 'ID' of the landmark feature and that this feature exists.", feature.name, feature.seqid)
+      return make_error!("Genome annotation is invalid: There are circular features in the genome, and this requires a landmark feature to be present. However, in genomic feature '{}', the column 'seqid' (column 0) refers to feature '{}', but the feature with such 'ID' attribute is not found. Make sure that the column 'seqid' (column 0) contains an 'ID' of the landmark feature and that this feature exists. Please report this to dataset authors.", feature.name, feature.seqid)
     }
 
     feature.landmark = landmark.map(Landmark::from_feature);
@@ -331,7 +331,7 @@ fn validate(features: &[Feature]) -> Result<(), Report> {
 
   if !errors.is_empty() {
     return make_error!(
-      "Gene map is invalid. The following errors were found:\n\n{}",
+      "Genome annotation is invalid. The following errors were found:\n\n{}\n\nPlease report this to dataset authors.",
       errors.join("\n\n")
     );
   }

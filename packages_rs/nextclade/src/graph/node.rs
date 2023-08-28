@@ -53,7 +53,7 @@ impl schemars::JsonSchema for GraphNodeKey {
 }
 
 /// Internal representation of a node in a graph
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Node<N: GraphNode> {
   key: GraphNodeKey,
   #[serde(skip_serializing_if = "is_json_value_null")]

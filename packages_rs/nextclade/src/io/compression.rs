@@ -6,8 +6,6 @@ use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression as GzCompressionLevel;
 use log::debug;
-use num::Integer;
-use num_traits::{FromPrimitive, NumCast, ToPrimitive};
 use std::env;
 use std::io::{ErrorKind, Read, Write};
 use std::path::Path;
@@ -42,7 +40,7 @@ pub enum CompressionType {
   #[cfg(not(target_arch = "wasm32"))]
   Xz,
   #[cfg(not(target_arch = "wasm32"))]
-  Zstandard,
+  Zstd,
 
   Gzip,
   None,
@@ -60,7 +58,9 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (Compressi
         #[cfg(not(target_arch = "wasm32"))]
         "xz" => CompressionType::Xz,
         #[cfg(not(target_arch = "wasm32"))]
-        "zst" => CompressionType::Zstandard,
+        "zst" => CompressionType::Zstd,
+        #[cfg(not(target_arch = "wasm32"))]
+        "zstd" => CompressionType::Zstd,
         "gz" => CompressionType::Gzip,
         _ => CompressionType::None,
       };
@@ -89,7 +89,7 @@ impl<'r> Decompressor<'r> {
       #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Xz => Box::new(XzDecoder::new_multi_decoder(reader)),
       #[cfg(not(target_arch = "wasm32"))]
-      CompressionType::Zstandard => Box::new(ZstdDecoder::new(reader)?),
+      CompressionType::Zstd => Box::new(ZstdDecoder::new(reader)?),
       CompressionType::Gzip => Box::new(MultiGzDecoder::new(reader)),
       CompressionType::None => Box::new(reader),
     };
@@ -104,13 +104,13 @@ impl<'r> Decompressor<'r> {
   pub fn from_str_and_path(content: &'r str, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let reader = content.as_bytes();
-    let (compression_type, ext) = guess_compression_from_filepath(filepath);
+    let (compression_type, _) = guess_compression_from_filepath(filepath);
     Self::new(reader, &compression_type)
   }
 
   pub fn from_path<R: 'r + Read>(reader: R, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let (compression_type, ext) = guess_compression_from_filepath(filepath);
+    let (compression_type, _) = guess_compression_from_filepath(filepath);
     Self::new(reader, &compression_type)
   }
 }
@@ -155,7 +155,7 @@ impl<'w> Compressor<'w> {
       #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Xz => Box::new(XzEncoder::new(writer, get_comp_level("XZ"))),
       #[cfg(not(target_arch = "wasm32"))]
-      CompressionType::Zstandard => Box::new(ZstdEncoder::new(writer, get_comp_level("ZST"))?.auto_finish()),
+      CompressionType::Zstd => Box::new(ZstdEncoder::new(writer, get_comp_level("ZST"))?.auto_finish()),
       CompressionType::Gzip => Box::new(GzEncoder::new(writer, GzCompressionLevel::new(get_comp_level("GZ")))),
       CompressionType::None => Box::new(writer),
     };
@@ -169,7 +169,7 @@ impl<'w> Compressor<'w> {
 
   pub fn from_path<W: 'w + Write + Send>(writer: W, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let (compression_type, ext) = guess_compression_from_filepath(filepath);
+    let (compression_type, _) = guess_compression_from_filepath(filepath);
     Self::new(writer, &compression_type)
   }
 }
