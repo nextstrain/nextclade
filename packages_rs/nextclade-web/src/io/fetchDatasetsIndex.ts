@@ -35,10 +35,8 @@ export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): 
 }
 
 export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {
-  const datasets = datasetsIndexJson.datasets
-    .filter(isEnabled)
-    .filter(isCompatible)
-    .filter(isLatest)
+  const datasets = datasetsIndexJson.collections
+    .flatMap((collection) => collection.datasets.filter(isEnabled).filter(isCompatible).filter(isLatest))
     .map((dataset) => fileUrlsToAbsolute(datasetServerUrl, dataset))
   return { datasets }
 }

@@ -30,7 +30,7 @@ pub fn nextclade_dataset_list(
 ) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
   let mut http = HttpClient::new(&server, &proxy_config, verbose)?;
-  let DatasetsIndexJson { datasets, .. } = download_datasets_index_json(&mut http)?;
+  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(&mut http)?;
 
   // Parse attribute key-value pairs
   let mut attributes = parse_dataset_attributes(&attribute)?;
@@ -43,8 +43,9 @@ pub fn nextclade_dataset_list(
     reference = attr_reference;
   }
 
-  let filtered = datasets
+  let filtered = collections
     .into_iter()
+    .flat_map(|collection| collection.datasets)
     .filter(Dataset::is_enabled)
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks

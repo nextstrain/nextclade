@@ -12,9 +12,7 @@ const COLLECTION_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetsIndexJson {
-  pub meta: DatasetCollectionMeta,
-
-  pub datasets: Vec<Dataset>,
+  pub collections: Vec<DatasetCollection>,
 
   pub updated_at: String,
 
@@ -40,6 +38,17 @@ impl DatasetsIndexJson {
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
+pub struct DatasetCollection {
+  pub meta: DatasetCollectionMeta,
+
+  pub datasets: Vec<Dataset>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct Dataset {
   pub schema_version: String,
 
@@ -57,7 +66,7 @@ pub struct Dataset {
   pub experimental: Option<bool>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub community: Option<bool>,
+  pub official: Option<bool>,
 
   pub attributes: DatasetAttributes,
 
@@ -93,8 +102,12 @@ impl Dataset {
     self.experimental.unwrap_or(false)
   }
 
+  pub fn is_official(&self) -> bool {
+    self.official.unwrap_or(false)
+  }
+
   pub fn is_community(&self) -> bool {
-    self.community.unwrap_or(false)
+    !self.is_official()
   }
 
   pub fn is_latest(&self) -> bool {

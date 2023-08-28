@@ -35,7 +35,7 @@ export interface DatasetInfoProps {
 
 export function DatasetInfo({ dataset }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
-  const { attributes, community, deprecated, enabled, experimental, path, version } = dataset
+  const { attributes, official, deprecated, enabled, experimental, path, version } = dataset
   const { name, reference } = attributes
 
   const updatedAt = useMemo(
@@ -53,15 +53,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
         <span>{name.valueFriendly ?? name.value ?? path}</span>
 
         <span className="d-flex ml-auto">
-          {community ? (
-            <DatasetInfoBadge
-              className="ml-2 my-auto"
-              color="cyan"
-              title="This dataset is provided by the community. Nextclade team cannot verify correctness or provide support for community datasets."
-            >
-              {t('community')}
-            </DatasetInfoBadge>
-          ) : (
+          {official ? (
             <DatasetInfoBadge
               className="ml-2 my-auto"
               color="success"
@@ -69,13 +61,21 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
             >
               {t('official')}
             </DatasetInfoBadge>
+          ) : (
+            <DatasetInfoBadge
+              className="ml-2 my-auto"
+              color="info"
+              title="This dataset is provided by the community members. Nextclade team cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions."
+            >
+              {t('community')}
+            </DatasetInfoBadge>
           )}
 
           {experimental && (
             <DatasetInfoBadge
               className="ml-2 my-auto"
               color="warning"
-              title="Dataset author marked this dataset as experimental, which means the dataset is stil under development, is of lower quality than usual or has other issues. Please contact dataset author for specifics."
+              title="Dataset authors marked this dataset as experimental, which means the dataset is stil under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics."
             >
               {t('experimental')}
             </DatasetInfoBadge>
@@ -85,7 +85,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
             <DatasetInfoBadge
               className="ml-2 my-auto"
               color="secondary"
-              title="Dataset author marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset author for specifics."
+              title="Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics."
             >
               {t('deprecated')}
             </DatasetInfoBadge>

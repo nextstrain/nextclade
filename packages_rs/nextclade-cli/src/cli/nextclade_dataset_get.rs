@@ -26,7 +26,7 @@ pub fn nextclade_dataset_http_get(
   }: DatasetHttpGetParams,
   attributes: &[String],
 ) -> Result<Dataset, Report> {
-  let DatasetsIndexJson { datasets, .. } = download_datasets_index_json(http)?;
+  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(http)?;
 
   // Parse attribute key-value pairs
   let mut attributes = parse_dataset_attributes(attributes)?;
@@ -50,8 +50,9 @@ pub fn nextclade_dataset_http_get(
     tag.to_owned()
   };
 
-  let mut filtered = datasets
+  let mut filtered = collections
     .into_iter()
+    .flat_map(|collection| collection.datasets)
     .filter(Dataset::is_enabled)
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
