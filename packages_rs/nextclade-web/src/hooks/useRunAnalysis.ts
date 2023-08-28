@@ -12,7 +12,6 @@ import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
-  qcConfigInputAtom,
   qrySeqInputsStorageAtom,
   refSeqInputAtom,
   refTreeInputAtom,
@@ -59,7 +58,6 @@ export function useRunAnalysis() {
           refSeq: getPromise(refSeqInputAtom),
           geneMap: getPromise(geneMapInputAtom),
           tree: getPromise(refTreeInputAtom),
-          qcConfig: getPromise(qcConfigInputAtom),
           virusProperties: getPromise(virusPropertiesInputAtom),
         }
 

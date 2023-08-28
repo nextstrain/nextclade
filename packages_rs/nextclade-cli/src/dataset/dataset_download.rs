@@ -238,6 +238,7 @@ pub fn dataset_individual_files_load(
             },
             files: DatasetFiles {
               reference: "".to_owned(),
+              pathogen_json: "".to_owned(),
               genome_annotation: None,
               tree_json: None,
               examples: None,

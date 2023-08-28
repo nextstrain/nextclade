@@ -1,13 +1,11 @@
 import { concurrent } from 'fasy'
 import { isEmpty, merge } from 'lodash'
-
 import type {
   AlgorithmInput,
   Dataset,
   FastaRecordId,
   NextcladeResult,
   CsvColumnConfig,
-  NextcladeParams,
   NextcladeParamsRaw,
   AnalysisInitialData,
   OutputTrees,
@@ -22,7 +20,6 @@ export interface LaunchAnalysisInputs {
   refSeq: Promise<AlgorithmInput | undefined>
   geneMap: Promise<AlgorithmInput | undefined>
   tree: Promise<AlgorithmInput | undefined>
-  qcConfig: Promise<AlgorithmInput | undefined>
   virusProperties: Promise<AlgorithmInput | undefined>
 }
 
@@ -34,15 +31,6 @@ export interface LaunchAnalysisCallbacks {
   onTree: (trees: OutputTrees) => void
   onError: (error: Error) => void
   onComplete: () => void
-}
-
-/** Maps input field names to the dataset field names, so that we know which one to take */
-const DATASET_FILE_NAME_MAPPING: Record<keyof LaunchAnalysisInputs, string> = {
-  refSeq: 'reference.fasta',
-  geneMap: 'genemap.gff',
-  tree: 'tree.json',
-  qcConfig: 'qc.json',
-  virusProperties: 'virus_properties.json',
 }
 
 export async function launchAnalysis(
@@ -109,29 +97,32 @@ async function getQueryFasta(inputs: AlgorithmInput[]) {
   return contents.join('\n')
 }
 
-/** Typed output of Object.entries(), assuming all fields have the same type */
-type Entry<T, V> = [keyof T, V]
-
-type LaunchAnalysisInputsEntry = Entry<LaunchAnalysisInputs, Promise<AlgorithmInput | undefined>>
-
 /** Resolves all param inputs into strings */
 async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsRaw> {
-  const paramInputsEntries = Object.entries(paramInputs) as LaunchAnalysisInputsEntry[]
+  const entries = [
+    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset.files.genomeAnnotation },
+    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset.files.reference },
+    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset.files.treeJson },
+    { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset.files.pathogenJson },
+  ]
 
   return Object.fromEntries(
-    await concurrent.map(async ([key, input]: LaunchAnalysisInputsEntry): Promise<Entry<NextcladeParams, string>> => {
-      const datasetKey = DATASET_FILE_NAME_MAPPING[key]
-      const content = await resolveInput(await input, dataset.files[datasetKey])
-      return [key as keyof NextcladeParams, content]
-    }, paramInputsEntries),
+    await concurrent.map(async ({ key, input, datasetFileUrl }) => {
+      return [key, await resolveInput(await input, datasetFileUrl)]
+    }, entries),
   ) as unknown as NextcladeParamsRaw
 }
 
-async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string) {
+async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string | undefined) {
   // If data is provided explicitly, load it
   if (input) {
     return input.getContent()
   }
+
   // Otherwise fetch corresponding file from the dataset
-  return axiosFetchRaw(datasetFileUrl)
+  if (datasetFileUrl) {
+    return axiosFetchRaw(datasetFileUrl)
+  }
+
+  return undefined
 }

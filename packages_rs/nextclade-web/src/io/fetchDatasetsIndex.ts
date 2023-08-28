@@ -2,7 +2,7 @@ import { head, mapValues, sortBy, sortedUniq } from 'lodash'
 // import semver from 'semver'
 import urljoin from 'url-join'
 
-import { Dataset, DatasetsIndexJson, DatasetsIndexV2Json } from 'src/types'
+import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
 // const thisVersion = process.env.PACKAGE_VERSION ?? ''
@@ -25,13 +25,10 @@ export function isLatest(dataset: Dataset): boolean {
 }
 
 export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): Dataset {
-  const { reference, ...restFiles } = dataset.files
-  const referenceAbs = urljoin(datasetServerUrl, reference)
-  const restFilesAbs = mapValues(restFiles, (file) =>
+  const restFilesAbs = mapValues(dataset.files, (file) =>
     file ? urljoin(datasetServerUrl, dataset.path, dataset.version?.tag ?? '', file) : undefined,
-  )
+  ) as DatasetFiles
   const files = {
-    reference: referenceAbs,
     ...restFilesAbs,
   }
   return { ...dataset, files }

@@ -157,6 +157,8 @@ pub struct DatasetCapabilities {
 pub struct DatasetFiles {
   pub reference: String,
 
+  pub pathogen_json: String,
+
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub genome_annotation: Option<String>,
 

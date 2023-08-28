@@ -20,7 +20,6 @@ export async function fetchSingleDatasetFromUrl(
       primers: false,
       qc: [],
     },
-    updatedAt: '',
     ...pathogen,
   }
 
