@@ -85,13 +85,13 @@ rule run_nextclade:
         sequences="sequences/{dataset_name}",
         dataset="dataset/{dataset_name}.zip",
     output:
-        tsv="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}/nextclade.tsv",
-        runtime="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}/runtime.csv",
+        tsv="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/nextclade.tsv",
+        runtime="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/runtime.csv",
     threads: workflow.cores
     shell:
         """
         hyperfine --runs 1 \
-        --command-name "{wildcards.dataset_name};exc_{wildcards.excess};term_{wildcards.term};retry_{wildcards.retry};mis_{wildcards.mis};wind_{wildcards.wind};minml_{wildcards.minml}" \
+        --command-name "{wildcards.dataset_name};exc_{wildcards.excess};term_{wildcards.term};retry_{wildcards.retry};mis_{wildcards.mis};wind_{wildcards.wind};minml_{wildcards.minml};minseedcover_{wildcards.minseedcover}" \
         --export-csv {output.runtime} \
         './{input.bin} run -j {threads} \
         --input-dataset {input.dataset} \
@@ -103,6 +103,7 @@ rule run_nextclade:
         --allowed-mismatches {wildcards.mis} \
         --window-size {wildcards.wind} \
         --min-match-length {wildcards.minml} \
+        --min-seed-cover {wildcards.minseedcover} \
         {input.sequences}/*'
         """
 

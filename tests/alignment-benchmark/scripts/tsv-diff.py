@@ -38,11 +38,15 @@ def main(
     # base_tsv_path = "validation/alignment-score/results/sars-cov-2/base/custom.tsv"
     # eval_tsv_path = "validation/alignment-score/results/sars-cov-2/eval/custom.tsv"
     base_df = pl.read_csv(
-        base_tsv_path, separator="\t", infer_schema_length=10000
-    ).sort("index")
+        base_tsv_path, separator="\t", infer_schema_length=100000, dtypes={"alignmentScore": pl.Float32, "errors": pl.Utf8}
+    ).sort("index").with_columns(
+        alignmentScore = pl.col("alignmentScore").fill_null(-1) # Fill nonaligns with -1
+    )
     eval_df = pl.read_csv(
-        eval_tsv_path, separator="\t", infer_schema_length=10000
-    ).sort("index")
+        eval_tsv_path, separator="\t", infer_schema_length=100000, dtypes={"alignmentScore": pl.Float32, "errors": pl.Utf8}
+    ).sort("index").with_columns(
+        alignmentScore = pl.col("alignmentScore").fill_null(-1) # Fill nonaligns with -1
+    )
 
     if columns != "all":
         column_set = set(columns.split(","))
@@ -59,6 +63,15 @@ def main(
     df = base_df.join(eval_df, on="index", how="outer", suffix="_eval").sort(
         "index"
     )
+
+    # Print where alignmentScores are different
+    # df.filter(pl.col("alignmentScore_eval") != pl.col("alignmentScore")).select(
+    #     [pl.col("index"), pl.col("seqName"), pl.col("alignmentScore"), pl.col("alignmentScore_eval")]
+    # ).to_pandas().to_csv("/dev/stdout", sep="\t", index=False)
+
+    # Print row where index=999
+    # df.filter(pl.col("index") == 999).to_pandas().to_csv("/dev/stdout", sep="\t", index=False)
+
     # df.head(10)
     # %%
     # Two modes:
@@ -105,9 +118,16 @@ def main(
                 continue
             base_col = pl.col(column)
             eval_col = pl.col(f"{column}_eval")
-            differing_rows = df.filter(base_col != eval_col).select(
-                [pl.col("index"), pl.col("seqName"), base_col, eval_col]
-            )
+            try:
+                differing_rows = df.filter((base_col.is_null() & eval_col.is_not_null()) | (base_col.is_not_null() & eval_col.is_null()) | (base_col != eval_col)).select(
+                    [pl.col("index"), pl.col("seqName"), base_col, eval_col]
+                )
+            except Exception as e:
+                print(f"Error in column: {column}: {e}")
+                # print(df.select(base_col))
+                # print(df.select(eval_col))
+                continue
+
             # Split by `,`, turn into set, and get rid of joint strings
             # remove file
             if len(differing_rows) > 0:
