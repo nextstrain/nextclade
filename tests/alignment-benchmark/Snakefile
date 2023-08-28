@@ -183,30 +183,66 @@ rule compare_vs_old:
         """
 
 
-rule alignment_score_diff:
-    input:
-        tsv1="results/{dataset_name}/base/{seq_type}.tsv",
-        tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
-    output:
-        diff="results/{dataset_name}/{seq_type}_diff_alignment_score.tsv",
-    shell:
-        """
-        python3 scripts/tsv-diff.py \
-        --base-tsv-path {input.tsv1} \
-        --eval-tsv-path {input.tsv2} \
-        --columns alignmentScore \
-        > {output.diff}
-        """
+# rule alignment_score_diff:
+#     input:
+#         tsv1="results/{dataset_name}/base/{seq_type}.tsv",
+#         tsv2="results/{dataset_name}/eval/{seq_type}.tsv",
+#     output:
+#         diff="results/{dataset_name}/{seq_type}_diff_alignment_score.tsv",
+#     shell:
+#         """
+#         python3 scripts/tsv-diff.py \
+#         --base-tsv-path {input.tsv1} \
+#         --eval-tsv-path {input.tsv2} \
+#         --columns alignmentScore \
+#         > {output.diff}
+#         """
 
 
 rule join_summary:
     output:
-        summary="results/{dataset_name}/runtime.csv",
+        summary="results/{dataset_name}/new_vs_old.tsv",
     params:
-        new="results/{dataset_name}/new/new_vs_old.tsv",
+        new="results/{dataset_name}/*/new_vs_old.tsv",
     shell:
         """
-        tsv-append -H {params.new} >{output.runtimes}
+        tsv-append -H {params.new} >{output.summary}
+        """
+
+
+default_params = {
+    "exc": 9,
+    "term": 50,
+    "retry": 3,
+    "mis": 8,
+    "wind": 30,
+    "minml": 40,
+    "minseedcover": 0.33,
+}
+
+exc_sweep = []
+for exc in range(0, 5):
+    default = default_params.copy()
+    default["retry"] = exc
+    exc_sweep.append(default)
+
+print(exc_sweep)
+
+
+rule sc2:
+    input:
+        [
+            expand(
+                "results/sars-cov-2/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                **params
+            )
+            for params in exc_sweep
+        ],
+    output:
+        "results/sars-cov-2/sweep/new_vs_old.tsv",
+    shell:
+        """
+        tsv-append -H {input} >{output}
         """
 
 
