@@ -3,10 +3,10 @@ import { atom, DefaultValue, selector } from 'recoil'
 import urljoin from 'url-join'
 
 import type { Dataset } from 'src/types'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+// import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
+// import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { areDatasetsEqual } from 'src/types'
 
@@ -63,6 +63,7 @@ export const datasetUpdatedAtom = atom<Dataset | undefined>({
 
 export const geneOrderPreferenceAtom = selector({
   key: 'geneOrderPreference',
+  // eslint-disable-next-line unused-imports/no-unused-vars
   get({ get }) {
     // FIXME
     // return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
