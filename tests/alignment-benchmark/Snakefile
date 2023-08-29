@@ -214,19 +214,29 @@ default_params = {
     "exc": 9,
     "term": 50,
     "retry": 3,
-    "mis": 8,
+    "mis": 4,
     "wind": 30,
     "minml": 40,
     "minseedcover": 0.33,
 }
 
-exc_sweep = []
-for exc in range(1, 10):
-    default = default_params.copy()
-    default["mis"] = exc
-    exc_sweep.append(default)
 
-print(exc_sweep)
+def para_sweep(param, values):
+    sweep = []
+    for value in values:
+        default = default_params.copy()
+        default[param] = value
+        sweep.append(default)
+    return sweep
+
+
+para = []
+para.extend(para_sweep("exc", range(1, 40, 5)))
+para.extend(para_sweep("term", range(1, 400, 20)))
+para.extend(para_sweep("retry", [0, 1, 2, 3]))
+para.extend(para_sweep("mis", range(1, 10, 1)))
+para.extend(para_sweep("wind", range(15, 100, 5)))
+para.extend(para_sweep("minseedcover", [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]))
 
 
 rule sc2:
@@ -236,7 +246,7 @@ rule sc2:
                 "results/sars-cov-2/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
                 **params
             )
-            for params in exc_sweep
+            for params in para
         ],
     output:
         "results/sars-cov-2/sweep/new_vs_old.tsv",
