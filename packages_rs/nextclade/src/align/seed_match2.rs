@@ -121,7 +121,7 @@ impl SeedMatch2 {
     // counter to keep track of total number of mismatches in window
     let mut forward_mismatches = 0;
 
-    while forward_mismatches < config.allowed_mismatches && length < max_length {
+    while forward_mismatches <= config.allowed_mismatches && length < max_length {
       // remove first position in queue, decrement mismatch counter in case of mismatch
       if mismatch_queue.pop_front().unwrap() {
         forward_mismatches = forward_mismatches.saturating_sub(1);
@@ -159,7 +159,7 @@ impl SeedMatch2 {
     // repeat in other direction
     mismatch_queue = VecDeque::from(vec![false; config.window_size]);
     let mut backward_mismatches = 0;
-    while backward_mismatches < config.allowed_mismatches && ref_pos > 0 && qry_pos > 0 {
+    while backward_mismatches <= config.allowed_mismatches && ref_pos > 0 && qry_pos > 0 {
       if mismatch_queue.pop_front().unwrap() {
         backward_mismatches = backward_mismatches.saturating_sub(1);
       }
