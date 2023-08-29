@@ -33,8 +33,8 @@ pub fn nextclade_dataset_get(
 
   let verbose = log::max_level() > LevelFilter::Info;
 
-  let mut http = HttpClient::new(&server, &proxy_config, verbose)?;
-  let dataset = dataset_http_get(&mut http, &name, tag)?;
+  let mut http = HttpClient::new(server, proxy_config, verbose)?;
+  let dataset = dataset_http_get(&mut http, name, tag)?;
 
   if let Some(output_dir) = &output_dir {
     dataset_dir_download(&mut http, &dataset, output_dir)?;
@@ -46,15 +46,11 @@ pub fn nextclade_dataset_get(
   Ok(())
 }
 
-pub fn dataset_http_get(
-  mut http: &mut HttpClient,
-  name: impl AsRef<str>,
-  tag: impl AsRef<str>,
-) -> Result<Dataset, Report> {
+pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: impl AsRef<str>) -> Result<Dataset, Report> {
   let name = name.as_ref();
   let tag = tag.as_ref();
 
-  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(&mut http)?;
+  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(http)?;
 
   let datasets = collections
     .into_iter()
@@ -79,7 +75,7 @@ pub fn dataset_http_get(
     })
     // Filter by name
     .filter(|dataset| {
-      &dataset.path == name
+      dataset.path == name
     })
     .collect_vec();
 
