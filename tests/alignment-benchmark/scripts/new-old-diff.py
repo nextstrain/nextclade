@@ -30,8 +30,8 @@ def main(
     total_seqs = outer.shape[0]
 
     # Only in base
-    only_in_base = outer.filter(pl.col("alignmentScore_eval").is_null())
-    only_in_eval = outer.filter(pl.col("alignmentScore").is_null())
+    only_in_base = outer.filter(pl.col("alignmentScore_eval").is_null() & pl.col("alignmentScore").is_not_null())
+    only_in_eval = outer.filter(pl.col("alignmentScore").is_null() & pl.col("alignmentScore_eval").is_not_null())
     in_neither = outer.filter(
         (pl.col("alignmentScore_eval").is_null() & pl.col("alignmentScore").is_null())
     )
