@@ -1,5 +1,5 @@
 use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
-use crate::cli::nextclade_dataset_get::{dataset_file_http_get, nextclade_dataset_http_get, DatasetHttpGetParams};
+use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
 use crate::io::http_client::{HttpClient, ProxyConfig};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
@@ -9,7 +9,6 @@ use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes, DatasetFiles, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::fs::{absolute_path, has_extension, read_file_to_string};
-use nextclade::io::json::json_parse_bytes;
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
 use nextclade::utils::option::OptionMapRefFallible;
@@ -331,15 +330,7 @@ pub fn dataset_str_download_and_load(
     .as_ref()
     .expect("Dataset name is expected, but got 'None'");
 
-  let dataset = nextclade_dataset_http_get(
-    &mut http,
-    DatasetHttpGetParams {
-      name,
-      reference: "default",
-      updated_at: "latest",
-    },
-    &[],
-  )?;
+  let dataset = dataset_http_get(&mut http, name, "latest")?;
 
   let virus_properties = read_from_path_or_url(
     &mut http,

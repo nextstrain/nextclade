@@ -17,13 +17,13 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   table.set_header([
     "name".to_owned(),
     "reference".to_owned(),
-    "updated at".to_owned(),
+    "tag".to_owned(),
     "attributes".to_owned(),
   ]);
 
   for dataset in filtered.iter() {
     let Dataset {
-      attributes, version, ..
+      version, attributes, ..
     } = dataset;
 
     let DatasetAttributes {
@@ -45,10 +45,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     table.add_row([
       format_attr_value(name),
       format_attr_value(reference),
-      version.as_ref().map_or_else(
-        || o!(""),
-        |version| version.updated_at.as_ref().map_or_else(|| o!(""), Clone::clone),
-      ),
+      version.as_ref().map_or_else(|| o!(""), |version| version.tag.clone()),
       format_attributes(&attrs),
     ]);
   }

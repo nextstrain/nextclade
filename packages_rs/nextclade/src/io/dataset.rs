@@ -90,7 +90,7 @@ impl Dataset {
   }
 
   pub fn is_deprecated(&self) -> bool {
-    self.experimental.unwrap_or(false)
+    self.deprecated.unwrap_or(false)
   }
 
   pub fn is_enabled(&self) -> bool {

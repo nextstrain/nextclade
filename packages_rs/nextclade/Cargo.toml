@@ -55,6 +55,7 @@ serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "u
 serde_repr = "=0.1.12"
 serde_stacker = { version = "=0.1.8" }
 serde_yaml = "=0.9.22"
+strsim = "=0.10.0"
 strum = "=0.25.0"
 strum_macros = "=0.25.0"
 tinytemplate = "=1.2.1"

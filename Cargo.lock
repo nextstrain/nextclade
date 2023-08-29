@@ -1761,6 +1761,7 @@ dependencies = [
  "serde_repr",
  "serde_stacker",
  "serde_yaml",
+ "strsim",
  "strum 0.25.0",
  "strum_macros 0.25.0",
  "tinytemplate",
