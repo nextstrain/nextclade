@@ -104,7 +104,7 @@ rule run_nextclade:
         --window-size {wildcards.wind} \
         --min-match-length {wildcards.minml} \
         --min-seed-cover {wildcards.minseedcover} \
-        --without-greedy-tree-builder \
+        --without-greedy-tree-builder true \
         {input.sequences}/*'
         """
 
@@ -256,7 +256,8 @@ rule sc2:
         tsv-append -H {input} >{output}
         """
 
-rule mpxv: 
+
+rule mpxv:
     input:
         [
             expand(
@@ -271,6 +272,7 @@ rule mpxv:
         """
         tsv-append -H {input} >{output}
         """
+
 
 rule clean:
     """
