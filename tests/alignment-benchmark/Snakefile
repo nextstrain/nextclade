@@ -123,7 +123,7 @@ rule run_nextclade_old:
         --runs 1 \
         --command-name "old" \
         --export-csv {output.runtime} \
-            'nextclade run -j 10 \
+            'nextclade run -j {threads} \
             --input-dataset {input.dataset} \
             --output-tsv {output.tsv} \
             --gap-alignment-side right \
@@ -255,6 +255,21 @@ rule sc2:
         tsv-append -H {input} >{output}
         """
 
+rule mpxv: 
+    input:
+        [
+            expand(
+                "results/MPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                **params
+            )
+            for params in para
+        ],
+    output:
+        "results/MPXV/sweep/new_vs_old.tsv",
+    shell:
+        """
+        tsv-append -H {input} >{output}
+        """
 
 rule clean:
     """
