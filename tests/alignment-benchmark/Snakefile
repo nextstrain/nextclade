@@ -104,6 +104,7 @@ rule run_nextclade:
         --window-size {wildcards.wind} \
         --min-match-length {wildcards.minml} \
         --min-seed-cover {wildcards.minseedcover} \
+        --retry-reverse-complement true \
         --without-greedy-tree-builder true \
         {input.sequences}/*'
         """
@@ -127,6 +128,7 @@ rule run_nextclade_old:
             'nextclade run -j {threads} \
             --input-dataset {input.dataset} \
             --output-tsv {output.tsv} \
+            --retry-reverse-complement \
             --gap-alignment-side right \
             {input.sequences}/*'
         """
@@ -185,6 +187,62 @@ rule compare_vs_old:
         """
 
 
+rule new_nonaligned:
+    input:
+        oldtsv="results/{dataset_name}/old/nextclade.tsv",
+        newtsv="results/{dataset_name}/{para}/nextclade.tsv",
+    output:
+        oldtsv="results/{dataset_name}/{para}/nonaligned_old.tsv",
+        newtsv="results/{dataset_name}/{para}/nonaligned_new.tsv",
+        sequences="results/{dataset_name}/{para}/nonaligned.fasta",
+    params:
+        sequences="sequences/{dataset_name}/*",
+    shell:
+        """
+        TMPFILE=$(mktemp)
+        python3 scripts/new-nonaligned.py \
+        --old-tsv-path {input.oldtsv} \
+        --new-tsv-path {input.newtsv} \
+        --nonaligned-old-tsv-path {output.oldtsv} \
+        --nonaligned-new-tsv-path {output.newtsv} \
+        --nonaligned-fasta-path $TMPFILE
+        seqkit grep -f $TMPFILE {params.sequences} > {output.sequences}
+        rm $TMPFILE
+        """
+
+
+rule new_worse:
+    input:
+        oldtsv="results/{dataset_name}/old/nextclade.tsv",
+        newtsv="results/{dataset_name}/{para}/nextclade.tsv",
+    output:
+        oldtsv="results/{dataset_name}/{para}/worse_old.tsv",
+        newtsv="results/{dataset_name}/{para}/worse_new.tsv",
+        tsvdiff="results/{dataset_name}/{para}/worse_diff_columns.tsv",
+        sequences="results/{dataset_name}/{para}/worse.fasta",
+    params:
+        sequences="sequences/{dataset_name}/*",
+    shell:
+        """
+        TMPFILE=$(mktemp)
+        python3 scripts/new-nonaligned.py \
+        --old-tsv-path {input.oldtsv} \
+        --new-tsv-path {input.newtsv} \
+        --nonaligned-old-tsv-path {output.oldtsv} \
+        --nonaligned-new-tsv-path {output.newtsv} \
+        --nonaligned-fasta-path $TMPFILE \
+        --mode worse
+
+        python3 scripts/tsv-diff.py \
+        --base-tsv-path {output.oldtsv} \
+        --eval-tsv-path {output.newtsv} \
+        > {output.tsvdiff}
+
+        seqkit grep -f $TMPFILE {params.sequences} > {output.sequences}
+        rm $TMPFILE
+        """
+
+
 # rule alignment_score_diff:
 #     input:
 #         tsv1="results/{dataset_name}/base/{seq_type}.tsv",
@@ -193,6 +251,8 @@ rule compare_vs_old:
 #         diff="results/{dataset_name}/{seq_type}_diff_alignment_score.tsv",
 #     shell:
 #         """
+
+
 #         python3 scripts/tsv-diff.py \
 #         --base-tsv-path {input.tsv1} \
 #         --eval-tsv-path {input.tsv2} \
