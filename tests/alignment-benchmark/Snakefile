@@ -123,7 +123,7 @@ rule run_nextclade_old:
         --runs 1 \
         --command-name "old" \
         --export-csv {output.runtime} \
-            'nextclade run -j 10 \
+            'nextclade run -j {threads} \
             --input-dataset {input.dataset} \
             --output-tsv {output.tsv} \
             --gap-alignment-side right \
