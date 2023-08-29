@@ -164,6 +164,7 @@ rule tsv_column_diff_old:
 
 
 # TODO: Deal with newly aligning sequences, present in one, not the other
+# Helps produce summary output row for sweeps
 rule compare_vs_old:
     input:
         oldtsv="results/{dataset_name}/old/nextclade.tsv",
@@ -221,8 +222,58 @@ default_params = {
     "minseedcover": 0.33,
 }
 
+default_sc2 = {
+    "exc": 9,
+    "term": 100,
+    "retry": 3,
+    "mis": 3,
+    "wind": 30,
+    "minml": 40,
+    "minseedcover": 0.1,
+}
 
-def para_sweep(param, values):
+default_mpxv = {
+    "exc": 60,
+    "term": 300,
+    "retry": 3,
+    "mis": 3,
+    "wind": 30,
+    "minml": 40,
+    "minseedcover": 0.1,
+}
+
+default_hmpxv1 = {
+    "exc": 50,
+    "term": 200,
+    "retry": 3,
+    "mis": 5,
+    "wind": 30,
+    "minml": 40,
+    "minseedcover": 0.1,
+}
+
+default_rsva = {
+    "exc": 30,
+    "term": 200,
+    "retry": 3,
+    "mis": 4,
+    "wind": 30,
+    "minml": 40,
+    "minseedcover": 0.05,
+}
+
+default_rsvb = {
+    "exc": 40,
+    "term": 200,
+    "retry": 3,
+    "mis": 4,
+    "wind": 30,
+    "minml": 40,
+    "minseedcover": 0.05,
+}
+
+
+def para_sweep(param, values, default_params=default_params):
     sweep = []
     for value in values:
         default = default_params.copy()
@@ -231,13 +282,17 @@ def para_sweep(param, values):
     return sweep
 
 
-para = []
-para.extend(para_sweep("exc", range(1, 40, 5)))
-para.extend(para_sweep("term", range(1, 400, 20)))
-para.extend(para_sweep("retry", [0, 1, 2, 3]))
-para.extend(para_sweep("mis", range(1, 10, 1)))
-para.extend(para_sweep("wind", range(15, 100, 5)))
-para.extend(para_sweep("minseedcover", [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]))
+def multi_sweep(default_params=default_params):
+    para = []
+    para.extend(para_sweep("exc", range(0, 200, 5), default_params))
+    para.extend(para_sweep("term", range(1, 400, 20), default_params))
+    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_params))
+    para.extend(para_sweep("mis", range(1, 10, 1), default_params))
+    # para.extend(
+    #     para_sweep("minseedcover", [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]),
+    #     default_params,
+    # )
+    return para
 
 
 rule sc2:
@@ -247,7 +302,7 @@ rule sc2:
                 "results/sars-cov-2/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
                 **params
             )
-            for params in para
+            for params in multi_sweep(default_sc2)
         ],
     output:
         "results/sars-cov-2/sweep/new_vs_old.tsv",
@@ -264,10 +319,61 @@ rule mpxv:
                 "results/MPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
                 **params
             )
-            for params in para
+            for params in multi_sweep(default_mpxv)
         ],
     output:
         "results/MPXV/sweep/new_vs_old.tsv",
+    shell:
+        """
+        tsv-append -H {input} >{output}
+        """
+
+
+rule hmpxv1:
+    input:
+        [
+            expand(
+                "results/hMPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                **params
+            )
+            for params in multi_sweep(default_hmpxv1)
+        ],
+    output:
+        "results/MPXV/sweep/new_vs_old.tsv",
+    shell:
+        """
+        tsv-append -H {input} >{output}
+        """
+
+
+rule rsva:
+    input:
+        [
+            expand(
+                "results/rsv_a/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                **params
+            )
+            for params in multi_sweep(default_rsva)
+        ],
+    output:
+        "results/rsv_a/sweep/new_vs_old.tsv",
+    shell:
+        """
+        tsv-append -H {input} >{output}
+        """
+
+
+rule rsvb:
+    input:
+        [
+            expand(
+                "results/rsv_b/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                **params
+            )
+            for params in multi_sweep(default_rsvb)
+        ],
+    output:
+        "results/rsv_b/sweep/new_vs_old.tsv",
     shell:
         """
         tsv-append -H {input} >{output}
