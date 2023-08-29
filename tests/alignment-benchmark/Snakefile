@@ -87,7 +87,7 @@ rule run_nextclade:
     output:
         tsv="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/nextclade.tsv",
         runtime="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/runtime.csv",
-    threads: workflow.cores
+    threads: 4
     shell:
         """
         hyperfine --runs 1 \
@@ -116,7 +116,7 @@ rule run_nextclade_old:
     output:
         tsv="results/{dataset_name}/old/nextclade.tsv",
         runtime="results/{dataset_name}/old/runtime.csv",
-    threads: workflow.cores
+    threads: 4
     shell:
         """
         hyperfine \
