@@ -50,7 +50,9 @@ pub fn nextclade_get_inputs(
 
 #[inline]
 pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsIndexJson, Report> {
-  json_parse_bytes(http.get(&"/index.json")?.as_slice())
+  let data_bytes = http.get("/index.json")?;
+  let data_str = String::from_utf8(data_bytes)?;
+  DatasetsIndexJson::from_str(data_str)
 }
 
 pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
