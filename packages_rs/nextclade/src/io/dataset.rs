@@ -6,8 +6,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-const COLLECTION_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
-const COLLECTION_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
+const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
+const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -27,9 +27,9 @@ impl DatasetsIndexJson {
     SchemaVersion::check_warn(
       &s,
       &SchemaVersionParams {
-        name: "collection.json",
-        ver_from: Some(COLLECTION_JSON_SCHEMA_VERSION_FROM),
-        ver_to: Some(COLLECTION_JSON_SCHEMA_VERSION_TO),
+        name: "index.json",
+        ver_from: Some(INDEX_JSON_SCHEMA_VERSION_FROM),
+        ver_to: Some(INDEX_JSON_SCHEMA_VERSION_TO),
       },
     );
     json_parse(s)
@@ -50,8 +50,6 @@ pub struct DatasetCollection {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Dataset {
-  pub schema_version: String,
-
   pub path: String,
 
   pub url: String,
@@ -72,6 +70,7 @@ pub struct Dataset {
 
   pub files: DatasetFiles,
 
+  #[serde(default, skip_serializing_if = "DatasetCapabilities::is_default")]
   pub capabilities: DatasetCapabilities,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -85,9 +84,9 @@ pub struct Dataset {
 }
 
 impl Dataset {
-  pub fn is_compatible(&self, _nextclade_version: &str) -> bool {
-    self.schema_version.as_str() >= COLLECTION_JSON_SCHEMA_VERSION_FROM
-      && self.schema_version.as_str() <= COLLECTION_JSON_SCHEMA_VERSION_TO
+  pub const fn is_compatible(&self, _nextclade_version: &str) -> bool {
+    // FIXME
+    true
   }
 
   pub fn is_deprecated(&self) -> bool {
@@ -154,7 +153,7 @@ pub struct DatasetCollectionMeta {
 }
 
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCapabilities {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -165,6 +164,13 @@ pub struct DatasetCapabilities {
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl DatasetCapabilities {
+  #[inline]
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
