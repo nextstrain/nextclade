@@ -11,6 +11,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use eyre::{Report, WrapErr};
 use log::{info, trace};
+use std::cmp::max;
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -36,6 +37,11 @@ pub fn align_nuc(
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<AlignmentOutput<Nuc>, Report> {
+  // Approximate number of kmers to use for short sequences
+  const MIN_KMER_NUM: usize = 100;
+
+  let mut params = params.clone();
+
   let qry_len = qry_seq.len();
   let ref_len = ref_seq.len();
   let min_len = params.min_length;
@@ -49,7 +55,14 @@ pub fn align_nuc(
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
     trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix");
-    return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
+    return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, &params, &stripes));
+  }
+
+  // Adjust kmer-spacing for short sequences to use at least 100 kmers
+  let qry_length_based_kmer_spacing = max(num::integer::div_floor(qry_len - params.seed_length, MIN_KMER_NUM), 1);
+  if params.kmer_distance > qry_length_based_kmer_spacing {
+    trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Adjusting kmer distance from {} to {qry_length_based_kmer_spacing} to use at least around {MIN_KMER_NUM} kmers", params.kmer_distance);
+    params.kmer_distance = qry_length_based_kmer_spacing;
   }
 
   // otherwise, determine seed matches roughly regularly spaced along the query sequence
@@ -57,7 +70,7 @@ pub fn align_nuc(
     qry_seq,
     seed_matches,
     is_reverse_complement,
-  } = get_seed_matches_maybe_reverse_complement(qry_seq, ref_seq, seed_index, params)
+  } = get_seed_matches_maybe_reverse_complement(qry_seq, ref_seq, seed_index, &params)
     .wrap_err("When calculating seed matches")?;
 
   let mut terminal_bandwidth = params.terminal_bandwidth as isize;
@@ -77,7 +90,7 @@ pub fn align_nuc(
       params.max_band_area,
     )?;
 
-    let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+    let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, &params, &stripes);
     alignment.is_reverse_complement = is_reverse_complement;
 
     if alignment.hit_boundary {
