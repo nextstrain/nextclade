@@ -14,7 +14,8 @@ function abspath() {
 }
 
 export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade>"}"
-export VOLUME="$(abspath "${NEXTCLADE_BIN}"):/nextclade"
+VOLUME="$(abspath "${NEXTCLADE_BIN}"):/nextclade"
+export VOLUME
 export RUN_COMMAND="/nextclade dataset list >/dev/null"
 
 distros=(
