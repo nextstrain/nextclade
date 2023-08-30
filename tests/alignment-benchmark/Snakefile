@@ -293,17 +293,17 @@ default_sc2 = {
 }
 
 default_mpxv = {
-    "exc": 60,
+    "exc": 100,
     "term": 300,
     "retry": 3,
-    "mis": 3,
-    "wind": 30,
+    "mis": 8,
+    "wind": 40,
     "minml": 40,
     "minseedcover": 0.1,
 }
 
 default_hmpxv1 = {
-    "exc": 50,
+    "exc": 40,
     "term": 200,
     "retry": 3,
     "mis": 5,
@@ -355,6 +355,22 @@ def multi_sweep(default_params=default_params):
     return para
 
 
+def sc2_sweep():
+    para = []
+    para.extend(para_sweep("exc", range(0, 40, 2), default_sc2))
+    para.extend(para_sweep("mis", range(2, 4), default_sc2))
+    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_params))
+    return para
+
+
+def mpxv_sweep():
+    para = []
+    para.extend(para_sweep("exc", range(0, 200, 10), default_sc2))
+    para.extend(para_sweep("mis", range(2, 20), default_sc2))
+    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_params))
+    return para
+
+
 rule sc2:
     input:
         [
@@ -362,7 +378,7 @@ rule sc2:
                 "results/sars-cov-2/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
                 **params
             )
-            for params in multi_sweep(default_sc2)
+            for params in sc2_sweep()
         ],
     output:
         "results/sars-cov-2/sweep/new_vs_old.tsv",
@@ -379,7 +395,7 @@ rule mpxv:
                 "results/MPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
                 **params
             )
-            for params in multi_sweep(default_mpxv)
+            for params in mpxv_sweep()
         ],
     output:
         "results/MPXV/sweep/new_vs_old.tsv",
