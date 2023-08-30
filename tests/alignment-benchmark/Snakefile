@@ -85,13 +85,13 @@ rule run_nextclade:
         sequences="sequences/{dataset_name}",
         dataset="dataset/{dataset_name}.zip",
     output:
-        tsv="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/nextclade.tsv",
-        runtime="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/runtime.csv",
+        tsv="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/nextclade.tsv",
+        runtime="results/{dataset_name}/exc_{excess}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/runtime.csv",
     threads: 4
     shell:
         """
         hyperfine --runs 1 \
-        --command-name "{wildcards.dataset_name};exc_{wildcards.excess};term_{wildcards.term};retry_{wildcards.retry};mis_{wildcards.mis};wind_{wildcards.wind};minml_{wildcards.minml};minseedcover_{wildcards.minseedcover}" \
+        --command-name "{wildcards.dataset_name};exc_{wildcards.excess};term_{wildcards.term};retry_{wildcards.retry};mis_{wildcards.mis};wind_{wildcards.wind};minml_{wildcards.minml};minseedcover_{wildcards.minseedcover};kmerdist_{wildcards.kmerdist}" \
         --export-csv {output.runtime} \
         './{input.bin} run -j {threads} \
         --input-dataset {input.dataset} \
@@ -106,6 +106,7 @@ rule run_nextclade:
         --min-seed-cover {wildcards.minseedcover} \
         --retry-reverse-complement true \
         --without-greedy-tree-builder true \
+        --kmer-distance {wildcards.kmerdist} \
         {input.sequences}/*'
         """
 
@@ -280,6 +281,7 @@ default_params = {
     "wind": 30,
     "minml": 40,
     "minseedcover": 0.33,
+    "kmerdist": 50,
 }
 
 default_sc2 = {
@@ -290,6 +292,7 @@ default_sc2 = {
     "wind": 30,
     "minml": 40,
     "minseedcover": 0.1,
+    "kmerdist": 50,
 }
 
 default_mpxv = {
@@ -300,6 +303,7 @@ default_mpxv = {
     "wind": 40,
     "minml": 40,
     "minseedcover": 0.1,
+    "kmerdist": 50,
 }
 
 default_hmpxv1 = {
@@ -310,6 +314,7 @@ default_hmpxv1 = {
     "wind": 30,
     "minml": 40,
     "minseedcover": 0.1,
+    "kmerdist": 50,
 }
 
 default_rsva = {
@@ -317,9 +322,10 @@ default_rsva = {
     "term": 200,
     "retry": 3,
     "mis": 4,
-    "wind": 30,
-    "minml": 40,
+    "wind": 15,
+    "minml": 30,
     "minseedcover": 0.05,
+    "kmerdist": 10,
 }
 
 default_rsvb = {
@@ -327,9 +333,10 @@ default_rsvb = {
     "term": 200,
     "retry": 3,
     "mis": 4,
-    "wind": 30,
-    "minml": 40,
+    "wind": 15,
+    "minml": 30,
     "minseedcover": 0.05,
+    "kmerdist": 10,
 }
 
 
@@ -348,6 +355,7 @@ def multi_sweep(params=default_params):
     para.extend(para_sweep("term", range(1, 400, 20), params))
     para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], params))
     para.extend(para_sweep("mis", range(1, 10, 1), params))
+    para.extend(para_sweep("kmerdist", [1, 5, 10, 20, 50, 100], params))
     # para.extend(
     #     para_sweep("minseedcover", [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]),
     #     default_params,
@@ -360,6 +368,7 @@ def sc2_sweep():
     para.extend(para_sweep("exc", range(0, 40, 2), default_sc2))
     para.extend(para_sweep("mis", range(2, 4), default_sc2))
     para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_sc2))
+    para.extend(para_sweep("kmerdist", [1, 5, 10, 20, 50, 100], default_sc2))
     return para
 
 
@@ -368,6 +377,7 @@ def mpxv_sweep():
     para.extend(para_sweep("exc", range(0, 200, 10), default_mpxv))
     para.extend(para_sweep("mis", range(2, 20), default_mpxv))
     para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_mpxv))
+    para.extend(para_sweep("kmerdist", [1, 5, 10, 20, 50, 100], default_mpxv))
     return para
 
 
@@ -375,7 +385,7 @@ rule sc2:
     input:
         [
             expand(
-                "results/sars-cov-2/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                "results/sars-cov-2/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/new_vs_old.tsv",
                 **params
             )
             for params in sc2_sweep()
@@ -392,7 +402,7 @@ rule mpxv:
     input:
         [
             expand(
-                "results/MPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                "results/MPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/new_vs_old.tsv",
                 **params
             )
             for params in mpxv_sweep()
@@ -409,7 +419,7 @@ rule hmpxv1:
     input:
         [
             expand(
-                "results/hMPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                "results/hMPXV/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/new_vs_old.tsv",
                 **params
             )
             for params in multi_sweep(default_hmpxv1)
@@ -426,7 +436,7 @@ rule rsva:
     input:
         [
             expand(
-                "results/rsv_a/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                "results/rsv_a/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/new_vs_old.tsv",
                 **params
             )
             for params in multi_sweep(default_rsva)
@@ -443,7 +453,7 @@ rule rsvb:
     input:
         [
             expand(
-                "results/rsv_b/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}/new_vs_old.tsv",
+                "results/rsv_b/exc_{exc}_term_{term}_retry_{retry}_mis_{mis}_wind_{wind}_minml_{minml}_minseedcover_{minseedcover}_kmerdist_{kmerdist}/new_vs_old.tsv",
                 **params
             )
             for params in multi_sweep(default_rsvb)
