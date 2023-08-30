@@ -108,7 +108,9 @@ pub enum NextcladeDatasetCommands {
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
 pub struct NextcladeDatasetListArgs {
-  /// Restrict list to datasets with this name. Equivalent to `--attribute='name=<value>'`.
+  /// Restrict list to datasets with this exact name.
+  ///
+  /// Can be used to test if a dataset exists.
   #[clap(long, short = 'n')]
   #[clap(value_hint = ValueHint::Other)]
   pub name: Option<String>,
@@ -119,11 +121,10 @@ pub struct NextcladeDatasetListArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub reference: Option<String>,
 
-  /// Restrict list to datasets with this version tag.
+  /// Restrict list to datasets with this exact version tag.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
-  #[clap(default_value = "latest")]
-  pub tag: String,
+  pub tag: Option<String>,
 
   /// REMOVED
   #[clap(long, short = 'a')]
@@ -131,15 +132,20 @@ pub struct NextcladeDatasetListArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub attribute: Vec<String>,
 
-  /// Include dataset versions that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
+  /// Include dataset versions that are incompatible with this version of Nextclade CLI.
+  ///
+  /// By default the incompatible versions are omitted.
   #[clap(long)]
   pub include_incompatible: bool,
 
-  /// Include older dataset versions, additionally to the latest versions.
+  /// REMOVED
   #[clap(long)]
-  pub include_old: bool,
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub include_old: Option<bool>,
 
   /// Include deprecated datasets.
+  ///
+  /// By default the deprecated datasets are omitted.
   ///
   /// Authors can mark a dataset as deprecated to express that the dataset will no longer be updated and/or supported. Reach out to dataset authors for concrete details.
   #[clap(long)]
@@ -147,15 +153,17 @@ pub struct NextcladeDatasetListArgs {
 
   /// Include experimental datasets.
   ///
+  /// By default the experimental datasets are omitted.
+  ///
   /// Authors can mark a dataset as experimental when development of the dataset is still in progress, or if the dataset is incomplete or of lower quality than usual. Use at own risk. Reach out to dataset authors if interested in further development and stabilizing of a particular dataset, and consider contributing.
   #[clap(long)]
   pub include_experimental: bool,
 
   /// Include community datasets.
   ///
-  /// Community datasets are the datasets provided by the members of the broader Nextclade community. These datasets may vary in quality and completeness. Depending on authors' goals, these datasets may be created for specific purposes, rather than for general use.
+  /// By default the community datasets are omitted.
   ///
-  /// Nextclade team is unable to verify correctness of these datasets and does not provide support for them. For all questions regarding a concrete community dataset, please read its documentation and reach out to its authors.
+  /// Community datasets are the datasets provided by the members of the broader Nextclade community. These datasets may vary in quality and completeness. Depending on authors' goals, these datasets may be created for specific purposes, rather than for general use. Nextclade team is unable to verify correctness of these datasets and does not provide support for them. For all questions regarding a concrete community dataset, please read its documentation and reach out to its authors.
   #[clap(long)]
   pub include_community: bool,
 
@@ -163,11 +171,13 @@ pub struct NextcladeDatasetListArgs {
   #[clap(long)]
   pub json: bool,
 
-  /// Print only names of the datasets, without other details
+  /// Print only names of the datasets, without other details.
   #[clap(long)]
   pub only_names: bool,
 
-  /// Use custom dataset server
+  /// Use custom dataset server.
+  ///
+  /// You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
   #[clap(long)]
   #[clap(value_hint = ValueHint::Url)]
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
@@ -181,7 +191,7 @@ pub struct NextcladeDatasetListArgs {
 #[clap(verbatim_doc_comment)]
 #[clap(group(ArgGroup::new("outputs").required(true).multiple(false)))]
 pub struct NextcladeDatasetGetArgs {
-  /// Name of the dataset to download. Equivalent to `--attribute='name=<value>'`. Use `dataset list` command to view available datasets.
+  /// Name of the dataset to download. Type `nextclade dataset list` to view available datasets.
   #[clap(long, short = 'n')]
   #[clap(value_hint = ValueHint::Other)]
   pub name: String,
@@ -193,11 +203,11 @@ pub struct NextcladeDatasetGetArgs {
   pub reference: Option<String>,
 
   /// Version tag of the dataset to download.
-  /// If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
+  ///
+  /// If this flag is not provided the latest version is downloaded.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
-  #[clap(default_value = "latest")]
-  pub tag: String,
+  pub tag: Option<String>,
 
   /// REMOVED
   #[clap(long, short = 'a')]
@@ -205,7 +215,9 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub attribute: Vec<String>,
 
-  /// Use custom dataset server
+  /// Use custom dataset server.
+  ///
+  /// You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
   #[clap(long)]
   #[clap(value_hint = ValueHint::Url)]
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]

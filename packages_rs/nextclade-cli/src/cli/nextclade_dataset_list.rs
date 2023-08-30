@@ -28,6 +28,10 @@ pub fn nextclade_dataset_list(
     proxy_config,
   }: NextcladeDatasetListArgs,
 ) -> Result<(), Report> {
+  if include_old.is_some() {
+    return make_error!("The argument `--include-old` is removed.\n\nAll version tags are always listed now\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
+  }
+
   if reference.is_some() || !attribute.is_empty() {
     return make_error!("The arguments `--reference` and `--attribute` are removed. Datasets are now queried by `--name` and `--tag` only.\n\nIn order to list all dataset names, type:\n\n  nextclade dataset list --names-only\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
   }
@@ -43,15 +47,14 @@ pub fn nextclade_dataset_list(
     .filter(Dataset::is_enabled)
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
-      if tag == "latest" {
-        let is_not_old = include_old || dataset.is_latest();
+      if let Some(tag) = tag.as_ref() {
+        dataset.is_tag(tag)
+      } else {
         let is_compatible = include_incompatible || dataset.is_compatible(THIS_VERSION);
         let is_not_deprecated = include_deprecated || !dataset.is_deprecated();
         let is_not_experimental = include_experimental || !dataset.is_experimental();
         let is_not_community = include_community || !dataset.is_community();
-        is_compatible && is_not_old && is_not_deprecated && is_not_experimental && is_not_community
-      } else {
-        dataset.is_tag(&tag)
+        is_compatible && is_not_deprecated && is_not_experimental && is_not_community
       }
     })
     // Filter by name
@@ -60,15 +63,22 @@ pub fn nextclade_dataset_list(
     })
     .collect_vec();
 
+  let names = filtered.iter().map(|dataset| &dataset.path).collect_vec();
+
   if json {
-    println!("{}", json_stringify(&filtered, JsonPretty(true))?);
+    let content = if only_names {
+      json_stringify(&names, JsonPretty(true))
+    } else {
+      json_stringify(&filtered, JsonPretty(true))
+    }?;
+    println!("{content}");
   } else {
     if filtered.is_empty() {
       return Ok(());
     }
 
     let content = if only_names {
-      filtered.iter().map(|dataset| &dataset.path).join("\n")
+      names.into_iter().join("\n")
     } else {
       format_dataset_table(&filtered)
     };

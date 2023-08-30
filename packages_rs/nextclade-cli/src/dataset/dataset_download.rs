@@ -34,8 +34,10 @@ pub fn nextclade_get_inputs(
   } else if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
     if input_dataset.is_file() && has_extension(input_dataset, "zip") {
       dataset_zip_load(run_args, input_dataset, genes)
+        .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
     } else if input_dataset.is_dir() {
       dataset_dir_load(run_args, input_dataset, genes)
+        .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
@@ -325,7 +327,7 @@ pub fn dataset_str_download_and_load(
     .as_ref()
     .expect("Dataset name is expected, but got 'None'");
 
-  let dataset = dataset_http_get(&mut http, name, "latest")?;
+  let dataset = dataset_http_get(&mut http, name, &None)?;
 
   let virus_properties = read_from_path_or_url(
     &mut http,

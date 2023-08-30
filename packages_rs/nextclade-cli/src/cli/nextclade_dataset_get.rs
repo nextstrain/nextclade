@@ -3,7 +3,7 @@ use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_downloa
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::LevelFilter;
+use log::{warn, LevelFilter};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::utils::string::find_similar_strings;
 use nextclade::{getenv, make_error, make_internal_error};
@@ -46,7 +46,7 @@ pub fn nextclade_dataset_get(
   Ok(())
 }
 
-pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: impl AsRef<str>) -> Result<Dataset, Report> {
+pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Option<String>) -> Result<Dataset, Report> {
   let name = name.as_ref();
   let tag = tag.as_ref();
 
@@ -62,15 +62,10 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: impl 
   let mut filtered = datasets.into_iter().filter(Dataset::is_enabled)
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
-      if tag == "latest" {
-        let is_not_old = dataset.is_latest();
-        let is_compatible = dataset.is_compatible(THIS_VERSION);
-        let is_not_deprecated = !dataset.is_deprecated();
-        let is_not_experimental = !dataset.is_experimental();
-        let is_not_community = !dataset.is_community();
-        is_compatible && is_not_old && is_not_deprecated && is_not_experimental && is_not_community
-      } else {
+      if let Some(tag) = tag.as_ref() {
         dataset.is_tag(tag)
+      } else {
+        dataset.is_latest()
       }
     })
     // Filter by name
@@ -89,7 +84,7 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: impl 
         })
         .unwrap_or_default();
       make_error!(
-        "Dataset not found: '{name}'.{suggestions_msg}\n\nUse `datasets list` command to show available datasets."
+        "Dataset not found: '{name}'.{suggestions_msg}\n\nType `nextclade dataset list` to show available datasets."
       )
     }
     1 => Ok(filtered.remove(0)),
@@ -97,6 +92,16 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: impl 
       make_internal_error!("Expected to find a single dataset, but multiple datasets found.")
     }
   }?;
+
+  if !dataset.is_compatible(THIS_VERSION) {
+    warn!(
+      "The requested dataset '{}' with version tag '{}' is not compatible with this version of Nextclade ({}). This may cause errors and unexpected results. Please try to upgrade your Nextclade version and/or report this to dataset authors.",
+      dataset.path,
+      dataset.tag(),
+      THIS_VERSION
+    );
+  }
+
   Ok(dataset)
 }
 
