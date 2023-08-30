@@ -1,4 +1,5 @@
 import type { ParsedUrlQuery } from 'querystring'
+import { findSimilarStrings } from 'src/helpers/string'
 
 import { Dataset } from 'src/types'
 import {
@@ -15,21 +16,25 @@ import { isNil } from 'lodash'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: Dataset[]) {
   // Retrieve dataset-related URL params and try to find a dataset based on these params
-  const datasetName = getQueryParamMaybe(urlQuery, 'dataset-name')
+  const name = getQueryParamMaybe(urlQuery, 'dataset-name')
 
-  if (!datasetName) {
+  if (!name) {
     return undefined
   }
 
-  const datasetRef = getQueryParamMaybe(urlQuery, 'dataset-reference')
-  const datasetTag = getQueryParamMaybe(urlQuery, 'dataset-tag')
+  const tag = getQueryParamMaybe(urlQuery, 'dataset-tag')
 
-  const dataset = findDataset(datasets, datasetName, datasetRef, datasetTag)
+  const dataset = findDataset(datasets, name, tag)
+
   if (!dataset) {
+    const names = datasets.map((dataset) => dataset.path)
+    const suggestions = findSimilarStrings(names, name)
+      .slice(0, 10)
+      .map((s) => `'${s}'`)
+      .join(', ')
+    const tagMsg = tag ? ` and tag '${tag}` : ''
     throw new Error(
-      `Incorrect URL parameters: unable to find dataset with name='${datasetName}', ref='${datasetRef ?? ''}', tag='${
-        datasetTag ?? ''
-      }' `,
+      `Incorrect URL parameters: unable to find the dataset with name='${name}'${tagMsg}. Did you mean one of: ${suggestions}`,
     )
   }
 

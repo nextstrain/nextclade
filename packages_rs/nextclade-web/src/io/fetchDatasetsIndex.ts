@@ -42,19 +42,15 @@ export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, dat
 }
 
 /** Find the latest dataset, optionally by name, ref and tag */
-export function findDataset(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
-  const datasetsFound = filterDatasets(datasets, name, refAccession, tag)
+export function findDataset(datasets: Dataset[], name?: string, tag?: string) {
+  const datasetsFound = filterDatasets(datasets, name, tag)
   return head(sortBy(datasetsFound, (dataset) => dataset.version?.tag ?? ''))
 }
 
 /** Find the datasets given name, ref and tag */
-export function filterDatasets(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
+export function filterDatasets(datasets: Dataset[], name?: string, tag?: string) {
   return datasets.filter((dataset) => {
-    let isMatch = dataset.attributes.name.value === name
-
-    if (refAccession) {
-      isMatch = isMatch && dataset.attributes.reference.value === refAccession
-    }
+    let isMatch = dataset.path === name
 
     if (tag) {
       isMatch = isMatch && dataset.version?.tag === tag
