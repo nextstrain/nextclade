@@ -66,8 +66,10 @@ pub fn align_nuc(
 
   let mut attempt = 0;
 
+  let mut pre_retry_alignment: Option<AlignmentOutput<Nuc>> = None;
+
   loop {
-    let stripes = create_alignment_band(
+    let stripes = match create_alignment_band(
       &seed_matches,
       qry_len as isize,
       ref_len as isize,
@@ -75,7 +77,17 @@ pub fn align_nuc(
       excess_bandwidth,
       allowed_mismatches,
       params.max_band_area,
-    )?;
+    ) {
+      Ok(result) => result,
+      Err(err) => {
+        if let Some(alignment) = pre_retry_alignment {
+          info!("{err}");
+          info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment on retry attempt {attempt}: Alignment area too large. Using previous alignment result. Alignment score was: {}", alignment.alignment_score);
+          return Ok(alignment);
+        }
+        return Err(err);
+      }
+    };
 
     let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
     alignment.is_reverse_complement = is_reverse_complement;
@@ -97,6 +109,7 @@ pub fn align_nuc(
       info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Alignment score was: {}", alignment.alignment_score);
       return Ok(alignment);
     }
+    pre_retry_alignment = Some(alignment);
   }
 }
 
