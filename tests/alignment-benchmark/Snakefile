@@ -342,12 +342,12 @@ def para_sweep(param, values, default_params=default_params):
     return sweep
 
 
-def multi_sweep(default_params=default_params):
+def multi_sweep(params=default_params):
     para = []
-    para.extend(para_sweep("exc", range(0, 200, 5), default_params))
-    para.extend(para_sweep("term", range(1, 400, 20), default_params))
-    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_params))
-    para.extend(para_sweep("mis", range(1, 10, 1), default_params))
+    para.extend(para_sweep("exc", range(0, 200, 5), params))
+    para.extend(para_sweep("term", range(1, 400, 20), params))
+    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], params))
+    para.extend(para_sweep("mis", range(1, 10, 1), params))
     # para.extend(
     #     para_sweep("minseedcover", [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]),
     #     default_params,
