@@ -15,7 +15,6 @@ export async function fetchSingleDatasetFromUrl(
   const pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
   const currentDataset: Dataset = {
     path: datasetRootUrl,
-    url: datasetRootUrl,
     capabilities: {
       primers: false,
       qc: [],
