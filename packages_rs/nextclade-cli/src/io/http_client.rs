@@ -98,7 +98,13 @@ impl HttpClient {
     let url = url.as_ref().trim_start_matches('/');
     let abs_url = self.root.join(url)?;
     info!("HTTP '{method}' request to '{abs_url}'");
-    let content = self.client.request(method, abs_url).send()?.bytes()?.to_vec();
+    let content = self
+      .client
+      .request(method, abs_url)
+      .send()?
+      .error_for_status()?
+      .bytes()?
+      .to_vec();
     Ok(content)
   }
 }
