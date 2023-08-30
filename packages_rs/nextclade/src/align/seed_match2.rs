@@ -12,6 +12,7 @@ use eyre::Report;
 use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
+use log::{debug, trace};
 use std::borrow::Cow;
 use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
@@ -481,14 +482,44 @@ pub fn get_seed_matches2(
   let seed_matches = chain_seeds(&matches);
   // write_matches_to_file(&seed_matches, "chained_matches.csv");
 
+  // Trace basic seed alignment stats
+  if log::max_level() >= log::Level::Debug {
+    let max_shift = seed_matches.iter().map(|sm| sm.offset.abs()).max().unwrap_or(0);
+    // Need to iterate in pairs
+    let max_unmatched_ref_stretch = seed_matches
+      .iter()
+      .tuple_windows()
+      .map(|(sm1, sm2)| sm2.ref_pos - (sm1.ref_pos + sm1.length))
+      .max()
+      .unwrap_or(0);
+    let max_unmatched_qry_stretch = seed_matches
+      .iter()
+      .tuple_windows()
+      .map(|(sm1, sm2)| sm2.qry_pos - (sm1.qry_pos + sm1.length))
+      .max()
+      .unwrap_or(0);
+    let first_match = seed_matches.first().unwrap();
+    let last_match = seed_matches.last().unwrap();
+    let first_match_ref_pos = first_match.ref_pos;
+    let first_match_qry_pos = first_match.qry_pos;
+    let last_match_ref_pos = ref_seq.len() - last_match.ref_pos - last_match.length;
+    let last_match_qry_pos = qry_seq.len() - last_match.qry_pos - last_match.length;
+
+    let n_matches = seed_matches.len();
+    debug!("Chained seed stats. max indel: {max_shift}, # matches: {n_matches}, first/last match distance from start/end [start: (ref: {first_match_ref_pos}, qry: {first_match_qry_pos}), end: (ref: {last_match_ref_pos}, qry: {last_match_qry_pos})], max unmatched stretch (ref: {max_unmatched_ref_stretch}, qry stretch: {max_unmatched_qry_stretch})");
+  }
+
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
-  if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
+  let qry_coverage = sum_of_seed_length as f64 / qry_seq.len() as f64;
+  debug!("Seed alignment covers {:.2}% of query length", 100.0 * qry_coverage);
+  if qry_coverage < params.min_seed_cover {
     let query_knowns = qry_seq.iter().filter(|n| n.is_acgt()).count();
+    let qry_coverage_knowns = sum_of_seed_length as f64 / query_knowns as f64;
     if (sum_of_seed_length as f64 / query_knowns as f64) < params.min_seed_cover {
       return make_error!(
-        "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
+        "Unable to align: seed alignment covers {:.2}% of query sequence ACGTs, which is less than required {:.2}% \
         (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
-        provided sequence, or due to using incorrect reference sequence.",
+        provided sequence, or due to using an incorrect reference sequence.",
         100.0 * (sum_of_seed_length as f64) / (query_knowns as f64),
         100.0 * params.min_seed_cover
       );
