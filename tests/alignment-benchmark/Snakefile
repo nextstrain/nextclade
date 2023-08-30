@@ -415,7 +415,7 @@ rule hmpxv1:
             for params in multi_sweep(default_hmpxv1)
         ],
     output:
-        "results/MPXV/sweep/new_vs_old.tsv",
+        "results/hMPXV/sweep/new_vs_old.tsv",
     shell:
         """
         tsv-append -H {input} >{output}
