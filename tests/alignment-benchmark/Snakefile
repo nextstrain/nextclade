@@ -359,15 +359,15 @@ def sc2_sweep():
     para = []
     para.extend(para_sweep("exc", range(0, 40, 2), default_sc2))
     para.extend(para_sweep("mis", range(2, 4), default_sc2))
-    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_params))
+    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_sc2))
     return para
 
 
 def mpxv_sweep():
     para = []
-    para.extend(para_sweep("exc", range(0, 200, 10), default_sc2))
-    para.extend(para_sweep("mis", range(2, 20), default_sc2))
-    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_params))
+    para.extend(para_sweep("exc", range(0, 200, 10), default_mpxv))
+    para.extend(para_sweep("mis", range(2, 20), default_mpxv))
+    para.extend(para_sweep("retry", [0, 1, 2, 3, 4, 5, 6], default_mpxv))
     return para
 
 
