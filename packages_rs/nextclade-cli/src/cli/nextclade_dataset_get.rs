@@ -105,10 +105,12 @@ pub fn dataset_file_http_get(
   dataset: &Dataset,
   filename: impl AsRef<str>,
 ) -> Result<String, Report> {
-  let url = format!("{}/{}", dataset.url, filename.as_ref());
+  let filename = filename.as_ref();
+  let url = dataset.file_path(filename);
+
   let content = http
     .get(&url)
-    .wrap_err_with(|| format!("Dataset file download failed: '{}'", http.root.join(&url).unwrap()))?;
+    .wrap_err_with(|| format!("when fetching dataset file '{filename}'"))?;
 
   let content_string = String::from_utf8(content)?;
 

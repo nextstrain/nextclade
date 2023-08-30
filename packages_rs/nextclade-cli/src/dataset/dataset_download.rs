@@ -8,16 +8,16 @@ use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusPropert
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes, DatasetFiles, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
-use nextclade::io::fs::{absolute_path, has_extension, read_file_to_string};
+use nextclade::io::file::create_file_or_stdout;
+use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::{make_error, make_internal_error, o};
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::ParallelIterator;
 use std::collections::BTreeMap;
-use std::fs;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek};
+use std::io::{BufReader, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use zip::ZipArchive;
@@ -54,15 +54,20 @@ pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsInd
   DatasetsIndexJson::from_str(data_str)
 }
 
-pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
-  if let Some(parent_dir) = output_file_path.parent() {
-    let parent_dir = &absolute_path(parent_dir)?;
-    fs::create_dir_all(parent_dir)
-      .wrap_err_with(|| format!("When creating parent directory '{parent_dir:#?}' for file '{output_file_path:#?}'"))?;
-  }
+pub fn dataset_zip_fetch(http: &mut HttpClient, dataset: &Dataset) -> Result<Vec<u8>, Report> {
+  http
+    .get(&dataset.file_path("dataset.zip"))
+    .wrap_err_with(|| format!("When fetching zip file for dataset '{}'", dataset.path))
+}
 
-  let content = http.get(&format!("{}/{}", dataset.url, "dataset.zip"))?;
-  fs::write(output_file_path, content)
+pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
+  let mut file =
+    create_file_or_stdout(output_file_path).wrap_err_with(|| format!("When opening file {output_file_path:?}"))?;
+
+  let content = dataset_zip_fetch(http, dataset)?;
+
+  file
+    .write_all(&content)
     .wrap_err_with(|| format!("When writing downloaded dataset zip file to {output_file_path:#?}"))
 }
 
@@ -121,25 +126,15 @@ pub fn dataset_zip_load(
 }
 
 pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
-  let output_dir = &absolute_path(output_dir)?;
-  fs::create_dir_all(output_dir).wrap_err_with(|| format!("When creating directory '{output_dir:#?}'"))?;
+  let mut content = dataset_zip_fetch(http, dataset)?;
+  let mut reader = std::io::Cursor::new(content.as_mut_slice());
+  let mut zip = ZipArchive::new(&mut reader)?;
 
-  [
-    Some(&dataset.files.reference),
-    dataset.files.genome_annotation.as_ref(),
-    dataset.files.tree_json.as_ref(),
-    Some(&PATHOGEN_JSON.to_owned()),
-  ]
-  .par_iter()
-  .filter_map(Option::as_ref)
-  .map(|filename| -> Result<(), Report> {
-    let output_file_path = output_dir.join(filename);
-    let content = http.get(&format!("{}/{}", dataset.url, filename))?;
-    fs::write(output_file_path, content)?;
-    Ok(())
-  })
-  .collect::<Result<(), Report>>()
-  .wrap_err_with(|| format!("When downloading dataset {dataset:#?}"))
+  ensure_dir(output_dir).wrap_err_with(|| format!("When creating directory {output_dir:#?}"))?;
+
+  zip
+    .extract(output_dir)
+    .wrap_err_with(|| format!("When extracting zip archive of dataset '{}'", dataset.path))
 }
 
 pub fn dataset_dir_load(

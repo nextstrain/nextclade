@@ -1,5 +1,6 @@
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
+use crate::o;
 use eyre::Report;
 use itertools::Itertools;
 use schemars::JsonSchema;
@@ -52,8 +53,6 @@ pub struct DatasetCollection {
 pub struct Dataset {
   pub path: String,
 
-  pub url: String,
-
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub deprecated: Option<bool>,
 
@@ -76,14 +75,26 @@ pub struct Dataset {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub versions: Vec<DatasetVersion>,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub version: Option<DatasetVersion>,
+  #[serde(default, skip_serializing_if = "DatasetVersion::is_empty")]
+  pub version: DatasetVersion,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
 
 impl Dataset {
+  pub fn tag(&self) -> &str {
+    &self.version.tag
+  }
+
+  pub fn root_path(&self) -> String {
+    [&self.path, &self.version.tag].iter().join("/")
+  }
+
+  pub fn file_path(&self, filename: impl AsRef<str>) -> String {
+    [&self.root_path(), filename.as_ref()].iter().join("/")
+  }
+
   pub const fn is_compatible(&self, _nextclade_version: &str) -> bool {
     // FIXME
     true
@@ -110,15 +121,12 @@ impl Dataset {
   }
 
   pub fn is_latest(&self) -> bool {
-    self.versions.iter().sorted().next() == self.version.as_ref()
+    self.versions.iter().sorted().next() == Some(&self.version)
   }
 
   pub fn is_tag(&self, tag: impl AsRef<str>) -> bool {
-    if let Some(version) = &self.version {
-      version.tag == tag.as_ref()
-    } else {
-      false
-    }
+    let tag = tag.as_ref();
+    self.version.tag == tag || (self.version.tag == "unreleased" && tag == "latest")
   }
 }
 
@@ -129,6 +137,21 @@ pub struct DatasetVersion {
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub updated_at: Option<String>,
+}
+
+impl DatasetVersion {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
+impl Default for DatasetVersion {
+  fn default() -> Self {
+    Self {
+      tag: o!("unreleased"),
+      updated_at: None,
+    }
+  }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
