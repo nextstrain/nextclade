@@ -3,7 +3,7 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
-import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { Layout } from 'src/components/Layout/Layout'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
 import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
@@ -77,7 +77,7 @@ export function ResultsPage() {
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
 
   return (
-    <LayoutResults>
+    <Layout>
       <Container>
         <Header>
           <HeaderLeft>
@@ -121,6 +121,6 @@ export function ResultsPage() {
           </WrapperInner>
         </WrapperOuter>
       </Container>
-    </LayoutResults>
+    </Layout>
   )
 }

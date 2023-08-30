@@ -27,19 +27,19 @@ import {
   FileIconFasta,
   FileIconJson,
   FileIconNdjson,
+  FileIconNwk,
   FileIconTsv,
   FileIconZip,
 } from 'src/components/Common/FileIcons'
 import {
   DEFAULT_EXPORT_PARAMS,
   useExportCsv,
-  useExportErrorsCsv,
   useExportFasta,
-  useExportInsertionsCsv,
   useExportJson,
   useExportNdjson,
   useExportPeptides,
   useExportTree,
+  useExportTreeNwk,
   useExportTsv,
   useExportZip,
 } from 'src/hooks/useExportResults'
@@ -116,10 +116,9 @@ export interface ExportParams {
   filenameJson: string
   filenameNdjson: string
   filenameTree: string
+  filenameTreeNwk: string
   filenameFasta: string
   filenamePeptidesZip: string
-  filenameInsertionsCsv: string
-  filenameErrorsCsv: string
   filenamePeptidesTemplate: string
 }
 
@@ -209,8 +208,7 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
   const exportNdjson = useExportNdjson()
   const exportPeptides = useExportPeptides()
   const exportTree = useExportTree()
-  const exportInsertionsCsv = useExportInsertionsCsv()
-  const exportErrorsCsv = useExportErrorsCsv()
+  const exportTreeNwk = useExportTreeNwk()
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
@@ -265,16 +263,33 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
       <ExportFileElement
         Icon={FileIconJson}
         filename={exportParams.filenameTree}
-        HelpMain={t('Phylogenetic tree with sequences placed onto it.')}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in Auspice JSON format.')}
         HelpDetails={
           <>
-            {t('The tree is in Nextstrain format.')} {t('Can be viewed locally with Nextstrain Auspice or in ')}
+            {t('Can be viewed locally with Nextstrain Auspice or in ')}
             <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
             {'.'}
           </>
         }
         HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in Auspice JSON v2 format.')}
         onDownload={exportTree}
+      />
+
+      <ExportFileElement
+        Icon={FileIconNwk}
+        filename={exportParams.filenameTreeNwk}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in Newick format.')}
+        HelpDetails={
+          <>
+            {t('Can be viewed in most tree viewers, including ')}
+            <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
+            {' or '}
+            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
+            {'.'}
+          </>
+        }
+        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in Newick format')}
+        onDownload={exportTreeNwk}
       />
 
       <ExportFileElement
@@ -295,26 +310,6 @@ export function DownloadListDialog({ toggleColumnConfigOpen }: DownloadListDialo
         )}
         HelpDownload={t('Download aligned peptides in FASTA format, one file per gene, all in a zip archive.')}
         onDownload={exportPeptides}
-      />
-
-      <ExportFileElement
-        Icon={FileIconCsv}
-        filename={exportParams.filenameInsertionsCsv}
-        HelpMain={t('Insertions in CSV format.')}
-        HelpDetails={t('Contains insertions stripped from aligned sequences.')}
-        HelpDownload={t('Download insertions in CSV format')}
-        onDownload={exportInsertionsCsv}
-      />
-
-      <ExportFileElement
-        Icon={FileIconCsv}
-        filename={exportParams.filenameErrorsCsv}
-        HelpMain={t('Errors, warnings, and failed genes in CSV format.')}
-        HelpDetails={t(
-          'Contains a list of errors, a list of warnings and a list of genes that failed processing, per sequence, in CSV format.',
-        )}
-        HelpDownload={t('Download warnings, and failed genes in CSV format')}
-        onDownload={exportErrorsCsv}
       />
 
       <ExportFileElement

@@ -1,33 +1,26 @@
 import React, { useMemo, useState } from 'react'
-
 import { useRecoilValue } from 'recoil'
-import { Container as ContainerBase } from 'reactstrap'
 import styled from 'styled-components'
-
+import { Col as ColBase, Row as RowBase } from 'reactstrap'
+import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { MainInputFormRunStep } from 'src/components/Main/MainInputFormRunStep'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 
-export const Container = styled(ContainerBase)`
-  display: flex;
-  margin: 0;
-  padding: 0;
+const Container = styled.div`
+  height: 100%;
+  overflow: hidden;
 `
 
-export const Centered = styled.section`
-  margin: auto;
+const Row = styled(RowBase)`
+  overflow: hidden;
+  height: 100%;
+`
 
-  @media (min-width: 768px) {
-    min-width: 600px;
-  }
-
-  @media (max-width: 767.98px) {
-    margin: 0;
-    width: 100%;
-  }
-
-  max-width: 800px;
+const Col = styled(ColBase)`
+  overflow: hidden;
+  height: 100%;
 `
 
 export function MainInputForm() {
@@ -48,8 +41,13 @@ export function MainInputForm() {
   )
 
   return (
-    <Container fluid>
-      <Centered>{FormBody}</Centered>
+    <Container>
+      <Row noGutters className="flex-column-reverse flex-lg-row">
+        <Col lg={6}>
+          <DatasetContentSection />
+        </Col>
+        <Col lg={6}>{FormBody}</Col>
+      </Row>
     </Container>
   )
 }

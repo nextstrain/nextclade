@@ -4,24 +4,10 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 
-import {
-  geneMapErrorAtom,
-  primersCsvErrorAtom,
-  qcConfigErrorAtom,
-  refSeqErrorAtom,
-  refTreeErrorAtom,
-  virusPropertiesErrorAtom,
-} from 'src/state/error.state'
-import {
-  geneMapInputAtom,
-  primersCsvInputAtom,
-  qcConfigInputAtom,
-  refSeqInputAtom,
-  refTreeInputAtom,
-  virusPropertiesInputAtom,
-} from 'src/state/inputs.state'
+import { geneMapErrorAtom, refSeqErrorAtom, refTreeErrorAtom, virusPropertiesErrorAtom } from 'src/state/error.state'
+import { geneMapInputAtom, refSeqInputAtom, refTreeInputAtom, virusPropertiesInputAtom } from 'src/state/inputs.state'
 
-import { FileIconCsv, FileIconFasta, FileIconGff, FileIconJson } from 'src/components/Common/FileIcons'
+import { FileIconFasta, FileIconGff, FileIconJson } from 'src/components/Common/FileIcons'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 
 export function FilePickerAdvanced() {
@@ -39,19 +25,10 @@ export function FilePickerAdvanced() {
   const refTreeError = useRecoilValue(refTreeErrorAtom)
   const resetRefTree = useResetRecoilState(refTreeInputAtom)
 
-  const [qcConfig, setQcConfig] = useRecoilState(qcConfigInputAtom)
-  const qcConfigError = useRecoilValue(qcConfigErrorAtom)
-  const resetQcConfig = useResetRecoilState(qcConfigInputAtom)
-
   const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesInputAtom)
   const virusPropertiesError = useRecoilValue(virusPropertiesErrorAtom)
   const resetVirusProperties = useResetRecoilState(virusPropertiesInputAtom)
 
-  const [primersCsv, setPrimersCsv] = useRecoilState(primersCsvInputAtom)
-  const primersCsvError = useRecoilValue(primersCsvErrorAtom)
-  const resetPrimersCsv = useResetRecoilState(primersCsvInputAtom)
-
-  const iconCsv = useMemo(() => <FileIconCsv size={30} />, [])
   const iconFasta = useMemo(() => <FileIconFasta size={30} />, [])
   const iconGff = useMemo(() => <FileIconGff size={30} />, [])
   const iconJson = useMemo(() => <FileIconJson size={30} />, [])
@@ -89,19 +66,6 @@ export function FilePickerAdvanced() {
           className="my-3"
           compact
           icon={iconJson}
-          title={t('Quality control')}
-          exampleUrl="https://example.com/qc.json"
-          pasteInstructions={t('Enter QC config in JSON format')}
-          input={qcConfig}
-          error={qcConfigError}
-          onRemove={resetQcConfig}
-          onInput={setQcConfig}
-        />
-
-        <FilePicker
-          className="my-3"
-          compact
-          icon={iconJson}
           title={t('Virus properties')}
           exampleUrl="https://example.com/virus_properties.json"
           pasteInstructions={t('Enter Virus attributes in JSON format')}
@@ -122,19 +86,6 @@ export function FilePickerAdvanced() {
           error={geneMapError}
           onRemove={resetGeneMap}
           onInput={setGeneMap}
-        />
-
-        <FilePicker
-          className="my-3"
-          compact
-          icon={iconCsv}
-          title={t('PCR primers')}
-          exampleUrl="https://example.com/pcr_primers.csv"
-          pasteInstructions={t('Enter PCR primers data in CSV format')}
-          input={primersCsv}
-          error={primersCsvError}
-          onRemove={resetPrimersCsv}
-          onInput={setPrimersCsv}
         />
       </Col>
     </Row>

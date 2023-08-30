@@ -102,7 +102,6 @@ export TIME="/usr/bin/time -f \"Cmd : %C\nTime: %E\nMem : %M KB\n\""
 export RUST_BACKTRACE="full"
 export COLORBT_SHOW_HIDDEN="0"
 export RUST_LOG="warn"
-export CARGO_BUILD_TARGET_DIR="${BUILD_DIR_REL}"
 
 . "${PROJECT_ROOT_DIR}/.env.example"
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
@@ -537,8 +536,6 @@ ${NICE} docker run --rm \
   --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
   --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
   --env="RUST_LOG=${RUST_LOG}" \
-  --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
-  --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
   --env-file="${PROJECT_ROOT_DIR}/.env" \
   --ulimit core=0 \
   ${PORTS} \
@@ -548,10 +545,8 @@ ${NICE} docker run --rm \
 if [ -n "${CROSS:-}" ] && [ -n "${RELEASE:-}" ] && { [ "${BUILD:-}" == 1 ] || [ "${RUN:-}" == 1 ]; }; then
   mkdir -p .out/
   if [[ "${CROSS}" == *windows* ]]; then
-    cp "${BUILD_DIR}/${CROSS}/release/nextalign.exe" ".out/nextalign-${CROSS}.exe"
     cp "${BUILD_DIR}/${CROSS}/release/nextclade.exe" ".out/nextclade-${CROSS}.exe"
   else
-    cp "${BUILD_DIR}/${CROSS}/release/nextalign" ".out/nextalign-${CROSS}"
     cp "${BUILD_DIR}/${CROSS}/release/nextclade" ".out/nextclade-${CROSS}"
   fi
 fi

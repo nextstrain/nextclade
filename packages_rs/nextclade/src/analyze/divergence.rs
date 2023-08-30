@@ -1,22 +1,26 @@
-use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::tree::tree::{AuspiceTreeNode, DivergenceUnits};
+use crate::analyze::nuc_sub::NucSub;
+use crate::tree::tree::DivergenceUnits;
 
-pub fn calculate_divergence(
-  node: &AuspiceTreeNode,
-  private_mutations: &PrivateNucMutations,
-  divergence_units: &DivergenceUnits,
+/// Calculate number of nuc muts, only considering ACGT characters
+pub fn count_nuc_muts(nuc_muts: &[NucSub]) -> usize {
+  nuc_muts
+    .iter()
+    .filter(|m| m.ref_nuc.is_acgt() && m.qry_nuc.is_acgt())
+    .count()
+}
+
+pub fn calculate_branch_length(
+  private_mutations: &[NucSub],
+  divergence_units: DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
-  let parent_div = node.node_attrs.div.unwrap_or(0.0);
-
-  // Divergence is just number of substitutions compared to the parent node
-  let mut this_div = private_mutations.private_substitutions.len() as f64;
+  let mut this_div = count_nuc_muts(private_mutations) as f64;
 
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.
-  if &DivergenceUnits::NumSubstitutionsPerYearPerSite == divergence_units {
+  if DivergenceUnits::NumSubstitutionsPerYearPerSite == divergence_units {
     this_div /= ref_seq_len as f64;
   }
 
-  parent_div + this_div
+  this_div
 }

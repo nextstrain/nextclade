@@ -1,9 +1,9 @@
-use crate::dataset::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
 use comfy_table::modifiers::{UTF8_ROUND_CORNERS, UTF8_SOLID_INNER_BORDERS};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::{ContentArrangement, Table};
 use indexmap::IndexMap;
 use itertools::Itertools;
+use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
@@ -18,25 +18,23 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     "reference".to_owned(),
     "tag".to_owned(),
     "attributes".to_owned(),
-    "comment".to_owned(),
   ]);
 
   for dataset in filtered.iter() {
     let Dataset {
-      attributes, comment, ..
+      version, attributes, ..
     } = dataset;
 
     let DatasetAttributes {
       name,
       reference,
-      tag,
       rest_attrs,
+      ..
     } = &attributes;
 
     let mut attrs = IndexMap::<String, &DatasetAttributeValue>::from([
       ("name".to_owned(), name),
       ("reference".to_owned(), reference),
-      ("tag".to_owned(), tag),
     ]);
 
     for (key, attr) in rest_attrs.iter() {
@@ -46,9 +44,8 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     table.add_row([
       format_attr_value(name),
       format_attr_value(reference),
-      format_attr_value(tag),
+      version.tag.clone(),
       format_attributes(&attrs),
-      comment.clone(),
     ]);
   }
 
@@ -56,8 +53,8 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 }
 
 pub fn format_attr_value_short(attr: &DatasetAttributeValue) -> String {
-  let DatasetAttributeValue { is_default, value, .. } = &attr;
-  if *is_default {
+  let DatasetAttributeValue { value, .. } = &attr;
+  if attr.is_default() {
     format!("{value} (*)")
   } else {
     value.clone()

@@ -7,7 +7,6 @@ import styled from 'styled-components'
 import type { Dataset } from 'src/types'
 import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
 const DatasetSelectorContainer = styled(Container)`
@@ -15,6 +14,7 @@ const DatasetSelectorContainer = styled(Container)`
   flex-direction: column;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   padding: 0;
 `
 
@@ -26,7 +26,8 @@ const DatasetSelectorTitle = styled.h4`
 const DatasetSelectorListContainer = styled.section`
   display: flex;
   width: 100%;
-  height: 300px;
+  height: 100%;
+  overflow: hidden;
 `
 
 const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
@@ -47,7 +48,6 @@ const Spinner = styled(ThreeDots)`
 
 export interface DatasetSelectorProps {
   searchTerm: string
-
   setSearchTerm(searchTerm: string): void
 }
 
@@ -100,32 +100,26 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
         </Col>
       </Row>
 
-      <Row noGutters className="mt-2">
-        <DatasetSelectorListContainer>
-          {!isBusy && (
-            <DatasetSelectorList
-              datasets={datasets}
-              datasetHighlighted={datasetHighlighted}
-              searchTerm={searchTerm}
-              onDatasetHighlighted={setDatasetHighlighted}
-            />
-          )}
+      <Row noGutters className="mt-2 h-100 overflow-hidden">
+        <Col className="h-100 overflow-hidden">
+          <DatasetSelectorListContainer>
+            {!isBusy && (
+              <DatasetSelectorList
+                datasets={datasets}
+                datasetHighlighted={datasetHighlighted}
+                searchTerm={searchTerm}
+                onDatasetHighlighted={setDatasetHighlighted}
+              />
+            )}
 
-          {isBusy && (
-            <SpinnerWrapper>
-              <SpinnerWrapperInternal>
-                <Spinner color="#aaa" width={20} height={20} />
-              </SpinnerWrapperInternal>
-            </SpinnerWrapper>
-          )}
-        </DatasetSelectorListContainer>
-      </Row>
-
-      <Row noGutters>
-        <Col className="py-1">
-          <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md">
-            <small>{t('Recent dataset updates')}</small>
-          </LinkExternal>
+            {isBusy && (
+              <SpinnerWrapper>
+                <SpinnerWrapperInternal>
+                  <Spinner color="#aaa" width={20} height={20} />
+                </SpinnerWrapperInternal>
+              </SpinnerWrapper>
+            )}
+          </DatasetSelectorListContainer>
         </Col>
       </Row>
 

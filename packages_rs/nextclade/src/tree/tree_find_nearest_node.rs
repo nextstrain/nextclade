@@ -1,51 +1,59 @@
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::io::nuc::Nuc;
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, TreeNodeAttr};
-use crate::utils::range::Range;
+use crate::coord::range::{NucRefGlobalRange, Range};
+use crate::graph::node::GraphNodeKey;
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload, TreeNodeAttr};
+use eyre::Report;
 use itertools::Itertools;
+use traversal::DftPre;
 
 /// Distance and placement prior for a ref tree node
-pub struct TreePlacementInfo<'node> {
-  pub node: &'node AuspiceTreeNode,
+pub struct TreePlacementInfo {
+  pub node_key: GraphNodeKey,
   pub distance: i64,
   pub prior: f64, // prior in non-log scale
 }
 
 /// For a given query sample, finds nearest node on the reference tree (according to the distance metric)
-pub fn tree_find_nearest_nodes<'node>(
-  tree: &'node AuspiceTree,
+pub fn graph_find_nearest_nodes(
+  graph: &AuspiceGraph,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
-  aln_range: &Range,
-  masked_ranges: &[Range],
-) -> Vec<TreePlacementInfo<'node>> {
+  aln_range: &NucRefGlobalRange,
+) -> Result<Vec<TreePlacementInfo>, Report> {
+  let masked_ranges = graph.data.meta.placement_mask_ranges();
+
   // Iterate over tree nodes and calculate distance metric between the sample and each node
-  let nodes_by_placement_score = tree
-    .iter_depth_first_preorder()
+  let nodes_by_placement_score = DftPre::new(graph.get_exactly_one_root()?, |node| graph.iter_children_of(node))
     .map(|(_, node)| {
-      let distance = tree_calculate_node_distance(node, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
-      let prior = get_prior(node);
-      TreePlacementInfo { node, distance, prior }
+      let node_payload = node.payload();
+      let distance = tree_calculate_node_distance(node_payload, qry_nuc_subs, qry_missing, aln_range, masked_ranges);
+      let prior = get_prior(node_payload);
+      TreePlacementInfo {
+        node_key: node.key(),
+        distance,
+        prior,
+      }
     })
     .sorted_by(|a, b| a.distance.cmp(&b.distance).then(b.prior.total_cmp(&a.prior)))
     .collect_vec();
 
-  if nodes_by_placement_score.is_empty() {
+  Ok(if nodes_by_placement_score.is_empty() {
     // Unlikely case: if there's no nodes, return parent
     vec![TreePlacementInfo {
-      node: &tree.tree,
+      node_key: graph.get_exactly_one_root()?.key(),
       distance: 0,
       prior: 1.0,
     }]
   } else {
     nodes_by_placement_score
-  }
+  })
 }
 
 /// Gets non-log scale prior from node attributes
-fn get_prior(node: &AuspiceTreeNode) -> f64 {
+fn get_prior(node: &AuspiceGraphNodePayload) -> f64 {
   10.0_f64.powf(
     node
       .node_attrs
@@ -58,11 +66,11 @@ fn get_prior(node: &AuspiceTreeNode) -> f64 {
 
 /// Calculates distance metric between a given query sample and a tree node
 fn tree_calculate_node_distance(
-  node: &AuspiceTreeNode,
+  node: &AuspiceGraphNodePayload,
   qry_nuc_subs: &[NucSub],
   qry_missing: &[NucRange],
-  aln_range: &Range,
-  masked_ranges: &[Range],
+  aln_range: &NucRefGlobalRange,
+  masked_ranges: &[NucRefGlobalRange],
 ) -> i64 {
   let mut shared_differences = 0_i64;
   let mut shared_sites = 0_i64;
@@ -79,8 +87,7 @@ fn tree_calculate_node_distance(
   let masked_qry_missing = masked_ranges
     .iter()
     .map(|range| NucRange {
-      begin: range.begin,
-      end: range.end,
+      range: range.clone(),
       letter: Nuc::N,
     })
     .chain(qry_missing.iter().cloned())
@@ -90,7 +97,7 @@ fn tree_calculate_node_distance(
     let node_mut = node.tmp.substitutions.get(&qmut.pos);
     if let Some(node_mut) = node_mut {
       // position is also mutated in node
-      if qmut.qry == *node_mut {
+      if qmut.qry_nuc == *node_mut {
         shared_differences += 1; // the exact mutation is shared between node and seq
       } else {
         shared_sites += 1; // the same position is mutated, but the states are different
@@ -118,22 +125,24 @@ fn tree_calculate_node_distance(
 mod tests {
   use std::collections::BTreeMap;
 
-  use crate::io::nuc::Nuc;
+  use crate::alphabet::nuc::Nuc;
   use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
 
   use super::*;
+  use crate::coord::position::NucRefGlobalPosition;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
 
   /// Default node for testing
   #[fixture]
-  fn default_node() -> AuspiceTreeNode {
-    AuspiceTreeNode {
+  fn default_node() -> AuspiceGraphNodePayload {
+    AuspiceGraphNodePayload {
       name: "Test".to_owned(),
 
       branch_attrs: TreeBranchAttrs {
         mutations: BTreeMap::new(),
+        labels: None,
         other: serde_json::Value::default(),
       },
 
@@ -159,8 +168,6 @@ mod tests {
         other: serde_json::Value::default(),
       },
 
-      children: vec![],
-
       tmp: TreeNodeTempData::default(),
 
       other: serde_json::Value::default(),
@@ -170,19 +177,19 @@ mod tests {
   fn simple_qry_nuc_subs() -> Vec<NucSub> {
     vec![
       NucSub {
-        reff: Nuc::A,
-        pos: 3,
-        qry: Nuc::C,
+        ref_nuc: Nuc::A,
+        pos: 3.into(),
+        qry_nuc: Nuc::C,
       },
       NucSub {
-        reff: Nuc::A,
-        pos: 7,
-        qry: Nuc::C,
+        ref_nuc: Nuc::A,
+        pos: 7.into(),
+        qry_nuc: Nuc::C,
       },
       NucSub {
-        reff: Nuc::A,
-        pos: 12,
-        qry: Nuc::C,
+        ref_nuc: Nuc::A,
+        pos: 12.into(),
+        qry_nuc: Nuc::C,
       },
     ]
   }
@@ -190,25 +197,29 @@ mod tests {
   fn simple_qry_missing() -> Vec<NucRange> {
     vec![
       NucRange {
-        begin: 8,
-        end: 10,
+        range: Range::from_usize(8, 10),
         letter: Nuc::N,
       },
       NucRange {
-        begin: 20,
-        end: 30,
+        range: Range::from_usize(20, 30),
         letter: Nuc::N,
       },
     ]
   }
 
-  fn simple_node_nuc_subs() -> BTreeMap<usize, Nuc> {
-    vec![(3, Nuc::T), (12, Nuc::C), (15, Nuc::T), (23, Nuc::G), (35, Nuc::G)]
-      .into_iter()
-      .collect()
+  fn simple_node_nuc_subs() -> BTreeMap<NucRefGlobalPosition, Nuc> {
+    vec![
+      (3.into(), Nuc::T),
+      (12.into(), Nuc::C),
+      (15.into(), Nuc::T),
+      (23.into(), Nuc::G),
+      (35.into(), Nuc::G),
+    ]
+    .into_iter()
+    .collect()
   }
 
-  fn node_with_simple_nuc_subs() -> AuspiceTreeNode {
+  fn node_with_simple_nuc_subs() -> AuspiceGraphNodePayload {
     let mut node = default_node();
     node.tmp.substitutions = simple_node_nuc_subs();
     node
@@ -219,8 +230,8 @@ mod tests {
     let node = default_node();
     let qry_nuc_subs: Vec<NucSub> = vec![];
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges: Vec<Range> = vec![];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -234,8 +245,8 @@ mod tests {
     let node = default_node();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges: Vec<Range> = vec![];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -249,8 +260,8 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs: Vec<NucSub> = vec![];
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges: Vec<Range> = vec![];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -264,8 +275,8 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges: Vec<Range> = vec![];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -279,8 +290,8 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing = simple_qry_missing();
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges: Vec<Range> = vec![];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -294,8 +305,8 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 20 };
-    let masked_ranges: Vec<Range> = vec![];
+    let aln_range = NucRefGlobalRange::from_usize(0, 20);
+    let masked_ranges = vec![];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -309,8 +320,8 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges = vec![Range { begin: 0, end: 100 }];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![NucRefGlobalRange::from_usize(0, 100)];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -325,8 +336,11 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing: Vec<NucRange> = vec![];
-    let aln_range = Range { begin: 0, end: 100 };
-    let masked_ranges = vec![Range { begin: 0, end: 5 }, Range { begin: 30, end: 50 }];
+    let aln_range = NucRefGlobalRange::from_usize(0, 100);
+    let masked_ranges = vec![
+      NucRefGlobalRange::from_usize(0, 5),
+      NucRefGlobalRange::from_usize(30, 50),
+    ];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 
@@ -340,8 +354,8 @@ mod tests {
     let node = node_with_simple_nuc_subs();
     let qry_nuc_subs = simple_qry_nuc_subs();
     let qry_missing = simple_qry_missing();
-    let aln_range = Range { begin: 0, end: 30 };
-    let masked_ranges = vec![Range { begin: 12, end: 13 }];
+    let aln_range = NucRefGlobalRange::from_usize(0, 30);
+    let masked_ranges = vec![NucRefGlobalRange::from_usize(12, 13)];
 
     let result = tree_calculate_node_distance(&node, &qry_nuc_subs, &qry_missing, &aln_range, &masked_ranges);
 

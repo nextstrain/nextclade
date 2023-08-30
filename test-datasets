@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Runs bulk cross-compilation of CLI binaries for all supported platforms
+
+set -euo pipefail
+trap "exit" INT
+
+NEXTCLADE_BIN="${1:? "Usage: ${0} path_to_nextclade_bin"}"
+export NEXTCLADE_BIN
+
+OUTPUT_DIR="tmp_/test_datasets"
+INPUT_DIR="test_datasets"
+
+for d in test_datasets/*; do
+
+  virus="$(basename "$d")"
+
+  echo "Running '${NEXTCLADE_BIN}' for ${virus}"
+
+  INPUT_FASTA="${INPUT_DIR}/${virus}/files/sequences.fasta"
+  if [ ! -f "${INPUT_FASTA}" ]; then
+    INPUT_FASTA="${INPUT_DIR}/${virus}/files/reference.fasta"
+  fi
+
+  ${NEXTCLADE_BIN} run \
+    "${INPUT_FASTA}" \
+    -D "${INPUT_DIR}/${virus}/files" \
+    -O "${OUTPUT_DIR}/${virus}" \
+    --output-translations="${OUTPUT_DIR}/${virus}/translations/gene_{gene}.translation.fasta" \
+    --in-order
+
+done

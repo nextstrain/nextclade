@@ -1,7 +1,8 @@
-use crate::align::band_2d::Band2d;
-use crate::align::score_matrix::{MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
-use crate::io::letter::Letter;
+use crate::align::band_2d::{Band2d, Stripe};
+use crate::align::score_matrix::{BOUNDARY, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
+use crate::alphabet::letter::Letter;
 use crate::utils::vec2d::Vec2d;
+use log::warn;
 use serde::{Deserialize, Serialize};
 use std::cmp;
 
@@ -9,12 +10,13 @@ const fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
   si - band_width + mean_shift
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 pub struct AlignmentOutput<T> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
   pub alignment_score: i32,
   pub is_reverse_complement: bool,
+  pub hit_boundary: bool,
 }
 
 pub fn backtrace<T: Letter<T>>(
@@ -39,10 +41,13 @@ pub fn backtrace<T: Letter<T>>(
 
   let mut origin: i8;
   let mut current_matrix = 0;
-
+  let mut hit_boundary = false;
   // Do backtrace in the aligned region
   while r_pos > 0 || q_pos > 0 {
     origin = paths[(r_pos, q_pos)];
+    if (origin & BOUNDARY) > 0 {
+      hit_boundary = true;
+    }
 
     if (origin & MATCH) != 0 && (current_matrix == 0) {
       // Match -- decrement both strands and add match to alignment
@@ -79,7 +84,8 @@ pub fn backtrace<T: Letter<T>>(
       // origin = 0 and current_matrix = 0
       // Why would this ever happen?
       // Mistake in score_matrix?
-      unreachable!("Problem in backtrace: origin = 0 and current_matrix = 0 before (0,0) reached. Please share the sequence with the developers.");
+      // TODO: This actually does seem to be reachable, at least when band is width 0, i.e. a line
+      unreachable!("Problem in backtrace: origin = 0 and current_matrix = 0 before (0,0) reached. Please share the sequence with the developers.\nr_pos = {}, q_pos = {}, origin = {}, current_matrix = {}", r_pos, q_pos, origin, current_matrix);
     }
   }
 
@@ -91,6 +97,7 @@ pub fn backtrace<T: Letter<T>>(
     ref_seq: aln_ref,
     alignment_score: scores[(num_rows - 1, num_cols - 1)],
     is_reverse_complement: false,
+    hit_boundary,
   }
 }
 
@@ -102,8 +109,8 @@ mod tests {
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::params::AlignPairwiseParams;
   use crate::align::score_matrix;
-  use crate::io::gene_map::GeneMap;
-  use crate::io::nuc::{to_nuc_seq, Nuc};
+  use crate::alphabet::nuc::{to_nuc_seq, Nuc};
+  use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
@@ -164,6 +171,7 @@ mod tests {
       ref_seq: to_nuc_seq("ACGCTCGCT")?,
       alignment_score: 18,
       is_reverse_complement: false,
+      hit_boundary: false,
     };
 
     let output = backtrace(&qry_seq, &ref_seq, &scores, &paths);

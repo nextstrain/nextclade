@@ -5,6 +5,7 @@ description = "Alignment, mutation calling, phylogenetic placement, clade assign
 edition = "2021"
 license = "MIT"
 publish = false
+build = "src/build.rs"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -19,12 +20,16 @@ js-sys = { version = "=0.3.64", features = [] }
 log = "=0.4.19"
 nextclade = { path = "../nextclade" }
 serde = { version = "=1.0.164", features = ["derive"] }
-serde-wasm-bindgen = { version = "0.5.0" }
-typescript-definitions = { path = "../3rdparty/typescript-definitions", features = ['export-typescript'] }
-typescript-definitions-derive = { path = "../3rdparty/typescript-definitions/typescript-definitions-derive", features = ['export-typescript'] }
+serde-wasm-bindgen = { version = "=0.5.0" }
 wasm-bindgen = { version = "=0.2.87", features = ["serde-serialize"] }
 wasm-logger = "=0.2.0"
 web-sys = { version = "=0.3.64", features = ["console"] }
+schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
+
+[build-dependencies]
+nextclade = { path = "../nextclade" }
+schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
+eyre = "=0.6.8"
 
 [dev-dependencies]
 assert2 = "=0.3.11"

@@ -36,6 +36,7 @@ reqwest = { version = "=0.11.18", default-features = false, features = ["blockin
 schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
 semver = "=1.0.17"
 serde = { version = "=1.0.164", features = ["derive"] }
+serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 strum = "=0.25.0"
 strum_macros = "=0.25"
 url = { version = "=2.4.0", features = ["serde"] }

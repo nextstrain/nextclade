@@ -1,40 +1,61 @@
-use crate::analyze::aa_changes::AaSub;
-use crate::analyze::aa_sub::AaSubMinimal;
-use crate::io::aa::Aa;
+use crate::alphabet::aa::{from_aa, Aa};
+use crate::analyze::aa_sub::AaSub;
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
+use crate::coord::position::AaRefPosition;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AaDelMinimal {
-  #[serde(rename = "refAA")]
-  pub reff: Aa,
-
-  #[serde(rename = "codon")]
-  pub pos: usize,
+pub struct AaDel {
+  pub cds_name: String,
+  pub pos: AaRefPosition,
+  pub ref_aa: Aa,
 }
 
-impl AaDelMinimal {
-  /// Converts deletion to substitution to Gap
-  #[inline]
-  pub const fn to_sub(&self) -> AaSubMinimal {
-    AaSubMinimal {
-      reff: self.reff,
-      pos: self.pos,
-      qry: Aa::Gap,
+impl AbstractMutation<AaRefPosition, Aa> for AaDel {
+  fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
+    Self {
+      cds_name: self.cds_name.clone(),
+      pos: params.pos,
+      ref_aa: params.ref_letter,
     }
   }
 }
 
-/// Order deletions by position, then ref character
-impl Ord for AaDelMinimal {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff).cmp(&(other.pos, other.reff))
+impl QryLetter<Aa> for AaDel {
+  fn qry_letter(&self) -> Aa {
+    Aa::Gap
   }
 }
 
-impl PartialOrd for AaDelMinimal {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
+impl RefLetter<Aa> for AaDel {
+  fn ref_letter(&self) -> Aa {
+    self.ref_aa
+  }
+}
+
+impl Pos<AaRefPosition> for AaDel {
+  fn pos(&self) -> AaRefPosition {
+    self.pos
+  }
+}
+
+impl AaDel {
+  /// Converts deletion to substitution to Gap
+  #[inline]
+  pub fn to_sub(&self) -> AaSub {
+    AaSub {
+      cds_name: self.cds_name.clone(),
+      ref_aa: self.ref_aa,
+      pos: self.pos,
+      qry_aa: Aa::Gap,
+    }
+  }
+}
+
+impl Display for AaDel {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    self.to_sub().fmt(f)
   }
 }

@@ -1,151 +1,121 @@
 use crate::cli::nextclade_cli::NextcladeDatasetGetArgs;
-use crate::dataset::dataset::{Dataset, DatasetsIndexJson};
-use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_attributes};
-use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_download};
-use crate::dataset::dataset_table::format_dataset_table;
+use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_download, download_datasets_index_json};
 use crate::io::http_client::HttpClient;
-use eyre::{eyre, Report, WrapErr};
+use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{info, LevelFilter};
-use nextclade::{getenv, make_error};
+use log::{warn, LevelFilter};
+use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
+use nextclade::utils::string::find_similar_strings;
+use nextclade::{getenv, make_error, make_internal_error};
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
 
 pub struct DatasetHttpGetParams<'s> {
   pub name: &'s str,
-  pub reference: &'s str,
   pub tag: &'s str,
 }
 
-pub fn nextclade_dataset_http_get(
-  http: &mut HttpClient,
-  DatasetHttpGetParams { name, reference, tag }: DatasetHttpGetParams,
-  attributes: &[String],
-) -> Result<Dataset, Report> {
-  let DatasetsIndexJson { datasets, .. } = DatasetsIndexJson::download(http)?;
-
-  // Parse attribute key-value pairs
-  let mut attributes = parse_dataset_attributes(attributes)?;
-
-  // Handle special attributes differently
-  let name = if let Some(attr_name) = attributes.remove("name") {
-    attr_name
-  } else {
-    name.to_owned()
-  };
-
-  if let Some(attr_reference) = attributes.remove("reference") {
-    attr_reference
-  } else {
-    reference.to_owned()
-  };
-
-  if let Some(attr_tag) = attributes.remove("tag") {
-    attr_tag
-  } else {
-    tag.to_owned()
-  };
-
-  let mut filtered = datasets
-    .into_iter()
-    .filter(|dataset| dataset.enabled)
-    .filter(|dataset| -> bool  {
-      // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
-      if tag == "latest" {
-        let is_not_old = dataset.is_latest();
-        let is_compatible = dataset.is_compatible(THIS_VERSION);
-        is_compatible && is_not_old
-      } else {
-        dataset.attributes.tag.value == tag
-      }
-    })
-    // Filter by reference sequence
-    .filter(|dataset| {
-      if reference == "default" {
-        dataset.attributes.reference.is_default
-      } else {
-        dataset.attributes.reference.value == reference
-      }
-    })
-    // Filter by name
-    .filter(|dataset| {
-      dataset.attributes.name.value == name
-    })
-    // Filter by remaining attributes
-    .filter(|dataset| {
-      let mut should_include = true;
-      for (key, val) in &attributes {
-        let is_attr_matches = match dataset.attributes.rest_attrs.get(key) {
-          Some(attr) => {
-            if val == "default" {
-              attr.is_default
-            } else {
-              &attr.value == val
-            }
-          }
-          None => false
-        };
-        should_include = should_include && is_attr_matches;
-      }
-      should_include
-    })
-    .collect_vec();
-
-  let attributes_fmt = {
-    let attributes_fmt = format_attribute_list(&Some(name), reference, tag, &attributes);
-    if attributes_fmt.is_empty() {
-      "".to_owned()
-    } else {
-      format!(" having attributes: {attributes_fmt}")
-    }
-  };
-
-  info!("Searching for datasets{attributes_fmt}");
-
-  match &filtered.len() {
-    0 => make_error!("No datasets found{attributes_fmt}. Use `datasets list` command to show available datasets."),
-    1 => Ok(filtered.remove(0)),
-    _ => {
-      let table = format_dataset_table(&filtered);
-      make_error!("Can download only a single dataset, but multiple datasets found{attributes_fmt}. Add more specific attributes to select one of them. Given current attributes, the candidates are:\n{table}")
-    }
+pub fn nextclade_dataset_get(
+  NextcladeDatasetGetArgs {
+    name,
+    reference,
+    tag,
+    attribute,
+    server,
+    output_dir,
+    output_zip,
+    proxy_config,
+  }: &NextcladeDatasetGetArgs,
+) -> Result<(), Report> {
+  if reference.is_some() || !attribute.is_empty() {
+    return make_error!("The arguments `--reference` and `--attribute` are removed. Datasets are now queried by `--name` and `--tag` only.\n\nIn order to list all dataset names, type:\n\n  nextclade dataset list --names-only\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
   }
-}
 
-pub fn nextclade_dataset_get(args: &NextcladeDatasetGetArgs) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
-  let mut http = HttpClient::new(&args.server, &args.proxy_config, verbose)?;
 
-  let dataset = nextclade_dataset_http_get(
-    &mut http,
-    DatasetHttpGetParams {
-      name: &args.name,
-      reference: &args.reference,
-      tag: &args.tag,
-    },
-    &args.attribute,
-  )?;
+  let mut http = HttpClient::new(server, proxy_config, verbose)?;
+  let dataset = dataset_http_get(&mut http, name, tag)?;
 
-  if let Some(output_dir) = &args.output_dir {
+  if let Some(output_dir) = &output_dir {
     dataset_dir_download(&mut http, &dataset, output_dir)?;
-  }
-
-  if let Some(output_zip) = &args.output_zip {
+  } else if let Some(output_zip) = &output_zip {
     dataset_zip_download(&mut http, &dataset, output_zip)?;
+  } else {
   }
 
   Ok(())
 }
 
-pub fn dataset_file_http_get(http: &mut HttpClient, dataset: &Dataset, filename: &str) -> Result<String, Report> {
-  let url = dataset
-    .files
-    .get(filename)
-    .ok_or_else(|| eyre!("File not found in the dataset: '{}'", filename))?;
+pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Option<String>) -> Result<Dataset, Report> {
+  let name = name.as_ref();
+  let tag = tag.as_ref();
+
+  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(http)?;
+
+  let datasets = collections
+    .into_iter()
+    .flat_map(|collection| collection.datasets)
+    .collect_vec();
+
+  let paths = datasets.iter().map(|dataset| dataset.path.clone()).collect_vec();
+
+  let mut filtered = datasets.into_iter().filter(Dataset::is_enabled)
+    .filter(|dataset| -> bool  {
+      // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
+      if let Some(tag) = tag.as_ref() {
+        dataset.is_tag(tag)
+      } else {
+        dataset.is_latest()
+      }
+    })
+    // Filter by name
+    .filter(|dataset| {
+      dataset.path == name
+    })
+    .collect_vec();
+
+  let dataset = match &filtered.len() {
+    0 => {
+      let suggestions = find_similar_strings(paths.iter(), &name).take(10).collect_vec();
+      let suggestions_msg = (!suggestions.is_empty())
+        .then(|| {
+          let suggestions = suggestions.iter().map(|s| format!("- {s}")).join("\n");
+          format!("\n\nDid you mean:\n{suggestions}\n?")
+        })
+        .unwrap_or_default();
+      make_error!(
+        "Dataset not found: '{name}'.{suggestions_msg}\n\nType `nextclade dataset list` to show available datasets."
+      )
+    }
+    1 => Ok(filtered.remove(0)),
+    _ => {
+      make_internal_error!("Expected to find a single dataset, but multiple datasets found.")
+    }
+  }?;
+
+  if !dataset.is_compatible(THIS_VERSION) {
+    warn!(
+      "The requested dataset '{}' with version tag '{}' is not compatible with this version of Nextclade ({}). This may cause errors and unexpected results. Please try to upgrade your Nextclade version and/or report this to dataset authors.",
+      dataset.path,
+      dataset.tag(),
+      THIS_VERSION
+    );
+  }
+
+  Ok(dataset)
+}
+
+pub fn dataset_file_http_get(
+  http: &mut HttpClient,
+  dataset: &Dataset,
+  filename: impl AsRef<str>,
+) -> Result<String, Report> {
+  let filename = filename.as_ref();
+  let url = dataset.file_path(filename);
 
   let content = http
     .get(&url)
-    .wrap_err_with(|| format!("Dataset file download failed: '{url}'"))?;
+    .wrap_err_with(|| format!("when fetching dataset file '{filename}'"))?;
 
   let content_string = String::from_utf8(content)?;
 

@@ -1,9 +1,9 @@
 import urljoin from 'url-join'
 import { concurrent } from 'fasy'
 
-import { Dataset, DatasetTag } from 'src/types'
+import { Dataset, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
-import { axiosFetchOrUndefined, axiosHead } from 'src/io/axiosFetch'
+import { axiosFetch, axiosHead } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export async function fetchSingleDatasetFromUrl(
@@ -12,54 +12,14 @@ export async function fetchSingleDatasetFromUrl(
 ) {
   const datasetRootUrl = removeTrailingSlash(datasetRootUrl_)
 
-  const tag = await axiosFetchOrUndefined<DatasetTag>(urljoin(datasetRootUrl, 'tag.json'))
-
+  const pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
   const currentDataset: Dataset = {
-    id: '0',
-    enabled: true,
-    attributes: {
-      name: {
-        value: tag?.attributes?.name?.value ?? meta?.datasetGithubRepo ?? 'untitled-dataset',
-        valueFriendly: tag?.attributes?.name?.valueFriendly ?? meta?.datasetGithubRepo ?? 'Untitled dataset',
-        isDefault: true,
-      },
-      reference: {
-        value: tag?.attributes?.reference?.value ?? 'unknown',
-        valueFriendly: tag?.attributes?.reference?.valueFriendly ?? 'unknown',
-        isDefault: true,
-      },
-      tag: {
-        value: tag?.attributes?.tag?.value ?? 'unknown',
-        valueFriendly: tag?.attributes?.tag?.valueFriendly ?? 'unknown',
-        isDefault: true,
-      },
-      url: {
-        value: tag?.attributes?.url?.value ?? meta?.datasetGithubRepo ?? meta?.datasetOriginalUrl ?? datasetRootUrl,
-        valueFriendly: tag?.attributes?.url?.valueFriendly ?? meta?.datasetGithubRepo,
-        isDefault: true,
-      },
+    path: datasetRootUrl,
+    capabilities: {
+      primers: false,
+      qc: [],
     },
-    comment: tag?.comment ?? '',
-    compatibility: tag?.compatibility ?? {
-      nextcladeCli: {
-        min: '1.10.0',
-      },
-      nextcladeWeb: {
-        min: '1.13.0',
-      },
-    },
-    files: {
-      'genemap.gff': urljoin(datasetRootUrl, 'genemap.gff'),
-      'primers.csv': urljoin(datasetRootUrl, 'primers.csv'),
-      'qc.json': urljoin(datasetRootUrl, 'qc.json'),
-      'reference.fasta': urljoin(datasetRootUrl, 'reference.fasta'),
-      'sequences.fasta': urljoin(datasetRootUrl, 'sequences.fasta'),
-      'tag.json': urljoin(datasetRootUrl, 'tag.json'),
-      'tree.json': urljoin(datasetRootUrl, 'tree.json'),
-      'virus_properties.json': urljoin(datasetRootUrl, 'virus_properties.json'),
-    },
-    params: tag?.params ?? { defaultGene: undefined, geneOrderPreference: undefined },
-    zipBundle: tag?.zipBundle ?? urljoin(datasetRootUrl, 'dataset.zip'),
+    ...pathogen,
   }
 
   const datasets = [currentDataset]

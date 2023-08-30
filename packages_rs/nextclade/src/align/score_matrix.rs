@@ -1,6 +1,6 @@
 use crate::align::band_2d::{Band2d, Stripe};
 use crate::align::params::{AlignPairwiseParams, GapAlignmentSide};
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
 use log::trace;
 
 // store direction info for backtrace as bits in paths matrix
@@ -11,6 +11,7 @@ pub const QRY_GAP_MATRIX: i8 = 1 << 2;
 // these are the override flags for gap extension
 pub const REF_GAP_EXTEND: i8 = 1 << 3;
 pub const QRY_GAP_EXTEND: i8 = 1 << 4;
+pub const BOUNDARY: i8 = 1 << 5;
 
 const NO_ALIGN: i32 = -1_000_000_000; //very negative to be able to process unalignable seqs
 
@@ -111,15 +112,20 @@ pub fn score_matrix<T: Letter<T>>(
         // if the position is within the query sequence
         // no gap -- match case
 
-        // TODO: Double bounds check -> wasteful, make better
+        // ^ If stripes allow to move up diagonally to upper left
         if qpos > stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
-          // ^ If stripes allow to move up diagonally to upper left
-          if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
-            score = scores[(ri - 1, qpos - 1)] + params.score_match;
+          score = if qry_seq[qpos - 1].is_unknown() || ref_seq[ri - 1].is_unknown() {
+            // no need to look-up match score since unknown matches with everything.
+            // reduce match score by 1 to de-prioritize matches with unknown states.
+            scores[(ri - 1, qpos - 1)] + params.score_match - 1
+          } else if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
+            scores[(ri - 1, qpos - 1)] + params.score_match
           } else {
-            score = scores[(ri - 1, qpos - 1)] - params.penalty_mismatch;
+            scores[(ri - 1, qpos - 1)] - params.penalty_mismatch
           };
           origin = MATCH;
+        } else {
+          tmp_path = tmp_path | BOUNDARY; // mark boundary when possible moves are restricted. here: can't move up or left-up
         }
 
         // check the scores of a reference gap
@@ -139,17 +145,19 @@ pub fn score_matrix<T: Letter<T>>(
           if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
             // extension better than opening (and ^ extension allowed positionally)
             tmp_score = r_gap_extend;
-            tmp_path = REF_GAP_EXTEND;
+            tmp_path += REF_GAP_EXTEND;
           } else {
             // opening better than extension
             tmp_score = r_gap_open;
           }
           // could factor out tmp_score, replacing with ref_gaps but maybe less readable
           ref_gaps = tmp_score;
-          if score + left_align < tmp_score {
+          if score - left_align < tmp_score {
             score = tmp_score;
             origin = REF_GAP_MATRIX;
           }
+        } else if ri < n_rows - 1 {
+          tmp_path = tmp_path | BOUNDARY; // mark boundary if no ref gap allowed due to stripes: can't move left
         }
 
         // check the scores of a query gap
@@ -172,12 +180,13 @@ pub fn score_matrix<T: Letter<T>>(
             tmp_score = q_gap_open;
           }
           qry_gaps[qpos] = tmp_score;
-          if score + left_align < tmp_score {
+          if score - left_align < tmp_score {
             score = tmp_score;
             origin = QRY_GAP_MATRIX;
           }
-        } else {
+        } else if qpos < n_cols - 1 {
           qry_gaps[qpos] = NO_ALIGN;
+          tmp_path = tmp_path | BOUNDARY; // mark boundary if no ref gap allowed due to stripes: can't move up.
         }
       }
 
@@ -186,7 +195,6 @@ pub fn score_matrix<T: Letter<T>>(
       scores[(ri, qpos)] = score;
     }
   }
-
   ScoreMatrixResult { scores, paths }
 }
 
@@ -197,8 +205,8 @@ mod tests {
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::score_matrix;
-  use crate::io::gene_map::GeneMap;
-  use crate::io::nuc::{to_nuc_seq, Nuc};
+  use crate::alphabet::nuc::{to_nuc_seq, Nuc};
+  use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
@@ -230,29 +238,50 @@ mod tests {
 
   #[rstest]
   fn pads_missing_left(ctx: Context) -> Result<(), Report> {
-    let qry_seq = to_nuc_seq("CTCGCT")?;
-    let ref_seq = to_nuc_seq("ACGCTCGCT")?;
+    let qry_seq = to_nuc_seq("CTCGCTG")?;
+    let ref_seq = to_nuc_seq("ACGCTCGCTG")?;
 
     let band_width = 5;
     let mean_shift = 2;
 
-    let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
+    let mut stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
+    stripes[2].end = stripes[2].end - 1;
+    stripes[8].begin = stripes[8].begin + 1;
     let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
 
+    #[rustfmt::skip]
     let expected_scores = Band2d::<i32>::with_data(
       &stripes,
       &[
-        0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0,
-        4, 2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
+         0,  0,  0,  0,
+         0, -1, -1, -1, -1,
+         0,  3, -2,  2, -2,
+         0, -1,  2, -3,  5, -1, -1,
+         0,  3, -2,  5, -1,  8,  2,  2,
+         0, -1,  6,  0,  4,  2, 11,  5,
+         0,  3,  0,  9,  3,  7,  5, 10,
+         0, -1,  2,  3, 12,  6,  6, 10,
+                 0,  5,  6, 15,  9, 10,
+                 0,  3,  6,  9, 18, 12,
+                     3,  6,  9, 12, 21,
       ],
     );
 
+    #[rustfmt::skip]
     let expected_paths = Band2d::<i8>::with_data(
       &stripes,
       &[
-        0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17,
-        25, 2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12,
-        17,
+         0, 10, 10, 10,
+        20,  1,  9,  9, 41,
+        20, 17, 17, 25,  9,
+        20,  1, 25,  1, 25, 34, 42,
+        20, 17,  1, 25,  2,  9,  2, 10,
+        20, 17, 25,  2, 25, 12,  9, 2,
+        20, 17,  4, 25, 18, 25, 12, 9,
+        20, 17, 25,  4, 17, 18, 25, 12,
+                52, 17,  4, 17, 18, 28,
+                52, 20, 20,  4, 17, 18,
+                    20, 17, 20,  4,  1
       ],
     );
 

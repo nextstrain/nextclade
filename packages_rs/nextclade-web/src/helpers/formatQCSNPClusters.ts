@@ -4,20 +4,19 @@ import type { DeepReadonly } from 'ts-essentials'
 
 import type { QcResultSnpClusters } from 'src/types'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QcStatus } from 'src/types'
 
 export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
   t: TFunction,
   snpClusters?: DeepReadonly<QcResultSnpClusters>,
 ) {
-  if (!snpClusters || snpClusters.status === QcStatus.good) {
+  if (!snpClusters || snpClusters.status === 'good') {
     return undefined
   }
 
   const { score, clusteredSNPs, totalSNPs, status } = snpClusters
 
   let message = t('Mutation clusters found')
-  if (status === QcStatus.bad) {
+  if (status === 'bad') {
     message = t('Too many mutation clusters found')
   }
 

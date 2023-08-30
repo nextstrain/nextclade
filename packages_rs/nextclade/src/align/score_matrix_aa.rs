@@ -1,4 +1,4 @@
-use crate::io::aa::Aa;
+use crate::alphabet::aa::Aa;
 
 const NUM_COLS: usize = 28;
 const SCORING_MATRIX_AA_SIZE: usize = NUM_COLS * NUM_COLS;

@@ -1,5 +1,5 @@
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::io::nuc::Nuc;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_rule_frame_shifts::{rule_frame_shifts, QcResultFrameShifts};
 use crate::qc::qc_rule_missing_data::{rule_missing_data, QcResultMissingData};
@@ -13,7 +13,7 @@ use num::traits::Pow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 #[derive(Default)]
 pub enum QcStatus {
@@ -22,8 +22,6 @@ pub enum QcStatus {
   Mediocre,
   Bad,
 }
-
-
 
 impl ToString for QcStatus {
   fn to_string(&self) -> String {
@@ -47,7 +45,7 @@ impl QcStatus {
   }
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResult {
   pub missing_data: Option<QcResultMissingData>,
@@ -68,7 +66,7 @@ pub fn qc_run(
   private_nuc_mutations: &PrivateNucMutations,
   nucleotide_composition: &BTreeMap<Nuc, usize>,
   total_missing: usize,
-  translations: &[Translation],
+  translation: &Translation,
   frame_shifts: &[FrameShift],
   config: &QcConfig,
 ) -> QcResult {
@@ -78,7 +76,7 @@ pub fn qc_run(
     private_mutations: rule_private_mutations(private_nuc_mutations, &config.private_mutations),
     snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
-    stop_codons: rule_stop_codons(translations, &config.stop_codons),
+    stop_codons: rule_stop_codons(translation, &config.stop_codons),
     overall_score: 0.0,
     overall_status: QcStatus::Good,
   };

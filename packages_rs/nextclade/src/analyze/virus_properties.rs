@@ -1,11 +1,18 @@
 use crate::align::params::AlignPairwiseParamsOptional;
+use crate::alphabet::aa::Aa;
+use crate::alphabet::nuc::Nuc;
+use crate::analyze::pcr_primer_changes::PcrPrimer;
+use crate::coord::position::AaRefPosition;
+use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
-use crate::io::aa::Aa;
+use crate::io::dataset::{DatasetAttributes, DatasetFiles, DatasetVersion};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
-use crate::utils::range::Range;
+use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
+use crate::qc::qc_config::QcConfig;
+use crate::run::params_general::NextcladeGeneralParamsOptional;
+use crate::tree::params::TreeBuilderParamsOptional;
+use crate::utils::boolean::{bool_false, bool_true};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -13,53 +20,83 @@ use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
 
-/// Raw JSON version of the `VirusProperties` struct
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
-#[serde(rename_all = "camelCase")]
-struct VirusPropertiesRaw {
-  pub schema_version: String,
-  pub alignment_params: Option<AlignPairwiseParamsOptional>,
-  pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
-  pub phenotype_data: Option<Vec<PhenotypeData>>,
-  #[serde(default = "Vec::new")]
-  pub aa_motifs: Vec<AaMotifsDesc>,
-  #[serde(default = "Vec::new")]
-  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
-}
+const PATHOGEN_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
+const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 
 /// Contains external configuration and data specific for a particular pathogen
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
   pub schema_version: String,
+
+  pub attributes: DatasetAttributes,
+
+  pub files: DatasetFiles,
+
+  #[serde(default = "bool_false")]
+  pub deprecated: bool,
+
+  #[serde(default = "bool_true")]
+  pub enabled: bool,
+
+  #[serde(default = "bool_true")]
+  pub experimental: bool,
+
+  pub default_gene: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub gene_order_preference: Vec<String>,
+
+  #[serde(default)]
+  pub mut_labels: LabelledMutationsConfig,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub primers: Vec<PcrPrimer>,
+
+  pub qc: Option<QcConfig>,
+
+  pub general_params: Option<NextcladeGeneralParamsOptional>,
+
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
-  pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
+
+  pub tree_builder_params: Option<TreeBuilderParamsOptional>,
+
   pub phenotype_data: Option<Vec<PhenotypeData>>,
-  #[serde(default = "Vec::new")]
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motifs: Vec<AaMotifsDesc>,
-  #[serde(default = "Vec::new")]
-  pub placement_mask_ranges: Vec<Range>, // 0-based, end-exclusive
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub versions: Vec<DatasetVersion>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub version: Option<DatasetVersion>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 /// Associates a genotype (pos, nuc) to a list of labels
 pub type LabelMap<L> = BTreeMap<Genotype<L>, Vec<String>>;
 pub type NucLabelMap = LabelMap<Nuc>;
 
-/// External data that contains labels assigned to many mutations
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct MutationLabelMaps<L: Letter<L>> {
-  pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
+pub struct LabelledMutationsConfig {
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub nuc_mut_label_map: BTreeMap<Genotype<Nuc>, Vec<String>>,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeDataIgnore {
   #[serde(default)]
   pub clades: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum PhenotypeCoeff {
@@ -82,34 +119,34 @@ impl PhenotypeCoeff {
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeDataEntry {
   pub name: String,
   pub weight: f64,
-  pub locations: BTreeMap<usize, PhenotypeCoeff>,
+  pub locations: BTreeMap<AaRefPosition, PhenotypeCoeff>,
 }
 
 impl PhenotypeDataEntry {
-  pub fn get_coeff(&self, pos: usize, aa: Aa) -> f64 {
+  pub fn get_coeff(&self, pos: AaRefPosition, aa: Aa) -> f64 {
     self.locations.get(&pos).map_or(0.0, |location| location.get_coeff(aa))
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeData {
   pub name: String,
   pub name_friendly: String,
   pub description: String,
   pub gene: String,
-  pub aa_range: Range,
+  pub aa_range: AaRefRange,
   #[serde(default)]
   pub ignore: PhenotypeDataIgnore,
   pub data: Vec<PhenotypeDataEntry>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeAttrDesc {
   pub name: String,
@@ -117,7 +154,7 @@ pub struct PhenotypeAttrDesc {
   pub description: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifsDesc {
   pub name: String,
@@ -126,49 +163,37 @@ pub struct AaMotifsDesc {
   pub description: String,
   pub motifs: Vec<String>,
 
-  #[serde(default = "Vec::new")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub include_genes: Vec<CountAaMotifsGeneDesc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CountAaMotifsGeneDesc {
   pub gene: String,
 
-  #[serde(default = "Vec::new")]
-  pub ranges: Vec<Range>,
-}
-
-impl FromStr for VirusProperties {
-  type Err = Report;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let raw = json_parse::<VirusPropertiesRaw>(s)?;
-
-    let mut substitution_label_map = NucLabelMap::new();
-    for (mut_str, labels) in raw.nuc_mut_label_map {
-      let genotype = Genotype::<Nuc>::from_str(&mut_str)?;
-      if !genotype.qry.is_gap() {
-        substitution_label_map.insert(genotype, labels);
-      }
-    }
-
-    Ok(Self {
-      schema_version: raw.schema_version,
-      alignment_params: raw.alignment_params,
-      nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
-      phenotype_data: raw.phenotype_data,
-      aa_motifs: raw.aa_motifs,
-      placement_mask_ranges: raw.placement_mask_ranges,
-    })
-  }
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub ranges: Vec<AaRefRange>,
 }
 
 impl VirusProperties {
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let data =
-      read_file_to_string(filepath).wrap_err_with(|| format!("When reading virus properties file {filepath:#?}"))?;
-    Self::from_str(&data).wrap_err_with(|| format!("When parsing virus properties file {filepath:#?}"))
+      read_file_to_string(filepath).wrap_err_with(|| format!("When reading pathogen.json file: {filepath:#?}"))?;
+    Self::from_str(&data)
+  }
+
+  pub fn from_str(s: &impl AsRef<str>) -> Result<Self, Report> {
+    SchemaVersion::check_warn(
+      s,
+      &SchemaVersionParams {
+        name: "pathogen.json",
+        ver_from: Some(PATHOGEN_JSON_SCHEMA_VERSION_FROM),
+        ver_to: Some(PATHOGEN_JSON_SCHEMA_VERSION_TO),
+      },
+    );
+
+    json_parse::<VirusProperties>(s).wrap_err("When parsing pathogen.json file")
   }
 }

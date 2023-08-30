@@ -3,7 +3,8 @@ use eyre::Report;
 use log::info;
 use nextclade::{getenv, make_internal_error};
 use reqwest::blocking::Client;
-use reqwest::{IntoUrl, Method, Proxy};
+use reqwest::{Method, Proxy};
+use std::str::FromStr;
 use url::Url;
 
 #[derive(Parser, Debug, Default)]
@@ -32,6 +33,10 @@ pub struct HttpClient {
 
 impl HttpClient {
   pub fn new(root: &Url, proxy_conf: &ProxyConfig, verbose: bool) -> Result<Self, Report> {
+    // Append trailing slash to the root URL. Otherwise `Url::join()` replaces the path rather than appending.
+    // See: https://github.com/servo/rust-url/issues/333
+    let root = Url::from_str(&format!("{}/", root.as_str()))?;
+
     let mut client_builder = Client::builder();
 
     client_builder = if let Some(proxy_url) = &proxy_conf.proxy {
@@ -60,40 +65,46 @@ impl HttpClient {
       .user_agent(user_agent)
       .build()?;
 
-    Ok(Self {
-      client,
-      root: root.clone(),
-    })
+    Ok(Self { client, root })
   }
 
-  pub fn get<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
+  pub fn get<U: AsRef<str> + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
     self.request(Method::GET, url)
   }
 
-  pub fn post<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
+  pub fn post<U: AsRef<str> + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
     self.request(Method::POST, url)
   }
 
-  pub fn put<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
+  pub fn put<U: AsRef<str> + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
     self.request(Method::PUT, url)
   }
 
-  pub fn patch<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
+  pub fn patch<U: AsRef<str> + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
     self.request(Method::PATCH, url)
   }
 
-  pub fn delete<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
+  pub fn delete<U: AsRef<str> + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
     self.request(Method::DELETE, url)
   }
 
-  pub fn head<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
+  pub fn head<U: AsRef<str> + ?Sized>(&self, url: &U) -> Result<Vec<u8>, Report> {
     self.request(Method::HEAD, url)
   }
 
-  pub fn request<U: IntoUrl + ?Sized>(&self, method: Method, url: &U) -> Result<Vec<u8>, Report> {
-    let abs_url = self.root.join(url.as_str())?;
+  pub fn request<U: AsRef<str> + ?Sized>(&self, method: Method, url: &U) -> Result<Vec<u8>, Report> {
+    // Trim leading '/', otherwise Url::join() replaces the path rather than appending.
+    // See: https://github.com/servo/rust-url/issues/333
+    let url = url.as_ref().trim_start_matches('/');
+    let abs_url = self.root.join(url)?;
     info!("HTTP '{method}' request to '{abs_url}'");
-    let content = self.client.request(method, abs_url).send()?.bytes()?.to_vec();
+    let content = self
+      .client
+      .request(method, abs_url)
+      .send()?
+      .error_for_status()?
+      .bytes()?
+      .to_vec();
     Ok(content)
   }
 }

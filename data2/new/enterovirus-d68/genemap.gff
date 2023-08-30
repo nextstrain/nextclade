@@ -1,0 +1,24 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ASM281672v1
+#!genome-build-accession NCBI_Assembly:GCF_002816725.1
+##sequence-region NC_038308.1 1 7367
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=42789
+NC_038308.1	RefSeq	region	1	7367	.	+	.	ID=NC_038308.1:1..7367;Dbxref=taxon:42789;country=USA;gb-acronym=EV-D68;gbkey=Src;genome=genomic;mol_type=genomic RNA;note=prototype strain of Enterovirus 68;old-name=Enterovirus 68;strain=Fermon
+NC_038308.1	RefSeq	five_prime_UTR	1	732	.	+	.	ID=id-NC_038308.1:1..732;gbkey=5'UTR
+NC_038308.1	RefSeq	gene	733	7299	.	+	.	ID=gene-D1P33_gp1;Dbxref=GeneID:37616478;Name=D1P33_gp1;gbkey=Gene;gene_biotype=protein_coding;locus_tag=D1P33_gp1
+NC_038308.1	RefSeq	CDS	733	7299	.	+	0	ID=cds-YP_009505605.1;Parent=gene-D1P33_gp1;Dbxref=Genbank:YP_009505605.1,GeneID:37616478;Name=YP_009505605.1;gbkey=CDS;locus_tag=D1P33_gp1;product=polyprotein;protein_id=YP_009505605.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	733	939	.	+	.	ID=id-YP_009505605.1:1..69;Parent=cds-YP_009505605.1;gbkey=Prot;product=VP4 protein;protein_id=YP_009508941.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	940	1683	.	+	.	ID=id-YP_009505605.1:70..317;Parent=cds-YP_009505605.1;gbkey=Prot;product=VP2 protein;protein_id=YP_009508942.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	1684	2388	.	+	.	ID=id-YP_009505605.1:318..552;Parent=cds-YP_009505605.1;gbkey=Prot;product=VP3 protein;protein_id=YP_009508943.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	2389	3315	.	+	.	ID=id-YP_009505605.1:553..861;Parent=cds-YP_009505605.1;gbkey=Prot;product=VP1 protein;protein_id=YP_009508944.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	3316	3756	.	+	.	ID=id-YP_009505605.1:862..1008;Parent=cds-YP_009505605.1;gbkey=Prot;product=2A protein;protein_id=YP_009508945.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	3757	4053	.	+	.	ID=id-YP_009505605.1:1009..1107;Parent=cds-YP_009505605.1;gbkey=Prot;product=2B protein;protein_id=YP_009508946.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	4054	5043	.	+	.	ID=id-YP_009505605.1:1108..1437;Parent=cds-YP_009505605.1;gbkey=Prot;product=2C protein;protein_id=YP_009508947.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	5044	5310	.	+	.	ID=id-YP_009505605.1:1438..1526;Parent=cds-YP_009505605.1;gbkey=Prot;product=3A protein;protein_id=YP_009508948.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	5311	5376	.	+	.	ID=id-YP_009505605.1:1527..1548;Parent=cds-YP_009505605.1;gbkey=Prot;product=3B protein;protein_id=YP_009508949.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	5377	5925	.	+	.	ID=id-YP_009505605.1:1549..1731;Parent=cds-YP_009505605.1;gbkey=Prot;product=3C protein;protein_id=YP_009508950.1
+NC_038308.1	RefSeq	mature_protein_region_of_CDS	5926	7296	.	+	.	ID=id-YP_009505605.1:1732..2188;Parent=cds-YP_009505605.1;gbkey=Prot;product=3D protein;protein_id=YP_009508951.1
+NC_038308.1	RefSeq	three_prime_UTR	7300	7367	.	+	.	ID=id-NC_038308.1:7300..7367;gbkey=3'UTR
+###

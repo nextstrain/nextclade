@@ -1,10 +1,10 @@
+use crate::alphabet::aa::from_aa_seq;
 use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
-use crate::io::aa::from_aa_seq;
+use crate::gene::gene_map::GeneMap;
 use crate::io::compression::Decompressor;
-use crate::io::concat::concat;
+use crate::io::concat::Concat;
 use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};
-use crate::io::gene_map::GeneMap;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::CdsTranslation;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
 use log::{info, trace};
@@ -20,7 +20,7 @@ pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
 }
 
-#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FastaRecord {
   pub seq_name: String,
@@ -59,8 +59,8 @@ impl<'a> FastaReader<'a> {
     }
   }
 
-  pub fn from_str(contents: &'a str) -> Result<Self, Report> {
-    let reader = contents.as_bytes();
+  pub fn from_str(contents: &'a impl AsRef<str>) -> Result<Self, Report> {
+    let reader = contents.as_ref().as_bytes();
     Ok(Self::new(Box::new(reader)))
   }
 
@@ -86,7 +86,7 @@ impl<'a> FastaReader<'a> {
       .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> { open_file_or_stdin(&Some(filepath)) })
       .collect::<Result<Vec<Box<dyn BufRead + 'a>>, Report>>()?;
 
-    let concat = concat(readers.into_iter());
+    let concat = Concat::with_delimiter(readers.into_iter(), Some(b"\n".to_vec()));
     let concat_buf = BufReader::new(concat);
 
     Ok(Self::new(Box::new(concat_buf)))
@@ -157,8 +157,8 @@ pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecor
   Ok(fasta_records)
 }
 
-pub fn read_one_fasta_str(contents: &str) -> Result<FastaRecord, Report> {
-  let mut reader = FastaReader::from_str(contents)?;
+pub fn read_one_fasta_str(contents: impl AsRef<str>) -> Result<FastaRecord, Report> {
+  let mut reader = FastaReader::from_str(&contents)?;
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record)
@@ -216,25 +216,25 @@ impl FastaPeptideWriter {
       .wrap_err_with(|| format!("When parsing template: {output_translations}"))?;
 
     let writers = gene_map
-      .iter()
-      .map(|(gene_name, _)| -> Result<_, Report> {
-        let template_context = OutputTranslationsTemplateContext { gene: gene_name };
+      .iter_cdses()
+      .map(|cds| -> Result<_, Report> {
+        let template_context = OutputTranslationsTemplateContext { gene: &cds.name };
         let rendered_path = tt
           .render("output_translations", &template_context)
           .wrap_err_with(|| format!("When rendering output translations path template: '{output_translations}', using context: {template_context:?}"))?;
         let out_gene_fasta_path = PathBuf::from_str(&rendered_path).wrap_err_with(|| format!("Invalid output translations path: '{rendered_path}'"))?;
         trace!("Creating fasta writer to file {out_gene_fasta_path:#?}");
         let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
-        Ok((gene_name.clone(), writer))
+        Ok((cds.name.clone(), writer))
       })
       .collect::<Result<FastaPeptideWritersMap, Report>>()?;
 
     Ok(Self { writers })
   }
 
-  pub fn write(&mut self, seq_name: &str, translation: &Translation) -> Result<(), Report> {
-    match self.writers.get_mut(&translation.gene_name) {
-      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.gene_name),
+  pub fn write(&mut self, seq_name: &str, translation: &CdsTranslation) -> Result<(), Report> {
+    match self.writers.get_mut(&translation.name) {
+      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.name),
       Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq), false),
     }
   }

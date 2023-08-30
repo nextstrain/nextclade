@@ -1,13 +1,15 @@
+use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
-use crate::io::nuc::Nuc;
+use crate::analyze::nuc_del::NucDel;
+use crate::coord::position::PositionLike;
+use crate::coord::range::Range;
 use crate::qc::qc_config::QcRulesConfigPrivateMutations;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultPrivateMutations {
   pub score: f64,
@@ -72,7 +74,7 @@ pub fn rule_private_mutations(
 /// form of ranges, private nucleotide deletions are listed
 /// individually. We compute the ranges for private deletions here.
 ///
-fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
+fn find_deletion_ranges(dels: &[NucDel]) -> Vec<NucRange> {
   if dels.is_empty() {
     return vec![];
   }
@@ -86,12 +88,12 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
   }
 
   // init current range with length 1 and previous position at the first deletion
-  let mut pos_prev = dels[0].pos as i64;
+  let mut pos_prev = dels[0].pos.as_isize();
   let mut length = 1;
 
   // loop over all subsequent deletions
   for i in 1..n_dels {
-    let pos_curr = dels[i].pos as i64;
+    let pos_curr = dels[i].pos.as_isize();
 
     if pos_curr - pos_prev != 1 {
       // If the current position is not adjacent to the previous,
@@ -100,8 +102,7 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
       let end = dels[i - 1].pos + 1;
 
       ranges.push(NucRange {
-        begin,
-        end,
+        range: Range::new(begin, end),
         letter: Nuc::Gap,
       });
 
@@ -119,8 +120,7 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
   let end = dels[n_dels - 1].pos + 1;
 
   ranges.push(NucRange {
-    begin,
-    end,
+    range: Range::new(begin, end),
     letter: Nuc::Gap,
   });
 

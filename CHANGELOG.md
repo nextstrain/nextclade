@@ -1,3 +1,49 @@
+## Unreleased
+
+### Genome annotation
+
+##### Replace genes with CDSes
+
+Nextclade now treats genes only as containers for CDSes ("CDS" - is [coding sequence](https://en.wikipedia.org/wiki/Coding_region)). CDSes are the main unit of translation and a basis for  AA mutations now. A gene can contain multiple CDSes, but they are handled independently.
+
+##### Handle fragmentation of genetic features.
+
+Handle fragmentation of genetic features. A CDS can consist of multiple fragments. They are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is then translated and the resulting polypeptides are analyzed (mutations are detected etc). This implementation allows to handle slippage and splicing. 
+
+##### Handle circular genomes.
+
+If genome annotation describes a CDS fragment as circular (wrapping around origin), Nextclade splits it into multiple linear (non-wrapping) fragments. The translation and analysis is then performed as if it was a linear genome.
+
+##### Parse regions, genes and CDSes from GFF3 file
+
+The GFF3 file parser has been augmented to support all the types of genetic features necessary for Nextclade to operate. There are many more feature types which Nextclade ignores. We can consider supporting more types as scientific need arises.
+
+##### Add `genemap` and `featuretree` executables
+
+The `featuretree` program reads the GFF3 file and displays how features are arranged hierarchically. The `genemap` program is similar, but displays only the features relevant for Nextclade, plus some more numbers.
+
+##### Genome annotation widget in Nextclade Web
+
+Genome annotations widget in Nextclade Web now shows CDS fragments instead of genes.
+
+##### CDS selector widget in Nextclade Web
+
+Gene selector dropdown in Nextclade Web has been transformed into a more general genetic feature selector. It shows hierarchy of genetic features if there's any nested features. Otherwise the list is flat, to save screen space. It shows types of each of the genetic feature (gene, CDS or protein) as colorful badges. The menu is searchable, which is useful for mpx and other large viruses. Only CDSes can be selected currently, but we may extend this in the future to more feature types.
+
+
+### Internal improvements
+
+#### Ensure type safety across programming language boundaries
+
+The new features caused change in major internal data structures and made them more complex. We now generate JSON schema and Typescript typings from Rust code. This allows to find mismatches between parts written in different languages, and to avoid bugs related to data types.
+
+#### Make positions and ranges in different coord spaces type-safe
+
+The change in genome annotation handling had significant consequences for coordinate spaces Nextclade is using internally (e.g. alignment space vs reference space, nuc space vs aa space, global nuc space vs nuc space local to a CDS). In order to make coordinate transforms safer, we introduced new `Position` and `Range` types, different for each space. This prevents mixing up coordinates in different spaces.
+
+
+
+
 ## Nextclade Web 2.14.1 (2023-05-11)
 
 This is a small bugfix release for Nextclade Web.

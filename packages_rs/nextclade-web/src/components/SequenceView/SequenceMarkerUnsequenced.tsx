@@ -3,6 +3,7 @@ import React, { memo, PropsWithChildren, SVGProps, useCallback, useMemo, useStat
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
 
+import type { Range } from 'src/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
@@ -98,7 +99,8 @@ export const SequenceMarkerUnsequencedStart = memo(
 
     return (
       <SequenceMarker id={id} begin={begin} end={end} pixelsPerBase={pixelsPerBase}>
-        {t('Not sequenced: {{range}}', { range: formatRange(begin, end) })}
+        {/* eslint-disable-next-line sonarjs/no-duplicate-string */}
+        {t('Not sequenced: {{range}}', { range: formatRange({ begin, end }) })}
       </SequenceMarker>
     )
   },
@@ -129,8 +131,25 @@ export const SequenceMarkerUnsequencedEnd = memo(
 
     return (
       <SequenceMarker id={id} begin={begin} end={end} pixelsPerBase={pixelsPerBase}>
-        {t('Not sequenced: {{range}}', { range: formatRange(begin, end) })}
+        {t('Not sequenced: {{range}}', { range: formatRange({ begin, end }) })}
       </SequenceMarker>
     )
   },
 )
+
+export interface SequenceMarkerUnsequencedProps {
+  index: number
+  seqName: string
+  range: Range
+  pixelsPerBase: number
+}
+
+export function SequenceMarkerUnsequenced({ index, seqName, range, pixelsPerBase }: SequenceMarkerUnsequencedProps) {
+  const { t } = useTranslation()
+  const id = getSafeId('sequence-marker-unsequenced-end', { index, seqName, ...range })
+  return (
+    <SequenceMarker id={id} begin={range.begin} end={range.end} pixelsPerBase={pixelsPerBase}>
+      {t('Not sequenced: {{range}}', { range: formatRange(range) })}
+    </SequenceMarker>
+  )
+}

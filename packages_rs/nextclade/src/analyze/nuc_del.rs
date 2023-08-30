@@ -1,62 +1,93 @@
+use crate::alphabet::nuc::Nuc;
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_sub::NucSub;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
-use crate::utils::range::Range;
-use eyre::Report;
+use crate::coord::position::NucRefGlobalPosition;
+use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct NucDelRange {
+  range: NucRefGlobalRange,
+}
+
+impl NucDelRange {
+  pub fn new(begin: NucRefGlobalPosition, end: NucRefGlobalPosition) -> Self {
+    Self {
+      range: NucRefGlobalRange::new(begin, end),
+    }
+  }
+
+  pub fn from_usize(begin: usize, end: usize) -> Self {
+    Self {
+      range: NucRefGlobalRange::from_usize(begin, end),
+    }
+  }
+
+  #[inline]
+  pub fn len(&self) -> usize {
+    self.range.len()
+  }
+
+  #[inline]
+  pub fn is_empty(&self) -> bool {
+    self.range.is_empty()
+  }
+
+  #[inline]
+  pub const fn range(&self) -> &NucRefGlobalRange {
+    &self.range
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
+#[serde(rename_all = "camelCase")]
 pub struct NucDel {
-  pub start: usize,
-  pub length: usize,
+  pub pos: NucRefGlobalPosition,
+  pub ref_nuc: Nuc,
+}
+
+impl AbstractMutation<NucRefGlobalPosition, Nuc> for NucDel {
+  fn clone_with(&self, params: MutParams<NucRefGlobalPosition, Nuc>) -> Self {
+    Self {
+      pos: params.pos,
+      ref_nuc: params.ref_letter,
+    }
+  }
+}
+
+impl QryLetter<Nuc> for NucDel {
+  fn qry_letter(&self) -> Nuc {
+    Nuc::Gap
+  }
+}
+
+impl RefLetter<Nuc> for NucDel {
+  fn ref_letter(&self) -> Nuc {
+    self.ref_nuc
+  }
+}
+
+impl Pos<NucRefGlobalPosition> for NucDel {
+  fn pos(&self) -> NucRefGlobalPosition {
+    self.pos
+  }
 }
 
 impl NucDel {
-  #[inline]
-  pub const fn end(&self) -> usize {
-    self.start + self.length
-  }
-
-  #[inline]
-  pub const fn to_range(&self) -> Range {
-    Range {
-      begin: self.start,
-      end: self.end(),
-    }
-  }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NucDelMinimal {
-  #[serde(rename = "ref")]
-  pub reff: Nuc,
-  pub pos: usize,
-}
-
-impl NucDelMinimal {
-  /// Converts deletion to substitution to Gap
-  #[inline]
   pub const fn to_sub(&self) -> NucSub {
     NucSub {
-      reff: self.reff,
+      ref_nuc: self.ref_nuc,
       pos: self.pos,
-      qry: Nuc::Gap,
+      qry_nuc: Nuc::Gap,
     }
   }
 }
 
-/// Order deletions by position, then ref character
-impl Ord for NucDelMinimal {
-  fn cmp(&self, other: &Self) -> Ordering {
-    (self.pos, self.reff).cmp(&(other.pos, other.reff))
-  }
-}
-
-impl PartialOrd for NucDelMinimal {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
+impl Display for NucDel {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    self.to_sub().fmt(f)
   }
 }

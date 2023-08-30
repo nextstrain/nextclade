@@ -10,28 +10,23 @@
 @import './auspice';
 
 @import './components/LanguageSwitcher';
-@import './components/NavigationBar';
 @import './components/Results';
 
-html,
-body {
+html, body, #__next {
+  overflow: hidden;
   height: 100%;
-}
-
-html {
-  overflow-y: auto;
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 body {
   background-color: $body-bg;
 }
 
-#__next {
-  height: 100%;
-}
-
 .progress {
   @include box-shadow(none);
+
   .progress-bar {
     font-size: 8px;
     line-height: 8px;
@@ -88,6 +83,7 @@ body {
 .hide-native-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
+
   &::-webkit-scrollbar {
     display: none;
   }

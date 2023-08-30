@@ -1,0 +1,14 @@
+##gff-version 3
+##sequence-region EPI_ISL_1653999 1 15222
+EPI_ISL_1653999	feature	source	1	15222	.	.	.	mol_type=viral cRNA;organism=Human respiratory syncytial virus B
+EPI_ISL_1653999	feature	gene	57	476	.	.	0	codon_start=1;gene_name=NS1;product=nonstructural protein 1;protein_id=QPB74302.1
+EPI_ISL_1653999	feature	gene	584	958	.	.	0	codon_start=1;gene_name=NS2;product=nonstructural protein 2;protein_id=QPB74303.1
+EPI_ISL_1653999	feature	gene	1097	2272	.	.	0	codon_start=1;gene_name=N;product=nucleocapsid protein;protein_id=QPB74304.1
+EPI_ISL_1653999	feature	gene	2305	3030	.	.	0	codon_start=1;gene_name=P;product=phosphoprotein;protein_id=QPB74305.1
+EPI_ISL_1653999	feature	gene	3220	3990	.	.	0	codon_start=1;gene_name=M;product=matrix protein;protein_id=QPB74306.1
+EPI_ISL_1653999	feature	gene	4259	4456	.	.	0	codon_start=1;gene_name=SH;product=small hydrophobic protein;protein_id=QPB74307.1
+EPI_ISL_1653999	feature	gene	4646	5578	.	.	0	codon_start=1;gene_name=G;product=attachment glycoprotein;protein_id=QPB74308.1
+EPI_ISL_1653999	feature	gene	5676	7400	.	.	0	codon_start=1;gene_name=F;product=fusion glycoprotein;protein_id=QPB74309.1
+EPI_ISL_1653999	feature	gene	7627	8214	.	.	0	codon_start=1;gene_name=M2-1;product=transcription elongation factor M2-1;protein_id=QPB74310.1
+EPI_ISL_1653999	feature	gene	8180	8452	.	.	0	codon_start=1;gene_name=M2-2;product=transcription elongation factor M2-2;protein_id=QPB74311.1
+EPI_ISL_1653999	feature	gene	8518	15018	.	.	0	codon_start=1;gene_name=L;product=RNA-directed RNA polymerase L;protein_id=QPB74312.1

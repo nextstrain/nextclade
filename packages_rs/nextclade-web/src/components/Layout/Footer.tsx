@@ -1,29 +1,27 @@
 import React from 'react'
-
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
-import { Col, Container, Row } from 'reactstrap'
+import { Col, Row } from 'reactstrap'
 import styled from 'styled-components'
-
 import { PROJECT_NAME, COMPANY_NAME } from 'src/constants'
 import { getCopyrightYearRange } from 'src/helpers/getCopyrightYearRange'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { getVersionString } from 'src/helpers/getVersionString'
-
 import LogoBedfordlab from 'src/assets/img/bedfordlab.svg'
 import LogoBiozentrum from 'src/assets/img/biozentrum_square.svg'
 import LogoSib from 'src/assets/img/sib.logo.svg'
 import LogoFredHutch from 'src/assets/img/fred_hutch.svg'
 import LogoNeherlab from 'src/assets/img/neherlab.svg'
-// impoas from from 'src/assets/img/nextstrain_logo.svg'
-// impoas from from 'src/assets/img/unibas.svg'
 import LogoVercel from 'src/assets/img/powered-by-vercel.svg'
 
-const FooterContainer = styled(Container)`
-  background-color: #2a2a2a;
-  color: #c4cdd5;
+const Container = styled.footer`
+  height: 38px;
+  width: 100%;
+  bottom: 0;
   padding: 6px 10px;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
+  box-shadow: ${(props) => props.theme.shadows.large};
+  z-index: 1000;
+  background-color: ${(props) => props.theme.white};
+  opacity: 1;
 `
 
 const CopyrightText = styled.div`
@@ -76,12 +74,12 @@ const VersionText = styled.div`
   }
 `
 
-export default function Footer() {
+export function Footer() {
   const { t } = useTranslation()
   const copyrightYearRange = getCopyrightYearRange()
 
   return (
-    <FooterContainer fluid tag="footer">
+    <Container>
       <Row noGutters>
         <Col className="d-flex">
           <CopyrightText className="mr-auto my-auto">
@@ -121,6 +119,6 @@ export default function Footer() {
           <VersionText className="ml-auto my-auto">{getVersionString()}</VersionText>
         </Col>
       </Row>
-    </FooterContainer>
+    </Container>
   )
 }

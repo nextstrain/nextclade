@@ -1,4 +1,4 @@
-use crate::io::nuc::Nuc;
+use crate::alphabet::nuc::Nuc;
 
 const NUM_COLS: usize = 16;
 const SCORING_MATRIX_NUC_SIZE: usize = NUM_COLS * NUM_COLS;

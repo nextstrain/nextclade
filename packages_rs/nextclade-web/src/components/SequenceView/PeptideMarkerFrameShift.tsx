@@ -8,7 +8,9 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { geneMapAtom } from 'src/state/results.state'
+import { cdsAtom } from 'src/state/results.state'
+import { sumBy } from 'lodash'
+import { rangeLen } from 'src/types'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
@@ -35,23 +37,21 @@ function PeptideMarkerFrameShiftUnmemoed({
   const { geneName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
   const id = getSafeId('frame-shift-aa-marker', { index, seqName, ...frameShift })
 
-  const geneMap = useRecoilValue(geneMapAtom)
-
-  const gene = geneMap.find((gene) => geneName === gene.geneName)
-  if (!gene) {
+  const cds = useRecoilValue(cdsAtom(geneName))
+  if (!cds) {
     return null
   }
 
-  const nucLength = nucAbs.end - nucAbs.begin
-  const codonLength = codon.end - codon.begin
+  const nucLength = sumBy(nucAbs, (nucAbs) => nucAbs.end - nucAbs.begin)
+  const codonLength = rangeLen(codon)
 
   let width = codonLength * pixelsPerAa
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfAa = Math.max(pixelsPerAa, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first AA
   const x = codon.begin * pixelsPerAa - halfAa
 
-  const codonRangeStr = formatRange(codon.begin, codon.end)
-  const nucRangeStr = formatRange(nucAbs.begin, nucAbs.end)
+  const codonRangeStr = formatRange(codon)
+  const nucRangeStr = nucAbs.map((nucAbs) => formatRange(nucAbs)).join(', ')
 
   return (
     <g id={id}>
@@ -110,12 +110,12 @@ function PeptideMarkerFrameShiftUnmemoed({
 
               <tr>
                 <td>{t('Leading deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsLeading.codon.begin, gapsLeading.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsLeading)}</td>
               </tr>
 
               <tr>
                 <td>{t('Trailing deleted codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsTrailing.codon.begin, gapsTrailing.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsTrailing)}</td>
               </tr>
             </tbody>
           </TableSlim>

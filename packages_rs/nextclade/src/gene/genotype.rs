@@ -1,22 +1,53 @@
-use crate::io::letter::Letter;
+use crate::alphabet::letter::Letter;
+use crate::coord::position::NucRefGlobalPosition;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
-use crate::utils::error::to_eyre_error;
 use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::de::Error;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
+use std::str;
 use std::str::FromStr;
 
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
 /// Represents a mutation without reference character known
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Genotype<L: Letter<L>> {
-  pub pos: usize,
+  pub pos: NucRefGlobalPosition,
   pub qry: L,
+}
+
+impl<L: Letter<L>> Display for Genotype<L> {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}{}", self.pos + 1, self.qry)
+  }
+}
+
+impl<'de, L> Deserialize<'de> for Genotype<L>
+where
+  L: Letter<L>,
+{
+  fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let s = String::deserialize(deserializer)?;
+    Genotype::from_str(&s).map_err(Error::custom)
+  }
+}
+
+impl<L> Serialize for Genotype<L>
+where
+  L: Letter<L>,
+{
+  fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
+  where
+    Ser: Serializer,
+  {
+    serializer.serialize_str(&self.to_string())
+  }
 }
 
 impl<L: Letter<L>> FromStr for Genotype<L> {
@@ -32,7 +63,7 @@ impl<L: Letter<L>> FromStr for Genotype<L> {
     if let Some(captures) = RE.captures(s) {
       return match (captures.name("pos"), captures.name("qry")) {
         (Some(pos), Some(qry)) => {
-          let pos = parse_pos(pos.as_str())?;
+          let pos = parse_pos(pos.as_str())?.into();
           let qry = L::from_string(qry.as_str())?;
           Ok(Self { pos, qry })
         }
@@ -57,7 +88,7 @@ impl<L: Letter<L>> PartialOrd for Genotype<L> {
 }
 
 /// Maps a list of labels to a mutation
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GenotypeLabeled<L: Letter<L>> {
   pub genotype: Genotype<L>,
