@@ -7,113 +7,217 @@ trap "exit 0" INT
 # https://en.wikipedia.org/wiki/Smoke_testing_(software)
 #
 # Dependencies:
-#   sudo apt-get install -y bash curl parallel
-#   mkdir -p "${HOME}/bin"
-#   export PATH="${HOME}/bin:${PATH}"
-#   curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+#   sudo apt-get install -y bash parallel
+#
+# Usage (NOTE: you must build and re-build Nextclade executable yourself, this script does not do that):
+#
+# 1. Download datasets from the default dataset server and run tests with a given nextclade executable:
+#
+#     ./tests/run-smoke-tests 'target/release/nextclade'
+#
+# 2. Run tests with a given nextclade executable and a directory containing datasets. Dataset directories are
+#    identified as directories containing a `pathogen.json` file.
+#
+#     ./tests/run-smoke-tests 'target/release/nextclade' '.../nextclade_data/data_output'
+#
+# The downloaded datasets will be in $DATASETS_DIR and Nextclade output files will be in $RESULTS_DIR (see below)
 
-export NEXTCLADE_BIN="${1:? "Usage: ${0} path_to_nextclade"}"
-export NEXTCLADE_BIN
+export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade> [path_to_dataset_collection_dir]"}"
+export INPUT_DATASETS_DIR="${2:-}"
 
-THIS_DIR=$(
+export THIS_DIR=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd
 )
-export THIS_DIR
 
-export DATASET_DIR="$THIS_DIR/../tmp/smoke-tests/dataset"
-export OUT_DIR="$THIS_DIR/../tmp/smoke-tests/result"
+export DATASETS_DIR="${THIS_DIR}/../tmp/smoke-tests/dataset"
+export RESULTS_DIR="${THIS_DIR}/../tmp/smoke-tests/result"
 
-export dataset_names_and_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";" + .attributes.reference.value' | sort | uniq)
-export dataset_names_without_refs=$(${NEXTCLADE_BIN} dataset list --json | jq -r '.[] | select(.attributes.tag.isDefault==true) |  .attributes.name.value + ";"' | sort | uniq)
-export all_datasets="${dataset_names_and_refs} ${dataset_names_without_refs}"
-export num_datasets=$(echo "${all_datasets}" | wc -l)
-export JOBS="${JOBS:=${num_datasets}}"
 
-function run_one_test() {
-  name_and_ref=$1
+function run_with_dataset_dir() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${RESULTS_DIR}/${name}/with_dataset"
 
-  # shellcheck disable=SC2206
-  arr=(${name_and_ref//;/ })
-  name="${arr[0]}"
-  reference="${arr[1]}"
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-dataset="${dataset_dir}" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_dataset_dir
+
+
+function run_with_dataset_zip() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${RESULTS_DIR}/${name}/with_dataset_zip"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-dataset="${dataset_dir}/dataset.zip" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_dataset_zip
+
+
+function run_with_ref_only() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${RESULTS_DIR}/${name}/with_ref_only"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_only
+
+
+function run_with_ref_and_annotation() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation"
+
+  if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --input-annotation="${dataset_dir}/genome_annotation.gff3" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_and_annotation
+
+
+function run_with_ref_and_tree() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${RESULTS_DIR}/${name}/with_ref_and_tree"
+
+  if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --input-tree="${dataset_dir}/tree.json" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_and_tree
+
+
+function run_with_ref_and_annotation_and_tree() {
+  name="${1}"
+  dataset_dir="${2}"
+  sequences="${3}"
+  out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation_and_tree"
+
+  if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
+  if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --input-ref="${dataset_dir}/reference.fasta" \
+    --input-annotation="${dataset_dir}/genome_annotation.gff3" \
+    --input-tree="${dataset_dir}/tree.json" \
+    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_ref_and_annotation_and_tree
+
+
+function run_single_dataset() {
+  dataset_dir=$1
+  name="$(realpath --relative-to="$INPUT_DATASETS_DIR" "$dataset_dir")"
+
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" =~ nextstrain/vic_na* ]]; then
+    return
+  fi
 
   # This dataset is crashing, due to a defect in the dataset
-  if [ "$name" == "sars-cov-2-21L" ]; then
+  if [[ "$name" =~ nextstrain/sars-cov-2-21L* ]]; then
     return
   fi
 
-  # Temporarily disable default reference
-  if [ -z "$reference" ]; then
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
     return
   fi
 
-  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'"
-
-  ${NEXTCLADE_BIN} dataset get --name="${name}" ${reference:+--reference "${reference}"} --output-dir="$DATASET_DIR/${name}_${reference:-default}"
-
-  ${NEXTCLADE_BIN} run --in-order --include-reference \
-    --input-dataset="$DATASET_DIR/${name}_${reference:-default}" \
-    --output-translations="$OUT_DIR/${name}_${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/${name}_${reference:-default}/aligned.fasta" \
-    --output-tsv="$OUT_DIR/${name}_${reference:-default}/nextclade.tsv" \
-    --output-tree="$OUT_DIR/${name}_${reference:-default}/tree.json" \
-    --output-graph="$OUT_DIR/${name}_${reference:-default}/graph.json" \
-    "$DATASET_DIR/${name}_${reference:-default}/sequences.fasta"
-}
-export -f run_one_test
-
-function run_many_tests() {
-  parallel --keep-order --jobs=+0 run_one_test ::: "${all_datasets}"
-}
-export -f run_many_tests
-
-
-
-
-# Additional experimental datasets. This should probably be removed after release of this branch.
-export DATASET_DIR_EXPERIMENTAL="$THIS_DIR/../test_datasets"
-export all_experimental_datasets="$(ls "${DATASET_DIR_EXPERIMENTAL}")"
-
-function run_one_experimental_test() {
-  name=$1
-  reference="default"
-
-  # This dataset is crashing, probably due to defective or unsupported features
-  if [ "$name" == "vic_na" ]; then
-    return
-  fi
-  # this isn't actually a dataset
-  if [ "$name" == "seed_matching" ]; then
-    return
-  fi
-
-  sequences="${DATASET_DIR_EXPERIMENTAL}/${name}/files/sequences.fasta"
+  sequences="$dataset_dir/sequences.fasta"
   msg_no_sequences=""
   if [ ! -f "${sequences}" ]; then
-    sequences="${DATASET_DIR_EXPERIMENTAL}/${name}/files/reference.fasta"
+    sequences="$dataset_dir/reference.fasta"
     msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
   fi
 
-  echo "Running '${NEXTCLADE_BIN}' for '${name}' with reference '${reference:-default}'${msg_no_sequences}"
+  echo "Running '${NEXTCLADE_BIN}' for '${name}'${msg_no_sequences}"
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
-    --input-dataset="${DATASET_DIR_EXPERIMENTAL}/${name}/files" \
-    --output-translations="$OUT_DIR/${name}_${reference:-default}/translations/gene_{gene}.translation.fasta" \
-    --output-fasta="$OUT_DIR/${name}_${reference:-default}/aligned.fasta" \
-    --output-tsv="$OUT_DIR/${name}_${reference:-default}/nextclade.tsv" \
-    --output-tree="$OUT_DIR/${name}_${reference:-default}/tree.json" \
-    --output-graph="$OUT_DIR/${name}_${reference:-default}/graph.json" \
-    "${sequences}"
+  run_with_dataset_dir                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_dataset_zip                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_only                       "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation             "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_tree                   "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation_and_tree    "${name}" "${dataset_dir}" "${sequences}"
 }
-export -f run_one_experimental_test
+export -f run_single_dataset
 
-function run_many_experimental_tests() {
-  parallel --keep-order --jobs=+0 run_one_experimental_test ::: "${all_experimental_datasets}"
+
+function download_and_run_single_dataset() {
+  name=$1
+  dataset_dir="${DATASETS_DIR}/${name}"
+
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" =~ nextstrain/vic_na* ]]; then
+    return
+  fi
+
+  # This dataset is crashing, due to a defect in the dataset
+  if [[ "$name" =~ nextstrain/sars-cov-2-21L* ]]; then
+    return
+  fi
+
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
+    return
+  fi
+
+  ${NEXTCLADE_BIN} dataset get --name="${name}" --output-dir="$dataset_dir"
+
+  ${NEXTCLADE_BIN} dataset get --name="${name}" --output-zip="$dataset_dir/dataset.zip"
+
+  sequences="$dataset_dir/sequences.fasta"
+  msg_no_sequences=""
+  if [ ! -f "${sequences}" ]; then
+    sequences="$dataset_dir/reference.fasta"
+    msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
+  fi
+
+  echo "Running '${NEXTCLADE_BIN}' for '${name}'${msg_no_sequences}"
+
+  run_with_dataset_dir                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_dataset_zip                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_only                       "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation             "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_tree                   "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation_and_tree    "${name}" "${dataset_dir}" "${sequences}"
 }
-export -f run_many_experimental_tests
+export -f download_and_run_single_dataset
 
 
-
-parallel --ungroup --keep-order --jobs=2 ::: run_many_tests run_many_experimental_tests
-
+if [ -z "${INPUT_DATASETS_DIR}" ]; then
+  export all_datasets=$(${NEXTCLADE_BIN} dataset list --include-experimental --include-community --include-deprecated --only-names)
+  parallel --keep-order --jobs=+0 download_and_run_single_dataset ::: "${all_datasets}"
+else
+  find "${INPUT_DATASETS_DIR}" -iname "pathogen.json" -exec dirname '{}' \; |  parallel --keep-order --jobs=+0 run_single_dataset
+fi
