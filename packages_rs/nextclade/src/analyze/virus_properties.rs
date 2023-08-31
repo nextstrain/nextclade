@@ -5,7 +5,7 @@ use crate::analyze::pcr_primer_changes::PcrPrimer;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
-use crate::io::dataset::{DatasetAttributes, DatasetFiles, DatasetVersion};
+use crate::io::dataset::{DatasetAttributes, DatasetCompatibility, DatasetFiles, DatasetVersion};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
@@ -71,6 +71,9 @@ pub struct VirusProperties {
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub version: Option<DatasetVersion>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub compatibility: Option<DatasetCompatibility>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

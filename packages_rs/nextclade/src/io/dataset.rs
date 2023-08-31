@@ -5,6 +5,7 @@ use eyre::Report;
 use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
 const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
@@ -95,9 +96,12 @@ impl Dataset {
     [&self.root_path(), filename.as_ref()].iter().join("/")
   }
 
-  pub const fn is_compatible(&self, _nextclade_version: &str) -> bool {
-    // FIXME
-    true
+  pub fn is_cli_compatible(&self, cli_version: impl AsRef<str>) -> bool {
+    self
+      .version
+      .compatibility
+      .as_ref()
+      .map_or(true, |compat| compat.is_cli_compatible(cli_version))
   }
 
   pub fn is_deprecated(&self) -> bool {
@@ -121,22 +125,50 @@ impl Dataset {
   }
 
   pub fn is_latest(&self) -> bool {
+    if self.version.tag == "unreleased" || self.version.tag == "latest" {
+      return true;
+    }
     self.versions.iter().sorted().next() == Some(&self.version)
   }
 
   pub fn is_tag(&self, tag: impl AsRef<str>) -> bool {
     let tag = tag.as_ref();
-    self.version.tag == tag || (self.version.tag == "unreleased" && tag == "latest")
+    self.version.tag == tag
+      || (self.version.tag == "unreleased" && tag == "latest")
+      || (self.version.tag == "latest" && tag == "unreleased")
   }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetVersion {
   pub tag: String,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub updated_at: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub compatibility: Option<DatasetCompatibility>,
+}
+
+impl Eq for DatasetVersion {}
+
+impl PartialEq<Self> for DatasetVersion {
+  fn eq(&self, other: &Self) -> bool {
+    (self.tag).eq(&other.tag)
+  }
+}
+
+impl Ord for DatasetVersion {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.tag).cmp(&other.tag)
+  }
+}
+
+impl PartialOrd<Self> for DatasetVersion {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    (self.tag).partial_cmp(&other.tag)
+  }
 }
 
 impl DatasetVersion {
@@ -150,7 +182,24 @@ impl Default for DatasetVersion {
     Self {
       tag: o!("unreleased"),
       updated_at: None,
+      compatibility: None,
     }
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetCompatibility {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  cli: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  web: Option<String>,
+}
+
+impl DatasetCompatibility {
+  pub fn is_cli_compatible(&self, cli_version: impl AsRef<str>) -> bool {
+    self.cli.as_ref().map_or(true, |cli| cli_version.as_ref() >= cli)
   }
 }
 

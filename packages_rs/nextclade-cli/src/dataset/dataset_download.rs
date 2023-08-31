@@ -260,6 +260,7 @@ pub fn dataset_individual_files_load(
             aa_motifs: vec![],
             versions: vec![],
             version: None,
+            compatibility: None,
             other: serde_json::Value::default(),
           }
         });

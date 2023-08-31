@@ -50,7 +50,7 @@ pub fn nextclade_dataset_list(
       if let Some(tag) = tag.as_ref() {
         dataset.is_tag(tag)
       } else {
-        let is_compatible = include_incompatible || dataset.is_compatible(THIS_VERSION);
+        let is_compatible = include_incompatible || dataset.is_cli_compatible(THIS_VERSION);
         let is_not_deprecated = include_deprecated || !dataset.is_deprecated();
         let is_not_experimental = include_experimental || !dataset.is_experimental();
         let is_not_community = include_community || !dataset.is_community();

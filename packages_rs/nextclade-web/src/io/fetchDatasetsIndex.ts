@@ -1,22 +1,19 @@
 import { head, mapValues, sortBy, sortedUniq } from 'lodash'
-// import semver from 'semver'
+import semver from 'semver'
 import urljoin from 'url-join'
 
 import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-// const thisVersion = process.env.PACKAGE_VERSION ?? ''
+const thisVersion = process.env.PACKAGE_VERSION ?? ''
 
 export function isEnabled(dataset: Dataset) {
   return dataset.enabled
 }
 
-export function isCompatible(_dataset: Dataset): boolean {
-  // const { min, max } = dataset.compatibility.nextcladeWeb
-  // return semver.gte(thisVersion, min ?? thisVersion) && semver.lte(thisVersion, max ?? thisVersion)
-
-  // FIXME
-  return true
+export function isCompatible(dataset: Dataset): boolean {
+  const minVersion = dataset.version?.compatibility?.web ?? thisVersion
+  return semver.gte(thisVersion, minVersion) && semver.lte(thisVersion, minVersion)
 }
 
 export function isLatest(dataset: Dataset): boolean {
