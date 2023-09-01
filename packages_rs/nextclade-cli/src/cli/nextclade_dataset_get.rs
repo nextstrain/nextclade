@@ -92,7 +92,7 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Opti
     }
   }?;
 
-  if !dataset.is_cli_compatible(&this_package_version()) {
+  if !dataset.is_cli_compatible(this_package_version()) {
     warn!(
       "The requested dataset '{}' with version tag '{}' is not compatible with this version of Nextclade ({}). This may cause errors and unexpected results. Please try to upgrade your Nextclade version and/or report this to dataset authors.",
       dataset.path,
