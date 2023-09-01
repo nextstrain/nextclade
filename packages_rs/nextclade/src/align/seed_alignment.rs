@@ -227,7 +227,6 @@ pub fn create_alignment_band(
   // post: deal with the terminal trapezoid and allow of terminal bandwidth
 
   let mut bands = Vec::<TrapezoidDirectParams>::with_capacity(2 * chain.len() + 2);
-
   // make initial trapezoid starting at 0 and extending into match by terminal_bandwidth
   let mut current_seed = &chain[0];
   let mut look_back_length = terminal_bandwidth;
@@ -265,8 +264,8 @@ pub fn create_alignment_band(
     current_band = TrapezoidDirectParams {
       ref_start: current_ref_end,
       ref_end: next_seed.ref_pos as isize + look_forward_length,
-      min_offset: mean_offset - look_back_length - excess_bandwidth,
-      max_offset: mean_offset + look_back_length + excess_bandwidth,
+      min_offset: mean_offset - max(look_back_length, excess_bandwidth),
+      max_offset: mean_offset + max(look_back_length, excess_bandwidth),
     };
     current_seed = next_seed;
   }
