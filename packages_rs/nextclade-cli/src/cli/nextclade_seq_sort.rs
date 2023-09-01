@@ -7,6 +7,7 @@ use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchResult};
+use nextclade::utils::string::truncate;
 
 #[derive(Debug, Clone)]
 struct MinimizerSearchRecord {
@@ -80,7 +81,7 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
         for fasta_record in &fasta_receiver {
           info!("Processing sequence '{}'", fasta_record.seq_name);
 
-          let result = run_minimizer_search(&fasta_record)
+          let result = run_minimizer_search(&fasta_record, minimizer_index)
             .wrap_err_with(|| {
               format!(
                 "When processing sequence #{} '{}'",
@@ -100,8 +101,15 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
     }
 
     let writer = s.spawn(move || {
+      println!("{:40} | {:10} | {:10}", "Seq. name", "total hits", "max hit");
       for record in result_receiver {
-        println!("{}", &record.fasta_record.seq_name);
+        println!(
+          "{:40} | {:40} | {:>10} | {:>.3}",
+          &truncate(record.fasta_record.seq_name, 40),
+          &truncate(record.result.dataset.unwrap_or_default(), 40),
+          &record.result.total_hits,
+          &record.result.max_normalized_hit
+        );
       }
     });
   });
