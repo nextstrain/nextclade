@@ -14,6 +14,7 @@ use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;
 use crate::utils::boolean::{bool_false, bool_true};
 use eyre::{Report, WrapErr};
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -198,5 +199,12 @@ impl VirusProperties {
     );
 
     json_parse::<VirusProperties>(s).wrap_err("When parsing pathogen.json file")
+  }
+
+  pub fn is_cli_compatible(&self, current_cli_version: &Version) -> bool {
+    self
+      .compatibility
+      .as_ref()
+      .map_or(true, |compat| compat.is_cli_compatible(current_cli_version))
   }
 }

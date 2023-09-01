@@ -7,9 +7,8 @@ use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::json::{json_stringify, JsonPretty};
-use nextclade::{getenv, make_error};
-
-const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
+use nextclade::make_error;
+use nextclade::utils::info::this_package_version;
 
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
@@ -50,7 +49,7 @@ pub fn nextclade_dataset_list(
       if let Some(tag) = tag.as_ref() {
         dataset.is_tag(tag)
       } else {
-        let is_compatible = include_incompatible || dataset.is_cli_compatible(THIS_VERSION);
+        let is_compatible = include_incompatible || dataset.is_cli_compatible(&this_package_version());
         let is_not_deprecated = include_deprecated || !dataset.is_deprecated();
         let is_not_experimental = include_experimental || !dataset.is_experimental();
         let is_not_community = include_community || !dataset.is_community();

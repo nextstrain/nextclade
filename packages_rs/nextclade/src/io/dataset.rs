@@ -4,6 +4,7 @@ use crate::o;
 use eyre::Report;
 use itertools::Itertools;
 use schemars::JsonSchema;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
@@ -96,7 +97,7 @@ impl Dataset {
     [&self.root_path(), filename.as_ref()].iter().join("/")
   }
 
-  pub fn is_cli_compatible(&self, cli_version: impl AsRef<str>) -> bool {
+  pub fn is_cli_compatible(&self, cli_version: &Version) -> bool {
     self
       .version
       .compatibility
@@ -191,15 +192,20 @@ impl Default for DatasetVersion {
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCompatibility {
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  cli: Option<String>,
+  #[schemars(with = "String")]
+  pub cli: Option<Version>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  web: Option<String>,
+  #[schemars(with = "String")]
+  pub web: Option<Version>,
 }
 
 impl DatasetCompatibility {
-  pub fn is_cli_compatible(&self, cli_version: impl AsRef<str>) -> bool {
-    self.cli.as_ref().map_or(true, |cli| cli_version.as_ref() >= cli)
+  pub fn is_cli_compatible(&self, cli_version: &Version) -> bool {
+    self
+      .cli
+      .as_ref()
+      .map_or(true, |min_cli_version| cli_version >= min_cli_version)
   }
 }
 

@@ -5,10 +5,9 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{warn, LevelFilter};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
+use nextclade::utils::info::{this_package_version, this_package_version_str};
 use nextclade::utils::string::find_similar_strings;
-use nextclade::{getenv, make_error, make_internal_error};
-
-const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
+use nextclade::{make_error, make_internal_error};
 
 pub struct DatasetHttpGetParams<'s> {
   pub name: &'s str,
@@ -93,12 +92,12 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Opti
     }
   }?;
 
-  if !dataset.is_cli_compatible(THIS_VERSION) {
+  if !dataset.is_cli_compatible(&this_package_version()) {
     warn!(
       "The requested dataset '{}' with version tag '{}' is not compatible with this version of Nextclade ({}). This may cause errors and unexpected results. Please try to upgrade your Nextclade version and/or report this to dataset authors.",
       dataset.path,
       dataset.tag(),
-      THIS_VERSION
+      this_package_version_str()
     );
   }
 

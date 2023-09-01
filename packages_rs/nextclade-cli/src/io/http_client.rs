@@ -1,7 +1,8 @@
 use clap::{Parser, ValueHint};
 use eyre::Report;
 use log::info;
-use nextclade::{getenv, make_internal_error};
+use nextclade::make_internal_error;
+use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
 use reqwest::{Method, Proxy};
 use std::str::FromStr;
@@ -57,7 +58,7 @@ impl HttpClient {
       client_builder
     };
 
-    let user_agent = format!("{} {}", getenv!("CARGO_PKG_NAME"), getenv!("CARGO_PKG_VERSION"));
+    let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
 
     let client = client_builder
       .connection_verbose(verbose)

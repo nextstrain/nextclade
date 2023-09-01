@@ -13,7 +13,7 @@ export function isEnabled(dataset: Dataset) {
 
 export function isCompatible(dataset: Dataset): boolean {
   const minVersion = dataset.version?.compatibility?.web ?? thisVersion
-  return semver.gte(thisVersion, minVersion) && semver.lte(thisVersion, minVersion)
+  return semver.gte(thisVersion, minVersion)
 }
 
 export function isLatest(dataset: Dataset): boolean {
