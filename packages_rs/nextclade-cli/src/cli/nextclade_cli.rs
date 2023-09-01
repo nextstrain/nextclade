@@ -12,6 +12,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
+use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
@@ -671,6 +672,12 @@ pub struct NextcladeSeqSortArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub output_dir: Option<PathBuf>,
 
+  #[clap(flatten, next_help_heading = "  Algorithm")]
+  pub search_params: NextcladeSeqSortParams,
+
+  #[clap(flatten, next_help_heading = "  Other")]
+  pub other_params: NextcladeRunOtherParams,
+
   /// Use custom dataset server.
   ///
   /// You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
@@ -681,10 +688,6 @@ pub struct NextcladeSeqSortArgs {
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
-
-  /// Number of processing jobs. If not specified, all available CPU threads will be used.
-  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
-  pub jobs: usize,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {

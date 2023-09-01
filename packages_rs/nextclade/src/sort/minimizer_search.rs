@@ -1,5 +1,6 @@
 use crate::io::fasta::FastaRecord;
-use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerParams};
+use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
+use crate::sort::params::NextcladeSeqSortParams;
 use eyre::Report;
 use itertools::Itertools;
 use schemars::JsonSchema;
@@ -20,6 +21,7 @@ pub struct MinimizerSearchResult {
 pub fn run_minimizer_search(
   fasta_record: &FastaRecord,
   index: &MinimizerIndexJson,
+  params: &NextcladeSeqSortParams,
 ) -> Result<MinimizerSearchResult, Report> {
   let normalization = &index.normalization;
   let n_refs = index.references.len();
@@ -43,7 +45,7 @@ pub fn run_minimizer_search(
   // require at least 30% of the maximal hits and at least 10 hits
   let max_normalized_hit = normalized_hits.iter().copied().fold(0.0, f64::max);
   let total_hits: u64 = hit_counts.iter().sum();
-  if max_normalized_hit < 0.3 || total_hits < 10 {
+  if max_normalized_hit < params.min_normalized_hit || total_hits < params.min_total_hits {
     Ok(MinimizerSearchResult {
       dataset: None,
       hit_counts,
@@ -79,7 +81,7 @@ const fn invertible_hash(x: u64) -> u64 {
   x
 }
 
-fn get_hash(kmer: &[u8], params: &MinimizerParams) -> u64 {
+fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
   let cutoff = params.cutoff as u64;
 
   let mut x = 0;
@@ -111,7 +113,7 @@ fn get_hash(kmer: &[u8], params: &MinimizerParams) -> u64 {
   invertible_hash(x)
 }
 
-pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerParams) -> Vec<u64> {
+pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParams) -> Vec<u64> {
   let k = params.k as usize;
   let cutoff = params.cutoff as u64;
 

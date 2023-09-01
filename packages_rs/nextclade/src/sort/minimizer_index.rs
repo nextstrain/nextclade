@@ -25,7 +25,7 @@ pub struct MinimizerIndexJson {
 
   pub version: String,
 
-  pub params: MinimizerParams,
+  pub params: MinimizerIndexParams,
 
   #[schemars(with = "BTreeMap<String, String>")]
   #[serde(serialize_with = "serde_serialize_minimizers")]
@@ -67,7 +67,7 @@ pub fn serde_deserialize_minimizers<'de, D: Deserializer<'de>>(deserializer: D) 
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct MinimizerParams {
+pub struct MinimizerIndexParams {
   pub k: i64,
 
   pub cutoff: i64,

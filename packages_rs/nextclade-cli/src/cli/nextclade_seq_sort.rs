@@ -1,4 +1,4 @@
-use crate::cli::nextclade_cli::NextcladeSeqSortArgs;
+use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSeqSortArgs};
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
@@ -8,6 +8,7 @@ use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchResult};
+use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::string::truncate;
 
 #[derive(Debug, Clone)]
@@ -65,7 +66,8 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
   let NextcladeSeqSortArgs {
     input_fastas,
     output_dir,
-    jobs,
+    search_params,
+    other_params: NextcladeRunOtherParams { jobs },
     ..
   } = args;
 
@@ -100,7 +102,7 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
         for fasta_record in &fasta_receiver {
           info!("Processing sequence '{}'", fasta_record.seq_name);
 
-          let result = run_minimizer_search(&fasta_record, minimizer_index)
+          let result = run_minimizer_search(&fasta_record, minimizer_index, search_params)
             .wrap_err_with(|| {
               format!(
                 "When processing sequence #{} '{}'",
