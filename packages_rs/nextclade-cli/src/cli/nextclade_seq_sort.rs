@@ -17,37 +17,44 @@ struct MinimizerSearchRecord {
 
 pub fn nextclade_seq_sort(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
   let NextcladeSeqSortArgs {
-    server, proxy_config, ..
+    server,
+    proxy_config,
+    input_minimizer_index_json,
+    ..
   } = args;
 
   let verbose = log::max_level() > LevelFilter::Info;
 
-  let mut http = HttpClient::new(server, proxy_config, verbose)?;
-
-  let index = download_datasets_index_json(&mut http)?;
-
-  let minimizer_index_path = index
-    .minimizer_index
-    .iter()
-    .find(|minimizer_index| MINIMIZER_INDEX_ALGO_VERSION == minimizer_index.version)
-    .map(|minimizer_index| &minimizer_index.path);
-
-  if let Some(minimizer_index_path) = minimizer_index_path {
-    let minimizer_index_str = http.get(minimizer_index_path)?;
-    let minimizer_index = MinimizerIndexJson::from_str(String::from_utf8(minimizer_index_str)?)?;
-    run(args, &minimizer_index)
+  let minimizer_index = if let Some(input_minimizer_index_json) = &input_minimizer_index_json {
+    // If a file is provided, use data from it
+    MinimizerIndexJson::from_path(input_minimizer_index_json)
   } else {
-    make_error!("No supported reference search index data is found for this dataset sever. Try to to upgrade Nextclade to the latest version or contain dataset server maintainers.")
-  }
+    // Otherwise fetch from dataset server
+    let mut http = HttpClient::new(server, proxy_config, verbose)?;
+    let index = download_datasets_index_json(&mut http)?;
+    let minimizer_index_path = index
+      .minimizer_index
+      .iter()
+      .find(|minimizer_index| MINIMIZER_INDEX_ALGO_VERSION == minimizer_index.version)
+      .map(|minimizer_index| &minimizer_index.path);
+
+    if let Some(minimizer_index_path) = minimizer_index_path {
+      let minimizer_index_str = http.get(minimizer_index_path)?;
+      MinimizerIndexJson::from_str(String::from_utf8(minimizer_index_str)?)
+    } else {
+      make_error!("No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. Try to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.")
+    }
+  }?;
+
+  run(args, &minimizer_index)
 }
 
 pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) -> Result<(), Report> {
   let NextcladeSeqSortArgs {
     input_fastas,
     output_dir,
-    server,
-    proxy_config,
     jobs,
+    ..
   } = args;
 
   std::thread::scope(|s| {
@@ -101,7 +108,10 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
     }
 
     let writer = s.spawn(move || {
-      println!("{:40} | {:10} | {:10}", "Seq. name", "total hits", "max hit");
+      println!(
+        "{:40} | {:40} | {:10} | {:10}",
+        "Seq. name", "dataset", "total hits", "max hit"
+      );
       for record in result_receiver {
         println!(
           "{:40} | {:40} | {:>10} | {:>.3}",

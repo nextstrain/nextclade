@@ -1,10 +1,13 @@
+use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
-use eyre::Report;
+use eyre::{Report, WrapErr};
+use log::warn;
 use schemars::JsonSchema;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
+use std::path::Path;
 use std::str::FromStr;
 
 pub const MINIMIZER_INDEX_SCHEMA_VERSION_FROM: &str = "3.0.0";
@@ -84,7 +87,24 @@ pub struct MinimizerIndexRefInfo {
   pub other: serde_json::Value,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct VersionCheck {
+  #[serde(rename = "schemaVersion")]
+  pub version: String,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
 impl MinimizerIndexJson {
+  pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
+    let filepath = filepath.as_ref();
+    let data =
+      read_file_to_string(filepath).wrap_err_with(|| format!("When reading minimizer index file: {filepath:#?}"))?;
+    Self::from_str(data)
+  }
+
   pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
     let s = s.as_ref();
 
@@ -96,6 +116,11 @@ impl MinimizerIndexJson {
         ver_to: Some(MINIMIZER_INDEX_SCHEMA_VERSION_TO),
       },
     );
+
+    let VersionCheck { version, .. } = json_parse(s)?;
+    if version.as_str() > MINIMIZER_INDEX_ALGO_VERSION {
+      warn!("Version of the minimizer index data ({version}) is greater than maximum supported by this version of Nextclade ({MINIMIZER_INDEX_ALGO_VERSION}). This may lead to errors or incorrect results. Please try to update your version of Nextclade and/or contact dataset maintainers for more details.");
+    }
 
     json_parse(s)
   }

@@ -652,6 +652,16 @@ pub struct NextcladeSeqSortArgs {
   #[clap(display_order = 1)]
   pub input_fastas: Vec<PathBuf>,
 
+  /// Path to input minimizer index JSON file.
+  ///
+  /// By default the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the the JSON file.
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
+  #[clap(long, short = 'm')]
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(display_order = 1)]
+  pub input_minimizer_index_json: Option<PathBuf>,
+
   /// Path to output directory
   ///
   /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset wil lbe places in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized.
