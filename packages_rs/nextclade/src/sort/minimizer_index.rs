@@ -90,7 +90,6 @@ pub struct MinimizerIndexRefInfo {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct VersionCheck {
-  #[serde(rename = "schemaVersion")]
   pub version: String,
 
   #[serde(flatten)]
