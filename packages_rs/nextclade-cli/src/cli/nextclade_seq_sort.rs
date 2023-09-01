@@ -2,6 +2,7 @@ use crate::cli::nextclade_cli::NextcladeSeqSortArgs;
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use log::{info, LevelFilter};
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::make_error;
@@ -42,7 +43,18 @@ pub fn nextclade_seq_sort(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
       let minimizer_index_str = http.get(minimizer_index_path)?;
       MinimizerIndexJson::from_str(String::from_utf8(minimizer_index_str)?)
     } else {
-      make_error!("No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. Try to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.")
+      let server_versions = index
+        .minimizer_index
+        .iter()
+        .map(|minimizer_index| format!("'{}'", minimizer_index.version))
+        .join(",");
+      let server_versions = if server_versions.is_empty() {
+        "none".to_owned()
+      } else {
+        format!(": {server_versions}")
+      };
+
+      make_error!("No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. \n\nThis version of Nextclade supports index versions up to '{}', but the server has{}.\n\nTry to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.", MINIMIZER_INDEX_ALGO_VERSION, server_versions)
     }
   }?;
 
