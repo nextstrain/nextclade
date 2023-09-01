@@ -1,6 +1,7 @@
 use crate::cli::nextclade_dataset_get::nextclade_dataset_get;
 use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
 use crate::cli::nextclade_loop::nextclade_run;
+use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
@@ -80,8 +81,13 @@ pub enum NextcladeCommands {
 
   /// List and download available Nextclade datasets
   ///
-  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade dataset --help`.
   Dataset(Box<NextcladeDatasetArgs>),
+
+  /// Perform operations on sequences
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade seq --help`.
+  Seq(Box<NextcladeSeqArgs>),
 }
 
 #[derive(Parser, Debug)]
@@ -618,6 +624,59 @@ pub struct NextcladeRunArgs {
   pub other_params: NextcladeRunOtherParams,
 }
 
+#[derive(Parser, Debug)]
+pub struct NextcladeSeqArgs {
+  #[clap(subcommand)]
+  pub command: NextcladeSeqCommands,
+}
+
+#[derive(Subcommand, Debug)]
+#[clap(verbatim_doc_comment)]
+pub enum NextcladeSeqCommands {
+  /// Group (sort) input sequences according to the inferred dataset (pathogen)
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade seq sort --help`.
+  Sort(NextcladeSeqSortArgs),
+}
+
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Parser, Debug)]
+#[clap(verbatim_doc_comment)]
+pub struct NextcladeSeqSortArgs {
+  /// Path to one or multiple FASTA files with input sequences
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zst". If no files provided, the plain fasta input is read from standard input (stdin).
+  ///
+  /// See: https://en.wikipedia.org/wiki/FASTA_format
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(display_order = 1)]
+  pub input_fastas: Vec<PathBuf>,
+
+  /// Path to output directory
+  ///
+  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset wil lbe places in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized.
+  ///
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub output_dir: Option<PathBuf>,
+
+  /// Use custom dataset server.
+  ///
+  /// You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::Url)]
+  #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
+  pub server: Url,
+
+  #[clap(flatten)]
+  pub proxy_config: ProxyConfig,
+
+  /// Number of processing jobs. If not specified, all available CPU threads will be used.
+  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
+  pub jobs: usize,
+}
+
 fn generate_completions(shell: &str) -> Result<(), Report> {
   let mut command = NextcladeArgs::command();
 
@@ -903,6 +962,9 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     NextcladeCommands::Dataset(dataset_command) => match dataset_command.command {
       NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
       NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
+    },
+    NextcladeCommands::Seq(seq_command) => match seq_command.command {
+      NextcladeSeqCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
     },
   }
 }

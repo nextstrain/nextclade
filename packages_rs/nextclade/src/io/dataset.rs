@@ -21,6 +21,8 @@ pub struct DatasetsIndexJson {
 
   pub schema_version: String,
 
+  pub minimizer_index: Vec<MinimizerIndexVersion>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -322,6 +324,15 @@ pub struct DatasetCollectionUrl {
 
   pub url: String,
 
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MinimizerIndexVersion {
+  pub version: String,
+  pub path: String,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
