@@ -10,6 +10,7 @@ export function getEnvVars() {
   const DOMAIN = getDomain()
   const DOMAIN_STRIPPED = DOMAIN.replace('https://', '').replace('http://', '')
   const DATA_FULL_DOMAIN = getenv('DATA_FULL_DOMAIN')
+  const DATA_TRY_GITHUB_BRANCH = getenv('DATA_TRY_GITHUB_BRANCH')
 
   const common = {
     BABEL_ENV,
@@ -20,6 +21,7 @@ export function getEnvVars() {
     DOMAIN,
     DOMAIN_STRIPPED,
     DATA_FULL_DOMAIN,
+    DATA_TRY_GITHUB_BRANCH,
   }
 
   if (PRODUCTION) {

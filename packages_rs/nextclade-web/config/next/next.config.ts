@@ -46,6 +46,7 @@ const {
   DOMAIN,
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
+  DATA_TRY_GITHUB_BRANCH,
 } = getEnvVars()
 
 const BRANCH_NAME = getGitBranch()
@@ -61,6 +62,7 @@ const clientEnv = {
   DOMAIN,
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
+  DATA_TRY_GITHUB_BRANCH,
   BLOCK_SEARCH_INDEXING: DOMAIN === RELEASE_URL ? '0' : '1',
 }
 

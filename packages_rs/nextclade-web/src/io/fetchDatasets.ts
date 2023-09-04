@@ -1,5 +1,8 @@
+/* eslint-disable prefer-destructuring */
 import type { ParsedUrlQuery } from 'querystring'
 import { findSimilarStrings } from 'src/helpers/string'
+import { axiosHeadOrUndefined } from 'src/io/axiosFetch'
+import { isGithubUrlOrShortcut, parseGitHubRepoUrlOrShortcut } from 'src/io/fetchSingleDatasetFromGithub'
 
 import { Dataset } from 'src/types'
 import {
@@ -10,9 +13,11 @@ import {
 } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { datasetCurrentAtom, datasetsAtom, datasetServerUrlAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom, datasetsAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
 import { useQuery } from 'react-query'
 import { isNil } from 'lodash'
+import urljoin from 'url-join'
+import { URL_GITHUB_DATA_RAW } from 'src/constants'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: Dataset[]) {
   // Retrieve dataset-related URL params and try to find a dataset based on these params
@@ -41,8 +46,62 @@ export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets
   return dataset
 }
 
-export async function initializeDatasets(urlQuery: ParsedUrlQuery, datasetServerUrlDefault: string) {
-  const datasetServerUrl = getQueryParamMaybe(urlQuery, 'dataset-server') ?? datasetServerUrlDefault
+export async function getGithubDatasetServerUrl(): Promise<string | undefined> {
+  const BRANCH_NAME = process.env.BRANCH_NAME
+  if (!BRANCH_NAME) {
+    return undefined
+  }
+
+  const githubDatasetServerUrl = urljoin(URL_GITHUB_DATA_RAW, BRANCH_NAME, 'data_output')
+  const githubIndexJsonUrl = urljoin(githubDatasetServerUrl, 'index.json')
+
+  const headRes = await axiosHeadOrUndefined(githubIndexJsonUrl)
+
+  if (headRes) {
+    return githubDatasetServerUrl
+  }
+
+  return undefined
+}
+
+export function toAbsoluteUrl(url: string): string {
+  if (typeof window !== 'undefined' && url.slice(0) === '/') {
+    return urljoin(window.location.origin, url)
+  }
+  return url
+}
+
+export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
+  // Get dataset URL from query URL params.
+  let datasetServerUrl = getQueryParamMaybe(urlQuery, 'dataset-server')
+
+  // If the URL is formatted as a GitHub URL or as a GitHub URL shortcut, use it without any checking
+  if (datasetServerUrl && isGithubUrlOrShortcut(datasetServerUrl)) {
+    const { owner, repo, branch, path } = await parseGitHubRepoUrlOrShortcut(datasetServerUrl)
+    return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
+  }
+
+  // If requested to try GitHub-hosted datasets either using `DATA_TRY_GITHUB_BRANCH` env var (e.g. from
+  // `.env` file), or using `&dataset-server=gh` or `&dataset-server=github` URL parameters, then check if the
+  // corresponding branch in the default data repo on GitHub contains an `index.json` file. And and if yes, use it.
+  const datasetServerTryGithubBranch =
+    process.env.DATA_TRY_GITHUB_BRANCH === '1' || (datasetServerUrl && ['gh', 'github'].includes(datasetServerUrl))
+  if (datasetServerTryGithubBranch) {
+    const githubDatasetServerUrl = await getGithubDatasetServerUrl()
+    if (githubDatasetServerUrl) {
+      datasetServerUrl = githubDatasetServerUrl
+    }
+  }
+
+  // If none of the above, use hardcoded default URL (from `.env` file)
+  datasetServerUrl = datasetServerUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+
+  // If the URL happens to be a relative path, then convert to absolute URL (on the app's current host)
+  return toAbsoluteUrl(datasetServerUrl)
+}
+
+export async function initializeDatasets(urlQuery: ParsedUrlQuery) {
+  const datasetServerUrl = await getDatasetServerUrl(urlQuery)
 
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
@@ -57,11 +116,10 @@ export async function initializeDatasets(urlQuery: ParsedUrlQuery, datasetServer
 /** Refetch dataset index periodically and update the local copy of if */
 export function useUpdatedDatasetIndex() {
   const setDatasetsState = useSetRecoilState(datasetsAtom)
-  const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   useQuery(
     'refetchDatasetIndex',
     async () => {
-      const { currentDataset: _, ...datasetsState } = await initializeDatasets({}, datasetServerUrl)
+      const { currentDataset: _, ...datasetsState } = await initializeDatasets({})
       setDatasetsState(datasetsState)
     },
     {
@@ -89,10 +147,9 @@ export function useUpdatedDataset() {
     'currentDatasetState',
     async () => {
       const path = datasetCurrent?.path
-      const refAccession = datasetCurrent?.attributes.reference.value
       const updatedAt = datasetCurrent?.version?.updatedAt
-      if (!isNil(refAccession) && !isNil(updatedAt)) {
-        const candidateDatasets = filterDatasets(datasets, path, refAccession)
+      if (!isNil(updatedAt)) {
+        const candidateDatasets = filterDatasets(datasets, path)
         const updatedDataset = candidateDatasets.find((candidate) => {
           const candidateTag = candidate.version?.updatedAt
           return candidateTag && candidateTag > updatedAt
