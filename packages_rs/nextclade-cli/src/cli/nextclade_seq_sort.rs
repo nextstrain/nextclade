@@ -3,13 +3,17 @@ use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{info, LevelFilter};
-use nextclade::io::fasta::{FastaReader, FastaRecord};
+use log::{info, trace, LevelFilter};
+use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchResult};
-use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::string::truncate;
+use serde::Serialize;
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+use std::str::FromStr;
+use tinytemplate::TinyTemplate;
 
 #[derive(Debug, Clone)]
 struct MinimizerSearchRecord {
@@ -18,6 +22,8 @@ struct MinimizerSearchRecord {
 }
 
 pub fn nextclade_seq_sort(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
+  check_args(args)?;
+
   let NextcladeSeqSortArgs {
     server,
     proxy_config,
@@ -66,6 +72,7 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
   let NextcladeSeqSortArgs {
     input_fastas,
     output_dir,
+    output,
     search_params,
     other_params: NextcladeRunOtherParams { jobs },
     ..
@@ -122,11 +129,55 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
     }
 
     let writer = s.spawn(move || {
+      let output_dir = &output_dir;
+      let output = &output;
+
+      let tt = output.as_ref().map(move |output| {
+        let mut tt = TinyTemplate::new();
+        tt.add_template("output", output)
+          .wrap_err_with(|| format!("When parsing template: {output}"))
+          .unwrap();
+        tt
+      });
+
       println!(
         "{:40} | {:40} | {:10} | {:10}",
         "Seq. name", "dataset", "total hits", "max hit"
       );
+
+      let mut writers = BTreeMap::new();
+
       for record in result_receiver {
+        if let Some(name) = &record.result.dataset {
+          let filepath = match (&tt, output_dir) {
+            (Some(tt), None) => {
+              let filepath_str = tt
+                .render("output", &OutputTemplateContext { name })
+                .wrap_err("When rendering output path template")
+                .unwrap();
+
+              Some(
+                PathBuf::from_str(&filepath_str)
+                  .wrap_err_with(|| format!("Invalid output translations path: '{filepath_str}'"))
+                  .unwrap(),
+              )
+            }
+            (None, Some(output_dir)) => Some(output_dir.join(name).join("sequences.fasta")),
+            _ => None,
+          };
+
+          if let Some(filepath) = filepath {
+            let writer = writers.entry(filepath.clone()).or_insert_with(|| {
+              trace!("Creating fasta writer to file {filepath:#?}");
+              FastaWriter::from_path(filepath).unwrap()
+            });
+
+            writer
+              .write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)
+              .unwrap();
+          }
+        }
+
         println!(
           "{:40} | {:40} | {:>10} | {:>.3}",
           &truncate(record.fasta_record.seq_name, 40),
@@ -137,6 +188,41 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
       }
     });
   });
+
+  Ok(())
+}
+
+#[derive(Serialize)]
+struct OutputTemplateContext<'a> {
+  name: &'a str,
+}
+
+fn check_args(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
+  let NextcladeSeqSortArgs { output_dir, output, .. } = args;
+
+  if output.is_some() && output_dir.is_some() {
+    return make_error!(
+      "The arguments `--output-dir` and `--output` cannot be used together. Remove one or the other."
+    );
+  }
+
+  if let Some(output) = output {
+    if !output.contains("{name}") {
+      return make_error!(
+        r#"
+Expected `--output` argument to contain a template string containing template variable {{name}} (with curly braces), but received:
+
+  {output}
+
+Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
+Example for bash shell:
+
+  --output='outputs/{{name}}/sorted.fasta.gz'
+
+      "#
+      );
+    }
+  }
 
   Ok(())
 }

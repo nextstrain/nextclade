@@ -39,6 +39,7 @@ serde = { version = "=1.0.164", features = ["derive"] }
 serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 strum = "=0.25.0"
 strum_macros = "=0.25"
+tinytemplate = "=1.2.1"
 url = { version = "=2.4.0", features = ["serde"] }
 zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 

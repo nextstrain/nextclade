@@ -667,10 +667,34 @@ pub struct NextcladeSeqSortArgs {
   ///
   /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset wil lbe places in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized.
   ///
+  /// Mutually exclusive with `--output`.
+  ///
   #[clap(long)]
   #[clap(value_hint = ValueHint::DirPath)]
   #[clap(hide_long_help = true, hide_short_help = true)]
+  #[clap(group = "outputs")]
   pub output_dir: Option<PathBuf>,
+
+  /// Template string for the file path to output sorted sequences. A separate file will be generated per dataset.
+  ///
+  /// The string should contain template variable `{name}`, where the dataset name will be substituted. Note that if the `{name}` variable contains slashes, they will be interpreted as path segments and subdirectories will be created.
+  ///
+  /// Make sure you properly quote and/or escape the curly braces, so that your shell, programming language or pipeline manager does not attempt to substitute the variables.
+  ///
+  /// Mutually exclusive with `--output-dir`.
+  ///
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed.
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  ///
+  /// Example for bash shell:
+  ///
+  ///   --output='outputs/{name}/sorted.fasta.gz'
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::DirPath)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  #[clap(group = "outputs")]
+  pub output: Option<String>,
 
   #[clap(flatten, next_help_heading = "  Algorithm")]
   pub search_params: NextcladeSeqSortParams,
