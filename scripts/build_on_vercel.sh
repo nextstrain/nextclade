@@ -115,6 +115,8 @@ sed -i'' "s|PROD_ENABLE_TYPE_CHECKS=1|PROD_ENABLE_TYPE_CHECKS=0|g" .env
 sed -i'' "s|PROD_ENABLE_ESLINT=1|PROD_ENABLE_ESLINT=0|g" .env
 sed -i'' "s|PROD_ENABLE_STYLELINT=1|PROD_ENABLE_STYLELINT=0|g" .env
 
+sed -i'' "s|DATA_TRY_GITHUB_BRANCH=0|DATA_TRY_GITHUB_BRANCH=1|g" .env
+
 cd packages_rs/nextclade-web
 
 yarn install --frozen-lockfile

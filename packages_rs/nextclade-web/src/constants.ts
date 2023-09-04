@@ -31,6 +31,8 @@ export const URL_GITHUB_COMMITS = 'https://github.com/nextstrain/nextclade/commi
 export const URL_CLADE_SCHEMA_REPO = 'https://github.com/nextstrain/ncov-clades-schema/'
 export const URL_CLADE_SCHEMA_SVG = 'https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg'
 
+export const URL_GITHUB_DATA_RAW = 'https://raw.githubusercontent.com/nextstrain/nextclade_data' as const
+
 export const SUPPORT_EMAIL = 'hello@nextstrain.org'
 
 export const TWITTER_USERNAME_RAW = 'nextstrain' as const
