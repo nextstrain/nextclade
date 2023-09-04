@@ -21,6 +21,7 @@ pub struct DatasetsIndexJson {
 
   pub schema_version: String,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub minimizer_index: Vec<MinimizerIndexVersion>,
 
   #[serde(flatten)]
