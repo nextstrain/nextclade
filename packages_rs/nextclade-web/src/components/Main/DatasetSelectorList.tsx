@@ -18,6 +18,20 @@ import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 //   border-radius: 5px;
 // `
 
+const DATASET_AUTODETECT: Dataset = {
+  path: 'autodetect',
+  enabled: true,
+  official: true,
+  attributes: {
+    name: { value: 'autodetect', valueFriendly: 'Autodetect' },
+    reference: { value: 'autodetect', valueFriendly: 'Autodetect' },
+  },
+  files: {
+    reference: '',
+    pathogenJson: '',
+  },
+}
+
 export const DatasetSelectorUl = styled(ListGroup)`
   flex: 1;
   overflow-y: scroll;
@@ -79,6 +93,14 @@ export function DatasetSelectorList({
   return (
     // <DatasetSelectorContainer>
     <DatasetSelectorUl>
+      {
+        <DatasetSelectorListItem
+          dataset={DATASET_AUTODETECT}
+          onClick={onItemClick(DATASET_AUTODETECT)}
+          isCurrent={areDatasetsEqual(DATASET_AUTODETECT, datasetHighlighted)}
+        />
+      }
+
       {[itemsStartWith, itemsInclude].map((datasets) =>
         datasets.map((dataset) => (
           <DatasetSelectorListItem

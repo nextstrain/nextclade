@@ -4,6 +4,7 @@ import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { MainInputFormSequencesCurrent } from 'src/components/Main/MainInputFormSequencesCurrent'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { canRunAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
@@ -46,12 +47,20 @@ export function MainInputFormSequenceFilePicker() {
 
   const icon = useMemo(() => <FileIconFasta />, [])
 
-  const run = useRunAnalysis()
+  const runAnalysis = useRunAnalysis()
+  const runAutodetect = useRunSeqAutodetect()
+
+  const run = useCallback(() => {
+    if (datasetCurrent?.path === 'autodetect') {
+      runAutodetect()
+    } else {
+      runAnalysis()
+    }
+  }, [datasetCurrent?.path, runAnalysis, runAutodetect])
 
   const setSequences = useCallback(
     (inputs: AlgorithmInput[]) => {
       addQryInputs(inputs)
-
       if (shouldRunAutomatically) {
         run()
       }
@@ -62,7 +71,6 @@ export function MainInputFormSequenceFilePicker() {
   const setExampleSequences = useCallback(() => {
     if (datasetCurrent) {
       addQryInputs([new AlgorithmInputDefault(datasetCurrent)])
-
       if (shouldRunAutomatically) {
         run()
       }
@@ -81,7 +89,7 @@ export function MainInputFormSequenceFilePicker() {
   }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
-    const cannotLoadExample = hasInputErrors || !datasetCurrent
+    const cannotLoadExample = hasInputErrors || !datasetCurrent || datasetCurrent.path === 'autodetect'
     return (
       <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
         {t('Load example')}

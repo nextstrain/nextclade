@@ -17,6 +17,13 @@ pub struct MinimizerSearchResult {
   pub max_normalized_hit: f64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MinimizerSearchRecord {
+  pub fasta_record: FastaRecord,
+  pub result: MinimizerSearchResult,
+}
+
 #[allow(clippy::string_slice)]
 pub fn run_minimizer_search(
   fasta_record: &FastaRecord,

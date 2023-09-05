@@ -21,6 +21,11 @@ export const DatasetInfoLine = styled.p`
   font-size: 0.9rem;
   padding: 0;
   margin: 0;
+
+  &:after {
+    content: ' ';
+    white-space: pre;
+  }
 `
 
 const DatasetInfoBadge = styled(Badge)`
@@ -48,6 +53,10 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
 
   if (!enabled) {
     return null
+  }
+
+  if (path === 'autodetect') {
+    return <DatasetAutodetectInfo />
   }
 
   return (
@@ -104,6 +113,21 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
       </DatasetInfoLine>
       <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
       <DatasetInfoLine>{t('Dataset name: {{name}}', { name: path })}</DatasetInfoLine>
+    </DatasetInfoContainer>
+  )
+}
+
+export function DatasetAutodetectInfo() {
+  const { t } = useTranslationSafe()
+
+  return (
+    <DatasetInfoContainer>
+      <DatasetName>
+        <span>{t('Autodetect')}</span>
+      </DatasetName>
+      <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
+      <DatasetInfoLine />
+      <DatasetInfoLine />
     </DatasetInfoContainer>
   )
 }

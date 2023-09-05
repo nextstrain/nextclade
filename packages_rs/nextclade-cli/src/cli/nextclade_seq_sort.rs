@@ -7,19 +7,13 @@ use log::{info, trace, LevelFilter};
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
-use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchResult};
+use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
 use nextclade::utils::string::truncate;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
-
-#[derive(Debug, Clone)]
-struct MinimizerSearchRecord {
-  pub fasta_record: FastaRecord,
-  pub result: MinimizerSearchResult,
-}
 
 pub fn nextclade_seq_sort(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
   check_args(args)?;

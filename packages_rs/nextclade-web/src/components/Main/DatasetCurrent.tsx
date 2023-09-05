@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Button, Col, Collapse, Row, UncontrolledAlert } from 'reactstrap'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
@@ -82,6 +82,28 @@ export function DatasetCurrent() {
 
   const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
 
+  const customize = useMemo(() => {
+    if (datasetCurrent?.path === 'autodetect') {
+      return null
+    }
+
+    return (
+      <Row noGutters>
+        <Col>
+          <ButtonCustomize isOpen={advancedOpen} onClick={onCustomizeClicked} />
+
+          <Collapse isOpen={advancedOpen}>
+            <AdvancedModeExplanationWrapper>
+              <AdvancedModeExplanationContent />
+            </AdvancedModeExplanationWrapper>
+
+            <FilePickerAdvanced />
+          </Collapse>
+        </Col>
+      </Row>
+    )
+  }, [advancedOpen, datasetCurrent?.path, onCustomizeClicked])
+
   if (!datasetCurrent) {
     return null
   }
@@ -105,29 +127,11 @@ export function DatasetCurrent() {
               <ChangeButton type="button" color="secondary" onClick={onChangeClicked}>
                 {t('Change')}
               </ChangeButton>
-              <LinkExternal
-                className="ml-auto mt-auto"
-                href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md"
-              >
-                <small>{t('Recent dataset updates')}</small>
-              </LinkExternal>
             </Right>
           </Col>
         </Row>
 
-        <Row noGutters>
-          <Col>
-            <ButtonCustomize isOpen={advancedOpen} onClick={onCustomizeClicked} />
-
-            <Collapse isOpen={advancedOpen}>
-              <AdvancedModeExplanationWrapper>
-                <AdvancedModeExplanationContent />
-              </AdvancedModeExplanationWrapper>
-
-              <FilePickerAdvanced />
-            </Collapse>
-          </Col>
-        </Row>
+        {customize}
       </CurrentDatasetInfoBody>
     </CurrentDatasetInfoContainer>
   )

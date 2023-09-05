@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
 
-import type { Dataset } from 'src/types'
+import type { Dataset, MinimizerIndexVersion } from 'src/types'
 // import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
@@ -12,6 +12,11 @@ import { areDatasetsEqual } from 'src/types'
 export interface Datasets {
   datasets: Dataset[]
 }
+
+export const datasetServerUrlAtom = atom<string>({
+  key: 'datasetServerUrlAtom',
+  default: '/',
+})
 
 export const datasetsAtom = atom<Datasets>({
   key: 'datasets',
@@ -54,4 +59,9 @@ export const geneOrderPreferenceAtom = selector({
     // return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
     return []
   },
+})
+
+export const minimizerIndexVersionAtom = atom<MinimizerIndexVersion | undefined>({
+  key: 'minimizerIndexVersionAtom',
+  default: undefined,
 })
