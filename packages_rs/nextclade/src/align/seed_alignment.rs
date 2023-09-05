@@ -308,6 +308,12 @@ pub fn create_alignment_band(
   // trim stripes to reachable regions
   let (regularized_stripes, band_area) = regularize_stripes(stripes, qry_len as usize);
 
+  // Use environment variable to control whether to write stripes to file
+  if std::env::var("NEXTCLADE_DEBUG_WRITE_STRIPES").is_ok() {
+    write_matches_to_file(chain, "matches.csv");
+    write_stripes_to_file(&regularized_stripes, "stripes.csv");
+  }
+
   if band_area > max_band_area {
     return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
   }
