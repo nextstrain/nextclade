@@ -45,7 +45,7 @@ export const autodetectResultAtom = selectorFamily<MinimizerSearchRecord, number
 })
 
 export const autodetectResultsAtom = selector<MinimizerSearchRecord[]>({
-  key: 'analysisResults',
+  key: 'autodetectResultsAtom',
 
   get({ get }): MinimizerSearchRecord[] {
     const indices = get(autodetectResultIndicesAtom)
