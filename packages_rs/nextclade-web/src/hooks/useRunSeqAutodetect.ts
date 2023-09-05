@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
 import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { axiosFetch } from 'src/io/axiosFetch'
@@ -8,6 +7,9 @@ import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
+import type { Subscription } from 'observable-fns'
+import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
+import { spawn } from 'src/workers/spawn'
 
 export function useRunSeqAutodetect() {
   const router = useRouter()
@@ -42,17 +44,56 @@ export function useRunSeqAutodetect() {
   )
 }
 
-function runAutodetect(
+async function runAutodetect(
   fasta: string,
   minimizerIndex: MinimizerIndexJson,
   onResult: (res: MinimizerSearchRecord) => void,
 ) {
-  const nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(JSON.stringify(minimizerIndex))
+  const worker = await SeqAutodetectWasmWorker.create(minimizerIndex)
+  await worker.autodetect(fasta, { onResult })
+  await worker.destroy()
+}
 
-  function onResultParsed(resStr: string) {
-    const result = JSON.parse(resStr) as MinimizerSearchRecord
-    onResult(result)
+export class SeqAutodetectWasmWorker {
+  private thread!: NextcladeSeqAutodetectWasmWorker
+  private subscription?: Subscription<MinimizerSearchRecord>
+
+  private constructor() {}
+
+  static async create(minimizerIndex: MinimizerIndexJson) {
+    const self = new SeqAutodetectWasmWorker()
+    await self.init(minimizerIndex)
+    return self
   }
 
-  nextcladeAutodetect.autodetect(fasta, onResultParsed)
+  async init(minimizerIndex: MinimizerIndexJson) {
+    this.thread = await spawn<NextcladeSeqAutodetectWasmWorker>(
+      new Worker(new URL('src/workers/nextcladeAutodetect.worker.ts', import.meta.url), {
+        name: 'nextcladeAutodetectWorker',
+      }),
+    )
+
+    await this.thread.create(minimizerIndex)
+  }
+
+  async autodetect(
+    fastaStr: string,
+    {
+      onResult,
+      onError,
+      onComplete,
+    }: {
+      onResult: (r: MinimizerSearchRecord) => void
+      onError?: (error: Error) => void
+      onComplete?: () => void
+    },
+  ) {
+    this.subscription = this.thread.values().subscribe(onResult, onError, onComplete)
+    await this.thread.autodetect(fastaStr)
+  }
+
+  async destroy() {
+    await this.subscription?.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
+    await this.thread.destroy()
+  }
 }

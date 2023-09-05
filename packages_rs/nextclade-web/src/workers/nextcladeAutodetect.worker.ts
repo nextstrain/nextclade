@@ -1,9 +1,14 @@
 import 'regenerator-runtime'
+
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { MinimizerSearchResult } from 'src/types'
+import { sanitizeError } from 'src/helpers/sanitizeError'
+import { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
+
+const gSubject = new Subject<MinimizerSearchRecord>()
 
 /**
  * Keeps the reference to the WebAssembly module.The module is stateful and requires manual initialization
@@ -13,7 +18,7 @@ import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
 let nextcladeAutodetect: NextcladeSeqAutodetectWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
-async function create(minimizerIndexJsonStr: string) {
+async function create(minimizerIndexJsonStr: MinimizerIndexJson) {
   nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(JSON.stringify(minimizerIndexJsonStr))
 }
 
@@ -27,23 +32,32 @@ async function destroy() {
   nextcladeAutodetect = undefined
 }
 
-async function autodetect(fasta: string, onResult: (r: MinimizerSearchResult) => void): Promise<void> {
+async function autodetect(fasta: string): Promise<void> {
   if (!nextcladeAutodetect) {
     throw new ErrorModuleNotInitialized('autodetect')
   }
 
   function onResultParsed(resStr: string) {
-    const result = JSON.parse(resStr) as MinimizerSearchResult
-    onResult(result)
+    const result = JSON.parse(resStr) as MinimizerSearchRecord
+    gSubject.next(result)
   }
 
-  nextcladeAutodetect.autodetect(fasta, onResultParsed)
+  try {
+    nextcladeAutodetect.autodetect(fasta, onResultParsed)
+  } catch (error: unknown) {
+    gSubject.error(sanitizeError(error))
+  }
+
+  gSubject.complete()
 }
 
 const worker = {
   create,
   destroy,
   autodetect,
+  values(): ThreadsObservable<MinimizerSearchRecord> {
+    return ThreadsObservable.from(gSubject)
+  },
 }
 
 expose(worker)
