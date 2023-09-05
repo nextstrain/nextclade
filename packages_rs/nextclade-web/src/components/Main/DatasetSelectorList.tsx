@@ -1,6 +1,9 @@
+import { isNil } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 
 import { ListGroup, ListGroupItem } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
+import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 
 import type { Dataset } from 'src/types'
@@ -76,7 +79,23 @@ export function DatasetSelectorList({
   datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
+  const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
+
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
+
+  const autodetectItem = useMemo(() => {
+    if (isNil(minimizerIndexVersion)) {
+      return null
+    }
+
+    return (
+      <DatasetSelectorListItem
+        dataset={DATASET_AUTODETECT}
+        onClick={onItemClick(DATASET_AUTODETECT)}
+        isCurrent={areDatasetsEqual(DATASET_AUTODETECT, datasetHighlighted)}
+      />
+    )
+  }, [datasetHighlighted, minimizerIndexVersion, onItemClick])
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -93,13 +112,7 @@ export function DatasetSelectorList({
   return (
     // <DatasetSelectorContainer>
     <DatasetSelectorUl>
-      {
-        <DatasetSelectorListItem
-          dataset={DATASET_AUTODETECT}
-          onClick={onItemClick(DATASET_AUTODETECT)}
-          isCurrent={areDatasetsEqual(DATASET_AUTODETECT, datasetHighlighted)}
-        />
-      }
+      {autodetectItem}
 
       {[itemsStartWith, itemsInclude].map((datasets) =>
         datasets.map((dataset) => (
