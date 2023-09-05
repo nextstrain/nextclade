@@ -92,7 +92,7 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
   // `.env` file), or using `&dataset-server=gh` or `&dataset-server=github` URL parameters, then check if the
   // corresponding branch in the default data repo on GitHub contains an `index.json` file. And and if yes, use it.
   const datasetServerTryGithubBranch =
-    (isNil(datasetServerUrl) && process.env.DATA_TRY_GITHUB_BRANCH) === '1' ||
+    (isNil(datasetServerUrl) && process.env.DATA_TRY_GITHUB_BRANCH === '1') ||
     (datasetServerUrl && ['gh', 'github'].includes(datasetServerUrl))
   if (datasetServerTryGithubBranch) {
     const githubDatasetServerUrl = await getGithubDatasetServerUrl()
