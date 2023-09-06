@@ -16,6 +16,7 @@ pub enum GapAlignmentSide {
 #[allow(clippy::struct_excessive_bools)]
 #[optfield(pub AlignPairwiseParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
 #[derive(Parser, Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
   /// Minimum length of nucleotide sequence to consider for alignment.
   ///
