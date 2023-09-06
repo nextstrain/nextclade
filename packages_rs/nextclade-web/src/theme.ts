@@ -150,6 +150,13 @@ export const uploadZone = {
   },
 }
 
+export const table = {
+  rowBg: {
+    even: '#fcfcfc',
+    odd: '#ededed',
+  },
+}
+
 export const theme = {
   bodyColor: basicColors.gray700,
   bodyBg: basicColors.white,
@@ -163,6 +170,7 @@ export const theme = {
   shadows,
   filePicker,
   uploadZone,
+  table,
 
   seqView: {
     markers: {
