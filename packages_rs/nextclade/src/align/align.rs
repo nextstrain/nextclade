@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::band_2d::Stripe;
 use crate::align::band_2d::{full_matrix, simple_stripes};
@@ -11,9 +9,9 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
-use bio::alignment;
 use eyre::{Report, WrapErr};
 use log::{info, trace};
+use std::cmp::max;
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
