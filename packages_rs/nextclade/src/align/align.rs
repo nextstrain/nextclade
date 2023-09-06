@@ -66,9 +66,28 @@ pub fn align_nuc(
   let mut minimal_bandwidth = max(1, params.allowed_mismatches as isize);
   let max_band_area = params.max_band_area;
   let mut attempt = 0;
-  let mut alignment: AlignmentOutput<Nuc>;
 
-  loop {
+  let (stripes, band_area) = create_alignment_band(
+    &seed_matches,
+    qry_len as isize,
+    ref_len as isize,
+    terminal_bandwidth,
+    excess_bandwidth,
+    minimal_bandwidth,
+  );
+  if band_area > max_band_area {
+    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
+  }
+
+  let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+
+  while alignment.hit_boundary && attempt < params.max_alignment_attempts {
+    // double bandwidth parameters or increase to one if 0
+    terminal_bandwidth = max(2 * terminal_bandwidth, 1);
+    excess_bandwidth = max(2 * excess_bandwidth, 1);
+    minimal_bandwidth = max(2 * minimal_bandwidth, 1);
+    attempt += 1;
+    // make new band
     let (stripes, band_area) = create_alignment_band(
       &seed_matches,
       qry_len as isize,
@@ -77,36 +96,16 @@ pub fn align_nuc(
       excess_bandwidth,
       minimal_bandwidth,
     );
+    // discard stripes and break to return previous alignment
     if band_area > max_band_area {
-      if attempt == 0 {
-        return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
-      }
-      // return previously calculated alignment
-      return Ok(alignment);
+      break;
     }
-
+    // realign
     alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
-    alignment.is_reverse_complement = is_reverse_complement;
-
-    if alignment.hit_boundary && minimal_bandwidth > 0 {
-      // double bandwidth parameters or increase to one if 0
-      terminal_bandwidth = max(2 * terminal_bandwidth, 1);
-      excess_bandwidth = max(2 * excess_bandwidth, 1);
-      minimal_bandwidth = max(2 * minimal_bandwidth, 1);
-      attempt += 1;
-      info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt, alignment.alignment_score);
-    } else {
-      if attempt > 0 {
-        info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
-      }
-      return Ok(alignment);
-    }
-
-    if attempt > params.max_alignment_attempts {
-      info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Alignment score was: {}", alignment.alignment_score);
-      return Ok(alignment);
-    }
   }
+
+  alignment.is_reverse_complement = is_reverse_complement;
+  Ok(alignment)
 }
 
 /// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
