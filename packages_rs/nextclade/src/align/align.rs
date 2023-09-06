@@ -4,13 +4,15 @@ use crate::align::band_2d::{full_matrix, simple_stripes};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::create_alignment_band;
-use crate::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
+use crate::align::seed_match2::{
+  get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatch2, SeedMatchesResult,
+};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use eyre::{Report, WrapErr};
-use log::{info, trace};
+use log::trace;
 use std::cmp::max;
 
 fn align_pairwise<T: Letter<T>>(
@@ -25,6 +27,32 @@ fn align_pairwise<T: Letter<T>>(
   let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
   backtrace(qry_seq, ref_seq, &scores, &paths)
+}
+
+fn create_band_and_align(
+  seed_matches: &[SeedMatch2],
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  gap_open_close: &[i32],
+  terminal_bandwidth: isize,
+  excess_bandwidth: isize,
+  minimal_bandwidth: isize,
+  params: &AlignPairwiseParams,
+) -> Result<AlignmentOutput<Nuc>, Report> {
+  let (stripes, band_area) = create_alignment_band(
+    seed_matches,
+    qry_seq.len() as isize,
+    ref_seq.len() as isize,
+    terminal_bandwidth,
+    excess_bandwidth,
+    minimal_bandwidth,
+  );
+
+  if band_area > params.max_band_area {
+    return make_error!("Alignment matrix size {band_area} exceeds maximum value {}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json", params.max_band_area);
+  }
+
+  Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes))
 }
 
 /// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
@@ -67,19 +95,16 @@ pub fn align_nuc(
   let max_band_area = params.max_band_area;
   let mut attempt = 0;
 
-  let (stripes, band_area) = create_alignment_band(
+  let mut alignment = create_band_and_align(
     &seed_matches,
-    qry_len as isize,
-    ref_len as isize,
+    &qry_seq,
+    ref_seq,
+    gap_open_close,
     terminal_bandwidth,
     excess_bandwidth,
     minimal_bandwidth,
-  );
-  if band_area > max_band_area {
-    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
-  }
-
-  let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+    params,
+  )?;
 
   while alignment.hit_boundary && attempt < params.max_alignment_attempts {
     // double bandwidth parameters or increase to one if 0
@@ -87,21 +112,25 @@ pub fn align_nuc(
     excess_bandwidth = max(2 * excess_bandwidth, 1);
     minimal_bandwidth = max(2 * minimal_bandwidth, 1);
     attempt += 1;
-    // make new band
-    let (stripes, band_area) = create_alignment_band(
+
+    match create_band_and_align(
       &seed_matches,
-      qry_len as isize,
-      ref_len as isize,
+      &qry_seq,
+      ref_seq,
+      gap_open_close,
       terminal_bandwidth,
       excess_bandwidth,
       minimal_bandwidth,
-    );
-    // discard stripes and break to return previous alignment
-    if band_area > max_band_area {
-      break;
+      params,
+    ) {
+      Ok(new_alignment) => {
+        alignment = new_alignment;
+      }
+      Err(_) => {
+        // FIXME: It's better to handle different error types explicitly. For that we need to introduce error types.
+        break;
+      }
     }
-    // realign
-    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
   }
 
   alignment.is_reverse_complement = is_reverse_complement;
