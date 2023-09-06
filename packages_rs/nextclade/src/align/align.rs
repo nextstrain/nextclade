@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::band_2d::Stripe;
 use crate::align::band_2d::{full_matrix, simple_stripes};
@@ -9,6 +11,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
+use bio::alignment;
 use eyre::{Report, WrapErr};
 use log::{info, trace};
 
@@ -62,28 +65,36 @@ pub fn align_nuc(
 
   let mut terminal_bandwidth = params.terminal_bandwidth as isize;
   let mut excess_bandwidth = params.excess_bandwidth as isize;
-  let mut allowed_mismatches = params.allowed_mismatches as isize;
-
+  let mut minimal_bandwidth = max(1, params.allowed_mismatches as isize);
+  let max_band_area = params.max_band_area;
   let mut attempt = 0;
+  let mut alignment: AlignmentOutput<Nuc>;
 
   loop {
-    let stripes = create_alignment_band(
+    let (stripes, band_area) = create_alignment_band(
       &seed_matches,
       qry_len as isize,
       ref_len as isize,
       terminal_bandwidth,
       excess_bandwidth,
-      allowed_mismatches,
-      params.max_band_area,
-    )?;
+      minimal_bandwidth,
+    );
+    if band_area > max_band_area {
+      if attempt == 0 {
+        return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
+      }
+      // return previously calculated alignment
+      return Ok(alignment);
+    }
 
-    let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
     alignment.is_reverse_complement = is_reverse_complement;
 
-    if alignment.hit_boundary {
-      terminal_bandwidth *= 2;
-      excess_bandwidth *= 2;
-      allowed_mismatches *= 2;
+    if alignment.hit_boundary && minimal_bandwidth > 0 {
+      // double bandwidth parameters or increase to one if 0
+      terminal_bandwidth = max(2 * terminal_bandwidth, 1);
+      excess_bandwidth = max(2 * excess_bandwidth, 1);
+      minimal_bandwidth = max(2 * minimal_bandwidth, 1);
       attempt += 1;
       info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt, alignment.alignment_score);
     } else {
