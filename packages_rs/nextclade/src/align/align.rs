@@ -82,6 +82,7 @@ pub fn align_nuc(
   let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
 
   while alignment.hit_boundary && attempt < params.max_alignment_attempts {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt+1, alignment.alignment_score);
     // double bandwidth parameters or increase to one if 0
     terminal_bandwidth = max(2 * terminal_bandwidth, 1);
     excess_bandwidth = max(2 * excess_bandwidth, 1);
@@ -103,7 +104,17 @@ pub fn align_nuc(
     // realign
     alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
   }
-
+  // report success/failure of broadening of band width
+  if alignment.hit_boundary {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {}", alignment.alignment_score);
+    if band_area > max_band_area {
+      info!(
+        "When processing sequence #{index} '{seq_name}': final band area {band_area} exceeded the cutoff {max_band_area}"
+      );
+    }
+  } else if attempt > 0 {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
+  }
   alignment.is_reverse_complement = is_reverse_complement;
   Ok(alignment)
 }
