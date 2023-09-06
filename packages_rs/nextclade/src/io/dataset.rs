@@ -17,8 +17,6 @@ const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 pub struct DatasetsIndexJson {
   pub collections: Vec<DatasetCollection>,
 
-  pub updated_at: String,
-
   pub schema_version: String,
 
   #[serde(flatten)]
