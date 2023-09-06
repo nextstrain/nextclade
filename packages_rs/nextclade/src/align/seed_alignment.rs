@@ -413,7 +413,6 @@ mod tests {
     let max_indel = 100;
     let qry_len = 30;
     let ref_len = 40;
-    let max_band_area = 500_000_000;
 
     let result = create_alignment_band(
       &seed_matches,
@@ -422,7 +421,6 @@ mod tests {
       terminal_bandwidth,
       excess_bandwidth,
       allowed_mismatches,
-      max_band_area,
     );
 
     Ok(())
