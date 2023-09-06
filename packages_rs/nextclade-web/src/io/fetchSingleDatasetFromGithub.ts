@@ -1,4 +1,3 @@
-/* eslint-disable prefer-template */
 import { isNil } from 'lodash'
 import pMemoize from 'p-memoize'
 
