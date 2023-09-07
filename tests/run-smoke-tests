@@ -43,7 +43,7 @@ function run_with_dataset_dir() {
     --input-dataset="${dataset_dir}" \
     --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
     --output-all="${out_dir}" \
-    "aaa"
+    "${sequences}"
 }
 export -f run_with_dataset_dir
 
