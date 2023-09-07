@@ -67,7 +67,7 @@ pub fn align_nuc(
   let max_band_area = params.max_band_area;
   let mut attempt = 0;
 
-  let (stripes, band_area) = create_alignment_band(
+  let (mut stripes, mut band_area) = create_alignment_band(
     &seed_matches,
     qry_len as isize,
     ref_len as isize,
@@ -89,7 +89,7 @@ pub fn align_nuc(
     minimal_bandwidth = max(2 * minimal_bandwidth, 1);
     attempt += 1;
     // make new band
-    let (stripes, band_area) = create_alignment_band(
+    (stripes, band_area) = create_alignment_band(
       &seed_matches,
       qry_len as isize,
       ref_len as isize,
