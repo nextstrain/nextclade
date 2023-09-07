@@ -1,39 +1,14 @@
-import { isNil } from 'lodash'
+import { isNil, sortBy } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
-
 import { ListGroup, ListGroupItem } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
-
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
-import { search } from 'src/helpers/search'
+import { autodetectResultsAtom } from 'src/state/autodetect.state'
+// import { datasetsAtom } from 'src/state/dataset.state'
+// import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
-
-// export const DatasetSelectorContainer = styled.div`
-//   flex: 1 0 100%;
-//   display: flex;
-//   flex-direction: column;
-//   overflow: hidden;
-//   height: 100%;
-//   border: 1px #ccc solid;
-//   border-radius: 5px;
-// `
-
-const DATASET_AUTODETECT: Dataset = {
-  path: 'autodetect',
-  enabled: true,
-  official: true,
-  attributes: {
-    name: { value: 'autodetect', valueFriendly: 'Autodetect' },
-    reference: { value: 'autodetect', valueFriendly: 'Autodetect' },
-  },
-  files: {
-    reference: '',
-    pathogenJson: '',
-  },
-}
 
 export const DatasetSelectorUl = styled(ListGroup)`
   flex: 1;
@@ -75,45 +50,46 @@ export interface DatasetSelectorListProps {
 
 export function DatasetSelectorList({
   datasets,
-  searchTerm,
+  // searchTerm,
   datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
-  const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
-
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
 
-  const autodetectItem = useMemo(() => {
-    if (isNil(minimizerIndexVersion)) {
-      return null
-    }
-
-    return (
-      <DatasetSelectorListItem
-        dataset={DATASET_AUTODETECT}
-        onClick={onItemClick(DATASET_AUTODETECT)}
-        isCurrent={areDatasetsEqual(DATASET_AUTODETECT, datasetHighlighted)}
-      />
-    )
-  }, [datasetHighlighted, minimizerIndexVersion, onItemClick])
+  const autodetectResults = useRecoilValue(autodetectResultsAtom)
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
-    if (searchTerm.trim().length === 0) {
-      return { itemsStartWith: datasets, itemsInclude: [], itemsNotInclude: [] }
+    if (isNil(autodetectResults) || autodetectResults.length === 0) {
+      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
     }
 
-    return search(datasets, searchTerm, (dataset) => [
-      dataset.attributes.name.value,
-      dataset.attributes.name.valueFriendly ?? '',
-      dataset.attributes.reference.value,
-    ])
-  }, [datasets, searchTerm])
+    let itemsInclude = datasets.filter((candidate) =>
+      autodetectResults.some((result) => result.result.dataset === candidate.path),
+    )
+    itemsInclude = sortBy(
+      itemsInclude,
+      (dataset) => -autodetectResults.filter((result) => result.result.dataset === dataset.path).length,
+    )
+
+    const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
+
+    return { itemsStartWith: [], itemsInclude, itemsNotInclude }
+  }, [autodetectResults, datasets])
+
+  // const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
+  //   if (searchTerm.trim().length === 0) {
+  //     return { itemsStartWith: datasets, itemsInclude: [], itemsNotInclude: [] }
+  //   }
+  //
+  //   return search(datasets, searchTerm, (dataset) => [
+  //     dataset.attributes.name.value,
+  //     dataset.attributes.name.valueFriendly ?? '',
+  //     dataset.attributes.reference.value,
+  //   ])
+  // }, [datasets, searchTerm])
 
   return (
-    // <DatasetSelectorContainer>
     <DatasetSelectorUl>
-      {autodetectItem}
-
       {[itemsStartWith, itemsInclude].map((datasets) =>
         datasets.map((dataset) => (
           <DatasetSelectorListItem
@@ -137,6 +113,5 @@ export function DatasetSelectorList({
         )),
       )}
     </DatasetSelectorUl>
-    // </DatasetSelectorContainer>
   )
 }

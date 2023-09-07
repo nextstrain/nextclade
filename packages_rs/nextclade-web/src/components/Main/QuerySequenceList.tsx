@@ -46,7 +46,7 @@ export function InputFileInfo({ input, index }: InputFileInfoProps) {
   )
 }
 
-export function MainInputFormSequencesCurrent() {
+export function QuerySequenceList() {
   const { t } = useTranslationSafe()
   const { qryInputs, clearQryInputs } = useQuerySeqInputs()
 

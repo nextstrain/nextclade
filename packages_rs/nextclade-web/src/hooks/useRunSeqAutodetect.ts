@@ -1,29 +1,24 @@
-import { useRouter } from 'next/router'
+import type { Subscription } from 'observable-fns'
 import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { axiosFetch } from 'src/io/axiosFetch'
-import { autodetectResultAtom, autodetectResultsAtom, minimizerIndexAtom } from 'src/state/autodetect.state'
+import { autodetectResultByIndexAtom, autodetectResultsAtom, minimizerIndexAtom } from 'src/state/autodetect.state'
 import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
-import type { Subscription } from 'observable-fns'
 import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
 import { spawn } from 'src/workers/spawn'
 
 export function useRunSeqAutodetect() {
-  const router = useRouter()
-
   return useRecoilCallback(
     ({ set, reset, snapshot: { getPromise } }) =>
       () => {
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
 
-        void router.push('/autodetect', '/autodetect') // eslint-disable-line no-void
-
         function onResult(res: MinimizerSearchRecord) {
-          set(autodetectResultAtom(res.fastaRecord.index), res)
+          set(autodetectResultByIndexAtom(res.fastaRecord.index), res)
         }
 
         Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
@@ -40,7 +35,7 @@ export function useRunSeqAutodetect() {
             throw error
           })
       },
-    [router],
+    [],
   )
 }
 
@@ -93,7 +88,7 @@ export class SeqAutodetectWasmWorker {
   }
 
   async destroy() {
-    await this.subscription?.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
+    this.subscription?.unsubscribe()
     await this.thread.destroy()
   }
 }

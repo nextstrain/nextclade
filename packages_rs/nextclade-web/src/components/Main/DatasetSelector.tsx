@@ -1,12 +1,15 @@
+import { isNil } from 'lodash'
 import React, { HTMLProps, useCallback, useState } from 'react'
-import classNames from 'classnames'
 import { ThreeDots } from 'react-loader-spinner'
-import { Button, Col, Container, Input, Row } from 'reactstrap'
-import { useRecoilState, useRecoilValue } from 'recoil'
-import styled from 'styled-components'
-import type { Dataset } from 'src/types'
-import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
+import { Button, Col, Container, Form, FormGroup, Input, Row } from 'reactstrap'
+import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
+import { Toggle } from 'src/components/Common/Toggle'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { useRecoilToggle } from 'src/hooks/useToggle'
+import { autodetectResultsAtom, hasAutodetectResultsAtom } from 'src/state/autodetect.state'
+import { datasetCurrentAtom, datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import styled from 'styled-components'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
 const DatasetSelectorContainer = styled(Container)`
@@ -46,17 +49,11 @@ const Spinner = styled(ThreeDots)`
   height: 100%;
 `
 
-export interface DatasetSelectorProps {
-  searchTerm: string
-  setSearchTerm(searchTerm: string): void
-}
-
-export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorProps) {
+export function DatasetSelector() {
   const { t } = useTranslationSafe()
-  const [error, setError] = useState<string | undefined>()
+  const [searchTerm, setSearchTerm] = useState('')
   const { datasets } = useRecoilValue(datasetsAtom)
   const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetCurrentAtom)
-  const [datasetHighlighted, setDatasetHighlighted] = useState<Dataset | undefined>(datasetCurrent)
 
   const onSearchTermChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,22 +63,13 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
     [setSearchTerm],
   )
 
-  const onNextClicked = useCallback(() => {
-    if (datasetHighlighted) {
-      setDatasetCurrent(datasetHighlighted)
-      setError(undefined)
-    } else {
-      setError(t('Please select a pathogen first'))
-    }
-  }, [datasetHighlighted, setDatasetCurrent, t])
-
   const isBusy = datasets.length === 0
 
   return (
     <DatasetSelectorContainer fluid>
       <Row noGutters>
         <Col sm={6} className="d-flex">
-          <DatasetSelectorTitle>{t('Select a pathogen')}</DatasetSelectorTitle>
+          <DatasetSelectorTitle>{t('Select pathogen dataset')}</DatasetSelectorTitle>
         </Col>
 
         <Col sm={6}>
@@ -100,15 +88,21 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
         </Col>
       </Row>
 
+      <Row noGutters>
+        <Col>
+          <AutodetectToggle />
+        </Col>
+      </Row>
+
       <Row noGutters className="mt-2 h-100 overflow-hidden">
         <Col className="h-100 overflow-hidden">
           <DatasetSelectorListContainer>
             {!isBusy && (
               <DatasetSelectorList
                 datasets={datasets}
-                datasetHighlighted={datasetHighlighted}
+                datasetHighlighted={datasetCurrent}
                 searchTerm={searchTerm}
-                onDatasetHighlighted={setDatasetHighlighted}
+                onDatasetHighlighted={setDatasetCurrent}
               />
             )}
 
@@ -122,20 +116,42 @@ export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorPr
           </DatasetSelectorListContainer>
         </Col>
       </Row>
-
-      <Row noGutters className="mt-2">
-        <Col className="d-flex">
-          {error && <p className="m-0 p-0 flex-1 text-danger">{error}</p>}
-          <Button
-            className={classNames('ml-auto', !datasetHighlighted && 'disabled')}
-            type="button"
-            color={datasetHighlighted ? 'primary' : 'secondary'}
-            onClick={onNextClicked}
-          >
-            {t('Next')}
-          </Button>
-        </Col>
-      </Row>
     </DatasetSelectorContainer>
+  )
+}
+
+function AutodetectToggle() {
+  const { t } = useTranslationSafe()
+  const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
+  const resetAutodetectResults = useResetRecoilState(autodetectResultsAtom)
+  const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
+  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(shouldSuggestDatasetsAtom)
+
+  if (isNil(minimizerIndexVersion)) {
+    return null
+  }
+
+  return (
+    <Form inline className="d-inline-flex h-100 mt-1">
+      <FormGroup className="my-auto">
+        <Toggle
+          identifier="toggle-run-automatically"
+          checked={shouldSuggestDatasets}
+          onCheckedChanged={toggleSuggestDatasets}
+        >
+          <span
+            title={t(
+              'Enable suggestion of best matching pathogen datasets. Please add sequence data to launch suggestion engine.',
+            )}
+          >
+            {t('Suggest best matches')}
+          </span>
+        </Toggle>
+
+        <Button color="link" onClick={resetAutodetectResults} disabled={!hasAutodetectResults}>
+          {t('Reset suggestions')}
+        </Button>
+      </FormGroup>
+    </Form>
   )
 }

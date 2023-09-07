@@ -1,16 +1,15 @@
-import { noop } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
-import { useRecoilState, useRecoilValue } from 'recoil'
-import { MainInputFormSequencesCurrent } from 'src/components/Main/MainInputFormSequencesCurrent'
+import { useRecoilValue } from 'recoil'
+import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useRecoilToggle } from 'src/hooks/useToggle'
 import { canRunAtom } from 'src/state/results.state'
 import styled from 'styled-components'
-
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
-import { shouldRunAutomaticallyAtom } from 'src/state/settings.state'
+import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsAtom } from 'src/state/settings.state'
 import type { AlgorithmInput } from 'src/types'
 import { Toggle } from 'src/components/Common/Toggle'
 import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
@@ -33,7 +32,7 @@ const ButtonRunStyled = styled(Button)`
   margin-left: 1rem;
 `
 
-export function MainInputFormSequenceFilePicker() {
+export function QuerySequenceFilePicker() {
   const { t } = useTranslationSafe()
 
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
@@ -41,7 +40,9 @@ export function MainInputFormSequenceFilePicker() {
   const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
   const canRun = useRecoilValue(canRunAtom)
-  const [shouldRunAutomatically, setShouldRunAutomatically] = useRecoilState(shouldRunAutomaticallyAtom)
+  const { state: shouldRunAutomatically, toggle: toggleRunAutomatically } = useRecoilToggle(shouldRunAutomaticallyAtom)
+  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
+
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
 
@@ -50,32 +51,30 @@ export function MainInputFormSequenceFilePicker() {
   const runAnalysis = useRunAnalysis()
   const runAutodetect = useRunSeqAutodetect()
 
-  const run = useCallback(() => {
-    if (datasetCurrent?.path === 'autodetect') {
-      runAutodetect()
-    } else {
-      runAnalysis()
-    }
-  }, [datasetCurrent?.path, runAnalysis, runAutodetect])
-
   const setSequences = useCallback(
     (inputs: AlgorithmInput[]) => {
       addQryInputs(inputs)
+      if (shouldSuggestDatasets) {
+        runAutodetect()
+      }
       if (shouldRunAutomatically) {
-        run()
+        runAnalysis()
       }
     },
-    [addQryInputs, run, shouldRunAutomatically],
+    [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets],
   )
 
   const setExampleSequences = useCallback(() => {
     if (datasetCurrent) {
       addQryInputs([new AlgorithmInputDefault(datasetCurrent)])
+      if (shouldSuggestDatasets) {
+        runAutodetect()
+      }
       if (shouldRunAutomatically) {
-        run()
+        runAnalysis()
       }
     }
-  }, [addQryInputs, datasetCurrent, run, shouldRunAutomatically])
+  }, [addQryInputs, datasetCurrent, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
     const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasInputErrors
@@ -88,19 +87,6 @@ export function MainInputFormSequenceFilePicker() {
     }
   }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
-  const LoadExampleLink = useMemo(() => {
-    const cannotLoadExample = hasInputErrors || !datasetCurrent || datasetCurrent.path === 'autodetect'
-    return (
-      <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
-        {t('Load example')}
-      </Button>
-    )
-  }, [datasetCurrent, hasInputErrors, setExampleSequences, t])
-
-  const onToggleRunAutomatically = useCallback(() => {
-    setShouldRunAutomatically((shouldRunAutomatically) => !shouldRunAutomatically)
-  }, [setShouldRunAutomatically])
-
   const headerText = useMemo(() => {
     if (qryInputs.length > 0) {
       return t('Add more sequence data')
@@ -110,7 +96,7 @@ export function MainInputFormSequenceFilePicker() {
 
   return (
     <SequenceFilePickerContainer>
-      <MainInputFormSequencesCurrent />
+      <QuerySequenceList />
 
       <FilePicker
         className="my-3"
@@ -121,7 +107,6 @@ export function MainInputFormSequenceFilePicker() {
         input={undefined}
         error={qrySeqError}
         isInProgress={false}
-        onRemove={noop}
         onInputs={setSequences}
         multiple
       />
@@ -134,7 +119,7 @@ export function MainInputFormSequenceFilePicker() {
                 <Toggle
                   identifier="toggle-run-automatically"
                   checked={shouldRunAutomatically}
-                  onCheckedChanged={onToggleRunAutomatically}
+                  onCheckedChanged={toggleRunAutomatically}
                 >
                   <span title="Run Nextclade automatically after sequence data is provided">
                     {t('Run automatically')}
@@ -145,12 +130,14 @@ export function MainInputFormSequenceFilePicker() {
           </FlexLeft>
 
           <FlexRight>
-            {LoadExampleLink}
+            <Button color="link" onClick={setExampleSequences} disabled={hasInputErrors || !datasetCurrent}>
+              {t('Load example')}
+            </Button>
 
             <ButtonRunStyled
               disabled={isRunButtonDisabled}
               color={runButtonColor}
-              onClick={run}
+              onClick={runAnalysis}
               title={runButtonTooltip}
             >
               {t('Run')}
