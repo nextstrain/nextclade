@@ -38,7 +38,8 @@ pub fn score_matrix<T: Letter<T>>(
   let mut scores = Band2d::<i32>::new(stripes);
   let band_size = paths.data_len();
 
-  trace!("Score matrix: allocated alignment band of size={band_size}");
+  let mean_band_width = band_size / ref_len;
+  trace!("Score matrix: allocated alignment band of size={band_size}, mean band width={mean_band_width}");
 
   let left_align = match params.gap_alignment_side {
     GapAlignmentSide::Left => 1,
