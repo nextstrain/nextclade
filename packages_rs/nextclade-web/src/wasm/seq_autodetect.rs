@@ -33,7 +33,6 @@ impl Default for NextcladeSeqAutodetectWasmParams {
 #[wasm_bindgen]
 pub struct NextcladeSeqAutodetectWasm {
   minimizer_index: MinimizerIndexJson,
-  search_params: NextcladeSeqSortParams,
   run_params: NextcladeSeqAutodetectWasmParams,
 }
 
@@ -43,13 +42,14 @@ impl NextcladeSeqAutodetectWasm {
     let minimizer_index = jserr(MinimizerIndexJson::from_str(minimizer_index_json_str))?;
     Ok(Self {
       minimizer_index,
-      search_params: NextcladeSeqSortParams::default(),
       run_params: jserr(json_parse(params))?,
     })
   }
 
   pub fn autodetect(&self, qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
     let mut reader = jserr(FastaReader::from_str(&qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
+
+    let search_params = NextcladeSeqSortParams::default();
 
     let mut batch = vec![];
     let mut last_flush = date_now();
@@ -62,7 +62,7 @@ impl NextcladeSeqAutodetectWasm {
       }
 
       let result = jserr(
-        run_minimizer_search(&fasta_record, &self.minimizer_index, &self.search_params).wrap_err_with(|| {
+        run_minimizer_search(&fasta_record, &self.minimizer_index).wrap_err_with(|| {
           format!(
             "When processing sequence #{} '{}'",
             fasta_record.index, fasta_record.seq_name
@@ -70,7 +70,9 @@ impl NextcladeSeqAutodetectWasm {
         }),
       )?;
 
-      batch.push(MinimizerSearchRecord { fasta_record, result });
+      if result.max_score >= search_params.min_score && result.total_hits >= search_params.min_hits {
+        batch.push(MinimizerSearchRecord { fasta_record, result });
+      }
 
       if (date_now() - last_flush >= Duration::milliseconds(self.run_params.batch_interval_ms))
         || batch.len() >= self.run_params.max_batch_size

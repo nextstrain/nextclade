@@ -1,13 +1,12 @@
-import { isNil, sortBy } from 'lodash'
+import { get, isNil, sortBy } from 'lodash'
 import React, { HTMLProps, useCallback, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
-import { autodetectResultsAtom } from 'src/state/autodetect.state'
-// import { datasetsAtom } from 'src/state/dataset.state'
-// import { search } from 'src/helpers/search'
+import { autodetectResultsAtom, filterGoodRecords, groupByDatasets } from 'src/state/autodetect.state'
+import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
 export const DatasetSelectorUl = styled.ul`
@@ -66,7 +65,7 @@ export interface DatasetSelectorListProps extends HTMLProps<HTMLUListElement> {
 
 export function DatasetSelectorList({
   datasets,
-  // searchTerm,
+  searchTerm,
   datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
@@ -74,35 +73,41 @@ export function DatasetSelectorList({
 
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
 
-  const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
+  const autodetectResult = useMemo(() => {
     if (isNil(autodetectResults) || autodetectResults.length === 0) {
       return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
     }
 
+    const goodRecordsByDataset = groupByDatasets(filterGoodRecords(autodetectResults))
+
     let itemsInclude = datasets.filter((candidate) =>
-      autodetectResults.some((result) => result.result.dataset === candidate.path),
+      Object.entries(goodRecordsByDataset).some(([dataset, _]) => dataset === candidate.path),
     )
-    itemsInclude = sortBy(
-      itemsInclude,
-      (dataset) => -autodetectResults.filter((result) => result.result.dataset === dataset.path).length,
-    )
+
+    itemsInclude = sortBy(itemsInclude, (dataset) => -get(goodRecordsByDataset, dataset.path, []).length)
 
     const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
 
     return { itemsStartWith: [], itemsInclude, itemsNotInclude }
   }, [autodetectResults, datasets])
 
-  // const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
-  //   if (searchTerm.trim().length === 0) {
-  //     return { itemsStartWith: datasets, itemsInclude: [], itemsNotInclude: [] }
-  //   }
-  //
-  //   return search(datasets, searchTerm, (dataset) => [
-  //     dataset.attributes.name.value,
-  //     dataset.attributes.name.valueFriendly ?? '',
-  //     dataset.attributes.reference.value,
-  //   ])
-  // }, [datasets, searchTerm])
+  const searchResult = useMemo(() => {
+    if (searchTerm.trim().length === 0) {
+      return autodetectResult
+    }
+
+    return search(
+      [...autodetectResult.itemsStartWith, ...autodetectResult.itemsInclude, ...autodetectResult.itemsNotInclude],
+      searchTerm,
+      (dataset) => [
+        dataset.attributes.name.value,
+        dataset.attributes.name.valueFriendly ?? '',
+        dataset.attributes.reference.value,
+      ],
+    )
+  }, [autodetectResult, searchTerm])
+
+  const { itemsStartWith, itemsInclude, itemsNotInclude } = searchResult
 
   return (
     <DatasetSelectorUl>

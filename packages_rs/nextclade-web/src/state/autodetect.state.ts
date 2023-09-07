@@ -1,6 +1,9 @@
+/* eslint-disable no-loops/no-loops */
+import copy from 'fast-copy'
+import unique from 'fork-ts-checker-webpack-plugin/lib/utils/array/unique'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import type { MinimizerIndexJson, MinimizerSearchRecord, MinimizerSearchResult } from 'src/types'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
 export const minimizerIndexAtom = atom<MinimizerIndexJson>({
@@ -48,6 +51,37 @@ export const autodetectResultByIndexAtom = selectorFamily<MinimizerSearchRecord,
 // Dataset ID to use for when dataset is not autodetected
 export const DATASET_ID_UNDETECTED = 'undetected'
 
+export function filterGoodDatasets(result: MinimizerSearchResult) {
+  return result.datasets.filter(({ score, nHits }) => score >= 0.3 && nHits >= 10)
+}
+
+export function filterGoodRecords(records: MinimizerSearchRecord[]) {
+  return records
+    .map((record) => {
+      const recordCopy = copy(record)
+      recordCopy.result.datasets = filterGoodDatasets(record.result)
+      return recordCopy
+    })
+    .filter((record) => record.result.datasets.length > 0)
+}
+
+export function filterBadRecords(records: MinimizerSearchRecord[]) {
+  const goodRecords = filterGoodRecords(records)
+  return records.filter(
+    (record) => !goodRecords.every((goodRecord) => goodRecord.fastaRecord.index === record.fastaRecord.index),
+  )
+}
+
+export function groupByDatasets(records: MinimizerSearchRecord[]) {
+  const names = unique(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
+  let byDataset = {}
+  for (const name of names) {
+    const selectedRecords = records.find((record) => record.result.datasets.some((dataset) => dataset.name === name))
+    byDataset = { ...byDataset, [name]: selectedRecords }
+  }
+  return byDataset
+}
+
 // Select autodetect results by dataset name
 export const autodetectResultsByDatasetAtom = selectorFamily<MinimizerSearchRecord[] | undefined, string>({
   key: 'autodetectResultByDatasetAtom',
@@ -55,17 +89,18 @@ export const autodetectResultsByDatasetAtom = selectorFamily<MinimizerSearchReco
   get:
     (datasetId: string) =>
     ({ get }): MinimizerSearchRecord[] | undefined => {
-      const results = get(autodetectResultsAtom)
-      if (isNil(results)) {
+      const records = get(autodetectResultsAtom)
+      if (isNil(records)) {
         return undefined
       }
 
-      return results.filter((result) => {
-        if (datasetId === DATASET_ID_UNDETECTED) {
-          return isNil(result.result.dataset)
-        }
-        return result.result.dataset === datasetId
-      })
+      if (datasetId === DATASET_ID_UNDETECTED) {
+        return filterBadRecords(records)
+      }
+
+      return filterGoodRecords(records).filter((record) =>
+        record.result.datasets.some((dataset) => dataset.name === datasetId),
+      )
     },
 })
 

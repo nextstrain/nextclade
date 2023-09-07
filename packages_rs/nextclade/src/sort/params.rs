@@ -6,23 +6,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Parser, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeSeqSortParams {
-  /// Minimum value of the normalized index hit being considered for assignment
+  /// Minimum value of the score being considered for a detection
   #[clap(long)]
-  #[clap(default_value_t = NextcladeSeqSortParams::default().min_normalized_hit)]
-  pub min_normalized_hit: f64,
+  #[clap(default_value_t = NextcladeSeqSortParams::default().min_score)]
+  pub min_score: f64,
 
-  /// Minimum number of the index hits required for assignment
+  /// Minimum number of the index hits required for a detection
   #[clap(long)]
-  #[clap(default_value_t = NextcladeSeqSortParams::default().min_total_hits)]
-  pub min_total_hits: u64,
+  #[clap(default_value_t = NextcladeSeqSortParams::default().min_hits)]
+  pub min_hits: u64,
 }
 
 #[allow(clippy::derivable_impls)]
 impl Default for NextcladeSeqSortParams {
   fn default() -> Self {
     Self {
-      min_normalized_hit: 0.3,
-      min_total_hits: 10,
+      min_score: 0.3,
+      min_hits: 10,
     }
   }
 }

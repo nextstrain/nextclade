@@ -10,6 +10,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
   autodetectResultsByDatasetAtom,
   DATASET_ID_UNDETECTED,
+  filterGoodRecords,
   numberAutodetectResultsAtom,
 } from 'src/state/autodetect.state'
 import type { Dataset } from 'src/types'
@@ -172,11 +173,11 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
   const { name } = attributes
 
   const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
-  const autodetectResults = useRecoilValue(autodetectResultsByDatasetAtom(path))
+  const records = useRecoilValue(autodetectResultsByDatasetAtom(path))
   const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
 
   const { circleText, countText, percentage } = useMemo(() => {
-    if (isNil(autodetectResults)) {
+    if (isNil(records)) {
       return {
         circleText: (firstLetter(name.valueFriendly ?? name.value) ?? ' ').toUpperCase(),
         percentage: 0,
@@ -184,14 +185,16 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
       }
     }
 
-    if (autodetectResults.length > 0) {
-      const percentage = autodetectResults.length / numberAutodetectResults
+    const goodRecords = filterGoodRecords(records)
+
+    if (goodRecords.length > 0) {
+      const percentage = goodRecords.length / numberAutodetectResults
       const circleText = `${(100 * percentage).toFixed(0)}%`
-      const countText = `${autodetectResults.length} / ${numberAutodetectResults}`
+      const countText = `${goodRecords.length} / ${numberAutodetectResults}`
       return { circleText, percentage, countText }
     }
-    return { circleText: 0, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [autodetectResults, name.value, name.valueFriendly, numberAutodetectResults])
+    return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
+  }, [records, name.value, name.valueFriendly, numberAutodetectResults])
 
   return (
     <>

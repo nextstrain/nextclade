@@ -10,8 +10,8 @@ import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
 
 const gSubject = new Subject<MinimizerSearchRecord[]>()
 
-function onResultParsed(resStr: MinimizerSearchRecord[]) {
-  gSubject.next(resStr)
+function onResultParsed(res: MinimizerSearchRecord[]) {
+  gSubject.next(res)
 }
 
 /**

@@ -1,20 +1,27 @@
 use crate::io::fasta::FastaRecord;
 use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
-use crate::sort::params::NextcladeSeqSortParams;
 use eyre::Report;
-use itertools::Itertools;
+use itertools::{izip, Itertools};
+use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
+pub struct MinimizerSearchDatasetResult {
+  pub name: String,
+  pub length: i64,
+  pub n_hits: u64,
+  pub score: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct MinimizerSearchResult {
-  pub dataset: Option<String>,
-  pub hit_counts: Vec<u64>,
   pub total_hits: u64,
-  pub normalized_hits: Vec<f64>,
-  pub max_normalized_hit: f64,
+  pub max_score: f64,
+  pub datasets: Vec<MinimizerSearchDatasetResult>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -28,7 +35,6 @@ pub struct MinimizerSearchRecord {
 pub fn run_minimizer_search(
   fasta_record: &FastaRecord,
   index: &MinimizerIndexJson,
-  params: &NextcladeSeqSortParams,
 ) -> Result<MinimizerSearchResult, Report> {
   let normalization = &index.normalization;
   let n_refs = index.references.len();
@@ -44,36 +50,31 @@ pub fn run_minimizer_search(
   }
 
   // we expect hits to be proportional to the length of the sequence and the number of minimizers per reference
-  let mut normalized_hits: Vec<f64> = vec![0.0; hit_counts.len()];
+  let mut scores: Vec<f64> = vec![0.0; hit_counts.len()];
   for i in 0..n_refs {
-    normalized_hits[i] = hit_counts[i] as f64 * normalization[i] / fasta_record.seq.len() as f64;
+    scores[i] = hit_counts[i] as f64 * normalization[i] / fasta_record.seq.len() as f64;
   }
 
-  // require at least 30% of the maximal hits and at least 10 hits
-  let max_normalized_hit = normalized_hits.iter().copied().fold(0.0, f64::max);
+  let max_score = scores.iter().copied().fold(0.0, f64::max);
   let total_hits: u64 = hit_counts.iter().sum();
-  if max_normalized_hit < params.min_normalized_hit || total_hits < params.min_total_hits {
-    Ok(MinimizerSearchResult {
-      dataset: None,
-      hit_counts,
-      total_hits,
-      normalized_hits,
-      max_normalized_hit,
+
+  let datasets = izip!(&index.references, hit_counts, scores)
+    .filter_map(|(ref_info, n_hits, score)| {
+      (n_hits > 0 && score >= 0.01).then_some(MinimizerSearchDatasetResult {
+        name: ref_info.name.clone(),
+        length: ref_info.length,
+        n_hits,
+        score,
+      })
     })
-  } else {
-    let i_ref = normalized_hits
-      .iter()
-      .position_max_by(|x, y| x.total_cmp(y))
-      .expect("The `normalized_hits` cannot be empty.");
-    let reference = &index.references[i_ref];
-    Ok(MinimizerSearchResult {
-      dataset: Some(reference.name.clone()),
-      hit_counts,
-      total_hits,
-      normalized_hits,
-      max_normalized_hit,
-    })
-  }
+    .sorted_by_key(|result| -OrderedFloat(result.score))
+    .collect_vec();
+
+  Ok(MinimizerSearchResult {
+    total_hits,
+    max_score,
+    datasets,
+  })
 }
 
 const fn invertible_hash(x: u64) -> u64 {

@@ -103,7 +103,7 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
         for fasta_record in &fasta_receiver {
           info!("Processing sequence '{}'", fasta_record.seq_name);
 
-          let result = run_minimizer_search(&fasta_record, minimizer_index, search_params)
+          let result = run_minimizer_search(&fasta_record, minimizer_index)
             .wrap_err_with(|| {
               format!(
                 "When processing sequence #{} '{}'",
@@ -112,10 +112,14 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
             })
             .unwrap();
 
-          result_sender
-            .send(MinimizerSearchRecord { fasta_record, result })
-            .wrap_err("When sending minimizer record into the channel")
-            .unwrap();
+          if result.max_score >= search_params.min_score
+            && result.total_hits >= search_params.min_hits
+          {
+            result_sender
+              .send(MinimizerSearchRecord { fasta_record, result })
+              .wrap_err("When sending minimizer record into the channel")
+              .unwrap();
+          }
         }
 
         drop(result_sender);
@@ -142,7 +146,11 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
       let mut writers = BTreeMap::new();
 
       for record in result_receiver {
-        if let Some(name) = &record.result.dataset {
+        let dataset = record.result.datasets.first();
+
+        if let Some(dataset) = dataset {
+          let name = &dataset.name;
+
           let filepath = match (&tt, output_dir) {
             (Some(tt), None) => {
               let filepath_str = tt
@@ -172,12 +180,13 @@ pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) ->
           }
         }
 
+        let name_or_empty = dataset.as_ref().map(|dataset| dataset.name.clone()).unwrap_or_default();
         println!(
           "{:40} | {:40} | {:>10} | {:>.3}",
           &truncate(record.fasta_record.seq_name, 40),
-          &truncate(record.result.dataset.unwrap_or_default(), 40),
+          &truncate(name_or_empty, 40),
           &record.result.total_hits,
-          &record.result.max_normalized_hit
+          &record.result.max_score
         );
       }
     });

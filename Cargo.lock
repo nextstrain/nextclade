@@ -1748,6 +1748,7 @@ dependencies = [
  "num-traits",
  "num_cpus",
  "optfield",
+ "ordered-float",
  "owo-colors",
  "pretty_assertions",
  "rayon",
@@ -1958,11 +1959,14 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
-version = "3.7.0"
+version = "3.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fc2dbde8f8a79f2102cc474ceb0ad68e3b80b85289ea62389b60e66777e4213"
+checksum = "2a54938017eacd63036332b4ae5c8a49fc8c0c1d6d629893057e4f13609edd06"
 dependencies = [
  "num-traits",
+ "rand",
+ "schemars",
+ "serde",
 ]
 
 [[package]]
@@ -2178,6 +2182,7 @@ dependencies = [
  "libc",
  "rand_chacha",
  "rand_core",
+ "serde",
 ]
 
 [[package]]
@@ -2197,6 +2202,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
+ "serde",
 ]
 
 [[package]]
