@@ -8,9 +8,9 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
 
-const gSubject = new Subject<MinimizerSearchRecord>()
+const gSubject = new Subject<MinimizerSearchRecord[]>()
 
-function onResultParsed(resStr: MinimizerSearchRecord) {
+function onResultParsed(resStr: MinimizerSearchRecord[]) {
   gSubject.next(resStr)
 }
 
@@ -23,7 +23,10 @@ let nextcladeAutodetect: NextcladeSeqAutodetectWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
 async function create(minimizerIndexJsonStr: MinimizerIndexJson) {
-  nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(JSON.stringify(minimizerIndexJsonStr))
+  nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(
+    JSON.stringify(minimizerIndexJsonStr),
+    JSON.stringify({ batchIntervalMs: 700, maxBatchSize: 1000 }),
+  )
 }
 
 /** Destroys the underlying WebAssembly module. */
@@ -54,7 +57,7 @@ const worker = {
   create,
   destroy,
   autodetect,
-  values(): ThreadsObservable<MinimizerSearchRecord> {
+  values(): ThreadsObservable<MinimizerSearchRecord[]> {
     return ThreadsObservable.from(gSubject)
   },
 }

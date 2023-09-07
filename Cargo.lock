@@ -1820,6 +1820,7 @@ name = "nextclade-web"
 version = "3.0.0-alpha.0"
 dependencies = [
  "assert2",
+ "chrono",
  "console_error_panic_hook",
  "eyre",
  "getrandom",

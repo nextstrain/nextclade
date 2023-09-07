@@ -17,8 +17,10 @@ export function useRunSeqAutodetect() {
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
 
-        function onResult(res: MinimizerSearchRecord) {
-          set(autodetectResultByIndexAtom(res.fastaRecord.index), res)
+        function onResult(results: MinimizerSearchRecord[]) {
+          results.forEach((res) => {
+            set(autodetectResultByIndexAtom(res.fastaRecord.index), res)
+          })
         }
 
         Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
@@ -42,7 +44,7 @@ export function useRunSeqAutodetect() {
 async function runAutodetect(
   fasta: string,
   minimizerIndex: MinimizerIndexJson,
-  onResult: (res: MinimizerSearchRecord) => void,
+  onResult: (res: MinimizerSearchRecord[]) => void,
 ) {
   const worker = await SeqAutodetectWasmWorker.create(minimizerIndex)
   await worker.autodetect(fasta, { onResult })
@@ -51,7 +53,7 @@ async function runAutodetect(
 
 export class SeqAutodetectWasmWorker {
   private thread!: NextcladeSeqAutodetectWasmWorker
-  private subscription?: Subscription<MinimizerSearchRecord>
+  private subscription?: Subscription<MinimizerSearchRecord[]>
 
   private constructor() {}
 
@@ -78,7 +80,7 @@ export class SeqAutodetectWasmWorker {
       onError,
       onComplete,
     }: {
-      onResult: (r: MinimizerSearchRecord) => void
+      onResult: (r: MinimizerSearchRecord[]) => void
       onError?: (error: Error) => void
       onComplete?: () => void
     },

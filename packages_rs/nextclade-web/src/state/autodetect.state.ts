@@ -36,7 +36,7 @@ export const autodetectResultByIndexAtom = selectorFamily<MinimizerSearchRecord,
 
         // Add to the list of indices
         set(autodetectResultIndicesAtom, (prev) => {
-          if (result && !prev.includes(result.fastaRecord.index)) {
+          if (result) {
             return [...prev, result.fastaRecord.index]
           }
           return prev
