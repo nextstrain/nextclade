@@ -11,6 +11,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::make_error;
 use eyre::{Report, WrapErr};
 use log::{info, trace};
+use std::cmp::max;
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -62,42 +63,60 @@ pub fn align_nuc(
 
   let mut terminal_bandwidth = params.terminal_bandwidth as isize;
   let mut excess_bandwidth = params.excess_bandwidth as isize;
-  let mut allowed_mismatches = params.allowed_mismatches as isize;
-
+  let mut minimal_bandwidth = max(1, params.allowed_mismatches as isize);
+  let max_band_area = params.max_band_area;
   let mut attempt = 0;
 
-  loop {
-    let stripes = create_alignment_band(
+  let (mut stripes, mut band_area) = create_alignment_band(
+    &seed_matches,
+    qry_len as isize,
+    ref_len as isize,
+    terminal_bandwidth,
+    excess_bandwidth,
+    minimal_bandwidth,
+  );
+  if band_area > max_band_area {
+    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
+  }
+
+  let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+
+  while alignment.hit_boundary && attempt < params.max_alignment_attempts {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt+1, alignment.alignment_score);
+    // double bandwidth parameters or increase to one if 0
+    terminal_bandwidth = max(2 * terminal_bandwidth, 1);
+    excess_bandwidth = max(2 * excess_bandwidth, 1);
+    minimal_bandwidth = max(2 * minimal_bandwidth, 1);
+    attempt += 1;
+    // make new band
+    (stripes, band_area) = create_alignment_band(
       &seed_matches,
       qry_len as isize,
       ref_len as isize,
       terminal_bandwidth,
       excess_bandwidth,
-      allowed_mismatches,
-      params.max_band_area,
-    )?;
-
-    let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
-    alignment.is_reverse_complement = is_reverse_complement;
-
-    if alignment.hit_boundary {
-      terminal_bandwidth *= 2;
-      excess_bandwidth *= 2;
-      allowed_mismatches *= 2;
-      attempt += 1;
-      info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt, alignment.alignment_score);
-    } else {
-      if attempt > 0 {
-        info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
-      }
-      return Ok(alignment);
+      minimal_bandwidth,
+    );
+    // discard stripes and break to return previous alignment
+    if band_area > max_band_area {
+      break;
     }
-
-    if attempt > params.max_alignment_attempts {
-      info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Alignment score was: {}", alignment.alignment_score);
-      return Ok(alignment);
-    }
+    // realign
+    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
   }
+  // report success/failure of broadening of band width
+  if alignment.hit_boundary {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {}", alignment.alignment_score);
+    if band_area > max_band_area {
+      info!(
+        "When processing sequence #{index} '{seq_name}': final band area {band_area} exceeded the cutoff {max_band_area}"
+      );
+    }
+  } else if attempt > 0 {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
+  }
+  alignment.is_reverse_complement = is_reverse_complement;
+  Ok(alignment)
 }
 
 /// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
