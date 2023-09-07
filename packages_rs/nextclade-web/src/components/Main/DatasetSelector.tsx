@@ -135,7 +135,7 @@ function AutodetectToggle() {
     <Form inline className="d-inline-flex h-100 mt-1">
       <FormGroup className="my-auto">
         <Toggle
-          identifier="toggle-run-automatically"
+          identifier="toggle-suggest-datasets"
           checked={shouldSuggestDatasets}
           onCheckedChanged={toggleSuggestDatasets}
         >
