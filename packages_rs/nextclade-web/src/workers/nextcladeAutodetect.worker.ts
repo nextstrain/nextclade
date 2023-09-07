@@ -10,6 +10,10 @@ import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
 
 const gSubject = new Subject<MinimizerSearchRecord>()
 
+function onResultParsed(resStr: MinimizerSearchRecord) {
+  gSubject.next(resStr)
+}
+
 /**
  * Keeps the reference to the WebAssembly module.The module is stateful and requires manual initialization
  * and teardown.
@@ -35,11 +39,6 @@ async function destroy() {
 async function autodetect(fasta: string): Promise<void> {
   if (!nextcladeAutodetect) {
     throw new ErrorModuleNotInitialized('autodetect')
-  }
-
-  function onResultParsed(resStr: string) {
-    const result = JSON.parse(resStr) as MinimizerSearchRecord
-    gSubject.next(result)
   }
 
   try {

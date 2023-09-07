@@ -1,7 +1,6 @@
 use crate::wasm::jserr::jserr;
 use eyre::WrapErr;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
-use nextclade::io::json::{json_stringify, JsonPretty};
 use nextclade::sort::minimizer_index::MinimizerIndexJson;
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
 use nextclade::sort::params::NextcladeSeqSortParams;
@@ -44,13 +43,10 @@ impl NextcladeSeqAutodetectWasm {
         }),
       )?;
 
-      let result_json = jserr(json_stringify(
-        &MinimizerSearchRecord { fasta_record, result },
-        JsonPretty(false),
-      ))?;
+      let result_js = serde_wasm_bindgen::to_value(&MinimizerSearchRecord { fasta_record, result })?;
 
       callback
-        .call1(&JsValue::null(), &JsValue::from_str(&result_json))
+        .call1(&JsValue::null(), &result_js)
         .map_err(|err_val| JsError::new(&format!("{err_val:#?}")))?;
     }
 
