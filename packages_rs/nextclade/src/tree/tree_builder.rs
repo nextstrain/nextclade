@@ -105,7 +105,15 @@ pub fn finetune_nearest_node(
   let mut current_best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
+  // the following loop moves the new sequences, defined by its set of private mutations
+  // along the tree starting at the `nearest_node`. As the new sequence is moved, the
+  // private mutations are updated. This is repeated until the number of private mutations (nuc)
+  // can not be reduced further by moving the node. At the end of the loop, the nearest node
+  // is either the closest possible point, or this closest point is along the branch leading
+  // to the nearest_node.
   loop {
+    // in each iteration, check how many mutation are shared with the branch leading to
+    // the current_best_node or any of its children (loop further below).
     let mut best_node = current_best_node;
     let (mut best_split_result, mut n_shared_muts) = if current_best_node.is_root() {
       // don't include node if node is root as we don't attach nodes above the root
@@ -130,6 +138,7 @@ pub fn finetune_nearest_node(
       (best_split_result, n_shared_muts)
     };
 
+    // check all child nodes for shared mutations
     for child in graph.iter_children_of(current_best_node) {
       let tmp_split_result =
         split_muts(&child.payload().tmp.private_mutations, &private_mutations).wrap_err_with(|| {
@@ -146,6 +155,7 @@ pub fn finetune_nearest_node(
       }
     }
 
+    // if shared mutations are found, the current_best_node is updated
     if n_shared_muts > 0 {
       if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
         // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
@@ -160,16 +170,18 @@ pub fn finetune_nearest_node(
         // The best node is child
         current_best_node = graph.get_node(best_node.key())?;
       }
-      //subtract the shared mutations from the private mutations struct
+      // update the private mutations to match the new 'current_best_node'. This involves
+      // in step 1 subtracting the shared mutations from the private mutations struct
       private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
         format!(
           "When calculating difference of mutations between query sequence and the candidate child node '{}'",
           current_best_node.payload().name
         )
       })?;
-      // add the inverted remaining mutations on that branch
-      // even if there are no left-over nuc_subs because they are shared, there can be
-      // changes in the amino acid sequences due to mutations in the same codon that still need handling
+      // in step 2 we need to add the inverted remaining mutations on that branch.
+      // Not that this can be necessary even if there are no left-over nuc_subs.
+      // Amino acid mutations can be decoupled from the their nucleotide mutations or
+      // changes in the amino acid sequences due to mutations in the same codon still need handling
       private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
         format!(
           "When calculating union of mutations between query sequence and the candidate child node '{}'",
@@ -183,10 +195,8 @@ pub fn finetune_nearest_node(
       // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
       // auxiliary nodes.
 
-      // Mutation subtraction is still necessary because there might be shared mutations even if there are no `nuc_subs`.
-      // FIXME: This relies on `is_leaf`. In that case, there is only one entry in `shared_muts_neighbors`
-      // and the `max_shared_muts` is automatically the `current_best_node.key()`. Less error prone would be
-      // to fetch the shared muts corresponding to current_best_node.key()
+      // Mutation subtraction is still necessary because there might be shared mutations
+      // even if there are no `nuc_subs`.
       private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
         format!(
           "When subtracting mutations from zero-length parent node '{}'",
@@ -195,7 +205,7 @@ pub fn finetune_nearest_node(
       })?;
       private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
         format!(
-          "When calculating union of mutations between query sequence the zero-length parent node '{}'",
+          "When calculating union of mutations between the query sequence and the zero-length parent node '{}'",
           graph.get_node(best_node.key()).expect("Node not found").payload().name
         )
       })?;
