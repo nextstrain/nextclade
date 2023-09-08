@@ -1,4 +1,4 @@
-use crate::wasm::jserr::jserr;
+use crate::wasm::jserr::{jserr, jserr2};
 use chrono::Duration;
 use eyre::WrapErr;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
@@ -77,21 +77,20 @@ impl NextcladeSeqAutodetectWasm {
       if (date_now() - last_flush >= Duration::milliseconds(self.run_params.batch_interval_ms))
         || batch.len() >= self.run_params.max_batch_size
       {
-        let result_js = serde_wasm_bindgen::to_value(&batch)?;
-        callback
-          .call1(&JsValue::null(), &result_js)
-          .map_err(|err_val| JsError::new(&format!("{err_val:#?}")))?;
+        self.flush_batch(callback, &mut batch)?;
         last_flush = date_now();
-        batch.clear();
       }
     }
 
-    let result_js = serde_wasm_bindgen::to_value(&batch)?;
-    callback
-      .call1(&JsValue::null(), &result_js)
-      .map_err(|err_val| JsError::new(&format!("{err_val:#?}")))?;
-    batch.clear();
+    self.flush_batch(callback, &mut batch)?;
 
+    Ok(())
+  }
+
+  fn flush_batch(&self, callback: &js_sys::Function, batch: &mut Vec<MinimizerSearchRecord>) -> Result<(), JsError> {
+    let result_js = serde_wasm_bindgen::to_value(&batch)?;
+    jserr2(callback.call1(&JsValue::null(), &result_js))?;
+    batch.clear();
     Ok(())
   }
 }
