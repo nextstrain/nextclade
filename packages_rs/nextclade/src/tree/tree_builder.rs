@@ -185,7 +185,7 @@ pub fn finetune_nearest_node(
       private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
         format!(
           "When calculating union of mutations between query sequence and the candidate child node '{}'",
-          graph.get_node(best_node.key()).expect("Node not found").payload().name
+          best_node.payload().name
         )
       })?;
     } else if current_best_node.is_leaf()
@@ -206,7 +206,7 @@ pub fn finetune_nearest_node(
       private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
         format!(
           "When calculating union of mutations between the query sequence and the zero-length parent node '{}'",
-          graph.get_node(best_node.key()).expect("Node not found").payload().name
+          best_node.payload().name
         )
       })?;
       current_best_node = graph
