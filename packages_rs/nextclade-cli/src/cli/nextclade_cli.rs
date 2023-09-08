@@ -684,10 +684,10 @@ pub struct NextcladeSortArgs {
   #[clap(group = "outputs")]
   pub output: Option<String>,
 
-  #[clap(flatten, next_help_heading = "  Algorithm")]
+  #[clap(flatten, next_help_heading = "Algorithm")]
   pub search_params: NextcladeSeqSortParams,
 
-  #[clap(flatten, next_help_heading = "  Other")]
+  #[clap(flatten, next_help_heading = "Other")]
   pub other_params: NextcladeRunOtherParams,
 
   /// Use custom dataset server.
