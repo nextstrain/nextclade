@@ -11,6 +11,7 @@ use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::truncate;
+use ordered_float::OrderedFloat;
 use serde::Serialize;
 use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::collections::BTreeMap;
@@ -150,15 +151,25 @@ fn writer_thread(
     Ok(template)
   })?;
 
+  println!("{}┐", "─".repeat(110));
+
   println!(
-    "{:40} | {:40} | {:10} | {:10}",
-    "Seq. name", "dataset", "total hits", "max hit"
+    "{:^40} │ {:^40} │ {:^10} │ {:^10} │",
+    "Sequence name", "Dataset", "Score", "Num. hits"
   );
+
+  println!("{}┤", "─".repeat(110));
 
   let mut writers = BTreeMap::new();
 
   for record in result_receiver {
-    for dataset in &record.result.datasets {
+    let datasets = record
+      .result
+      .datasets
+      .iter()
+      .sorted_by_key(|dataset| -OrderedFloat(dataset.score));
+
+    for (i, dataset) in datasets.enumerate() {
       let name = &dataset.name;
 
       let names = name
@@ -167,6 +178,7 @@ fn writer_thread(
           *name = name.join(component);
           Some(name.clone())
         })
+        .unique()
         .map(path_to_string)
         .collect::<Result<Vec<String>, Report>>()?;
 
@@ -178,17 +190,18 @@ fn writer_thread(
           writer.write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)?;
         }
       }
+
+      let name = if i == 0 { &record.fasta_record.seq_name } else { "" };
+      println!(
+        "{:40} │ {:40} │ {:>10.3} │ {:>10} │",
+        &truncate(name, 40),
+        &truncate(&dataset.name, 40),
+        &dataset.score,
+        &dataset.n_hits,
+      );
     }
 
-    let dataset = record.result.datasets.first();
-    let name_or_empty = dataset.as_ref().map(|dataset| dataset.name.clone()).unwrap_or_default();
-    println!(
-      "{:40} | {:40} | {:>10} | {:>.3}",
-      &truncate(record.fasta_record.seq_name, 40),
-      &truncate(name_or_empty, 40),
-      &record.result.total_hits,
-      &record.result.max_score
-    );
+    println!("{}┤", "─".repeat(110));
   }
 
   Ok(())

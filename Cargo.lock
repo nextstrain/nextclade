@@ -1787,6 +1787,7 @@ dependencies = [
  "log",
  "nextclade",
  "num_cpus",
+ "ordered-float",
  "owo-colors",
  "pretty_assertions",
  "rayon",
