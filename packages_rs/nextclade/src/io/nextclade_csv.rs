@@ -24,7 +24,6 @@ use eyre::Report;
 use indexmap::{indexmap, IndexMap};
 use itertools::{chain, Either, Itertools};
 use lazy_static::lazy_static;
-use regex::internal::Input;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::fmt::Display;
