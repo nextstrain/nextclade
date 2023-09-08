@@ -3,15 +3,18 @@ use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{info, trace, LevelFilter};
+use log::{info, LevelFilter};
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
+use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
+use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::truncate;
 use serde::Serialize;
+use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
 
@@ -112,9 +115,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Re
             })
             .unwrap();
 
-          if result.max_score >= search_params.min_score
-            && result.total_hits >= search_params.min_hits
-          {
+          if result.max_score >= search_params.min_score && result.total_hits >= search_params.min_hits {
             result_sender
               .send(MinimizerSearchRecord { fasta_record, result })
               .wrap_err("When sending minimizer record into the channel")
@@ -129,70 +130,96 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Re
     let writer = s.spawn(move || {
       let output_dir = &output_dir;
       let output = &output;
-
-      let tt = output.as_ref().map(move |output| {
-        let mut tt = TinyTemplate::new();
-        tt.add_template("output", output)
-          .wrap_err_with(|| format!("When parsing template: {output}"))
-          .unwrap();
-        tt
-      });
-
-      println!(
-        "{:40} | {:40} | {:10} | {:10}",
-        "Seq. name", "dataset", "total hits", "max hit"
-      );
-
-      let mut writers = BTreeMap::new();
-
-      for record in result_receiver {
-        let dataset = record.result.datasets.first();
-
-        if let Some(dataset) = dataset {
-          let name = &dataset.name;
-
-          let filepath = match (&tt, output_dir) {
-            (Some(tt), None) => {
-              let filepath_str = tt
-                .render("output", &OutputTemplateContext { name })
-                .wrap_err("When rendering output path template")
-                .unwrap();
-
-              Some(
-                PathBuf::from_str(&filepath_str)
-                  .wrap_err_with(|| format!("Invalid output translations path: '{filepath_str}'"))
-                  .unwrap(),
-              )
-            }
-            (None, Some(output_dir)) => Some(output_dir.join(name).join("sequences.fasta")),
-            _ => None,
-          };
-
-          if let Some(filepath) = filepath {
-            let writer = writers.entry(filepath.clone()).or_insert_with(|| {
-              trace!("Creating fasta writer to file {filepath:#?}");
-              FastaWriter::from_path(filepath).unwrap()
-            });
-
-            writer
-              .write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)
-              .unwrap();
-          }
-        }
-
-        let name_or_empty = dataset.as_ref().map(|dataset| dataset.name.clone()).unwrap_or_default();
-        println!(
-          "{:40} | {:40} | {:>10} | {:>.3}",
-          &truncate(record.fasta_record.seq_name, 40),
-          &truncate(name_or_empty, 40),
-          &record.result.total_hits,
-          &record.result.max_score
-        );
-      }
+      writer_thread(output, output_dir, result_receiver).unwrap();
     });
   });
 
   Ok(())
+}
+
+fn writer_thread(
+  output: &Option<String>,
+  output_dir: &Option<PathBuf>,
+  result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
+) -> Result<(), Report> {
+  let template = output.map_ref_fallible(move |output| -> Result<TinyTemplate, Report> {
+    let mut template = TinyTemplate::new();
+    template
+      .add_template("output", output)
+      .wrap_err_with(|| format!("When parsing template: {output}"))?;
+    Ok(template)
+  })?;
+
+  println!(
+    "{:40} | {:40} | {:10} | {:10}",
+    "Seq. name", "dataset", "total hits", "max hit"
+  );
+
+  let mut writers = BTreeMap::new();
+
+  for record in result_receiver {
+    for dataset in &record.result.datasets {
+      let name = &dataset.name;
+
+      let names = name
+        .split('/')
+        .scan(PathBuf::new(), |name, component| {
+          *name = name.join(component);
+          Some(name.clone())
+        })
+        .map(path_to_string)
+        .collect::<Result<Vec<String>, Report>>()?;
+
+      for name in names {
+        let filepath = get_filepath(&name, &template, output_dir)?;
+
+        if let Some(filepath) = filepath {
+          let writer = get_or_insert_writer(&mut writers, filepath)?;
+          writer.write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)?;
+        }
+      }
+    }
+
+    let dataset = record.result.datasets.first();
+    let name_or_empty = dataset.as_ref().map(|dataset| dataset.name.clone()).unwrap_or_default();
+    println!(
+      "{:40} | {:40} | {:>10} | {:>.3}",
+      &truncate(record.fasta_record.seq_name, 40),
+      &truncate(name_or_empty, 40),
+      &record.result.total_hits,
+      &record.result.max_score
+    );
+  }
+
+  Ok(())
+}
+
+fn get_or_insert_writer(
+  writers: &mut BTreeMap<PathBuf, FastaWriter>,
+  filepath: impl AsRef<Path>,
+) -> Result<&mut FastaWriter, Report> {
+  Ok(match writers.entry(filepath.as_ref().to_owned()) {
+    Occupied(e) => e.into_mut(),
+    Vacant(e) => e.insert(FastaWriter::from_path(filepath)?),
+  })
+}
+
+fn get_filepath(
+  name: &str,
+  tt: &Option<TinyTemplate>,
+  output_dir: &Option<PathBuf>,
+) -> Result<Option<PathBuf>, Report> {
+  Ok(match (&tt, output_dir) {
+    (Some(tt), None) => {
+      let filepath_str = tt
+        .render("output", &OutputTemplateContext { name })
+        .wrap_err("When rendering output path template")?;
+
+      Some(PathBuf::from_str(&filepath_str).wrap_err_with(|| format!("Invalid output path: '{filepath_str}'"))?)
+    }
+    (None, Some(output_dir)) => Some(output_dir.join(name).join("sequences.fasta")),
+    _ => None,
+  })
 }
 
 #[derive(Serialize)]
