@@ -193,6 +193,12 @@ pub fn finetune_nearest_node(
           current_best_node.payload().name
         )
       })?;
+      private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
+        format!(
+          "When calculating union of mutations between query sequence and the candidate child node '{}'",
+          graph.get_node(best_node.key()).expect("Node not found").payload().name
+        )
+      })?;
       current_best_node = graph
         .parent_of_by_key(best_node.key())
         .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
