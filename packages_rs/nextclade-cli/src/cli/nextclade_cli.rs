@@ -68,20 +68,20 @@ pub enum NextcladeCommands {
     shell: String,
   },
 
-  /// Run alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
+  /// Run sequence analysis: alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
   Run(Box<NextcladeRunArgs>),
 
-  /// List and download available Nextclade datasets
+  /// List and download available Nextclade datasets (pathogens)
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade dataset --help`.
   Dataset(Box<NextcladeDatasetArgs>),
 
-  /// Perform operations on sequences
+  /// Sort sequences according to the inferred Nextclade dataset (pathogen)
   ///
-  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade seq --help`.
-  Seq(Box<NextcladeSeqArgs>),
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
+  Sort(Box<NextcladeSortArgs>),
 }
 
 #[derive(Parser, Debug)]
@@ -618,25 +618,10 @@ pub struct NextcladeRunArgs {
   pub other_params: NextcladeRunOtherParams,
 }
 
-#[derive(Parser, Debug)]
-pub struct NextcladeSeqArgs {
-  #[clap(subcommand)]
-  pub command: NextcladeSeqCommands,
-}
-
-#[derive(Subcommand, Debug)]
-#[clap(verbatim_doc_comment)]
-pub enum NextcladeSeqCommands {
-  /// Group (sort) input sequences according to the inferred dataset (pathogen)
-  ///
-  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade seq sort --help`.
-  Sort(NextcladeSeqSortArgs),
-}
-
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
-pub struct NextcladeSeqSortArgs {
+pub struct NextcladeSortArgs {
   /// Path to one or multiple FASTA files with input sequences
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". If no files provided, the plain fasta input is read from standard input (stdin).
@@ -993,8 +978,6 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
       NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
       NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
     },
-    NextcladeCommands::Seq(seq_command) => match seq_command.command {
-      NextcladeSeqCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
-    },
+    NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
   }
 }

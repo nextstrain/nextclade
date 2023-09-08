@@ -1,4 +1,4 @@
-use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSeqSortArgs};
+use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
@@ -15,10 +15,10 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
 
-pub fn nextclade_seq_sort(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
+pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
   check_args(args)?;
 
-  let NextcladeSeqSortArgs {
+  let NextcladeSortArgs {
     server,
     proxy_config,
     input_minimizer_index_json,
@@ -62,8 +62,8 @@ pub fn nextclade_seq_sort(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
   run(args, &minimizer_index)
 }
 
-pub fn run(args: &NextcladeSeqSortArgs, minimizer_index: &MinimizerIndexJson) -> Result<(), Report> {
-  let NextcladeSeqSortArgs {
+pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Result<(), Report> {
+  let NextcladeSortArgs {
     input_fastas,
     output_dir,
     output,
@@ -200,8 +200,8 @@ struct OutputTemplateContext<'a> {
   name: &'a str,
 }
 
-fn check_args(args: &NextcladeSeqSortArgs) -> Result<(), Report> {
-  let NextcladeSeqSortArgs { output_dir, output, .. } = args;
+fn check_args(args: &NextcladeSortArgs) -> Result<(), Report> {
+  let NextcladeSortArgs { output_dir, output, .. } = args;
 
   if output.is_some() && output_dir.is_some() {
     return make_error!(
