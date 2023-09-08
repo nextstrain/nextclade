@@ -170,51 +170,34 @@ pub fn finetune_nearest_node(
         // The best node is child
         current_best_node = graph.get_node(best_node.key())?;
       }
-      // update the private mutations to match the new 'current_best_node'. This involves
-      // in step 1 subtracting the shared mutations from the private mutations struct
-      private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
-        format!(
-          "When calculating difference of mutations between query sequence and the candidate child node '{}'",
-          current_best_node.payload().name
-        )
-      })?;
-      // in step 2 we need to add the inverted remaining mutations on that branch.
-      // Not that this can be necessary even if there are no left-over nuc_subs.
-      // Amino acid mutations can be decoupled from the their nucleotide mutations or
-      // changes in the amino acid sequences due to mutations in the same codon still need handling
-      private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
-        format!(
-          "When calculating union of mutations between query sequence and the candidate child node '{}'",
-          best_node.payload().name
-        )
-      })?;
     } else if current_best_node.is_leaf()
       && !current_best_node.is_root()
       && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
     {
-      // In this case, a leaf identical to its parent in terms of nuc_subs. this happens when we add
-      // auxiliary nodes.
-
-      // Mutation subtraction is still necessary because there might be shared mutations
-      // even if there are no `nuc_subs`.
-      private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
-        format!(
-          "When subtracting mutations from zero-length parent node '{}'",
-          current_best_node.payload().name
-        )
-      })?;
-      private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
-        format!(
-          "When calculating union of mutations between the query sequence and the zero-length parent node '{}'",
-          best_node.payload().name
-        )
-      })?;
       current_best_node = graph
         .parent_of_by_key(best_node.key())
         .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?;
     } else {
       break;
     }
+    // update the private mutations to match the new 'current_best_node'. This involves
+    // in step 1 subtracting the shared mutations from the private mutations struct
+    private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
+      format!(
+        "When calculating difference of mutations between query sequence and the branch leading to the next attachment point '{}'",
+        current_best_node.payload().name
+      )
+    })?;
+    // in step 2 we need to add the inverted remaining mutations on that branch.
+    // Not that this can be necessary even if there are no left-over nuc_subs.
+    // Amino acid mutations can be decoupled from the their nucleotide mutations or
+    // changes in the amino acid sequences due to mutations in the same codon still need handling
+    private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
+      format!(
+        "When calculating union of mutations between query sequence and the branch leading to the next attachment point '{}'",
+        best_node.payload().name
+      )
+    })?;
   }
   Ok((current_best_node.key(), private_mutations))
 }
