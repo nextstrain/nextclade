@@ -11,9 +11,9 @@ publish = false
 
 [dependencies]
 assert2 = "=0.3.11"
-clap = { version = "=4.3.10", features = ["derive"] }
-clap_complete = "=4.3.1"
-clap_complete_fig = "=4.3.1"
+clap = { version = "=4.4.2", features = ["derive", "color", "unicode", "unstable-styles"] }
+clap_complete = "=4.4.1"
+clap_complete_fig = "=4.4.0"
 color-eyre = "=0.6.2"
 comfy-table = "=7.0.1"
 crossbeam = "=0.8.2"

@@ -4,6 +4,7 @@ use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
+use clap::builder::styling;
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
@@ -29,10 +30,19 @@ lazy_static! {
   pub static ref SHELLS: Vec<&'static str> = ["bash", "elvish", "fish", "fig", "powershell", "zsh"].to_vec();
 }
 
+fn styles() -> styling::Styles {
+  styling::Styles::styled()
+    .header(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
+    .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
+    .literal(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
+    .placeholder(styling::AnsiColor::Cyan.on_default())
+}
+
 #[derive(Parser, Debug)]
 #[clap(name = "nextclade")]
 #[clap(author, version)]
 #[clap(verbatim_doc_comment)]
+#[clap(styles = styles())]
 /// Viral genome alignment, mutation calling, clade assignment, quality checks and phylogenetic placement.
 ///
 /// Nextclade is a part of Nextstrain: https://nextstrain.org

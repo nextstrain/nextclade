@@ -215,8 +215,7 @@ pub fn create_alignment_band(
   terminal_bandwidth: isize,
   excess_bandwidth: isize,
   minimal_bandwidth: isize,
-  max_band_area: usize,
-) -> Result<Vec<Stripe>, Report> {
+) -> (Vec<Stripe>, usize) {
   // This function steps through the chained seeds and determines and appropriate band
   // defined via stripes in query coordinates. These bands will later be chopped to reachable ranges
 
@@ -306,13 +305,7 @@ pub fn create_alignment_band(
   // write_stripes_to_file(&stripes, "stripes.csv");
 
   // trim stripes to reachable regions
-  let (regularized_stripes, band_area) = regularize_stripes(stripes, qry_len as usize);
-
-  if band_area > max_band_area {
-    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
-  }
-
-  Ok(regularized_stripes)
+  regularize_stripes(stripes, qry_len as usize)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -420,7 +413,6 @@ mod tests {
     let max_indel = 100;
     let qry_len = 30;
     let ref_len = 40;
-    let max_band_area = 500_000_000;
 
     let result = create_alignment_band(
       &seed_matches,
@@ -429,7 +421,6 @@ mod tests {
       terminal_bandwidth,
       excess_bandwidth,
       allowed_mismatches,
-      max_band_area,
     );
 
     Ok(())
