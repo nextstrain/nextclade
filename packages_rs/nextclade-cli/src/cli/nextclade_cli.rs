@@ -29,13 +29,6 @@ lazy_static! {
   pub static ref SHELLS: Vec<&'static str> = ["bash", "elvish", "fish", "fig", "powershell", "zsh"].to_vec();
 }
 
-pub fn check_shells(value: &str) -> Result<String, Report> {
-  SHELLS
-    .contains(&value)
-    .then_some(value.to_owned())
-    .ok_or_else(|| eyre!("Unknown shell: '{value}'. Possible values: {}", SHELLS.join(", ")))
-}
-
 #[derive(Parser, Debug)]
 #[clap(name = "nextclade")]
 #[clap(author, version)]
@@ -71,7 +64,7 @@ pub enum NextcladeCommands {
   ///
   Completions {
     /// Name of the shell to generate appropriate completions
-    #[clap(value_name = "SHELL", default_value_t = String::from("bash"), value_parser = check_shells)]
+    #[clap(value_name = "SHELL", default_value_t = String::from("bash"), value_parser = SHELLS.clone())]
     shell: String,
   },
 
