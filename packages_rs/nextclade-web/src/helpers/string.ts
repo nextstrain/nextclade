@@ -43,5 +43,5 @@ export function findSimilarStrings(haystack: string[], needle: string): string[]
 }
 
 export function firstLetter(s: string): string | undefined {
-  return s.split('').find((c) => c.match(/[A-z]/))
+  return s.split('').find((c) => c.toLowerCase().match(/[a-z]/))
 }
