@@ -8,13 +8,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Parser, Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeInputParamsOptional {
-  #[clap(flatten, next_help_heading = "  General parameters")]
+  #[clap(flatten, next_help_heading = "General parameters")]
   pub general: Option<NextcladeGeneralParamsOptional>,
 
-  #[clap(flatten, next_help_heading = "  Phylogenetic tree parameters")]
+  #[clap(flatten, next_help_heading = "Phylogenetic tree parameters")]
   pub tree_builder: Option<TreeBuilderParamsOptional>,
 
-  #[clap(flatten, next_help_heading = "  Alignment parameters")]
+  #[clap(flatten, next_help_heading = "Alignment parameters")]
   pub alignment: Option<AlignPairwiseParamsOptional>,
 }
 

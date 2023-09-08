@@ -6,7 +6,6 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::align::seed_alignment::create_alignment_band;
 use nextclade::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
 use nextclade::alphabet::nuc::to_nuc_seq;
-use nextclade::gene::gene_map::GeneMap;
 
 pub fn bench_seed_alignment(c: &mut Criterion) {
   let params = AlignPairwiseParams::default();
@@ -20,6 +19,8 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
 
   let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
 
+  let minimal_bandwidth = black_box(0);
+
   let mut group = c.benchmark_group("seed_alignment");
   group.bench_function("seed_match", |b| {
     b.iter(|| {
@@ -32,10 +33,8 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
         ref_seq.len() as isize,
         params.terminal_bandwidth as isize,
         params.excess_bandwidth as isize,
-        params.allowed_mismatches as isize,
-        params.max_band_area,
-      )
-      .unwrap();
+        minimal_bandwidth,
+      );
     });
   });
   group.finish();

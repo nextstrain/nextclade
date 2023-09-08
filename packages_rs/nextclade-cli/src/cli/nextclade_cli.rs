@@ -57,7 +57,7 @@ pub struct NextcladeArgs {
   pub command: NextcladeCommands,
 
   /// Make output more quiet or more verbose
-  #[clap(flatten, next_help_heading = "  Verbosity")]
+  #[clap(flatten, next_help_heading = "Verbosity")]
   pub verbosity: Verbosity<WarnLevel>,
 }
 
@@ -280,7 +280,7 @@ pub struct NextcladeRunInputArgs {
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(display_order = 1)]
+  #[clap(display_order = 0)]
   pub input_fastas: Vec<PathBuf>,
 
   /// REMOVED. Use positional arguments instead.
@@ -615,16 +615,16 @@ pub struct NextcladeRunOtherParams {
 
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunArgs {
-  #[clap(flatten, next_help_heading = "  Inputs")]
+  #[clap(flatten, next_help_heading = "Inputs")]
   pub inputs: NextcladeRunInputArgs,
 
-  #[clap(flatten, next_help_heading = "  Outputs")]
+  #[clap(flatten, next_help_heading = "Outputs")]
   pub outputs: NextcladeRunOutputArgs,
 
   #[clap(flatten)]
   pub params: NextcladeInputParamsOptional,
 
-  #[clap(flatten, next_help_heading = "  Other")]
+  #[clap(flatten, next_help_heading = "Other")]
   pub other_params: NextcladeRunOtherParams,
 }
 

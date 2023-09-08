@@ -22,7 +22,7 @@ pub fn bench_create_stripes(c: &mut Criterion) {
   let excess_bandwidth = black_box(2);
   let qry_len = black_box(30);
   let ref_len = black_box(40);
-  let minimal_bandwidth = black_box(1);
+  let minimal_bandwidth = black_box(0);
 
   let mut group = c.benchmark_group("create_stripes");
   group.throughput(Throughput::Bytes(qry_len as u64));
