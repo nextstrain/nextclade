@@ -116,52 +116,17 @@ pub fn finetune_nearest_node(
     // the current_best_node or any of its children (loop further below).
     let (best_node, best_split_result, n_shared_muts) = find_shared_muts(graph, current_best_node, &private_mutations)?;
 
-    match find_better_node(graph, current_best_node, best_node, &best_split_result, n_shared_muts)? {
+    // Check if the new candidate node is better than the current best
+    match find_better_node_maybe(graph, current_best_node, best_node, &best_split_result, n_shared_muts)? {
       None => break,
       Some(better_node) => current_best_node = better_node,
     }
 
+    // Update query mutations to adjust for its new position
     private_mutations = update_private_mutations(&private_mutations, current_best_node, &best_split_result)?;
   }
-  Ok((current_best_node.key(), private_mutations))
-}
 
-fn find_better_node<'g>(
-  graph: &'g AuspiceGraph,
-  current_best_node: &'g Node<AuspiceGraphNodePayload>,
-  best_node: &'g Node<AuspiceGraphNodePayload>,
-  best_split_result: &SplitMutsResult,
-  n_shared_muts: usize,
-) -> Result<Option<&'g Node<AuspiceGraphNodePayload>>, Report> {
-  // if shared mutations are found, the current_best_node is updated
-  Ok(if n_shared_muts > 0 {
-    if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
-      // All mutations from the parent to the node are shared with private mutations. Move up to the parent.
-      // FIXME: what if there's no parent?
-      Some(
-        graph
-          .parent_of(best_node)
-          .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?,
-      )
-    } else if best_node.key() == current_best_node.key() {
-      // The best node is the current node. Break.
-      None
-    } else {
-      // The best node is child
-      Some(graph.get_node(best_node.key())?)
-    }
-  } else if current_best_node.is_leaf()
-    && !current_best_node.is_root()
-    && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
-  {
-    Some(
-      graph
-        .parent_of(best_node)
-        .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?,
-    )
-  } else {
-    None
-  })
+  Ok((current_best_node.key(), private_mutations))
 }
 
 fn find_shared_muts<'g>(
@@ -210,6 +175,46 @@ fn find_shared_muts<'g>(
     }
   }
   Ok((best_node, best_split_result, n_shared_muts))
+}
+
+/// Find out if the candidate node is better than the current best (with caveats)
+/// Return a better node or `None` (if the current best node is to be preserved).
+fn find_better_node_maybe<'g>(
+  graph: &'g AuspiceGraph,
+  current_best_node: &'g Node<AuspiceGraphNodePayload>,
+  best_node: &'g Node<AuspiceGraphNodePayload>,
+  best_split_result: &SplitMutsResult,
+  n_shared_muts: usize,
+) -> Result<Option<&'g Node<AuspiceGraphNodePayload>>, Report> {
+  // if shared mutations are found, the current_best_node is updated
+  Ok(if n_shared_muts > 0 {
+    if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
+      // Caveat: all mutations from the parent to the node are shared with private mutations. Move up to the parent.
+      // FIXME: what if there's no parent?
+      Some(
+        graph
+          .parent_of(best_node)
+          .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?,
+      )
+    } else if best_node.key() == current_best_node.key() {
+      // The best node is the current node. Break.
+      None
+    } else {
+      // The best node is child
+      Some(graph.get_node(best_node.key())?)
+    }
+  } else if current_best_node.is_leaf()
+    && !current_best_node.is_root()
+    && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
+  {
+    Some(
+      graph
+        .parent_of(best_node)
+        .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?,
+    )
+  } else {
+    None
+  })
 }
 
 /// Update private mutations to match the new best_node
