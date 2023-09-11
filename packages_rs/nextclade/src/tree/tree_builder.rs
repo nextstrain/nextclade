@@ -121,7 +121,8 @@ pub fn finetune_nearest_node(
       })?;
 
     // Check if the new candidate node is better than the current best
-    match find_better_node_maybe(graph, best_node, candidate_node, &candidate_split, n_shared_muts) {
+    let n_left_muts = count_nuc_muts(&candidate_split.left.nuc_muts);
+    match find_better_node_maybe(graph, best_node, candidate_node, n_shared_muts, n_left_muts) {
       None => break,
       Some(better_node) => best_node = better_node,
     }
@@ -147,8 +148,8 @@ fn find_shared_muts<'g>(
   let (mut candidate_split, mut n_shared_muts) = if best_node.is_root() {
     // Don't include node if node is root as we don't attach nodes above the root
     let candidate_split = SplitMutsResult {
-      left: private_mutations.clone(),
-      right: BranchMutations::default(),
+      left: BranchMutations::default(),
+      right: private_mutations.clone(),
       shared: BranchMutations::default(),
     };
     (candidate_split, 0)
@@ -189,15 +190,15 @@ fn find_better_node_maybe<'g>(
   graph: &'g AuspiceGraph,
   best_node: &'g Node<AuspiceGraphNodePayload>,
   candidate_node: &'g Node<AuspiceGraphNodePayload>,
-  candidate_split: &SplitMutsResult,
   n_shared_muts: usize,
+  n_left_muts: usize,
 ) -> Option<&'g Node<AuspiceGraphNodePayload>> {
   if candidate_node == best_node {
     // best node is the node itself. Move up the tree if all mutations between
     // the candidate node and its parent are also in the private mutations.
     // This covers the case where the candidate is a leaf with zero length branch
     // as the  .left.nuc_muts is emtpy in that case
-    if candidate_split.left.nuc_muts.is_empty() {
+    if n_left_muts == 0 {
       return graph.parent_of(candidate_node);
     }
   } else if n_shared_muts > 0 {
