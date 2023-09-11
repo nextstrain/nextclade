@@ -4,7 +4,7 @@ use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts};
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
-use crate::graph::node::GraphNodeKey;
+use crate::graph::node::{GraphNodeKey, Node};
 use crate::make_internal_report;
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
@@ -114,46 +114,7 @@ pub fn finetune_nearest_node(
   loop {
     // in each iteration, check how many mutation are shared with the branch leading to
     // the current_best_node or any of its children (loop further below).
-    let mut best_node = current_best_node;
-    let (mut best_split_result, mut n_shared_muts) = if current_best_node.is_root() {
-      // don't include node if node is root as we don't attach nodes above the root
-      let best_split_result = SplitMutsResult {
-        left: private_mutations.clone(),
-        right: BranchMutations::default(),
-        shared: BranchMutations::default(),
-      };
-      (best_split_result, 0)
-    } else {
-      let best_split_result = split_muts(
-        &current_best_node.payload().tmp.private_mutations.invert(),
-        &private_mutations,
-      )
-      .wrap_err_with(|| {
-        format!(
-          "When splitting mutations between query sequence and the nearest node '{}'",
-          current_best_node.payload().name
-        )
-      })?;
-      let n_shared_muts = count_nuc_muts(&best_split_result.shared.nuc_muts);
-      (best_split_result, n_shared_muts)
-    };
-
-    // check all child nodes for shared mutations
-    for child in graph.iter_children_of(current_best_node) {
-      let tmp_split_result =
-        split_muts(&child.payload().tmp.private_mutations, &private_mutations).wrap_err_with(|| {
-          format!(
-            "When splitting mutations between query sequence and the child node '{}'",
-            child.payload().name
-          )
-        })?;
-      let tmp_n_shared_muts = count_nuc_muts(&tmp_split_result.shared.nuc_muts);
-      if tmp_n_shared_muts > n_shared_muts {
-        n_shared_muts = tmp_n_shared_muts;
-        best_split_result = tmp_split_result;
-        best_node = child;
-      }
-    }
+    let (best_node, best_split_result, n_shared_muts) = find_shared_muts(graph, current_best_node, &private_mutations)?;
 
     // if shared mutations are found, the current_best_node is updated
     if n_shared_muts > 0 {
@@ -200,6 +161,54 @@ pub fn finetune_nearest_node(
     })?;
   }
   Ok((current_best_node.key(), private_mutations))
+}
+
+fn find_shared_muts<'g>(
+  graph: &'g AuspiceGraph,
+  current_best_node: &'g Node<AuspiceGraphNodePayload>,
+  private_mutations: &BranchMutations,
+) -> Result<(&'g Node<AuspiceGraphNodePayload>, SplitMutsResult, usize), Report> {
+  let mut best_node = current_best_node;
+  let (mut best_split_result, mut n_shared_muts) = if current_best_node.is_root() {
+    // don't include node if node is root as we don't attach nodes above the root
+    let best_split_result = SplitMutsResult {
+      left: private_mutations.clone(),
+      right: BranchMutations::default(),
+      shared: BranchMutations::default(),
+    };
+    (best_split_result, 0)
+  } else {
+    let best_split_result = split_muts(
+      &current_best_node.payload().tmp.private_mutations.invert(),
+      private_mutations,
+    )
+    .wrap_err_with(|| {
+      format!(
+        "When splitting mutations between query sequence and the nearest node '{}'",
+        current_best_node.payload().name
+      )
+    })?;
+    let n_shared_muts = count_nuc_muts(&best_split_result.shared.nuc_muts);
+    (best_split_result, n_shared_muts)
+  };
+
+  // check all child nodes for shared mutations
+  for child in graph.iter_children_of(current_best_node) {
+    let tmp_split_result =
+      split_muts(&child.payload().tmp.private_mutations, private_mutations).wrap_err_with(|| {
+        format!(
+          "When splitting mutations between query sequence and the child node '{}'",
+          child.payload().name
+        )
+      })?;
+    let tmp_n_shared_muts = count_nuc_muts(&tmp_split_result.shared.nuc_muts);
+    if tmp_n_shared_muts > n_shared_muts {
+      n_shared_muts = tmp_n_shared_muts;
+      best_split_result = tmp_split_result;
+      best_node = child;
+    }
+  }
+  Ok((best_node, best_split_result, n_shared_muts))
 }
 
 pub fn attach_to_internal_node(
