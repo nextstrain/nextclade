@@ -257,7 +257,7 @@ impl Nextclade {
 
   pub fn get_output_trees(&mut self, results: Vec<NextcladeOutputs>) -> Result<Option<OutputTrees>, Report> {
     if let Some(graph) = &mut self.graph {
-      graph_attach_new_nodes_in_place(graph, results, self.ref_seq.len(), &self.params.tree_builder)?;
+      graph_attach_new_nodes_in_place(graph, results, self.ref_seq.len(),  &self.params.tree_builder)?;
       let auspice = convert_graph_to_auspice_tree(graph)?;
       let nwk = convert_graph_to_nwk_string(graph)?;
       Ok(Some(OutputTrees { auspice, nwk }))

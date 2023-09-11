@@ -1,9 +1,10 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts};
+use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts, score_nuc_muts};
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::range::NucRefGlobalRange;
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
@@ -86,7 +87,7 @@ pub fn graph_attach_new_node_in_place(
   } else {
     // for the attachment on the reference tree ('result') fine tune the position
     // on the updated graph to minimize the number of private mutations
-    finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq)?
+    finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq, params)?
   };
 
   // add the new node at the fine tuned position while accounting for shared mutations
@@ -106,14 +107,17 @@ pub fn finetune_nearest_node(
   graph: &AuspiceGraph,
   nearest_node_key: GraphNodeKey,
   seq_private_mutations: &BranchMutations,
+  params: &TreeBuilderParams,
 ) -> Result<(GraphNodeKey, BranchMutations), Report> {
+  let masked_ranges = graph.data.meta.placement_mask_ranges();
+
   let mut best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
   loop {
     // Check how many mutations are shared with the branch leading to the current_best_node or any of its children
-    let (candidate_node, candidate_split, n_shared_muts) = find_shared_muts(graph, best_node, &private_mutations)
-      .wrap_err_with(|| {
+    let (candidate_node, candidate_split, shared_muts_score) =
+      find_shared_muts(graph, best_node, &private_mutations, masked_ranges, params).wrap_err_with(|| {
         format!(
           "When calculating shared mutations against the current best node '{}'",
           best_node.payload().name
@@ -121,8 +125,8 @@ pub fn finetune_nearest_node(
       })?;
 
     // Check if the new candidate node is better than the current best
-    let n_left_muts = count_nuc_muts(&candidate_split.left.nuc_muts);
-    match find_better_node_maybe(graph, best_node, candidate_node, n_shared_muts, n_left_muts) {
+    let left_muts_score = score_nuc_muts(&candidate_split.left.nuc_muts, masked_ranges, params);
+    match find_better_node_maybe(graph, best_node, candidate_node, shared_muts_score, left_muts_score) {
       None => break,
       Some(better_node) => best_node = better_node,
     }
@@ -144,15 +148,17 @@ fn find_shared_muts<'g>(
   graph: &'g AuspiceGraph,
   best_node: &'g Node<AuspiceGraphNodePayload>,
   private_mutations: &BranchMutations,
-) -> Result<(&'g Node<AuspiceGraphNodePayload>, SplitMutsResult, usize), Report> {
-  let (mut candidate_split, mut n_shared_muts) = if best_node.is_root() {
+  masked_ranges: &[NucRefGlobalRange],
+  params: &TreeBuilderParams,
+) -> Result<(&'g Node<AuspiceGraphNodePayload>, SplitMutsResult, f64), Report> {
+  let (mut candidate_split, mut shared_muts_score) = if best_node.is_root() {
     // Don't include node if node is root as we don't attach nodes above the root
     let candidate_split = SplitMutsResult {
       left: BranchMutations::default(),
       right: private_mutations.clone(),
       shared: BranchMutations::default(),
     };
-    (candidate_split, 0)
+    (candidate_split, 0.0)
   } else {
     let candidate_split = split_muts(&best_node.payload().tmp.private_mutations.invert(), private_mutations)
       .wrap_err_with(|| {
@@ -161,8 +167,8 @@ fn find_shared_muts<'g>(
           best_node.payload().name
         )
       })?;
-    let n_shared_muts = count_nuc_muts(&candidate_split.shared.nuc_muts);
-    (candidate_split, n_shared_muts)
+    let shared_muts_score = score_nuc_muts(&candidate_split.shared.nuc_muts, masked_ranges, params);
+    (candidate_split, shared_muts_score)
   };
 
   // Check all child nodes for shared mutations
@@ -174,14 +180,14 @@ fn find_shared_muts<'g>(
         child.payload().name
       )
     })?;
-    let child_n_shared_muts = count_nuc_muts(&child_split.shared.nuc_muts);
-    if child_n_shared_muts > n_shared_muts {
-      n_shared_muts = child_n_shared_muts;
+    let child_shared_muts_score = score_nuc_muts(&candidate_split.shared.nuc_muts, masked_ranges, params);
+    if child_shared_muts_score > shared_muts_score {
+      shared_muts_score = child_shared_muts_score;
       candidate_split = child_split;
       candidate_node = child;
     }
   }
-  Ok((candidate_node, candidate_split, n_shared_muts))
+  Ok((candidate_node, candidate_split, shared_muts_score))
 }
 
 /// Find out if the candidate node is better than the current best (with caveats).
@@ -190,18 +196,18 @@ fn find_better_node_maybe<'g>(
   graph: &'g AuspiceGraph,
   best_node: &'g Node<AuspiceGraphNodePayload>,
   candidate_node: &'g Node<AuspiceGraphNodePayload>,
-  n_shared_muts: usize,
-  n_left_muts: usize,
+  shared_muts_score: f64,
+  left_muts_score: f64,
 ) -> Option<&'g Node<AuspiceGraphNodePayload>> {
   if candidate_node == best_node {
     // best node is the node itself. Move up the tree if all mutations between
     // the candidate node and its parent are also in the private mutations.
     // This covers the case where the candidate is a leaf with zero length branch
-    // as the  .left.nuc_muts is emtpy in that case
-    if n_left_muts == 0 {
+    // as the  .left.nuc_muts is empty in that case
+    if left_muts_score == 0.0 {
       return graph.parent_of(candidate_node);
     }
-  } else if n_shared_muts > 0 {
+  } else if shared_muts_score > 0.0 {
     // candidate node is child node, move to child node if there are shared mutations
     // this should always be the case if the candidate node != best_node
     return Some(candidate_node);

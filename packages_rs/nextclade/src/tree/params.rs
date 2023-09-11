@@ -14,6 +14,9 @@ pub struct TreeBuilderParams {
   #[clap(long)]
   #[clap(num_args=0..=1, default_missing_value = "true")]
   pub without_greedy_tree_builder: bool,
+
+  #[clap(long)]
+  pub masked_muts_weight: f64,
 }
 
 #[allow(clippy::derivable_impls)]
@@ -21,6 +24,7 @@ impl Default for TreeBuilderParams {
   fn default() -> Self {
     Self {
       without_greedy_tree_builder: false,
+      masked_muts_weight: 0.5,
     }
   }
 }
