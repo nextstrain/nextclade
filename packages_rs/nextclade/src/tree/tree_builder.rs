@@ -5,7 +5,6 @@ use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::graph::node::{GraphNodeKey, Node};
-use crate::make_internal_report;
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
 use crate::tree::tree::{AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels};
@@ -188,11 +187,10 @@ fn find_better_node_maybe<'g>(
 ) -> Result<Option<&'g Node<AuspiceGraphNodePayload>>, Report> {
   // if shared mutations are found, the current_best_node is updated
   Ok(if n_shared_muts > 0 {
-    if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
+    if best_node == current_best_node && best_split_result.left.nuc_muts.is_empty() {
       // Caveat: all mutations from the parent to the node are shared with private mutations. Move up to the parent.
-      // FIXME: what if there's no parent?
       graph.parent_of(best_node)
-    } else if best_node.key() == current_best_node.key() {
+    } else if best_node == current_best_node {
       // The best node is the current node. Break.
       None
     } else {
