@@ -192,24 +192,21 @@ fn find_better_node_maybe<'g>(
   candidate_split: &SplitMutsResult,
   n_shared_muts: usize,
 ) -> Option<&'g Node<AuspiceGraphNodePayload>> {
-  // if shared mutations are found, the current_best_node is updated
-  if n_shared_muts > 0 {
-    if candidate_node == best_node && candidate_split.left.nuc_muts.is_empty() {
-      // Caveat: all mutations from the parent to the node are shared with private mutations. Move up to the parent.
-      graph.parent_of(candidate_node)
-    } else if candidate_node == best_node {
-      // The best node is the current node. Break.
-      None
-    } else {
-      // The best node is child
-      Some(candidate_node)
+  if candidate_node == best_node {
+    // best node is the node itself. Move up the tree if all mutations between
+    // the candidate node and its parent are also in the private mutations.
+    // This covers the case where the candidate is a leaf with zero length branch
+    // as the  .left.nuc_muts is emtpy in that case
+    if candidate_split.left.nuc_muts.is_empty() {
+      return graph.parent_of(candidate_node);
     }
-  } else if best_node.is_leaf() && !best_node.is_root() && best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
-  {
-    graph.parent_of(candidate_node)
-  } else {
-    None
+  } else if n_shared_muts > 0 {
+    // candidate node is child node, move to child node if there are shared mutations
+    // this should always be the case if the candidate node != best_node
+    return Some(candidate_node);
   }
+  // no improvement possible. Return None to stay
+  None
 }
 
 /// Update private mutations to match the new best node
