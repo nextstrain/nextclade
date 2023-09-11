@@ -110,7 +110,6 @@ pub fn finetune_nearest_node(
   params: &TreeBuilderParams,
 ) -> Result<(GraphNodeKey, BranchMutations), Report> {
   let masked_ranges = graph.data.meta.placement_mask_ranges();
-
   let mut best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
@@ -180,7 +179,7 @@ fn find_shared_muts<'g>(
         child.payload().name
       )
     })?;
-    let child_shared_muts_score = score_nuc_muts(&candidate_split.shared.nuc_muts, masked_ranges, params);
+    let child_shared_muts_score = score_nuc_muts(&child_split.shared.nuc_muts, masked_ranges, params);
     if child_shared_muts_score > shared_muts_score {
       shared_muts_score = child_shared_muts_score;
       candidate_split = child_split;

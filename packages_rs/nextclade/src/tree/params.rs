@@ -24,7 +24,7 @@ impl Default for TreeBuilderParams {
   fn default() -> Self {
     Self {
       without_greedy_tree_builder: false,
-      masked_muts_weight: 0.5,
+      masked_muts_weight: 0.05,
     }
   }
 }
