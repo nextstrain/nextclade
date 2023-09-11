@@ -96,6 +96,12 @@ pub fn graph_attach_new_node_in_place(
   Ok(())
 }
 
+/// Moves the new sequences, defined by its set of private mutations
+/// along the tree starting at the `nearest_node`. As the new sequence is moved, the
+/// private mutations are updated. This is repeated until the number of private mutations (nuc)
+/// can not be reduced further by moving the node. At the end of the loop, the nearest node
+/// is either the closest possible point, or this closest point is along the branch leading
+/// to the nearest_node.
 pub fn finetune_nearest_node(
   graph: &AuspiceGraph,
   nearest_node_key: GraphNodeKey,
@@ -104,15 +110,8 @@ pub fn finetune_nearest_node(
   let mut current_best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
-  // the following loop moves the new sequences, defined by its set of private mutations
-  // along the tree starting at the `nearest_node`. As the new sequence is moved, the
-  // private mutations are updated. This is repeated until the number of private mutations (nuc)
-  // can not be reduced further by moving the node. At the end of the loop, the nearest node
-  // is either the closest possible point, or this closest point is along the branch leading
-  // to the nearest_node.
   loop {
-    // in each iteration, check how many mutation are shared with the branch leading to
-    // the current_best_node or any of its children (loop further below).
+    // Check how many mutations are shared with the branch leading to the current_best_node or any of its children
     let (best_node, best_split_result, n_shared_muts) = find_shared_muts(graph, current_best_node, &private_mutations)?;
 
     // Check if the new candidate node is better than the current best
@@ -121,21 +120,23 @@ pub fn finetune_nearest_node(
       Some(better_node) => current_best_node = better_node,
     }
 
-    // Update query mutations to adjust for its new position
+    // Update query mutations to adjust for the new position of the placed node
     private_mutations = update_private_mutations(&private_mutations, current_best_node, &best_split_result)?;
   }
 
   Ok((current_best_node.key(), private_mutations))
 }
 
+/// Check how many mutations are shared with the branch leading to the current_best_node or any of its children
 fn find_shared_muts<'g>(
   graph: &'g AuspiceGraph,
   current_best_node: &'g Node<AuspiceGraphNodePayload>,
   private_mutations: &BranchMutations,
 ) -> Result<(&'g Node<AuspiceGraphNodePayload>, SplitMutsResult, usize), Report> {
   let mut best_node = current_best_node;
+
   let (mut best_split_result, mut n_shared_muts) = if current_best_node.is_root() {
-    // don't include node if node is root as we don't attach nodes above the root
+    // Don't include node if node is root as we don't attach nodes above the root
     let best_split_result = SplitMutsResult {
       left: private_mutations.clone(),
       right: BranchMutations::default(),
@@ -157,7 +158,7 @@ fn find_shared_muts<'g>(
     (best_split_result, n_shared_muts)
   };
 
-  // check all child nodes for shared mutations
+  // Check all child nodes for shared mutations
   for child in graph.iter_children_of(current_best_node) {
     let tmp_split_result =
       split_muts(&child.payload().tmp.private_mutations, private_mutations).wrap_err_with(|| {
@@ -176,7 +177,7 @@ fn find_shared_muts<'g>(
   Ok((best_node, best_split_result, n_shared_muts))
 }
 
-/// Find out if the candidate node is better than the current best (with caveats)
+/// Find out if the candidate node is better than the current best (with caveats).
 /// Return a better node or `None` (if the current best node is to be preserved).
 fn find_better_node_maybe<'g>(
   graph: &'g AuspiceGraph,
@@ -207,7 +208,7 @@ fn find_better_node_maybe<'g>(
   })
 }
 
-/// Update private mutations to match the new best_node
+/// Update private mutations to match the new best node
 fn update_private_mutations(
   private_mutations: &BranchMutations,
   current_best_node: &Node<AuspiceGraphNodePayload>,
