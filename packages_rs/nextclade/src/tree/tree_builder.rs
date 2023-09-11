@@ -191,11 +191,7 @@ fn find_better_node_maybe<'g>(
     if best_node.key() == current_best_node.key() && best_split_result.left.nuc_muts.is_empty() {
       // Caveat: all mutations from the parent to the node are shared with private mutations. Move up to the parent.
       // FIXME: what if there's no parent?
-      Some(
-        graph
-          .parent_of(best_node)
-          .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?,
-      )
+      graph.parent_of(best_node)
     } else if best_node.key() == current_best_node.key() {
       // The best node is the current node. Break.
       None
@@ -207,11 +203,7 @@ fn find_better_node_maybe<'g>(
     && !current_best_node.is_root()
     && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
   {
-    Some(
-      graph
-        .parent_of(best_node)
-        .ok_or_else(|| make_internal_report!("Parent node is expected, but not found"))?,
-    )
+    graph.parent_of(best_node)
   } else {
     None
   })
