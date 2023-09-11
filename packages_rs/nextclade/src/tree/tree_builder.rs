@@ -107,113 +107,106 @@ pub fn finetune_nearest_node(
   nearest_node_key: GraphNodeKey,
   seq_private_mutations: &BranchMutations,
 ) -> Result<(GraphNodeKey, BranchMutations), Report> {
-  let mut current_best_node = graph.get_node(nearest_node_key)?;
+  let mut best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
   loop {
     // Check how many mutations are shared with the branch leading to the current_best_node or any of its children
-    let (best_node, best_split_result, n_shared_muts) = find_shared_muts(graph, current_best_node, &private_mutations)
+    let (candidate_node, candidate_split, n_shared_muts) = find_shared_muts(graph, best_node, &private_mutations)
       .wrap_err_with(|| {
         format!(
           "When calculating shared mutations against the current best node '{}'",
-          current_best_node.payload().name
+          best_node.payload().name
         )
       })?;
 
     // Check if the new candidate node is better than the current best
-    match find_better_node_maybe(graph, current_best_node, best_node, &best_split_result, n_shared_muts) {
+    match find_better_node_maybe(graph, best_node, candidate_node, &candidate_split, n_shared_muts) {
       None => break,
-      Some(better_node) => current_best_node = better_node,
+      Some(better_node) => best_node = better_node,
     }
 
     // Update query mutations to adjust for the new position of the placed node
-    private_mutations = update_private_mutations(&private_mutations, &best_split_result).wrap_err_with(|| {
+    private_mutations = update_private_mutations(&private_mutations, &candidate_split).wrap_err_with(|| {
       format!(
         "When updating private mutations against the current best node '{}'",
-        current_best_node.payload().name
+        best_node.payload().name
       )
     })?;
   }
 
-  Ok((current_best_node.key(), private_mutations))
+  Ok((best_node.key(), private_mutations))
 }
 
 /// Check how many mutations are shared with the branch leading to the current_best_node or any of its children
 fn find_shared_muts<'g>(
   graph: &'g AuspiceGraph,
-  current_best_node: &'g Node<AuspiceGraphNodePayload>,
+  best_node: &'g Node<AuspiceGraphNodePayload>,
   private_mutations: &BranchMutations,
 ) -> Result<(&'g Node<AuspiceGraphNodePayload>, SplitMutsResult, usize), Report> {
-  let mut best_node = current_best_node;
-
-  let (mut best_split_result, mut n_shared_muts) = if current_best_node.is_root() {
+  let (mut candidate_split, mut n_shared_muts) = if best_node.is_root() {
     // Don't include node if node is root as we don't attach nodes above the root
-    let best_split_result = SplitMutsResult {
+    let candidate_split = SplitMutsResult {
       left: private_mutations.clone(),
       right: BranchMutations::default(),
       shared: BranchMutations::default(),
     };
-    (best_split_result, 0)
+    (candidate_split, 0)
   } else {
-    let best_split_result = split_muts(
-      &current_best_node.payload().tmp.private_mutations.invert(),
-      private_mutations,
-    )
-    .wrap_err_with(|| {
-      format!(
-        "When splitting mutations between query sequence and the nearest node '{}'",
-        current_best_node.payload().name
-      )
-    })?;
-    let n_shared_muts = count_nuc_muts(&best_split_result.shared.nuc_muts);
-    (best_split_result, n_shared_muts)
+    let candidate_split = split_muts(&best_node.payload().tmp.private_mutations.invert(), private_mutations)
+      .wrap_err_with(|| {
+        format!(
+          "When splitting mutations between query sequence and the nearest node '{}'",
+          best_node.payload().name
+        )
+      })?;
+    let n_shared_muts = count_nuc_muts(&candidate_split.shared.nuc_muts);
+    (candidate_split, n_shared_muts)
   };
 
   // Check all child nodes for shared mutations
-  for child in graph.iter_children_of(current_best_node) {
-    let tmp_split_result =
-      split_muts(&child.payload().tmp.private_mutations, private_mutations).wrap_err_with(|| {
-        format!(
-          "When splitting mutations between query sequence and the child node '{}'",
-          child.payload().name
-        )
-      })?;
-    let tmp_n_shared_muts = count_nuc_muts(&tmp_split_result.shared.nuc_muts);
-    if tmp_n_shared_muts > n_shared_muts {
-      n_shared_muts = tmp_n_shared_muts;
-      best_split_result = tmp_split_result;
-      best_node = child;
+  let mut candidate_node = best_node;
+  for child in graph.iter_children_of(best_node) {
+    let child_split = split_muts(&child.payload().tmp.private_mutations, private_mutations).wrap_err_with(|| {
+      format!(
+        "When splitting mutations between query sequence and the child node '{}'",
+        child.payload().name
+      )
+    })?;
+    let child_n_shared_muts = count_nuc_muts(&child_split.shared.nuc_muts);
+    if child_n_shared_muts > n_shared_muts {
+      n_shared_muts = child_n_shared_muts;
+      candidate_split = child_split;
+      candidate_node = child;
     }
   }
-  Ok((best_node, best_split_result, n_shared_muts))
+  Ok((candidate_node, candidate_split, n_shared_muts))
 }
 
 /// Find out if the candidate node is better than the current best (with caveats).
 /// Return a better node or `None` (if the current best node is to be preserved).
 fn find_better_node_maybe<'g>(
   graph: &'g AuspiceGraph,
-  current_best_node: &'g Node<AuspiceGraphNodePayload>,
   best_node: &'g Node<AuspiceGraphNodePayload>,
-  best_split_result: &SplitMutsResult,
+  candidate_node: &'g Node<AuspiceGraphNodePayload>,
+  candidate_split: &SplitMutsResult,
   n_shared_muts: usize,
 ) -> Option<&'g Node<AuspiceGraphNodePayload>> {
   // if shared mutations are found, the current_best_node is updated
   if n_shared_muts > 0 {
-    if best_node == current_best_node && best_split_result.left.nuc_muts.is_empty() {
+    if candidate_node == best_node && candidate_split.left.nuc_muts.is_empty() {
       // Caveat: all mutations from the parent to the node are shared with private mutations. Move up to the parent.
-      graph.parent_of(best_node)
-    } else if best_node == current_best_node {
+      graph.parent_of(candidate_node)
+    } else if candidate_node == best_node {
       // The best node is the current node. Break.
       None
     } else {
       // The best node is child
-      Some(best_node)
+      Some(candidate_node)
     }
-  } else if current_best_node.is_leaf()
-    && !current_best_node.is_root()
-    && current_best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
+  } else if best_node.is_leaf() && !best_node.is_root() && best_node.payload().tmp.private_mutations.nuc_muts.is_empty()
   {
-    graph.parent_of(best_node)
+    graph.parent_of(candidate_node)
   } else {
     None
   }
