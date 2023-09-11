@@ -141,24 +141,8 @@ pub fn finetune_nearest_node(
     } else {
       break;
     }
-    // update the private mutations to match the new 'current_best_node'. This involves
-    // in step 1 subtracting the shared mutations from the private mutations struct
-    private_mutations = difference_of_muts(&private_mutations, &best_split_result.shared).wrap_err_with(|| {
-      format!(
-        "When calculating difference of mutations between query sequence and the branch leading to the next attachment point '{}'",
-        current_best_node.payload().name
-      )
-    })?;
-    // in step 2 we need to add the inverted remaining mutations on that branch.
-    // Not that this can be necessary even if there are no left-over nuc_subs.
-    // Amino acid mutations can be decoupled from the their nucleotide mutations or
-    // changes in the amino acid sequences due to mutations in the same codon still need handling
-    private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
-      format!(
-        "When calculating union of mutations between query sequence and the branch leading to the next attachment point '{}'",
-        best_node.payload().name
-      )
-    })?;
+
+    private_mutations = update_private_mutations(&private_mutations, current_best_node, &best_split_result)?;
   }
   Ok((current_best_node.key(), private_mutations))
 }
@@ -209,6 +193,34 @@ fn find_shared_muts<'g>(
     }
   }
   Ok((best_node, best_split_result, n_shared_muts))
+}
+
+/// Update private mutations to match the new best_node
+fn update_private_mutations(
+  private_mutations: &BranchMutations,
+  current_best_node: &Node<AuspiceGraphNodePayload>,
+  best_split_result: &SplitMutsResult,
+) -> Result<BranchMutations, Report> {
+  // Step 1: subtract shared mutations from private mutations
+  let private_mutations = difference_of_muts(private_mutations, &best_split_result.shared).wrap_err_with(|| {
+    format!(
+      "When calculating difference of mutations between query sequence and the branch leading to the next attachment point '{}'",
+      current_best_node.payload().name
+    )
+  })?;
+
+  // Step 2: We need to add the inverted remaining mutations on that branch.
+  // Note that this can be necessary even if there are no left-over nuc_subs.
+  // Amino acid mutations can be decoupled from the their nucleotide mutations or
+  // changes in the amino acid sequences due to mutations in the same codon still need handling.
+  let private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
+    format!(
+      "When calculating union of mutations between query sequence and the branch leading to the next attachment point '{}'",
+      current_best_node.payload().name
+    )
+  })?;
+
+  Ok(private_mutations)
 }
 
 pub fn attach_to_internal_node(
