@@ -112,16 +112,27 @@ pub fn finetune_nearest_node(
 
   loop {
     // Check how many mutations are shared with the branch leading to the current_best_node or any of its children
-    let (best_node, best_split_result, n_shared_muts) = find_shared_muts(graph, current_best_node, &private_mutations)?;
+    let (best_node, best_split_result, n_shared_muts) = find_shared_muts(graph, current_best_node, &private_mutations)
+      .wrap_err_with(|| {
+        format!(
+          "When calculating shared mutations against the current best node '{}'",
+          current_best_node.payload().name
+        )
+      })?;
 
     // Check if the new candidate node is better than the current best
-    match find_better_node_maybe(graph, current_best_node, best_node, &best_split_result, n_shared_muts)? {
+    match find_better_node_maybe(graph, current_best_node, best_node, &best_split_result, n_shared_muts) {
       None => break,
       Some(better_node) => current_best_node = better_node,
     }
 
     // Update query mutations to adjust for the new position of the placed node
-    private_mutations = update_private_mutations(&private_mutations, current_best_node, &best_split_result)?;
+    private_mutations = update_private_mutations(&private_mutations, &best_split_result).wrap_err_with(|| {
+      format!(
+        "When updating private mutations against the current best node '{}'",
+        current_best_node.payload().name
+      )
+    })?;
   }
 
   Ok((current_best_node.key(), private_mutations))
@@ -185,9 +196,9 @@ fn find_better_node_maybe<'g>(
   best_node: &'g Node<AuspiceGraphNodePayload>,
   best_split_result: &SplitMutsResult,
   n_shared_muts: usize,
-) -> Result<Option<&'g Node<AuspiceGraphNodePayload>>, Report> {
+) -> Option<&'g Node<AuspiceGraphNodePayload>> {
   // if shared mutations are found, the current_best_node is updated
-  Ok(if n_shared_muts > 0 {
+  if n_shared_muts > 0 {
     if best_node == current_best_node && best_split_result.left.nuc_muts.is_empty() {
       // Caveat: all mutations from the parent to the node are shared with private mutations. Move up to the parent.
       graph.parent_of(best_node)
@@ -196,7 +207,7 @@ fn find_better_node_maybe<'g>(
       None
     } else {
       // The best node is child
-      Some(graph.get_node(best_node.key())?)
+      Some(best_node)
     }
   } else if current_best_node.is_leaf()
     && !current_best_node.is_root()
@@ -205,33 +216,26 @@ fn find_better_node_maybe<'g>(
     graph.parent_of(best_node)
   } else {
     None
-  })
+  }
 }
 
 /// Update private mutations to match the new best node
 fn update_private_mutations(
   private_mutations: &BranchMutations,
-  current_best_node: &Node<AuspiceGraphNodePayload>,
   best_split_result: &SplitMutsResult,
 ) -> Result<BranchMutations, Report> {
   // Step 1: subtract shared mutations from private mutations
-  let private_mutations = difference_of_muts(private_mutations, &best_split_result.shared).wrap_err_with(|| {
-    format!(
-      "When calculating difference of mutations between query sequence and the branch leading to the next attachment point '{}'",
-      current_best_node.payload().name
-    )
-  })?;
+  let private_mutations = difference_of_muts(private_mutations, &best_split_result.shared).wrap_err(
+    "When calculating difference of mutations between query sequence and the branch leading to the next attachment point"
+  )?;
 
   // Step 2: We need to add the inverted remaining mutations on that branch.
   // Note that this can be necessary even if there are no left-over nuc_subs.
   // Amino acid mutations can be decoupled from the their nucleotide mutations or
   // changes in the amino acid sequences due to mutations in the same codon still need handling.
-  let private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err_with(|| {
-    format!(
-      "When calculating union of mutations between query sequence and the branch leading to the next attachment point '{}'",
-      current_best_node.payload().name
-    )
-  })?;
+  let private_mutations = union_of_muts(&private_mutations, &best_split_result.left.invert()).wrap_err(
+    "When calculating union of mutations between query sequence and the branch leading to the next attachment point.",
+  )?;
 
   Ok(private_mutations)
 }
