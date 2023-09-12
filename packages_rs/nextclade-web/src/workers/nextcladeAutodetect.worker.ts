@@ -25,7 +25,7 @@ let nextcladeAutodetect: NextcladeSeqAutodetectWasm | undefined
 async function create(minimizerIndexJsonStr: MinimizerIndexJson) {
   nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(
     JSON.stringify(minimizerIndexJsonStr),
-    JSON.stringify({ batchIntervalMs: 700, maxBatchSize: 1000 }),
+    JSON.stringify({ batchIntervalMs: 250, maxBatchSize: 1000 }),
   )
 }
 
