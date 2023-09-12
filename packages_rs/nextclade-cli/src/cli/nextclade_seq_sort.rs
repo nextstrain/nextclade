@@ -107,7 +107,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Re
         for fasta_record in &fasta_receiver {
           info!("Processing sequence '{}'", fasta_record.seq_name);
 
-          let result = run_minimizer_search(&fasta_record, minimizer_index)
+          let result = run_minimizer_search(&fasta_record, minimizer_index, search_params)
             .wrap_err_with(|| {
               format!(
                 "When processing sequence #{} '{}'",
@@ -116,12 +116,10 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Re
             })
             .unwrap();
 
-          if result.max_score >= search_params.min_score && result.total_hits >= search_params.min_hits {
-            result_sender
-              .send(MinimizerSearchRecord { fasta_record, result })
-              .wrap_err("When sending minimizer record into the channel")
-              .unwrap();
-          }
+          result_sender
+            .send(MinimizerSearchRecord { fasta_record, result })
+            .wrap_err("When sending minimizer record into the channel")
+            .unwrap();
         }
 
         drop(result_sender);
@@ -167,9 +165,16 @@ fn writer_thread(
       .result
       .datasets
       .iter()
-      .sorted_by_key(|dataset| -OrderedFloat(dataset.score));
+      .sorted_by_key(|dataset| -OrderedFloat(dataset.score))
+      .collect_vec();
 
-    for (i, dataset) in datasets.enumerate() {
+    print!("{:40}", truncate(&record.fasta_record.seq_name, 40));
+
+    if datasets.is_empty() {
+      println!(" │ {:40} │ {:>10.3} │ {:>10} │", "", "", "",);
+    }
+
+    for (i, dataset) in datasets.into_iter().enumerate() {
       let name = &dataset.name;
 
       let names = name
@@ -191,10 +196,12 @@ fn writer_thread(
         }
       }
 
-      let name = if i == 0 { &record.fasta_record.seq_name } else { "" };
+      if i != 0 {
+        print!("{:40}", "");
+      }
+
       println!(
-        "{:40} │ {:40} │ {:>10.3} │ {:>10} │",
-        &truncate(name, 40),
+        " │ {:40} │ {:>10.3} │ {:>10} │",
         &truncate(&dataset.name, 40),
         &dataset.score,
         &dataset.n_hits,

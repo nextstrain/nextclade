@@ -1,5 +1,6 @@
 use crate::io::fasta::FastaRecord;
 use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
+use crate::sort::params::NextcladeSeqSortParams;
 use eyre::Report;
 use itertools::{izip, Itertools};
 use ordered_float::OrderedFloat;
@@ -35,6 +36,7 @@ pub struct MinimizerSearchRecord {
 pub fn run_minimizer_search(
   fasta_record: &FastaRecord,
   index: &MinimizerIndexJson,
+  search_params: &NextcladeSeqSortParams,
 ) -> Result<MinimizerSearchResult, Report> {
   let normalization = &index.normalization;
   let n_refs = index.references.len();
@@ -60,7 +62,7 @@ pub fn run_minimizer_search(
 
   let datasets = izip!(&index.references, hit_counts, scores)
     .filter_map(|(ref_info, n_hits, score)| {
-      (n_hits > 0 && score >= 0.01).then_some(MinimizerSearchDatasetResult {
+      (n_hits >= search_params.min_hits && score >= search_params.min_score).then_some(MinimizerSearchDatasetResult {
         name: ref_info.name.clone(),
         length: ref_info.length,
         n_hits,

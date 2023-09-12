@@ -10,7 +10,6 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
   autodetectResultsByDatasetAtom,
   DATASET_ID_UNDETECTED,
-  filterGoodRecords,
   numberAutodetectResultsAtom,
 } from 'src/state/autodetect.state'
 import type { Dataset } from 'src/types'
@@ -185,12 +184,10 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
       }
     }
 
-    const goodRecords = filterGoodRecords(records)
-
-    if (goodRecords.length > 0) {
-      const percentage = goodRecords.length / numberAutodetectResults
+    if (records.length > 0) {
+      const percentage = records.length / numberAutodetectResults
       const circleText = `${(100 * percentage).toFixed(0)}%`
-      const countText = `${goodRecords.length} / ${numberAutodetectResults}`
+      const countText = `${records.length} / ${numberAutodetectResults}`
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }

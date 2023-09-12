@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { motion } from 'framer-motion'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
-import { autodetectResultsAtom, filterGoodRecords, groupByDatasets } from 'src/state/autodetect.state'
+import { autodetectResultsAtom, groupByDatasets } from 'src/state/autodetect.state'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
@@ -78,13 +78,13 @@ export function DatasetSelectorList({
       return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
     }
 
-    const goodRecordsByDataset = groupByDatasets(filterGoodRecords(autodetectResults))
+    const recordsByDataset = groupByDatasets(autodetectResults)
 
     let itemsInclude = datasets.filter((candidate) =>
-      Object.entries(goodRecordsByDataset).some(([dataset, _]) => dataset === candidate.path),
+      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
     )
 
-    itemsInclude = sortBy(itemsInclude, (dataset) => -get(goodRecordsByDataset, dataset.path, []).length)
+    itemsInclude = sortBy(itemsInclude, (dataset) => -get(recordsByDataset, dataset.path, []).length)
 
     const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
 
