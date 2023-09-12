@@ -1,4 +1,6 @@
 use crate::analyze::nuc_sub::NucSub;
+use crate::coord::range::NucRefGlobalRange;
+use crate::tree::params::TreeBuilderParams;
 use crate::tree::tree::DivergenceUnits;
 
 /// Calculate number of nuc muts, only considering ACGT characters
@@ -23,4 +25,18 @@ pub fn calculate_branch_length(
   }
 
   this_div
+}
+
+/// Calculate nuc mut score
+pub fn score_nuc_muts(nuc_muts: &[NucSub], masked_ranges: &[NucRefGlobalRange], params: &TreeBuilderParams) -> f64 {
+  // Only consider ACGT characters
+  let nuc_muts = nuc_muts.iter().filter(|m| m.ref_nuc.is_acgt() && m.qry_nuc.is_acgt());
+
+  // Split away masked mutations
+  let (masked_muts, muts): (Vec<_>, Vec<_>) =
+    nuc_muts.partition(|m| masked_ranges.iter().any(|range| range.contains(m.pos)));
+
+  let n_muts = muts.len() as f64;
+  let n_masked_muts = masked_muts.len() as f64;
+  n_muts + n_masked_muts * params.masked_muts_weight
 }
