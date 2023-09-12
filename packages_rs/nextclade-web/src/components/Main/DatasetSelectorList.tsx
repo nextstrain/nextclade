@@ -1,37 +1,28 @@
 import { get, isNil, sortBy } from 'lodash'
-import React, { HTMLProps, useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
+import { ListGroup, ListGroupItem } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import { motion } from 'framer-motion'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
 import { autodetectResultsAtom, groupByDatasets } from 'src/state/autodetect.state'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
-export const DatasetSelectorUl = styled.ul`
+export const DatasetSelectorUl = styled(ListGroup)`
   flex: 1;
   overflow-y: scroll;
   height: 100%;
-  padding: 0;
 `
 
-export const DatasetSelectorLi = styled(motion.li)<{ $active?: boolean; $isDimmed?: boolean }>`
+export const DatasetSelectorLi = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
   list-style: none;
   margin: 0;
   padding: 0.5rem;
   cursor: pointer;
-  filter: ${(props) => props.$isDimmed && !props.$active && 'invert(0.1) brightness(0.9)'};
-  background-color: ${(props) => (props.$active ? props.theme.primary : props.theme.bodyBg)};
-  color: ${(props) => props.$active && props.theme.white};
-  border: ${(props) => props.theme.gray400} solid 1px;
+  opacity: ${(props) => props.$isDimmed && 0.33};
+  background-color: transparent;
 `
-
-const TRANSITION = {
-  type: 'tween',
-  ease: 'linear',
-  duration: 0.2,
-}
 
 export interface DatasetSelectorListItemProps {
   dataset: Dataset
@@ -42,20 +33,13 @@ export interface DatasetSelectorListItemProps {
 
 export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick }: DatasetSelectorListItemProps) {
   return (
-    <DatasetSelectorLi
-      $isDimmed={isDimmed}
-      aria-current={isCurrent}
-      $active={isCurrent}
-      onClick={onClick}
-      layout
-      transition={TRANSITION}
-    >
+    <DatasetSelectorLi $isDimmed={isDimmed} aria-current={isCurrent} active={isCurrent} onClick={onClick}>
       <DatasetInfo dataset={dataset} />
     </DatasetSelectorLi>
   )
 }
 
-export interface DatasetSelectorListProps extends HTMLProps<HTMLUListElement> {
+export interface DatasetSelectorListProps {
   datasets: Dataset[]
   searchTerm: string
   datasetHighlighted?: Dataset
