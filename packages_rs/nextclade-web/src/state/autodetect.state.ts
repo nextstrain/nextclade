@@ -54,7 +54,7 @@ export function groupByDatasets(records: MinimizerSearchRecord[]) {
   const names = unique(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
   let byDataset = {}
   for (const name of names) {
-    const selectedRecords = records.find((record) => record.result.datasets.some((dataset) => dataset.name === name))
+    const selectedRecords = records.filter((record) => record.result.datasets.some((dataset) => dataset.name === name))
     byDataset = { ...byDataset, [name]: selectedRecords }
   }
   return byDataset
