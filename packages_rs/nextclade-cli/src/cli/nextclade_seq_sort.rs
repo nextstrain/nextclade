@@ -4,15 +4,17 @@ use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{trace, LevelFilter};
+use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
 use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
-use nextclade::utils::option::OptionMapRefFallible;
+use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
 use owo_colors::OwoColorize;
+use schemars::JsonSchema;
 use serde::Serialize;
 use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::collections::BTreeMap;
@@ -55,12 +57,12 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
         .map(|minimizer_index| format!("'{}'", minimizer_index.version))
         .join(",");
       let server_versions = if server_versions.is_empty() {
-        "none".to_owned()
+        "none available".to_owned()
       } else {
         format!(": {server_versions}")
       };
 
-      make_error!("No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. \n\nThis version of Nextclade supports index versions up to '{}', but the server has{}.\n\nTry to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.", MINIMIZER_INDEX_ALGO_VERSION, server_versions)
+      make_error!("No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. \n\nThis version of Nextclade supports index versions up to '{}', but the server has {}.\n\nTry to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.", MINIMIZER_INDEX_ALGO_VERSION, server_versions)
     }
   }?;
 
@@ -70,8 +72,6 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
 pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbose: bool) -> Result<(), Report> {
   let NextcladeSortArgs {
     input_fastas,
-    output_dir,
-    output,
     search_params,
     other_params: NextcladeRunOtherParams { jobs },
     ..
@@ -128,37 +128,62 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbo
     }
 
     let writer = s.spawn(move || {
-      let output_dir = &output_dir;
-      let output = &output;
-      writer_thread(output, output_dir, result_receiver, verbose).unwrap();
+      writer_thread(args, result_receiver, verbose).unwrap();
     });
   });
 
   Ok(())
 }
 
+#[derive(Clone, Default, Debug, Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+struct SeqSortCsvEntry<'a> {
+  seq_name: &'a str,
+  dataset: &'a str,
+  score: f64,
+  num_hits: u64,
+}
+
 fn writer_thread(
-  output: &Option<String>,
-  output_dir: &Option<PathBuf>,
+  args: &NextcladeSortArgs,
   result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
   verbose: bool,
 ) -> Result<(), Report> {
-  let template = output.map_ref_fallible(move |output| -> Result<TinyTemplate, Report> {
+  let NextcladeSortArgs {
+    output_dir,
+    output_path,
+    output_results_tsv,
+    ..
+  } = args;
+
+  let template = output_path.map_ref_fallible(move |output_path| -> Result<TinyTemplate, Report> {
     let mut template = TinyTemplate::new();
     template
-      .add_template("output", output)
-      .wrap_err_with(|| format!("When parsing template: {output}"))?;
+      .add_template("output", output_path)
+      .wrap_err_with(|| format!("When parsing template: '{output_path}'"))?;
     Ok(template)
   })?;
 
   let mut writers = BTreeMap::new();
   let mut stats = StatsPrinter::new(verbose);
 
+  let mut results_csv =
+    output_results_tsv.map_ref_fallible(|output_results_tsv| CsvStructFileWriter::new(output_results_tsv, b'\t'))?;
+
   for record in result_receiver {
     stats.print_seq(&record);
 
     for dataset in &record.result.datasets {
       let name = &dataset.name;
+
+      results_csv.map_mut_fallible(|results_csv| {
+        results_csv.write(&SeqSortCsvEntry {
+          seq_name: &record.fasta_record.seq_name,
+          dataset: &dataset.name,
+          score: dataset.score,
+          num_hits: dataset.n_hits,
+        })
+      })?;
 
       let names = name
         .split('/')
@@ -329,7 +354,11 @@ struct OutputTemplateContext<'a> {
 }
 
 fn check_args(args: &NextcladeSortArgs) -> Result<(), Report> {
-  let NextcladeSortArgs { output_dir, output, .. } = args;
+  let NextcladeSortArgs {
+    output_dir,
+    output_path: output,
+    ..
+  } = args;
 
   if output.is_some() && output_dir.is_some() {
     return make_error!(

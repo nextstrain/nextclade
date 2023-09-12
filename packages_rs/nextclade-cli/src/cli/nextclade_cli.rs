@@ -638,7 +638,6 @@ pub struct NextcladeSortArgs {
   ///
   /// See: https://en.wikipedia.org/wiki/FASTA_format
   #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(display_order = 1)]
   pub input_fastas: Vec<PathBuf>,
 
   /// Path to input minimizer index JSON file.
@@ -648,7 +647,6 @@ pub struct NextcladeSortArgs {
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm')]
   #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(display_order = 1)]
   pub input_minimizer_index_json: Option<PathBuf>,
 
   /// Path to output directory
@@ -657,9 +655,8 @@ pub struct NextcladeSortArgs {
   ///
   /// Mutually exclusive with `--output`.
   ///
-  #[clap(long)]
+  #[clap(short = 'O', long)]
   #[clap(value_hint = ValueHint::DirPath)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
   #[clap(group = "outputs")]
   pub output_dir: Option<PathBuf>,
 
@@ -671,18 +668,21 @@ pub struct NextcladeSortArgs {
   ///
   /// Mutually exclusive with `--output-dir`.
   ///
-  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed.
-  ///
-  /// If the required directory tree does not exist, it will be created.
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. If the required directory tree does not exist, it will be created.
   ///
   /// Example for bash shell:
   ///
   ///   --output='outputs/{name}/sorted.fasta.gz'
-  #[clap(long)]
-  #[clap(value_hint = ValueHint::DirPath)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
+  #[clap(short = 'o', long)]
   #[clap(group = "outputs")]
-  pub output: Option<String>,
+  pub output_path: Option<String>,
+
+  /// Path to output results TSV file
+  ///
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write uncompressed to standard output (stdout). If the required directory tree does not exist, it will be created.
+  #[clap(short = 'r', long)]
+  #[clap(value_hint = ValueHint::FilePath)]
+  pub output_results_tsv: Option<String>,
 
   #[clap(flatten, next_help_heading = "Algorithm")]
   pub search_params: NextcladeSeqSortParams,
