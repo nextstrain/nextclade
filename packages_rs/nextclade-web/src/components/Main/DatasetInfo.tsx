@@ -208,7 +208,13 @@ const CountText = styled.span`
   text-align: center;
 `
 
-const CircleBorder = styled.div.attrs((props) => ({
+interface CircleBorderProps {
+  $percentage: number
+  $fg?: string
+  $bg?: string
+}
+
+const CircleBorder = styled.div.attrs<CircleBorderProps>((props) => ({
   style: {
     background: `
       radial-gradient(closest-side, white 79%, transparent 80% 100%),
@@ -217,7 +223,7 @@ const CircleBorder = styled.div.attrs((props) => ({
         ${props.$bg ?? 'lightgray'} 0
       )`,
   },
-}))<{ $percentage: number; $fg?: string; $bg?: string }>`
+}))<CircleBorderProps>`
   display: flex;
   justify-content: center;
   align-items: center;
