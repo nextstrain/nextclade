@@ -12,6 +12,7 @@ use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRec
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
+use owo_colors::OwoColorize;
 use serde::Serialize;
 use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::collections::BTreeMap;
@@ -149,6 +150,8 @@ fn writer_thread(
     Ok(template)
   })?;
 
+  println!("Suggested datasets for each sequence");
+
   println!("{}┐", "─".repeat(110));
 
   println!(
@@ -159,6 +162,8 @@ fn writer_thread(
   println!("{}┤", "─".repeat(110));
 
   let mut writers = BTreeMap::new();
+  let mut stats = BTreeMap::new();
+  let mut n_undetected = 0_usize;
 
   for record in result_receiver {
     let datasets = record
@@ -171,11 +176,13 @@ fn writer_thread(
     print!("{:40}", truncate(&record.fasta_record.seq_name, 40));
 
     if datasets.is_empty() {
-      println!(" │ {:40} │ {:>10.3} │ {:>10} │", "", "", "",);
+      println!(" │ {:40} │ {:>10.3} │ {:>10} │", "undetected".red(), "", "");
+      n_undetected += 1;
     }
 
     for (i, dataset) in datasets.into_iter().enumerate() {
       let name = &dataset.name;
+      *stats.entry(name.clone()).or_insert(1) += 1;
 
       let names = name
         .split('/')
@@ -210,6 +217,43 @@ fn writer_thread(
 
     println!("{}┤", "─".repeat(110));
   }
+
+  println!("\n\nSuggested datasets");
+  println!("{}┐", "─".repeat(67));
+  println!("{:^40} │ {:^10} │ {:^10} │", "Dataset", "Num. seq", "Percent");
+  println!("{}┤", "─".repeat(67));
+
+  let total_seq = stats.values().sum::<usize>() + n_undetected;
+  let stats = stats
+    .into_iter()
+    .sorted_by_key(|(name, n_seq)| (-(*n_seq as isize), name.clone()));
+  for (name, n_seq) in stats {
+    println!(
+      "{:<40} │ {:>10} │ {:>9.3}% │",
+      name,
+      n_seq,
+      100.0 * (n_seq as f64 / total_seq as f64)
+    );
+  }
+
+  if n_undetected > 0 {
+    println!("{}┤", "─".repeat(67));
+    println!(
+      "{:<40} │ {:>10} │ {:>10} │",
+      "undetected".red(),
+      n_undetected.red(),
+      format!("{:>9.3}%", 100.0 * (n_undetected as f64 / total_seq as f64)).red()
+    );
+  }
+
+  println!("{}┤", "─".repeat(67));
+  println!(
+    "{:>40} │ {:>10} │ {:>10} │",
+    "total".bold(),
+    total_seq.bold(),
+    format!("{:>9.3}%", 100.0).bold()
+  );
+  println!("{}┘", "─".repeat(67));
 
   Ok(())
 }
