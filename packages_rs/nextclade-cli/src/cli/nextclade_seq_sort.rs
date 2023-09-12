@@ -139,9 +139,9 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbo
 #[serde(rename_all = "camelCase")]
 struct SeqSortCsvEntry<'a> {
   seq_name: &'a str,
-  dataset: &'a str,
-  score: f64,
-  num_hits: u64,
+  dataset: Option<&'a str>,
+  score: Option<f64>,
+  num_hits: Option<u64>,
 }
 
 fn writer_thread(
@@ -173,15 +173,28 @@ fn writer_thread(
   for record in result_receiver {
     stats.print_seq(&record);
 
-    for dataset in &record.result.datasets {
+    let datasets = &record.result.datasets;
+
+    if datasets.is_empty() {
+      results_csv.map_mut_fallible(|results_csv| {
+        results_csv.write(&SeqSortCsvEntry {
+          seq_name: &record.fasta_record.seq_name,
+          dataset: None,
+          score: None,
+          num_hits: None,
+        })
+      })?;
+    }
+
+    for dataset in datasets {
       let name = &dataset.name;
 
       results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
           seq_name: &record.fasta_record.seq_name,
-          dataset: &dataset.name,
-          score: dataset.score,
-          num_hits: dataset.n_hits,
+          dataset: Some(&dataset.name),
+          score: Some(dataset.score),
+          num_hits: Some(dataset.n_hits),
         })
       })?;
 
