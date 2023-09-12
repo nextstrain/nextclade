@@ -3,7 +3,7 @@ use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{info, LevelFilter};
+use log::{trace, LevelFilter};
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
@@ -30,7 +30,7 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
     ..
   } = args;
 
-  let verbose = log::max_level() > LevelFilter::Info;
+  let verbose = log::max_level() >= LevelFilter::Info;
 
   let minimizer_index = if let Some(input_minimizer_index_json) = &input_minimizer_index_json {
     // If a file is provided, use data from it
@@ -64,10 +64,10 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
     }
   }?;
 
-  run(args, &minimizer_index)
+  run(args, &minimizer_index, verbose)
 }
 
-pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Result<(), Report> {
+pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbose: bool) -> Result<(), Report> {
   let NextcladeSortArgs {
     input_fastas,
     output_dir,
@@ -106,7 +106,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Re
         let result_sender = result_sender.clone();
 
         for fasta_record in &fasta_receiver {
-          info!("Processing sequence '{}'", fasta_record.seq_name);
+          trace!("Processing sequence '{}'", fasta_record.seq_name);
 
           let result = run_minimizer_search(&fasta_record, minimizer_index, search_params)
             .wrap_err_with(|| {
@@ -130,7 +130,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson) -> Re
     let writer = s.spawn(move || {
       let output_dir = &output_dir;
       let output = &output;
-      writer_thread(output, output_dir, result_receiver).unwrap();
+      writer_thread(output, output_dir, result_receiver, verbose).unwrap();
     });
   });
 
@@ -141,6 +141,7 @@ fn writer_thread(
   output: &Option<String>,
   output_dir: &Option<PathBuf>,
   result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
+  verbose: bool,
 ) -> Result<(), Report> {
   let template = output.map_ref_fallible(move |output| -> Result<TinyTemplate, Report> {
     let mut template = TinyTemplate::new();
@@ -150,39 +151,14 @@ fn writer_thread(
     Ok(template)
   })?;
 
-  println!("Suggested datasets for each sequence");
-
-  println!("{}┐", "─".repeat(110));
-
-  println!(
-    "{:^40} │ {:^40} │ {:^10} │ {:^10} │",
-    "Sequence name", "Dataset", "Score", "Num. hits"
-  );
-
-  println!("{}┤", "─".repeat(110));
-
   let mut writers = BTreeMap::new();
-  let mut stats = BTreeMap::new();
-  let mut n_undetected = 0_usize;
+  let mut stats = StatsPrinter::new(verbose);
 
   for record in result_receiver {
-    let datasets = record
-      .result
-      .datasets
-      .iter()
-      .sorted_by_key(|dataset| -OrderedFloat(dataset.score))
-      .collect_vec();
+    stats.print_seq(&record);
 
-    print!("{:40}", truncate(&record.fasta_record.seq_name, 40));
-
-    if datasets.is_empty() {
-      println!(" │ {:40} │ {:>10.3} │ {:>10} │", "undetected".red(), "", "");
-      n_undetected += 1;
-    }
-
-    for (i, dataset) in datasets.into_iter().enumerate() {
+    for dataset in &record.result.datasets {
       let name = &dataset.name;
-      *stats.entry(name.clone()).or_insert(1) += 1;
 
       let names = name
         .split('/')
@@ -202,9 +178,64 @@ fn writer_thread(
           writer.write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)?;
         }
       }
+    }
+  }
+
+  stats.finish();
+
+  Ok(())
+}
+
+struct StatsPrinter {
+  enabled: bool,
+  stats: BTreeMap<String, usize>,
+  n_undetected: usize,
+}
+
+impl StatsPrinter {
+  pub fn new(enabled: bool) -> Self {
+    if enabled {
+      println!("Suggested datasets for each sequence");
+      println!("{}┐", "─".repeat(110));
+      println!(
+        "{:^40} │ {:^40} │ {:^10} │ {:^10} │",
+        "Sequence name", "Dataset", "Score", "Num. hits"
+      );
+      println!("{}┤", "─".repeat(110));
+    }
+
+    Self {
+      enabled,
+      stats: BTreeMap::new(),
+      n_undetected: 0,
+    }
+  }
+
+  pub fn print_seq(&mut self, record: &MinimizerSearchRecord) {
+    if !self.enabled {
+      return;
+    }
+
+    let datasets = record
+      .result
+      .datasets
+      .iter()
+      .sorted_by_key(|dataset| -OrderedFloat(dataset.score))
+      .collect_vec();
+
+    print!("{:<40}", truncate(&record.fasta_record.seq_name, 40));
+
+    if datasets.is_empty() {
+      println!(" │ {:40} │ {:>10.3} │ {:>10} │", "undetected".red(), "", "");
+      self.n_undetected += 1;
+    }
+
+    for (i, dataset) in datasets.into_iter().enumerate() {
+      let name = &dataset.name;
+      *self.stats.entry(name.clone()).or_insert(1) += 1;
 
       if i != 0 {
-        print!("{:40}", "");
+        print!("{:<40}", "");
       }
 
       println!(
@@ -218,44 +249,50 @@ fn writer_thread(
     println!("{}┤", "─".repeat(110));
   }
 
-  println!("\n\nSuggested datasets");
-  println!("{}┐", "─".repeat(67));
-  println!("{:^40} │ {:^10} │ {:^10} │", "Dataset", "Num. seq", "Percent");
-  println!("{}┤", "─".repeat(67));
+  pub fn finish(&self) {
+    if !self.enabled {
+      return;
+    }
 
-  let total_seq = stats.values().sum::<usize>() + n_undetected;
-  let stats = stats
-    .into_iter()
-    .sorted_by_key(|(name, n_seq)| (-(*n_seq as isize), name.clone()));
-  for (name, n_seq) in stats {
-    println!(
-      "{:<40} │ {:>10} │ {:>9.3}% │",
-      name,
-      n_seq,
-      100.0 * (n_seq as f64 / total_seq as f64)
-    );
-  }
+    println!("\n\nSuggested datasets");
+    println!("{}┐", "─".repeat(67));
+    println!("{:^40} │ {:^10} │ {:^10} │", "Dataset", "Num. seq", "Percent");
+    println!("{}┤", "─".repeat(67));
 
-  if n_undetected > 0 {
+    let total_seq = self.stats.values().sum::<usize>() + self.n_undetected;
+    let stats = self
+      .stats
+      .iter()
+      .sorted_by_key(|(name, n_seq)| (-(**n_seq as isize), (*name).clone()));
+
+    for (name, n_seq) in stats {
+      println!(
+        "{:<40} │ {:>10} │ {:>9.3}% │",
+        name,
+        n_seq,
+        100.0 * (*n_seq as f64 / total_seq as f64)
+      );
+    }
+
+    if self.n_undetected > 0 {
+      println!("{}┤", "─".repeat(67));
+      println!(
+        "{:<40} │ {:>10} │ {:>10} │",
+        "undetected".red(),
+        self.n_undetected.red(),
+        format!("{:>9.3}%", 100.0 * (self.n_undetected as f64 / total_seq as f64)).red()
+      );
+    }
+
     println!("{}┤", "─".repeat(67));
     println!(
-      "{:<40} │ {:>10} │ {:>10} │",
-      "undetected".red(),
-      n_undetected.red(),
-      format!("{:>9.3}%", 100.0 * (n_undetected as f64 / total_seq as f64)).red()
+      "{:>40} │ {:>10} │ {:>10} │",
+      "total".bold(),
+      total_seq.bold(),
+      format!("{:>9.3}%", 100.0).bold()
     );
+    println!("{}┘", "─".repeat(67));
   }
-
-  println!("{}┤", "─".repeat(67));
-  println!(
-    "{:>40} │ {:>10} │ {:>10} │",
-    "total".bold(),
-    total_seq.bold(),
-    format!("{:>9.3}%", 100.0).bold()
-  );
-  println!("{}┘", "─".repeat(67));
-
-  Ok(())
 }
 
 fn get_or_insert_writer(
