@@ -208,18 +208,22 @@ const CountText = styled.span`
   text-align: center;
 `
 
-const CircleBorder = styled.div<{ $percentage: number; $fg?: string; $bg?: string }>`
+const CircleBorder = styled.div.attrs((props) => ({
+  style: {
+    background: `
+      radial-gradient(closest-side, white 79%, transparent 80% 100%),
+      conic-gradient(
+        ${props.$fg ?? props.theme.success} calc(${props.$percentage} * 100%),
+        ${props.$bg ?? 'lightgray'} 0
+      )`,
+  },
+}))<{ $percentage: number; $fg?: string; $bg?: string }>`
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
   width: 75px;
   height: 75px;
-  background: radial-gradient(closest-side, white 79%, transparent 80% 100%),
-    conic-gradient(
-      ${(props) => props.$fg ?? props.theme.success} calc(${(props) => props.$percentage} * 100%),
-      ${(props) => props.$bg ?? 'lightgray'} 0
-    );
 `
 
 const Circle = styled.div<{ $bg?: string; $fg?: string }>`
