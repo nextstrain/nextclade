@@ -1,43 +1,15 @@
 import { get, isNil, sortBy } from 'lodash'
+import { lighten } from 'polished'
 import React, { useCallback, useMemo } from 'react'
 import { ListGroup, ListGroupItem } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { ListGenericCss } from 'src/components/Common/List'
 import styled from 'styled-components'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
 import { autodetectResultsAtom, groupByDatasets } from 'src/state/autodetect.state'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
-
-export const DatasetSelectorUl = styled(ListGroup)`
-  flex: 1;
-  overflow-y: scroll;
-  height: 100%;
-`
-
-export const DatasetSelectorLi = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
-  list-style: none;
-  margin: 0;
-  padding: 0.5rem;
-  cursor: pointer;
-  opacity: ${(props) => props.$isDimmed && 0.33};
-  background-color: transparent;
-`
-
-export interface DatasetSelectorListItemProps {
-  dataset: Dataset
-  isCurrent?: boolean
-  isDimmed?: boolean
-  onClick?: () => void
-}
-
-export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick }: DatasetSelectorListItemProps) {
-  return (
-    <DatasetSelectorLi $isDimmed={isDimmed} aria-current={isCurrent} active={isCurrent} onClick={onClick}>
-      <DatasetInfo dataset={dataset} />
-    </DatasetSelectorLi>
-  )
-}
 
 export interface DatasetSelectorListProps {
   datasets: Dataset[]
@@ -93,30 +65,73 @@ export function DatasetSelectorList({
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = searchResult
 
-  return (
-    <DatasetSelectorUl>
-      {[itemsStartWith, itemsInclude].map((datasets) =>
-        datasets.map((dataset) => (
-          <DatasetSelectorListItem
-            key={dataset.path}
-            dataset={dataset}
-            onClick={onItemClick(dataset)}
-            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
-          />
-        )),
-      )}
+  const listItems = useMemo(() => {
+    return (
+      <>
+        {[itemsStartWith, itemsInclude].map((datasets) =>
+          datasets.map((dataset) => (
+            <DatasetSelectorListItem
+              key={dataset.path}
+              dataset={dataset}
+              onClick={onItemClick(dataset)}
+              isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            />
+          )),
+        )}
 
-      {[itemsNotInclude].map((datasets) =>
-        datasets.map((dataset) => (
-          <DatasetSelectorListItem
-            key={dataset.path}
-            dataset={dataset}
-            onClick={onItemClick(dataset)}
-            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
-            isDimmed
-          />
-        )),
-      )}
-    </DatasetSelectorUl>
+        {[itemsNotInclude].map((datasets) =>
+          datasets.map((dataset) => (
+            <DatasetSelectorListItem
+              key={dataset.path}
+              dataset={dataset}
+              onClick={onItemClick(dataset)}
+              isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+              isDimmed
+            />
+          )),
+        )}
+      </>
+    )
+  }, [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, onItemClick])
+
+  return <Ul>{listItems}</Ul>
+}
+
+export const Ul = styled(ListGroup)`
+  ${ListGenericCss};
+  flex: 1;
+  overflow: auto;
+  padding: 5px 5px;
+  border-radius: 0 !important;
+`
+
+export const Li = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
+  cursor: pointer;
+  opacity: ${(props) => props.$isDimmed && 0.4};
+  background-color: transparent;
+
+  margin: 3px 3px !important;
+  padding: 0 !important;
+  border-radius: 5px !important;
+
+  &.active {
+    background-color: ${(props) => lighten(0.033)(props.theme.primary)};
+    box-shadow: -3px 3px 12px 3px #0005;
+    opacity: ${(props) => props.$isDimmed && 0.66};
+  }
+`
+
+interface DatasetSelectorListItemProps {
+  dataset: Dataset
+  isCurrent?: boolean
+  isDimmed?: boolean
+  onClick?: () => void
+}
+
+function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick }: DatasetSelectorListItemProps) {
+  return (
+    <Li $isDimmed={isDimmed} aria-current={isCurrent} active={isCurrent} onClick={onClick}>
+      <DatasetInfo dataset={dataset} />
+    </Li>
   )
 }

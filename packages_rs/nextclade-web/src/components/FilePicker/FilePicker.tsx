@@ -16,6 +16,7 @@ import { UploadedFileInfo } from './UploadedFileInfo'
 import { UploadedFileInfoCompact } from './UploadedFileInfoCompact'
 
 export const FilePickerContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
 `

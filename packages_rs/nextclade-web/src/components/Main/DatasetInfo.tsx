@@ -15,9 +15,21 @@ import {
 import type { Dataset } from 'src/types'
 import styled from 'styled-components'
 
-export const DatasetInfoContainer = styled.div`
+export const Container = styled.div`
   display: flex;
-  flex-direction: row;
+  //border: 1px #ccc9 solid;
+  //border-radius: 5px;
+
+  //margin-top: 3px !important;
+  //margin-bottom: 3px !important;
+  //margin-left: 5px;
+  //padding: 15px;
+
+  margin: 0;
+  padding: 15px;
+  box-shadow: 0 0 12px 0 #0002;
+  border: 1px #ccc9 solid;
+  border-radius: 5px;
 `
 
 export const FlexLeft = styled.div`
@@ -85,7 +97,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
   }
 
   return (
-    <DatasetInfoContainer>
+    <Container>
       <FlexLeft>
         <DatasetInfoAutodetectProgressCircle dataset={dataset} />
       </FlexLeft>
@@ -144,7 +156,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
         <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
         <DatasetInfoLine>{t('Dataset name: {{name}}', { name: path })}</DatasetInfoLine>
       </FlexRight>
-    </DatasetInfoContainer>
+    </Container>
   )
 }
 
@@ -152,14 +164,14 @@ export function DatasetUndetectedInfo() {
   const { t } = useTranslationSafe()
 
   return (
-    <DatasetInfoContainer>
+    <Container>
       <DatasetName>
         <span>{t('Autodetect')}</span>
       </DatasetName>
       <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
       <DatasetInfoLine />
       <DatasetInfoLine />
-    </DatasetInfoContainer>
+    </Container>
   )
 }
 
@@ -206,6 +218,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
 
 const CountText = styled.span`
   text-align: center;
+  font-size: 0.8rem;
 `
 
 interface CircleBorderProps {

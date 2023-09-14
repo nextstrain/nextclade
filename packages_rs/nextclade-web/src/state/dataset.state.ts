@@ -3,7 +3,6 @@ import { atom, DefaultValue, selector } from 'recoil'
 
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 // import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
 // import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
@@ -41,7 +40,6 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
       set(datasetCurrentStorageAtom, dataset)
       // FIXME
       // set(viewedGeneAtom, dataset?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
-      reset(inputResetAtom)
     }
   },
 })

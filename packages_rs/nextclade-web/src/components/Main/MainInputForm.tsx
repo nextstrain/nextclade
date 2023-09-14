@@ -2,12 +2,13 @@ import React from 'react'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import styled from 'styled-components'
 import { Col as ColBase, Row as RowBase } from 'reactstrap'
-import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
+import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 
 const Container = styled.div`
   height: 100%;
   overflow: hidden;
+  margin-top: 10px;
 `
 
 const Row = styled(RowBase)`
@@ -27,10 +28,10 @@ export function MainInputForm() {
   return (
     <Container>
       <Row noGutters className="flex-column-reverse flex-lg-row">
-        <Col lg={6}>
+        <Col lg={6} className="">
           <DatasetSelector />
         </Col>
-        <Col lg={6}>
+        <Col lg={6} className="">
           <QuerySequenceFilePicker />
         </Col>
       </Row>

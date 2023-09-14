@@ -84,6 +84,7 @@ export function UploadBox({ onUpload, children, multiple = false, ...props }: Pr
     () => (
       <UploadZoneTextContainer>
         <UploadZoneText>{t('Drag & drop files')}</UploadZoneText>
+        <UploadZoneText>{t('or folders')}</UploadZoneText>
         <UploadZoneButton color="primary">{t('Select files')}</UploadZoneButton>
       </UploadZoneTextContainer>
     ),
