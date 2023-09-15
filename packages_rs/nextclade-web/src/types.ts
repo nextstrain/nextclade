@@ -127,6 +127,8 @@ export enum AlgorithmInputType {
 }
 
 export interface AlgorithmInput {
+  uid: string
+  path: string
   type: AlgorithmInputType
   name: string
   description: string

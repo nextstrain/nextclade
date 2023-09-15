@@ -14,7 +14,7 @@ export function QuerySequenceList() {
 
   const listItems = useMemo(() => {
     return qryInputs.map((input, index) => (
-      <Li key={`${input.name}`}>
+      <Li key={input.uid}>
         <InputFileInfo input={input} index={index} />
       </Li>
     ))

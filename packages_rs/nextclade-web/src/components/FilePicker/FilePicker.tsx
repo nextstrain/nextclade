@@ -111,12 +111,12 @@ export function FilePicker({
   const onPaste = useCallback(
     (content: string) => {
       if (multiple) {
-        onInputs?.([new AlgorithmInputString(content)])
+        onInputs?.([new AlgorithmInputString(content, t('Pasted sequences'))])
       } else {
-        onInput?.(new AlgorithmInputString(content))
+        onInput?.(new AlgorithmInputString(content, t('Pasted sequences')))
       }
     },
-    [multiple, onInput, onInputs],
+    [multiple, onInput, onInputs, t],
   )
 
   // eslint-disable-next-line no-void
