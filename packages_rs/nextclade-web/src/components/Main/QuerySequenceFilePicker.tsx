@@ -82,6 +82,7 @@ const Container = styled.div`
   height: 100%;
   overflow: hidden;
   margin-left: 10px;
+  margin-right: 12px;
 `
 
 const Header = styled.div`
