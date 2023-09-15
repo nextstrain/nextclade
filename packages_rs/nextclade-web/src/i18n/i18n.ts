@@ -1,11 +1,7 @@
-import { ElementType, FC } from 'react'
-
 import type { StrictOmit } from 'ts-essentials'
 import { get, isNil, mapValues } from 'lodash'
-
 import i18nOriginal, { i18n as I18N, Resource } from 'i18next'
 import { initReactI18next } from 'react-i18next'
-
 import { Settings as LuxonSettings } from 'luxon'
 import numbro from 'numbro'
 import { languages } from 'countries-list'
@@ -14,28 +10,6 @@ import prettyBytesOriginal, { Options as PrettyBytesOptionsOriginal } from 'pret
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import numbroLanguages from 'numbro/dist/languages.min'
-
-import CN from 'flag-icon-css/flags/1x1/cn.svg'
-import DE from 'flag-icon-css/flags/1x1/de.svg'
-import ES from 'flag-icon-css/flags/1x1/es.svg'
-import FR from 'flag-icon-css/flags/1x1/fr.svg'
-import GB from 'flag-icon-css/flags/1x1/gb.svg'
-import GR from 'flag-icon-css/flags/1x1/gr.svg'
-import ID from 'flag-icon-css/flags/1x1/id.svg'
-import IL from 'flag-icon-css/flags/1x1/il.svg'
-import IN from 'flag-icon-css/flags/1x1/in.svg'
-import IR from 'flag-icon-css/flags/1x1/ir.svg'
-import IT from 'flag-icon-css/flags/1x1/it.svg'
-import JP from 'flag-icon-css/flags/1x1/jp.svg'
-import KR from 'flag-icon-css/flags/1x1/kr.svg'
-import NL from 'flag-icon-css/flags/1x1/nl.svg'
-import PK from 'flag-icon-css/flags/1x1/pk.svg'
-import PT from 'flag-icon-css/flags/1x1/pt.svg'
-import RU from 'flag-icon-css/flags/1x1/ru.svg'
-import SA from 'flag-icon-css/flags/1x1/sa.svg'
-import TH from 'flag-icon-css/flags/1x1/th.svg'
-import TR from 'flag-icon-css/flags/1x1/tr.svg'
-import VN from 'flag-icon-css/flags/1x1/vn.svg'
 
 import ar from './resources/ar/common.json'
 import de from './resources/de/common.json'
@@ -97,32 +71,32 @@ export interface Locale {
   readonly full: string
   readonly name: string
   readonly native: string
-  readonly Flag: ElementType
+  readonly rtl: number | undefined
 }
 
 export const locales: Record<LocaleKey, Locale> = {
-  en: { key: 'en', full: 'en-US', name: languages.en.name, native: languages.en.native, Flag: GB as FC },
-  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.name, native: languages.ar.native, Flag: SA as FC },
-  de: { key: 'de', full: 'de-DE', name: languages.de.name, native: languages.de.native, Flag: DE as FC },
-  el: { key: 'el', full: 'el-GR', name: languages.el.name, native: languages.el.native, Flag: GR as FC },
-  es: { key: 'es', full: 'es-ES', name: languages.es.name, native: languages.es.native, Flag: ES as FC },
-  fa: { key: 'fa', full: 'fa-IR', name: languages.fa.name, native: languages.fa.native, Flag: IR as FC },
-  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.name, native: languages.fr.native, Flag: FR as FC },
-  he: { key: 'he', full: 'he-IL', name: languages.he.name, native: languages.he.native, Flag: IL as FC },
-  hi: { key: 'hi', full: 'hi-IN', name: languages.hi.name, native: languages.hi.native, Flag: IN as FC },
-  id: { key: 'id', full: 'id-ID', name: languages.id.name, native: languages.id.native, Flag: ID as FC },
-  it: { key: 'it', full: 'it-IT', name: languages.it.name, native: languages.it.native, Flag: IT as FC },
-  ja: { key: 'ja', full: 'ja-JP', name: languages.ja.name, native: languages.ja.native, Flag: JP as FC },
-  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.name, native: languages.ko.native, Flag: KR as FC },
-  nl: { key: 'nl', full: 'nl-NL', name: languages.nl.name, native: languages.nl.native, Flag: NL as FC },
-  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.name, native: languages.pt.native, Flag: PT as FC },
-  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.name, native: languages.ru.native, Flag: RU as FC },
-  ta: { key: 'ta', full: 'ta-IN', name: languages.ta.name, native: languages.ta.native, Flag: IN as FC },
-  th: { key: 'th', full: 'th-TH', name: languages.th.name, native: languages.th.native, Flag: TH as FC },
-  tr: { key: 'tr', full: 'tr-TR', name: languages.tr.name, native: languages.tr.native, Flag: TR as FC },
-  ur: { key: 'ur', full: 'ur-PK', name: languages.ur.name, native: languages.ur.native, Flag: PK as FC },
-  vi: { key: 'vi', full: 'vi-VN', name: languages.vi.name, native: languages.vi.native, Flag: VN as FC },
-  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.name, native: languages.zh.native, Flag: CN as FC },
+  en: { key: 'en', full: 'en-US', name: languages.en.name, native: languages.en.native, rtl: languages.en.rtl },
+  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.name, native: languages.ar.native, rtl: languages.ar.rtl },
+  de: { key: 'de', full: 'de-DE', name: languages.de.name, native: languages.de.native, rtl: languages.de.rtl },
+  el: { key: 'el', full: 'el-GR', name: languages.el.name, native: languages.el.native, rtl: languages.el.rtl },
+  es: { key: 'es', full: 'es-ES', name: languages.es.name, native: languages.es.native, rtl: languages.es.rtl },
+  fa: { key: 'fa', full: 'fa-IR', name: languages.fa.name, native: languages.fa.native, rtl: languages.fa.rtl },
+  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.name, native: languages.fr.native, rtl: languages.fr.rtl },
+  he: { key: 'he', full: 'he-IL', name: languages.he.name, native: languages.he.native, rtl: languages.he.rtl },
+  hi: { key: 'hi', full: 'hi-IN', name: languages.hi.name, native: languages.hi.native, rtl: languages.hi.rtl },
+  id: { key: 'id', full: 'id-ID', name: languages.id.name, native: languages.id.native, rtl: languages.id.rtl },
+  it: { key: 'it', full: 'it-IT', name: languages.it.name, native: languages.it.native, rtl: languages.it.rtl },
+  ja: { key: 'ja', full: 'ja-JP', name: languages.ja.name, native: languages.ja.native, rtl: languages.ja.rtl },
+  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.name, native: languages.ko.native, rtl: languages.ko.rtl },
+  nl: { key: 'nl', full: 'nl-NL', name: languages.nl.name, native: languages.nl.native, rtl: languages.nl.rtl },
+  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.name, native: languages.pt.native, rtl: languages.pt.rtl },
+  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.name, native: languages.ru.native, rtl: languages.ru.rtl },
+  ta: { key: 'ta', full: 'ta-IN', name: languages.ta.name, native: languages.ta.native, rtl: languages.ta.rtl },
+  th: { key: 'th', full: 'th-TH', name: languages.th.name, native: languages.th.native, rtl: languages.th.rtl },
+  tr: { key: 'tr', full: 'tr-TR', name: languages.tr.name, native: languages.tr.native, rtl: languages.tr.rtl },
+  ur: { key: 'ur', full: 'ur-PK', name: languages.ur.name, native: languages.ur.native, rtl: languages.ur.rtl },
+  vi: { key: 'vi', full: 'vi-VN', name: languages.vi.name, native: languages.vi.native, rtl: languages.vi.rtl },
+  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.name, native: languages.zh.native, rtl: languages.zh.rtl },
 } as const
 
 export const localeKeys = Object.keys(locales)

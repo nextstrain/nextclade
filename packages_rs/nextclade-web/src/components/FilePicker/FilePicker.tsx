@@ -39,7 +39,11 @@ export const FilePickerTitle = styled.h4`
   margin: auto 0;
 `
 
-export const TabsPanelStyled = styled(TabsPanel)``
+export const TabsPanelStyled = styled(TabsPanel)`
+  * {
+    background: transparent !important;
+  }
+`
 
 const TabsContentStyled = styled(TabsContent)`
   height: 100%;
