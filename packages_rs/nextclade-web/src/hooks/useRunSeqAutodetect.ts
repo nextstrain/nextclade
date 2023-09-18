@@ -2,8 +2,15 @@ import type { Subscription } from 'observable-fns'
 import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { axiosFetch } from 'src/io/axiosFetch'
-import { autodetectResultByIndexAtom, autodetectResultsAtom, minimizerIndexAtom } from 'src/state/autodetect.state'
+import {
+  autodetectResultByIndexAtom,
+  autodetectResultsAtom,
+  AutodetectRunState,
+  autodetectRunStateAtom,
+  minimizerIndexAtom,
+} from 'src/state/autodetect.state'
 import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { globalErrorAtom } from 'src/state/error.state'
 import { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
@@ -12,15 +19,29 @@ import { spawn } from 'src/workers/spawn'
 
 export function useRunSeqAutodetect() {
   return useRecoilCallback(
-    ({ set, reset, snapshot: { getPromise } }) =>
+    ({ set, reset, snapshot }) =>
       () => {
+        const { getPromise } = snapshot
+
+        set(autodetectRunStateAtom, AutodetectRunState.Started)
+
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
+        reset(autodetectRunStateAtom)
 
         function onResult(results: MinimizerSearchRecord[]) {
           results.forEach((res) => {
             set(autodetectResultByIndexAtom(res.fastaRecord.index), res)
           })
+        }
+
+        function onError(error: Error) {
+          set(autodetectRunStateAtom, AutodetectRunState.Failed)
+          set(globalErrorAtom, error)
+        }
+
+        function onComplete() {
+          set(autodetectRunStateAtom, AutodetectRunState.Done)
         }
 
         Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
@@ -31,7 +52,7 @@ export function useRunSeqAutodetect() {
             const fasta = await getQueryFasta(qrySeqInputs)
             const minimizerIndex: MinimizerIndexJson = await axiosFetch(minimizerIndexVersion.path)
             set(minimizerIndexAtom, minimizerIndex)
-            return runAutodetect(fasta, minimizerIndex, onResult)
+            return runAutodetect(fasta, minimizerIndex, { onResult, onError, onComplete })
           })
           .catch((error) => {
             throw error
@@ -41,13 +62,15 @@ export function useRunSeqAutodetect() {
   )
 }
 
-async function runAutodetect(
-  fasta: string,
-  minimizerIndex: MinimizerIndexJson,
-  onResult: (res: MinimizerSearchRecord[]) => void,
-) {
+interface Callbacks {
+  onResult: (r: MinimizerSearchRecord[]) => void
+  onError?: (error: Error) => void
+  onComplete?: () => void
+}
+
+async function runAutodetect(fasta: string, minimizerIndex: MinimizerIndexJson, callbacks: Callbacks) {
   const worker = await SeqAutodetectWasmWorker.create(minimizerIndex)
-  await worker.autodetect(fasta, { onResult })
+  await worker.autodetect(fasta, callbacks)
   await worker.destroy()
 }
 
@@ -73,18 +96,7 @@ export class SeqAutodetectWasmWorker {
     await this.thread.create(minimizerIndex)
   }
 
-  async autodetect(
-    fastaStr: string,
-    {
-      onResult,
-      onError,
-      onComplete,
-    }: {
-      onResult: (r: MinimizerSearchRecord[]) => void
-      onError?: (error: Error) => void
-      onComplete?: () => void
-    },
-  ) {
+  async autodetect(fastaStr: string, { onResult, onError, onComplete }: Callbacks) {
     this.subscription = this.thread.values().subscribe(onResult, onError, onComplete)
     await this.thread.autodetect(fastaStr)
   }

@@ -1,15 +1,20 @@
 import { get, isNil, sortBy } from 'lodash'
 import { lighten } from 'polished'
-import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ListGroup } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { ListGenericCss } from 'src/components/Common/List'
-import styled from 'styled-components'
+import { DatasetInfo } from 'src/components/Main/DatasetInfo'
+import { search } from 'src/helpers/search'
+import {
+  autodetectResultsAtom,
+  AutodetectRunState,
+  autodetectRunStateAtom,
+  groupByDatasets,
+} from 'src/state/autodetect.state'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
-import { autodetectResultsAtom, groupByDatasets } from 'src/state/autodetect.state'
-import { search } from 'src/helpers/search'
-import { DatasetInfo } from 'src/components/Main/DatasetInfo'
+import styled from 'styled-components'
 
 export interface DatasetSelectorListProps {
   datasets: Dataset[]
@@ -28,6 +33,7 @@ export function DatasetSelectorList({
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
 
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
+  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
 
   const autodetectResult = useMemo(() => {
     if (isNil(autodetectResults) || autodetectResults.length === 0) {
@@ -79,6 +85,14 @@ export function DatasetSelectorList({
   if (datasetHighlighted) {
     scrollToId(datasetHighlighted.path)
   }
+
+  useEffect(() => {
+    const topSuggestion = autodetectResult.itemsInclude[0]
+    if (autodetectRunState === AutodetectRunState.Done) {
+      onDatasetHighlighted(topSuggestion)
+      setAutodetectRunState(AutodetectRunState.Idle)
+    }
+  }, [autodetectRunState, autodetectResult.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
   const listItems = useMemo(() => {
     return (

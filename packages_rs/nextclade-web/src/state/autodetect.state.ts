@@ -50,7 +50,7 @@ export const autodetectResultByIndexAtom = selectorFamily<MinimizerSearchRecord,
 // Dataset ID to use for when dataset is not autodetected
 export const DATASET_ID_UNDETECTED = 'undetected'
 
-export function groupByDatasets(records: MinimizerSearchRecord[]) {
+export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecord[]> {
   const names = unique(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
   let byDataset = {}
   for (const name of names) {
@@ -118,4 +118,16 @@ export const hasAutodetectResultsAtom = selector<boolean>({
   get({ get }) {
     return get(numberAutodetectResultsAtom) > 0
   },
+})
+
+export enum AutodetectRunState {
+  Idle = 'Idle',
+  Started = 'Started',
+  Failed = 'Failed',
+  Done = 'Done',
+}
+
+export const autodetectRunStateAtom = atom<AutodetectRunState>({
+  key: 'autodetectRunStateAtom',
+  default: AutodetectRunState.Idle,
 })
