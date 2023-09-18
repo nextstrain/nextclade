@@ -1,6 +1,6 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts, score_nuc_muts};
+use crate::analyze::divergence::{calculate_branch_length, score_nuc_muts};
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;

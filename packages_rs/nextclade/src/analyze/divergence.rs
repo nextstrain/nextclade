@@ -3,12 +3,9 @@ use crate::coord::range::NucRefGlobalRange;
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::tree::DivergenceUnits;
 
-/// Calculate number of nuc muts, only considering ACGT characters
-pub fn count_nuc_muts(nuc_muts: &[NucSub]) -> usize {
-  nuc_muts
-    .iter()
-    .filter(|m| m.ref_nuc.is_acgt() && m.qry_nuc.is_acgt())
-    .count()
+// Only consider ACGT characters
+pub fn filter_nuc_muts(nuc_muts: &[NucSub]) -> impl Iterator<Item = &NucSub> {
+  nuc_muts.iter().filter(|m| m.ref_nuc.is_acgt() && m.qry_nuc.is_acgt())
 }
 
 pub fn calculate_branch_length(
@@ -16,7 +13,7 @@ pub fn calculate_branch_length(
   divergence_units: DivergenceUnits,
   ref_seq_len: usize,
 ) -> f64 {
-  let mut this_div = count_nuc_muts(private_mutations) as f64;
+  let mut this_div = filter_nuc_muts(private_mutations).count() as f64;
 
   // If divergence is measured per site, divide by the length of reference sequence.
   // The unit of measurement is deduced from what's already is used in the reference tree nodes.
@@ -29,8 +26,7 @@ pub fn calculate_branch_length(
 
 /// Calculate nuc mut score
 pub fn score_nuc_muts(nuc_muts: &[NucSub], masked_ranges: &[NucRefGlobalRange], params: &TreeBuilderParams) -> f64 {
-  // Only consider ACGT characters
-  let nuc_muts = nuc_muts.iter().filter(|m| m.ref_nuc.is_acgt() && m.qry_nuc.is_acgt());
+  let nuc_muts = filter_nuc_muts(nuc_muts);
 
   // Split away masked mutations
   let (masked_muts, muts): (Vec<_>, Vec<_>) =

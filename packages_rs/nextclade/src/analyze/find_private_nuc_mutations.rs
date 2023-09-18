@@ -1,7 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::count_nuc_muts;
 use crate::analyze::is_sequenced::{is_nuc_non_acgtn, is_nuc_sequenced};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
