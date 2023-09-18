@@ -6,7 +6,6 @@ use crate::coord::position::PositionLike;
 use crate::make_internal_error;
 use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
-use regex::internal::Input;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::hash::Hash;

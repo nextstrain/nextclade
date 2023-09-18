@@ -1,7 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, DropdownProps } from 'reactstrap'
+import {
+  Dropdown as DropdownBase,
+  DropdownToggle as DropdownToggleBase,
+  DropdownMenu as DropdownMenuBase,
+  DropdownItem,
+  DropdownProps,
+} from 'reactstrap'
 import { useRecoilState } from 'recoil'
-
+import styled from 'styled-components'
 import { localeAtom } from 'src/state/locale.state'
 import { getLocaleWithKey, Locale, localesArray } from 'src/i18n/i18n'
 
@@ -14,11 +20,11 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
   const setLocaleLocal = useCallback((locale: Locale) => () => setCurrentLocale(locale.key), [setCurrentLocale])
 
   return (
-    <Dropdown className="language-switcher" isOpen={dropdownOpen} toggle={toggle} {...restProps}>
+    <Dropdown isOpen={dropdownOpen} toggle={toggle} {...restProps}>
       <DropdownToggle nav caret>
-        <LanguageSwitcherItem locale={currentLocale} />
+        <LabelShort locale={currentLocale} />
       </DropdownToggle>
-      <DropdownMenu className="language-switcher-menu" positionFixed>
+      <DropdownMenu positionFixed>
         {localesArray.map((locale) => {
           const isCurrent = locale.key === currentLocale
           return (
@@ -33,20 +39,42 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
 }
 
 export function LanguageSwitcherItem({ locale }: { locale: string }) {
-  const { Flag, name, native } = getLocaleWithKey(locale)
-
-  const label = useMemo(() => {
-    if (name === native) {
-      return name
-    }
-
-    return `${native} (${name})`
+  const { name, native } = getLocaleWithKey(locale)
+  const { label, tooltip } = useMemo(() => {
+    return { label: `(${native})`, tooltip: `${name} (${native})` }
   }, [name, native])
-
   return (
-    <>
-      <Flag className="language-switcher-flag" />
-      <span className="pl-2">{label}</span>
-    </>
+    <span title={tooltip}>
+      <LabelShort locale={locale} />
+      <span className="mx-2">{label}</span>
+    </span>
   )
 }
+
+export function LabelShort({ locale, ...restProps }: { locale: string; className?: string }) {
+  const { key } = getLocaleWithKey(locale)
+  return <LabelShortText {...restProps}>{key}</LabelShortText>
+}
+
+const LabelShortText = styled.span`
+  font-family: ${(props) => props.theme.font.monospace};
+  text-transform: uppercase !important;
+  color: unset !important;
+`
+
+const Dropdown = styled(DropdownBase)`
+  padding: 0;
+  margin: 0;
+`
+
+const DropdownToggle = styled(DropdownToggleBase)`
+  color: ${(props) => props.theme.bodyColor};
+  padding: 0;
+  margin: 0;
+`
+
+const DropdownMenu = styled(DropdownMenuBase)`
+  background-color: ${(props) => props.theme.bodyBg};
+  box-shadow: 1px 1px 20px 0 #0005;
+  transition: opacity ease-out 0.25s;
+`

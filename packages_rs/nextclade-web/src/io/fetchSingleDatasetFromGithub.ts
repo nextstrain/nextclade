@@ -1,4 +1,3 @@
-/* eslint-disable prefer-template */
 import { isNil } from 'lodash'
 import pMemoize from 'p-memoize'
 
@@ -95,19 +94,13 @@ export function isGithubUrlOrShortcut(url: string): boolean {
   return !isNil(/^(github:|gh:|https?:\/\/github.com).*/.exec(url))
 }
 
-const GITHUB_URL_EXAMPLE =
-  'https://github.com/nextstrain/nextclade_data/tree/6ab9560b86e3384792235fa72d1c3eaf30e71213/data/datasets/flu_yam_ha/references/JN993010/versions/2022-07-27T12:00:00Z/files/'
-
-const GITHUB_URL_ERROR_HINTS = ` Check the correctness of the URL. If you don't intend to use custom dataset, remove the parameter from the address or restart the application. An example of a correct URL: '${GITHUB_URL_EXAMPLE}'`
+const GITHUB_URL_ERROR_HINTS = ` Check the correctness of the URL. If it's a full GitHub URL, please try to navigate to it - you should see a GitHub repo branch with your files listed. If it's a GitHub URL shortcut, please double check the syntax. See documentation for the correct syntax and examples. If you don't intend to use custom datasets, remove the parameter from the address or restart the application.`
 
 export class ErrorDatasetGithubUrlPatternInvalid extends Error {
   public readonly datasetGithubUrl: string
 
   constructor(datasetGithubUrl: string) {
-    super(
-      `Dataset GitHub URL (provided using 'dataset-url' URL parameter) is invalid: '${datasetGithubUrl}'.` +
-        GITHUB_URL_ERROR_HINTS,
-    )
+    super(`Dataset GitHub URL is invalid: '${datasetGithubUrl}'.${GITHUB_URL_ERROR_HINTS}`)
     this.datasetGithubUrl = datasetGithubUrl
   }
 }
@@ -122,9 +115,7 @@ export class ErrorDatasetGithubUrlComponentsInvalid extends Error {
       .join(',')
 
     super(
-      `Dataset GitHub URL (provided using 'dataset-url' URL parameter) is invalid: '${datasetGithubUrl}'.` +
-        ` Detected the following components ${componentsListStr}.` +
-        GITHUB_URL_ERROR_HINTS,
+      `Dataset GitHub URL is invalid: '${datasetGithubUrl}'. Detected the following components ${componentsListStr}.${GITHUB_URL_ERROR_HINTS}`,
     )
     this.datasetGithubUrl = datasetGithubUrl
     this.parsedRepoUrlComponents = parsedRepoUrlComponents

@@ -32,13 +32,19 @@ export const isNewRunPopupShownAtom = atom<boolean>({
 })
 
 export const isResultsFilterPanelCollapsedAtom = atom<boolean>({
-  key: 'isResultsfilterPanelCollapsed',
+  key: 'isResultsFilterPanelCollapsedAtom',
   default: true,
 })
 
 export const shouldRunAutomaticallyAtom = atom<boolean>({
   key: 'shouldRunAutomatically',
   default: false,
+  effects: [persistAtom],
+})
+
+export const shouldSuggestDatasetsAtom = atom<boolean>({
+  key: 'shouldSuggestDatasetsAtom',
+  default: true,
   effects: [persistAtom],
 })
 

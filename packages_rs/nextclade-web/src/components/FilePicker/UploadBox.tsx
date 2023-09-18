@@ -56,6 +56,7 @@ export const UploadZoneTextContainer = styled.div`
 export const UploadZoneText = styled.div`
   font-size: 1.1rem;
   text-align: center;
+  max-width: 150px;
 `
 
 export const UploadZoneButton = styled(Button)`
@@ -83,7 +84,7 @@ export function UploadBox({ onUpload, children, multiple = false, ...props }: Pr
   const normal = useMemo(
     () => (
       <UploadZoneTextContainer>
-        <UploadZoneText>{t('Drag & drop files')}</UploadZoneText>
+        <UploadZoneText>{t('Drag & drop files or folders')}</UploadZoneText>
         <UploadZoneButton color="primary">{t('Select files')}</UploadZoneButton>
       </UploadZoneTextContainer>
     ),

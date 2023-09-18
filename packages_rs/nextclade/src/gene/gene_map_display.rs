@@ -10,7 +10,6 @@ use eyre::Report;
 use itertools::{max as iter_max, Itertools};
 use num_traits::clamp;
 use owo_colors::OwoColorize;
-use regex::internal::Input;
 use std::cmp::{max, min};
 use std::io::Write;
 

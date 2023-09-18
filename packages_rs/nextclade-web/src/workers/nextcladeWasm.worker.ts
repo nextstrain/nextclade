@@ -75,8 +75,8 @@ async function getInitialData(): Promise<AnalysisInitialData> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getInitialData')
   }
-  const aaa = nextcladeWasm.get_initial_data()
-  const initialData = JSON.parse(aaa) as AnalysisInitialData
+  const initialDataStr = nextcladeWasm.get_initial_data()
+  const initialData = JSON.parse(initialDataStr) as AnalysisInitialData
   return {
     ...initialData,
     geneMap: prepareGeneMap(initialData.geneMap),

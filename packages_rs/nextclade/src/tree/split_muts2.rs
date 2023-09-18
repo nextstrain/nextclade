@@ -4,7 +4,6 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::split_muts::SplitMutsResult;
 use itertools::Itertools;
-use regex::internal::Input;
 use std::collections::{BTreeMap, HashSet};
 
 /// Split mutations into 3 groups:

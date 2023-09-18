@@ -88,7 +88,7 @@ export async function launchAnalysis(
   }
 }
 
-async function getQueryFasta(inputs: AlgorithmInput[]) {
+export async function getQueryFasta(inputs: AlgorithmInput[]) {
   if (isEmpty(inputs)) {
     throw new Error('Sequence fasta data is not available, but required')
   }

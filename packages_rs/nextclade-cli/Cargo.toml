@@ -28,6 +28,7 @@ lazy_static = "=1.4.0"
 log = "=0.4.19"
 nextclade = { path = "../nextclade" }
 num_cpus = "=1.16.0"
+ordered-float = { version = "=3.9.1", features = ["rand", "serde", "schemars"] }
 owo-colors = "=3.5.0"
 pretty_assertions = "=1.3.0"
 rayon = "=1.7.0"
@@ -39,6 +40,7 @@ serde = { version = "=1.0.164", features = ["derive"] }
 serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 strum = "=0.25.0"
 strum_macros = "=0.25"
+tinytemplate = "=1.2.1"
 url = { version = "=2.4.0", features = ["serde"] }
 zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 

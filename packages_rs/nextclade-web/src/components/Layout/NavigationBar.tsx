@@ -8,7 +8,7 @@ import {
 } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { Link } from 'src/components/Link/Link'
-import { FaDocker, FaGithub, FaTwitter } from 'react-icons/fa'
+import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
 import { hasRanAtom, hasTreeAtom } from 'src/state/results.state'
 import styled from 'styled-components'
@@ -18,15 +18,14 @@ import { CitationButton } from 'src/components/Citation/CitationButton'
 import { NextcladeTextLogo } from 'src/components/Layout/NextcladeTextLogo'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
-const LOGO_SIZE = 30
+const LOGO_SIZE = 36
 
 export const Navbar = styled(NavbarBase)`
-  height: 38px;
+  height: 45px;
   display: flex;
-  vertical-align: middle;
   padding: 0 !important;
   margin: 0 !important;
-  box-shadow: ${(props) => props.theme.shadows.large};
+  box-shadow: 0 0 8px 0 #0004;
 `
 
 export const Nav = styled(NavBase)`
@@ -40,7 +39,11 @@ export const NavItem = styled(NavItemBase)`
   padding: 0 0.5rem;
   flex-grow: 0;
   flex-shrink: 0;
-  margin: 0 !important;
+  margin: auto;
+
+  * {
+    vertical-align: middle;
+  }
 `
 
 const NavbarBrand = styled(NavbarBrandBase)`
@@ -138,18 +141,23 @@ export function NavigationBar() {
       },
       {
         url: 'https://twitter.com/nextstrain',
-        title: t('Link to our Twitter'),
-        content: <FaTwitter size={20} color="#aaa" />,
+        title: t('Link to our X.com (Twitter)'),
+        content: <FaXTwitter size={20} color="#aaa" className="mb-1" />,
+      },
+      {
+        url: 'https://discussion.nextstrain.org/',
+        title: t('Link to our discussion forum'),
+        content: <FaDiscourse size={20} color="#aaa" className="mb-1" />,
       },
       {
         url: 'https://hub.docker.com/r/nextstrain/nextclade',
         title: t('Link to our Docker containers'),
-        content: <FaDocker size={20} color="#aaa" />,
+        content: <FaDocker size={20} color="#aaa" className="mb-1" />,
       },
       {
         url: 'https://github.com/nextstrain/nextclade',
         title: t('Link to our Github page'),
-        content: <FaGithub size={20} color="#aaa" />,
+        content: <FaGithub size={20} color="#aaa" className="mb-1" />,
       },
       {
         title: t('Change language'),

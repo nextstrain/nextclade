@@ -1,6 +1,7 @@
 import { isEmpty } from 'lodash'
 import { useCallback } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
+import { autodetectResultsAtom } from 'src/state/autodetect.state'
 import { AlgorithmInput } from 'src/types'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 
@@ -11,7 +12,8 @@ export const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
 
 export function useQuerySeqInputs() {
   const [qryInputs, setQryInputs] = useRecoilState(qrySeqInputsStorageAtom)
-  const clearQryInputs = useResetRecoilState(qrySeqInputsStorageAtom)
+  const resetSeqInputsStorage = useResetRecoilState(qrySeqInputsStorageAtom)
+  const resetAutodetectResults = useResetRecoilState(autodetectResultsAtom)
 
   const addQryInputs = useCallback(
     (newInputs: AlgorithmInput[]) => {
@@ -26,6 +28,11 @@ export function useQuerySeqInputs() {
     },
     [setQryInputs],
   )
+
+  const clearQryInputs = useCallback(() => {
+    resetAutodetectResults()
+    resetSeqInputsStorage()
+  }, [resetAutodetectResults, resetSeqInputsStorage])
 
   return { qryInputs, addQryInputs, removeQryInput, clearQryInputs }
 }

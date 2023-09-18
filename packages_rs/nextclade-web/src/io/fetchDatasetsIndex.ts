@@ -1,19 +1,21 @@
 import { head, mapValues, sortBy, sortedUniq } from 'lodash'
 import semver from 'semver'
+import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import urljoin from 'url-join'
 
-import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json } from 'src/types'
+import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json, MinimizerIndexVersion } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-const thisVersion = process.env.PACKAGE_VERSION ?? ''
+const MINIMIZER_INDEX_ALGO_VERSION = 'v1'
+const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? ''
 
 export function isEnabled(dataset: Dataset) {
   return dataset.enabled
 }
 
 export function isCompatible(dataset: Dataset): boolean {
-  const minVersion = dataset.version?.compatibility?.web ?? thisVersion
-  return semver.gte(thisVersion, minVersion)
+  const minVersion = dataset.version?.compatibility?.web ?? PACKAGE_VERSION
+  return semver.gte(PACKAGE_VERSION, minVersion)
 }
 
 export function isLatest(dataset: Dataset): boolean {
@@ -59,4 +61,22 @@ export function filterDatasets(datasets: Dataset[], name?: string, tag?: string)
 
 export async function fetchDatasetsIndex(datasetServerUrl: string) {
   return axiosFetch<DatasetsIndexJson>(urljoin(datasetServerUrl, 'index.json'))
+}
+
+export async function getCompatibleMinimizerIndexVersion(
+  datasetServerUrl: string,
+  datasetsIndexJson: DatasetsIndexV2Json,
+): Promise<MinimizerIndexVersion | undefined> {
+  let candidates = datasetsIndexJson.minimizerIndex?.filter(
+    (minimizerIndexVer) => MINIMIZER_INDEX_ALGO_VERSION >= minimizerIndexVer.version,
+  )
+  candidates = sortBy(candidates, (candidate) => candidate.version).reverse()
+  const index = takeFirstMaybe(candidates)
+  if (index) {
+    return {
+      ...index,
+      path: urljoin(datasetServerUrl, index.path),
+    }
+  }
+  return undefined
 }

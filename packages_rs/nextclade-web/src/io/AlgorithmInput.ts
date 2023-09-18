@@ -1,6 +1,6 @@
+import { uniqueId } from 'src/helpers/uniqueId'
 import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/types'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
-
 import { readFile } from 'src/helpers/readFile'
 import { numbro } from 'src/i18n/i18n'
 
@@ -16,12 +16,20 @@ function formatBytes(bytes: number) {
 }
 
 export class AlgorithmInputFile implements AlgorithmInput {
+  public readonly uid = uniqueId()
+  public readonly path: string
   public readonly type: AlgorithmInputType = AlgorithmInputType.File as const
-
   private readonly file: File
 
   constructor(file: File) {
     this.file = file
+
+    // eslint-disable-next-line unicorn/prefer-ternary
+    if (this.file.webkitRelativePath.trim().length > 0) {
+      this.path = this.file.webkitRelativePath
+    } else {
+      this.path = `${this.uid}-${this.file.name}`
+    }
   }
 
   public get name(): string {
@@ -38,12 +46,14 @@ export class AlgorithmInputFile implements AlgorithmInput {
 }
 
 export class AlgorithmInputUrl implements AlgorithmInput {
+  public readonly uid = uniqueId()
+  public readonly path: string
   public readonly type: AlgorithmInputType = AlgorithmInputType.Url as const
-
   private readonly url: string
 
   constructor(url: string) {
     this.url = url
+    this.path = this.url
   }
 
   public get name(): string {
@@ -60,12 +70,14 @@ export class AlgorithmInputUrl implements AlgorithmInput {
 }
 
 export class AlgorithmInputString implements AlgorithmInput {
+  public readonly uid = uniqueId()
+  public readonly path: string
   public readonly type: AlgorithmInputType = AlgorithmInputType.String as const
-
   private readonly content: string
   private readonly contentName: string
 
   constructor(content: string, contentName?: string) {
+    this.path = `pasted-${this.uid}.fasta`
     this.content = content
     this.contentName = contentName ?? 'Pasted sequences'
   }
@@ -84,21 +96,22 @@ export class AlgorithmInputString implements AlgorithmInput {
 }
 
 export class AlgorithmInputDefault implements AlgorithmInput {
+  public readonly uid = uniqueId()
+  public readonly path: string
   public readonly type: AlgorithmInputType = AlgorithmInputType.Default as const
-
   public dataset: Dataset
 
   constructor(dataset: Dataset) {
     this.dataset = dataset
+    this.path = `Examples for '${this.dataset.path}'`
   }
 
   public get name(): string {
-    const { value, valueFriendly } = this.dataset.attributes.name
-    return `${valueFriendly ?? value} example sequences`
+    return this.path
   }
 
   public get description(): string {
-    return `${this.name}`
+    return this.name
   }
 
   public async getContent(): Promise<string> {

@@ -1,4 +1,4 @@
-import { isEqual, isNil, range, sumBy } from 'lodash'
+import { isNil, range, sumBy } from 'lodash'
 import type {
   Aa,
   Cds,
@@ -127,6 +127,8 @@ export enum AlgorithmInputType {
 }
 
 export interface AlgorithmInput {
+  uid: string
+  path: string
   type: AlgorithmInputType
   name: string
   description: string
@@ -135,5 +137,5 @@ export interface AlgorithmInput {
 }
 
 export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
-  return !isNil(left) && !isNil(right) && isEqual(left.attributes, right.attributes)
+  return !isNil(left?.path) && !isNil(right?.path) && left?.path === right?.path
 }

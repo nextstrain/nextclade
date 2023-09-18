@@ -6,6 +6,8 @@ import ReactToggle, { ToggleProps as ReactToggleProps } from 'react-toggle'
 import 'react-toggle/style.css'
 
 export const ToggleBase = styled(ReactToggle)<ReactToggleProps>`
+  display: block;
+
   &.react-toggle-custom {
     & > .react-toggle-track {
       background-color: #9c3434;

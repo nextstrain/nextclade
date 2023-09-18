@@ -1,3 +1,4 @@
+use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
@@ -13,11 +14,6 @@ use nextclade::utils::error::report_to_string;
 use std::io::Read;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
-
-/// Converts Result's Err variant from eyre::Report to wasm_bindgen::JsError
-fn jserr<T>(result: Result<T, Report>) -> Result<T, JsError> {
-  result.map_err(|report| JsError::new(&report_to_string(&report)))
-}
 
 /// Nextclade WebAssembly module.
 ///
@@ -210,10 +206,4 @@ impl NextcladeWasm {
       &csv_colum_config,
     ))
   }
-}
-
-#[wasm_bindgen(start)]
-pub fn main() {
-  wasm_logger::init(wasm_logger::Config::default());
-  console_error_panic_hook::set_once();
 }

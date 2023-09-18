@@ -9,11 +9,18 @@ import {
   fetchDatasetsIndex,
   filterDatasets,
   findDataset,
+  getCompatibleMinimizerIndexVersion,
   getLatestCompatibleEnabledDatasets,
 } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { datasetCurrentAtom, datasetsAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
+import {
+  datasetCurrentAtom,
+  datasetsAtom,
+  datasetServerUrlAtom,
+  datasetUpdatedAtom,
+  minimizerIndexVersionAtom,
+} from 'src/state/dataset.state'
 import { useQuery } from 'react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
@@ -85,7 +92,8 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
   // `.env` file), or using `&dataset-server=gh` or `&dataset-server=github` URL parameters, then check if the
   // corresponding branch in the default data repo on GitHub contains an `index.json` file. And and if yes, use it.
   const datasetServerTryGithubBranch =
-    process.env.DATA_TRY_GITHUB_BRANCH === '1' || (datasetServerUrl && ['gh', 'github'].includes(datasetServerUrl))
+    (isNil(datasetServerUrl) && process.env.DATA_TRY_GITHUB_BRANCH === '1') ||
+    (datasetServerUrl && ['gh', 'github'].includes(datasetServerUrl))
   if (datasetServerTryGithubBranch) {
     const githubDatasetServerUrl = await getGithubDatasetServerUrl()
     if (githubDatasetServerUrl) {
@@ -100,27 +108,30 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
   return toAbsoluteUrl(datasetServerUrl)
 }
 
-export async function initializeDatasets(urlQuery: ParsedUrlQuery) {
-  const datasetServerUrl = await getDatasetServerUrl(urlQuery)
-
+export async function initializeDatasets(datasetServerUrl: string, urlQuery: ParsedUrlQuery = {}) {
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
   const { datasets } = getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
 
+  const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
+
   // Check if URL params specify dataset params and try to find the corresponding dataset
   const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
 
-  return { datasets, currentDataset }
+  return { datasets, currentDataset, minimizerIndexVersion }
 }
 
 /** Refetch dataset index periodically and update the local copy of if */
 export function useUpdatedDatasetIndex() {
+  const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
+  const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
   useQuery(
     'refetchDatasetIndex',
     async () => {
-      const { currentDataset: _, ...datasetsState } = await initializeDatasets({})
-      setDatasetsState(datasetsState)
+      const { currentDataset: _, minimizerIndexVersion, ...datasets } = await initializeDatasets(datasetServerUrl)
+      setDatasetsState(datasets)
+      setMinimizerIndexVersion(minimizerIndexVersion)
     },
     {
       suspense: false,

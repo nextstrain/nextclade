@@ -41,3 +41,7 @@ export function findSimilarStrings(haystack: string[], needle: string): string[]
   scores = sortBy(scores, ({ score }) => -score)
   return scores.map(({ candidate }) => candidate)
 }
+
+export function firstLetter(s: string): string | undefined {
+  return s.split('').find((c) => c.toLowerCase().match(/[a-z]/))
+}
