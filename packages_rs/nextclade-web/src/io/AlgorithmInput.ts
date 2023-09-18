@@ -103,7 +103,7 @@ export class AlgorithmInputDefault implements AlgorithmInput {
 
   constructor(dataset: Dataset) {
     this.dataset = dataset
-    this.path = `${this.dataset.path}/${this.dataset.files.examples ?? 'unknown.fasta'}`
+    this.path = `Examples for '${this.dataset.path}'`
   }
 
   public get name(): string {
