@@ -27,12 +27,12 @@ export function MainInputForm() {
 
   return (
     <Container>
-      <Row noGutters className="flex-column-reverse flex-lg-row">
-        <Col lg={6} className="">
-          <DatasetSelector />
-        </Col>
+      <Row noGutters className="flex-column flex-lg-row">
         <Col lg={6} className="">
           <QuerySequenceFilePicker />
+        </Col>
+        <Col lg={6} className="">
+          <DatasetSelector />
         </Col>
       </Row>
     </Container>
