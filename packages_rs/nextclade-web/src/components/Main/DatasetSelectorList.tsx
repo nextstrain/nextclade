@@ -1,7 +1,7 @@
 import { get, isNil, sortBy } from 'lodash'
 import { lighten } from 'polished'
 import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { ListGroup, ListGroupItem } from 'reactstrap'
+import { ListGroup } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { ListGenericCss } from 'src/components/Common/List'
 import styled from 'styled-components'
@@ -65,24 +65,15 @@ export function DatasetSelectorList({
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = searchResult
 
-  const itemsRef = useRef<Map<string, HTMLLIElement> | null>(null)
+  const itemsRef = useRef<Map<string, HTMLLIElement>>(new Map())
 
   function scrollToId(itemId: string) {
-    const map = getMap()
-    const node = map.get(itemId)
+    const node = itemsRef.current.get(itemId)
     node?.scrollIntoView({
       behavior: 'smooth',
       block: 'nearest',
       inline: 'center',
     })
-  }
-
-  function getMap() {
-    if (!itemsRef.current) {
-      // Initialize the Map on first usage.
-      itemsRef.current = new Map()
-    }
-    return itemsRef.current
   }
 
   if (datasetHighlighted) {
@@ -96,14 +87,7 @@ export function DatasetSelectorList({
           datasets.map((dataset) => (
             <DatasetSelectorListItem
               key={dataset.path}
-              ref={(node) => {
-                const map = getMap()
-                if (node) {
-                  map.set(dataset.path, node)
-                } else {
-                  map.delete(dataset.path)
-                }
-              }}
+              ref={nodeRefSetOrDelete(itemsRef.current, dataset.path)}
               dataset={dataset}
               onClick={onItemClick(dataset)}
               isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
@@ -115,14 +99,7 @@ export function DatasetSelectorList({
           datasets.map((dataset) => (
             <DatasetSelectorListItem
               key={dataset.path}
-              ref={(node) => {
-                const map = getMap()
-                if (node) {
-                  map.set(dataset.path, node)
-                } else {
-                  map.delete(dataset.path)
-                }
-              }}
+              ref={nodeRefSetOrDelete(itemsRef.current, dataset.path)}
               dataset={dataset}
               onClick={onItemClick(dataset)}
               isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
@@ -135,6 +112,16 @@ export function DatasetSelectorList({
   }, [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, onItemClick])
 
   return <Ul>{listItems}</Ul>
+}
+
+function nodeRefSetOrDelete<T extends HTMLElement>(map: Map<string, T>, key: string) {
+  return function nodeRefSetOrDeleteImpl(node: T) {
+    if (node) {
+      map.set(key, node)
+    } else {
+      map.delete(key)
+    }
+  }
 }
 
 export const Ul = styled(ListGroup)`
