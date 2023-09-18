@@ -334,11 +334,18 @@ pub fn knit_into_graph(
       muts_new_node,
     }
   };
-  // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
+  // if the node is a leaf or if there are non-shared mutations, need to split the branch above and insert aux node
   if target_node.is_leaf() || !muts_target_node.nuc_muts.is_empty() {
     // determine divergence of new internal node by subtracting shared reversions from target_node
-    let divergence_middle_node =
-      target_node_div - calculate_branch_length(&muts_target_node.nuc_muts, divergence_units, ref_seq_len);
+    let divergence_middle_node = if target_node.is_root() {
+      target_node_div - calculate_branch_length(&muts_target_node.nuc_muts, divergence_units, ref_seq_len)
+    } else {
+      let parent_node = graph.parent_of(target_node).unwrap();
+      let parent_node_auspice = parent_node.payload();
+      let parent_node_div = &parent_node_auspice.node_attrs.div.unwrap_or(0.0);
+      target_node_div
+        .min(parent_node_div + calculate_branch_length(&muts_common_branch.nuc_muts, divergence_units, ref_seq_len))
+    };
 
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
