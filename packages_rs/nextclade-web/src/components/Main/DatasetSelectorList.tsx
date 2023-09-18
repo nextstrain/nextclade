@@ -1,17 +1,23 @@
 import { get, isNil, sortBy } from 'lodash'
 import { lighten } from 'polished'
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
-import { ListGroup } from 'reactstrap'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { Button, ListGroup } from 'reactstrap'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import { ListGenericCss } from 'src/components/Common/List'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { search } from 'src/helpers/search'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import {
   autodetectResultsAtom,
   AutodetectRunState,
   autodetectRunStateAtom,
   groupByDatasets,
 } from 'src/state/autodetect.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { hasInputErrorsAtom } from 'src/state/error.state'
+import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { canRunAtom } from 'src/state/results.state'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
 import styled from 'styled-components'
@@ -30,7 +36,12 @@ export function DatasetSelectorList({
   datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
+  const onItemClick = useCallback(
+    (_dataset: Dataset) => () => {
+      /* onDatasetHighlighted(dataset) */
+    },
+    [],
+  )
 
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
   const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
@@ -147,6 +158,8 @@ export const Ul = styled(ListGroup)`
 `
 
 export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
+  position: relative;
+
   cursor: pointer;
   opacity: ${(props) => props.$isDimmed && 0.4};
   background-color: transparent;
@@ -173,10 +186,54 @@ interface DatasetSelectorListItemProps {
 
 const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
   function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
+    const { t } = useTranslationSafe()
+
+    const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
+
+    const canRun = useRecoilValue(canRunAtom)
+    const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
+    const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
+
+    const runAnalysis = useRunAnalysis()
+    const run = useCallback(() => {
+      setDatasetCurrent(dataset)
+      runAnalysis()
+    }, [dataset, runAnalysis, setDatasetCurrent])
+
+    const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
+      const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasInputErrors
+      return {
+        isRunButtonDisabled,
+        runButtonColor: isRunButtonDisabled ? 'secondary' : 'success',
+        runButtonTooltip: isRunButtonDisabled
+          ? t('Please provide sequence data for the algorithm')
+          : t('Launch the algorithm!'),
+      }
+    }, [canRun, hasInputErrors, hasRequiredInputs, t])
+
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
         <DatasetInfo dataset={dataset} />
+        <ButtonRunStyled disabled={isRunButtonDisabled} color={runButtonColor} onClick={run} title={runButtonTooltip}>
+          {t('Run')}
+        </ButtonRunStyled>
       </Li>
     )
   },
 )
+
+const ButtonRunStyled = styled(Button)`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  min-width: 120px;
+  min-height: 30px;
+`
+
+export const FlexRight = styled.div`
+  position: absolute;
+`
+
+export const FlexLeft = styled.div`
+  margin-right: auto;
+`
