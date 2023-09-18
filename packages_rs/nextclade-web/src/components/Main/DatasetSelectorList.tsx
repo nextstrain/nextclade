@@ -8,6 +8,8 @@ import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { search } from 'src/helpers/search'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { useRecoilToggle } from 'src/hooks/useToggle'
+import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import {
   autodetectResultsAtom,
   AutodetectRunState,
@@ -16,8 +18,9 @@ import {
 } from 'src/state/autodetect.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
-import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { hasRequiredInputsAtom, useQuerySeqInputs } from 'src/state/inputs.state'
 import { canRunAtom } from 'src/state/results.state'
+import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsAtom } from 'src/state/settings.state'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
 import styled from 'styled-components'
@@ -189,7 +192,8 @@ const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListIte
     const { t } = useTranslationSafe()
 
     const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
-
+    const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
+    const { addQryInputs } = useQuerySeqInputs()
     const canRun = useRecoilValue(canRunAtom)
     const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
     const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
@@ -211,9 +215,21 @@ const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListIte
       }
     }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
+    const setExampleSequences = useCallback(() => {
+      addQryInputs([new AlgorithmInputDefault(dataset)])
+      if (shouldRunAutomatically) {
+        runAnalysis()
+      }
+    }, [addQryInputs, dataset, runAnalysis, shouldRunAutomatically])
+
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
         <DatasetInfo dataset={dataset} />
+
+        <ButtonLoadExample color="link" onClick={setExampleSequences}>
+          {t('Load example')}
+        </ButtonLoadExample>
+
         <ButtonRunStyled disabled={isRunButtonDisabled} color={runButtonColor} onClick={run} title={runButtonTooltip}>
           {t('Run')}
         </ButtonRunStyled>
@@ -226,6 +242,14 @@ const ButtonRunStyled = styled(Button)`
   position: absolute;
   bottom: 10px;
   right: 10px;
+  min-width: 120px;
+  min-height: 30px;
+`
+
+const ButtonLoadExample = styled(Button)`
+  position: absolute;
+  bottom: 45px;
+  right: 2px;
   min-width: 120px;
   min-height: 30px;
 `
