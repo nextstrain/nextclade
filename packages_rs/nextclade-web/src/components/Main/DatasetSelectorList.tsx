@@ -1,6 +1,6 @@
 import { get, isNil, sortBy } from 'lodash'
 import { lighten } from 'polished'
-import React, { useCallback, useMemo } from 'react'
+import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
 import { ListGroup, ListGroupItem } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { ListGenericCss } from 'src/components/Common/List'
@@ -65,6 +65,30 @@ export function DatasetSelectorList({
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = searchResult
 
+  const itemsRef = useRef<Map<string, HTMLLIElement> | null>(null)
+
+  function scrollToId(itemId: string) {
+    const map = getMap()
+    const node = map.get(itemId)
+    node?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    })
+  }
+
+  function getMap() {
+    if (!itemsRef.current) {
+      // Initialize the Map on first usage.
+      itemsRef.current = new Map()
+    }
+    return itemsRef.current
+  }
+
+  if (datasetHighlighted) {
+    scrollToId(datasetHighlighted.path)
+  }
+
   const listItems = useMemo(() => {
     return (
       <>
@@ -72,6 +96,14 @@ export function DatasetSelectorList({
           datasets.map((dataset) => (
             <DatasetSelectorListItem
               key={dataset.path}
+              ref={(node) => {
+                const map = getMap()
+                if (node) {
+                  map.set(dataset.path, node)
+                } else {
+                  map.delete(dataset.path)
+                }
+              }}
               dataset={dataset}
               onClick={onItemClick(dataset)}
               isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
@@ -83,6 +115,14 @@ export function DatasetSelectorList({
           datasets.map((dataset) => (
             <DatasetSelectorListItem
               key={dataset.path}
+              ref={(node) => {
+                const map = getMap()
+                if (node) {
+                  map.set(dataset.path, node)
+                } else {
+                  map.delete(dataset.path)
+                }
+              }}
               dataset={dataset}
               onClick={onItemClick(dataset)}
               isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
@@ -105,7 +145,7 @@ export const Ul = styled(ListGroup)`
   border-radius: 0 !important;
 `
 
-export const Li = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
+export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
   cursor: pointer;
   opacity: ${(props) => props.$isDimmed && 0.4};
   background-color: transparent;
@@ -114,11 +154,13 @@ export const Li = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
   padding: 0 !important;
   border-radius: 5px !important;
 
-  &.active {
-    background-color: ${(props) => lighten(0.033)(props.theme.primary)};
+  ${(props) =>
+    props.$active &&
+    `
+    background-color: ${lighten(0.033)(props.theme.primary)};
     box-shadow: -3px 3px 12px 3px #0005;
-    opacity: ${(props) => props.$isDimmed && 0.66};
-  }
+    opacity: ${props.$isDimmed && 0.66};
+   `};
 `
 
 interface DatasetSelectorListItemProps {
@@ -128,10 +170,12 @@ interface DatasetSelectorListItemProps {
   onClick?: () => void
 }
 
-function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick }: DatasetSelectorListItemProps) {
-  return (
-    <Li $isDimmed={isDimmed} aria-current={isCurrent} active={isCurrent} onClick={onClick}>
-      <DatasetInfo dataset={dataset} />
-    </Li>
-  )
-}
+const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
+  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
+    return (
+      <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
+        <DatasetInfo dataset={dataset} />
+      </Li>
+    )
+  },
+)
