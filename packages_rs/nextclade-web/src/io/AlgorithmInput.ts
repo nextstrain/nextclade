@@ -26,7 +26,7 @@ export class AlgorithmInputFile implements AlgorithmInput {
 
     // eslint-disable-next-line unicorn/prefer-ternary
     if (this.file.webkitRelativePath.trim().length > 0) {
-      this.path = this.file.webkitRelativePath ?? `${this.uid}-${this.file}`
+      this.path = this.file.webkitRelativePath
     } else {
       this.path = `${this.uid}-${this.file.name}`
     }
