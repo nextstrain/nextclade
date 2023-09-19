@@ -16,7 +16,7 @@ Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format)
 
 Viral nucleotide sequence which serves as a reference for alignment and the analysis. Mutations are called relative to the reference sequence. It is expected to be the root of the [reference tree](#reference-tree). The best results are obtained when the reference sequence is a well-known consensus genome, of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text. The file is expected to contain only 1 sequence.
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) file containing exactly 1 sequence.
 
 Nextclade Web (advanced mode): accepted in "Root sequence" drag & drop box. A remote URL is also accepted in `input-root-sequence` URL parameter.
 
