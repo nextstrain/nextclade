@@ -52,7 +52,7 @@ pub fn calculate_branch_length(
 
   let mut this_div = n_muts as f64;
   if n_muts == 0 && n_masked_muts + n_other_muts > 0 {
-    this_div += 0.5;
+    this_div += 0.06;
   }
 
   // If divergence is measured per site, divide by the length of reference sequence.
