@@ -10,7 +10,7 @@ Nextclade Web (simple and advanced modes): accepted in "Sequences" drag & drop b
 
 Nextclade CLI and Nextalign CLI accept fasta inputs as one or multiple positional arguments. Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file extension. If there's multiple input files, then different files can have different compression formats. If positional arguments provided, the plain fasta input is read from standard input (stdin).
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text (one sequence per line).
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format)
 
 ## Reference (root) sequence
 
