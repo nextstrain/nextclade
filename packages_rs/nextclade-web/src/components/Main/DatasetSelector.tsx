@@ -1,18 +1,23 @@
 import React, { HTMLProps, useState } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilValue } from 'recoil'
+import { Container as ContainerBase } from 'reactstrap'
 import styled from 'styled-components'
 import { ThreeDots } from 'react-loader-spinner'
-import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
+import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
+import { datasetsAtom } from 'src/state/dataset.state'
 import { SearchBox } from 'src/components/Common/SearchBox'
 import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
 
-export function DatasetSelector() {
+export interface DatasetSelectorProps {
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
+}
+
+export function DatasetSelector({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
   const { t } = useTranslationSafe()
   const [searchTerm, setSearchTerm] = useState('')
   const { datasets } = useRecoilValue(datasetsAtom)
-  const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetCurrentAtom)
 
   const isBusy = datasets.length === 0
 
@@ -28,9 +33,9 @@ export function DatasetSelector() {
         {!isBusy && (
           <DatasetSelectorList
             datasets={datasets}
-            datasetHighlighted={datasetCurrent}
+            datasetHighlighted={datasetHighlighted}
             searchTerm={searchTerm}
-            onDatasetHighlighted={setDatasetCurrent}
+            onDatasetHighlighted={onDatasetHighlighted}
           />
         )}
 
@@ -42,19 +47,14 @@ export function DatasetSelector() {
           </SpinnerWrapper>
         )}
       </Main>
-
-      <Footer>
-        <SuggestionPanel />
-      </Footer>
     </Container>
   )
 }
 
-const Container = styled.div`
+const Container = styled(ContainerBase)`
   display: flex;
   flex: 1;
   flex-direction: column;
-  height: 100%;
   overflow: hidden;
   margin-right: 10px;
 `
@@ -74,10 +74,10 @@ const Main = styled.div`
   overflow: hidden;
 `
 
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
-`
+// const Footer = styled.div`
+//   display: flex;
+//   flex: 0;
+// `
 
 const Title = styled.h4`
   flex: 1;

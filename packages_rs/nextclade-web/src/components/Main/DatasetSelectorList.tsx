@@ -12,16 +12,31 @@ import {
   autodetectRunStateAtom,
   groupByDatasets,
 } from 'src/state/autodetect.state'
+import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
 import styled from 'styled-components'
+
+// HACK: dataset entry for 'autodetect' option. This is not a real dataset.
+const DATASET_AUTODETECT: Dataset = {
+  path: 'autodetect',
+  enabled: true,
+  official: true,
+  attributes: {
+    name: { value: 'autodetect', valueFriendly: 'Autodetect' },
+    reference: { value: 'autodetect', valueFriendly: 'Autodetect' },
+  },
+  files: {
+    reference: '',
+    pathogenJson: '',
+  },
+}
 
 export interface DatasetSelectorListProps {
   datasets: Dataset[]
   searchTerm: string
   datasetHighlighted?: Dataset
-
-  onDatasetHighlighted(dataset?: Dataset): void
+  onDatasetHighlighted?(dataset?: Dataset): void
 }
 
 export function DatasetSelectorList({
@@ -30,8 +45,8 @@ export function DatasetSelectorList({
   datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
-
+  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
+  const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
   const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
 
@@ -89,14 +104,30 @@ export function DatasetSelectorList({
   useEffect(() => {
     const topSuggestion = autodetectResult.itemsInclude[0]
     if (autodetectRunState === AutodetectRunState.Done) {
-      onDatasetHighlighted(topSuggestion)
+      onDatasetHighlighted?.(topSuggestion)
       setAutodetectRunState(AutodetectRunState.Idle)
     }
   }, [autodetectRunState, autodetectResult.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
+  const autodetectItem = useMemo(() => {
+    if (isNil(minimizerIndexVersion)) {
+      return null
+    }
+
+    return (
+      <DatasetSelectorListItem
+        dataset={DATASET_AUTODETECT}
+        onClick={onItemClick(DATASET_AUTODETECT)}
+        isCurrent={areDatasetsEqual(DATASET_AUTODETECT, datasetHighlighted)}
+      />
+    )
+  }, [datasetHighlighted, minimizerIndexVersion, onItemClick])
+
   const listItems = useMemo(() => {
     return (
       <>
+        {autodetectItem}
+
         {[itemsStartWith, itemsInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
@@ -123,7 +154,7 @@ export function DatasetSelectorList({
         )}
       </>
     )
-  }, [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, onItemClick])
+  }, [autodetectItem, datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, onItemClick])
 
   return <Ul>{listItems}</Ul>
 }

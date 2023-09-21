@@ -19,7 +19,9 @@ const HeaderWrapper = styled.header`
 `
 
 const MainWrapper = styled.main`
-  flex: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   overflow: hidden;
   height: 100%;
   width: 100%;
