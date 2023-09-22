@@ -1,7 +1,6 @@
 import { Dataset } from '_SchemaRoot'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { FlexRight } from 'src/components/FilePicker/FilePickerStyles'
 import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
@@ -20,6 +19,7 @@ import { Button, Col as ColBase, Row as RowBase, Form as FormBase } from 'reacts
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { FaChevronLeft as IconLeft, FaChevronRight as IconRight } from 'react-icons/fa6'
+import { FlexRight } from './DatasetInfo'
 
 const Container = styled.div`
   display: flex;
@@ -219,17 +219,18 @@ function WizardAuto({ datasetHighlighted, onDatasetHighlighted, apply }: WizardA
     }
   }, [hasAutodetectResults, hasErrors, t])
 
+  // className="flex-column-reverse flex-lg-row"
   return (
     <Container>
       <Main>
-        <Row noGutters className="flex-column-reverse flex-lg-row">
-          <Col lg={6} className="">
+        <FlexRow noGutters>
+          <FlexCol lg={6}>
             <DatasetSelector datasetHighlighted={datasetHighlighted} onDatasetHighlighted={onDatasetHighlighted} />
-          </Col>
-          <Col lg={6} className="">
+          </FlexCol>
+          <FlexCol lg={6}>
             <QuerySequenceFilePicker />
-          </Col>
-        </Row>
+          </FlexCol>
+        </FlexRow>
       </Main>
       <Footer>
         <WizardNavigationForm>
@@ -255,31 +256,14 @@ function WizardAuto({ datasetHighlighted, onDatasetHighlighted, apply }: WizardA
   )
 }
 
-// function WizardAutoFooter() {
-//   const { t } = useTranslationSafe()
-//   const { previousStep, nextStep, isLastStep } = useWizard()
-//
-//   return (
-//
-//   )
-// }
-//
-// function WizardAutoStep1() {
-//   const [datasetHighlighted, setDatasetHighlighted] = useState<Dataset | undefined>()
-//   const setDataset = useSetRecoilState(datasetCurrentAtom)
-//
-//   const apply = useCallback(() => {
-//     setDataset(datasetHighlighted)
-//   }, [datasetHighlighted, setDataset])
-//
-//   return (
-//
-//   )
-// }
+export const FlexRow = styled(RowBase)`
+  height: 100%;
+`
 
-// function WizardAutoStep2() {
-//   return <AutodetectPage />
-// }
+export const FlexCol = styled(ColBase)`
+  display: flex;
+  height: 100%;
+`
 
 export interface WizardNavigationBarProps {
   prevDisabled?: boolean
