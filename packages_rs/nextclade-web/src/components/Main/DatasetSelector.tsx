@@ -1,13 +1,29 @@
-import React, { HTMLProps, useState } from 'react'
+import { get, isNil, sortBy } from 'lodash'
+import React, { useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
+import { DatasetSelectorListImpl } from 'src/components/Main/DatasetSelectorListImpl'
+import { autodetectResultsAtom, groupByDatasets } from 'src/state/autodetect.state'
 import styled from 'styled-components'
-import { ThreeDots } from 'react-loader-spinner'
 import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { datasetsAtom } from 'src/state/dataset.state'
 import { SearchBox } from 'src/components/Common/SearchBox'
-import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
+
+// HACK: dataset entry for 'autodetect' option. This is not a real dataset.
+const DATASET_AUTODETECT: Dataset = {
+  path: 'autodetect',
+  enabled: true,
+  official: true,
+  attributes: {
+    name: { value: 'autodetect', valueFriendly: 'Autodetect' },
+    reference: { value: 'autodetect', valueFriendly: 'Autodetect' },
+  },
+  files: {
+    reference: '',
+    pathogenJson: '',
+  },
+}
 
 export interface DatasetSelectorProps {
   datasetHighlighted?: Dataset
@@ -15,12 +31,63 @@ export interface DatasetSelectorProps {
 }
 
 export function DatasetSelector({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
-  const { t } = useTranslationSafe()
-  const [searchTerm, setSearchTerm] = useState('')
   const { datasets } = useRecoilValue(datasetsAtom)
 
-  const isBusy = datasets.length === 0
+  const autodetectResults = useRecoilValue(autodetectResultsAtom)
 
+  const autodetectResult = useMemo(() => {
+    if (isNil(autodetectResults) || autodetectResults.length === 0) {
+      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
+    }
+
+    const recordsByDataset = groupByDatasets(autodetectResults)
+
+    let itemsInclude = datasets.filter((candidate) =>
+      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
+    )
+
+    itemsInclude = sortBy(itemsInclude, (dataset) => -get(recordsByDataset, dataset.path, []).length)
+
+    const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
+
+    return { itemsStartWith: [], itemsInclude, itemsNotInclude }
+  }, [autodetectResults, datasets])
+
+  const { itemsStartWith, itemsInclude, itemsNotInclude } = autodetectResult
+
+  const datasetsActive = useMemo(() => {
+    return [DATASET_AUTODETECT, ...itemsStartWith, ...itemsInclude]
+  }, [itemsInclude, itemsStartWith])
+
+  const datasetsInactive = useMemo(() => {
+    return [...itemsNotInclude]
+  }, [itemsNotInclude])
+
+  return (
+    <DatasetSelectorImpl
+      datasetsActive={datasetsActive}
+      datasetsInactive={datasetsInactive}
+      datasetHighlighted={datasetHighlighted}
+      onDatasetHighlighted={onDatasetHighlighted}
+    />
+  )
+}
+
+export interface DatasetSelectorImplProps {
+  datasetsActive: Dataset[]
+  datasetsInactive: Dataset[]
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
+}
+
+export function DatasetSelectorImpl({
+  datasetsActive,
+  datasetsInactive,
+  datasetHighlighted,
+  onDatasetHighlighted,
+}: DatasetSelectorImplProps) {
+  const { t } = useTranslationSafe()
+  const [searchTerm, setSearchTerm] = useState('')
   return (
     <Container>
       <Header>
@@ -30,22 +97,13 @@ export function DatasetSelector({ datasetHighlighted, onDatasetHighlighted }: Da
       </Header>
 
       <Main>
-        {!isBusy && (
-          <DatasetSelectorList
-            datasets={datasets}
-            datasetHighlighted={datasetHighlighted}
-            searchTerm={searchTerm}
-            onDatasetHighlighted={onDatasetHighlighted}
-          />
-        )}
-
-        {isBusy && (
-          <SpinnerWrapper>
-            <SpinnerWrapperInternal>
-              <Spinner color="#aaa" width={20} height={20} />
-            </SpinnerWrapperInternal>
-          </SpinnerWrapper>
-        )}
+        <DatasetSelectorListImpl
+          datasetsActive={datasetsActive}
+          datasetsInactive={datasetsInactive}
+          datasetHighlighted={datasetHighlighted}
+          onDatasetHighlighted={onDatasetHighlighted}
+          searchTerm={searchTerm}
+        />
       </Main>
     </Container>
   )
@@ -82,20 +140,4 @@ const Main = styled.div`
 const Title = styled.h4`
   flex: 1;
   margin: auto 0;
-`
-
-const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
-  width: 100%;
-  height: 100%;
-  display: flex;
-`
-
-const SpinnerWrapperInternal = styled.div`
-  margin: auto;
-`
-
-const Spinner = styled(ThreeDots)`
-  flex: 1;
-  margin: auto;
-  height: 100%;
 `
