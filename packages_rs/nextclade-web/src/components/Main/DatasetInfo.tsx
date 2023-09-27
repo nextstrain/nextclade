@@ -7,11 +7,7 @@ import { colorHash } from 'src/helpers/colorHash'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { firstLetter } from 'src/helpers/string'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import {
-  autodetectResultsByDatasetAtom,
-  DATASET_ID_UNDETECTED,
-  numberAutodetectResultsAtom,
-} from 'src/state/autodetect.state'
+import { autodetectResultsByDatasetAtom, numberAutodetectResultsAtom } from 'src/state/autodetect.state'
 import type { Dataset } from 'src/types'
 import styled from 'styled-components'
 
@@ -73,9 +69,10 @@ const DatasetInfoBadge = styled(Badge)`
 
 export interface DatasetInfoProps {
   dataset: Dataset
+  showSuggestions?: boolean
 }
 
-export function DatasetInfo({ dataset }: DatasetInfoProps) {
+export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
   const { attributes, official, deprecated, enabled, experimental, path, version } = dataset
   const { name, reference } = attributes
@@ -88,18 +85,18 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
     return updatedAt
   }, [version?.tag, version?.updatedAt])
 
-  if (!enabled) {
-    return null
+  if (path === 'autodetect') {
+    return <DatasetAutodetectInfo dataset={dataset} />
   }
 
-  if (path === DATASET_ID_UNDETECTED) {
-    return <DatasetUndetectedInfo />
+  if (!enabled) {
+    return null
   }
 
   return (
     <Container>
       <FlexLeft>
-        <DatasetInfoAutodetectProgressCircle dataset={dataset} />
+        <DatasetInfoAutodetectProgressCircle dataset={dataset} showSuggestions={showSuggestions} />
       </FlexLeft>
 
       <FlexRight>
@@ -160,26 +157,52 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
   )
 }
 
+export function DatasetAutodetectInfo({ dataset }: { dataset: Dataset }) {
+  const { t } = useTranslationSafe()
+
+  return (
+    <ContainerFixed>
+      <FlexLeft>
+        <DatasetInfoAutodetectProgressCircle dataset={dataset} />
+      </FlexLeft>
+
+      <FlexRight>
+        <DatasetName>
+          <span>{t('Autodetect')}</span>
+        </DatasetName>
+        <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
+        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+      </FlexRight>
+    </ContainerFixed>
+  )
+}
+
 export function DatasetUndetectedInfo() {
   const { t } = useTranslationSafe()
 
   return (
-    <Container>
+    <ContainerFixed>
       <DatasetName>
-        <span>{t('Autodetect')}</span>
+        <span>{t('Not detected')}</span>
       </DatasetName>
-      <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
-      <DatasetInfoLine />
-      <DatasetInfoLine />
-    </Container>
+      <DatasetInfoLine>{t('Unable to deduce dataset')}</DatasetInfoLine>
+      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+    </ContainerFixed>
   )
 }
 
+const ContainerFixed = styled(Container)`
+  height: 127px;
+`
+
 export interface DatasetInfoCircleProps {
   dataset: Dataset
+  showSuggestions?: boolean
 }
 
-function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps) {
+function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: DatasetInfoCircleProps) {
   const { attributes, path } = dataset
   const { name } = attributes
 
@@ -188,7 +211,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
   const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
 
   const { circleText, countText, percentage } = useMemo(() => {
-    if (isNil(records)) {
+    if (!showSuggestions || isNil(records)) {
       return {
         circleText: (firstLetter(name.valueFriendly ?? name.value) ?? ' ').toUpperCase(),
         percentage: 0,
@@ -203,7 +226,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [records, name.value, name.valueFriendly, numberAutodetectResults])
+  }, [showSuggestions, records, numberAutodetectResults, name.valueFriendly, name.value])
 
   return (
     <>

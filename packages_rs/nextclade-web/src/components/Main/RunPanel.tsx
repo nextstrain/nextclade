@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
-import { Button, Form as FormBase, FormGroup } from 'reactstrap'
+import { Button, Form as FormBase, FormGroup as FormGroupBase, FormGroupProps } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
@@ -15,6 +15,27 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { hasRequiredInputsAtom, useQuerySeqInputs } from 'src/state/inputs.state'
 
+export function ToggleRunAutomatically({ ...restProps }: FormGroupProps) {
+  const { t } = useTranslationSafe()
+  const { state: shouldRunAutomatically, toggle: toggleRunAutomatically } = useRecoilToggle(shouldRunAutomaticallyAtom)
+  return (
+    <FormGroup inline {...restProps}>
+      <Toggle
+        identifier="toggle-run-automatically"
+        checked={shouldRunAutomatically}
+        onCheckedChanged={toggleRunAutomatically}
+      >
+        <span title={t('Run Nextclade automatically after sequence data is provided')}>{t('Run automatically')}</span>
+      </Toggle>
+    </FormGroup>
+  )
+}
+
+const FormGroup = styled(FormGroupBase)`
+  display: flex;
+  margin: auto 0;
+`
+
 export function RunPanel() {
   const { t } = useTranslationSafe()
 
@@ -22,7 +43,7 @@ export function RunPanel() {
   const { addQryInputs } = useQuerySeqInputs()
 
   const canRun = useRecoilValue(canRunAtom)
-  const { state: shouldRunAutomatically, toggle: toggleRunAutomatically } = useRecoilToggle(shouldRunAutomaticallyAtom)
+  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
 
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
@@ -58,17 +79,7 @@ export function RunPanel() {
     <Container>
       <Form>
         <FlexLeft>
-          <FormGroup>
-            <Toggle
-              identifier="toggle-run-automatically"
-              checked={shouldRunAutomatically}
-              onCheckedChanged={toggleRunAutomatically}
-            >
-              <span title={t('Run Nextclade automatically after sequence data is provided')}>
-                {t('Run automatically')}
-              </span>
-            </Toggle>
-          </FormGroup>
+          <ToggleRunAutomatically />
         </FlexLeft>
 
         <FlexRight>

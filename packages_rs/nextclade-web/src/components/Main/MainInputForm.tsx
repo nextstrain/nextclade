@@ -4,6 +4,7 @@ import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState 
 import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
+import { ToggleRunAutomatically } from 'src/components/Main/RunPanel'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRecoilToggle } from 'src/hooks/useToggle'
@@ -17,9 +18,8 @@ import { shouldRunAutomaticallyAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { Button, Col as ColBase, Row as RowBase, Form as FormBase } from 'reactstrap'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
-import { DatasetSelector } from 'src/components/Main/DatasetSelector'
+import { DatasetAutosuggestionResultsList, DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { FaChevronLeft as IconLeft, FaChevronRight as IconRight } from 'react-icons/fa6'
-import { FlexRight } from './DatasetInfo'
 
 const Container = styled.div`
   display: flex;
@@ -175,21 +175,26 @@ function WizardManual() {
             {t('Previous')}
           </WizardNavigationButton>
 
-          <FlexRight>
-            <Button color="link" onClick={setExampleSequences} disabled={hasInputErrors || !datasetCurrent}>
-              {t('Load example')}
-            </Button>
+          <ToggleRunAutomatically className="mx-2" />
 
-            <WizardNavigationButton
-              disabled={isRunButtonDisabled}
-              color={runButtonColor}
-              onClick={runAnalysis}
-              title={runButtonTooltip}
-            >
-              {t('Launch')}
-              <IconRight size={15} className="ml-1" />
-            </WizardNavigationButton>
-          </FlexRight>
+          <Button
+            color="link"
+            className="mx-2"
+            onClick={setExampleSequences}
+            disabled={hasInputErrors || !datasetCurrent}
+          >
+            {t('Load example')}
+          </Button>
+
+          <WizardNavigationButton
+            disabled={isRunButtonDisabled}
+            color={runButtonColor}
+            onClick={runAnalysis}
+            title={runButtonTooltip}
+          >
+            {t('Launch')}
+            <IconRight size={15} className="ml-1" />
+          </WizardNavigationButton>
         </WizardNavigationForm>
       </Footer>
     </Container>
@@ -209,7 +214,8 @@ function WizardAuto({ datasetHighlighted, onDatasetHighlighted, apply }: WizardA
   const hasErrors = !!useRecoilValue(globalErrorAtom)
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
-    const isRunButtonDisabled = !hasAutodetectResults || hasErrors
+    const hasDatasetHighlighted = !!datasetHighlighted
+    const isRunButtonDisabled = !hasAutodetectResults || !hasDatasetHighlighted || hasErrors
     return {
       isRunButtonDisabled,
       runButtonColor: isRunButtonDisabled ? 'secondary' : 'success',
@@ -217,15 +223,17 @@ function WizardAuto({ datasetHighlighted, onDatasetHighlighted, apply }: WizardA
         ? t('Please provide sequence data and select one of the datasets')
         : t('Go to the next step!'),
     }
-  }, [hasAutodetectResults, hasErrors, t])
+  }, [datasetHighlighted, hasAutodetectResults, hasErrors, t])
 
-  // className="flex-column-reverse flex-lg-row"
   return (
     <Container>
       <Main>
         <FlexRow noGutters>
           <FlexCol lg={6}>
-            <DatasetSelector datasetHighlighted={datasetHighlighted} onDatasetHighlighted={onDatasetHighlighted} />
+            <DatasetAutosuggestionResultsList
+              datasetHighlighted={datasetHighlighted}
+              onDatasetHighlighted={onDatasetHighlighted}
+            />
           </FlexCol>
           <FlexCol lg={6}>
             <QuerySequenceFilePicker />
@@ -239,17 +247,16 @@ function WizardAuto({ datasetHighlighted, onDatasetHighlighted, apply }: WizardA
             {t('Previous')}
           </WizardNavigationButton>
 
-          <FlexRight>
-            <WizardNavigationButton
-              disabled={isRunButtonDisabled}
-              color={runButtonColor}
-              onClick={apply}
-              title={runButtonTooltip}
-            >
-              {t('Next')}
-              <IconRight size={15} className="ml-1" />
-            </WizardNavigationButton>
-          </FlexRight>
+          <WizardNavigationButton
+            className="ml-auto"
+            disabled={isRunButtonDisabled}
+            color={runButtonColor}
+            onClick={apply}
+            title={runButtonTooltip}
+          >
+            {t('Next')}
+            <IconRight size={15} className="ml-1" />
+          </WizardNavigationButton>
         </WizardNavigationForm>
       </Footer>
     </Container>

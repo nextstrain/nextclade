@@ -3,7 +3,6 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import type { AlgorithmInput } from 'src/types'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
-import { RunPanel } from 'src/components/Main/RunPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
@@ -67,10 +66,6 @@ export function QuerySequenceFilePicker() {
       <Main>
         <QuerySequenceList />
       </Main>
-
-      <Footer>
-        <RunPanel />
-      </Footer>
     </Container>
   )
 }
@@ -98,7 +93,7 @@ const Main = styled.div`
   overflow: hidden;
 `
 
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
-`
+// const Footer = styled.div`
+//   display: flex;
+//   flex: 0;
+// `

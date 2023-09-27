@@ -10,18 +10,20 @@ import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
 export interface DatasetSelectorListImplProps {
   datasetsActive: Dataset[]
-  datasetsInactive: Dataset[]
+  datasetsInactive?: Dataset[]
   datasetHighlighted?: Dataset
   onDatasetHighlighted?(dataset?: Dataset): void
   searchTerm: string
+  showSuggestions?: boolean
 }
 
 export function DatasetSelectorListImpl({
   datasetsActive,
-  datasetsInactive,
+  datasetsInactive = [],
   datasetHighlighted,
   onDatasetHighlighted,
   searchTerm,
+  showSuggestions,
 }: DatasetSelectorListImplProps) {
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
 
@@ -52,6 +54,7 @@ export function DatasetSelectorListImpl({
             dataset={dataset}
             onClick={onItemClick(dataset)}
             isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            showSuggestions={showSuggestions}
           />
         ))}
 
@@ -62,12 +65,13 @@ export function DatasetSelectorListImpl({
             dataset={dataset}
             onClick={onItemClick(dataset)}
             isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            showSuggestions={showSuggestions}
             isDimmed
           />
         ))}
       </Ul>
     ),
-    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick],
+    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick, showSuggestions],
   )
 }
 
@@ -96,14 +100,6 @@ function useScrollListToDataset(datasetHighlighted?: Dataset) {
   if (datasetHighlighted) {
     scrollToId(datasetHighlighted.path)
   }
-
-  // useEffect(() => {
-  //   const topSuggestion = autodetectResult.itemsInclude[0]
-  //   if (autodetectRunState === AutodetectRunState.Done) {
-  //     onDatasetHighlighted?.(topSuggestion)
-  //     setAutodetectRunState(AutodetectRunState.Idle)
-  //   }
-  // }, [autodetectRunState, autodetectResult.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
   return itemsRef
 }
@@ -138,14 +134,15 @@ interface DatasetSelectorListItemProps {
   dataset: Dataset
   isCurrent?: boolean
   isDimmed?: boolean
+  showSuggestions?: boolean
   onClick?: () => void
 }
 
 const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
-  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
+  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick, showSuggestions }, ref) {
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
-        <DatasetInfo dataset={dataset} />
+        <DatasetInfo dataset={dataset} showSuggestions={showSuggestions} />
       </Li>
     )
   },
