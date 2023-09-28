@@ -1,12 +1,12 @@
-import { lighten } from 'polished'
 import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
+import { lighten } from 'polished'
 import { ListGroup } from 'reactstrap'
-import { search } from 'src/helpers/search'
 import styled from 'styled-components'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
+import { search } from 'src/helpers/search'
 import { ListGenericCss } from 'src/components/Common/List'
-import { DatasetInfo } from 'src/components/Main/DatasetInfo'
+import { DatasetListEntry } from 'src/components/Main/DatasetListEntry'
 
 export interface DatasetSelectorListImplProps {
   datasetsActive: Dataset[]
@@ -125,6 +125,7 @@ export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
     props.$active &&
     `
     background-color: ${lighten(0.033)(props.theme.primary)};
+    color: ${props.theme.gray100};
     box-shadow: -3px 3px 12px 3px #0005;
     opacity: ${props.$isDimmed && 0.66};
    `};
@@ -142,7 +143,7 @@ const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListIte
   function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick, showSuggestions }, ref) {
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
-        <DatasetInfo dataset={dataset} showSuggestions={showSuggestions} />
+        <DatasetListEntry dataset={dataset} showSuggestions={showSuggestions} />
       </Li>
     )
   },

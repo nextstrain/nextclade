@@ -1,14 +1,13 @@
 import classnames from 'classnames'
-import React, { PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react'
+import React, { PropsWithChildren, useCallback, useState } from 'react'
 import styled from 'styled-components'
 import {
   Nav as NavBase,
   NavItem as NavItemBase,
   NavLink as NavLinkBase,
-  TabPane,
+  TabPane as TabPaneBase,
   TabContent as TabContentBase,
   NavItemProps,
-  TabPaneProps,
 } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { MarkdownRemote } from 'src/components/Common/Markdown'
@@ -27,14 +26,13 @@ export function DatasetContentSection() {
           {'CHANGELOG.md'}
         </TabLabel>
       </Nav>
-
       <TabContent activeTab={activeTabId}>
-        <TabContentPane tabId={0} activeTabId={activeTabId}>
+        <TabPane tabId={0}>
           {currentDataset?.files.readme && <MarkdownRemote url={currentDataset?.files.readme} />}
-        </TabContentPane>
-        <TabContentPane tabId={1} activeTabId={activeTabId}>
+        </TabPane>
+        <TabPane tabId={1}>
           {currentDataset?.files.changelog && <MarkdownRemote url={currentDataset?.files.changelog} />}
-        </TabContentPane>
+        </TabPane>
       </TabContent>
     </ContentSection>
   )
@@ -58,39 +56,33 @@ export function TabLabel({ tabId, activeTabId, setActiveTabId, children, ...rest
   )
 }
 
-export interface TabContentPaneProps extends PropsWithChildren<TabPaneProps> {
-  tabId: number
-  activeTabId: number
-}
+const ContentSection = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+`
 
-export function TabContentPane({ tabId, activeTabId, children, ...rest }: TabContentPaneProps) {
-  const active = activeTabId === tabId
-  return (
-    <LazyRender visible={active}>
-      <TabPane tabId={0} {...rest}>
-        {children}
-      </TabPane>
-    </LazyRender>
-  )
-}
+const TabContent = styled(TabContentBase)`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+`
+
+const TabPane = styled(TabPaneBase)`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+  border: 1px #ccc9 solid;
+  border-radius: 5px;
+  padding: 1rem;
+`
 
 export interface LazyProps {
   visible: boolean
 }
-
-export function LazyRender({ visible, children }: PropsWithChildren<LazyProps>) {
-  const rendered = useRef(visible)
-  const style = useMemo(() => ({ display: visible ? 'block' : 'none' }), [visible])
-  if (visible && !rendered.current) {
-    rendered.current = true
-  }
-  if (!rendered.current) return null
-  return <div style={style}>{children}</div>
-}
-
-const ContentSection = styled.div`
-  max-width: 100%;
-`
 
 const Nav = styled(NavBase)`
   border-bottom: 0 !important;
@@ -134,9 +126,4 @@ const NavItem = styled(NavItemBase)`
 
 const NavLink = styled(NavLinkBase)`
   color: ${(props) => props.theme.bodyColor};
-`
-
-const TabContent = styled(TabContentBase)`
-  border: #ddd 1px solid;
-  margin-top: -1px;
 `

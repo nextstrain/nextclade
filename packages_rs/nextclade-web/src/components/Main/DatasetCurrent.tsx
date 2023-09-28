@@ -1,16 +1,13 @@
-import { isNil } from 'lodash'
-import React, { useCallback, useMemo, useState } from 'react'
-import { Button, Col, Collapse, Row, UncontrolledAlert } from 'reactstrap'
-import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import React, { useCallback } from 'react'
+import { Button, Col, Row } from 'reactstrap'
+import { useRecoilValue, useResetRecoilState } from 'recoil'
+import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
-import { datasetCurrentAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { ButtonCustomize } from 'src/components/Main/ButtonCustomize'
-import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { DatasetInfo } from './DatasetInfo'
-import AdvancedModeExplanationContent from './AdvancedModeExplanation.mdx'
+import { DatasetInfo } from 'src/components/Main/DatasetInfo'
+import { DatasetCurrentUpdateNotification } from 'src/components/Main/DatasetCurrentUpdateNotification'
 
 export const CurrentDatasetInfoContainer = styled.div`
   display: flex;
@@ -27,31 +24,45 @@ export const CurrentDatasetInfoHeader = styled.section`
 const DatasetInfoH4 = styled.h4`
   flex: 1;
   margin: auto 0;
+  margin-top: 12px;
 `
 
 export const CurrentDatasetInfoBody = styled.section`
   display: flex;
   flex-direction: column;
-  margin: 0;
   padding: 12px;
   border: 1px #ccc9 solid;
   border-radius: 5px;
-  height: 100%;
 `
 
-export const Left = styled.section`
-  flex: 1 1 auto;
+const Container = styled.div`
   display: flex;
-`
-
-export const Right = styled.section`
-  flex: 0 0 250px;
-  display: flex;
+  flex: 1;
   flex-direction: column;
-  height: 100%;
+  overflow: hidden;
 `
 
-export const ChangeButton = styled(Button)`
+const Header = styled.div`
+  flex: 0;
+`
+
+const Main = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+  width: 100%;
+
+  margin-top: 1rem;
+`
+
+export const FlexLeft = styled.div`
+  flex: 1;
+`
+
+export const FlexRight = styled.div``
+
+const ChangeButton = styled(Button)`
   flex: 0 0 auto;
   height: 2.1rem;
   min-width: 100px;
@@ -72,7 +83,6 @@ export function DatasetCurrent() {
   useUpdatedDataset()
 
   const { t } = useTranslationSafe()
-  const [advancedOpen, setAdvancedOpen] = useState(false)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
   const resetDatasetCurrent = useResetRecoilState(datasetCurrentAtom)
 
@@ -80,29 +90,30 @@ export function DatasetCurrent() {
     resetDatasetCurrent()
   }, [resetDatasetCurrent])
 
-  const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
+  // const [advancedOpen, setAdvancedOpen] = useState(false)
+  // const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
 
-  const customize = useMemo(() => {
-    if (datasetCurrent?.path === 'autodetect') {
-      return null
-    }
-
-    return (
-      <Row noGutters>
-        <Col>
-          <ButtonCustomize isOpen={advancedOpen} onClick={onCustomizeClicked} />
-
-          <Collapse isOpen={advancedOpen}>
-            <AdvancedModeExplanationWrapper>
-              <AdvancedModeExplanationContent />
-            </AdvancedModeExplanationWrapper>
-
-            <FilePickerAdvanced />
-          </Collapse>
-        </Col>
-      </Row>
-    )
-  }, [advancedOpen, datasetCurrent?.path, onCustomizeClicked])
+  // const customize = useMemo(() => {
+  //   if (datasetCurrent?.path === 'autodetect') {
+  //     return null
+  //   }
+  //
+  //   return (
+  //     <Row noGutters>
+  //       <Col>
+  //         <ButtonCustomize isOpen={advancedOpen} onClick={onCustomizeClicked} />
+  //
+  //         <Collapse isOpen={advancedOpen}>
+  //           <AdvancedModeExplanationWrapper>
+  //             <AdvancedModeExplanationContent />
+  //           </AdvancedModeExplanationWrapper>
+  //
+  //           <FilePickerAdvanced />
+  //         </Collapse>
+  //       </Col>
+  //     </Row>
+  //   )
+  // }, [advancedOpen, datasetCurrent?.path, onCustomizeClicked])
 
   if (!datasetCurrent) {
     return null
@@ -113,77 +124,31 @@ export function DatasetCurrent() {
       <CurrentDatasetInfoHeader>
         <DatasetInfoH4>{t('Selected pathogen')}</DatasetInfoH4>
       </CurrentDatasetInfoHeader>
+      <Container>
+        <Header>
+          <CurrentDatasetInfoBody>
+            <DatasetCurrentUpdateNotification />
 
-      <CurrentDatasetInfoBody>
-        <DatasetCurrentUpdateNotification />
+            <Row noGutters className="w-100">
+              <Col className="d-flex w-100">
+                <FlexLeft>
+                  <DatasetInfo dataset={datasetCurrent} />
+                </FlexLeft>
 
-        <Row noGutters>
-          <Col className="d-flex flex-row">
-            <Left>
-              <DatasetInfo dataset={datasetCurrent} />
-            </Left>
+                <FlexRight>
+                  <ChangeButton type="button" color="secondary" onClick={onChangeClicked}>
+                    {t('Change')}
+                  </ChangeButton>
+                </FlexRight>
+              </Col>
+            </Row>
+          </CurrentDatasetInfoBody>
+        </Header>
 
-            <Right>
-              <ChangeButton type="button" color="secondary" onClick={onChangeClicked}>
-                {t('Change')}
-              </ChangeButton>
-            </Right>
-          </Col>
-        </Row>
-
-        {customize}
-      </CurrentDatasetInfoBody>
+        <Main>
+          <DatasetContentSection />
+        </Main>
+      </Container>
     </CurrentDatasetInfoContainer>
   )
 }
-
-function DatasetCurrentUpdateNotification() {
-  const { t } = useTranslationSafe()
-  const [datasetUpdated, setDatasetUpdated] = useRecoilState(datasetUpdatedAtom)
-  const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
-
-  const onDatasetUpdateClicked = useCallback(() => {
-    setDatasetCurrent(datasetUpdated)
-    setDatasetUpdated(undefined)
-  }, [datasetUpdated, setDatasetCurrent, setDatasetUpdated])
-
-  if (isNil(datasetUpdated)) {
-    return null
-  }
-
-  return (
-    <Row noGutters>
-      <Col>
-        <UncontrolledAlert closeClassName="d-none" fade={false} color="info" className="mx-1 py-2 px-2 d-flex w-100">
-          <AlertTextWrapper>
-            <p className="my-0">{t('A new version of this dataset is available.')}</p>
-            <p className="my-0">
-              <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md">
-                {"What's new?"}
-              </LinkExternal>
-            </p>
-          </AlertTextWrapper>
-
-          <AlertButtonWrapper>
-            <ChangeButton
-              type="button"
-              color="info"
-              title={t('Accept the updated dataset')}
-              onClick={onDatasetUpdateClicked}
-            >
-              {t('Update')}
-            </ChangeButton>
-          </AlertButtonWrapper>
-        </UncontrolledAlert>
-      </Col>
-    </Row>
-  )
-}
-
-const AlertTextWrapper = styled.div`
-  flex: 1;
-`
-
-const AlertButtonWrapper = styled.div`
-  flex: 0;
-`

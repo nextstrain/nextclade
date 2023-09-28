@@ -10,6 +10,9 @@ const Main = styled.div`
   overflow: hidden;
   padding: 0;
   margin: 0 auto;
+
+  width: 100%;
+  max-width: ${(props) => props.theme.containerMaxWidths.xxl};
 `
 
 export function MainPage() {

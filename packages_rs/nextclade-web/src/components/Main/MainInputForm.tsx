@@ -1,10 +1,10 @@
 import { Dataset } from '_SchemaRoot'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import { ToggleRunAutomatically } from 'src/components/Main/RunPanel'
+import { WizardManualStep } from 'src/components/Main/WizardManualStep'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRecoilToggle } from 'src/hooks/useToggle'
@@ -26,7 +26,7 @@ const Container = styled.div`
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-  margin-right: 10px;
+  margin: 0 auto;
 `
 
 const Header = styled.div`
@@ -47,14 +47,6 @@ const Main = styled.div`
 const Footer = styled.div`
   display: flex;
   flex: 0;
-`
-
-const Row = styled(RowBase)`
-  overflow: hidden;
-`
-
-const Col = styled(ColBase)`
-  overflow: hidden;
 `
 
 export function MainInputForm() {
@@ -159,14 +151,7 @@ function WizardManual() {
   return (
     <Container>
       <Main>
-        <Row noGutters className="flex-column-reverse flex-lg-row">
-          <Col lg={6} className="">
-            <DatasetCurrent />
-          </Col>
-          <Col lg={6} className="">
-            <QuerySequenceFilePicker />
-          </Col>
-        </Row>
+        <WizardManualStep />
       </Main>
       <Footer>
         <WizardNavigationForm>
