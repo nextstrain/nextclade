@@ -194,6 +194,7 @@ export interface DatasetInfoCircleProps {
 }
 
 function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: DatasetInfoCircleProps) {
+  const { t } = useTranslationSafe()
   const { attributes, path, image } = dataset
   const { name } = attributes
 
@@ -221,10 +222,11 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
 
   const circle = useMemo(() => {
     if (image?.path) {
-      return <CircleImage $bg={circleBg} $image={image.path} />
+      const title = image?.source ? t('Image credits: {{source}}', { source: image.source }) : undefined
+      return <CircleImage $bg={circleBg} $image={image.path} title={title} />
     }
     return <Circle $bg={circleBg}>{circleText}</Circle>
-  }, [circleBg, circleText, image?.path])
+  }, [circleBg, circleText, image?.path, image?.source, t])
 
   return (
     <>
