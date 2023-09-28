@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import { darken } from 'polished'
+import { darken, transparentize } from 'polished'
 import React, { useMemo } from 'react'
 import { Badge } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
@@ -194,7 +194,8 @@ export interface DatasetInfoCircleProps {
 }
 
 function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: DatasetInfoCircleProps) {
-  const { attributes, path } = dataset
+  const { t } = useTranslationSafe()
+  const { attributes, path, image } = dataset
   const { name } = attributes
 
   const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
@@ -219,12 +220,17 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
   }, [showSuggestions, records, numberAutodetectResults, name.valueFriendly, name.value])
 
+  const circle = useMemo(() => {
+    if (image?.path) {
+      const title = image?.source ? t('Image credits: {{source}}', { source: image.source }) : undefined
+      return <CircleImage $bg={circleBg} $image={image.path} title={title} />
+    }
+    return <Circle $bg={circleBg}>{circleText}</Circle>
+  }, [circleBg, circleText, image?.path, image?.source, t])
+
   return (
     <>
-      <CircleBorder $percentage={percentage}>
-        <Circle $bg={circleBg}>{circleText}</Circle>
-      </CircleBorder>
-
+      <CircleBorder $percentage={percentage}>{circle}</CircleBorder>
       <CountText>{countText}</CountText>
     </>
   )
@@ -257,6 +263,7 @@ const CircleBorder = styled.div.attrs<CircleBorderProps>((props) => ({
   border-radius: 50%;
   width: 75px;
   height: 75px;
+  z-index: 10 !important;
 `
 
 const Circle = styled.div<{ $bg?: string; $fg?: string }>`
@@ -267,6 +274,21 @@ const Circle = styled.div<{ $bg?: string; $fg?: string }>`
   border-radius: 50%;
   background: ${(props) => props.$bg ?? props.theme.gray700};
   color: ${(props) => props.$fg ?? props.theme.gray100};
+  width: 60px;
+  height: 60px;
+  font-size: 1.2rem;
+`
+
+const CircleImage = styled.div<{ $bg?: string; $fg?: string; $image?: string }>`
+  background-image: ${(props) => `url(${props.$image})`};
+  background-color: ${(props) => props.$bg && transparentize(0.75)(props.$bg)};
+  background-blend-mode: overlay;
+  background-size: contain;
+  display: flex;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
   width: 60px;
   height: 60px;
   font-size: 1.2rem;

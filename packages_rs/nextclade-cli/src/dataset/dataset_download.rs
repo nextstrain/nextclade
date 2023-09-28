@@ -234,6 +234,7 @@ pub fn dataset_individual_files_load(
               rest_attrs: BTreeMap::default(),
               other: serde_json::Value::default(),
             },
+            image: None,
             files: DatasetFiles {
               reference: "".to_owned(),
               pathogen_json: "".to_owned(),

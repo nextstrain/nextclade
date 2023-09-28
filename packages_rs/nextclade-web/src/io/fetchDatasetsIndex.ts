@@ -2,6 +2,7 @@ import { head, mapValues, sortBy, sortedUniq } from 'lodash'
 import semver from 'semver'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import urljoin from 'url-join'
+import copy from 'fast-copy'
 
 import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json, MinimizerIndexVersion } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
@@ -27,10 +28,17 @@ export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): 
   const restFilesAbs = mapValues(dataset.files, (file) =>
     file ? urljoin(datasetServerUrl, dataset.path, dataset.version?.tag ?? '', file) : undefined,
   ) as DatasetFiles
+
   const files = {
     ...restFilesAbs,
   }
-  return { ...dataset, files }
+
+  const image = copy(dataset.image)
+  if (image?.path) {
+    image.path = urljoin(datasetServerUrl, dataset.path, dataset.version?.tag ?? '', image.path)
+  }
+
+  return { ...dataset, files, image }
 }
 
 export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {

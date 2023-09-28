@@ -70,6 +70,8 @@ pub struct Dataset {
 
   pub attributes: DatasetAttributes,
 
+  pub image: Option<DatasetImage>,
+
   pub files: DatasetFiles,
 
   #[serde(default, skip_serializing_if = "DatasetCapabilities::is_default")]
@@ -300,6 +302,17 @@ impl DatasetAttributeValue {
   pub fn is_default(&self) -> bool {
     self.is_default.unwrap_or(false)
   }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetImage {
+  pub path: Option<String>,
+
+  pub source: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
