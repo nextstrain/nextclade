@@ -19,7 +19,7 @@ export function PreviewWarning() {
   }
 
   return (
-    <UncontrolledAlert color="warning" className="text-center m-0">
+    <UncontrolledAlert color="warning" className="text-center m-0" fade={false}>
       <span>{warningText}</span>
       <span>
         <LinkExternal href={RELEASE_URL}>{RELEASE_URL}</LinkExternal>
