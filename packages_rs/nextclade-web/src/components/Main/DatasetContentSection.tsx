@@ -12,6 +12,7 @@ import {
 import { useRecoilValue } from 'recoil'
 import { MarkdownRemote } from 'src/components/Common/Markdown'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { DatasetContentTabAdvanced } from 'src/components/Main/DatasetContentTabAdvanced'
 
 export function DatasetContentSection() {
   const [activeTabId, setActiveTabId] = useState(0)
@@ -19,12 +20,21 @@ export function DatasetContentSection() {
   return (
     <ContentSection>
       <Nav tabs>
-        <TabLabel tabId={0} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-          {'README.md'}
-        </TabLabel>
-        <TabLabel tabId={1} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-          {'CHANGELOG.md'}
-        </TabLabel>
+        {currentDataset?.files.readme && (
+          <TabLabel tabId={0} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {'README.md'}
+          </TabLabel>
+        )}
+        {currentDataset?.files.changelog && (
+          <TabLabel tabId={1} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {'CHANGELOG.md'}
+          </TabLabel>
+        )}
+        {currentDataset && (
+          <TabLabel tabId={2} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {'Files'}
+          </TabLabel>
+        )}
       </Nav>
       <TabContent activeTab={activeTabId}>
         <TabPane tabId={0}>
@@ -33,6 +43,7 @@ export function DatasetContentSection() {
         <TabPane tabId={1}>
           {currentDataset?.files.changelog && <MarkdownRemote url={currentDataset?.files.changelog} />}
         </TabPane>
+        <TabPane tabId={2}>{currentDataset && <DatasetContentTabAdvanced />}</TabPane>
       </TabContent>
     </ContentSection>
   )
@@ -68,6 +79,8 @@ const TabContent = styled(TabContentBase)`
   flex: 1;
   flex-direction: column;
   overflow: hidden;
+
+  margin-top: -1px;
 `
 
 const TabPane = styled(TabPaneBase)`
@@ -75,8 +88,12 @@ const TabPane = styled(TabPaneBase)`
   flex: 1;
   flex-direction: column;
   overflow: auto;
+
   border: 1px #ccc9 solid;
-  border-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
+
   padding: 1rem;
 `
 
@@ -99,6 +116,8 @@ const NavItem = styled(NavItemBase)`
   min-width: 170px;
 
   border-bottom: 0 !important;
+
+  z-index: 2;
 
   .active {
     font-weight: bold;

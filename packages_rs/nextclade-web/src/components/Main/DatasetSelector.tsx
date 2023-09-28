@@ -186,7 +186,8 @@ const Container = styled(ContainerBase)`
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-  margin-right: 10px;
+  margin: 0 auto;
+  max-width: 800px;
 `
 
 const Header = styled.div`

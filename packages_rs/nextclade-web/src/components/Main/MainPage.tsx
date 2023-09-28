@@ -12,7 +12,7 @@ const Main = styled.div`
   margin: 0 auto;
 
   width: 100%;
-  max-width: ${(props) => props.theme.containerMaxWidths.xxl};
+  max-width: 1400px;
 `
 
 export function MainPage() {

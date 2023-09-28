@@ -26,7 +26,6 @@ const Container = styled.div`
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-  margin: 0 auto;
 `
 
 const Header = styled.div`

@@ -1,12 +1,12 @@
 import React from 'react'
-import { Row as RowBase, Col as ColBase, Container as ContainerBase } from 'reactstrap'
+import { Row as RowBase, Col as ColBase } from 'reactstrap'
 import styled from 'styled-components'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 
 export function WizardManualStep() {
   return (
-    <Container fluid>
+    <Container>
       <Row noGutters className="flex-column-reverse flex-lg-row h-100">
         <Col lg={6}>
           <DatasetCurrent />
@@ -19,7 +19,9 @@ export function WizardManualStep() {
   )
 }
 
-const Container = styled(ContainerBase)`
+const Container = styled.div`
+  width: 100% !important;
+
   @media (min-width: 991.98px) {
     overflow: hidden;
     height: 100%;
@@ -27,7 +29,7 @@ const Container = styled(ContainerBase)`
 `
 
 const Row = styled(RowBase)`
-  width: 100%;
+  width: 100% !important;
 
   @media (min-width: 991.98px) {
     overflow: hidden;
@@ -36,7 +38,7 @@ const Row = styled(RowBase)`
 `
 
 const Col = styled(ColBase)`
-  width: 100%;
+  width: 100% !important;
 
   @media (min-width: 991.98px) {
     overflow: hidden;

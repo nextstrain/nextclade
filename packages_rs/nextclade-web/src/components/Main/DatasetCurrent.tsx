@@ -53,7 +53,7 @@ const Main = styled.div`
   overflow: auto;
   width: 100%;
 
-  margin-top: 1rem;
+  margin: 0.5rem 0;
 `
 
 export const FlexLeft = styled.div`
@@ -69,15 +69,6 @@ const ChangeButton = styled(Button)`
   margin-left: auto;
 `
 
-export const AdvancedModeExplanationWrapper = styled.div`
-  max-width: 550px;
-  margin-top: 0.5rem;
-
-  > p {
-    margin: 0;
-  }
-`
-
 export function DatasetCurrent() {
   // Periodically checks if there's local update for the current dataset
   useUpdatedDataset()
@@ -89,31 +80,6 @@ export function DatasetCurrent() {
   const onChangeClicked = useCallback(() => {
     resetDatasetCurrent()
   }, [resetDatasetCurrent])
-
-  // const [advancedOpen, setAdvancedOpen] = useState(false)
-  // const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
-
-  // const customize = useMemo(() => {
-  //   if (datasetCurrent?.path === 'autodetect') {
-  //     return null
-  //   }
-  //
-  //   return (
-  //     <Row noGutters>
-  //       <Col>
-  //         <ButtonCustomize isOpen={advancedOpen} onClick={onCustomizeClicked} />
-  //
-  //         <Collapse isOpen={advancedOpen}>
-  //           <AdvancedModeExplanationWrapper>
-  //             <AdvancedModeExplanationContent />
-  //           </AdvancedModeExplanationWrapper>
-  //
-  //           <FilePickerAdvanced />
-  //         </Collapse>
-  //       </Col>
-  //     </Row>
-  //   )
-  // }, [advancedOpen, datasetCurrent?.path, onCustomizeClicked])
 
   if (!datasetCurrent) {
     return null
