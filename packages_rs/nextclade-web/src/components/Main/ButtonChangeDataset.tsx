@@ -28,8 +28,7 @@ const Container = styled.div`
   border: 1px #ccc9 solid;
   border-radius: 5px;
 
-  max-width: 100%;
-  height: 110px;
+  min-height: 110px;
 `
 
 export interface ChangeDatasetButtonProps extends ButtonProps {

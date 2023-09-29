@@ -71,6 +71,8 @@ function DatasetSelection() {
 }
 
 const Wrapper = styled.div`
+  display: flex;
+  flex: 1;
   width: 100% !important;
 
   @media (min-width: 991.98px) {
@@ -80,6 +82,8 @@ const Wrapper = styled.div`
 `
 
 const Row = styled(RowBase)`
+  display: flex;
+  flex: 1;
   width: 100% !important;
 
   @media (min-width: 991.98px) {
@@ -89,6 +93,8 @@ const Row = styled(RowBase)`
 `
 
 const Col = styled(ColBase)`
+  display: flex;
+  flex: 1;
   width: 100% !important;
 
   @media (min-width: 991.98px) {

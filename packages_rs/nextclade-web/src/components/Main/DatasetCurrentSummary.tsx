@@ -53,7 +53,6 @@ const Container = styled.div`
   padding: 12px;
   border: 1px #ccc9 solid;
   border-radius: 5px;
-  margin: 0.5rem auto;
 `
 
 const FlexLeft = styled.div`
