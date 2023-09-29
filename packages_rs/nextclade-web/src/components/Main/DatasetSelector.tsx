@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
 import { DatasetSelectorListImpl } from 'src/components/Main/DatasetSelectorListImpl'
-import { PROJECT_NAME } from 'src/constants'
 import {
   autodetectResultsAtom,
   AutodetectRunState,
@@ -16,21 +15,6 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { datasetsAtom } from 'src/state/dataset.state'
 import { SearchBox } from 'src/components/Common/SearchBox'
 
-// HACK: dataset entry for 'autodetect' option. This is not a real dataset.
-export const DATASET_AUTODETECT: Dataset = {
-  path: 'autodetect',
-  enabled: true,
-  official: true,
-  attributes: {
-    name: { value: 'autodetect', valueFriendly: 'Autodetect' },
-    reference: { value: 'autodetect', valueFriendly: 'Autodetect' },
-  },
-  files: {
-    reference: '',
-    pathogenJson: '',
-  },
-}
-
 export interface DatasetSelectorProps {
   datasetHighlighted?: Dataset
   onDatasetHighlighted?(dataset?: Dataset): void
@@ -39,13 +23,9 @@ export interface DatasetSelectorProps {
 export function DatasetSelector({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
   const { datasets } = useRecoilValue(datasetsAtom)
 
-  const datasetsActive = useMemo(() => {
-    return [DATASET_AUTODETECT, ...datasets]
-  }, [datasets])
-
   return (
     <DatasetSelectorImpl
-      datasetsActive={datasetsActive}
+      datasetsActive={datasets}
       datasetHighlighted={datasetHighlighted}
       onDatasetHighlighted={onDatasetHighlighted}
     />
@@ -58,9 +38,9 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
   const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
 
-  const autodetectResult = useMemo(() => {
+  const result = useMemo(() => {
     if (isNil(autodetectResults) || autodetectResults.length === 0) {
-      return undefined
+      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
     }
 
     const recordsByDataset = groupByDatasets(autodetectResults)
@@ -77,70 +57,39 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
   }, [autodetectResults, datasets])
 
   const datasetsActive = useMemo(() => {
-    if (!autodetectResult) {
+    if (!result) {
       return []
     }
-    const { itemsStartWith, itemsInclude } = autodetectResult
+    const { itemsStartWith, itemsInclude } = result
     return [...itemsStartWith, ...itemsInclude]
-  }, [autodetectResult])
+  }, [result])
+
+  const datasetsInactive = useMemo(() => {
+    if (!result) {
+      return []
+    }
+    const { itemsNotInclude } = result
+    return itemsNotInclude
+  }, [result])
 
   useEffect(() => {
-    const topSuggestion = autodetectResult?.itemsInclude[0]
+    const topSuggestion = result?.itemsInclude[0]
     if (autodetectRunState === AutodetectRunState.Done) {
       onDatasetHighlighted?.(topSuggestion)
       setAutodetectRunState(AutodetectRunState.Idle)
     }
-  }, [autodetectRunState, autodetectResult?.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
-
-  if (!autodetectResults) {
-    return <DatasetAutosuggestionInstructions />
-  }
+  }, [autodetectRunState, result?.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
   return (
     <DatasetSelectorImpl
       datasetsActive={datasetsActive}
+      datasetsInactive={datasetsInactive}
       datasetHighlighted={datasetHighlighted}
       onDatasetHighlighted={onDatasetHighlighted}
       showSuggestions
     />
   )
 }
-
-function DatasetAutosuggestionInstructions() {
-  const { t } = useTranslationSafe()
-  return (
-    <div className="d-flex flex-column">
-      <Heading>{t('Dataset autosuggestion')}</Heading>
-      <Wrapper>
-        <div className="flex-1 text-center">
-          <p className="mx-auto">
-            {t('{{projectName}} will try to guess dataset from data and will present its suggestions here.', {
-              projectName: PROJECT_NAME,
-            })}
-          </p>
-          <p className="mx-auto">{t('Please provide sequences to start.')}</p>
-        </div>
-      </Wrapper>
-    </div>
-  )
-}
-
-const Heading = styled.h4`
-  padding-top: 12px;
-  margin-bottom: 0;
-  margin-left: 7px;
-  width: 100%;
-`
-
-const Wrapper = styled.div`
-  display: flex;
-  height: 100%;
-  width: 100%;
-  padding: 10px;
-  border: 1px #ccc9 solid;
-  border-radius: 5px;
-  margin: 7px;
-`
 
 export interface DatasetSelectorImplProps {
   datasetsActive: Dataset[]
@@ -204,11 +153,6 @@ const Main = styled.div`
   flex-direction: column;
   overflow: hidden;
 `
-
-// const Footer = styled.div`
-//   display: flex;
-//   flex: 0;
-// `
 
 const Title = styled.h4`
   flex: 1;

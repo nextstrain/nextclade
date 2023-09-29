@@ -14,7 +14,6 @@ export interface Datasets {
 
 export const datasetServerUrlAtom = atom<string>({
   key: 'datasetServerUrlAtom',
-  default: '/',
 })
 
 export const datasetsAtom = atom<Datasets>({
