@@ -20,18 +20,6 @@ export interface DatasetSelectorProps {
   onDatasetHighlighted?(dataset?: Dataset): void
 }
 
-export function DatasetSelector({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
-  const { datasets } = useRecoilValue(datasetsAtom)
-
-  return (
-    <DatasetSelectorImpl
-      datasetsActive={datasets}
-      datasetHighlighted={datasetHighlighted}
-      onDatasetHighlighted={onDatasetHighlighted}
-    />
-  )
-}
-
 export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
   const { datasets } = useRecoilValue(datasetsAtom)
 
@@ -57,28 +45,25 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
   }, [autodetectResults, datasets])
 
   const datasetsActive = useMemo(() => {
-    if (!result) {
-      return []
-    }
     const { itemsStartWith, itemsInclude } = result
     return [...itemsStartWith, ...itemsInclude]
   }, [result])
 
   const datasetsInactive = useMemo(() => {
-    if (!result) {
-      return []
-    }
     const { itemsNotInclude } = result
     return itemsNotInclude
   }, [result])
 
+  const showSuggestions = useMemo(() => !isNil(autodetectResults) && autodetectResults.length > 0, [autodetectResults])
+
   useEffect(() => {
-    const topSuggestion = result?.itemsInclude[0]
+    const topSuggestion = result.itemsInclude[0]
+
     if (autodetectRunState === AutodetectRunState.Done) {
       onDatasetHighlighted?.(topSuggestion)
       setAutodetectRunState(AutodetectRunState.Idle)
     }
-  }, [autodetectRunState, result?.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
+  }, [autodetectRunState, result.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
   return (
     <DatasetSelectorImpl
@@ -86,7 +71,7 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
       datasetsInactive={datasetsInactive}
       datasetHighlighted={datasetHighlighted}
       onDatasetHighlighted={onDatasetHighlighted}
-      showSuggestions
+      showSuggestions={showSuggestions}
     />
   )
 }

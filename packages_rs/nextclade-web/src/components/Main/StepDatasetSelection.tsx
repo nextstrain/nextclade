@@ -6,7 +6,7 @@ import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { Row as RowBase, Col as ColBase, Button } from 'reactstrap'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { DatasetSelector } from 'src/components/Main/DatasetSelector'
+import { DatasetAutosuggestionResultsList } from 'src/components/Main/DatasetSelector'
 import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 
 export interface StepDatasetSelectionProps {
@@ -63,7 +63,7 @@ function DatasetSelection() {
           <DatasetCurrent />
         </Col>
         <Col lg={6}>
-          <DatasetSelector datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
+          <DatasetAutosuggestionResultsList datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
         </Col>
       </Row>
     </Wrapper>

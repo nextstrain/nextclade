@@ -1,14 +1,18 @@
 import React, { useCallback, useMemo, useState } from 'react'
+import { isNil } from 'lodash'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
+import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { DatasetCurrentSummary } from 'src/components/Main/DatasetCurrentSummary'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import { StepDatasetSelection } from 'src/components/Main/StepDatasetSelection'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 
 const Container = styled.div`
   display: flex;
@@ -51,10 +55,15 @@ export enum WizardPage {
 
 function MainWizard() {
   const [page, setPage] = useState(WizardPage.Landing)
+  const runAutodetect = useRunSeqAutodetect()
+  const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
 
   const toDatasetSelection = useCallback(() => {
     setPage(WizardPage.DatasetSelection)
-  }, [])
+    if (hasRequiredInputs) {
+      runAutodetect()
+    }
+  }, [hasRequiredInputs, runAutodetect])
   const toLanding = useCallback(() => {
     setPage(WizardPage.Landing)
   }, [])
@@ -82,6 +91,15 @@ export interface StepLandingProps {
 }
 
 function StepLanding({ toDatasetSelection }: StepLandingProps) {
+  const { t } = useTranslationSafe()
+  const dataset = useRecoilValue(datasetCurrentAtom)
+  const text = useMemo(() => {
+    if (isNil(dataset)) {
+      return t('Select dataset')
+    }
+    return t('Selected dataset')
+  }, [dataset, t])
+
   return (
     <ContainerFixed>
       <Header>
@@ -91,7 +109,14 @@ function StepLanding({ toDatasetSelection }: StepLandingProps) {
         <QuerySequenceFilePicker />
       </Main>
       <Footer>
-        <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
+        <Container>
+          <Header>
+            <h4>{text}</h4>
+          </Header>
+          <Main>
+            <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
+          </Main>
+        </Container>
       </Footer>
     </ContainerFixed>
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Col, Row } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import styled from 'styled-components'
 import { ButtonChangeDataset } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -8,7 +9,6 @@ import { useUpdatedDataset } from 'src/io/fetchDatasets'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { DatasetCurrentUpdateNotification } from 'src/components/Main/DatasetCurrentUpdateNotification'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
-import styled from 'styled-components'
 
 export interface DatasetCurrentSummaryProps {
   toDatasetSelection(): void
