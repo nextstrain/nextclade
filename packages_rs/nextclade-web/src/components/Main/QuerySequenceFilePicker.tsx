@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { ExampleSequencePicker } from 'src/components/Main/ExampleSequencePicker'
 import styled from 'styled-components'
 import type { AlgorithmInput } from 'src/types'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
@@ -61,6 +62,10 @@ export function QuerySequenceFilePicker() {
           onInputs={setSequences}
           multiple
         />
+      </Header>
+
+      <Header>
+        <ExampleSequencePicker />
       </Header>
 
       <Main>

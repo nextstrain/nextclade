@@ -45,6 +45,7 @@ export function Dropdown({
       value={value}
       isMulti={false}
       onChange={handleChange}
+      menuPortalTarget={document.body}
       {...restProps}
     />
   )
