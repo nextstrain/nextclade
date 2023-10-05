@@ -1,6 +1,7 @@
 use crate::cli::nextclade_dataset_get::nextclade_dataset_get;
 use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
 use crate::cli::nextclade_loop::nextclade_run;
+use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
@@ -92,6 +93,11 @@ pub enum NextcladeCommands {
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
   Sort(Box<NextcladeSortArgs>),
+
+  /// Read genome annotation and present it in Nextclade's internal formats. This is mostly only useful for Nextclade maintainers and the most curious users. Note that these internal formats have no stability guarantees and can be changed at any time without notice.
+  ///
+  /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
+  ReadAnnotation(Box<NextcladeReadAnnotationArgs>),
 }
 
 #[derive(Parser, Debug)]
@@ -702,6 +708,35 @@ pub struct NextcladeSortArgs {
   pub proxy_config: ProxyConfig,
 }
 
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Parser, Debug)]
+#[clap(verbatim_doc_comment)]
+pub struct NextcladeReadAnnotationArgs {
+  /// Genome annotation file in GFF3 format.
+  ///
+  /// Learn more about Generic Feature Format Version 3 (GFF3):
+  /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+  ///
+  #[clap(value_hint = ValueHint::FilePath)]
+  #[clap(display_order = 0)]
+  pub input_annotation: Option<PathBuf>,
+
+  /// Path to output JSON or YAML file.
+  ///
+  /// The format is chosen based on file extension: ".json" or ".yaml".
+  #[clap(long, short = 'o')]
+  #[clap(value_hint = ValueHint::DirPath)]
+  pub output: Option<PathBuf>,
+
+  /// Present features in "feature tree" format. This format is a precursor of genome annotation format - it contains all genetic features, even the ones that Nextclade does not use, but also less information about each feature.
+  #[clap(long)]
+  pub feature_tree: bool,
+
+  /// Print console output in JSON format, rather than human-readable table.
+  #[clap(long)]
+  pub json: bool,
+}
+
 fn generate_completions(shell: &str) -> Result<(), Report> {
   let mut command = NextcladeArgs::command();
 
@@ -989,5 +1024,6 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
       NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
     },
     NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
+    NextcladeCommands::ReadAnnotation(read_annotation_args) => nextclade_read_annotation(&read_annotation_args),
   }
 }
