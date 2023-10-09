@@ -4,12 +4,13 @@ We are happy to present a major release of Nextclade, containing new features an
 
 Useful links:
 
-- [Nextclade Web v3]()
-- [Nextclade Web v2]() - if you need the old version
-- [User documentation]() - for detailed instructions on how to use Nextclade Web and Nextclade CLI
-- [Dataset curation guide]() - if you have a custom dataset or want to create one
-- [Source code]() - if you want to contribute to Nextclade, report an issue or tell about your ideas
-- [Nextstrain forum]() - for general discussion and questions
+- [Nextclade Web v3](https://clades.nextstrain.org)
+- [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
+- [Nextclade user documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) - for detailed instructions on how to use Nextclade Web and Nextclade CLI
+- [Nextclade dataset documentation](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md) - if you have a custom Nextclade dataset or want to create one
+- [Nextclade source code repository](https://github.com/nextstrain/nextclade) - for contributors to Nextclade software (code, bug reports, feature requests etc.)
+- [Nextclade dataset repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (data, bug reports, feature requests etc.)
+- [Nextstrain discussion forum](https://discussion.nextstrain.org) - for general discussion and questions
 
 ### BREAKING CHANGES
 
