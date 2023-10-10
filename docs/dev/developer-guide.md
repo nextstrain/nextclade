@@ -489,7 +489,13 @@ There are 2 release targets, which are released and versioned separately:
 
 Nextclade project tries hard to adhere to [Semantic Versioning 2.0.0](https://semver.org/)
 
-### Releasing new CLI version
+### Releasing
+
+> ⚠️ We prefer to make releases on weekdays from Tuesday to Thursday, ideally around Wednesday in UTC zone, to ensure that everyone affected (dev team and users) is full of energy and that there's enough time to react to changes and to fix potential breakage without causing overtime hours. We try to avoid releases before and on major holidays and on Fridays to avoid possible weekend/holiday surprises.
+>
+> Note that due to 3-tier branch system, development is never blocked by the unreleased changes.
+
+##### Releasing new CLI version
 
 - Checkout the branch and commit you want to release. Theoretically, you can release any commit, but be nice and stick to releases from master.
 - If you are making a stable release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
@@ -501,7 +507,7 @@ Nextclade project tries hard to adhere to [Semantic Versioning 2.0.0](https://se
   - a local commit created on branch `release-cli` with a message containing the version number that you expect
 - The script will ask if you want to push the changes. This is the last step. If you agree, then the changes will be pushed to GitHub and CI will start a build. You can track it [here](https://app.circleci.com/pipelines/github/nextstrain/nextclade). If you refuse this step, you can still push later.
 
-### Releasing new Web version
+##### Releasing new Web version
 
 - There are 3 websites exist, for master, staging and release environments. They map to master, staging and release git branches. Pick an environment you want to deploy the new version to and checkout the corresponding branch.
 - If you are deploying to release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
