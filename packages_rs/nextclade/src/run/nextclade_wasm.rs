@@ -39,7 +39,7 @@ pub struct NextcladeParams {
 impl NextcladeParams {
   pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Self, Report> {
     let virus_properties =
-      VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing virus properties JSON")?;
+      VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
 
     let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
 

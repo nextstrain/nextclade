@@ -301,7 +301,7 @@ pub struct NextcladeRunInputArgs {
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
-  /// If this flag is not provided, no dataset will be loaded and individual input files have to be provided instead. In this case  `--input-ref` is required and `--input-gene-map`, `--input-tree` and `--input-pathogen-json` are optional.
+  /// If this flag is not provided, no dataset will be loaded and individual input files have to be provided instead. In this case  `--input-ref` is required and `--input-annotation, `--input-tree` and `--input-pathogen-json` are optional.
   ///
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
@@ -328,9 +328,14 @@ pub struct NextcladeRunInputArgs {
   /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'r', visible_alias("reference"), visible_alias("input-root-seq"))]
+  #[clap(long, short = 'r', visible_alias("reference"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
+
+  /// REMOVED. Use --input-ref instead
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_root_seq: Option<String>,
 
   /// Path to Auspice JSON v2 file containing reference tree.
   ///
@@ -351,7 +356,7 @@ pub struct NextcladeRunInputArgs {
 
   /// Path to a JSON file containing configuration and data specific to a pathogen.
   ///
-  /// Overrides path to `virus_properties.json` in the dataset (`--input-dataset`).
+  /// Overrides path to `pathogen.json` in the dataset (`--input-dataset`).
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'R')]
@@ -388,7 +393,7 @@ pub struct NextcladeRunInputArgs {
   /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the genome annotation. If
   /// this flag is not supplied or its value is an empty string, then all genes found in the genome annotation will be used.
   ///
-  /// Requires `--input-gene-map` to be specified.
+  /// Requires `--input-annotation` to be specified.
   #[clap(
     long,
     short = 'g',
@@ -900,6 +905,12 @@ For more information, type:
 
   nextclade run --help"#;
 
+const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str = r#"The argument `--input-root-seq` is removed in favor of `--input-ref`.
+
+For more information, type
+
+  nextclade run --help"#;
+
 const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
 
 When provided, `--output-all` allows to write all possible outputs into a directory.
@@ -963,6 +974,10 @@ Read Nextclade documentation at:
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
     return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
+  }
+
+  if run_args.inputs.input_root_seq.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_ROOT_SEQ_REMOVED}");
   }
 
   if run_args.inputs.input_qc_config.is_some() {
