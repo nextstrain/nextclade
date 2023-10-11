@@ -1,24 +1,19 @@
+use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
-use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
-use nextclade::io::insertions_csv::insertions_to_csv_string;
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
-use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw};
+use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult};
+use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
 use std::io::Read;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
-
-/// Converts Result's Err variant from eyre::Report to wasm_bindgen::JsError
-fn jserr<T>(result: Result<T, Report>) -> Result<T, JsError> {
-  result.map_err(|report| JsError::new(&report_to_string(&report)))
-}
 
 /// Nextclade WebAssembly module.
 ///
@@ -34,16 +29,20 @@ impl NextcladeWasm {
     let params_raw: NextcladeParamsRaw =
       jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
 
-    let params: NextcladeParams =
-      jserr(NextcladeParams::from_raw(&params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
+    let inputs: NextcladeParams =
+      jserr(NextcladeParams::from_raw(params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
 
-    let nextclade: Nextclade = jserr(Nextclade::new(params).wrap_err_with(|| "When initializing Nextclade runner"))?;
+    // FIXME: pass params from the frontend
+    let params = NextcladeInputParamsOptional::default();
+
+    let nextclade: Nextclade =
+      jserr(Nextclade::new(inputs, &params).wrap_err_with(|| "When initializing Nextclade runner"))?;
 
     Ok(Self { nextclade })
   }
 
   pub fn parse_query_sequences(qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
-    let mut reader = jserr(FastaReader::from_str(qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
+    let mut reader = jserr(FastaReader::from_str(&qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
 
     loop {
       let mut record = FastaRecord::default();
@@ -65,14 +64,29 @@ impl NextcladeWasm {
   }
 
   pub fn get_initial_data(&self) -> Result<String, JsError> {
-    let initial_data = jserr(self.nextclade.get_initial_data())?;
+    let initial_data = self.nextclade.get_initial_data();
     jserr(json_stringify(&initial_data, JsonPretty(false)))
   }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
   pub fn analyze(&mut self, input: &str) -> Result<String, JsError> {
     let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
-    let result = jserr(self.nextclade.run(&input))?;
+
+    let result = jserr(match self.nextclade.run(&input) {
+      Ok(result) => Ok(NextcladeResult {
+        index: input.index,
+        seq_name: input.seq_name.clone(),
+        result: Some(result),
+        error: None,
+      }),
+      Err(err) => Ok(NextcladeResult {
+        index: input.index,
+        seq_name: input.seq_name.clone(),
+        result: None,
+        error: Some(report_to_string(&err)),
+      }),
+    })?;
+
     jserr(json_stringify(&result, JsonPretty(false)))
   }
 
@@ -192,31 +206,4 @@ impl NextcladeWasm {
       &csv_colum_config,
     ))
   }
-
-  pub fn serialize_insertions_csv(outputs_json_str: &str, errors_json_str: &str) -> Result<String, JsError> {
-    let outputs: Vec<NextcladeOutputs> = jserr(
-      json_parse(outputs_json_str)
-        .wrap_err("When serializing insertions into CSV: When parsing outputs JSON internally"),
-    )?;
-
-    let errors: Vec<NextcladeErrorOutputs> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
-    )?;
-
-    jserr(insertions_to_csv_string(&outputs, &errors))
-  }
-
-  pub fn serialize_errors_csv(errors_json_str: &str) -> Result<String, JsError> {
-    let errors: Vec<ErrorsFromWeb> = jserr(
-      json_parse(errors_json_str).wrap_err("When serializing errors into CSV: When parsing outputs JSON internally"),
-    )?;
-
-    jserr(errors_to_csv_string(&errors))
-  }
-}
-
-#[wasm_bindgen(start)]
-pub fn main() {
-  wasm_logger::init(wasm_logger::Config::default());
-  console_error_panic_hook::set_once();
 }

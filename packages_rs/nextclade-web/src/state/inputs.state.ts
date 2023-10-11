@@ -1,6 +1,7 @@
 import { isEmpty } from 'lodash'
 import { useCallback } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
+import { autodetectResultsAtom } from 'src/state/autodetect.state'
 import { AlgorithmInput } from 'src/types'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 
@@ -11,7 +12,8 @@ export const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
 
 export function useQuerySeqInputs() {
   const [qryInputs, setQryInputs] = useRecoilState(qrySeqInputsStorageAtom)
-  const clearQryInputs = useResetRecoilState(qrySeqInputsStorageAtom)
+  const resetSeqInputsStorage = useResetRecoilState(qrySeqInputsStorageAtom)
+  const resetAutodetectResults = useResetRecoilState(autodetectResultsAtom)
 
   const addQryInputs = useCallback(
     (newInputs: AlgorithmInput[]) => {
@@ -26,6 +28,11 @@ export function useQuerySeqInputs() {
     },
     [setQryInputs],
   )
+
+  const clearQryInputs = useCallback(() => {
+    resetAutodetectResults()
+    resetSeqInputsStorage()
+  }, [resetAutodetectResults, resetSeqInputsStorage])
 
   return { qryInputs, addQryInputs, removeQryInput, clearQryInputs }
 }
@@ -45,11 +52,6 @@ export const refTreeInputAtom = atom<AlgorithmInput | undefined>({
   default: undefined,
 })
 
-export const qcConfigInputAtom = atom<AlgorithmInput | undefined>({
-  key: 'qcConfigInput',
-  default: undefined,
-})
-
 export const virusPropertiesInputAtom = atom<AlgorithmInput | undefined>({
   key: 'virusPropertiesInput',
   default: undefined,
@@ -66,13 +68,9 @@ export const hasRequiredInputsAtom = selector({
 export const inputCustomizationCounterAtom = selector<number>({
   key: 'inputCustomizationCounterAtom',
   get: ({ get }) => {
-    return [
-      get(refSeqInputAtom),
-      get(geneMapInputAtom),
-      get(refTreeInputAtom),
-      get(qcConfigInputAtom),
-      get(virusPropertiesInputAtom),
-    ].filter(notUndefinedOrNull).length
+    return [get(refSeqInputAtom), get(geneMapInputAtom), get(refTreeInputAtom), get(virusPropertiesInputAtom)].filter(
+      notUndefinedOrNull,
+    ).length
   },
 })
 
@@ -85,7 +83,6 @@ export const inputResetAtom = selector<undefined>({
     reset(refSeqInputAtom)
     reset(geneMapInputAtom)
     reset(refTreeInputAtom)
-    reset(qcConfigInputAtom)
     reset(virusPropertiesInputAtom)
   },
 })

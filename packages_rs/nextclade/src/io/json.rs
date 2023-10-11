@@ -1,4 +1,5 @@
 use crate::io::file::create_file_or_stdout;
+use crate::io::yaml::yaml_write;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use serde_json::{de::Read, Deserializer};
@@ -25,8 +26,8 @@ pub fn deserialize_without_recursion_limit<'de, R: Read<'de>, T: Deserialize<'de
   Ok(obj)
 }
 
-pub fn json_parse<T: for<'de> Deserialize<'de>>(s: &str) -> Result<T, Report> {
-  let mut de = Deserializer::from_str(s);
+pub fn json_parse<T: for<'de> Deserialize<'de>>(s: impl AsRef<str>) -> Result<T, Report> {
+  let mut de = Deserializer::from_str(s.as_ref());
   deserialize_without_recursion_limit(&mut de)
 }
 
@@ -60,4 +61,14 @@ pub fn json_write<T: Serialize>(filepath: impl AsRef<Path>, obj: &T, pretty: Jso
   let filepath = filepath.as_ref();
   let file = create_file_or_stdout(filepath)?;
   json_write_impl(file, &obj, pretty).wrap_err("When writing JSON to file: {filepath:#?}")
+}
+
+pub fn json_or_yaml_write<T: Serialize>(filepath: impl AsRef<Path>, obj: &T) -> Result<(), Report> {
+  let filepath = filepath.as_ref();
+  let filepath_str = filepath.to_string_lossy();
+  if filepath_str.ends_with("yaml") || filepath_str.ends_with("yml") {
+    yaml_write(filepath, &obj)
+  } else {
+    json_write(filepath, &obj, JsonPretty(true))
+  }
 }

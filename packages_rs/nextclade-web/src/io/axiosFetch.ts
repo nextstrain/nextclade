@@ -68,20 +68,25 @@ export async function axiosFetchRawMaybe(url?: string): Promise<string | undefin
   return axiosFetchRaw(url)
 }
 
-export async function axiosHead<TData = unknown>(
-  url: string | undefined,
-  options?: AxiosRequestConfig,
-): Promise<TData> {
+export async function axiosHead(url: string | undefined, options?: AxiosRequestConfig): Promise<AxiosResponse> {
   if (isNil(url)) {
     throw new ErrorInternal(`Attempted to fetch from an invalid URL: '${url}'`)
   }
 
-  let res
   try {
-    res = await axios.head(url, options)
+    return await axios.head(url, options)
   } catch (error) {
     throw axios.isAxiosError(error) ? new HttpRequestError(error) : sanitizeError(error)
   }
+}
 
-  return res.data as TData
+export async function axiosHeadOrUndefined(
+  url: string | undefined,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse | undefined> {
+  try {
+    return await axiosHead(url, options)
+  } catch {
+    return undefined
+  }
 }

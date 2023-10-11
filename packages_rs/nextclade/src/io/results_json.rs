@@ -9,6 +9,7 @@ use crate::utils::datetime::date_iso_now;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use crate::utils::info::this_package_version_str;
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -33,11 +34,9 @@ pub struct ResultsJson {
 
 impl ResultsJson {
   pub fn new(clade_node_attrs: &[CladeNodeAttrKeyDesc], phenotype_attr_keys: &[PhenotypeAttrDesc]) -> Self {
-    const VERSION: &str = env!("CARGO_PKG_VERSION");
-
     Self {
-      schema_version: "1.0.0".to_owned(),
-      nextclade_algo_version: VERSION.to_owned(),
+      schema_version: "3.0.0".to_owned(),
+      nextclade_algo_version: this_package_version_str().to_owned(),
       nextclade_web_version: None,
       created_at: date_iso_now(),
       clade_node_attr_keys: clade_node_attrs.to_vec(),

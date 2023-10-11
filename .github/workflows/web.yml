@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "ENV_NAME=release" >> $GITHUB_ENV
           echo "FULL_DOMAIN=https://clades.nextstrain.org" >> $GITHUB_ENV
-          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org/v3" >> $GITHUB_ENV
           echo "PLAUSIBLE_IO_DOMAIN=clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
@@ -45,7 +45,7 @@ jobs:
         run: |
           echo "ENV_NAME=staging" >> $GITHUB_ENV
           echo "FULL_DOMAIN=https://staging.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org/v3" >> $GITHUB_ENV
           echo "PLAUSIBLE_IO_DOMAIN=staging.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "ENV_NAME=master" >> $GITHUB_ENV
           echo "FULL_DOMAIN=https://master.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3" >> $GITHUB_ENV
           echo "PLAUSIBLE_IO_DOMAIN=master.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Checkout code"
@@ -107,7 +107,7 @@ jobs:
         run: |
           cp .env.example .env
           sed -i -e "s|FULL_DOMAIN=autodetect|FULL_DOMAIN=${FULL_DOMAIN}|g" .env
-          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
+          sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
       - name: "Login to Docker Hub"
         uses: docker/login-action@v2

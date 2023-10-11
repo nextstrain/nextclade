@@ -89,3 +89,11 @@ pub fn read_reader_to_string(reader: impl Read) -> Result<String, Report> {
   reader.read_to_string(&mut data)?;
   Ok(data)
 }
+
+pub fn path_to_string(p: impl AsRef<Path>) -> Result<String, Report> {
+  p.as_ref()
+    .as_os_str()
+    .to_str()
+    .map(ToOwned::to_owned)
+    .ok_or_else(|| eyre!("Unable to convert path to string: {:#?}", p.as_ref()))
+}

@@ -6,7 +6,6 @@ use crate::coord::position::PositionLike;
 use crate::make_internal_error;
 use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
-use regex::internal::Input;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::hash::Hash;
@@ -244,9 +243,9 @@ where
 pub fn difference_of_muts(left: &BranchMutations, right: &BranchMutations) -> Result<BranchMutations, Report> {
   Ok(BranchMutations {
     nuc_muts: difference(&left.nuc_muts, &right.nuc_muts)
-      .wrap_err("When calculating union of private nucleotide substitutions")?,
+      .wrap_err("When calculating difference of private nucleotide substitutions")?,
     aa_muts: difference_of_aa_muts(&left.aa_muts, &right.aa_muts)
-      .wrap_err("When calculating union of private aminoacid mutations")?,
+      .wrap_err("When calculating difference of private aminoacid mutations")?,
   })
 }
 

@@ -3,6 +3,7 @@ use crate::align::seed_alignment::write_matches_to_file;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::{from_nuc_seq, Nuc};
 use crate::make_error;
+use crate::translate::complement::reverse_complement_in_place;
 use bio::alphabets;
 use bio::data_structures::bwt::{bwt, less, Less, Occ, BWT};
 use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
@@ -11,6 +12,7 @@ use eyre::Report;
 use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
+use std::borrow::Cow;
 use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
 
@@ -119,7 +121,7 @@ impl SeedMatch2 {
     // counter to keep track of total number of mismatches in window
     let mut forward_mismatches = 0;
 
-    while forward_mismatches < config.allowed_mismatches && length < max_length {
+    while forward_mismatches <= config.allowed_mismatches && length < max_length {
       // remove first position in queue, decrement mismatch counter in case of mismatch
       if mismatch_queue.pop_front().unwrap() {
         forward_mismatches = forward_mismatches.saturating_sub(1);
@@ -157,7 +159,7 @@ impl SeedMatch2 {
     // repeat in other direction
     mismatch_queue = VecDeque::from(vec![false; config.window_size]);
     let mut backward_mismatches = 0;
-    while backward_mismatches < config.allowed_mismatches && ref_pos > 0 && qry_pos > 0 {
+    while backward_mismatches <= config.allowed_mismatches && ref_pos > 0 && qry_pos > 0 {
       if mismatch_queue.pop_front().unwrap() {
         backward_mismatches = backward_mismatches.saturating_sub(1);
       }
@@ -494,6 +496,42 @@ pub fn get_seed_matches2(
   }
 
   Ok(seed_matches)
+}
+
+pub struct SeedMatchesResult<'a> {
+  pub qry_seq: Cow<'a, [Nuc]>,
+  pub seed_matches: Vec<SeedMatch2>,
+  pub is_reverse_complement: bool,
+}
+
+#[allow(clippy::map_err_ignore)]
+pub fn get_seed_matches_maybe_reverse_complement<'a>(
+  qry_seq: &'a [Nuc],
+  ref_seq: &[Nuc],
+  seed_index: &CodonSpacedIndex,
+  params: &AlignPairwiseParams,
+) -> Result<SeedMatchesResult<'a>, Report> {
+  match get_seed_matches2(qry_seq, ref_seq, seed_index, params) {
+    Ok(seed_matches) => Ok(SeedMatchesResult {
+      qry_seq: Cow::Borrowed(qry_seq),
+      seed_matches,
+      is_reverse_complement: false,
+    }),
+    Err(report) => {
+      if params.retry_reverse_complement {
+        let mut rev_complement = qry_seq.to_owned();
+        reverse_complement_in_place(&mut rev_complement);
+        let seed_matches = get_seed_matches2(&rev_complement, ref_seq, seed_index, params).map_err(|_| report)?;
+        Ok(SeedMatchesResult {
+          qry_seq: Cow::Owned(rev_complement),
+          seed_matches,
+          is_reverse_complement: true,
+        })
+      } else {
+        Err(report)
+      }
+    }
+  }
 }
 
 #[cfg(test)]

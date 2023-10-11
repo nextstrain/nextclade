@@ -56,7 +56,7 @@ impl schemars::JsonSchema for GraphEdgeKey {
 /// Edge representing a connection between two nodes. Relevant data can be
 /// stored in the edge atomically. Edge's target and source node's are
 /// weak references and can't outlive the nodes they represent.
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Edge<E: GraphEdge> {
   key: GraphEdgeKey,
   source: GraphNodeKey,

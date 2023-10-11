@@ -1,55 +1,40 @@
-import React, { useMemo, useState } from 'react'
-
-import { useRecoilValue } from 'recoil'
-import { Container as ContainerBase } from 'reactstrap'
+import React from 'react'
+import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import styled from 'styled-components'
-
-import { DatasetSelector } from 'src/components/Main/DatasetSelector'
-import { MainInputFormRunStep } from 'src/components/Main/MainInputFormRunStep'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { Col as ColBase, Row as RowBase } from 'reactstrap'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
+import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 
-export const Container = styled(ContainerBase)`
-  display: flex;
-  margin: 0;
-  padding: 0;
+const Container = styled.div`
+  height: 100%;
+  overflow: hidden;
+  margin-top: 10px;
 `
 
-export const Centered = styled.section`
-  margin: auto;
+const Row = styled(RowBase)`
+  overflow: hidden;
+  height: 100%;
+`
 
-  @media (min-width: 768px) {
-    min-width: 600px;
-  }
-
-  @media (max-width: 767.98px) {
-    margin: 0;
-    width: 100%;
-  }
-
-  max-width: 800px;
+const Col = styled(ColBase)`
+  overflow: hidden;
+  height: 100%;
 `
 
 export function MainInputForm() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const currentDataset = useRecoilValue(datasetCurrentAtom)
-
   // This periodically fetches dataset index and updates the list of datasets.
   useUpdatedDatasetIndex()
 
-  const FormBody = useMemo(
-    () =>
-      currentDataset ? (
-        <MainInputFormRunStep />
-      ) : (
-        <DatasetSelector searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      ),
-    [currentDataset, searchTerm],
-  )
-
   return (
-    <Container fluid>
-      <Centered>{FormBody}</Centered>
+    <Container>
+      <Row noGutters className="flex-column-reverse flex-lg-row">
+        <Col lg={6} className="">
+          <DatasetSelector />
+        </Col>
+        <Col lg={6} className="">
+          <QuerySequenceFilePicker />
+        </Col>
+      </Row>
     </Container>
   )
 }

@@ -3,6 +3,7 @@ use crate::alphabet::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
 use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt::{Display, Formatter};
 
 #[repr(u8)]
 #[derive(
@@ -51,15 +52,15 @@ impl Aa {
   }
 }
 
-impl ToString for Aa {
-  fn to_string(&self) -> String {
-    String::from(from_aa(*self))
-  }
-}
-
 impl ScoreMatrixLookup<Aa> for Aa {
   fn lookup_match_score(x: Aa, y: Aa) -> i32 {
     lookup_aa_scoring_matrix(x, y)
+  }
+}
+
+impl Display for Aa {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", from_aa(*self))
   }
 }
 

@@ -4,7 +4,7 @@ import 'css.escape'
 
 import { isEmpty, isNil } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
-import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
+import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
@@ -16,7 +16,6 @@ import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
-  qcConfigInputAtom,
   qrySeqInputsStorageAtom,
   refSeqInputAtom,
   refTreeInputAtom,
@@ -40,7 +39,7 @@ import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
-import { initializeDatasets } from 'src/io/fetchDatasets'
+import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
 import { fetchSingleDataset } from 'src/io/fetchSingleDataset'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
@@ -49,11 +48,18 @@ import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
-import { datasetCurrentAtom, datasetsAtom, datasetServerUrlAtom } from 'src/state/dataset.state'
+import {
+  datasetCurrentAtom,
+  datasetsAtom,
+  datasetServerUrlAtom,
+  minimizerIndexVersionAtom,
+} from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
+
+RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false
 
 /**
  * Dummy component that allows to set recoil state asynchronously. Needed because RecoilRoot's initializeState
@@ -95,11 +101,15 @@ export function RecoilStateInitializer() {
         const datasetInfo = await fetchSingleDataset(urlQuery)
 
         if (!isNil(datasetInfo)) {
-          return datasetInfo
+          const { datasets, currentDataset } = datasetInfo
+          return { datasets, currentDataset, minimizerIndexVersion: undefined }
         }
 
-        const datasetServerUrlDefault = await getPromise(datasetServerUrlAtom)
-        return initializeDatasets(urlQuery, datasetServerUrlDefault)
+        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
+        set(datasetServerUrlAtom, datasetServerUrl)
+
+        const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
+        return { datasets, currentDataset, minimizerIndexVersion }
       })
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary
@@ -107,17 +117,12 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(async ({ datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }) => {
-        set(datasetsAtom, {
-          datasets,
-          defaultDataset,
-          defaultDatasetName,
-          defaultDatasetNameFriendly,
-        })
-
+      .then(async ({ datasets, currentDataset, minimizerIndexVersion }) => {
+        set(datasetsAtom, { datasets })
         const previousDataset = await getPromise(datasetCurrentAtom)
         const dataset = currentDataset ?? previousDataset
         set(datasetCurrentAtom, dataset)
+        set(minimizerIndexVersionAtom, minimizerIndexVersion)
         return dataset
       })
       .then((dataset) => {
@@ -127,11 +132,10 @@ export function RecoilStateInitializer() {
           set(qrySeqInputsStorageAtom, inputFastas)
         }
 
-        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
-        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
+        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-ref'))
+        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-annotation'))
         set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
-        set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
-        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pathogen-json'))
 
         if (!isEmpty(inputFastas)) {
           run()

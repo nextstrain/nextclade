@@ -9,6 +9,7 @@ pub mod graph;
 pub mod io;
 pub mod qc;
 pub mod run;
+pub mod sort;
 pub mod translate;
 pub mod tree;
 pub mod types;

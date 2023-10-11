@@ -1,68 +1,76 @@
-use crate::cli::nextclade_cli::NextcladeRunArgs;
-use crate::cli::nextclade_dataset_get::{dataset_file_http_get, nextclade_dataset_http_get, DatasetHttpGetParams};
+use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
+use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
 use crate::io::http_client::{HttpClient, ProxyConfig};
-use eyre::{Report, WrapErr};
+use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use log::LevelFilter;
-use nextclade::analyze::pcr_primers::PcrPrimer;
-use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
-use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaRecord};
-use nextclade::io::fs::absolute_path;
-use nextclade::io::json::json_parse_bytes;
-use nextclade::make_error;
-use nextclade::qc::qc_config::QcConfig;
+use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes, DatasetFiles, DatasetsIndexJson};
+use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
+use nextclade::io::file::create_file_or_stdout;
+use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
+use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use std::fs;
+use nextclade::utils::option::OptionMapRefFallible;
+use nextclade::{make_error, make_internal_error, o};
+use rayon::iter::ParallelIterator;
+use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek};
-use std::path::Path;
+use std::io::{BufReader, Read, Seek, Write};
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use zip::ZipArchive;
 
-#[inline]
-pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsIndexJson, Report> {
-  json_parse_bytes(http.get(&"/index_v2.json")?.as_slice())
+const PATHOGEN_JSON: &str = "pathogen.json";
+
+pub fn nextclade_get_inputs(
+  run_args: &NextcladeRunArgs,
+  genes: &Option<Vec<String>>,
+) -> Result<NextcladeParams, Report> {
+  if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
+    dataset_str_download_and_load(run_args, genes)
+      .wrap_err_with(|| format!("When downloading dataset '{dataset_name}'"))
+  } else if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
+    if input_dataset.is_file() && has_extension(input_dataset, "zip") {
+      dataset_zip_load(run_args, input_dataset, genes)
+        .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
+    } else if input_dataset.is_dir() {
+      dataset_dir_load(run_args, input_dataset, genes)
+        .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
+    } else {
+      make_error!(
+        "--input-dataset: path is invalid. \
+        Expected a directory path or a zip archive file path, but got: '{input_dataset:#?}'"
+      )
+    }
+  } else {
+    dataset_individual_files_load(run_args, genes)
+  }
 }
 
-pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
-  let output_dir = &absolute_path(output_dir)?;
-  fs::create_dir_all(output_dir).wrap_err_with(|| format!("When creating directory '{output_dir:#?}'"))?;
+#[inline]
+pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsIndexJson, Report> {
+  let data_bytes = http.get("/index.json")?;
+  let data_str = String::from_utf8(data_bytes)?;
+  DatasetsIndexJson::from_str(data_str)
+}
 
-  dataset
-    .files
-    .par_iter()
-    .map(|(filename, url)| -> Result<(), Report> {
-      let output_file_path = output_dir.join(filename);
-      let content = http.get(url)?;
-      fs::write(output_file_path, content)?;
-      Ok(())
-    })
-    .collect::<Result<(), Report>>()
-    .wrap_err_with(|| format!("When downloading dataset {dataset:#?}"))
+pub fn dataset_zip_fetch(http: &mut HttpClient, dataset: &Dataset) -> Result<Vec<u8>, Report> {
+  http
+    .get(&dataset.file_path("dataset.zip"))
+    .wrap_err_with(|| format!("When fetching zip file for dataset '{}'", dataset.path))
 }
 
 pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
-  if let Some(parent_dir) = output_file_path.parent() {
-    let parent_dir = &absolute_path(parent_dir)?;
-    fs::create_dir_all(parent_dir)
-      .wrap_err_with(|| format!("When creating parent directory '{parent_dir:#?}' for file '{output_file_path:#?}'"))?;
-  }
+  let mut file =
+    create_file_or_stdout(output_file_path).wrap_err_with(|| format!("When opening file {output_file_path:?}"))?;
 
-  let content = http.get(&dataset.zip_bundle)?;
-  fs::write(output_file_path, content)
+  let content = dataset_zip_fetch(http, dataset)?;
+
+  file
+    .write_all(&content)
     .wrap_err_with(|| format!("When writing downloaded dataset zip file to {output_file_path:#?}"))
-}
-
-pub struct DatasetFilesContent {
-  pub ref_record: FastaRecord,
-  pub virus_properties: VirusProperties,
-  pub tree: AuspiceTree,
-  pub gene_map: GeneMap,
-  pub qc_config: QcConfig,
-  pub primers: Vec<PcrPrimer>,
 }
 
 pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Result<String, Report> {
@@ -71,159 +79,246 @@ pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Resu
   Ok(s)
 }
 
+pub fn read_from_path_or_zip(
+  filepath: &Option<impl AsRef<Path>>,
+  zip: &mut ZipArchive<BufReader<File>>,
+  zip_filename: &str,
+) -> Result<Option<String>, Report> {
+  if let Some(filepath) = filepath {
+    return Ok(Some(read_file_to_string(filepath)?));
+  }
+  Ok(zip_read_str(zip, zip_filename).ok())
+}
+
 pub fn dataset_zip_load(
   run_args: &NextcladeRunArgs,
   dataset_zip: impl AsRef<Path>,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFilesContent, Report> {
+) -> Result<NextcladeParams, Report> {
   let file = File::open(dataset_zip)?;
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
 
-  let ref_record = run_args.inputs.input_ref.as_ref().map_or_else(
-    || read_one_fasta_str(&zip_read_str(&mut zip, "reference.fasta")?),
-    read_one_fasta,
-  )?;
+  let virus_properties = read_from_path_or_zip(&run_args.inputs.input_pathogen_json, &mut zip, "pathogen.json")?
+    .map_ref_fallible(VirusProperties::from_str)
+    .wrap_err("When reading pathogen JSON from dataset")?
+    .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
 
-  let tree = run_args.inputs.input_tree.as_ref().map_or_else(
-    || AuspiceTree::from_str(&zip_read_str(&mut zip, "tree.json")?),
-    AuspiceTree::from_path,
-  )?;
+  let ref_record = read_from_path_or_zip(&run_args.inputs.input_ref, &mut zip, &virus_properties.files.reference)?
+    .map_ref_fallible(read_one_fasta_str)
+    .wrap_err("When reading reference sequence from dataset")?
+    .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
-  let qc_config = run_args.inputs.input_qc_config.as_ref().map_or_else(
-    || QcConfig::from_str(&zip_read_str(&mut zip, "qc.json")?),
-    QcConfig::from_path,
-  )?;
+  let gene_map = read_from_path_or_zip(&run_args.inputs.input_annotation, &mut zip, "genome_annotation.gff3")?
+    .map_ref_fallible(GeneMap::from_str)
+    .wrap_err("When reading genome annotation from dataset")?
+    .map(|gene_map| filter_gene_map(gene_map, genes))
+    .unwrap_or_default();
 
-  let virus_properties = run_args.inputs.input_virus_properties.as_ref().map_or_else(
-    || VirusProperties::from_str(&zip_read_str(&mut zip, "virus_properties.json")?),
-    VirusProperties::from_path,
-  )?;
+  let tree = read_from_path_or_zip(&run_args.inputs.input_tree, &mut zip, "tree.json")?
+    .map_ref_fallible(AuspiceTree::from_str)
+    .wrap_err("When reading reference tree JSON from dataset")?;
 
-  let primers = run_args.inputs.input_pcr_primers.as_ref().map_or_else(
-    || PcrPrimer::from_str(&zip_read_str(&mut zip, "primers.csv")?, &ref_record.seq),
-    |input_pcr_primers| PcrPrimer::from_path(input_pcr_primers, &ref_record.seq),
-  )?;
-
-  let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
-    || filter_gene_map(Some(GeneMap::from_str(zip_read_str(&mut zip, "genemap.gff")?)?), genes),
-    |input_gene_map| filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes),
-  )?;
-
-  Ok(DatasetFilesContent {
+  Ok(NextcladeParams {
     ref_record,
-    virus_properties,
-    tree,
     gene_map,
-    qc_config,
-    primers,
+    tree,
+    virus_properties,
   })
 }
 
-#[rustfmt::skip]
+pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
+  let mut content = dataset_zip_fetch(http, dataset)?;
+  let mut reader = std::io::Cursor::new(content.as_mut_slice());
+  let mut zip = ZipArchive::new(&mut reader)?;
+
+  ensure_dir(output_dir).wrap_err_with(|| format!("When creating directory {output_dir:#?}"))?;
+
+  zip
+    .extract(output_dir)
+    .wrap_err_with(|| format!("When extracting zip archive of dataset '{}'", dataset.path))
+}
+
 pub fn dataset_dir_load(
-  run_args: NextcladeRunArgs,
+  run_args: &NextcladeRunArgs,
   dataset_dir: impl AsRef<Path>,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFilesContent, Report> {
-  let input_dataset = dataset_dir.as_ref();
-  dataset_load_files(DatasetFilePaths {
-    input_ref: &run_args.inputs.input_ref.unwrap_or_else(|| input_dataset.join("reference.fasta")),
-    input_tree: &run_args.inputs.input_tree.unwrap_or_else(|| input_dataset.join("tree.json")),
-    input_qc_config: &run_args.inputs.input_qc_config.unwrap_or_else(|| input_dataset.join("qc.json")),
-    input_virus_properties: &run_args.inputs.input_virus_properties.unwrap_or_else(|| input_dataset.join("virus_properties.json")),
-    input_pcr_primers: &run_args.inputs.input_pcr_primers.unwrap_or_else(|| input_dataset.join("primers.csv")),
-    input_gene_map: &run_args.inputs.input_gene_map.unwrap_or_else(|| input_dataset.join("genemap.gff")),
-  }, genes)
+) -> Result<NextcladeParams, Report> {
+  let dataset_dir = dataset_dir.as_ref();
+
+  let NextcladeRunInputArgs {
+    input_ref,
+    input_tree,
+    input_pathogen_json,
+    input_annotation,
+    ..
+  } = &run_args.inputs;
+
+  let input_pathogen_json = input_pathogen_json
+    .clone()
+    .unwrap_or_else(|| dataset_dir.join("pathogen.json"));
+
+  let virus_properties = VirusProperties::from_path(input_pathogen_json)?;
+
+  let input_ref = input_ref
+    .clone()
+    .unwrap_or_else(|| dataset_dir.join(&virus_properties.files.reference));
+  let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
+
+  let gene_map = input_annotation
+    .clone()
+    .or_else(|| {
+      virus_properties
+        .files
+        .genome_annotation
+        .as_ref()
+        .map(|genome_annotation| dataset_dir.join(genome_annotation))
+    })
+    .map_ref_fallible(GeneMap::from_path)
+    .wrap_err("When reading genome annotation")?
+    .map(|gen_map| filter_gene_map(gen_map, genes))
+    .unwrap_or_default();
+
+  let tree = input_tree
+    .clone()
+    .or_else(|| {
+      virus_properties
+        .files
+        .tree_json
+        .as_ref()
+        .map(|tree_json| dataset_dir.join(tree_json))
+    })
+    .map_ref_fallible(AuspiceTree::from_path)
+    .wrap_err("When reading reference tree JSON")?;
+
+  Ok(NextcladeParams {
+    ref_record,
+    gene_map,
+    tree,
+    virus_properties,
+  })
 }
 
 pub fn dataset_individual_files_load(
   run_args: &NextcladeRunArgs,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFilesContent, Report> {
-  #[rustfmt::skip]
-  let required_args = &[
-    (String::from("--input-ref"), &run_args.inputs.input_ref),
-    (String::from("--input-tree"), &run_args.inputs.input_tree),
-    (String::from("--input-gene-map"), &run_args.inputs.input_gene_map),
-    (String::from("--input-qc-config"), &run_args.inputs.input_qc_config),
-    (String::from("--input-pcr-primers"), &run_args.inputs.input_pcr_primers),
-    (String::from("--input-virus-properties"), &run_args.inputs.input_virus_properties),
-  ];
+) -> Result<NextcladeParams, Report> {
+  match (&run_args.inputs.input_dataset, &run_args.inputs.input_ref) {
+    (None, None) => make_error!("When `--input-dataset` is not specified, --input-ref is required"),
+    (_, Some(input_ref)) => {
+      let virus_properties = run_args
+        .inputs
+        .input_pathogen_json
+        .as_ref()
+        .and_then(|input_pathogen_json| read_file_to_string(input_pathogen_json).ok())
+        .map_ref_fallible(VirusProperties::from_str)
+        .wrap_err("When reading pathogen JSON")?
+        .unwrap_or_else(|| {
+          // The only case where we allow pathogen.json to be missing is when there's no dataset and files are provided
+          // explicitly through args. Let's create an dummy value to avoid making the field optional
+          VirusProperties {
+            schema_version: "".to_owned(),
+            attributes: DatasetAttributes {
+              name: DatasetAttributeValue {
+                value: "".to_owned(),
+                value_friendly: None,
+                is_default: None,
+                other: serde_json::Value::default(),
+              },
+              reference: DatasetAttributeValue {
+                value: "".to_owned(),
+                value_friendly: None,
+                is_default: None,
+                other: serde_json::Value::default(),
+              },
+              rest_attrs: BTreeMap::default(),
+              other: serde_json::Value::default(),
+            },
+            files: DatasetFiles {
+              reference: "".to_owned(),
+              pathogen_json: "".to_owned(),
+              genome_annotation: None,
+              tree_json: None,
+              examples: None,
+              readme: None,
+              changelog: None,
+              rest_files: BTreeMap::default(),
+              other: serde_json::Value::default(),
+            },
+            deprecated: false,
+            enabled: true,
+            experimental: false,
+            default_gene: None,
+            gene_order_preference: vec![],
+            mut_labels: LabelledMutationsConfig::default(),
+            primers: vec![],
+            qc: None,
+            general_params: None,
+            alignment_params: None,
+            tree_builder_params: None,
+            phenotype_data: None,
+            aa_motifs: vec![],
+            versions: vec![],
+            version: None,
+            compatibility: None,
+            other: serde_json::Value::default(),
+          }
+        });
 
-  #[allow(clippy::single_match_else)]
-  match required_args {
-    #[rustfmt::skip]
-    [
-      (_, Some(input_ref)),
-      (_, Some(input_tree)),
-      (_, Some(input_gene_map)),
-      (_, Some(input_qc_config)),
-      (_, Some(input_pcr_primers)),
-      (_, Some(input_virus_properties)),
-    ] => {
-      dataset_load_files(DatasetFilePaths {
-        input_ref,
-        input_tree,
-        input_qc_config,
-        input_virus_properties,
-        input_pcr_primers,
-        input_gene_map,
-      }, genes)
-    },
-    _ => {
-      let missing_args = required_args
-        .iter()
-        .filter_map(|(key, val)| match val {
-          None => Some(key),
-          Some(_) => None,
-        })
-        .cloned()
-        .join("  \n");
+      let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
 
-      make_error!("When `--input-dataset` is not specified, the following arguments are required:\n{missing_args}")
+      let gene_map = run_args
+        .inputs
+        .input_annotation
+        .as_ref()
+        .map_ref_fallible(GeneMap::from_path)
+        .wrap_err("When reading genome annotation")?
+        .map(|gen_map| filter_gene_map(gen_map, genes))
+        .unwrap_or_default();
+
+      let tree = run_args
+        .inputs
+        .input_tree
+        .as_ref()
+        .map_ref_fallible(AuspiceTree::from_path)
+        .wrap_err("When reading reference tree JSON")?;
+
+      Ok(NextcladeParams {
+        ref_record,
+        gene_map,
+        tree,
+        virus_properties,
+      })
     }
+    _ => make_internal_error!("Reached unknown match arm"),
   }
 }
 
 pub struct DatasetFilePaths<'a> {
   input_ref: &'a Path,
-  input_tree: &'a Path,
-  input_qc_config: &'a Path,
-  input_virus_properties: &'a Path,
-  input_pcr_primers: &'a Path,
-  input_gene_map: &'a Path,
+  input_tree: &'a Option<PathBuf>,
+  input_pathogen_json: &'a Option<PathBuf>,
+  input_annotation: &'a Option<PathBuf>,
 }
 
-pub fn dataset_load_files(
-  DatasetFilePaths {
-    input_ref,
-    input_tree,
-    input_qc_config,
-    input_virus_properties,
-    input_pcr_primers,
-    input_gene_map,
-  }: DatasetFilePaths,
-  genes: &Option<Vec<String>>,
-) -> Result<DatasetFilesContent, Report> {
-  let ref_record = read_one_fasta(input_ref)?;
-  let primers = PcrPrimer::from_path(input_pcr_primers, &ref_record.seq)?;
-
-  Ok(DatasetFilesContent {
-    ref_record,
-    virus_properties: VirusProperties::from_path(input_virus_properties)?,
-    gene_map: filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes)?,
-    tree: AuspiceTree::from_path(input_tree)?,
-    qc_config: QcConfig::from_path(input_qc_config)?,
-    primers,
-  })
+pub fn read_from_path_or_url(
+  http: &mut HttpClient,
+  dataset: &Dataset,
+  filepath: &Option<impl AsRef<Path>>,
+  url: &Option<String>,
+) -> Result<Option<String>, Report> {
+  if let Some(filepath) = filepath {
+    return Ok(Some(read_file_to_string(filepath)?));
+  } else if let Some(url) = url {
+    return Ok(Some(dataset_file_http_get(http, dataset, url)?));
+  }
+  Ok(None)
 }
 
 pub fn dataset_str_download_and_load(
   run_args: &NextcladeRunArgs,
-  dataset_name: &str,
   genes: &Option<Vec<String>>,
-) -> Result<DatasetFilesContent, Report> {
+) -> Result<NextcladeParams, Report> {
   let verbose = log::max_level() > LevelFilter::Info;
   let mut http = HttpClient::new(&run_args.inputs.server, &ProxyConfig::default(), verbose)?;
 
@@ -233,66 +328,51 @@ pub fn dataset_str_download_and_load(
     .as_ref()
     .expect("Dataset name is expected, but got 'None'");
 
-  let dataset = nextclade_dataset_http_get(
+  let dataset = dataset_http_get(&mut http, name, &None)?;
+
+  let virus_properties = read_from_path_or_url(
     &mut http,
-    DatasetHttpGetParams {
-      name,
-      reference: "default",
-      tag: "latest",
-    },
-    &[],
-  )?;
+    &dataset,
+    &run_args.inputs.input_pathogen_json,
+    &Some(o!("pathogen.json")),
+  )?
+  .map_ref_fallible(VirusProperties::from_str)
+  .wrap_err("When reading pathogen JSON from dataset")?
+  .ok_or_else(|| eyre!("Required file not found in dataset: 'pathogen.json'. Please report it to dataset authors."))?;
 
-  let ref_record = run_args.inputs.input_ref.as_ref().map_or_else(
-    || read_one_fasta_str(&dataset_file_http_get(&mut http, &dataset, "reference.fasta")?),
-    read_one_fasta,
-  )?;
+  let ref_record = read_from_path_or_url(
+    &mut http,
+    &dataset,
+    &run_args.inputs.input_ref,
+    &Some(dataset.files.reference.clone()),
+  )?
+  .map_ref_fallible(read_one_fasta_str)?
+  .wrap_err("When reading reference sequence from dataset")?;
 
-  let tree = run_args.inputs.input_tree.as_ref().map_or_else(
-    || AuspiceTree::from_str(&dataset_file_http_get(&mut http, &dataset, "tree.json")?),
-    AuspiceTree::from_path,
-  )?;
+  let gene_map = read_from_path_or_url(
+    &mut http,
+    &dataset,
+    &run_args.inputs.input_annotation,
+    &dataset.files.genome_annotation,
+  )?
+  .map_ref_fallible(GeneMap::from_str)
+  .wrap_err("When reading genome annotation from dataset")?
+  .map(|gene_map| filter_gene_map(gene_map, genes))
+  .unwrap_or_default();
 
-  let qc_config = run_args.inputs.input_qc_config.as_ref().map_or_else(
-    || QcConfig::from_str(&dataset_file_http_get(&mut http, &dataset, "qc.json")?),
-    QcConfig::from_path,
-  )?;
+  let tree = read_from_path_or_url(
+    &mut http,
+    &dataset,
+    &run_args.inputs.input_tree,
+    &dataset.files.tree_json,
+  )?
+  .map_ref_fallible(AuspiceTree::from_str)
+  .wrap_err("When reading reference tree from dataset")?;
 
-  let virus_properties = run_args.inputs.input_virus_properties.as_ref().map_or_else(
-    || VirusProperties::from_str(&dataset_file_http_get(&mut http, &dataset, "virus_properties.json")?),
-    VirusProperties::from_path,
-  )?;
-
-  let primers = run_args.inputs.input_pcr_primers.as_ref().map_or_else(
-    || {
-      PcrPrimer::from_str(
-        &dataset_file_http_get(&mut http, &dataset, "primers.csv")?,
-        &ref_record.seq,
-      )
-    },
-    |input_pcr_primers| PcrPrimer::from_path(input_pcr_primers, &ref_record.seq),
-  )?;
-
-  let gene_map = run_args.inputs.input_gene_map.as_ref().map_or_else(
-    || {
-      filter_gene_map(
-        Some(GeneMap::from_str(dataset_file_http_get(
-          &mut http,
-          &dataset,
-          "genemap.gff",
-        )?)?),
-        genes,
-      )
-    },
-    |input_gene_map| filter_gene_map(Some(GeneMap::from_file(input_gene_map)?), genes),
-  )?;
-
-  Ok(DatasetFilesContent {
+  Ok(NextcladeParams {
     ref_record,
-    virus_properties,
-    tree,
     gene_map,
-    qc_config,
-    primers,
+    tree,
+    virus_properties,
   })
 }

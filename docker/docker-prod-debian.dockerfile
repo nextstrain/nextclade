@@ -1,9 +1,9 @@
 FROM debian:11
 
 COPY .out/nextclade-x86_64-unknown-linux-gnu /usr/bin/nextclade
-COPY .out/nextalign-x86_64-unknown-linux-gnu /usr/bin/nextalign
 
 RUN set -eux \
+&& ln -s /usr/bin/nextclade /usr/bin/nextalign \
 && ln -s /usr/bin/nextclade /nextclade \
 && ln -s /usr/bin/nextalign /nextalign \
 && export DEBIAN_FRONTEND=noninteractive \

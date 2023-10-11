@@ -1,11 +1,9 @@
-import { isEqual, isNil, range, sumBy } from 'lodash'
+import { isNil, range, sumBy } from 'lodash'
 import type {
   Aa,
   Cds,
   CdsSegment,
   Dataset,
-  DatasetFileUrls,
-  DatasetTagJson,
   DatasetsIndexJson,
   FastaRecord,
   InsertionFor_Nuc, // eslint-disable-line camelcase
@@ -40,8 +38,6 @@ export type AnalysisResult = NextcladeOutputs
 export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
-export type DatasetTag = DatasetTagJson
-export type DatasetFiles = DatasetFileUrls
 
 export interface PrivateMutationsInternal {
   reversionSubstitutions: NucSub[]
@@ -131,6 +127,8 @@ export enum AlgorithmInputType {
 }
 
 export interface AlgorithmInput {
+  uid: string
+  path: string
   type: AlgorithmInputType
   name: string
   description: string
@@ -139,5 +137,5 @@ export interface AlgorithmInput {
 }
 
 export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
-  return !isNil(left) && !isNil(right) && isEqual(left.attributes, right.attributes)
+  return !isNil(left?.path) && !isNil(right?.path) && left?.path === right?.path
 }

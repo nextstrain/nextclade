@@ -16,6 +16,7 @@ import { UploadedFileInfo } from './UploadedFileInfo'
 import { UploadedFileInfoCompact } from './UploadedFileInfoCompact'
 
 export const FilePickerContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
 `
@@ -38,7 +39,11 @@ export const FilePickerTitle = styled.h4`
   margin: auto 0;
 `
 
-export const TabsPanelStyled = styled(TabsPanel)``
+export const TabsPanelStyled = styled(TabsPanel)`
+  * {
+    background: transparent !important;
+  }
+`
 
 const TabsContentStyled = styled(TabsContent)`
   height: 100%;
@@ -106,12 +111,12 @@ export function FilePicker({
   const onPaste = useCallback(
     (content: string) => {
       if (multiple) {
-        onInputs?.([new AlgorithmInputString(content)])
+        onInputs?.([new AlgorithmInputString(content, t('Pasted sequences'))])
       } else {
-        onInput?.(new AlgorithmInputString(content))
+        onInput?.(new AlgorithmInputString(content, t('Pasted sequences')))
       }
     },
-    [multiple, onInput, onInputs],
+    [multiple, onInput, onInputs, t],
   )
 
   // eslint-disable-next-line no-void

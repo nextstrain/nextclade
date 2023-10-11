@@ -136,36 +136,6 @@ pub fn get_seed_matches<L: Letter<L>>(
   (seed_matches, n_seeds)
 }
 
-/// Determine rough positioning of qry to reference sequence by approximate seed matching
-/// Returns vector of stripes, that is a band within which the alignment is expected to lie
-pub fn seed_alignment(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
-  seed_index: &CodonSpacedIndex,
-  params: &AlignPairwiseParams,
-) -> Result<Vec<Stripe>, Report> {
-  let qry_len = qry_seq.len();
-  let ref_len = ref_seq.len();
-
-  if ref_len + qry_len < (10 * params.seed_length) {
-    // for very short sequences, use full square
-    let stripes = full_matrix(ref_len, qry_len);
-    trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
-    Ok(stripes)
-  } else {
-    // otherwise, determine seed matches roughly regularly spaced along the query sequence
-    let seed_matches = get_seed_matches2(qry_seq, ref_seq, seed_index, params)?;
-    create_stripes(
-      &seed_matches,
-      qry_len as isize,
-      ref_len as isize,
-      params.terminal_bandwidth as isize,
-      params.excess_bandwidth as isize,
-      params.allowed_mismatches as isize,
-    )
-  }
-}
-
 fn abs_shift(seed1: &SeedMatch2, seed2: &SeedMatch2) -> isize {
   abs(seed2.offset - seed1.offset)
 }
@@ -238,14 +208,14 @@ fn extend_and_rewind(
 
 /// Takes in seed matches and returns a vector of stripes
 /// Stripes define the query sequence range for each reference position
-pub fn create_stripes(
+pub fn create_alignment_band(
   chain: &[SeedMatch2],
   qry_len: isize,
   ref_len: isize,
   terminal_bandwidth: isize,
   excess_bandwidth: isize,
   minimal_bandwidth: isize,
-) -> Result<Vec<Stripe>, Report> {
+) -> (Vec<Stripe>, usize) {
   // This function steps through the chained seeds and determines and appropriate band
   // defined via stripes in query coordinates. These bands will later be chopped to reachable ranges
 
@@ -256,7 +226,6 @@ pub fn create_stripes(
   // post: deal with the terminal trapezoid and allow of terminal bandwidth
 
   let mut bands = Vec::<TrapezoidDirectParams>::with_capacity(2 * chain.len() + 2);
-
   // make initial trapezoid starting at 0 and extending into match by terminal_bandwidth
   let mut current_seed = &chain[0];
   let mut look_back_length = terminal_bandwidth;
@@ -294,8 +263,8 @@ pub fn create_stripes(
     current_band = TrapezoidDirectParams {
       ref_start: current_ref_end,
       ref_end: next_seed.ref_pos as isize + look_forward_length,
-      min_offset: mean_offset - look_back_length - excess_bandwidth,
-      max_offset: mean_offset + look_back_length + excess_bandwidth,
+      min_offset: mean_offset - max(look_back_length, excess_bandwidth),
+      max_offset: mean_offset + max(look_back_length, excess_bandwidth),
     };
     current_seed = next_seed;
   }
@@ -336,9 +305,7 @@ pub fn create_stripes(
   // write_stripes_to_file(&stripes, "stripes.csv");
 
   // trim stripes to reachable regions
-  let regularized_stripes = regularize_stripes(stripes, qry_len as usize);
-
-  Ok(regularized_stripes)
+  regularize_stripes(stripes, qry_len as usize)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -351,7 +318,7 @@ struct TrapezoidDirectParams {
 
 /// Chop off unreachable parts of the stripes.
 /// Overhanging parts are pruned
-fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
+fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>, usize) {
   // assure stripe begin are non-decreasing -- such states would be unreachable in the alignment
   let stripes_len = stripes.len();
   stripes[0].begin = 0;
@@ -361,11 +328,13 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
 
   // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
   stripes[stripes_len - 1].end = qry_len + 1;
+  let mut band_area = stripes[stripes_len - 1].end - stripes[stripes_len - 1].begin;
   for i in (0..(stripes_len - 1)).rev() {
     stripes[i].end = clamp(stripes[i].end, stripes[i].begin + 1, stripes[i + 1].end);
+    band_area += stripes[i].end - stripes[i].begin;
   }
 
-  stripes
+  (stripes, band_area)
 }
 
 fn trace_stripe_stats(stripes: &[Stripe]) {
@@ -445,7 +414,7 @@ mod tests {
     let qry_len = 30;
     let ref_len = 40;
 
-    let result = create_stripes(
+    let result = create_alignment_band(
       &seed_matches,
       qry_len,
       ref_len,

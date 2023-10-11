@@ -1,4 +1,4 @@
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! getenv {
   ($arg:tt) => {{
     match core::option_env!($arg) {

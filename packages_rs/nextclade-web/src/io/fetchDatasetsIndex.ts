@@ -1,82 +1,58 @@
-import { first, mapValues, sortBy } from 'lodash'
+import { head, mapValues, sortBy, sortedUniq } from 'lodash'
 import semver from 'semver'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import urljoin from 'url-join'
 
-import { Dataset, DatasetsIndexV2Json } from 'src/types'
+import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json, MinimizerIndexVersion } from 'src/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
-const DATA_INDEX_FILE = 'index_v2.json'
-const thisVersion = process.env.PACKAGE_VERSION ?? ''
+const MINIMIZER_INDEX_ALGO_VERSION = 'v1'
+const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? ''
 
 export function isEnabled(dataset: Dataset) {
   return dataset.enabled
 }
 
-export function isCompatible(dataset: Dataset) {
-  const { min, max } = dataset.compatibility.nextcladeWeb
-  return semver.gte(thisVersion, min ?? thisVersion) && semver.lte(thisVersion, max ?? thisVersion)
+export function isCompatible(dataset: Dataset): boolean {
+  const minVersion = dataset.version?.compatibility?.web ?? PACKAGE_VERSION
+  return semver.gte(PACKAGE_VERSION, minVersion)
 }
 
-export function isLatest(dataset: Dataset) {
-  return dataset.attributes.tag.isDefault
-}
-
-export function areAllAttributesDefault(dataset: Dataset) {
-  return Object.values(dataset.attributes).every((attr) => attr.isDefault)
+export function isLatest(dataset: Dataset): boolean {
+  // Dataset is latest if dataset's version is the last entry in the array of all versions
+  return head(sortedUniq(dataset.versions ?? []).map((v) => v.updatedAt)) === dataset.version?.updatedAt
 }
 
 export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): Dataset {
-  const files = mapValues(dataset.files, (file) => urljoin(datasetServerUrl, file))
+  const restFilesAbs = mapValues(dataset.files, (file) =>
+    file ? urljoin(datasetServerUrl, dataset.path, dataset.version?.tag ?? '', file) : undefined,
+  ) as DatasetFiles
+  const files = {
+    ...restFilesAbs,
+  }
   return { ...dataset, files }
 }
 
-export function getDefaultDataset(datasets: Dataset[]) {
-  const defaultDatasetCandidates = datasets.filter(areAllAttributesDefault)
-  if (defaultDatasetCandidates.length === 0) {
-    throw new ErrorInternal('Unable to find default dataset')
-  } else if (defaultDatasetCandidates.length > 1) {
-    throw new ErrorInternal('Multiple candidates found for default dataset')
-  }
-  return datasets[0]
-}
-
 export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {
-  const datasets = datasetsIndexJson.datasets
-    .filter(isEnabled)
-    .filter(isCompatible)
-    .filter(isLatest)
+  const datasets = datasetsIndexJson.collections
+    .flatMap((collection) => collection.datasets.filter(isEnabled).filter(isCompatible).filter(isLatest))
     .map((dataset) => fileUrlsToAbsolute(datasetServerUrl, dataset))
-
-  const defaultDataset = getDefaultDataset(datasets)
-
-  const { value, valueFriendly } = defaultDataset.attributes.name
-
-  return {
-    datasets,
-    defaultDataset,
-    defaultDatasetName: value,
-    defaultDatasetNameFriendly: valueFriendly ?? value,
-  }
+  return { datasets }
 }
 
 /** Find the latest dataset, optionally by name, ref and tag */
-export function findDataset(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
-  const datasetsFound = filterDatasets(datasets, name, refAccession, tag)
-  return first(sortBy(datasetsFound, (dataset) => dataset.attributes.tag))
+export function findDataset(datasets: Dataset[], name?: string, tag?: string) {
+  const datasetsFound = filterDatasets(datasets, name, tag)
+  return head(sortBy(datasetsFound, (dataset) => dataset.version?.tag ?? ''))
 }
 
 /** Find the datasets given name, ref and tag */
-export function filterDatasets(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
+export function filterDatasets(datasets: Dataset[], name?: string, tag?: string) {
   return datasets.filter((dataset) => {
-    let isMatch = dataset.attributes.name.value === name
-
-    if (refAccession) {
-      isMatch = isMatch && dataset.attributes.reference.value === refAccession
-    }
+    let isMatch = dataset.path === name
 
     if (tag) {
-      isMatch = isMatch && dataset.attributes.tag.value === tag
+      isMatch = isMatch && dataset.version?.tag === tag
     }
 
     return isMatch
@@ -84,5 +60,23 @@ export function filterDatasets(datasets: Dataset[], name?: string, refAccession?
 }
 
 export async function fetchDatasetsIndex(datasetServerUrl: string) {
-  return axiosFetch<DatasetsIndexV2Json>(urljoin(datasetServerUrl, DATA_INDEX_FILE))
+  return axiosFetch<DatasetsIndexJson>(urljoin(datasetServerUrl, 'index.json'))
+}
+
+export async function getCompatibleMinimizerIndexVersion(
+  datasetServerUrl: string,
+  datasetsIndexJson: DatasetsIndexV2Json,
+): Promise<MinimizerIndexVersion | undefined> {
+  let candidates = datasetsIndexJson.minimizerIndex?.filter(
+    (minimizerIndexVer) => MINIMIZER_INDEX_ALGO_VERSION >= minimizerIndexVer.version,
+  )
+  candidates = sortBy(candidates, (candidate) => candidate.version).reverse()
+  const index = takeFirstMaybe(candidates)
+  if (index) {
+    return {
+      ...index,
+      path: urljoin(datasetServerUrl, index.path),
+    }
+  }
+  return undefined
 }

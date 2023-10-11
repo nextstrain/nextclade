@@ -1,35 +1,21 @@
 import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
-import urljoin from 'url-join'
 
-import type { Dataset } from 'src/types'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { inputResetAtom } from 'src/state/inputs.state'
+import type { Dataset, MinimizerIndexVersion } from 'src/types'
+// import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
+// import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { areDatasetsEqual } from 'src/types'
 
-export function getDefaultDatasetServer(): string {
-  let datasetServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
-  // Add HTTP Origin if datasetServerUrl is a relative path (start with '/')
-  if (typeof window !== 'undefined' && datasetServerUrl.slice(0) === '/') {
-    datasetServerUrl = urljoin(window.location.origin, datasetServerUrl)
-  }
-  return datasetServerUrl
+export interface Datasets {
+  datasets: Dataset[]
 }
 
 export const datasetServerUrlAtom = atom<string>({
-  key: 'datasetServerUrl',
-  default: getDefaultDatasetServer(),
+  key: 'datasetServerUrlAtom',
+  default: '/',
 })
-
-export interface Datasets {
-  datasets: Dataset[]
-  defaultDataset: Dataset
-  defaultDatasetName: string
-  defaultDatasetNameFriendly: string
-}
 
 export const datasetsAtom = atom<Datasets>({
   key: 'datasets',
@@ -52,8 +38,8 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
       reset(datasetCurrentStorageAtom)
     } else if (!areDatasetsEqual(datasetCurrent, dataset)) {
       set(datasetCurrentStorageAtom, dataset)
-      set(viewedGeneAtom, dataset.params?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
-      reset(inputResetAtom)
+      // FIXME
+      // set(viewedGeneAtom, dataset?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
     }
   },
 })
@@ -65,7 +51,15 @@ export const datasetUpdatedAtom = atom<Dataset | undefined>({
 
 export const geneOrderPreferenceAtom = selector({
   key: 'geneOrderPreference',
+  // eslint-disable-next-line unused-imports/no-unused-vars
   get({ get }) {
-    return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
+    // FIXME
+    // return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
+    return []
   },
+})
+
+export const minimizerIndexVersionAtom = atom<MinimizerIndexVersion | undefined>({
+  key: 'minimizerIndexVersionAtom',
+  default: undefined,
 })

@@ -1,6 +1,6 @@
 [package]
 name = "nextclade-cli"
-version = "2.14.0"
+version = "3.0.0-alpha.0"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. CLI module."
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
@@ -11,9 +11,9 @@ publish = false
 
 [dependencies]
 assert2 = "=0.3.11"
-clap = { version = "=4.3.10", features = ["derive"] }
-clap_complete = "=4.3.1"
-clap_complete_fig = "=4.3.1"
+clap = { version = "=4.4.2", features = ["derive", "color", "unicode", "unstable-styles"] }
+clap_complete = "=4.4.1"
+clap_complete_fig = "=4.4.0"
 color-eyre = "=0.6.2"
 comfy-table = "=7.0.1"
 crossbeam = "=0.8.2"
@@ -28,17 +28,19 @@ lazy_static = "=1.4.0"
 log = "=0.4.19"
 nextclade = { path = "../nextclade" }
 num_cpus = "=1.16.0"
+ordered-float = { version = "=3.9.1", features = ["rand", "serde", "schemars"] }
 owo-colors = "=3.5.0"
 pretty_assertions = "=1.3.0"
 rayon = "=1.7.0"
 regex = "=1.8.4"
 reqwest = { version = "=0.11.18", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"] }
 schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
-semver = "=1.0.17"
+semver = { version = "=1.0.17", features = ["serde"] }
 serde = { version = "=1.0.164", features = ["derive"] }
 serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 strum = "=0.25.0"
 strum_macros = "=0.25"
+tinytemplate = "=1.2.1"
 url = { version = "=2.4.0", features = ["serde"] }
 zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", "bzip2", "deflate", "time"] }
 

@@ -59,8 +59,8 @@ impl<'a> FastaReader<'a> {
     }
   }
 
-  pub fn from_str(contents: &'a str) -> Result<Self, Report> {
-    let reader = contents.as_bytes();
+  pub fn from_str(contents: &'a impl AsRef<str>) -> Result<Self, Report> {
+    let reader = contents.as_ref().as_bytes();
     Ok(Self::new(Box::new(reader)))
   }
 
@@ -157,8 +157,8 @@ pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecor
   Ok(fasta_records)
 }
 
-pub fn read_one_fasta_str(contents: &str) -> Result<FastaRecord, Report> {
-  let mut reader = FastaReader::from_str(contents)?;
+pub fn read_one_fasta_str(contents: impl AsRef<str>) -> Result<FastaRecord, Report> {
+  let mut reader = FastaReader::from_str(&contents)?;
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record)

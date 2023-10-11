@@ -201,7 +201,7 @@ fn map_aa_muts_for_one_gene(
 
         if ref_peptide.len() < mutation.pos.as_usize() {
           return make_error!(
-          "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and gene map in the Nextclade dataset",
+          "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and genome annotation in the Nextclade dataset",
           node.name,
           gene_name,
           mutation.to_string_without_gene(),
@@ -252,6 +252,7 @@ pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
       title: "Node type".to_owned(),
       type_: "categorical".to_owned(),
       scale: vec![pair("New", "#ff6961"), pair("Reference", "#999999")],
+      other: serde_json::Value::default(),
     },
     AuspiceColoring {
       key: "QC Status".to_owned(),
@@ -262,12 +263,14 @@ pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
         pair("mediocre", "#cab44d"),
         pair("bad", "#CA738E"),
       ],
+      other: serde_json::Value::default(),
     },
     AuspiceColoring {
       key: "Has PCR primer changes".to_owned(),
       title: "Has PCR primer changes".to_owned(),
       type_: "categorical".to_owned(),
       scale: vec![pair("Yes", "#6961ff"), pair("No", "#999999")],
+      other: serde_json::Value::default(),
     },
   ];
 

@@ -1,17 +1,17 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
-use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
+use crate::align::band_2d::{full_matrix, simple_stripes};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
-use crate::align::seed_alignment::seed_alignment;
-use crate::align::seed_match2::CodonSpacedIndex;
+use crate::align::seed_alignment::create_alignment_band;
+use crate::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::make_error;
-use crate::translate::complement::reverse_complement_in_place;
-use eyre::Report;
-use log::{info, trace, warn};
+use eyre::{Report, WrapErr};
+use log::{info, trace};
+use std::cmp::max;
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
@@ -21,8 +21,6 @@ fn align_pairwise<T: Letter<T>>(
   stripes: &[Stripe],
 ) -> AlignmentOutput<T> {
   trace!("Align pairwise: started. Params: {params:?}");
-
-  let max_indel = params.max_indel;
 
   let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
@@ -39,32 +37,86 @@ pub fn align_nuc(
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<AlignmentOutput<Nuc>, Report> {
-  let qry_len: usize = qry_seq.len();
-  let min_len: usize = params.min_length;
+  let qry_len = qry_seq.len();
+  let ref_len = ref_seq.len();
+  let min_len = params.min_length;
   if qry_len < min_len {
     return make_error!(
       "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}. This is likely due to a low quality of the provided sequence, or due to using incorrect reference sequence."
     );
   }
 
-  #[allow(clippy::map_err_ignore)]
-  match seed_alignment(qry_seq, ref_seq, seed_index, params) {
-    Ok(stripes) => Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)),
-    Err(report) => {
-      if params.retry_reverse_complement {
-        info!("When processing sequence #{index} '{seq_name}': Seed matching failed. Retrying reverse complement");
-        let mut qry_seq = qry_seq.to_owned();
-        reverse_complement_in_place(&mut qry_seq);
-        let stripes = seed_alignment(&qry_seq, ref_seq, seed_index, params).map_err(|_| report)?;
-        let mut result = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
-        result.is_reverse_complement = true;
-        warn!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to the fasta header in the nucleotide alignment.");
-        Ok(result)
-      } else {
-        Err(report)
-      }
-    }
+  if ref_len + qry_len < (10 * params.seed_length) {
+    // for very short sequences, use full square
+    let stripes = full_matrix(ref_len, qry_len);
+    trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix");
+    return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
   }
+
+  // otherwise, determine seed matches roughly regularly spaced along the query sequence
+  let SeedMatchesResult {
+    qry_seq,
+    seed_matches,
+    is_reverse_complement,
+  } = get_seed_matches_maybe_reverse_complement(qry_seq, ref_seq, seed_index, params)
+    .wrap_err("When calculating seed matches")?;
+
+  let mut terminal_bandwidth = params.terminal_bandwidth as isize;
+  let mut excess_bandwidth = params.excess_bandwidth as isize;
+  let mut minimal_bandwidth = max(1, params.allowed_mismatches as isize);
+  let max_band_area = params.max_band_area;
+  let mut attempt = 0;
+
+  let (mut stripes, mut band_area) = create_alignment_band(
+    &seed_matches,
+    qry_len as isize,
+    ref_len as isize,
+    terminal_bandwidth,
+    excess_bandwidth,
+    minimal_bandwidth,
+  );
+  if band_area > max_band_area {
+    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
+  }
+
+  let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+
+  while alignment.hit_boundary && attempt < params.max_alignment_attempts {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt+1, alignment.alignment_score);
+    // double bandwidth parameters or increase to one if 0
+    terminal_bandwidth = max(2 * terminal_bandwidth, 1);
+    excess_bandwidth = max(2 * excess_bandwidth, 1);
+    minimal_bandwidth = max(2 * minimal_bandwidth, 1);
+    attempt += 1;
+    // make new band
+    (stripes, band_area) = create_alignment_band(
+      &seed_matches,
+      qry_len as isize,
+      ref_len as isize,
+      terminal_bandwidth,
+      excess_bandwidth,
+      minimal_bandwidth,
+    );
+    // discard stripes and break to return previous alignment
+    if band_area > max_band_area {
+      break;
+    }
+    // realign
+    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+  }
+  // report success/failure of broadening of band width
+  if alignment.hit_boundary {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {}", alignment.alignment_score);
+    if band_area > max_band_area {
+      info!(
+        "When processing sequence #{index} '{seq_name}': final band area {band_area} exceeded the cutoff {max_band_area}"
+      );
+    }
+  } else if attempt > 0 {
+    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
+  }
+  alignment.is_reverse_complement = is_reverse_complement;
+  Ok(alignment)
 }
 
 /// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels

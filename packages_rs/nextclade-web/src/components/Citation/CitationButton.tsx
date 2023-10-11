@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react'
-
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import {
   Button,
@@ -13,19 +12,33 @@ import {
   Row,
 } from 'reactstrap'
 import styled from 'styled-components'
-import { HiOutlineAcademicCap } from 'react-icons/hi'
-
-import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { Citation } from 'src/components/Citation/Citation'
 
-export const ButtonCitationBase = styled(ButtonTransparent)<ButtonProps>`
-  margin: 2px 2px;
-  height: 38px;
-  width: 50px;
-  color: ${(props) => props.theme.gray700};
+export const ButtonCitationBase = styled(Button)<ButtonProps>`
+  color: ${(props) => props.theme.bodyColor};
+  padding: 0;
+  background-color: transparent;
+  background-image: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  border-image: none;
+  text-decoration: none;
+  -webkit-tap-highlight-color: #ccc;
 
-  @media (min-width: 1200px) {
-    width: 100px;
+  & .active,
+  & :active,
+  & :hover,
+  & :target,
+  & :focus,
+  & :focus-visible,
+  & :focus-within {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-image: none;
   }
 `
 
@@ -100,8 +113,7 @@ export function CitationButton() {
 
   return (
     <>
-      <ButtonCitationBase type="button" onClick={open} title={text}>
-        <HiOutlineAcademicCap className="mr-xl-2" />
+      <ButtonCitationBase type="button" color="link" onClick={open} title={text}>
         <span className="d-none d-xl-inline">{text}</span>
       </ButtonCitationBase>
 
