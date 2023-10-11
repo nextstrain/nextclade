@@ -157,7 +157,7 @@ impl Nextclade {
       virus_properties,
     } = inputs;
 
-    let params = NextcladeInputParams::from_optional(params, &virus_properties);
+    let params = NextcladeInputParams::from_optional(params, &virus_properties)?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
     let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
 

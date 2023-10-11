@@ -1,6 +1,10 @@
+use crate::{make_error, o};
 use clap::{Parser, ValueEnum};
+use eyre::Report;
+use itertools::Itertools;
 use optfield::optfield;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(ValueEnum, Copy, Clone, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -52,30 +56,6 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub max_band_area: usize,
 
-  /// Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Alignment of sequences with indels longer that this value, will not be attempted and a warning will be emitted.
-  #[clap(long)]
-  pub max_indel: usize,
-
-  /// k-mer length to determine approximate alignments between query and reference and determine the bandwidth of the banded alignment.
-  #[clap(long)]
-  pub seed_length: usize,
-
-  /// Maximum number of mismatching nucleotides allowed for a seed to be considered a match.
-  #[clap(long)]
-  pub mismatches_allowed: usize,
-
-  /// Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--seed-spacing`.
-  #[clap(long)]
-  pub min_seeds: i32,
-
-  /// Minimum seed mathing rate (a ratio of seed matches to total number of attempted seeds)
-  #[clap(long)]
-  pub min_match_rate: f64,
-
-  /// Spacing between seeds during nucleotide alignment.
-  #[clap(long)]
-  pub seed_spacing: i32,
-
   /// Retry seed matching step with a reverse complement if the first attempt failed
   #[clap(long)]
   #[clap(num_args=0..=1, default_missing_value = "true")]
@@ -107,15 +87,15 @@ pub struct AlignPairwiseParams {
   #[clap(long, value_enum)]
   pub gap_alignment_side: GapAlignmentSide,
 
-  /// Length of exactly matching kmers used in the seed alignment of the query to the reference.
+  /// Length of exactly matching k-mers used in the seed alignment of the query to the reference.
   #[clap(long)]
   pub kmer_length: usize,
 
-  /// Interval of successive kmers on the query sequence. Should be small compared to the query length.
+  /// Interval of successive k-mers on the query sequence. Should be small compared to the query length.
   #[clap(long)]
   pub kmer_distance: usize,
 
-  /// Exactly matching kmers are extended to the left and right until more
+  /// Exactly matching k-mers are extended to the left and right until more
   /// than `allowed_mismatches` are observed in a sliding window (`window_size`).
   #[clap(long)]
   pub allowed_mismatches: usize,
@@ -124,7 +104,7 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub window_size: usize,
 
-  /// Minimum length of extended kmers
+  /// Minimum length of extended k-mers
   #[clap(long)]
   pub min_match_length: usize,
 
@@ -136,6 +116,31 @@ pub struct AlignPairwiseParams {
   /// Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
   #[clap(long)]
   pub max_alignment_attempts: usize,
+
+  // The following args are deprecated and are kept for backwards compatibility (to emit errors if they are set)
+  /// REMOVED
+  #[clap(long, hide_long_help = true, hide_short_help = true)]
+  pub max_indel: Option<f64>,
+
+  /// REMOVED
+  #[clap(long, hide_long_help = true, hide_short_help = true)]
+  pub seed_length: Option<f64>,
+
+  /// REMOVED
+  #[clap(long, hide_long_help = true, hide_short_help = true)]
+  pub mismatches_allowed: Option<f64>,
+
+  /// REMOVED
+  #[clap(long, hide_long_help = true, hide_short_help = true)]
+  pub min_seeds: Option<f64>,
+
+  /// REMOVED
+  #[clap(long, hide_long_help = true, hide_short_help = true)]
+  pub min_match_rate: Option<f64>,
+
+  /// REMOVED
+  #[clap(long, hide_long_help = true, hide_short_help = true)]
+  pub seed_spacing: Option<f64>,
 }
 
 impl Default for AlignPairwiseParams {
@@ -149,12 +154,6 @@ impl Default for AlignPairwiseParams {
       penalty_mismatch: 1,
       score_match: 3,
       max_band_area: 500_000_000, // requires around 500Mb for paths, 2GB for the scores
-      max_indel: 400,             // obsolete
-      seed_length: 21,            // obsolete
-      min_seeds: 10,              // obsolete
-      min_match_rate: 0.3,        // obsolete
-      seed_spacing: 100,          // obsolete
-      mismatches_allowed: 3,      // obsolete
       retry_reverse_complement: false,
       no_translate_past_stop: false,
       left_terminal_gaps_free: true,
@@ -164,11 +163,49 @@ impl Default for AlignPairwiseParams {
       terminal_bandwidth: 50,
       min_seed_cover: 0.33,
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
-      kmer_distance: 50,     // Distance between successive kmers
+      kmer_distance: 50,     // Distance between successive k-mers
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
       allowed_mismatches: 8, // Ns count as mismatches
       window_size: 30,
       max_alignment_attempts: 3,
+
+      // The following args are deprecated and are kept for backwards compatibility (to emit errors if they are set)
+      max_indel: None,
+      seed_length: None,
+      min_seeds: None,
+      min_match_rate: None,
+      seed_spacing: None,
+      mismatches_allowed: None,
     }
+  }
+}
+
+impl AlignPairwiseParams {
+  pub fn validate(&self) -> Result<(), Report> {
+    #[rustfmt::skip]
+  let deprecated = BTreeMap::from([
+    (o!("--min-seeds            (minSeeds)"),             &self.min_seeds),
+    (o!("--seed-length          (seedLength)"),           &self.seed_length),
+    (o!("--seed-spacing         (seedSpacing)"),          &self.seed_spacing),
+    (o!("--min-match-rate       (minMatchRate)"),         &self.min_match_rate),
+    (o!("--mismatches-allowed   (mismatchesAllowed)"),    &self.mismatches_allowed),
+    (o!("--max-indel            (maxIndel)"),             &self.max_indel),
+  ]);
+
+    if deprecated.values().any(|val| val.is_some()) {
+      let keys = deprecated.keys().map(|key| format!("  {key}")).join("\n");
+
+      return make_error!(
+        r#"The following alignment parameters (CLI arguments and config file fields) were removed in Nextclade 3.0.0 due to changes in the alignment algorithm:
+
+{keys}
+
+Please remove them from your dataset and/or from command-line invocation.
+
+Refer to user documentation for more details."#
+      );
+    }
+
+    Ok(())
   }
 }
