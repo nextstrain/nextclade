@@ -131,33 +131,16 @@ pub struct NextcladeDatasetListArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub name: Option<String>,
 
-  /// REMOVED
-  #[clap(long, short = 'r')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub reference: Option<String>,
-
   /// Restrict list to datasets with this exact version tag.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   pub tag: Option<String>,
-
-  /// REMOVED
-  #[clap(long, short = 'a')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub attribute: Vec<String>,
 
   /// Include dataset versions that are incompatible with this version of Nextclade CLI.
   ///
   /// By default the incompatible versions are omitted.
   #[clap(long)]
   pub include_incompatible: bool,
-
-  /// REMOVED
-  #[clap(long)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub include_old: Option<bool>,
 
   /// Include deprecated datasets.
   ///
@@ -201,6 +184,22 @@ pub struct NextcladeDatasetListArgs {
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
+
+  // Deprecated args
+  /// REMOVED
+  #[clap(long, short = 'r')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub reference: Option<String>,
+
+  /// REMOVED
+  #[clap(long, short = 'a')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub attribute: Vec<String>,
+
+  /// REMOVED
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub include_old: bool,
 }
 
 #[derive(Parser, Debug)]
@@ -212,24 +211,12 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub name: String,
 
-  /// REMOVED
-  #[clap(long, short = 'r')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub reference: Option<String>,
-
   /// Version tag of the dataset to download.
   ///
   /// If this flag is not provided the latest version is downloaded.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   pub tag: Option<String>,
-
-  /// REMOVED
-  #[clap(long, short = 'a')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub attribute: Vec<String>,
 
   /// Use custom dataset server.
   ///
@@ -263,6 +250,17 @@ pub struct NextcladeDatasetGetArgs {
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
+
+  // Deprecated arguments
+  /// REMOVED
+  #[clap(long, short = 'r')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub reference: Option<String>,
+
+  /// REMOVED
+  #[clap(long, short = 'a')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub attribute: Vec<String>,
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, EnumIter)]
@@ -922,7 +920,8 @@ When positional arguments are not provided, nextclade will read input fasta from
 const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str =
   r#"The argument `--input-root-seq` (alias `--reference`) is removed in favor of `--input-ref`."#;
 
-const ERROR_MSG_INPUT_GENE_MAP_RENAMED: &str = r#"The argument `--input-gene-map` (alias `--genemap`) is renamed to `--input-annotation`."#;
+const ERROR_MSG_INPUT_GENE_MAP_RENAMED: &str =
+  r#"The argument `--input-gene-map` (alias `--genemap`) is renamed to `--input-annotation`."#;
 
 const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
 
@@ -952,7 +951,7 @@ const ERROR_MSG_OUTPUT_ERRORS_REMOVED: &str = r#"The argument `--output-errors` 
 
 In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`)."#;
 
-const MSG_READ_DOCS: &str = r#"
+const MSG_READ_RUN_DOCS: &str = r#"
 
 For more information, type
 
@@ -964,39 +963,105 @@ Read Nextclade documentation at:
 
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_root_seq.is_some() || run_args.inputs.reference.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_ROOT_SEQ_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_INPUT_ROOT_SEQ_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_gene_map.is_some() || run_args.inputs.genemap.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_GENE_MAP_RENAMED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_INPUT_GENE_MAP_RENAMED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_virus_properties.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_VIRUS_PROPERTIES_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_INPUT_VIRUS_PROPERTIES_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_qc_config.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_pcr_primers.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_dir.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_insertions.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_errors.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}{MSG_READ_DOCS}");
+    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}{MSG_READ_RUN_DOCS}");
+  }
+
+  Ok(())
+}
+
+const MSG_DATASET_NAMING_CHANGE: &str = r#"
+
+Nextclade datasets are now identified only by their name (`--name`) and, optionally, a version tag (`--tag`). All other attributes are now included into the name.
+
+In order to list all dataset names, type:
+
+  nextclade dataset list --names-only"#;
+
+const MSG_READ_DATASET_LIST_DOCS: &str = r#"
+
+For more information, type
+
+  nextclade dataset list --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+fn nextclade_check_removed_dataset_list_args(args: &NextcladeDatasetListArgs) -> Result<(), Report> {
+  if args.reference.is_some() {
+    return make_error!(
+      "The argument `--reference` (alias `-r`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_LIST_DOCS}"
+    );
+  }
+
+  if !args.attribute.is_empty() {
+    return make_error!(
+      "The argument `--attribute` (alias `-a`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_LIST_DOCS}"
+    );
+  }
+
+  if args.include_old {
+    return make_error!(
+      "The argument `--include-old` is removed. All versions are always shown now. {MSG_READ_DATASET_LIST_DOCS}"
+    );
+  }
+
+  Ok(())
+}
+
+const MSG_READ_DATASET_GET_DOCS: &str = r#"
+
+For more information, type
+
+  nextclade dataset get --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+fn nextclade_check_removed_dataset_get_args(args: &NextcladeDatasetGetArgs) -> Result<(), Report> {
+  if args.reference.is_some() {
+    return make_error!(
+      "The argument `--reference` (alias `-r`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_GET_DOCS}"
+    );
+  }
+
+  if !args.attribute.is_empty() {
+    return make_error!(
+      "The argument `--attribute` (alias `-a`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_GET_DOCS}"
+    );
   }
 
   Ok(())
@@ -1034,8 +1099,14 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
       nextclade_run(*run_args)
     }
     NextcladeCommands::Dataset(dataset_command) => match dataset_command.command {
-      NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
-      NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
+      NextcladeDatasetCommands::List(dataset_list_args) => {
+        nextclade_check_removed_dataset_list_args(&dataset_list_args)?;
+        nextclade_dataset_list(dataset_list_args)
+      }
+      NextcladeDatasetCommands::Get(dataset_get_args) => {
+        nextclade_check_removed_dataset_get_args(&dataset_get_args)?;
+        nextclade_dataset_get(&dataset_get_args)
+      }
     },
     NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
     NextcladeCommands::ReadAnnotation(read_annotation_args) => nextclade_read_annotation(&read_annotation_args),
