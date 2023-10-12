@@ -328,14 +328,9 @@ pub struct NextcladeRunInputArgs {
   /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'r', visible_alias("reference"))]
+  #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
-
-  /// REMOVED. Use --input-ref instead
-  #[clap(long)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_root_seq: Option<String>,
 
   /// Path to Auspice JSON v2 file containing reference tree.
   ///
@@ -348,26 +343,14 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_tree: Option<PathBuf>,
 
-  /// REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
-  #[clap(long, short = 'Q')]
-  #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_qc_config: Option<PathBuf>,
-
   /// Path to a JSON file containing configuration and data specific to a pathogen.
   ///
   /// Overrides path to `pathogen.json` in the dataset (`--input-dataset`).
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'R')]
-  #[clap(value_hint = ValueHint::FilePath)]
-  pub input_pathogen_json: Option<PathBuf>,
-
-  /// REMOVED. Merged into pathogen.json, see `--input-pathogen`
   #[clap(long, short = 'p')]
   #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_pcr_primers: Option<PathBuf>,
+  pub input_pathogen_json: Option<PathBuf>,
 
   /// Path to a GFF3 file containing (genome annotation).
   ///
@@ -383,7 +366,7 @@ pub struct NextcladeRunInputArgs {
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'm', alias = "genemap")]
+  #[clap(long, short = 'm')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_annotation: Option<PathBuf>,
 
@@ -408,6 +391,41 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::Url)]
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
   pub server: Url,
+
+  // Deprecated arguments. Kept in oder to detect usage and print error messages.
+  /// REMOVED. Use --input-ref instead
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_root_seq: Option<String>,
+
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub reference: Option<String>,
+
+  /// REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
+  #[clap(long, short = 'Q')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_qc_config: Option<String>,
+
+  /// REMOVED. The virus_properties.json file have been merged into pathogen.json, see `--input-pathogen-json`
+  #[clap(long, short = 'R')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_virus_properties: Option<String>,
+
+  /// REMOVED. The pcr_primers.csv file have been merged into pathogen.json, see `--input-pathogen-json`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_pcr_primers: Option<String>,
+
+  /// RENAMED to `--input-annotation`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_gene_map: Option<String>,
+
+  /// RENAMED to `--input-annotation`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub genemap: Option<String>,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -899,17 +917,12 @@ Try:
                                one or multiple positional arguments
                                  with paths to input fasta files
 
-When positional arguments are not provided, nextclade will read input fasta from standard input.
+When positional arguments are not provided, nextclade will read input fasta from standard input."#;
 
-For more information, type:
+const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str =
+  r#"The argument `--input-root-seq` (alias `--reference`) is removed in favor of `--input-ref`."#;
 
-  nextclade run --help"#;
-
-const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str = r#"The argument `--input-root-seq` is removed in favor of `--input-ref`.
-
-For more information, type
-
-  nextclade run --help"#;
+const ERROR_MSG_INPUT_GENE_MAP_RENAMED: &str = r#"The argument `--input-gene-map` (alias `--genemap`) is renamed to `--input-annotation`."#;
 
 const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
 
@@ -917,51 +930,29 @@ When provided, `--output-all` allows to write all possible outputs into a direct
 
 The defaut base name of the files can be overriden with `--output-basename` argument.
 
-The set of output files can be restricted with `--output-selection` argument.
+The set of output files can be restricted with `--output-selection` argument."#;
 
-For more information, type
+const ERROR_MSG_INPUT_VIRUS_PROPERTIES_REMOVED: &str = r#"The argument `--input-virus-properties` (alias `-R`) is removed in favor of `--input-pathogen-json`.
 
-  nextclade run --help"#;
+Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
-const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-config` is removed in favor of `--input-pathogen-json`.
+const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-config` (alias `-Q`) is removed in favor of `--input-pathogen-json`.
 
-Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
+Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
-For more information, type
+const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` (alias `-p`) is removed in favor of `--input-pathogen-json`.
 
-  nextclade run --help
-
-Read Nextclade documentation at:
-
-  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
-
-const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` is removed in favor of `--input-pathogen-json`.
-
-Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
-
-For more information, type
-
-  nextclade run --help
-
-Read Nextclade documentation at:
-
-  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
 const ERROR_MSG_OUTPUT_INSERTIONS_REMOVED: &str = r#"The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
 
-In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
-
-For more information, type
-
-  nextclade run --help
-
-Read Nextclade documentation at:
-
-  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`)."#;
 
 const ERROR_MSG_OUTPUT_ERRORS_REMOVED: &str = r#"The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`.
 
-In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`)."#;
+
+const MSG_READ_DOCS: &str = r#"
 
 For more information, type
 
@@ -973,31 +964,39 @@ Read Nextclade documentation at:
 
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
+    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}{MSG_READ_DOCS}");
   }
 
-  if run_args.inputs.input_root_seq.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_ROOT_SEQ_REMOVED}");
+  if run_args.inputs.input_root_seq.is_some() || run_args.inputs.reference.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_ROOT_SEQ_REMOVED}{MSG_READ_DOCS}");
+  }
+
+  if run_args.inputs.input_gene_map.is_some() || run_args.inputs.genemap.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_GENE_MAP_RENAMED}{MSG_READ_DOCS}");
+  }
+
+  if run_args.inputs.input_virus_properties.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_VIRUS_PROPERTIES_REMOVED}{MSG_READ_DOCS}");
   }
 
   if run_args.inputs.input_qc_config.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}");
+    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}{MSG_READ_DOCS}");
   }
 
   if run_args.inputs.input_pcr_primers.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}");
+    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}{MSG_READ_DOCS}");
   }
 
   if run_args.outputs.output_dir.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
+    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}{MSG_READ_DOCS}");
   }
 
   if run_args.outputs.output_insertions.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}");
+    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}{MSG_READ_DOCS}");
   }
 
   if run_args.outputs.output_errors.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}");
+    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}{MSG_READ_DOCS}");
   }
 
   Ok(())
