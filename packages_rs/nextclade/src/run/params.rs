@@ -2,8 +2,12 @@ use crate::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional};
 use crate::analyze::virus_properties::VirusProperties;
 use crate::run::params_general::{NextcladeGeneralParams, NextcladeGeneralParamsOptional};
 use crate::tree::params::{TreeBuilderParams, TreeBuilderParamsOptional};
+use crate::{make_error, o};
 use clap::Parser;
+use eyre::Report;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Parser, Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -27,9 +31,11 @@ pub struct NextcladeInputParams {
 }
 
 impl NextcladeInputParams {
-  pub fn from_optional(params: &NextcladeInputParamsOptional, virus_properties: &VirusProperties) -> Self {
+  pub fn from_optional(
+    params: &NextcladeInputParamsOptional,
+    virus_properties: &VirusProperties,
+  ) -> Result<Self, Report> {
     // FIXME: this code is repetitive and error prone
-
     let general = {
       // Start with defaults
       let mut general_params = NextcladeGeneralParams::default();
@@ -58,6 +64,8 @@ impl NextcladeInputParams {
       alignment_params
     };
 
+    alignment.validate()?;
+
     let tree_builder = {
       // Start with defaults
       let mut tree_builder_params = TreeBuilderParams::default();
@@ -72,10 +80,10 @@ impl NextcladeInputParams {
       tree_builder_params
     };
 
-    Self {
+    Ok(Self {
       general,
       tree_builder,
       alignment,
-    }
+    })
   }
 }

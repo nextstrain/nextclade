@@ -46,7 +46,7 @@ pub fn align_nuc(
     );
   }
 
-  if ref_len + qry_len < (10 * params.seed_length) {
+  if ref_len + qry_len < (20 * params.kmer_length) {
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
     trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix");

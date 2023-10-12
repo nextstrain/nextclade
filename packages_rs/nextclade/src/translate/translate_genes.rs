@@ -250,7 +250,7 @@ pub fn translate_cds(
     // Set to false for internal genes
     left_terminal_gaps_free: first(&qry_cds_seq)?.is_gap(),
     right_terminal_gaps_free: last(&qry_cds_seq)?.is_gap(),
-    ..*params
+    ..params.clone()
   };
 
   // Make sure subsequent gap stripping does not introduce frame shift
