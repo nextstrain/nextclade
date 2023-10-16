@@ -1,5 +1,5 @@
 import { isEmpty } from 'lodash'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
 import { AlgorithmInput } from 'src/types'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
@@ -33,6 +33,12 @@ export function useQuerySeqInputs() {
     resetSuggestions()
     resetSeqInputsStorage()
   }, [resetSeqInputsStorage, resetSuggestions])
+
+  useEffect(() => {
+    if (qryInputs.length === 0) {
+      resetSuggestions()
+    }
+  }, [qryInputs, resetSuggestions])
 
   return { qryInputs, addQryInputs, removeQryInput, clearQryInputs }
 }
