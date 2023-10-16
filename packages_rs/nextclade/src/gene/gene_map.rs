@@ -159,12 +159,23 @@ impl GeneMap {
   }
 }
 
+/// Test whether a given "gene_name" is in the list of CDSes of a given gene.
+fn cds_in_gene(gene: &Gene, cds_name: &str) -> bool {
+  gene.cdses.iter().any(|cds| cds.name == cds_name)
+}
+
+/// Test whether a given "gene_name" is in any of the genes in the given gene map.
+fn cds_in_any_gene(gene_map: &GeneMap, cds_name: &str) -> bool {
+  gene_map.iter_genes().any(|(_, gene)| cds_in_gene(gene, cds_name))
+}
+
 /// Filters genome annotation according to the list of requested genes.
 pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMap {
   if let Some(genes) = genes {
     let gene_map: BTreeMap<String, Gene> = gene_map
       .into_iter_genes()
-      .filter(|(gene_name, ..)| genes.contains(gene_name))
+      // These are now `Gene`s
+      .filter(|gene: &(_, Gene)| genes.contains(&gene.0))
       .collect();
 
     let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
