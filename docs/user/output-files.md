@@ -149,7 +149,7 @@ The table can contain additional columns for every clade-like attribute defined 
 
 ### JSON results
 
-Nextclade CLI flag: `--output-json`, filename `nextclade.json`.
+Nextclade CLI flag: `--output-json`/`-J`, filename `nextclade.json`.
 
 JSON results file is best for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
 
@@ -163,7 +163,7 @@ JSON results file is best for in-depth automated processing of results. It conta
 
 ### NDJSON results
 
-Nextclade CLI flag: `--output-ndjson`, filename `nextclade.ndjson`,
+Nextclade CLI flag: `--output-ndjson`/`-N`, filename `nextclade.ndjson`,
 
 NDJSON results are similar to the JSON results - it combines `results` and `errors` arrays from it, and similarly suited well for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format. Compared to JSON format, NDJSON can be streamed and piped one line at a time, and does not cause increased memory consumption for large input data.
 
@@ -175,11 +175,11 @@ NDJSON results are similar to the JSON results - it combines `results` and `erro
 
 ## Output phylogenetic tree
 
-Nextclade CLI flags: `--output-tree`, filename: `nextclade.auspice.json`.
+Nextclade CLI flags: `--output-tree`/`-T`, filename: `nextclade.auspice.json`.
 
-Output phylogenetic tree. This is the input [reference tree](terminology.html#reference-tree-concept), with [Query Sequences](terminology.html#query-sequence) placed onto it.
+Output phylogenetic tree. This is the input [reference tree](terminology.html#reference-tree-concept), with [query sequences](terminology.html#query-sequence) placed onto it.
 
-The tree if Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain. And the same as for the input [reference tree](terminology.html#reference-tree-concept).
+The tree is in Auspice JSON v2 format ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used by Nextstrain's Augur and Auspice. And the same as used for the input [reference tree](terminology.html#reference-tree-concept).
 
 The tree can be visualized online in [auspice.us](https://auspice.us) or in a local instance of [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/index.html).
 
@@ -189,27 +189,11 @@ The tree can be visualized online in [auspice.us](https://auspice.us) or in a lo
 
 > ⚠️ Note, all positions are in alignment coordinates and after all the insertions stripped.
 
-## Stripped insertions
+## Output phylogenetic tree in Newick format
 
-CLI flag: `--output-insertions`, filename: `nextclade.insertions.csv`.
+Nextclade CLI flags: `--output-tree-nwk`, filename: `nextclade.nwk`.
 
-Nextclade strips insertions relative to the reference from aligned query sequences, so that inserted fragments no longer appear in the output sequences. This file contains information about the insertions, in CSV format.
-
-> ⚠️ This flag is deprecated for Nextclade CLI and exist for compatibility with Nextalign CLI. All information in this file is also available in Nextclade CSV, TSV, JSON and NDJSON outputs.
-
-The file contains the following columns (delimited by commas):
-
-- `seqName` - Name of the sequence, as in the input FASTA file
-- `insertions` - A string containing semicolon-separated insertions. Each insertion is in format `<begin>:<seq>`, where `<begin>` is the starting position of the insertion in the aligned sequence, `<seq>` is the nucleotide sequence fragment that was removed, e.g. `"22204:GAGCCAGAA"`.
-- `aaInsertions` - String containing semicolon-separated insertions translated to aminoacids. Each insertion is in the format `<gene>:<pos>:<seq>`, e.g. `"S:214:EPE"`.
-
-## List of errors and warnings
-
-CLI flag: `--output-errors`, filename: `nextclade.errors.csv`.
-
-A table that, for each sequence, contains a list of warnings (column `warnings`), errors (column `errors`) as well as a list of genes affected by error (column `failedGenes`). The genes listed in this table are omitted from translation, analysis and FASTA outputs.
-
-> ⚠️ This flag is deprecated for Nextclade CLI and exist for compatibility with Nextalign CLI. All information in this file is also available in Nextclade CSV, TSV, JSON and NDJSON outputs.
+To allow for compatibility with other software, Nextclade can output the tree in Newick format. This is a text-based format for representing phylogenetic trees as nested sets. It is widely used in bioinformatics.
 
 ## Outputs for failed sequences
 
@@ -220,20 +204,19 @@ When processing of a sequence fails for various reasons, not all output files wi
 | Aligned nucleotide sequences | `--output-fasta`        | no              |
 | Aligned peptides             | `--output-translations` | no              |
 | Auspice tree JSON            | `--output-tree`         | no              |
+| Newick tree                  | `--output-tree`         | no              |
 | Analysis results CSV         | `--output-csv`          | yes             |
 | Analysis results TSV         | `--output-tsv`          | yes             |
 | Analysis results NDJSON      | `--output-ndjson`       | yes             |
 | Analysis results JSON        | `--output-json`         | yes             |
-| Insertions CSV               | `--output-insertions`   | yes             |
-| Errors CSV                   | `--output-errors`       | yes             |
 
 ## Compression of output files and writing to standard output (stdout)
 
 If any of the output filenames ends with one of the supported file extensions: `gz`, `bz2`, `xz`, `zstd`, it will be transparently compressed. Low compression level is used (roughly corresponds to level "2" for most formats).
 
-If output filename is "-" then the output will be written uncompressed to standard output (stdout).
+If the output filename is `-` then the output will be written uncompressed to standard output (stdout).
 
-If a custom compression or other form of post-processing is needed, then you could tell Nextclade/Nextalign to write to stdout and then pipe the stdout to another program. For example:
+If a custom compression or other form of post-processing is needed, then you can tell Nextclade to write to stdout and then pipe the stdout to another program. For example:
 
 ```bash
 xzcat input.fasta.xz |
