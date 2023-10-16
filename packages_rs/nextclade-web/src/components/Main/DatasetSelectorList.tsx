@@ -148,7 +148,6 @@ export const Ul = styled(ListGroup)`
 export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
   position: relative;
 
-  cursor: pointer;
   opacity: ${(props) => props.$isDimmed && 0.4};
   background-color: transparent;
 
