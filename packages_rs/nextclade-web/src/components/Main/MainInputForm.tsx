@@ -6,6 +6,8 @@ import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 
 const Container = styled.div`
+  max-width: ${(props) => props.theme.containerMaxWidths.twoxl};
+  margin: 0 auto;
   height: 100%;
   overflow: hidden;
   margin-top: 10px;
