@@ -8,6 +8,7 @@ import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { search } from 'src/helpers/search'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import {
   autodetectResultsAtom,
@@ -19,7 +20,7 @@ import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { hasRequiredInputsAtom, useQuerySeqInputs } from 'src/state/inputs.state'
 import { canRunAtom } from 'src/state/results.state'
-import { shouldRunAutomaticallyAtom } from 'src/state/settings.state'
+import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsAtom } from 'src/state/settings.state'
 import type { Dataset } from 'src/types'
 import { areDatasetsEqual } from 'src/types'
 import styled from 'styled-components'
@@ -179,12 +180,14 @@ const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListIte
 
     const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
     const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
+    const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
     const { addQryInputs } = useQuerySeqInputs()
     const canRun = useRecoilValue(canRunAtom)
     const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
     const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
 
     const runAnalysis = useRunAnalysis()
+    const runSuggestions = useRunSeqAutodetect()
     const run = useCallback(() => {
       setDatasetCurrent(dataset)
       runAnalysis()
@@ -203,10 +206,13 @@ const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListIte
 
     const setExampleSequences = useCallback(() => {
       addQryInputs([new AlgorithmInputDefault(dataset)])
+      if (shouldSuggestDatasets) {
+        runSuggestions()
+      }
       if (shouldRunAutomatically) {
         runAnalysis()
       }
-    }, [addQryInputs, dataset, runAnalysis, shouldRunAutomatically])
+    }, [addQryInputs, dataset, runAnalysis, runSuggestions, shouldRunAutomatically, shouldSuggestDatasets])
 
     return (
       <Li ref={ref} $isDimmed={isDimmed} onClick={onClick}>
