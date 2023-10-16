@@ -20,8 +20,10 @@ export function DatasetSelector() {
     <Container>
       <Header>
         <Title>{t('Select dataset')}</Title>
-
         <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
+      </Header>
+      <Header>
+        <SuggestionPanel />
       </Header>
 
       <Main>
@@ -42,10 +44,6 @@ export function DatasetSelector() {
           </SpinnerWrapper>
         )}
       </Main>
-
-      <Footer>
-        <SuggestionPanel />
-      </Footer>
     </Container>
   )
 }
@@ -62,7 +60,6 @@ const Container = styled.div`
 const Header = styled.div`
   display: flex;
   flex: 0;
-  padding-left: 10px;
   margin-top: 10px;
   margin-bottom: 3px;
 `
@@ -72,11 +69,6 @@ const Main = styled.div`
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-`
-
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
 `
 
 const Title = styled.h4`

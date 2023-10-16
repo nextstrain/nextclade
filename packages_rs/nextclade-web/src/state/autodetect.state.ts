@@ -113,13 +113,6 @@ export const numberAutodetectResultsAtom = selector<number>({
   },
 })
 
-export const hasAutodetectResultsAtom = selector<boolean>({
-  key: 'hasAutodetectResultsAtom',
-  get({ get }) {
-    return get(numberAutodetectResultsAtom) > 0
-  },
-})
-
 export enum AutodetectRunState {
   Idle = 'Idle',
   Started = 'Started',
@@ -130,4 +123,11 @@ export enum AutodetectRunState {
 export const autodetectRunStateAtom = atom<AutodetectRunState>({
   key: 'autodetectRunStateAtom',
   default: AutodetectRunState.Idle,
+})
+
+export const hasAutodetectResultsAtom = selector<boolean>({
+  key: 'hasAutodetectResultsAtom',
+  get({ get }) {
+    return get(autodetectRunStateAtom) === AutodetectRunState.Done && get(numberAutodetectResultsAtom) > 0
+  },
 })

@@ -91,7 +91,6 @@ export function DatasetSelectorList({
     const topSuggestion = autodetectResult.itemsInclude[0]
     if (autodetectRunState === AutodetectRunState.Done) {
       onDatasetHighlighted(topSuggestion)
-      setAutodetectRunState(AutodetectRunState.Idle)
     }
   }, [autodetectRunState, autodetectResult.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
@@ -143,7 +142,6 @@ export const Ul = styled(ListGroup)`
   ${ListGenericCss};
   flex: 1;
   overflow: auto;
-  padding: 5px 5px;
   border-radius: 0 !important;
 `
 
