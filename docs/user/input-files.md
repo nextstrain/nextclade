@@ -10,13 +10,13 @@ Nextclade Web (simple and advanced modes): accepted in "Sequences" drag & drop b
 
 Nextclade CLI and Nextalign CLI accept fasta inputs as one or multiple positional arguments. Accepts plain or compressed FASTA files. If a compressed fasta file is provided, it will be transparently decompressed. Supported compression formats: `gz`, `bz2`, `xz`, `zstd`. Decompressor is chosen based on file extension. If there's multiple input files, then different files can have different compression formats. If positional arguments provided, the plain fasta input is read from standard input (stdin).
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text (one sequence per line).
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format)
 
 ## Reference (root) sequence
 
 Viral nucleotide sequence which serves as a reference for alignment and the analysis. Mutations are called relative to the reference sequence. It is expected to be the root of the [reference tree](#reference-tree). The best results are obtained when the reference sequence is a well-known consensus genome, of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text. The file is expected to contain only 1 sequence.
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) file containing exactly 1 sequence.
 
 Nextclade Web (advanced mode): accepted in "Root sequence" drag & drop box. A remote URL is also accepted in `input-root-sequence` URL parameter.
 
