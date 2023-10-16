@@ -86,19 +86,6 @@ export function DatasetSelectorList({
 
   const itemsRef = useRef<Map<string, HTMLLIElement>>(new Map())
 
-  function scrollToId(itemId: string) {
-    const node = itemsRef.current.get(itemId)
-    node?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    })
-  }
-
-  if (datasetHighlighted) {
-    scrollToId(datasetHighlighted.path)
-  }
-
   useEffect(() => {
     const topSuggestion = autodetectResult.itemsInclude[0]
     if (autodetectRunState === AutodetectRunState.Done) {
@@ -187,7 +174,7 @@ interface DatasetSelectorListItemProps {
 }
 
 const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
-  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
+  function DatasetSelectorListItemWithRef({ dataset, isDimmed, onClick }, ref) {
     const { t } = useTranslationSafe()
 
     const setDatasetCurrent = useSetRecoilState(datasetCurrentAtom)
@@ -222,7 +209,7 @@ const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListIte
     }, [addQryInputs, dataset, runAnalysis, shouldRunAutomatically])
 
     return (
-      <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
+      <Li ref={ref} $isDimmed={isDimmed} onClick={onClick}>
         <DatasetInfo dataset={dataset} />
 
         <ButtonLoadExample color="link" onClick={setExampleSequences}>
