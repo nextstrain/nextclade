@@ -44,7 +44,7 @@ export function RunPanel() {
   }, [addQryInputs, datasetCurrent, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
-    const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasInputErrors
+    const isRunButtonDisabled = !(canRun && hasRequiredInputs && !!datasetCurrent) || hasInputErrors
     return {
       isRunButtonDisabled,
       runButtonColor: isRunButtonDisabled ? 'secondary' : 'success',
@@ -52,7 +52,7 @@ export function RunPanel() {
         ? t('Please provide sequence data for the algorithm')
         : t('Launch the algorithm!'),
     }
-  }, [canRun, hasInputErrors, hasRequiredInputs, t])
+  }, [canRun, datasetCurrent, hasInputErrors, hasRequiredInputs, t])
 
   return (
     <Container>
