@@ -130,3 +130,8 @@ export const autodetectRunStateAtom = atom<AutodetectRunState>({
   key: 'autodetectRunStateAtom',
   default: AutodetectRunState.Idle,
 })
+
+export const isInSuggestModeAtom = atom({
+  key: 'isInSuggestModeAtom',
+  default: false,
+})

@@ -10,6 +10,8 @@ import { useRecoilValue } from 'recoil'
 import { Link } from 'src/components/Link/Link'
 import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
+import { isInSuggestModeAtom } from 'src/state/autodetect.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasRanAtom, hasTreeAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -99,19 +101,34 @@ export function NavigationBar() {
 
   const hasTree = useRecoilValue(hasTreeAtom)
   const hasRan = useRecoilValue(hasRanAtom)
+  const isInSuggestMode = useRecoilValue(isInSuggestModeAtom)
+  const dataset = useRecoilValue(datasetCurrentAtom)
 
   const linksLeft = useMemo(() => {
     return [
       { url: '/', content: t('Start'), title: t('Show start page') },
       {
+        url: '/dataset-suggest',
+        content: t('Suggest'),
+        title: t('Show dataset suggestion page'),
+        hidden: !isInSuggestMode,
+      },
+      {
+        url: dataset ? '/dataset' : undefined,
+        content: t('Dataset'),
+        title: dataset ? t('Show dataset selection page') : t('Please select dataset first'),
+      },
+      {
         url: hasRan ? '/results' : undefined,
         content: t('Results'),
-        title: hasRan ? t('Show analysis results table') : t('Please run the analysis first'),
+        title: hasRan ? t('Show analysis results table') : t('Please select a dataset and run the analysis first'),
       },
       {
         url: hasTree ? '/tree' : undefined,
         content: t('Tree'),
-        title: hasTree ? t('Show phylogenetic tree') : t('Please run the analysis on a dataset with reference tree'),
+        title: hasTree
+          ? t('Show phylogenetic tree')
+          : t('Please select a dataset with reference tree and run the analysis first'),
       },
       {
         url: '/settings',
@@ -119,9 +136,12 @@ export function NavigationBar() {
         title: t('Configure Nextclade'),
       },
     ].map((desc) => {
+      if (desc.hidden) {
+        return null
+      }
       return <NavLinkImpl key={desc.url ?? desc.title} desc={desc} active={pathname === desc.url} />
     })
-  }, [hasRan, hasTree, pathname, t])
+  }, [dataset, hasRan, hasTree, isInSuggestMode, pathname, t])
 
   const linksRight = useMemo(() => {
     return [
@@ -156,7 +176,7 @@ export function NavigationBar() {
       },
       {
         url: 'https://github.com/nextstrain/nextclade',
-        title: t('Link to our Github page'),
+        title: t('Link to our GitHub page'),
         content: <FaGithub size={20} color="#aaa" className="mb-1" />,
       },
       {

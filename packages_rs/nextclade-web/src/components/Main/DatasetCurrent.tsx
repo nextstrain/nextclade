@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react'
-import { Button, Col, Row } from 'reactstrap'
-import { useRecoilValue, useResetRecoilState } from 'recoil'
+import React from 'react'
+import { Col, Row } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
 import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
@@ -60,26 +60,12 @@ export const FlexLeft = styled.div`
   flex: 1;
 `
 
-export const FlexRight = styled.div``
-
-const ChangeButton = styled(Button)`
-  flex: 0 0 auto;
-  height: 2.1rem;
-  min-width: 100px;
-  margin-left: auto;
-`
-
 export function DatasetCurrent() {
   // Periodically checks if there's local update for the current dataset
   useUpdatedDataset()
 
   const { t } = useTranslationSafe()
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const resetDatasetCurrent = useResetRecoilState(datasetCurrentAtom)
-
-  const onChangeClicked = useCallback(() => {
-    resetDatasetCurrent()
-  }, [resetDatasetCurrent])
 
   if (!datasetCurrent) {
     return null
@@ -100,12 +86,6 @@ export function DatasetCurrent() {
                 <FlexLeft>
                   <DatasetInfo dataset={datasetCurrent} />
                 </FlexLeft>
-
-                <FlexRight>
-                  <ChangeButton type="button" color="secondary" onClick={onChangeClicked}>
-                    {t('Change')}
-                  </ChangeButton>
-                </FlexRight>
               </Col>
             </Row>
           </CurrentDatasetInfoBody>
