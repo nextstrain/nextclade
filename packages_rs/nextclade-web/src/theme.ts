@@ -16,6 +16,7 @@ const containerMaxWidths = {
   md: '720px',
   lg: '960px',
   xl: '1140px',
+  twoxl: '1500px',
   xxl: '1950px',
 }
 
