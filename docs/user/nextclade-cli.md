@@ -6,42 +6,27 @@ You can learn more about the algorithm in the [Algorithm](algorithm) section.
 
 This section describes:
 
-- how to install Nextclade CLI - using Docker container and natively
+- how to install Nextclade CLI - using Docker, as a standalone executable, or using conda
 - how to run Nextclade CLI with sample data
 - what other sections of the documentation are worth checking after that
 
-## Installation (with docker)
+## Installation
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
+### Conda
 
-Pull and run the latest version with:
+> ⚠️Note that new versions may appear on bioconda with some delay (hours to days)
 
-```bash
-docker pull nextstrain/nextclade:latest
-docker run -it --rm nextstrain/nextclade:latest nextclade --help
-```
-
-Pull and run a specific version with:
+A [Nextclade conda package](https://anaconda.org/bioconda/nextclade) is available for Linux and macOS from the `conda` channel `bioconda`:
 
 ```bash
-docker run -it --rm nextstrain/nextclade:2.0.0 nextclade --help
+conda install -c bioconda nextclade
 ```
 
-> ⚠️Don't forget to mount necessary [docker volumes](https://docs.docker.com/storage/volumes/) to be able to supply the data into the container and to access the results. You may want to also add [`--user` argument](https://docs.docker.com/engine/reference/commandline/run/) to docker command, to run on behalf of a non-root user and group. This is not specific to Nextclade. Please refer to Docker documentation for more details.
+Use `mamba` instead of `conda` for faster installation. Bioconda does not support arm64 architectures yet. So if you want maximum performance (~2x speedup) use the standalone executable or compile from source.
 
-Docker images are available based on:
+### Standalone executable
 
-- `debian` (default): Nextclade executable + a set of basic Linux utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows
-- `alpine`: pure Alpine + Nextclade executable
-- `scratch`: empty image + Nextclade executable
-
-You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:2.0.0`) or only major version (e.g. `:2`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:2.0.0-debian`), or mix and match.
-
-Tag `:latest` points to `:debian`.
-
-## Installation (local)
-
-### Download manually
+#### Download manually
 
 You can download the latest version of Nextclade CLI for your platform using one of these direct links:
 
@@ -61,7 +46,7 @@ These executables are self-contained and don't require any dependencies. They ca
 
 > ⚠️ **GNU vs musl.** Nextclade has two flavors of executables for Linux: "gnu" and "musl", depending on what libc is used. We recommend "gnu" flavor by default - it is typically faster. However, if for some reason "gnu" flavor does not work, try "musl".
 
-### Download from command line
+#### Download from command line
 
 The following commands can be used to download Nextclade from command line, from shell scripts and inside dockerfiles:
 
@@ -136,56 +121,115 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/2.0.0/next
 
 Download latest version:
 
-```
+```powershell
 Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
 ```
 
 Download specific version:
 
-```
+```powershell
 Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/2.0.0/nextclade-x86_64-pc-windows-gnu.exe -O nextclade.exe
 ```
 
 </details>
 </p>
 
+### Docker
 
-### Using conda
+Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
 
-> ⚠️Note that new versions may appear on bioconda with some delay (hours to weeks)
-
-A [Nextclade conda package](https://anaconda.org/bioconda/nextclade) is available for Linux and macOS from the `conda` channel `bioconda`:
+Pull and run the latest released version with:
 
 ```bash
-conda install -c bioconda nextclade
+docker pull nextstrain/nextclade:latest
+docker run -it --rm nextstrain/nextclade:latest nextclade --help
 ```
+
+Pull and run a specific version with:
+
+```bash
+docker run -it --rm nextstrain/nextclade:2.0.0 nextclade --help
+```
+
+> ⚠️Don't forget to mount necessary [docker volumes](https://docs.docker.com/storage/volumes/) to be able to supply the data into the container and to access the results. You may want to also add [`--user` argument](https://docs.docker.com/engine/reference/commandline/run/) to docker command, to run on behalf of a non-root user and group. This is not specific to Nextclade. Please refer to Docker documentation for more details.
+
+E.g. to run Nextclade on a single file `my_sequences.fasta` in your current directory auto-downloading the `nextstrain/sars-cov-2/MN908947` dataset and outputting into the `output/` directory in your current folder:
+
+```bash
+docker run -it --rm -v $(pwd):/data nextstrain/nextclade nextclade run -D nextstrain/sars-cov-2/MN908947 data/my_sequences.fasta --output-all data/output
+```
+
+Docker images are available based on:
+
+- `debian` (default): Nextclade executable + a set of basic Linux utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows
+- `alpine`: pure Alpine + Nextclade executable
+- `scratch`: empty image + Nextclade executable
+
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:2.0.0`) or only major version (e.g. `:2`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:2.0.0-debian`), or mix and match.
+
+Tag `:latest` points to `:debian`.
+
+### Build from source
+
+If you have an architecture for which we don't provide a binary (e.g. Windows/Linux on ARM64, you can always build Nextclade from source This is most easily done using `cargo` (as Nextclade is written in Rust).
+
+Install Rust, e.g. using `rustup`, see [docs](https://www.rust-lang.org/tools/install).
+
+Clone the repository (default is `master` branch which could be unstable):
+
+```bash
+git clone --depth 1 https://github.com/nextstrain/nextclade.git nextclade
+cd nextclade
+```
+
+Copy the default `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Build the executable:
+
+```bash
+ cargo install --path packages_rs/nextclade-cli
+```
+
+If you will only ever use the executable on the current machine, you can use it with all features supported by your CPU for maximum performance:
+
+```bash
+RUSTFLAGS="-C target-cpu=native" cargo install --path packages_rs/nextclade-cli
+```
+
+Cargo puts the executable at the following path: `~/.cargo/bin/nextclade`.
 
 ## Usage
 
-Refer to help prompt for usage of Nextclade:
+Refer to the help prompt for usage of Nextclade:
 
 ```bash
-nextclade --help
+nextclade
 ```
 
 Each subcommand has its own help prompt:
 
 ```bash
+nextclade run --help
 nextclade dataset --help
 nextclade dataset list --help
 nextclade dataset get --help
-nextclade run --help
+nextclade sort --help
+nextclade read-annotation
 ```
 
 <!--- TODO: Should be expanded with detailed explanation of the commands -->
 
-## Quick Example
+## Quick start
 
-1. Download SARS-CoV-2 dataset:
+1. Download a SARS-CoV-2 dataset:
 
-    ```bash
-    nextclade dataset get --name 'sars-cov-2' --output-dir 'data/sars-cov-2'
-    ```
+   ```bash
+   nextclade dataset get --name 'nextstrain/sars-cov-2/MN908947' --output-dir 'data/sars-cov-2'
+   ```
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
@@ -206,48 +250,48 @@ nextclade run --help
 
    ```bash
    nextclade run \
+      --verbose \
+      --include-reference \
       --in-order \
       --input-dataset=data/sars-cov-2 \
       --input-ref=data/sars-cov-2/reference.fasta \
-      --input-gene-map=data/sars-cov-2/genemap.gff \
+      --input-annotation=data/sars-cov-2/genome_annotation.gff3 \
       --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
       --input-tree=data/sars-cov-2/tree.json \
-      --input-qc-config=data/sars-cov-2/qc.json \
-      --input-pcr-primers=data/sars-cov-2/primers.csv \
-      --input-virus-properties=data/sars-cov-2/virus_properties.json \
+      --input-pathogen-json=data/sars-cov-2/pathogen.json \
       --output-fasta=output/nextclade.aligned.fasta.gz \
       --output-json=output/nextclade.json \
       --output-ndjson=output/nextclade.ndjson \
       --output-csv=output/nextclade.csv \
       --output-tsv=output/nextclade.tsv \
       --output-tree=output/nextclade.auspice.json \
-      --output-translations=output/gene_{gene}.translation.fasta.gz \
+      --output-tree-nwk=output/nextclade.tree.nwk \
+      --output-translations=output/nextclade_gene_{gene}.translation.fasta.zst \
       data/sars-cov-2/sequences.fasta \
       my_sequences1.fasta.gz \
       my_sequences2.fasta.xz
    ```
 
-   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs. Add `--in-order` to preserve the same order of results in output files as in input fasta (has runtime performance cost).
+   Add the `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs. Add `--in-order` to preserve the same order of results in output files as in input fasta (has runtime performance cost).
 
-   The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
+   The `--input-dataset` argument can be combined with individual `--input*` args. In this case, individual args override the corresponding files in the dataset.
 
-   If `--output-all` is used, you can set the `--output-basename` to control filenames and `--output-selection=all,fasta,json,ndjson,csv,tsv,tree,translations,insertions,errors` to control which files are emitted.
+   If `--output-all` is used, you can set `--output-basename` to control filenames and `--output-selection=all,fasta,json,ndjson,csv,tsv,tree,translations,insertions,errors` to control which files are emitted.
 
-   There is even more advanced flags to control alignment and other parts of the algorithm. Refer to `nextclade run --help` for more details.
+   There are more advanced arguments to control alignment and other parts of the algorithm. Refer to `nextclade run --help` for more details.
 
-   You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each subcommand and each flag.
+   You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for a detailed description of each subcommand and each flag.
 
-4. Find the output files in the `output/` directory:
+3. Find the output files in the `output/` directory:
 
 - `nextclade.aligned.fasta` - aligned input sequences
 - `nextclade_gene_<gene_name>.translation.fasta` - aligned peptides corresponding to each gene
-- `nextclade.insertions.csv` - list of stripped insertions, for each input sequence
 - `nextclade.tsv` - results of the analysis in TSV format
 - `nextclade.csv` - same results, but in CSV format
 - `nextclade.json` - detailed results of the analysis in JSON format
 - `nextclade.ndjson` - detailed results of the analysis in newline-delimited JSON format
-- `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it
-- `nextclade.errors.csv` - list of errors, warnings and failed genes
+- `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it and in Auspice v2 JSON format
+- `nextclade.tree.nwk` - same as input tree, but with the input sequences placed onto it and in Newick format
 
 ## What's next?
 
@@ -257,4 +301,4 @@ Going further, you might want to learn about the science behind the Nextclade in
 
 For a more convenient online tool, check out [Nextclade Web](nextclade-web).
 
-Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want to obtain source code and contribute to the project.
+Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want report a bug, suggest a feature, or contribute code.
