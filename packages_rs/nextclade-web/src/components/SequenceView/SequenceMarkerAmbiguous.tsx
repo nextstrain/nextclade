@@ -52,7 +52,7 @@ export function SequenceMarkerAmbiguousUnmemoed({
       D: t('not C (A, G or T)'),
       V: t('not T (A, C or G)'),
     }
-    const disambiguated = get(AMBIGUOUS_NUCS, character) ?? ''
+    const disambiguated = get(AMBIGUOUS_NUCS, character)
 
     let text = `${rangeStr}: ${character}`
     if (disambiguated) {
