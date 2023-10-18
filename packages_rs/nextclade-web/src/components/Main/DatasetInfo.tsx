@@ -14,6 +14,7 @@ import styled from 'styled-components'
 export const Container = styled.div`
   display: flex;
   margin: 0;
+  width: 100%;
 `
 
 export const FlexLeft = styled.div`
@@ -42,6 +43,7 @@ export const DatasetInfoLine = styled.p`
   font-size: 0.9rem;
   padding: 0;
   margin: 0;
+  width: 100%;
 
   &:after {
     content: ' ';
@@ -50,8 +52,10 @@ export const DatasetInfoLine = styled.p`
 `
 
 const DatasetInfoBadge = styled(Badge)`
-  font-size: 0.7rem;
-  padding: 0.17rem 0.33rem;
+  margin-left: auto;
+  font-size: 0.8rem;
+  margin-top: 2px !important;
+  padding: 0.25rem 0.5rem;
 `
 
 export interface DatasetInfoProps {
@@ -89,13 +93,11 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
       <FlexRight>
         <DatasetName>
           <span>{name.valueFriendly ?? name.value ?? path}</span>
-        </DatasetName>
 
-        <div>
           <span className="d-flex ml-auto">
             {official ? (
               <DatasetInfoBadge
-                className="mr-1 my-0"
+                className="ml-2 my-auto"
                 color="success"
                 title="This dataset is provided by Nextclade team."
               >
@@ -103,7 +105,7 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
               </DatasetInfoBadge>
             ) : (
               <DatasetInfoBadge
-                className="mr-1 my-0"
+                className="ml-2 my-auto"
                 color="info"
                 title="This dataset is provided by the community members. Nextclade team cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions."
               >
@@ -113,7 +115,7 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
 
             {experimental && (
               <DatasetInfoBadge
-                className="mr-1 my-0"
+                className="ml-2 my-auto"
                 color="warning"
                 title="Dataset authors marked this dataset as experimental, which means the dataset is stil under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics."
               >
@@ -123,7 +125,7 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
 
             {deprecated && (
               <DatasetInfoBadge
-                className="mr-1 my-0"
+                className="ml-2 my-auto"
                 color="secondary"
                 title="Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics."
               >
@@ -131,7 +133,7 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
               </DatasetInfoBadge>
             )}
           </span>
-        </div>
+        </DatasetName>
 
         <DatasetInfoLine>
           {t('Reference: {{ name }} ({{ accession }})', {
@@ -160,7 +162,6 @@ export function DatasetAutodetectInfo({ dataset }: { dataset: Dataset }) {
           <span>{t('Autodetect')}</span>
         </DatasetName>
         <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
-        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
         <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
         <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
       </FlexRight>

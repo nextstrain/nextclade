@@ -9,6 +9,7 @@ export const Container = styled.div`
   box-shadow: 0 0 12px 0 #0002;
   border: 1px #ccc9 solid;
   border-radius: 5px;
+  width: 100%;
 `
 
 export interface DatasetListEntryProps {
