@@ -152,20 +152,24 @@ export function DatasetAutodetectInfo({ dataset }: { dataset: Dataset }) {
   const { t } = useTranslationSafe()
 
   return (
-    <ContainerFixed>
+    <Container>
       <FlexLeft>
-        <DatasetInfoAutodetectProgressCircle dataset={dataset} />
+        <DatasetInfoAutodetectProgressCircle dataset={dataset} text={'\u2728'} color={'#e02d88'} />
       </FlexLeft>
 
       <FlexRight>
         <DatasetName>
-          <span>{t('Autodetect')}</span>
+          <span>{t('Suggest automatically')}</span>
         </DatasetName>
-        <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
-        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+        <DatasetInfoLine className="font-weight-bold">
+          {t('Suggest dataset automatically from sequences.')}
+        </DatasetInfoLine>
+        <DatasetInfoLine>
+          {t('Nextclade will attempt to guess the dataset from sequences in an additional step')}
+        </DatasetInfoLine>
         <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
       </FlexRight>
-    </ContainerFixed>
+    </Container>
   )
 }
 
@@ -173,7 +177,7 @@ export function DatasetUndetectedInfo() {
   const { t } = useTranslationSafe()
 
   return (
-    <ContainerFixed>
+    <Container>
       <DatasetName>
         <span>{t('Not detected')}</span>
       </DatasetName>
@@ -181,31 +185,32 @@ export function DatasetUndetectedInfo() {
       <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
       <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
       <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-    </ContainerFixed>
+    </Container>
   )
 }
 
-const ContainerFixed = styled(Container)`
-  height: 127px;
-`
-
 export interface DatasetInfoCircleProps {
+  text?: string
+  color?: string
   dataset: Dataset
   showSuggestions?: boolean
 }
 
-function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: DatasetInfoCircleProps) {
+function DatasetInfoAutodetectProgressCircle({ text, color, dataset, showSuggestions }: DatasetInfoCircleProps) {
   const { attributes, path } = dataset
   const { name } = attributes
 
-  const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
+  const circleBg = useMemo(
+    () => color ?? darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })),
+    [color, path],
+  )
   const records = useRecoilValue(autodetectResultsByDatasetAtom(path))
   const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
 
   const { circleText, countText, percentage } = useMemo(() => {
     if (!showSuggestions || isNil(records)) {
       return {
-        circleText: (firstLetter(name.valueFriendly ?? name.value) ?? ' ').toUpperCase(),
+        circleText: text ?? (firstLetter(name.valueFriendly ?? name.value) ?? ' ').toUpperCase(),
         percentage: 0,
         countText: '\u00A0',
       }
@@ -218,7 +223,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [showSuggestions, records, numberAutodetectResults, name.valueFriendly, name.value])
+  }, [showSuggestions, records, numberAutodetectResults, text, name.valueFriendly, name.value])
 
   return (
     <>
