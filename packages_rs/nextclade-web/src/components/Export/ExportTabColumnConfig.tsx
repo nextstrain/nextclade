@@ -324,7 +324,7 @@ function enableColumn(config: CsvColumnConfig, category: string, column: string,
 
   const newColumns = { ...columns, [column]: enabled }
 
-  return { ...config, categories: { ...config?.categories, [category]: newColumns } }
+  return { ...config, categories: { ...config.categories, [category]: newColumns } }
 }
 
 function enableCategory(config: CsvColumnConfig, category: string, enable: boolean): CsvColumnConfig {
