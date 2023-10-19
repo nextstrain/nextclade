@@ -15,6 +15,7 @@ import {
   seqMarkerMutationHeightStateAtom,
   seqMarkerUnsequencedHeightStateAtom,
   maxNucMarkersAtom,
+  seqMarkerAmbiguousHeightStateAtom,
 } from 'src/state/seqViewSettings.state'
 
 /** Adapts Recoil state  `enum` to `string` */
@@ -53,6 +54,10 @@ export function SeqViewSettings() {
     seqMarkerMissingHeightStateAtom,
   )
 
+  const [seqMarkerAmbiguousHeightState, setSeqMarkerAmbiguousHeightState] = useSeqMarkerState(
+    seqMarkerAmbiguousHeightStateAtom,
+  )
+
   const [seqMarkerGapHeightState, setSeqMarkerGapHeightState] = useSeqMarkerState(seqMarkerGapHeightStateAtom)
 
   const [seqMarkerMutationHeightState, setSeqMarkerMutationHeightState] = useSeqMarkerState(
@@ -86,6 +91,15 @@ export function SeqViewSettings() {
                 values={SEQ_MARKER_HEIGHT_STATES}
                 value={seqMarkerMissingHeightState}
                 onChange={setSeqMarkerMissingHeightState}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              {t('Ambiguous')}
+              <Multitoggle
+                values={SEQ_MARKER_HEIGHT_STATES}
+                value={seqMarkerAmbiguousHeightState}
+                onChange={setSeqMarkerAmbiguousHeightState}
               />
             </FormGroup>
 

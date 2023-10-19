@@ -20,14 +20,14 @@ export function seqMarkerHeightStateToString(val: SeqMarkerHeightState) {
 export function seqMarkerHeightStateFromString(key: string) {
   // prettier-ignore
   switch (key) {
-    case "Top":
-      return SeqMarkerHeightState.Top;
-    case "Bottom":
-      return SeqMarkerHeightState.Bottom;
-    case "Full":
-      return SeqMarkerHeightState.Full;
-    case "Off":
-      return SeqMarkerHeightState.Off;
+    case 'Top':
+      return SeqMarkerHeightState.Top
+    case 'Bottom':
+      return SeqMarkerHeightState.Bottom
+    case 'Full':
+      return SeqMarkerHeightState.Full
+    case 'Off':
+      return SeqMarkerHeightState.Off
   }
   throw new ErrorInternal(`When converting string to 'SeqMarkerHeightState': Unknown variant'${key}'`)
 }
@@ -48,6 +48,12 @@ export function getSeqMarkerDims(state: SeqMarkerHeightState) {
 
 export const seqMarkerMissingHeightStateAtom = atom<SeqMarkerHeightState>({
   key: 'seqMarkerMissingHeight',
+  default: SeqMarkerHeightState.Top,
+  effects: [persistAtom],
+})
+
+export const seqMarkerAmbiguousHeightStateAtom = atom<SeqMarkerHeightState>({
+  key: 'seqMarkerAmbiguousHeightStateAtom',
   default: SeqMarkerHeightState.Top,
   effects: [persistAtom],
 })
