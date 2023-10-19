@@ -4,7 +4,8 @@ import { useRecoilState, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
 import copy from 'fast-copy'
 import { rgba } from 'polished'
-import { Col, Form, FormGroup, Input, Label, Row } from 'reactstrap'
+import { DEFAULT_EXPORT_PARAMS, useExportTsv, useExportCsv } from 'src/hooks/useExportResults'
+import { Button, Form, FormGroup, Input, Label } from 'reactstrap'
 import type { CsvColumnConfig } from 'src/types'
 import { csvColumnConfigAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -12,9 +13,15 @@ import { CardCollapsible } from 'src/components/Common/CardCollapsible'
 import { useStopPropagation } from 'src/hooks/useStopPropagation'
 import { CheckboxIndeterminate, CheckboxState } from 'src/components/Common/CheckboxIndeterminate'
 
-export function ExportTabColumnConfig() {
+export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: string): void }) {
   const { t } = useTranslationSafe()
   const [csvColumnConfig, setCsvColumnConfig] = useRecoilState(csvColumnConfigAtom)
+
+  const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
+  const exportCsv_ = useExportCsv() // eslint-disable-line no-underscore-dangle
+  const exportTsv_ = useExportTsv() // eslint-disable-line no-underscore-dangle
+  const exportCsv = useCallback(() => exportCsv_(exportParams.filenameCsv), [exportCsv_, exportParams.filenameCsv])
+  const exportTsv = useCallback(() => exportTsv_(exportParams.filenameTsv), [exportParams.filenameTsv, exportTsv_])
 
   const categories = useMemo(
     () =>
@@ -96,27 +103,76 @@ export function ExportTabColumnConfig() {
     [dynamicColumnsState, onDynamicColumnsStateChange, t],
   )
 
+  const onClick = useCallback(() => {
+    setActiveTabId('files')
+  }, [setActiveTabId])
+
   return (
-    <div>
-      <Row noGutters>
-        <Col>
-          <p>
-            {t('Here you can select columns (individual or categories) which will be written into CSV and TSV files.')}
-          </p>
-        </Col>
-      </Row>
-      <Row noGutters>
-        <Col>
-          <Form>
-            <CategoryCard header={all} />
-            {categories}
-            <CategoryCard header={dynamic} />
-          </Form>
-        </Col>
-      </Row>
-    </div>
+    <Container>
+      <Header>
+        <p>
+          {t('Here you can select columns (individual or categories) which will be written into CSV and TSV files.')}
+        </p>
+      </Header>
+
+      <Main>
+        <Form>
+          <CategoryCard header={all} />
+          {categories}
+          <CategoryCard header={dynamic} />
+        </Form>
+      </Main>
+
+      <Footer>
+        <div className="mt-2 mr-auto">
+          <Button type="button" color="danger" onClick={onClick} title={t('Return back to list of files')}>
+            {t('Back to Files')}
+          </Button>
+        </div>
+
+        <div className="mt-2 ml-auto">
+          <Button type="button" color="success" className="mx-1" onClick={exportCsv} title={t('Download CSV')}>
+            {t('Download CSV')}
+          </Button>
+
+          <Button type="button" color="primary" className="mx-1" onClick={exportTsv} title={t('Download TSV')}>
+            {t('Download TSV')}
+          </Button>
+        </div>
+      </Footer>
+    </Container>
   )
 }
+
+const Container = styled.div`
+  max-width: ${(props) => props.theme.containerMaxWidths.md};
+  margin: 0 auto;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+`
+
+const Header = styled.div`
+  display: flex;
+  flex: 0;
+  padding-left: 10px;
+  margin-top: 10px;
+  margin-bottom: 3px;
+`
+
+const Main = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+`
+
+const Footer = styled.div`
+  display: flex;
+  flex: 0;
+`
 
 export interface CsvColumnConfigCategoryProps {
   category: string

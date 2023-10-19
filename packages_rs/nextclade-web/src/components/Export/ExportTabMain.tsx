@@ -27,20 +27,20 @@ import {
 } from 'src/hooks/useExportResults'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-export interface ExportTabMainProps {
-  toggleColumnConfigOpen: () => void
-}
-
-export function ExportTabMain({ toggleColumnConfigOpen }: ExportTabMainProps) {
+export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): void }) {
   const { t } = useTranslationSafe()
+
+  const onClick = useCallback(() => {
+    setActiveTabId('column-config')
+  }, [setActiveTabId])
 
   const ColumnConfigLink = useMemo(
     () => (
-      <Button color="link" className="p-0" onClick={toggleColumnConfigOpen}>
+      <Button color="link" className="p-0" onClick={onClick}>
         {t('Configure columns')}
       </Button>
     ),
-    [t, toggleColumnConfigOpen],
+    [onClick, t],
   )
 
   // TODO: We could probably use a map and then iterate over it, to reduce duplication

@@ -1,22 +1,16 @@
-import React, { useCallback, useMemo } from 'react'
-import { Button } from 'reactstrap'
+import { useRouter } from 'next/router'
+import React, { useState } from 'react'
 import styled from 'styled-components'
+import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
+import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
+import { ExportTabMain } from 'src/components/Export/ExportTabMain'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Layout } from 'src/components/Layout/Layout'
-import { DEFAULT_EXPORT_PARAMS, useExportCsv, useExportTsv } from 'src/hooks/useExportResults'
-import { useToggle } from 'src/hooks/useToggle'
-import { ExportTabMain } from 'src/components/Export/ExportTabMain'
-import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
 
 export function ExportPage() {
   const { t } = useTranslationSafe()
-  const [isColumnConfigOpen, toggleColumnConfigOpen] = useToggle(false)
-
-  const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
-  const exportCsv_ = useExportCsv() // eslint-disable-line no-underscore-dangle
-  const exportTsv_ = useExportTsv() // eslint-disable-line no-underscore-dangle
-  const exportCsv = useCallback(() => exportCsv_(exportParams.filenameCsv), [exportCsv_, exportParams.filenameCsv])
-  const exportTsv = useCallback(() => exportTsv_(exportParams.filenameTsv), [exportParams.filenameTsv, exportTsv_])
+  const { asPath } = useRouter()
+  const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
 
   return (
     <Layout>
@@ -26,30 +20,23 @@ export function ExportPage() {
         </Header>
 
         <Main>
-          {isColumnConfigOpen ? (
-            <ExportTabColumnConfig />
-          ) : (
-            <ExportTabMain toggleColumnConfigOpen={toggleColumnConfigOpen} />
-          )}
+          <TabNav>
+            <TabLabel tabId="files" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+              {t('Files')}
+            </TabLabel>
+            <TabLabel tabId="column-config" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+              {t('Column config')}
+            </TabLabel>
+          </TabNav>
+          <TabContent activeTab={activeTabId}>
+            <TabPane tabId="files">
+              <ExportTabMain setActiveTabId={setActiveTabId} />
+            </TabPane>
+            <TabPane tabId="column-config">
+              <ExportTabColumnConfig setActiveTabId={setActiveTabId} />
+            </TabPane>
+          </TabContent>
         </Main>
-
-        <Footer>
-          {isColumnConfigOpen && (
-            <div className="mr-auto p-3">
-              <Button type="button" className="mx-1" onClick={toggleColumnConfigOpen} title={t('Back to Downloads')}>
-                {t('Back to Downloads')}
-              </Button>
-
-              <Button type="button" color="success" className="mx-1" onClick={exportCsv} title={t('Download CSV')}>
-                {t('Download CSV')}
-              </Button>
-
-              <Button type="button" color="primary" className="mx-1" onClick={exportTsv} title={t('Download TSV')}>
-                {t('Download TSV')}
-              </Button>
-            </div>
-          )}
-        </Footer>
       </Container>
     </Layout>
   )
@@ -57,7 +44,8 @@ export function ExportPage() {
 
 const Container = styled.div`
   max-width: ${(props) => props.theme.containerMaxWidths.md};
-  margin: 0 auto;
+  margin: auto;
+  padding: 0.8rem 0;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -78,9 +66,4 @@ const Main = styled.div`
   flex: 1;
   flex-direction: column;
   overflow: auto;
-`
-
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
 `
