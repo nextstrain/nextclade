@@ -8,7 +8,6 @@ import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValu
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import { BrowserWarning } from 'src/components/Common/BrowserWarning'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
@@ -55,7 +54,6 @@ import {
   minimizerIndexVersionAtom,
 } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
-import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 
 import 'src/styles/global.scss'
 
@@ -211,8 +209,6 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                     </Suspense>
                     <Suspense fallback={fallback}>
                       <SEO />
-                      <PreviewWarning />
-                      <BrowserWarning />
                       <Component {...pageProps} />
                       <ErrorPopup />
                       <ReactQueryDevtools initialIsOpen={false} />
