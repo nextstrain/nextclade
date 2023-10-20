@@ -38,6 +38,7 @@ export function DatasetSelectorListImpl({
       dataset.attributes.name.value,
       dataset.attributes.name.valueFriendly ?? '',
       dataset.attributes.reference.value,
+      dataset.attributes.reference.valueFriendly ?? '',
       dataset.path,
     ])
   }, [datasetsActive, datasetsInactive, searchTerm])
