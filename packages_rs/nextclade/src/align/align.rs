@@ -46,7 +46,7 @@ pub fn align_nuc(
     );
   }
 
-  if ref_len + qry_len < (10 * params.seed_length) {
+  if ref_len + qry_len < (20 * params.kmer_length) {
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
     trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix");
@@ -76,7 +76,7 @@ pub fn align_nuc(
     minimal_bandwidth,
   );
   if band_area > max_band_area {
-    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's virus_properties.json");
+    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's pathogen.json");
   }
 
   let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);

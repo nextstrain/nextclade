@@ -42,7 +42,7 @@ export function FilePickerAdvanced() {
           icon={iconJson}
           title={t('Reference tree')}
           exampleUrl="https://example.com/tree.json"
-          pasteInstructions={t('Enter tree data in Auspice JSON v2 format')}
+          pasteInstructions={t('Enter reference tree in Auspice JSON v2 format')}
           input={refTree}
           error={refTreeError}
           onRemove={resetRefTree}
@@ -53,9 +53,9 @@ export function FilePickerAdvanced() {
           className="my-3"
           compact
           icon={iconFasta}
-          title={t('Root sequence')}
+          title={t('Reference sequence')}
           exampleUrl="https://example.com/root_seq.fasta"
-          pasteInstructions={t('Enter root sequence data in FASTA format')}
+          pasteInstructions={t('Enter reference sequence in FASTA format')}
           input={refSeq}
           error={refSeqError}
           onRemove={resetRefSeq}
@@ -66,9 +66,9 @@ export function FilePickerAdvanced() {
           className="my-3"
           compact
           icon={iconJson}
-          title={t('Virus properties')}
-          exampleUrl="https://example.com/virus_properties.json"
-          pasteInstructions={t('Enter Virus attributes in JSON format')}
+          title={t('Pathogen JSON')}
+          exampleUrl="https://example.com/pathogen.json"
+          pasteInstructions={t('Enter pathogen description in JSON format')}
           input={virusProperties}
           error={virusPropertiesError}
           onRemove={resetVirusProperties}
@@ -79,9 +79,9 @@ export function FilePickerAdvanced() {
           className="my-3"
           compact
           icon={iconGff}
-          title={t('Gene map')}
-          exampleUrl="https://example.com/gene_map.json"
-          pasteInstructions={t('Enter gene map data in JSON format')}
+          title={t('Genome annotation')}
+          exampleUrl="https://example.com/genome_annotation.gff3"
+          pasteInstructions={t('Enter genome annotation in GFF3 format')}
           input={geneMap}
           error={geneMapError}
           onRemove={resetGeneMap}

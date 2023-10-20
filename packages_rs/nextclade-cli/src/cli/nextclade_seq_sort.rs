@@ -187,8 +187,6 @@ fn writer_thread(
     }
 
     for dataset in datasets {
-      let name = &dataset.name;
-
       results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
           seq_name: &record.fasta_record.seq_name,
@@ -197,24 +195,22 @@ fn writer_thread(
           num_hits: Some(dataset.n_hits),
         })
       })?;
+    }
 
-      let names = name
-        .split('/')
-        .scan(PathBuf::new(), |name, component| {
-          *name = name.join(component);
-          Some(name.clone())
-        })
-        .unique()
-        .map(path_to_string)
-        .collect::<Result<Vec<String>, Report>>()?;
+    let names = datasets
+      .iter()
+      .map(|dataset| get_all_prefix_names(&dataset.name))
+      .collect::<Result<Vec<Vec<String>>, Report>>()?
+      .into_iter()
+      .flatten()
+      .unique();
 
-      for name in names {
-        let filepath = get_filepath(&name, &template, output_dir)?;
+    for name in names {
+      let filepath = get_filepath(&name, &template, output_dir)?;
 
-        if let Some(filepath) = filepath {
-          let writer = get_or_insert_writer(&mut writers, filepath)?;
-          writer.write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)?;
-        }
+      if let Some(filepath) = filepath {
+        let writer = get_or_insert_writer(&mut writers, filepath)?;
+        writer.write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)?;
       }
     }
   }
@@ -222,6 +218,19 @@ fn writer_thread(
   stats.finish();
 
   Ok(())
+}
+
+pub fn get_all_prefix_names(name: impl AsRef<str>) -> Result<Vec<String>, Report> {
+  name
+    .as_ref()
+    .split('/')
+    .scan(PathBuf::new(), |name, component| {
+      *name = name.join(component);
+      Some(name.clone())
+    })
+    .unique()
+    .map(path_to_string)
+    .collect()
 }
 
 struct StatsPrinter {

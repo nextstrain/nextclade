@@ -1,6 +1,6 @@
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::divergence::{calculate_branch_length, count_nuc_muts, score_nuc_muts};
+use crate::analyze::divergence::{calculate_branch_length, score_nuc_muts};
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
@@ -293,6 +293,7 @@ pub fn knit_into_graph(
   ref_seq_len: usize,
   params: &TreeBuilderParams,
 ) -> Result<(), Report> {
+  let masked_ranges = graph.data.meta.placement_mask_ranges().to_owned();
   let divergence_units = graph.data.tmp.divergence_units;
 
   // the target node will be the sister of the new node defined by "private mutations" and the "result"
@@ -334,11 +335,31 @@ pub fn knit_into_graph(
       muts_new_node,
     }
   };
-  // if the node is a leaf or if there are shared mutations, need to split the branch above and insert aux node
+  // if the node is a leaf or if there are non-shared mutations, need to split the branch above and insert aux node
   if target_node.is_leaf() || !muts_target_node.nuc_muts.is_empty() {
     // determine divergence of new internal node by subtracting shared reversions from target_node
-    let divergence_middle_node =
-      target_node_div - calculate_branch_length(&muts_target_node.nuc_muts, divergence_units, ref_seq_len);
+    let divergence_middle_node = if target_node.is_root() {
+      target_node_div
+        - calculate_branch_length(
+          &muts_target_node.nuc_muts,
+          &masked_ranges,
+          divergence_units,
+          ref_seq_len,
+        )
+    } else {
+      let parent_node = graph.parent_of(target_node).unwrap();
+      let parent_node_auspice = parent_node.payload();
+      let parent_node_div = &parent_node_auspice.node_attrs.div.unwrap_or(0.0);
+      target_node_div.min(
+        parent_node_div
+          + calculate_branch_length(
+            &muts_common_branch.nuc_muts,
+            &masked_ranges,
+            divergence_units,
+            ref_seq_len,
+          ),
+      )
+    };
 
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
@@ -381,7 +402,8 @@ pub fn knit_into_graph(
       new_internal_node_key,
       &muts_new_node,
       result,
-      divergence_middle_node + calculate_branch_length(&muts_new_node.nuc_muts, divergence_units, ref_seq_len),
+      divergence_middle_node
+        + calculate_branch_length(&muts_new_node.nuc_muts, &masked_ranges, divergence_units, ref_seq_len),
     )?;
   } else {
     //can simply attach node
@@ -390,7 +412,7 @@ pub fn knit_into_graph(
       target_key,
       private_mutations,
       result,
-      target_node_div + calculate_branch_length(&muts_new_node.nuc_muts, divergence_units, ref_seq_len),
+      target_node_div + calculate_branch_length(&muts_new_node.nuc_muts, &masked_ranges, divergence_units, ref_seq_len),
     )?;
   }
   Ok(())

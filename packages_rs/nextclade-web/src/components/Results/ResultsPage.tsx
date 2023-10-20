@@ -5,7 +5,6 @@ import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import { Layout } from 'src/components/Layout/Layout'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
-import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
 import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
@@ -95,9 +94,6 @@ export function ResultsPage() {
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonFilter />
-            </HeaderRightContainer>
-            <HeaderRightContainer>
-              <ExportDialogButton />
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonTree />

@@ -114,6 +114,11 @@ export function NavigationBar() {
         title: hasTree ? t('Show phylogenetic tree') : t('Please run the analysis on a dataset with reference tree'),
       },
       {
+        url: hasRan ? '/export' : undefined,
+        content: t('Export'),
+        title: hasRan ? t('Export results') : t('Please run the analysis first.'),
+      },
+      {
         url: '/settings',
         content: t('Settings'),
         title: t('Configure Nextclade'),
@@ -156,7 +161,7 @@ export function NavigationBar() {
       },
       {
         url: 'https://github.com/nextstrain/nextclade',
-        title: t('Link to our Github page'),
+        title: t('Link to our GitHub page'),
         content: <FaGithub size={20} color="#aaa" className="mb-1" />,
       },
       {

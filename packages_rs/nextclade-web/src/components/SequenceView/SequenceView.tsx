@@ -1,6 +1,7 @@
 import React from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue } from 'recoil'
+import { SequenceMarkerAmbiguous } from 'src/components/SequenceView/SequenceMarkerAmbiguous'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
@@ -39,8 +40,18 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const { index, seqName, substitutions, missing, deletions, alignmentRange, frameShifts, insertions, nucToAaMuts } =
-    sequence
+  const {
+    index,
+    seqName,
+    substitutions,
+    missing,
+    deletions,
+    alignmentRange,
+    frameShifts,
+    insertions,
+    nucToAaMuts,
+    nonACGTNs,
+  } = sequence
 
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
@@ -77,6 +88,18 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         index={index}
         seqName={seqName}
         missing={oneMissing}
+        pixelsPerBase={pixelsPerBase}
+      />
+    )
+  })
+
+  const ambigViews = nonACGTNs.map((ambig) => {
+    return (
+      <SequenceMarkerAmbiguous
+        key={ambig.range.begin}
+        index={index}
+        seqName={seqName}
+        ambiguous={ambig}
         pixelsPerBase={pixelsPerBase}
       />
     )
@@ -148,6 +171,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
         />
         {mutationViews}
         {missingViews}
+        {ambigViews}
         {deletionViews}
         {insertionViews}
         <SequenceMarkerUnsequencedEnd
