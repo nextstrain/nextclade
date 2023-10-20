@@ -99,13 +99,13 @@ export function useRunAnalysis() {
             set(globalErrorAtom, error)
           },
           onTree({ auspice, nwk }) {
-            set(treeAtom, auspice as unknown as AuspiceJsonV2)
-            set(treeNwkAtom, nwk)
-
             const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
             dispatch(auspiceStartClean(auspiceState))
             dispatch(changeColorBy())
             dispatch(treeFilterByNodeType(['New']))
+
+            set(treeAtom, auspice as unknown as AuspiceJsonV2)
+            set(treeNwkAtom, nwk)
           },
           onComplete() {},
         }
