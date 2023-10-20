@@ -7,11 +7,12 @@ import {
   NavItem as NavItemBase,
 } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { BsCaretRightFill as ArrowRight } from 'react-icons/bs'
 import { Link } from 'src/components/Link/Link'
 import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
 import { hasRanAtom, hasTreeAtom } from 'src/state/results.state'
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
 import { CitationButton } from 'src/components/Citation/CitationButton'
@@ -30,20 +31,8 @@ export const Navbar = styled(NavbarBase)`
 
 export const Nav = styled(NavBase)`
   display: flex;
-  vertical-align: middle;
   padding: 0 !important;
   margin: 0 !important;
-`
-
-export const NavItem = styled(NavItemBase)`
-  padding: 0 0.5rem;
-  flex-grow: 0;
-  flex-shrink: 0;
-  margin: auto;
-
-  * {
-    vertical-align: middle;
-  }
 `
 
 const NavbarBrand = styled(NavbarBrandBase)`
@@ -65,16 +54,41 @@ const BrandText = styled(NextcladeTextLogo)`
   margin-right: 1rem;
 `
 
+export const NavItem = styled(NavItemBase)`
+  margin: auto;
+`
+
 export const NavLinkLocalStyle = styled(LinkSmart)<{ $active: boolean; disabled?: boolean }>`
+  padding: 0 0.5rem;
   color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.primary : theme.bodyColor)};
   font-weight: ${({ $active }) => $active && 'bold'};
   text-decoration: ${({ $active }) => $active && 'underline'};
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 `
 
+export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: boolean }>`
+  min-width: 90px;
+  padding: 3px 0;
+  background: ${(props) =>
+    props.$active ? props.theme.primary : props.disabled ? props.theme.gray250 : props.theme.gray150};
+  text-align: center;
+  border: #0001 solid 1px;
+  border-radius: 3px;
+`
+
+export const NavLinkBreadcrumbStyle = styled(NavLinkLocalStyle)<{ $active: boolean; disabled?: boolean }>`
+  text-decoration: none !important;
+  color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.white : theme.bodyColor)};
+
+  :hover {
+    color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.white : theme.bodyColor)};
+  }
+`
+
 export interface NavLinkDesc {
   url?: string
   content?: ReactNode
+  component?: ReactNode
   title?: string
 }
 
@@ -83,13 +97,32 @@ export interface NavLinkLocalProps {
   active?: boolean
 }
 
-export function NavLinkImpl({ desc: { url, content, title }, active = false }: NavLinkLocalProps) {
-  return (
-    <NavItem key={url} title={title} aria-disabled={!url}>
+export function NavLinkImpl({ desc: { url, content, component, title }, active = false }: NavLinkLocalProps) {
+  const item = useMemo(() => {
+    if (component) {
+      return component
+    }
+    return (
       <NavLinkLocalStyle href={url} $active={active} aria-disabled={!url} disabled={!url}>
         {content}
       </NavLinkLocalStyle>
+    )
+  }, [active, component, content, url])
+
+  return (
+    <NavItem key={url} title={title} aria-disabled={!url}>
+      {item}
     </NavItem>
+  )
+}
+
+export function NavLinkBreadcrumb({ desc: { url, content, title }, active = false }: NavLinkLocalProps) {
+  return (
+    <NavItemBreadcrumb key={url} title={title} $active={active} aria-disabled={!url} disabled={!url}>
+      <NavLinkBreadcrumbStyle href={url} $active={active} aria-disabled={!url} disabled={!url}>
+        {content}
+      </NavLinkBreadcrumbStyle>
+    </NavItemBreadcrumb>
   )
 }
 
@@ -118,18 +151,23 @@ export function NavigationBar() {
         content: t('Export'),
         title: hasRan ? t('Export results') : t('Please run the analysis first.'),
       },
-      {
-        url: '/settings',
-        content: t('Settings'),
-        title: t('Configure Nextclade'),
-      },
-    ].map((desc) => {
-      return <NavLinkImpl key={desc.url ?? desc.title} desc={desc} active={pathname === desc.url} />
+    ].map((desc, i) => {
+      const link = <NavLinkBreadcrumb key={desc.url ?? desc.title} desc={desc} active={pathname === desc.url} />
+      if (i === 0) {
+        return [link]
+      }
+      const arrow = <BreadcrumbArrow key={`arrow-${desc.url ?? desc.title}`} disabled={!desc.url} />
+      return [arrow, link]
     })
   }, [hasRan, hasTree, pathname, t])
 
   const linksRight = useMemo(() => {
     return [
+      {
+        url: '/settings',
+        content: t('Settings'),
+        title: t('Configure Nextclade'),
+      },
       {
         title: t('Cite Nextclade in your work'),
         content: <CitationButton />,
@@ -166,7 +204,7 @@ export function NavigationBar() {
       },
       {
         title: t('Change language'),
-        content: <LanguageSwitcher />,
+        component: <LanguageSwitcher className="px-2" />,
       },
     ].map((desc) => {
       return <NavLinkImpl key={desc.title} desc={desc} active={pathname === desc.url} />
@@ -187,3 +225,15 @@ export function NavigationBar() {
     </Navbar>
   )
 }
+
+export function BreadcrumbArrow({ disabled }: { disabled?: boolean }) {
+  const theme = useTheme()
+  const color = disabled ? theme.gray500 : theme.bodyColor
+  return <BreadCrumbArrowIcon size={15} $color={color} />
+}
+
+const BreadCrumbArrowIcon = styled(ArrowRight)<{ $color?: string }>`
+  margin: auto 0;
+  stroke: ${(props) => props.$color};
+  fill: ${(props) => props.$color};
+`
