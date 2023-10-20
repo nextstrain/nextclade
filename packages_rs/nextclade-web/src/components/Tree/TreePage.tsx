@@ -3,15 +3,13 @@ import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { connect } from 'react-redux'
 import { AuspiceMetadata } from 'auspice'
-import FiltersSummary from 'auspice/src/components/info/filtersSummary'
-
 import type { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
+import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 import { Layout } from 'src/components/Layout/Layout'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
-import { ButtonBack } from 'src/components/Results/ButtonBack'
-import { Tree } from './Tree'
-import { Sidebar } from './Sidebar'
+import { Tree } from 'src/components/Tree/Tree'
+import { Sidebar } from 'src/components/Tree/Sidebar'
 
 export const Container = styled.div`
   flex: 1;
@@ -22,22 +20,6 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-`
-
-const Header = styled.header`
-  display: flex;
-  flex-shrink: 0;
-  margin-bottom: 7px;
-`
-
-const HeaderLeft = styled.header`
-  flex: 0;
-`
-
-const HeaderCenter = styled.header`
-  flex: 1;
-  padding: 5px 10px;
-  border-radius: 5px;
 `
 
 const MainContent = styled.main`
@@ -77,6 +59,7 @@ const LogoGisaidWrapper = styled.div`
   flex: 0 0 auto;
   margin: 0 auto;
   margin-right: 2.25rem;
+  margin-top: 10px;
 `
 
 const LogoGisaid = styled(LogoGisaidBase)`
@@ -102,14 +85,6 @@ function TreePageDisconnected({ treeMeta }: TreePageProps) {
   return (
     <Layout>
       <Container>
-        <Header>
-          <HeaderLeft>
-            <ButtonBack />
-          </HeaderLeft>
-
-          <HeaderCenter />
-        </Header>
-
         <MainContent>
           <AuspiceContainer>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
