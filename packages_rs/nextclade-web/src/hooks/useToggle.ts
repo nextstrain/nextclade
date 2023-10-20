@@ -3,12 +3,12 @@ import { RecoilState, useRecoilState } from 'recoil'
 
 export type VoidFunc = () => void
 
-export function useToggle(initialState = false): [boolean, VoidFunc, VoidFunc, VoidFunc] {
+export function useToggle(initialState = false) {
   const [state, setState] = useState(initialState)
   const toggle = useCallback(() => setState((state) => !state), [])
   const enable = useCallback(() => setState(true), [])
   const disable = useCallback(() => setState(false), [])
-  return [state, toggle, enable, disable]
+  return { state, setState, toggle, enable, disable }
 }
 
 export function useRecoilToggle(recoilState: RecoilState<boolean>) {
