@@ -38,7 +38,7 @@ export interface TabsProps {
   tabs: TabDesc[]
 }
 
-export function Tabs({ tabs }: TabsProps) {
+export function TabsLight({ tabs }: TabsProps) {
   const [activeTab, setActiveTab] = useState<string>('file')
 
   return (

@@ -17,19 +17,14 @@ pub struct DatasetHttpGetParams<'s> {
 pub fn nextclade_dataset_get(
   NextcladeDatasetGetArgs {
     name,
-    reference,
     tag,
-    attribute,
     server,
     output_dir,
     output_zip,
     proxy_config,
+    ..
   }: &NextcladeDatasetGetArgs,
 ) -> Result<(), Report> {
-  if reference.is_some() || !attribute.is_empty() {
-    return make_error!("The arguments `--reference` and `--attribute` are removed. Datasets are now queried by `--name` and `--tag` only.\n\nIn order to list all dataset names, type:\n\n  nextclade dataset list --names-only\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
-  }
-
   let verbose = log::max_level() > LevelFilter::Info;
 
   let mut http = HttpClient::new(server, proxy_config, verbose)?;

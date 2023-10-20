@@ -131,6 +131,11 @@ export function NavigationBar() {
           : t('Please select a dataset with reference tree and run the analysis first'),
       },
       {
+        url: hasRan ? '/export' : undefined,
+        content: t('Export'),
+        title: hasRan ? t('Export results') : t('Please run the analysis first.'),
+      },
+      {
         url: '/settings',
         content: t('Settings'),
         title: t('Configure Nextclade'),

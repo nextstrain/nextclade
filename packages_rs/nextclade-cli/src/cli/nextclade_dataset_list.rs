@@ -13,11 +13,8 @@ use nextclade::utils::info::this_package_version;
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
     name,
-    reference,
     tag,
-    attribute,
     include_incompatible,
-    include_old,
     include_deprecated,
     include_experimental,
     include_community,
@@ -25,16 +22,9 @@ pub fn nextclade_dataset_list(
     only_names,
     server,
     proxy_config,
+    ..
   }: NextcladeDatasetListArgs,
 ) -> Result<(), Report> {
-  if include_old.is_some() {
-    return make_error!("The argument `--include-old` is removed.\n\nAll version tags are always listed now\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
-  }
-
-  if reference.is_some() || !attribute.is_empty() {
-    return make_error!("The arguments `--reference` and `--attribute` are removed. Datasets are now queried by `--name` and `--tag` only.\n\nIn order to list all dataset names, type:\n\n  nextclade dataset list --names-only\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
-  }
-
   let verbose = log::max_level() > LevelFilter::Info;
 
   let mut http = HttpClient::new(&server, &proxy_config, verbose)?;

@@ -294,9 +294,11 @@ pub fn nextclade_run_one(
       gene_map,
     );
     let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
+    let masked_ranges = graph.data.meta.placement_mask_ranges();
     let divergence = parent_div
       + calculate_branch_length(
         &private_nuc_mutations.private_substitutions,
+        masked_ranges,
         graph.data.tmp.divergence_units,
         ref_seq.len(),
       );
