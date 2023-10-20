@@ -63,8 +63,7 @@ const LabelShortText = styled.span`
 `
 
 const Dropdown = styled(DropdownBase)`
-  padding: 0;
-  margin: 0;
+  margin: 0 !important;
 `
 
 const DropdownToggle = styled(DropdownToggleBase)`
