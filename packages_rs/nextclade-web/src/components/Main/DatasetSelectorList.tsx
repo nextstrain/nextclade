@@ -158,6 +158,7 @@ export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
   ${(props) =>
     props.$active &&
     `
+    color: ${props.theme.white};
     background-color: ${lighten(0.033)(props.theme.primary)};
     box-shadow: -3px 3px 12px 3px #0005;
     opacity: ${props.$isDimmed && 0.66};

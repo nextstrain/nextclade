@@ -7,6 +7,7 @@ import type { FilterOptionOption } from 'react-select/dist/declarations/src/filt
 import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/Select'
 import type { Theme } from 'react-select/dist/declarations/src/types'
 import { Badge as BadgeBase } from 'reactstrap'
+import { ButtonFilter } from 'src/components/Results/ButtonFilter'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import styled from 'styled-components'
 import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
@@ -90,6 +91,7 @@ export function SequenceSelector() {
 
   return (
     <div className="d-flex w-100">
+      <ButtonFilter />
       <InnerWrapper>
         <ReactSelect
           name="sequence-view-gene-dropdown"
@@ -144,8 +146,8 @@ function OptionLabelFullGenome({ isMenu: _ }: { isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
     <Indent>
-      <BadgeWide $color="#54AD56" className="mr-1 px-2 py-1" title={t('Full genome')}>
-        {t('Full genome')}
+      <BadgeWide $color="#54AD56" className="mr-1 px-2 py-1" title={t('Nucleotide sequence')}>
+        {t('Nucleotide sequence')}
       </BadgeWide>
     </Indent>
   )
