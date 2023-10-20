@@ -13,6 +13,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
 import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import LoadingPage from 'src/pages/loading'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
@@ -42,7 +43,6 @@ import { parseUrl } from 'src/helpers/parseUrl'
 import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
 import { fetchSingleDataset } from 'src/io/fetchSingleDataset'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
-import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
@@ -183,7 +183,7 @@ const REACT_QUERY_OPTIONS: QueryClientConfig = {
 export function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(REACT_QUERY_OPTIONS), [])
   const { store } = useMemo(() => configureStore(), [])
-  const fallback = useMemo(() => <Loading />, [])
+  const fallback = useMemo(() => <LoadingPage />, [])
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development' && !['/', '/loading'].includes(router.pathname)) {
