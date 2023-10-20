@@ -1,30 +1,65 @@
-import React, { ReactNode, useMemo } from 'react'
-import { Oval } from 'react-loader-spinner'
-
+import React, { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/types'
+import { FaCheckSquare as CheckIcon } from 'react-icons/fa'
+import { IoWarning as WarnIcon } from 'react-icons/io5'
 import i18n from 'src/i18n/i18n'
+import styled, { useTheme } from 'styled-components'
+import { LoadingSpinner } from 'src/components/Loading/Loading'
+import { Tooltip } from 'src/components/Results/Tooltip'
 import { analysisResultStatusesAtom, analysisStatusGlobalAtom } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
-import styled from 'styled-components'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/types'
 
 const ResultsStatusWrapper = styled.div`
   display: flex;
-  height: 32px;
-  margin: 0;
+  flex: 1;
+
+  height: 37px;
+  margin-left: 0.75rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+
+  box-shadow: inset 0 0 10px 0 #0003;
+  border: #0003 solid 1px;
+  border-radius: 3px;
+  padding: 0 0.5rem;
+
+  vertical-align: middle;
 
   > span {
     line-height: 32px;
   }
 `
 
+const ResultsStatusText = styled.span`
+  margin: auto 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+`
+
+const ResultsStatusSpinnerWrapper = styled.span`
+  margin: auto 0;
+`
+
 export function ResultsStatus() {
+  const theme = useTheme()
+
   const numThreads = useRecoilValue(numThreadsAtom)
   const statusGlobal = useRecoilValue(analysisStatusGlobalAtom)
   const analysisResultStatuses = useRecoilValue(analysisResultStatusesAtom)
 
+  const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+
   const { text, spinner } = useMemo(() => {
-    const { statusText, failureText, percent } = selectStatus(statusGlobal, analysisResultStatuses, numThreads)
+    const { statusText, failureText, hasFailures } = selectStatus(statusGlobal, analysisResultStatuses, numThreads)
 
     let text = <span>{statusText}</span>
     if (failureText) {
@@ -37,19 +72,31 @@ export function ResultsStatus() {
       )
     }
 
-    let spinner: ReactNode = <Oval color="#222" width={24} height={24} />
-    if (percent === 100) {
-      spinner = null
+    let spinner: ReactNode = <LoadingSpinner size={24} />
+    if (statusGlobal === AlgorithmGlobalStatus.done) {
+      spinner = hasFailures ? (
+        <WarnIcon size={28} color={theme.warning} />
+      ) : (
+        <CheckIcon size={28} color={theme.success} />
+      )
     }
-
     return { text, spinner }
-  }, [analysisResultStatuses, numThreads, statusGlobal])
+  }, [analysisResultStatuses, numThreads, statusGlobal, theme.success, theme.warning])
+
+  if (statusGlobal === AlgorithmGlobalStatus.idle) {
+    return null
+  }
 
   return (
-    <ResultsStatusWrapper>
-      <span>{spinner}</span>
-      <span className="ml-2">{text}</span>
-    </ResultsStatusWrapper>
+    <>
+      <ResultsStatusWrapper id="results-status" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+        <ResultsStatusSpinnerWrapper>{spinner}</ResultsStatusSpinnerWrapper>
+        <ResultsStatusText className="ml-2">{text}</ResultsStatusText>
+      </ResultsStatusWrapper>
+      <Tooltip target="results-status" isOpen={showTooltip} placement="bottom-start" fullWidth>
+        {text}
+      </Tooltip>
+    </>
   )
 }
 

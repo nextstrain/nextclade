@@ -11,6 +11,7 @@ import { BsCaretRightFill as ArrowRight } from 'react-icons/bs'
 import { Link } from 'src/components/Link/Link'
 import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
+import { ResultsStatus } from 'src/components/Results/ResultsStatus'
 import { canDownloadAtom, hasRanAtom, hasTreeAtom } from 'src/state/results.state'
 import styled, { useTheme } from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -222,6 +223,9 @@ export function NavigationBar() {
 
         {linksLeft}
       </Nav>
+
+      <ResultsStatus />
+
       <Nav className="ml-auto">{linksRight}</Nav>
     </Navbar>
   )
