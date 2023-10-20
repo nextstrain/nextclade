@@ -19,7 +19,6 @@ const Container = styled.footer`
   bottom: 0;
   padding: 6px 10px;
   box-shadow: ${(props) => props.theme.shadows.large};
-  z-index: 1000;
   background-color: ${(props) => props.theme.white};
   opacity: 1;
 `
