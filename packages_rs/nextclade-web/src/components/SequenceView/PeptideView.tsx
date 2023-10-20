@@ -82,7 +82,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   if (!cds) {
     return (
       <SequenceViewWrapper>
-        {t('CDS {{geneName}} is missing in gene map', { geneName: viewedGene })}
+        {t('CDS {{geneName}} is missing in genome annotation', { geneName: viewedGene })}
       </SequenceViewWrapper>
     )
   }
