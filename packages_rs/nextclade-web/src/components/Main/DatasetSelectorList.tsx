@@ -1,7 +1,6 @@
 import { get, isNil, sortBy } from 'lodash'
 import { lighten } from 'polished'
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
-import { ListGroup } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { ListGenericCss } from 'src/components/Common/List'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
@@ -95,6 +94,9 @@ export function DatasetSelectorList({
     }
   }, [autodetectRunState, autodetectResult.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
 
+  const ulRef = useRef<HTMLUListElement>(null)
+  useEffect(() => ulRef.current?.scrollTo({ top: 0, left: 0, behavior: 'smooth' }), [searchTerm])
+
   const listItems = useMemo(() => {
     return (
       <>
@@ -126,7 +128,7 @@ export function DatasetSelectorList({
     )
   }, [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, onItemClick])
 
-  return <Ul>{listItems}</Ul>
+  return <Ul ref={ulRef}>{listItems}</Ul>
 }
 
 function nodeRefSetOrDelete<T extends HTMLElement>(map: Map<string, T>, key: string) {
@@ -139,7 +141,7 @@ function nodeRefSetOrDelete<T extends HTMLElement>(map: Map<string, T>, key: str
   }
 }
 
-export const Ul = styled(ListGroup)`
+export const Ul = styled.ul`
   ${ListGenericCss};
   flex: 1;
   overflow: auto;
