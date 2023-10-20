@@ -144,8 +144,8 @@ function OptionLabelFullGenome({ isMenu: _ }: { isMenu?: boolean }) {
   const { t } = useTranslationSafe()
   return (
     <Indent>
-      <BadgeWide $color="#54AD56" className="mr-1 px-2 py-1" title={t('Full genome')}>
-        {t('Full genome')}
+      <BadgeWide $color="#54AD56" className="mr-1 px-2 py-1" title={t('Nucleotide sequence')}>
+        {t('Nucleotide sequence')}
       </BadgeWide>
     </Indent>
   )
