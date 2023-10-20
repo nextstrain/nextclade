@@ -18,6 +18,7 @@ const Container = styled.div`
 
 const HeaderWrapper = styled.header`
   height: 45px;
+  z-index: 1001;
 `
 
 const MainInner = styled.main`
@@ -40,13 +41,16 @@ const MainOuter = styled.main`
   margin: 0;
 `
 
-const FooterWrapper = styled.footer``
+const FooterWrapper = styled.footer`
+  z-index: 1001;
+`
 
 export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
     <Container>
       <PreviewWarning />
       <BrowserWarning />
+
       <HeaderWrapper>
         <NavigationBar />
       </HeaderWrapper>

@@ -1,12 +1,8 @@
-import React from 'react'
-
+import React, { HTMLProps } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
-
 import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
 import styled from 'styled-components'
-
-const LOADING_LOGO_SIZE = 150
-const LOADING_SPINNER_THICKNESS = 17
+import { StrictOmit } from 'ts-essentials'
 
 const Container = styled.div`
   display: flex;
@@ -29,29 +25,29 @@ const Container = styled.div`
   }
 `
 
-const BrandLogo = styled(BrandLogoBase)`
+const BrandLogo = styled(BrandLogoBase)<{ $size: number }>`
   margin: auto;
-  width: ${LOADING_LOGO_SIZE}px;
-  height: ${LOADING_LOGO_SIZE}px;
+  width: ${(props) => props.$size}px;
+  height: ${(props) => props.$size}px;
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 1);
 `
 
-const SpinnerAnimation = styled.div`
+const SpinnerAnimation = styled.div<{ $size: number }>`
   margin: auto;
   display: flex;
-  width: ${LOADING_LOGO_SIZE + LOADING_SPINNER_THICKNESS}px;
-  height: ${LOADING_LOGO_SIZE + LOADING_SPINNER_THICKNESS}px;
+  width: ${(props) => props.$size * 1.2}px;
+  height: ${(props) => props.$size * 1.2}px;
   overflow: hidden;
 
-  border-radius: 10px;
+  border-radius: ${(props) => props.$size * 0.15}px;
 
   --c1: linear-gradient(90deg, #0000 calc(100% / 3), var(--c0) 0 calc(2 * 100% / 3), #0000 0);
   --c2: linear-gradient(0deg, #0000 calc(100% / 3), var(--c0) 0 calc(2 * 100% / 3), #0000 0);
   background: var(--c1), var(--c2), var(--c1), var(--c2);
-  background-size: 300% 20px, 20px 300%;
+  background-size: 300% ${(props) => props.$size * 0.2}px, ${(props) => props.$size * 0.2}px 300%;
   background-repeat: no-repeat;
 
-  animation: snake 1.25s infinite linear;
+  animation: snake 1s infinite linear;
   @keyframes snake {
     0% {
       background-position: 50% 0, 100% 100%, 0 100%, 0 0;
@@ -83,17 +79,25 @@ const SpinnerAnimation = styled.div`
   }
 `
 
-function Loading() {
+export interface LoadingProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'children' | 'ref' | 'as'> {
+  size: number
+}
+
+export function LoadingSpinner({ size, ...rest }: LoadingProps) {
+  return (
+    <SpinnerAnimation $size={size} {...rest}>
+      <BrandLogo $size={size} />
+    </SpinnerAnimation>
+  )
+}
+
+function LoadingComponent({ size, ...rest }: LoadingProps) {
   const { t } = useTranslation()
   return (
-    <Container title={t('Loading...')}>
-      <SpinnerAnimation>
-        <BrandLogo />
-      </SpinnerAnimation>
+    <Container title={t('Loading...')} {...rest}>
+      <LoadingSpinner size={size} />
     </Container>
   )
 }
 
-export default Loading
-
-export const LOADING = <Loading />
+export const LOADING = <LoadingComponent size={150} />

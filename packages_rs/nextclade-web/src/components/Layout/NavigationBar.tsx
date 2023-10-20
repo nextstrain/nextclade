@@ -13,7 +13,8 @@ import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
 import { isInSuggestModeAtom } from 'src/state/autodetect.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { hasRanAtom, hasTreeAtom } from 'src/state/results.state'
+import { ResultsStatus } from 'src/components/Results/ResultsStatus'
+import { canDownloadAtom, hasRanAtom, hasTreeAtom } from 'src/state/results.state'
 import styled, { useTheme } from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
@@ -136,6 +137,7 @@ export function NavigationBar() {
   const hasRan = useRecoilValue(hasRanAtom)
   const isInSuggestMode = useRecoilValue(isInSuggestModeAtom)
   const dataset = useRecoilValue(datasetCurrentAtom)
+  const canDownload = useRecoilValue(canDownloadAtom)
 
   const linksLeft = useMemo(() => {
     return [
@@ -164,9 +166,9 @@ export function NavigationBar() {
           : t('Please select a dataset with reference tree and run the analysis first'),
       },
       {
-        url: hasRan ? '/export' : undefined,
+        url: canDownload ? '/export' : undefined,
         content: t('Export'),
-        title: hasRan ? t('Export results') : t('Please run the analysis first.'),
+        title: canDownload ? t('Export results') : t('Please run the analysis first.'),
       },
     ].map((desc, i) => {
       if (desc.hidden) {
@@ -179,7 +181,7 @@ export function NavigationBar() {
       const arrow = <BreadcrumbArrow key={`arrow-${desc.url ?? desc.title}`} disabled={!desc.url} />
       return [arrow, link]
     })
-  }, [dataset, hasRan, hasTree, isInSuggestMode, pathname, t])
+  }, [canDownload, dataset, hasRan, hasTree, isInSuggestMode, pathname, t])
 
   const linksRight = useMemo(() => {
     return [
@@ -241,6 +243,9 @@ export function NavigationBar() {
 
         {linksLeft}
       </Nav>
+
+      <ResultsStatus />
+
       <Nav className="ml-auto">{linksRight}</Nav>
     </Navbar>
   )
