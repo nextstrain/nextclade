@@ -1,4 +1,6 @@
 import React, { PropsWithChildren, HTMLProps } from 'react'
+import { BrowserWarning } from 'src/components/Common/BrowserWarning'
+import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 import styled from 'styled-components'
 
 import { NavigationBar } from './NavigationBar'
@@ -46,6 +48,9 @@ const FooterWrapper = styled.footer`
 export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
     <Container>
+      <PreviewWarning />
+      <BrowserWarning />
+
       <HeaderWrapper>
         <NavigationBar />
       </HeaderWrapper>
