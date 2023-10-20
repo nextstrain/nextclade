@@ -65,6 +65,7 @@ export function DatasetSelectorList({
         dataset.attributes.name.value,
         dataset.attributes.name.valueFriendly ?? '',
         dataset.attributes.reference.value,
+        dataset.attributes.reference.valueFriendly ?? '',
       ],
     )
   }, [autodetectResult, searchTerm])
