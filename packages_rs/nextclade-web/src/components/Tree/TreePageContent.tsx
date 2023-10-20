@@ -51,6 +51,7 @@ const TreeTopPanel = styled.div`
 
 const FiltersSummaryWrapper = styled.div`
   flex: 1 1 100%;
+  padding-left: 1rem;
 `
 
 const LogoGisaidWrapper = styled.div`
