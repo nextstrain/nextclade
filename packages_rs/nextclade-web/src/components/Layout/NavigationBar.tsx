@@ -118,11 +118,6 @@ export function NavigationBar() {
         content: t('Export'),
         title: hasRan ? t('Export results') : t('Please run the analysis first.'),
       },
-      {
-        url: '/settings',
-        content: t('Settings'),
-        title: t('Configure Nextclade'),
-      },
     ].map((desc) => {
       return <NavLinkImpl key={desc.url ?? desc.title} desc={desc} active={pathname === desc.url} />
     })
@@ -130,6 +125,11 @@ export function NavigationBar() {
 
   const linksRight = useMemo(() => {
     return [
+      {
+        url: '/settings',
+        content: t('Settings'),
+        title: t('Configure Nextclade'),
+      },
       {
         title: t('Cite Nextclade in your work'),
         content: <CitationButton />,
