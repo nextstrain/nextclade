@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react'
-import { Col, Container, Form, FormGroup, Label, Row } from 'reactstrap'
+import { Form, FormGroup, Label } from 'reactstrap'
 import { RecoilState, useRecoilState } from 'recoil'
 import { Multitoggle } from 'src/components/Common/Multitoggle'
 import { NumericField } from 'src/components/Common/NumericField'
@@ -15,6 +15,7 @@ import {
   seqMarkerMutationHeightStateAtom,
   seqMarkerUnsequencedHeightStateAtom,
   maxNucMarkersAtom,
+  seqMarkerAmbiguousHeightStateAtom,
 } from 'src/state/seqViewSettings.state'
 
 /** Adapts Recoil state  `enum` to `string` */
@@ -53,6 +54,10 @@ export function SeqViewSettings() {
     seqMarkerMissingHeightStateAtom,
   )
 
+  const [seqMarkerAmbiguousHeightState, setSeqMarkerAmbiguousHeightState] = useSeqMarkerState(
+    seqMarkerAmbiguousHeightStateAtom,
+  )
+
   const [seqMarkerGapHeightState, setSeqMarkerGapHeightState] = useSeqMarkerState(seqMarkerGapHeightStateAtom)
 
   const [seqMarkerMutationHeightState, setSeqMarkerMutationHeightState] = useSeqMarkerState(
@@ -64,66 +69,73 @@ export function SeqViewSettings() {
   )
 
   return (
-    <Container fluid>
-      <Row noGutters>
-        <Col>
-          <Form>
-            <NumericField
-              identifier="max-nuc-markers"
-              label={t('Maximum number of nucleotide sequence view markers')}
-              title={t(
-                'Sets threshold on maximum number of markers (mutations, deletions etc.) to display in nucleotide views. Reducing this number increases performance. If the threshold is reached, then the nucleotide sequence view will be disabled.',
-              )}
-              min={0}
-              max={1_000_000}
-              value={maxNucMarkers}
-              onValueChanged={setMaxNucMarkers}
-            />
+    <Form>
+      <NumericField
+        identifier="max-nuc-markers"
+        label={t('Max. nucleotide markers')}
+        title={t(
+          'Set threshold on maximum number of markers (mutations, deletions etc.) to display in nucleotide views. Reducing this number increases performance. If the threshold is reached, then the nucleotide sequence view will be disabled.',
+        )}
+        min={0}
+        max={1_000_000}
+        value={maxNucMarkers}
+        onValueChanged={setMaxNucMarkers}
+      />
 
-            <FormGroup>
-              {t('Missing')}
-              <Multitoggle
-                values={SEQ_MARKER_HEIGHT_STATES}
-                value={seqMarkerMissingHeightState}
-                onChange={setSeqMarkerMissingHeightState}
-              />
-            </FormGroup>
+      <FormGroup className="mt-3">
+        <Label className="pointer-events-none" title={t('Toggle height of markers for mutated characters')}>
+          {t('Mutation markers')}
+          <Multitoggle
+            values={SEQ_MARKER_HEIGHT_STATES}
+            currentValue={seqMarkerMutationHeightState}
+            onChange={setSeqMarkerMutationHeightState}
+          />
+        </Label>
+      </FormGroup>
 
-            <FormGroup>
-              <Label>
-                {t('Gaps')}
-                <Multitoggle
-                  values={SEQ_MARKER_HEIGHT_STATES}
-                  value={seqMarkerGapHeightState}
-                  onChange={setSeqMarkerGapHeightState}
-                />
-              </Label>
-            </FormGroup>
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle height of markers for deletions')}>
+          {t('Deletion markers')}
+          <Multitoggle
+            values={SEQ_MARKER_HEIGHT_STATES}
+            currentValue={seqMarkerGapHeightState}
+            onChange={setSeqMarkerGapHeightState}
+          />
+        </Label>
+      </FormGroup>
 
-            <FormGroup>
-              <Label>
-                {t('Mutations')}
-                <Multitoggle
-                  values={SEQ_MARKER_HEIGHT_STATES}
-                  value={seqMarkerMutationHeightState}
-                  onChange={setSeqMarkerMutationHeightState}
-                />
-              </Label>
-            </FormGroup>
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle height of markers for ambiguous characters')}>
+          {t('Ambiguous markers')}
+          <Multitoggle
+            values={SEQ_MARKER_HEIGHT_STATES}
+            currentValue={seqMarkerAmbiguousHeightState}
+            onChange={setSeqMarkerAmbiguousHeightState}
+          />
+        </Label>
+      </FormGroup>
 
-            <FormGroup>
-              <Label>
-                {t('Unsequenced')}
-                <Multitoggle
-                  values={SEQ_MARKER_HEIGHT_STATES}
-                  value={seqMarkerUnsequencedHeightState}
-                  onChange={setSeqMarkerUnsequencedHeightState}
-                />
-              </Label>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
-    </Container>
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle height of markers for missing ranges')}>
+          {t('Missing ranges')}
+          <Multitoggle
+            values={SEQ_MARKER_HEIGHT_STATES}
+            currentValue={seqMarkerMissingHeightState}
+            onChange={setSeqMarkerMissingHeightState}
+          />
+        </Label>
+      </FormGroup>
+
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle height of markers for unsequenced ranges')}>
+          {t('Unsequenced ranges')}
+          <Multitoggle
+            values={SEQ_MARKER_HEIGHT_STATES}
+            currentValue={seqMarkerUnsequencedHeightState}
+            onChange={setSeqMarkerUnsequencedHeightState}
+          />
+        </Label>
+      </FormGroup>
+    </Form>
   )
 }
