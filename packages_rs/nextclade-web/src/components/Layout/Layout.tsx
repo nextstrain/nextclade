@@ -18,8 +18,19 @@ const HeaderWrapper = styled.header`
   height: 45px;
 `
 
-const MainWrapper = styled.main`
+const MainInner = styled.main`
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+`
+
+const MainOuter = styled.main`
   flex: auto;
+  flex-direction: column;
   overflow: hidden;
   height: 100%;
   width: 100%;
@@ -36,10 +47,10 @@ export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>
         <NavigationBar />
       </HeaderWrapper>
 
-      <MainWrapper>
+      <MainOuter>
         <UpdateNotification />
-        {children}
-      </MainWrapper>
+        <MainInner>{children}</MainInner>
+      </MainOuter>
 
       <FooterWrapper>
         <Footer />
