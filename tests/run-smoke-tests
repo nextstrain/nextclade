@@ -217,7 +217,7 @@ export -f download_and_run_single_dataset
 
 
 if [ -z "${INPUT_DATASETS_DIR}" ]; then
-  all_datasets=$(${NEXTCLADE_BIN} dataset list --include-experimental --include-community --include-deprecated --only-names)
+  all_datasets=$(${NEXTCLADE_BIN} dataset list --include-deprecated --only-names)
   parallel --keep-order --jobs=+0 download_and_run_single_dataset ::: "${all_datasets}"
 else
   find "${INPUT_DATASETS_DIR}" -iname "pathogen.json" -exec dirname '{}' \; |  parallel --keep-order --jobs=+0 run_single_dataset
