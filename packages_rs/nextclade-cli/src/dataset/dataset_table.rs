@@ -1,9 +1,9 @@
 use comfy_table::modifiers::{UTF8_ROUND_CORNERS, UTF8_SOLID_INNER_BORDERS};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::{ContentArrangement, Table};
-use indexmap::IndexMap;
 use itertools::Itertools;
-use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
+use nextclade::io::dataset::Dataset;
+use nextclade::o;
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
@@ -13,70 +13,52 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     .apply_modifier(UTF8_SOLID_INNER_BORDERS)
     .set_content_arrangement(ContentArrangement::Dynamic);
 
-  table.set_header([
-    "name".to_owned(),
-    "reference".to_owned(),
-    "tag".to_owned(),
-    "attributes".to_owned(),
-  ]);
+  table.set_header([o!("name"), o!("attributes"), o!("versions")]);
 
   for dataset in filtered.iter() {
     let Dataset {
-      version, attributes, ..
+      attributes,
+      official,
+      deprecated,
+      experimental,
+      ..
     } = dataset;
 
-    let DatasetAttributes {
-      name,
-      reference,
-      rest_attrs,
-      ..
-    } = &attributes;
+    let attrs = [
+      ("name".to_owned(), &attributes.name.value),
+      (
+        "nameFriendly".to_owned(),
+        &attributes.name.value_friendly.clone().unwrap_or_default(),
+      ),
+      ("referenceAccession".to_owned(), &attributes.reference.value),
+      ("referenceFriendly".to_owned(), &attributes.name.value),
+    ]
+    .into_iter()
+    .map(|(key, val)| format!("{key}={val}"))
+    .chain(
+      [
+        add_bool_attr("official", *official),
+        add_bool_attr("deprecated", *deprecated),
+        add_bool_attr("experimental", *experimental),
+      ]
+      .into_iter(),
+    )
+    .filter(|s| !s.is_empty())
+    .join("\n");
 
-    let mut attrs = IndexMap::<String, &DatasetAttributeValue>::from([
-      ("name".to_owned(), name),
-      ("reference".to_owned(), reference),
-    ]);
+    let versions = dataset.versions.iter().map(|ver| &ver.tag).join("\n");
 
-    for (key, attr) in rest_attrs.iter() {
-      attrs.insert(key.clone(), attr);
-    }
-
-    table.add_row([
-      format_attr_value(name),
-      format_attr_value(reference),
-      version.tag.clone(),
-      format_attributes(&attrs),
-    ]);
+    table.add_row([&dataset.path, &attrs, &versions]);
   }
 
   format!("{table}\nAsterisk (*) marks default values")
 }
 
-pub fn format_attr_value_short(attr: &DatasetAttributeValue) -> String {
-  let DatasetAttributeValue { value, .. } = &attr;
-  if attr.is_default() {
-    format!("{value} (*)")
-  } else {
-    value.clone()
+fn add_bool_attr(name: impl AsRef<str>, attr: Option<bool>) -> String {
+  if let Some(attr) = attr {
+    if attr {
+      return format!("{}=true", name.as_ref());
+    }
   }
-}
-
-pub fn format_attr_value(attr: &DatasetAttributeValue) -> String {
-  let value_str = format_attr_value_short(attr);
-  if let Some(value_friendly) = &attr.value_friendly {
-    format!("{value_str}\n'{value_friendly}'")
-  } else {
-    value_str
-  }
-}
-
-pub fn format_attributes(attrs: &IndexMap<String, &DatasetAttributeValue>) -> String {
-  attrs
-    .iter()
-    .map(|(key, attr)| format_attr_key_value(key, attr))
-    .join("\n")
-}
-
-pub fn format_attr_key_value(key: &str, attr: &DatasetAttributeValue) -> String {
-  format!("{key}={}", format_attr_value_short(attr))
+  "".to_owned()
 }
