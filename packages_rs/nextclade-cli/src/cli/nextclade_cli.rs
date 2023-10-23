@@ -137,40 +137,34 @@ pub struct NextcladeDatasetListArgs {
   pub tag: Option<String>,
 
   /// Include dataset versions that are incompatible with this version of Nextclade CLI.
-  ///
-  /// By default the incompatible versions are omitted.
   #[clap(long)]
   pub include_incompatible: bool,
 
   /// Include deprecated datasets.
   ///
-  /// By default the deprecated datasets are omitted.
-  ///
   /// Authors can mark a dataset as deprecated to express that the dataset will no longer be updated and/or supported. Reach out to dataset authors for concrete details.
   #[clap(long)]
   pub include_deprecated: bool,
 
-  /// Include experimental datasets.
-  ///
-  /// By default the experimental datasets are omitted.
+  /// Exclude experimental datasets.
   ///
   /// Authors can mark a dataset as experimental when development of the dataset is still in progress, or if the dataset is incomplete or of lower quality than usual. Use at own risk. Reach out to dataset authors if interested in further development and stabilizing of a particular dataset, and consider contributing.
   #[clap(long)]
-  pub include_experimental: bool,
+  pub no_experimental: bool,
 
-  /// Include community datasets.
-  ///
-  /// By default the community datasets are omitted.
+  /// Exclude community datasets and only show official datasets.
   ///
   /// Community datasets are the datasets provided by the members of the broader Nextclade community. These datasets may vary in quality and completeness. Depending on authors' goals, these datasets may be created for specific purposes, rather than for general use. Nextclade team is unable to verify correctness of these datasets and does not provide support for them. For all questions regarding a concrete community dataset, please read its documentation and reach out to its authors.
   #[clap(long)]
-  pub include_community: bool,
+  pub no_community: bool,
 
   /// Print output in JSON format.
+  ///
+  /// This is useful for automated processing. However, at this time, we cannot guarantee stability of the format. Use at own risk.
   #[clap(long)]
   pub json: bool,
 
-  /// Print only names of the datasets, without other details.
+  /// Print only names of the datasets, without any other details.
   #[clap(long)]
   pub only_names: bool,
 
