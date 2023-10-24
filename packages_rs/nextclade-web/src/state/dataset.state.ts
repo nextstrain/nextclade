@@ -38,8 +38,6 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
       reset(datasetCurrentStorageAtom)
     } else if (!areDatasetsEqual(datasetCurrent, dataset)) {
       set(datasetCurrentStorageAtom, dataset)
-      // FIXME
-      // set(viewedGeneAtom, dataset?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
     }
   },
 })
@@ -49,14 +47,9 @@ export const datasetUpdatedAtom = atom<Dataset | undefined>({
   default: undefined,
 })
 
-export const geneOrderPreferenceAtom = selector({
+export const geneOrderPreferenceAtom = atom<string[]>({
   key: 'geneOrderPreference',
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  get({ get }) {
-    // FIXME
-    // return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
-    return []
-  },
+  default: [],
 })
 
 export const minimizerIndexVersionAtom = atom<MinimizerIndexVersion | undefined>({

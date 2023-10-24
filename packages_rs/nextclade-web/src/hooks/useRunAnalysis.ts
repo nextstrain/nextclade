@@ -9,7 +9,7 @@ import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom, geneOrderPreferenceAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
@@ -49,6 +49,7 @@ export function useRunAnalysis() {
 
         reset(analysisResultsAtom)
         reset(viewedGeneAtom)
+        reset(geneOrderPreferenceAtom)
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
@@ -70,6 +71,8 @@ export function useRunAnalysis() {
           onInitialData({
             geneMap,
             genomeSize,
+            defaultGene,
+            geneOrderPreference,
             cladeNodeAttrKeyDescs,
             phenotypeAttrDescs,
             aaMotifsDescs,
@@ -81,6 +84,14 @@ export function useRunAnalysis() {
             const cdses = Object.values(geneMap.genes).flatMap((gene) => gene.cdses)
             set(cdsesAtom, cdses)
             set(genomeSizeAtom, genomeSize)
+
+            if (defaultGene) {
+              set(viewedGeneAtom, defaultGene)
+            }
+
+            if (geneOrderPreference) {
+              set(geneOrderPreferenceAtom, geneOrderPreference)
+            }
 
             // FIXME: This type is duplicated. One comes from handwritten Auspice typings,
             //  another from JSON-schema generated types
