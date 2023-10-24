@@ -1,9 +1,11 @@
-use derive_more::Display;
+use crate::io::json::{json_stringify, JsonPretty};
 use eyre::{eyre, Report};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Display, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum AnyType {
@@ -11,7 +13,25 @@ pub enum AnyType {
   Int(isize),
   Float(f64),
   Bool(bool),
-  Other(serde_json::Value),
+  Array(Vec<AnyType>),
+  Object(BTreeMap<String, AnyType>),
+  Null,
+}
+
+#[allow(clippy::map_err_ignore)]
+impl Display for AnyType {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let s = match self {
+      AnyType::String(x) => x.clone(),
+      AnyType::Int(x) => x.to_string(),
+      AnyType::Float(x) => x.to_string(),
+      AnyType::Bool(x) => x.to_string(),
+      AnyType::Array(x) => json_stringify(&x, JsonPretty(false)).map_err(|_| std::fmt::Error)?,
+      AnyType::Object(x) => json_stringify(&x, JsonPretty(false)).map_err(|_| std::fmt::Error)?,
+      AnyType::Null => "null".to_owned(),
+    };
+    write!(f, "{s}")
+  }
 }
 
 impl AnyType {

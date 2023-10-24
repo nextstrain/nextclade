@@ -2,6 +2,8 @@ import { get, isNil, sortBy } from 'lodash'
 import { lighten } from 'polished'
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import styled from 'styled-components'
+import { areDatasetsEqual, attrStrMaybe, Dataset } from 'src/types'
 import { ListGenericCss } from 'src/components/Common/List'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { search } from 'src/helpers/search'
@@ -11,9 +13,6 @@ import {
   autodetectRunStateAtom,
   groupByDatasets,
 } from 'src/state/autodetect.state'
-import type { Dataset } from 'src/types'
-import { areDatasetsEqual } from 'src/types'
-import styled from 'styled-components'
 
 export interface DatasetSelectorListProps {
   datasets: Dataset[]
@@ -61,10 +60,10 @@ export function DatasetSelectorList({
       [...autodetectResult.itemsStartWith, ...autodetectResult.itemsInclude, ...autodetectResult.itemsNotInclude],
       searchTerm,
       (dataset) => [
-        dataset.attributes.name.value,
-        dataset.attributes.name.valueFriendly ?? '',
-        dataset.attributes.reference.value,
-        dataset.attributes.reference.valueFriendly ?? '',
+        dataset.path,
+        attrStrMaybe(dataset.attributes, 'name') ?? '',
+        attrStrMaybe(dataset.attributes, 'reference name') ?? '',
+        attrStrMaybe(dataset.attributes, 'reference accession') ?? '',
       ],
     )
   }, [autodetectResult, searchTerm])

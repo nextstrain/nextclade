@@ -9,10 +9,6 @@ import { axiosFetch } from 'src/io/axiosFetch'
 const MINIMIZER_INDEX_ALGO_VERSION = 'v1'
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? ''
 
-export function isEnabled(dataset: Dataset) {
-  return dataset.enabled
-}
-
 export function isCompatible(dataset: Dataset): boolean {
   const minVersion = dataset.version?.compatibility?.web ?? PACKAGE_VERSION
   return semver.gte(PACKAGE_VERSION, minVersion)
@@ -35,7 +31,7 @@ export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): 
 
 export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {
   const datasets = datasetsIndexJson.collections
-    .flatMap((collection) => collection.datasets.filter(isEnabled).filter(isCompatible).filter(isLatest))
+    .flatMap((collection) => collection.datasets.filter(isCompatible).filter(isLatest))
     .map((dataset) => fileUrlsToAbsolute(datasetServerUrl, dataset))
   return { datasets }
 }
