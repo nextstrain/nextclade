@@ -128,12 +128,23 @@ pub enum NextcladeDatasetCommands {
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
 pub struct NextcladeDatasetListArgs {
-  /// Restrict list to datasets with this exact name.
+  /// Restrict list to datasets with this *exact* name.
   ///
   /// Can be used to test if a dataset exists.
-  #[clap(long, short = 'n')]
+  ///
+  /// Mutually exclusive with --search
+  #[clap(long, short = 'n', group = "searching")]
   #[clap(value_hint = ValueHint::Other)]
   pub name: Option<String>,
+
+  /// Search datasets by name or by reference.
+  ///
+  /// Will only display datasets containing this substring in their name (path), or either of attributes: "name", "reference name", "reference accession".
+  ///
+  /// Mutually exclusive with --name
+  #[clap(long, short = 's', group = "searching")]
+  #[clap(value_hint = ValueHint::Other)]
+  pub search: Option<String>,
 
   /// Restrict list to datasets with this exact version tag.
   #[clap(long, short = 't')]

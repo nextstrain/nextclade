@@ -12,6 +12,7 @@ use nextclade::utils::info::this_package_version;
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
     name,
+    search,
     tag,
     include_incompatible,
     include_deprecated,
@@ -46,6 +47,20 @@ pub fn nextclade_dataset_list(
     .filter(|dataset| {
       if let Some(name) = &name {
         name == &dataset.path
+      } else {
+        true
+      }
+    })
+    .filter(|dataset| {
+      if let Some(search) = &search {
+        [
+          Some(dataset.path.as_str()),
+          dataset.name(),
+          dataset.ref_name(),
+          dataset.ref_accession(),
+        ]
+        .iter()
+        .any(|candidate| candidate.unwrap_or_default().contains(search))
       } else {
         true
       }
