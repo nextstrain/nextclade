@@ -257,7 +257,7 @@ export function ResultsTable() {
       <TableHeaderRow>
         <TableHeaderCell first basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
           <TableHeaderCellContent>
-            <TableCellText>{t('#')}</TableCellText>
+            <TableCellText>{'#'}</TableCellText>
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-row-index">
             <HelpTipsColumnRowIndex />
@@ -266,7 +266,7 @@ export function ResultsTable() {
 
         <TableHeaderCell basis={columnWidthsPx.id} grow={0} shrink={0}>
           <TableHeaderCellContent>
-            <TableCellText>{t('i')}</TableCellText>
+            <TableCellText>{'i'}</TableCellText>
             <ResultsControlsSort sortAsc={sortByIndexAsc} sortDesc={sortByIndexDesc} />
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-seq-id">

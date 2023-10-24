@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { get } from 'lodash'
@@ -41,16 +42,16 @@ export function SequenceMarkerAmbiguousUnmemoed({
 
   const text = useMemo(() => {
     const AMBIGUOUS_NUCS = {
-      R: t('A or G'),
-      K: t('G or T'),
-      S: t('G or C'),
-      Y: t('C or T'),
-      M: t('A or C'),
-      W: t('A or T'),
-      B: t('not A (C, G or T)'),
-      H: t('not G (A, C or T)'),
-      D: t('not C (A, G or T)'),
-      V: t('not T (A, C or G)'),
+      R: t('{{left}} or {{right}}', { left: 'A', right: 'G' }),
+      K: t('{{left}} or {{right}}', { left: 'G', right: 'T' }),
+      S: t('{{left}} or {{right}}', { left: 'G', right: 'C' }),
+      Y: t('{{left}} or {{right}}', { left: 'C', right: 'T' }),
+      M: t('{{left}} or {{right}}', { left: 'A', right: 'C' }),
+      W: t('{{left}} or {{right}}', { left: 'A', right: 'T' }),
+      B: t('not {{left}} ({{r1}}, {{r2}} or {{r3}})', { left: 'A', r1: 'C', r2: 'G', r3: 'T' }),
+      H: t('not {{left}} ({{r1}}, {{r2}} or {{r3}})', { left: 'G', r1: 'A', r2: 'C', r3: 'T' }),
+      D: t('not {{left}} ({{r1}}, {{r2}} or {{r3}})', { left: 'C', r1: 'A', r2: 'G', r3: 'T' }),
+      V: t('not {{left}} ({{r1}}, {{r2}} or {{r3}})', { left: 'T', r1: 'A', r2: 'C', r3: 'G' }),
     }
     const disambiguated = get(AMBIGUOUS_NUCS, character)
 
