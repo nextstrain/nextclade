@@ -3,8 +3,7 @@ use nextclade::analyze::pcr_primer_changes::PcrPrimer;
 use nextclade::analyze::virus_properties::{PhenotypeAttrDesc, VirusProperties};
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::dataset::{
-  Dataset, DatasetAttributeValue, DatasetAttributes, DatasetCapabilities, DatasetCollectionMeta, DatasetCollectionUrl,
-  DatasetsIndexJson,
+  Dataset, DatasetCapabilities, DatasetCollectionMeta, DatasetCollectionUrl, DatasetsIndexJson,
 };
 use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
@@ -21,6 +20,7 @@ use nextclade::sort::minimizer_search::{MinimizerSearchRecord, MinimizerSearchRe
 use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
+use nextclade::utils::any::AnyType;
 use schemars::{schema_for, JsonSchema};
 use std::path::Path;
 
@@ -72,8 +72,7 @@ struct _SchemaRoot<'a> {
   _24: Dataset,
   _25: DatasetCollectionMeta,
   _26: DatasetCapabilities,
-  _27: DatasetAttributeValue,
-  _28: DatasetAttributes,
+  _27: AnyType,
   _29: DatasetCollectionUrl,
   _30: MinimizerIndexJson,
   _31: MinimizerSearchResult,

@@ -6,7 +6,7 @@ use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes, DatasetFiles, DatasetsIndexJson};
+use nextclade::io::dataset::{Dataset, DatasetFiles, DatasetMeta, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
@@ -215,25 +215,12 @@ pub fn dataset_individual_files_load(
         .wrap_err("When reading pathogen JSON")?
         .unwrap_or_else(|| {
           // The only case where we allow pathogen.json to be missing is when there's no dataset and files are provided
-          // explicitly through args. Let's create an dummy value to avoid making the field optional
+          // explicitly through args. Let's create a dummy value to avoid making the field optional,
+          // and avoid adding `Default` trait.
           VirusProperties {
             schema_version: "".to_owned(),
-            attributes: DatasetAttributes {
-              name: DatasetAttributeValue {
-                value: "".to_owned(),
-                value_friendly: None,
-                is_default: None,
-                other: serde_json::Value::default(),
-              },
-              reference: DatasetAttributeValue {
-                value: "".to_owned(),
-                value_friendly: None,
-                is_default: None,
-                other: serde_json::Value::default(),
-              },
-              rest_attrs: BTreeMap::default(),
-              other: serde_json::Value::default(),
-            },
+            attributes: BTreeMap::default(),
+            meta: DatasetMeta::default(),
             files: DatasetFiles {
               reference: "".to_owned(),
               pathogen_json: "".to_owned(),
@@ -245,9 +232,6 @@ pub fn dataset_individual_files_load(
               rest_files: BTreeMap::default(),
               other: serde_json::Value::default(),
             },
-            deprecated: false,
-            enabled: true,
-            experimental: false,
             default_gene: None,
             gene_order_preference: vec![],
             mut_labels: LabelledMutationsConfig::default(),
