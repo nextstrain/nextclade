@@ -4,6 +4,7 @@ import { changeColorBy } from 'auspice/src/actions/colors'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
@@ -47,6 +48,7 @@ export function useRunAnalysis() {
         set(showNewRunPopupAtom, false)
 
         reset(analysisResultsAtom)
+        reset(viewedGeneAtom)
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
