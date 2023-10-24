@@ -61,33 +61,35 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
       <ExportFileElement
         Icon={FileIconJson}
         filename={exportParams.filenameJson}
-        HelpMain={t('Results of the analysis in JSON format.')}
+        HelpMain={t('Results of the analysis in {{formatName}} format.', { formatName: 'JSON' })}
         HelpDetails={t(
-          'Contains detailed results of the analysis, such as clades, mutations, QC metrics etc., in JSON format. Convenient for further automated processing.',
+          'Contains detailed results of the analysis, such as clades, mutations, QC metrics etc., in {{formatName}} format. Convenient for further automated processing. Note that this format is unstable and can change without notice.',
+          { formatName: 'JSON' },
         )}
-        HelpDownload={t('Download results of the analysis in JSON format.')}
+        HelpDownload={t('Download results of the analysis in {{formatName}} format.', { formatName: 'JSON' })}
         onDownload={exportJson}
       />
 
       <ExportFileElement
         Icon={FileIconNdjson}
         filename={exportParams.filenameNdjson}
-        HelpMain={t('Results of the analysis in NDJSON format (newline-delimited JSON).')}
+        HelpMain={t('Results of the analysis in {{formatName}} format.', { formatName: 'NDJSON' })}
         HelpDetails={t(
-          'Contains detailed results of the analysis, such as clades, mutations, QC metrics etc., in NDJSON format. Convenient for further automated processing.',
+          'Contains detailed results of the analysis, such as clades, mutations, QC metrics etc., in {{formatName}} format (newline-delimited JSON). Convenient for further automated processing. Note that this format is unstable and can change without notice.',
+          { formatName: 'NDJSON' },
         )}
-        HelpDownload={t('Download results of the analysis in NDJSON format.')}
+        HelpDownload={t('Download results of the analysis in {{formatName}} format.', { formatName: 'NDJSON' })}
         onDownload={exportNdjson}
       />
 
       <ExportFileElement
         Icon={FileIconCsv}
         filename={exportParams.filenameCsv}
-        HelpMain={t('Summarized results of the analysis in CSV format.')}
+        HelpMain={t('Summarized results of the analysis in {{formatName}} format.', { formatName: 'CSV' })}
         HelpDetails={t(
           'Contains summarized results of the analysis, such as clades, mutations, QC metrics etc., in tabular format. Convenient for further review and processing using spreadsheets or data-science tools.',
         )}
-        HelpDownload={t('Download summarized results in CSV format')}
+        HelpDownload={t('Download summarized results in {{formatName}} format.', { formatName: 'CSV' })}
         Config={ColumnConfigLink}
         onDownload={exportCsv}
       />
@@ -95,11 +97,11 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
       <ExportFileElement
         Icon={FileIconTsv}
         filename={exportParams.filenameTsv}
-        HelpMain={t('Summarized results of the analysis in TSV format.')}
+        HelpMain={t('Summarized results of the analysis in {{formatName}} format.', { formatName: 'TSV' })}
         HelpDetails={t(
           'Contains summarized results of the analysis, such as clades, mutations, QC metrics etc., in tabular format. Convenient for further review and processing using spreadsheets or data-science tools.',
         )}
-        HelpDownload={t('Download summarized results in TSV format')}
+        HelpDownload={t('Download summarized results in {{formatName}} format.', { formatName: 'TSV' })}
         Config={ColumnConfigLink}
         onDownload={exportTsv}
       />
@@ -107,7 +109,9 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
       <ExportFileElement
         Icon={FileIconJson}
         filename={exportParams.filenameTree}
-        HelpMain={t('Phylogenetic tree with sequences placed onto it, in Auspice JSON format.')}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Auspice JSON v2',
+        })}
         HelpDetails={
           <>
             {t('Can be viewed locally with Nextstrain Auspice or in ')}
@@ -115,53 +119,65 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
             {'.'}
           </>
         }
-        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in Auspice JSON v2 format.')}
+        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Auspice JSON v2',
+        })}
         onDownload={exportTree}
       />
 
       <ExportFileElement
         Icon={FileIconNwk}
         filename={exportParams.filenameTreeNwk}
-        HelpMain={t('Phylogenetic tree with sequences placed onto it, in Newick format.')}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Newick',
+        })}
         HelpDetails={
           <>
-            {t('Can be viewed in most tree viewers, including ')}
+            {t('Can be viewed in most tree viewers, including: ')}
             <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
-            {' or '}
+            {t(' or ')}
             <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
             {'.'}
           </>
         }
-        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in Newick format')}
+        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Newick',
+        })}
         onDownload={exportTreeNwk}
       />
 
       <ExportFileElement
         Icon={FileIconFasta}
         filename={exportParams.filenameFasta}
-        HelpMain={t('Aligned sequences in FASTA format.')}
-        HelpDetails={t('Contains aligned sequences in FASTA format.')}
-        HelpDownload={t('Download aligned sequences in FASTA format.')}
+        HelpMain={t('Aligned sequences in {{formatName}} format.', { formatName: 'FASTA' })}
+        HelpDetails={t('Contains aligned sequences in {{formatName}} format.', { formatName: 'FASTA' })}
+        HelpDownload={t('Download aligned sequences in {{formatName}} format.', { formatName: 'FASTA' })}
         onDownload={exportFasta}
       />
 
       <ExportFileElement
         Icon={FileIconZip}
         filename={exportParams.filenamePeptidesZip}
-        HelpMain={t('Aligned peptides in FASTA format, zipped')}
+        HelpMain={t('Aligned peptides in {{formatName}} format, zipped', { formatName: 'FASTA' })}
         HelpDetails={t(
-          'Contains results of translation of your sequences. One FASTA file per gene, all in a zip archive.',
+          'Contains results of translation of your sequences. One {{formatName}} file per gene, all in a zip archive.',
+          { formatName: 'FASTA' },
         )}
-        HelpDownload={t('Download aligned peptides in FASTA format, one file per gene, all in a zip archive.')}
+        HelpDownload={t(
+          'Download aligned peptides in {{formatName}} format, one file per gene, all in a zip archive.',
+          {
+            formatName: 'FASTA',
+          },
+        )}
         onDownload={exportPeptides}
       />
 
       <ExportFileElement
         Icon={FileIconZip}
         filename={exportParams.filenameZip}
-        HelpMain={t('All files in a zip archive.')}
-        HelpDetails={t('Contains all of the above files in a single zip file.')}
-        HelpDownload={t('Download all in zip archive')}
+        HelpMain={t('All files in a {{formatName}} archive.', { formatName: 'zip' })}
+        HelpDetails={t('Contains all of the above files in a single {{formatName}} file.', { formatName: 'zip' })}
+        HelpDownload={t('Download all in {{formatName}} archive.', { formatName: 'zip' })}
         onDownload={exportZip}
       />
     </Ul>

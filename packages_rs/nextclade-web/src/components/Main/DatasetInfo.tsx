@@ -81,12 +81,12 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
   const { attributes, path, version } = dataset
 
   const updatedAt = useMemo(() => {
-    let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : 'unknown'
+    let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : t('unknown')
     if (version?.tag === 'unreleased') {
-      updatedAt = `${updatedAt} (unreleased)`
+      updatedAt = `${updatedAt} (${t('unreleased')})`
     }
     return updatedAt
-  }, [version?.tag, version?.updatedAt])
+  }, [t, version?.tag, version?.updatedAt])
 
   if (path === DATASET_ID_UNDETECTED) {
     return <DatasetUndetectedInfo />
@@ -107,7 +107,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="success"
-                title="This dataset is provided by Nextclade team."
+                title={t('This dataset is provided by {{proj}} developers.', { proj: 'Nextclade' })}
               >
                 {t('official')}
               </DatasetInfoBadge>
@@ -115,7 +115,10 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="info"
-                title="This dataset is provided by the community members. Nextclade team cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions."
+                title={t(
+                  'This dataset is provided by the community members. {{proj}} developers cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions.',
+                  { proj: 'Nextclade' },
+                )}
               >
                 {t('community')}
               </DatasetInfoBadge>
@@ -125,7 +128,9 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="warning"
-                title="Dataset authors marked this dataset as experimental, which means the dataset is stil under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics."
+                title={t(
+                  'Dataset authors marked this dataset as experimental, which means the dataset is still under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics.',
+                )}
               >
                 {t('experimental')}
               </DatasetInfoBadge>
@@ -135,7 +140,9 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="secondary"
-                title="Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics."
+                title={t(
+                  'Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.',
+                )}
               >
                 {t('deprecated')}
               </DatasetInfoBadge>
