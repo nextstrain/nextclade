@@ -17,3 +17,4 @@ This section describes:
 
     installation/index.rst
     usage
+    reference
