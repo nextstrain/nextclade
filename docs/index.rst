@@ -53,9 +53,9 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     user/migration-v3
 
     user/nextclade-web
-    user/nextclade-cli
-    user/datasets
+    user/nextclade-cli/index
 
+    user/datasets
     user/input-files/index
     user/output-files/index
 
