@@ -1,0 +1,151 @@
+# Migration to Nextclade v3
+
+This section lists breaking changes in Nextclade v3 compared to Nextclade v2, and describes potential migration paths. For more details about each change as well as about non-breaking changes, please read the [changelog](../../CHANGELOG.md).
+
+Useful links:
+
+- [Nextclade Web v3](https://clades.nextstrain.org)
+- [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
+- [Nextclade CLI releases](https://github.com/nextstrain/nextclade/releases) - all versions
+- [Nextclade user documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) - for detailed instructions on how to use Nextclade Web and Nextclade CLI
+- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md)  - if you have a custom Nextclade dataset or want to create one
+- [Nextclade source code repository](https://github.com/nextstrain/nextclade) - for contributors to Nextclade software (code, bug reports, feature requests etc.)
+- [Nextclade data repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (new pathogens, bug reports, etc.)
+- [Nextclade software GitHub issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
+- [Nextclade data GitHub issues](https://github.com/nextstrain/nextclade_data/issues) - to report bugs and ask questions about Nextclade datasets
+- [Nextstrain discussion forum](https://discussion.nextstrain.org) - for general discussion and questions
+
+If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues).
+
+## 1. Nextalign CLI is removed
+
+Nextalign CLI is no longer provided as a standalone application along with Nextclade CLI v3. You can now use Nextclade CLI with the same command line arguments. Nextclade CLI runs the same algorithms, accepts same inputs and provides the same outputs, plus some more. For most use-cases, the CLI interface and the input and output files should be the same or very similar.
+
+### Migration paths
+
+If you are not using Nextalign CLI (the `nextalign` executable), then this does not affect you.
+
+If you are, then in your Nextalign command-line invocation replace the word `nextalign` to `nextclade`. When downloading the executables - use Nextclade download links instead of Nextalign links. If you use docker, pull `nextstrain/nextclade` image instead of `nextstrain/nextalign`.
+
+If you used `nextalign` for a pathogen/strain which has a Nextclade dataset, then you can replace individual input arguments, such as for reference sequence and genome annotation with a single argument `--input-dataset`. Type `nextclade run --help` and refer to documentation for details on command-line arguments.
+
+For a list of all datasets, type `nextclade dataset list`. If there is no dataset for your pathogen/strain, then consider arranging the individual input files into a dataset and contributing it to the Nextclade community dataset collection. For instructions see [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
+
+## 2. Some alignment parameters are removed
+
+Due to changes in the alignment algorithm, the following parameters are no longer used and the corresponding CLI arguments and JSON fields under `alignmentParams` in `pathogen.json` (previously `virus_properties.json`) were removed:
+
+  ```text
+  --min-seeds          (minSeeds)
+  --seed-length        (seedLength)
+  --seed-spacing       (seedSpacing)
+  --min-match-rate     (minMatchRate)
+  --mismatches-allowed (mismatchesAllowed)
+  --max-indel          (maxIndel)
+  ```
+
+The following alignment parameters were added:
+
+  ```text
+  --kmer-length        (kmerLength)
+  --kmer-distance      (kmerDistance)
+  --min-match-length   (minMatchLength)
+  --allowed-mismatches (allowedMismatches)
+  --window-size        (windowSize)
+  ```
+
+### Migration paths
+
+This does not affect you if you have not customized these particular alignment parameters, either using CLI arguments or `alignmentParams` section of `virus_properties.json` file.
+
+If you did, then remove the old parameters from your CLI invocation and/or from `pathogen.json` file. The new seed matching algorithm is more flexible regarding lower-quality sequences, and it might be that it does not require parameter tuning anymore. If you observe sequences that cannot be aligned, but believe they should be, then please refer to the "Alignment" section in the user documentation for instructions on how to tune the new algorithm.
+
+## 3. Different tree output
+
+Due to introduction of the tree builder algorithm, Nextclade v3 may produce trees that are different from the trees produced in Nextclade v2.
+
+##### Migration paths
+
+We recommend the new behavior for most users. If you encounter any issues (consider [reporting](https://github.com/nextstrain/nextclade_data/issues) them) or prefer the old behavior, you can use `--without-greedy-tree-builder` argument in Nextclade CLI to disable it. There is currently no way to disable the tree builder in Nextclade Web. If you need this functionality, please open a GitHub issue and explain your motivation. We are also open for contributions.
+
+Please refer to section "Phylogenetic placement" of Nextclade user documentation for more details about the new algorithm.
+
+## 4. Dataset file format and dataset names have changed
+
+The dataset files `qc.json`, `primers.csv` and `virus_properties.json` are now merged into a new file `pathogen.json`.
+
+Dataset names have changed. There is no longer a separation to `name`, `reference` and other attributes. The datasets are now uniquely identified by a path-like name, which corresponds to the path of the dataset in the [data repo](https://github.com/nextstrain/nextclade_data/tree/master/data).
+
+##### Migration paths for dataset maintainers
+
+If you have a custom dataset for Nextclade v2 and want to migrate it to Nextclade v3, then please follow [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3.md).
+
+We also invite you to consider submitting your dataset for potential inclusion to the Nextclade community datasets collection, so that it is visible in the list in Nextclade CLI and Nextclade Web. You can find relevant instructions in the [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
+
+If you encounter any difficulties, feel free to reach out by either opening a [GitHub issue](https://github.com/nextstrain/nextclade_data/issues), or on [Nextstrain discussion forum](https://discussion.nextstrain.org).
+
+##### Migration paths for Nextclade Web:
+
+If you are using Nextclade Web, you receive the most up-to-date datasets automatically. Refresh the page and make sure that the version of Nextclade in the bottom left corner is 3.0.0 or greater. There is nothing to do otherwise.
+
+##### Migration paths for Nextclade CLI:
+
+The names of the official datasets have changed (they look like filesystem paths now), so first you need to find out the new name using `nextclade dataset list` command. Then re-download your datasets using `nextclade dataset get` command and the new name.
+
+For example, you can download Wuhan-based SARS-CoV-2 dataset using:
+
+```bash
+nextclade dataset get --name="nextstrain/sars-cov-2/MN908947" --output-dir="out_dir/"
+```
+
+You can have a concise at the available datasets if you add `--only-names` flag to the list command:
+
+```bash
+nextclade dataset list --only-names
+```
+
+Alternatively, you can find dataset names in Nextclade Web user interface, in the dataset selector.
+
+## 5. Some CLI arguments for individual input files are removed
+
+Due to changes in dataset format the following CLI arguments were removed:
+
+```text
+--input-virus-properties
+--input-qc-config
+--input-pcr-primers
+```
+
+in favor of `--input-pathogen-json`.
+
+##### Migration paths:
+
+Please use `--input-pathogen-json` instead of the removed flags. If you need to migrate the files to the new format, then please follow the migration steps in the new
+
+## 6. Some CLI arguments for output files are removed
+
+The arguments `--output-errors` and `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
+
+##### Migration paths:
+
+Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`), plus more.
+
+## 7. Genome annotation CLI argument is renamed
+
+The argument `--input-gene-map` renamed to `--input-annotation`
+
+##### Migration paths:
+
+Rename the argument
+
+## 8. URL parameters in Nextclade Web have changed
+
+Due to changes in the dataset format and in input files, the following changes in the URL parameters have been made:
+
+| URL parameter(s)                                                | What happened                 | Migration path                                                  |
+|-----------------------------------------------------------------|-------------------------------|-----------------------------------------------------------------|
+| `input-root-seq`                                                | renamed to `input-ref`        | rename the parameter                                            |
+| `input-gene-map`                                                | renamed to `input-annotation` | rename the parameter                                            |
+| `input-pathogen-json`                                           | added                         |                                                                 |
+| `input-qc-config`,`input-pcr-primers`, `input-virus-properties` | removed                       | use `pathogen.json` instead                                     |
+| `dataset-reference`                                             | removed                       | use new `dataset-name` (which identifies the datasets uniquely) |
