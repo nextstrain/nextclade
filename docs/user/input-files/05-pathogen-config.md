@@ -1,10 +1,10 @@
 ## Pathogen configuration
 
-General Nextclade dataset configuration can be passed in the JSON config file `pathogen.json`.
+Nextclade Web (advanced mode): accepted in "Pathogen JSON" drag & drop box. A remote URL is also accepted in `input-pathogen-json` URL parameter.
 
-Top level keys and their values are explained in detail below.
+Nextclade CLI: `--input-pathogen-json`/`-R`
 
-Nextclade CLI argument: `--input-pathogen-json`/`-R`
+General Nextclade dataset configuration can be passed in the JSON config file `pathogen.json`. Top level keys and their values are explained in detail below.
 
 ### Required
 
@@ -12,102 +12,116 @@ Nextclade CLI argument: `--input-pathogen-json`/`-R`
 
 Required. Currently `3.0.0`.
 
-#### `attributes`
-
-Required. General dataset metadata. `name` and `reference` are required, each need to have a `value`. Human readable `valueFriendly` is optional.
-
-```json
-"attributes": {
-"name": {
-"value": "sars-cov-2-21L",
-"valueFriendly": "SARS-CoV-2 rooted on BA.2"
-},
-"reference": {
-"value": "pseudo-BA.2",
-"valueFriendly": "Prototypical BA.2 in Wuhan-Hu-1 coordinates"
-}
-}
-```
-
 #### `files`
 
-Required `dict[str, str,]`. Tells Nextclade what the file names of other dataset input files are. Only `reference` and `pathogenJson` are required.
+Required. Tells Nextclade what the file names of other dataset input files are. Only `reference` and `pathogenJson` are required.
 
-Example dict:
+Example:
 
 ```json
 {
-  "reference": "reference.fasta",
-  "pathogenJson": "pathogen.json",
-  "genomeAnnotation": "genomeAnnotation.gff3",
-  "treeJson": "tree.json",
-  "examples": "sequences.fasta",
-  "readme": "readme.md",
-  "changelog": "changelog.md"
+  "files": {
+    "reference": "reference.fasta",
+    "pathogenJson": "pathogen.json",
+    "genomeAnnotation": "genome_annotation.gff3",
+    "treeJson": "tree.json",
+    "examples": "sequences.fasta",
+    "readme": "README.md",
+    "changelog": "CHANGELOG.md"
+  }
 }
 ```
 
-The files are documented elsewhere in this document:
-
-- `reference`: [Reference (root) sequence](#reference-root-sequence)
-- `genomeAnnotation`: [Genome annotation](#genome-annotation)
-- `treeJson`: [Reference tree](#reference-tree)
-- `examples`: [Example sequences](#example-sequences)
-- `readme`: [Readme](#readme)
-- `changelog`: [Changelog](#changelog)
+See [Input files](../input-files) section for more details.
 
 ### Optional
 
+#### `attributes`
+
+A set of attributes to display in Nextclade Web and Nextclade CLI for datasets to be recognizable visually. The attributes `name`, `reference name` and `reference accession` are the most used, but can contain any set of attributes.
+
+Example:
+
+```json
+{
+  "attributes": {
+    "name": "SARS-CoV-2 rooted on BA.2",
+    "reference name": "Prototypical BA.2 in Wuhan-Hu-1 coordinates",
+    "reference accession": "pseudo-BA.2"
+  }
+}
+```
+
 #### `qc`
 
-Optional `dict`. Quality control (QC) configuration. If not provided, Nextclade does not do any QC checks. Details of the QC algorithms and their parameters are described in [Algorithm: Quality control](algorithm/07-quality-control).
+Optional. Quality control (QC) configuration. If not provided, Nextclade does not do any QC checks. Details of the QC algorithms and their parameters are described in [Algorithm: Quality control](../algorithm/07-quality-control).
+
+> ⚠️ Positions in the input files are 0-indexed and ranges are semi-open (ends are excluded). So `ORF3a:257-276` should be encoded as `{"begin": 256, "end": 276 }`.
 
 Example configuration for SARS-CoV-2:
 
 ```json
 {
-  "schemaVersion": "1.2.0",
-  "privateMutations": {
-    "enabled": true,
-    "typical": 8,
-    "cutoff": 24,
-    "weightLabeledSubstitutions": 4,
-    "weightReversionSubstitutions": 6,
-    "weightUnlabeledSubstitutions": 1
-  },
-  "missingData": {
-    "enabled": true,
-    "missingDataThreshold": 2700,
-    "scoreBias": 300
-  },
-  "snpClusters": {
-    "enabled": true,
-    "windowSize": 100,
-    "clusterCutOff": 6,
-    "scoreWeight": 50
-  },
-  "mixedSites": {
-    "enabled": true,
-    "mixedSitesThreshold": 10
-  },
-  "frameShifts": {
-    "enabled": true,
-    "ignoredFrameShifts": [
-      {"geneName": "ORF3a", "codonRange": {"begin": 256, "end": 276}},
-      {"geneName": "ORF3a", "codonRange": {"begin": 258, "end": 276}}
-    ]
-  },
-  "stopCodons": {
-    "enabled": true,
-    "ignoredStopCodons": [
-      {"geneName": "ORF8", "codon": 26},
-      {"geneName": "ORF8", "codon": 67}
-    ]
+  "qc": {
+    "schemaVersion": "1.2.0",
+    "privateMutations": {
+      "enabled": true,
+      "typical": 8,
+      "cutoff": 24,
+      "weightLabeledSubstitutions": 4,
+      "weightReversionSubstitutions": 6,
+      "weightUnlabeledSubstitutions": 1
+    },
+    "missingData": {
+      "enabled": true,
+      "missingDataThreshold": 2700,
+      "scoreBias": 300
+    },
+    "snpClusters": {
+      "enabled": true,
+      "windowSize": 100,
+      "clusterCutOff": 6,
+      "scoreWeight": 50
+    },
+    "mixedSites": {
+      "enabled": true,
+      "mixedSitesThreshold": 10
+    },
+    "frameShifts": {
+      "enabled": true,
+      "ignoredFrameShifts": [
+        {
+          "geneName": "ORF3a",
+          "codonRange": {
+            "begin": 256,
+            "end": 276
+          }
+        },
+        {
+          "geneName": "ORF3a",
+          "codonRange": {
+            "begin": 258,
+            "end": 276
+          }
+        }
+      ]
+    },
+    "stopCodons": {
+      "enabled": true,
+      "ignoredStopCodons": [
+        {
+          "geneName": "ORF8",
+          "codon": 26
+        },
+        {
+          "geneName": "ORF8",
+          "codon": 67
+        }
+      ]
+    }
   }
 }
 ```
-
-Note that in contrast to Nextclade's outputs which use 1-indexed positions with ends being included, positions in the input files are 0-indexed and codon range ends are excluded. So `ORF3a:257-276` should be encoded as `{"begin": 256, "end": 276 }`.
 
 #### `compatibility`
 
@@ -121,18 +135,6 @@ Example:
   "web": "3.0.0"
 }
 ```
-
-#### `deprecated`
-
-Optional `bool`. Whether the dataset is deprecated and should not be used for new analyses. Deprecated datasets still show up in Nextclade web. Default: `false`.
-
-#### `enabled`
-
-Optional `bool`. Whether the dataset is enabled and should be should be shown in Nextclade web. Default: `true`.
-
-#### `experimental`
-
-Optional `bool`. Whether the dataset is experimental. Default: `false`.
 
 #### `defaultGene`
 
@@ -176,3 +178,5 @@ TODO
 #### `mutLabels`
 
 TODO
+
+> 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression) for more details.

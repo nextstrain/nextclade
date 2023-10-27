@@ -13,3 +13,4 @@ This section describes input files for Nextclade Web and Nextclade CLI `run` sub
     03-genome-annotation.md
     04-reference-tree.md
     05-pathogen-config.md
+    compression

@@ -42,3 +42,5 @@ Nextclade CLI flag: `--input-annotation`/`-m`
 Note: For historical reasons, Nextclade uses _gene name_ when it really means _CDS_ name. The "gene name" is taken from the `CDS`'s first attribute found in the following list: `Gene`, `gene`, `gene_name`, `locus_tag`, `Name`, `name`, `Alias`, `alias`, `standard_name`, `old-name`, `product`, `gene_synonym`, `gb-synonym`, `acronym`, `gb-acronym`, `protein_id`, `ID`.
 
 It is recommended that the `gene` attribute is used to specify the gene/CDS name.
+
+> 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression) for more details.
