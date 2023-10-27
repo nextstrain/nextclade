@@ -1,6 +1,10 @@
 # Reference
 
-This document contains the help content for the `nextclade` command-line program.
+This document contains the automatically generated reference documentation for command-line arguments of Nextclade CLI.
+
+Please note that updates to this document can sometimes be delayed.
+
+If you have Nextclade CLI installed, you can type `nextclade --help` to read the latest documentation.
 
 **Command Overview:**
 
@@ -20,9 +24,11 @@ Viral genome alignment, mutation calling, clade assignment, quality checks and p
 
 Nextclade is a part of Nextstrain: https://nextstrain.org
 
-Documentation: https://docs.nextstrain.org/projects/nextclade
-Nextclade Web: https://clades.nextstrain.org
-Publication:   https://doi.org/10.21105/joss.03773
+Documentation: [https://docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)
+
+Nextclade Web: [https://clades.nextstrain.org](https://clades.nextstrain.org)
+
+Publication: [https://doi.org/10.21105/joss.03773](https://doi.org/10.21105/joss.03773)
 
 For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade run --help`.
 
@@ -323,3 +329,4 @@ Print command-line reference documentation in Markdown format
     This document was generated automatically by
     <a href="https://crates.io/crates/clap-markdown"><code>clap-markdown</code></a>.
 </i></small>
+

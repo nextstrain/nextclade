@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# Re-generates CLI reference in Markdown format
+#
+# Usage:
+#   ./scripts/update_cli_reference_docs <path_to_nextclade_executable>
+
+set -euo pipefail
+trap "exit" INT
+
+# Directory where this script resides
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"
+
+NEXTCLADE_BIN="${1:-nextclade}"
+OUTPUT="${THIS_DIR}/../docs/user/nextclade-cli/reference.md"
+
+./"${NEXTCLADE_BIN}" help-markdown > "${OUTPUT}"
+
+# shellcheck disable=SC2016
+sed -i.bak -e 's|# Command-Line Help for `nextclade`|# Reference|g' "${OUTPUT}"
+
+# shellcheck disable=SC2016
+sed -i.bak -e 's|This document contains the help content for the `nextclade` command-line program.|This document contains the automatically generated reference documentation for command-line arguments of Nextclade CLI.\n\nPlease note that updates to this document can sometimes be delayed.\n\nIf you have Nextclade CLI installed, you can type `nextclade --help` to read the latest documentation.|g' "${OUTPUT}"
+
+
+sed -i.bak -z 's|Documentation: https://docs.nextstrain.org/projects/nextclade\nNextclade Web: https://clades.nextstrain.org\nPublication:   https://doi.org/10.21105/joss.03773|Documentation: [https://docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)\n\nNextclade Web: [https://clades.nextstrain.org](https://clades.nextstrain.org)\n\nPublication: [https://doi.org/10.21105/joss.03773](https://doi.org/10.21105/joss.03773)|g' "${OUTPUT}"
