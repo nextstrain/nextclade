@@ -3,6 +3,7 @@ use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
 use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
+use crate::cli::print_help_markdown::print_help_markdown;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
 use clap::builder::styling;
@@ -98,6 +99,9 @@ pub enum NextcladeCommands {
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
   ReadAnnotation(Box<NextcladeReadAnnotationArgs>),
+
+  /// Print command-line reference documentation in Markdown format
+  HelpMarkdown,
 }
 
 #[derive(Parser, Debug)]
@@ -1013,6 +1017,7 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     NextcladeCommands::Completions { shell } => {
       generate_completions(&shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))
     }
+    NextcladeCommands::HelpMarkdown => print_help_markdown(),
     NextcladeCommands::Run(mut run_args) => {
       nextclade_check_removed_args(&run_args)?;
       nextclade_check_column_config_args(&run_args)?;
