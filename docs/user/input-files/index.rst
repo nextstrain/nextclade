@@ -2,7 +2,7 @@
 Input files
 ================================================================================
 
-This section describes input files and their expected formats as well as how they are used in Nextclade Web and Nextclade CLI.
+This section describes input files for Nextclade Web and Nextclade CLI `run` subcommand, their expected formats as well as how they are used in Nextclade Web and Nextclade CLI.
 
 ..  toctree::
     :titlesonly:
