@@ -1,5 +1,9 @@
 # Migration to Nextclade v3
 
+Version 3 of Nextclade contains a number of new features that required changing some of the parameters of the algorithms.
+In addition, we have simplified the structure of datasets.
+While these changes should make Nextclade more powerful and simpler to use, they do require adjustment of pipelines and custom datasets.
+
 This section lists breaking changes in Nextclade v3 compared to Nextclade v2, and describes potential migration paths. For more details about each change as well as about non-breaking changes, please read the [changelog](../../CHANGELOG.md).
 
 Useful links:
@@ -33,7 +37,7 @@ For a list of all datasets, type `nextclade dataset list`. If there is no datase
 
 ## 2. Some alignment parameters are removed
 
-Due to changes in the alignment algorithm, the following parameters are no longer used and the corresponding CLI arguments and JSON fields under `alignmentParams` in `pathogen.json` (previously `virus_properties.json`) were removed:
+Due to changes in the seed alignment algorithm, the following parameters are no longer used and the corresponding CLI arguments and JSON fields under `alignmentParams` in `pathogen.json` (previously `virus_properties.json`) were removed:
 
   ```text
   --min-seeds          (minSeeds)
@@ -58,15 +62,16 @@ The following alignment parameters were added:
 
 This does not affect you if you have not customized these particular alignment parameters, either using CLI arguments or `alignmentParams` section of `virus_properties.json` file.
 
-If you did, then remove the old parameters from your CLI invocation and/or from `pathogen.json` file. The new seed matching algorithm is more flexible regarding lower-quality sequences, and it might be that it does not require parameter tuning anymore. If you observe sequences that cannot be aligned, but believe they should be, then please refer to the "Alignment" section in the user documentation for instructions on how to tune the new algorithm.
+If you did, then remove the old parameters from your CLI invocation and/or from `pathogen.json` file. The new seed matching algorithm is more permissive regarding lower-quality sequences and allows seed-matching of more diverged sequences.
+It might be that it does not require parameter tuning anymore. If you observe sequences that cannot be aligned, but believe they should be, then please refer to the "Alignment" section in the user documentation for instructions on how to tune the new algorithm.
 
 ## 3. Different tree output
 
-Due to introduction of the tree builder algorithm, Nextclade v3 may produce trees that are different from the trees produced in Nextclade v2.
+Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach sequences to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2. In addition to the auspice json format, Nextclade can now also export the tree as `newick` string.
 
 ##### Migration paths
 
-We recommend the new behavior for most users. If you encounter any issues (consider [reporting](https://github.com/nextstrain/nextclade_data/issues) them) or prefer the old behavior, you can use `--without-greedy-tree-builder` argument in Nextclade CLI to disable it. There is currently no way to disable the tree builder in Nextclade Web. If you need this functionality, please open a GitHub issue and explain your motivation. We are also open for contributions.
+We recommend the new behavior for most users and most pathogens. If you encounter any issues (consider [reporting](https://github.com/nextstrain/nextclade_data/issues) them) or prefer the old behavior, you can use `--without-greedy-tree-builder` argument in Nextclade CLI to disable it. There is currently no way to disable the tree builder in Nextclade Web. If you need this functionality, please open a GitHub issue and explain your motivation. We are also open for contributions.
 
 Please refer to section "Phylogenetic placement" of Nextclade user documentation for more details about the new algorithm.
 
@@ -98,7 +103,7 @@ For example, you can download Wuhan-based SARS-CoV-2 dataset using:
 nextclade dataset get --name="nextstrain/sars-cov-2/MN908947" --output-dir="out_dir/"
 ```
 
-You can have a concise at the available datasets if you add `--only-names` flag to the list command:
+You can obtain a concise list of the available datasets if you add `--only-names` flag to the list command:
 
 ```bash
 nextclade dataset list --only-names
