@@ -663,7 +663,7 @@ pub struct NextcladeSortArgs {
 
   /// Path to input minimizer index JSON file.
   ///
-  /// By default the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the the JSON file.
+  /// By default, the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the JSON file.
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm')]
@@ -672,9 +672,11 @@ pub struct NextcladeSortArgs {
 
   /// Path to output directory
   ///
-  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset wil lbe places in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized.
+  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset will be placed in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized - dataset names can contain slashes, and they will be treated as path segment delimiters.
   ///
-  /// Mutually exclusive with `--output`.
+  /// If the required directory tree does not exist, it will be created.
+  ///
+  /// Mutually exclusive with `--output-path`.
   ///
   #[clap(short = 'O', long)]
   #[clap(value_hint = ValueHint::DirPath)]
