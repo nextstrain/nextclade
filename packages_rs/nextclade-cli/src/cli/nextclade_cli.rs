@@ -377,7 +377,7 @@ pub struct NextcladeRunInputArgs {
     use_value_delimiter = true
   )]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub cdses: Option<Vec<String>>,
+  pub cds_selection: Option<Vec<String>>,
 
   /// Use custom dataset server
   #[clap(long)]

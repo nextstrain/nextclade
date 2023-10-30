@@ -26,7 +26,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let NextcladeRunArgs {
     inputs: NextcladeRunInputArgs {
-      input_fastas, cdses, ..
+      input_fastas, cds_selection: cdses, ..
     },
     outputs:
       NextcladeRunOutputArgs {
