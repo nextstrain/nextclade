@@ -135,63 +135,40 @@ pub struct NextcladeDatasetListArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub name: Option<String>,
 
-  /// REMOVED
-  #[clap(long, short = 'r')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub reference: Option<String>,
-
   /// Restrict list to datasets with this exact version tag.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   pub tag: Option<String>,
 
-  /// REMOVED
-  #[clap(long, short = 'a')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub attribute: Vec<String>,
-
   /// Include dataset versions that are incompatible with this version of Nextclade CLI.
-  ///
-  /// By default the incompatible versions are omitted.
   #[clap(long)]
   pub include_incompatible: bool,
 
-  /// REMOVED
-  #[clap(long)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub include_old: Option<bool>,
-
   /// Include deprecated datasets.
-  ///
-  /// By default the deprecated datasets are omitted.
   ///
   /// Authors can mark a dataset as deprecated to express that the dataset will no longer be updated and/or supported. Reach out to dataset authors for concrete details.
   #[clap(long)]
   pub include_deprecated: bool,
 
-  /// Include experimental datasets.
-  ///
-  /// By default the experimental datasets are omitted.
+  /// Exclude experimental datasets.
   ///
   /// Authors can mark a dataset as experimental when development of the dataset is still in progress, or if the dataset is incomplete or of lower quality than usual. Use at own risk. Reach out to dataset authors if interested in further development and stabilizing of a particular dataset, and consider contributing.
   #[clap(long)]
-  pub include_experimental: bool,
+  pub no_experimental: bool,
 
-  /// Include community datasets.
-  ///
-  /// By default the community datasets are omitted.
+  /// Exclude community datasets and only show official datasets.
   ///
   /// Community datasets are the datasets provided by the members of the broader Nextclade community. These datasets may vary in quality and completeness. Depending on authors' goals, these datasets may be created for specific purposes, rather than for general use. Nextclade team is unable to verify correctness of these datasets and does not provide support for them. For all questions regarding a concrete community dataset, please read its documentation and reach out to its authors.
   #[clap(long)]
-  pub include_community: bool,
+  pub no_community: bool,
 
   /// Print output in JSON format.
+  ///
+  /// This is useful for automated processing. However, at this time, we cannot guarantee stability of the format. Use at own risk.
   #[clap(long)]
   pub json: bool,
 
-  /// Print only names of the datasets, without other details.
+  /// Print only names of the datasets, without any other details.
   #[clap(long)]
   pub only_names: bool,
 
@@ -205,6 +182,22 @@ pub struct NextcladeDatasetListArgs {
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
+
+  // Deprecated args
+  /// REMOVED
+  #[clap(long, short = 'r')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub reference: Option<String>,
+
+  /// REMOVED
+  #[clap(long, short = 'a')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub attribute: Vec<String>,
+
+  /// REMOVED
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub include_old: bool,
 }
 
 #[derive(Parser, Debug)]
@@ -216,24 +209,12 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub name: String,
 
-  /// REMOVED
-  #[clap(long, short = 'r')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub reference: Option<String>,
-
   /// Version tag of the dataset to download.
   ///
   /// If this flag is not provided the latest version is downloaded.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   pub tag: Option<String>,
-
-  /// REMOVED
-  #[clap(long, short = 'a')]
-  #[clap(value_hint = ValueHint::Other)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub attribute: Vec<String>,
 
   /// Use custom dataset server.
   ///
@@ -267,6 +248,17 @@ pub struct NextcladeDatasetGetArgs {
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,
+
+  // Deprecated arguments
+  /// REMOVED
+  #[clap(long, short = 'r')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub reference: Option<String>,
+
+  /// REMOVED
+  #[clap(long, short = 'a')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub attribute: Vec<String>,
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, EnumIter)]
@@ -305,7 +297,7 @@ pub struct NextcladeRunInputArgs {
   ///
   /// See `nextclade dataset --help` on how to obtain datasets.
   ///
-  /// If this flag is not provided, no dataset will be loaded and individual input files have to be provided instead. In this case  `--input-ref` is required and `--input-gene-map`, `--input-tree` and `--input-pathogen-json` are optional.
+  /// If this flag is not provided, no dataset will be loaded and individual input files have to be provided instead. In this case  `--input-ref` is required and `--input-annotation, `--input-tree` and `--input-pathogen-json` are optional.
   ///
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
@@ -332,7 +324,7 @@ pub struct NextcladeRunInputArgs {
   /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'r', visible_alias("reference"), visible_alias("input-root-seq"))]
+  #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
 
@@ -347,26 +339,14 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_tree: Option<PathBuf>,
 
-  /// REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
-  #[clap(long, short = 'Q')]
-  #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_qc_config: Option<PathBuf>,
-
   /// Path to a JSON file containing configuration and data specific to a pathogen.
   ///
-  /// Overrides path to `virus_properties.json` in the dataset (`--input-dataset`).
+  /// Overrides path to `pathogen.json` in the dataset (`--input-dataset`).
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'R')]
-  #[clap(value_hint = ValueHint::FilePath)]
-  pub input_pathogen_json: Option<PathBuf>,
-
-  /// REMOVED. Merged into pathogen.json, see `--input-pathogen`
   #[clap(long, short = 'p')]
   #[clap(value_hint = ValueHint::FilePath)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_pcr_primers: Option<PathBuf>,
+  pub input_pathogen_json: Option<PathBuf>,
 
   /// Path to a GFF3 file containing (genome annotation).
   ///
@@ -382,7 +362,7 @@ pub struct NextcladeRunInputArgs {
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
-  #[clap(long, short = 'm', alias = "genemap")]
+  #[clap(long, short = 'm')]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_annotation: Option<PathBuf>,
 
@@ -392,7 +372,7 @@ pub struct NextcladeRunInputArgs {
   /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the genome annotation. If
   /// this flag is not supplied or its value is an empty string, then all genes found in the genome annotation will be used.
   ///
-  /// Requires `--input-gene-map` to be specified.
+  /// Requires `--input-annotation` to be specified.
   #[clap(
     long,
     short = 'g',
@@ -407,6 +387,41 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::Url)]
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
   pub server: Url,
+
+  // Deprecated arguments. Kept in oder to detect usage and print error messages.
+  /// REMOVED. Use --input-ref instead
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_root_seq: Option<String>,
+
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub reference: Option<String>,
+
+  /// REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
+  #[clap(long, short = 'Q')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_qc_config: Option<String>,
+
+  /// REMOVED. The virus_properties.json file have been merged into pathogen.json, see `--input-pathogen-json`
+  #[clap(long, short = 'R')]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_virus_properties: Option<String>,
+
+  /// REMOVED. The pcr_primers.csv file have been merged into pathogen.json, see `--input-pathogen-json`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_pcr_primers: Option<String>,
+
+  /// RENAMED to `--input-annotation`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub input_gene_map: Option<String>,
+
+  /// RENAMED to `--input-annotation`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub genemap: Option<String>,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -652,7 +667,7 @@ pub struct NextcladeSortArgs {
 
   /// Path to input minimizer index JSON file.
   ///
-  /// By default the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the the JSON file.
+  /// By default, the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the JSON file.
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm')]
@@ -661,9 +676,11 @@ pub struct NextcladeSortArgs {
 
   /// Path to output directory
   ///
-  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset wil lbe places in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized.
+  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset will be placed in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized - dataset names can contain slashes, and they will be treated as path segment delimiters.
   ///
-  /// Mutually exclusive with `--output`.
+  /// If the required directory tree does not exist, it will be created.
+  ///
+  /// Mutually exclusive with `--output-path`.
   ///
   #[clap(short = 'O', long)]
   #[clap(value_hint = ValueHint::DirPath)]
@@ -898,11 +915,13 @@ Try:
                                one or multiple positional arguments
                                  with paths to input fasta files
 
-When positional arguments are not provided, nextclade will read input fasta from standard input.
+When positional arguments are not provided, nextclade will read input fasta from standard input."#;
 
-For more information, type:
+const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str =
+  r#"The argument `--input-root-seq` (alias `--reference`) is removed in favor of `--input-ref`."#;
 
-  nextclade run --help"#;
+const ERROR_MSG_INPUT_GENE_MAP_RENAMED: &str =
+  r#"The argument `--input-gene-map` (alias `--genemap`) is renamed to `--input-annotation`."#;
 
 const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
 
@@ -910,51 +929,29 @@ When provided, `--output-all` allows to write all possible outputs into a direct
 
 The defaut base name of the files can be overriden with `--output-basename` argument.
 
-The set of output files can be restricted with `--output-selection` argument.
+The set of output files can be restricted with `--output-selection` argument."#;
 
-For more information, type
+const ERROR_MSG_INPUT_VIRUS_PROPERTIES_REMOVED: &str = r#"The argument `--input-virus-properties` (alias `-R`) is removed in favor of `--input-pathogen-json`.
 
-  nextclade run --help"#;
+Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
-const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-config` is removed in favor of `--input-pathogen-json`.
+const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-config` (alias `-Q`) is removed in favor of `--input-pathogen-json`.
 
-Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
+Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
-For more information, type
+const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` (alias `-p`) is removed in favor of `--input-pathogen-json`.
 
-  nextclade run --help
-
-Read Nextclade documentation at:
-
-  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
-
-const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` is removed in favor of `--input-pathogen-json`.
-
-Since Nextclade v3, the `pathogen.json` file is an extended version of file known as `virus_properties.json` in Nextclade v2. The Nextclade v2 files `qc.json`, `primers.csv` and `tag.json` are now merged into `pathogen.json`.
-
-For more information, type
-
-  nextclade run --help
-
-Read Nextclade documentation at:
-
-  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
 const ERROR_MSG_OUTPUT_INSERTIONS_REMOVED: &str = r#"The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
 
-In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
-
-For more information, type
-
-  nextclade run --help
-
-Read Nextclade documentation at:
-
-  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`)."#;
 
 const ERROR_MSG_OUTPUT_ERRORS_REMOVED: &str = r#"The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`.
 
-In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`).
+In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`)."#;
+
+const MSG_READ_RUN_DOCS: &str = r#"
 
 For more information, type
 
@@ -966,27 +963,105 @@ Read Nextclade documentation at:
 
 pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), Report> {
   if run_args.inputs.input_fasta.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}");
+    return make_error!("{ERROR_MSG_INPUT_FASTA_REMOVED}{MSG_READ_RUN_DOCS}");
+  }
+
+  if run_args.inputs.input_root_seq.is_some() || run_args.inputs.reference.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_ROOT_SEQ_REMOVED}{MSG_READ_RUN_DOCS}");
+  }
+
+  if run_args.inputs.input_gene_map.is_some() || run_args.inputs.genemap.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_GENE_MAP_RENAMED}{MSG_READ_RUN_DOCS}");
+  }
+
+  if run_args.inputs.input_virus_properties.is_some() {
+    return make_error!("{ERROR_MSG_INPUT_VIRUS_PROPERTIES_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_qc_config.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}");
+    return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.input_pcr_primers.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}");
+    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_dir.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}");
+    return make_error!("{ERROR_MSG_OUTPUT_DIR_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_insertions.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}");
+    return make_error!("{ERROR_MSG_OUTPUT_INSERTIONS_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_errors.is_some() {
-    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}");
+    return make_error!("{ERROR_MSG_OUTPUT_ERRORS_REMOVED}{MSG_READ_RUN_DOCS}");
+  }
+
+  Ok(())
+}
+
+const MSG_DATASET_NAMING_CHANGE: &str = r#"
+
+Nextclade datasets are now identified only by their name (`--name`) and, optionally, a version tag (`--tag`). All other attributes are now included into the name.
+
+In order to list all dataset names, type:
+
+  nextclade dataset list --names-only"#;
+
+const MSG_READ_DATASET_LIST_DOCS: &str = r#"
+
+For more information, type
+
+  nextclade dataset list --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+fn nextclade_check_removed_dataset_list_args(args: &NextcladeDatasetListArgs) -> Result<(), Report> {
+  if args.reference.is_some() {
+    return make_error!(
+      "The argument `--reference` (alias `-r`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_LIST_DOCS}"
+    );
+  }
+
+  if !args.attribute.is_empty() {
+    return make_error!(
+      "The argument `--attribute` (alias `-a`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_LIST_DOCS}"
+    );
+  }
+
+  if args.include_old {
+    return make_error!(
+      "The argument `--include-old` is removed. All versions are always shown now. {MSG_READ_DATASET_LIST_DOCS}"
+    );
+  }
+
+  Ok(())
+}
+
+const MSG_READ_DATASET_GET_DOCS: &str = r#"
+
+For more information, type
+
+  nextclade dataset get --help
+
+Read Nextclade documentation at:
+
+  https://docs.nextstrain.org/projects/nextclade/en/stable"#;
+
+fn nextclade_check_removed_dataset_get_args(args: &NextcladeDatasetGetArgs) -> Result<(), Report> {
+  if args.reference.is_some() {
+    return make_error!(
+      "The argument `--reference` (alias `-r`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_GET_DOCS}"
+    );
+  }
+
+  if !args.attribute.is_empty() {
+    return make_error!(
+      "The argument `--attribute` (alias `-a`) is removed.{MSG_DATASET_NAMING_CHANGE}{MSG_READ_DATASET_GET_DOCS}"
+    );
   }
 
   Ok(())
@@ -1025,8 +1100,14 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
       nextclade_run(*run_args)
     }
     NextcladeCommands::Dataset(dataset_command) => match dataset_command.command {
-      NextcladeDatasetCommands::List(dataset_list_args) => nextclade_dataset_list(dataset_list_args),
-      NextcladeDatasetCommands::Get(dataset_get_args) => nextclade_dataset_get(&dataset_get_args),
+      NextcladeDatasetCommands::List(dataset_list_args) => {
+        nextclade_check_removed_dataset_list_args(&dataset_list_args)?;
+        nextclade_dataset_list(dataset_list_args)
+      }
+      NextcladeDatasetCommands::Get(dataset_get_args) => {
+        nextclade_check_removed_dataset_get_args(&dataset_get_args)?;
+        nextclade_dataset_get(&dataset_get_args)
+      }
     },
     NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
     NextcladeCommands::ReadAnnotation(read_annotation_args) => nextclade_read_annotation(&read_annotation_args),

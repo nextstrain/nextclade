@@ -4,11 +4,12 @@ import { changeColorBy } from 'auspice/src/actions/colors'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
+import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { datasetCurrentAtom, geneOrderPreferenceAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   geneMapInputAtom,
@@ -47,6 +48,8 @@ export function useRunAnalysis() {
         set(showNewRunPopupAtom, false)
 
         reset(analysisResultsAtom)
+        reset(viewedGeneAtom)
+        reset(geneOrderPreferenceAtom)
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
@@ -68,6 +71,8 @@ export function useRunAnalysis() {
           onInitialData({
             geneMap,
             genomeSize,
+            defaultGene,
+            geneOrderPreference,
             cladeNodeAttrKeyDescs,
             phenotypeAttrDescs,
             aaMotifsDescs,
@@ -79,6 +84,14 @@ export function useRunAnalysis() {
             const cdses = Object.values(geneMap.genes).flatMap((gene) => gene.cdses)
             set(cdsesAtom, cdses)
             set(genomeSizeAtom, genomeSize)
+
+            if (defaultGene) {
+              set(viewedGeneAtom, defaultGene)
+            }
+
+            if (geneOrderPreference) {
+              set(geneOrderPreferenceAtom, geneOrderPreference)
+            }
 
             // FIXME: This type is duplicated. One comes from handwritten Auspice typings,
             //  another from JSON-schema generated types
@@ -99,13 +112,13 @@ export function useRunAnalysis() {
             set(globalErrorAtom, error)
           },
           onTree({ auspice, nwk }) {
-            set(treeAtom, auspice as unknown as AuspiceJsonV2)
-            set(treeNwkAtom, nwk)
-
             const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
             dispatch(auspiceStartClean(auspiceState))
             dispatch(changeColorBy())
             dispatch(treeFilterByNodeType(['New']))
+
+            set(treeAtom, auspice as unknown as AuspiceJsonV2)
+            set(treeNwkAtom, nwk)
           },
           onComplete() {},
         }

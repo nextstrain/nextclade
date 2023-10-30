@@ -6,6 +6,7 @@ import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 
 const Container = styled.div`
+  margin: 0 auto;
   height: 100%;
   overflow: hidden;
   margin-top: 10px;

@@ -1,4 +1,6 @@
 import React, { PropsWithChildren, HTMLProps } from 'react'
+import { BrowserWarning } from 'src/components/Common/BrowserWarning'
+import { PreviewWarning } from 'src/components/Common/PreviewWarning'
 import styled from 'styled-components'
 
 import { NavigationBar } from './NavigationBar'
@@ -16,10 +18,12 @@ const Container = styled.div`
 
 const HeaderWrapper = styled.header`
   height: 45px;
+  z-index: 1001;
 `
 
-const MainWrapper = styled.main`
-  flex: auto;
+const MainInner = styled.main`
+  display: flex;
+  flex: 1;
   overflow: hidden;
   height: 100%;
   width: 100%;
@@ -27,19 +31,34 @@ const MainWrapper = styled.main`
   margin: 0;
 `
 
-const FooterWrapper = styled.footer``
+const MainOuter = styled.main`
+  flex: auto;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+`
+
+const FooterWrapper = styled.footer`
+  z-index: 1001;
+`
 
 export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
     <Container>
+      <PreviewWarning />
+      <BrowserWarning />
+
       <HeaderWrapper>
         <NavigationBar />
       </HeaderWrapper>
 
-      <MainWrapper>
+      <MainOuter>
         <UpdateNotification />
-        {children}
-      </MainWrapper>
+        <MainInner>{children}</MainInner>
+      </MainOuter>
 
       <FooterWrapper>
         <Footer />

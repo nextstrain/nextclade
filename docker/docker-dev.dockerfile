@@ -143,8 +143,7 @@ RUN set -eux >dev/null \
 && cd "${NODE_DIR}" \
 && NODE_VERSION=$(cat /.nvmrc) \
 && curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
-&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
-&& npm config set scripts-prepend-node-path auto
+&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null
 
 # Calm down the (in)famous chatter from yarn
 RUN set -euxo pipefail >/dev/null \

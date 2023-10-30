@@ -7,34 +7,23 @@ use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::json::{json_stringify, JsonPretty};
-use nextclade::make_error;
 use nextclade::utils::info::this_package_version;
 
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
     name,
-    reference,
     tag,
-    attribute,
     include_incompatible,
-    include_old,
     include_deprecated,
-    include_experimental,
-    include_community,
+    no_experimental,
+    no_community,
     json,
     only_names,
     server,
     proxy_config,
+    ..
   }: NextcladeDatasetListArgs,
 ) -> Result<(), Report> {
-  if include_old.is_some() {
-    return make_error!("The argument `--include-old` is removed.\n\nAll version tags are always listed now\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
-  }
-
-  if reference.is_some() || !attribute.is_empty() {
-    return make_error!("The arguments `--reference` and `--attribute` are removed. Datasets are now queried by `--name` and `--tag` only.\n\nIn order to list all dataset names, type:\n\n  nextclade dataset list --names-only\n\n. Please refer to `--help` and to Nextclade documentation for more details.");
-  }
-
   let verbose = log::max_level() > LevelFilter::Info;
 
   let mut http = HttpClient::new(&server, &proxy_config, verbose)?;
@@ -51,8 +40,8 @@ pub fn nextclade_dataset_list(
       } else {
         let is_compatible = include_incompatible || dataset.is_cli_compatible(this_package_version());
         let is_not_deprecated = include_deprecated || !dataset.is_deprecated();
-        let is_not_experimental = include_experimental || !dataset.is_experimental();
-        let is_not_community = include_community || !dataset.is_community();
+        let is_not_experimental = !no_experimental || !dataset.is_experimental();
+        let is_not_community = !no_community || !dataset.is_community();
         is_compatible && is_not_deprecated && is_not_experimental && is_not_community
       }
     })

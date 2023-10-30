@@ -47,7 +47,7 @@ export interface NumericFieldProps extends InputProps {
   value: number | typeof Number.POSITIVE_INFINITY
   min: number
   max: number
-
+  inline?: boolean
   onValueChanged(value: number): void
 }
 
@@ -60,6 +60,7 @@ export function NumericField({
   max,
   disabled,
   title,
+  inline,
   ...props
 }: NumericFieldProps) {
   const { t } = useTranslation()
@@ -96,7 +97,7 @@ export function NumericField({
   )
 
   return (
-    <FormGroup>
+    <FormGroup inline={inline}>
       <Label htmlFor={identifier} disabled={disabled} title={title}>
         <LabelText disabled={disabled}>{label}</LabelText>
         <ErrorText disabled={disabled}>{error}</ErrorText>

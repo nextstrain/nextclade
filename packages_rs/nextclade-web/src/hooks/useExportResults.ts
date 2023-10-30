@@ -1,8 +1,6 @@
 /* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops */
 import { Snapshot, useRecoilCallback } from 'recoil'
-
 import type { AnalysisError, AnalysisOutput } from 'src/types'
-import type { ExportParams } from 'src/components/Results/ExportDialogButton'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
@@ -19,6 +17,19 @@ import {
 import { ExportWorker } from 'src/workers/ExportThread'
 
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? 'unknown'
+
+export interface ExportParams {
+  filenameZip: string
+  filenameCsv: string
+  filenameTsv: string
+  filenameJson: string
+  filenameNdjson: string
+  filenameTree: string
+  filenameTreeNwk: string
+  filenameFasta: string
+  filenamePeptidesZip: string
+  filenamePeptidesTemplate: string
+}
 
 export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameZip: 'nextclade.zip',
