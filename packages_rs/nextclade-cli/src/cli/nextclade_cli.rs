@@ -394,6 +394,7 @@ pub struct NextcladeRunInputArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_root_seq: Option<String>,
 
+  /// REMOVED. Use --input-ref instead
   #[clap(long)]
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub reference: Option<String>,
