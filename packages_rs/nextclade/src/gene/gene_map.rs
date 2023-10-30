@@ -155,6 +155,20 @@ impl GeneMap {
       })
     })?;
 
+    //Error loudly if non-unique CDS names, as otherwise it will be hard to debug for the user
+    let duplicate_cds_names = self
+      .iter_cdses()
+      .map(|cds| cds.name.clone())
+      .group_by(Clone::clone)
+      .into_iter()
+      .filter_map(|(cds_name, group)| group.count().gt(&1).then_some(cds_name))
+      .join(", ");
+    if !duplicate_cds_names.is_empty() {
+      return Err(eyre!(
+        "Nextclade expects CDS names to be unique, but the following CDS names are duplicated: {duplicate_cds_names}"
+      ));
+    }
+
     Ok(())
   }
 }
