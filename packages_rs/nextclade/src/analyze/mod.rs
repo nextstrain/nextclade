@@ -14,6 +14,7 @@ pub mod letter_ranges;
 pub mod nuc_changes;
 pub mod nuc_del;
 pub mod nuc_sub;
+pub mod nuc_undel;
 pub mod pcr_primer_changes;
 pub mod phenotype;
 pub mod virus_properties;

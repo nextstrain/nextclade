@@ -5,6 +5,7 @@ use crate::analyze::is_sequenced::{is_nuc_non_acgtn, is_nuc_sequenced};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
+use crate::analyze::nuc_undel::{NucUndel, NucUndelRange};
 use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
@@ -103,7 +104,7 @@ pub fn find_private_nuc_mutations(
     process_seq_deletions(node_mut_map, deletions, ref_seq, &mut seq_positions_mutated_or_deleted);
 
   // Iterate over node substitutions and deletions and find reversions
-  let reversion_substitutions = find_reversions(
+  let reversion_substitutions_undeletions = find_reversions(
     node_mut_map,
     missing,
     alignment_range,
@@ -111,6 +112,12 @@ pub fn find_private_nuc_mutations(
     non_acgtns,
     &mut seq_positions_mutated_or_deleted,
   );
+
+  let (undeletions, reversion_substitutions) = reversion_substitutions_undeletions
+    .into_iter()
+    .partition::<Vec<NucSub>, _>(|sub| sub.ref_nuc.is_gap());
+
+  let undeletion_ranges = aggregate_nuc_undel_ranges(&undeletions);
 
   let (labeled_substitutions, unlabeled_substitutions) = label_private_mutations(
     &non_reversion_substitutions,
@@ -128,9 +135,12 @@ pub fn find_private_nuc_mutations(
 
   let total_private_substitutions = private_substitutions.len();
   let total_private_deletions = private_deletions.len();
+  let total_undeletions = undeletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
   let total_labeled_substitutions = labeled_substitutions.len();
   let total_unlabeled_substitutions = unlabeled_substitutions.len();
+
+  // TODO: Do something with the undeletions, they are not returned from this function
 
   PrivateNucMutations {
     private_substitutions,
@@ -311,4 +321,34 @@ fn label_private_mutations(
   unlabeled_substitutions.dedup();
 
   (labeled_substitutions, unlabeled_substitutions)
+}
+
+fn aggregate_nuc_undel_ranges(nuc_undels: &Vec<NucSub>) -> Vec<NucUndelRange> {
+  // Find all contiguous ranges of undel positions
+  // Aggregate them into NucUndelRange's    let mut sorted_undels = nuc_undels.to_vec();
+  let mut sorted_undels = nuc_undels.clone();
+  sorted_undels.sort_by(|a, b| a.pos.cmp(&b.pos));
+
+  let mut undel_ranges: Vec<NucUndelRange> = Vec::new();
+  let mut current: Option<(NucRefGlobalPosition, NucRefGlobalPosition)> = None;
+
+  for nuc_undel in &sorted_undels {
+    match current {
+      Some((start, previous)) => {
+        if nuc_undel.pos != previous + 1 {
+          undel_ranges.push(NucUndelRange::new(start, previous + 1));
+          current = Some((nuc_undel.pos, nuc_undel.pos));
+        } else {
+          current = Some((start, nuc_undel.pos));
+        }
+      }
+      None => current = Some((nuc_undel.pos, nuc_undel.pos)),
+    }
+  }
+
+  if let Some((start, previous)) = current {
+    undel_ranges.push(NucUndelRange::new(start, previous + 1));
+  }
+
+  undel_ranges
 }
