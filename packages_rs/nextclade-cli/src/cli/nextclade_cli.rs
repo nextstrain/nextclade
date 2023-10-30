@@ -350,7 +350,7 @@ pub struct NextcladeRunInputArgs {
   /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
   /// alignment will not be informed by codon boundaries
   ///
-  /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the genome annotation will be used.
+  /// List of genes can be restricted using `--genes` flag. Otherwise, all genes found in the genome annotation will be used.
   ///
   /// Overrides genome annotation provided by the dataset (`--input-dataset` or `--dataset-name`).
   ///
@@ -362,11 +362,12 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_annotation: Option<PathBuf>,
 
-  /// Comma-separated list of names of genes to use.
+  /// Comma-separated list of names of coding sequences (CDSes) to use.
   ///
   /// This defines which peptides will be written into outputs, and which genes will be taken into account during
-  /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the genome annotation. If
-  /// this flag is not supplied or its value is an empty string, then all genes found in the genome annotation will be used.
+  /// codon-aware alignment and aminoacid mutations detection. Must only contain CDS names present in the genome annotation.
+  ///
+  /// If this flag is not supplied or its value is an empty string, then all CDSes found in the genome annotation will be used.
   ///
   /// Requires `--input-annotation` to be specified.
   #[clap(
@@ -376,7 +377,7 @@ pub struct NextcladeRunInputArgs {
     use_value_delimiter = true
   )]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub genes: Option<Vec<String>>,
+  pub cdses: Option<Vec<String>>,
 
   /// Use custom dataset server
   #[clap(long)]
