@@ -2,13 +2,13 @@
 
 A tab separated table describing the genes of the virus (name, frame, position, etc.)
 
-The annotation is required for codon-aware alignment, for gene translation and for calling of aminoacid mutations. Without annotation (sometimes called genemap), peptides will not be output and aminoacid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)).
+The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of aminoacid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and aminoacid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)).
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
 
-Since version 3, Nextclade supports multi-part CDSs (CoDing Sequences) which enable the correct translation of complex features including programmed ribosomal slippage (e.g. ORF1ab in SARS-CoV-2), genes crossing the origin of a circular genome (e.g. Hepatitis B virus) and genes with alternative splicing (e.g. HIV).
+Since version 3, Nextclade supports multi-part CDSs which enable the correct translation of complex features including programmed ribosomal slippage (e.g. ORF1ab in SARS-CoV-2), genes crossing the origin of a circular genome (e.g. Hepatitis B virus) and CDS that require splicing (e.g. HIV).
 
-In theory, any syntatically correct GFF3 genemap, e.g. downloaded from Genbank, should work. However, in practice, post-processing may be required to show meaningful gene names and reduce the number of genes.
+In theory, any syntatically correct GFF3 annotation, e.g. downloaded from Genbank, should work. However, in practice, post-processing may be required to show meaningful gene names and to reduce the number of genes.
 
 The fundamental unit for Nextclade is a single `CDS`.
 
@@ -35,7 +35,7 @@ Example gene map for SARS-CoV-2:
 
 More example annotations can be found in the [Nextclade data repository](https://github.com/search?q=repo%3Anextstrain%2Fnextclade_data++path%3Agenome_annotation.gff3&type=code).
 
-Nextclade Web (advanced mode): accepted in "Gene map" drag & drop box.
+Nextclade Web (advanced mode): accepted in "Genome annotation" drag & drop box.
 
 Nextclade CLI flag: `--input-annotation`/`-m`
 
