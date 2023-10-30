@@ -15,7 +15,7 @@ Nextclade consists of a set of related tools:
 - Nextclade CLI - a command-line tool
 
 
-Both tools are powered by the same algorithms, they consume the same inputs and produce the same outputs, but they differ in the user interface, the amount of features included and the degree of customization. It is recommended to start with Nextclade Web and later proceed to CLI tools if you have more advanced use-cases (for example, repeated batch processing, bioinformatics pipelines).
+Both tools are powered by the same algorithms, they consume the same inputs and produce the same outputs, but they differ in the user interface, the features included, and the degree of customization. It is recommended to start with Nextclade Web and later proceed to CLI tools if you have more advanced use-cases (for example, repeated batch processing, bioinformatics pipelines).
 
 Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source project to harness the scientific and public health potential of pathogen genome data. All source code is available on `GitHub <https://github.com/nextstrain/nextclade>`_.
 

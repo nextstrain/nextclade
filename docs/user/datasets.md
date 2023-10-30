@@ -1,12 +1,15 @@
 # Nextclade datasets
 
-A Nextclade dataset is a set of input data files required for Nextclade to run an analysis with user-provided sequences of a given virus. Datasets are how Nextclade is configured for a particular virus - as opposed to Nextclade software itself, which is virus agnostic.
+A Nextclade dataset is a set of input data files required for Nextclade to run an analysis on user-provided sequences of a given virus. Datasets are how Nextclade is configured for a particular virus - as opposed to Nextclade software itself, which is virus agnostic.
+Datasets can differ in the features they enable, which can range from just alignment to a reference sequence to full QC, clade assignment, and phylogenetic analysis.
+The dataset components (input files) required to enable different features are listed below.
+It is possible to directly specify all the required input files. However, most users will want to use the pre-made datasets for convenience.
 
-For some viruses, Nextclade maintains datasets that are regularly updated. However, you can also create your own datasets and share them with others.
+Nextstrain maintains a repository of official and community datasets at github.com/nextstrain/nextclade_data.
+It contains the datasets maintained by the Nextstrain team, as well as datasets contributed by the community.
+This repository is the source of datasets shown in Nextclade Web and is used by the Nextclade CLI to download datasets.
 
-Neither Nextclade Web nor Nextclade CLI require a fully-fledged and published dataset to run. It is possible to directly specify all the required input files. However, most users will want to use the pre-made datasets for convenience.
-
-Nextstrain maintains a repository of official and community datasets at github.com/nextstrain/nextclade_data. This repository is the source of datasets shown in Nextclade Web and is used by Nextclade CLI to download datasets.
+However, you can also create your own datasets and share them with others.
 
 ## Dataset files
 
@@ -17,8 +20,8 @@ A dataset must contain at least the following files:
 
 Optionally, a dataset can contain the following additional files:
 
-- a genome annotation to specify how to translate the nucleotide sequence to proteins (`genome_annotation.gff3`)
-- a reference tree to place sequences in phylogenetic context, assign clades and identify some common sequencing artefacts (`tree.json`)
+- a genome annotation to specify how to translate the nucleotide sequence to proteins (`genome_annotation.gff3`). specifying this enables codon-informed alignment and protein alignments.
+- a reference tree to place sequences in phylogenetic context, assign clades, and determine QC metrics that depend rely on the tree (`tree.json`)
 - a readme file giving more information about the dataset (`README.md`)
 - a changelog file describing changes between versions (`CHANGELOG.md`)
 - example sequence data for testing and demonstration (`sequences.fasta`)
@@ -45,7 +48,7 @@ The dataset version tags are immutable: once a tag released the data for that ta
 
 If you need reproducible results, you should:
 
-- "freeze" the version of Nextclade CLI, that is keep the same version of Nextclade CLI across runs (check `nextclade --version`)
+- "freeze" the version of Nextclade CLI, that is keep the same version of Nextclade CLI software across runs (check `nextclade --version`)
 - "freeze" the version tag of the dataset, that is keep the same dataset directory across runs or to redownload it with the specific `--tag`.
 
 Nextclade Web always uses the latest versions of datasets available at the moment of loading the main page (reload the page for updates).
