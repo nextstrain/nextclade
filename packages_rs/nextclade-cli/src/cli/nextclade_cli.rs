@@ -494,7 +494,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Example for bash shell:
   ///
-  ///   --output-translations='output_dir/gene_{gene}.translation.fasta'
+  ///   --output-translations='output_dir/cds_{cds}.translation.fasta'
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
@@ -853,17 +853,17 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   }
 
   if let Some(output_translations) = output_translations {
-    if !output_translations.contains("{gene}") {
+    if !output_translations.contains("{cds}") {
       return make_error!(
         r#"
-Expected `--output-translations` argument to contain a template string containing template variable {{gene}} (with curly braces), but received:
+Expected `--output-translations` argument to contain a template string containing template variable {{cds}} (with curly braces), but received:
 
   {output_translations}
 
 Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
 Example for bash shell:
 
-  --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+  --output-translations='output_dir/cds_{{cds}}.translation.fasta'
 
       "#
       );
