@@ -100,8 +100,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-m`, `--input-annotation <INPUT_ANNOTATION>` — Path to a GFF3 file containing (genome annotation)
 * `-g`, `--genes <GENES>` — Comma-separated list of names of genes to use
 * `--server <SERVER>` — Use custom dataset server
-
-  Default value: `https://data.master.clades.nextstrain.org/v3`
 * `-O`, `--output-all <OUTPUT_ALL>` — Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames
 * `-n`, `--output-basename <OUTPUT_BASENAME>` — Set the base filename to use for output files
 * `-s`, `--output-selection <OUTPUT_SELECTION>` — Restricts outputs for `--output-all` flag
@@ -170,8 +168,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--max-alignment-attempts <MAX_ALIGNMENT_ATTEMPTS>` — Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
 
-  Default value: `20`
-
 
 
 ## `nextclade dataset`
@@ -208,8 +204,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--json` — Print output in JSON format
 * `--only-names` — Print only names of the datasets, without any other details
 * `--server <SERVER>` — Use custom dataset server
-
-  Default value: `https://data.master.clades.nextstrain.org/v3`
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
@@ -229,8 +223,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-n`, `--name <NAME>` — Name of the dataset to download. Type `nextclade dataset list` to view available datasets
 * `-t`, `--tag <TAG>` — Version tag of the dataset to download
 * `--server <SERVER>` — Use custom dataset server
-
-  Default value: `https://data.master.clades.nextstrain.org/v3`
 * `-o`, `--output-dir <OUTPUT_DIR>` — Path to directory to write dataset files to
 * `-z`, `--output-zip <OUTPUT_ZIP>` — Path to resulting dataset zip file
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
@@ -264,11 +256,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
   Default value: `10`
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
-
-  Default value: `20`
 * `--server <SERVER>` — Use custom dataset server
-
-  Default value: `https://data.master.clades.nextstrain.org/v3`
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted

@@ -29,4 +29,7 @@ sed -i.bak -z 's|Documentation: https://docs.nextstrain.org/projects/nextclade\n
 sed -i.bak '/— REMOVED/d' "${OUTPUT}"
 sed -i.bak '/— RENAMED/d' "${OUTPUT}"
 
+# Remove default values, because they can change on runtime and different runs can have different values
+sed -i.bak -z 's|* `--server <SERVER>` — Use custom dataset server\n\n  Default value: `https://data.master.clades.nextstrain.org/v3`|* `--server <SERVER>` — Use custom dataset server|g' "${OUTPUT}"
 
+sed -i.bak -z 's|* `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used\n\n  Default value: `20`|* `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used|g' "${OUTPUT}"
