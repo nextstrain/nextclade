@@ -97,14 +97,19 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-d`, `--dataset-name <DATASET_NAME>` — Name of the dataset to download and use during the run
 * `-r`, `--input-ref <INPUT_REF>` — Path to a FASTA file containing reference sequence. This file should contain exactly 1 sequence
 * `-a`, `--input-tree <INPUT_TREE>` — Path to Auspice JSON v2 file containing reference tree
-* `-Q`, `--input-qc-config <INPUT_QC_CONFIG>` — REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
-* `-R`, `--input-pathogen-json <INPUT_PATHOGEN_JSON>` — Path to a JSON file containing configuration and data specific to a pathogen
-* `-p`, `--input-pcr-primers <INPUT_PCR_PRIMERS>` — REMOVED. Merged into pathogen.json, see `--input-pathogen`
+* `-p`, `--input-pathogen-json <INPUT_PATHOGEN_JSON>` — Path to a JSON file containing configuration and data specific to a pathogen
 * `-m`, `--input-annotation <INPUT_ANNOTATION>` — Path to a GFF3 file containing (genome annotation)
 * `-g`, `--genes <GENES>` — Comma-separated list of names of genes to use
 * `--server <SERVER>` — Use custom dataset server
 
   Default value: `https://data.master.clades.nextstrain.org/v3`
+* `--input-root-seq <INPUT_ROOT_SEQ>` — REMOVED. Use --input-ref instead
+* `--reference <REFERENCE>` — REMOVED. Use --input-ref instead
+* `-Q`, `--input-qc-config <INPUT_QC_CONFIG>` — REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
+* `-R`, `--input-virus-properties <INPUT_VIRUS_PROPERTIES>` — REMOVED. The virus_properties.json file have been merged into pathogen.json, see `--input-pathogen-json`
+* `--input-pcr-primers <INPUT_PCR_PRIMERS>` — REMOVED. The pcr_primers.csv file have been merged into pathogen.json, see `--input-pathogen-json`
+* `--input-gene-map <INPUT_GENE_MAP>` — RENAMED to `--input-annotation`
+* `--genemap <GENEMAP>` — RENAMED to `--input-annotation`
 * `--output-dir <OUTPUT_DIR>` — REMOVED. Use `--output-all` instead
 * `-O`, `--output-all <OUTPUT_ALL>` — Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames
 * `-n`, `--output-basename <OUTPUT_BASENAME>` — Set the base filename to use for output files
@@ -153,12 +158,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--penalty-mismatch <PENALTY_MISMATCH>` — Penalty for aligned nucleotides or amino acids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`
 * `--score-match <SCORE_MATCH>` — Score for matching states in nucleotide or amino acid alignments
 * `--max-band-area <MAX_BAND_AREA>` — Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted
-* `--max-indel <MAX_INDEL>` — Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Alignment of sequences with indels longer that this value, will not be attempted and a warning will be emitted
-* `--seed-length <SEED_LENGTH>` — k-mer length to determine approximate alignments between query and reference and determine the bandwidth of the banded alignment
-* `--mismatches-allowed <MISMATCHES_ALLOWED>` — Maximum number of mismatching nucleotides allowed for a seed to be considered a match
-* `--min-seeds <MIN_SEEDS>` — Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--seed-spacing`
-* `--min-match-rate <MIN_MATCH_RATE>` — Minimum seed mathing rate (a ratio of seed matches to total number of attempted seeds)
-* `--seed-spacing <SEED_SPACING>` — Spacing between seeds during nucleotide alignment
 * `--retry-reverse-complement <RETRY_REVERSE_COMPLEMENT>` — Retry seed matching step with a reverse complement if the first attempt failed
 
   Possible values: `true`, `false`
@@ -173,13 +172,19 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
   Possible values: `left`, `right`
 
-* `--kmer-length <KMER_LENGTH>` — Length of exactly matching kmers used in the seed alignment of the query to the reference
-* `--kmer-distance <KMER_DISTANCE>` — Interval of successive kmers on the query sequence. Should be small compared to the query length
-* `--allowed-mismatches <ALLOWED_MISMATCHES>` — Exactly matching kmers are extended to the left and right until more than `allowed_mismatches` are observed in a sliding window (`window_size`)
+* `--kmer-length <KMER_LENGTH>` — Length of exactly matching k-mers used in the seed alignment of the query to the reference
+* `--kmer-distance <KMER_DISTANCE>` — Interval of successive k-mers on the query sequence. Should be small compared to the query length
+* `--allowed-mismatches <ALLOWED_MISMATCHES>` — Exactly matching k-mers are extended to the left and right until more than `allowed_mismatches` are observed in a sliding window (`window_size`)
 * `--window-size <WINDOW_SIZE>` — Size of the window within which mismatches are accumulated during seed extension
-* `--min-match-length <MIN_MATCH_LENGTH>` — Minimum length of extended kmers
+* `--min-match-length <MIN_MATCH_LENGTH>` — Minimum length of extended k-mers
 * `--min-seed-cover <MIN_SEED_COVER>` — Fraction of the query sequence that has to be covered by extended seeds to proceed with the banded alignment
 * `--max-alignment-attempts <MAX_ALIGNMENT_ATTEMPTS>` — Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
+* `--max-indel <MAX_INDEL>` — REMOVED
+* `--seed-length <SEED_LENGTH>` — REMOVED
+* `--mismatches-allowed <MISMATCHES_ALLOWED>` — REMOVED
+* `--min-seeds <MIN_SEEDS>` — REMOVED
+* `--min-match-rate <MIN_MATCH_RATE>` — REMOVED
+* `--seed-spacing <SEED_SPACING>` — REMOVED
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
 
   Default value: `20`
@@ -212,25 +217,22 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 ###### **Options:**
 
 * `-n`, `--name <NAME>` — Restrict list to datasets with this exact name
-* `-r`, `--reference <REFERENCE>` — REMOVED
 * `-t`, `--tag <TAG>` — Restrict list to datasets with this exact version tag
-* `-a`, `--attribute <ATTRIBUTE>` — REMOVED
 * `--include-incompatible` — Include dataset versions that are incompatible with this version of Nextclade CLI
-* `--include-old <INCLUDE_OLD>` — REMOVED
-
-  Possible values: `true`, `false`
-
 * `--include-deprecated` — Include deprecated datasets
-* `--include-experimental` — Include experimental datasets
-* `--include-community` — Include community datasets
+* `--no-experimental` — Exclude experimental datasets
+* `--no-community` — Exclude community datasets and only show official datasets
 * `--json` — Print output in JSON format
-* `--only-names` — Print only names of the datasets, without other details
+* `--only-names` — Print only names of the datasets, without any other details
 * `--server <SERVER>` — Use custom dataset server
 
   Default value: `https://data.master.clades.nextstrain.org/v3`
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `-r`, `--reference <REFERENCE>` — REMOVED
+* `-a`, `--attribute <ATTRIBUTE>` — REMOVED
+* `--include-old` — REMOVED
 
 
 
@@ -245,9 +247,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 ###### **Options:**
 
 * `-n`, `--name <NAME>` — Name of the dataset to download. Type `nextclade dataset list` to view available datasets
-* `-r`, `--reference <REFERENCE>` — REMOVED
 * `-t`, `--tag <TAG>` — Version tag of the dataset to download
-* `-a`, `--attribute <ATTRIBUTE>` — REMOVED
 * `--server <SERVER>` — Use custom dataset server
 
   Default value: `https://data.master.clades.nextstrain.org/v3`
@@ -256,6 +256,8 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `-r`, `--reference <REFERENCE>` — REMOVED
+* `-a`, `--attribute <ATTRIBUTE>` — REMOVED
 
 
 
