@@ -41,7 +41,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameTreeNwk: 'nextclade.nwk',
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
-  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
+  filenamePeptidesTemplate: 'nextclade.peptide.{{cds}}.fasta',
 }
 
 function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
@@ -215,7 +215,7 @@ async function preparePeptideFiles(snapshot: Snapshot) {
           file.data = `${file.data}${fastaEntry}`
         } else {
           let filename = DEFAULT_EXPORT_PARAMS.filenamePeptidesTemplate
-          filename = filename.replace('{{GENE}}', name)
+          filename = filename.replace('{{cds}}', name)
           filesMap.set(name, { filename, data: fastaEntry })
         }
       }
