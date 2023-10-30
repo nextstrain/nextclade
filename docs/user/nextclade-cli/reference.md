@@ -92,7 +92,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 ###### **Options:**
 
-* `-i`, `--input-fasta <INPUT_FASTA>` — REMOVED. Use positional arguments instead
 * `-D`, `--input-dataset <INPUT_DATASET>` — Path to a directory or a zip file containing a dataset
 * `-d`, `--dataset-name <DATASET_NAME>` — Name of the dataset to download and use during the run
 * `-r`, `--input-ref <INPUT_REF>` — Path to a FASTA file containing reference sequence. This file should contain exactly 1 sequence
@@ -103,14 +102,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--server <SERVER>` — Use custom dataset server
 
   Default value: `https://data.master.clades.nextstrain.org/v3`
-* `--input-root-seq <INPUT_ROOT_SEQ>` — REMOVED. Use --input-ref instead
-* `--reference <REFERENCE>` — REMOVED. Use --input-ref instead
-* `-Q`, `--input-qc-config <INPUT_QC_CONFIG>` — REMOVED. The qc.json file have been merged into pathogen.json, see `--input-pathogen-json`
-* `-R`, `--input-virus-properties <INPUT_VIRUS_PROPERTIES>` — REMOVED. The virus_properties.json file have been merged into pathogen.json, see `--input-pathogen-json`
-* `--input-pcr-primers <INPUT_PCR_PRIMERS>` — REMOVED. The pcr_primers.csv file have been merged into pathogen.json, see `--input-pathogen-json`
-* `--input-gene-map <INPUT_GENE_MAP>` — RENAMED to `--input-annotation`
-* `--genemap <GENEMAP>` — RENAMED to `--input-annotation`
-* `--output-dir <OUTPUT_DIR>` — REMOVED. Use `--output-all` instead
 * `-O`, `--output-all <OUTPUT_ALL>` — Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames
 * `-n`, `--output-basename <OUTPUT_BASENAME>` — Set the base filename to use for output files
 * `-s`, `--output-selection <OUTPUT_SELECTION>` — Restricts outputs for `--output-all` flag
@@ -127,8 +118,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--output-graph <OUTPUT_GRAPH>` — Path to output phylogenetic graph with input sequences placed onto it, in Nextclade graph JSON format
 * `-T`, `--output-tree <OUTPUT_TREE>` — Path to output phylogenetic tree with input sequences placed onto it, in Auspice JSON V2 format
 * `--output-tree-nwk <OUTPUT_TREE_NWK>` — Path to output phylogenetic tree with input sequences placed onto it, in Newick format (New Hampshire tree format)
-* `-I`, `--output-insertions <OUTPUT_INSERTIONS>` — REMOVED. The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`
-* `-e`, `--output-errors <OUTPUT_ERRORS>` — REMOVED. The argument `--output-errors` have been removed in favor of `--output-csv` and `--output-tsv`
 * `--include-reference <INCLUDE_REFERENCE>` — Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files
 
   Possible values: `true`, `false`
@@ -179,12 +168,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--min-match-length <MIN_MATCH_LENGTH>` — Minimum length of extended k-mers
 * `--min-seed-cover <MIN_SEED_COVER>` — Fraction of the query sequence that has to be covered by extended seeds to proceed with the banded alignment
 * `--max-alignment-attempts <MAX_ALIGNMENT_ATTEMPTS>` — Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
-* `--max-indel <MAX_INDEL>` — REMOVED
-* `--seed-length <SEED_LENGTH>` — REMOVED
-* `--mismatches-allowed <MISMATCHES_ALLOWED>` — REMOVED
-* `--min-seeds <MIN_SEEDS>` — REMOVED
-* `--min-match-rate <MIN_MATCH_RATE>` — REMOVED
-* `--seed-spacing <SEED_SPACING>` — REMOVED
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
 
   Default value: `20`
@@ -230,9 +213,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
-* `-r`, `--reference <REFERENCE>` — REMOVED
-* `-a`, `--attribute <ATTRIBUTE>` — REMOVED
-* `--include-old` — REMOVED
 
 
 
@@ -256,8 +236,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
-* `-r`, `--reference <REFERENCE>` — REMOVED
-* `-a`, `--attribute <ATTRIBUTE>` — REMOVED
 
 
 

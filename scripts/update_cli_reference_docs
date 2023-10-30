@@ -24,3 +24,9 @@ sed -i.bak -e 's|This document contains the help content for the `nextclade` com
 
 
 sed -i.bak -z 's|Documentation: https://docs.nextstrain.org/projects/nextclade\nNextclade Web: https://clades.nextstrain.org\nPublication:   https://doi.org/10.21105/joss.03773|Documentation: [https://docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)\n\nNextclade Web: [https://clades.nextstrain.org](https://clades.nextstrain.org)\n\nPublication: [https://doi.org/10.21105/joss.03773](https://doi.org/10.21105/joss.03773)|g' "${OUTPUT}"
+
+# Don't show removed and renamed args
+sed -i.bak '/— REMOVED/d' "${OUTPUT}"
+sed -i.bak '/— RENAMED/d' "${OUTPUT}"
+
+
