@@ -6,6 +6,8 @@ While these changes should make Nextclade more powerful and simpler to use, they
 
 This section lists breaking changes in Nextclade v3 compared to Nextclade v2, and describes potential migration paths. For more details about each change as well as about non-breaking changes, please read the [changelog](../../CHANGELOG.md).
 
+If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues).
+
 Useful links:
 
 - [Nextclade Web v3](https://clades.nextstrain.org)
@@ -18,8 +20,6 @@ Useful links:
 - [Nextclade software GitHub issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
 - [Nextclade data GitHub issues](https://github.com/nextstrain/nextclade_data/issues) - to report bugs and ask questions about Nextclade datasets
 - [Nextstrain discussion forum](https://discussion.nextstrain.org) - for general discussion and questions
-
-If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues).
 
 ## 1. Nextalign CLI is removed
 
@@ -67,13 +67,15 @@ It might be that it does not require parameter tuning anymore. If you observe se
 
 ## 3. Different tree output
 
-Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach sequences to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2. In addition to the auspice json format, Nextclade can now also export the tree as `newick` string.
+Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach sequences to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2.
+
+Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/05-phylogenetic-placement.html) section in the documentation for more details.
 
 ##### Migration paths
 
-We recommend the new behavior for most users and most pathogens. If you encounter any issues (consider [reporting](https://github.com/nextstrain/nextclade_data/issues) them) or prefer the old behavior, you can use `--without-greedy-tree-builder` argument in Nextclade CLI to disable it. There is currently no way to disable the tree builder in Nextclade Web. If you need this functionality, please open a GitHub issue and explain your motivation. We are also open for contributions.
+We recommend the new behavior for most users and most pathogens. If you encounter any issues (consider [reporting](https://github.com/nextstrain/nextclade_data/issues) them) or prefer the old behavior, you can use `--without-greedy-tree-builder` argument in Nextclade CLI to disable it.
 
-Please refer to section "Phylogenetic placement" of Nextclade user documentation for more details about the new algorithm.
+There is currently no way to disable the tree builder in Nextclade Web. If you need this functionality, please open a GitHub issue and explain your motivation. We are also open for contributions.
 
 ## 4. Dataset file format and dataset names have changed
 
@@ -103,7 +105,7 @@ For example, you can download Wuhan-based SARS-CoV-2 dataset using:
 nextclade dataset get --name="nextstrain/sars-cov-2/MN908947" --output-dir="out_dir/"
 ```
 
-You can obtain a concise list of the available datasets if you add `--only-names` flag to the list command:
+You can obtain a concise list of the available datasets if you add `--only-names` flag to the `dataset list` command:
 
 ```bash
 nextclade dataset list --only-names
@@ -127,17 +129,29 @@ in favor of `--input-pathogen-json`.
 
 Please use `--input-pathogen-json` instead of the removed flags. If you need to migrate the files to the new format, then please follow the migration steps in the new
 
-## 6. Some CLI arguments for output files are removed
+## 6. Some output files are removed
+
+The dedicated output files for error and for insertions are removed from all parts of Nextclade.
 
 The arguments `--output-errors` and `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
 
+When `--output-all` argument is used, the files `nextclade.errors.csv` and `nextclade.insertions.csv` are no longer produced.
+
+The argument `--output-selection` no longer accepts values `errors` and `insertions`.
+
+In Nextclade Web, The `nextclade.errors.csv` and `nextclade.insertions.csv` files are removed and no longer appear in the "Export" dialog, nor they are included into the `nextclade.zip` archive of all outputs.
+
 ##### Migration paths:
 
-Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`), plus more.
+If you rely on `nextclade.errors.csv` and `nextclade.insertions.csv` files, then use `nextclade.tsv` or `nextclade.csv` instead. These files include the same columns as `nextclade.errors.csv` and `nextclade.insertions.csv`.
+
+In Nextclade CLI, if you use `--output-insertions` or `--output-errors` Please use `--output-tsv` (for tab-separated table) or `--output-csv` (for semicolon-separated table) arguments instead. If you use `--output-selection` argument, then remove values `errors` and `insertions` from it.
+
+In Nextclade Web, if you use `nextclade.errors.csv` and `nextclade.insertions.csv` file, then use `nextclade.tsv` or `nextclade.csv`  instead.
 
 ## 7. Genome annotation CLI argument is renamed
 
-The argument `--input-gene-map` renamed to `--input-annotation`
+The argument `--input-gene-map` renamed to `--input-annotation`.
 
 ##### Migration paths:
 
