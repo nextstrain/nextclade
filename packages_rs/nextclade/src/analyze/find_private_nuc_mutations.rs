@@ -103,7 +103,7 @@ pub fn find_private_nuc_mutations(
     process_seq_deletions(node_mut_map, deletions, ref_seq, &mut seq_positions_mutated_or_deleted);
 
   // Iterate over node substitutions and deletions and find reversions
-  let reversion_substitutions_undeletions = find_reversions(
+  let reversion_substitutions_and_undeletions = find_reversions(
     node_mut_map,
     missing,
     alignment_range,
@@ -112,7 +112,7 @@ pub fn find_private_nuc_mutations(
     &mut seq_positions_mutated_or_deleted,
   );
 
-  let (undeletions, reversion_substitutions) = reversion_substitutions_undeletions
+  let (_undeletions, reversion_substitutions) = reversion_substitutions_and_undeletions
     .into_iter()
     .partition::<Vec<NucSub>, _>(|sub| sub.ref_nuc.is_gap());
   let (labeled_substitutions, unlabeled_substitutions) = label_private_mutations(
