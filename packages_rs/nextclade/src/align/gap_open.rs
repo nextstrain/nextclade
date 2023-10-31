@@ -60,7 +60,6 @@ mod tests {
   use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
-  use std::collections::BTreeMap;
 
   fn create_test_genome_annotation(cdses: &[&[(isize, isize, GeneStrand)]]) -> Result<GeneMap, Report> {
     let genes = cdses
@@ -95,22 +94,19 @@ mod tests {
           })
           .collect_vec();
 
-        Ok((
-          cds_index.to_string(),
-          Gene::from_cds(&Cds {
-            id: cds_index.to_string(),
-            name: cds_index.to_string(),
-            product: cds_index.to_string(),
-            segments,
-            proteins: vec![],
-            exceptions: vec![],
-            attributes: hashmap! {},
-            compat_is_gene: false,
-            color: None,
-          })?,
-        ))
+        Gene::from_cds(&Cds {
+          id: cds_index.to_string(),
+          name: cds_index.to_string(),
+          product: cds_index.to_string(),
+          segments,
+          proteins: vec![],
+          exceptions: vec![],
+          attributes: hashmap! {},
+          compat_is_gene: false,
+          color: None,
+        })
       })
-      .collect::<Result<BTreeMap<String, Gene>, Report>>()?;
+      .collect::<Result<Vec<Gene>, Report>>()?;
 
     let gene_map = GeneMap::from_genes(genes);
 

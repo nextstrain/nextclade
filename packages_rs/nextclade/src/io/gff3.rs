@@ -263,7 +263,7 @@ EPI1857216	feature	gene	1036	1698	.	+	.	gene_name="HA2"
 
     assert_eq!(
       report_to_string(&result.unwrap_err()),
-      "Length of a CDS is expected to be divisible by 3, but the length of CDS 'HA1' is 988 (it consists of 1 fragment(s) of length(s) 988). This is likely a mistake in genome annotation."
+      "Length of a CDS is expected to be divisible by 3, but the length of CDS 'SigPep' is 47 (it consists of 1 fragment(s) of length(s) 47). This is likely a mistake in genome annotation."
     );
 
     Ok(())
