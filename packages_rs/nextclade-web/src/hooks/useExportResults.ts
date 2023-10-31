@@ -41,7 +41,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameTreeNwk: 'nextclade.nwk',
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
-  filenamePeptidesTemplate: 'nextclade.peptide.{{cds}}.fasta',
+  filenamePeptidesTemplate: 'nextclade.cds_translation.{{cds}}.fasta',
 }
 
 function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
