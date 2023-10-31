@@ -22,3 +22,7 @@ details pre * {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+.rst-content code {
+  font-size: 0.8em !important;
+}

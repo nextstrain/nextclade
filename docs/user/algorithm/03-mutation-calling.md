@@ -10,7 +10,7 @@ In order to detect nucleotide mutations, aligned nucleotide sequences are compar
 
 Nextclade also gathers and reports other useful statistics, such as the number of contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as the total counts of substituted, deleted, missing and ambiguous nucleotides. You can find this information in the results table of [Nextclade Web](../nextclade-web) and in the output files of [Nextclade CLI](../nextclade-cli).
 
-Similarly, aminoacid mutations and statistics are gathered from the aligned peptides obtained after translation. This step only runs if a gene map is provided.
+Similarly, aminoacid mutations and statistics are gathered from the aligned peptides obtained after translation. This step only runs if a genome annotation is provided.
 
 ### Results
 

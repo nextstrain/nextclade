@@ -52,10 +52,8 @@ docker-docs:
 	--name=nextclade-docs-builder-$(shell date +%s) \
 	--init \
 	--user=$(shell id -u):$(shell id -g) \
-	--volume=$(shell pwd):/home/user/src \
+	--volume=$(shell pwd):/workdir \
 	--publish=8000:8000 \
-	--workdir=/home/user/src \
-	--env 'TERM=xterm-256colors' \
 	nextclade-docs-builder
 
 
