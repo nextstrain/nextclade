@@ -6,11 +6,11 @@
 
 Nextclade now treats genes only as containers for CDSes ("CDS" - is [coding sequence](https://en.wikipedia.org/wiki/Coding_region)). CDSes are the main unit of translation and a basis for  AA mutations now. A gene can contain multiple CDSes, but they are handled independently.
 
-##### Handle fragmentation of genetic features.
+##### Handle fragmentation of genetic features
 
-Handle fragmentation of genetic features. A CDS can consist of multiple fragments. They are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is then translated and the resulting polypeptides are analyzed (mutations are detected etc). This implementation allows to handle slippage and splicing. 
+Handle fragmentation of genetic features. A CDS can consist of multiple fragments. They are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is then translated and the resulting polypeptides are analyzed (mutations are detected etc). This implementation allows to handle slippage and splicing.
 
-##### Handle circular genomes.
+##### Handle circular genomes
 
 If genome annotation describes a CDS fragment as circular (wrapping around origin), Nextclade splits it into multiple linear (non-wrapping) fragments. The translation and analysis is then performed as if it was a linear genome.
 
@@ -30,6 +30,9 @@ Genome annotations widget in Nextclade Web now shows CDS fragments instead of ge
 
 Gene selector dropdown in Nextclade Web has been transformed into a more general genetic feature selector. It shows hierarchy of genetic features if there's any nested features. Otherwise the list is flat, to save screen space. It shows types of each of the genetic feature (gene, CDS or protein) as colorful badges. The menu is searchable, which is useful for mpx and other large viruses. Only CDSes can be selected currently, but we may extend this in the future to more feature types.
 
+##### Don't count mutations to ambiguous nucleotides as reversions
+
+We no longer treat mutations to ambiguous nucleotides as reversions, i.e. when the attachment node is mutated with respect to reference and the query is ambiguous we previously counted this as a reversion. This change affects only the "private mutation" QC score and "privateMutations.reversionSubstitution" columnscore and "privateMutations.reversionSubstitution" column. [PR #1224](https://github.com/nextstrain/nextclade/pull/1224)
 
 ### Internal improvements
 
