@@ -25,20 +25,20 @@ pub fn gene_map_to_table_string(gene_map: &GeneMap) -> Result<String, Report> {
 pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Report> {
   let max_gene_name_len = gene_map
     .iter_genes()
-    .map(|(_, gene)| gene.name_and_type().len() + INDENT_WIDTH)
+    .map(|gene| gene.name_and_type().len() + INDENT_WIDTH)
     .max()
     .unwrap_or_default();
 
   let max_cds_name_len = gene_map
     .iter_genes()
-    .flat_map(|(_, gene)| &gene.cdses)
+    .flat_map(|gene| &gene.cdses)
     .map(|cds| cds.name_and_type().len() + INDENT_WIDTH * 2)
     .max()
     .unwrap_or_default();
 
   let max_cds_segment_name_len = gene_map
     .iter_genes()
-    .flat_map(|(_, gene)| &gene.cdses)
+    .flat_map(|gene| &gene.cdses)
     .flat_map(|cds| &cds.segments)
     .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 3)
     .max()
@@ -46,7 +46,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   let max_protein_name_len = gene_map
     .iter_genes()
-    .flat_map(|(_, gene)| &gene.cdses)
+    .flat_map(|gene| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .map(|protein| protein.name_and_type().len() + INDENT_WIDTH * 3)
     .max()
@@ -54,7 +54,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
 
   let max_protein_segment_name_len = gene_map
     .iter_genes()
-    .flat_map(|(_, gene)| &gene.cdses)
+    .flat_map(|gene| &gene.cdses)
     .flat_map(|cds| &cds.proteins)
     .flat_map(|protein| &protein.segments)
     .map(|seg| seg.name_and_type().len() + INDENT_WIDTH * 4)
@@ -80,7 +80,7 @@ pub fn format_gene_map<W: Write>(w: &mut W, gene_map: &GeneMap) -> Result<(), Re
     "Genome",
   )?;
 
-  for (_, gene) in gene_map.iter_genes().sorted_by_key(|(_, gene)| {
+  for gene in gene_map.iter_genes().sorted_by_key(|gene| {
     let mut begin = isize::MAX;
     let mut end = isize::MIN;
 

@@ -169,7 +169,7 @@ pub fn nextclade_run_one(
 
     let missing_genes = gene_map
       .iter_genes()
-      .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then_some(gene_name))
+      .filter_map(|gene| (!present_genes.contains(&gene.name)).then_some(&gene.name))
       .cloned()
       .collect_vec();
 
