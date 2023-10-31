@@ -197,7 +197,7 @@ impl FastaWriter {
 
 #[derive(Clone, Debug, Serialize)]
 struct OutputTranslationsTemplateContext<'a> {
-  gene: &'a str,
+  cds: &'a str,
 }
 
 pub type FastaPeptideWritersMap = BTreeMap<String, FastaWriter>;
@@ -218,7 +218,7 @@ impl FastaPeptideWriter {
     let writers = gene_map
       .iter_cdses()
       .map(|cds| -> Result<_, Report> {
-        let template_context = OutputTranslationsTemplateContext { gene: &cds.name };
+        let template_context = OutputTranslationsTemplateContext { cds: &cds.name };
         let rendered_path = tt
           .render("output_translations", &template_context)
           .wrap_err_with(|| format!("When rendering output translations path template: '{output_translations}', using context: {template_context:?}"))?;

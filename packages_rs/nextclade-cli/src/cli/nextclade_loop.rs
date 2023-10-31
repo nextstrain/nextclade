@@ -26,7 +26,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let NextcladeRunArgs {
     inputs: NextcladeRunInputArgs {
-      input_fastas, genes, ..
+      input_fastas, cds_selection: cdses, ..
     },
     outputs:
       NextcladeRunOutputArgs {
@@ -40,7 +40,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     other_params: NextcladeRunOtherParams { jobs },
   } = run_args.clone();
 
-  let inputs = nextclade_get_inputs(&run_args, &genes)?;
+  let inputs = nextclade_get_inputs(&run_args, &cdses)?;
   let nextclade = Nextclade::new(inputs, &params)?;
 
   let should_write_tree = output_tree.is_some() || output_tree_nwk.is_some() || output_graph.is_some();

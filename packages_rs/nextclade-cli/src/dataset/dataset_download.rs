@@ -26,17 +26,17 @@ const PATHOGEN_JSON: &str = "pathogen.json";
 
 pub fn nextclade_get_inputs(
   run_args: &NextcladeRunArgs,
-  genes: &Option<Vec<String>>,
+  cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   if let Some(dataset_name) = run_args.inputs.dataset_name.as_ref() {
-    dataset_str_download_and_load(run_args, genes)
+    dataset_str_download_and_load(run_args, cdses)
       .wrap_err_with(|| format!("When downloading dataset '{dataset_name}'"))
   } else if let Some(input_dataset) = run_args.inputs.input_dataset.as_ref() {
     if input_dataset.is_file() && has_extension(input_dataset, "zip") {
-      dataset_zip_load(run_args, input_dataset, genes)
+      dataset_zip_load(run_args, input_dataset, cdses)
         .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
     } else if input_dataset.is_dir() {
-      dataset_dir_load(run_args, input_dataset, genes)
+      dataset_dir_load(run_args, input_dataset, cdses)
         .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
     } else {
       make_error!(
@@ -45,7 +45,7 @@ pub fn nextclade_get_inputs(
       )
     }
   } else {
-    dataset_individual_files_load(run_args, genes)
+    dataset_individual_files_load(run_args, cdses)
   }
 }
 
@@ -93,7 +93,7 @@ pub fn read_from_path_or_zip(
 pub fn dataset_zip_load(
   run_args: &NextcladeRunArgs,
   dataset_zip: impl AsRef<Path>,
-  genes: &Option<Vec<String>>,
+  cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let file = File::open(dataset_zip)?;
   let buf_file = BufReader::new(file);
@@ -112,7 +112,7 @@ pub fn dataset_zip_load(
   let gene_map = read_from_path_or_zip(&run_args.inputs.input_annotation, &mut zip, "genome_annotation.gff3")?
     .map_ref_fallible(GeneMap::from_str)
     .wrap_err("When reading genome annotation from dataset")?
-    .map(|gene_map| filter_gene_map(gene_map, genes))
+    .map(|gene_map| filter_gene_map(gene_map, cdses))
     .unwrap_or_default();
 
   let tree = read_from_path_or_zip(&run_args.inputs.input_tree, &mut zip, "tree.json")?
@@ -142,7 +142,7 @@ pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir
 pub fn dataset_dir_load(
   run_args: &NextcladeRunArgs,
   dataset_dir: impl AsRef<Path>,
-  genes: &Option<Vec<String>>,
+  cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let dataset_dir = dataset_dir.as_ref();
 
@@ -176,7 +176,7 @@ pub fn dataset_dir_load(
     })
     .map_ref_fallible(GeneMap::from_path)
     .wrap_err("When reading genome annotation")?
-    .map(|gen_map| filter_gene_map(gen_map, genes))
+    .map(|gen_map| filter_gene_map(gen_map, cdses))
     .unwrap_or_default();
 
   let tree = input_tree
@@ -201,7 +201,7 @@ pub fn dataset_dir_load(
 
 pub fn dataset_individual_files_load(
   run_args: &NextcladeRunArgs,
-  genes: &Option<Vec<String>>,
+  cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   match (&run_args.inputs.input_dataset, &run_args.inputs.input_ref) {
     (None, None) => make_error!("When `--input-dataset` is not specified, --input-ref is required"),
@@ -273,7 +273,7 @@ pub fn dataset_individual_files_load(
         .as_ref()
         .map_ref_fallible(GeneMap::from_path)
         .wrap_err("When reading genome annotation")?
-        .map(|gen_map| filter_gene_map(gen_map, genes))
+        .map(|gen_map| filter_gene_map(gen_map, cdses))
         .unwrap_or_default();
 
       let tree = run_args
@@ -317,7 +317,7 @@ pub fn read_from_path_or_url(
 
 pub fn dataset_str_download_and_load(
   run_args: &NextcladeRunArgs,
-  genes: &Option<Vec<String>>,
+  cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let verbose = log::max_level() > LevelFilter::Info;
   let mut http = HttpClient::new(&run_args.inputs.server, &ProxyConfig::default(), verbose)?;
@@ -357,7 +357,7 @@ pub fn dataset_str_download_and_load(
   )?
   .map_ref_fallible(GeneMap::from_str)
   .wrap_err("When reading genome annotation from dataset")?
-  .map(|gene_map| filter_gene_map(gene_map, genes))
+  .map(|gene_map| filter_gene_map(gene_map, cdses))
   .unwrap_or_default();
 
   let tree = read_from_path_or_url(

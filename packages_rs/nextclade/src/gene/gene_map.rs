@@ -160,19 +160,17 @@ impl GeneMap {
 }
 
 /// Filters genome annotation according to the list of requested genes.
-pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMap {
-  if let Some(genes) = genes {
+pub fn filter_gene_map(gene_map: GeneMap, cdses: &Option<Vec<String>>) -> GeneMap {
+  if let Some(cdses) = cdses {
     let gene_map: BTreeMap<String, Gene> = gene_map
       .into_iter_genes()
-      .filter(|(gene_name, ..)| genes.contains(gene_name))
+      .filter(|(gene_name, ..)| cdses.contains(gene_name))
       .collect();
 
-    let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
-    if !requested_genes_not_in_genemap.is_empty() {
+    let requested_but_not_found = get_requested_cdses_not_in_genemap(&gene_map, cdses);
+    if !requested_but_not_found.is_empty() {
       warn!(
-        "The following genes were requested through `--genes` \
-           but not found in the genome annotation: \
-           `{requested_genes_not_in_genemap}`",
+        "The following genes were requested through `--cdses` but not found in the genome annotation: {requested_but_not_found}",
       );
     }
     return GeneMap::from_genes(gene_map);
@@ -180,11 +178,12 @@ pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMa
   gene_map
 }
 
-fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: &[String]) -> String {
-  genes
+fn get_requested_cdses_not_in_genemap(gene_map: &BTreeMap<String, Gene>, cdses: &[String]) -> String {
+  cdses
     .iter()
-    .filter(|&gene_name| !gene_map.contains_key(gene_name))
-    .join("`, `")
+    .filter(|&cds_name| !gene_map.contains_key(cds_name))
+    .map(|name| format!("'{name}'"))
+    .join(", ")
 }
 
 pub fn convert_feature_tree_to_gene_map(feature_tree: &FeatureTree) -> Result<GeneMap, Report> {
