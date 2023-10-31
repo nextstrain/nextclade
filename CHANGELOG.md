@@ -76,6 +76,10 @@ Nextclade v3 now has the ability to phylogenetically resolve relationships betwe
 
 Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/05-phylogenetic-placement.html) section in the documentation for more details.
 
+#### Don't count mutations to ambiguous nucleotides as reversions
+
+We no longer treat mutations to ambiguous nucleotides as reversions, i.e. when the attachment node is mutated with respect to reference and the query is ambiguous we previously counted this as a reversion. This change affects only the "private mutation" QC score and "privateMutations.reversionSubstitution" column.
+
 ---
 
 ### Changes in Nextclade Web
