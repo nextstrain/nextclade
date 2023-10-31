@@ -78,7 +78,7 @@ Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/ne
 
 #### Don't count mutations to ambiguous nucleotides as reversions
 
-We no longer treat mutations to ambiguous nucleotides as reversions, i.e. when the attachment node is mutated with respect to reference and the query is ambiguous we previously counted this as a reversion. This change affects only the "private mutation" QC score and "privateMutations.reversionSubstitution" column.
+We no longer treat mutations to ambiguous nucleotides as reversions, i.e. if the attachment node has a mutation mutated with respect to reference and the query sequence is ambiguous we previously counted this as a reversion. This change only affects  “private mutation” QC score and the classification of private mutations into “reversion substitution” and “unlabeled substitution”.
 
 ---
 
