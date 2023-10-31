@@ -15,21 +15,3 @@ NEXTCLADE_BIN="${1:-nextclade}"
 OUTPUT="${THIS_DIR}/../docs/user/nextclade-cli/reference.md"
 
 ./"${NEXTCLADE_BIN}" help-markdown > "${OUTPUT}"
-
-# shellcheck disable=SC2016
-sed -i.bak -e 's|# Command-Line Help for `nextclade`|# Reference|g' "${OUTPUT}"
-
-# shellcheck disable=SC2016
-sed -i.bak -e 's|This document contains the help content for the `nextclade` command-line program.|This document contains the automatically generated reference documentation for command-line arguments of Nextclade CLI.\n\nPlease note that updates to this document can sometimes be delayed.\n\nIf you have Nextclade CLI installed, you can type `nextclade --help` to read the latest documentation.|g' "${OUTPUT}"
-
-
-sed -i.bak -z 's|Documentation: https://docs.nextstrain.org/projects/nextclade\nNextclade Web: https://clades.nextstrain.org\nPublication:   https://doi.org/10.21105/joss.03773|Documentation: [https://docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)\n\nNextclade Web: [https://clades.nextstrain.org](https://clades.nextstrain.org)\n\nPublication: [https://doi.org/10.21105/joss.03773](https://doi.org/10.21105/joss.03773)|g' "${OUTPUT}"
-
-# Don't show removed and renamed args
-sed -i.bak '/— REMOVED/d' "${OUTPUT}"
-sed -i.bak '/— RENAMED/d' "${OUTPUT}"
-
-# Remove default values, because they can change on runtime and different runs can have different values
-sed -i.bak -z 's|* `--server <SERVER>` — Use custom dataset server\n\n  Default value: `https://data.master.clades.nextstrain.org/v3`|* `--server <SERVER>` — Use custom dataset server|g' "${OUTPUT}"
-
-sed -i.bak -z 's|* `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used\n\n  Default value: `20`|* `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used|g' "${OUTPUT}"
