@@ -150,6 +150,30 @@ impl GeneMap {
       })
     })?;
 
+    let gene_name_dupes = self
+      .iter_genes()
+      .map(|x| &x.name)
+      .sorted()
+      .duplicates()
+      .map(|name| format!("'{name}'"))
+      .join(", ");
+
+    if !gene_name_dupes.is_empty() {
+      return make_error!("Gene names are expected to be unique, but found duplicate names: {gene_name_dupes}");
+    }
+
+    let cds_name_dupes = self
+      .iter_cdses()
+      .map(|x| &x.name)
+      .sorted()
+      .duplicates()
+      .map(|name| format!("'{name}'"))
+      .join(", ");
+
+    if !cds_name_dupes.is_empty() {
+      return make_error!("CDS names are expected to be unique, but found duplicate names: {cds_name_dupes}");
+    }
+
     Ok(())
   }
 }
@@ -234,4 +258,83 @@ fn find_genes_recursive(feature_group: &FeatureGroup, genes: &mut Vec<Gene>) -> 
     .children
     .iter()
     .try_for_each(|child_feature_group| find_genes_recursive(child_feature_group, genes))
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  #[rstest]
+  fn genome_annotation_fails_on_duplicate_gene_names() -> Result<(), Report> {
+    let result = GeneMap::from_str(
+      r#"##gff-version 3
+##sequence-region MN908947 1 29903
+MN908947	GenBank	gene	13468	21555	.	+	.	Name=ORF1b;ID=1
+MN908947	GenBank	gene	25393	26220	.	+	.	Name=ORF3a;ID=2
+MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=S1;Parent=3
+MN908947	GenBank	gene	26245	26472	.	+	.	Name=S;ID=4
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=S2;Parent=4
+MN908947	GenBank	gene	26523	27191	.	+	.	Name=M;ID=5
+MN908947	GenBank	gene	27756	27887	.	+	.	Name=N;ID=8
+MN908947	GenBank	CDS	27756	27887	.	+	.	Name=N1;Parent=8
+MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=N2;Parent=9
+
+"#,
+    );
+
+    assert_eq!(
+      "Gene names are expected to be unique, but found duplicate names: 'N', 'S'",
+      report_to_string(&result.unwrap_err()),
+    );
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn genome_annotation_fails_on_duplicate_cds_names_across_genes() -> Result<(), Report> {
+    let result = GeneMap::from_str(
+      r#"##gff-version 3
+##sequence-region MN908947 1 29903
+MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=D;Parent=3
+MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=9
+
+"#,
+    );
+
+    assert_eq!(
+      "CDS names are expected to be unique, but found duplicate names: 'D'",
+      report_to_string(&result.unwrap_err()),
+    );
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn genome_annotation_fails_on_duplicate_cds_names_within_gene() -> Result<(), Report> {
+    let result = GeneMap::from_str(
+      r#"##gff-version 3
+##sequence-region MN908947 1 29903
+MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=D;Parent=3
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=3
+MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=N;Parent=9
+
+"#,
+    );
+
+    assert_eq!(
+      "CDS names are expected to be unique, but found duplicate names: 'D'",
+      report_to_string(&result.unwrap_err()),
+    );
+
+    Ok(())
+  }
 }
