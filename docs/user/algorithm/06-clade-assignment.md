@@ -2,8 +2,7 @@
 
 To simplify discussion of co-circulating virus variants, Nextstrain groups them into [Clades](../terminology.html#clade), which are defined by specific combination of signature mutations. Clades are groups of related sequences that share a common ancestor. For SARS-CoV-2, we try to align these clades as much as possible with [WHO variant designations](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
 
-In contrast to the analysis pipeline of [Nextstrain.org](https://nextstrain.org), which requires setting up and running a heavy computational job to assign clades, Nextclade takes a lightweight approach, and assigns your sequences to clades by placing sequences on a phylogenetic tree annotated with clade definitions. More specifically, Nextclade assigns the clade of the nearest reference node found during the [Phylogenetic placement](05-phylogenetic-placement) step. This is an accuracy-to-runtime-performance trade-off - Nextclade provides almost instantaneous result, but is expected to be slightly less accurate than the full pipeline. For more details see [Phylogenetic placement: Known limitations](05-phylogenetic-placement.html#known-limitations) section.
-
+In contrast to the analysis pipeline of [Nextstrain.org](https://nextstrain.org), which requires setting up and running a heavy computational job to assign clades, Nextclade takes a lightweight approach, and assigns your sequences to clades by placing sequences on a phylogenetic tree annotated with clade definitions. More specifically, Nextclade assigns the clade of the nearest reference node found during the [Phylogenetic placement](05-phylogenetic-placement) step.
 
 > ⚠️ Nextclade only considers those clades which are present in the input reference tree. Only one of these clades, and no others, can be assigned to the analysed sequences. It is important to make sure that every clade that you expect to find in the results is well represented in the tree.
 >
