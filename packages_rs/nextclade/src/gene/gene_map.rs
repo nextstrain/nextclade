@@ -322,8 +322,8 @@ MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=9
       r#"##gff-version 3
 ##sequence-region MN908947 1 29903
 MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
-MN908947	GenBank	CDS	21563	25384	.	+	.	Name=D;Parent=3
-MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=D;Parent=3;ID=D1
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=3;ID=D2
 MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
 MN908947	GenBank	CDS	27894	28259	.	+	.	Name=N;Parent=9
 
