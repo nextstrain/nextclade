@@ -139,21 +139,6 @@ function run_single_dataset() {
   name="$(realpath --relative-to="$INPUT_DATASETS_DIR" "$dataset_dir")"
 
   # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/vic_na* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset
-  if [[ "$name" =~ nextstrain/sars-cov-2-21L* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
   if [[ "$name" =~ nextstrain/mpx* ]]; then
     return
   fi
@@ -182,21 +167,6 @@ function download_and_run_single_dataset() {
 
   name=$1
   dataset_dir="${DATASETS_DIR}/${name}"
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/vic_na* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset
-  if [[ "$name" =~ nextstrain/sars-cov-2-21L* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
-    return
-  fi
 
   # This dataset is crashing, due to a defect in the dataset's genome annotation
   if [[ "$name" =~ nextstrain/mpx* ]]; then
