@@ -153,6 +153,11 @@ function run_single_dataset() {
     return
   fi
 
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" =~ nextstrain/mpx* ]]; then
+    return
+  fi
+
   sequences="$dataset_dir/sequences.fasta"
   msg_no_sequences=""
   if [ ! -f "${sequences}" ]; then
@@ -190,6 +195,11 @@ function download_and_run_single_dataset() {
 
   # This dataset is crashing, due to a defect in the dataset's genome annotation
   if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
+    return
+  fi
+
+  # This dataset is crashing, due to a defect in the dataset's genome annotation
+  if [[ "$name" =~ nextstrain/mpx* ]]; then
     return
   fi
 
