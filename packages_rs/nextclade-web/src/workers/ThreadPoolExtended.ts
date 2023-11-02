@@ -19,10 +19,12 @@ export class PoolExtended<ThreadType extends Thread> {
 
   private constructor(options?: PoolOptions) {
     // this.pool = createPool<ThreadType>(() => spawn<ThreadType>(worker), options)
-    this.pool = createPool(() =>
-      spawn(
-        new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), { name: 'nextcladeWebWorker' }),
-      ),
+    this.pool = createPool(
+      () =>
+        spawn(
+          new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), { name: 'nextcladeWebWorker' }),
+        ),
+      options,
     )
   }
 
