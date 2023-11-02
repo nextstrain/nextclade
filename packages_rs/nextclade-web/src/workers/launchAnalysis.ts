@@ -100,20 +100,26 @@ export async function getQueryFasta(inputs: AlgorithmInput[]) {
 /** Resolves all param inputs into strings */
 async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsRaw> {
   const entries = [
-    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset.files.genomeAnnotation },
-    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset.files.reference },
-    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset.files.treeJson },
-    { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset.files.pathogenJson },
+    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset.files.genomeAnnotation, path: dataset.path },
+    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset.files.reference, path: dataset.path },
+    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset.files.treeJson, path: dataset.path },
+    {
+      key: 'virusProperties',
+      input: paramInputs.virusProperties,
+      datasetFileUrl: dataset.files.pathogenJson,
+      path: dataset.path,
+    },
   ]
 
   return Object.fromEntries(
-    await concurrent.map(async ({ key, input, datasetFileUrl }) => {
-      return [key, await resolveInput(await input, datasetFileUrl)]
+    await concurrent.map(async ({ key, input, datasetFileUrl, path }) => {
+      return [key, await resolveInput(await input, datasetFileUrl, path)]
     }, entries),
   ) as unknown as NextcladeParamsRaw
 }
 
-async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string | undefined) {
+// Add optional path
+async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string | undefined, path?: string) {
   // If data is provided explicitly, load it
   if (input) {
     return input.getContent()
@@ -121,6 +127,9 @@ async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: s
 
   // Otherwise fetch corresponding file from the dataset
   if (datasetFileUrl) {
+    if (path) {
+      datasetFileUrl = urljoin(path, datasetFileUrl)
+    }
     return axiosFetchRaw(datasetFileUrl)
   }
 
