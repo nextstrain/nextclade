@@ -53,7 +53,7 @@ rule format_ncbi_dataset_report:
     output:
         ncbi_dataset_tsv=temp("data/metadata_raw.tsv"),
     params:
-        fields_to_include="accession,isolate-collection-date",
+        fields_to_include="accession,isolate-collection-date,geo-location,geo-region,isolate-lineage,release-date,submitter-affiliation,submitter-names",
     shell:
         """
         dataformat tsv virus-genome \

@@ -1,0 +1,56 @@
+{
+  "title": "Zika Nextclade dataset tutorial reference tree",
+  "build_url": "TBD",
+  "maintainers": [
+    { "name": "Cornelius Roemer", "url": "https://neherlab.org" }
+  ],
+  "colorings": [
+    {
+      "key": "Isolate Lineage",
+      "title": "Isolate name",
+      "type": "categorical"
+    },
+    {
+      "key": "date",
+      "title": "Collection date",
+      "type": "categorical"
+    },
+    {
+      "key": "Geographic Region",
+      "title": "Region",
+      "type": "categorical"
+    },
+    {
+      "key": "Geographic Location",
+      "title": "Full location",
+      "type": "categorical"
+    },
+    {
+      "key": "Release Date",
+      "title": "Release Date",
+      "type": "categorical"
+    },
+    {
+      "key": "Submitter Affiliation",
+      "title": "Submitter Affiliation",
+      "type": "categorical"
+    },
+    {
+      "key": "Submitter Names",
+      "title": "Submitter Names",
+      "type": "categorical"
+    }
+  ],
+  "display_defaults": {
+    "color_by": "Geographic Region",
+    "distance_measure": "div",
+    "map_triplicate": false,
+    "branch_label": "clade",
+    "transmission_lines": false
+  },
+  "filters": [
+    "new_node",
+    "clade_membership"
+  ],
+  "panels": ["tree", "entropy"]
+}

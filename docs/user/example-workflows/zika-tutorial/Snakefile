@@ -216,17 +216,20 @@ rule dummy_clades:
 rule export:
     input:
         tree="results/tree.nwk",
+        metadata="results/filtered_metadata.tsv",
         mutations="results/muts.json",
         branch_lengths="results/branch_lengths.json",
         clades="results/dummy_clades.json",
+        auspice_config="resources/auspice_config.json",
     output:
         auspice="results/auspice.json",
     shell:
         """
         augur export v2 \
             --tree {input.tree} \
+            --metadata {input.metadata} \
+            --auspice-config {input.auspice_config} \
             --node-data {input.mutations} {input.branch_lengths} {input.clades} \
-            --skip-validation \
             --output {output.auspice}
         """
 
