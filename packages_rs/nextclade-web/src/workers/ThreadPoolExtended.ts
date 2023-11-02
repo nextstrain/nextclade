@@ -1,11 +1,8 @@
-import { Thread } from 'threads'
 import type { Pool as PoolType, PoolOptions } from 'threads/dist/master/pool'
 import type { TaskRunFunction, WorkerDescriptor } from 'threads/dist/master/pool-types'
-import { Pool as createPool } from 'threads'
+import { Pool as createPool, Thread } from 'threads'
 import { concurrent } from 'fasy'
-
-// import { spawn } from 'src/workers/spawn'
-import { spawn } from 'threads'
+import { spawn } from 'src/workers/spawn'
 
 export class PoolExtended<ThreadType extends Thread> {
   private pool: PoolType<ThreadType>
@@ -17,19 +14,12 @@ export class PoolExtended<ThreadType extends Thread> {
     return this.pool.workers as unknown as WorkerDescriptor<ThreadType>[]
   }
 
-  private constructor(options?: PoolOptions) {
-    // this.pool = createPool<ThreadType>(() => spawn<ThreadType>(worker), options)
-    this.pool = createPool(
-      () =>
-        spawn(
-          new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), { name: 'nextcladeWebWorker' }),
-        ),
-      options,
-    )
+  private constructor(workerFn: () => Worker, options?: PoolOptions) {
+    this.pool = createPool<ThreadType>(() => spawn<ThreadType>(workerFn()), options)
   }
 
-  public static async create<ThreadType extends Thread>(options?: PoolOptions) {
-    const self = new PoolExtended<ThreadType>(options)
+  public static async create<ThreadType extends Thread>(workerFn: () => Worker, options?: PoolOptions) {
+    const self = new PoolExtended<ThreadType>(workerFn, options)
 
     self.workers = await concurrent.map(async (poolWorkerPromise: WorkerDescriptor<ThreadType>) => {
       return poolWorkerPromise.init
