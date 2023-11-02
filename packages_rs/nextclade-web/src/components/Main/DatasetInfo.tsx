@@ -1,4 +1,4 @@
-import { isNil } from 'lodash'
+import { isNil, last } from 'lodash'
 import { darken } from 'polished'
 import React, { useMemo } from 'react'
 import { Badge } from 'reactstrap'
@@ -12,6 +12,7 @@ import {
   DATASET_ID_UNDETECTED,
   numberAutodetectResultsAtom,
 } from 'src/state/autodetect.state'
+import { AnyType, attrBoolMaybe, attrStrMaybe } from 'src/types'
 import type { Dataset } from 'src/types'
 import styled from 'styled-components'
 
@@ -77,8 +78,7 @@ export interface DatasetInfoProps {
 
 export function DatasetInfo({ dataset }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
-  const { attributes, official, deprecated, enabled, experimental, path, version } = dataset
-  const { name, reference } = attributes
+  const { attributes, path, version } = dataset
 
   const updatedAt = useMemo(() => {
     let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : 'unknown'
@@ -87,10 +87,6 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
     }
     return updatedAt
   }, [version?.tag, version?.updatedAt])
-
-  if (!enabled) {
-    return null
-  }
 
   if (path === DATASET_ID_UNDETECTED) {
     return <DatasetUndetectedInfo />
@@ -104,10 +100,10 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
 
       <FlexRight>
         <DatasetName>
-          <span>{name.valueFriendly ?? name.value ?? path}</span>
+          <span>{attrStrMaybe(attributes, 'name') ?? path}</span>
 
           <span className="d-flex ml-auto">
-            {official ? (
+            {path.startsWith('nextstrain') ? (
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="success"
@@ -125,7 +121,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               </DatasetInfoBadge>
             )}
 
-            {experimental && (
+            {attrBoolMaybe(attributes, 'experimental') && (
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="warning"
@@ -135,7 +131,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               </DatasetInfoBadge>
             )}
 
-            {deprecated && (
+            {attrBoolMaybe(attributes, 'deprecated') && (
               <DatasetInfoBadge
                 className="ml-2 my-auto"
                 color="secondary"
@@ -147,17 +143,21 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
           </span>
         </DatasetName>
 
-        <DatasetInfoLine>
-          {t('Reference: {{ name }} ({{ accession }})', {
-            name: reference.valueFriendly ?? 'Untitled',
-            accession: reference.value,
-          })}
-        </DatasetInfoLine>
+        <DatasetInfoLine>{t('Reference: {{ ref }}', { ref: formatReference(attributes) })}</DatasetInfoLine>
         <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
         <DatasetInfoLine>{t('Dataset name: {{name}}', { name: path })}</DatasetInfoLine>
       </FlexRight>
     </Container>
   )
+}
+
+function formatReference(attributes: Record<string, AnyType> | undefined) {
+  const name = attrStrMaybe(attributes, 'reference name') ?? 'unknown'
+  const accession = attrStrMaybe(attributes, 'reference accession')
+  if (accession) {
+    return `${name} (${accession})`
+  }
+  return name
 }
 
 export function DatasetUndetectedInfo() {
@@ -181,7 +181,7 @@ export interface DatasetInfoCircleProps {
 
 function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps) {
   const { attributes, path } = dataset
-  const { name } = attributes
+  const name = attrStrMaybe(attributes, 'name') ?? last(path.split('/')) ?? '?'
 
   const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
   const records = useRecoilValue(autodetectResultsByDatasetAtom(path))
@@ -190,7 +190,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
   const { circleText, countText, percentage } = useMemo(() => {
     if (isNil(records)) {
       return {
-        circleText: (firstLetter(name.valueFriendly ?? name.value) ?? ' ').toUpperCase(),
+        circleText: (firstLetter(name) ?? ' ').toUpperCase(),
         percentage: 0,
         countText: '\u00A0',
       }
@@ -203,7 +203,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [records, name.value, name.valueFriendly, numberAutodetectResults])
+  }, [records, numberAutodetectResults, name])
 
   return (
     <>

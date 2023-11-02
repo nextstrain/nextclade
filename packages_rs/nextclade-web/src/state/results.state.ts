@@ -333,7 +333,7 @@ export const analysisStatusGlobalAtom = atom({
         switch (status) {
           case AlgorithmGlobalStatus.started:
             void getPromise(datasetCurrentAtom).then((dataset) => {
-              plausible('Run started', { props: { dataset: dataset?.attributes.name.value ?? 'unknown' } })
+              plausible('Run started', { props: { 'dataset v3': dataset?.path ?? 'unknown' } })
             })
             break
 
@@ -342,8 +342,8 @@ export const analysisStatusGlobalAtom = atom({
               ([results, dataset]) => {
                 plausible('Run completed', {
                   props: {
-                    sequences: results.length,
-                    dataset: dataset?.attributes.name.value ?? 'unknown',
+                    'sequences': results.length,
+                    'dataset v3': dataset?.path ?? 'unknown',
                   },
                 })
               },

@@ -53,7 +53,7 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Opti
 
   let paths = datasets.iter().map(|dataset| dataset.path.clone()).collect_vec();
 
-  let mut filtered = datasets.into_iter().filter(Dataset::is_enabled)
+  let mut filtered = datasets.into_iter()
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
       if let Some(tag) = tag.as_ref() {

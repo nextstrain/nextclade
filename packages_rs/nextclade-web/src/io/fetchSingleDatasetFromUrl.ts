@@ -1,7 +1,6 @@
 import urljoin from 'url-join'
 import { concurrent } from 'fasy'
-
-import { Dataset, VirusProperties } from 'src/types'
+import { attrStrMaybe, Dataset, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -24,9 +23,9 @@ export async function fetchSingleDatasetFromUrl(
 
   const datasets = [currentDataset]
   const defaultDataset = currentDataset
-  const currentDatasetName = currentDataset.attributes.name.value
+  const currentDatasetName = currentDataset.path
   const defaultDatasetName = currentDatasetName
-  const defaultDatasetNameFriendly = currentDataset.attributes.name.valueFriendly ?? currentDatasetName
+  const defaultDatasetNameFriendly = attrStrMaybe(currentDataset.attributes, 'name') ?? currentDatasetName
 
   await concurrent.forEach(
     async ([filename, fileUrl]) => {
