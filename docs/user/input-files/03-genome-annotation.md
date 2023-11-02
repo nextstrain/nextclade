@@ -2,13 +2,19 @@
 
 A tab separated table describing the genes of the virus (name, frame, position, etc.)
 
-The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of aminoacid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and aminoacid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)).
+The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of aminoacid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and aminoacid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](../algorithm/01-sequence-alignment) and [Algorithm: Translation](../algorithm/02-translation)).
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
 
-Since version 3, Nextclade supports multi-part CDSs which enable the correct translation of complex features including programmed ribosomal slippage (e.g. ORF1ab in SARS-CoV-2), genes crossing the origin of a circular genome (e.g. Hepatitis B virus) and CDS that require splicing (e.g. HIV).
+Since version 3, Nextclade supports multi-fragment CDSs which enable the correct translation of complex features including programmed ribosomal slippage (e.g. ORF1ab in SARS-CoV-2), genes crossing the origin of a circular genome (e.g. Hepatitis B virus) and CDS that require splicing (e.g. HIV).
 
-In theory, any syntatically correct GFF3 annotation, e.g. downloaded from Genbank, should work. However, in practice, post-processing may be required to show meaningful gene names and to reduce the number of genes.
+Almost any syntactically correct [spec](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)-compliant GFF3 annotation (e.g. downloaded from Genbank) should work. In practice, because GFF3 format allows for great freedom of how to express features as well as how to interpret them, some processing may be required to make it work satisfactory in Nextclade.
+
+At the time of writing, due to historical and technical reasons, Nextclade's interpretation of GFF3 format has the following deviations from the specification:
+
+- Names of genes are required to be unique
+- Names of CDSes are required to be unique
+- Names of proteins are required to be unique
 
 The fundamental unit for Nextclade is a single `CDS`.
 

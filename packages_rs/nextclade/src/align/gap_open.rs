@@ -69,15 +69,16 @@ mod tests {
         let segments = cds
           .iter()
           .enumerate()
-          .map(|(index, (begin, end, strand))| {
+          .map(|(cds_segment_index, (begin, end, strand))| {
             let range_local = Range::from_isize(0, end - begin);
             let phase = Phase::from_begin(range_local.begin).unwrap();
             let frame = Frame::from_begin(Position::from(*begin)).unwrap();
+            let name = format!("{cds_index}_{cds_segment_index}");
 
             CdsSegment {
-              index,
-              id: index.to_string(),
-              name: index.to_string(),
+              index: cds_segment_index,
+              id: name.clone(),
+              name,
               range: NucRefGlobalRange::from_isize(*begin, *end),
               range_local,
               landmark: None,
