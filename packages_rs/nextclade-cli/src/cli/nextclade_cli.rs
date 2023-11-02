@@ -3,6 +3,7 @@ use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
 use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
+use crate::cli::print_help_markdown::print_help_markdown;
 use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
 use clap::builder::styling;
@@ -98,6 +99,9 @@ pub enum NextcladeCommands {
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
   ReadAnnotation(Box<NextcladeReadAnnotationArgs>),
+
+  /// Print command-line reference documentation in Markdown format
+  HelpMarkdown,
 }
 
 #[derive(Parser, Debug)]
@@ -350,7 +354,7 @@ pub struct NextcladeRunInputArgs {
   /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
   /// alignment will not be informed by codon boundaries
   ///
-  /// List of genes can be restricted using `--genes` flag. Otherwise all genes found in the genome annotation will be used.
+  /// List of genes can be restricted using `--genes` flag. Otherwise, all genes found in the genome annotation will be used.
   ///
   /// Overrides genome annotation provided by the dataset (`--input-dataset` or `--dataset-name`).
   ///
@@ -362,11 +366,12 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_annotation: Option<PathBuf>,
 
-  /// Comma-separated list of names of genes to use.
+  /// Comma-separated list of names of coding sequences (CDSes) to use.
   ///
   /// This defines which peptides will be written into outputs, and which genes will be taken into account during
-  /// codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the genome annotation. If
-  /// this flag is not supplied or its value is an empty string, then all genes found in the genome annotation will be used.
+  /// codon-aware alignment and aminoacid mutations detection. Must only contain CDS names present in the genome annotation.
+  ///
+  /// If this flag is not supplied or its value is an empty string, then all CDSes found in the genome annotation will be used.
   ///
   /// Requires `--input-annotation` to be specified.
   #[clap(
@@ -376,7 +381,7 @@ pub struct NextcladeRunInputArgs {
     use_value_delimiter = true
   )]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub genes: Option<Vec<String>>,
+  pub cds_selection: Option<Vec<String>>,
 
   /// Use custom dataset server
   #[clap(long)]
@@ -390,6 +395,7 @@ pub struct NextcladeRunInputArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_root_seq: Option<String>,
 
+  /// REMOVED. Use --input-ref instead
   #[clap(long)]
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub reference: Option<String>,
@@ -493,7 +499,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Example for bash shell:
   ///
-  ///   --output-translations='output_dir/gene_{gene}.translation.fasta'
+  ///   --output-translations='output_dir/cds_{cds}.translation.fasta'
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
@@ -663,7 +669,7 @@ pub struct NextcladeSortArgs {
 
   /// Path to input minimizer index JSON file.
   ///
-  /// By default the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the the JSON file.
+  /// By default, the latest reference minimizer index is fetched from the dataset server (default or customized with `--server` argument). If this argument is provided, the algorithm skips fetching the default index and uses the index provided in the JSON file.
   ///
   /// Supports the following compression formats: "gz", "bz2", "xz", "zst". Use "-" to read uncompressed data from standard input (stdin).
   #[clap(long, short = 'm')]
@@ -672,9 +678,11 @@ pub struct NextcladeSortArgs {
 
   /// Path to output directory
   ///
-  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset wil lbe places in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized.
+  /// Sequences will be written in subdirectories: one subdirectory per dataset. Sequences inferred to be belonging to a particular dataset will be placed in the corresponding subdirectory. The subdirectory tree can be nested, depending on how dataset names are organized - dataset names can contain slashes, and they will be treated as path segment delimiters.
   ///
-  /// Mutually exclusive with `--output`.
+  /// If the required directory tree does not exist, it will be created.
+  ///
+  /// Mutually exclusive with `--output-path`.
   ///
   #[clap(short = 'O', long)]
   #[clap(value_hint = ValueHint::DirPath)]
@@ -813,7 +821,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
     if output_selection.contains(&NextcladeOutputSelection::Translations) {
       let output_translations_path =
-        default_output_file_path.with_file_name(format!("{output_basename}_gene_{{gene}}"));
+        default_output_file_path.with_file_name(format!("{output_basename}.cds_translation.{{cds}}.fasta"));
       let output_translations_path = add_extension(output_translations_path, "translation.fasta");
 
       let output_translations_template = output_translations_path
@@ -850,17 +858,17 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
   }
 
   if let Some(output_translations) = output_translations {
-    if !output_translations.contains("{gene}") {
+    if !output_translations.contains("{cds}") {
       return make_error!(
         r#"
-Expected `--output-translations` argument to contain a template string containing template variable {{gene}} (with curly braces), but received:
+Expected `--output-translations` argument to contain a template string containing template variable {{cds}} (with curly braces), but received:
 
   {output_translations}
 
 Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
 Example for bash shell:
 
-  --output-translations='output_dir/gene_{{gene}}.translation.fasta'
+  --output-translations='output_dir/cds_{{cds}}.translation.fasta'
 
       "#
       );
@@ -1086,6 +1094,7 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     NextcladeCommands::Completions { shell } => {
       generate_completions(&shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))
     }
+    NextcladeCommands::HelpMarkdown => print_help_markdown(),
     NextcladeCommands::Run(mut run_args) => {
       nextclade_check_removed_args(&run_args)?;
       nextclade_check_column_config_args(&run_args)?;

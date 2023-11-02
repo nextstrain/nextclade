@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+# Re-generates CLI reference in Markdown format
+#
+# Usage:
+#   ./scripts/update_cli_reference_docs <path_to_nextclade_executable>
+
+set -euo pipefail
+trap "exit" INT
+
+# Directory where this script resides
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"
+
+NEXTCLADE_BIN="${1:-nextclade}"
+OUTPUT="${THIS_DIR}/../docs/user/nextclade-cli/reference.md"
+
+./"${NEXTCLADE_BIN}" help-markdown > "${OUTPUT}"

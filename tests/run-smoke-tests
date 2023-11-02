@@ -41,7 +41,7 @@ function run_with_dataset_dir() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${dataset_dir}" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -56,7 +56,7 @@ function run_with_dataset_zip() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${dataset_dir}/dataset.zip" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -71,7 +71,7 @@ function run_with_ref_only() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -89,7 +89,7 @@ function run_with_ref_and_annotation() {
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -107,7 +107,7 @@ function run_with_ref_and_tree() {
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-tree="${dataset_dir}/tree.json" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -127,7 +127,7 @@ function run_with_ref_and_annotation_and_tree() {
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --input-tree="${dataset_dir}/tree.json" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }

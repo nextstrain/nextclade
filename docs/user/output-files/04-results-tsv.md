@@ -1,0 +1,111 @@
+# Analysis results (tabular)
+
+Nextclade Web: download `nextclade.tsv
+` or `nextclade.csv`
+
+Nextclade CLI flags: `--output-tsv`/`-t`, `--output-csv`/`-c`
+
+The results of mutation calling, clade assignment, quality control and PCR primer changes can be obtained in either tabular (TSV, CSV) or JSON (classic JSON or NDJSON) formats.
+
+This section describes tabular output.
+
+TSV and CSV files are equivalent and only differ in the column delimiter (tabs vs semicolons). Tabular format of TSV/CSV files is somewhat human-friendly and convenient for the immediate inspection (e.g. in Excel or other spreadsheet software) and for simple automated processing.
+
+> ⚠️ Note, in CSV and TSV outputs, all positions are 1-based, and all ranges are closed (they include both left and right boundaries).
+
+> ⚠️ Note, all positions are in alignment coordinates and after all the insertions are stripped.
+
+> ⚠️ Note that, for historical reasons, we use semicolon `;` as the column separator in CSV files, because we have comma `,` as list separators within table cells and in early versions of Nextclade our CSV writer code was imperfect, so it was an easy solution. We recommend to use TSV format instead of CSV format. But if you are using CSV format, make sure that you configure your spreadsheet software or parse to use semicolons `;` as column delimiters.
+
+Every row in tabular output corresponds to 1 input sequence. The meaning of columns is described below:
+
+| Column name                                     | Meaning                                                                                                     | type                            | Example                          |
+|-------------------------------------------------|-------------------------------------------------------------------------------------------------------------|---------------------------------|----------------------------------|
+| index                                           | Index (integer signifying location) of a corresponding record in the input fasta file(s)                    | non-negative integer            | 0                                |
+| seqName                                         | Name of the sequence (as provided in the input file)                                                        | string                          | hCoV-19/USA/SEARCH-4652-SAN/2020 |
+| clade                                           | Assigned clade                                                                                              | string                          | 20A                              |
+| qc.overallScore                                 | Overall [quality control](../algorithm/07-quality-control) score                                            | float                           | 23.5                             |
+| qc.overallStatus                                | Overall [quality control](../algorithm/07-quality-control) status                                           | string: `good\|mediocre\|bad`   | mediocre                         |
+| totalSubstitutions                              | Total number of detected nucleotide substitutions                                                           | non-negative integer            | 2                                |
+| totalDeletions                                  | Total number of deleted nucleotide bases                                                                    | non-negative integer            | 15                               |
+| totalInsertions                                 | Total number of inserted nucleotide bases                                                                   | non-negative integer            | 3                                |
+| totalFrameShifts                                | Total number of detected frame shifts                                                                       | non-negative integer            | 0                                |
+| totalAminoacidSubstitutions                     | Total number of detected aminoacid substitutions                                                            | non-negative integer            | 1                                |
+| totalAminoacidDeletions                         | Total number of deleted amino acid residues                                                                 | non-negative integer            | 7                                |
+| totalAminoacidInsertions                        | Total number of inserted amino acid residues                                                                | non-negative integer            | 8                                |
+| totalMissing                                    | Total number of detected missing nucleotides (nucleotide character `N`)                                     | non-negative integer            | 238                              |
+| totalNonACGTNs                                  | Total number of detected ambiguous nucleotides (nucleotide characters that are not `A`, `C`, `G`, `T`, `N`) | non-negative integer            | 2                                |
+| totalUnknownAa                                  | Total number of unknown aminoacids (aminoacid character `X`)                                                | non-negative integer            | 0                                |
+| totalPcrPrimerChanges                           | Total number of nucleotide mutations detected in PCR primer regions                                         | non-negative integer            | 0                                |
+| substitutions                                   | List of detected nucleotide substitutions                                                                   | comma separated list of strings | C241T,C2061T,C11514T,G23012A     |
+| deletions                                       | List of detected nucleotide deletion ranges                                                                 | comma separated list of strings | 201,28881-28882                  |
+| insertions                                      | List of detected inserted nucleotide fragments                                                              | comma separated list of strings | 248:G,21881:GAG                  |
+| privateNucMutations.reversionSubstitutions      | List of detected private mutations that are reversions to reference                                         | comma separated list of strings | C241T                            |
+| privateNucMutations.labeledSubstitutions        | List of detected private mutations that are to a genotype that has been labeled in `virus_properties.json`  | comma separated list of strings | C11514T\|21I&20C,C2061T\|21E     |
+| privateNucMutations.unlabeledSubstitutions      | List of detected private mutations that are neither reversions nor labeled                                  | comma separated list of strings | G23012A                          |
+| privateNucMutations.totalReversionSubstitutions | Total number of private mutations that are reversions to reference                                          | non-negative integer            | 1                                |
+| privateNucMutations.totalLabeledSubstitutions   | Total number of private mutations that are to a genotype that has been labeled in `virus_properties.json`   | non-negative integer            | 2                                |
+| privateNucMutations.totalUnlabeledSubstitutions | Total number of private mutations that are neither reversions nor labeled                                   | non-negative integer            | 1                                |
+| privateNucMutations.totalPrivateSubstitutions   | Total number of private mutations overall                                                                   | non-negative integer            | 4                                |
+| frameShifts                                     | List of detected frame shifts                                                                               | comma separated list of strings | N:33-420                         |
+| aaSubstitutions                                 | List of detected aminoacid substitutions                                                                    | comma separated list of strings | E:T9I,N:R203K                    |
+| aaDeletions                                     | List of detected aminoacid deletions                                                                        | comma separated list of strings | N:E31-,N:E32-                    |
+| aaInsertions                                    | List of detected aminoacid insertions                                                                       | comma separated list of strings | S:214:EPE                        |
+| missing                                         | List of detected missing nucleotides (nucleotide character `N`)                                             | comma separated list of strings | 704-726,4248                     |
+| nonACGTNs                                       | List of detected ambiguous nucleotides (nucleotide characters that are not `A`, `C`, `G`, `T`, `N`)         | comma separated list of strings | Y:27948,K:3877                   |
+| unknownAaRanges                                 | List of detected contiguous ranges of unknown aminoacid (aminoacid character `X`)                           | comma separated list of strings | E:1-12,E:29                      |
+| pcrPrimerChanges                                | List of detected PCR primer changes                                                                         | comma separated list of strings |                                  |
+| alignmentScore                                  | Alignment score                                                                                             | non-negative integer            | 88237                            |
+| alignmentStart                                  | Beginning of the sequenced region                                                                           | non-negative integer            | 1                                |
+| alignmentEnd                                    | End of the sequenced region                                                                                 | non-negative integer            | 29903                            |
+| qc.missingData.missingDataThreshold             | Threshold that was used for "Missing data" QC rule                                                          | int                             | 3000                             |
+| qc.missingData.score                            | Score for "Missing data" QC rule                                                                            | float                           | 0.5                              |
+| qc.missingData.status                           | Status for "Missing data" QC rule                                                                           | string: `good\|mediocre\|bad`   | mediocre                         |
+| qc.missingData.totalMissing                     | Total number of missing nucleotides used in "Missing data" QC rule                                          | non-negative integer            | 238                              |
+| qc.mixedSites.mixedSitesThreshold               | Threshold used for "Mixed sites" QC rule                                                                    | int                             | 10                               |
+| qc.mixedSites.score                             | Score for "Mixed sites" QC rule                                                                             | float                           | 0.5                              |
+| qc.mixedSites.status                            | Status for "Mixed sites" QC rule                                                                            | string: `good\|mediocre\|bad`   | good                             |
+| qc.mixedSites.totalMixedSites                   | Total number of ambiguous nucleotides used for "Mixed sites" QC rule                                        | non-negative integer            | 2                                |
+| qc.privateMutations.cutoff                      | Cutoff parameter used for "Private mutations" QC rule                                                       | int                             | 3                                |
+| qc.privateMutations.excess                      | Excess parameter used for "Private mutations" QC rule                                                       | int                             | 1                                |
+| qc.privateMutations.score                       | Score for "Private mutations" QC rule                                                                       | float                           | 0.5                              |
+| qc.privateMutations.status                      | Status for "Private mutations" QC rule                                                                      | string: `good\|mediocre\|bad`   | good                             |
+| qc.privateMutations.total                       | Weighted sum of private mutations used for "Private mutations" QC rule                                      | non-negative integer            | 4                                |
+| qc.snpClusters.clusteredSNPs                    | Clustered SNP detected for "SNP clusters" QC rule                                                           | comma separated list of strings | C241T,C2061T                     |
+| qc.snpClusters.score                            | Score for "SNP clusters" QC rule                                                                            | float                           | 0.5                              |
+| qc.snpClusters.status                           | Status for "SNP clusters" QC rule                                                                           | string: `good\|mediocre\|bad`   | bad                              |
+| qc.snpClusters.totalSNPs                        | Total number of SNPs for "SNP clusters" QC rule                                                             | non-negative integer            | 2                                |
+| qc.frameShifts.frameShifts                      | List of detected frame shifts in "Frame shifts" QC rule (excluding ignored)                                 | comma separated list of strings | N:33-420                         |
+| qc.frameShifts.totalFrameShifts                 | Total number of detected frame shifts in for "Frame shifts" QC rule (excluding ignored)                     | non-negative integer            | 1                                |
+| qc.frameShifts.frameShiftsIgnored               | List of frame shifts detected, but ignored due to ignore list                                               | comma separated list of strings | ORF8:109-111                     |
+| qc.frameShifts.totalFrameShiftsIgnored          | Total number of frame shifts detected, but ignored due to ignore list                                       | non-negative integer            | 1                                |
+| qc.frameShifts.score                            | Score for "Frame shifts" QC rule                                                                            | float                           | 0.5                              |
+| qc.frameShifts.status                           | Status for "Frame shifts" QC rule                                                                           | string: `good\|mediocre\|bad`   | bad                              |
+| qc.stopCodons.stopCodons                        | List of detected stop codons in "Stop codons" QC rule                                                       | comma separated list of strings | ORF1a:4715,ORF1a:4716            |
+| qc.stopCodons.totalStopCodons                   | Total number of detected stop codons in "Stop codons" QC rule                                               | non-negative integer            | 2                                |
+| qc.stopCodons.score                             | Score for "Stop codons" QC rule                                                                             | float                           | 0.5                              |
+| qc.stopCodons.status                            | Status for "Stop codons" QC rule                                                                            | string: `good\|mediocre\|bad`   | bad                              |
+| isReverseComplement                             | Whether query sequences were transformed using reverse complement operation before alignment                | boolean                         | false                            |
+| errors                                          | List of errors during processing                                                                            | comma separated list of strings |                                  |
+| warnings                                        | List of warnings during processing                                                                          | comma separated list of strings |                                  |
+| failedGenes                                     | List of genes that failed translation                                                                       | comma separated list of strings |                                  |
+
+> ⚠️ Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
+
+The table can contain additional columns for every clade-like attribute defined in reference tree in `meta.extensions.clade_node_attrs` and in the node attributes. For example, the default SARS-CoV-2 datasets define `Nextclade_pango` attribute which signifies a Pango lineage assigned by Nextclade (see [Nextclade as pango lineage classifier: Methods and Validation](../algorithm/nextclade-pango)).
+
+
+> ⚠️Note that if nucleotide alignment or analysis of an individual sequence fails, alignment and translations are omitted from the output fasta files (see above), but the corresponding entry is still present in most of the other output files. In this case the `errors` column/field contain details about why the processing failed.
+>
+> <br/>
+>
+> If translation, alignment or analysis of an individual gene fails, the corresponding peptide cannot be analyzed, and therefore no details about aminoacid mutations, deletions, insertions, frame shifts etc. will be available. In this case `warning` and `failedGenes` columns/fields contain details about which genes failed and why.
+>
+> <br/>
+>
+> Care should be taken to check for `errors`, `warnings` and `failedGenes` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
+>
+> <br/>
+>
+> See descriptions of individual outputs and [Errors and warnings](./errors-and-warnings.md) section for more details.
+

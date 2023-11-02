@@ -38,8 +38,7 @@ pub struct NextcladeParams {
 
 impl NextcladeParams {
   pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Self, Report> {
-    let virus_properties =
-      VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
+    let virus_properties = VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
 
     let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
 
@@ -85,6 +84,10 @@ pub struct AnalysisInput {
 pub struct AnalysisInitialData<'a> {
   pub genome_size: usize,
   pub gene_map: GeneMap,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub default_gene: Option<String>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub gene_order_preference: Vec<String>,
   pub clade_node_attr_key_descs: &'a [CladeNodeAttrKeyDesc],
   pub phenotype_attr_descs: &'a [PhenotypeAttrDesc],
   pub aa_motifs_descs: &'a [AaMotifsDesc],
@@ -238,6 +241,8 @@ impl Nextclade {
     AnalysisInitialData {
       gene_map: self.gene_map.clone(),
       genome_size: self.ref_seq.len(),
+      default_gene: self.virus_properties.default_gene.clone(),
+      gene_order_preference: self.virus_properties.gene_order_preference.clone(),
       clade_node_attr_key_descs: &self.clade_attr_descs,
       phenotype_attr_descs: &self.phenotype_attr_descs,
       aa_motifs_descs: &self.aa_motifs_descs,
@@ -257,7 +262,7 @@ impl Nextclade {
 
   pub fn get_output_trees(&mut self, results: Vec<NextcladeOutputs>) -> Result<Option<OutputTrees>, Report> {
     if let Some(graph) = &mut self.graph {
-      graph_attach_new_nodes_in_place(graph, results, self.ref_seq.len(),  &self.params.tree_builder)?;
+      graph_attach_new_nodes_in_place(graph, results, self.ref_seq.len(), &self.params.tree_builder)?;
       let auspice = convert_graph_to_auspice_tree(graph)?;
       let nwk = convert_graph_to_nwk_string(graph)?;
       Ok(Some(OutputTrees { auspice, nwk }))
