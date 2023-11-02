@@ -78,7 +78,7 @@ Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/ne
 
 #### Don't count mutations to ambiguous nucleotides as reversions
 
-We no longer treat mutations to ambiguous nucleotides as reversions, i.e. if the attachment node has a mutation mutated with respect to reference and the query sequence is ambiguous we previously counted this as a reversion. This change only affects  “private mutation” QC score and the classification of private mutations into “reversion substitution” and “unlabeled substitution”.
+We no longer treat mutations to ambiguous nucleotides as reversions, i.e. if the attachment node has a mutation mutated with respect to reference and the query sequence is ambiguous we previously counted this as a reversion. This change only affects “private mutation” QC score and the classification of private mutations into “reversion substitution” and “unlabeled substitution”.
 
 ---
 
@@ -188,6 +188,27 @@ If you maintain a custom dataset of want to try creating one - refer to our [Dat
 #### Added flag for disabling the new tree builder
 
 The old phylogenetic tree placement behavior can be restored by adding  `--without-greedy-tree-builder` flag to `run` subcommand.
+
+#### New arguments in `dataset list` command
+
+The new argument `--only-names` allows to print a concise list of dataset names:
+
+```bash
+nextclade dataset list --only-names
+```
+
+The new argument `--json` allows to output a JSON object instead of the table. You can write it into a file and to postprocess it:
+
+```bash
+nextclade dataset list --json > "dataset_list.json"
+nextclade dataset list --json | jq '.[] | select(.path | startswith("nextstrain/sars-cov-2")) | .attributes'
+```
+
+The new argument `--search` allows to search datasets using substring match with dataset name, dataset friendly name, reference name or reference accession:
+
+```bash
+nextclade dataset list --search=flu
+```
 
 #### New subcommand: `sort`
 
