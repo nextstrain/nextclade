@@ -13,24 +13,24 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
 use num::Integer;
+use regex::internal::Input;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::path::Path;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[must_use]
 pub struct GeneMap {
-  pub genes: BTreeMap<String, Gene>,
+  pub genes: Vec<Gene>,
 }
 
 impl GeneMap {
   pub fn new() -> Self {
-    Self::from_genes(BTreeMap::<String, Gene>::new())
+    Self::from_genes(vec![])
   }
 
-  pub fn from_genes(genes: BTreeMap<String, Gene>) -> Self {
+  pub fn from_genes(genes: Vec<Gene>) -> Self {
     Self { genes }
   }
 
@@ -87,13 +87,14 @@ impl GeneMap {
 
   #[must_use]
   pub fn contains(&self, gene_name: &str) -> bool {
-    self.genes.contains_key(gene_name)
+    self.genes.iter().any(|gene| gene.name == gene_name)
   }
 
   pub fn get(&self, gene_name: &str) -> Result<&Gene, Report> {
     self
       .genes
-      .get(gene_name)
+      .iter()
+      .find(|gene| gene.name == gene_name)
       .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
   }
 
@@ -102,42 +103,36 @@ impl GeneMap {
     self
       .genes
       .iter()
-      .find_map(|(_, gene)| gene.cdses.iter().find(|cds| cds.name == cds_name))
-      .ok_or_else(|| {
-        make_internal_report!("When looking up a CDS translation: CDS '{cds_name}' is expected, but not found")
-      })
+      .find_map(|gene| gene.cdses.iter().find(|cds| cds.name == cds_name))
+      .ok_or_else(|| make_internal_report!("CDS '{cds_name}' is expected to be present, but not found"))
   }
 
-  pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
+  pub fn iter_genes(&self) -> impl Iterator<Item = &Gene> + '_ {
     self.genes.iter()
   }
 
-  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = (&String, &mut Gene)> + '_ {
+  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = &mut Gene> + '_ {
     self.genes.iter_mut()
   }
 
-  pub fn into_iter_genes(self) -> impl Iterator<Item = (String, Gene)> {
+  pub fn into_iter_genes(self) -> impl Iterator<Item = Gene> {
     self.genes.into_iter()
   }
 
-  pub fn genes(&self) -> impl Iterator<Item = &Gene> + '_ {
-    self.genes.values()
-  }
-
   pub fn iter_cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
-    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+    self.genes.iter().flat_map(|gene| gene.cdses.iter())
   }
 
   pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = &mut Cds> + '_ {
-    self.genes.iter_mut().flat_map(|(_, gene)| gene.cdses.iter_mut())
+    self.genes.iter_mut().flat_map(|gene| gene.cdses.iter_mut())
   }
 
   pub fn into_iter_cdses(self) -> impl Iterator<Item = Cds> {
-    self.genes.into_iter().flat_map(|(_, gene)| gene.cdses.into_iter())
+    self.genes.into_iter().flat_map(|gene| gene.cdses.into_iter())
   }
 
   pub fn cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
-    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+    self.genes.iter().flat_map(|gene| gene.cdses.iter())
   }
 
   pub fn validate(&self) -> Result<(), Report> {
@@ -159,29 +154,36 @@ impl GeneMap {
   }
 }
 
-/// Filters genome annotation according to the list of requested genes.
-pub fn filter_gene_map(gene_map: GeneMap, cdses: &Option<Vec<String>>) -> GeneMap {
+/// Filters genome annotation according to the list of requested cdses.
+pub fn filter_gene_map(mut gene_map: GeneMap, cdses: &Option<Vec<String>>) -> GeneMap {
   if let Some(cdses) = cdses {
-    let gene_map: BTreeMap<String, Gene> = gene_map
-      .into_iter_genes()
-      .filter(|(gene_name, ..)| cdses.contains(gene_name))
-      .collect();
-
-    let requested_but_not_found = get_requested_cdses_not_in_genemap(&gene_map, cdses);
+    let all_cdses = gene_map.iter_cdses().cloned().collect_vec();
+    let requested_but_not_found = get_requested_cdses_not_in_genemap(&all_cdses, cdses);
     if !requested_but_not_found.is_empty() {
       warn!(
-        "The following genes were requested through `--cdses` but not found in the genome annotation: {requested_but_not_found}",
+        "The following CDS(es) were requested through `--cds-selection` but not found in the genome annotation: {requested_but_not_found}",
       );
     }
-    return GeneMap::from_genes(gene_map);
+
+    // Keep only requested CDSes and non-empty genes
+    let genes = gene_map
+      .iter_genes_mut()
+      .map(|gene| {
+        gene.cdses.retain(|cds| cdses.contains(&cds.name));
+        gene.clone()
+      })
+      .filter(|gene| !gene.cdses.is_empty())
+      .collect_vec();
+
+    return GeneMap::from_genes(genes);
   }
   gene_map
 }
 
-fn get_requested_cdses_not_in_genemap(gene_map: &BTreeMap<String, Gene>, cdses: &[String]) -> String {
+fn get_requested_cdses_not_in_genemap(all_cdses: &[Cds], cdses: &[String]) -> String {
   cdses
     .iter()
-    .filter(|&cds_name| !gene_map.contains_key(cds_name))
+    .filter(|&cds_name| !all_cdses.iter().any(|cds| &cds.name == cds_name))
     .map(|name| format!("'{name}'"))
     .join(", ")
 }
@@ -201,9 +203,7 @@ fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap
     );
   }
 
-  Ok(GeneMap::from_genes(
-    genes.into_iter().map(|gene| (gene.name.clone(), gene)).collect(),
-  ))
+  Ok(GeneMap::from_genes(genes))
 }
 
 fn find_genes(feature_groups: &[FeatureGroup]) -> Result<Vec<Gene>, Report> {
