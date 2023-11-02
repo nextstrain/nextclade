@@ -212,7 +212,8 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 ###### **Options:**
 
-* `-n`, `--name <NAME>` — Restrict list to datasets with this exact name
+* `-n`, `--name <NAME>` — Restrict list to datasets with this *exact* name
+* `-s`, `--search <SEARCH>` — Search datasets by name or by reference
 * `-t`, `--tag <TAG>` — Restrict list to datasets with this exact version tag
 * `--include-incompatible` — Include dataset versions that are incompatible with this version of Nextclade CLI
 * `--include-deprecated` — Include deprecated datasets
