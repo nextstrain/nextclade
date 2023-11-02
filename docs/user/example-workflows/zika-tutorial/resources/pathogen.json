@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "3.0.0",
+  "files": {
+    "reference": "reference.fasta",
+    "pathogenJson": "pathogen.json",
+    "genomeAnnotation": "genome_annotation.gff3",
+    "treeJson": "tree.json",
+    "examples": "sequences.fasta"
+  },
+  "attributes": {
+    "name": { "value": "Zika tutorial dataset" },
+    "reference name": { "value": "NC_035889.1" },
+    "reference": { "value": "NC_035889.1" }
+  }
+}

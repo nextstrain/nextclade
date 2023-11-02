@@ -1,0 +1,272 @@
+REFERENCE_ACCESSION = "NC_035889.1"
+GENE = "Polyprotein"
+FETCH_SEQUENCES = True
+
+if FETCH_SEQUENCES == True:
+
+    include: "rules/fetch_from_ncbi.smk"
+
+
+# The below is temporary until v3 is released
+rule get_nextclade_binary:
+    """
+    Get the nextclade v3 binary from the nextclade repository
+    """
+    output:
+        "bin/nextclade",
+    shell:
+        """
+        cp ~/code/nextclade/target/release/nextclade bin/nextclade
+        """
+
+
+rule create_include:
+    """
+    Create an include file for augur filter
+    """
+    output:
+        "results/include.txt",
+    shell:
+        """
+        echo "{REFERENCE_ACCESSION}" > results/include.txt
+        """
+
+
+rule filter:
+    """
+    Exclude sequences from before 2015 and subsample to 100 sequences
+    """
+    input:
+        sequences="data/sequences.fasta",
+        metadata="data/metadata.tsv",
+        include="results/include.txt",
+    output:
+        filtered_sequences="results/filtered_sequences_raw.fasta",
+        filtered_metadata="results/filtered_metadata_raw.tsv",
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --min-date "2015-01-01" \
+            --min-length 9000 \
+            --include {input.include} \
+            --subsample-max-sequences 100 \
+            --output {output.filtered_sequences} \
+            --output-metadata {output.filtered_metadata}
+        """
+
+
+rule patch_annotations:
+    """
+    Rename CDS features to make nice display names
+    """
+    input:
+        gff="data/genome_annotation.gff3",
+        genbank="data/reference.gb",
+    output:
+        gff="results/genome_annotation.gff3",
+        genbank="results/reference.gb",
+    shell:
+        """
+        sed 's#Name=YP_009428568.1#Name={GENE}#g' {input.gff} > {output.gff}
+        sed 's#/locus_tag="CPG35_gp1"#/locus_tag="{GENE}"#g' {input.genbank} > {output.genbank}
+        """
+
+
+rule align:
+    input:
+        sequences="results/filtered_sequences_raw.fasta",
+        reference="data/reference.fasta",
+        annotation="results/genome_annotation.gff3",
+        nextclade="bin/nextclade",
+    output:
+        alignment="results/aligned.fasta",
+        tsv="results/nextclade.tsv",
+        translation=f"results/translations/cds_{GENE}.translation.fasta",
+    params:
+        translation_template=lambda w: "results/translations/cds_{cds}.translation.fasta",
+    shell:
+        """
+        {input.nextclade} run \
+            {input.sequences} \
+            --input-ref {input.reference} \
+            --input-annotation {input.annotation} \
+            --output-translations {params.translation_template} \
+            --output-tsv {output.tsv} \
+            --output-fasta {output.alignment}
+        """
+
+
+rule get_outliers:
+    """
+    Automatically identify sequences with >150 substitutions
+    (likely to be sequencing errors) and put them in outliers.txt
+    """
+    input:
+        nextclade="results/nextclade.tsv",
+    output:
+        outliers="results/outliers.txt",
+    shell:
+        """
+        tsv-filter -H \
+            --gt totalSubstitutions:150 \
+            {input.nextclade} \
+        | tsv-select -H -f seqName \
+        | tail -n +2 > {output.outliers}
+        """
+
+
+rule exclude:
+    """
+    Rule to allow for manual and automatic exclusion of sequences
+    without triggering a new subsampling that could
+    surface new bad sequences resulting in an infinite loop
+    """
+    input:
+        sequences="results/aligned.fasta",
+        metadata="data/metadata.tsv",
+        exclude="resources/exclude.txt",
+        outliers="results/outliers.txt",
+    output:
+        filtered_sequences="results/filtered_aligned.fasta",
+        filtered_metadata="results/filtered_metadata.tsv",
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --exclude {input.exclude} {input.outliers} \
+            --output {output.filtered_sequences} \
+            --output-metadata {output.filtered_metadata}
+        """
+
+
+rule tree:
+    input:
+        alignment="results/filtered_aligned.fasta",
+    output:
+        tree="results/tree_raw.nwk",
+    shell:
+        """
+        augur tree \
+            --alignment {input.alignment} \
+            --output {output.tree} \
+        """
+
+
+rule refine:
+    input:
+        tree="results/tree_raw.nwk",
+        alignment="results/filtered_aligned.fasta",
+    output:
+        tree="results/tree.nwk",
+        node_data="results/branch_lengths.json",
+    shell:
+        """
+        augur refine \
+            --tree {input.tree} \
+            --alignment {input.alignment} \
+            --root {REFERENCE_ACCESSION} \
+            --keep-polytomies \
+            --divergence-units mutations \
+            --output-node-data {output.node_data} \
+            --output-tree {output.tree}
+        """
+
+
+rule ancestral:
+    input:
+        tree="results/tree.nwk",
+        alignment="results/filtered_aligned.fasta",
+        annotation="results/reference.gb",
+    output:
+        node_data="results/muts.json",
+    params:
+        translation_template=r"results/translations/cds_%GENE.translation.fasta",
+        output_translation_template=r"results/translations/cds_%GENE.ancestral.fasta",
+    shell:
+        """
+        augur ancestral \
+            --tree {input.tree} \
+            --alignment {input.alignment} \
+            --annotation {input.annotation} \
+            --genes {GENE} \
+            --translations {params.translation_template} \
+            --output-node-data {output.node_data} \
+            --output-translations {params.output_translation_template}
+        """
+
+
+rule dummy_clades:
+    """
+    Nextclade requires clade membership to be specified for each node
+    in the tree. This rule creates a dummy clade membership for each node
+    """
+    input:
+        "results/branch_lengths.json",
+    output:
+        "results/dummy_clades.json",
+    shell:
+        """
+        jq '.nodes |= map_values({{"clade_membership": "dummy"}})' {input} > {output}
+        """
+
+
+rule export:
+    input:
+        tree="results/tree.nwk",
+        mutations="results/muts.json",
+        branch_lengths="results/branch_lengths.json",
+        clades="results/dummy_clades.json",
+    output:
+        auspice="results/auspice.json",
+    shell:
+        """
+        augur export v2 \
+            --tree {input.tree} \
+            --node-data {input.mutations} {input.branch_lengths} {input.clades} \
+            --skip-validation \
+            --output {output.auspice}
+        """
+
+
+rule assemble_dataset:
+    input:
+        tree="results/auspice.json",
+        reference="data/reference.fasta",
+        annotation="data/genome_annotation.gff3",
+        sequences="data/sequences.fasta",
+        pathogen="resources/pathogen.json",
+    output:
+        tree="dataset/tree.json",
+        reference="dataset/reference.fasta",
+        annotation="dataset/genome_annotation.gff3",
+        sequences="dataset/sequences.fasta",
+        pathogen="dataset/pathogen.json",
+        dataset_zip="dataset.zip",
+    shell:
+        """
+        cp {input.tree} {output.tree}
+        cp {input.reference} {output.reference}
+        cp {input.annotation} {output.annotation}
+        cp {input.sequences} {output.sequences}
+        cp {input.pathogen} {output.pathogen}
+        zip -rj dataset.zip  dataset/*
+        """
+
+
+rule test:
+    input:
+        dataset="dataset.zip",
+        bin="bin/nextclade",
+        sequences="dataset/sequences.fasta",
+    output:
+        output=directory("test_out"),
+    shell:
+        """
+        {input.bin} run \
+            -D {input.dataset} \
+            --output-all {output.output} \
+            {input.sequences}
+        """

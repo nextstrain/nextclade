@@ -59,6 +59,8 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     user/input-files/index
     user/output-files/index
 
+    user/dataset-creation
+
     user/algorithm/index
 
     user/links

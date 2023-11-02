@@ -240,7 +240,7 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
     yarn dev
     ```
 
-   Open `http://localhost:3000/` in the browser. Typescript code changes should trigger rebuild and fast refresh of the app. If you rebuild the WebAssembly module (ina separate terminal instance), it should also pick up the changes automatically.
+   Open `http://localhost:3000/` in the browser. Typescript code changes should trigger rebuild and fast refresh of the app. If you rebuild the WebAssembly module (in a separate terminal instance), it should also pick up the changes automatically.
 
    The optimized production version of the web app can be built and served with
 
