@@ -124,6 +124,10 @@ The `nextclade.errors.csv` and `nextclade.insertions.csv` files are removed and 
 
 Download and use `nextclade.tsv` or `nextclade.csv` files instead.
 
+#### Auspice updated
+
+Auspice tree display is updated from version 2.45.2 to 2.50.0. See list of changes [here](https://github.com/nextstrain/auspice/releases).
+
 ---
 
 ### Changes in Nextclade CLI
