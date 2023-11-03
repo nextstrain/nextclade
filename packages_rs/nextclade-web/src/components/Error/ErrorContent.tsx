@@ -38,13 +38,14 @@ export const DetailsBody = styled.section`
 
 export function ErrorContentMessage({ error }: { error: Error }) {
   if (error instanceof HttpRequestError) {
-    const url = error.request.url ?? 'Unknown URL'
-    const status = error.response?.status
+    const url = error.url ?? 'Unknown URL'
+    const { status, statusText, message } = error
+
     if (!status) {
-      return <ErrorNetworkConnectionFailure url={url} />
+      return <ErrorNetworkConnectionFailure url={url} message={message} />
     }
-    const statusText = error.response?.statusText ?? 'Unknown status'
-    return <ErrorNetworkRequestFailure url={url} status={status} statusText={statusText} />
+    const text = message ?? statusText ?? 'Unknown status'
+    return <ErrorNetworkRequestFailure url={url} status={status} statusText={text} message={message} />
   }
   return <ErrorGeneric error={error} />
 }

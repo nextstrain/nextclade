@@ -4,13 +4,15 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export class HttpRequestError extends Error {
-  public readonly request: AxiosRequestConfig
-  public readonly response?: AxiosResponse
+  public readonly url?: string
+  public readonly status?: number | string
+  public readonly statusText?: string
 
   constructor(error_: AxiosError) {
     super(error_.message)
-    this.request = error_.config
-    this.response = error_.response
+    this.url = error_.config.url
+    this.status = error_.response?.status ?? error_.status ?? error_.code
+    this.statusText = error_.response?.statusText
   }
 }
 
