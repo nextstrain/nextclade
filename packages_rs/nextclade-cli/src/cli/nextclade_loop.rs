@@ -124,6 +124,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       } = nextclade.get_initial_data();
 
       let mut output_writer = NextcladeOrderedWriter::new(
+        &inputs.dataset_info,
         &nextclade.gene_map,
         clade_node_attr_key_descs,
         phenotype_attr_descs,
