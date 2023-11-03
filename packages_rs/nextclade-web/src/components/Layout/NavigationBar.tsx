@@ -181,8 +181,8 @@ export function NavigationBar() {
       },
       {
         url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html',
-        title: t('Nextclade CLI documentation'),
-        content: t('CLI'),
+        title: t('{{project}} documentation', { project: 'Nextclade CLI' }),
+        content: 'CLI',
       },
       {
         url: 'https://twitter.com/nextstrain',

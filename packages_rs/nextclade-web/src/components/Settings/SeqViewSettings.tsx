@@ -68,6 +68,16 @@ export function SeqViewSettings() {
     seqMarkerUnsequencedHeightStateAtom,
   )
 
+  const labels: Record<SeqMarkerHeightState, string> = useMemo(
+    () => ({
+      [SeqMarkerHeightState.Off]: t('off'),
+      [SeqMarkerHeightState.Top]: t('top'),
+      [SeqMarkerHeightState.Bottom]: t('bottom'),
+      [SeqMarkerHeightState.Full]: t('full'),
+    }),
+    [t],
+  )
+
   return (
     <Form>
       <NumericField
@@ -87,6 +97,7 @@ export function SeqViewSettings() {
           {t('Mutation markers')}
           <Multitoggle
             values={SEQ_MARKER_HEIGHT_STATES}
+            labels={labels}
             currentValue={seqMarkerMutationHeightState}
             onChange={setSeqMarkerMutationHeightState}
           />
@@ -98,6 +109,7 @@ export function SeqViewSettings() {
           {t('Deletion markers')}
           <Multitoggle
             values={SEQ_MARKER_HEIGHT_STATES}
+            labels={labels}
             currentValue={seqMarkerGapHeightState}
             onChange={setSeqMarkerGapHeightState}
           />
@@ -109,6 +121,7 @@ export function SeqViewSettings() {
           {t('Ambiguous markers')}
           <Multitoggle
             values={SEQ_MARKER_HEIGHT_STATES}
+            labels={labels}
             currentValue={seqMarkerAmbiguousHeightState}
             onChange={setSeqMarkerAmbiguousHeightState}
           />
@@ -120,6 +133,7 @@ export function SeqViewSettings() {
           {t('Missing ranges')}
           <Multitoggle
             values={SEQ_MARKER_HEIGHT_STATES}
+            labels={labels}
             currentValue={seqMarkerMissingHeightState}
             onChange={setSeqMarkerMissingHeightState}
           />
@@ -131,6 +145,7 @@ export function SeqViewSettings() {
           {t('Unsequenced ranges')}
           <Multitoggle
             values={SEQ_MARKER_HEIGHT_STATES}
+            labels={labels}
             currentValue={seqMarkerUnsequencedHeightState}
             onChange={setSeqMarkerUnsequencedHeightState}
           />
