@@ -42,7 +42,7 @@ export function FilePickerAdvanced() {
           icon={iconJson}
           title={t('Reference tree')}
           exampleUrl="https://example.com/tree.json"
-          pasteInstructions={t('Enter reference tree in Auspice JSON v2 format')}
+          pasteInstructions={t('Enter reference tree in {{formatName}} format', { formatName: 'Auspice JSON v2' })}
           input={refTree}
           error={refTreeError}
           onRemove={resetRefTree}
@@ -55,7 +55,7 @@ export function FilePickerAdvanced() {
           icon={iconFasta}
           title={t('Reference sequence')}
           exampleUrl="https://example.com/root_seq.fasta"
-          pasteInstructions={t('Enter reference sequence in FASTA format')}
+          pasteInstructions={t('Enter reference sequence in {{formatName}} format', { formatName: 'FASTA' })}
           input={refSeq}
           error={refSeqError}
           onRemove={resetRefSeq}
@@ -68,7 +68,7 @@ export function FilePickerAdvanced() {
           icon={iconJson}
           title={t('Pathogen JSON')}
           exampleUrl="https://example.com/pathogen.json"
-          pasteInstructions={t('Enter pathogen description in JSON format')}
+          pasteInstructions={t('Enter pathogen description in {{formatName}} format', { formatName: 'JSON' })}
           input={virusProperties}
           error={virusPropertiesError}
           onRemove={resetVirusProperties}
@@ -81,7 +81,7 @@ export function FilePickerAdvanced() {
           icon={iconGff}
           title={t('Genome annotation')}
           exampleUrl="https://example.com/genome_annotation.gff3"
-          pasteInstructions={t('Enter genome annotation in GFF3 format')}
+          pasteInstructions={t('Enter genome annotation in {{formatName}} format', { formatName: 'GFF3' })}
           input={geneMap}
           error={geneMapError}
           onRemove={resetGeneMap}

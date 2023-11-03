@@ -159,7 +159,7 @@ export function CdsSegmentView({
         <TableSlim borderless>
           <tbody>
             <tr>
-              <td>{t('CDS')}</td>
+              <td>{'CDS'}</td>
               <td className="d-flex">
                 <ColoredSquare color={cds.color ?? '#999'} size="1rem" />
                 <span className="ml-2">{cds.name}</span>
@@ -167,7 +167,7 @@ export function CdsSegmentView({
             </tr>
 
             <tr>
-              <td>{t('CDS fragment:')}</td>
+              <td>{t('{{cds}} fragment:', { cds: 'CDS' })}</td>
               <td>{`${segIndex + 1} of ${cds.segments.length}`}</td>
             </tr>
 

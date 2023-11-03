@@ -1,14 +1,23 @@
+import { get } from 'lodash'
 import React, { ChangeEvent, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
 export interface MultitoggleProps {
   values: string[]
+  labels: Record<string, string>
   currentValue: string
   onChange(value: string): void
   itemWidth?: number
 }
 
-export function Multitoggle({ values, currentValue, onChange, itemWidth = 60, ...restProps }: MultitoggleProps) {
+export function Multitoggle({
+  values,
+  currentValue,
+  labels,
+  onChange,
+  itemWidth = 60,
+  ...restProps
+}: MultitoggleProps) {
   const { selectionLeftPercent, selectionWidthPx, totalWidth } = useMemo(() => {
     return {
       selectionLeftPercent: (values.indexOf(currentValue) / values.length) * 100,
@@ -20,14 +29,15 @@ export function Multitoggle({ values, currentValue, onChange, itemWidth = 60, ..
   const switchItems = useMemo(
     () =>
       values.map((value) => {
+        const label = get(labels, value) ?? '?'
         return (
           <SwitchLabel key={value} $widthPx={itemWidth} $active={value === currentValue}>
-            {value}
+            {label}
             <SwitchRadio value={value} onChange={onChange} currentValue={currentValue} />
           </SwitchLabel>
         )
       }),
-    [currentValue, itemWidth, onChange, values],
+    [currentValue, itemWidth, labels, onChange, values],
   )
 
   return (

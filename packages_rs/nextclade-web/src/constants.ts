@@ -7,6 +7,7 @@ export const PROJECT_DESCRIPTION =
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain developers' as const
 export const RELEASE_URL = 'https://clades.nextstrain.org' as const
+export const RELEASE_OLD_URL = 'https://v2.clades.nextstrain.org' as const
 
 export const DOMAIN = process.env.DOMAIN ?? ''
 export const DOMAIN_STRIPPED = process.env.DOMAIN_STRIPPED ?? ''

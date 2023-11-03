@@ -173,7 +173,7 @@ function OptionLabelGeneAndCds({ cds }: { gene: Gene; cds: Cds; isMenu?: boolean
         {t('Gene')}
       </Badge>
       <Badge $color="#846ab8" className="mr-1">
-        {t('CDS')}
+        {'CDS'}
       </Badge>
       <span>{cds.name}</span>
     </Indent>
@@ -181,11 +181,10 @@ function OptionLabelGeneAndCds({ cds }: { gene: Gene; cds: Cds; isMenu?: boolean
 }
 
 function OptionLabelCds({ cds, isMenu = false }: { cds: Cds; isMenu?: boolean }) {
-  const { t } = useTranslationSafe()
   return (
     <Indent indent={isMenu && 1} title={cds.name}>
       <Badge $color="#846ab8" className="mr-1 px-2 py-1">
-        {t('CDS')}
+        {'CDS'}
       </Badge>
       <span>{cds.name}</span>
     </Indent>

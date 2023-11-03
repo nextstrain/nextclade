@@ -1,9 +1,40 @@
 import urljoin from 'url-join'
+import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
-import { attrStrMaybe, Dataset, VirusProperties } from 'src/types'
+import { attrStrMaybe, Dataset, DatasetFiles, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
-import { axiosFetch, axiosHead } from 'src/io/axiosFetch'
+import { axiosFetch, axiosHead, axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+
+export class NextcladeV2Error extends Error {
+  public readonly datasetRootUrl: string
+
+  public constructor(datasetRootUrl: string) {
+    super()
+    this.datasetRootUrl = datasetRootUrl
+  }
+}
+
+function checkDatasetV2FilesExist(datasetRootUrl: string) {
+  return Promise.all([
+    ['genemap.gff', 'primers.csv', 'qc.json', 'tag.json', 'virus_properties.json'].map((file) =>
+      axiosHeadOrUndefined(urljoin(datasetRootUrl, file)),
+    ),
+  ])
+}
+
+async function fetchPathogenJson(datasetRootUrl: string) {
+  let pathogen
+  try {
+    pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
+  } catch (error: unknown) {
+    if (await checkDatasetV2FilesExist(datasetRootUrl)) {
+      throw new NextcladeV2Error(datasetRootUrl)
+    }
+    throw error
+  }
+  return pathogen
+}
 
 export async function fetchSingleDatasetFromUrl(
   datasetRootUrl_: string,
@@ -11,7 +42,8 @@ export async function fetchSingleDatasetFromUrl(
 ) {
   const datasetRootUrl = removeTrailingSlash(datasetRootUrl_)
 
-  const pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
+  const pathogen = await fetchPathogenJson(datasetRootUrl)
+
   const currentDataset: Dataset = {
     path: datasetRootUrl,
     capabilities: {
@@ -19,6 +51,7 @@ export async function fetchSingleDatasetFromUrl(
       qc: [],
     },
     ...pathogen,
+    files: mapValues(pathogen.files, (file) => (file ? urljoin(datasetRootUrl, file) : file)) as DatasetFiles,
   }
 
   const datasets = [currentDataset]
@@ -42,7 +75,7 @@ export async function fetchSingleDatasetFromUrl(
         })
       }
     },
-    Object.entries(currentDataset.files).filter(([filename, _]) => !['tag.json', 'sequences.fasta'].includes(filename)),
+    Object.entries(currentDataset.files).filter(([filename, _]) => !['sequences.fasta'].includes(filename)),
   )
 
   return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
