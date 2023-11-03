@@ -149,7 +149,10 @@ export async function main() {
 
   // Auspice: Remove requires for '@extensions' modules from `extensions.js`
   // Reason: We don't use extensions and don't want to setup webpack aliases for that.
-  await replace('node_modules/auspice/src/util/extensions.ts', /.*@extensions.*/)
+  await replace(
+    'node_modules/auspice/src/util/extensions.ts',
+    'extensions[key] = require(`@extensions/${extensions[key]}`).default;',
+  )
 }
 
 main().catch(console.error)
