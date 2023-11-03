@@ -1,6 +1,7 @@
 import urljoin from 'url-join'
+import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
-import { attrStrMaybe, Dataset, VirusProperties } from 'src/types'
+import { attrStrMaybe, Dataset, DatasetFiles, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -19,6 +20,7 @@ export async function fetchSingleDatasetFromUrl(
       qc: [],
     },
     ...pathogen,
+    files: mapValues(pathogen.files, (file) => (file ? urljoin(datasetRootUrl, file) : file)) as DatasetFiles,
   }
 
   const datasets = [currentDataset]
@@ -42,7 +44,7 @@ export async function fetchSingleDatasetFromUrl(
         })
       }
     },
-    Object.entries(currentDataset.files).filter(([filename, _]) => !['tag.json', 'sequences.fasta'].includes(filename)),
+    Object.entries(currentDataset.files).filter(([filename, _]) => !['sequences.fasta'].includes(filename)),
   )
 
   return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
