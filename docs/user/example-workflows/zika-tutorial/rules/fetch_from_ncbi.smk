@@ -1,5 +1,5 @@
-TAXON_ID = "64320"
-REFERENCE_ACCESSION = "NC_035889.1"
+TAXON_ID = config["taxon_id"]
+REFERENCE_ACCESSION = config["reference_accession"]
 
 
 rule all:

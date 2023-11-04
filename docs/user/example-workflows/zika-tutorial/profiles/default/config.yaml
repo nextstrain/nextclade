@@ -1,3 +1,4 @@
 rerun-incomplete: true
 cores: all
 printshellcmds: true
+configfile: profiles/default/config_dict.yaml

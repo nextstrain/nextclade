@@ -1,5 +1,10 @@
-REFERENCE_ACCESSION = "NC_035889.1"
-GENE = "Polyprotein"
+REFERENCE_ACCESSION = config["reference_accession"]
+GENES = config["genes"].keys()
+ALLOWED_DIVERGENCE = config["allowed_divergence"]
+MIN_DATE = config["min_date"]
+MIN_LENGTH = config["min_length"]
+MAX_SEQS = config["max_seqs"]
+
 FETCH_SEQUENCES = True
 
 if FETCH_SEQUENCES == True:
@@ -20,15 +25,17 @@ rule get_nextclade_binary:
         """
 
 
-rule create_include:
+rule add_reference_to_include:
     """
     Create an include file for augur filter
     """
+    input:
+        include="resources/include.txt",
     output:
         "results/include.txt",
     shell:
         """
-        echo "{REFERENCE_ACCESSION}" > results/include.txt
+        echo "{REFERENCE_ACCESSION}" >> results/include.txt
         """
 
 
@@ -43,34 +50,72 @@ rule filter:
     output:
         filtered_sequences="results/filtered_sequences_raw.fasta",
         filtered_metadata="results/filtered_metadata_raw.tsv",
+    params:
+        min_date="" if MIN_DATE == "" else "--min-date " + MIN_DATE,
+        min_length="" if MIN_LENGTH == "" else "--min-length " + MIN_LENGTH,
+        max_seqs=MAX_SEQS,
     shell:
         """
         augur filter \
             --sequences {input.sequences} \
             --metadata {input.metadata} \
-            --min-date "2015-01-01" \
-            --min-length 9000 \
+            {params.min_length} \
+            {params.min_date} \
             --include {input.include} \
-            --subsample-max-sequences 100 \
+            --subsample-max-sequences {params.max_seqs} \
             --output {output.filtered_sequences} \
             --output-metadata {output.filtered_metadata}
         """
 
 
+"""
+Patch GFF and GB:
+For GFF:
+- For each gene:locus_tag pair:
+    1. Nuke the Name attribute
+    2. Replace locus_tag=config["gene"]
+For GB:
+- For each gene:locus_tag pair:
+    1. Replace locus_tag=config["gene"]
+"""
+
+
+def sed_patterns_gff(genemap, exclude=[]):
+    patterns = []
+    for gene, locus_tag in genemap.items():
+        patterns.append(f"/locus_tag={locus_tag}/s#Name=[^;]*#Name={gene}#g")
+    for pattern in exclude:
+        patterns.append(f"/{pattern}/d")
+    return "; ".join(patterns)
+
+
+def sed_patterns_gb(genemap):
+    patterns = []
+    for gene, locus_tag in genemap.items():
+        patterns.append(f's#/locus_tag="{locus_tag}"#/locus_tag="{gene}"#g')
+    return "; ".join(patterns)
+
+
 rule patch_annotations:
     """
-    Rename CDS features to make nice display names
+    Rename CDS features to make nice display names for Nextclade
     """
     input:
         gff="data/genome_annotation.gff3",
-        genbank="data/reference.gb",
+        reference="data/reference.fasta",
     output:
         gff="results/genome_annotation.gff3",
         genbank="results/reference.gb",
+    params:
+        sed_patterns_gff=lambda w: sed_patterns_gff(
+            config["genes"], config.get("exclude_gff", [])
+        ),
+        sed_patterns_gb=lambda w: sed_patterns_gb(config["genes"]),
     shell:
         """
-        sed 's#Name=YP_009428568.1#Name={GENE}#g' {input.gff} > {output.gff}
-        sed 's#/locus_tag="CPG35_gp1"#/locus_tag="{GENE}"#g' {input.genbank} > {output.genbank}
+        sed '{params.sed_patterns_gff}' {input.gff} > {output.gff}
+        gff-to-genbank {output.gff} {input.reference} \
+        | sed '{params.sed_patterns_gb}' > {output.genbank}
         """
 
 
@@ -83,7 +128,6 @@ rule align:
     output:
         alignment="results/aligned.fasta",
         tsv="results/nextclade.tsv",
-        translation=f"results/translations/cds_{GENE}.translation.fasta",
     params:
         translation_template=lambda w: "results/translations/cds_{cds}.translation.fasta",
     shell:
@@ -107,11 +151,19 @@ rule get_outliers:
         nextclade="results/nextclade.tsv",
     output:
         outliers="results/outliers.txt",
+        tmp="tmp/outliers.txt",
+    params:
+        allowed_divergence=lambda w: ALLOWED_DIVERGENCE,
     shell:
         """
+        tsv-filter -H -v --is-numeric totalSubstitutions {input.nextclade} \
+        > {output.tmp}
         tsv-filter -H \
-            --gt totalSubstitutions:150 \
+            --is-numeric totalSubstitutions \
+            --gt totalSubstitutions:{params.allowed_divergence} \
             {input.nextclade} \
+        | tail -n +2 >> {output.tmp}
+        cat {output.tmp} \
         | tsv-select -H -f seqName \
         | tail -n +2 > {output.outliers}
         """
@@ -131,6 +183,7 @@ rule exclude:
     output:
         filtered_sequences="results/filtered_aligned.fasta",
         filtered_metadata="results/filtered_metadata.tsv",
+        strains="results/tree_strains.txt",
     shell:
         """
         augur filter \
@@ -138,7 +191,8 @@ rule exclude:
             --metadata {input.metadata} \
             --exclude {input.exclude} {input.outliers} \
             --output {output.filtered_sequences} \
-            --output-metadata {output.filtered_metadata}
+            --output-metadata {output.filtered_metadata} \
+            --output-strains {output.strains}
         """
 
 
@@ -185,13 +239,14 @@ rule ancestral:
     params:
         translation_template=r"results/translations/cds_%GENE.translation.fasta",
         output_translation_template=r"results/translations/cds_%GENE.ancestral.fasta",
+        genes=" ".join(GENES),
     shell:
         """
         augur ancestral \
             --tree {input.tree} \
             --alignment {input.alignment} \
             --annotation {input.annotation} \
-            --genes {GENE} \
+            --genes {params.genes} \
             --translations {params.translation_template} \
             --output-node-data {output.node_data} \
             --output-translations {params.output_translation_template}
@@ -234,12 +289,26 @@ rule export:
         """
 
 
+rule subsample_example_sequences:
+    input:
+        all_sequences="data/sequences.fasta",
+        tree_strains="results/tree_strains.txt",
+    output:
+        example_sequences="results/example_sequences.fasta",
+    shell:
+        """
+        # Exclude tree sequences from all sequences
+        seqkit grep -v -f {input.tree_strains} {input.all_sequences} \
+        | seqkit sample -n 100 -s 42 > {output.example_sequences}
+        """
+
+
 rule assemble_dataset:
     input:
         tree="results/auspice.json",
         reference="data/reference.fasta",
-        annotation="data/genome_annotation.gff3",
-        sequences="data/sequences.fasta",
+        annotation="results/genome_annotation.gff3",
+        sequences="results/example_sequences.fasta",
         pathogen="resources/pathogen.json",
     output:
         tree="dataset/tree.json",

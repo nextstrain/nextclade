@@ -1,0 +1,42 @@
+# Genbank accession of the sequence to use as reference
+# We will fetch gff and gb file for this accession
+reference_accession: "NC_019843.3"
+
+# Taxon id of the virus for which we are making this dataset
+taxon_id: 1335626
+
+# Genes (CDSes) to translate and align
+# Each key will be the name Nextclade will use
+# The value is the `locus_tag` of the gene in the genbank/gff file
+# We will patch the annotations to use the "nice" names for the dataset
+genes:
+  ORF1ab: G128_gp01
+  S: G128_gp02
+  ORF3: G128_gp03
+  ORF4a: G128_gp04
+  ORF4b: G128_gp05
+  ORF5: G128_gp06
+  E: G128_gp07
+  M: G128_gp08
+  N: G128_gp09
+  ORF8b: G128_gp10
+
+# lines to exclude from gff3
+exclude_gff:
+  - YP_009047203.1
+
+# How much divergence (in mutations) to allow from the reference
+# This is done to automatically filter out low quality sequences
+# Set to length of reference to disable
+allowed_divergence: "1000"
+
+# What's the mimimum length for sequences to keep
+min_length: "20000"
+
+# What's the minimum date for sequenes to keep
+min_date: "2015-01-01"
+
+# Max number of sequences to use for the reference tree
+max_seqs: "400"
+
+
