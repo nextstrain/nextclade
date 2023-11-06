@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilValue } from 'recoil'
+import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -10,14 +12,32 @@ import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import { StepDatasetSelection } from 'src/components/Main/StepDatasetSelection'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
-import { DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
+import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { QuerySequenceList } from './QuerySequenceList'
+import { ExampleSequencePicker } from './ExampleSequencePicker'
+
+const ContainerFixed = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1000px;
+`
 
 const Container = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
+  overflow: hidden;
+`
+
+const ContainerColumns = styled.div`
+  display: flex;
+  flex-direction: row;
   overflow: hidden;
 `
 
@@ -31,14 +51,14 @@ const Header = styled.div`
 
 const Main = styled.div`
   display: flex;
-  flex: 1;
   flex-direction: column;
   overflow: hidden;
 `
 
 const Footer = styled.div`
   display: flex;
-  flex: 0;
+  flex: 1;
+  overflow: hidden;
 `
 
 export function MainInputForm() {
@@ -91,30 +111,23 @@ export interface StepLandingProps {
 }
 
 function StepLanding({ toDatasetSelection }: StepLandingProps) {
-  const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
-  const text = useMemo(() => {
-    if (isNil(dataset)) {
-      return t('Select dataset')
-    }
-    return t('Selected dataset')
-  }, [dataset, t])
-
   return (
     <ContainerFixed>
       <Header>
         <MainSectionTitle />
       </Header>
       <Main>
-        <QuerySequenceFilePicker />
+        <ContainerColumns>
+          <QuerySequenceFilePicker />
+          <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
+        </ContainerColumns>
+        <ExampleSequencePicker />
       </Main>
+
       <Footer>
         <Container>
-          <Header>
-            <h4>{text}</h4>
-          </Header>
           <Main>
-            <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
+            <QuerySequenceList />
           </Main>
         </Container>
       </Footer>
@@ -122,23 +135,49 @@ function StepLanding({ toDatasetSelection }: StepLandingProps) {
   )
 }
 
-const ContainerFixed = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  overflow: hidden;
-  max-width: ${(props) => props.theme.containerMaxWidths.lg};
-  margin: 0 auto;
-`
-
 export interface DatasetCurrentOrSelectProps {
   toDatasetSelection(): void
 }
 
 function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectProps) {
+  const { t } = useTranslationSafe()
   const dataset = useRecoilValue(datasetCurrentAtom)
+  const run = useRunAnalysis()
+
+  const text = useMemo(() => {
+    if (isNil(dataset)) {
+      return t('Select dataset')
+    }
+    return t('Selected dataset')
+  }, [dataset, t])
   if (!dataset) {
-    return <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
+    return (
+      <Container>
+        <Header>
+          <h4>{text}</h4>
+        </Header>
+
+        <Main>
+          <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
+        </Main>
+      </Container>
+    )
   }
-  return <DatasetCurrentSummary toDatasetSelection={toDatasetSelection} />
+
+  return (
+    <Container>
+      <Header>
+        <h4>{text}</h4>
+      </Header>
+
+      <Main>
+        <DatasetCurrentSummary />
+      </Main>
+
+      <Footer>
+        <ButtonChangeDataset className="mr-auto my-2" onClick={toDatasetSelection} />
+        <ButtonRun className="ml-auto my-2" onClick={run} />
+      </Footer>
+    </Container>
+  )
 }

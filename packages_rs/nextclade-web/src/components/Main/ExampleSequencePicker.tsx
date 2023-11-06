@@ -56,7 +56,7 @@ const FormGroup = styled(FormGroupBase)`
   margin: 0;
   width: 100%;
   max-width: 500px;
-  margin-left: auto;
+  margin-right: auto;
 `
 
 const Label = styled(LabelBase)`
