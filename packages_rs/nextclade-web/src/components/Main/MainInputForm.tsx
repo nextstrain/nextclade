@@ -16,7 +16,6 @@ import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/But
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { QuerySequenceList } from './QuerySequenceList'
-import { ExampleSequencePicker } from './ExampleSequencePicker'
 
 const ContainerFixed = styled.div`
   display: flex;
@@ -121,7 +120,6 @@ function StepLanding({ toDatasetSelection }: StepLandingProps) {
           <QuerySequenceFilePicker />
           <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
         </ContainerColumns>
-        <ExampleSequencePicker />
       </Main>
 
       <Footer>
