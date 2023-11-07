@@ -8,7 +8,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { UlGeneric } from 'src/components/Common/List'
 
-export function QuerySequenceList() {
+export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
   const { t } = useTranslationSafe()
   const { qryInputs, clearQryInputs } = useQuerySeqInputs()
 
@@ -27,12 +27,26 @@ export function QuerySequenceList() {
     return (
       <div className="d-flex">
         <h4>{t("Sequence data you've added")}</h4>
-        <Button className="ml-auto" color="link" onClick={clearQryInputs} title={t('Remove all input files')}>
-          {t('Remove all')}
-        </Button>
+
+        <div className="d-flex ml-auto">
+          <Button className="" color="link" onClick={clearQryInputs} title={t('Remove all input files')}>
+            {t('Remove all')}
+          </Button>
+
+          {toMainPage && (
+            <Button
+              className=""
+              color="secondary"
+              onClick={toMainPage}
+              title={t('Go to main page to add more input files')}
+            >
+              {t('Add more')}
+            </Button>
+          )}
+        </div>
       </div>
     )
-  }, [clearQryInputs, qryInputs.length, t])
+  }, [clearQryInputs, qryInputs.length, t, toMainPage])
 
   if (qryInputs.length === 0) {
     return null

@@ -1,4 +1,5 @@
-import React from 'react'
+import { useRouter } from 'next/router'
+import React, { useCallback } from 'react'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import styled from 'styled-components'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
@@ -48,13 +49,18 @@ function DatasetSelection() {
   const dataset = useRecoilValue(datasetCurrentAtom)
   const setDataset = useSetRecoilState(datasetCurrentAtom)
 
+  const { push } = useRouter()
+  const toMainPage = useCallback(() => {
+    void push('/') // eslint-disable-line no-void
+  }, [push])
+
   return (
     <Wrapper>
       <Row noGutters className="flex-column flex-lg-row h-100">
         <Col lg={6}>
           <Container>
             <MainFixed>
-              <QuerySequenceList />
+              <QuerySequenceList toMainPage={toMainPage} />
             </MainFixed>
             <Main>
               <DatasetAutosuggestionResultsList datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
