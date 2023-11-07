@@ -3,12 +3,11 @@ import 'reflect-metadata'
 import 'css.escape'
 
 import { isEmpty, isNil } from 'lodash'
-import React, { useEffect, Suspense, useMemo, PropsWithChildren } from 'react'
+import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import { DatasetPage } from 'src/components/Main/DatasetPage'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
@@ -173,27 +172,6 @@ export function RecoilStateInitializer() {
   return null
 }
 
-// HACK: primitive router. Replace with something more sturdy
-function Router({ children }: PropsWithChildren<unknown>) {
-  const { asPath } = useRouter()
-  const dataset = useRecoilValue(datasetCurrentAtom)
-  const fallback = useMemo(() => <LoadingPage />, [])
-
-  const { Component } = useMemo(() => {
-    if (asPath !== '/dataset' && !isNil(dataset)) {
-      return { Component: <DatasetPage /> }
-    }
-    return { Component: children }
-  }, [asPath, children, dataset])
-
-  return (
-    <Suspense fallback={fallback}>
-      <RecoilStateInitializer />
-      {Component}
-    </Suspense>
-  )
-}
-
 const REACT_QUERY_OPTIONS: QueryClientConfig = {
   defaultOptions: { queries: { suspense: true, retry: 1 } },
 }
@@ -229,9 +207,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                     </Suspense>
                     <Suspense fallback={fallback}>
                       <SEO />
-                      <Router>
-                        <Component {...pageProps} />
-                      </Router>
+                      <Component {...pageProps} />
                       <ErrorPopup />
                       <ReactQueryDevtools initialIsOpen={false} />
                     </Suspense>
