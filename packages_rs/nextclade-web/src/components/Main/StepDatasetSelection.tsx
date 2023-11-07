@@ -58,12 +58,12 @@ function DatasetSelection() {
 
   return (
     <Wrapper>
-      <Row noGutters className="flex-column-reverse flex-lg-row h-100">
-        <Col lg={6}>
-          <DatasetCurrent />
-        </Col>
+      <Row noGutters className="flex-column flex-lg-row h-100">
         <Col lg={6}>
           <DatasetAutosuggestionResultsList datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
+        </Col>
+        <Col lg={6}>
+          <DatasetCurrent />
         </Col>
       </Row>
     </Wrapper>
