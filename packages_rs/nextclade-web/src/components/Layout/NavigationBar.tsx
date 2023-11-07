@@ -138,6 +138,7 @@ export function NavigationBar() {
   const linksLeft = useMemo(() => {
     return [
       { url: '/', content: t('Start'), title: t('Show start page') },
+      { url: '/dataset', content: t('Dataset'), title: t('Show current dataset details') },
       {
         url: hasRan ? '/results' : undefined,
         content: t('Results'),

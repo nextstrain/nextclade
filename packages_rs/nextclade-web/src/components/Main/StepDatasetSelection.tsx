@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useCallback } from 'react'
+import { useRouter } from 'next/router'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -14,9 +15,14 @@ export interface StepDatasetSelectionProps {
   toLanding(): void
 }
 
-export function StepDatasetSelection({ toLanding }: StepDatasetSelectionProps) {
+export function StepDatasetSelection() {
+  const { push } = useRouter()
   const { t } = useTranslationSafe()
   const run = useRunAnalysis()
+
+  const toLanding = useCallback(() => {
+    void push('/') // eslint-disable-line no-void
+  }, [push])
 
   return (
     <Container>

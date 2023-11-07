@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
@@ -7,11 +8,9 @@ import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { DatasetCurrentSummary } from 'src/components/Main/DatasetCurrentSummary'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
-import { StepDatasetSelection } from 'src/components/Main/StepDatasetSelection'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -68,50 +67,29 @@ export function MainInputForm() {
   return <MainWizard />
 }
 
-export enum WizardPage {
-  Landing,
-  DatasetSelection,
+function MainWizard() {
+  return (
+    <Container>
+      <Main>
+        <StepLanding />
+      </Main>
+    </Container>
+  )
 }
 
-function MainWizard() {
-  const [page, setPage] = useState(WizardPage.Landing)
+function StepLanding() {
+  const { push } = useRouter()
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
 
   const toDatasetSelection = useCallback(() => {
-    setPage(WizardPage.DatasetSelection)
+    void push('/dataset') // eslint-disable-line no-void
     if (shouldSuggestDatasets && hasRequiredInputs) {
       runAutodetect()
     }
-  }, [hasRequiredInputs, runAutodetect, shouldSuggestDatasets])
-  const toLanding = useCallback(() => {
-    setPage(WizardPage.Landing)
-  }, [])
+  }, [hasRequiredInputs, push, runAutodetect, shouldSuggestDatasets])
 
-  const wizard = useMemo(() => {
-    switch (page) {
-      case WizardPage.Landing:
-        return <StepLanding toDatasetSelection={toDatasetSelection} />
-      case WizardPage.DatasetSelection:
-        return <StepDatasetSelection toLanding={toLanding} />
-      default:
-        throw new ErrorInternal(`Unexpected page in wizard: '${page}'`)
-    }
-  }, [page, toDatasetSelection, toLanding])
-
-  return (
-    <Container>
-      <Main>{wizard}</Main>
-    </Container>
-  )
-}
-
-export interface StepLandingProps {
-  toDatasetSelection(): void
-}
-
-function StepLanding({ toDatasetSelection }: StepLandingProps) {
   return (
     <ContainerFixed>
       <Header>
