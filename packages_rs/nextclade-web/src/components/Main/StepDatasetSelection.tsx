@@ -1,12 +1,8 @@
-import React, { useCallback } from 'react'
-import { useRouter } from 'next/router'
-import { ButtonRun } from 'src/components/Main/ButtonRun'
+import React from 'react'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { Row as RowBase, Col as ColBase, Button } from 'reactstrap'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { Row as RowBase, Col as ColBase } from 'reactstrap'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { DatasetAutosuggestionResultsList } from 'src/components/Main/DatasetSelector'
 import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
@@ -16,26 +12,11 @@ export interface StepDatasetSelectionProps {
 }
 
 export function StepDatasetSelection() {
-  const { push } = useRouter()
-  const { t } = useTranslationSafe()
-  const run = useRunAnalysis()
-
-  const toLanding = useCallback(() => {
-    void push('/') // eslint-disable-line no-void
-  }, [push])
-
   return (
     <Container>
       <Main>
         <DatasetSelection />
       </Main>
-      <Footer>
-        <Button color="primary" onClick={toLanding}>
-          {t('Back')}
-        </Button>
-
-        <ButtonRun className="ml-auto" onClick={run} />
-      </Footer>
     </Container>
   )
 }
@@ -61,11 +42,6 @@ const MainFixed = styled.div`
   max-height: 20%;
   margin-top: 12px;
   padding: 0 15px;
-`
-
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
 `
 
 function DatasetSelection() {
