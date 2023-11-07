@@ -1,6 +1,8 @@
 import React from 'react'
 import { Col, Row } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -19,6 +21,7 @@ export const CurrentDatasetInfoContainer = styled.div`
 export const CurrentDatasetInfoHeader = styled.section`
   display: flex;
   margin-bottom: 0.5rem;
+  margin-top: 7px;
 `
 
 const DatasetInfoH4 = styled.h4`
@@ -68,6 +71,7 @@ export function DatasetCurrent() {
 
   const { t } = useTranslationSafe()
   const dataset = useRecoilValue(datasetCurrentAtom)
+  const run = useRunAnalysis()
 
   if (!dataset) {
     return null
@@ -77,6 +81,7 @@ export function DatasetCurrent() {
     <CurrentDatasetInfoContainer>
       <CurrentDatasetInfoHeader>
         <DatasetInfoH4>{t('Selected pathogen')}</DatasetInfoH4>
+        <ButtonRun onClick={run} />
       </CurrentDatasetInfoHeader>
       <Container>
         <Header>

@@ -40,5 +40,5 @@ export function ButtonRun({ onClick, ...restProps }: ButtonRunProps) {
 
 const ButtonStyled = styled(Button)`
   min-width: 150px;
-  min-height: 45px;
+  min-height: 40px;
 `
