@@ -1,5 +1,6 @@
 import React from 'react'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
@@ -47,6 +48,15 @@ const Main = styled.div`
   overflow: hidden;
 `
 
+const MainFixed = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 20%;
+  margin-top: 12px;
+  padding: 0 15px;
+`
+
 const Footer = styled.div`
   display: flex;
   flex: 0;
@@ -60,7 +70,14 @@ function DatasetSelection() {
     <Wrapper>
       <Row noGutters className="flex-column flex-lg-row h-100">
         <Col lg={6}>
-          <DatasetAutosuggestionResultsList datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
+          <Container>
+            <MainFixed>
+              <QuerySequenceList />
+            </MainFixed>
+            <Main>
+              <DatasetAutosuggestionResultsList datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
+            </Main>
+          </Container>
         </Col>
         <Col lg={6}>
           <DatasetCurrent />
