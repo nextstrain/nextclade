@@ -130,3 +130,8 @@ export const autodetectRunStateAtom = atom<AutodetectRunState>({
   key: 'autodetectRunStateAtom',
   default: AutodetectRunState.Idle,
 })
+
+export const isAutodetectRunningAtom = selector({
+  key: 'isAutodetectRunningAtom',
+  get: ({ get }) => get(autodetectRunStateAtom) === AutodetectRunState.Started,
+})

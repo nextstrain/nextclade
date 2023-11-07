@@ -23,8 +23,6 @@ export function useRunSeqAutodetect() {
       () => {
         const { getPromise } = snapshot
 
-        set(autodetectRunStateAtom, AutodetectRunState.Started)
-
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
         reset(autodetectRunStateAtom)
@@ -43,6 +41,8 @@ export function useRunSeqAutodetect() {
         function onComplete() {
           set(autodetectRunStateAtom, AutodetectRunState.Done)
         }
+
+        set(autodetectRunStateAtom, AutodetectRunState.Started)
 
         Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
           .then(async ([qrySeqInputs, minimizerIndexVersion]) => {

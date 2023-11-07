@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
 import { DatasetSelectorListImpl } from 'src/components/Main/DatasetSelectorListImpl'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import {
   autodetectResultsAtom,
   AutodetectRunState,
@@ -99,6 +100,10 @@ export function DatasetSelectorImpl({
         <Title>{t('Select dataset')}</Title>
 
         <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
+      </Header>
+
+      <Header>
+        <SuggestionPanel />
       </Header>
 
       <Main>

@@ -3,6 +3,7 @@ import { isNil } from 'lodash'
 import { useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -76,13 +77,14 @@ function MainWizard() {
   const [page, setPage] = useState(WizardPage.Landing)
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
+  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
 
   const toDatasetSelection = useCallback(() => {
     setPage(WizardPage.DatasetSelection)
-    if (hasRequiredInputs) {
+    if (shouldSuggestDatasets && hasRequiredInputs) {
       runAutodetect()
     }
-  }, [hasRequiredInputs, runAutodetect])
+  }, [hasRequiredInputs, runAutodetect, shouldSuggestDatasets])
   const toLanding = useCallback(() => {
     setPage(WizardPage.Landing)
   }, [])
