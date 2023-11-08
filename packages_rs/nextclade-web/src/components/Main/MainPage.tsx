@@ -1,8 +1,10 @@
 import { Dataset } from '_SchemaRoot'
+import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useState } from 'react'
-import { useRecoilState, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
+import { isDatasetPageVisitedAtom } from 'src/state/navigation.state'
 import { isInSuggestModeAtom } from 'src/state/autodetect.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { Layout } from 'src/components/Layout/Layout'
@@ -11,7 +13,7 @@ import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { WizardNavigationBar } from 'src/components/Main/Wizard'
 
 export function MainPage() {
-  const { push } = useRouter()
+  const { push, replace } = useRouter()
   const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
   const [datasetHighlighted, setDatasetHighlighted] = useState<Dataset | undefined>(dataset)
   const setIsInSuggestMode = useSetRecoilState(isInSuggestModeAtom)
@@ -28,6 +30,12 @@ export function MainPage() {
       }
     }
   }, [datasetHighlighted, push, setDataset, setIsInSuggestMode])
+
+  const isDatasetPageVisited = useRecoilValue(isDatasetPageVisitedAtom)
+  if (!isDatasetPageVisited && !isNil(dataset)) {
+    // Trigger Suspense (loading screen) until the routing promise is resolved
+    throw replace('/dataset') // eslint-disable-line @typescript-eslint/no-throw-literal
+  }
 
   return (
     <Layout>
