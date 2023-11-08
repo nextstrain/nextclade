@@ -1,5 +1,5 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/_next/static/(chunks|css|media|wasm)/(.*)",
