@@ -1,6 +1,7 @@
 import React from 'react'
 import { Col, Row } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -24,6 +25,11 @@ export function DatasetCurrentSummary() {
       <Row noGutters className="w-100">
         <Col className="d-flex">
           <DatasetInfo dataset={dataset} />
+        </Col>
+      </Row>
+      <Row noGutters>
+        <Col className="d-flex w-100">
+          <ButtonLoadExample className="ml-auto" />
         </Col>
       </Row>
     </Container>
