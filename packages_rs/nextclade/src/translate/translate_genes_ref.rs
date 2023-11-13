@@ -15,7 +15,7 @@ pub fn translate_genes_ref(
 ) -> Result<Translation, Report> {
   let genes = gene_map
     .iter_genes()
-    .map(|(gene_name, gene)| {
+    .map(|gene| {
       let cdses = gene
         .cdses
         .iter()
@@ -39,7 +39,7 @@ pub fn translate_genes_ref(
         .collect();
 
       (
-        gene_name.clone(),
+        gene.name.clone(),
         GeneTranslation {
           gene: gene.clone(),
           cdses,

@@ -60,7 +60,6 @@ mod tests {
   use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
-  use std::collections::BTreeMap;
 
   fn create_test_genome_annotation(cdses: &[&[(isize, isize, GeneStrand)]]) -> Result<GeneMap, Report> {
     let genes = cdses
@@ -70,15 +69,16 @@ mod tests {
         let segments = cds
           .iter()
           .enumerate()
-          .map(|(index, (begin, end, strand))| {
+          .map(|(cds_segment_index, (begin, end, strand))| {
             let range_local = Range::from_isize(0, end - begin);
             let phase = Phase::from_begin(range_local.begin).unwrap();
             let frame = Frame::from_begin(Position::from(*begin)).unwrap();
+            let name = format!("{cds_index}_{cds_segment_index}");
 
             CdsSegment {
-              index,
-              id: index.to_string(),
-              name: index.to_string(),
+              index: cds_segment_index,
+              id: name.clone(),
+              name,
               range: NucRefGlobalRange::from_isize(*begin, *end),
               range_local,
               landmark: None,
@@ -95,22 +95,19 @@ mod tests {
           })
           .collect_vec();
 
-        Ok((
-          cds_index.to_string(),
-          Gene::from_cds(&Cds {
-            id: cds_index.to_string(),
-            name: cds_index.to_string(),
-            product: cds_index.to_string(),
-            segments,
-            proteins: vec![],
-            exceptions: vec![],
-            attributes: hashmap! {},
-            compat_is_gene: false,
-            color: None,
-          })?,
-        ))
+        Gene::from_cds(&Cds {
+          id: cds_index.to_string(),
+          name: cds_index.to_string(),
+          product: cds_index.to_string(),
+          segments,
+          proteins: vec![],
+          exceptions: vec![],
+          attributes: hashmap! {},
+          compat_is_gene: false,
+          color: None,
+        })
       })
-      .collect::<Result<BTreeMap<String, Gene>, Report>>()?;
+      .collect::<Result<Vec<Gene>, Report>>()?;
 
     let gene_map = GeneMap::from_genes(genes);
 

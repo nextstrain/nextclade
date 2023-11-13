@@ -7,6 +7,7 @@ import {
   DropdownItem as DropdownItemBase,
   DropdownProps,
 } from 'reactstrap'
+import { attrStrMaybe } from 'src/types'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
 import { SearchBox } from 'src/components/Common/SearchBox'
@@ -34,10 +35,10 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
     }
     const { itemsStartWith, itemsInclude } = search(datasets, searchTerm, (dataset) => [
       dataset.path,
-      dataset.attributes.name.value,
-      dataset.attributes.name.valueFriendly ?? '',
-      dataset.attributes.reference.value,
-      dataset.attributes.reference.valueFriendly ?? '',
+      attrStrMaybe(dataset.attributes, 'name') ?? '',
+      attrStrMaybe(dataset.attributes, 'reference name') ?? '',
+      attrStrMaybe(dataset.attributes, 'reference accession') ?? '',
+      dataset.path,
     ])
     return [...itemsStartWith, ...itemsInclude]
   }, [datasets, searchTerm])

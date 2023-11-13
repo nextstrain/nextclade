@@ -1,4 +1,6 @@
-FROM continuumio/miniconda3:4.9.2
+FROM continuumio/miniconda3
+
+SHELL ["bash", "--login", "-euxo", "pipefail", "-c"]
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG USER=user
@@ -9,8 +11,20 @@ ARG GID
 ENV TERM="xterm-256color"
 ENV HOME="/home/user"
 
+
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  make \
+  sudo \
+>/dev/null \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/*
+
 # Make a user and group
-RUN set -x >/dev/null \
+RUN set -euxo pipefail >/dev/null \
 && \
   if [ -z "$(getent group ${GID})" ]; then \
     addgroup --system --gid ${GID} ${GROUP}; \
@@ -34,27 +48,18 @@ RUN set -x >/dev/null \
 && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 && echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 && touch ${HOME}/.hushlogin \
-&& chown -R ${UID}:${GID} "${HOME}"
+&& chown -R ${UID}:${GID} "${HOME}" \
+&& chown -R ${USER}:${GROUP} ${HOME}
 
-RUN set -x \
-  && chown -R ${USER}:${GROUP} ${HOME}
+WORKDIR /workdir
 
-COPY environment.yml ${HOME}/src/
+COPY environment.yml /workdir
 
-WORKDIR ${HOME}/src
-
-RUN set -x \
-  && conda env create docs.clades.nextstrain.org
+RUN set -euxo pipefail >/dev/null \
+  && conda env create -n "docs.clades.nextstrain.org"
 
 USER ${USER}
 
-RUN set -x \
-  && conda init bash \
-  && echo "conda activate docs.clades.nextstrain.org" >> ${HOME}/.bashrc
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "docs.clades.nextstrain.org", "bash", "-euo", "pipefail", "-c"]
 
-CMD bash -c "set -x \
-  && source ${HOME}/.bashrc \
-  && cd ${HOME}/src/docs \
-  && rm -rf build \
-  && make autobuild \
-  "
+CMD ["cd docs && make autobuild"]

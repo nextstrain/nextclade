@@ -310,7 +310,7 @@ pub fn translate_genes(
 ) -> Result<Translation, Report> {
   let genes: IndexMap<String, GeneTranslation> = gene_map
     .iter_genes()
-    .map(|(gene_name, gene)| {
+    .map(|gene| {
       let ref_gene_translation = ref_peptides.get_gene(&gene.name)?;
 
       let (cdses, warnings): (IndexMap<String, CdsTranslation>, Vec<PeptideWarning>) =
@@ -336,7 +336,7 @@ pub fn translate_genes(
         });
 
       Ok((
-        gene_name.clone(),
+        gene.name.clone(),
         GeneTranslation {
           gene: gene.clone(),
           cdses,

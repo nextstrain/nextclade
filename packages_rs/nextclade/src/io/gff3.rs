@@ -172,14 +172,14 @@ fn get_records_by_feature_type<'r>(
     .filter(|(i, record)| {
       let searched = record_type.to_lowercase();
       let candidate = record.feature_type().to_lowercase();
-      (candidate == searched) || (candidate == get_sequence_anthology_code(&searched).unwrap_or_default())
+      (candidate == searched) || (candidate == get_sequence_onthology_code(&searched).unwrap_or_default())
     })
     .collect_vec()
 }
 
 #[inline]
 #[must_use]
-pub fn get_sequence_anthology_code(feature_name: &str) -> Option<&str> {
+pub fn get_sequence_onthology_code(feature_name: &str) -> Option<&str> {
   match feature_name {
     "cds" => Some("SO:0000316"),
     "gene" => Some("SO:0000704"),
@@ -263,7 +263,7 @@ EPI1857216	feature	gene	1036	1698	.	+	.	gene_name="HA2"
 
     assert_eq!(
       report_to_string(&result.unwrap_err()),
-      "Length of a CDS is expected to be divisible by 3, but the length of CDS 'HA1' is 988 (it consists of 1 fragment(s) of length(s) 988). This is likely a mistake in genome annotation."
+      "Length of a CDS is expected to be divisible by 3, but the length of CDS 'SigPep' is 47 (it consists of 1 fragment(s) of length(s) 47). This is likely a mistake in genome annotation."
     );
 
     Ok(())

@@ -2,10 +2,9 @@ import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
 import { lighten } from 'polished'
 import { ListGroup } from 'reactstrap'
 import styled from 'styled-components'
-import type { Dataset } from 'src/types'
-import { areDatasetsEqual } from 'src/types'
-import { search } from 'src/helpers/search'
+import { areDatasetsEqual, attrStrMaybe, Dataset } from 'src/types'
 import { ListGenericCss } from 'src/components/Common/List'
+import { search } from 'src/helpers/search'
 import { DatasetListEntry } from 'src/components/Main/DatasetListEntry'
 
 export interface DatasetSelectorListProps {
@@ -35,10 +34,10 @@ export function DatasetSelectorList({
     }
 
     return search([...datasetsActive, ...datasetsInactive], searchTerm, (dataset) => [
-      dataset.attributes.name.value,
-      dataset.attributes.name.valueFriendly ?? '',
-      dataset.attributes.reference.value,
-      dataset.attributes.reference.valueFriendly ?? '',
+      dataset.path,
+      attrStrMaybe(dataset.attributes, 'name') ?? '',
+      attrStrMaybe(dataset.attributes, 'reference name') ?? '',
+      attrStrMaybe(dataset.attributes, 'reference accession') ?? '',
       dataset.path,
     ])
   }, [datasetsActive, datasetsInactive, searchTerm])

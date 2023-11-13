@@ -41,7 +41,7 @@ function run_with_dataset_dir() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${dataset_dir}" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -56,7 +56,7 @@ function run_with_dataset_zip() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-dataset="${dataset_dir}/dataset.zip" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -71,7 +71,7 @@ function run_with_ref_only() {
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -89,7 +89,7 @@ function run_with_ref_and_annotation() {
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -107,7 +107,7 @@ function run_with_ref_and_tree() {
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-tree="${dataset_dir}/tree.json" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -127,7 +127,7 @@ function run_with_ref_and_annotation_and_tree() {
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --input-tree="${dataset_dir}/tree.json" \
-    --output-translations="${out_dir}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
 }
@@ -139,17 +139,7 @@ function run_single_dataset() {
   name="$(realpath --relative-to="$INPUT_DATASETS_DIR" "$dataset_dir")"
 
   # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/vic_na* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset
-  if [[ "$name" =~ nextstrain/sars-cov-2-21L* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
+  if [[ "$name" =~ nextstrain/mpx* ]]; then
     return
   fi
 
@@ -179,17 +169,7 @@ function download_and_run_single_dataset() {
   dataset_dir="${DATASETS_DIR}/${name}"
 
   # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/vic_na* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset
-  if [[ "$name" =~ nextstrain/sars-cov-2-21L* ]]; then
-    return
-  fi
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/flu/h3n2/ha* ]]; then
+  if [[ "$name" =~ nextstrain/mpx* ]]; then
     return
   fi
 
@@ -217,7 +197,7 @@ export -f download_and_run_single_dataset
 
 
 if [ -z "${INPUT_DATASETS_DIR}" ]; then
-  all_datasets=$(${NEXTCLADE_BIN} dataset list --include-experimental --include-community --include-deprecated --only-names)
+  all_datasets=$(${NEXTCLADE_BIN} dataset list --include-deprecated --only-names)
   parallel --keep-order --jobs=+0 download_and_run_single_dataset ::: "${all_datasets}"
 else
   find "${INPUT_DATASETS_DIR}" -iname "pathogen.json" -exec dirname '{}' \; |  parallel --keep-order --jobs=+0 run_single_dataset

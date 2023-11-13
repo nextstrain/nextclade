@@ -74,12 +74,10 @@ ${getErrorReportText(error)}
   return (
     <ExplanationText className="mt-3">
       <span>
-        {t('You can report it to developers by creating a request (so called {{issue}}) at: ', { issue: '"issue"' })}
-      </span>
-      <span>
+        {t('You can report this error to developers by creating a new issue at: ')}
         <LinkExternal href={URL_GITHUB_ISSUES}>{URL_GITHUB_ISSUES}</LinkExternal>
       </span>
-      <span>{t(' or writing an email to ')}</span>
+      <span>{t(' or by writing an email to ')}</span>
       <span>
         <LinkExternal href={emailLink}>{SUPPORT_EMAIL}</LinkExternal>
       </span>

@@ -10,6 +10,8 @@ import esSidebar from 'auspice/src/locales/es/sidebar.json'
 import frSidebar from 'auspice/src/locales/fr/sidebar.json'
 import itSidebar from 'auspice/src/locales/it/sidebar.json'
 import jaSidebar from 'auspice/src/locales/ja/sidebar.json'
+import ltSidebar from 'auspice/src/locales/lt/sidebar.json'
+import plSidebar from 'auspice/src/locales/pl/sidebar.json'
 import ptSidebar from 'auspice/src/locales/pt/sidebar.json'
 import ruSidebar from 'auspice/src/locales/ru/sidebar.json'
 import trSidebar from 'auspice/src/locales/tr/sidebar.json'
@@ -21,6 +23,8 @@ import esTranslation from 'auspice/src/locales/es/translation.json'
 import frTranslation from 'auspice/src/locales/fr/translation.json'
 import itTranslation from 'auspice/src/locales/it/translation.json'
 import jaTranslation from 'auspice/src/locales/ja/translation.json'
+import ltTranslation from 'auspice/src/locales/lt/translation.json'
+import plTranslation from 'auspice/src/locales/pl/translation.json'
 import ptTranslation from 'auspice/src/locales/pt/translation.json'
 import ruTranslation from 'auspice/src/locales/ru/translation.json'
 import trTranslation from 'auspice/src/locales/tr/translation.json'
@@ -37,6 +41,8 @@ export function i18nAuspiceInit() {
       fr: { sidebar: frSidebar, translation: frTranslation },
       it: { sidebar: itSidebar, translation: itTranslation },
       ja: { sidebar: jaSidebar, translation: jaTranslation },
+      lt: { sidebar: ltSidebar, translation: ltTranslation },
+      pl: { sidebar: plSidebar, translation: plTranslation },
       pt: { sidebar: ptSidebar, translation: ptTranslation },
       ru: { sidebar: ruSidebar, translation: ruTranslation },
       tr: { sidebar: trSidebar, translation: trTranslation },

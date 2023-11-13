@@ -1,4 +1,4 @@
-import { isNil } from 'lodash'
+import { isNil, last } from 'lodash'
 import { darken } from 'polished'
 import React, { useMemo } from 'react'
 import { Badge } from 'reactstrap'
@@ -8,6 +8,7 @@ import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { firstLetter } from 'src/helpers/string'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { autodetectResultsByDatasetAtom, numberAutodetectResultsAtom } from 'src/state/autodetect.state'
+import { AnyType, attrBoolMaybe, attrStrMaybe } from 'src/types'
 import type { Dataset } from 'src/types'
 import styled from 'styled-components'
 
@@ -61,24 +62,15 @@ export interface DatasetInfoProps {
 
 export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
-  const { attributes, official, deprecated, enabled, experimental, path, version } = dataset
-  const { name, reference } = attributes
+  const { attributes, path, version } = dataset
 
   const updatedAt = useMemo(() => {
-    let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : 'unknown'
+    let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : t('unknown')
     if (version?.tag === 'unreleased') {
-      updatedAt = `${updatedAt} (unreleased)`
+      updatedAt = `${updatedAt} (${t('unreleased')})`
     }
     return updatedAt
-  }, [version?.tag, version?.updatedAt])
-
-  if (path === 'autodetect') {
-    return <DatasetAutodetectInfo dataset={dataset} />
-  }
-
-  if (!enabled) {
-    return null
-  }
+  }, [t, version?.tag, version?.updatedAt])
 
   return (
     <Container>
@@ -88,16 +80,16 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
 
       <FlexRight>
         <DatasetName>
-          <span>{name.valueFriendly ?? name.value ?? path}</span>
+          <span>{attrStrMaybe(attributes, 'name') ?? path}</span>
         </DatasetName>
 
         <div>
           <span className="d-flex ml-auto">
-            {official ? (
+            {path.startsWith('nextstrain') ? (
               <DatasetInfoBadge
                 className="mr-1 my-0"
                 color="success"
-                title="This dataset is provided by Nextclade team."
+                title={t('This dataset is provided by {{proj}} developers.', { proj: 'Nextclade' })}
               >
                 {t('official')}
               </DatasetInfoBadge>
@@ -105,27 +97,34 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
               <DatasetInfoBadge
                 className="mr-1 my-0"
                 color="info"
-                title="This dataset is provided by the community members. Nextclade team cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions."
+                title={t(
+                  'This dataset is provided by the community members. {{proj}} developers cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions.',
+                  { proj: 'Nextclade' },
+                )}
               >
                 {t('community')}
               </DatasetInfoBadge>
             )}
 
-            {experimental && (
+            {attrBoolMaybe(attributes, 'experimental') && (
               <DatasetInfoBadge
                 className="mr-1 my-0"
                 color="warning"
-                title="Dataset authors marked this dataset as experimental, which means the dataset is stil under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics."
+                title={t(
+                  'Dataset authors marked this dataset as experimental, which means the dataset is still under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics.',
+                )}
               >
                 {t('experimental')}
               </DatasetInfoBadge>
             )}
 
-            {deprecated && (
+            {attrBoolMaybe(attributes, 'deprecated') && (
               <DatasetInfoBadge
                 className="mr-1 my-0"
                 color="secondary"
-                title="Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics."
+                title={t(
+                  'Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.',
+                )}
               >
                 {t('deprecated')}
               </DatasetInfoBadge>
@@ -133,17 +132,21 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
           </span>
         </div>
 
-        <DatasetInfoLine>
-          {t('Reference: {{ name }} ({{ accession }})', {
-            name: reference.valueFriendly ?? 'Untitled',
-            accession: reference.value,
-          })}
-        </DatasetInfoLine>
+        <DatasetInfoLine>{t('Reference: {{ ref }}', { ref: formatReference(attributes) })}</DatasetInfoLine>
         <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
         <DatasetInfoLine>{t('Dataset name: {{name}}', { name: path })}</DatasetInfoLine>
       </FlexRight>
     </Container>
   )
+}
+
+function formatReference(attributes: Record<string, AnyType> | undefined) {
+  const name = attrStrMaybe(attributes, 'reference name') ?? 'unknown'
+  const accession = attrStrMaybe(attributes, 'reference accession')
+  if (accession) {
+    return `${name} (${accession})`
+  }
+  return name
 }
 
 export function DatasetAutodetectInfo({ dataset }: { dataset: Dataset }) {
@@ -195,7 +198,7 @@ export interface DatasetInfoCircleProps {
 
 function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: DatasetInfoCircleProps) {
   const { attributes, path } = dataset
-  const { name } = attributes
+  const name = attrStrMaybe(attributes, 'name') ?? last(path.split('/')) ?? '?'
 
   const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
   const records = useRecoilValue(autodetectResultsByDatasetAtom(path))
@@ -204,7 +207,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
   const { circleText, countText, percentage } = useMemo(() => {
     if (!showSuggestions || isNil(records)) {
       return {
-        circleText: (firstLetter(name.valueFriendly ?? name.value) ?? ' ').toUpperCase(),
+        circleText: (firstLetter(name) ?? ' ').toUpperCase(),
         percentage: 0,
         countText: '\u00A0',
       }
@@ -217,7 +220,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [showSuggestions, records, numberAutodetectResults, name.valueFriendly, name.value])
+  }, [showSuggestions, records, numberAutodetectResults, name])
 
   return (
     <>

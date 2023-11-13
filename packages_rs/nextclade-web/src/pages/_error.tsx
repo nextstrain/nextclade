@@ -31,6 +31,7 @@ export const Container = styled(ContainerBase)`
 
 export const MainContent = styled.main`
   margin: 0 auto;
+  margin-top: 20px;
   height: 100%;
   max-width: 960px;
 `

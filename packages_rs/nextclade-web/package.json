@@ -75,7 +75,7 @@
     "i18n:translate": "json-autotranslate --config=json-autotranslate.json --input=src/i18n/resources --service=amazon-translate --matcher=i18next --fix-inconsistencies --delete-unused-strings",
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\"",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\"",
-    "monkey-patch": "bash tools/auspice-monkey-patch.sh && yarn run:node tools/monkeyPatch.ts",
+    "monkey-patch": "yarn run:node tools/monkeyPatch.ts",
     "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
     "serve-data": "babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\" ./tools/server/dataServer.ts",
     "wasm-dev": "yarn run-s wasm-dev:generate types:generate",
@@ -87,7 +87,7 @@
   },
   "dependencies": {
     "animate.css": "4.1.1",
-    "auspice": "2.45.2",
+    "auspice": "2.50.0",
     "autoprefixer": "10.4.5",
     "awesomplete": "1.1.5",
     "axios": "0.27.1",

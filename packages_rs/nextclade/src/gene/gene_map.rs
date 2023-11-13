@@ -13,24 +13,24 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
 use num::Integer;
+use regex::internal::Input;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::path::Path;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[must_use]
 pub struct GeneMap {
-  pub genes: BTreeMap<String, Gene>,
+  pub genes: Vec<Gene>,
 }
 
 impl GeneMap {
   pub fn new() -> Self {
-    Self::from_genes(BTreeMap::<String, Gene>::new())
+    Self::from_genes(vec![])
   }
 
-  pub fn from_genes(genes: BTreeMap<String, Gene>) -> Self {
+  pub fn from_genes(genes: Vec<Gene>) -> Self {
     Self { genes }
   }
 
@@ -87,13 +87,14 @@ impl GeneMap {
 
   #[must_use]
   pub fn contains(&self, gene_name: &str) -> bool {
-    self.genes.contains_key(gene_name)
+    self.genes.iter().any(|gene| gene.name == gene_name)
   }
 
   pub fn get(&self, gene_name: &str) -> Result<&Gene, Report> {
     self
       .genes
-      .get(gene_name)
+      .iter()
+      .find(|gene| gene.name == gene_name)
       .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
   }
 
@@ -102,42 +103,36 @@ impl GeneMap {
     self
       .genes
       .iter()
-      .find_map(|(_, gene)| gene.cdses.iter().find(|cds| cds.name == cds_name))
-      .ok_or_else(|| {
-        make_internal_report!("When looking up a CDS translation: CDS '{cds_name}' is expected, but not found")
-      })
+      .find_map(|gene| gene.cdses.iter().find(|cds| cds.name == cds_name))
+      .ok_or_else(|| make_internal_report!("CDS '{cds_name}' is expected to be present, but not found"))
   }
 
-  pub fn iter_genes(&self) -> impl Iterator<Item = (&String, &Gene)> + '_ {
+  pub fn iter_genes(&self) -> impl Iterator<Item = &Gene> + '_ {
     self.genes.iter()
   }
 
-  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = (&String, &mut Gene)> + '_ {
+  pub fn iter_genes_mut(&mut self) -> impl Iterator<Item = &mut Gene> + '_ {
     self.genes.iter_mut()
   }
 
-  pub fn into_iter_genes(self) -> impl Iterator<Item = (String, Gene)> {
+  pub fn into_iter_genes(self) -> impl Iterator<Item = Gene> {
     self.genes.into_iter()
   }
 
-  pub fn genes(&self) -> impl Iterator<Item = &Gene> + '_ {
-    self.genes.values()
-  }
-
   pub fn iter_cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
-    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+    self.genes.iter().flat_map(|gene| gene.cdses.iter())
   }
 
   pub fn iter_cdses_mut(&mut self) -> impl Iterator<Item = &mut Cds> + '_ {
-    self.genes.iter_mut().flat_map(|(_, gene)| gene.cdses.iter_mut())
+    self.genes.iter_mut().flat_map(|gene| gene.cdses.iter_mut())
   }
 
   pub fn into_iter_cdses(self) -> impl Iterator<Item = Cds> {
-    self.genes.into_iter().flat_map(|(_, gene)| gene.cdses.into_iter())
+    self.genes.into_iter().flat_map(|gene| gene.cdses.into_iter())
   }
 
   pub fn cdses(&self) -> impl Iterator<Item = &Cds> + '_ {
-    self.genes.iter().flat_map(|(_, gene)| gene.cdses.iter())
+    self.genes.iter().flat_map(|gene| gene.cdses.iter())
   }
 
   pub fn validate(&self) -> Result<(), Report> {
@@ -155,36 +150,66 @@ impl GeneMap {
       })
     })?;
 
+    let gene_name_dupes = self
+      .iter_genes()
+      .map(|x| &x.name)
+      .sorted()
+      .duplicates()
+      .map(|name| format!("'{name}'"))
+      .join(", ");
+
+    if !gene_name_dupes.is_empty() {
+      return make_error!("Gene names are expected to be unique, but found duplicate names: {gene_name_dupes}");
+    }
+
+    let cds_name_dupes = self
+      .iter_cdses()
+      .map(|x| &x.name)
+      .sorted()
+      .duplicates()
+      .map(|name| format!("'{name}'"))
+      .join(", ");
+
+    if !cds_name_dupes.is_empty() {
+      return make_error!("CDS names are expected to be unique, but found duplicate names: {cds_name_dupes}");
+    }
+
     Ok(())
   }
 }
 
-/// Filters genome annotation according to the list of requested genes.
-pub fn filter_gene_map(gene_map: GeneMap, genes: &Option<Vec<String>>) -> GeneMap {
-  if let Some(genes) = genes {
-    let gene_map: BTreeMap<String, Gene> = gene_map
-      .into_iter_genes()
-      .filter(|(gene_name, ..)| genes.contains(gene_name))
-      .collect();
-
-    let requested_genes_not_in_genemap = get_requested_genes_not_in_genemap(&gene_map, genes);
-    if !requested_genes_not_in_genemap.is_empty() {
+/// Filters genome annotation according to the list of requested cdses.
+pub fn filter_gene_map(mut gene_map: GeneMap, cdses: &Option<Vec<String>>) -> GeneMap {
+  if let Some(cdses) = cdses {
+    let all_cdses = gene_map.iter_cdses().cloned().collect_vec();
+    let requested_but_not_found = get_requested_cdses_not_in_genemap(&all_cdses, cdses);
+    if !requested_but_not_found.is_empty() {
       warn!(
-        "The following genes were requested through `--genes` \
-           but not found in the genome annotation: \
-           `{requested_genes_not_in_genemap}`",
+        "The following CDS(es) were requested through `--cds-selection` but not found in the genome annotation: {requested_but_not_found}",
       );
     }
-    return GeneMap::from_genes(gene_map);
+
+    // Keep only requested CDSes and non-empty genes
+    let genes = gene_map
+      .iter_genes_mut()
+      .map(|gene| {
+        gene.cdses.retain(|cds| cdses.contains(&cds.name));
+        gene.clone()
+      })
+      .filter(|gene| !gene.cdses.is_empty())
+      .collect_vec();
+
+    return GeneMap::from_genes(genes);
   }
   gene_map
 }
 
-fn get_requested_genes_not_in_genemap(gene_map: &BTreeMap<String, Gene>, genes: &[String]) -> String {
-  genes
+fn get_requested_cdses_not_in_genemap(all_cdses: &[Cds], cdses: &[String]) -> String {
+  cdses
     .iter()
-    .filter(|&gene_name| !gene_map.contains_key(gene_name))
-    .join("`, `")
+    .filter(|&cds_name| !all_cdses.iter().any(|cds| &cds.name == cds_name))
+    .map(|name| format!("'{name}'"))
+    .join(", ")
 }
 
 pub fn convert_feature_tree_to_gene_map(feature_tree: &FeatureTree) -> Result<GeneMap, Report> {
@@ -202,9 +227,7 @@ fn convert_seq_region_to_gene_map(seq_region: &SequenceRegion) -> Result<GeneMap
     );
   }
 
-  Ok(GeneMap::from_genes(
-    genes.into_iter().map(|gene| (gene.name.clone(), gene)).collect(),
-  ))
+  Ok(GeneMap::from_genes(genes))
 }
 
 fn find_genes(feature_groups: &[FeatureGroup]) -> Result<Vec<Gene>, Report> {
@@ -235,4 +258,83 @@ fn find_genes_recursive(feature_group: &FeatureGroup, genes: &mut Vec<Gene>) -> 
     .children
     .iter()
     .try_for_each(|child_feature_group| find_genes_recursive(child_feature_group, genes))
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  #[rstest]
+  fn genome_annotation_fails_on_duplicate_gene_names() -> Result<(), Report> {
+    let result = GeneMap::from_str(
+      r#"##gff-version 3
+##sequence-region MN908947 1 29903
+MN908947	GenBank	gene	13468	21555	.	+	.	Name=ORF1b;ID=1
+MN908947	GenBank	gene	25393	26220	.	+	.	Name=ORF3a;ID=2
+MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=S1;Parent=3
+MN908947	GenBank	gene	26245	26472	.	+	.	Name=S;ID=4
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=S2;Parent=4
+MN908947	GenBank	gene	26523	27191	.	+	.	Name=M;ID=5
+MN908947	GenBank	gene	27756	27887	.	+	.	Name=N;ID=8
+MN908947	GenBank	CDS	27756	27887	.	+	.	Name=N1;Parent=8
+MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=N2;Parent=9
+
+"#,
+    );
+
+    assert_eq!(
+      "Gene names are expected to be unique, but found duplicate names: 'N', 'S'",
+      report_to_string(&result.unwrap_err()),
+    );
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn genome_annotation_fails_on_duplicate_cds_names_across_genes() -> Result<(), Report> {
+    let result = GeneMap::from_str(
+      r#"##gff-version 3
+##sequence-region MN908947 1 29903
+MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=D;Parent=3
+MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=9
+
+"#,
+    );
+
+    assert_eq!(
+      "CDS names are expected to be unique, but found duplicate names: 'D'",
+      report_to_string(&result.unwrap_err()),
+    );
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn genome_annotation_fails_on_duplicate_cds_names_within_gene() -> Result<(), Report> {
+    let result = GeneMap::from_str(
+      r#"##gff-version 3
+##sequence-region MN908947 1 29903
+MN908947	GenBank	gene	21563	25384	.	+	.	Name=S;ID=3
+MN908947	GenBank	CDS	21563	25384	.	+	.	Name=D;Parent=3;ID=D1
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=D;Parent=3;ID=D2
+MN908947	GenBank	gene	27894	28259	.	+	.	Name=N;ID=9
+MN908947	GenBank	CDS	27894	28259	.	+	.	Name=N;Parent=9
+
+"#,
+    );
+
+    assert_eq!(
+      "CDS names are expected to be unique, but found duplicate names: 'D'",
+      report_to_string(&result.unwrap_err()),
+    );
+
+    Ok(())
+  }
 }

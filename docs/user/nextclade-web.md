@@ -151,20 +151,17 @@ If an `input-fasta` URL parameter is provided, Nextclade Web automatically start
 
 All parameters are optional.
 
-| URL parameter          | Meaning                                                                                                                                                        |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| input-fasta            | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. Special value `example` will use dataset example sequences |
-| input-root-seq         | URL to a fasta file containing reference (root) sequence.                                                                                                      |
-| input-tree             | URL to a Auspice JSON v2 file containing reference tree.                                                                                                       |
-| input-pcr-primers      | URL to a CSV file containing PCR primers.                                                                                                                      |
-| input-qc-config        | URL to a JSON file containing QC configuration.                                                                                                                |
-| input-gene-map         | URL to a GFF3 file containing gene map.                                                                                                                        |
-| input-virus-properties | URL to a JSON file containing labeled genotypes (`virusProperties.json`)                                                                                       |
-| dataset-name           | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                                                                                         |
-| dataset-reference      | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.                                                                   |
-| dataset-tag            | Version tag of the dataset to use.                                                                                                                             |
-| dataset-server         | URL to the custom dataset server (to the path where `index_v2.json` is, without filename).                                                                     |
-| dataset-url            | URL to a single dataset directory (to the path where `tree.json` and other files are, without filenames).                                                      |
+| URL parameter       | Meaning                                                                                                                                                        |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| input-fasta         | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. Special value `example` will use dataset example sequences |
+| input-ref           | URL to a fasta file containing reference (root) sequence.                                                                                                      |
+| input-annotation    | URL to a GFF3 file containing gene map.                                                                                                                        |
+| input-tree          | URL to a Auspice JSON v2 file containing reference tree.                                                                                                       |
+| input-pathogen-json | URL to a JSON file containing pathogen description and parameters                                                                                              |
+| dataset-name        | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                                                                                         |
+| dataset-tag         | Version tag of the dataset to use.                                                                                                                             |
+| dataset-server      | URL to the custom dataset server (to the path where `index_v2.json` is, without filename).                                                                     |
+| dataset-url         | URL to a single dataset directory (to the path where `pathogen.json` and other files are, without filenames).                                                  |
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 

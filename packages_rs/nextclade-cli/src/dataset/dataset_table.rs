@@ -1,9 +1,10 @@
 use comfy_table::modifiers::{UTF8_ROUND_CORNERS, UTF8_SOLID_INNER_BORDERS};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::{ContentArrangement, Table};
-use indexmap::IndexMap;
 use itertools::Itertools;
-use nextclade::io::dataset::{Dataset, DatasetAttributeValue, DatasetAttributes};
+use nextclade::io::dataset::Dataset;
+use nextclade::o;
+use nextclade::utils::string::surround_with_quotes;
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
@@ -13,70 +14,28 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     .apply_modifier(UTF8_SOLID_INNER_BORDERS)
     .set_content_arrangement(ContentArrangement::Dynamic);
 
-  table.set_header([
-    "name".to_owned(),
-    "reference".to_owned(),
-    "tag".to_owned(),
-    "attributes".to_owned(),
-  ]);
+  table.set_header([o!("name"), o!("attributes"), o!("versions"), o!("authors")]);
 
   for dataset in filtered.iter() {
-    let Dataset {
-      version, attributes, ..
-    } = dataset;
+    let Dataset { attributes, .. } = dataset;
 
-    let DatasetAttributes {
-      name,
-      reference,
-      rest_attrs,
-      ..
-    } = &attributes;
+    let attrs = attributes
+      .iter()
+      .map(|(key, val)| {
+        format!(
+          "{}={}",
+          surround_with_quotes(key),
+          surround_with_quotes(val.to_string())
+        )
+      })
+      .join("\n");
 
-    let mut attrs = IndexMap::<String, &DatasetAttributeValue>::from([
-      ("name".to_owned(), name),
-      ("reference".to_owned(), reference),
-    ]);
+    let versions = dataset.versions.iter().map(|ver| &ver.tag).join("\n");
 
-    for (key, attr) in rest_attrs.iter() {
-      attrs.insert(key.clone(), attr);
-    }
+    let authors = dataset.meta.authors.join(", ");
 
-    table.add_row([
-      format_attr_value(name),
-      format_attr_value(reference),
-      version.tag.clone(),
-      format_attributes(&attrs),
-    ]);
+    table.add_row([&dataset.path, &attrs, &versions, &authors]);
   }
 
-  format!("{table}\nAsterisk (*) marks default values")
-}
-
-pub fn format_attr_value_short(attr: &DatasetAttributeValue) -> String {
-  let DatasetAttributeValue { value, .. } = &attr;
-  if attr.is_default() {
-    format!("{value} (*)")
-  } else {
-    value.clone()
-  }
-}
-
-pub fn format_attr_value(attr: &DatasetAttributeValue) -> String {
-  let value_str = format_attr_value_short(attr);
-  if let Some(value_friendly) = &attr.value_friendly {
-    format!("{value_str}\n'{value_friendly}'")
-  } else {
-    value_str
-  }
-}
-
-pub fn format_attributes(attrs: &IndexMap<String, &DatasetAttributeValue>) -> String {
-  attrs
-    .iter()
-    .map(|(key, attr)| format_attr_key_value(key, attr))
-    .join("\n")
-}
-
-pub fn format_attr_key_value(key: &str, attr: &DatasetAttributeValue) -> String {
-  format!("{key}={}", format_attr_value_short(attr))
+  table.to_string()
 }

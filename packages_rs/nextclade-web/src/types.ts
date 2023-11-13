@@ -1,6 +1,7 @@
-import { isNil, range, sumBy } from 'lodash'
+import { isNil, isNumber, isFinite, isString, range, sumBy, isBoolean, get } from 'lodash'
 import type {
   Aa,
+  AnyType,
   Cds,
   CdsSegment,
   Dataset,
@@ -10,13 +11,13 @@ import type {
   LetterRangeFor_AaAnd_Position, // eslint-disable-line camelcase
   LetterRangeFor_NucAnd_Position, // eslint-disable-line camelcase
   NextcladeErrorOutputs,
+  NextcladeOutputs,
   NextcladeResult,
   Nuc,
   NucSub,
   NucSubLabeled,
   PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
-  NextcladeOutputs,
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
 
@@ -138,4 +139,28 @@ export interface AlgorithmInput {
 
 export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
   return !isNil(left?.path) && !isNil(right?.path) && left?.path === right?.path
+}
+
+export function anyAsStrMaybe(x: AnyType | undefined): string | undefined {
+  return isString(x) ? x : undefined
+}
+
+export function anyAsNumberMaybe(x: AnyType | undefined): number | undefined {
+  return isNumber(x) && isFinite(x) ? x : undefined
+}
+
+export function anyAsBoolMaybe(x: AnyType | undefined): boolean | undefined {
+  return isBoolean(x) ? x : undefined
+}
+
+export function attrStrMaybe(attributes: Record<string, AnyType> | undefined, name: string): string | undefined {
+  return anyAsStrMaybe(get(attributes, name))
+}
+
+export function attrNumberMaybe(attributes: Record<string, AnyType> | undefined, name: string): number | undefined {
+  return anyAsNumberMaybe(get(attributes, name))
+}
+
+export function attrBoolMaybe(attributes: Record<string, AnyType> | undefined, name: string): boolean | undefined {
+  return anyAsBoolMaybe(get(attributes, name))
 }

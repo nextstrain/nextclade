@@ -1,6 +1,7 @@
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::o;
+use crate::utils::any::AnyType;
 use eyre::Report;
 use itertools::Itertools;
 use schemars::JsonSchema;
@@ -56,19 +57,11 @@ pub struct DatasetCollection {
 pub struct Dataset {
   pub path: String,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub deprecated: Option<bool>,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub attributes: BTreeMap<String, AnyType>,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub enabled: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub experimental: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub official: Option<bool>,
-
-  pub attributes: DatasetAttributes,
+  #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
+  pub meta: DatasetMeta,
 
   pub files: DatasetFiles,
 
@@ -86,6 +79,41 @@ pub struct Dataset {
 }
 
 impl Dataset {
+  pub fn name(&self) -> Option<&str> {
+    self.attributes.get("name").and_then(AnyType::as_str_maybe)
+  }
+
+  pub fn ref_name(&self) -> Option<&str> {
+    self.attributes.get("reference name").and_then(AnyType::as_str_maybe)
+  }
+
+  pub fn ref_accession(&self) -> Option<&str> {
+    self
+      .attributes
+      .get("reference accession")
+      .and_then(AnyType::as_str_maybe)
+  }
+
+  pub fn deprecated(&self) -> bool {
+    self
+      .attributes
+      .get("deprecated")
+      .and_then(AnyType::as_bool_maybe)
+      .unwrap_or(false)
+  }
+
+  pub fn experimental(&self) -> bool {
+    self
+      .attributes
+      .get("experimental")
+      .and_then(AnyType::as_bool_maybe)
+      .unwrap_or(false)
+  }
+
+  pub fn official(&self) -> bool {
+    self.path.starts_with("nextstrain/")
+  }
+
   pub fn tag(&self) -> &str {
     &self.version.tag
   }
@@ -104,26 +132,6 @@ impl Dataset {
       .compatibility
       .as_ref()
       .map_or(true, |compat| compat.is_cli_compatible(cli_version))
-  }
-
-  pub fn is_deprecated(&self) -> bool {
-    self.deprecated.unwrap_or(false)
-  }
-
-  pub fn is_enabled(&self) -> bool {
-    self.enabled.unwrap_or(false)
-  }
-
-  pub fn is_experimental(&self) -> bool {
-    self.experimental.unwrap_or(false)
-  }
-
-  pub fn is_official(&self) -> bool {
-    self.official.unwrap_or(false)
-  }
-
-  pub fn is_community(&self) -> bool {
-    !self.is_official()
   }
 
   pub fn is_latest(&self) -> bool {
@@ -252,6 +260,29 @@ impl DatasetCapabilities {
   }
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetMeta {
+  #[serde(rename = "source code", default, skip_serializing_if = "Option::is_none")]
+  pub source_code: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub bugs: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub authors: Vec<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl DatasetMeta {
+  #[inline]
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetFiles {
@@ -275,42 +306,7 @@ pub struct DatasetFiles {
   pub changelog: Option<String>,
 
   #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub rest_files: BTreeMap<String, DatasetAttributeValue>,
-
-  #[serde(flatten)]
-  pub other: serde_json::Value,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct DatasetAttributeValue {
-  pub value: String,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub value_friendly: Option<String>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub is_default: Option<bool>,
-
-  #[serde(flatten)]
-  pub other: serde_json::Value,
-}
-
-impl DatasetAttributeValue {
-  pub fn is_default(&self) -> bool {
-    self.is_default.unwrap_or(false)
-  }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct DatasetAttributes {
-  pub name: DatasetAttributeValue,
-
-  pub reference: DatasetAttributeValue,
-
-  #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub rest_attrs: BTreeMap<String, DatasetAttributeValue>,
+  pub rest_files: BTreeMap<String, String>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

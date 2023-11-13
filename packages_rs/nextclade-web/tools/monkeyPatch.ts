@@ -3,7 +3,7 @@
 /**
  *
  * This dangerously and unreliably patches some of the node_modules. Mostly cosmetic stuff.
- * Do no use this to fix bugs or introduce features. Consider contributing to the upstream project instead.
+ * Do not use this to fix bugs or introduce features. Consider contributing to the upstream project instead.
  *
  */
 import { serial } from 'fasy'
@@ -145,6 +145,13 @@ export async function main() {
   await replace(
     'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tapDoneToAsyncGetIssues.js',
     "configuration.logger.issues.log(chalk_1.default.cyan('Issues checking in progress...'));",
+  )
+
+  // Auspice: Remove requires for '@extensions' modules from `extensions.js`
+  // Reason: We don't use extensions and don't want to setup webpack aliases for that.
+  await replace(
+    'node_modules/auspice/src/util/extensions.ts',
+    'extensions[key] = require(`@extensions/${extensions[key]}`).default;',
   )
 }
 

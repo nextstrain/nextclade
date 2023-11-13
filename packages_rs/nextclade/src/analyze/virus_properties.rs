@@ -5,14 +5,14 @@ use crate::analyze::pcr_primer_changes::PcrPrimer;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
-use crate::io::dataset::{DatasetAttributes, DatasetCompatibility, DatasetFiles, DatasetVersion};
+use crate::io::dataset::{DatasetCompatibility, DatasetFiles, DatasetMeta, DatasetVersion};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::qc::qc_config::QcConfig;
 use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;
-use crate::utils::boolean::{bool_false, bool_true};
+use crate::utils::any::AnyType;
 use eyre::{Report, WrapErr};
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -30,18 +30,13 @@ const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 pub struct VirusProperties {
   pub schema_version: String,
 
-  pub attributes: DatasetAttributes,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub attributes: BTreeMap<String, AnyType>,
+
+  #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
+  pub meta: DatasetMeta,
 
   pub files: DatasetFiles,
-
-  #[serde(default = "bool_false")]
-  pub deprecated: bool,
-
-  #[serde(default = "bool_true")]
-  pub enabled: bool,
-
-  #[serde(default = "bool_true")]
-  pub experimental: bool,
 
   pub default_gene: Option<String>,
 
