@@ -435,6 +435,11 @@ pub struct NextcladeRunInputArgs {
   #[clap(long)]
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub genemap: Option<String>,
+
+  /// RENAMED to `--cds-selection`
+  #[clap(long)]
+  #[clap(hide_long_help = true, hide_short_help = true)]
+  pub genes: Option<Vec<String>>,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -936,6 +941,8 @@ const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str =
 const ERROR_MSG_INPUT_GENE_MAP_RENAMED: &str =
   r#"The argument `--input-gene-map` (alias `--genemap`) is renamed to `--input-annotation`."#;
 
+const ERROR_MSG_GENES_RENAMED: &str = r#"The argument `--genes` is renamed to `--cds-selection`."#;
+
 const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
 
 When provided, `--output-all` allows to write all possible outputs into a directory.
@@ -997,6 +1004,10 @@ pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), R
 
   if run_args.inputs.input_pcr_primers.is_some() {
     return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}{MSG_READ_RUN_DOCS}");
+  }
+
+  if run_args.inputs.genes.is_some() {
+    return make_error!("{ERROR_MSG_GENES_RENAMED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.outputs.output_dir.is_some() {
