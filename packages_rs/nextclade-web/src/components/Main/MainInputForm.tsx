@@ -3,6 +3,7 @@ import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { AutosuggestionOnMainPageToggle } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
@@ -16,7 +17,6 @@ import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/But
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { QuerySequenceList } from './QuerySequenceList'
-import { AutosuggestionOnMainPageToggle } from './SuggestionPanel'
 
 const ContainerFixed = styled.div`
   display: flex;
@@ -139,6 +139,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         <Main>
           <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
         </Main>
+
+        <Footer>
+          <AutosuggestionOnMainPageToggle />
+        </Footer>
       </Container>
     )
   }
