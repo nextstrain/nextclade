@@ -48,12 +48,6 @@ export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
   effects: [persistAtom],
 })
 
-export const shouldSuggestDatasetsOnMainPageAtom = atom<boolean>({
-  key: 'shouldSuggestDatasetsOnMainPageAtom',
-  default: true,
-  effects: [persistAtom],
-})
-
 export const changelogIsShownAtom = atom<boolean>({
   key: 'changelogIsShown',
   default: false,

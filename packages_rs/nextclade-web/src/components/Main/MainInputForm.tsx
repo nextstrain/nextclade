@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { AutosuggestionOnMainPageToggle } from 'src/components/Main/SuggestionPanel'
+import { AutosuggestionToggle } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -151,7 +151,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         </Main>
 
         <Footer>
-          <AutosuggestionOnMainPageToggle />
+          <AutosuggestionToggle />
         </Footer>
       </Container>
     )
@@ -168,7 +168,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       </Main>
 
       <Footer>
-        <AutosuggestionOnMainPageToggle />
+        <AutosuggestionToggle />
       </Footer>
 
       <Footer>
