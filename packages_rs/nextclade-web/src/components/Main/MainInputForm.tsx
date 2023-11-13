@@ -1,10 +1,11 @@
 import { useRouter } from 'next/router'
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { AutosuggestionOnMainPageToggle } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
@@ -15,7 +16,7 @@ import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePi
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { QuerySequenceList } from './QuerySequenceList'
 
 const ContainerFixed = styled.div`
@@ -120,8 +121,17 @@ export interface DatasetCurrentOrSelectProps {
 
 function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectProps) {
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
   const run = useRunAnalysis()
+
+  const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
+  const { topSuggestion } = useDatasetSuggestionResults()
+  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
+  useEffect(() => {
+    if (autodetectRunState === AutodetectRunState.Done) {
+      setDataset(topSuggestion)
+      setAutodetectRunState(AutodetectRunState.Idle)
+    }
+  }, [autodetectRunState, setAutodetectRunState, setDataset, topSuggestion])
 
   const text = useMemo(() => {
     if (isNil(dataset)) {
