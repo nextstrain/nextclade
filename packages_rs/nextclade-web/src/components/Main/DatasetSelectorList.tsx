@@ -1,133 +1,78 @@
-import { get, isNil, sortBy } from 'lodash'
+import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
 import { lighten } from 'polished'
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { ListGroup } from 'reactstrap'
 import styled from 'styled-components'
 import { areDatasetsEqual, attrStrMaybe, Dataset } from 'src/types'
 import { ListGenericCss } from 'src/components/Common/List'
-import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { search } from 'src/helpers/search'
-import {
-  autodetectResultsAtom,
-  AutodetectRunState,
-  autodetectRunStateAtom,
-  groupByDatasets,
-} from 'src/state/autodetect.state'
+import { DatasetListEntry } from 'src/components/Main/DatasetListEntry'
 
 export interface DatasetSelectorListProps {
-  datasets: Dataset[]
-  searchTerm: string
+  datasetsActive: Dataset[]
+  datasetsInactive?: Dataset[]
   datasetHighlighted?: Dataset
-
-  onDatasetHighlighted(dataset?: Dataset): void
+  onDatasetHighlighted?(dataset?: Dataset): void
+  searchTerm: string
+  showSuggestions?: boolean
 }
 
 export function DatasetSelectorList({
-  datasets,
-  searchTerm,
+  datasetsActive,
+  datasetsInactive = [],
   datasetHighlighted,
   onDatasetHighlighted,
+  searchTerm,
+  showSuggestions,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
+  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
 
-  const autodetectResults = useRecoilValue(autodetectResultsAtom)
-  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
-
-  const autodetectResult = useMemo(() => {
-    if (isNil(autodetectResults) || autodetectResults.length === 0) {
-      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
-    }
-
-    const recordsByDataset = groupByDatasets(autodetectResults)
-
-    let itemsInclude = datasets.filter((candidate) =>
-      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
-    )
-
-    itemsInclude = sortBy(itemsInclude, (dataset) => -get(recordsByDataset, dataset.path, []).length)
-
-    const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
-
-    return { itemsStartWith: [], itemsInclude, itemsNotInclude }
-  }, [autodetectResults, datasets])
+  const listItemsRef = useScrollListToDataset(datasetHighlighted)
 
   const searchResult = useMemo(() => {
     if (searchTerm.trim().length === 0) {
-      return autodetectResult
+      return { itemsStartWith: [], itemsInclude: datasetsActive, itemsNotInclude: datasetsInactive }
     }
 
-    return search(
-      [...autodetectResult.itemsStartWith, ...autodetectResult.itemsInclude, ...autodetectResult.itemsNotInclude],
-      searchTerm,
-      (dataset) => [
-        dataset.path,
-        attrStrMaybe(dataset.attributes, 'name') ?? '',
-        attrStrMaybe(dataset.attributes, 'reference name') ?? '',
-        attrStrMaybe(dataset.attributes, 'reference accession') ?? '',
-      ],
-    )
-  }, [autodetectResult, searchTerm])
+    return search([...datasetsActive, ...datasetsInactive], searchTerm, (dataset) => [
+      dataset.path,
+      attrStrMaybe(dataset.attributes, 'name') ?? '',
+      attrStrMaybe(dataset.attributes, 'reference name') ?? '',
+      attrStrMaybe(dataset.attributes, 'reference accession') ?? '',
+      dataset.path,
+    ])
+  }, [datasetsActive, datasetsInactive, searchTerm])
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = searchResult
 
-  const itemsRef = useRef<Map<string, HTMLLIElement>>(new Map())
+  return useMemo(
+    () => (
+      <Ul>
+        {[...itemsStartWith, ...itemsInclude].map((dataset) => (
+          <DatasetSelectorListItem
+            key={dataset.path}
+            ref={nodeRefSetOrDelete(listItemsRef.current, dataset.path)}
+            dataset={dataset}
+            onClick={onItemClick(dataset)}
+            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            showSuggestions={showSuggestions}
+          />
+        ))}
 
-  function scrollToId(itemId: string) {
-    const node = itemsRef.current.get(itemId)
-    node?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    })
-  }
-
-  if (datasetHighlighted) {
-    scrollToId(datasetHighlighted.path)
-  }
-
-  useEffect(() => {
-    const topSuggestion = autodetectResult.itemsInclude[0]
-    if (autodetectRunState === AutodetectRunState.Done) {
-      onDatasetHighlighted(topSuggestion)
-      setAutodetectRunState(AutodetectRunState.Idle)
-    }
-  }, [autodetectRunState, autodetectResult.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
-
-  const ulRef = useRef<HTMLUListElement>(null)
-  useEffect(() => ulRef.current?.scrollTo({ top: 0, left: 0, behavior: 'smooth' }), [searchTerm])
-
-  const listItems = useMemo(() => {
-    return (
-      <>
-        {[itemsStartWith, itemsInclude].map((datasets) =>
-          datasets.map((dataset) => (
-            <DatasetSelectorListItem
-              key={dataset.path}
-              ref={nodeRefSetOrDelete(itemsRef.current, dataset.path)}
-              dataset={dataset}
-              onClick={onItemClick(dataset)}
-              isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
-            />
-          )),
-        )}
-
-        {[itemsNotInclude].map((datasets) =>
-          datasets.map((dataset) => (
-            <DatasetSelectorListItem
-              key={dataset.path}
-              ref={nodeRefSetOrDelete(itemsRef.current, dataset.path)}
-              dataset={dataset}
-              onClick={onItemClick(dataset)}
-              isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
-              isDimmed
-            />
-          )),
-        )}
-      </>
-    )
-  }, [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, onItemClick])
-
-  return <Ul ref={ulRef}>{listItems}</Ul>
+        {itemsNotInclude.map((dataset) => (
+          <DatasetSelectorListItem
+            key={dataset.path}
+            ref={nodeRefSetOrDelete(listItemsRef.current, dataset.path)}
+            dataset={dataset}
+            onClick={onItemClick(dataset)}
+            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            showSuggestions={showSuggestions}
+            isDimmed
+          />
+        ))}
+      </Ul>
+    ),
+    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick, showSuggestions],
+  )
 }
 
 function nodeRefSetOrDelete<T extends HTMLElement>(map: Map<string, T>, key: string) {
@@ -140,7 +85,26 @@ function nodeRefSetOrDelete<T extends HTMLElement>(map: Map<string, T>, key: str
   }
 }
 
-export const Ul = styled.ul`
+function useScrollListToDataset(datasetHighlighted?: Dataset) {
+  const itemsRef = useRef<Map<string, HTMLLIElement>>(new Map())
+
+  const scrollToId = useCallback((itemId: string) => {
+    const node = itemsRef.current.get(itemId)
+    node?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    })
+  }, [])
+
+  if (datasetHighlighted) {
+    scrollToId(datasetHighlighted.path)
+  }
+
+  return itemsRef
+}
+
+export const Ul = styled(ListGroup)`
   ${ListGenericCss};
   flex: 1;
   overflow: auto;
@@ -162,6 +126,7 @@ export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
     `
     color: ${props.theme.white};
     background-color: ${lighten(0.033)(props.theme.primary)};
+    color: ${props.theme.gray100};
     box-shadow: -3px 3px 12px 3px #0005;
     opacity: ${props.$isDimmed && 0.66};
    `};
@@ -171,14 +136,15 @@ interface DatasetSelectorListItemProps {
   dataset: Dataset
   isCurrent?: boolean
   isDimmed?: boolean
+  showSuggestions?: boolean
   onClick?: () => void
 }
 
 const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
-  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
+  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick, showSuggestions }, ref) {
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
-        <DatasetInfo dataset={dataset} />
+        <DatasetListEntry dataset={dataset} showSuggestions={showSuggestions} />
       </Li>
     )
   },

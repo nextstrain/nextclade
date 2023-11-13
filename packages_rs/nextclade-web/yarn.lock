@@ -13539,6 +13539,11 @@ react-transition-group@^4.3.0, react-transition-group@^4.4.2:
     loose-envify "^1.4.0"
     prop-types "^15.6.2"
 
+react-use-wizard@2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/react-use-wizard/-/react-use-wizard-2.2.3.tgz#d2e57b299b6c35fcca90f3a6deb2d0a81318b466"
+  integrity sha512-Oh3EfpmWwF7vW1YZ2EgSLoU9VKJ13+TyLNmT56rBhLoXr3FXZoDEmtyxZ46GVkcicl/8qiHX0C42M6n2oKDkEQ==
+
 react-virtualized-auto-sizer@1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.6.tgz#66c5b1c9278064c5ef1699ed40a29c11518f97ca"

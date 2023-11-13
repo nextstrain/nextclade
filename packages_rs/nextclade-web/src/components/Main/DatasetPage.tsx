@@ -1,8 +1,7 @@
 import React from 'react'
-
-import { Layout } from 'src/components/Layout/Layout'
-import { MainInputForm } from 'src/components/Main/MainInputForm'
 import styled from 'styled-components'
+import { Layout } from 'src/components/Layout/Layout'
+import { StepDatasetSelection } from 'src/components/Main/StepDatasetSelection'
 
 const Main = styled.div`
   display: flex;
@@ -15,11 +14,11 @@ const Main = styled.div`
   max-width: 1400px;
 `
 
-export function MainPage() {
+export function DatasetPage() {
   return (
     <Layout>
       <Main>
-        <MainInputForm />
+        <StepDatasetSelection />
       </Main>
     </Layout>
   )

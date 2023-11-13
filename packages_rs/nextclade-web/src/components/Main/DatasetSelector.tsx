@@ -1,21 +1,99 @@
-import React, { HTMLProps, useState } from 'react'
+import { get, isNil, sortBy } from 'lodash'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import styled from 'styled-components'
-import { ThreeDots } from 'react-loader-spinner'
-import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
-import { SearchBox } from 'src/components/Common/SearchBox'
+import { Container as ContainerBase } from 'reactstrap'
 import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
+import {
+  autodetectResultsAtom,
+  AutodetectRunState,
+  autodetectRunStateAtom,
+  groupByDatasets,
+} from 'src/state/autodetect.state'
+import styled from 'styled-components'
+import type { Dataset } from 'src/types'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { datasetsAtom } from 'src/state/dataset.state'
+import { SearchBox } from 'src/components/Common/SearchBox'
 
-export function DatasetSelector() {
+export interface DatasetSelectorProps {
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
+}
+
+export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
+  const { datasets } = useRecoilValue(datasetsAtom)
+
+  const autodetectResults = useRecoilValue(autodetectResultsAtom)
+  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
+
+  const result = useMemo(() => {
+    if (isNil(autodetectResults) || autodetectResults.length === 0) {
+      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
+    }
+
+    const recordsByDataset = groupByDatasets(autodetectResults)
+
+    let itemsInclude = datasets.filter((candidate) =>
+      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
+    )
+
+    itemsInclude = sortBy(itemsInclude, (dataset) => -get(recordsByDataset, dataset.path, []).length)
+
+    const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
+
+    return { itemsStartWith: [], itemsInclude, itemsNotInclude }
+  }, [autodetectResults, datasets])
+
+  const datasetsActive = useMemo(() => {
+    const { itemsStartWith, itemsInclude } = result
+    return [...itemsStartWith, ...itemsInclude]
+  }, [result])
+
+  const datasetsInactive = useMemo(() => {
+    const { itemsNotInclude } = result
+    return itemsNotInclude
+  }, [result])
+
+  const showSuggestions = useMemo(() => !isNil(autodetectResults) && autodetectResults.length > 0, [autodetectResults])
+
+  useEffect(() => {
+    const topSuggestion = result.itemsInclude[0]
+
+    if (autodetectRunState === AutodetectRunState.Done) {
+      onDatasetHighlighted?.(topSuggestion)
+      setAutodetectRunState(AutodetectRunState.Idle)
+    }
+  }, [autodetectRunState, result.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
+
+  return (
+    <DatasetSelectorImpl
+      datasetsActive={datasetsActive}
+      datasetsInactive={datasetsInactive}
+      datasetHighlighted={datasetHighlighted}
+      onDatasetHighlighted={onDatasetHighlighted}
+      showSuggestions={showSuggestions}
+    />
+  )
+}
+
+export interface DatasetSelectorImplProps {
+  datasetsActive: Dataset[]
+  datasetsInactive?: Dataset[]
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
+  showSuggestions?: boolean
+}
+
+export function DatasetSelectorImpl({
+  datasetsActive,
+  datasetsInactive,
+  datasetHighlighted,
+  onDatasetHighlighted,
+  showSuggestions,
+}: DatasetSelectorImplProps) {
   const { t } = useTranslationSafe()
   const [searchTerm, setSearchTerm] = useState('')
-  const { datasets } = useRecoilValue(datasetsAtom)
-  const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetCurrentAtom)
-
-  const isBusy = datasets.length === 0
-
   return (
     <Container>
       <Header>
@@ -24,39 +102,31 @@ export function DatasetSelector() {
         <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
       </Header>
 
-      <Main>
-        {!isBusy && (
-          <DatasetSelectorList
-            datasets={datasets}
-            datasetHighlighted={datasetCurrent}
-            searchTerm={searchTerm}
-            onDatasetHighlighted={setDatasetCurrent}
-          />
-        )}
-
-        {isBusy && (
-          <SpinnerWrapper>
-            <SpinnerWrapperInternal>
-              <Spinner color="#aaa" width={20} height={20} />
-            </SpinnerWrapperInternal>
-          </SpinnerWrapper>
-        )}
-      </Main>
-
-      <Footer>
+      <Header>
         <SuggestionPanel />
-      </Footer>
+      </Header>
+
+      <Main>
+        <DatasetSelectorList
+          datasetsActive={datasetsActive}
+          datasetsInactive={datasetsInactive}
+          datasetHighlighted={datasetHighlighted}
+          onDatasetHighlighted={onDatasetHighlighted}
+          searchTerm={searchTerm}
+          showSuggestions={showSuggestions}
+        />
+      </Main>
     </Container>
   )
 }
 
-const Container = styled.div`
+const Container = styled(ContainerBase)`
   display: flex;
   flex: 1;
   flex-direction: column;
-  height: 100%;
   overflow: hidden;
-  margin-right: 10px;
+  margin: 0 auto;
+  max-width: 800px;
 `
 
 const Header = styled.div`
@@ -74,28 +144,7 @@ const Main = styled.div`
   overflow: hidden;
 `
 
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
-`
-
 const Title = styled.h4`
   flex: 1;
   margin: auto 0;
-`
-
-const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
-  width: 100%;
-  height: 100%;
-  display: flex;
-`
-
-const SpinnerWrapperInternal = styled.div`
-  margin: auto;
-`
-
-const Spinner = styled(ThreeDots)`
-  flex: 1;
-  margin: auto;
-  height: 100%;
 `
