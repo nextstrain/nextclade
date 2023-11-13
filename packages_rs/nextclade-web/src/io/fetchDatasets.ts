@@ -90,7 +90,7 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
 
   // If requested to try GitHub-hosted datasets either using `DATA_TRY_GITHUB_BRANCH` env var (e.g. from
   // `.env` file), or using `&dataset-server=gh` or `&dataset-server=github` URL parameters, then check if the
-  // corresponding branch in the default data repo on GitHub contains an `index.json` file. And and if yes, use it.
+  // corresponding branch in the default data repo on GitHub contains an `index.json` file. And if yes, use it.
   const datasetServerTryGithubBranch =
     (isNil(datasetServerUrl) && process.env.DATA_TRY_GITHUB_BRANCH === '1') ||
     (datasetServerUrl && ['gh', 'github'].includes(datasetServerUrl))
