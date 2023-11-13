@@ -2,7 +2,7 @@ import { get, isNil, sortBy } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
-import { DatasetSelectorListImpl } from 'src/components/Main/DatasetSelectorListImpl'
+import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import {
   autodetectResultsAtom,
@@ -107,7 +107,7 @@ export function DatasetSelectorImpl({
       </Header>
 
       <Main>
-        <DatasetSelectorListImpl
+        <DatasetSelectorList
           datasetsActive={datasetsActive}
           datasetsInactive={datasetsInactive}
           datasetHighlighted={datasetHighlighted}

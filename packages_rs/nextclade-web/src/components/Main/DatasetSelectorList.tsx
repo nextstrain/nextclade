@@ -8,7 +8,7 @@ import { search } from 'src/helpers/search'
 import { ListGenericCss } from 'src/components/Common/List'
 import { DatasetListEntry } from 'src/components/Main/DatasetListEntry'
 
-export interface DatasetSelectorListImplProps {
+export interface DatasetSelectorListProps {
   datasetsActive: Dataset[]
   datasetsInactive?: Dataset[]
   datasetHighlighted?: Dataset
@@ -17,14 +17,14 @@ export interface DatasetSelectorListImplProps {
   showSuggestions?: boolean
 }
 
-export function DatasetSelectorListImpl({
+export function DatasetSelectorList({
   datasetsActive,
   datasetsInactive = [],
   datasetHighlighted,
   onDatasetHighlighted,
   searchTerm,
   showSuggestions,
-}: DatasetSelectorListImplProps) {
+}: DatasetSelectorListProps) {
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
 
   const listItemsRef = useScrollListToDataset(datasetHighlighted)
