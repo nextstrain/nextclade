@@ -19,7 +19,7 @@ import {
 } from 'src/state/autodetect.state'
 import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
-import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom, shouldSuggestDatasetsOnMainPageAtom } from 'src/state/settings.state'
 
 export function SuggestionPanel() {
   const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
@@ -238,7 +238,33 @@ const ButtonResetStyled = styled(Button)`
 
 function AutosuggestionToggle({ ...restProps }) {
   const { t } = useTranslationSafe()
-  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(shouldSuggestDatasetsAtom)
+  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(
+    shouldSuggestDatasetsOnDatasetPageAtom,
+  )
+  return (
+    <FormGroup {...restProps}>
+      <Toggle
+        identifier="toggle-suggest-datasets"
+        checked={shouldSuggestDatasets}
+        onCheckedChanged={toggleSuggestDatasets}
+      >
+        <span
+          title={t(
+            'Enable suggestion of best matching pathogen datasets. Please add sequence data to launch suggestion engine.',
+          )}
+        >
+          {t('Suggest automatically')}
+        </span>
+      </Toggle>
+    </FormGroup>
+  )
+}
+
+export function AutosuggestionOnMainPageToggle({ ...restProps }) {
+  const { t } = useTranslationSafe()
+  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(
+    shouldSuggestDatasetsOnMainPageAtom,
+  )
   return (
     <FormGroup {...restProps}>
       <Toggle

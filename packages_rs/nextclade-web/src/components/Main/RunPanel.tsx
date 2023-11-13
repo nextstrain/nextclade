@@ -8,7 +8,7 @@ import { useRecoilToggle } from 'src/hooks/useToggle'
 import { canRunAtom } from 'src/state/results.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
-import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import { Toggle } from 'src/components/Common/Toggle'
 import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -44,7 +44,7 @@ export function RunPanel() {
 
   const canRun = useRecoilValue(canRunAtom)
   const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
-  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
+  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
 
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)

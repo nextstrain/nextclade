@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Col, Row } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
+import { useRecoilState } from 'recoil'
 import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
+import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -12,7 +14,15 @@ export function DatasetCurrentSummary() {
   // Periodically checks if there's local update for the current dataset
   useUpdatedDataset()
 
-  const dataset = useRecoilValue(datasetCurrentAtom)
+  const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
+  const { topSuggestion } = useDatasetSuggestionResults()
+  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
+  useEffect(() => {
+    if (autodetectRunState === AutodetectRunState.Done) {
+      setDataset(topSuggestion)
+      setAutodetectRunState(AutodetectRunState.Idle)
+    }
+  }, [autodetectRunState, setAutodetectRunState, setDataset, topSuggestion])
 
   if (!dataset) {
     return null

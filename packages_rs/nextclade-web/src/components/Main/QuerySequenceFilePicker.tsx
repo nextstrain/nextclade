@@ -6,7 +6,7 @@ import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
 import { qrySeqErrorAtom } from 'src/state/error.state'
-import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnMainPageAtom } from 'src/state/settings.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
@@ -19,7 +19,7 @@ export function QuerySequenceFilePicker() {
   const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
   const { state: shouldRunAutomatically } = useRecoilToggle(shouldRunAutomaticallyAtom)
-  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
+  const shouldSuggestDatasetsOnMainPage = useRecoilValue(shouldSuggestDatasetsOnMainPageAtom)
 
   const icon = useMemo(() => <FileIconFasta />, [])
 
@@ -29,14 +29,14 @@ export function QuerySequenceFilePicker() {
   const setSequences = useCallback(
     (inputs: AlgorithmInput[]) => {
       addQryInputs(inputs)
-      if (shouldSuggestDatasets) {
+      if (shouldSuggestDatasetsOnMainPage) {
         runAutodetect()
       }
       if (shouldRunAutomatically) {
         runAnalysis()
       }
     },
-    [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets],
+    [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasetsOnMainPage],
   )
 
   const headerText = useMemo(() => {

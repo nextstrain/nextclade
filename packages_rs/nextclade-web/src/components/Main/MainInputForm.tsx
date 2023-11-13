@@ -4,7 +4,7 @@ import { isNil } from 'lodash'
 import { useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -16,6 +16,7 @@ import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/But
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { QuerySequenceList } from './QuerySequenceList'
+import { AutosuggestionOnMainPageToggle } from './SuggestionPanel'
 
 const ContainerFixed = styled.div`
   display: flex;
@@ -81,7 +82,7 @@ function StepLanding() {
   const { push } = useRouter()
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
-  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
+  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
 
   const toDatasetSelection = useCallback(() => {
     void push('/dataset') // eslint-disable-line no-void
@@ -151,6 +152,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       <Main>
         <DatasetCurrentSummary />
       </Main>
+
+      <Footer>
+        <AutosuggestionOnMainPageToggle />
+      </Footer>
 
       <Footer>
         <ButtonChangeDataset className="mr-auto my-2" onClick={toDatasetSelection} />
