@@ -1,4 +1,4 @@
-import { Dataset } from '_SchemaRoot'
+import type { Dataset } from 'src/types'
 import React, { useCallback, useMemo, useState } from 'react'
 import {
   Dropdown as DropdownBase,
@@ -7,6 +7,7 @@ import {
   DropdownItem as DropdownItemBase,
   DropdownProps,
 } from 'reactstrap'
+import { useSetExampleSequences } from 'src/components/Main/ButtonLoadExample'
 import { attrStrMaybe } from 'src/types'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
@@ -14,8 +15,6 @@ import { SearchBox } from 'src/components/Common/SearchBox'
 import { search } from 'src/helpers/search'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { datasetsAtom } from 'src/state/dataset.state'
-import { useQuerySeqInputs } from 'src/state/inputs.state'
-import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 
 export type LanguageSwitcherProps = DropdownProps
 
@@ -27,8 +26,6 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
     setDropdownOpen((prevState) => !prevState)
   }, [])
   const { datasets } = useRecoilValue(datasetsAtom)
-  const { addQryInputs } = useQuerySeqInputs()
-
   const filtered = useMemo(() => {
     if (searchTerm.trim().length === 0) {
       return datasets
@@ -43,11 +40,12 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
     return [...itemsStartWith, ...itemsInclude]
   }, [datasets, searchTerm])
 
+  const setExampleSequences = useSetExampleSequences()
   const onClick = useCallback(
     (dataset: Dataset) => () => {
-      addQryInputs([new AlgorithmInputDefault(dataset)])
+      setExampleSequences(dataset)
     },
-    [addQryInputs],
+    [setExampleSequences],
   )
 
   return (
