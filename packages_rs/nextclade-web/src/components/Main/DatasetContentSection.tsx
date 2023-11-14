@@ -22,17 +22,17 @@ export function DatasetContentSection() {
       <Nav tabs>
         {currentDataset?.files.readme && (
           <TabLabel tabId={0} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-            {'README.md'}
+            {'Summary'}
           </TabLabel>
         )}
         {currentDataset?.files.changelog && (
           <TabLabel tabId={1} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-            {'CHANGELOG.md'}
+            {'History'}
           </TabLabel>
         )}
         {currentDataset && (
           <TabLabel tabId={2} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-            {'Files'}
+            {'Customize'}
           </TabLabel>
         )}
       </Nav>
