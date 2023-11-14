@@ -24,7 +24,7 @@ export function DatasetCurrentSummary() {
 
       <Row noGutters className="w-100">
         <Col className="d-flex">
-          <DatasetInfo dataset={dataset} />
+          <DatasetInfo dataset={dataset} showSuggestions />
         </Col>
       </Row>
       <Row noGutters>
