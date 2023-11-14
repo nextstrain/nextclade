@@ -1,6 +1,6 @@
 import React from 'react'
 import { Col, Row } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
+import { useRecoilState } from 'recoil'
 import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
@@ -12,7 +12,7 @@ export function DatasetCurrentSummary() {
   // Periodically checks if there's local update for the current dataset
   useUpdatedDataset()
 
-  const dataset = useRecoilValue(datasetCurrentAtom)
+  const [dataset, _0] = useRecoilState(datasetCurrentAtom)
 
   if (!dataset) {
     return null

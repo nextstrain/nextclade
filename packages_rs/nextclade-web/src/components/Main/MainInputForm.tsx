@@ -1,10 +1,12 @@
 import { useRouter } from 'next/router'
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { AutosuggestionToggle } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -14,7 +16,7 @@ import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePi
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { QuerySequenceList } from './QuerySequenceList'
 
 const ContainerFixed = styled.div`
@@ -81,7 +83,7 @@ function StepLanding() {
   const { push } = useRouter()
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
-  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
+  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
 
   const toDatasetSelection = useCallback(() => {
     void push('/dataset') // eslint-disable-line no-void
@@ -119,8 +121,17 @@ export interface DatasetCurrentOrSelectProps {
 
 function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectProps) {
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
   const run = useRunAnalysis()
+
+  const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
+  const { topSuggestion } = useDatasetSuggestionResults()
+  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
+  useEffect(() => {
+    if (autodetectRunState === AutodetectRunState.Done) {
+      setDataset(topSuggestion)
+      setAutodetectRunState(AutodetectRunState.Idle)
+    }
+  }, [autodetectRunState, setAutodetectRunState, setDataset, topSuggestion])
 
   const text = useMemo(() => {
     if (isNil(dataset)) {
@@ -138,6 +149,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         <Main>
           <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
         </Main>
+
+        <Footer>
+          <AutosuggestionToggle />
+        </Footer>
       </Container>
     )
   }
@@ -151,6 +166,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       <Main>
         <DatasetCurrentSummary />
       </Main>
+
+      <Footer>
+        <AutosuggestionToggle />
+      </Footer>
 
       <Footer>
         <ButtonChangeDataset className="mr-auto my-2" onClick={toDatasetSelection} />

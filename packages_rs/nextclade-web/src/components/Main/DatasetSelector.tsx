@@ -1,19 +1,13 @@
-import { get, isNil, sortBy } from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import React, { useEffect, useState } from 'react'
+import { useRecoilState } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
 import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import {
-  autodetectResultsAtom,
-  AutodetectRunState,
-  autodetectRunStateAtom,
-  groupByDatasets,
-} from 'src/state/autodetect.state'
+import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import styled from 'styled-components'
 import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetsAtom } from 'src/state/dataset.state'
 import { SearchBox } from 'src/components/Common/SearchBox'
 
 export interface DatasetSelectorProps {
@@ -22,49 +16,14 @@ export interface DatasetSelectorProps {
 }
 
 export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
-  const { datasets } = useRecoilValue(datasetsAtom)
-
-  const autodetectResults = useRecoilValue(autodetectResultsAtom)
   const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
-
-  const result = useMemo(() => {
-    if (isNil(autodetectResults) || autodetectResults.length === 0) {
-      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
-    }
-
-    const recordsByDataset = groupByDatasets(autodetectResults)
-
-    let itemsInclude = datasets.filter((candidate) =>
-      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
-    )
-
-    itemsInclude = sortBy(itemsInclude, (dataset) => -get(recordsByDataset, dataset.path, []).length)
-
-    const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
-
-    return { itemsStartWith: [], itemsInclude, itemsNotInclude }
-  }, [autodetectResults, datasets])
-
-  const datasetsActive = useMemo(() => {
-    const { itemsStartWith, itemsInclude } = result
-    return [...itemsStartWith, ...itemsInclude]
-  }, [result])
-
-  const datasetsInactive = useMemo(() => {
-    const { itemsNotInclude } = result
-    return itemsNotInclude
-  }, [result])
-
-  const showSuggestions = useMemo(() => !isNil(autodetectResults) && autodetectResults.length > 0, [autodetectResults])
-
+  const { datasetsActive, datasetsInactive, topSuggestion, showSuggestions } = useDatasetSuggestionResults()
   useEffect(() => {
-    const topSuggestion = result.itemsInclude[0]
-
     if (autodetectRunState === AutodetectRunState.Done) {
       onDatasetHighlighted?.(topSuggestion)
       setAutodetectRunState(AutodetectRunState.Idle)
     }
-  }, [autodetectRunState, result.itemsInclude, onDatasetHighlighted, setAutodetectRunState])
+  }, [autodetectRunState, onDatasetHighlighted, setAutodetectRunState, topSuggestion])
 
   return (
     <DatasetSelectorImpl

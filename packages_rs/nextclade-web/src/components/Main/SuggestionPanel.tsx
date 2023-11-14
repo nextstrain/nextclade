@@ -19,7 +19,7 @@ import {
 } from 'src/state/autodetect.state'
 import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
-import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 
 export function SuggestionPanel() {
   const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
@@ -236,9 +236,11 @@ const ButtonResetStyled = styled(Button)`
   text-align: center;
 `
 
-function AutosuggestionToggle({ ...restProps }) {
+export function AutosuggestionToggle({ ...restProps }) {
   const { t } = useTranslationSafe()
-  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(shouldSuggestDatasetsAtom)
+  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(
+    shouldSuggestDatasetsOnDatasetPageAtom,
+  )
   return (
     <FormGroup {...restProps}>
       <Toggle
