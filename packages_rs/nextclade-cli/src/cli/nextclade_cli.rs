@@ -359,13 +359,12 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_pathogen_json: Option<PathBuf>,
 
-  /// Path to a GFF3 file containing (genome annotation).
+  /// Path to a file containing genome annotation in GFF3 format.
   ///
   /// Genome annotation is used to find coding regions. If not supplied, coding regions will
-  /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
-  /// alignment will not be informed by codon boundaries
+  /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries.
   ///
-  /// List of genes can be restricted using `--genes` flag. Otherwise, all genes found in the genome annotation will be used.
+  /// List of CDSes can be restricted using `--cds-selection` argument. Otherwise, all CDSes found in the genome annotation will be used.
   ///
   /// Overrides genome annotation provided by the dataset (`--input-dataset` or `--dataset-name`).
   ///
@@ -379,12 +378,10 @@ pub struct NextcladeRunInputArgs {
 
   /// Comma-separated list of names of coding sequences (CDSes) to use.
   ///
-  /// This defines which peptides will be written into outputs, and which genes will be taken into account during
+  /// This defines which peptides will be written into outputs, and which CDS will be taken into account during
   /// codon-aware alignment and aminoacid mutations detection. Must only contain CDS names present in the genome annotation.
   ///
   /// If this flag is not supplied or its value is an empty string, then all CDSes found in the genome annotation will be used.
-  ///
-  /// Requires `--input-annotation` to be specified.
   #[clap(
     long,
     short = 'g',
@@ -436,7 +433,7 @@ pub struct NextcladeRunInputArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub genemap: Option<String>,
 
-  /// RENAMED to `--cds-selection`
+  /// REMOVED in favor of `--cds-selection`
   #[clap(long)]
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub genes: Option<Vec<String>>,
@@ -941,7 +938,10 @@ const ERROR_MSG_INPUT_ROOT_SEQ_REMOVED: &str =
 const ERROR_MSG_INPUT_GENE_MAP_RENAMED: &str =
   r#"The argument `--input-gene-map` (alias `--genemap`) is renamed to `--input-annotation`."#;
 
-const ERROR_MSG_GENES_RENAMED: &str = r#"The argument `--genes` is renamed to `--cds-selection`."#;
+const ERROR_MSG_GENES_RENAMED: &str = r#"The argument `--genes` is removed in favor of `--cds-selection`.
+
+Nextclade now relies on features of type "CDS" rather than "gene" in genome annotation. Please take a note of CDS features in the genome annotation file and use `--cds-selection` argument to select CDS features you want Nextclade to take into account during the analysis. Alternatively, remove the argument to analyze all CDS features present in genome annotation.
+"#;
 
 const ERROR_MSG_OUTPUT_DIR_REMOVED: &str = r#"The argument `--output-dir` is removed in favor of `--output-all`.
 
