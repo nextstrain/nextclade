@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { AutosuggestionToggle } from 'src/components/Main/SuggestionPanel'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -59,6 +59,9 @@ const Main = styled.div`
 const Footer = styled.div`
   display: flex;
   flex: 1;
+`
+
+const FooterWithoutOverflow = styled(Footer)`
   overflow: hidden;
 `
 
@@ -105,13 +108,13 @@ function StepLanding() {
         </ContainerColumns>
       </Main>
 
-      <Footer>
+      <FooterWithoutOverflow>
         <Container>
           <Main>
             <QuerySequenceList />
           </Main>
         </Container>
-      </Footer>
+      </FooterWithoutOverflow>
     </ContainerFixed>
   )
 }
@@ -152,7 +155,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         </Main>
 
         <Footer>
-          <AutosuggestionToggle />
+          <SuggestionPanel />
         </Footer>
       </Container>
     )
@@ -169,7 +172,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       </Main>
 
       <Footer>
-        <AutosuggestionToggle />
+        <SuggestionPanel />
       </Footer>
 
       <Footer>
