@@ -97,7 +97,8 @@ function StepLanding() {
       <Header>
         <MainSectionTitle />
       </Header>
-      <Main>
+
+      <Main className="mt-4">
         <ContainerColumns>
           <QuerySequenceFilePicker />
           <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
