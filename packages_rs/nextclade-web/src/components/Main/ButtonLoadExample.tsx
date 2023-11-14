@@ -1,3 +1,4 @@
+import { Dataset } from '_SchemaRoot'
 import React, { useCallback } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
@@ -10,31 +11,41 @@ import { hasInputErrorsAtom } from 'src/state/error.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 
-export function ButtonLoadExample({ ...rest }) {
-  const { t } = useTranslationSafe()
-
-  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
+export function useSetExampleSequences() {
   const { addQryInputs } = useQuerySeqInputs()
-  const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
   const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
   const runAnalysis = useRunAnalysis()
   const runAutodetect = useRunSeqAutodetect()
 
-  const setExampleSequences = useCallback(() => {
-    if (datasetCurrent) {
-      addQryInputs([new AlgorithmInputDefault(datasetCurrent)])
-      if (shouldSuggestDatasets) {
-        runAutodetect()
+  return useCallback(
+    (dataset?: Dataset) => {
+      if (dataset) {
+        addQryInputs([new AlgorithmInputDefault(dataset)])
+        if (shouldSuggestDatasets) {
+          runAutodetect()
+        }
+        if (shouldRunAutomatically) {
+          runAnalysis()
+        }
       }
-      if (shouldRunAutomatically) {
-        runAnalysis()
-      }
-    }
-  }, [addQryInputs, datasetCurrent, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets])
+    },
+    [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets],
+  )
+}
+
+export function ButtonLoadExample({ ...rest }) {
+  const { t } = useTranslationSafe()
+
+  const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
+  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
+  const setExampleSequences = useSetExampleSequences()
+  const onClick = useCallback(() => {
+    setExampleSequences(datasetCurrent)
+  }, [datasetCurrent, setExampleSequences])
 
   return (
-    <Button {...rest} color="link" onClick={setExampleSequences} disabled={hasInputErrors || !datasetCurrent}>
+    <Button {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>
       {t('Load example')}
     </Button>
   )
