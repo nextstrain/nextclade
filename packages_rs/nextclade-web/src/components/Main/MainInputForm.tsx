@@ -65,24 +65,10 @@ const FooterWithoutOverflow = styled(Footer)`
   overflow: hidden;
 `
 
-export function MainInputForm() {
+export function Landing() {
   // This periodically fetches dataset index and updates the list of datasets.
   useUpdatedDatasetIndex()
 
-  return <MainWizard />
-}
-
-function MainWizard() {
-  return (
-    <Container>
-      <Main>
-        <StepLanding />
-      </Main>
-    </Container>
-  )
-}
-
-function StepLanding() {
   const { push } = useRouter()
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
@@ -119,11 +105,11 @@ function StepLanding() {
   )
 }
 
-export interface DatasetCurrentOrSelectProps {
+export interface DatasetCurrentOrSelectButtonProps {
   toDatasetSelection(): void
 }
 
-function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectProps) {
+function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectButtonProps) {
   const { t } = useTranslationSafe()
   const run = useRunAnalysis()
 

@@ -1,7 +1,6 @@
 import React from 'react'
-
 import { Layout } from 'src/components/Layout/Layout'
-import { MainInputForm } from 'src/components/Main/MainInputForm'
+import { Landing } from 'src/components/Main/MainInputForm'
 import styled from 'styled-components'
 
 const Main = styled.div`
@@ -19,7 +18,7 @@ export function MainPage() {
   return (
     <Layout>
       <Main>
-        <MainInputForm />
+        <Landing />
       </Main>
     </Layout>
   )
