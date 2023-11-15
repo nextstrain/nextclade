@@ -1,5 +1,5 @@
 import React from 'react'
-import { Col, Row } from 'reactstrap'
+import { Col, Row, Container as ContainerBase } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -11,14 +11,14 @@ import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
 import { DatasetCurrentUpdateNotification } from 'src/components/Main/DatasetCurrentUpdateNotification'
 
-export const CurrentDatasetInfoContainer = styled.div`
+const CurrentDatasetInfoContainer = styled(ContainerBase)`
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
 `
 
-export const CurrentDatasetInfoHeader = styled.section`
+const CurrentDatasetInfoHeader = styled.section`
   display: flex;
   margin-bottom: 0.5rem;
   margin-top: 7px;
@@ -30,7 +30,7 @@ const DatasetInfoH4 = styled.h4`
   margin-top: 12px;
 `
 
-export const CurrentDatasetInfoBody = styled.section`
+const CurrentDatasetInfoBody = styled.section`
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -58,12 +58,6 @@ const Main = styled.div`
 
   margin: 0.5rem 0;
 `
-
-export const FlexLeft = styled.div`
-  flex: 1;
-`
-
-export const FlexRight = styled.div``
 
 export function DatasetCurrent() {
   // Periodically checks if there's local update for the current dataset
