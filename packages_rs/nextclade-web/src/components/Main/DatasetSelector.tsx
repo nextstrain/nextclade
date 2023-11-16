@@ -91,7 +91,7 @@ const Container = styled(ContainerBase)`
 const Header = styled.div`
   display: flex;
   flex: 0;
-  padding-left: 10px;
+  padding-left: 8px;
   margin-top: 10px;
   margin-bottom: 3px;
 `

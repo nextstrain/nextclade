@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { AutosuggestionToggle } from 'src/components/Main/SuggestionPanel'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -59,27 +59,16 @@ const Main = styled.div`
 const Footer = styled.div`
   display: flex;
   flex: 1;
+`
+
+const FooterWithoutOverflow = styled(Footer)`
   overflow: hidden;
 `
 
-export function MainInputForm() {
+export function Landing() {
   // This periodically fetches dataset index and updates the list of datasets.
   useUpdatedDatasetIndex()
 
-  return <MainWizard />
-}
-
-function MainWizard() {
-  return (
-    <Container>
-      <Main>
-        <StepLanding />
-      </Main>
-    </Container>
-  )
-}
-
-function StepLanding() {
   const { push } = useRouter()
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
@@ -105,22 +94,22 @@ function StepLanding() {
         </ContainerColumns>
       </Main>
 
-      <Footer>
+      <FooterWithoutOverflow>
         <Container>
           <Main>
             <QuerySequenceList />
           </Main>
         </Container>
-      </Footer>
+      </FooterWithoutOverflow>
     </ContainerFixed>
   )
 }
 
-export interface DatasetCurrentOrSelectProps {
+export interface DatasetCurrentOrSelectButtonProps {
   toDatasetSelection(): void
 }
 
-function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectProps) {
+function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSelectButtonProps) {
   const { t } = useTranslationSafe()
   const run = useRunAnalysis()
 
@@ -152,7 +141,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         </Main>
 
         <Footer>
-          <AutosuggestionToggle />
+          <SuggestionPanel />
         </Footer>
       </Container>
     )
@@ -169,7 +158,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       </Main>
 
       <Footer>
-        <AutosuggestionToggle />
+        <SuggestionPanel />
       </Footer>
 
       <Footer>
