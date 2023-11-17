@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Col, Row } from 'reactstrap'
 
-import { About } from 'src/components/About/About'
+import { About } from 'src/components/About/AboutPage'
 import { Downloads } from 'src/components/Main/Downloads'
 
 export function MainSectionInfo() {
