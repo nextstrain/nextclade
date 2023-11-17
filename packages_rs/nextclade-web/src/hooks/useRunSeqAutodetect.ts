@@ -147,7 +147,9 @@ export function useDatasetSuggestionResults() {
 
   const showSuggestions = useMemo(() => !isNil(autodetectResults) && autodetectResults.length > 0, [autodetectResults])
 
-  const topSuggestion = result.itemsInclude[0]
+  const topSuggestion = datasetsActive[0]
 
-  return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions }
+  const numSuggestions = autodetectResults ? datasetsActive.length : 0
+
+  return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions }
 }
