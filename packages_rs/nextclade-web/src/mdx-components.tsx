@@ -74,7 +74,8 @@ export const Blockquote = styled.blockquote`
 `
 
 export const P = styled.p`
-  margin: 3px 7px;
+  text-align: justify;
+  word-break: break-all;
 
   code {
     font-size: 0.8rem;
