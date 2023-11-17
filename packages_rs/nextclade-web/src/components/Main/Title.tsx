@@ -1,4 +1,6 @@
 import React from 'react'
+import { LinkSmart } from 'src/components/Link/LinkSmart'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import styled from 'styled-components'
 
@@ -48,8 +50,9 @@ const LetterSpan = styled.span<{ pos: number }>`
 `
 
 export function Title() {
+  const { t } = useTranslationSafe()
   return (
-    <span>
+    <span className="d-inline-flex">
       <TitleH1>
         {'Nextclade'.split('').map((letter, i) => (
           // eslint-disable-next-line react/no-array-index-key
@@ -58,14 +61,26 @@ export function Title() {
           </LetterSpan>
         ))}
       </TitleH1>
-      {PACKAGE_VERSION && <VersionNumberBadge color="secondary">{`v${PACKAGE_VERSION}`}</VersionNumberBadge>}
+
+      <div className="d-flex h-auto flex-row">
+        <span className="flex-1 d-flex h-auto flex-column mb-2 mt-2">
+          <span className="mb-auto">{<AboutLink href="/about">{t('What is this?')}</AboutLink>}</span>
+          <span className="mt-auto">
+            {PACKAGE_VERSION && <VersionNumberBadge color="secondary">{`v${PACKAGE_VERSION}`}</VersionNumberBadge>}
+          </span>
+        </span>
+      </div>
     </span>
   )
 }
 
+const AboutLink = styled(LinkSmart)`
+  margin-bottom: auto;
+`
+
 export const Subtitle = styled.h2`
   text-align: center;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 300;
 
   @media (max-width: 991.98px) {
