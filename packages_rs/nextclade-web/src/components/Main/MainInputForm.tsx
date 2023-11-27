@@ -1,14 +1,13 @@
 import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
-import { UncontrolledAlert as UncontrolledAlertBase } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import styled from 'styled-components'
-import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
-import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
@@ -116,38 +115,6 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   const run = useRunAnalysis()
 
   const [dataset, _0] = useRecoilState(datasetCurrentAtom)
-  const { numSuggestions } = useDatasetSuggestionResults()
-  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
-
-  const suggestionAlert = useMemo(() => {
-    if (autodetectRunState === AutodetectRunState.Done) {
-      if (numSuggestions === 0) {
-        return (
-          <UncontrolledAlert closeClassName="d-none" fade={false} color="danger" className="w-100">
-            <h6 className="font-weight-bold">{t('No datasets found matching your sequences.')}</h6>
-            <p className="small">
-              {t(
-                'Click "Change dataset" to select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.',
-              )}
-            </p>
-          </UncontrolledAlert>
-        )
-      }
-      if (numSuggestions > 0) {
-        return (
-          <UncontrolledAlert closeClassName="d-none" fade={false} color="warning" className="w-100">
-            <h6 className="font-weight-bold">{t('Multiple datasets found matching your sequences.')}</h6>
-            <p className="small">
-              {t('{{ n }} datasets appear to match your data. Click "Change dataset" to select the one to use.', {
-                n: numSuggestions,
-              })}
-            </p>
-          </UncontrolledAlert>
-        )
-      }
-    }
-    return null
-  }, [autodetectRunState, numSuggestions, t])
 
   const text = useMemo(() => {
     if (isNil(dataset)) {
@@ -155,6 +122,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     }
     return t('Selected dataset')
   }, [dataset, t])
+
   if (!dataset) {
     return (
       <Container>
@@ -170,10 +138,11 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         </Main>
 
         <Footer>
-          <SuggestionPanel />
+          <div>
+            <SuggestionPanel />
+            <SuggestionAlertMainPage />
+          </div>
         </Footer>
-
-        <Footer>{suggestionAlert}</Footer>
       </Container>
     )
   }
@@ -192,10 +161,11 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       </Main>
 
       <Footer>
-        <SuggestionPanel />
+        <div className="w-100 d-flex flex-column">
+          <SuggestionPanel />
+          <SuggestionAlertMainPage />
+        </div>
       </Footer>
-
-      <Footer>{suggestionAlert}</Footer>
 
       <Footer>
         <ButtonChangeDataset className="mr-auto my-2" onClick={toDatasetSelection} />
@@ -204,14 +174,6 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     </Container>
   )
 }
-
-const UncontrolledAlert = styled(UncontrolledAlertBase)`
-  padding: 0.5rem;
-
-  p {
-    margin: 0;
-  }
-`
 
 const Title = styled.h4`
   display: flex;

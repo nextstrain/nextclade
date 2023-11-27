@@ -22,7 +22,6 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
   useEffect(() => {
     if (autodetectRunState === AutodetectRunState.Done) {
       onDatasetHighlighted?.(topSuggestion)
-      setAutodetectRunState(AutodetectRunState.Idle)
     }
   }, [autodetectRunState, onDatasetHighlighted, setAutodetectRunState, topSuggestion])
 
