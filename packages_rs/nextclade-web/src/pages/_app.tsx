@@ -12,6 +12,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
 import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import { mdxComponents } from 'src/mdx-components'
 import LoadingPage from 'src/pages/loading'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
@@ -42,7 +43,6 @@ import { parseUrl } from 'src/helpers/parseUrl'
 import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
 import { fetchSingleDataset } from 'src/io/fetchSingleDataset'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
@@ -171,8 +171,6 @@ export function RecoilStateInitializer() {
 
   return null
 }
-
-const mdxComponents = { a: LinkExternal }
 
 const REACT_QUERY_OPTIONS: QueryClientConfig = {
   defaultOptions: { queries: { suspense: true, retry: 1 } },

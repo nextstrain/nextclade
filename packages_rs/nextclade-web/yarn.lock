@@ -1795,7 +1795,7 @@
     "@babel/plugin-transform-react-jsx-development" "^7.16.7"
     "@babel/plugin-transform-react-pure-annotations" "^7.16.7"
 
-"@babel/preset-typescript@7.16.7", "@babel/preset-typescript@7.9.0", "@babel/preset-typescript@^7.15.0", "@babel/preset-typescript@^7.16.0":
+"@babel/preset-typescript@7.16.7", "@babel/preset-typescript@7.9.0", "@babel/preset-typescript@^7.15.0", "@babel/preset-typescript@^7.16.0", "@babel/preset-typescript@^7.21.0":
   version "7.16.7"
   resolved "https://registry.yarnpkg.com/@babel/preset-typescript/-/preset-typescript-7.16.7.tgz#ab114d68bb2020afc069cd51b37ff98a046a70b9"
   integrity sha512-WbVEmgXdIyvzB77AQjGBEyYPZx+8tTsO50XtfozQrkW8QB2rLJpH2lgx0TRw5EJrBxOZQ+wCcyPVQvS8tjEHpQ==
@@ -2768,6 +2768,16 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@redux-saga/types/-/types-1.1.0.tgz#0e81ce56b4883b4b2a3001ebe1ab298b84237204"
   integrity sha512-afmTuJrylUU/0OtqzaRkbyYFFNgCF73Bvel/sw90pvGrWIZ+vyoIJqA6eMSoA6+nb443kTmulmBtC9NerXboNg==
+
+"@reduxjs/toolkit@^1.9.7":
+  version "1.9.7"
+  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-1.9.7.tgz#7fc07c0b0ebec52043f8cb43510cf346405f78a6"
+  integrity sha512-t7v8ZPxhhKgOKtU+uyJT13lu4vL7az5aFi4IdoDs/eS548edn2M8Ik9h8fxgvMjGoAUVFSt6ZC1P5cWmQ014QQ==
+  dependencies:
+    immer "^9.0.21"
+    redux "^4.2.1"
+    redux-thunk "^2.4.2"
+    reselect "^4.1.8"
 
 "@rushstack/eslint-patch@1.0.8":
   version "1.0.8"
@@ -4333,10 +4343,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.45.2:
-  version "2.45.2"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.45.2.tgz#d14c13c921db6599a5d3aee1dfd5a690edfba06a"
-  integrity sha512-QZH16kHwwefawGhwhqIXhdVrugFfRLYxxiyi+JJX10wQ8TYQ8+ypGCHPaj7uyBUxUZf3isW9NcYLAyfwaVD0zw==
+auspice@2.51.0:
+  version "2.51.0"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.51.0.tgz#702758275005ea29c9e9baab8ff6bc875fa758d2"
+  integrity sha512-mj5M8eVENE46LHdO68d759ucWFzNni55hrjn6Ft9tBwQG/4KTS6H1stKh836uOCGyI79t5C95Gt4SHgT/UacVQ==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -4345,7 +4355,9 @@ auspice@2.45.2:
     "@babel/plugin-transform-runtime" "^7.8.3"
     "@babel/preset-env" "^7.9.6"
     "@babel/preset-react" "^7.0.0"
+    "@babel/preset-typescript" "^7.21.0"
     "@hot-loader/react-dom" "^16.13.0"
+    "@reduxjs/toolkit" "^1.9.7"
     argparse "^1.0.10"
     babel-loader "^8.0.4"
     babel-plugin-lodash "^3.3.4"
@@ -4388,7 +4400,6 @@ auspice@2.45.2:
     lodash-webpack-plugin "^0.11.6"
     marked "^0.7.0"
     mousetrap "^1.6.2"
-    node-fetch "^2.6.1"
     null-loader "^4.0.0"
     outer-product "0.0.4"
     papaparse "^5.3.1"
@@ -4400,15 +4411,13 @@ auspice@2.45.2:
     react-ga "^2.2.0"
     react-helmet "^5.2.1"
     react-hot-loader "^4.8.4"
-    react-i18next "^11.3.3"
+    react-i18next "^11.15.6"
     react-icons "^3.9.0"
     react-redux "^7.2.6"
     react-select "^5.2.2"
     react-tooltip "^4.2.10"
     react-transition-group "^1.2.1"
     react-virtualized "^9.22.3"
-    redux "^4.0.1"
-    redux-thunk "^2.3.0"
     regenerator-runtime "^0.13.5"
     style-loader "^0.13.2"
     styled-components "^4.0.3"
@@ -9089,6 +9098,11 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
+immer@^9.0.21:
+  version "9.0.21"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.21.tgz#1e025ea31a40f24fb064f1fef23e931496330176"
+  integrity sha512-bc4NBHqOqSfRW7POMkHd51LvClaeMXpm8dx0e8oE2GORbq5aRK7Bxl4FyzVLdGtLmvLKL7BTDBG5ACQm4HWjTA==
+
 immutable@4.0.0, immutable@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.0.0.tgz#b86f78de6adef3608395efb269a91462797e2c23"
@@ -13307,7 +13321,7 @@ react-hot-loader@^4.8.4:
     shallowequal "^1.1.0"
     source-map "^0.7.3"
 
-react-i18next@11.3.3, react-i18next@^11.3.3:
+react-i18next@11.3.3, react-i18next@^11.15.6:
   version "11.3.3"
   resolved "https://registry.yarnpkg.com/react-i18next/-/react-i18next-11.3.3.tgz#a84dcc32e3ad013012964d836790d8c6afac8e88"
   integrity sha512-sGnPwJ0Kf8qTRLTnTRk030KiU6WYEZ49rP9ILPvCnsmgEKyucQfTxab+klSYnCSKYija+CWL+yo+c9va9BmJeg==
@@ -13561,6 +13575,11 @@ react-transition-group@^4.3.0, react-transition-group@^4.4.2:
     loose-envify "^1.4.0"
     prop-types "^15.6.2"
 
+react-use-wizard@2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/react-use-wizard/-/react-use-wizard-2.2.3.tgz#d2e57b299b6c35fcca90f3a6deb2d0a81318b466"
+  integrity sha512-Oh3EfpmWwF7vW1YZ2EgSLoU9VKJ13+TyLNmT56rBhLoXr3FXZoDEmtyxZ46GVkcicl/8qiHX0C42M6n2oKDkEQ==
+
 react-virtualized-auto-sizer@1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.6.tgz#66c5b1c9278064c5ef1699ed40a29c11518f97ca"
@@ -13780,12 +13799,17 @@ redux-saga@1.1.3:
   dependencies:
     "@redux-saga/core" "^1.1.3"
 
-redux-thunk@2.4.1, redux-thunk@^2.3.0:
+redux-thunk@2.4.1:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.4.1.tgz#0dd8042cf47868f4b29699941de03c9301a75714"
   integrity sha512-OOYGNY5Jy2TWvTL1KgAlVy6dcx3siPJ1wTq741EPyUKfn6W6nChdICjZwCd0p8AZBs5kWpZlbkXW2nE/zjUa+Q==
 
-redux@4.2.0, redux@^4.0.0, redux@^4.0.1, redux@^4.0.4:
+redux-thunk@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.4.2.tgz#b9d05d11994b99f7a91ea223e8b04cf0afa5ef3b"
+  integrity sha512-+P3TjtnP0k/FEjcBL5FZpoovtvrTNT/UXd4/sluaSyrURlSlhLSzEdfsTBW7WsKB6yPvgd7q/iZPICFjW4o57Q==
+
+redux@4.2.0, redux@^4.0.0, redux@^4.0.4, redux@^4.2.1:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/redux/-/redux-4.2.0.tgz#46f10d6e29b6666df758780437651eeb2b969f13"
   integrity sha512-oSBmcKKIuIR4ME29/AeNUnl5L+hvBq7OaJWzaptTQJAntaPvxIJqfnjbaEiCzzaIz+XmVILfqAM3Ob0aXLPfjA==
@@ -14141,6 +14165,11 @@ reselect@4.1.5:
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.1.5.tgz#852c361247198da6756d07d9296c2b51eddb79f6"
   integrity sha512-uVdlz8J7OO+ASpBYoz1Zypgx0KasCY20H+N8JD13oUMtPvSHQuscrHop4KbXrbsBcdB9Ds7lVK7eRkBIfO43vQ==
+
+reselect@^4.1.8:
+  version "4.1.8"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.1.8.tgz#3f5dc671ea168dccdeb3e141236f69f02eaec524"
+  integrity sha512-ab9EmR80F/zQTMNeneUr4cv+jSwPJgIlvEmVwLerwrWVbpLlBuls9XHzIeTFy4cegU2NHBp3va0LKOzU5qFEYQ==
 
 resize-observer-polyfill@^1.5.1:
   version "1.5.1"

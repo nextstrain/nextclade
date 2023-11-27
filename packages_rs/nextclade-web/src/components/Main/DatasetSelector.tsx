@@ -1,23 +1,58 @@
-import React, { HTMLProps, useState } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
-import styled from 'styled-components'
-import { ThreeDots } from 'react-loader-spinner'
-import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetCurrentAtom, datasetsAtom } from 'src/state/dataset.state'
-import { SearchBox } from 'src/components/Common/SearchBox'
+import React, { useEffect, useState } from 'react'
+import { useRecoilState } from 'recoil'
+import { Container as ContainerBase } from 'reactstrap'
 import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
-import { InfoButton } from 'src/components/Common/InfoButton'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
+import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
+import styled from 'styled-components'
+import type { Dataset } from 'src/types'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { SearchBox } from 'src/components/Common/SearchBox'
 
-export function DatasetSelector() {
+export interface DatasetSelectorProps {
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
+}
+
+export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
+  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
+  const { datasetsActive, datasetsInactive, topSuggestion, showSuggestions } = useDatasetSuggestionResults()
+  useEffect(() => {
+    if (autodetectRunState === AutodetectRunState.Done) {
+      onDatasetHighlighted?.(topSuggestion)
+      setAutodetectRunState(AutodetectRunState.Idle)
+    }
+  }, [autodetectRunState, onDatasetHighlighted, setAutodetectRunState, topSuggestion])
+
+  return (
+    <DatasetSelectorImpl
+      datasetsActive={datasetsActive}
+      datasetsInactive={datasetsInactive}
+      datasetHighlighted={datasetHighlighted}
+      onDatasetHighlighted={onDatasetHighlighted}
+      showSuggestions={showSuggestions}
+    />
+  )
+}
+
+export interface DatasetSelectorImplProps {
+  datasetsActive: Dataset[]
+  datasetsInactive?: Dataset[]
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
+  showSuggestions?: boolean
+}
+
+export function DatasetSelectorImpl({
+  datasetsActive,
+  datasetsInactive,
+  datasetHighlighted,
+  onDatasetHighlighted,
+  showSuggestions,
+}: DatasetSelectorImplProps) {
   const { t } = useTranslationSafe()
   const [searchTerm, setSearchTerm] = useState('')
-  const { datasets } = useRecoilValue(datasetsAtom)
-  const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetCurrentAtom)
-
-  const isBusy = datasets.length === 0
-
   return (
     <Container>
       <Header>
@@ -57,45 +92,37 @@ export function DatasetSelector() {
         <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
       </Header>
 
-      <Main>
-        {!isBusy && (
-          <DatasetSelectorList
-            datasets={datasets}
-            datasetHighlighted={datasetCurrent}
-            searchTerm={searchTerm}
-            onDatasetHighlighted={setDatasetCurrent}
-          />
-        )}
-
-        {isBusy && (
-          <SpinnerWrapper>
-            <SpinnerWrapperInternal>
-              <Spinner color="#aaa" width={20} height={20} />
-            </SpinnerWrapperInternal>
-          </SpinnerWrapper>
-        )}
-      </Main>
-
-      <Footer>
+      <Header>
         <SuggestionPanel />
-      </Footer>
+      </Header>
+
+      <Main>
+        <DatasetSelectorList
+          datasetsActive={datasetsActive}
+          datasetsInactive={datasetsInactive}
+          datasetHighlighted={datasetHighlighted}
+          onDatasetHighlighted={onDatasetHighlighted}
+          searchTerm={searchTerm}
+          showSuggestions={showSuggestions}
+        />
+      </Main>
     </Container>
   )
 }
 
-const Container = styled.div`
+const Container = styled(ContainerBase)`
   display: flex;
   flex: 1;
   flex-direction: column;
-  height: 100%;
   overflow: hidden;
-  margin-right: 10px;
+  margin: 0 auto;
+  max-width: 800px;
 `
 
 const Header = styled.div`
   display: flex;
   flex: 0;
-  padding-left: 10px;
+  padding-left: 8px;
   margin-top: 10px;
   margin-bottom: 3px;
 `
@@ -107,33 +134,11 @@ const Main = styled.div`
   overflow: hidden;
 `
 
-const Footer = styled.div`
-  display: flex;
-  flex: 0;
-`
-
-const Title = styled.span`
-  display: flex;
+const Title = styled.h4`
   flex: 1;
 `
 
 const H4Inline = styled.h4`
   display: inline-flex;
   margin: auto 0;
-`
-
-const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
-  width: 100%;
-  height: 100%;
-  display: flex;
-`
-
-const SpinnerWrapperInternal = styled.div`
-  margin: auto;
-`
-
-const Spinner = styled(ThreeDots)`
-  flex: 1;
-  margin: auto;
-  height: 100%;
 `

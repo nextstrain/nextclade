@@ -37,7 +37,7 @@ export function FilePickerAdvanced() {
     <Row noGutters>
       <Col>
         <FilePicker
-          className="my-3"
+          className="mb-2"
           compact
           icon={iconJson}
           title={t('Reference tree')}

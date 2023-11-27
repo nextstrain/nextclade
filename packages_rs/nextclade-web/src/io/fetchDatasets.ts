@@ -126,6 +126,7 @@ export function useUpdatedDatasetIndex() {
   const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
+
   useQuery(
     'refetchDatasetIndex',
     async () => {

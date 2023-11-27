@@ -98,9 +98,10 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-r`, `--input-ref <INPUT_REF>` — Path to a FASTA file containing reference sequence. This file should contain exactly 1 sequence
 * `-a`, `--input-tree <INPUT_TREE>` — Path to Auspice JSON v2 file containing reference tree
 * `-p`, `--input-pathogen-json <INPUT_PATHOGEN_JSON>` — Path to a JSON file containing configuration and data specific to a pathogen
-* `-m`, `--input-annotation <INPUT_ANNOTATION>` — Path to a GFF3 file containing (genome annotation)
+* `-m`, `--input-annotation <INPUT_ANNOTATION>` — Path to a file containing genome annotation in GFF3 format
 * `-g`, `--cds-selection <CDS_SELECTION>` — Comma-separated list of names of coding sequences (CDSes) to use
 * `--server <SERVER>` — Use custom dataset server
+
 
 
 

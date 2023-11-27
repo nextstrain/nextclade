@@ -79,6 +79,7 @@ export function SearchBox({ searchTitle, searchTerm, onSearchTermChange, ...rest
         <IconSearch size={25} />
       </IconSearchWrapper>
       <Input
+        autoFocus
         type="text"
         title={searchTitle}
         placeholder={searchTitle}

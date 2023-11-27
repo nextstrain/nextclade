@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
-import { Button, Form as FormBase, FormGroup } from 'reactstrap'
+import { Button, Form as FormBase, FormGroup as FormGroupBase, FormGroupProps } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
@@ -8,12 +8,33 @@ import { useRecoilToggle } from 'src/hooks/useToggle'
 import { canRunAtom } from 'src/state/results.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
-import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import { Toggle } from 'src/components/Common/Toggle'
 import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { hasRequiredInputsAtom, useQuerySeqInputs } from 'src/state/inputs.state'
+
+export function ToggleRunAutomatically({ ...restProps }: FormGroupProps) {
+  const { t } = useTranslationSafe()
+  const { state: shouldRunAutomatically, toggle: toggleRunAutomatically } = useRecoilToggle(shouldRunAutomaticallyAtom)
+  return (
+    <FormGroup inline {...restProps}>
+      <Toggle
+        identifier="toggle-run-automatically"
+        checked={shouldRunAutomatically}
+        onCheckedChanged={toggleRunAutomatically}
+      >
+        <span title={t('Run Nextclade automatically after sequence data is provided')}>{t('Run automatically')}</span>
+      </Toggle>
+    </FormGroup>
+  )
+}
+
+const FormGroup = styled(FormGroupBase)`
+  display: flex;
+  margin: auto 0;
+`
 
 export function RunPanel() {
   const { t } = useTranslationSafe()
@@ -22,8 +43,8 @@ export function RunPanel() {
   const { addQryInputs } = useQuerySeqInputs()
 
   const canRun = useRecoilValue(canRunAtom)
-  const { state: shouldRunAutomatically, toggle: toggleRunAutomatically } = useRecoilToggle(shouldRunAutomaticallyAtom)
-  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsAtom)
+  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
+  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
 
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
@@ -58,17 +79,7 @@ export function RunPanel() {
     <Container>
       <Form>
         <FlexLeft>
-          <FormGroup>
-            <Toggle
-              identifier="toggle-run-automatically"
-              checked={shouldRunAutomatically}
-              onCheckedChanged={toggleRunAutomatically}
-            >
-              <span title={t('Run Nextclade automatically after sequence data is provided')}>
-                {t('Run automatically')}
-              </span>
-            </Toggle>
-          </FormGroup>
+          <ToggleRunAutomatically />
         </FlexLeft>
 
         <FlexRight>
