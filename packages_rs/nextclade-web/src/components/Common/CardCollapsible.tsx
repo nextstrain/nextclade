@@ -11,7 +11,7 @@ export interface CardCollapsibleProps extends PropsWithChildren<CardProps> {
 }
 
 export function CardCollapsible({ header, children, defaultCollapsed = true, ...restProps }: CardCollapsibleProps) {
-  const [collapsed, toggleCollapsed] = useToggle(defaultCollapsed)
+  const { state: collapsed, toggle: toggleCollapsed } = useToggle(defaultCollapsed)
   const isOpen = useMemo(() => !collapsed && !!children, [children, collapsed])
   const Icon = useMemo(
     () => <ArrowIcon color={children ? '#999' : 'transparent'} size={22} $rotated={isOpen} />,

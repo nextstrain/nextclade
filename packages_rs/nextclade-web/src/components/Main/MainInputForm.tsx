@@ -1,24 +1,25 @@
+import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useMemo } from 'react'
 import { UncontrolledAlert as UncontrolledAlertBase } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
+import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { DatasetCurrentSummary } from 'src/components/Main/DatasetCurrentSummary'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
-import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
-import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
-import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { hasRequiredInputsAtom } from 'src/state/inputs.state'
-import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
+import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 const ContainerFixed = styled.div`
   display: flex;
@@ -158,7 +159,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     return (
       <Container>
         <Header>
-          <h4>{text}</h4>
+          <Title>
+            <H4Inline>{text}</H4Inline>
+            <SelectDatasetHelp />
+          </Title>
         </Header>
 
         <Main>
@@ -177,7 +181,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   return (
     <Container>
       <Header>
-        <h4>{text}</h4>
+        <Title>
+          <H4Inline>{text}</H4Inline>
+          <SelectDatasetHelp />
+        </Title>
       </Header>
 
       <Main>
@@ -204,4 +211,14 @@ const UncontrolledAlert = styled(UncontrolledAlertBase)`
   p {
     margin: 0;
   }
+`
+
+const Title = styled.h4`
+  display: flex;
+  flex: 1;
+`
+
+const H4Inline = styled.h4`
+  display: inline-flex;
+  margin: auto 0;
 `

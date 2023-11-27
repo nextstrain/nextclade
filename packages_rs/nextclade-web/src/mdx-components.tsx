@@ -74,7 +74,7 @@ export const Blockquote = styled.blockquote`
 `
 
 export const P = styled.p`
-  margin: 3px 7px;
+  text-align: justify;
 
   code {
     font-size: 0.8rem;
@@ -83,6 +83,10 @@ export const P = styled.p`
     border-radius: 5px;
     overflow-wrap: break-word;
     white-space: pre-wrap;
+  }
+
+  a {
+    word-break: break-all;
   }
 `
 
