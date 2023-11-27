@@ -2,12 +2,13 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import styled from 'styled-components'
+import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
-import styled from 'styled-components'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { DatasetCurrentSummary } from 'src/components/Main/DatasetCurrentSummary'
@@ -133,7 +134,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     return (
       <Container>
         <Header>
-          <h4>{text}</h4>
+          <Title>
+            <H4Inline>{text}</H4Inline>
+            <SelectDatasetHelp />
+          </Title>
         </Header>
 
         <Main>
@@ -150,7 +154,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   return (
     <Container>
       <Header>
-        <h4>{text}</h4>
+        <Title>
+          <H4Inline>{text}</H4Inline>
+          <SelectDatasetHelp />
+        </Title>
       </Header>
 
       <Main>
@@ -168,3 +175,13 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     </Container>
   )
 }
+
+const Title = styled.h4`
+  display: flex;
+  flex: 1;
+`
+
+const H4Inline = styled.h4`
+  display: inline-flex;
+  margin: auto 0;
+`

@@ -86,6 +86,7 @@
     "types:generate": "yarn run:node:prod tools/generateTypes.js -i src/gen/_SchemaRoot.json -o src/gen/_SchemaRoot.d.ts"
   },
   "dependencies": {
+    "@floating-ui/react": "0.26.1",
     "animate.css": "4.1.1",
     "auspice": "2.51.0",
     "autoprefixer": "10.4.5",

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRecoilState } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
+import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
 import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
@@ -56,7 +57,10 @@ export function DatasetSelectorImpl({
   return (
     <Container>
       <Header>
-        <Title>{t('Select dataset')}</Title>
+        <Title>
+          <H4Inline>{t('Select dataset')}</H4Inline>
+          <SelectDatasetHelp />
+        </Title>
 
         <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
       </Header>
@@ -104,6 +108,11 @@ const Main = styled.div`
 `
 
 const Title = styled.h4`
+  display: flex;
   flex: 1;
+`
+
+const H4Inline = styled.h4`
+  display: inline-flex;
   margin: auto 0;
 `
