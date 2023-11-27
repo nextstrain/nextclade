@@ -1,20 +1,15 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { shuffle } from 'lodash'
-import React, { useMemo } from 'react'
-
+import React, { ReactNode, useMemo } from 'react'
 import { Col, Row } from 'reactstrap'
-import { Maintainer } from 'src/components/Team/TeamCreditsMaintainer'
-import { PROJECT_NAME } from 'src/constants'
-
+import styled from 'styled-components'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
 import { GiEarthAfricaEurope } from 'react-icons/gi'
-
+import { PROJECT_NAME } from 'src/constants'
 import { getContributors } from 'src/io/getContributors'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import type { MaintainerInfo } from 'src/components/Team/TeamCreditsMaintainer'
-import { TeamCreditsContributor } from 'src/components/Team/TeamCreditsContributor'
+import { TeamCreditsContributor } from 'src/components/About/TeamCreditsContributor'
 import NextstrainLogo from 'src/assets/img/nextstrain_logo.svg'
-import { FlexCol, FlexContributors, TeamCreditsH1 } from './TeamCreditsStyles'
 
 const maintainers: MaintainerInfo[] = [
   {
@@ -26,7 +21,7 @@ const maintainers: MaintainerInfo[] = [
       {
         title: 'GitHub',
         url: 'https://github.com/ivan-aksamentov',
-        alt: 'Link to Github page, with grey Github Octocat logo',
+        alt: 'Link to GitHub page, with grey GitHub Octocat logo',
         icon: <FaGithub size={25} color="#24292E" />,
       },
     ],
@@ -52,7 +47,7 @@ const maintainers: MaintainerInfo[] = [
       {
         title: 'GitHub',
         url: 'https://github.com/rneher',
-        alt: 'Link to Github page, with grey Github Octocat logo',
+        alt: 'Link to GitHub page, with grey GitHub Octocat logo',
         icon: <FaGithub size={25} color="#24292E" />,
       },
     ],
@@ -72,7 +67,7 @@ const maintainers: MaintainerInfo[] = [
       {
         title: 'GitHub',
         url: 'https://github.com/corneliusroemer',
-        alt: 'Link to Github page, with grey Github Octocat logo',
+        alt: 'Link to GitHub page, with grey GitHub Octocat logo',
         icon: <FaGithub size={25} color="#24292E" />,
       },
     ],
@@ -125,3 +120,134 @@ export function TeamCredits() {
     </Row>
   )
 }
+
+export interface MaintainerInfoLink {
+  title: string
+  url: string
+  alt: string
+  icon: ReactNode
+}
+
+export interface MaintainerInfo {
+  name: string
+  portraitUrl: string
+  title: string
+  affiliations: string[]
+  links: MaintainerInfoLink[]
+}
+
+export interface MaintainerProps {
+  maintainer: MaintainerInfo
+}
+
+export function Maintainer({ maintainer }: MaintainerProps) {
+  const { name, portraitUrl, title, affiliations, links } = maintainer
+  const alt = useMemo(() => `Portrait of '${PROJECT_NAME}' maintainer, ${name}`, [name])
+  const affiliationComponents = useMemo(
+    () => affiliations.map((affiliation) => <AffiliationText key={affiliation}>{affiliation}</AffiliationText>),
+    [affiliations],
+  )
+  return (
+    <Flex>
+      <Portrait src={portraitUrl} alt={alt} />
+      <NameText>{name}</NameText>
+      <AffiliationText>{title}</AffiliationText>
+      {affiliationComponents}
+      <Ul>
+        {links.map(({ title, url, alt, icon }) => (
+          <Li key={title}>
+            <LinkExternal title={title} href={url} alt={alt}>
+              {icon}
+            </LinkExternal>
+          </Li>
+        ))}
+      </Ul>
+    </Flex>
+  )
+}
+
+export const FlexCol = styled(Col)`
+  display: flex;
+  flex-wrap: wrap;
+  text-align: center;
+`
+
+export const Flex = styled.section`
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 300px;
+  margin: 10px auto;
+
+  @media (min-width: 768px) {
+    &:first-child {
+      padding-left: 50px;
+    }
+
+    &:last-child {
+      padding-right: 50px;
+    }
+  }
+
+  @media (min-width: 992px) {
+    &:first-child {
+      padding-left: 70px;
+    }
+
+    &:last-child {
+      padding-right: 70px;
+    }
+  }
+
+  @media (min-width: 1201px) {
+    &:first-child {
+      padding-left: 120px;
+    }
+
+    &:last-child {
+      padding-right: 120px;
+    }
+  }
+`
+
+export const TeamCreditsH1 = styled.h1`
+  font-size: 1.33rem;
+  margin: 15px auto;
+`
+
+export const Ul = styled.ul`
+  list-style: none;
+  padding: 0;
+
+  margin-top: 0.5rem;
+`
+
+export const Li = styled.li`
+  display: inline-block;
+  margin-left: 5px;
+  margin-right: 5px;
+`
+
+export const NameText = styled.h2`
+  font-size: 1.1rem;
+`
+
+export const AffiliationText = styled.small`
+  font-size: 0.8rem;
+`
+
+export const Portrait = styled.img`
+  margin: 0 auto;
+  width: 100px;
+  border-radius: 100px;
+`
+
+export const FlexContributors = styled.section`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+
+  width: 100%;
+  max-width: 1500px;
+  margin: 10px auto;
+`
