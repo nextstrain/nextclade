@@ -117,7 +117,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     if (isNil(dataset)) {
       return t('Select reference dataset')
     }
-    return t('Selected dataset')
+    return t('Selected reference dataset')
   }, [dataset, t])
 
   if (!dataset) {
