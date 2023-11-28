@@ -115,7 +115,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
 
   const text = useMemo(() => {
     if (isNil(dataset)) {
-      return t('Select dataset')
+      return t('Select reference dataset')
     }
     return t('Selected dataset')
   }, [dataset, t])
