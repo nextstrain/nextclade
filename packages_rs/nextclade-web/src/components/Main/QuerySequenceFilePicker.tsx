@@ -8,7 +8,7 @@ import { useRecoilToggle } from 'src/hooks/useToggle'
 import { qrySeqErrorAtom } from 'src/state/error.state'
 import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { FilePicker } from 'src/components/FilePicker/FilePicker'
+import { FilePicker, FilePickerTitle } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 
@@ -39,7 +39,7 @@ export function QuerySequenceFilePicker() {
     [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasetsOnDatasetPage],
   )
 
-  const headerText = useMemo(() => {
+  const title = useMemo(() => {
     if (qryInputs.length > 0) {
       return t('Add more sequence data')
     }
@@ -48,8 +48,8 @@ export function QuerySequenceFilePicker() {
 
   return (
     <Container>
+      <FilePickerTitle title={title}>{title}</FilePickerTitle>
       <FilePicker
-        title={headerText}
         icon={icon}
         exampleUrl="https://example.com/sequences.fasta"
         pasteInstructions={t('Enter sequence data in FASTA format')}

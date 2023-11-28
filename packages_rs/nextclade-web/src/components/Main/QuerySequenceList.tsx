@@ -8,7 +8,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { UlGeneric } from 'src/components/Common/List'
 
-export function QuerySequenceList({ toMainPage, ...restProps }: { toMainPage?: () => void }) {
+export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
   const { t } = useTranslationSafe()
   const { qryInputs, clearQryInputs } = useQuerySeqInputs()
 

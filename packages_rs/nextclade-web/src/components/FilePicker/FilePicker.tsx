@@ -57,7 +57,7 @@ const TabsContentStyled = styled(TabsContent)`
 export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'onInput' | 'onError' | 'as' | 'ref'> {
   multiple?: boolean
   compact?: boolean
-  title: string
+  title?: string
   icon: ReactNode
   exampleUrl: string
   pasteInstructions: string
@@ -74,7 +74,7 @@ export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, '
 export function FilePicker({
   multiple = false,
   compact,
-  title,
+  title = '',
   icon,
   exampleUrl,
   pasteInstructions,

@@ -86,8 +86,8 @@ export function Landing() {
       </Header>
 
       <Main className="mt-4 mb-2">
-        <ContainerColumns>
-          <Row>
+        <ContainerColumns className="w-100">
+          <Row className="w-100">
             <Col className="d-flex flex-column h-100">
               <QuerySequenceFilePicker />
               <QuerySequenceList />
