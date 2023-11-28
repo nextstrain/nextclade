@@ -25,7 +25,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
           </Alert>
         )
       }
-      if (numSuggestions > 0) {
+      if (numSuggestions > 1) {
         return (
           <Alert closeClassName="d-none" fade={false} color="info">
             <h6 className="font-weight-bold">{t('Multiple matching datasets.')}</h6>

@@ -24,7 +24,7 @@ export function SuggestionAlertDatasetPage({ ...restProps }) {
           </Alert>
         )
       }
-      if (numSuggestions > 0) {
+      if (numSuggestions > 1) {
         return (
           <Alert closeClassName="d-none" fade={false} color="none">
             <p className="small">
