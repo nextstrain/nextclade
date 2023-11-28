@@ -73,10 +73,13 @@ export function Landing() {
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
 
   const toDatasetSelection = useCallback(() => {
-    void push('/dataset') // eslint-disable-line no-void
-    if (shouldSuggestDatasets && hasRequiredInputs) {
-      runAutodetect()
-    }
+    // eslint-disable-next-line no-void
+    void push('/dataset').then(() => {
+      if (shouldSuggestDatasets && hasRequiredInputs) {
+        runAutodetect()
+      }
+      return undefined
+    })
   }, [hasRequiredInputs, push, runAutodetect, shouldSuggestDatasets])
 
   return (
