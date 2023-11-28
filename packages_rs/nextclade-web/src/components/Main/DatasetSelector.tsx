@@ -3,6 +3,7 @@ import { useRecoilState } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
 import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
 import { DatasetSelectorList } from 'src/components/Main/DatasetSelectorList'
+import { SuggestionAlertDatasetPage } from 'src/components/Main/SuggestionAlertDatasetPage'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
@@ -22,7 +23,6 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
   useEffect(() => {
     if (autodetectRunState === AutodetectRunState.Done) {
       onDatasetHighlighted?.(topSuggestion)
-      setAutodetectRunState(AutodetectRunState.Idle)
     }
   }, [autodetectRunState, onDatasetHighlighted, setAutodetectRunState, topSuggestion])
 
@@ -66,7 +66,10 @@ export function DatasetSelectorImpl({
       </Header>
 
       <Header>
-        <SuggestionPanel />
+        <div className="w-100 d-flex flex-column">
+          <SuggestionPanel />
+          <SuggestionAlertDatasetPage className="mt-1" />
+        </div>
       </Header>
 
       <Main>
@@ -107,7 +110,7 @@ const Main = styled.div`
   overflow: hidden;
 `
 
-const Title = styled.h4`
+const Title = styled.div`
   display: flex;
   flex: 1;
 `

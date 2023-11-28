@@ -1,47 +1,38 @@
 import { isNil } from 'lodash'
 import React, { useMemo } from 'react'
-import { Button, Form as FormBase, FormGroup as FormGroupBase, Spinner, UncontrolledAlert } from 'reactstrap'
+import { Button, Form as FormBase, FormGroup as FormGroupBase, Spinner } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { Toggle } from 'src/components/Common/Toggle'
-import { unreachable } from 'src/helpers/unreachable'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
-import {
-  autodetectResultsAtom,
-  AutodetectRunState,
-  autodetectRunStateAtom,
-  groupByDatasets,
-  hasAutodetectResultsAtom,
-  numberAutodetectResultsAtom,
-} from 'src/state/autodetect.state'
-import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { AutodetectRunState, autodetectRunStateAtom, hasAutodetectResultsAtom } from 'src/state/autodetect.state'
+import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 
 export function SuggestionPanel() {
   const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
-  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
   if (isNil(minimizerIndexVersion)) {
     return null
   }
 
-  switch (autodetectRunState) {
-    case AutodetectRunState.Idle:
-      return <SuggestionPanelIdle />
-    case AutodetectRunState.Started:
-      return <SuggestionPanelStarted />
-    case AutodetectRunState.Done:
-      return <SuggestionPanelDone />
-    case AutodetectRunState.Failed:
-      return <SuggestionPanelFailed />
-    default: {
-      return unreachable(autodetectRunState)
-    }
-  }
+  return (
+    <Container>
+      <Form>
+        <FlexLeft>
+          <AutosuggestionToggle />
+        </FlexLeft>
+        <FlexRight>
+          <ButtonSuggestionsReset />
+          <ButtonSuggest />
+        </FlexRight>
+      </Form>
+    </Container>
+  )
 }
 
 export function ButtonSuggest() {
@@ -49,23 +40,36 @@ export function ButtonSuggest() {
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const runSuggest = useRunSeqAutodetect()
   const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
+  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
-  const { text, canRun, color, title } = useMemo(() => {
+  const { text, disabled, color, title } = useMemo(() => {
     const canRun = hasRequiredInputs
+    const isRunning = autodetectRunState === AutodetectRunState.Started
     return {
-      text: hasAutodetectResults ? t('Re-suggest') : t('Suggest'),
-      canRun,
+      text: isRunning ? (
+        <span>
+          <Spinner size="sm" />
+          <span className="ml-2">{t('Suggesting')}</span>
+        </span>
+      ) : hasAutodetectResults ? (
+        t('Re-suggest')
+      ) : (
+        t('Suggest')
+      ),
+      disabled: !canRun || isRunning,
       color: !canRun ? 'secondary' : 'primary',
-      title: !canRun
+      title: isRunning
+        ? t('Running')
+        : !canRun
         ? t('Please provide sequence data for the algorithm')
         : hasAutodetectResults
         ? t('Re-launch suggestions engine!')
         : t('Launch suggestions engine!'),
     }
-  }, [hasAutodetectResults, hasRequiredInputs, t])
+  }, [autodetectRunState, hasAutodetectResults, hasRequiredInputs, t])
 
   return (
-    <ButtonRunStyled onClick={runSuggest} disabled={!canRun} color={color} title={title}>
+    <ButtonRunStyled onClick={runSuggest} disabled={disabled} color={color} title={title}>
       {text}
     </ButtonRunStyled>
   )
@@ -83,111 +87,6 @@ export function ButtonSuggestionsReset() {
   )
 }
 
-export function SuggestionPanelIdle() {
-  return (
-    <Container>
-      <Form>
-        <FlexLeft>
-          <Alert color="none" fade={false} className="d-flex" closeClassName="d-none">
-            <div>
-              <p className="m-0">
-                <AutosuggestionToggle />
-              </p>
-              <p className="m-0">{'\u00A0'}</p>
-            </div>
-          </Alert>
-        </FlexLeft>
-        <FlexRight>
-          <ButtonSuggest />
-        </FlexRight>
-      </Form>
-    </Container>
-  )
-}
-
-export function SuggestionPanelStarted() {
-  const { t } = useTranslationSafe()
-  const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
-
-  return (
-    <Container>
-      <Form>
-        <Alert color="none" fade={false} className="d-flex" closeClassName="d-none">
-          <Spinner className="my-auto mr-3" />
-          <div>
-            <p className="m-0">{t('Searching matching datasets')}</p>
-            <p className="m-0">{t(`${numberAutodetectResults} sequences`)}</p>
-          </div>
-        </Alert>
-      </Form>
-    </Container>
-  )
-}
-
-export function SuggestionPanelDone() {
-  const { t } = useTranslationSafe()
-  const { datasets } = useRecoilValue(datasetsAtom)
-  const autodetectResults = useRecoilValue(autodetectResultsAtom)
-  const numSuggestedDatasets = useMemo(() => {
-    if (!autodetectResults) {
-      return 0
-    }
-    const recordsByDataset = groupByDatasets(autodetectResults)
-    return datasets.filter((candidate) =>
-      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
-    ).length
-  }, [autodetectResults, datasets])
-
-  const text = useMemo(() => {
-    if (numSuggestedDatasets === 0) {
-      return (
-        <Alert color="warning" fade={false} closeClassName="d-none">
-          <p className="my-0">{t('No matching datasets found.')}</p>
-          <p className="my-0">{t('Consider contributing a new dataset.')}</p>
-        </Alert>
-      )
-    }
-    return (
-      <Alert color="none" fade={false} closeClassName="d-none">
-        <p className="my-0">{t(`${numSuggestedDatasets} dataset(s) appear to match your data.`)}</p>
-        <p className="my-0">{t('Select the one to use.')}</p>
-      </Alert>
-    )
-  }, [numSuggestedDatasets, t])
-
-  return (
-    <Container>
-      <Form>
-        <FlexLeft>{text}</FlexLeft>
-        <FlexRight>
-          <ButtonSuggestionsReset />
-          <ButtonSuggest />
-        </FlexRight>
-      </Form>
-    </Container>
-  )
-}
-
-export function SuggestionPanelFailed() {
-  const { t } = useTranslationSafe()
-  return (
-    <Container>
-      <Form>
-        <FlexLeft>
-          <Alert color="danger" fade={false} closeClassName="d-none">
-            <p className="m-0">{t('Suggestion engine failed.')}</p>
-            <p className="m-0">{t('Please report this issue.')}</p>
-          </Alert>
-        </FlexLeft>
-        <FlexRight>
-          <ButtonSuggestionsReset />
-          <ButtonSuggest />
-        </FlexRight>
-      </Form>
-    </Container>
-  )
-}
-
 const Container = styled.div`
   flex: 1;
 `
@@ -195,7 +94,6 @@ const Container = styled.div`
 const Form = styled(FormBase)`
   display: flex;
   width: 100%;
-  height: 100%;
   min-height: 45px;
   padding: 10px;
   border: 1px #ccc9 solid;
@@ -213,14 +111,9 @@ export const FlexRight = styled.div`
   margin-left: auto;
 `
 
-const Alert = styled(UncontrolledAlert)`
-  margin: 0;
-  width: 100%;
-  padding: 0.5rem 1rem;
-`
-
 const ButtonRunStyled = styled(Button)`
-  width: 120px;
+  width: 140px;
+  height: 38px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

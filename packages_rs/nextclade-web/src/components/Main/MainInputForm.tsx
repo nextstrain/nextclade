@@ -1,24 +1,24 @@
-import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
+import { useRouter } from 'next/router'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import styled from 'styled-components'
-import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
-import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
-import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
-import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
+import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
+import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { DatasetCurrentSummary } from 'src/components/Main/DatasetCurrentSummary'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
-import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
-import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
+import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
+import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
+import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
-import { QuerySequenceList } from './QuerySequenceList'
 
 const ContainerFixed = styled.div`
   display: flex;
@@ -114,15 +114,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   const { t } = useTranslationSafe()
   const run = useRunAnalysis()
 
-  const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
-  const { topSuggestion } = useDatasetSuggestionResults()
-  const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
-  useEffect(() => {
-    if (autodetectRunState === AutodetectRunState.Done) {
-      setDataset(topSuggestion)
-      setAutodetectRunState(AutodetectRunState.Idle)
-    }
-  }, [autodetectRunState, setAutodetectRunState, setDataset, topSuggestion])
+  const [dataset, _0] = useRecoilState(datasetCurrentAtom)
 
   const text = useMemo(() => {
     if (isNil(dataset)) {
@@ -130,6 +122,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     }
     return t('Selected dataset')
   }, [dataset, t])
+
   if (!dataset) {
     return (
       <Container>
@@ -145,7 +138,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         </Main>
 
         <Footer>
-          <SuggestionPanel />
+          <div className="w-100 d-flex flex-column">
+            <SuggestionPanel />
+            <SuggestionAlertMainPage className="mt-1" />
+          </div>
         </Footer>
       </Container>
     )
@@ -165,7 +161,10 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       </Main>
 
       <Footer>
-        <SuggestionPanel />
+        <div className="w-100 d-flex flex-column">
+          <SuggestionPanel />
+          <SuggestionAlertMainPage className="mt-1" />
+        </div>
       </Footer>
 
       <Footer>
@@ -176,7 +175,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   )
 }
 
-const Title = styled.h4`
+const Title = styled.div`
   display: flex;
   flex: 1;
 `
