@@ -25,7 +25,7 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
       return null
     }
     return (
-      <div className="d-flex">
+      <div className="d-flex mt-3">
         <h4>{t("Sequence data you've added")}</h4>
 
         <div className="d-flex ml-auto">

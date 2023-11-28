@@ -41,7 +41,7 @@ export function ButtonChangeDataset({ onClick, ...restProps }: ChangeDatasetButt
 
   const { color, text, tooltip } = useMemo(() => {
     const hasDataset = !isNil(dataset)
-    const text = hasDataset ? t('Change dataset') : t('Select dataset')
+    const text = hasDataset ? t('Change reference dataset') : t('Select reference dataset')
     return {
       color: hasDataset ? 'secondary' : 'primary',
       text,
