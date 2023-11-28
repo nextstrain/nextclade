@@ -60,9 +60,10 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
   )
 }
 
-export const Ul = styled(UlGeneric)`
+const Ul = styled(UlGeneric)`
   flex: 1;
   overflow: auto;
+  max-height: 320px;
 `
 
 export const Li = styled.li`
