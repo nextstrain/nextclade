@@ -94,7 +94,6 @@ const Container = styled.div`
 const Form = styled(FormBase)`
   display: flex;
   width: 100%;
-  height: 100%;
   min-height: 45px;
   padding: 10px;
   border: 1px #ccc9 solid;

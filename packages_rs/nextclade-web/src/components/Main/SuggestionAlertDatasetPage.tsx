@@ -6,7 +6,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 
-export function SuggestionAlertMainPage({ ...restProps }) {
+export function SuggestionAlertDatasetPage({ ...restProps }) {
   const { t } = useTranslationSafe()
   const { numSuggestions } = useDatasetSuggestionResults()
   const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
@@ -16,10 +16,9 @@ export function SuggestionAlertMainPage({ ...restProps }) {
       if (numSuggestions === 0) {
         return (
           <Alert closeClassName="d-none" fade={false} color="danger">
-            <h6 className="font-weight-bold">{t('No matching datasets.')}</h6>
             <p className="small">
               {t(
-                'Suggestion algorithm was unable to find a matching dataset. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.',
+                'No datasets match your data. Select a dataset manually. If there is no suitable dataset, consider creating one and contributing it to Nextclade community dataset collection.',
               )}
             </p>
           </Alert>
@@ -27,10 +26,9 @@ export function SuggestionAlertMainPage({ ...restProps }) {
       }
       if (numSuggestions > 0) {
         return (
-          <Alert closeClassName="d-none" fade={false} color="info">
-            <h6 className="font-weight-bold">{t('Multiple matching datasets.')}</h6>
+          <Alert closeClassName="d-none" fade={false} color="none">
             <p className="small">
-              {t('{{ n }} datasets appear to match your data. Click "Change dataset" to select the one to use.', {
+              {t('{{ n }} datasets appear to match your data. Select the one to use.', {
                 n: numSuggestions,
               })}
             </p>
@@ -41,8 +39,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
     if (autodetectRunState === AutodetectRunState.Failed) {
       return (
         <Alert closeClassName="d-none" fade={false} color="danger">
-          <h6 className="font-weight-bold">{t('Suggestion algorithm failed.')}</h6>
-          <p className="small">{t('Please report this to developers.')}</p>
+          <p className="small">{t('Suggestion algorithm failed. Please report this to developers.')}</p>
         </Alert>
       )
     }
@@ -55,6 +52,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
 
 const AlertWrapper = styled.div`
   display: flex;
+  width: 100%;
 `
 
 const Alert = styled(UncontrolledAlert)`

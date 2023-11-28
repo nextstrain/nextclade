@@ -138,9 +138,9 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
         </Main>
 
         <Footer>
-          <div>
+          <div className="w-100 d-flex flex-column">
             <SuggestionPanel />
-            <SuggestionAlertMainPage />
+            <SuggestionAlertMainPage className="mt-1" />
           </div>
         </Footer>
       </Container>
@@ -163,7 +163,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
       <Footer>
         <div className="w-100 d-flex flex-column">
           <SuggestionPanel />
-          <SuggestionAlertMainPage />
+          <SuggestionAlertMainPage className="mt-1" />
         </div>
       </Footer>
 
@@ -175,7 +175,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   )
 }
 
-const Title = styled.h4`
+const Title = styled.div`
   display: flex;
   flex: 1;
 `
