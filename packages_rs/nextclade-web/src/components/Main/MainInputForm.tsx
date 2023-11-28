@@ -28,7 +28,7 @@ const ContainerFixed = styled.div`
   overflow: hidden;
   width: 100%;
   margin: 0 auto;
-  max-width: 1000px;
+  max-width: 1200px;
 `
 
 const Container = styled.div`
@@ -117,7 +117,7 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
     if (isNil(dataset)) {
       return t('Select reference dataset')
     }
-    return t('Selected dataset')
+    return t('Selected reference dataset')
   }, [dataset, t])
 
   if (!dataset) {
