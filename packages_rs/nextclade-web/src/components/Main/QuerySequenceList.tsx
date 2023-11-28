@@ -8,7 +8,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { UlGeneric } from 'src/components/Common/List'
 
-export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
+export function QuerySequenceList({ toMainPage, ...restProps }: { toMainPage?: () => void }) {
   const { t } = useTranslationSafe()
   const { qryInputs, clearQryInputs } = useQuerySeqInputs()
 
@@ -25,7 +25,7 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
       return null
     }
     return (
-      <div className="d-flex">
+      <div className="d-flex mt-3">
         <h4>{t("Sequence data you've added")}</h4>
 
         <div className="d-flex ml-auto">

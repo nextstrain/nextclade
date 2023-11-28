@@ -65,10 +65,6 @@ export function QuerySequenceFilePicker() {
 
 const Container = styled.div`
   display: flex;
-  flex: 1;
   flex-direction: column;
-  height: 100%;
   overflow: hidden;
-  margin-left: 10px;
-  margin-right: 12px;
 `

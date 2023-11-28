@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
+import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import styled from 'styled-components'
+import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -62,10 +63,6 @@ const Footer = styled.div`
   flex: 1;
 `
 
-const FooterWithoutOverflow = styled(Footer)`
-  overflow: hidden;
-`
-
 export function Landing() {
   // This periodically fetches dataset index and updates the list of datasets.
   useUpdatedDatasetIndex()
@@ -88,20 +85,20 @@ export function Landing() {
         <MainSectionTitle />
       </Header>
 
-      <Main className="mt-4">
+      <Main className="mt-4 mb-2">
         <ContainerColumns>
-          <QuerySequenceFilePicker />
-          <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
+          <Row>
+            <Col className="d-flex flex-column h-100">
+              <QuerySequenceFilePicker />
+              <QuerySequenceList />
+            </Col>
+
+            <Col>
+              <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
+            </Col>
+          </Row>
         </ContainerColumns>
       </Main>
-
-      <FooterWithoutOverflow>
-        <Container>
-          <Main>
-            <QuerySequenceList />
-          </Main>
-        </Container>
-      </FooterWithoutOverflow>
     </ContainerFixed>
   )
 }
