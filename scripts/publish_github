@@ -70,11 +70,11 @@ prerelease_flag=${release_type:+--prerelease}
 (
   if [ -z "$release_type" ]; then
     ./scripts/extract-release-notes.py CHANGELOG.md
+    cat docs/assets/release-instructions.md
   else
     cat docs/assets/prerelease-warning.md
+    echo "For changes compared to the previous final release version, please refer to \"Unreleased\" section in [CHANGELOG.md](https://github.com/nextstrain/nextclade/blob/${git_sha}/CHANGELOG.md)"
   fi
-  git cliff --current
-  cat docs/assets/release-instructions.md
 ) |
   gh release create \
     "${version}" \
