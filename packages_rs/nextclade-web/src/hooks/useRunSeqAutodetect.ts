@@ -1,4 +1,4 @@
-import { get, isNil, sortBy } from 'lodash'
+import { first, get, isNil, sortBy } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
@@ -147,7 +147,7 @@ export function useDatasetSuggestionResults() {
 
   const showSuggestions = useMemo(() => !isNil(autodetectResults) && autodetectResults.length > 0, [autodetectResults])
 
-  const topSuggestion = datasetsActive[0]
+  const topSuggestion = autodetectResults ? first(datasetsActive) : undefined
 
   const numSuggestions = autodetectResults ? datasetsActive.length : 0
 

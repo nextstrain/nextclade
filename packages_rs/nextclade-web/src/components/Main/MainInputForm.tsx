@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { Col, Row } from 'reactstrap'
@@ -8,7 +8,7 @@ import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMain
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
-import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
@@ -114,7 +114,14 @@ function DatasetCurrentOrSelectButton({ toDatasetSelection }: DatasetCurrentOrSe
   const { t } = useTranslationSafe()
   const run = useRunAnalysis()
 
-  const [dataset, _0] = useRecoilState(datasetCurrentAtom)
+  const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
+  const { topSuggestion } = useDatasetSuggestionResults()
+
+  useEffect(() => {
+    if (!dataset) {
+      setDataset(topSuggestion)
+    }
+  }, [dataset, setDataset, topSuggestion])
 
   const text = useMemo(() => {
     if (isNil(dataset)) {
