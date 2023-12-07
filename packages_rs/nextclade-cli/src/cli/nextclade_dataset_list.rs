@@ -46,7 +46,7 @@ pub fn nextclade_dataset_list(
     })
     .filter(|dataset| {
       if let Some(name) = &name {
-        name == &dataset.path
+        name == &dataset.path || dataset.shortcuts.contains(name)
       } else {
         true
       }
