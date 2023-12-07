@@ -33,6 +33,9 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub attributes: BTreeMap<String, AnyType>,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub shortcuts: Vec<String>,
+
   #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
   pub meta: DatasetMeta,
 

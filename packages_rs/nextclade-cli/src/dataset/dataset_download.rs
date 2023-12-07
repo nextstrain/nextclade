@@ -220,6 +220,7 @@ pub fn dataset_individual_files_load(
           VirusProperties {
             schema_version: "".to_owned(),
             attributes: BTreeMap::default(),
+            shortcuts: vec![],
             meta: DatasetMeta::default(),
             files: DatasetFiles {
               reference: "".to_owned(),
