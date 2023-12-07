@@ -155,7 +155,7 @@ export function useDatasetSuggestionResults() {
 
     itemsInclude = sortBy(itemsInclude, (dataset) => {
       const record = get(recordsByDataset, dataset.path)
-      return -record.meanScore ?? 0
+      return -record.meanScore
     })
 
     itemsInclude = sortBy(itemsInclude, (dataset) => -(get(recordsByDataset, dataset.path)?.records?.length ?? 0))
