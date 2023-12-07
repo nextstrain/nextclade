@@ -53,14 +53,7 @@ pub fn nextclade_dataset_list(
     })
     .filter(|dataset| {
       if let Some(search) = &search {
-        [
-          Some(dataset.path.as_str()),
-          dataset.name(),
-          dataset.ref_name(),
-          dataset.ref_accession(),
-        ]
-        .iter()
-        .any(|candidate| candidate.unwrap_or_default().contains(search))
+        dataset.search_strings().any(|candidate| candidate.contains(search))
       } else {
         true
       }
