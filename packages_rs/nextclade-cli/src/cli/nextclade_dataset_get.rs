@@ -64,7 +64,7 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Opti
     })
     // Filter by name
     .filter(|dataset| {
-      dataset.path == name
+      dataset.path == name || dataset.shortcuts.contains(&String::from(name))
     })
     .collect_vec();
 

@@ -3,7 +3,7 @@ use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::o;
 use crate::utils::any::AnyType;
 use eyre::Report;
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use schemars::JsonSchema;
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -57,6 +57,9 @@ pub struct DatasetCollection {
 pub struct Dataset {
   pub path: String,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub shortcuts: Vec<String>,
+
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub attributes: BTreeMap<String, AnyType>,
 
@@ -83,6 +86,20 @@ impl Dataset {
     self.attributes.get("name").and_then(AnyType::as_str_maybe)
   }
 
+  pub fn search_strings(&self) -> impl Iterator<Item = &str> {
+    let names = [
+      Some(self.path.as_str()),
+      self.name(),
+      self.ref_name(),
+      self.ref_accession(),
+    ]
+    .into_iter()
+    .flatten();
+
+    let shortcuts = self.shortcuts.iter().map(String::as_str);
+
+    chain!(names, shortcuts)
+  }
   pub fn ref_name(&self) -> Option<&str> {
     self.attributes.get("reference name").and_then(AnyType::as_str_maybe)
   }
