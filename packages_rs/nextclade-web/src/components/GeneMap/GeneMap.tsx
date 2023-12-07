@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { isInNucleotideViewAtom, viewedGeneAtom } from 'src/state/seqViewSettings.state'
+import { isInNucleotideViewAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import type { Cds, CdsSegment } from 'src/types'
@@ -88,7 +88,7 @@ export function CdsSegmentView({
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const setViewedGene = useSetRecoilState(viewedGeneAtom)
+  const setViewedGene = useSetRecoilState(viewedCdsAtom)
 
   const [hovered, setHovered] = useState(false)
   const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined)
@@ -224,7 +224,7 @@ export type GeneMapProps = ReactResizeDetectorDimensions
 export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
   const cdsesAll = useRecoilValue(cdsesAtom)
   const genomeSize = useRecoilValue(genomeSizeAtom)
-  const viewedGene = useRecoilValue(viewedGeneAtom)
+  const viewedGene = useRecoilValue(viewedCdsAtom)
   const isInNucView = useRecoilValue(isInNucleotideViewAtom)
 
   const { viewBox, cdsSegViews, geneMapHeight } = useMemo(() => {

@@ -1,5 +1,5 @@
 import { atom, selector } from 'recoil'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 
 import { persistAtom } from 'src/state/persist/localStorage'
@@ -93,18 +93,18 @@ export const maxNucMarkersAtom = atom<number>({
   effects: [persistAtom],
 })
 
-export const viewedGeneAtom = atom<string>({
-  key: 'viewedGene',
-  default: GENE_OPTION_NUC_SEQUENCE,
+export const viewedCdsAtom = atom<string>({
+  key: 'viewedCdsAtom',
+  default: CDS_OPTION_NUC_SEQUENCE,
 })
 
 export const isInNucleotideViewAtom = selector<boolean>({
   key: 'isInNucleotideView',
-  get: ({ get }) => get(viewedGeneAtom) === GENE_OPTION_NUC_SEQUENCE,
+  get: ({ get }) => get(viewedCdsAtom) === CDS_OPTION_NUC_SEQUENCE,
 })
 
 export const switchToNucleotideViewAtom = selector({
   key: 'switchToNucleotideView',
   get: () => undefined,
-  set: ({ set }) => set(viewedGeneAtom, GENE_OPTION_NUC_SEQUENCE),
+  set: ({ set }) => set(viewedCdsAtom, CDS_OPTION_NUC_SEQUENCE),
 })
