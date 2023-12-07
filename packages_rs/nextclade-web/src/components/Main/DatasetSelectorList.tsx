@@ -38,7 +38,7 @@ export function DatasetSelectorList({
       attrStrMaybe(dataset.attributes, 'name') ?? '',
       attrStrMaybe(dataset.attributes, 'reference name') ?? '',
       attrStrMaybe(dataset.attributes, 'reference accession') ?? '',
-      dataset.path,
+      ...(dataset.shortcuts ?? []),
     ])
   }, [datasetsActive, datasetsInactive, searchTerm])
 
