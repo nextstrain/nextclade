@@ -1,4 +1,4 @@
-import { first, get, isNil, sortBy } from 'lodash'
+import { first, get, isNil, mean, sortBy, uniq } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
@@ -9,7 +9,6 @@ import {
   autodetectResultsAtom,
   AutodetectRunState,
   autodetectRunStateAtom,
-  groupByDatasets,
   minimizerIndexAtom,
 } from 'src/state/autodetect.state'
 import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
@@ -114,6 +113,32 @@ export class SeqAutodetectWasmWorker {
   }
 }
 
+export function groupByDatasets(records: MinimizerSearchRecord[]) {
+  const names = uniq(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
+  let byDataset: Record<string, { records: MinimizerSearchRecord[]; meanScore: number }> = {}
+  // eslint-disable-next-line no-loops/no-loops
+  for (const name of names) {
+    // Find sequence records which match this dataset
+    const selectedRecords = records.filter((record) => record.result.datasets.some((dataset) => dataset.name === name))
+
+    // Get scores for sequence records which match this dataset
+    const scores = selectedRecords.map((record) => {
+      const dataset = record.result.datasets.find((ds) => ds.name === name)
+      return dataset?.score ?? 0
+    })
+    const meanScore = mean(scores)
+
+    byDataset = { ...byDataset, [name]: { records: selectedRecords, meanScore } }
+  }
+
+  console.info(
+    sortBy(Object.entries(byDataset), ([_, val]) => -val.meanScore)
+      .map(([name, val]) => `${name.padEnd(60)} ${val.meanScore.toFixed(4)}`)
+      .join('\n'),
+  )
+  return byDataset
+}
+
 export function useDatasetSuggestionResults() {
   const { datasets } = useRecoilValue(datasetsAtom)
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
@@ -128,7 +153,12 @@ export function useDatasetSuggestionResults() {
       Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
     )
 
-    itemsInclude = sortBy(itemsInclude, (dataset) => -get(recordsByDataset, dataset.path, []).length)
+    itemsInclude = sortBy(itemsInclude, (dataset) => {
+      const record = get(recordsByDataset, dataset.path)
+      return -record.meanScore ?? 0
+    })
+
+    itemsInclude = sortBy(itemsInclude, (dataset) => -(get(recordsByDataset, dataset.path)?.records?.length ?? 0))
 
     const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
 
