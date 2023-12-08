@@ -1,5 +1,4 @@
-/* eslint-disable no-loops/no-loops */
-import { isEmpty, isNil, uniq } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import type { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
@@ -48,16 +47,6 @@ export const autodetectResultByIndexAtom = selectorFamily<MinimizerSearchRecord,
 
 // Dataset ID to use for when dataset is not autodetected
 export const DATASET_ID_UNDETECTED = 'undetected'
-
-export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecord[]> {
-  const names = uniq(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
-  let byDataset = {}
-  for (const name of names) {
-    const selectedRecords = records.filter((record) => record.result.datasets.some((dataset) => dataset.name === name))
-    byDataset = { ...byDataset, [name]: selectedRecords }
-  }
-  return byDataset
-}
 
 // Select autodetect results by dataset name
 export const autodetectResultsByDatasetAtom = selectorFamily<MinimizerSearchRecord[] | undefined, string>({
