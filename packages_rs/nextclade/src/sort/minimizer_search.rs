@@ -45,8 +45,10 @@ pub fn run_minimizer_search(
   let mut hit_counts = vec![0; n_refs];
   for m in minimizers {
     if let Some(mz) = index.minimizers.get(&m) {
-      for i in 0..n_refs {
-        hit_counts[i] += u64::from_str(&mz[i..=i])?;
+      for (ri, hit_count) in hit_counts.iter_mut().enumerate() {
+        if mz.contains(&ri) {
+          *hit_count += 1;
+        }
       }
     }
   }
