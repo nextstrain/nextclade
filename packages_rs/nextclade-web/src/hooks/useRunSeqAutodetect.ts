@@ -130,12 +130,6 @@ export function groupByDatasets(records: MinimizerSearchRecord[]) {
 
     byDataset = { ...byDataset, [name]: { records: selectedRecords, meanScore } }
   }
-
-  console.info(
-    sortBy(Object.entries(byDataset), ([_, val]) => -val.meanScore)
-      .map(([name, val]) => `${name.padEnd(60)} ${val.meanScore.toFixed(4)}`)
-      .join('\n'),
-  )
   return byDataset
 }
 
