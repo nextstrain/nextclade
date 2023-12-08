@@ -26,7 +26,7 @@ import {
 } from 'src/components/Results/ResultsTableStyle'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { analysisResultAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
@@ -185,7 +185,7 @@ export function ResultsTableRowResult({
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
         <Suspense fallback={null}>
-          {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
+          {viewedGene === CDS_OPTION_NUC_SEQUENCE ? (
             <SequenceView key={seqName} sequence={analysisResult} />
           ) : (
             <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />

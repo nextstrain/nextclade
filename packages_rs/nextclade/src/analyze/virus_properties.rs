@@ -41,10 +41,10 @@ pub struct VirusProperties {
 
   pub files: DatasetFiles,
 
-  pub default_gene: Option<String>,
+  pub default_cds: Option<String>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub gene_order_preference: Vec<String>,
+  pub cds_order_preference: Vec<String>,
 
   #[serde(default)]
   pub mut_labels: LabelledMutationsConfig,

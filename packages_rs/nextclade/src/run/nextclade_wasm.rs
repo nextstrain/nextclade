@@ -85,9 +85,9 @@ pub struct AnalysisInitialData<'a> {
   pub genome_size: usize,
   pub gene_map: GeneMap,
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub default_gene: Option<String>,
+  pub default_cds: Option<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub gene_order_preference: Vec<String>,
+  pub cds_order_preference: Vec<String>,
   pub clade_node_attr_key_descs: &'a [CladeNodeAttrKeyDesc],
   pub phenotype_attr_descs: &'a [PhenotypeAttrDesc],
   pub aa_motifs_descs: &'a [AaMotifsDesc],
@@ -241,8 +241,8 @@ impl Nextclade {
     AnalysisInitialData {
       gene_map: self.gene_map.clone(),
       genome_size: self.ref_seq.len(),
-      default_gene: self.virus_properties.default_gene.clone(),
-      gene_order_preference: self.virus_properties.gene_order_preference.clone(),
+      default_cds: self.virus_properties.default_cds.clone(),
+      cds_order_preference: self.virus_properties.cds_order_preference.clone(),
       clade_node_attr_key_descs: &self.clade_attr_descs,
       phenotype_attr_descs: &self.phenotype_attr_descs,
       aa_motifs_descs: &self.aa_motifs_descs,

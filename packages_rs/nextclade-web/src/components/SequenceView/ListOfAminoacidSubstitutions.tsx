@@ -3,7 +3,7 @@ import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
 
 import type { AaSub } from 'src/types'
-import { geneOrderPreferenceAtom } from 'src/state/dataset.state'
+import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
 import { formatAAMutation } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
@@ -18,7 +18,7 @@ export interface ListOfAminoacidMutationsProps {
 export function ListOfAminoacidSubstitutions({ aminoacidSubstitutions }: ListOfAminoacidMutationsProps) {
   const { t } = useTranslationSafe()
 
-  const geneOrderPreference = useRecoilValue(geneOrderPreferenceAtom)
+  const geneOrderPreference = useRecoilValue(cdsOrderPreferenceAtom)
 
   const totalMutations = aminoacidSubstitutions.length
   const maxRows = Math.min(8, totalMutations)
