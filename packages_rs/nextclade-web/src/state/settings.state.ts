@@ -42,8 +42,8 @@ export const shouldRunAutomaticallyAtom = atom<boolean>({
   effects: [persistAtom],
 })
 
-export const shouldSuggestDatasetsAtom = atom<boolean>({
-  key: 'shouldSuggestDatasetsAtom',
+export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
+  key: 'shouldSuggestDatasetsOnDatasetPageAtom',
   default: true,
   effects: [persistAtom],
 })

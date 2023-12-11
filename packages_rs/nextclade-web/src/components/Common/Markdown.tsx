@@ -3,17 +3,13 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
 import { LOADING } from 'src/components/Loading/Loading'
+import { mdxComponents } from 'src/mdx-components'
 
 const REMARK_PLUGINS = [remarkGfm]
 
 const REHYPE_PLUGINS = [rehypeRaw, rehypeSanitize]
-
-const MD_COMPONENTS = {
-  a: LinkExternal,
-}
 
 export interface MarkdownProps {
   content: string
@@ -21,7 +17,7 @@ export interface MarkdownProps {
 
 export function Markdown({ content }: MarkdownProps) {
   return (
-    <ReactMarkdown rehypePlugins={REHYPE_PLUGINS} remarkPlugins={REMARK_PLUGINS} components={MD_COMPONENTS}>
+    <ReactMarkdown rehypePlugins={REHYPE_PLUGINS} remarkPlugins={REMARK_PLUGINS} components={mdxComponents}>
       {content}
     </ReactMarkdown>
   )

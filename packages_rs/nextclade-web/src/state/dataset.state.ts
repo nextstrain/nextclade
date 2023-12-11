@@ -2,9 +2,7 @@ import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
 
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
-// import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { persistAtom } from 'src/state/persist/localStorage'
-// import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { areDatasetsEqual } from 'src/types'
 
@@ -14,7 +12,6 @@ export interface Datasets {
 
 export const datasetServerUrlAtom = atom<string>({
   key: 'datasetServerUrlAtom',
-  default: '/',
 })
 
 export const datasetsAtom = atom<Datasets>({
@@ -47,8 +44,8 @@ export const datasetUpdatedAtom = atom<Dataset | undefined>({
   default: undefined,
 })
 
-export const geneOrderPreferenceAtom = atom<string[]>({
-  key: 'geneOrderPreference',
+export const cdsOrderPreferenceAtom = atom<string[]>({
+  key: 'cdsOrderPreferenceAtom',
   default: [],
 })
 

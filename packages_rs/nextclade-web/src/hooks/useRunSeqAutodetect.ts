@@ -1,5 +1,7 @@
+import { first, get, isNil, mean, sortBy, uniq } from 'lodash'
 import type { Subscription } from 'observable-fns'
-import { useRecoilCallback } from 'recoil'
+import { useMemo } from 'react'
+import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { axiosFetch } from 'src/io/axiosFetch'
 import {
@@ -9,7 +11,7 @@ import {
   autodetectRunStateAtom,
   minimizerIndexAtom,
 } from 'src/state/autodetect.state'
-import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
@@ -17,13 +19,15 @@ import { getQueryFasta } from 'src/workers/launchAnalysis'
 import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
 import { spawn } from 'src/workers/spawn'
 
+export interface AutosuggestionParams {
+  shouldSetCurrentDataset?: boolean
+}
+
 export function useRunSeqAutodetect() {
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
       () => {
         const { getPromise } = snapshot
-
-        set(autodetectRunStateAtom, AutodetectRunState.Started)
 
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
@@ -43,6 +47,8 @@ export function useRunSeqAutodetect() {
         function onComplete() {
           set(autodetectRunStateAtom, AutodetectRunState.Done)
         }
+
+        set(autodetectRunStateAtom, AutodetectRunState.Started)
 
         Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
           .then(async ([qrySeqInputs, minimizerIndexVersion]) => {
@@ -105,4 +111,69 @@ export class SeqAutodetectWasmWorker {
     this.subscription?.unsubscribe()
     await this.thread.destroy()
   }
+}
+
+export function groupByDatasets(records: MinimizerSearchRecord[]) {
+  const names = uniq(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
+  let byDataset: Record<string, { records: MinimizerSearchRecord[]; meanScore: number }> = {}
+  // eslint-disable-next-line no-loops/no-loops
+  for (const name of names) {
+    // Find sequence records which match this dataset
+    const selectedRecords = records.filter((record) => record.result.datasets.some((dataset) => dataset.name === name))
+
+    // Get scores for sequence records which match this dataset
+    const scores = selectedRecords.map((record) => {
+      const dataset = record.result.datasets.find((ds) => ds.name === name)
+      return dataset?.score ?? 0
+    })
+    const meanScore = mean(scores)
+
+    byDataset = { ...byDataset, [name]: { records: selectedRecords, meanScore } }
+  }
+  return byDataset
+}
+
+export function useDatasetSuggestionResults() {
+  const { datasets } = useRecoilValue(datasetsAtom)
+  const autodetectResults = useRecoilValue(autodetectResultsAtom)
+  const result = useMemo(() => {
+    if (isNil(autodetectResults) || autodetectResults.length === 0) {
+      return { itemsStartWith: [], itemsInclude: datasets, itemsNotInclude: [] }
+    }
+
+    const recordsByDataset = groupByDatasets(autodetectResults)
+
+    let itemsInclude = datasets.filter((candidate) =>
+      Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
+    )
+
+    itemsInclude = sortBy(itemsInclude, (dataset) => {
+      const record = get(recordsByDataset, dataset.path)
+      return -record.meanScore
+    })
+
+    itemsInclude = sortBy(itemsInclude, (dataset) => -(get(recordsByDataset, dataset.path)?.records?.length ?? 0))
+
+    const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
+
+    return { itemsStartWith: [], itemsInclude, itemsNotInclude }
+  }, [autodetectResults, datasets])
+
+  const datasetsActive = useMemo(() => {
+    const { itemsStartWith, itemsInclude } = result
+    return [...itemsStartWith, ...itemsInclude]
+  }, [result])
+
+  const datasetsInactive = useMemo(() => {
+    const { itemsNotInclude } = result
+    return itemsNotInclude
+  }, [result])
+
+  const showSuggestions = useMemo(() => !isNil(autodetectResults) && autodetectResults.length > 0, [autodetectResults])
+
+  const topSuggestion = autodetectResults ? first(datasetsActive) : undefined
+
+  const numSuggestions = autodetectResults ? datasetsActive.length : 0
+
+  return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions }
 }

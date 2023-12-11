@@ -12,6 +12,7 @@ import { Link } from 'src/components/Link/Link'
 import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
 import { ResultsStatus } from 'src/components/Results/ResultsStatus'
+import { PROJECT_NAME } from 'src/constants'
 import { canDownloadAtom, hasRanAtom, hasTreeAtom } from 'src/state/results.state'
 import styled, { useTheme } from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -138,6 +139,7 @@ export function NavigationBar() {
   const linksLeft = useMemo(() => {
     return [
       { url: '/', content: t('Start'), title: t('Show start page') },
+      { url: '/dataset', content: t('Dataset'), title: t('Show current dataset details') },
       {
         url: hasRan ? '/results' : undefined,
         content: t('Results'),
@@ -169,6 +171,11 @@ export function NavigationBar() {
         url: '/settings',
         content: t('Settings'),
         title: t('Configure Nextclade'),
+      },
+      {
+        url: '/about',
+        title: t('About {{what}}', { what: PROJECT_NAME }),
+        content: t('About'),
       },
       {
         title: t('Cite Nextclade in your work'),

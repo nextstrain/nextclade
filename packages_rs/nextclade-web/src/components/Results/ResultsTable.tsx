@@ -4,7 +4,7 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
-import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
+import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
@@ -78,7 +78,7 @@ export function ResultsTable() {
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom)
 
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
-  const viewedGene = useRecoilValue(viewedGeneAtom)
+  const viewedGene = useRecoilValue(viewedCdsAtom)
 
   const rowData: TableRowDatum[] = useMemo(() => {
     return seqIndices.map((seqIndex) => ({

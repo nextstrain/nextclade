@@ -220,6 +220,7 @@ pub fn dataset_individual_files_load(
           VirusProperties {
             schema_version: "".to_owned(),
             attributes: BTreeMap::default(),
+            shortcuts: vec![],
             meta: DatasetMeta::default(),
             files: DatasetFiles {
               reference: "".to_owned(),
@@ -232,8 +233,8 @@ pub fn dataset_individual_files_load(
               rest_files: BTreeMap::default(),
               other: serde_json::Value::default(),
             },
-            default_gene: None,
-            gene_order_preference: vec![],
+            default_cds: None,
+            cds_order_preference: vec![],
             mut_labels: LabelledMutationsConfig::default(),
             primers: vec![],
             qc: None,

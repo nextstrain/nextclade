@@ -14,6 +14,7 @@ import { TabPanelUrl } from './TabPanelUrl'
 import { TabPanelPaste } from './TabPanelPaste'
 import { UploadedFileInfo } from './UploadedFileInfo'
 import { UploadedFileInfoCompact } from './UploadedFileInfoCompact'
+import { ExampleSequencePicker } from '../Main/ExampleSequencePicker'
 
 export const FilePickerContainer = styled.div`
   flex: 1;
@@ -37,6 +38,10 @@ export const FilePickerTitle = styled.h4`
   flex: 1;
   padding-top: 0.75rem;
   margin: auto 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 export const TabsPanelStyled = styled(TabsPanel)`
@@ -52,7 +57,7 @@ const TabsContentStyled = styled(TabsContent)`
 export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'onInput' | 'onError' | 'as' | 'ref'> {
   multiple?: boolean
   compact?: boolean
-  title: string
+  title?: string
   icon: ReactNode
   exampleUrl: string
   pasteInstructions: string
@@ -69,7 +74,7 @@ export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, '
 export function FilePicker({
   multiple = false,
   compact,
-  title,
+  title = '',
   icon,
   exampleUrl,
   pasteInstructions,
@@ -173,8 +178,9 @@ export function FilePicker({
   return (
     <FilePickerContainer {...props}>
       <FilePickerHeader>
-        <FilePickerTitle>{title}</FilePickerTitle>
+        <FilePickerTitle title={title}>{title}</FilePickerTitle>
         <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input || isInProgress} />
+        <ExampleSequencePicker />
       </FilePickerHeader>
       <FilePickerBody $compact={compact}>{FileUploadOrFileInfo}</FilePickerBody>
     </FilePickerContainer>

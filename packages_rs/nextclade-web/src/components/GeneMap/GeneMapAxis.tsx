@@ -3,7 +3,7 @@ import { range } from 'lodash'
 import { XAxis, ComposedChart, ResponsiveContainer } from 'recharts'
 import { useRecoilValue } from 'recoil'
 import { cdsesAtom, genomeSizeAtom } from 'src/state/results.state'
-import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
+import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { getAxisLength } from './getAxisLength'
 
 const MARGIN = {}
@@ -26,7 +26,7 @@ export function getTickSize(axisLength: number) {
 export function GeneMapAxis() {
   const genomeSize = useRecoilValue(genomeSizeAtom)
   const cdses = useRecoilValue(cdsesAtom)
-  const viewedGene = useRecoilValue(viewedGeneAtom)
+  const viewedGene = useRecoilValue(viewedCdsAtom)
 
   const { ticks, domain } = useMemo(() => {
     const length = getAxisLength(genomeSize, viewedGene, cdses)

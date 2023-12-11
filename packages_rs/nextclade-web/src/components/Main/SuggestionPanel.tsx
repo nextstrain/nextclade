@@ -1,34 +1,20 @@
 import { isNil } from 'lodash'
 import React, { useMemo } from 'react'
-import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
-import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { Button, Form as FormBase, FormGroup as FormGroupBase, Spinner } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import { Button, Form as FormBase, FormGroup } from 'reactstrap'
-import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { Toggle } from 'src/components/Common/Toggle'
-import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
+import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
-import { autodetectResultsAtom, hasAutodetectResultsAtom } from 'src/state/autodetect.state'
+import { AutodetectRunState, autodetectRunStateAtom, hasAutodetectResultsAtom } from 'src/state/autodetect.state'
 import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
-import { shouldSuggestDatasetsAtom } from 'src/state/settings.state'
+import { hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 
 export function SuggestionPanel() {
-  const { t } = useTranslationSafe()
   const minimizerIndexVersion = useRecoilValue(minimizerIndexVersionAtom)
-  const resetAutodetectResults = useResetRecoilState(autodetectResultsAtom)
-  const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
-  const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
-  const runSuggest = useRunSeqAutodetect()
-
-  const { canRun, runButtonColor, runButtonTooltip } = useMemo(() => {
-    const canRun = hasRequiredInputs
-    return {
-      canRun,
-      runButtonColor: !canRun ? 'secondary' : 'success',
-      runButtonTooltip: !canRun ? t('Please provide sequence data for the algorithm') : t('Launch suggestions engine!'),
-    }
-  }, [hasRequiredInputs, t])
 
   if (isNil(minimizerIndexVersion)) {
     return null
@@ -40,49 +26,116 @@ export function SuggestionPanel() {
         <FlexLeft>
           <AutosuggestionToggle />
         </FlexLeft>
-
         <FlexRight>
-          <Button color="link" onClick={resetAutodetectResults} disabled={!hasAutodetectResults}>
-            {t('Reset suggestions')}
-          </Button>
-
-          <ButtonRunStyled onClick={runSuggest} disabled={!canRun} color={runButtonColor} title={runButtonTooltip}>
-            {t('Suggest')}
-          </ButtonRunStyled>
+          <ButtonSuggestionsReset />
+          <ButtonSuggest />
         </FlexRight>
       </Form>
     </Container>
   )
 }
 
+export function ButtonSuggest() {
+  const { t } = useTranslationSafe()
+  const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
+  const runSuggest = useRunSeqAutodetect()
+  const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
+  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
+
+  const { text, disabled, color, title } = useMemo(() => {
+    const canRun = hasRequiredInputs
+    const isRunning = autodetectRunState === AutodetectRunState.Started
+    return {
+      text: isRunning ? (
+        <span>
+          <Spinner size="sm" />
+          <span className="ml-2">{t('Suggesting')}</span>
+        </span>
+      ) : hasAutodetectResults ? (
+        t('Re-suggest')
+      ) : (
+        t('Suggest')
+      ),
+      disabled: !canRun || isRunning,
+      color: !canRun ? 'secondary' : 'primary',
+      title: isRunning
+        ? t('Running')
+        : !canRun
+        ? t('Please provide sequence data for the algorithm')
+        : hasAutodetectResults
+        ? t('Re-launch suggestions engine!')
+        : t('Launch suggestions engine!'),
+    }
+  }, [autodetectRunState, hasAutodetectResults, hasRequiredInputs, t])
+
+  return (
+    <ButtonRunStyled onClick={runSuggest} disabled={disabled} color={color} title={title}>
+      {text}
+    </ButtonRunStyled>
+  )
+}
+
+export function ButtonSuggestionsReset() {
+  const { t } = useTranslationSafe()
+  const resetAutodetectResults = useResetSuggestions()
+  const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
+
+  return (
+    <ButtonResetStyled color="link" onClick={resetAutodetectResults} disabled={!hasAutodetectResults}>
+      {t('Reset')}
+    </ButtonResetStyled>
+  )
+}
+
 const Container = styled.div`
   flex: 1;
-  margin-top: auto;
-  margin-bottom: 7px;
-  padding: 7px 0;
-  padding-left: 5px;
 `
 
 const Form = styled(FormBase)`
   display: flex;
   width: 100%;
-  height: 100%;
-  margin-top: auto;
+  min-height: 45px;
   padding: 10px;
   border: 1px #ccc9 solid;
   border-radius: 5px;
 `
 
-const ButtonRunStyled = styled(Button)`
-  min-width: 150px;
-  min-height: 45px;
+export const FlexLeft = styled.div`
+  display: flex;
+  flex: 1;
+  margin-right: auto;
+  vertical-align: middle;
 `
 
-function AutosuggestionToggle() {
+export const FlexRight = styled.div`
+  margin-left: auto;
+`
+
+const ButtonRunStyled = styled(Button)`
+  width: 140px;
+  height: 38px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+`
+
+const ButtonResetStyled = styled(Button)`
+  margin: 0 1rem;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+`
+
+export function AutosuggestionToggle({ ...restProps }) {
   const { t } = useTranslationSafe()
-  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(shouldSuggestDatasetsAtom)
+  const { state: shouldSuggestDatasets, toggle: toggleSuggestDatasets } = useRecoilToggle(
+    shouldSuggestDatasetsOnDatasetPageAtom,
+  )
   return (
-    <FormGroup>
+    <FormGroup {...restProps}>
       <Toggle
         identifier="toggle-suggest-datasets"
         checked={shouldSuggestDatasets}
@@ -99,3 +152,7 @@ function AutosuggestionToggle() {
     </FormGroup>
   )
 }
+
+const FormGroup = styled(FormGroupBase)`
+  margin: auto 0;
+`

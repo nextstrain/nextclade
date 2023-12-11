@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { get, head, mapValues, sortBy, sortedUniq } from 'lodash'
+import { get, head, isNil, mapValues, sortBy, sortedUniq } from 'lodash'
 import semver from 'semver'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import urljoin from 'url-join'
@@ -47,7 +47,7 @@ export function findDataset(datasets: Dataset[], name?: string, tag?: string) {
 /** Find the datasets given name, ref and tag */
 export function filterDatasets(datasets: Dataset[], name?: string, tag?: string) {
   return datasets.filter((dataset) => {
-    let isMatch = dataset.path === name
+    let isMatch = !isNil(name) && (dataset.path === name || !!dataset.shortcuts?.includes(name))
 
     if (tag) {
       isMatch = isMatch && dataset.version?.tag === tag

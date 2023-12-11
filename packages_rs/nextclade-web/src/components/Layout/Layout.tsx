@@ -32,8 +32,9 @@ const MainInner = styled.main`
 `
 
 const MainOuter = styled.main`
-  flex: auto;
+  display: flex;
   flex-direction: column;
+  flex: 1;
   overflow: hidden;
   height: 100%;
   width: 100%;

@@ -10,9 +10,9 @@ import { Badge as BadgeBase } from 'reactstrap'
 import { ButtonFilter } from 'src/components/Results/ButtonFilter'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import styled from 'styled-components'
-import { viewedGeneAtom } from 'src/state/seqViewSettings.state'
+import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { genesAtom } from 'src/state/results.state'
 import { ensureNumber } from 'src/helpers/number'
@@ -30,23 +30,23 @@ export interface Option {
 
 export function SequenceSelector() {
   const genes = useRecoilValue(genesAtom)
-  const [viewedGene, setViewedGene] = useRecoilState(viewedGeneAtom)
+  const [viewedGene, setViewedGene] = useRecoilState(viewedCdsAtom)
 
   const { options, defaultOption } = useMemo(() => {
     return prepareOptions(genes)
   }, [genes])
 
   const option = useMemo((): Option => {
-    if (viewedGene === GENE_OPTION_NUC_SEQUENCE) {
-      return { value: GENE_OPTION_NUC_SEQUENCE }
+    if (viewedGene === CDS_OPTION_NUC_SEQUENCE) {
+      return { value: CDS_OPTION_NUC_SEQUENCE }
     }
     return options.find((option) => option.cds?.name === viewedGene) ?? defaultOption
   }, [defaultOption, options, viewedGene])
 
   const onChange = useCallback(
     (option: Option | null) => {
-      if (option?.value === GENE_OPTION_NUC_SEQUENCE) {
-        setViewedGene(GENE_OPTION_NUC_SEQUENCE)
+      if (option?.value === CDS_OPTION_NUC_SEQUENCE) {
+        setViewedGene(CDS_OPTION_NUC_SEQUENCE)
       }
 
       if (option?.cds?.name) {
@@ -135,7 +135,7 @@ function OptionLabel(option: Option, meta: FormatOptionLabelMeta<Option>) {
     return <OptionLabelProtein protein={option.protein} isMenu={meta.context === 'menu'} />
   }
 
-  if (option.value === GENE_OPTION_NUC_SEQUENCE) {
+  if (option.value === CDS_OPTION_NUC_SEQUENCE) {
     return <OptionLabelFullGenome isMenu={meta.context === 'menu'} />
   }
 
@@ -224,7 +224,7 @@ const Indent = styled.div<{ indent?: number | boolean }>`
 `
 
 function prepareOptions(genes: Gene[]) {
-  const options: Option[] = [{ value: GENE_OPTION_NUC_SEQUENCE }]
+  const options: Option[] = [{ value: CDS_OPTION_NUC_SEQUENCE }]
 
   if (isEmpty(genes)) {
     return { options, defaultOption: options[0] }
@@ -276,7 +276,7 @@ function prepareOptions(genes: Gene[]) {
 }
 
 const checkSearchCandidateEntry = (candidate: FilterOptionOption<Option>, searchTerm: string): boolean => {
-  if (candidate.value === GENE_OPTION_NUC_SEQUENCE) {
+  if (candidate.value === CDS_OPTION_NUC_SEQUENCE) {
     return true
   }
 

@@ -7,30 +7,14 @@ import { colorHash } from 'src/helpers/colorHash'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { firstLetter } from 'src/helpers/string'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import {
-  autodetectResultsByDatasetAtom,
-  DATASET_ID_UNDETECTED,
-  numberAutodetectResultsAtom,
-} from 'src/state/autodetect.state'
+import { autodetectResultsByDatasetAtom, numberAutodetectResultsAtom } from 'src/state/autodetect.state'
 import { AnyType, attrBoolMaybe, attrStrMaybe } from 'src/types'
 import type { Dataset } from 'src/types'
 import styled from 'styled-components'
 
 export const Container = styled.div`
   display: flex;
-  //border: 1px #ccc9 solid;
-  //border-radius: 5px;
-
-  //margin-top: 3px !important;
-  //margin-bottom: 3px !important;
-  //margin-left: 5px;
-  //padding: 15px;
-
   margin: 0;
-  padding: 15px;
-  box-shadow: 0 0 12px 0 #0002;
-  border: 1px #ccc9 solid;
-  border-radius: 5px;
 `
 
 export const FlexLeft = styled.div`
@@ -67,16 +51,16 @@ export const DatasetInfoLine = styled.p`
 `
 
 const DatasetInfoBadge = styled(Badge)`
-  font-size: 0.8rem;
-  margin-top: 2px !important;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.17rem 0.33rem;
 `
 
 export interface DatasetInfoProps {
   dataset: Dataset
+  showSuggestions?: boolean
 }
 
-export function DatasetInfo({ dataset }: DatasetInfoProps) {
+export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
   const { attributes, path, version } = dataset
 
@@ -88,24 +72,22 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
     return updatedAt
   }, [t, version?.tag, version?.updatedAt])
 
-  if (path === DATASET_ID_UNDETECTED) {
-    return <DatasetUndetectedInfo />
-  }
-
   return (
     <Container>
       <FlexLeft>
-        <DatasetInfoAutodetectProgressCircle dataset={dataset} />
+        <DatasetInfoAutodetectProgressCircle dataset={dataset} showSuggestions={showSuggestions} />
       </FlexLeft>
 
       <FlexRight>
         <DatasetName>
           <span>{attrStrMaybe(attributes, 'name') ?? path}</span>
+        </DatasetName>
 
+        <div>
           <span className="d-flex ml-auto">
             {path.startsWith('nextstrain') ? (
               <DatasetInfoBadge
-                className="ml-2 my-auto"
+                className="mr-1 my-0"
                 color="success"
                 title={t('This dataset is provided by {{proj}} developers.', { proj: 'Nextclade' })}
               >
@@ -113,7 +95,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               </DatasetInfoBadge>
             ) : (
               <DatasetInfoBadge
-                className="ml-2 my-auto"
+                className="mr-1 my-0"
                 color="info"
                 title={t(
                   'This dataset is provided by the community members. {{proj}} developers cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions.',
@@ -126,7 +108,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
 
             {attrBoolMaybe(attributes, 'experimental') && (
               <DatasetInfoBadge
-                className="ml-2 my-auto"
+                className="mr-1 my-0"
                 color="warning"
                 title={t(
                   'Dataset authors marked this dataset as experimental, which means the dataset is still under development, is of lower quality than usual or has other issues. Use at own risk. Please contact dataset authors for specifics.',
@@ -138,7 +120,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
 
             {attrBoolMaybe(attributes, 'deprecated') && (
               <DatasetInfoBadge
-                className="ml-2 my-auto"
+                className="mr-1 my-0"
                 color="secondary"
                 title={t(
                   'Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.',
@@ -148,7 +130,7 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
               </DatasetInfoBadge>
             )}
           </span>
-        </DatasetName>
+        </div>
 
         <DatasetInfoLine>{t('Reference: {{ ref }}', { ref: formatReference(attributes) })}</DatasetInfoLine>
         <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
@@ -167,26 +149,54 @@ function formatReference(attributes: Record<string, AnyType> | undefined) {
   return name
 }
 
+export function DatasetAutodetectInfo({ dataset }: { dataset: Dataset }) {
+  const { t } = useTranslationSafe()
+
+  return (
+    <ContainerFixed>
+      <FlexLeft>
+        <DatasetInfoAutodetectProgressCircle dataset={dataset} />
+      </FlexLeft>
+
+      <FlexRight>
+        <DatasetName>
+          <span>{t('Autodetect')}</span>
+        </DatasetName>
+        <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
+        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+      </FlexRight>
+    </ContainerFixed>
+  )
+}
+
 export function DatasetUndetectedInfo() {
   const { t } = useTranslationSafe()
 
   return (
-    <Container>
+    <ContainerFixed>
       <DatasetName>
-        <span>{t('Autodetect')}</span>
+        <span>{t('Not detected')}</span>
       </DatasetName>
-      <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
-      <DatasetInfoLine />
-      <DatasetInfoLine />
-    </Container>
+      <DatasetInfoLine>{t('Unable to deduce dataset')}</DatasetInfoLine>
+      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
+    </ContainerFixed>
   )
 }
 
+const ContainerFixed = styled(Container)`
+  height: 127px;
+`
+
 export interface DatasetInfoCircleProps {
   dataset: Dataset
+  showSuggestions?: boolean
 }
 
-function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps) {
+function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: DatasetInfoCircleProps) {
   const { attributes, path } = dataset
   const name = attrStrMaybe(attributes, 'name') ?? last(path.split('/')) ?? '?'
 
@@ -195,7 +205,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
   const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
 
   const { circleText, countText, percentage } = useMemo(() => {
-    if (isNil(records)) {
+    if (!showSuggestions || isNil(records)) {
       return {
         circleText: (firstLetter(name) ?? ' ').toUpperCase(),
         percentage: 0,
@@ -210,7 +220,7 @@ function DatasetInfoAutodetectProgressCircle({ dataset }: DatasetInfoCircleProps
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [records, numberAutodetectResults, name])
+  }, [showSuggestions, records, numberAutodetectResults, name])
 
   return (
     <>

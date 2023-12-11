@@ -1,9 +1,7 @@
-/* eslint-disable no-loops/no-loops */
-import unique from 'fork-ts-checker-webpack-plugin/lib/utils/array/unique'
 import { isEmpty, isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
+import type { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 
 export const minimizerIndexAtom = atom<MinimizerIndexJson>({
   key: 'minimizerIndexAtom',
@@ -49,16 +47,6 @@ export const autodetectResultByIndexAtom = selectorFamily<MinimizerSearchRecord,
 
 // Dataset ID to use for when dataset is not autodetected
 export const DATASET_ID_UNDETECTED = 'undetected'
-
-export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecord[]> {
-  const names = unique(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
-  let byDataset = {}
-  for (const name of names) {
-    const selectedRecords = records.filter((record) => record.result.datasets.some((dataset) => dataset.name === name))
-    byDataset = { ...byDataset, [name]: selectedRecords }
-  }
-  return byDataset
-}
 
 // Select autodetect results by dataset name
 export const autodetectResultsByDatasetAtom = selectorFamily<MinimizerSearchRecord[] | undefined, string>({
@@ -130,4 +118,9 @@ export enum AutodetectRunState {
 export const autodetectRunStateAtom = atom<AutodetectRunState>({
   key: 'autodetectRunStateAtom',
   default: AutodetectRunState.Idle,
+})
+
+export const isAutodetectRunningAtom = selector({
+  key: 'isAutodetectRunningAtom',
+  get: ({ get }) => get(autodetectRunStateAtom) === AutodetectRunState.Started,
 })

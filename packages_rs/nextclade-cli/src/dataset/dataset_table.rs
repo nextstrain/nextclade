@@ -5,6 +5,7 @@ use itertools::Itertools;
 use nextclade::io::dataset::Dataset;
 use nextclade::o;
 use nextclade::utils::string::surround_with_quotes;
+use std::borrow::Cow;
 
 pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   let mut table = Table::new();
@@ -17,7 +18,19 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   table.set_header([o!("name"), o!("attributes"), o!("versions"), o!("authors")]);
 
   for dataset in filtered.iter() {
-    let Dataset { attributes, .. } = dataset;
+    let Dataset {
+      path,
+      shortcuts,
+      attributes,
+      ..
+    } = dataset;
+
+    let name = if !shortcuts.is_empty() {
+      let shortcuts = shortcuts.iter().map(surround_with_quotes).join(", ");
+      Cow::Owned(format!("{path}\n(shortcuts: {shortcuts})"))
+    } else {
+      Cow::Borrowed(path)
+    };
 
     let attrs = attributes
       .iter()
@@ -34,7 +47,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
     let authors = dataset.meta.authors.join(", ");
 
-    table.add_row([&dataset.path, &attrs, &versions, &authors]);
+    table.add_row([&name, &attrs, &versions, &authors]);
   }
 
   table.to_string()
