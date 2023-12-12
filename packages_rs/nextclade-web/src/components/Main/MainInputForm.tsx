@@ -91,12 +91,12 @@ export function Landing() {
       <Main className="mt-4 mb-2">
         <ContainerColumns className="w-100">
           <Row className="w-100">
-            <Col className="d-flex flex-column h-100">
+            <Col md={6} className="d-flex flex-column h-100">
               <QuerySequenceFilePicker />
               <QuerySequenceList />
             </Col>
 
-            <Col>
+            <Col md={6}>
               <DatasetCurrentOrSelectButton toDatasetSelection={toDatasetSelection} />
             </Col>
           </Row>
