@@ -28,6 +28,8 @@ env:
 jobs:
 
   publish-to-bioconda:
+    if: "!github.event.release.prerelease"
+
     name: "Publish to Bioconda"
     runs-on: ubuntu-22.04
 
