@@ -49,8 +49,8 @@ describe('parseGitHubRepoShortcut', () => {
       'https://raw.githubusercontent.com/aaa/bbb/test-branch/dirname',
     ],
     [
-      'https://github.com/aaa/bbb/blob/test-branch/dirname/',
-      'https://raw.githubusercontent.com/aaa/bbb/test-branch/dirname',
+      'https://github.com/aaa/bbb/blob/test-branch/my/path/dir/',
+      'https://raw.githubusercontent.com/aaa/bbb/test-branch/my/path/dir',
     ],
     [
       'https://github.com/aaa/bbb/blob/test-branch/dirname/filename.json',
@@ -63,6 +63,14 @@ describe('parseGitHubRepoShortcut', () => {
     [
       'https://github.com/aaa/bbb/blob/test-branch/dirname//',
       'https://raw.githubusercontent.com/aaa/bbb/test-branch/dirname',
+    ],
+    [
+      'https://github.com/nextstrain/nextclade_data/tree/master/data_output/nextstrain/rsv/a/EPI_ISL_412866/unreleased',
+      'https://raw.githubusercontent.com/nextstrain/nextclade_data/master/data_output/nextstrain/rsv/a/EPI_ISL_412866/unreleased',
+    ],
+    [
+      'https://github.com/nextstrain/nextclade_data/tree/release/data_output/nextstrain/rsv/a/EPI_ISL_412866/unreleased',
+      'https://raw.githubusercontent.com/nextstrain/nextclade_data/release/data_output/nextstrain/rsv/a/EPI_ISL_412866/unreleased',
     ],
   ])('%p', async (input: string, result: string) => {
     expect(await getDatasetServerUrl({ 'dataset-server': input })).toBe(result)

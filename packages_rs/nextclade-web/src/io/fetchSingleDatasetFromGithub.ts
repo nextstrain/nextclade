@@ -1,11 +1,11 @@
 /* eslint-disable security/detect-unsafe-regex,prefer-const */
+import type { Optional } from 'utility-types'
 import { isEmpty, isNil, trim } from 'lodash'
 import pMemoize from 'p-memoize'
 import { DEFAULT_DATA_OWNER, DEFAULT_DATA_REPO, DEFAULT_DATA_REPO_PATH } from 'src/constants'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { Optional } from 'utility-types'
 
 // eslint-disable-next-line no-underscore-dangle
 export async function githubRepoGetDefaultBranch_(owner: string, repo: string): Promise<string> {
@@ -44,7 +44,7 @@ export function parseGithubRepoUrlComponents(url: string): Optional<GitHubRepoUr
   //  So we assume first component is the branch and the remainder are the path, but this is not universal.
 
   const GITHUB_URL_REGEX =
-    /^(?:https?:\/\/)?github\.com\/+(?<owner>[^/]+)\/+(?<repo>[^/]+)(?:\/+(tree|blob)\/+(?<branch>[^/]+)(?:\/*(?<path>.+))?)?\/*$/
+    /^(?:https?:\/\/)?github\.com\/+(?<owner>[^/]+)\/+(?<repo>[^/]+)(?:\/+(tree|blob)\/+(?<branch>[^/]+)(?:\/*(?<path>.+))?)?\/*?$/
   const match = GITHUB_URL_REGEX.exec(url)
   const { owner, repo, branch, path } = match?.groups ?? {}
   return { owner, repo, branch, path, originalUrl: url }
@@ -120,19 +120,15 @@ export async function parseGitHubRepoShortcut(shortcut: string): Promise<GitHubR
   return { owner, repo, branch, path, originalUrl: shortcut, directUrl }
 }
 
-export async function parseGitHubRepoUrlOrShortcut(datasetGithubUrl_: string): Promise<GitHubRepoUrlResult> {
-  const datasetGithubUrl = removeTrailingSlash(datasetGithubUrl_)
-
-  const urlComponents =
-    (await parseGitHubRepoShortcut(datasetGithubUrl_)) ?? (await parseGithubRepoUrl(datasetGithubUrl_))
-
-  if (!urlComponents) {
-    throw new ErrorDatasetGithubUrlPatternInvalid(datasetGithubUrl)
+export async function parseGitHubRepoUrlOrShortcut(url_: string): Promise<GitHubRepoUrlResult> {
+  const url = removeTrailingSlash(url_)
+  if (isGithubShortcut(url)) {
+    return parseGitHubRepoShortcut(url)
   }
-
-  let { owner, repo, branch, path } = urlComponents
-  const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
-  return { owner, repo, branch, path, directUrl, originalUrl: datasetGithubUrl_ }
+  if (isGithubUrl(url)) {
+    return parseGithubRepoUrl(url)
+  }
+  throw new ErrorDatasetGithubUrlPatternInvalid(url)
 }
 
 export function isGithubUrl(url: string): boolean {
