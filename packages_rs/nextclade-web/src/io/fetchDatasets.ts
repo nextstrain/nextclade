@@ -2,7 +2,12 @@
 import type { ParsedUrlQuery } from 'querystring'
 import { findSimilarStrings } from 'src/helpers/string'
 import { axiosHeadOrUndefined } from 'src/io/axiosFetch'
-import { isGithubUrlOrShortcut, parseGitHubRepoUrlOrShortcut } from 'src/io/fetchSingleDatasetFromGithub'
+import {
+  isGithubShortcut,
+  isGithubUrl,
+  parseGitHubRepoShortcut,
+  parseGithubRepoUrl,
+} from 'src/io/fetchSingleDatasetFromGithub'
 
 import { Dataset } from 'src/types'
 import {
@@ -83,9 +88,19 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
   let datasetServerUrl = getQueryParamMaybe(urlQuery, 'dataset-server')
 
   // If the URL is formatted as a GitHub URL or as a GitHub URL shortcut, use it without any checking
-  if (datasetServerUrl && isGithubUrlOrShortcut(datasetServerUrl)) {
-    const { owner, repo, branch, path } = await parseGitHubRepoUrlOrShortcut(datasetServerUrl)
-    return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
+  if (datasetServerUrl) {
+    if (isGithubShortcut(datasetServerUrl)) {
+      const { owner, repo, branch, path } = await parseGitHubRepoShortcut(datasetServerUrl)
+      return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
+    }
+
+    if (isGithubUrl(datasetServerUrl)) {
+      const parsed = await parseGithubRepoUrl(datasetServerUrl)
+      if (parsed) {
+        const { owner, repo, branch, path } = parsed
+        return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
+      }
+    }
   }
 
   // If requested to try GitHub-hosted datasets either using `DATA_TRY_GITHUB_BRANCH` env var (e.g. from
