@@ -1,6 +1,6 @@
 import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
-
+import { autodetectResultsAtom } from 'src/state/autodetect.state'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
@@ -30,10 +30,10 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
     return get(datasetCurrentStorageAtom)
   },
   set({ get, set, reset }, dataset: Dataset | undefined | DefaultValue) {
-    const datasetCurrent = get(datasetCurrentStorageAtom)
     if (isDefaultValue(dataset) || isNil(dataset)) {
+      reset(autodetectResultsAtom)
       reset(datasetCurrentStorageAtom)
-    } else if (!areDatasetsEqual(datasetCurrent, dataset)) {
+    } else if (!areDatasetsEqual(get(datasetCurrentStorageAtom), dataset)) {
       set(datasetCurrentStorageAtom, dataset)
     }
   },

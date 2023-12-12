@@ -90,6 +90,8 @@ export const autodetectResultsAtom = selector<MinimizerSearchRecord[] | undefine
     // If the operation is not 'reset', add the new items
     if (!isDefaultValue(results) && !isNil(results)) {
       results.forEach((result) => set(autodetectResultByIndexAtom(result.fastaRecord.index), result))
+    } else {
+      reset(autodetectRunStateAtom)
     }
   },
 })
