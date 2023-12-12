@@ -96,17 +96,15 @@ export function RecoilStateInitializer() {
         set(localeAtom, locale.key)
       })
       .then(async () => {
-        const datasetInfo = await fetchSingleDataset(urlQuery)
+        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
+        set(datasetServerUrlAtom, datasetServerUrl)
+        const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
 
+        const datasetInfo = await fetchSingleDataset(urlQuery)
         if (!isNil(datasetInfo)) {
           const { datasets, currentDataset } = datasetInfo
           return { datasets, currentDataset, minimizerIndexVersion: undefined }
         }
-
-        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
-        set(datasetServerUrlAtom, datasetServerUrl)
-
-        const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
         return { datasets, currentDataset, minimizerIndexVersion }
       })
       .catch((error) => {
@@ -123,19 +121,19 @@ export function RecoilStateInitializer() {
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
         return dataset
       })
-      .then((dataset) => {
-        const inputFastas = createInputFastasFromUrlParam(urlQuery, dataset)
+      .then(async (dataset) => {
+        const inputFastas = await createInputFastasFromUrlParam(urlQuery, dataset)
 
         if (!isEmpty(inputFastas)) {
           set(qrySeqInputsStorageAtom, inputFastas)
         }
 
-        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-ref'))
-        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-annotation'))
-        set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
-        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pathogen-json'))
+        set(refSeqInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-ref'))
+        set(geneMapInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-annotation'))
+        set(refTreeInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
+        set(virusPropertiesInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-pathogen-json'))
 
-        if (!isEmpty(inputFastas)) {
+        if (!isEmpty(inputFastas) && !isEmpty(dataset)) {
           run()
         }
 

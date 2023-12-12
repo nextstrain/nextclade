@@ -1,3 +1,4 @@
+import axios from 'axios'
 import urljoin from 'url-join'
 import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
@@ -28,7 +29,7 @@ async function fetchPathogenJson(datasetRootUrl: string) {
   try {
     pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
   } catch (error: unknown) {
-    if (await checkDatasetV2FilesExist(datasetRootUrl)) {
+    if (axios.isAxiosError(error) && error.status === '404' && (await checkDatasetV2FilesExist(datasetRootUrl))) {
       throw new NextcladeV2Error(datasetRootUrl)
     }
     throw error

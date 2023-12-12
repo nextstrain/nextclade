@@ -33,6 +33,9 @@ export const URL_CLADE_SCHEMA_REPO = 'https://github.com/nextstrain/ncov-clades-
 export const URL_CLADE_SCHEMA_SVG = 'https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg'
 
 export const URL_GITHUB_DATA_RAW = 'https://raw.githubusercontent.com/nextstrain/nextclade_data' as const
+export const DEFAULT_DATA_OWNER = 'nextstrain' as const
+export const DEFAULT_DATA_REPO = 'nextclade_data' as const
+export const DEFAULT_DATA_REPO_PATH = 'data_output' as const
 
 export const SUPPORT_EMAIL = 'hello@nextstrain.org'
 
