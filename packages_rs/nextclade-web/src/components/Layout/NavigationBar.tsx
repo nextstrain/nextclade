@@ -7,19 +7,20 @@ import {
   NavItem as NavItemBase,
 } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import styled, { useTheme } from 'styled-components'
 import { BsCaretRightFill as ArrowRight } from 'react-icons/bs'
-import { Link } from 'src/components/Link/Link'
 import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
+import { NavigationMenu } from 'src/components/Layout/NavigationMenu'
+import { Link } from 'src/components/Link/Link'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
 import { ResultsStatus } from 'src/components/Results/ResultsStatus'
 import { PROJECT_NAME } from 'src/constants'
 import { canDownloadAtom, hasRanAtom, hasTreeAtom } from 'src/state/results.state'
-import styled, { useTheme } from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
 import { CitationButton } from 'src/components/Citation/CitationButton'
 import { NextcladeTextLogo } from 'src/components/Layout/NextcladeTextLogo'
-import { LanguageSwitcher } from './LanguageSwitcher'
+import { LanguageSwitcher } from 'src/components/Layout/LanguageSwitcher'
 
 const LOGO_SIZE = 36
 
@@ -34,7 +35,6 @@ export const Navbar = styled(NavbarBase)`
 export const Nav = styled(NavBase)`
   display: flex;
   padding: 0 !important;
-  margin: 0 !important;
 `
 
 const NavbarBrand = styled(NavbarBrandBase)`
@@ -49,10 +49,12 @@ const BrandLogo = styled(BrandLogoBase)`
   height: ${LOGO_SIZE}px;
   padding: 0 !important;
   margin-left: 0.5rem;
+  margin-right: 1rem;
 `
 
 const BrandText = styled(NextcladeTextLogo)`
-  margin: auto 1rem;
+  margin: auto 0;
+  margin-right: 1rem;
 `
 
 export const NavItem = styled(NavItemBase)`
@@ -86,9 +88,15 @@ export const NavLinkBreadcrumbStyle = styled(NavLinkLocalStyle)<{ $active: boole
 
   width: 100%;
   height: 100%;
+  max-width: 80px;
 
-  padding: 0;
+  padding: 0 5px;
   margin: auto;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 
   :hover {
     color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.white : theme.bodyColor)};
@@ -199,6 +207,13 @@ export function NavigationBar() {
         title: t('{{project}} documentation', { project: 'Nextclade CLI' }),
         content: 'CLI',
       },
+    ].map((desc) => {
+      return <NavLinkImpl key={desc.title} desc={desc} active={pathname === desc.url} />
+    })
+  }, [pathname, t])
+
+  const linksSocial = useMemo(() => {
+    return [
       {
         url: 'https://twitter.com/nextstrain',
         title: t('Link to our X.com (Twitter)'),
@@ -219,10 +234,6 @@ export function NavigationBar() {
         title: t('Link to our GitHub page'),
         content: <FaGithub size={20} color="#aaa" className="mb-1" />,
       },
-      {
-        title: t('Change language'),
-        component: <LanguageSwitcher className="px-2" />,
-      },
     ].map((desc) => {
       return <NavLinkImpl key={desc.title} desc={desc} active={pathname === desc.url} />
     })
@@ -233,15 +244,25 @@ export function NavigationBar() {
       <Nav>
         <NavbarBrand tag={Link} href="/">
           <BrandLogo />
-          <BrandText />
+          <BrandText className="d-none d-md-block" />
         </NavbarBrand>
 
         {linksLeft}
       </Nav>
 
-      <ResultsStatus />
+      <ResultsStatus className="d-none d-md-inline-flex" />
 
-      <Nav className="ml-auto">{linksRight}</Nav>
+      <Nav className="ml-auto d-none d-xl-inline-flex">{linksRight}</Nav>
+
+      <Nav className="d-none d-xl-inline-flex">{linksSocial}</Nav>
+
+      <Nav title={t('Change language')} className="ml-auto ml-xl-0">
+        <LanguageSwitcher className="px-2" />
+      </Nav>
+
+      <Nav className="d-xl-none">
+        <NavigationMenu links={linksRight} className="pb-1" />
+      </Nav>
     </Navbar>
   )
 }

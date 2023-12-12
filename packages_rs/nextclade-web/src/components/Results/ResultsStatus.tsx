@@ -47,7 +47,7 @@ const ResultsStatusSpinnerWrapper = styled.span`
   margin: auto 0;
 `
 
-export function ResultsStatus() {
+export function ResultsStatus({ ...restProps }) {
   const theme = useTheme()
 
   const numThreads = useRecoilValue(numThreadsAtom)
@@ -89,7 +89,7 @@ export function ResultsStatus() {
 
   return (
     <>
-      <ResultsStatusWrapper id="results-status" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+      <ResultsStatusWrapper id="results-status" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} {...restProps}>
         <ResultsStatusSpinnerWrapper>{spinner}</ResultsStatusSpinnerWrapper>
         <ResultsStatusText className="ml-2">{text}</ResultsStatusText>
       </ResultsStatusWrapper>
