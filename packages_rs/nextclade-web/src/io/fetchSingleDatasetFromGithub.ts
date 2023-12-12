@@ -115,7 +115,7 @@ export async function parseGitHubRepoShortcut(shortcut: string): Promise<GitHubR
     path = DEFAULT_DATA_REPO_PATH
   }
 
-  path = path && path !== '/' && path !== '' ? trim(path, '/') : '/'
+  path = !isNil(path) && path !== '/' && path !== '' ? trim(path, '/') : '/'
   const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
   return { owner, repo, branch, path, originalUrl: shortcut, directUrl }
 }

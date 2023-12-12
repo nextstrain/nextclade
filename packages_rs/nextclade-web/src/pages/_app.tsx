@@ -96,17 +96,15 @@ export function RecoilStateInitializer() {
         set(localeAtom, locale.key)
       })
       .then(async () => {
-        const datasetInfo = await fetchSingleDataset(urlQuery)
+        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
+        set(datasetServerUrlAtom, datasetServerUrl)
+        const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
 
+        const datasetInfo = await fetchSingleDataset(urlQuery)
         if (!isNil(datasetInfo)) {
           const { datasets, currentDataset } = datasetInfo
           return { datasets, currentDataset, minimizerIndexVersion: undefined }
         }
-
-        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
-        set(datasetServerUrlAtom, datasetServerUrl)
-
-        const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
         return { datasets, currentDataset, minimizerIndexVersion }
       })
       .catch((error) => {

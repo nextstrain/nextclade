@@ -95,11 +95,8 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
     }
 
     if (isGithubUrl(datasetServerUrl)) {
-      const parsed = await parseGithubRepoUrl(datasetServerUrl)
-      if (parsed) {
-        const { owner, repo, branch, path } = parsed
-        return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
-      }
+      const { owner, repo, branch, path } = await parseGithubRepoUrl(datasetServerUrl)
+      return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
     }
   }
 
