@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { isNil } from 'lodash'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { ErrorFatal } from 'src/helpers/ErrorFatal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export class HttpRequestError extends Error {
@@ -16,13 +16,31 @@ export class HttpRequestError extends Error {
   }
 }
 
+export function isValidHttpUrl(s: string) {
+  let url
+  try {
+    url = new URL(s)
+  } catch {
+    return false
+  }
+  return url.protocol === 'http:' || url.protocol === 'https:'
+}
+
+export function validateUrl(url?: string): string {
+  if (isNil(url)) {
+    throw new ErrorFatal(`Attempted to fetch from an empty URL`)
+  }
+  if (!isValidHttpUrl(url)) {
+    throw new ErrorFatal(`Attempted to fetch from an invalid URL: '${url}'`)
+  }
+  return url
+}
+
 export async function axiosFetch<TData = unknown>(
-  url: string | undefined,
+  url_: string | undefined,
   options?: AxiosRequestConfig,
 ): Promise<TData> {
-  if (isNil(url)) {
-    throw new ErrorInternal(`Attempted to fetch from an invalid URL: '${url}'`)
-  }
+  const url = validateUrl(url_)
 
   let res
   try {
@@ -72,7 +90,7 @@ export async function axiosFetchRawMaybe(url?: string): Promise<string | undefin
 
 export async function axiosHead(url: string | undefined, options?: AxiosRequestConfig): Promise<AxiosResponse> {
   if (isNil(url)) {
-    throw new ErrorInternal(`Attempted to fetch from an invalid URL: '${url}'`)
+    throw new ErrorFatal(`Attempted to fetch from an invalid URL: '${url}'`)
   }
 
   try {

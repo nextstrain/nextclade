@@ -43,7 +43,7 @@ export function ErrorContentMessage({ error }: { error: Error }) {
     const url = error.url ?? 'Unknown URL'
     const { status, statusText, message } = error
 
-    if (!status) {
+    if (!status || status === 'ERR_BAD_REQUEST') {
       return <ErrorNetworkConnectionFailure url={url} message={message} />
     }
     const text = message ?? statusText ?? 'Unknown status'
