@@ -69,8 +69,9 @@ export const NavLinkLocalStyle = styled(LinkSmart)<{ $active: boolean; disabled?
 `
 
 export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: boolean }>`
+  display: flex;
   min-width: 90px;
-  padding: 3px 0;
+  min-height: 35px;
   background: ${(props) =>
     props.$active ? props.theme.primary : props.disabled ? props.theme.gray250 : props.theme.gray150};
   text-align: center;
@@ -79,8 +80,16 @@ export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: 
 `
 
 export const NavLinkBreadcrumbStyle = styled(NavLinkLocalStyle)<{ $active: boolean; disabled?: boolean }>`
+  display: block;
+
   text-decoration: none !important;
   color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.white : theme.bodyColor)};
+
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+  margin: auto;
 
   :hover {
     color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.white : theme.bodyColor)};
