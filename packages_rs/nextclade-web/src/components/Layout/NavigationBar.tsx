@@ -52,8 +52,7 @@ const BrandLogo = styled(BrandLogoBase)`
 `
 
 const BrandText = styled(NextcladeTextLogo)`
-  margin-left: 1rem;
-  margin-right: 1rem;
+  margin: auto 1rem;
 `
 
 export const NavItem = styled(NavItemBase)`
