@@ -12,9 +12,8 @@ export async function fetchSingleDataset(urlQuery: ParsedUrlQuery) {
   }
 
   if (isGithubUrlOrShortcut(datasetUrl)) {
-    const { owner, repo, branch, path } = await parseGitHubRepoUrlOrShortcut(datasetUrl)
-    const datasetGithubRawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
-    return fetchSingleDatasetFromUrl(datasetGithubRawUrl, { datasetOriginalUrl: datasetUrl })
+    const { directUrl } = await parseGitHubRepoUrlOrShortcut(datasetUrl)
+    return fetchSingleDatasetFromUrl(directUrl, { datasetOriginalUrl: datasetUrl })
   }
 
   return fetchSingleDatasetFromUrl(datasetUrl)

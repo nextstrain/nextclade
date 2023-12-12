@@ -123,19 +123,19 @@ export function RecoilStateInitializer() {
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
         return dataset
       })
-      .then((dataset) => {
-        const inputFastas = createInputFastasFromUrlParam(urlQuery, dataset)
+      .then(async (dataset) => {
+        const inputFastas = await createInputFastasFromUrlParam(urlQuery, dataset)
 
         if (!isEmpty(inputFastas)) {
           set(qrySeqInputsStorageAtom, inputFastas)
         }
 
-        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-ref'))
-        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-annotation'))
-        set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
-        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pathogen-json'))
+        set(refSeqInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-ref'))
+        set(geneMapInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-annotation'))
+        set(refTreeInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
+        set(virusPropertiesInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-pathogen-json'))
 
-        if (!isEmpty(inputFastas)) {
+        if (!isEmpty(inputFastas) && !isEmpty(dataset)) {
           run()
         }
 

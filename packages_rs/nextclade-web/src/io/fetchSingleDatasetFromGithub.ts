@@ -26,10 +26,15 @@ export async function githubRepoGetDefaultBranch_(owner: string, repo: string): 
 export const githubRepoGetDefaultBranch = pMemoize(githubRepoGetDefaultBranch_)
 
 export interface GitHubRepoUrlComponents {
+  originalUrl: string
   owner: string
   repo: string
   branch: string
   path: string
+}
+
+export interface GitHubRepoUrlResult extends GitHubRepoUrlComponents {
+  directUrl: string
 }
 
 export function parseGithubRepoUrlComponents(url: string): Optional<GitHubRepoUrlComponents> {
@@ -42,10 +47,10 @@ export function parseGithubRepoUrlComponents(url: string): Optional<GitHubRepoUr
     /^(?:https?:\/\/)?github\.com\/+(?<owner>[^/]+)\/+(?<repo>[^/]+)(?:\/+(tree|blob)\/+(?<branch>[^/]+)(?:\/*(?<path>.+))?)?\/*$/
   const match = GITHUB_URL_REGEX.exec(url)
   const { owner, repo, branch, path } = match?.groups ?? {}
-  return { owner, repo, branch, path }
+  return { owner, repo, branch, path, originalUrl: url }
 }
 
-export async function parseGithubRepoUrl(url_: string): Promise<GitHubRepoUrlComponents> {
+export async function parseGithubRepoUrl(url_: string): Promise<GitHubRepoUrlResult> {
   const url = removeTrailingSlash(url_)
   let { owner, repo, path, branch } = parseGithubRepoUrlComponents(url)
 
@@ -65,7 +70,8 @@ export async function parseGithubRepoUrl(url_: string): Promise<GitHubRepoUrlCom
     path = '/'
   }
 
-  return { owner, repo, branch, path }
+  const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  return { owner, repo, branch, path, directUrl, originalUrl: url_ }
 }
 
 export function parseGitHubRepoShortcutComponents(shortcut: string): Optional<GitHubRepoUrlComponents> {
@@ -73,10 +79,10 @@ export function parseGitHubRepoShortcutComponents(shortcut: string): Optional<Gi
     /^(gh|github):((?<owner>[^/@]+)\/(?<repo>[^/@]+))?(@(?<branch>[^@]+)@?)?(\/*(?<path>[^@]+?)\/*)?$/
   const match = GITHUB_URL_REGEX.exec(shortcut)
   const { owner, repo, branch, path } = match?.groups ?? {}
-  return { owner, repo, branch, path }
+  return { owner, repo, branch, path, originalUrl: shortcut }
 }
 
-export async function parseGitHubRepoShortcut(shortcut: string): Promise<GitHubRepoUrlComponents> {
+export async function parseGitHubRepoShortcut(shortcut: string): Promise<GitHubRepoUrlResult> {
   const datasetGithubUrl = removeTrailingSlash(shortcut)
   let { owner, repo, branch, path } = parseGitHubRepoShortcutComponents(datasetGithubUrl)
 
@@ -110,11 +116,11 @@ export async function parseGitHubRepoShortcut(shortcut: string): Promise<GitHubR
   }
 
   path = path && path !== '/' && path !== '' ? trim(path, '/') : '/'
-
-  return { owner, repo, branch, path }
+  const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  return { owner, repo, branch, path, originalUrl: shortcut, directUrl }
 }
 
-export async function parseGitHubRepoUrlOrShortcut(datasetGithubUrl_: string): Promise<GitHubRepoUrlComponents> {
+export async function parseGitHubRepoUrlOrShortcut(datasetGithubUrl_: string): Promise<GitHubRepoUrlResult> {
   const datasetGithubUrl = removeTrailingSlash(datasetGithubUrl_)
 
   const urlComponents =
@@ -125,8 +131,8 @@ export async function parseGitHubRepoUrlOrShortcut(datasetGithubUrl_: string): P
   }
 
   let { owner, repo, branch, path } = urlComponents
-
-  return { owner, repo, branch, path }
+  const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  return { owner, repo, branch, path, directUrl, originalUrl: datasetGithubUrl_ }
 }
 
 export function isGithubUrl(url: string): boolean {
@@ -141,7 +147,7 @@ export function isGithubUrlOrShortcut(url: string): boolean {
   return isGithubUrl(url) || isGithubShortcut(url)
 }
 
-const GITHUB_URL_ERROR_HINTS = ` Check the correctness of the URL. If it's a full GitHub URL, please try to navigate to it - you should see a GitHub repo branch with your files listed. If it's a GitHub URL shortcut, please double check the syntax. See documentation for the correct syntax and examples. If you don't intend to use custom datasets, remove the parameter from the address or restart the application.`
+const GITHUB_URL_ERROR_HINTS = ` Check the correctness of the URL. If it's a full GitHub URL, please try to navigate to it - you should see a GitHub repo branch with your files listed. If it's a GitHub URL shortcut, please double-check the syntax. See documentation for the correct syntax and examples. If you don't intend to use custom datasets, remove the parameter from the address or restart the application.`
 
 export class ErrorDatasetGithubUrlPatternInvalid extends Error {
   public readonly datasetGithubUrl: string
