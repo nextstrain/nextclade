@@ -71,6 +71,15 @@ export const Li = styled.li`
   border-radius: 5px !important;
 `
 
+export const InputName = styled.p`
+  flex: 1;
+  margin: auto 5px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
 export interface InputFileInfoProps {
   input: AlgorithmInput
   index: number
@@ -86,7 +95,7 @@ export function InputFileInfo({ input, index }: InputFileInfoProps) {
 
   return (
     <Container>
-      <h6 className="flex-grow-1 my-auto">{input.description}</h6>
+      <InputName title={input.description}>{input.description}</InputName>
       <ButtonTransparent title={t(' Remove this input')} onClick={onRemoveClicked}>
         <ImCross color={theme.gray500} />
       </ButtonTransparent>

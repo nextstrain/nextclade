@@ -14,6 +14,7 @@ import styled from 'styled-components'
 
 export const Container = styled.div`
   display: flex;
+  flex: 1;
   margin: 0;
 `
 
@@ -29,25 +30,34 @@ export const FlexRight = styled.div`
   display: flex;
   flex-direction: column;
   margin-left: 1rem;
+  width: 0;
 `
 
 export const DatasetName = styled.h4`
-  display: flex;
+  margin-bottom: 0;
   font-weight: bold;
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
-export const DatasetInfoLine = styled.p`
+export const DatasetInfoLine = styled.span`
   font-size: 0.9rem;
   padding: 0;
   margin: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &:after {
     content: ' ';
     white-space: pre;
   }
+`
+
+const DatasetInfoBadgeContainer = styled.div`
+  margin: 0.25rem 0;
 `
 
 const DatasetInfoBadge = styled(Badge)`
@@ -72,6 +82,11 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
     return updatedAt
   }, [t, version?.tag, version?.updatedAt])
 
+  const datasetName = attrStrMaybe(attributes, 'name') ?? path
+  const datasetRef = t('Reference: {{ ref }}', { ref: formatReference(attributes) })
+  const datasetUpdatedAt = t('Updated at: {{updated}}', { updated: updatedAt })
+  const datasetPath = t('Dataset name: {{name}}', { name: path })
+
   return (
     <Container>
       <FlexLeft>
@@ -79,11 +94,9 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
       </FlexLeft>
 
       <FlexRight>
-        <DatasetName>
-          <span>{attrStrMaybe(attributes, 'name') ?? path}</span>
-        </DatasetName>
+        <DatasetName title={datasetName}>{datasetName}</DatasetName>
 
-        <div>
+        <DatasetInfoBadgeContainer>
           <span className="d-flex ml-auto">
             {path.startsWith('nextstrain') ? (
               <DatasetInfoBadge
@@ -130,11 +143,11 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
               </DatasetInfoBadge>
             )}
           </span>
-        </div>
+        </DatasetInfoBadgeContainer>
 
-        <DatasetInfoLine>{t('Reference: {{ ref }}', { ref: formatReference(attributes) })}</DatasetInfoLine>
-        <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
-        <DatasetInfoLine>{t('Dataset name: {{name}}', { name: path })}</DatasetInfoLine>
+        <DatasetInfoLine title={datasetRef}>{datasetRef}</DatasetInfoLine>
+        <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
+        <DatasetInfoLine title={datasetPath}>{datasetPath}</DatasetInfoLine>
       </FlexRight>
     </Container>
   )
@@ -148,48 +161,6 @@ function formatReference(attributes: Record<string, AnyType> | undefined) {
   }
   return name
 }
-
-export function DatasetAutodetectInfo({ dataset }: { dataset: Dataset }) {
-  const { t } = useTranslationSafe()
-
-  return (
-    <ContainerFixed>
-      <FlexLeft>
-        <DatasetInfoAutodetectProgressCircle dataset={dataset} />
-      </FlexLeft>
-
-      <FlexRight>
-        <DatasetName>
-          <span>{t('Autodetect')}</span>
-        </DatasetName>
-        <DatasetInfoLine>{t('Detect pathogen automatically from sequences')}</DatasetInfoLine>
-        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-        <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-      </FlexRight>
-    </ContainerFixed>
-  )
-}
-
-export function DatasetUndetectedInfo() {
-  const { t } = useTranslationSafe()
-
-  return (
-    <ContainerFixed>
-      <DatasetName>
-        <span>{t('Not detected')}</span>
-      </DatasetName>
-      <DatasetInfoLine>{t('Unable to deduce dataset')}</DatasetInfoLine>
-      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-      <DatasetInfoLine>{'\u00A0'}</DatasetInfoLine>
-    </ContainerFixed>
-  )
-}
-
-const ContainerFixed = styled(Container)`
-  height: 127px;
-`
 
 export interface DatasetInfoCircleProps {
   dataset: Dataset
