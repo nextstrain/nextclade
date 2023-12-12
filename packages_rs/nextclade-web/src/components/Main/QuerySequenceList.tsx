@@ -95,7 +95,7 @@ export function InputFileInfo({ input, index }: InputFileInfoProps) {
 
   return (
     <Container>
-      <InputName>{input.description}</InputName>
+      <InputName title={input.description}>{input.description}</InputName>
       <ButtonTransparent title={t(' Remove this input')} onClick={onRemoveClicked}>
         <ImCross color={theme.gray500} />
       </ButtonTransparent>

@@ -30,20 +30,18 @@ export const FlexRight = styled.div`
   display: flex;
   flex-direction: column;
   margin-left: 1rem;
-  width: 10px;
+  width: 0;
 `
 
 export const DatasetName = styled.h4`
-  flex: 1;
+  margin-bottom: 0;
   font-weight: bold;
-
-  overflow: hidden;
+  overflow-x: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
 
 export const DatasetInfoLine = styled.span`
-  flex: 1;
   font-size: 0.9rem;
   padding: 0;
   margin: 0;
@@ -84,6 +82,11 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
     return updatedAt
   }, [t, version?.tag, version?.updatedAt])
 
+  const datasetName = attrStrMaybe(attributes, 'name') ?? path
+  const datasetRef = t('Reference: {{ ref }}', { ref: formatReference(attributes) })
+  const datasetUpdatedAt = t('Updated at: {{updated}}', { updated: updatedAt })
+  const datasetPath = t('Dataset name: {{name}}', { name: path })
+
   return (
     <Container>
       <FlexLeft>
@@ -91,9 +94,7 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
       </FlexLeft>
 
       <FlexRight>
-        <DatasetName>
-          <span>{attrStrMaybe(attributes, 'name') ?? path}</span>
-        </DatasetName>
+        <DatasetName title={datasetName}>{datasetName}</DatasetName>
 
         <DatasetInfoBadgeContainer>
           <span className="d-flex ml-auto">
@@ -144,9 +145,9 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
           </span>
         </DatasetInfoBadgeContainer>
 
-        <DatasetInfoLine>{t('Reference: {{ ref }}', { ref: formatReference(attributes) })}</DatasetInfoLine>
-        <DatasetInfoLine>{t('Updated at: {{updated}}', { updated: updatedAt })}</DatasetInfoLine>
-        <DatasetInfoLine>{t('Dataset name: {{name}}', { name: path })}</DatasetInfoLine>
+        <DatasetInfoLine title={datasetRef}>{datasetRef}</DatasetInfoLine>
+        <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
+        <DatasetInfoLine title={datasetPath}>{datasetPath}</DatasetInfoLine>
       </FlexRight>
     </Container>
   )
