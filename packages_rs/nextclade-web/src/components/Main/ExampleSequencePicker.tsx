@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import type { Dataset } from 'src/types'
 import React, { useCallback, useMemo, useState } from 'react'
 import {
@@ -25,8 +26,10 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
   const toggle = useCallback(() => {
     setDropdownOpen((prevState) => !prevState)
   }, [])
-  const { datasets } = useRecoilValue(datasetsAtom)
+  const { datasets: allDatasets } = useRecoilValue(datasetsAtom)
+
   const filtered = useMemo(() => {
+    const datasets = allDatasets.filter((dataset) => !isNil(dataset.files.examples))
     if (searchTerm.trim().length === 0) {
       return datasets
     }
@@ -38,7 +41,7 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
       dataset.path,
     ])
     return [...itemsStartWith, ...itemsInclude]
-  }, [datasets, searchTerm])
+  }, [allDatasets, searchTerm])
 
   const setExampleSequences = useSetExampleSequences()
   const onClick = useCallback(
