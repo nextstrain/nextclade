@@ -37,8 +37,8 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
   }, [searchTerm])
 
   return (
-    <Dropdown isOpen={dropdownOpen} toggle={toggle} {...restProps}>
-      <DropdownToggle nav caret>
+    <Dropdown inNavbar nav direction="left" isOpen={dropdownOpen} toggle={toggle} {...restProps}>
+      <DropdownToggle nav>
         <LabelShort locale={currentLocale} />
       </DropdownToggle>
       <DropdownMenu>
@@ -95,6 +95,7 @@ const LabelShortText = styled.span`
 `
 
 const Dropdown = styled(DropdownBase)`
+  display: block !important;
   margin: 0 !important;
 `
 
@@ -105,12 +106,16 @@ const DropdownToggle = styled(DropdownToggleBase)`
 `
 
 const DropdownMenu = styled(DropdownMenuBase)`
+  position: absolute !important;
+  right: 0 !important;
+  top: 20px !important;
+
   background-color: ${(props) => props.theme.bodyBg};
   box-shadow: 1px 1px 20px 0 #0005;
   transition: opacity ease-out 0.25s;
   padding: 1rem;
   padding-right: 0;
-  min-width: 275px;
+  width: 275px;
 `
 
 const DropdownItem = styled(DropdownItemBase)`

@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import styled, { useTheme } from 'styled-components'
 import { ImCross } from 'react-icons/im'
+import { BsChevronLeft } from 'react-icons/bs'
 import { AlgorithmInput } from 'src/types'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -22,8 +23,18 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
 
   const headerText = useMemo(() => {
     if (qryInputs.length === 0) {
-      return null
+      return (
+        <div className="d-flex flex-1 mr-auto">
+          {toMainPage && (
+            <Button className="" color="secondary" onClick={toMainPage} title={t('Go to main page to add input files')}>
+              <BsChevronLeft className="mr-1" />
+              {t('Add data')}
+            </Button>
+          )}
+        </div>
+      )
     }
+
     return (
       <div className="d-flex mt-3">
         <h4>{t("Sequence data you've added")}</h4>
@@ -48,17 +59,20 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
     )
   }, [clearQryInputs, qryInputs.length, t, toMainPage])
 
-  if (qryInputs.length === 0) {
-    return null
-  }
-
   return (
-    <>
-      {headerText}
+    <ContainerMain>
+      <div>{headerText}</div>
       <Ul>{listItems}</Ul>
-    </>
+    </ContainerMain>
   )
 }
+
+const ContainerMain = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 3px;
+`
 
 const Ul = styled(UlGeneric)`
   flex: 1;
@@ -75,7 +89,6 @@ export const InputName = styled.p`
   flex: 1;
   margin: auto 5px;
 
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `

@@ -114,7 +114,7 @@ export function CitationButton() {
   return (
     <>
       <ButtonCitationBase type="button" color="link" onClick={open} title={text}>
-        <span className="d-none d-xl-inline">{text}</span>
+        {text}
       </ButtonCitationBase>
 
       <Modal centered isOpen={showCitation} toggle={toggleOpen} fade={false} size="lg">
