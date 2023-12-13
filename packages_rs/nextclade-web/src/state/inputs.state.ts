@@ -1,6 +1,9 @@
 import { isEmpty } from 'lodash'
 import { useCallback, useEffect } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
+import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
+import { analysisResultsAtom, analysisStatusGlobalAtom, treeAtom } from 'src/state/results.state'
+import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { AlgorithmInput } from 'src/types'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
@@ -15,24 +18,48 @@ export function useQuerySeqInputs() {
   const resetSeqInputsStorage = useResetRecoilState(qrySeqInputsStorageAtom)
   const resetSuggestions = useResetSuggestions()
 
+  const resetAnalysisStatusGlobal = useResetRecoilState(analysisStatusGlobalAtom)
+  const resetAnalysisResults = useResetRecoilState(analysisResultsAtom)
+  const resetTree = useResetRecoilState(treeAtom)
+  const resetViewedCds = useResetRecoilState(viewedCdsAtom)
+  const resetCdsOrderPreference = useResetRecoilState(cdsOrderPreferenceAtom)
+
+  const clearResults = useCallback(() => {
+    resetSuggestions()
+    resetAnalysisStatusGlobal()
+    resetAnalysisResults()
+    resetTree()
+    resetViewedCds()
+    resetCdsOrderPreference()
+  }, [
+    resetAnalysisResults,
+    resetAnalysisStatusGlobal,
+    resetCdsOrderPreference,
+    resetSuggestions,
+    resetTree,
+    resetViewedCds,
+  ])
+
   const addQryInputs = useCallback(
     (newInputs: AlgorithmInput[]) => {
       setQryInputs((inputs) => [...inputs, ...newInputs])
+      clearResults()
     },
-    [setQryInputs],
+    [clearResults, setQryInputs],
   )
 
   const removeQryInput = useCallback(
     (index: number) => {
       setQryInputs((inputs) => inputs.filter((_, i) => i !== index))
+      clearResults()
     },
-    [setQryInputs],
+    [clearResults, setQryInputs],
   )
 
   const clearQryInputs = useCallback(() => {
-    resetSuggestions()
     resetSeqInputsStorage()
-  }, [resetSeqInputsStorage, resetSuggestions])
+    clearResults()
+  }, [clearResults, resetSeqInputsStorage])
 
   useEffect(() => {
     if (qryInputs.length === 0) {
