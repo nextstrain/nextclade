@@ -48,6 +48,7 @@ export function useRunAnalysis() {
         set(showNewRunPopupAtom, false)
 
         reset(analysisResultsAtom)
+        reset(treeAtom)
         reset(viewedCdsAtom)
         reset(cdsOrderPreferenceAtom)
 
