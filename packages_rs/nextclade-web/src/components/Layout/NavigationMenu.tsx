@@ -52,8 +52,13 @@ const DropdownMenu = styled(DropdownMenuBase)`
   width: 200px;
 `
 
-const DropdownMenuListWrapper = styled.div`
+const DropdownMenuListWrapper = styled.ul`
   max-height: calc(80vh - 150px);
   min-height: 100px;
   overflow-y: auto;
+  padding: 0;
+
+  > li {
+    list-style: none;
+  }
 `
