@@ -24,7 +24,7 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
   const headerText = useMemo(() => {
     if (qryInputs.length === 0) {
       return (
-        <div className="d-flex mr-auto">
+        <div className="d-flex flex-1 mr-auto">
           {toMainPage && (
             <Button className="" color="secondary" onClick={toMainPage} title={t('Go to main page to add input files')}>
               <BsChevronLeft className="mr-1" />
@@ -89,7 +89,6 @@ export const InputName = styled.p`
   flex: 1;
   margin: auto 5px;
 
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `

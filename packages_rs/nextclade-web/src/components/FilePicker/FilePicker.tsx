@@ -28,6 +28,7 @@ export const FilePickerHeader = styled.div`
 `
 
 export const FilePickerBody = styled.div<{ $compact?: boolean }>`
+  flex: 1 0;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -35,12 +36,11 @@ export const FilePickerBody = styled.div<{ $compact?: boolean }>`
 `
 
 export const FilePickerTitle = styled.h4`
-  flex: 1;
+  flex: 1 0;
   padding-top: 0.75rem;
   margin: auto 0;
 
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
 `
 
