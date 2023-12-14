@@ -1,9 +1,9 @@
-# Build web app and deploy it
-name: web
+# Build old version of web app and deploy it
+name: web-old
 
 on:
   push:
-    branches: ['master', 'staging', 'release']
+    branches: ['v2']
 
   pull_request:
 
@@ -32,29 +32,13 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: "Setup environment (release)"
-        if: endsWith(github.ref, '/release')
+      - name: "Setup environment (v2)"
+        if: endsWith(github.ref, '/v2')
         run: |
-          echo "ENV_NAME=release" >> $GITHUB_ENV
-          echo "FULL_DOMAIN=https://clades.nextstrain.org" >> $GITHUB_ENV
+          echo "ENV_NAME=v2" >> $GITHUB_ENV
+          echo "FULL_DOMAIN=https://v2.clades.nextstrain.org" >> $GITHUB_ENV
           echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "PLAUSIBLE_IO_DOMAIN=clades.nextstrain.org" >> $GITHUB_ENV
-
-      - name: "Setup environment (staging)"
-        if: endsWith(github.ref, '/staging')
-        run: |
-          echo "ENV_NAME=staging" >> $GITHUB_ENV
-          echo "FULL_DOMAIN=https://staging.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "PLAUSIBLE_IO_DOMAIN=staging.clades.nextstrain.org" >> $GITHUB_ENV
-
-      - name: "Setup environment (master)"
-        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
-        run: |
-          echo "ENV_NAME=master" >> $GITHUB_ENV
-          echo "FULL_DOMAIN=https://master.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> $GITHUB_ENV
-          echo "PLAUSIBLE_IO_DOMAIN=master.clades.nextstrain.org" >> $GITHUB_ENV
+          echo "PLAUSIBLE_IO_DOMAIN=v2.clades.nextstrain.org" >> $GITHUB_ENV
 
       - name: "Checkout code"
         uses: actions/checkout@v3
@@ -149,37 +133,18 @@ jobs:
 
   deploy-web:
     name: "Deploy Web"
-    if: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/staging') || endsWith(github.ref, '/release') }}
+    if: ${{ endsWith(github.ref, '/v2') }}
     needs: [ build-web ]
     runs-on: ubuntu-22.04
 
     steps:
-      - name: "Setup environment (release)"
-        if: endsWith(github.ref, '/release')
+      - name: "Setup environment"
         run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.RELEASE_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.RELEASE_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.RELEASE_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-          echo "AWS_DEFAULT_REGION=${{ secrets.RELEASE_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
-          echo "AWS_S3_BUCKET=${{ secrets.RELEASE_AWS_S3_BUCKET }}" >> $GITHUB_ENV
-
-      - name: "Setup environment (staging)"
-        if: endsWith(github.ref, '/staging')
-        run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.STAGING_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-          echo "AWS_DEFAULT_REGION=${{ secrets.STAGING_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
-          echo "AWS_S3_BUCKET=${{ secrets.STAGING_AWS_S3_BUCKET }}" >> $GITHUB_ENV
-
-      - name: "Setup environment (master)"
-        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
-        run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.MASTER_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.MASTER_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.MASTER_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-          echo "AWS_DEFAULT_REGION=${{ secrets.MASTER_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
-          echo "AWS_S3_BUCKET=${{ secrets.MASTER_AWS_S3_BUCKET }}" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.V2_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.V2_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.V2_AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=${{ secrets.V2_AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{ secrets.V2_AWS_S3_BUCKET }}" >> $GITHUB_ENV
 
       - name: "Checkout code"
         uses: actions/checkout@v3
@@ -212,7 +177,7 @@ jobs:
           ./scripts/deploy_web.sh
 
       - name: "Create and push git tag"
-        if: ${{ endsWith(github.ref, '/release') }}
+        if: ${{ endsWith(github.ref, '/v2') }}
         run: |
 
           git config user.email "${{ secrets.GIT_USER_EMAIL }}"
