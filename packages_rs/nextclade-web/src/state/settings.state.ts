@@ -49,7 +49,7 @@ export const changelogIsShownAtom = atom<boolean>({
 
 export const changelogShouldShowOnUpdatesAtom = atom<boolean>({
   key: 'changelogShouldShowOnUpdates',
-  default: true,
+  default: false,
   effects: [persistAtom],
 })
 

@@ -67,6 +67,7 @@ export const Subtitle = styled.p`
   text-align: center;
   font-size: 2rem;
   font-weight: 300;
+  margin-bottom: 0;
 
   @media (max-width: 991.98px) {
     font-size: 1.5rem;
