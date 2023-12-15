@@ -5,6 +5,7 @@ import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
+import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -71,16 +72,17 @@ export function Landing() {
   const runAutodetect = useRunSeqAutodetect()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
+  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
   const toDatasetSelection = useCallback(() => {
     // eslint-disable-next-line no-void
     void push('/dataset').then(() => {
-      if (shouldSuggestDatasets && hasRequiredInputs) {
+      if (shouldSuggestDatasets && hasRequiredInputs && autodetectRunState !== AutodetectRunState.Started) {
         runAutodetect()
       }
       return undefined
     })
-  }, [hasRequiredInputs, push, runAutodetect, shouldSuggestDatasets])
+  }, [autodetectRunState, hasRequiredInputs, push, runAutodetect, shouldSuggestDatasets])
 
   return (
     <ContainerFixed>
