@@ -44,6 +44,12 @@ Nextclade can automatically suggest compatible datasets by analyzing the input s
 
 ![Auto-suggest datasets](assets/web_show-example.png)
 
+Once the sequences have been analyzed, Nextclade will auto-select the best matching dataset: in this case the SARS-CoV-2 dataset with XBB reference:
+
+![Auto-suggest result](assets/web_autosuggest-result.png)
+
+The 99% in the circle mean that 99% of the input sequences match the reference sequence of the selected dataset. The blue box shows that there are other datasets that are also compatible with the input sequences. To see them, click "Change reference dataset". If you are happy with the suggested dataset, click "Run" to directly start the analysis.
+
 ## Analysis
 
 Nextclade analyzes your sequences locally in your browser. That means, sequences never leave your computer, ensuring full privacy by design.
