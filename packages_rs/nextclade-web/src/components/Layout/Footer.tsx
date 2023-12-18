@@ -34,7 +34,7 @@ const CopyrightText = styled.div`
 
 const LogoContainer = styled.div`
   flex-grow: 1;
-  text-align: right;
+  text-align: center;
 `
 
 const LogoLink = styled(LinkExternal)`
