@@ -9,25 +9,25 @@ We are happy to present a major release of Nextclade, containing new features an
 Useful links:
 
 - [Nextclade Web v3](https://clades.nextstrain.org)
-- [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
+- [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version, e.g. if you have custom v2 datasets
 - [Nextclade CLI releases](https://github.com/nextstrain/nextclade/releases) - all versions
 - [Nextclade user documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) - for detailed instructions on how to use Nextclade Web and Nextclade CLI
-- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md)  - if you have a custom Nextclade dataset or want to create one
+- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md) - if you have a custom Nextclade dataset or want to create one
 - [Nextclade source code repository](https://github.com/nextstrain/nextclade) - for contributors to Nextclade software (code, bug reports, feature requests etc.)
-- [Nextclade data repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (add new pathogens, report bugs, etc.)
+- [Nextclade data repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (add new datasets, update existing ones, report bugs, etc.)
 - [Nextclade software issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
 - [Nextclade data issues](https://github.com/nextstrain/nextclade_data/issues) - to report bugs and ask questions about Nextclade datasets
-- [Nextstrain discussion forum](https://discussion.nextstrain.org) - for general discussion and questions
+- [Nextstrain discussion forum](https://discussion.nextstrain.org) - for general discussion and questions about Nextstrain
 
 ---
 
 ### BREAKING CHANGES
 
-This section briefly lists breaking changes in Nextclade v3 compared to Nextclade v2. Please see [Nextclade v3 migration guide](https://docs.nextstrain.org/projects/nextclade/en/stable/user/migration-v3.html) ([alternative link](https://github.com/nextstrain/nextclade/blob/master/docs/user/migration-v3.md)) for the detailed description of each change and of possible migration paths.
+This section briefly lists breaking changes in Nextclade v3 compared to Nextclade v2. Please see [Nextclade v3 migration guide](https://docs.nextstrain.org/projects/nextclade/en/stable/user/migration-v3.html) ([alternative link](https://github.com/nextstrain/nextclade/blob/master/docs/user/migration-v3.md)) for a detailed description of each breaking change and of possible migration paths.
 
-1. Nextalign CLI is removed.
-2. Potentially different alignment and translation output due to changes in seed alignment algorithm. Some of the alignment parameters is removed.
-3. Potentially different tree output due to tree builder algorithm.
+1. Nextalign CLI is removed, because Nextclade CLI can now do everything that Nextalign v2 did
+2. Potentially different alignment and translation output due to changes in the seed alignment algorithm. Some of the alignment parameters are removed. Default parameters of new parameters might need to be adjusted.
+3. Potentially different tree output due to a new tree builder algorithm.
 4. Dataset file format and dataset names have changed.
 5. Some CLI arguments for individual input files are removed.
 6. Some output files are removed
@@ -36,7 +36,7 @@ This section briefly lists breaking changes in Nextclade v3 compared to Nextclad
 
 The sections below list all changes - breaking and non-breaking. The breaking changes are denoted with word `[BREAKING]`.
 
-If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues).
+If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to the developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues/new?title=[v3]).
 
 ---
 
@@ -44,11 +44,15 @@ If you encounter problems during migration, or breaking changes not mentioned in
 
 #### [BREAKING] Alignment
 
-The seed matching algorithm was rewritten.
+The seed matching algorithm was rewritten to be more robust and handle sequences with higher diversity. For example, RSV-A can now be aligned against RSV-B.
 
-Parameters `minSeeds`, `seedLength`, `seedSpacing`, `minMatchRate`, `mismatchesAllowed`, `maxIndel` no longer have any effect and are removed. Parameters `kmerLength`, `kmerDistance`, `minMatchLength`, `allowedMismatches`, `windowSize` were added.
+Parameters `minSeeds`, `seedLength`, `seedSpacing`, `minMatchRate`, `mismatchesAllowed`, `maxIndel` no longer have any effect and are removed.
 
-For short sequence check, and fallback to full-matrix alignment, the `kmerLength` is used as a basis instead of removed `seedLength`. Coefficient is adjusted to roughly match the old final value.
+New parameters `kmerLength`, `kmerDistance`, `minMatchLength`, `allowedMismatches`, `windowSize` are added.
+
+Default values should work for sequences with a diversity of up to X%. For sequences with higher diversity, the parameters may need to be adjusted.
+
+For short sequences, the threshold length to use full-matrix alignment is now determined based on `kmerLength` instead of the removed `seedLength`. The coefficient is adjusted to roughly match the old final value.
 
 #### Genome annotation
 
@@ -56,15 +60,15 @@ For short sequence check, and fallback to full-matrix alignment, the `kmerLength
 
 Nextclade now treats genes only as containers for CDSes ("CDS" is [coding sequence](https://en.wikipedia.org/wiki/Coding_region)). CDSes are the main unit of translation and a basis for AA mutations now. A gene can contain multiple CDSes, but they are handled independently.
 
-##### Handle fragmentation of genetic features.
+##### Handle fragmentation of genetic features
 
-A CDS can consist of multiple fragments. These fragments are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is then translated and the resulting polypeptides are analyzed (mutations are detected etc.). This implementation allows to handle slippage and splicing.
+A CDS can consist of multiple fragments. These fragments are extracted from the full nucleotide genome independently and joined together (in the order provided in the genome annotation) to form the nucleotide sequence of the CDS. The CDS is then translated and the resulting polypeptides are analyzed (mutations are detected etc.). This implementation allows to handle slippage (e.g. _ORF1ab_ in coronaviruses) and splicing (e.g. _tat_ and _rev_ in HIV-1).
 
-##### Handle circular genomes.
+##### Handle circular genomes
 
 If genome annotation describes a CDS fragment as circular (wrapping around origin), Nextclade splits it into multiple linear (non-wrapping) fragments. The translation and analysis is then performed as if it was a linear genome.
 
-Nextclade follows [GFF3 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md#circular-genomes) when reading genome annotation. Please refer to it for how to properly describe circular features.
+Nextclade follows the [GFF3 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md#circular-genomes). Please refer to it for how to describe circular features.
 
 ##### Parse regions, genes and CDSes from GFF3 file
 
@@ -72,7 +76,7 @@ The GFF3 file parser has been augmented to support all the types of genetic feat
 
 #### Phylogenetic tree placement
 
-Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach sequences to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2.
+Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach each query sequence independently to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2.
 
 Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/05-phylogenetic-placement.html) section in the documentation for more details.
 
@@ -86,7 +90,7 @@ We no longer treat mutations to ambiguous nucleotides as reversions, i.e. if the
 
 #### Dataset autosuggestion
 
-Nextclade Web now can now guess the most appropriate dataset from input sequences. For that use the autosuggestion feature in the user interface.
+Nextclade Web can now optionally suggest the most appropriate dataset(s) for user-provided input sequences. Drop your sequences and click "Suggest" to try out this feature.
 
 #### Genome annotation widget
 
@@ -94,39 +98,39 @@ Following changes in genome annotation handling, the genome annotations widget i
 
 #### CDS selector widget in Nextclade Web
 
-Gene selector dropdown in Nextclade Web has been transformed into a more general genetic feature selector. It shows hierarchy of genetic features if there's any nested features. Otherwise, the list is flat, to save screen space. It shows types of each of the genetic feature (gene, CDS or protein) as colorful badges. The menu is searchable, which is useful for mpx and other large viruses. Only CDSes can be selected currently, but we may extend this in the future to more feature types.
+The gene selector dropdown in Nextclade Web's results table has been transformed into a more general genetic feature selector. It shows the hierarchy of genetic features if there are nested features. Otherwise, the list is flat, to save screen space. It shows types of each of the genetic feature (gene, CDS or protein) as colorful badges. The menu is searchable, which is useful for mpox and other large viruses with many genes. Only CDSes can be selected currently, but we may extend this in the future to more feature types.
 
 #### Show ambiguous nucleotides in sequence views
 
-Nucleotide sequence views (in the results table) now also show colored markers for ambiguous nucleotides (non-ACTGN)
+Nucleotide sequence views (in the results table) now also show colored markers for ambiguous nucleotides (non-ACTGN).
 
 #### Improve website navigation
 
-The row of buttons, containing "Back", "Tree" and other buttons is removed. Instead, different sections of the web application are always accessible on main navigation bar.
+The row of buttons, containing "Back", "Tree" and other buttons is removed. Instead, different sections of the web application are always accessible via the main navigation bar.
 
-The "Export" ("Download") and "Settings" sections are now moved to dedicated pages.
+The "Export" ("Download") and "Settings" sections are moved to dedicated pages.
 
 #### [BREAKING] Changed and removed some of the URL parameters
 
-Due to changes in dataset format and input files, the URL parameters have the following changes:
+Due to changes in the dataset format and input files, the URL parameters have the following changes:
 
 - `input-root-seq` renamed to `input-ref`
 - `input-gene-map` renamed to `input-annotation`
+- `input-pathogen-json` added
 - `input-qc-config` removed
 - `input-pcr-primers` removed
 - `input-virus-properties` removed
-- `input-pathogen-json` added
 - `dataset-reference` removed
 
-#### [BREAKING] Removed some of the output files
+#### [BREAKING] Removed some redundant output files
 
-The `nextclade.errors.csv` and `nextclade.insertions.csv` files are removed and no longer appear in the "Export" dialog, nor they are included into the `nextclade.zip` archive of all outputs.
+The `nextclade.errors.csv` and `nextclade.insertions.csv` files are removed and no longer appear in the "Export" dialog, nor are they included into the `nextclade.zip` archive of all outputs.
 
-Download and use `nextclade.tsv` or `nextclade.csv` files instead.
+Errors and insertions are now included in the `nextclade.csv` and `nextclade.tsv` files.
 
-#### Auspice updated
+#### Auspice updated from v2.45.2 to v2.51.0
 
-Auspice tree display is updated from version 2.45.2 to 2.50.0. See list of changes [here](https://github.com/nextstrain/auspice/releases).
+The Auspice tree viewer component is updated from version 2.45.2 to 2.51.0. See the [Auspice releases](https://github.com/nextstrain/auspice/releases) or [changelog](https://github.com/nextstrain/auspice/compare/v2.45.2...v2.51.0#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
 
 ---
 
@@ -134,34 +138,38 @@ Auspice tree display is updated from version 2.45.2 to 2.50.0. See list of chang
 
 #### [BREAKING] Nextalign CLI is removed
 
-Nextalign CLI is no longer provided as a standalone application along with Nextclade CLI v3. You can now use Nextclade CLI with the same command line arguments. Nextclade CLI runs the same algorithms, accepts same inputs and provides the same outputs, plus some more. For most use-cases, the CLI interface and the input and output files should be the same or very similar.
+Nextalign CLI is no longer provided as a standalone application along with Nextclade CLI v3 because Nextclade now has all the features that distinguished Nextalign. This means there's only one set of command line arguments to remember.
+Nextclade CLI runs the same algorithms, accepts same the inputs and provides the same outputs as v2 Nextalign, plus some more. For most use-cases, the CLI interface and the input and output files should be the same or very similar.
 
 #### [BREAKING] Some alignment parameters are removed
 
 Due to changes in the seed alignment algorithm, the following parameters are no longer used and the corresponding CLI arguments and JSON fields under `alignmentParams` in `pathogen.json` (previously `virus_properties.json`) were removed:
 
-  ```text
-  --min-seeds         
-  --seed-length       
-  --seed-spacing      
-  --min-match-rate    
-  --mismatches-allowed
-  --max-indel         
-  ```
+```text
+--seed-length
+--seed-spacing
+--max-indel
+--min-match-rate
+--min-seeds
+--mismatches-allowed
+```
 
-The following alignment parameters were added:
+The following new alignment parameters were added:
 
-  ```text
-  --kmer-length       
-  --kmer-distance     
-  --min-match-length  
-  --allowed-mismatches
-  --window-size       
-  ```
+```text
+--allowed-mismatches
+--kmer-distance
+--kmer-length
+--min-match-length
+--min-seed-cover
+--max-alignment-attempts
+--max-band-area
+--window-size
+```
 
 #### [BREAKING] Some CLI arguments for individual input files are removed
 
-Due to changes in dataset format the following CLI arguments were removed:
+Due to changes in the dataset format the following CLI arguments were removed:
 
 ```text
 --input-virus-properties
@@ -173,25 +181,31 @@ in favor of `--input-pathogen-json`.
 
 #### [BREAKING] Some CLI arguments for output files are removed
 
-The arguments `--output-errors` and `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
+The arguments `--output-errors` and `--output-insertions` have been removed. Their information is now included in `--output-csv` and `--output-tsv`.
 
 #### [BREAKING] Genome annotation CLI argument is renamed
 
-The argument `--input-gene-map` renamed to `--input-annotation`.
+The argument `--input-gene-map` renamed to `--input-annotation`. The short form `-m` remains unchanged.
+
+#### [Breaking] Translation selection CLI argument is renamed
+
+The argument `--genes` is renamed to `--cds-selection`. The short form `-g` remains unchanged.
 
 #### Newick tree output
 
-Nextclade can now also export the tree in Newick format.
+Nextclade can now also export the tree in Newick format via the `--output-tree-nwk` argument.
 
 #### Optional input files
 
-Most input files and files inside datasets are now optional. This simplifies dataset creation and maintenance and allows for step-by-step, incremental extension of them. You can start only with a reference sequence, which will only allow for alignment and very basic mutation calling in Nextclade, and later you can add more functionality.
+Most input files and files inside datasets are now optional. This simplifies dataset creation and maintenance and allows for step-by-step, incremental extension of them.
+You can start only with a reference sequence, which will only allow for alignment and very basic mutation calling in Nextclade, and later you can add more functionality.
+Optional input files also enable the removal of Nextalign CLI.
 
-If you maintain a custom dataset of want to try creating one - refer to our [Dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
+If you maintain a custom dataset or want to try creating one - refer to our [Dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md). Community contributed datasets are welcome!
 
 #### Added flag for disabling the new tree builder
 
-The old phylogenetic tree placement behavior can be restored by adding  `--without-greedy-tree-builder` flag to `run` subcommand.
+The old phylogenetic tree placement behavior can be restored by adding the `--without-greedy-tree-builder` flag.
 
 #### New arguments in `dataset list` command
 
@@ -201,22 +215,22 @@ The new argument `--only-names` allows to print a concise list of dataset names:
 nextclade dataset list --only-names
 ```
 
-The new argument `--json` allows to output a JSON object instead of the table. You can write it into a file and to postprocess it:
-
-```bash
-nextclade dataset list --json > "dataset_list.json"
-nextclade dataset list --json | jq '.[] | select(.path | startswith("nextstrain/sars-cov-2")) | .attributes'
-```
-
 The new argument `--search` allows to search datasets using substring match with dataset name, dataset friendly name, reference name or reference accession:
 
 ```bash
 nextclade dataset list --search=flu
 ```
 
+The argument `--json` allows to output a JSON object instead of the table. You can write it into a file and to postprocess it:
+
+```bash
+nextclade dataset list --json > "dataset_list.json"
+nextclade dataset list --json | jq '.[] | select(.path | startswith("nextstrain/sars-cov-2")) | .attributes'
+```
+
 #### New subcommand: `sort`
 
-The `sort` subcommand takes your sequences in FASTA format and output sequences grouped by dataset in the form of a directory tree. Each subdirectory corresponds to a dataset and contains output FASTA file with only sequences that are detected to be similar to the reference sequence in this dataset.
+The `sort` subcommand takes your sequences in FASTA format and outputs sequences grouped by dataset in the form of a directory tree. Each subdirectory corresponds to a dataset and contains an output FASTA file with only sequences that are detected to be similar to the reference sequence in this dataset.
 
 Example usage:
 
@@ -224,11 +238,11 @@ Example usage:
 nextclade sort --output-dir="out/sort/" --output-results-tsv="out/sort.tsv" "input.fasta"
 ```
 
-This can be useful for splitting FASTA files containing sequences which belong to different pathogens or to different strains, for example for separating flu HA and NA segments.
+This can be useful for splitting FASTA files containing sequences which belong to different pathogens, strains or segments, for example for separating flu HA and NA segments.
 
 #### New subcommand: `read-annotation`
 
-The `read-annotation` subcommand takes a GFF3 file and displays how features are arranged hierarchically as viewed by Nextclade. This might be useful for Nextclade developers and dataset curators in oder to verify that Nextclade correctly understand genetic features from a particular GFF3 file.
+The `read-annotation` subcommand takes a GFF3 file and displays how features are arranged hierarchically as viewed by Nextclade. This is useful for Nextclade developers and dataset creators to verify (and debug) how Nextclade understand genetic features from a particular GFF3 file.
 
 Example usage:
 
@@ -238,6 +252,13 @@ nextclade read-annotation genome_annotation.gff3
 
 Type `nextclade read-annotation --help` for description of arguments.
 
+---
+
+### Performance improvements
+
+#### Nextclade web now twice as fast when processing many sequences
+
+Nextclade Web now uses multithreading more effectively. This results in faster processing of large fastas on computers with more than one processor. The speedup is around 2 for 1000 SARS-CoV-2 sequences on a multi-core machine.
 
 ---
 
@@ -245,7 +266,7 @@ Type `nextclade read-annotation --help` for description of arguments.
 
 #### Ensure type safety across programming language boundaries
 
-The new features caused change in major internal data structures and made them more complex. We now generate JSON schema and Typescript typings from Rust code. This allows to find mismatches between parts written in different languages, and to avoid bugs related to data types.
+The new features caused changes in major internal data structures and made them more complex. We now generate JSON schema and Typescript typings from Rust code. This allows to find mismatches between parts written in different languages, and to avoid bugs related to data types.
 
 #### Make positions and ranges in different coord spaces type-safe
 
@@ -255,4 +276,4 @@ The change in genome annotation handling had significant consequences for coordi
 
 ## Older versions
 
-For changes in Nextclade v2 and downwards, see [docs/changes/CHANGELOG.old.md](docs/changes/CHANGELOG.old.md)
+For changes in Nextclade v2 and below, see [docs/changes/CHANGELOG.old.md](docs/changes/CHANGELOG.old.md)
