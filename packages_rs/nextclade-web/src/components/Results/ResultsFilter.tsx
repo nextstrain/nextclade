@@ -13,6 +13,8 @@ import {
   CardHeaderProps as ReactstrapCardHeaderProps,
   CardProps as ReactstrapCardProps,
   Collapse,
+  Form,
+  Input,
 } from 'reactstrap'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
@@ -51,26 +53,26 @@ export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
 `
 
 export const FormGroup = styled(ReactstrapFormGroup)<ReactstrapFormGroupProps>`
-  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
   flex-grow: 1;
   flex-basis: 22%;
 `
 
-export const FormSection = styled(FormGroup)<ReactstrapFormGroupProps>`
-  font-size: 0.85rem;
+export const FormSection = styled(Form)<ReactstrapFormGroupProps>`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
   padding: 5px 10px;
   margin: 5px;
   border-radius: 3px;
 `
 
-export const Label = styled(ReactstrapLabel)<ReactstrapLabelProps>`
-  width: 100%;
-  font-size: 0.85rem;
-`
+export const Label = styled(ReactstrapLabel)<ReactstrapLabelProps>``
 
 export const InputText = styled(ReactstrapInput)<ReactstrapInputProps>`
-  width: 100%;
-  height: 30px;
   padding: 5px 7px;
   font-size: 0.75rem;
 
@@ -83,9 +85,7 @@ export const InputText = styled(ReactstrapInput)<ReactstrapInputProps>`
   }
 `
 
-export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>`
-  padding-bottom: 3px;
-`
+export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>``
 
 export function ResultsFilter() {
   const { t } = useTranslationSafe()
@@ -170,7 +170,7 @@ export function ResultsFilter() {
   return (
     <Collapse isOpen={!isResultsFilterPanelCollapsed}>
       <Card>
-        <CardHeader>{t('Results filter')}</CardHeader>
+        {/* <CardHeader>{t('Results filter')}</CardHeader> */}
 
         <CardBody>
           <FormSection>
@@ -242,36 +242,30 @@ export function ResultsFilter() {
           </FormSection>
 
           <FormSection>
-            <Label>
-              {t('By quality')}
-              <FormGroup check>
-                <Label check>
-                  <InputCheckbox type="checkbox" checked={showGood} onChange={handleSetShowGood} />
-                  {t('Good quality')}
-                </Label>
-              </FormGroup>
-
-              <FormGroup check>
-                <Label check>
-                  <InputCheckbox type="checkbox" checked={showMediocre} onChange={handleSetShowMediocre} />
-                  {t('Mediocre quality')}
-                </Label>
-              </FormGroup>
-
-              <FormGroup check>
-                <Label check>
-                  <InputCheckbox type="checkbox" checked={showBad} onChange={handleSetShowBad} />
-                  {t('Bad quality')}
-                </Label>
-              </FormGroup>
-
-              <FormGroup check>
-                <Label check>
-                  <InputCheckbox type="checkbox" checked={showErrors} onChange={handleSetShowErrors} />
-                  {t('Has errors')}
-                </Label>
-              </FormGroup>
-            </Label>
+            <FormGroup check>
+              <Label check>
+                <Input type="checkbox" checked={showGood} onChange={handleSetShowGood} />
+                <span>{t('Good quality')}</span>
+              </Label>
+            </FormGroup>
+            <FormGroup check>
+              <Label check>
+                <Input type="checkbox" checked={showMediocre} onChange={handleSetShowMediocre} />
+                {t('Mediocre quality')}
+              </Label>
+            </FormGroup>
+            <FormGroup check>
+              <Label check>
+                <Input type="checkbox" checked={showBad} onChange={handleSetShowBad} />
+                {t('Bad quality')}
+              </Label>
+            </FormGroup>
+            <FormGroup check>
+              <Label check>
+                <Input type="checkbox" checked={showErrors} onChange={handleSetShowErrors} />
+                {t('Has errors')}
+              </Label>
+            </FormGroup>
           </FormSection>
         </CardBody>
       </Card>
