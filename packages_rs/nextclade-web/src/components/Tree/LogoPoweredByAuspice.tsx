@@ -18,7 +18,7 @@ export const LogoPoweredByAuspiceContainer = styled(LinkExternal)`
 `
 
 export const TextPoweredBy = styled.div`
-  color: #ccc;
+  color: ${(props) => props.theme.bodyColor};
   margin-left: auto;
   font-size: 0.85rem;
 `
@@ -44,13 +44,13 @@ export const TextAuspiceContainer = styled.div`
 
 export const TextAuspice = styled.span`
   flex: 1;
-  color: #ccc;
+  color: ${(props) => props.theme.bodyColor};
   font-size: 1.75rem;
 `
 
 export const TextNextstrain = styled.div`
   display: block;
-  color: #ccc;
+  color: ${(props) => props.theme.bodyColor};
   font-size: 0.75rem;
   line-height: 0.75rem;
 `
