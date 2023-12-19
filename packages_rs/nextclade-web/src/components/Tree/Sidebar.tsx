@@ -6,6 +6,7 @@ import ColorBy from 'auspice/src/components/controls/color-by'
 import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch-labelling'
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
+import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
 import { HeaderContainer } from 'auspice/src/components/controls/styles'
 import FilterData from 'auspice/src/components/controls/filter'
 
@@ -39,6 +40,7 @@ export function Sidebar() {
       <ChooseLayout />
       <ChooseMetric />
       <ChooseBranchLabelling />
+      <ChooseTipLabel />
 
       <SidebarHeaderStyled>{t('sidebar:Filter Data')}</SidebarHeaderStyled>
       <FilterData measurementsOn={false} />
