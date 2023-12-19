@@ -1,4 +1,4 @@
-import { atom } from 'recoil'
+import { atom, selector } from 'recoil'
 
 export const seqNamesFilterAtom = atom<string>({
   key: 'seqNamesFilter',
@@ -38,4 +38,19 @@ export const showBadFilterAtom = atom<boolean>({
 export const showErrorsFilterAtom = atom<boolean>({
   key: 'showErrorsFilter',
   default: true,
+})
+
+export const clearAllFiltersAtom = selector({
+  key: 'clearAllFiltersAtom',
+  get: () => undefined,
+  set: ({ reset }) => {
+    reset(seqNamesFilterAtom)
+    reset(mutationsFilterAtom)
+    reset(cladesFilterAtom)
+    reset(aaFilterAtom)
+    reset(showGoodFilterAtom)
+    reset(showMediocreFilterAtom)
+    reset(showBadFilterAtom)
+    reset(showErrorsFilterAtom)
+  },
 })

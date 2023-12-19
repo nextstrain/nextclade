@@ -4,6 +4,7 @@ import { changeColorBy } from 'auspice/src/actions/colors'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
+import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { AlgorithmGlobalStatus } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -48,6 +49,7 @@ export function useRunAnalysis() {
         set(showNewRunPopupAtom, false)
 
         reset(analysisResultsAtom)
+        reset(clearAllFiltersAtom)
         reset(treeAtom)
         reset(viewedCdsAtom)
         reset(cdsOrderPreferenceAtom)
