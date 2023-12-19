@@ -18,8 +18,8 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
   const [csvColumnConfig, setCsvColumnConfig] = useRecoilState(csvColumnConfigAtom)
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
-  const exportCsv_ = useExportCsv() // eslint-disable-line no-underscore-dangle
-  const exportTsv_ = useExportTsv() // eslint-disable-line no-underscore-dangle
+  const { fn: exportCsv_ } = useExportCsv()
+  const { fn: exportTsv_ } = useExportTsv()
   const exportCsv = useCallback(() => exportCsv_(exportParams.filenameCsv), [exportCsv_, exportParams.filenameCsv])
   const exportTsv = useCallback(() => exportTsv_(exportParams.filenameTsv), [exportParams.filenameTsv, exportTsv_])
 

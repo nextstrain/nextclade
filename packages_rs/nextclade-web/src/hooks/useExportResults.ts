@@ -1,4 +1,5 @@
 /* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops */
+import { useState } from 'react'
 import { Snapshot, useRecoilCallback } from 'recoil'
 import type { AnalysisError, AnalysisOutput } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
@@ -45,22 +46,31 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
 }
 
 function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
-  return useRecoilCallback(
+  const [isRunning, setIsRunning] = useState(false)
+  const [isDone, setIsDone] = useState(false)
+  const fn = useRecoilCallback(
     ({ set, snapshot }) => {
       const snapshotRelease = snapshot.retain()
       return (filename: string) => {
+        setIsRunning(true)
         void ExportWorker.get()
-          .then((worker) => exportFn(filename, snapshot, worker))
+          .then(async (worker) => {
+            const result = await exportFn(filename, snapshot, worker)
+            setIsDone(true)
+            return result
+          })
           .catch((error) => {
             set(globalErrorAtom, error)
           })
           .finally(() => {
             snapshotRelease()
+            setIsRunning(false)
           })
       }
     },
-    [exportFn],
+    [exportFn, setIsRunning],
   )
+  return { isRunning, isDone, fn }
 }
 
 async function mapGoodResults<T>(snapshot: Snapshot, mapFn: (result: AnalysisOutput) => T) {
