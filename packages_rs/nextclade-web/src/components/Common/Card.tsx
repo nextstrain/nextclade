@@ -19,6 +19,8 @@ export const CardL1Header = styled(ReactstrapCardHeader)`
   padding: 10px 10px;
   display: flex;
   height: 48px;
+  min-height: 48px;
+  max-height: 48px;
 `
 
 export const CardL1Body = styled(ReactstrapCardBody)`
