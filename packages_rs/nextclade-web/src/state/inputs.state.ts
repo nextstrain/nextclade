@@ -2,6 +2,7 @@ import { isEmpty } from 'lodash'
 import { useCallback, useEffect } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
 import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
+import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { analysisResultsAtom, analysisStatusGlobalAtom, treeAtom } from 'src/state/results.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { AlgorithmInput } from 'src/types'
@@ -23,6 +24,7 @@ export function useQuerySeqInputs() {
   const resetTree = useResetRecoilState(treeAtom)
   const resetViewedCds = useResetRecoilState(viewedCdsAtom)
   const resetCdsOrderPreference = useResetRecoilState(cdsOrderPreferenceAtom)
+  const clearAllFilters = useResetRecoilState(clearAllFiltersAtom)
 
   const clearResults = useCallback(() => {
     resetSuggestions()
@@ -31,7 +33,9 @@ export function useQuerySeqInputs() {
     resetTree()
     resetViewedCds()
     resetCdsOrderPreference()
+    clearAllFilters()
   }, [
+    clearAllFilters,
     resetAnalysisResults,
     resetAnalysisStatusGlobal,
     resetCdsOrderPreference,
