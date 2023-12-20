@@ -31,9 +31,19 @@ export function TabPanelPaste({ onConfirm, instructions, inputRef }: TabPanelPas
   const { t } = useTranslationSafe()
   const [seqData, setSeqData] = useState<string>('')
   const hasSeqData = seqData.length > 0
-  const change = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setSeqData(e.target.value) }, []) // prettier-ignore
-  const clear = useCallback(() => { setSeqData('') }, []) // prettier-ignore
-  const confirm = useCallback(() => { onConfirm(seqData) }, [onConfirm, seqData]) // prettier-ignore
+
+  const change = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSeqData(e.target.value)
+  }, [])
+
+  const clear = useCallback(() => {
+    setSeqData('')
+  }, [])
+
+  const confirm = useCallback(() => {
+    onConfirm(seqData)
+    clear()
+  }, [onConfirm, seqData, clear])
 
   return (
     <Form>
