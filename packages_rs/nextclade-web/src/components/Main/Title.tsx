@@ -1,8 +1,6 @@
 import React from 'react'
-import { LinkSmart } from 'src/components/Link/LinkSmart'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-
 import styled from 'styled-components'
+import SibAddon from 'src/assets/img/sib.addon.svg'
 
 import { TITLE_COLORS } from 'src/constants'
 
@@ -50,7 +48,6 @@ const LetterSpan = styled.span<{ pos: number }>`
 `
 
 export function Title() {
-  const { t } = useTranslationSafe()
   return (
     <span className="d-inline-flex">
       <TitleH1>
@@ -64,7 +61,7 @@ export function Title() {
 
       <div className="d-flex h-auto flex-row">
         <span className="flex-1 d-flex h-auto flex-column mb-2 mt-2">
-          <span className="mb-auto">{<AboutLink href="/about">{t('What is this?')}</AboutLink>}</span>
+          <span className="mb-auto mr-auto">{<SibAddonLogo />}</span>
           <span className="mt-auto">
             {PACKAGE_VERSION && <VersionNumberBadge color="secondary">{`v${PACKAGE_VERSION}`}</VersionNumberBadge>}
           </span>
@@ -74,8 +71,9 @@ export function Title() {
   )
 }
 
-const AboutLink = styled(LinkSmart)`
-  margin-bottom: auto;
+const SibAddonLogo = styled(SibAddon)`
+  height: 25px;
+  margin-right: auto;
 `
 
 export const Subtitle = styled.h2`
