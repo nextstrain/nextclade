@@ -1,7 +1,7 @@
 import React, { FC, ReactNode, useMemo, useCallback } from 'react'
 import styled from 'styled-components'
-import { Button } from 'reactstrap'
-import { MdFileDownload } from 'react-icons/md'
+import { Button as ButtonBase, Row, Col, Spinner as SpinnerBase } from 'reactstrap'
+import { MdFileDownload, MdCheck } from 'react-icons/md'
 import { UlGeneric } from 'src/components/Common/List'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
@@ -36,23 +36,27 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
 
   const ColumnConfigLink = useMemo(
     () => (
-      <Button color="link" className="p-0" onClick={onClick}>
-        {t('Configure columns')}
-      </Button>
+      <Row noGutters>
+        <Col>
+          <ConfigButton color="link" onClick={onClick}>
+            {t('Configure columns')}
+          </ConfigButton>
+        </Col>
+      </Row>
     ),
     [onClick, t],
   )
 
   // TODO: We could probably use a map and then iterate over it, to reduce duplication
-  const exportZip = useExportZip()
-  const exportFasta = useExportFasta()
-  const exportCsv = useExportCsv()
-  const exportTsv = useExportTsv()
-  const exportJson = useExportJson()
-  const exportNdjson = useExportNdjson()
-  const exportPeptides = useExportPeptides()
-  const exportTree = useExportTree()
-  const exportTreeNwk = useExportTreeNwk()
+  const { isRunning: isRunningZip, isDone: isDoneZip, fn: exportZip } = useExportZip()
+  const { isRunning: isRunningFasta, isDone: isDoneFasta, fn: exportFasta } = useExportFasta()
+  const { isRunning: isRunningCsv, isDone: isDoneCsv, fn: exportCsv } = useExportCsv()
+  const { isRunning: isRunningTsv, isDone: isDoneTsv, fn: exportTsv } = useExportTsv()
+  const { isRunning: isRunningJson, isDone: isDoneJson, fn: exportJson } = useExportJson()
+  const { isRunning: isRunningNdjson, isDone: isDoneNdjson, fn: exportNdjson } = useExportNdjson()
+  const { isRunning: isRunningPeptides, isDone: isDonePeptides, fn: exportPeptides } = useExportPeptides()
+  const { isRunning: isRunningTree, isDone: isDoneTree, fn: exportTree } = useExportTree()
+  const { isRunning: isRunningTreeNwk, isDone: isDoneTreeNwk, fn: exportTreeNwk } = useExportTreeNwk()
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
@@ -68,6 +72,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         )}
         HelpDownload={t('Download results of the analysis in {{formatName}} format.', { formatName: 'JSON' })}
         onDownload={exportJson}
+        isRunning={isRunningJson}
+        isDone={isDoneJson}
       />
 
       <ExportFileElement
@@ -80,6 +86,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         )}
         HelpDownload={t('Download results of the analysis in {{formatName}} format.', { formatName: 'NDJSON' })}
         onDownload={exportNdjson}
+        isRunning={isRunningNdjson}
+        isDone={isDoneNdjson}
       />
 
       <ExportFileElement
@@ -92,6 +100,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         HelpDownload={t('Download summarized results in {{formatName}} format.', { formatName: 'CSV' })}
         Config={ColumnConfigLink}
         onDownload={exportCsv}
+        isRunning={isRunningCsv}
+        isDone={isDoneCsv}
       />
 
       <ExportFileElement
@@ -104,6 +114,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         HelpDownload={t('Download summarized results in {{formatName}} format.', { formatName: 'TSV' })}
         Config={ColumnConfigLink}
         onDownload={exportTsv}
+        isRunning={isRunningTsv}
+        isDone={isDoneTsv}
       />
 
       <ExportFileElement
@@ -123,6 +135,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
           formatName: 'Auspice JSON v2',
         })}
         onDownload={exportTree}
+        isRunning={isRunningTree}
+        isDone={isDoneTree}
       />
 
       <ExportFileElement
@@ -144,6 +158,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
           formatName: 'Newick',
         })}
         onDownload={exportTreeNwk}
+        isRunning={isRunningTreeNwk}
+        isDone={isDoneTreeNwk}
       />
 
       <ExportFileElement
@@ -153,6 +169,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         HelpDetails={t('Contains aligned sequences in {{formatName}} format.', { formatName: 'FASTA' })}
         HelpDownload={t('Download aligned sequences in {{formatName}} format.', { formatName: 'FASTA' })}
         onDownload={exportFasta}
+        isRunning={isRunningFasta}
+        isDone={isDoneFasta}
       />
 
       <ExportFileElement
@@ -170,6 +188,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
           },
         )}
         onDownload={exportPeptides}
+        isRunning={isRunningPeptides}
+        isDone={isDonePeptides}
       />
 
       <ExportFileElement
@@ -179,6 +199,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         HelpDetails={t('Contains all of the above files in a single {{formatName}} file.', { formatName: 'zip' })}
         HelpDownload={t('Download all in {{formatName}} archive.', { formatName: 'zip' })}
         onDownload={exportZip}
+        isRunning={isRunningZip}
+        isDone={isDoneZip}
       />
     </Ul>
   )
@@ -192,6 +214,8 @@ export interface ExportFileElementProps {
   HelpDownload: string
   Config?: ReactNode
   onDownload(filename: string): void
+  isRunning?: boolean
+  isDone?: boolean
 }
 
 export function ExportFileElement({
@@ -202,9 +226,21 @@ export function ExportFileElement({
   HelpDownload,
   Config,
   onDownload,
+  isRunning,
+  isDone,
 }: ExportFileElementProps) {
   const handleDownload = useCallback(() => onDownload(filename), [filename, onDownload])
   const hasFilename = filename.length > 0
+
+  const icon = useMemo(() => {
+    if (isRunning) {
+      return <Spinner size={10} />
+    }
+    if (isDone) {
+      return <SuccessIcon />
+    }
+    return <DownloadIcon />
+  }, [isDone, isRunning])
 
   return (
     <Li className="d-flex">
@@ -215,23 +251,52 @@ export function ExportFileElement({
         <pre className="mb-0 export-file-filename">{filename}</pre>
         <p className="my-0 small">{HelpMain}</p>
         <p className="my-0 small">{HelpDetails}</p>
-        {Config && <p className="my-0">{Config}</p>}
+        {Config}
       </div>
 
       <div className="d-inline-block ml-auto my-auto">
-        <Button color="primary" disabled={!hasFilename} title={HelpDownload} onClick={handleDownload}>
-          <DownloadIcon />
-        </Button>
+        <DownloadButton
+          color="primary"
+          disabled={isRunning || !hasFilename}
+          title={HelpDownload}
+          onClick={handleDownload}
+        >
+          {icon}
+        </DownloadButton>
       </div>
     </Li>
   )
 }
+
+const DownloadButton = styled(ButtonBase)`
+  width: 70px;
+  height: 50px;
+`
+
+const ConfigButton = styled(ButtonBase)`
+  height: 2rem;
+  padding: 0;
+`
+
+const Spinner = styled(SpinnerBase)`
+  width: 25px;
+  height: 25px;
+  margin: auto;
+`
 
 const DownloadIcon = styled(MdFileDownload)`
   width: 25px;
   height: 25px;
   margin-left: -1px;
   display: inline;
+`
+
+const SuccessIcon = styled(MdCheck)`
+  width: 25px;
+  height: 25px;
+  margin-left: -1px;
+  display: inline;
+  color: #aaff99;
 `
 
 export const Ul = styled(UlGeneric)`
