@@ -19,6 +19,7 @@ export function BrowserWarning() {
       chrome: '>60',
       edge: '>79',
       firefox: '>52',
+      safari: '>=16',
     })
 
     if (isSupportedBrowser) {
