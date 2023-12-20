@@ -24,7 +24,7 @@ export const FilePickerContainer = styled.div`
 
 export const FilePickerHeader = styled.div`
   display: flex;
-  margin-bottom: 0.5rem;
+  margin-bottom: 10px;
 `
 
 export const FilePickerBody = styled.div<{ $compact?: boolean }>`

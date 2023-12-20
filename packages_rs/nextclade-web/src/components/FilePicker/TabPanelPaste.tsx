@@ -15,6 +15,8 @@ const Form = styled(FormBase)`
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding: 5px;
+  margin: 0;
 `
 
 export interface TabPanelPasteProps {

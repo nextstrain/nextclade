@@ -28,7 +28,7 @@ const Container = styled.div`
   border: 1px #ccc9 solid;
   border-radius: 5px;
 
-  min-height: 110px;
+  min-height: 200px;
 `
 
 export interface ChangeDatasetButtonProps extends ButtonProps {
@@ -50,8 +50,12 @@ export function ButtonChangeDataset({ onClick, ...restProps }: ChangeDatasetButt
   }, [dataset, t])
 
   return (
-    <Button className="m-auto" color={color} title={tooltip} onClick={onClick} {...restProps}>
+    <ButtonChangeDatasetStyled className="m-auto" color={color} title={tooltip} onClick={onClick} {...restProps}>
       {text}
-    </Button>
+    </ButtonChangeDatasetStyled>
   )
 }
+
+const ButtonChangeDatasetStyled = styled(Button)`
+  min-height: 50px;
+`

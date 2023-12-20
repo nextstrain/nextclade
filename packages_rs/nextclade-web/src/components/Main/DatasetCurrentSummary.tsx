@@ -28,17 +28,27 @@ export function DatasetCurrentSummary() {
     <Container>
       <DatasetCurrentUpdateNotification />
 
-      <Row noGutters className="w-100">
-        <Col className="d-flex">
-          <DatasetInfo dataset={dataset} showSuggestions />
-          <ButtonClear onClick={resetDataset} title={t('Reset dataset')}>
-            <IconClear size={20} />
-          </ButtonClear>
-        </Col>
-      </Row>
       <Row noGutters>
-        <Col className="d-flex w-100">
-          <ButtonLoadExample className="ml-auto" />
+        <Col>
+          <Row noGutters>
+            <Col className="d-flex">
+              <ButtonClear onClick={resetDataset} title={t('Reset dataset')}>
+                <IconClear size={20} />
+              </ButtonClear>
+            </Col>
+          </Row>
+
+          <Row noGutters>
+            <Col>
+              <DatasetInfo dataset={dataset} showSuggestions />
+            </Col>
+          </Row>
+
+          <Row noGutters className="d-flex">
+            <Col className="d-flex ml-auto mt-2">
+              <ButtonLoadExample className="ml-auto" />
+            </Col>
+          </Row>
         </Col>
       </Row>
     </Container>
@@ -51,11 +61,12 @@ const Container = styled.div`
   padding: 12px;
   border: 1px #ccc9 solid;
   border-radius: 5px;
+  min-height: 200px;
 `
 
 const ButtonClear = styled(ButtonTransparent)`
   display: inline;
-  margin: 0 auto;
+  margin-left: auto;
   height: 20px;
   width: 20px;
 `

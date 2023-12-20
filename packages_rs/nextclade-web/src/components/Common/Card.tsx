@@ -6,18 +6,21 @@ import { Card as ReactstrapCard, CardHeader as ReactstrapCardHeader, CardBody as
 export const CardL1 = styled(ReactstrapCard)`
   border: none;
   border-image: none;
-  margin: 10px 5px;
-  border-radius: 3px;
+  border-radius: 5px;
+  box-shadow: 1px 1px 10px 5px #5553;
 `
 
 export const CardL1Header = styled(ReactstrapCardHeader)`
   border: none;
   border-image: none;
-  background-color: #666;
-  color: #ddd;
-  padding: 5px 5px;
+  border-radius: 5px 5px 0 0 !important;
+  background-color: ${(props) => props.theme.gray600};
+  color: ${(props) => props.theme.gray100};
+  padding: 10px 10px;
   display: flex;
   height: 48px;
+  min-height: 48px;
+  max-height: 48px;
 `
 
 export const CardL1Body = styled(ReactstrapCardBody)`
