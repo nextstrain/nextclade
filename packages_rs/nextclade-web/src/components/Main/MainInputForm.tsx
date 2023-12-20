@@ -3,7 +3,7 @@ import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { CardL1, CardL1Body, CardL1Header } from 'src/components/Common/Card'
+import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase, CardL1Header } from 'src/components/Common/Card'
 import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
@@ -51,8 +51,8 @@ const Main = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-bottom: -12px;
-  padding-bottom: 12px;
+  margin: -12px;
+  padding: 12px;
   overflow: hidden;
 `
 
@@ -60,16 +60,11 @@ const RowCustom = styled(Row)`
   display: flex;
   flex-direction: row;
   width: 100%;
+  margin: -12px;
+  padding: 12px;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: -12px;
-  padding-bottom: 12px;
   overflow: hidden;
-`
-
-const Footer = styled.div`
-  display: flex;
-  flex: 1;
 `
 
 export function Landing() {
@@ -146,6 +141,12 @@ export function LandingCardDataset() {
   )
 }
 
+const CardL1 = styled(CardL1Base)``
+
+const CardL1Body = styled(CardL1BodyBase)`
+  //min-height: 386px;
+`
+
 export const CardTitle = styled.h4`
   display: inline-flex;
   flex: 1 0;
@@ -184,33 +185,45 @@ function DatasetCurrentOrSelectButton() {
   if (!dataset) {
     return (
       <Container>
-        <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
-
-        <Footer>
-          <div className="w-100 d-flex flex-column">
+        <Row noGutters className="mb-1">
+          <Col>
             <SuggestionPanel />
-            <SuggestionAlertMainPage className="mt-1" />
-          </div>
-        </Footer>
+          </Col>
+        </Row>
+
+        <Row noGutters className="my-1">
+          <Col>
+            <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
+          </Col>
+        </Row>
+
+        <SuggestionAlertMainPage className="mt-1 w-100" />
       </Container>
     )
   }
 
   return (
     <Container>
-      <DatasetCurrentSummary />
-
-      <Footer>
-        <div className="w-100 d-flex flex-column">
+      <Row noGutters className="mb-1">
+        <Col>
           <SuggestionPanel />
-          <SuggestionAlertMainPage className="mt-1" />
-        </div>
-      </Footer>
+        </Col>
+      </Row>
 
-      <Footer>
-        <ButtonChangeDataset className="mr-auto my-2" onClick={toDatasetSelection} />
-        <ButtonRun className="ml-auto my-2" onClick={run} />
-      </Footer>
+      <Row noGutters className="my-1">
+        <Col>
+          <DatasetCurrentSummary />
+        </Col>
+      </Row>
+
+      <Row noGutters className="my-1">
+        <Col className="d-flex w-100">
+          <ButtonChangeDataset className="mr-auto" onClick={toDatasetSelection} />
+          <ButtonRun className="ml-auto" onClick={run} />
+        </Col>
+      </Row>
+
+      <SuggestionAlertMainPage className="mt-1 w-100" />
     </Container>
   )
 }

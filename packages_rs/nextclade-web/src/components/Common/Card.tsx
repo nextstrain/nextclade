@@ -14,7 +14,7 @@ export const CardL1Header = styled(ReactstrapCardHeader)`
   border: none;
   border-image: none;
   border-radius: 5px 5px 0 0 !important;
-  background-color: ${(props) => props.theme.gray700};
+  background-color: ${(props) => props.theme.gray600};
   color: ${(props) => props.theme.gray100};
   padding: 10px 10px;
   display: flex;

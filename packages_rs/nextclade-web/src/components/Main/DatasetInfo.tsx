@@ -70,7 +70,7 @@ export interface DatasetInfoProps {
   showSuggestions?: boolean
 }
 
-export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
+export function DatasetInfo({ dataset, showSuggestions, ...restProps }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
   const { attributes, path, version } = dataset
 
@@ -88,7 +88,7 @@ export function DatasetInfo({ dataset, showSuggestions }: DatasetInfoProps) {
   const datasetPath = t('Dataset name: {{name}}', { name: path })
 
   return (
-    <Container>
+    <Container {...restProps}>
       <FlexLeft>
         <DatasetInfoAutodetectProgressCircle dataset={dataset} showSuggestions={showSuggestions} />
       </FlexLeft>

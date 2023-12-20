@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { UncontrolledAlert } from 'reactstrap'
+import { Col, Row, UncontrolledAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
@@ -96,7 +96,17 @@ export function SuggestionAlertMainPage({ ...restProps }) {
     return null
   }, [autodetectRunState, datasetCurrent, datasetSuggestions, numSuggestions, t])
 
-  return <AlertWrapper {...restProps}>{alert}</AlertWrapper>
+  if (!alert) {
+    return null
+  }
+
+  return (
+    <Row noGutters className="my-1">
+      <Col>
+        <AlertWrapper {...restProps}>{alert}</AlertWrapper>
+      </Col>
+    </Row>
+  )
 }
 
 const AlertWrapper = styled.div`

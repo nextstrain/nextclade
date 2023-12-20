@@ -94,10 +94,8 @@ const Container = styled.div`
 const Form = styled(FormBase)`
   display: flex;
   width: 100%;
-  min-height: 45px;
-  padding: 10px;
-  border: 1px #ccc9 solid;
-  border-radius: 5px;
+  min-height: 38px;
+  padding: 0 5px;
 `
 
 export const FlexLeft = styled.div`
@@ -142,6 +140,7 @@ export function AutosuggestionToggle({ ...restProps }) {
         onCheckedChanged={toggleSuggestDatasets}
       >
         <span
+          className="my-auto"
           title={t(
             'Enable suggestion of best matching pathogen datasets. Please add sequence data to launch suggestion engine.',
           )}
