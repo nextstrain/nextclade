@@ -17,7 +17,7 @@ const Container = styled.footer`
   height: 38px;
   width: 100%;
   bottom: 0;
-  padding: 6px 10px;
+  padding: 10px;
   box-shadow: ${(props) => props.theme.shadows.large};
   background-color: ${(props) => props.theme.white};
   opacity: 1;
