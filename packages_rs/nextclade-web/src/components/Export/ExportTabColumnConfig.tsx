@@ -1,11 +1,12 @@
 import { get, mapValues } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
+import { MdCheck, MdFileDownload } from 'react-icons/md'
 import { useRecoilState, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
 import copy from 'fast-copy'
 import { rgba } from 'polished'
 import { DEFAULT_EXPORT_PARAMS, useExportTsv, useExportCsv } from 'src/hooks/useExportResults'
-import { Button, Form, FormGroup, Input, Label } from 'reactstrap'
+import { Button, ButtonProps, Form, FormGroup, Input, Label, Spinner } from 'reactstrap'
 import type { CsvColumnConfig } from 'src/types'
 import { csvColumnConfigAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -18,8 +19,8 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
   const [csvColumnConfig, setCsvColumnConfig] = useRecoilState(csvColumnConfigAtom)
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
-  const { fn: exportCsv_ } = useExportCsv()
-  const { fn: exportTsv_ } = useExportTsv()
+  const { isDone: isDoneCsv, isRunning: isRunningCsv, fn: exportCsv_ } = useExportCsv()
+  const { isDone: isDoneTsv, isRunning: isRunningTsv, fn: exportTsv_ } = useExportTsv()
   const exportCsv = useCallback(() => exportCsv_(exportParams.filenameCsv), [exportCsv_, exportParams.filenameCsv])
   const exportTsv = useCallback(() => exportTsv_(exportParams.filenameTsv), [exportParams.filenameTsv, exportTsv_])
 
@@ -125,24 +126,94 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
 
       <Footer>
         <div className="mt-2 mr-auto">
-          <Button type="button" color="danger" onClick={onClick} title={t('Return back to list of files')}>
+          <DownloadButtonStyled
+            type="button"
+            color="danger"
+            onClick={onClick}
+            title={t('Return back to list of files')}
+          >
             {t('Back to Files')}
-          </Button>
+          </DownloadButtonStyled>
         </div>
 
         <div className="mt-2 ml-auto">
-          <Button type="button" color="success" className="mx-1" onClick={exportCsv} title={t('Download CSV')}>
-            {t('Download CSV')}
-          </Button>
-
-          <Button type="button" color="primary" className="mx-1" onClick={exportTsv} title={t('Download TSV')}>
-            {t('Download TSV')}
-          </Button>
+          <DownloadButton
+            color="success"
+            className="mx-1"
+            onClick={exportCsv}
+            text={t('Download CSV')}
+            isDone={isDoneCsv}
+            isRunning={isRunningCsv}
+          />
+          <DownloadButton
+            color="primary"
+            className="mx-1"
+            onClick={exportTsv}
+            text={t('Download TSV')}
+            isDone={isDoneTsv}
+            isRunning={isRunningTsv}
+          />
         </div>
       </Footer>
     </Container>
   )
 }
+
+interface DownloadButtonProps extends ButtonProps {
+  text: string
+  isRunning?: boolean
+  isDone?: boolean
+}
+
+function DownloadButton({ onClick, text, isRunning, isDone, ...restProps }: DownloadButtonProps) {
+  const icon = useMemo(() => {
+    if (isRunning) {
+      return <SpinnerSmall />
+    }
+    if (isDone) {
+      return <SuccessIcon />
+    }
+    return <DownloadIcon />
+  }, [isDone, isRunning])
+
+  return (
+    <DownloadButtonStyled type="button" disabled={isRunning} onClick={onClick} title={text} {...restProps}>
+      <span className="d-flex w-100">
+        <span className="my-auto">{icon}</span>
+        <span className="my-auto ml-1">{text}</span>
+      </span>
+    </DownloadButtonStyled>
+  )
+}
+
+const SpinnerSmall = styled(Spinner)`
+  width: 24px !important;
+  height: 24px !important;
+`
+
+const DownloadIcon = styled(MdFileDownload)`
+  width: 25px;
+  height: 25px;
+  margin-left: -1px;
+  display: inline;
+`
+
+const SuccessIcon = styled(MdCheck)`
+  width: 25px;
+  height: 25px;
+  margin-left: -1px;
+  display: inline;
+  color: #aaff99;
+`
+
+const DownloadButtonStyled = styled(Button)`
+  width: 160px;
+  height: 40px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`
 
 const Container = styled.div`
   max-width: ${(props) => props.theme.containerMaxWidths.md};
