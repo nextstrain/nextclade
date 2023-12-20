@@ -230,7 +230,7 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
   const { viewBox, cdsSegViews, geneMapHeight } = useMemo(() => {
     const cdses = isInNucView ? cdsesAll : cdsesAll.filter((cds) => cds.name === viewedGene)
     if (isEmpty(cdses)) {
-      throw new ErrorInternal(`Unable to find CDS '${viewedGene}'`)
+      return { viewBox: `0 0 0 0`, cdsSegViews: [], geneMapHeight: 0 }
     }
 
     const length = getAxisLength(genomeSize, viewedGene, cdses)
