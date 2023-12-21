@@ -1,6 +1,7 @@
 /* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops */
+import { isEmpty, isNil } from 'lodash'
 import { useState } from 'react'
-import { Snapshot, useRecoilCallback } from 'recoil'
+import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'
 import type { AnalysisError, AnalysisOutput } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
@@ -9,6 +10,7 @@ import { globalErrorAtom } from 'src/state/error.state'
 import {
   aaMotifsDescsAtom,
   analysisResultsAtom,
+  cdsesAtom,
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
   phenotypeAttrDescsAtom,
@@ -181,31 +183,49 @@ export function useExportNdjson() {
 async function prepareOutputTree(snapshot: Snapshot) {
   const tree = await snapshot.getPromise(treeAtom)
   if (!tree) {
-    throw new ErrorInternal('When exporting tree: the tree data is not ready')
+    return undefined
   }
   return JSON.stringify(tree, null, 2)
 }
 
 export function useExportTree() {
-  return useResultsExport(async (filename, snapshot) => {
+  const tree = useRecoilValue(treeAtom)
+  const res = useResultsExport(async (filename, snapshot) => {
     const jsonStr = await prepareOutputTree(snapshot)
+    if (isNil(jsonStr)) {
+      return
+    }
     saveFile(jsonStr, filename, 'application/json;charset=utf-8')
   })
+  if (isNil(tree)) {
+    return undefined
+  }
+  return res
 }
 
 export async function prepareOutputTreeNwk(snapshot: Snapshot) {
   const treeNwk = await snapshot.getPromise(treeNwkAtom)
   if (!treeNwk) {
-    throw new ErrorInternal('When exporting nwk tree: the nwk tree data is not ready')
+    return undefined
   }
   return treeNwk
 }
 
 export function useExportTreeNwk() {
-  return useResultsExport(async (filename, snapshot, _) => {
+  const tree = useRecoilValue(treeNwkAtom)
+
+  const res = useResultsExport(async (filename, snapshot, _) => {
     const nwk = await prepareOutputTreeNwk(snapshot)
+    if (isNil(nwk)) {
+      return
+    }
     saveFile(nwk, filename, 'text/x-nh;charset=utf-8')
   })
+
+  if (isNil(tree)) {
+    return undefined
+  }
+  return res
 }
 
 async function preparePeptideFiles(snapshot: Snapshot) {
@@ -236,10 +256,18 @@ async function preparePeptideFiles(snapshot: Snapshot) {
 }
 
 export function useExportPeptides() {
-  return useResultsExport(async (filename, snapshot) => {
+  const cdses = useRecoilValue(cdsesAtom)
+
+  const res = useResultsExport(async (filename, snapshot) => {
     const files = await preparePeptideFiles(snapshot)
     await saveZip({ files, filename })
   })
+
+  if (isEmpty(cdses)) {
+    return undefined
+  }
+
+  return res
 }
 
 export function useExportZip() {
@@ -247,6 +275,7 @@ export function useExportZip() {
     const csvStr = await prepareResultsCsv(snapshot, worker, ';')
     const tsvStr = await prepareResultsCsv(snapshot, worker, '\t')
     const jsonStr = await prepareResultsJson(snapshot, worker)
+    const ndjsonStr = await prepareResultsNdjson(snapshot, worker)
     const treeJsonStr = await prepareOutputTree(snapshot)
     const treeNwkStr = await prepareOutputTreeNwk(snapshot)
     const fastaStr = await prepareOutputFasta(snapshot)
@@ -257,10 +286,17 @@ export function useExportZip() {
       { filename: DEFAULT_EXPORT_PARAMS.filenameCsv, data: csvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameTsv, data: tsvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameJson, data: jsonStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeJsonStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeNwkStr },
+      { filename: DEFAULT_EXPORT_PARAMS.filenameNdjson, data: ndjsonStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameFasta, data: fastaStr },
     ]
+
+    if (treeJsonStr) {
+      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeJsonStr })
+    }
+
+    if (treeNwkStr) {
+      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTreeNwk, data: treeNwkStr })
+    }
 
     await saveZip({ filename, files })
   })

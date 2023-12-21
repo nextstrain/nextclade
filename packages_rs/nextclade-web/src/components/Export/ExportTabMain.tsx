@@ -54,9 +54,10 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
   const { isRunning: isRunningTsv, isDone: isDoneTsv, fn: exportTsv } = useExportTsv()
   const { isRunning: isRunningJson, isDone: isDoneJson, fn: exportJson } = useExportJson()
   const { isRunning: isRunningNdjson, isDone: isDoneNdjson, fn: exportNdjson } = useExportNdjson()
-  const { isRunning: isRunningPeptides, isDone: isDonePeptides, fn: exportPeptides } = useExportPeptides()
-  const { isRunning: isRunningTree, isDone: isDoneTree, fn: exportTree } = useExportTree()
-  const { isRunning: isRunningTreeNwk, isDone: isDoneTreeNwk, fn: exportTreeNwk } = useExportTreeNwk()
+
+  const exportPeptides = useExportPeptides()
+  const exportTree = useExportTree()
+  const exportTreeNwk = useExportTreeNwk()
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
@@ -118,49 +119,53 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         isDone={isDoneTsv}
       />
 
-      <ExportFileElement
-        Icon={FileIconJson}
-        filename={exportParams.filenameTree}
-        HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-          formatName: 'Auspice JSON v2',
-        })}
-        HelpDetails={
-          <>
-            {t('Can be viewed locally with Nextstrain Auspice or in ')}
-            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
-            {'.'}
-          </>
-        }
-        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-          formatName: 'Auspice JSON v2',
-        })}
-        onDownload={exportTree}
-        isRunning={isRunningTree}
-        isDone={isDoneTree}
-      />
+      {exportTree && (
+        <ExportFileElement
+          Icon={FileIconJson}
+          filename={exportParams.filenameTree}
+          HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+            formatName: 'Auspice JSON v2',
+          })}
+          HelpDetails={
+            <>
+              {t('Can be viewed locally with Nextstrain Auspice or in ')}
+              <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
+              {'.'}
+            </>
+          }
+          HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+            formatName: 'Auspice JSON v2',
+          })}
+          onDownload={exportTree.fn}
+          isRunning={exportTree.isRunning}
+          isDone={exportTree.isDone}
+        />
+      )}
 
-      <ExportFileElement
-        Icon={FileIconNwk}
-        filename={exportParams.filenameTreeNwk}
-        HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-          formatName: 'Newick',
-        })}
-        HelpDetails={
-          <>
-            {t('Can be viewed in most tree viewers, including: ')}
-            <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
-            {t(' or ')}
-            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
-            {'.'}
-          </>
-        }
-        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-          formatName: 'Newick',
-        })}
-        onDownload={exportTreeNwk}
-        isRunning={isRunningTreeNwk}
-        isDone={isDoneTreeNwk}
-      />
+      {exportTreeNwk && (
+        <ExportFileElement
+          Icon={FileIconNwk}
+          filename={exportParams.filenameTreeNwk}
+          HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+            formatName: 'Newick',
+          })}
+          HelpDetails={
+            <>
+              {t('Can be viewed in most tree viewers, including: ')}
+              <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
+              {t(' or ')}
+              <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
+              {'.'}
+            </>
+          }
+          HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+            formatName: 'Newick',
+          })}
+          onDownload={exportTreeNwk.fn}
+          isRunning={exportTreeNwk.isRunning}
+          isDone={exportTreeNwk.isDone}
+        />
+      )}
 
       <ExportFileElement
         Icon={FileIconFasta}
@@ -173,24 +178,26 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         isDone={isDoneFasta}
       />
 
-      <ExportFileElement
-        Icon={FileIconZip}
-        filename={exportParams.filenamePeptidesZip}
-        HelpMain={t('Aligned peptides in {{formatName}} format, zipped', { formatName: 'FASTA' })}
-        HelpDetails={t(
-          'Contains results of translation of your sequences. One {{formatName}} file per gene, all in a zip archive.',
-          { formatName: 'FASTA' },
-        )}
-        HelpDownload={t(
-          'Download aligned peptides in {{formatName}} format, one file per gene, all in a zip archive.',
-          {
-            formatName: 'FASTA',
-          },
-        )}
-        onDownload={exportPeptides}
-        isRunning={isRunningPeptides}
-        isDone={isDonePeptides}
-      />
+      {exportPeptides && (
+        <ExportFileElement
+          Icon={FileIconZip}
+          filename={exportParams.filenamePeptidesZip}
+          HelpMain={t('Aligned peptides in {{formatName}} format, zipped', { formatName: 'FASTA' })}
+          HelpDetails={t(
+            'Contains results of translation of your sequences. One {{formatName}} file per gene, all in a zip archive.',
+            { formatName: 'FASTA' },
+          )}
+          HelpDownload={t(
+            'Download aligned peptides in {{formatName}} format, one file per gene, all in a zip archive.',
+            {
+              formatName: 'FASTA',
+            },
+          )}
+          onDownload={exportPeptides.fn}
+          isRunning={exportPeptides.isRunning}
+          isDone={exportPeptides.isDone}
+        />
+      )}
 
       <ExportFileElement
         Icon={FileIconZip}
@@ -234,7 +241,7 @@ export function ExportFileElement({
 
   const icon = useMemo(() => {
     if (isRunning) {
-      return <Spinner size={10} />
+      return <Spinner size="10px" />
     }
     if (isDone) {
       return <SuccessIcon />
