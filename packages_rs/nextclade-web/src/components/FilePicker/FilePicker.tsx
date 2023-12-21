@@ -180,7 +180,7 @@ export function FilePicker({
       <FilePickerHeader>
         <FilePickerTitle title={title}>{title}</FilePickerTitle>
         <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input || isInProgress} />
-        <ExampleSequencePicker />
+        {!compact && <ExampleSequencePicker />}
       </FilePickerHeader>
       <FilePickerBody $compact={compact}>{FileUploadOrFileInfo}</FilePickerBody>
     </FilePickerContainer>
