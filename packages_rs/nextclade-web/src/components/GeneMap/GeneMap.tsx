@@ -1,9 +1,8 @@
-import { groupBy, isEmpty } from 'lodash'
+import { groupBy, isEmpty, isNil } from 'lodash'
 import { transparentize } from 'polished'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { isInNucleotideViewAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -227,10 +226,10 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
   const viewedGene = useRecoilValue(viewedCdsAtom)
   const isInNucView = useRecoilValue(isInNucleotideViewAtom)
 
-  const { viewBox, cdsSegViews, geneMapHeight } = useMemo(() => {
+  const svgConfig = useMemo(() => {
     const cdses = isInNucView ? cdsesAll : cdsesAll.filter((cds) => cds.name === viewedGene)
     if (isEmpty(cdses)) {
-      return { viewBox: `0 0 0 0`, cdsSegViews: [], geneMapHeight: 0 }
+      return undefined
     }
 
     const length = getAxisLength(genomeSize, viewedGene, cdses)
@@ -259,13 +258,15 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
     return { viewBox, cdsSegViews, geneMapHeight }
   }, [cdsesAll, genomeSize, isInNucView, viewedGene, width])
 
-  if (!width || !height) {
+  if (!width || !height || isNil(svgConfig)) {
     return (
       <GeneMapWrapper $height={1}>
         <GeneMapSVG viewBox={`0 0 50 50`} />
       </GeneMapWrapper>
     )
   }
+
+  const { viewBox, cdsSegViews, geneMapHeight } = svgConfig
 
   return (
     <GeneMapWrapper $height={geneMapHeight}>
