@@ -13,6 +13,7 @@ import { useRecoilValue } from 'recoil'
 import { MarkdownRemote } from 'src/components/Common/Markdown'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { DatasetContentTabAdvanced } from 'src/components/Main/DatasetContentTabAdvanced'
+import { DatasetCustomizationIndicator } from 'src/components/Main/DatasetCustomizationIndicator'
 
 export function DatasetContentSection() {
   const [activeTabId, setActiveTabId] = useState(0)
@@ -33,6 +34,7 @@ export function DatasetContentSection() {
         {currentDataset && (
           <TabLabel tabId={2} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {'Customize'}
+            <DatasetCustomizationIndicator />
           </TabLabel>
         )}
       </Nav>
@@ -106,6 +108,8 @@ const Nav = styled(NavBase)`
 `
 
 const NavItem = styled(NavItemBase)`
+  display: flex;
+
   cursor: pointer;
 
   border: #ccc 1px solid;
@@ -144,5 +148,7 @@ const NavItem = styled(NavItemBase)`
 `
 
 const NavLink = styled(NavLinkBase)`
+  flex: 1;
+  display: flex;
   color: ${(props) => props.theme.bodyColor};
 `
