@@ -77,9 +77,9 @@ export class AlgorithmInputString implements AlgorithmInput {
   private readonly contentName: string
 
   constructor(content: string, contentName?: string) {
-    this.path = `pasted-${this.uid}.fasta`
+    this.path = `pasted-${this.uid}.txt`
     this.content = content
-    this.contentName = contentName ?? 'Pasted sequences'
+    this.contentName = contentName ?? 'Pasted text'
   }
 
   public get name(): string {

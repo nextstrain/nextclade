@@ -116,9 +116,9 @@ export function FilePicker({
   const onPaste = useCallback(
     (content: string) => {
       if (multiple) {
-        onInputs?.([new AlgorithmInputString(content, t('Pasted sequences'))])
+        onInputs?.([new AlgorithmInputString(content, t('Pasted text'))])
       } else {
-        onInput?.(new AlgorithmInputString(content, t('Pasted sequences')))
+        onInput?.(new AlgorithmInputString(content, t('Pasted text')))
       }
     },
     [multiple, onInput, onInputs, t],
