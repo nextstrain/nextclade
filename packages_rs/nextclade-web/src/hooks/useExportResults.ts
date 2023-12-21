@@ -275,6 +275,7 @@ export function useExportZip() {
     const csvStr = await prepareResultsCsv(snapshot, worker, ';')
     const tsvStr = await prepareResultsCsv(snapshot, worker, '\t')
     const jsonStr = await prepareResultsJson(snapshot, worker)
+    const ndjsonStr = await prepareResultsNdjson(snapshot, worker)
     const treeJsonStr = await prepareOutputTree(snapshot)
     const treeNwkStr = await prepareOutputTreeNwk(snapshot)
     const fastaStr = await prepareOutputFasta(snapshot)
@@ -285,6 +286,7 @@ export function useExportZip() {
       { filename: DEFAULT_EXPORT_PARAMS.filenameCsv, data: csvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameTsv, data: tsvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameJson, data: jsonStr },
+      { filename: DEFAULT_EXPORT_PARAMS.filenameNdjson, data: ndjsonStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameFasta, data: fastaStr },
     ]
 
