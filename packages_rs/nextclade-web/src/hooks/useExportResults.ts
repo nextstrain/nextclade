@@ -282,7 +282,7 @@ export function useExportZip() {
     const peptideFiles = await preparePeptideFiles(snapshot)
 
     const files: ZipFileDescription[] = [
-      ...(peptideFiles ?? []),
+      ...peptideFiles,
       { filename: DEFAULT_EXPORT_PARAMS.filenameCsv, data: csvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameTsv, data: tsvStr },
       { filename: DEFAULT_EXPORT_PARAMS.filenameJson, data: jsonStr },
