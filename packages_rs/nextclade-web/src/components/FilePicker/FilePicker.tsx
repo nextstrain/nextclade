@@ -116,9 +116,9 @@ export function FilePicker({
   const onPaste = useCallback(
     (content: string) => {
       if (multiple) {
-        onInputs?.([new AlgorithmInputString(content, t('Pasted sequences'))])
+        onInputs?.([new AlgorithmInputString(content, t('Pasted text'))])
       } else {
-        onInput?.(new AlgorithmInputString(content, t('Pasted sequences')))
+        onInput?.(new AlgorithmInputString(content, t('Pasted text')))
       }
     },
     [multiple, onInput, onInputs, t],
@@ -180,7 +180,7 @@ export function FilePicker({
       <FilePickerHeader>
         <FilePickerTitle title={title}>{title}</FilePickerTitle>
         <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input || isInProgress} />
-        <ExampleSequencePicker />
+        {!compact && <ExampleSequencePicker />}
       </FilePickerHeader>
       <FilePickerBody $compact={compact}>{FileUploadOrFileInfo}</FilePickerBody>
     </FilePickerContainer>
