@@ -32,14 +32,14 @@ export function SuggestionAlertMainPage({ ...restProps }) {
         if (!hasMatch && numSuggestions > 0) {
           let text = t(
             'Currently selected dataset does not seem to match your sequences, ' +
-              'but there are {{ n }} other datasets which might. Click "Change dataset" to see the list.',
+              'but there are {{ n }} other datasets which might. Click "Change reference dataset" to see the list.',
             { n: numSuggestions },
           )
 
           if (numSuggestions === 1) {
             text = t(
               'Currently selected dataset does not seem to match your sequences, ' +
-                'but there is 1 dataset which might. Click "Change dataset" to see the list.',
+                'but there is 1 dataset which might. Click "Change reference dataset" to see the list.',
             )
           }
 
@@ -57,9 +57,12 @@ export function SuggestionAlertMainPage({ ...restProps }) {
             <Alert closeClassName="d-none" fade={false} color="primary">
               <h6 className="font-weight-bold">{t('Multiple matching datasets.')}</h6>
               <p className="small">
-                {t('{{ n }} datasets appear to match your sequences. Click "Change dataset" to see the list.', {
-                  n: numSuggestions,
-                })}
+                {t(
+                  '{{ n }} datasets appear to match your sequences. Click "Change reference dataset" to see the list.',
+                  {
+                    n: numSuggestions,
+                  },
+                )}
               </p>
             </Alert>
           )
