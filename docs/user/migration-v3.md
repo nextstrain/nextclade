@@ -85,7 +85,7 @@ Dataset names have changed. There is no longer a separation to `name`, `referenc
 
 ##### Migration paths for dataset maintainers
 
-If you have a custom dataset for Nextclade v2 and want to migrate it to Nextclade v3, then please follow [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3.md).
+If you have a custom dataset for Nextclade v2 and want to migrate it to Nextclade v3, then please follow [Nextclade dataset migration guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3.md).
 
 We also invite you to consider submitting your dataset for potential inclusion to the Nextclade community datasets collection, so that it is visible in the list in Nextclade CLI and Nextclade Web. You can find relevant instructions in the [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
 
@@ -127,13 +127,13 @@ in favor of `--input-pathogen-json`.
 
 ##### Migration paths:
 
-Please use `--input-pathogen-json` instead of the removed flags. If you need to migrate the files to the new format, then please follow the migration steps in the new
+Please use `--input-pathogen-json` instead of the removed flags. If you need to migrate the files to the new format, then please follow the migration steps in the [Nextclade dataset migration guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3.md).
 
 ## 6. Some output files are removed
 
-The dedicated output files for error and for insertions are removed from all parts of Nextclade.
+The dedicated output files for errors and for insertions are removed from all parts of Nextclade.
 
-The arguments `--output-errors` and `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
+The arguments `--output-errors` and `--output-insertions` have been removed in favor of `--output-tsv`.
 
 When `--output-all` argument is used, the files `nextclade.errors.csv` and `nextclade.insertions.csv` are no longer produced.
 
@@ -145,9 +145,9 @@ In Nextclade Web, The `nextclade.errors.csv` and `nextclade.insertions.csv` file
 
 If you rely on `nextclade.errors.csv` and `nextclade.insertions.csv` files, then use `nextclade.tsv` or `nextclade.csv` instead. These files include the same columns as `nextclade.errors.csv` and `nextclade.insertions.csv`.
 
-In Nextclade CLI, if you use `--output-insertions` or `--output-errors` Please use `--output-tsv` (for tab-separated table) or `--output-csv` (for semicolon-separated table) arguments instead. If you use `--output-selection` argument, then remove values `errors` and `insertions` from it.
+In Nextclade CLI, if you use `--output-insertions` and/or `--output-errors` Please use `--output-tsv` (for tab-separated table) or `--output-csv` (for semicolon-separated table) arguments instead. If you use `--output-selection` argument, then remove values `errors` and `insertions` from it.
 
-In Nextclade Web, if you use `nextclade.errors.csv` and `nextclade.insertions.csv` file, then use `nextclade.tsv` or `nextclade.csv`  instead.
+In Nextclade Web, if you use `nextclade.errors.csv` and `nextclade.insertions.csv` file, then use `nextclade.tsv` or `nextclade.csv` instead.
 
 ## 7. Genome annotation CLI argument is renamed
 
