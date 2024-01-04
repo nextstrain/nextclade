@@ -15,7 +15,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     .apply_modifier(UTF8_SOLID_INNER_BORDERS)
     .set_content_arrangement(ContentArrangement::Dynamic);
 
-  table.set_header([o!("name"), o!("attributes"), o!("versions"), o!("authors")]);
+  table.set_header([o!("name"), o!("attributes"), o!("versions")]);
 
   for dataset in filtered.iter() {
     let Dataset {
@@ -45,9 +45,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
     let versions = dataset.versions.iter().map(|ver| &ver.tag).join("\n");
 
-    let authors = dataset.meta.authors.join(", ");
-
-    table.add_row([&name, &attrs, &versions, &authors]);
+    table.add_row([&name, &attrs, &versions]);
   }
 
   table.to_string()
