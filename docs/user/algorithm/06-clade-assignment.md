@@ -23,7 +23,9 @@ The Nextstrain clade system is outlined in [this blog post](https://nextstrain.o
 
 The clades are hierarchically structured as follows:
 
-![Clade hierarchy](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg)
+| [![Hierarchy of clades of SARS-CoV-2 as defined by Nextstrain](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg)](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg) | 
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:| 
+|                                         Hierarchy of clades of SARS-CoV-2 as defined by Nextstrain [<a href="https://github.com/nextstrain/ncov-clades-schema">source</a>] (click to enlarge)                                         |
 
 You can find the exact, up-to-date clade definitions in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
 
