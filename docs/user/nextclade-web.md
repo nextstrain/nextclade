@@ -8,6 +8,8 @@ Nextclade is built for quick feedback. The entire analysis, depending on the num
 
 Despite being made in the form of a website, Nextclade runs its processing entirely offline. The algorithms are executed within your browser and the data never leaves your computer (i.e. no data upload is happening). Nextclade however still needs internet access to download its own modules and dataset files.
 
+> 💡 Nextclade Web is suitable for analyzing of small batches of sequences, at most a few hundreds at a time. For large-scale analysis and for integration into bioinformatics pipelines try [Nextclade CLI](nextclade-cli).
+
 ## Getting started
 
 Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
@@ -160,7 +162,7 @@ All parameters are optional.
 | input-pathogen-json | URL to a JSON file containing pathogen description and parameters                                                                                              |
 | dataset-name        | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                                                                                         |
 | dataset-tag         | Version tag of the dataset to use.                                                                                                                             |
-| dataset-server      | URL to the custom dataset server (to the path where `index_v2.json` is, without filename).                                                                     |
+| dataset-server      | URL to the custom dataset server (to the path where `index.json` file is, without filename).                                                                   |
 | dataset-url         | URL to a single dataset directory (to the path where `pathogen.json` and other files are, without filenames).                                                  |
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
@@ -229,18 +231,18 @@ https://clades.nextstrain.org?dataset-url=http://example.com/path/to/dataset
 as well as URLs to GitHub repos:
 
 ```txt
-?dataset-url=https://github.com/org/repo
-?dataset-url=https://github.com/org/repo/tree/branch
-?dataset-url=https://github.com/org/repo/tree/branch/path/to/file
+?dataset-url=https://github.com/owner/repo
+?dataset-url=https://github.com/owner/repo/tree/branch
+?dataset-url=https://github.com/owner/repo/blob/branch/path/to/file
 ```
 
 and shortcut URLs to GitHub repos:
 
 ```txt
-?dataset-url=github:owner/org/repo
-?dataset-url=github:owner/org/repo/path/to/file
-?dataset-url=github:owner/org/repo@branch@
-?dataset-url=github:owner/org/repo@branch@/path/to/file
+?dataset-url=gh:owner/repo
+?dataset-url=gh:owner/repo/path/to/file
+?dataset-url=gh:owner/repo@branch@
+?dataset-url=gh:owner/repo@branch@/path/to/file
 ```
 
 If a branch name is not specified, the default branch name is queried from GitHub REST API (subject to rate limits).
