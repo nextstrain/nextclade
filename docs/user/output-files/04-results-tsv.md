@@ -15,7 +15,7 @@ TSV and CSV files are equivalent and only differ in the column delimiter (tabs v
 
 > ⚠️ Note, all positions are in alignment coordinates and after all the insertions are stripped.
 
-> ⚠️ Note that, for historical reasons, we use semicolon `;` as the column separator in CSV files, because we have comma `,` as list separators within table cells and in early versions of Nextclade our CSV writer code was imperfect, so it was an easy solution. We recommend to use TSV format instead of CSV format. But if you are using CSV format, make sure that you configure your spreadsheet software or parse to use semicolons `;` as column delimiters.
+> ⚠️ Note that, for historical reasons, we use semicolon `;` as the column separator in CSV files, because we have comma `,` as list separators within table cells and in early versions of Nextclade our CSV writer code was imperfect, so it was an easy solution. We recommend to use TSV format instead of CSV format. But if you are using CSV format, make sure that you configure your spreadsheet software or parser to use semicolons `;` as column delimiters.
 
 Every row in tabular output corresponds to 1 input sequence. The meaning of columns is described below:
 
