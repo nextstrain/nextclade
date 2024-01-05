@@ -1,5 +1,9 @@
 ## Getting started
 
+| <video controls autoplay loop muted src="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4" width="680"></video>                             |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Brief demonstration of Nextclade Web. Large version is <a target="_blank" href="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4">here</a>. |
+
 Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
 
 > 💡 For the best viewing experience we recommend using the latest versions of Firefox or Chrome web browsers on a desktop computer or a laptop with a 1080p display or above.
