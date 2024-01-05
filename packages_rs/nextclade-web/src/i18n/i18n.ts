@@ -84,9 +84,7 @@ import zh from './resources/zh/common.json'
 
 export const localized = { number: '{{value, localizedNumber}}' } as const
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-/* @ts-ignore */
-export const translations = {
+export const translations: Record<string, unknown> = {
   af,
   am,
   ar,
@@ -164,7 +162,7 @@ export const flags = new Map()
 export type LocaleKey = keyof typeof translations
 
 export const DEFAULT_LOCALE_KEY: LocaleKey = 'en'
-export const resources: Record<LocaleKey, Resource> = mapValues(translations, (value) => ({ translation: value }))
+export const resources = mapValues(translations, (value) => ({ translation: value })) as Record<LocaleKey, Resource>
 
 export interface Locale {
   readonly key: LocaleKey
@@ -252,7 +250,7 @@ export interface I18NInitParams {
 export type PrettyBytesOptions = StrictOmit<PrettyBytesOptionsOriginal, 'locale'>
 
 export class PrettyBytes {
-  private localeKey: string = DEFAULT_LOCALE_KEY as string
+  private localeKey: string = DEFAULT_LOCALE_KEY
 
   public setLocale(localeKey: string) {
     this.localeKey = getLocaleWithKey(localeKey).key
@@ -295,7 +293,7 @@ export function i18nInit({ localeKey }: I18NInitParams) {
 }
 
 export function getLocaleWithKey(key: string) {
-  const locale = get(locales, key) as Locale
+  const locale = get(locales, key)
   if (isNil(locale)) {
     return { ...locales[DEFAULT_LOCALE_KEY], key: DEFAULT_LOCALE_KEY }
   }

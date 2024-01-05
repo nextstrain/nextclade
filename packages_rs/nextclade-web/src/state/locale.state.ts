@@ -6,7 +6,7 @@ import { persistAtom } from 'src/state/persist/localStorage'
 
 export const localeAtom = atom<string>({
   key: 'localeKey',
-  default: DEFAULT_LOCALE_KEY as string,
+  default: DEFAULT_LOCALE_KEY,
   effects: [
     function setLocale({ onSet }) {
       onSet((localeKey) => {

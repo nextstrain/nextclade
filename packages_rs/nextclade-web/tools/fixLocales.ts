@@ -59,9 +59,8 @@ export function fixValues(s: string) {
   fixed = fixed.replace(/"(.*) "/gim, '"$1"')
   fixed = fixed.replace(/ :/gim, ':')
 
-  fixed = fixed.replace('({{ n }})', '({{n}})')
   fixed = fixed.replace('() {{n}}', '({{n}})')
-  fixed = fixed.replace('() {{ n }}', '({{n}})')
+  fixed = fixed.replace('() {{ n }}', '({{ n }})')
 
   return fixed
 }

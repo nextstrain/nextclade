@@ -32,8 +32,8 @@ export function detectLocale({ defaultLanguage, availableLocales, shorten = true
     language = language.slice(0, 2)
   }
 
-  if (availableLocales.includes(language as LocaleKey)) {
-    return language as LocaleKey
+  if (availableLocales.includes(language)) {
+    return language
   }
 
   return defaultLanguage
