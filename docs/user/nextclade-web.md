@@ -2,42 +2,55 @@
 
 **Nextclade Web** is available online at [clades.nextstrain.org](https://clades.nextstrain.org). This is the easiest way of using Nextclade and is the recommended way to get started.
 
-The application accepts sequence data in [FASTA](https://en.wikipedia.org/wiki/FASTA_format) format, performs alignment, mutation calling, clade assignment, phylogenetic placement and quality control checks and displays the results in tabular form as well as in the form of the phylogenetic tree. The results can also be downloaded as files, for further review and analysis.
+The application accepts sequence data in [FASTA](https://en.wikipedia.org/wiki/FASTA_format) format, performs alignment, mutation calling, clade assignment, phylogenetic placement and quality control checks and displays the results in tabular form and as a phylogenetic tree. The results can also be downloaded as files, for further review and analysis.
 
-Nextclade is built for quick feedback. The entire analysis, depending on the number of sequences to be processed, takes from a few seconds to a few minutes.
+Nextclade is built for quick feedback. The entire analysis, depending on the number of sequences to be processed, takes only a few seconds to a minute.
 
-Despite being made in the form of a website, Nextclade runs its processing entirely offline. The algorithms are executed within your browser and the data never leaves your computer (i.e. no data upload is happening). Nextclade however still needs internet access to download its own modules and dataset files.
+Despite being made in the form of a website, Nextclade runs its processing entirely offline, on your own computer. The algorithms are executed within your browser and the data never leaves your computer (i.e. no data upload is happening). Nextclade however still needs internet access to download its own modules and dataset files.
 
 > 💡 Nextclade Web is suitable for analyzing of small batches of sequences, at most a few hundreds at a time. For large-scale analysis and for integration into bioinformatics pipelines try [Nextclade CLI](nextclade-cli).
 
 ## Getting started
 
+### Loading sequences to analyze
+
 Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
 
-> ⚠️ For the best experience we recommend using latest versions of Firefox or Chrome web browsers on a desktop computer or a laptop with a 1080p display or above.
+> ⚠️ For the best experience we recommend using the latest versions of Firefox, Chrome or Edge web browsers on a desktop computer or a laptop with a 1080p display or above.
 >
-> Using Safari browser is not recommended due to its poor support of required web technologies.
+> Using Safari browser is currently not recommended due to its often poor support of required web technologies.
 
-For a demonstration of capabilities of Nextclade, select the virus you want to analyse and click `Next`.
+To try out Nextclade, you need to provide it with some sequences in fasta format. Nextclade provides example sequences for all supported viruses. You can load example sequences by clicking on "Example" and then clicking one of the provided viruses/datasets:
 
 ![Select virus](assets/web_select-virus.png)
 
-To see Nextclade in action without your own sequences, click on `Load example`, then `Run`.
-
-![Show me an example](assets/web_show-example.png)
-
 In order to run the analysis on your own data, prepare a [FASTA](https://en.wikipedia.org/wiki/FASTA_format) file with your sequences, drag & drop it onto the upload area (or use the file picker) and click `Run`.
-You will be redirected to the results page.
 
-Power users might want to click **Customize dataset files** in order to get access to more configuration. This mode is equivalent to using the [Nextclade CLI](nextclade-cli), and accepts the same input files.
-
-> 💡 There is a number of options of providing input data to Nextclade, including:
+> 💡 There are a number of options for providing input data to Nextclade, including:
 >
 > - Drag & Drop a file onto the "upload" area
-> - Picking a file from computer storage: click `Select a file`
-> - Providing a URL (link) to a file publicly available on the internet: click the `Link` tab
-> - Pasting sequence data from clipboard: click the `Paste` tab
+> - Picking a file from computer storage: click `Select files`
+> - Providing a URL (link) to a file publicly available on the internet: click the `Link` tab and paste the URL
+> - Pasting sequence data from clipboard: click the `Paste` tab and paste the fasta data
 > - Providing a URL using [URL parameters](#url-parameters)
+
+### Selecting a dataset
+
+Besides input sequences, Nextclade needs to know which dataset to use to perform the analysis. A dataset is a package of files that configure Nextclade to work with a particular virus (segment). For example, a SARS-CoV-2 dataset contains a SARS-CoV-2 specific reference genome, a genome annotation, a reference tree, and other configuration files.
+
+A normal user does not need to worry about the dataset files, as Nextclade provides datasets for a variety of viruses out of the box.
+
+The only thing you need to do is to choose an appropriate dataset for your sequences.
+
+Nextclade can automatically suggest compatible datasets by analyzing the input sequences and comparing them against all available datasets. To do so, click the "Suggest" button after having loaded some sequences (examples or your own):
+
+![Auto-suggest datasets](assets/web_show-example.png)
+
+Once the sequences have been analyzed, Nextclade will auto-select the best matching dataset: in this case the SARS-CoV-2 dataset with XBB reference:
+
+![Auto-suggest result](assets/web_autosuggest-result.png)
+
+The 99% in the circle mean that 99% of the input sequences match the reference sequence of the selected dataset. The blue box shows that there are other datasets that are also compatible with the input sequences. To see them, click "Change reference dataset". If you are happy with the suggested dataset, click "Run" to directly start the analysis.
 
 ## Analysis
 
@@ -68,7 +81,6 @@ Nextclade implements a variety of quality control metrics to quickly spot proble
 
 Every icon corresponds to a different metric. See [Quality control](algorithm/07-quality-control) section for the detailed explanation of QC metrics.
 
-
 ### Table data
 
 Nextclade automatically infers the (probable) clade a sequence belongs to and displays the result in the table. Clades are determined by identifying the clade of the nearest neighbour on a reference tree.
@@ -76,8 +88,8 @@ Nextclade automatically infers the (probable) clade a sequence belongs to and di
 The result table further displays for each sequence:
 
 - "Mut.": number of mutations with respect to the root of the reference tree
-- "non-ACGTN": number of ambiguous nucleotides that are not *N*
-- "Ns": number of missing nucleotides indicated by *N*
+- "non-ACGTN": number of ambiguous nucleotides that are not _N_
+- "Ns": number of missing nucleotides indicated by _N_
 - "Gaps": number of nucleotides that are deleted with respect to the reference sequence
 - "Ins.": number of nucleotides that are inserted with respect to the reference sequence
 - "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
@@ -108,6 +120,7 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 ![Alignment tooltip](assets/web_alignment-tip.png)
 
 ### Tree
+
 In order to assign clades to sequences, Nextclade [places](algorithm/05-phylogenetic-placement) all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
 
 The tree is visualized by [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
@@ -154,7 +167,7 @@ If an `input-fasta` URL parameter is provided, Nextclade Web automatically start
 All parameters are optional.
 
 | URL parameter       | Meaning                                                                                                                                                        |
-|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | input-fasta         | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. Special value `example` will use dataset example sequences |
 | input-ref           | URL to a fasta file containing reference (root) sequence.                                                                                                      |
 | input-annotation    | URL to a GFF3 file containing gene map.                                                                                                                        |
