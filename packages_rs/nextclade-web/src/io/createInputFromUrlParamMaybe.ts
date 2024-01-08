@@ -30,9 +30,12 @@ export async function createInputFastasFromUrlParam(
     if (url === 'example') {
       return dataset ? new AlgorithmInputDefault(dataset) : undefined
     }
-    if (isString(url) && isGithubUrlOrShortcut(url)) {
-      const { directUrl } = await parseGitHubRepoUrlOrShortcut(url)
-      return new AlgorithmInputUrl(directUrl)
+    if (isString(url)) {
+      if (isGithubUrlOrShortcut(url)) {
+        const { directUrl } = await parseGitHubRepoUrlOrShortcut(url)
+        return new AlgorithmInputUrl(directUrl)
+      }
+      return new AlgorithmInputUrl(url)
     }
     return undefined
   }, urls)
