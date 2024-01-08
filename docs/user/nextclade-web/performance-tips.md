@@ -2,9 +2,11 @@
 
 Nextclade algorithms are computationally expensive and require a lot of CPU cycles and system memory (RAM). All this computational work runs on your computer, in the web browser.
 
+Here are some things to try if you experience performance problems, i.e. if Nextclade is slow or crashes.
+
 For the best experience and performance, it is advised to run Nextclade in one of the latest versions of Firefox or Chrome web browsers, as they are known for the fastest and the most spec-compliant implementations of the web technologies that Nextclade uses.
 
-Browser extensions, such as ad blockers, can interfere with Nextclade software modules and may cause slowdown, excessive memory consumption and crashes. Nextclade does not serve ads. Try to remove these extensions or to disable them selectively for Nextclade website.
+Browser extensions, such as ad blockers, can interfere with Nextclade software modules and may cause slowdown, excessive memory consumption and crashes. Nextclade does not serve ads. Try to disable them selectively for the Nextclade website.
 
 For optimal performance, before running Nextclade, close unused applications and browser tabs, especially tabs with extra copies of Nextclade, in order to free up the system memory they are occupying.
 
