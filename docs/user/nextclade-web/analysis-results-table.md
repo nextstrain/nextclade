@@ -52,11 +52,15 @@ In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The too
 
 ![Mutations tooltip](../assets/web_mut-tooltip.png)
 
+Some datasets, like SARS-CoV-2 and influenza have extra columns with additional information, e.g. gain/loss of glycosylation sites or immune escape score. For details, hover over the column header or consult the datasets' summary page (README).
+
 ### Alignment viewer
 
 To the right of the table you can see the alignment with mutations and regions with missing data highlighted in grey. You can quickly check how segments of missing data are distributed on the genome - whether it's a few big chunks clustering in one area or many small missing segments.
 
 ![Alignment view](../assets/web_alignment.png)
+
+If you hover over a feature, you can see its name and coordinates.
 
 You can zoom into a gene by clicking on the respective gene at the bottom, or selecting the gene of interest from the dropdown at the top.
 
