@@ -34,7 +34,7 @@ We recommend to analyze at most a few hundred sequences at a time in Nextclade W
 
 In order to allow trying out Nextclade without your own sequences, Nextclade provides example sequences for all supported viruses. You can load example sequences by clicking on "Example" and selecting one of the provided viruses/datasets:
 
-![Select virus](../assets/web_select-virus.png)
+![Load sequences](../assets/web_load-sequences.png)
 
 ### 2. Select a dataset
 
