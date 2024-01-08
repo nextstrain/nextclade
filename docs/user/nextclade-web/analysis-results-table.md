@@ -1,20 +1,19 @@
 ## Analysis results table
 
-Nextclade analyzes your sequences locally in your browser. That means, sequences never leave your computer, ensuring full privacy by design.
+Nextclade analyzes your sequences locally in your browser. Sequences never leave your computer, ensuring full privacy by design.
 
 > ⚠️ Since your computer is doing all the computational work (rather than a remote server), it is advisable to analyze at most a few hundred of sequences at a time, depending on your computer hardware. Nextclade leverages all processor cores available on your computer and might require large amounts of system memory to operate. For large-scale analysis (thousands to millions of sequences) you might want to try [Nextclade CLI](nextclade-cli) instead.
 
 The analysis pipeline comprises the following steps:
 
-1. Sequence alignment: Sequences are aligned to the reference genome using our custom Nextalign alignment algorithm.
-2. Translation: Nucleotide sequences are translated into amino acid sequences.
-3. Mutation calling: Nucleotide and amino acid changes are identified
-4. Detection of PCR primer changes
-5. Phylogenetic placement: Sequences are placed on a reference tree, private mutations analyzed
-6. Clade assignment: Clades are taken from the parent node on the tree
-7. Quality Control (QC): Quality control metrics are calculated
+1. Sequence alignment: Sequences are aligned to the reference genome using a banded Waterman-Smith sequence alignment algorithm.
+1. Translation: Coding nucleotide segments are extracted and translated to amino acid sequences.
+1. Mutation calling: Nucleotide and amino acid changes are identified
+1. Phylogenetic placement: Sequences are placed on a reference tree, private mutations are identified
+1. Clade assignment: Clades are inferred from the place the sequence attached on the reference tree
+1. Quality Control (QC): Quality control metrics are calculated
 
-See [Algorithm](algorithm) section for more details.
+See the [Algorithm](algorithm) section of these docs for more details.
 
 You can get a quick overview of the results screen in the screenshot below:
 ![Results overview](../assets/web_overview.png)
@@ -27,13 +26,15 @@ Nextclade implements a variety of quality control metrics to quickly spot proble
 
 Every icon corresponds to a different metric. See [Quality control](algorithm/07-quality-control) section for the detailed explanation of QC metrics.
 
+> Bear in mind that QC metrics are heuristics and that good quality sequences can occasionally fail some of the metrics (e.g. due to recombination or absence of close relatives in the reference tree).
+
 ### Table data
 
 Nextclade automatically infers the (probable) clade a sequence belongs to and displays the result in the table. Clades are determined by identifying the clade of the nearest neighbour on a reference tree.
 
 The result table further displays for each sequence:
 
-- "Mut.": number of mutations with respect to the root of the reference tree
+- "Mut.": number of mutations with respect to the reference sequence
 - "non-ACGTN": number of ambiguous nucleotides that are not _N_
 - "Ns": number of missing nucleotides indicated by _N_
 - "Gaps": number of nucleotides that are deleted with respect to the reference sequence
@@ -41,10 +42,10 @@ The result table further displays for each sequence:
 - "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
 - "SC": Number of uncommon premature stop codons (total number, including common premature stops are in parentheses)
 
-Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differ from the nearest neighbor on the reference tree), which are are split into:
+Hovering over table entries reveals more detailed information in tooltips. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differ from the nearest neighbor on the reference tree), which are are split into:
 
-- Reversions: mutations back to reference, often a sign of sequencing problems
-- Labeled: Mutations that are known, for example because they occur often in a clade. If multiple labeled mutations from the same clade appear, it is a sign of contamination, co-infection or recombination.
+- Reversions: mutations back to reference, often a sign of sequencing pipeline problems (e.g. faulty primer trimming or reference bias).
+- Labeled: Mutations that are known, for example because they characteristically occur in a clade. If multiple labeled mutations from the same clade appear, it is often a sign of contamination, co-infection or recombination.
 - Unlabeled: Mutations that are neither reversions nor labeled.
 
 In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The tooltip shows there are 3 reversion and 4 labeled mutations, indicative of sequence quality problems, potentially a contamination with _20I (Alpha)_.
