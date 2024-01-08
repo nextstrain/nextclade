@@ -2,7 +2,7 @@
 
 A tab separated table describing the genes of the virus (name, frame, position, etc.)
 
-The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of aminoacid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and aminoacid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](../algorithm/01-sequence-alignment) and [Algorithm: Translation](../algorithm/02-translation)).
+The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of amino acid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and amino acid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](../algorithm/01-sequence-alignment) and [Algorithm: Translation](../algorithm/02-translation)).
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
 

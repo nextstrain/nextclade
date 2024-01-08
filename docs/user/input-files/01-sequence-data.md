@@ -7,6 +7,8 @@ Nextclade Web: accepted in "Provide sequences" drag & drop box. A remote URL is 
 Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format).
 
 A set of viral nucleotide sequences to be analyzed. Also referred to as [query sequences](../terminology.md#query-sequence).
+These sequences must use a DNA alphabet (`U`/Uracil is not accepted at the moment).
+However, ambiguous [IUPAC characters](https://www.bioinformatics.org/sms/iupac.html) are allowed.
 
 Note: each id must start with `>`, plain text without header is not accepted.
 
