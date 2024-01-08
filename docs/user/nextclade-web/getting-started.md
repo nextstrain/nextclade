@@ -32,6 +32,10 @@ There are a number of options for providing input data to Nextclade, including:
 
 We recommend to analyze at most a few hundred sequences at a time in Nextclade Web. On high-end hardware, Nextclade web can handle up to around 50 MB of input FASTA data. If you need to analyze more sequences, try the command-line version of Nextclade called [Nextclade CLI](../nextclade-cli) which can handle arbitrarily large datasets (300 GB and more).
 
+In order to allow trying out Nextclade without your own sequences, Nextclade provides example sequences for all supported viruses. You can load example sequences by clicking on "Example" and selecting one of the provided viruses/datasets:
+
+![Select virus](../assets/web_select-virus.png)
+
 ### 2. Select a dataset
 
 Besides input sequences, Nextclade needs to know which dataset to use to perform the analysis. A dataset is a set of files that configures Nextclade to work with a particular virus or strain. For example, a SARS-CoV-2 dataset contains a SARS-CoV-2 specific reference genome, a genome annotation, a reference tree, and other configuration files. You can learn more about datasets in the [Datasets](../datasets) section.
