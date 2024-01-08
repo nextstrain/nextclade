@@ -24,7 +24,7 @@ nextclade dataset get --help
 1. Download a SARS-CoV-2 dataset:
 
    ```bash
-   nextclade dataset get --name 'nextstrain/sars-cov-2/MN908947' --output-dir 'data/sars-cov-2'
+   nextclade dataset get --name 'nextstrain/sars-cov-2/wuhan-hu-1/orfs' --output-dir 'data/sars-cov-2'
    ```
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
@@ -52,7 +52,7 @@ nextclade dataset get --help
       --input-dataset=data/sars-cov-2 \
       --input-ref=data/sars-cov-2/reference.fasta \
       --input-annotation=data/sars-cov-2/genome_annotation.gff3 \
-      --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+      --cds-selection=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
       --input-tree=data/sars-cov-2/tree.json \
       --input-pathogen-json=data/sars-cov-2/pathogen.json \
       --output-fasta=output/nextclade.aligned.fasta.gz \
@@ -62,7 +62,7 @@ nextclade dataset get --help
       --output-tsv=output/nextclade.tsv \
       --output-tree=output/nextclade.auspice.json \
       --output-tree-nwk=output/nextclade.tree.nwk \
-      --output-translations=output/nextclade_gene_{gene}.translation.fasta.zst \
+      --output-translations=output/nextclade_CDS_{cds}.translation.fasta.zst \
       data/sars-cov-2/sequences.fasta \
       my_sequences1.fasta.gz \
       my_sequences2.fasta.xz

@@ -112,6 +112,8 @@ nextclade dataset list --only-names
 ```
 
 Alternatively, you can find dataset names in Nextclade Web user interface, in the dataset selector.
+To facilitate the migration, commonly used datasets have convenient shortcuts that match previous dataset names, for example `rsv_a` -> `nextstrain/rsv/a/EPI_ISL_412866`.
+These shortcuts are listed along with names and attributes by `nextclade dataset list`.
 
 ## 5. Some CLI arguments for individual input files are removed
 
