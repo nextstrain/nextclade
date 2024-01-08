@@ -1,28 +1,27 @@
 ## Getting started
 
-| <video controls autoplay loop muted src="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4" width="680"></video>                             |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Brief demonstration of Nextclade Web. Large version is <a target="_blank" href="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4">here</a>. |
+| <video controls autoplay loop muted src="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4" width="680"></video>                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Brief video demonstration of Nextclade Web features. A high resolution version is available <a target="_blank" href="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4">here</a>. |
 
 Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
 
-> 💡 For the best viewing experience we recommend using the latest versions of Firefox or Chrome web browsers on a desktop computer or a laptop with a 1080p display or above.
+> 💡 For the best viewing experience we recommend using the latest versions of Firefox or Chrome web browsers on a desktop computer or a large laptop.
 
-> ⚠️ Using Safari browser is currently not recommended due to its poor support of required web technologies.
-
+> ⚠️ Using Safari is discouraged due to its poor support of required web technologies.
 
 Nextclade requires 2 kinds of inputs in order to operate:
 
-1. Sequencing data - this is the genetic sequences that will be analyzed. We sometimes also call them "query sequences".
-2. Nextclade reference dataset - this is a set of files which encodes specifics of each pathogen. There is a variety of existing datasets to choose from. Advanced users can create their own datasets, in oder to add support for more pathogens.
+1. Sequence data - these are the DNA/RNA consensus sequences that will be analyzed. Sometimes, we also call them "query sequences".
+2. Nextclade reference dataset - this is a set of files which encodes specifics of each pathogen (usually a virus). There is a variety of existing datasets to choose from. Advanced users can create their own datasets, in order to add support for more pathogens.
 
 ### 1. Provide sequencing data
 
 Nextclade Web accepts sequence data in [FASTA](https://en.wikipedia.org/wiki/FASTA_format) format.
 
-> ⚠️ Note that only uncompressed FASTA files are currently supported. FASTQ and compressed files are not.
+> ⚠️ Note that only uncompressed FASTA files are currently supported. FASTQ and compressed files are not. Even a single sequence requires a FASTA header starting with `>`.
 
-There is a number of options for providing input data to Nextclade, including:
+There are a number of options for providing input data to Nextclade, including:
 
 - Drag & Drop a file onto the "upload" area. You can also drag & drop multiple files and directories.
 - Pick a file from computer storage: click "Select files". You can also select multiple files and directories.
@@ -31,7 +30,7 @@ There is a number of options for providing input data to Nextclade, including:
 - Select example sequences: click "Examples" and choose a pathogen from the menu.
 - Provide an `input-fasta` URL parameter (See [URL parameters](./url-parameters))
 
-We recommend to analyze at most a few hundreds of sequences at a time in Nextclade Web. If you need to analyze large mounts of data, try command-line version of Nextclade called [Nextclade CLI](../nextclade-cli).
+We recommend to analyze at most a few hundred sequences at a time in Nextclade Web. On high-end hardware, Nextclade web can handle up to around 50 MB of input FASTA data. If you need to analyze more sequences, try the command-line version of Nextclade called [Nextclade CLI](../nextclade-cli) which can handle arbitrarily large datasets (300 GB and more).
 
 ### 2. Select a dataset
 
