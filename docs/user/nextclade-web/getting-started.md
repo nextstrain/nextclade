@@ -46,7 +46,7 @@ Nextclade can automatically suggest compatible datasets by processing the input 
 
 ![Auto-suggest datasets](../assets/web_show-example.png)
 
-Once suggestion engine finishes, if no dataset is currently selected, Nextclade will auto-select the best matching dataset: in this case the SARS-CoV-2 dataset with XBB reference:
+Once the suggestion engine has finished, if no dataset is currently selected, Nextclade will auto-select the best matching dataset: in this case, the SARS-CoV-2 dataset with XBB reference:
 
 ![Auto-suggest result](../assets/web_autosuggest-result.png)
 
@@ -54,10 +54,12 @@ The 99% in the circle mean that, according to our suggestion engine, 99% of the 
 
 On the dataset page you can see the list of all existing datasets. The subset of suggested datasets is emphasized, while the rest of the datasets are faded. You can stick to the suggested dataset or select the one you think is more appropriate for your data.
 
-On that page You can also find some information about dataset in the "Summary" tab. As well as a history ry of changes in the "History" tab.
+![Select dataset](../assets/web_select-dataset.png)
+
+On that page You can also find some information about dataset in the "Summary" tab. As well as a history of changes in the "History" tab.
 
 Advanced users may override dataset files on the "Customize" tab. This requires good understanding of [Input files](../input-files) and of the [Nextclade algorithms](../algorithm).
 
 ### 3. Run the analysis
 
-Once you are happy with the set of sequences and with the selected dataset, click "Run" to start the analysis. Nextclade will then automatically navigate you to the [analysis results page](analysis-results-table).
+Once you are happy with the set of sequences and with the selected dataset, click "Run" to start the analysis. Nextclade will then automatically navigate to the [analysis results page](analysis-results-table).
