@@ -4,7 +4,7 @@ Nextclade Web
 
 Nextclade Web is available online at `clades.nextstrain.org <https://clades.nextstrain.org>`_. This is the easiest way of using Nextclade and is the recommended way to get started.
 
-The application accepts sequence data in [FASTA](https://en.wikipedia.org/wiki/FASTA_format) format, performs alignment, mutation calling, clade assignment, phylogenetic placement and quality control checks and displays the results in tabular form and as a phylogenetic tree. The results can also be downloaded as files, for further review and analysis.
+The application accepts sequence data in `FASTA <https://en.wikipedia.org/wiki/FASTA_format>` format, performs alignment, mutation calling, clade assignment, phylogenetic placement and quality control checks and displays the results in tabular form and as a phylogenetic tree. The results can also be downloaded as files, for further review and analysis.
 
 Nextclade is built for quick feedback. The entire analysis, depending on the number of sequences to be processed, takes only a few seconds to a minute.
 
