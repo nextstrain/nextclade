@@ -70,7 +70,7 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 
 ![Alignment tooltip](../assets/web_alignment-tip.png)
 
-## Next steps
+### Next steps
 
 After the analysis is complete, you can view the phylogenetic tree with your sequences placed on it: See [Phylogenetic tree view](phylogenetic-tree-view) for details.
 
