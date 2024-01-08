@@ -65,3 +65,9 @@ You can zoom into a gene by clicking on the respective gene at the bottom, or se
 In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualised in the tooltip in a codon-aware way, as you can see in the example below
 
 ![Alignment tooltip](../assets/web_alignment-tip.png)
+
+### Next steps
+
+After the analysis is complete, you can view the phylogenetic tree with your sequences placed on it: See [Phylogenetic tree view](phylogenetic-tree-view) for details.
+
+You can also download the analysis results in a variety of formats: See [Export](export) for details.
