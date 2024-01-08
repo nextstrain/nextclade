@@ -2,7 +2,7 @@
 
 Once Nextclade has finished the analysis, you can download the results in a variety of formats by clicking the "Export" button in the top panel:
 
-![Download results](../assets/web_download-options.png)
+![Download results](../assets/web_export.png)
 
 > 💡 We recommend to start with the TSV output file for most users.
 
