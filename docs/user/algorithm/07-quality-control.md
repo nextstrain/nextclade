@@ -30,7 +30,8 @@ The final score has the same thresholds as the the individual scores.
 
 ## Individual QC Rules
 
-For SARS-CoV-2, we currently implement the following QC rules (in parentheses are the one-letter designations used in [Nextclade Web](../nextclade-web)). For other viruses, such as influenza, the same QC rules are used. However, the parametrization is different. The exact parameters can be found in the `pathogen.json` input file. Datasets provided by Nextclade can be inspected in the GitHub repo [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data).
+For SARS-CoV-2, we currently implement the following QC rules (in parentheses are the one-letter designations used in [Nextclade Web](../nextclade-web)). For other viruses, such as influenza, a subset of the QC rules are used and the parametrization is adjusted. The exact parameters can be found in the `pathogen.json` input file. Datasets provided by Nextclade can be inspected in the GitHub repo [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data).
+Parameter values stated below refer to SARS-CoV-2.
 
 ### Missing data (N)
 

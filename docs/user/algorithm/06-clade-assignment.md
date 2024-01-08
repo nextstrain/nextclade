@@ -1,10 +1,10 @@
 # 6. Clade assignment
 
-To simplify discussion of co-circulating virus variants, Nextstrain groups them into [Clades](../terminology.html#clade), which are defined by specific combination of signature mutations. Clades are groups of related sequences that share a common ancestor. For SARS-CoV-2, we try to align these clades as much as possible with [WHO variant designations](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
+To simplify discussion of co-circulating virus variants, viral diversity of is often broken down into [Clades](../terminology.html#clade) or lineages which are defined by specific combinations of signature mutations. Clades are groups of related sequences that share a common ancestor. For SARS-CoV-2, Nextclade can assign both broad clades defined by the Nextstrain team as well as more fine-grained lineages defined by the PANGO consortium.
 
-In contrast to the analysis pipeline of [Nextstrain.org](https://nextstrain.org), which requires setting up and running a heavy computational job to assign clades, Nextclade takes a lightweight approach, and assigns your sequences to clades by placing sequences on a phylogenetic tree annotated with clade definitions. More specifically, Nextclade assigns the clade of the nearest reference node found during the [Phylogenetic placement](05-phylogenetic-placement) step.
+Instead of directly using mutational signatures to assign clades, Nextclade assigns your sequences to clades by placing sequences on a phylogenetic tree annotated with clade definitions. More specifically, Nextclade assigns the clade of the nearest reference node found during the [Phylogenetic placement](05-phylogenetic-placement) step.
 
-> ⚠️ Nextclade only considers those clades which are present in the input reference tree. Only one of these clades, and no others, can be assigned to the analysed sequences. It is important to make sure that every clade that you expect to find in the results is well represented in the tree.
+> ⚠️ Nextclade only considers those clades which are present in the input reference tree. Only one of these clades, and no others, can be assigned to the analyzed sequences. It is important to make sure that every clade that you expect to find in the results is well represented in the tree.
 >
 > <br/>
 >
@@ -23,15 +23,15 @@ The Nextstrain clade system is outlined in [this blog post](https://nextstrain.o
 
 The clades are hierarchically structured as follows:
 
-| [![Hierarchy of clades of SARS-CoV-2 as defined by Nextstrain](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg)](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg) | 
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:| 
+| [![Hierarchy of clades of SARS-CoV-2 as defined by Nextstrain](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg)](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg) |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 |                                         Hierarchy of clades of SARS-CoV-2 as defined by Nextstrain [<a href="https://github.com/nextstrain/ncov-clades-schema">source</a>] (click to enlarge)                                         |
 
 You can find the exact, up-to-date clade definitions in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
 
 ### Pango lineages
 
-Nextclade also assigns each sequence to a `Pango lineage` in the same way clades are assigned, reading off the lineage of the nearest neighbour in the reference tree.
+Nextclade also assigns each sequence to a `Pango lineage` in the same way clades are assigned, reading off the lineage of the nearest neighbor in the reference tree.
 
 You can read more about the method and validation results in this [report](nextclade-pango.md).
 In short, for recent sequences (within last 12 months) Nextclade's `Pango lineage` assignments are about as accurate as pangoLEARN's.
