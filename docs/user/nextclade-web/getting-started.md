@@ -12,7 +12,7 @@ Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
 
 Nextclade requires 2 kinds of inputs in order to operate:
 
-1. Sequence data - these are the DNA/RNA consensus sequences that will be analyzed. Sometimes, we also call them "query sequences".
+1. Sequence data - these are the DNA sequences that will be analyzed. Sometimes, we also call them "query sequences".
 2. Nextclade reference dataset - this is a set of files which encodes specifics of each pathogen (usually a virus). There is a variety of existing datasets to choose from. Advanced users can create their own datasets, in order to add support for more pathogens.
 
 ### 1. Provide sequencing data

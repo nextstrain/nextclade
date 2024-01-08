@@ -8,7 +8,7 @@ The analysis pipeline comprises the following steps:
 
 1. Sequence alignment: Sequences are aligned to the reference genome using a banded Waterman-Smith sequence alignment algorithm.
 1. Translation: Coding nucleotide segments are extracted and translated to amino acid sequences.
-1. Mutation calling: Nucleotide and amino acid changes are identified
+1. Mutation calling: Nucleotide and amino acid changes relative to the reference are identified
 1. Phylogenetic placement: Sequences are placed on a reference tree, private mutations are identified
 1. Clade assignment: Clades are inferred from the place the sequence attached on the reference tree
 1. Quality Control (QC): Quality control metrics are calculated
@@ -30,7 +30,7 @@ Every icon corresponds to a different metric. See [Quality control](algorithm/07
 
 ### Table data
 
-Nextclade automatically infers the (probable) clade a sequence belongs to and displays the result in the table. Clades are determined by identifying the clade of the nearest neighbour on a reference tree.
+Nextclade automatically infers the (probable) clade a sequence belongs to and displays the result in the table. Clades are determined by identifying the clade of the nearest neighbor on a reference tree.
 
 The result table further displays for each sequence:
 
@@ -42,7 +42,7 @@ The result table further displays for each sequence:
 - "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
 - "SC": Number of uncommon premature stop codons (total number, including common premature stops are in parentheses)
 
-Hovering over table entries reveals more detailed information in tooltips. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differ from the nearest neighbor on the reference tree), which are are split into:
+Hovering over table entries reveals more detailed information in tooltips. For example, hovering over the number of mutations reveals which nucleotides and amino acids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differentiate the query sequence from the nearest neighbor on the reference tree), which are are split into:
 
 - Reversions: mutations back to reference, often a sign of sequencing pipeline problems (e.g. faulty primer trimming or reference bias).
 - Labeled: Mutations that are known, for example because they characteristically occur in a clade. If multiple labeled mutations from the same clade appear, it is often a sign of contamination, co-infection or recombination.
@@ -62,11 +62,11 @@ To the right of the table you can see the alignment with mutations and regions w
 
 If you hover over a feature, you can see its name and coordinates.
 
-You can zoom into a gene by clicking on the respective gene at the bottom, or selecting the gene of interest from the dropdown at the top.
+You can zoom into a CDS/gene by clicking on the respective CDS/gene at the bottom, or selecting the CDS/gene of interest from the dropdown at the top.
 
 ![Select Gene](../assets/web_click-gene.png)
 
-In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualised in the tooltip in a codon-aware way, as you can see in the example below
+In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualized in the tooltip in a codon-aware way, as you can see in the example below
 
 ![Alignment tooltip](../assets/web_alignment-tip.png)
 

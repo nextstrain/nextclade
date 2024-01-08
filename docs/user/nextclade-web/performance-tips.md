@@ -13,3 +13,7 @@ For optimal performance, before running Nextclade, close unused applications and
 You can also try to tune the performance by increasing or decreasing the number of CPU threads in the "Settings" window. This option tells Nextclade how many processing jobs it is allowed to run in parallel. More threads will consume more memory, and will make startup process longer, but will make the analysis faster in case there are many sequences to process. Less threads will speedup the startup, and decrease memory consumption, but will make the analysis slower.
 
 In case of any problems, try to run Nextclade in a fresh private/incognito browser window, with no extensions enabled, and where Nextclade is the only tab.
+
+### Lagging results page
+When analyzing many sequences with many hundreds of mutations, the [results page](analysis-results-table) may become slow because of the large number of mutation markers that are displayed.
+If you experience this problem, reduce the number `Max. nucleotide markers` in `Settings` -> `Sequence view`.
