@@ -43,8 +43,7 @@ Besides input sequences, Nextclade needs to know which dataset to use to perform
 Most users don't need to worry about the dataset files, because Nextclade provides datasets for a variety of viruses out of the box. The only thing you need to do is to choose an appropriate dataset for your sequences.
 
 Nextclade can automatically suggest compatible datasets by processing the input sequences and comparing them against all available datasets. To do so, click the "Suggest" button after providing some query sequence data (see previous section). If "Suggest automatically" toggle is turned on (this is the default), adding sequences triggers an automatic suggestion run.
-
-![Auto-suggest datasets](../assets/web_show-example.png)
+![Auto-suggest datasets](../assets/web_trigger-suggest.png)
 
 Once the suggestion engine has finished, if no dataset is currently selected, Nextclade will auto-select the best matching dataset: in this case, the SARS-CoV-2 dataset with XBB reference:
 
