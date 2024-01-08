@@ -1,4 +1,4 @@
-### Export
+## Export
 
 Once Nextclade has finished the analysis, you can download the results in a variety of formats by clicking the "Export" button in the top panel:
 

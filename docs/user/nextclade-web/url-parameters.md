@@ -1,4 +1,4 @@
-### URL parameters
+## URL parameters
 
 Nextclade Web can be configured using URL parameters. The names of the parameters match or are similar to the corresponding arguments of [Nextclade CLI](../nextclade-cli).
 

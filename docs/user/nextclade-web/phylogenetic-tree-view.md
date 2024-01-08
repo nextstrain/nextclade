@@ -1,4 +1,4 @@
-### Phylogenetic tree view
+## Phylogenetic tree view
 
 In order to assign clades to sequences, Nextclade [places](../algorithm/05-phylogenetic-placement) all new sequences on a reference tree. You can view the resulting tree by clicking on the tree tab at the top left.
 
