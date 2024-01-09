@@ -1,6 +1,6 @@
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::io::nextclade_csv::{
-  format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
+  format_failed_cdses, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
   AuspiceGraphNodePayload, TreeBranchAttrs, TreeBranchAttrsLabels, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
@@ -81,7 +81,7 @@ pub fn create_new_auspice_node(
       has_pcr_primer_changes,
       pcr_primer_changes,
       qc_status: Some(TreeNodeAttr::new(&result.qc.overall_status.to_string())),
-      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
+      missing_cdses: Some(TreeNodeAttr::new(&format_failed_cdses(&result.missing_cdses, ", "))),
       other,
     },
     tmp: TreeNodeTempData::default(),

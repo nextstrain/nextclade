@@ -74,7 +74,7 @@ pub struct NextcladeOutputs {
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
   pub warnings: Vec<PeptideWarning>,
-  pub missing_genes: Vec<String>,
+  pub missing_cdses: Vec<String>,
   pub divergence: f64,
   pub coverage: f64,
   pub qc: QcResult,

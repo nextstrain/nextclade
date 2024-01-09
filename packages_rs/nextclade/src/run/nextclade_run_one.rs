@@ -391,7 +391,7 @@ pub fn nextclade_run_one(
       pcr_primer_changes,
       total_pcr_primer_changes,
       warnings,
-      missing_genes,
+      missing_cdses: missing_genes,
       coverage,
       aa_motifs,
       aa_motifs_changes,

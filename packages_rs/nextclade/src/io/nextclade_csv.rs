@@ -203,7 +203,7 @@ lazy_static! {
       o!("pcrPrimerChanges") => true,
     },
     CsvColumnCategory::ErrsWarns => indexmap! {
-      o!("failedGenes") => true,
+      o!("failedCdses") => true,
       o!("warnings") => true,
       o!("errors") => true,
     }
@@ -323,7 +323,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       clade,
       private_nuc_mutations,
       // private_aa_mutations,
-      missing_genes,
+      missing_cdses,
       // divergence,
       coverage,
       phenotype_values,
@@ -546,7 +546,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       qc.stop_codons.as_ref().map(|sc| sc.status.to_string()),
     )?;
     self.add_entry("isReverseComplement", &is_reverse_complement.to_string())?;
-    self.add_entry("failedGenes", &format_failed_genes(missing_genes, ARRAY_ITEM_DELIMITER))?;
+    self.add_entry("failedCdses", &format_failed_cdses(missing_cdses, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
       "warnings",
       &warnings.iter().map(|PeptideWarning { warning, .. }| warning).join(";"),
@@ -772,8 +772,8 @@ pub fn format_stop_codons(stop_codons: &[StopCodonLocation], delimiter: &str) ->
 }
 
 #[inline]
-pub fn format_failed_genes(failed_genes: &[String], delimiter: &str) -> String {
-  failed_genes.join(delimiter)
+pub fn format_failed_cdses(failed_cdses: &[String], delimiter: &str) -> String {
+  failed_cdses.join(delimiter)
 }
 
 #[inline]
