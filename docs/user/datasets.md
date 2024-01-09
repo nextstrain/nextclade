@@ -34,7 +34,10 @@ An instance of a dataset is a directory containing the dataset files or an equiv
 
 There are 2 concepts that are important to understand in order to work with Nextclade datasets: dataset name and dataset version. Similar to software, datasets are versioned to ensure reproducibility of results. A user will usually work with the latest version of a dataset, but can also choose to use a specific version.
 
-The name is a path-like string that uniquely identifies a dataset. It usually contains the maintainer's name or organisation, the name of the virus and the name of the reference sequence used, as well as potentially other parameters. For example, the default SARS-CoV-2 dataset is named `nextstrain/sars-cov-2/wuhan-hu-1`. The version is a timestamp string of the form `YYYY-MM-DDTHH:MM:SSZ` that indicates when the dataset was released.
+The name is a path-like string that uniquely identifies a dataset. It usually contains the maintainer's name or organisation, the name of the virus and the name of the reference sequence used, as well as potentially other parameters. For example, the default SARS-CoV-2 dataset is named `nextstrain/sars-cov-2/wuhan-hu-1/orfs`.
+This signifies that this is a Nextstrain maintained dataset for SARS-CoV-2 using Wuhan-Hu-1/2019 (MN908947) as reference sequence with annotation of ORFs (open reading frames) rather than mature proteins.
+For commonly used datasets, we define short-cuts like `sars-cov-2` or `sars-cov-2/xbb` that map to full paths.
+The version is a timestamp string of the form `YYYY-MM-DDTHH:MM:SSZ` that indicates when the dataset was released.
 
 In Nextclade Web, usually only the latest version of a dataset is shown. However, it is possible to select a specific version of a dataset through the use of URL parameters.
 
@@ -82,7 +85,7 @@ This will print a list of available datasets to console. More options are availa
 The datasets can be downloaded with the `dataset get` subcommand. For example to get the latest version of the SARS-CoV-2 dataset with reference sequence `Wuhan-Hu-1` run:
 
 ```bash
-nextclade dataset get --name 'nextstrain/sars-cov-2/MN908947' --output-dir 'data/sars-cov-2'
+nextclade dataset get --name 'nextstrain/sars-cov-2/wuhan-hu-1' --output-dir 'data/sars-cov-2'
 ```
 
 The dataset files will be downloaded to the directory `data/sars-cov-2` relative to the working directory.
@@ -91,13 +94,13 @@ The dataset files will be downloaded to the directory `data/sars-cov-2` relative
 
 ##### Dataset with a specific reference sequence and version tag
 
-You can set a version tag explicitly. For example, to always use the SARS-CoV-2 dataset based on reference sequence `MN908947 (Wuhan-Hu-1/2019)` and a version released on June 25th 2021 (`2021-06-25T00:00:00Z`):
+You can set a version tag explicitly. For example, to always use the SARS-CoV-2 dataset based on reference sequence `Wuhan-Hu-1/2019 (MN908947)` and a version released on June 25th 2021 (`2021-06-25T00:00:00Z` -- note that this is an non-existent version as no v3 datasets were released at time of writing. Replace with an existing tag):
 
 ```bash
 nextclade dataset get \
-  --name 'nextstrain/sars-cov-2/MN908947' \
-  --tag 'unreleased' \
-  --output-dir 'data/sars-cov-2_MN908947_unreleased'
+  --name 'nextstrain/sars-cov-2/wuhan-hu-1' \
+  --tag '2021-06-25T00:00:00Z' \
+  --output-dir 'data/sars-cov-2_wuhan-hu-1_2021-06-25'
 ```
 
 In this case repeated downloads will always produce the same files. This is only recommended if you need strictly reproducible results and don't want to automatically get the latest dataset version. Note that with stale data, new clades and other new features will not be available. For general use, we recommend to periodically download the latest version.
