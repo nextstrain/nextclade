@@ -88,7 +88,7 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 | isReverseComplement                             | Whether query sequences were transformed using reverse complement operation before alignment                | boolean                         | false                            |
 | errors                                          | List of errors during processing                                                                            | comma separated list of strings |                                  |
 | warnings                                        | List of warnings during processing                                                                          | comma separated list of strings |                                  |
-| failedGenes                                     | List of genes that failed translation                                                                       | comma separated list of strings |                                  |
+| failedCdses                                     | List of CDS that failed translation                                                                       | comma separated list of strings |                                  |
 
 > ⚠️ Note that sequence names (`seqName` column) are not guaranteed to be unique (and in practice are not unique very often). So indices is the only way to reliably link together inputs and outputs.
 
@@ -99,11 +99,11 @@ The table can contain additional columns for every clade-like attribute defined 
 >
 > <br/>
 >
-> If translation, alignment or analysis of an individual gene fails, the corresponding peptide cannot be analyzed, and therefore no details about aminoacid mutations, deletions, insertions, frame shifts etc. will be available. In this case `warning` and `failedGenes` columns/fields contain details about which genes failed and why.
+> If translation, alignment or analysis of an individual CDS fails, the corresponding peptide cannot be analyzed, and therefore no details about aminoacid mutations, deletions, insertions, frame shifts etc. will be available. In this case `warning` and `failedCdses` columns/fields contain details about which CDS failed and why.
 >
 > <br/>
 >
-> Care should be taken to check for `errors`, `warnings` and `failedGenes` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
+> Care should be taken to check for `errors`, `warnings` and `failedCdses` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
 >
 > <br/>
 >
