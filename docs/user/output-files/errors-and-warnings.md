@@ -15,6 +15,6 @@ When processing of a sequence fails for various reasons, not all output files wi
 
 You can find the reason for a particular failure by reading:
 
-- `errors` and `warnigns` column in tabular outputs (TSV, CSV)
+- `errors` and `warnings` column in tabular outputs (TSV, CSV)
 - `errors` array in JSON output
 - `error` field in each entry in NDJSON output

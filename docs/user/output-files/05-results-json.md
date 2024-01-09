@@ -20,9 +20,9 @@ NDJSON file (newline-delimited JSON) combines only `results` and `errors` arrays
 >
 > Ranges are 0-indexed and semi-open (include start and exclude end). Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in CSV/TSV results.
 
-> ⚠️ Note, all positions are in alignment coordinates and after all the insertions stripped.
+> ⚠️ Note, all positions are in reference coordinates, that is alignment coordinates after all the insertions relative to the reference have been stripped.
 
-> ⚠️Note that if nucleotide alignment or analysis of an individual sequence fails, alignment and translations are omitted from the output fasta files (see above), but the corresponding entry is still present in most of the other output files. In this case the `errors` column/field contain details about why the processing failed.
+> ⚠️ Note that if nucleotide alignment or analysis of an individual sequence fails, alignment and translations are omitted from the output fasta files (see above), but the corresponding entry is still present in most of the other output files. In this case the `errors` column/field contain details about why the processing failed.
 >
 > <br/>
 >

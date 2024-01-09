@@ -1,6 +1,6 @@
 # Translations
 
-Aligned peptides are produced as a result of the [translation and peptide alignment](../algorithm/02-translation) step and are being output in FASTA format. There are multiple files, one for each gene.
+Aligned peptides are produced as a result of the [translation and peptide alignment](../algorithm/02-translation) step and are being output in FASTA format. There are multiple files, one for each CDS/gene.
 
 Alignments are with respect to the reference sequences.
 
@@ -9,7 +9,7 @@ Any insertions relative to the reference are stripped from the output sequences.
 Nextclade Web: download `nextclade.peptides.fasta.zip
 ` - it contains a set of FASTA files - one file per gene.
 
-Nextclade CLI: `--output-translations`/`-P` `<TEMPLATE_STRING>`. If the CLI flag `--include-reference` is set, the reference sequence peptide is included as the first entry. This flag accepts a **template** string which **must** contain the magic template value `{gene}` exactly once. Default: `nextclade_gene_{gene}.translation.fasta`.
+Nextclade CLI: `--output-translations`/`-P` `<TEMPLATE_STRING>`. If the CLI flag `--include-reference` is set, the reference sequence peptide is included as the first entry. This flag accepts a **template** string which **must** contain the magic template value `{cds}` exactly once. Default: `nextclade_cds_{cds}.translation.fasta`.
 
 > ⚠️ Note that if translation, alignment or analysis of an individual gene fails, the corresponding peptide is omitted from the output translation file. See [Errors and warnings](./errors-and-warnings) section for more details.
 

@@ -13,7 +13,7 @@ TSV and CSV files are equivalent and only differ in the column delimiter (tabs v
 
 > ⚠️ Note, in CSV and TSV outputs, all positions are 1-based, and all ranges are closed (they include both left and right boundaries).
 
-> ⚠️ Note, all positions are in alignment coordinates and after all the insertions are stripped.
+> ⚠️ Note, all positions are in reference coordinates, that is after all insertions relative to reference are stripped from the alignment.
 
 > ⚠️ Note that, for historical reasons, we use semicolon `;` as the column separator in CSV files, because we have comma `,` as list separators within table cells and in early versions of Nextclade our CSV writer code was imperfect, so it was an easy solution. We recommend to use TSV format instead of CSV format. But if you are using CSV format, make sure that you configure your spreadsheet software or parser to use semicolons `;` as column delimiters.
 
