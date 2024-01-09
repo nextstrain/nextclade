@@ -16,16 +16,9 @@ by Nextstrain team
   </a>
 </p>
 
-<p align="center">
-  <a href="https://raw.githubusercontent.com/nextstrain/nextclade/master/docs/assets/ui.gif" target="_blank" rel="noopener noreferrer"  alt="Link to animated screenshot of the application, showcasing the user interface on main page">
-    <img
-      width="100%"
-      height="auto"
-      src="https://raw.githubusercontent.com/nextstrain/nextclade/master/docs/assets/ui.gif"
-      alt="Animated screenshot of the application, showcasing the user interface on main page"
-    />
-  </a>
-</p>
+| <video controls autoplay loop muted src="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4" width="680"></video>                             |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Brief demonstration of Nextclade Web. Large version is <a target="_blank" href="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4">here</a>. |
 
 <p align="center">
   <a target="_blank" rel="noopener noreferrer" href="LICENSE">

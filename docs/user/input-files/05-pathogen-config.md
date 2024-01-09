@@ -136,11 +136,11 @@ Example:
 }
 ```
 
-#### `defaultGene`
+#### `defaultCds`
 
 Optional `str`. The default gene/CDS to be shown in Nextclade web. If not provided, the nucleotide alignment is shown. Example value: `"S"`.
 
-#### `geneOrderPreference`
+#### `cdsOrderPreference`
 
 Optional `array[str]`. Order in which genes are shown in Nextclade web dropdown. Example value ["S", "ORF1a", "N", "E"]
 

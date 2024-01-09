@@ -1,6 +1,6 @@
 # Usage
 
-> This section assumes you've installed Nextclade CLI, it's available in your system path as `nextclade` and has executable permissions. If not, please refer to [installation](../nextclade-cli/installation.html) section for more information.
+> This section assumes you've installed Nextclade CLI, it's available in your system path as `nextclade` and has executable permissions. If not, please refer to [installation](installation) section for more information.
 
 Refer to the help prompt for usage of Nextclade by running it without any arguments or with `--help`:
 
@@ -13,11 +13,8 @@ Note that Nextclade CLI has subcommands. Each subcommand has its own help prompt
 
 ```bash
 nextclade run --help
-nextclade dataset --help
 nextclade dataset list --help
 nextclade dataset get --help
-nextclade sort --help
-nextclade read-annotation
 ```
 
 <!--- TODO: Should be expanded with detailed explanation of the commands -->
@@ -27,12 +24,12 @@ nextclade read-annotation
 1. Download a SARS-CoV-2 dataset:
 
    ```bash
-   nextclade dataset get --name 'nextstrain/sars-cov-2/MN908947' --output-dir 'data/sars-cov-2'
+   nextclade dataset get --name 'nextstrain/sars-cov-2/wuhan-hu-1/orfs' --output-dir 'data/sars-cov-2'
    ```
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
-   > 💡️ This command will download the latest SARS-CoV-2 dataset. You should run it periodically to update the dataset, in order to get the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](datasets) section.
+   > 💡️ This command will download the latest SARS-CoV-2 dataset. You should run it periodically to update the dataset, in order to get the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](../datasets) section.
 
 2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
@@ -55,7 +52,7 @@ nextclade read-annotation
       --input-dataset=data/sars-cov-2 \
       --input-ref=data/sars-cov-2/reference.fasta \
       --input-annotation=data/sars-cov-2/genome_annotation.gff3 \
-      --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+      --cds-selection=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
       --input-tree=data/sars-cov-2/tree.json \
       --input-pathogen-json=data/sars-cov-2/pathogen.json \
       --output-fasta=output/nextclade.aligned.fasta.gz \
@@ -65,7 +62,7 @@ nextclade read-annotation
       --output-tsv=output/nextclade.tsv \
       --output-tree=output/nextclade.auspice.json \
       --output-tree-nwk=output/nextclade.tree.nwk \
-      --output-translations=output/nextclade_gene_{gene}.translation.fasta.zst \
+      --output-translations=output/nextclade_CDS_{cds}.translation.fasta.zst \
       data/sars-cov-2/sequences.fasta \
       my_sequences1.fasta.gz \
       my_sequences2.fasta.xz
@@ -83,14 +80,14 @@ nextclade read-annotation
 
 3. Find the output files in the `output/` directory:
 
-- `nextclade.aligned.fasta` - aligned input sequences
-- `nextclade_gene_<gene_name>.translation.fasta` - aligned peptides corresponding to each gene
-- `nextclade.tsv` - results of the analysis in TSV format
-- `nextclade.csv` - same results, but in CSV format
-- `nextclade.json` - detailed results of the analysis in JSON format
-- `nextclade.ndjson` - detailed results of the analysis in newline-delimited JSON format
-- `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it and in Auspice v2 JSON format
-- `nextclade.tree.nwk` - same as input tree, but with the input sequences placed onto it and in Newick format
+   - `nextclade.aligned.fasta` - aligned input sequences
+   - `nextclade_cds_<cds_name>.translation.fasta` - aligned peptides corresponding to each coding sequence (CDS)
+   - `nextclade.tsv` - results of the analysis in TSV format
+   - `nextclade.csv` - same results, but in CSV format
+   - `nextclade.json` - detailed results of the analysis in JSON format
+   - `nextclade.ndjson` - detailed results of the analysis in newline-delimited JSON format
+   - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it and in Auspice v2 JSON format
+   - `nextclade.tree.nwk` - same as input tree, but with the input sequences placed onto it and in Newick format
 
 ## What's next?
 

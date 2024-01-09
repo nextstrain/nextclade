@@ -2,7 +2,7 @@
 
 ### What does nextclade do? What do I need to know?
 
-Nextclade allows you to analyze SARS-CoV-2 sequences in the web browser. It will align your sequence data to a reference genome, call mutations relative to that reference, and place your sequences on a SARS-CoV-2 phylogeny. It also reports clade assignments and quality of your sequence data.
+Nextclade allows you to analyze virus genome sequences in the web browser. It will align your sequence data to a reference genome, call mutations relative to that reference, and place your sequences on a phylogeny. It also reports clade assignments and quality of your sequence data. Nextclade currently supports SARS-CoV-2, RSV, Influenza virus, Mpox virus and we are planning to add more viruses in the future.
 
 ### Does my sequence data leave my computer?
 
@@ -29,4 +29,5 @@ Yes, you can specify your own tree, reference sequence, QC configuration and oth
 
 ### Is Nextclade available for other pathogens and microorganisms, too?
 
-Nextclade works for other viruses, but you have to specify your own reference sequences, trees, and annotations. Only SARS-CoV-2 and Influenza A/B HA (H3N2,H1N1pdm,Vic,Yam) data is currently provided as a default. We plan to support other pathogens in the future.
+Nextclade works for other viruses, but you have to specify your own reference sequences, trees, and annotations. Only SARS-CoV-2, Influenza A/B HA (H3N2,H1N1pdm,Vic,Yam), RSV, and Mpox virus data are currently provided as a default. We plan to support other pathogens in the future.
+There is also an option to generate your own reference datasets and submit to the a collection of community datasets.

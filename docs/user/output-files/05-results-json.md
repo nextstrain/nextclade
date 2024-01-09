@@ -20,17 +20,17 @@ NDJSON file (newline-delimited JSON) combines only `results` and `errors` arrays
 >
 > Ranges are 0-indexed and semi-open (include start and exclude end). Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in CSV/TSV results.
 
-> ⚠️ Note, all positions are in alignment coordinates and after all the insertions stripped.
+> ⚠️ Note, all positions are in reference coordinates, that is alignment coordinates after all the insertions relative to the reference have been stripped.
 
-> ⚠️Note that if nucleotide alignment or analysis of an individual sequence fails, alignment and translations are omitted from the output fasta files (see above), but the corresponding entry is still present in most of the other output files. In this case the `errors` column/field contain details about why the processing failed.
+> ⚠️ Note that if nucleotide alignment or analysis of an individual sequence fails, alignment and translations are omitted from the output fasta files (see above), but the corresponding entry is still present in most of the other output files. In this case the `errors` column/field contain details about why the processing failed.
 >
 > <br/>
 >
-> If translation, alignment or analysis of an individual gene fails, the corresponding peptide cannot be analyzed, and therefore no details about aminoacid mutations, deletions, insertions, frame shifts etc. will be available. In this case `warning` and `failedGenes` columns/fields contain details about which genes failed and why.
+> If translation, alignment or analysis of an individual CDS fails, the corresponding peptide cannot be analyzed, and therefore no details about aminoacid mutations, deletions, insertions, frame shifts etc. will be available. In this case `warning` and `failedCdses` columns/fields contain details about which CDS failed and why.
 >
 > <br/>
 >
-> Care should be taken to check for `errors`, `warnings` and `failedGenes` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
+> Care should be taken to check for `errors`, `warnings` and `failedCdses` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
 >
 > <br/>
 >

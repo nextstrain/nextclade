@@ -2,6 +2,8 @@
 
 Nextclade CLI is provided in the form of a self-contained single executable file. You can download and run it directly.
 
+This is the recommended way of installing Nextclade CLI.
+
 ## Download manually
 
 All versions and their release notes are available on 🐈 [GitHub Releases](https://github.com/nextstrain/nextclade/releases).

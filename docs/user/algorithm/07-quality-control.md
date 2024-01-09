@@ -30,9 +30,8 @@ The final score has the same thresholds as the the individual scores.
 
 ## Individual QC Rules
 
-For SARS-CoV-2, we currently implement the following QC rules (in parentheses are the one-letter designations used in [Nextclade Web](../nextclade-web)). For other viruses, such as influenza, the same QC rules are used. However, the parametrization is different. The exact parameters can be found in the `qc.json` input file. Datasets provided by Nextclade can be inspected in the Github repo [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data).
-
-As an example, here's a [`qc.json` for a recent H3N2 dataset](https://github.com/nextstrain/nextclade_data/blob/master/data/datasets/flu_h3n2_ha/references/CY163680/versions/2022-01-18T12:00:00Z/files/qc.json). Here's the [`qc.json` for a recent SARS-CoV-2 dataset](https://github.com/nextstrain/nextclade_data/blob/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-02-07T12:00:00Z/files/qc.json).
+For SARS-CoV-2, we currently implement the following QC rules (in parentheses are the one-letter designations used in [Nextclade Web](../nextclade-web)). For other viruses, such as influenza, a subset of the QC rules are used and the parametrization is adjusted. The exact parameters can be found in the `pathogen.json` input file. Datasets provided by Nextclade can be inspected in the GitHub repo [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data).
+Parameter values stated below refer to SARS-CoV-2.
 
 ### Missing data (N)
 
@@ -87,11 +86,11 @@ Replicating viruses can not have premature stop codons in essential genes and su
 
 However, some stop codons are known to be common even in functional viruses. Our stop codon rule excludes such known stop codons `ignoredStopCodons` and assigns a QC score of 75 to each premature stop, hence if there are 2 unknown stop codons, the score is 150.
 
-Beware that the position of known stop codons in `qc.json` is 0-indexed, in contrast to the 1-indexed positions that are used in Nextclade outputs.
+Beware that the position of known stop codons in `pathogen.json` is 0-indexed, in contrast to the 1-indexed positions that are used in Nextclade outputs.
 
 ### Frame shifts (F)
 
-Frame shifting insertions or deletions typically result in a garbled translation or a premature stop. Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75. Note, however, that clade 21H (Mu) has a frame shift towards the end of ORF3a that results in a premature stop. Known frame shifts (those listed in `ignoredFrameShifts`) in `qc.json` are not penalized.
+Frame shifting insertions or deletions typically result in a garbled translation or a premature stop. Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75. Note, however, that clade 21H (Mu) has a frame shift towards the end of ORF3a that results in a premature stop. Known frame shifts (those listed in `ignoredFrameShifts`) in `pathogen.json` are not penalized.
 
 ## Interpretation
 
@@ -105,7 +104,7 @@ Note that there are many additional potential problems Nextclade does not check 
 
 ## Configuration
 
-QC checks can be enabled or disabled, and their parameters can be changed by providing a custom QC configuration file (typically `qc.json`) in the Advanced mode of [Nextclade Web](../nextclade-web) or in [Nextclade CLI](../nextclade-cli).
+QC checks can be enabled or disabled, and their parameters can be changed by modifying `qc` field in the `pathogen.json` file in the Advanced mode of [Nextclade Web](../nextclade-web) or in [Nextclade CLI](../nextclade-cli).
 
 ## Results
 

@@ -1,6 +1,8 @@
 # With Docker
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
+You can run Nextclade in a Docker container.
+
+Docker container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
 
 Pull and run the latest released version with:
 
@@ -40,4 +42,4 @@ docker run -it --rm \
       "/data/my_sequences.fasta"
 ```
 
-In this example, docker mounts current working directory on your computer `$(pwd)` as a volume at path `/data/` inside container. It starts a container from image tagged `nextstrain/nextclade` on behalf of the current user (command `id -u` prints id of the current user and `id -g` prints id of the current group) and runs our Nextclade CLI command in it. Nextclade reads sequences from `/data/my_sequences.fasta` inside, container which corresponds to `my_sequences.fasta` in your current directory. Then Nextclade writes output files to `/data/output/` directory in the container, which corresponds to the `output/` directory in your current working directory.
+In this example, Docker mounts current working directory on your computer `$(pwd)` as a volume at path `/data/` inside the container. It starts a container from our image tagged `nextstrain/nextclade` on behalf of the current user (command `id -u` prints id of the current user and `id -g` prints id of the current user's group) and runs our Nextclade CLI command in it. Nextclade reads sequences from `/data/my_sequences.fasta` inside the container which corresponds to `my_sequences.fasta` in your current directory. Then Nextclade writes output files to `/data/output/` directory in the container, which corresponds to the `output/` directory in your current working directory.
