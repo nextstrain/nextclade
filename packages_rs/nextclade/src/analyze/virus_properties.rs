@@ -141,7 +141,7 @@ pub struct PhenotypeData {
   pub name: String,
   pub name_friendly: String,
   pub description: String,
-  pub gene: String,
+  pub cds: String,
   pub aa_range: AaRefRange,
   #[serde(default)]
   pub ignore: PhenotypeDataIgnore,
@@ -166,13 +166,13 @@ pub struct AaMotifsDesc {
   pub motifs: Vec<String>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub include_genes: Vec<CountAaMotifsGeneDesc>,
+  pub include_cdses: Vec<CountAaMotifsCdsDesc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct CountAaMotifsGeneDesc {
-  pub gene: String,
+pub struct CountAaMotifsCdsDesc {
+  pub cds: String,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ranges: Vec<AaRefRange>,

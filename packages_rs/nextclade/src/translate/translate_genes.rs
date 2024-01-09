@@ -329,7 +329,7 @@ pub fn translate_genes(
           ) {
             Ok(translation) => Either::Left((cds.name.clone(), translation)),
             Err(report) => Either::Right(PeptideWarning {
-              gene_name: cds.name.clone(),
+              cds_name: cds.name.clone(),
               warning: report_to_string(&report),
             }),
           }

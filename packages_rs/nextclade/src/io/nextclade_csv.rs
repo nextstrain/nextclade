@@ -4,7 +4,7 @@ use crate::alphabet::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs::AaMotif;
-use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
+use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
@@ -718,22 +718,22 @@ pub fn format_aa_deletions(aa_dels: &[AaDel], delimiter: &str) -> String {
 pub fn format_aa_insertions(insertions: &[AaIns], delimiter: &str) -> String {
   insertions
     .iter()
-    .map(|AaIns { gene, ins, pos }: &AaIns| {
+    .map(|AaIns { cds, ins, pos }: &AaIns| {
       let ins_str = from_aa_seq(ins);
       let pos_one_based = pos + 1;
-      format!("{gene}:{pos_one_based}:{ins_str}")
+      format!("{cds}:{pos_one_based}:{ins_str}")
     })
     .join(delimiter)
 }
 
 #[inline]
-pub fn format_unknown_aa_ranges(unknown_aa_ranges: &[GeneAaRange], delimiter: &str) -> String {
+pub fn format_unknown_aa_ranges(unknown_aa_ranges: &[CdsAaRange], delimiter: &str) -> String {
   unknown_aa_ranges
     .iter()
-    .flat_map(|GeneAaRange { gene_name, ranges, .. }: &GeneAaRange| {
+    .flat_map(|CdsAaRange { cds_name, ranges, .. }: &CdsAaRange| {
       ranges.iter().map(move |range| {
         let range_str = range.range().to_string();
-        format!("{gene_name}:{range_str}")
+        format!("{cds_name}:{range_str}")
       })
     })
     .join(delimiter)
@@ -744,9 +744,9 @@ pub fn format_frame_shifts(frame_shifts: &[FrameShift], delimiter: &str) -> Stri
   frame_shifts
     .iter()
     .map(|frame_shift| {
-      let gene_name = &frame_shift.gene_name;
+      let cds_name = &frame_shift.cds_name;
       let range = &frame_shift.codon.to_string();
-      format!("{gene_name}:{range}")
+      format!("{cds_name}:{range}")
     })
     .join(delimiter)
 }
@@ -767,7 +767,7 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
 pub fn format_stop_codons(stop_codons: &[StopCodonLocation], delimiter: &str) -> String {
   stop_codons
     .iter()
-    .map(|StopCodonLocation { gene_name, codon }| format!("{gene_name}:{codon}"))
+    .map(|StopCodonLocation { cds_name, codon }| format!("{cds_name}:{codon}"))
     .join(delimiter)
 }
 

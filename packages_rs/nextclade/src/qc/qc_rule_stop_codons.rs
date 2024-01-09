@@ -34,7 +34,7 @@ pub fn rule_stop_codons(translation: &Translation, config: &QcRulesConfigStopCod
     for (codon, aa) in peptide.iter().enumerate().take(len_minus_one) {
       if aa.is_stop() {
         let stop_codon = StopCodonLocation {
-          gene_name: name.clone(),
+          cds_name: name.clone(),
           codon,
         };
 

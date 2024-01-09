@@ -13,7 +13,7 @@ use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, Priva
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
-  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, GeneAaRange, NucRange,
+  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, CdsAaRange, NucRange,
 };
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_del::NucDelRange;
@@ -51,7 +51,7 @@ struct NextcladeResultWithAa {
   aa_insertions: Vec<AaIns>,
   frame_shifts: Vec<FrameShift>,
   total_frame_shifts: usize,
-  unknown_aa_ranges: Vec<GeneAaRange>,
+  unknown_aa_ranges: Vec<CdsAaRange>,
   total_unknown_aa: usize,
   aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
   aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
@@ -181,7 +181,7 @@ pub fn nextclade_run_one(
 
       if alignment.is_reverse_complement {
         warnings.push(PeptideWarning {
-            gene_name: "nuc".to_owned(),
+            cds_name: "nuc".to_owned(),
             warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
           });
       }
@@ -307,14 +307,14 @@ pub fn nextclade_run_one(
       phenotype_data
         .iter()
         .filter_map(|phenotype_data| {
-          let PhenotypeData { name, gene, ignore, .. } = phenotype_data;
+          let PhenotypeData { name, cds, ignore, .. } = phenotype_data;
           if ignore.clades.contains(&clade) {
             return None;
           }
           let phenotype = calculate_phenotype(phenotype_data, &aa_substitutions);
           Some(PhenotypeValue {
             name: name.clone(),
-            gene: gene.clone(),
+            cds: cds.clone(),
             value: phenotype,
           })
         })

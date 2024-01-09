@@ -244,15 +244,15 @@ export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) 
 
     const aaMotifsTruncated = motifs.slice(0, 20)
 
-    const tbody = aaMotifsTruncated.map(({ gene, position, refSeq, qrySeq }) => {
-      const cdsObj = cdses.find((cds) => cds.name === gene)
+    const tbody = aaMotifsTruncated.map(({ cds, position, refSeq, qrySeq }) => {
+      const cdsObj = cdses.find((cds1) => cds1.name === cds)
       const bg = cdsObj?.color ?? theme.gray400
       const fg = theme.gray200
       return (
-        <Tr key={`${gene}-${position}`}>
+        <Tr key={`${cds}-${position}`}>
           <TdNormal>
             <GeneText $background={bg} $color={fg}>
-              {gene}
+              {cds}
             </GeneText>
           </TdNormal>
           <TdNormal className="text-center">{position + 1}</TdNormal>

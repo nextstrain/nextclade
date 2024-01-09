@@ -3,7 +3,7 @@ use crate::alphabet::letter::Letter;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::is_sequenced::is_aa_sequenced;
-use crate::analyze::letter_ranges::GeneAaRange;
+use crate::analyze::letter_ranges::CdsAaRange;
 use crate::coord::position::{AaRefPosition, PositionLike};
 use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
@@ -33,7 +33,7 @@ pub fn find_private_aa_mutations(
   node: &AuspiceGraphNodePayload,
   aa_substitutions: &[AaSub],
   aa_deletions: &[AaDel],
-  aa_unknowns: &[GeneAaRange],
+  aa_unknowns: &[CdsAaRange],
   aa_unsequenced_ranges: &BTreeMap<String, Vec<AaRefRange>>,
   ref_peptides: &Translation,
   gene_map: &GeneMap,
@@ -56,7 +56,7 @@ pub fn find_private_aa_mutations(
 
         let aa_deletions = aa_deletions.iter().filter(|del| del.cds_name == cds.name).collect_vec();
 
-        let aa_unknowns = aa_unknowns.iter().filter(|unk| unk.gene_name == cds.name).collect_vec();
+        let aa_unknowns = aa_unknowns.iter().filter(|unk| unk.cds_name == cds.name).collect_vec();
 
         let private_aa_mutations = find_private_aa_mutations_for_one_gene(
           cds,
@@ -79,7 +79,7 @@ pub fn find_private_aa_mutations_for_one_gene(
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_substitutions: &[&AaSub],
   aa_deletions: &[&AaDel],
-  aa_unknowns: &[&GeneAaRange],
+  aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
   ref_peptide: &[Aa],
 ) -> PrivateAaMutations {
@@ -246,7 +246,7 @@ fn process_seq_deletions(
 fn find_reversions(
   cds: &Cds,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
-  aa_unknowns: &[&GeneAaRange],
+  aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
   ref_peptide: &[Aa],
   seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,

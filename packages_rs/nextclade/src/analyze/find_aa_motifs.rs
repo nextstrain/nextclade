@@ -1,6 +1,6 @@
 use crate::alphabet::aa::from_aa_seq;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
-use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsGeneDesc};
+use crate::analyze::virus_properties::{AaMotifsDesc, CountAaMotifsCdsDesc};
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::{intersect_or_none, AaRefRange};
 use crate::translate::translate_genes::{CdsTranslation, Translation};
@@ -53,7 +53,7 @@ fn process_one_aa_motifs_desc(
   let AaMotifsDesc {
     name,
     motifs,
-    include_genes,
+    include_cdses: include_genes,
     ..
   } = aa_motifs_desc;
 
@@ -61,8 +61,8 @@ fn process_one_aa_motifs_desc(
   let include_genes = if include_genes.is_empty() {
     translation
       .cdses()
-      .map(|translation| CountAaMotifsGeneDesc {
-        gene: translation.name.clone(),
+      .map(|translation| CountAaMotifsCdsDesc {
+        cds: translation.name.clone(),
         ranges: vec![],
       })
       .collect_vec()
@@ -72,10 +72,10 @@ fn process_one_aa_motifs_desc(
 
   include_genes
     .iter()
-    .flat_map(|CountAaMotifsGeneDesc { gene, ranges }| {
+    .flat_map(|CountAaMotifsCdsDesc { cds, ranges }| {
       translation
         .cdses()
-        .filter(|CdsTranslation { name, .. }| name == gene)
+        .filter(|CdsTranslation { name, .. }| name == cds)
         .flat_map(|translation| process_one_translation(translation, name, motifs, ranges))
         .collect_vec()
     })

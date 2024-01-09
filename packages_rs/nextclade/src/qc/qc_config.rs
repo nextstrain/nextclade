@@ -70,7 +70,7 @@ pub struct QcRulesConfigSnpClusters {
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct FrameShiftLocation {
-  pub gene_name: String,
+  pub cds_name: String,
   pub codon_range: AaRefRange,
 }
 
@@ -97,7 +97,7 @@ impl Default for QcRulesConfigFrameShifts {
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct StopCodonLocation {
-  pub gene_name: String,
+  pub cds_name: String,
   pub codon: usize,
 }
 

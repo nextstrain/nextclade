@@ -13,7 +13,7 @@ export function formatQCStopCodons<TFunction extends TFunctionInterface>(
 
   const { score, stopCodons, totalStopCodons } = qcStopCodons
 
-  const geneList = uniq(stopCodons.map((sc) => sc.geneName)).join(', ')
+  const geneList = uniq(stopCodons.map((sc) => sc.cdsName)).join(', ')
 
   return t(
     '{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}',

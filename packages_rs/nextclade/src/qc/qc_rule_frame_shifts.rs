@@ -9,7 +9,7 @@ pub fn is_frame_shift_ignored(frame_shift: &FrameShift, config: &QcRulesConfigFr
   config
     .ignored_frame_shifts
     .iter()
-    .any(|ignored| ignored.gene_name == frame_shift.gene_name && ignored.codon_range == frame_shift.codon)
+    .any(|ignored| ignored.cds_name == frame_shift.cds_name && ignored.codon_range == frame_shift.codon)
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]

@@ -50,7 +50,7 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
       <Tooltip wide fullWidth target={id} isOpen={showTooltip} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <p>{t('This gene is missing due to the following errors during analysis: ')}</p>
         {reasons.map((warn) => (
-          <Alert key={warn.geneName} color="warning" fade={false} className="px-2 py-1 my-1">
+          <Alert key={warn.cdsName} color="warning" fade={false} className="px-2 py-1 my-1">
             <WarningIcon />
             {warn.warning}
           </Alert>
@@ -87,7 +87,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const warningsForThisGene = (warnings ?? []).filter((warn) => warn.geneName === viewedGene)
+  const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === viewedGene)
   if (warningsForThisGene.length > 0) {
     return (
       <SequenceViewWrapper>
@@ -101,11 +101,11 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
   const pixelsPerAa = width / Math.round(cdsLength)
   const groups = aaChangesGroups.filter((group) => group.name === viewedGene)
 
-  const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
+  const unknownAaRangesForGene = unknownAaRanges.find((range) => range.cdsName === viewedGene)
   const unsequencedRanges = aaUnsequencedRanges[viewedGene] ?? []
 
   const frameShiftMarkers = frameShifts
-    .filter((frameShift) => frameShift.geneName === cds.name)
+    .filter((frameShift) => frameShift.cdsName === cds.name)
     .map((frameShift) => {
       const id = getSafeId('frame-shift-aa-marker', { ...frameShift })
       return (
@@ -120,7 +120,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     })
 
   const insertionMarkers = aaInsertions
-    .filter((ins) => ins.gene === viewedGene)
+    .filter((ins) => ins.cds === viewedGene)
     .map((insertion) => {
       return (
         <PeptideMarkerInsertion

@@ -60,7 +60,7 @@ pub fn find_codon_mask_range(
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FrameShift {
-  pub gene_name: String,
+  pub cds_name: String,
   pub nuc_rel: NucAlnLocalRange,
   pub nuc_abs: Vec<NucRefGlobalRange>,
   pub codon: AaRefRange,
@@ -90,7 +90,7 @@ pub fn frame_shift_transform(
   let gaps_trailing = Range::new(codon.end, codon_mask.end);
 
   Ok(FrameShift {
-    gene_name: cds.name.clone(),
+    cds_name: cds.name.clone(),
     nuc_abs: nuc_ref_global,
     codon,
     nuc_rel: nuc_aln_local.clone(),

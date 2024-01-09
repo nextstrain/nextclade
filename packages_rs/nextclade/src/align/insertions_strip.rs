@@ -105,7 +105,7 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaIns {
-  pub gene: String,
+  pub cds: String,
   pub pos: i32,
 
   #[schemars(with = "String")]
@@ -117,7 +117,7 @@ pub struct AaIns {
 /// Order amino acid insertions by gene, position, then length
 impl Ord for AaIns {
   fn cmp(&self, other: &Self) -> Ordering {
-    (&self.gene, self.pos, self.ins.len()).cmp(&(&other.gene, other.pos, other.ins.len()))
+    (&self.cds, self.pos, self.ins.len()).cmp(&(&other.cds, other.pos, other.ins.len()))
   }
 }
 
@@ -132,7 +132,7 @@ pub fn get_aa_insertions(translation: &Translation) -> Vec<AaIns> {
     .iter_cdses()
     .flat_map(|(cds_name, cds_tr)| {
       cds_tr.insertions.iter().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene: cds_name.clone(),
+        cds: cds_name.clone(),
         pos: *pos,
         ins: ins.clone(),
       })

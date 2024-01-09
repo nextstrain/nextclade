@@ -177,7 +177,7 @@ export function ListOfInsertionsAa({ insertions }: ListOfInsertionsAaProps) {
   const { thead, tbody } = useMemo(() => {
     const thead = (
       <tr>
-        <ThNormal className="text-center">{t('Gene.')}</ThNormal>
+        <ThNormal className="text-center">{t('CDS')}</ThNormal>
         <ThNormal className="text-center">{t('After ref pos.')}</ThNormal>
         <ThNormal className="text-center">{t('Length')}</ThNormal>
         <ThFragment className="text-center">{t('Inserted fragment')}</ThFragment>
@@ -185,9 +185,9 @@ export function ListOfInsertionsAa({ insertions }: ListOfInsertionsAaProps) {
     )
 
     const insertionsTruncated = insertions.slice(0, 20)
-    const tbody = insertionsTruncated.map(({ pos, ins, gene }) => (
+    const tbody = insertionsTruncated.map(({ pos, ins, cds }) => (
       <tr key={pos}>
-        <TdNormal className="text-center">{gene}</TdNormal>
+        <TdNormal className="text-center">{cds}</TdNormal>
         <TdNormal className="text-center">{pos + 1}</TdNormal>
         <TdNormal className="text-center">{ins.length}</TdNormal>
         <TdFragment className="text-left">

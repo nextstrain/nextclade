@@ -23,7 +23,7 @@ export interface FrameShiftMarkerProps extends SVGProps<SVGRectElement> {
 export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed)
 
 function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPerBase }: FrameShiftMarkerProps) {
-  const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
+  const { cdsName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
 
   const frameShiftSegments = useMemo(
     () =>
@@ -43,7 +43,7 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
             key={id}
             identifier={id}
             index={index}
-            geneName={geneName}
+            geneName={cdsName}
             codon={codon}
             nucAbs={nucAbs}
             gapsTrailing={gapsTrailing}
@@ -52,7 +52,7 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
           />
         )
       }),
-    [codon, gapsLeading, gapsTrailing, geneName, index, nucAbs, pixelsPerBase, seqName],
+    [codon, gapsLeading, gapsTrailing, cdsName, index, nucAbs, pixelsPerBase, seqName],
   )
 
   // eslint-disable-next-line react/jsx-no-useless-fragment

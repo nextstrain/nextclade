@@ -64,9 +64,9 @@ pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMuts
   let mut shared_keys = keys_mut_left.intersection(&keys_mut_right).collect_vec();
   shared_keys.sort();
 
-  for gene_name in shared_keys.clone() {
-    let aa_muts_left = &left.aa_muts[gene_name];
-    let aa_muts_right = &right.aa_muts[gene_name];
+  for cds_name in shared_keys.clone() {
+    let aa_muts_left = &left.aa_muts[cds_name];
+    let aa_muts_right = &right.aa_muts[cds_name];
     let mut aa_subs_for_gene_shared = Vec::<AaSub>::new();
     let mut aa_subs_for_gene_left = Vec::<AaSub>::new();
     let mut aa_subs_for_gene_right = Vec::<AaSub>::new();
@@ -99,9 +99,9 @@ pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMuts
       aa_subs_for_gene_right.push(aa_muts_right[j].clone());
       j += 1;
     }
-    aa_subs_shared.insert(gene_name.to_string(), aa_subs_for_gene_shared);
-    aa_subs_left.insert(gene_name.to_string(), aa_subs_for_gene_left);
-    aa_subs_right.insert(gene_name.to_string(), aa_subs_for_gene_right);
+    aa_subs_shared.insert(cds_name.to_string(), aa_subs_for_gene_shared);
+    aa_subs_left.insert(cds_name.to_string(), aa_subs_for_gene_left);
+    aa_subs_right.insert(cds_name.to_string(), aa_subs_for_gene_right);
   }
   for (k, v) in &left.aa_muts {
     if !shared_keys.contains(&k) {

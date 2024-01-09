@@ -176,7 +176,7 @@ fn map_aa_muts(
       let aa_muts = parent_aa_muts.get(&ref_cds_tr.name).unwrap_or(&empty);
       (
         ref_cds_tr.name.clone(),
-        map_aa_muts_for_one_gene(&ref_cds_tr.name, node, &ref_cds_tr.seq, aa_muts),
+        map_aa_muts_for_one_cds(&ref_cds_tr.name, node, &ref_cds_tr.seq, aa_muts),
       )
     })
     .map(|(name, muts)| -> Result<_, Report>  {
@@ -185,27 +185,27 @@ fn map_aa_muts(
     .collect()
 }
 
-fn map_aa_muts_for_one_gene(
-  gene_name: &str,
+fn map_aa_muts_for_one_cds(
+  cds_name: &str,
   node: &AuspiceGraphNodePayload,
   ref_peptide: &[Aa],
   parent_aa_muts: &BTreeMap<AaRefPosition, Aa>,
 ) -> Result<BTreeMap<AaRefPosition, Aa>, Report> {
   let mut aa_muts = parent_aa_muts.clone();
 
-  match node.branch_attrs.mutations.get(gene_name) {
+  match node.branch_attrs.mutations.get(cds_name) {
     None => Ok(aa_muts),
     Some(mutations) => {
       for mutation_str in mutations {
-        let mutation = AaSub::from_str_and_gene(mutation_str, gene_name)?;
+        let mutation = AaSub::from_str_and_gene(mutation_str, cds_name)?;
 
         if ref_peptide.len() < mutation.pos.as_usize() {
           return make_error!(
           "When preprocessing reference tree node {}: amino acid mutation {}:{} is outside of the peptide {} (length {}). This is likely an inconsistency between reference tree, reference sequence, and genome annotation in the Nextclade dataset",
           node.name,
-          gene_name,
+          cds_name,
           mutation.to_string_without_gene(),
-          gene_name,
+          cds_name,
           ref_peptide.len(),
         );
         }

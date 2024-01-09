@@ -132,7 +132,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
 
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
-      key={`${frameShift.geneName}_${frameShift.nucAbs.map((na) => na.begin).join('-')}`}
+      key={`${frameShift.cdsName}_${frameShift.nucAbs.map((na) => na.begin).join('-')}`}
       index={index}
       seqName={seqName}
       frameShift={frameShift}
