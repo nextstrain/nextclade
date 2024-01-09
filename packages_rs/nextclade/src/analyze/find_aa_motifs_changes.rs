@@ -27,7 +27,7 @@ pub struct AaMotifChanges {
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifMutation {
   pub name: String,
-  pub gene: String,
+  pub cds: String,
   pub position: AaRefPosition,
   pub ref_seq: String,
   pub qry_seq: String,
@@ -99,7 +99,7 @@ fn find_aa_motifs_changes_one(
     Zip::from((kept_ref, kept_qry))
       .map(|(motif_ref, motif_qry)| AaMotifMutation {
         name: motif_ref.name,
-        gene: motif_ref.cds,
+        cds: motif_ref.cds,
         position: motif_ref.position,
         ref_seq: motif_ref.seq,
         qry_seq: motif_qry.seq,
@@ -129,7 +129,7 @@ fn add_ref_seq(motif: &AaMotif, ref_translation: &Translation) -> Result<AaMotif
 
   Ok(AaMotifMutation {
     name: motif.name.clone(),
-    gene: motif.cds.clone(),
+    cds: motif.cds.clone(),
     position: motif.position,
     ref_seq,
     qry_seq: motif.seq.clone(),
@@ -149,7 +149,7 @@ fn add_qry_seq(motif: &AaMotif, qry_translation: &Translation) -> Option<AaMotif
         let qry_seq = from_aa_seq(&tr.seq[sequenced_motif_range.to_std()]);
         Some(AaMotifMutation {
           name: motif.name.clone(),
-          gene: motif.cds.clone(),
+          cds: motif.cds.clone(),
           position: motif.position,
           ref_seq: motif.seq.clone(),
           qry_seq,

@@ -99,29 +99,29 @@ pub fn find_letter_ranges<L: Letter<L>, P: PositionLike>(qry_aln: &[L], letter: 
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct GeneAaRange {
-  pub gene_name: String,
+pub struct CdsAaRange {
+  pub cds_name: String,
   #[serde(rename = "character")]
   pub letter: Aa,
   pub ranges: Vec<AaRange>,
   pub length: usize,
 }
 
-impl GeneAaRange {
+impl CdsAaRange {
   pub fn contains_pos(&self, pos: AaRefPosition) -> bool {
     self.ranges.iter().any(|range| range.contains_pos(pos))
   }
 }
 
 /// Finds contiguous ranges (segments) consisting of a given amino acid in the sequence.
-pub fn find_aa_letter_ranges(translation: &Translation, letter: Aa) -> Vec<GeneAaRange> {
+pub fn find_aa_letter_ranges(translation: &Translation, letter: Aa) -> Vec<CdsAaRange> {
   translation
     .cdses()
     .filter_map(|CdsTranslation { name, seq, .. }| {
       let ranges = find_letter_ranges_by(seq, |candidate| candidate == letter);
       let length = ranges.iter().map(LetterRange::len).sum();
-      (length > 0).then(|| GeneAaRange {
-        gene_name: name.clone(),
+      (length > 0).then(|| CdsAaRange {
+        cds_name: name.clone(),
         letter,
         ranges,
         length,

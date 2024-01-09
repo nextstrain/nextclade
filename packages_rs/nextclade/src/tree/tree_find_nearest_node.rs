@@ -164,7 +164,7 @@ mod tests {
         has_pcr_primer_changes: None,
         pcr_primer_changes: None,
         qc_status: None,
-        missing_genes: None,
+        missing_cdses: None,
         other: serde_json::Value::default(),
       },
 

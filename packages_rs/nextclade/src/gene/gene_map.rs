@@ -86,8 +86,8 @@ impl GeneMap {
   }
 
   #[must_use]
-  pub fn contains(&self, gene_name: &str) -> bool {
-    self.genes.iter().any(|gene| gene.name == gene_name)
+  pub fn contains(&self, name: &str) -> bool {
+    self.genes.iter().any(|gene| gene.name == name)
   }
 
   pub fn get(&self, gene_name: &str) -> Result<&Gene, Report> {
@@ -95,7 +95,7 @@ impl GeneMap {
       .genes
       .iter()
       .find(|gene| gene.name == gene_name)
-      .ok_or_else(|| make_internal_report!("Gene is expected to be present, but not found: '{gene_name}'"))
+      .ok_or_else(|| make_internal_report!("Gene '{gene_name}' is expected to be present, but not found"))
   }
 
   pub fn get_cds<S: AsRef<str>>(&self, cds_name: S) -> Result<&Cds, Report> {

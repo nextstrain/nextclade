@@ -12,7 +12,7 @@ export function FrameShiftRows({ frameShifts }: FrameShiftRowsProps) {
   return (
     <ul>
       {frameShifts.map((fs) => (
-        <li key={`${fs.geneName}_${fs.codon.begin}`}>{formatFrameShift(fs)}</li>
+        <li key={`${fs.cdsName}_${fs.codon.begin}`}>{formatFrameShift(fs)}</li>
       ))}
     </ul>
   )

@@ -24,8 +24,8 @@ export function formatAADeletion({ cdsName, refAa, pos }: AaDel) {
   return `${cdsName}:${notation}`
 }
 
-export function formatStopCodon({ geneName, codon }: StopCodonLocation) {
+export function formatStopCodon({ cdsName, codon }: StopCodonLocation) {
   // NOTE: by convention, codons are numbered starting from 1, however our arrays are 0-based
   const codonOneBased = codon + 1
-  return `${geneName}:${codonOneBased}`
+  return `${cdsName}:${codonOneBased}`
 }

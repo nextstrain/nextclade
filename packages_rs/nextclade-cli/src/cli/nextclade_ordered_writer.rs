@@ -133,9 +133,6 @@ impl NextcladeOrderedWriter {
       }) => {
         let NextcladeOutputs {
           warnings,
-          insertions,
-          aa_insertions,
-          missing_genes,
           is_reverse_complement,
           ..
         } = &analysis_result;

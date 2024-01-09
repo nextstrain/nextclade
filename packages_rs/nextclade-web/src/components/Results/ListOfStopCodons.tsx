@@ -12,7 +12,7 @@ export function StopCodonsItems({ stopCodons }: StopCodonsRowsProps) {
   return (
     <ul>
       {stopCodons.map((sc) => (
-        <li key={`${sc.geneName}_${sc.codon}`}>{formatStopCodon(sc)}</li>
+        <li key={`${sc.cdsName}_${sc.codon}`}>{formatStopCodon(sc)}</li>
       ))}
     </ul>
   )

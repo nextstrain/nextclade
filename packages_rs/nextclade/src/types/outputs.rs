@@ -6,7 +6,7 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::letter_ranges::{GeneAaRange, NucRange};
+use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
@@ -22,7 +22,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PeptideWarning {
-  pub gene_name: String,
+  pub cds_name: String,
   pub warning: String,
 }
 
@@ -30,7 +30,7 @@ pub struct PeptideWarning {
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeValue {
   pub name: String,
-  pub gene: String,
+  pub cds: String,
   pub value: f64,
 }
 
@@ -60,7 +60,7 @@ pub struct NextcladeOutputs {
   pub total_aminoacid_deletions: usize,
   pub aa_insertions: Vec<AaIns>,
   pub total_aminoacid_insertions: usize,
-  pub unknown_aa_ranges: Vec<GeneAaRange>,
+  pub unknown_aa_ranges: Vec<CdsAaRange>,
   pub total_unknown_aa: usize,
   pub aa_changes_groups: Vec<AaChangesGroup>,
   pub nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>>,
@@ -74,7 +74,7 @@ pub struct NextcladeOutputs {
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
   pub warnings: Vec<PeptideWarning>,
-  pub missing_genes: Vec<String>,
+  pub missing_cdses: Vec<String>,
   pub divergence: f64,
   pub coverage: f64,
   pub qc: QcResult,

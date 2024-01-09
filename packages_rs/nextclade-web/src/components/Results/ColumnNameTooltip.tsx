@@ -68,7 +68,7 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
 
   const warningComponents = useMemo(() => {
     return (result?.analysisResult?.warnings ?? []).map((warning) => (
-      <Alert key={`${warning.geneName}: ${warning.warning}`} color="warning" fade={false} className="px-2 py-1 my-1">
+      <Alert key={`${warning.cdsName}: ${warning.warning}`} color="warning" fade={false} className="px-2 py-1 my-1">
         <WarningIcon />
         {warning.warning}
       </Alert>

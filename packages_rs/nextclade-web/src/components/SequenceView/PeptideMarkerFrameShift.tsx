@@ -34,10 +34,10 @@ function PeptideMarkerFrameShiftUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { geneName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
+  const { cdsName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
   const id = getSafeId('frame-shift-aa-marker', { index, seqName, ...frameShift })
 
-  const cds = useRecoilValue(cdsAtom(geneName))
+  const cds = useRecoilValue(cdsAtom(cdsName))
   if (!cds) {
     return null
   }
@@ -92,8 +92,8 @@ function PeptideMarkerFrameShiftUnmemoed({
               </tr>
 
               <tr>
-                <td>{t('Gene')}</td>
-                <td>{geneName}</td>
+                <td>{t('CDS')}</td>
+                <td>{cdsName}</td>
               </tr>
 
               <tr>

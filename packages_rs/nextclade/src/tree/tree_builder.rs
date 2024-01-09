@@ -258,10 +258,10 @@ pub fn convert_private_mutations_to_node_branch_attrs(mutations: &BranchMutation
   let nuc_muts = mutations.nuc_muts.iter().sorted().map(NucSub::to_string).collect_vec();
   branch_attrs.insert("nuc".to_owned(), nuc_muts);
 
-  for (gene_name, aa_muts) in &mutations.aa_muts {
+  for (cds_name, aa_muts) in &mutations.aa_muts {
     if !aa_muts.is_empty() {
       let aa_muts = aa_muts.iter().sorted().map(AaSub::to_string_without_gene).collect_vec();
-      branch_attrs.insert(gene_name.clone(), aa_muts);
+      branch_attrs.insert(cds_name.clone(), aa_muts);
     }
   }
 
@@ -272,9 +272,9 @@ pub fn convert_private_mutations_to_node_branch_attrs_aa_labels(aa_muts: &BTreeM
   aa_muts
     .iter()
     .filter(|(_, aa_muts)| !aa_muts.is_empty())
-    .map(|(gene_name, aa_muts)| {
+    .map(|(cds_name, aa_muts)| {
       let aa_muts = aa_muts.iter().sorted().map(AaSub::to_string_without_gene).join(", ");
-      format!("{gene_name}: {aa_muts}")
+      format!("{cds_name}: {aa_muts}")
     })
     .join("; ")
 }
