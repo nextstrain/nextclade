@@ -30,7 +30,7 @@ The name originates from the [Root node](#root-node) of the [Reference tree (con
 
 Synonyms:  **Query nucleotide sequence**
 
-One of the input nucleotide sequences provided by the user. These are the sequences to be analysed.
+One of the input nucleotide sequences provided by the user. These are the sequences to be analyzed.
 
 ### Reference nucleotide
 
@@ -44,7 +44,13 @@ A nucleotide (character) in the [**Query sequence**](#query-sequence).
 
 ### Gene
 
-A nucleotide sequence fragment encoding a [Peptide](#peptide).
+A nucleotide sequence fragment that is read and transcribed by the polymerase.
+Often, genes contain encoding a [CDS](#cds).
+Gene and CDS are often used synonymously.
+
+### CDS
+
+Abbreviation of Coding Sequence. Nucleotide sequence that is translated by the ribosome and codes for a [Peptide](#peptide).
 
 ### Codon (concept)
 
@@ -110,7 +116,7 @@ Node on the reference tree that corresponds to a particular [Query sequence](#qu
 
 (used interchangeably with **Genome annotation**)
 
-A set of entries describing [Genes](#gene) for a particular virus. This includes names, nucleotide ranges of each gene.
+A set of entries describing [CDS](#cds) for a particular virus. This includes names, nucleotide ranges of each CDS. The annotation can also contain other features such as [genes](#gene) or RNA secondary structures.
 
 ### Alignment (process)
 

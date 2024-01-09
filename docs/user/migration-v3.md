@@ -102,7 +102,7 @@ The names of the official datasets have changed (they look like filesystem paths
 For example, you can download Wuhan-based SARS-CoV-2 dataset using:
 
 ```bash
-nextclade dataset get --name="nextstrain/sars-cov-2/MN908947" --output-dir="out_dir/"
+nextclade dataset get --name="nextstrain/sars-cov-2/wuhan-hu-1/orfs" --output-dir="out_dir/"
 ```
 
 You can obtain a concise list of the available datasets if you add `--only-names` flag to the `dataset list` command:
