@@ -13,6 +13,12 @@ pub enum GapAlignmentSide {
   Right,
 }
 
+impl Default for GapAlignmentSide {
+  fn default() -> Self {
+    Self::Left
+  }
+}
+
 // NOTE: The `optfield` attribute creates a struct that have the same fields, but which are wrapped into `Option`,
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
 // into self (mutably).
@@ -82,8 +88,7 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub terminal_bandwidth: i32,
 
-  /// Whether to align gaps on the left or right side if equally parsimonious.
-  /// Left aligning gaps is the convention, right align is Nextclade's historic default
+  /// Whether to align gaps on the left or right side if equally parsimonious. Default: left
   #[clap(long, value_enum)]
   pub gap_alignment_side: GapAlignmentSide,
 
@@ -158,7 +163,7 @@ impl Default for AlignPairwiseParams {
       no_translate_past_stop: false,
       left_terminal_gaps_free: true,
       right_terminal_gaps_free: true,
-      gap_alignment_side: GapAlignmentSide::Left,
+      gap_alignment_side: GapAlignmentSide::default(),
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
       min_seed_cover: 0.33,
