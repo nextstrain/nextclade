@@ -158,7 +158,7 @@ impl Default for AlignPairwiseParams {
       no_translate_past_stop: false,
       left_terminal_gaps_free: true,
       right_terminal_gaps_free: true,
-      gap_alignment_side: GapAlignmentSide::Right,
+      gap_alignment_side: GapAlignmentSide::Left,
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
       min_seed_cover: 0.33,
