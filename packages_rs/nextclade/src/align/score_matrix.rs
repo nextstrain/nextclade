@@ -40,6 +40,8 @@ pub fn score_matrix<T: Letter<T>>(
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
 
+  // The variable left_align changes the < effectively into <= in the conditions where it's used,
+  // in order to select preferred alignment where there's two equally good possibilities.
   let left_align = match params.gap_alignment_side {
     GapAlignmentSide::Left => 1,
     GapAlignmentSide::Right => 0,
