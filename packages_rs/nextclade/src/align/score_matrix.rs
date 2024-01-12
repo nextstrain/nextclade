@@ -273,13 +273,70 @@ mod tests {
     let expected_paths = Band2d::<i8>::with_data(
       &stripes,
       &[
+           0, 10, 10, 10,
+          20,  1,  9,  9, 41,
+          20, 17, 17, 25,  9,
+          20,  1, 25,  1, 25, 34, 42,
+          20, 17,  1, 25,  4,  9,  2, 10,
+          20, 17, 25,  2, 25, 12,  9,  2,
+          20, 17,  4, 25, 18, 25, 12,  9,
+          20, 17, 25,  4, 17, 18, 26, 12,
+                  52, 17,  4, 17, 18, 28,
+                  52, 20, 20,  4, 17, 18,
+                      20, 20, 20,  4,  1,
+      ],
+    );
+
+    assert_eq!(expected_scores, result.scores);
+    assert_eq!(expected_paths, result.paths);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn pads_missing_left_with_alignment_gap_right(mut ctx: Context) -> Result<(), Report> {
+    let qry_seq = to_nuc_seq("CTCGCTG")?;
+    let ref_seq = to_nuc_seq("ACGCTCGCTG")?;
+
+    let band_width = 5;
+    let mean_shift = 2;
+
+    let mut stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
+    stripes[2].end = stripes[2].end - 1;
+    stripes[8].begin = stripes[8].begin + 1;
+
+    ctx.params.gap_alignment_side = GapAlignmentSide::Right;
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
+
+    #[rustfmt::skip]
+    let expected_scores = Band2d::<i32>::with_data(
+      &stripes,
+      &[
+         0,  0,  0,  0,
+         0, -1, -1, -1, -1,
+         0,  3, -2,  2, -2,
+         0, -1,  2, -3,  5, -1, -1,
+         0,  3, -2,  5, -1,  8,  2,  2,
+         0, -1,  6,  0,  4,  2, 11,  5,
+         0,  3,  0,  9,  3,  7,  5, 10,
+         0, -1,  2,  3, 12,  6,  6, 10,
+                 0,  5,  6, 15,  9, 10,
+                 0,  3,  6,  9, 18, 12,
+                     3,  6,  9, 12, 21,
+      ],
+    );
+
+    #[rustfmt::skip]
+    let expected_paths = Band2d::<i8>::with_data(
+      &stripes,
+      &[
          0, 10, 10, 10,
         20,  1,  9,  9, 41,
         20, 17, 17, 25,  9,
         20,  1, 25,  1, 25, 34, 42,
         20, 17,  1, 25,  2,  9,  2, 10,
-        20, 17, 25,  2, 25, 12,  9, 2,
-        20, 17,  4, 25, 18, 25, 12, 9,
+        20, 17, 25,  2, 25, 12,  9,  2,
+        20, 17,  4, 25, 18, 25, 12,  9,
         20, 17, 25,  4, 17, 18, 25, 12,
                 52, 17,  4, 17, 18, 28,
                 52, 20, 20,  4, 17, 18,
