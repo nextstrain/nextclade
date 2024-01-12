@@ -28,9 +28,6 @@ THIS_DIR="$(
 export artifacts_dir="${THIS_DIR}/../artifacts"
 
 artifacts=(
-  'nextalign-aarch64-apple-darwin'
-  'nextalign-x86_64-apple-darwin'
-  'nextalign-x86_64-unknown-linux-gnu'
   'nextclade-aarch64-apple-darwin'
   'nextclade-x86_64-apple-darwin'
   'nextclade-x86_64-unknown-linux-gnu'
@@ -83,15 +80,13 @@ git switch --quiet --create "bump/nextclade-${version}"
 
 ## Bump the version
 "${THIS_DIR}/update-bioconda.py" "nextclade" "${version}" "${artifacts_dir}" "recipes/nextclade/meta.yaml"
-"${THIS_DIR}/update-bioconda.py" "nextalign" "${version}" "${artifacts_dir}" "recipes/nextalign/meta.yaml"
 
 # Print the diff
 git --no-pager diff --unified=0 --no-prefix --no-commit-id --word-diff
 
 # Stage and commit the changes
 git add "recipes/nextclade/meta.yaml"
-git add "recipes/nextalign/meta.yaml"
-git commit --quiet -m "Update nextclade and nextalign to ${version}"
+git commit --quiet -m "Update nextclade to ${version}"
 
 # Push to the fork
 git push --quiet --set-upstream nextstrain "bump/nextclade-${version}"
@@ -108,7 +103,7 @@ maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -
 # Create PR body. This is what goes to the first message.
 function pr_body() {
   cat <<~~
-Update [nextclade](https://bioconda.github.io/recipes/nextclade/README.html) and [nextalign](https://bioconda.github.io/recipes/nextalign/README.html): ${version_old} → ${version}.
+Update [nextclade](https://bioconda.github.io/recipes/nextclade/README.html): ${version_old} → ${version}.
 
 <img src=https://img.shields.io/conda/dn/bioconda/nextclade.svg />
 
@@ -139,7 +134,7 @@ Note: this pull request is submitted [automatically](https://github.com/nextstra
 # Submit the PR, reading message body from stdin
 function submit_pr() {
   pr_body | gh pr create \
-    --title "Update nextclade and nextalign to ${version}" \
+    --title "Update nextclade to ${version}" \
     --body-file - \
     --repo "bioconda/bioconda-recipes"
 }
