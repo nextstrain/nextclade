@@ -167,7 +167,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 * `--excess-bandwidth <EXCESS_BANDWIDTH>` — Excess bandwidth for internal stripes
 * `--terminal-bandwidth <TERMINAL_BANDWIDTH>` — Excess bandwidth for terminal stripes
-* `--gap-alignment-side <GAP_ALIGNMENT_SIDE>` — Whether to align gaps on the left or right side if equally parsimonious. Left aligning gaps is the convention, right align is Nextclade's historic default
+* `--gap-alignment-side <GAP_ALIGNMENT_SIDE>` — Whether to align gaps on the left or right side if equally parsimonious. Default: left
 
   Possible values: `left`, `right`
 
