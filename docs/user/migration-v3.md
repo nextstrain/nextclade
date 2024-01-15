@@ -14,7 +14,7 @@ If you encounter problems during migration, or breaking changes not mentioned in
 - [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
 - [Nextclade CLI releases](https://github.com/nextstrain/nextclade/releases) - all versions
 - [Nextclade user documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) - for detailed instructions on how to use Nextclade Web and Nextclade CLI
-- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md)  - if you have a custom Nextclade dataset or want to create one
+- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd)  - if you have a custom Nextclade dataset or want to create one
 - [Nextclade source code repository](https://github.com/nextstrain/nextclade) - for contributors to Nextclade software (code, bug reports, feature requests etc.)
 - [Nextclade data repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (new pathogens, bug reports, etc.)
 - [Nextclade software GitHub issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
@@ -68,7 +68,7 @@ If you are, then in your Nextalign command-line invocation replace the word `nex
 
 If you used `nextalign` for a pathogen/strain which has a Nextclade dataset, then you can replace individual input arguments, such as for reference sequence and genome annotation with a single argument `--input-dataset`. Type `nextclade run --help` and refer to documentation for details on command-line arguments.
 
-For a list of all datasets, type `nextclade dataset list`. If there is no dataset for your pathogen/strain, then consider arranging the individual input files into a dataset and contributing it to the Nextclade community dataset collection. For instructions see [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
+For a list of all datasets, type `nextclade dataset list`. If there is no dataset for your pathogen/strain, then consider arranging the individual input files into a dataset and contributing it to the Nextclade community dataset collection. For instructions see [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd).
 
 ## 2. Some alignment parameters are removed
 
@@ -104,7 +104,7 @@ It might be that it does not require parameter tuning anymore. If you observe se
 
 Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach sequences to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2.
 
-Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/05-phylogenetic-placement.html) section in the documentation for more details.
+Please read the [Phylogenetic placement](algorithm/05-phylogenetic-placement) section in the documentation for more details.
 
 ##### Migration paths
 
@@ -120,9 +120,9 @@ Dataset names have changed. There is no longer a separation to `name`, `referenc
 
 ##### Migration paths for dataset maintainers
 
-If you have a custom dataset for Nextclade v2 and want to migrate it to Nextclade v3, then please follow [Nextclade dataset migration guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3.md).
+If you have a custom dataset for Nextclade v2 and want to migrate it to Nextclade v3, then please follow [Nextclade dataset migration guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3%2Emd).
 
-We also invite you to consider submitting your dataset for potential inclusion to the Nextclade community datasets collection, so that it is visible in the list in Nextclade CLI and Nextclade Web. You can find relevant instructions in the [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
+We also invite you to consider submitting your dataset for potential inclusion to the Nextclade community datasets collection, so that it is visible in the list in Nextclade CLI and Nextclade Web. You can find relevant instructions in the [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd).
 
 If you encounter any difficulties, feel free to reach out by either opening a [GitHub issue](https://github.com/nextstrain/nextclade_data/issues), or on [Nextstrain discussion forum](https://discussion.nextstrain.org).
 
@@ -164,7 +164,7 @@ in favor of `--input-pathogen-json`.
 
 ##### Migration paths:
 
-Please use `--input-pathogen-json` instead of the removed flags. If you need to migrate the files to the new format, then please follow the migration steps in the [Nextclade dataset migration guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3.md).
+Please use `--input-pathogen-json` instead of the removed flags. If you need to migrate the files to the new format, then please follow the migration steps in the [Nextclade dataset migration guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/migration-guide-v3%2Emd).
 
 ## 6. Some output files are removed
 

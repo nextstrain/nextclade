@@ -173,7 +173,7 @@ Compatibility checks are ensured by default in Nextclade Web and Nextclade CLI w
 
 You can create a new dataset by creating a directory with the required input files. You can use one of the existing datasets as a starting point and modify its files as needed.
 
-For more details on how to create your own dataset, see [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md).
+For more details on how to create your own dataset, see [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd).
 
 ## Online dataset repository
 
