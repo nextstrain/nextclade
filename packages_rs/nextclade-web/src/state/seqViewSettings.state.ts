@@ -89,7 +89,7 @@ export const seqMarkerFrameShiftStateAtom = atom<SeqMarkerFrameShiftState>({
 
 export const maxNucMarkersAtom = atom<number>({
   key: 'maxNucMarkers',
-  default: 3000,
+  default: 500,
   effects: [persistAtom],
 })
 
