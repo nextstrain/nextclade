@@ -8,7 +8,7 @@ This section lists breaking changes in Nextclade v3 compared to Nextclade v2, an
 
 If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues).
 
-Useful links:
+## Useful links
 
 - [Nextclade Web v3](https://clades.nextstrain.org)
 - [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
@@ -20,6 +20,41 @@ Useful links:
 - [Nextclade software GitHub issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
 - [Nextclade data GitHub issues](https://github.com/nextstrain/nextclade_data/issues) - to report bugs and ask questions about Nextclade datasets
 - [Nextstrain discussion forum](https://discussion.nextstrain.org) - for general discussion and questions
+
+
+## Avoiding the upgrade to v3 temporarily (staying on v2)
+
+If you need some more time for the upgrade, and want to temporarily stay on Nextclade version 2, then you need to manually "pin" the version being used. In order to avoid breakage, we invite you to do this before v3 is released on January 16. The last version in v2 family is 2.14.0
+
+#### For Nextclade Web
+
+Use this URL: [v2.clades.nextstrain.org](https://v2.clades.nextstrain.org). This address will have Nextclade Web v2 deployed even after v3 is deployed to the main address.
+
+This might include cases where you use Nextclade Web yourself, as well as cases where you share links with other people, e.g. if you maintain a custom dataset in Nextclade v2 format and provide links preconfigured using URL parameters. Note that v2 datasets are not compatible with Nextclade v3 and vice-versa.
+
+#### For Nextclade CLI
+
+Existing Nextclade CLI v2 or Nextalign CLI v2 downloads and installations will continue to function. Datasets for Nextclade v2 will still be available as before, although they will not receive any updates. If you install Nextclade/Nextalign continuously using a script or a pipeline and you want to keep using v2 after v3 is released, you can do the following adjustments:
+
+- if you are using direct download, use links specific to the version 2.14.0 from [here](https://github.com/nextstrain/nextclade/releases/tag/2.14.0) (scroll towards the bottom of the page)
+
+- if you are using Docker images, use a specific docker tag:
+
+  ```bash 
+  docker pull nextstrain/nextclade:2.14.0
+  ```
+
+- if you are installing package through Bioconda, specify a specific version:
+
+  ```bash
+  conda install nextclade=2.14.0
+  ````
+
+Please note that staying on Nextclade v2 is not recommended long-term. Nextclade v2 will not be receiving any software updates and will not receive any new dataset updates, so eventually you will end up with outdated analysis results.
+
+
+---
+
 
 ## 1. Nextalign CLI is removed
 
@@ -170,3 +205,59 @@ Due to changes in the dataset format and in input files, the following changes i
 | `input-pathogen-json`                                           | added                         |                                                                 |
 | `input-qc-config`,`input-pcr-primers`, `input-virus-properties` | removed                       | use `pathogen.json` instead                                     |
 | `dataset-reference`                                             | removed                       | use new `dataset-name` (which identifies the datasets uniquely) |
+
+
+## 9. CDS instead of genes
+
+Nextclade now uses "CDS" features from genome annotations instead of "gene" features. Certain fields in input and output files have been modified to reflect that.
+
+
+#### Modified input files
+
+The following fields are renamed in the input `pathogen.json` (previously `virus_properties.json` and `qc.json`):
+
+```
+From: aaMotifs[].includeGenes[].gene
+To:   aaMotifs[].includeCdses[].cds
+
+From: phenotypeData[].gene
+To:   phenotypeData[].cds
+
+From: qc.frameShifts.ignoredFrameShifts[].geneName
+To:   qc.frameShifts.ignoredFrameShifts[].cdsName
+
+From: qc.stopCodons.ignoredStopCodons[].geneName
+To:   qc.stopCodons.ignoredStopCodons[].cdsName
+```
+
+#### Modified output files
+
+The following fields are renamed in the output `nextclade.json`/`nextclade.ndjson`:
+
+```
+From: results[].missingGenes
+To:   results[].missingCdses
+```
+
+The following columns are renamed in the output `nextclade.tsv`/`nextclade.csv`:
+
+```
+From: failedGenes
+To:   failedCdses
+```
+
+
+The following fields are renamed in the output `nextclade.tree.json`:
+
+```
+From: node_atts.missing_genes
+To:   node_atts.missing_cdses
+```
+
+
+### Migration paths
+
+When creating or modifying `pathogen.json` file in the dataset make sure to use the new names of the mentioned fields.
+
+When using output files, make sure to use the new names of the mentioned fields and columns.
+

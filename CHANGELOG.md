@@ -33,6 +33,7 @@ This section briefly lists breaking changes in Nextclade v3 compared to Nextclad
 6. Some output files are removed
 7. Genome annotation CLI argument is renamed
 8. URL parameters in Nextclade Web have changed
+9. CDS instead of genes
 
 The sections below list all changes - breaking and non-breaking. The breaking changes are denoted with word `[BREAKING]`.
 
