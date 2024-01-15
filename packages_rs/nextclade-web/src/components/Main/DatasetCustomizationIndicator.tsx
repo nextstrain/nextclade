@@ -1,9 +1,12 @@
 import React, { useMemo } from 'react'
-import { useRecoilValue } from 'recoil'
+import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { ButtonProps } from 'reactstrap'
 import styled from 'styled-components'
+import { MdClear as IconClearBase } from 'react-icons/md'
+import { Link } from 'src/components/Link/Link'
+import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { inputCustomizationCounterAtom } from 'src/state/inputs.state'
+import { datasetFilesResetAtom, inputCustomizationCounterAtom } from 'src/state/inputs.state'
 
 export interface ButtonCustomizeProps extends ButtonProps {
   isOpen: boolean
@@ -37,4 +40,49 @@ export const DatasetCustomizationIndicatorIcon = styled.span<{ size: number }>`
   border-radius: ${(props) => props.size}px;
   margin-left: 0.5rem;
   padding: 0 0.25rem;
+`
+
+export function DatasetCustomizationsIndicatorLink() {
+  const { t } = useTranslationSafe()
+  const inputCustomizationCounter = useRecoilValue(inputCustomizationCounterAtom)
+
+  const text = useMemo(
+    () => t('Dataset files currently customized: {{n}}', { n: inputCustomizationCounter }),
+    [inputCustomizationCounter, t],
+  )
+
+  const resetCustomizations = useResetRecoilState(datasetFilesResetAtom)
+
+  if (inputCustomizationCounter === 0) {
+    return null
+  }
+
+  return (
+    <div className="d-flex">
+      <CustomizationLink href="/dataset#customize" title={text}>
+        <span className="text-danger">{t('Customizations')}</span>
+        <DatasetCustomizationIndicator />
+      </CustomizationLink>
+      <ButtonClear onClick={resetCustomizations} title={t('Reset customizations')}>
+        <IconClear size={15} />
+      </ButtonClear>
+    </div>
+  )
+}
+
+const CustomizationLink = styled(Link)`
+  &:hover {
+    text-decoration: ${(props) => props.theme.danger} underline solid;
+  }
+`
+
+const ButtonClear = styled(ButtonTransparent)`
+  display: flex;
+  margin-left: 0.5rem;
+`
+
+const IconClear = styled(IconClearBase)`
+  * {
+    color: ${(props) => props.theme.gray500};
+  }
 `

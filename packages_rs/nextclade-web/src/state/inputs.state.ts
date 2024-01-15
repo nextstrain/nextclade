@@ -117,6 +117,15 @@ export const inputResetAtom = selector<undefined>({
   get: () => undefined,
   set({ reset }) {
     reset(qrySeqInputsStorageAtom)
+    reset(datasetFilesResetAtom)
+  },
+})
+
+/** Resets all dataset files */
+export const datasetFilesResetAtom = selector<undefined>({
+  key: 'datasetFilesResetAtom',
+  get: () => undefined,
+  set({ reset }) {
     reset(refSeqInputAtom)
     reset(geneMapInputAtom)
     reset(refTreeInputAtom)
