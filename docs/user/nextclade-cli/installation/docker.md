@@ -37,7 +37,7 @@ docker run -it --rm \
   --user="$(id -u):$(id -g)" \
   "nextstrain/nextclade" \
   nextclade run \
-      --dataset-name="nextstrain/sars-cov-2/MN908947" \
+      --dataset-name="sars-cov-2" \
       --output-dir="/data/output/" \
       "/data/my_sequences.fasta"
 ```
