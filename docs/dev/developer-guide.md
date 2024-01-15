@@ -42,11 +42,11 @@ as well as to the `--help` text for each tool.
    cd nextclade
    ```
 
-   > 💡 We accept pull requests on GitHub. If you want to submit a with new feature or a bug fixe, then make a GitHub account, [make a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of the [origin Nextclade repository](https://github.com/nextstrain/nextclade) and clone your forked repository instead. Refer to [GitHub documentation "Contributing to projects"](https://docs.github.com/en/get-started/quickstart/contributing-to-projects) for more details.
+   > 💡 We accept pull requests on GitHub. If you want to submit a with new feature or a bug fix, then make a GitHub account, [make a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of the [origin Nextclade repository](https://github.com/nextstrain/nextclade) and clone your forked repository instead. Refer to [GitHub documentation "Contributing to projects"](https://docs.github.com/en/get-started/quickstart/contributing-to-projects) for more details.
 
    > 💡 Make sure you [keep your local code up to date](https://github.com/git-guides/git-pull) with the origin repo,  [especially if it's forked](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork).
 
-   > 💡 If you are a member of Nextstrain team, then you don't need a fork and you can contribute directly to the origin repository. Still, in most cases, please submit pull requests for review, rather than pushing changes to branches directly.
+   > 💡 If you are a member of Nextstrain team, then you don't need a fork and you can contribute directly to the origin repository. Still, in most cases, please submit pull requests for review, rather than pushing changes to major branches directly.
 
 2. Install Rust if not already (https://www.rust-lang.org/tools/install):
 
@@ -67,11 +67,11 @@ as well as to the `--help` text for each tool.
     $ rustup -V
     ```
 
-   > ⚠️ We don't support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html). If you decide to go that route install Rust from Linux OS package repositories, Homebrew, Conda etc., things may or may not work, or they may work sometimes. Nextclade team don't have bandwidth to try every platform and config, so you are on your own here. But feel free to open pull requests with fixes, if necessary.
+   > ⚠️ We don't support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html). If you install Rust from Linux OS package repositories, Homebrew, Conda etc., things may or may not work, or they may work but produce wrong results. Nextclade team don't have bandwidth to try every platform and config, so if you decide to go unofficial route, then you are on your own. But feel free to open pull requests with fixes, where necessary.
 
-   > 💡 Note, Rustup allows to install multiple versions of Rust and to switch between them. This repository contains a [rust-toolchain.toml](../../rust-toolchain.toml) file, which describes which version of Rust is currently in use by Nextclade official build. Cargo and Rustup should be able to [pick it up automatically](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file), install the required toolchain and use it when you type `cargo` commands.
+   > 💡 Note, Rustup allows to install multiple versions of Rust and to switch between them. This repository contains a [rust-toolchain.toml](../../rust-toolchain.toml) file, which describes which version of Rust is currently in use by Nextclade official build. Cargo and Rustup should be able to [pick it up automatically](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file), install the required toolchain and use it when you type `cargo` commands. Any other versions of Rust toolchain are not supported.
 
-3. Prepare environment variables which configure Nextclade build-time settings (once)
+3. Prepare environment variables which configure Nextclade build-time settings (once). Optionally adjust the variables in the `.env` file to your needs.
 
     ```bash
     # [once] Prepare dotenv file with default values
@@ -85,22 +85,22 @@ as well as to the `--help` text for each tool.
     # By default, the resulting executable will be in `target/debug/nextclade`.
     cargo build --bin=nextclade
 
-    # (Re-)build Nextclade in debug mode and run `nextclade --help` to print Nextclade CLI main help screen. The arguments after the `--` are passed to nextclade executable, as if you'd run it directly. Refer to Nextclade CLI user documentation instead (https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) for explanation of arguments.
+    # (Re-)build Nextclade in debug mode and run `nextclade --help` to print Nextclade CLI main help screen. The arguments after the `--` are passed to nextclade executable, as if you'd run it directly. You can also refer to Nextclade user documentation (https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) for explanation of arguments.
     cargo run --bin=nextclade -- --help
 
     # (Re-)build Nextclade in debug mode and use it to download a dataset to `data_dev/` directory.
     cargo run --bin=nextclade -- dataset get \
-      --name='nextstrain/sars-cov-2/MN908947' \
-      --output-dir='data_dev/nextstrain/sars-cov-2/MN908947/'
+      --name='sars-cov-2' \
+      --output-dir='data_dev/sars-cov-2'
 
     # (Re-)build Nextclade in debug mode and run the analysis using the dataset we just downloaded (to `data_dev/`) and output results to the `out/` directory.
     cargo run --bin=nextclade -- run \
-      'data_dev/nextstrain/sars-cov-2/MN908947/sequences.fasta' \
-      --input-dataset='data_dev/nextstrain/sars-cov-2/MN908947/' \
+      'data_dev/sars-cov-2/sequences.fasta' \
+      --input-dataset='data_dev/sars-cov-2/' \
       --output-dir='out/'
     ```
 
-   > 💡 Note, depending on your computer hardware and internet speed, your first build can take significant amount of time, because the Rust toolchain and all dependency packages will be downloaded and compiled. Next time the existing toolchain and cached packages are used, so the repeated builds should be much faster.
+   > 💡 Note, depending on your computer hardware and internet speed, your first build can take significant amount of time, because the necessary Rust toolchain version and all dependency packages (crates) will be downloaded and compiled. Next time the existing toolchain and cached packages are used, so the repeated builds should be much faster.
 
    > 💡 Add `-v` to Nextclade arguments to make console output more verbose. Add more occurrences, e.g. `-vv`, for even more verbose output.
 
@@ -113,8 +113,8 @@ as well as to the `--help` text for each tool.
     
     # Run Nextclade release binary
     ./target/release/nextclade run \
-      'data_dev/nextstrain/sars-cov-2/MN908947/sequences.fasta' \
-      --input-dataset='data_dev/nextstrain/sars-cov-2/MN908947' \
+      'data_dev/sars-cov-2/sequences.fasta' \
+      --input-dataset='data_dev/sars-cov-2' \
       --output-fasta='out/nextclade.aligned.fasta' \
       --output-tsv='out/nextclade.tsv' \
       --output-tree='out/nextclade.tree.json' \
@@ -123,18 +123,18 @@ as well as to the `--help` text for each tool.
     
     ```
 
-   > 💡 Debug builds are incremental, i.e. only the files that have changed since last build are compiled. But release builds are not. If you need to quickly iterate on features, then use debug builds. If you are measuring performance, always use release builds.
+   > 💡 Debug builds are incremental, i.e. only the files that have changed since the last build are compiled. But release builds are not. If you need to quickly iterate on features, then use debug builds. If you are measuring performance, or make a build for daily usage, always use release builds.
 
 ### Nextclade Web
 
-Nextclade Web is a React Typescript application, which relies on Nextclade WebAssembly (wasm) module to perform the computation. This WebAssembly module shares the same the Rust code for algorithms with Nextclade CLI. So building Nextclade Web involves 2 steps:
+Nextclade Web is a React & Typescript application, which relies on Nextclade WebAssembly (wasm) module to perform the computation. This WebAssembly module shares the same Rust code for algorithms as Nextclade CLI. So building Nextclade Web involves 2 steps:
 
 - building WebAssembly module
 - building the web application itself
 
-Install Node.js version 14+ (latest LTS release is recommended), by either downloading it from the official website: https://nodejs.org/en/download/, or by using [nvm](https://github.com/nvm-sh/nvm). We don't recommend using Node.js from the package manager of your operating system, and neither from conda or other sources.
+Install Node.js version 14+ (latest LTS release is recommended), by either downloading it from the official website: https://nodejs.org/en/download/, or by using [nvm](https://github.com/nvm-sh/nvm).
 
-> ⚠️ We don't have bandwidth to support Node.ks installations deviating from the officially recommended setup, e.g. from Linux OS package repositories, Homebrew, Conda etc. If you decide to go that route - things may work or they may not - you are on your own. But feel free to open pull requests with fixes if necessary.
+> ⚠️ We don't have bandwidth to support Node.js installations from Linux OS package repositories, Homebrew, Conda and everything else deviating from the officially recommended setup. If you decide to go that route - things may or may not work - you are on your own. But feel free to open pull requests with fixes if necessary.
 
 #### Steps
 
@@ -174,14 +174,13 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
     $ rustup -V
     ```
 
-   > ⚠️ We don't support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html). If you decide to go that route install Rust from Linux OS package repositories, Homebrew, Conda etc., things may or may not work, or they may work sometimes. Nextclade team don't have bandwidth to try every platform and config, so you are on your own here. But feel free to open pull requests with fixes, if necessary.
+   > ⚠️ We don't support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html). If you install Rust from Linux OS package repositories, Homebrew, Conda etc., things may or may not work, or they may work but produce wrong results. Nextclade team don't have bandwidth to try every platform and config, so if you decide to go unofficial route, then you are on your own. But feel free to open pull requests with fixes, where necessary.
 
-   > 💡 Note, Rustup allows to install multiple versions of Rust and to switch between them. This repository contains a [rust-toolchain.toml](../../rust-toolchain.toml) file, which describes which version of Rust is currently in use by Nextclade official build. Cargo and Rustup should be able to [pick it up automatically](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file), install the required toolchain and use it when you type `cargo` commands.
+   > 💡 Note, Rustup allows to install multiple versions of Rust and to switch between them. This repository contains a [rust-toolchain.toml](../../rust-toolchain.toml) file, which describes which version of Rust is currently in use by Nextclade official build. Cargo and Rustup should be able to [pick it up automatically](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file), install the required toolchain and use it when you type `cargo` commands. Any other versions of Rust toolchain are not supported.
 
-3. Prepare environment variables which configure Nextclade build-time settings (once)
+3. Prepare environment variables which configure Nextclade build-time settings (once). Optionally adjust the variables in the `.env` file to your needs.
 
     ```bash
-    # [once] Prepare dotenv file with default values
     cp .env.example .env
     ```
 
@@ -225,7 +224,7 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
     yarn wasm-prod
     ```
 
-   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should have been generated into  `packages_rs/nextclade-web/src/gen/`. The web application should be able to find it there.
+   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into  `packages_rs/nextclade-web/src/gen/`. The web application should be able to find it there.
 
    Repeat this step every time you are touching Rust code.
 
@@ -242,7 +241,7 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 
    Open `http://localhost:3000/` in the browser. Typescript code changes should trigger rebuild and fast refresh of the app. If you rebuild the WebAssembly module (ina separate terminal instance), it should also pick up the changes automatically.
 
-   The optimized production version of the web app can be built and served with
+   Alternatively, the optimized ("production") version of the web app can be built and served with
 
     ```bash
     yarn prod:build
@@ -253,9 +252,9 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 
    The resulting HTML, CSS and JS files should be available under `packages_rs/nextclade-web/.build/production/web`.
 
-   Production build does not have automatic rebuild and reload. You need to do full rebuild.
+   Production build does not have automatic rebuild and reload. You need to do full rebuild on every code change.
 
-   The `yarn prod:serve` command runs Express underneath and it is just an example of a simple (also slow and insecure) local file web server. But they can be served by any static file web server or static file hosting service. The official deployment uses AWS S3 + Cloudfront.
+   The `yarn prod:serve` command runs Express underneath and it is just an example of a simple (also slow and insecure) local file web server. But the produced HTML, CSS and JS files can be served using any static file web server or static file hosting service. The official deployment uses AWS S3 + Cloudfront.
 
 ### Linting (static analysis)
 
