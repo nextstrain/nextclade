@@ -48,9 +48,9 @@ jobs:
 
           mkdir -p "${HOME}/bin"
           export PATH="${HOME}/bin:${PATH}"
-          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
-          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          curl -fsSL "https://github.com/cli/cli/releases/download/v2.42.1/gh_2.42.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.42.1_linux_amd64/bin/gh
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
           git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
           git config --global user.name "${{ secrets.GIT_USER_NAME }}"
