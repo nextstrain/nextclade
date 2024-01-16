@@ -4,7 +4,7 @@ Version 3 of Nextclade contains a number of new features that required changing 
 In addition, we have simplified the structure of datasets.
 While these changes should make Nextclade more powerful and simpler to use, they do require adjustment of pipelines and custom datasets.
 
-This section lists breaking changes in Nextclade v3 compared to Nextclade v2, and describes potential migration paths. For more details about each change as well as about non-breaking changes, please read the [changelog](../../CHANGELOG.md).
+This section lists breaking changes in Nextclade v3 compared to Nextclade v2, and describes potential migration paths. For more details about each change as well as about non-breaking changes, please read the [changelog](../changes/CHANGELOG.md).
 
 If you encounter problems during migration, or breaking changes not mentioned in this document, please report it to developers by [opening a new GitHub issue](https://github.com/nextstrain/nextclade/issues).
 
