@@ -96,9 +96,9 @@ git add -A
 git reset --quiet --hard HEAD
 git clean --quiet -dfx
 
-home=$(tail -n +3 recipes/nextclade/meta.yaml | sed "s|{{ pin_compatible(name, max_pin='x') }}|[]|g" | grep dasel select -r yaml -w json -s ".about.home" | jq -r)
-summary=$(tail -n +3 recipes/nextclade/meta.yaml | sed "s|{{ pin_compatible(name, max_pin='x') }}|[]|g" | dasel select -r yaml -w json -s ".about.summary" | jq -r)
-maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | sed "s|{{ pin_compatible(name, max_pin='x') }}|[]|g" | dasel select -r yaml -w json -s ".extra.recipe-maintainers" | jq -r '[ .[] | "@" + . ] | join(", ")')
+home=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".about.home" | jq -r)
+summary=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".about.summary" | jq -r)
+maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | dasel select -r yaml -w json -s ".extra.recipe-maintainers" | jq -r '[ .[] | "@" + . ] | join(", ")')
 
 # Create PR body. This is what goes to the first message.
 function pr_body() {
