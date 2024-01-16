@@ -4,6 +4,7 @@ import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { MdClear as IconClearBase } from 'react-icons/md'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
+import { DatasetCustomizationsIndicatorLink } from 'src/components/Main/DatasetCustomizationIndicator'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
@@ -45,6 +46,12 @@ export function DatasetCurrentSummary() {
           </Row>
 
           <Row noGutters className="d-flex">
+            <Col className="d-flex mr-auto mt-2">
+              <DatasetCustomizationWrapper>
+                <DatasetCustomizationsIndicatorLink />
+              </DatasetCustomizationWrapper>
+            </Col>
+
             <Col className="d-flex ml-auto mt-2">
               <ButtonLoadExample className="ml-auto" />
             </Col>
@@ -75,4 +82,8 @@ const IconClear = styled(IconClearBase)`
   * {
     color: ${(props) => props.theme.gray500};
   }
+`
+
+const DatasetCustomizationWrapper = styled.div`
+  margin-left: 90px;
 `
