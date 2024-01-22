@@ -835,7 +835,6 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     if output_selection.contains(&NextcladeOutputSelection::Translations) {
       let output_translations_path =
         default_output_file_path.with_file_name(format!("{output_basename}.cds_translation.{{cds}}.fasta"));
-      let output_translations_path = add_extension(output_translations_path, "translation.fasta");
 
       let output_translations_template = output_translations_path
         .to_str()
