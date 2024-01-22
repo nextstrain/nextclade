@@ -198,12 +198,12 @@ export function NavigationBar() {
         content: <CitationButton />,
       },
       {
-        url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web.html',
+        url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web/index.html',
         title: t('Nextclade Web documentation'),
         content: t('Docs'),
       },
       {
-        url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html',
+        url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/index.html',
         title: t('{{project}} documentation', { project: 'Nextclade CLI' }),
         content: 'CLI',
       },

@@ -104,7 +104,7 @@ export function Downloads() {
                   <DownloadLink
                     Icon={iconBook}
                     text={t('Documentation')}
-                    url="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html"
+                    url="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/index.html"
                   />
                 </DownloadLinkList>
               </CardBody>
