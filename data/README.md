@@ -25,7 +25,7 @@ But this set of files is not sufficient to run Nextclade.
 
 Since Nextclade version 1.3.0, the full up-to-date data bundles for various pathogens are distributed in the form of so called "datasets". Please see:
 
-- [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) documentation for example usage
+- [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/index.html) documentation for example usage
 - [Nextclade Datasets](https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html) documentation for more details
 - [Input files](https://docs.nextstrain.org/projects/nextclade/en/stable/user/input-files.html) documentation, in order to better understand what each of these files represent and what it's used for
 
