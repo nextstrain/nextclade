@@ -1,4 +1,11 @@
-## Unreleased
+## 3.0.1
+
+### Nextclade Web
+
+Fixed links on navigation bar: "Docs" and "CLI"
+
+
+## 3.0.0
 
 We are happy to present a major release of Nextclade, containing new features and bug fixes.
 
