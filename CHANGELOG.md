@@ -1,3 +1,15 @@
+## _NEXT_
+
+### CLI
+
+#### Bug fixes
+
+- Fixed a bug introduce in v3.0.0 which caused the default path for translations to be incorrect. This affected only users who used `--output-all` without passing a custom path template via `--output-translations`. The new default path is `nextclade.cds_translation.{cds}.fasta` where `{cds}` gets replaced with the name of the CDS, e.g. `nextclade.cds_translation.S.fasta` for SARS-CoV-2's spike protein.
+
+#### Documentation
+
+- Added a section to the v3 migration guide about the renamed default path for translations, a breaking change. The new default output path for translations is `nextclade.cds_translation.{cds}.fasta`. Before v3, the default path was `nextclade_gene_{gene}.translation.fasta`. You can emulate the old (default) behavior by passing `--output-translations="nextclade_gene_{cds}.translation.fasta"` to `nextclade3`.
+
 ## 3.0.1
 
 ### Nextclade Web

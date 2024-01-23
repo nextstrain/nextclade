@@ -209,8 +209,7 @@ Due to changes in the dataset format and in input files, the following changes i
 
 ## 9. CDS instead of genes
 
-Nextclade now uses "CDS" features from genome annotations instead of "gene" features. Certain fields in input and output files have been modified to reflect that.
-
+Nextclade now uses "CDS" features from genome annotations instead of "gene" features. Certain fields in input and output files have been modified to reflect that. Certain CLI arguments have been renamed.
 
 #### Modified input files
 
@@ -246,7 +245,6 @@ From: failedGenes
 To:   failedCdses
 ```
 
-
 The following fields are renamed in the output `nextclade.tree.json`:
 
 ```
@@ -254,6 +252,13 @@ From: node_atts.missing_genes
 To:   node_atts.missing_cdses
 ```
 
+#### Modified CLI arguments and template strings
+
+The following CLI argument is renamed: `-g, --genes` -> `-g, --cds-selection`
+
+The template string expected by `-P, --output-translations` now requires a literal `{cds}` instead of `{gene}`.
+
+The default path of output translations requested through `--output-all` is renamed to `nextclade.cds_translation.{cds}.fasta` (previously: `nextclade_gene_{gene}.translation.fasta`).
 
 ### Migration paths
 
@@ -261,3 +266,8 @@ When creating or modifying `pathogen.json` file in the dataset make sure to use 
 
 When using output files, make sure to use the new names of the mentioned fields and columns.
 
+Use the new CLI argument `-g, --cds-selection` instead of `-g, --genes`. The values passed should be unchanged (i.e. SARS-CoV-2 spike `S` is still `S`).
+
+Replace `{gene}` with `{cds}` in the template string passed to `-P, --output-translations`.
+
+You can emulate the old (default) behavior by passing `--output-translations="nextclade_gene_{cds}.translation.fasta"` to `nextclade3` when `--output-all` is used.
