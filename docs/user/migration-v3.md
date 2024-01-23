@@ -14,7 +14,7 @@ If you encounter problems during migration, or breaking changes not mentioned in
 - [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
 - [Nextclade CLI releases](https://github.com/nextstrain/nextclade/releases) - all versions
 - [Nextclade user documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) - for detailed instructions on how to use Nextclade Web and Nextclade CLI
-- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd)  - if you have a custom Nextclade dataset or want to create one
+- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd) - if you have a custom Nextclade dataset or want to create one
 - [Nextclade source code repository](https://github.com/nextstrain/nextclade) - for contributors to Nextclade software (code, bug reports, feature requests etc.)
 - [Nextclade data repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (new pathogens, bug reports, etc.)
 - [Nextclade software GitHub issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
@@ -40,7 +40,7 @@ Existing Nextclade CLI v2 or Nextalign CLI v2 downloads and installations will c
 
 - if you are using Docker images, use a specific docker tag:
 
-  ```bash 
+  ```bash
   docker pull nextstrain/nextclade:2.14.0
   ```
 
@@ -48,7 +48,7 @@ Existing Nextclade CLI v2 or Nextalign CLI v2 downloads and installations will c
 
   ```bash
   conda install nextclade=2.14.0
-  ````
+  ```
 
 Please note that staying on Nextclade v2 is not recommended long-term. Nextclade v2 will not be receiving any software updates and will not receive any new dataset updates, so eventually you will end up with outdated analysis results.
 
@@ -215,7 +215,7 @@ Nextclade now uses "CDS" features from genome annotations instead of "gene" feat
 
 The following fields are renamed in the input `pathogen.json` (previously `virus_properties.json` and `qc.json`):
 
-```
+```text
 From: aaMotifs[].includeGenes[].gene
 To:   aaMotifs[].includeCdses[].cds
 
@@ -233,21 +233,21 @@ To:   qc.stopCodons.ignoredStopCodons[].cdsName
 
 The following fields are renamed in the output `nextclade.json`/`nextclade.ndjson`:
 
-```
+```text
 From: results[].missingGenes
 To:   results[].missingCdses
 ```
 
 The following columns are renamed in the output `nextclade.tsv`/`nextclade.csv`:
 
-```
+```text
 From: failedGenes
 To:   failedCdses
 ```
 
 The following fields are renamed in the output `nextclade.tree.json`:
 
-```
+```text
 From: node_atts.missing_genes
 To:   node_atts.missing_cdses
 ```
