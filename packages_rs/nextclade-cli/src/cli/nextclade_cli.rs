@@ -512,7 +512,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Example for bash shell:
   ///
-  ///   --output-translations='output_dir/cds_{cds}.translation.fasta'
+  ///   --output-translations='output_dir/nextclade.cds_translation.{cds}.fasta'
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
@@ -881,7 +881,7 @@ Expected `--output-translations` argument to contain a template string containin
 Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
 Example for bash shell:
 
-  --output-translations='output_dir/cds_{{cds}}.translation.fasta'
+  --output-translations='output_dir/nextclade.cds_translation.{{cds}}.fasta'
 
       "#
       );
