@@ -165,7 +165,34 @@ Optional `dict`. Parameters for the tree building algorithm. These are identical
 
 #### `primers`
 
-TODO
+PCR primers to be used for primer mutation analysis. If not provided, no primer analysis is performed.
+
+Example:
+
+```json
+// Below is the v3 representation of the following v2 input-primers-csv:
+// Country (Institute),Target,Oligonucleotide,Sequence
+// "Institut Pasteur, Paris (France)",RdRp,Pasteur_IP4_R,CTKGTCAAGGTTAATATAGG
+"primers": [ // optional key, if not provided, no primer analysis is performed
+  {
+    "source": "Institut Pasteur, Paris (France)",
+    "target": "RdRp",
+    "name": "Pasteur_IP4_R",                  // must be unique across all primers
+    "rootOligonuc": "CCTATATTAACCTTGACCAG",   // substring of reference the primer binds to
+    "primerOligonuc": "CCTATATTAACCTTGACMAG", // reverse complement of primer sequence
+    "range": {        // range of the primer binding site in the reference
+      "begin": 14166, // 0-indexed, inclusive
+      "end": 14186    // 0-indexed, exclusive
+    },
+    "nonACGTs": [  // bases in the reverse complement of the primer sequence that are not ACGT
+      {            // empty array if there are no non-ACGT bases in the primer sequence
+        "pos": 17, // 0-indexed
+        "qry": "M" // base in the reverse complement of the primer sequence
+      }
+    ]
+  }
+]
+```
 
 #### `phenotypeData`
 
