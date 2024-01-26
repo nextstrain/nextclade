@@ -14,7 +14,7 @@ If you encounter problems during migration, or breaking changes not mentioned in
 - [Nextclade Web v2](https://v2.clades.nextstrain.org) - if you need the old version
 - [Nextclade CLI releases](https://github.com/nextstrain/nextclade/releases) - all versions
 - [Nextclade user documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/index.html) - for detailed instructions on how to use Nextclade Web and Nextclade CLI
-- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd)  - if you have a custom Nextclade dataset or want to create one
+- [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd) - if you have a custom Nextclade dataset or want to create one
 - [Nextclade source code repository](https://github.com/nextstrain/nextclade) - for contributors to Nextclade software (code, bug reports, feature requests etc.)
 - [Nextclade data repository](https://github.com/nextstrain/nextclade_data) - for contributors to Nextclade datasets (new pathogens, bug reports, etc.)
 - [Nextclade software GitHub issues](https://github.com/nextstrain/nextclade/issues) - to report bugs and ask questions about Nextclade software
@@ -40,7 +40,7 @@ Existing Nextclade CLI v2 or Nextalign CLI v2 downloads and installations will c
 
 - if you are using Docker images, use a specific docker tag:
 
-  ```bash 
+  ```bash
   docker pull nextstrain/nextclade:2.14.0
   ```
 
@@ -48,7 +48,7 @@ Existing Nextclade CLI v2 or Nextalign CLI v2 downloads and installations will c
 
   ```bash
   conda install nextclade=2.14.0
-  ````
+  ```
 
 Please note that staying on Nextclade v2 is not recommended long-term. Nextclade v2 will not be receiving any software updates and will not receive any new dataset updates, so eventually you will end up with outdated analysis results.
 
@@ -209,14 +209,13 @@ Due to changes in the dataset format and in input files, the following changes i
 
 ## 9. CDS instead of genes
 
-Nextclade now uses "CDS" features from genome annotations instead of "gene" features. Certain fields in input and output files have been modified to reflect that.
-
+Nextclade now uses "CDS" features from genome annotations instead of "gene" features. Certain fields in input and output files have been modified to reflect that. Certain CLI arguments have been renamed.
 
 #### Modified input files
 
 The following fields are renamed in the input `pathogen.json` (previously `virus_properties.json` and `qc.json`):
 
-```
+```text
 From: aaMotifs[].includeGenes[].gene
 To:   aaMotifs[].includeCdses[].cds
 
@@ -234,26 +233,32 @@ To:   qc.stopCodons.ignoredStopCodons[].cdsName
 
 The following fields are renamed in the output `nextclade.json`/`nextclade.ndjson`:
 
-```
+```text
 From: results[].missingGenes
 To:   results[].missingCdses
 ```
 
 The following columns are renamed in the output `nextclade.tsv`/`nextclade.csv`:
 
-```
+```text
 From: failedGenes
 To:   failedCdses
 ```
 
-
 The following fields are renamed in the output `nextclade.tree.json`:
 
-```
+```text
 From: node_atts.missing_genes
 To:   node_atts.missing_cdses
 ```
 
+#### Modified CLI arguments and template strings
+
+The following CLI argument is renamed: `-g, --genes` -> `-g, --cds-selection`
+
+The template string expected by `-P, --output-translations` now requires a literal `{cds}` instead of `{gene}`.
+
+The default path of output translations requested through `--output-all` is renamed to `nextclade.cds_translation.{cds}.fasta` (previously: `nextclade_gene_{gene}.translation.fasta`).
 
 ### Migration paths
 
@@ -261,3 +266,8 @@ When creating or modifying `pathogen.json` file in the dataset make sure to use 
 
 When using output files, make sure to use the new names of the mentioned fields and columns.
 
+Use the new CLI argument `-g, --cds-selection` instead of `-g, --genes`. The values passed should be unchanged (i.e. SARS-CoV-2 spike `S` is still `S`).
+
+Replace `{gene}` with `{cds}` in the template string passed to `-P, --output-translations`.
+
+You can emulate the old (default) behavior by passing `--output-translations="nextclade_gene_{cds}.translation.fasta"` to `nextclade3` when `--output-all` is used.
