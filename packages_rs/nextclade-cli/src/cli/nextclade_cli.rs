@@ -501,7 +501,7 @@ pub struct NextcladeRunOutputArgs {
 
   /// Template string for path to output fasta files containing translated and aligned peptides. A separate file will be generated for every gene.
   ///
-  /// The string should contain template variable `{gene}`, where the gene name will be substituted.
+  /// The string should contain template variable `{cds}`, where the gene name will be substituted.
   /// Make sure you properly quote and/or escape the curly braces, so that your shell, programming language or pipeline manager does not attempt to substitute the variables.
   ///
   /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
@@ -512,7 +512,7 @@ pub struct NextcladeRunOutputArgs {
   ///
   /// Example for bash shell:
   ///
-  ///   --output-translations='output_dir/cds_{cds}.translation.fasta'
+  ///   --output-translations='output_dir/nextclade.cds_translation.{cds}.fasta'
   #[clap(long, short = 'P')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_translations: Option<String>,
@@ -881,7 +881,7 @@ Expected `--output-translations` argument to contain a template string containin
 Make sure the variable is not substituted by your shell, programming language or workflow manager. Apply proper escaping as needed.
 Example for bash shell:
 
-  --output-translations='output_dir/cds_{{cds}}.translation.fasta'
+  --output-translations='output_dir/nextclade.cds_translation.{{cds}}.fasta'
 
       "#
       );

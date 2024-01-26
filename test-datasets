@@ -26,7 +26,7 @@ for d in test_datasets/*; do
     "${INPUT_FASTA}" \
     -D "${INPUT_DIR}/${virus}/files" \
     -O "${OUTPUT_DIR}/${virus}" \
-    --output-translations="${OUTPUT_DIR}/${virus}/translations/gene_{gene}.translation.fasta" \
+    --output-translations="${OUTPUT_DIR}/${virus}/translations/gene_{cds}.translation.fasta" \
     --in-order
 
 done
