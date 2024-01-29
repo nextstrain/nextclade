@@ -4,7 +4,9 @@
 
 #### Bug fixes
 
-- Fixed a bug introduce in v3.0.0 which caused the default path for translations to be incorrect. This affected only users who used `--output-all` without passing a custom path template via `--output-translations`. The new default path is `nextclade.cds_translation.{cds}.fasta` where `{cds}` gets replaced with the name of the CDS, e.g. `nextclade.cds_translation.S.fasta` for SARS-CoV-2's spike protein.
+- Fixed a bug introduced in v3.0.0 which caused the default path for translations to be incorrect. This affected only users who used `--output-all` without passing a custom path template via `--output-translations`. The new default path is `nextclade.cds_translation.{cds}.fasta` where `{cds}` gets replaced with the name of the CDS, e.g. `nextclade.cds_translation.S.fasta` for SARS-CoV-2's spike protein.
+
+- Fixed a bug where `nextclade dataset get` command fails to download a dataset if a dataset has more than one version released.
 
 #### Documentation
 
