@@ -59,7 +59,7 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Opti
       if let Some(tag) = tag.as_ref() {
         dataset.is_tag(tag)
       } else {
-        dataset.is_latest()
+        true
       }
     })
     // Filter by name

@@ -151,13 +151,6 @@ impl Dataset {
       .map_or(true, |compat| compat.is_cli_compatible(cli_version))
   }
 
-  pub fn is_latest(&self) -> bool {
-    if self.version.tag == "unreleased" || self.version.tag == "latest" {
-      return true;
-    }
-    self.versions.iter().sorted().next() == Some(&self.version)
-  }
-
   pub fn is_tag(&self, tag: impl AsRef<str>) -> bool {
     let tag = tag.as_ref();
     self.version.tag == tag
