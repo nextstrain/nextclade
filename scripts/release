@@ -9,7 +9,7 @@
 #  2. dasel:
 #    mkdir -p "${HOME}/bin"
 #    export PATH="${HOME}/bin:${PATH}"
-#    curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#    curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 #  3. cargo-edit for cargo set-version
 #    cargo install cargo-edit
 #
@@ -82,7 +82,7 @@ if [ "$1" == "cli" ]; then
 
   echo "Bumping package versions in 'Cargo.toml' files"
   cargo set-version --workspace --bump="${2:-}" >/dev/null
-  version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
+  version=$(dasel select -r toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
 
   echo "Running \`cargo build\` to update 'Cargo.lock' file"
   cargo build --quiet >/dev/null
