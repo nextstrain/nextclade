@@ -46,7 +46,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}

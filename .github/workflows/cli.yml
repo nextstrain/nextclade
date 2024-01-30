@@ -80,7 +80,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx (${{ matrix.arch }})"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -91,7 +91,7 @@ jobs:
             cache-v1-buildx-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .cache/docker/.cargo
@@ -159,7 +159,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-unit-tests-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -168,7 +168,7 @@ jobs:
             cache-v1-buildx-unit-tests-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .cache/docker/.cargo
@@ -205,7 +205,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-lints-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -214,7 +214,7 @@ jobs:
             cache-v1-buildx-lints-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .cache/docker/.cargo

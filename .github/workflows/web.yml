@@ -67,7 +67,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-${{ runner.os }}-wasm32-unknown-unknown-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -78,7 +78,7 @@ jobs:
             cache-v1-buildx-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .build/
@@ -91,7 +91,7 @@ jobs:
             cache-v1-cargo-${{ runner.os }}-
 
       - name: "Setup cache for web app"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             packages_rs/nextclade-web/.build/production/tmp/cache
