@@ -253,7 +253,7 @@ jobs:
           curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: "out"
           path: ".out"
@@ -276,7 +276,7 @@ jobs:
   #          submodules: true
   #
   #      - name: "Download build artifacts"
-  #        uses: actions/download-artifact@v3
+  #        uses: actions/download-artifact@v4
   #        with:
   #          name: "out"
   #          path: ".out"
@@ -300,7 +300,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: "out"
           path: ".out"
@@ -324,7 +324,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: "out"
           path: ".out"
@@ -352,7 +352,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: "out"
           path: ".out"
@@ -388,7 +388,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: "out"
           path: ".out"
