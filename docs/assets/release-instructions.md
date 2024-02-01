@@ -1,10 +1,21 @@
+<table>
+<tbody>
+<tr>
+<td>
 
-## Instructions
+### Installation and usage
 
- 📥 Nextclade CLI & Nextalign CLI can be downloaded from the links in the "Assets" section just below. Click "Show all" at the bottom of the "Assets" section to show more download options. Note the difference between "nextalign" and "nextclade" files as well as differences in operating systems and computer architectures.
+📚 Documentation: [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)
 
- 🌐 Nextclade Web is available at [https://clades.nextstrain.org](https://clades.nextstrain.org)
+🌍 Nextclade Web: [clades.nextstrain.org](https://clades.nextstrain.org)
 
- 🐋 Docker images are available at [DockerHub](https://hub.docker.com/r/nextstrain/nextclade)
+🖥️ Nextclade CLI:
 
- 📚 To understand how it all works, make sure to read the [Documentation](https://docs.nextstrain.org/projects/nextclade) 
+- 📥 Standalone native executables can be downloaded using the links in the "Assets" section just below. Mind the different operating systems and computer architectures.
+- 🐋 Docker images are available on [DockerHub](https://hub.docker.com/r/nextstrain/nextclade)
+- 🐍 Conda package is available in [bioconda channel](https://bioconda.github.io/recipes/nextclade/README.html).
+
+</td>
+</tr>
+</tbody>
+</table>
