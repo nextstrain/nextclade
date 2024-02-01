@@ -3,8 +3,9 @@ use crate::cli::nextclade_cli::{
 };
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::nextclade_get_inputs;
-use eyre::{Report, WrapErr};
+use eyre::{ContextCompat, Report, WrapErr};
 use log::info;
+use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::convert_graph_to_auspice_tree;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
@@ -14,6 +15,7 @@ use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::run::nextclade_wasm::{AnalysisInitialData, AnalysisOutput, Nextclade};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::utils::option::OptionMapRefFallible;
 
 pub struct NextcladeRecord {
   pub index: usize,
@@ -26,7 +28,9 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let NextcladeRunArgs {
     inputs: NextcladeRunInputArgs {
-      input_fastas, cds_selection: cdses, ..
+      input_fastas,
+      cds_selection: cdses,
+      ..
     },
     outputs:
       NextcladeRunOutputArgs {
@@ -41,7 +45,16 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
   } = run_args.clone();
 
   let inputs = nextclade_get_inputs(&run_args, &cdses)?;
-  let nextclade = Nextclade::new(inputs, &params)?;
+
+  let primers = run_args
+    .inputs
+    .input_pcr_primers
+    .as_ref()
+    .map_ref_fallible(|input_pcr_primers| PcrPrimer::from_path(input_pcr_primers, &inputs.ref_record.seq))?
+    .wrap_err("When parsing PCR primers input CSV")
+    .unwrap_or_default();
+
+  let nextclade = Nextclade::new(inputs, primers, &params)?;
 
   let should_write_tree = output_tree.is_some() || output_tree_nwk.is_some() || output_graph.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();

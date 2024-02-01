@@ -36,7 +36,7 @@ impl NextcladeWasm {
     let params = NextcladeInputParamsOptional::default();
 
     let nextclade: Nextclade =
-      jserr(Nextclade::new(inputs, &params).wrap_err_with(|| "When initializing Nextclade runner"))?;
+      jserr(Nextclade::new(inputs, vec![], &params).wrap_err_with(|| "When initializing Nextclade runner"))?;
 
     Ok(Self { nextclade })
   }

@@ -391,6 +391,13 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub cds_selection: Option<Vec<String>>,
 
+  /// Path to a CSV file containing a list of custom PCR primer sites. This information is used to report mutations in these sites.
+  ///
+  /// Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::FilePath)]
+  pub input_pcr_primers: Option<PathBuf>,
+
   /// Use custom dataset server
   #[clap(long)]
   #[clap(value_hint = ValueHint::Url)]
@@ -417,11 +424,6 @@ pub struct NextcladeRunInputArgs {
   #[clap(long, short = 'R')]
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub input_virus_properties: Option<String>,
-
-  /// REMOVED. The pcr_primers.csv file have been merged into pathogen.json, see `--input-pathogen-json`
-  #[clap(long)]
-  #[clap(hide_long_help = true, hide_short_help = true)]
-  pub input_pcr_primers: Option<String>,
 
   /// RENAMED to `--input-annotation`
   #[clap(long)]
@@ -959,10 +961,6 @@ const ERROR_MSG_INPUT_QC_CONFIG_REMOVED: &str = r#"The argument `--input-qc-conf
 
 Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
 
-const ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED: &str = r#"The argument `--input-pcr-primers` (alias `-p`) is removed in favor of `--input-pathogen-json`.
-
-Since version 3 Nextclade uses single file `pathogen.json` rather than a set of files `qc.json`, `primers.csv`, `virus_properties.json` and `tag.json` used in Nextclade v2."#;
-
 const ERROR_MSG_OUTPUT_INSERTIONS_REMOVED: &str = r#"The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
 
 In Nextclade v3 the separate arguments `--output-insertions` and `--output-errors` are removed. Please use `--output-csv` (for semicolon-separated table) and `--output-tsv` (for tab-separated table) arguments instead. These tables contain, among others, all the columns from the output insertions table (`--output-insertions`) as well as from the output errors table (`--output-errors`)."#;
@@ -1000,10 +998,6 @@ pub fn nextclade_check_removed_args(run_args: &NextcladeRunArgs) -> Result<(), R
 
   if run_args.inputs.input_qc_config.is_some() {
     return make_error!("{ERROR_MSG_INPUT_QC_CONFIG_REMOVED}{MSG_READ_RUN_DOCS}");
-  }
-
-  if run_args.inputs.input_pcr_primers.is_some() {
-    return make_error!("{ERROR_MSG_INPUT_PCR_PRIMERS_REMOVED}{MSG_READ_RUN_DOCS}");
   }
 
   if run_args.inputs.genes.is_some() {

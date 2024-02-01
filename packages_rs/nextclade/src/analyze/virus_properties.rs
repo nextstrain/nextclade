@@ -1,7 +1,7 @@
 use crate::align::params::AlignPairwiseParamsOptional;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::pcr_primer_changes::PcrPrimer;
+use crate::analyze::pcr_primers::PcrPrimer;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
@@ -48,9 +48,6 @@ pub struct VirusProperties {
 
   #[serde(default)]
   pub mut_labels: LabelledMutationsConfig,
-
-  #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub primers: Vec<PcrPrimer>,
 
   pub qc: Option<QcConfig>,
 
