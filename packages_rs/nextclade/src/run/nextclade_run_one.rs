@@ -86,6 +86,7 @@ pub fn nextclade_run_one(
     ref_translation,
     aa_motifs_ref,
     graph,
+    primers,
     ..
   } = &state;
 
@@ -122,7 +123,7 @@ pub fn nextclade_run_one(
 
   let nucleotide_composition = get_letter_composition(&stripped.qry_seq);
 
-  let pcr_primer_changes = get_pcr_primer_changes(&substitutions, &virus_properties.primers);
+  let pcr_primer_changes = get_pcr_primer_changes(&substitutions, primers);
   let total_pcr_primer_changes = pcr_primer_changes.iter().map(|pc| pc.substitutions.len()).sum();
 
   let total_aligned_nucs = alignment_range.len();

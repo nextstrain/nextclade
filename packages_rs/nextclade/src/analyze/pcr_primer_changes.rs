@@ -1,28 +1,11 @@
-use crate::alphabet::nuc::{is_nuc_match, Nuc};
+use crate::alphabet::nuc::is_nuc_match;
 use crate::analyze::nuc_sub::NucSub;
-use crate::coord::range::NucRefGlobalRange;
-use crate::gene::genotype::Genotype;
+use crate::analyze::pcr_primers::PcrPrimer;
 use itertools::Itertools;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct PcrPrimer {
-  pub name: String,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub description: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub source: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub target: Option<String>,
-  pub ref_oligonuc: String,
-  pub primer_oligonuc: String,
-  pub range: NucRefGlobalRange,
-  #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub non_acgts: Vec<Genotype<Nuc>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PcrPrimerChange {
   pub primer: PcrPrimer,

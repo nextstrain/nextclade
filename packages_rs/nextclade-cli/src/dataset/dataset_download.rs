@@ -236,7 +236,6 @@ pub fn dataset_individual_files_load(
             default_cds: None,
             cds_order_preference: vec![],
             mut_labels: LabelledMutationsConfig::default(),
-            primers: vec![],
             qc: None,
             general_params: None,
             alignment_params: None,

@@ -4,6 +4,7 @@ use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
+use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::GeneMap;
@@ -122,6 +123,7 @@ pub struct Nextclade {
   pub seed_index: CodonSpacedIndex,
   pub gap_open_close_nuc: Vec<i32>,
   pub virus_properties: VirusProperties,
+  pub primers: Vec<PcrPrimer>,
   pub params: NextcladeInputParams,
 
   // If genome annotation is provided
@@ -152,7 +154,11 @@ pub struct NextcladeStateWithGraph {
 }
 
 impl Nextclade {
-  pub fn new(inputs: NextcladeParams, params: &NextcladeInputParamsOptional) -> Result<Self, Report> {
+  pub fn new(
+    inputs: NextcladeParams,
+    primers: Vec<PcrPrimer>,
+    params: &NextcladeInputParamsOptional,
+  ) -> Result<Self, Report> {
     let NextcladeParams {
       ref_record,
       gene_map,
@@ -224,6 +230,7 @@ impl Nextclade {
       seed_index,
       gap_open_close_nuc,
       virus_properties,
+      primers,
       params,
       gene_map,
       gap_open_close_aa,
