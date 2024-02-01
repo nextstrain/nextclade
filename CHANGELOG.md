@@ -1,6 +1,18 @@
-## _NEXT_
+## Nextclade 3.1.0
 
 ### CLI
+
+#### PCR primers are back in Nextclade CLI
+
+Due to popular demand, we are bringing back `--input-pcr-primers` argument for Nextclade CLI, which accepts a path to `primers.csv` file. The feature works just like it did prior to release of Nextclade v3, except `primers.csv` is never read from a dataset - you always need to provide it separately. At the same time, we removed support for `primers` field from `pathogen.json`, because it was too difficult to make a correct JSON object and it would conflict with the primers provided with `--input-pcr-primers`.
+
+### Web
+
+#### Fix results table stripes
+
+Results table stripes are always alternating now, regardless of sorting and filtering applied. This is only a visual change and does not affect any functionality.
+
+## Nextclade CLI 3.0.1
 
 #### Bug fixes
 
@@ -12,12 +24,9 @@
 
 - Added a section to the v3 migration guide about the renamed default path for translations, a breaking change. The new default output path for translations is `nextclade.cds_translation.{cds}.fasta`. Before v3, the default path was `nextclade_gene_{gene}.translation.fasta`. You can emulate the old (default) behavior by passing `--output-translations="nextclade_gene_{cds}.translation.fasta"` to `nextclade3`.
 
-## 3.0.1
-
-### Nextclade Web
+## Nextclade Web 3.0.1
 
 Fixed links on navigation bar: "Docs" and "CLI"
-
 
 ## 3.0.0
 
