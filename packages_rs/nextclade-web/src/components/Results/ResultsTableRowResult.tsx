@@ -110,7 +110,7 @@ export function ResultsTableRowResult({
   const { analysisResult, qc, warnings } = data
 
   return (
-    <TableRowColored {...restProps} index={seqIndex} overallStatus={qc.overallStatus}>
+    <TableRowColored {...restProps} index={rowIndex} overallStatus={qc.overallStatus}>
       <TableCellRowIndex basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
         <TableCellText>{rowIndex}</TableCellText>
       </TableCellRowIndex>
