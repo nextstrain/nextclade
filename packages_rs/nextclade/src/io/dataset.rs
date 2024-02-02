@@ -82,6 +82,15 @@ pub struct Dataset {
 }
 
 impl Dataset {
+  pub fn short_info(&self) -> DatasetInfoShort {
+    DatasetInfoShort {
+      path: self.path.clone(),
+      version: self.version.clone(),
+      server: None,
+      other: serde_json::Value::default(),
+    }
+  }
+
   pub fn name(&self) -> Option<&str> {
     self.attributes.get("name").and_then(AnyType::as_str_maybe)
   }
@@ -340,4 +349,25 @@ pub struct MinimizerIndexVersion {
   pub path: String,
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetInfoShort {
+  pub path: String,
+
+  #[serde(default, skip_serializing_if = "DatasetVersion::is_empty")]
+  pub version: DatasetVersion,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub server: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl DatasetInfoShort {
+  pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
+    json_parse(s)
+  }
 }

@@ -6,7 +6,9 @@ use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::dataset::{Dataset, DatasetFiles, DatasetMeta, DatasetsIndexJson};
+use nextclade::io::dataset::{
+  Dataset, DatasetAttributeValue, DatasetAttributes, DatasetFiles, DatasetInfoShort, DatasetsIndexJson, DatasetMeta,
+};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};

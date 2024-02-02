@@ -9,6 +9,7 @@ use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::GeneMap;
 use crate::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
+use crate::io::dataset::DatasetInfoShort;
 use crate::io::fasta::{read_one_fasta_str, FastaRecord};
 use crate::io::nextclade_csv::CsvColumnConfig;
 use crate::io::nwk_writer::convert_graph_to_nwk_string;
@@ -23,6 +24,7 @@ use crate::types::outputs::NextcladeOutputs;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use schemars::JsonSchema;
+use serde::__private::de::IdentifierDeserializer;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -35,6 +37,7 @@ pub struct NextcladeParams {
   pub gene_map: GeneMap,
   pub tree: Option<AuspiceTree>,
   pub virus_properties: VirusProperties,
+  pub dataset_info: DatasetInfoShort,
 }
 
 impl NextcladeParams {
@@ -53,11 +56,14 @@ impl NextcladeParams {
       |gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"),
     )?;
 
+    let dataset_info = DatasetInfoShort::from_str(&raw.dataset_info).wrap_err("When parsing dataset short info")?;
+
     Ok(Self {
       ref_record,
       gene_map,
       tree,
       virus_properties,
+      dataset_info,
     })
   }
 }
@@ -70,6 +76,7 @@ pub struct NextcladeParamsRaw {
   pub gene_map: Option<String>,
   pub tree: Option<String>,
   pub virus_properties: String,
+  pub dataset_info: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
@@ -164,6 +171,7 @@ impl Nextclade {
       gene_map,
       tree,
       virus_properties,
+      dataset_info,
     } = inputs;
 
     let params = NextcladeInputParams::from_optional(params, &virus_properties)?;

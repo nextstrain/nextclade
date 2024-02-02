@@ -1,4 +1,5 @@
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
+use crate::io::dataset::DatasetInfoShort;
 use crate::io::json::{json_stringify, json_write, JsonPretty};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
@@ -6,10 +7,10 @@ use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
 };
 use crate::utils::datetime::date_iso_now;
+use crate::utils::info::this_package_version_str;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use crate::utils::info::this_package_version_str;
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -20,6 +21,8 @@ pub struct ResultsJson {
 
   #[serde(skip_serializing_if = "Option::is_none")]
   pub nextclade_web_version: Option<String>,
+
+  pub dataset_info: DatasetInfoShort,
 
   pub created_at: String,
 
@@ -33,11 +36,16 @@ pub struct ResultsJson {
 }
 
 impl ResultsJson {
-  pub fn new(clade_node_attrs: &[CladeNodeAttrKeyDesc], phenotype_attr_keys: &[PhenotypeAttrDesc]) -> Self {
+  pub fn new(
+    dataset_info: &DatasetInfoShort,
+    clade_node_attrs: &[CladeNodeAttrKeyDesc],
+    phenotype_attr_keys: &[PhenotypeAttrDesc],
+  ) -> Self {
     Self {
       schema_version: "3.0.0".to_owned(),
       nextclade_algo_version: this_package_version_str().to_owned(),
       nextclade_web_version: None,
+      dataset_info: dataset_info.clone(),
       created_at: date_iso_now(),
       clade_node_attr_keys: clade_node_attrs.to_vec(),
       phenotype_attr_keys: phenotype_attr_keys.to_vec(),
@@ -47,13 +55,14 @@ impl ResultsJson {
   }
 
   pub fn from_outputs(
+    dataset_info: &DatasetInfoShort,
     outputs: &[NextcladeOutputs],
     errors: &[NextcladeErrorOutputs],
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
     nextclade_web_version: &Option<String>,
   ) -> Self {
-    let mut this = Self::new(clade_node_attrs, phenotype_attr_keys);
+    let mut this = Self::new(dataset_info, clade_node_attrs, phenotype_attr_keys);
     this.results = outputs.to_vec();
     this.errors = errors.to_vec();
     this.nextclade_web_version = nextclade_web_version.clone();
@@ -68,13 +77,14 @@ pub struct ResultsJsonWriter {
 
 impl ResultsJsonWriter {
   pub fn new(
+    dataset_info: &DatasetInfoShort,
     filepath: impl AsRef<Path>,
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
   ) -> Result<Self, Report> {
     Ok(Self {
       filepath: filepath.as_ref().to_owned(),
-      result: ResultsJson::new(clade_node_attrs, phenotype_attr_keys),
+      result: ResultsJson::new(dataset_info, clade_node_attrs, phenotype_attr_keys),
     })
   }
 
@@ -103,6 +113,7 @@ impl Drop for ResultsJsonWriter {
 }
 
 pub fn results_to_json_string(
+  dataset_info: &DatasetInfoShort,
   outputs: &[NextcladeOutputs],
   errors: &[NextcladeErrorOutputs],
   clade_node_attrs: &[CladeNodeAttrKeyDesc],
@@ -110,6 +121,7 @@ pub fn results_to_json_string(
   nextclade_web_version: &Option<String>,
 ) -> Result<String, Report> {
   let results_json = ResultsJson::from_outputs(
+    dataset_info,
     outputs,
     errors,
     clade_node_attrs,
