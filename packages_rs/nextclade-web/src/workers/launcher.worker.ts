@@ -94,6 +94,12 @@ class LauncherWorkerImpl {
   }
 
   private onError(error: unknown) {
+    console.log('onError', { this: this, error })
+
+    if (!this) {
+      return
+    }
+
     this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
     this.analysisResultsObservable.error(sanitizeError(error))
     void this.destroy() // eslint-disable-line no-void
