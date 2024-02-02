@@ -7,13 +7,24 @@ use nextclade::o;
 use nextclade::utils::string::surround_with_quotes;
 use std::borrow::Cow;
 
-pub fn format_dataset_table(filtered: &[Dataset]) -> String {
+pub fn get_table() -> Table {
+  #[allow(unused_mut)]
   let mut table = Table::new();
+
+  #[cfg(unix)]
+  {
+    table
+      .load_preset(UTF8_FULL)
+      .apply_modifier(UTF8_ROUND_CORNERS)
+      .apply_modifier(UTF8_SOLID_INNER_BORDERS)
+      .set_content_arrangement(ContentArrangement::Dynamic);
+  }
+
   table
-    .load_preset(UTF8_FULL)
-    .apply_modifier(UTF8_ROUND_CORNERS)
-    .apply_modifier(UTF8_SOLID_INNER_BORDERS)
-    .set_content_arrangement(ContentArrangement::Dynamic);
+}
+
+pub fn format_dataset_table(filtered: &[Dataset]) -> String {
+  let mut table = get_table();
 
   table.set_header([o!("name"), o!("attributes"), o!("versions")]);
 
