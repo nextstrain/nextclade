@@ -15,6 +15,7 @@ use std::io::Read;
 
 /// Possible keys for name attribute (in order of preference!)
 pub const NAME_ATTRS_GENE: &[&str] = &[
+  "nextclade_name",
   "Gene",
   "gene",
   "gene_name",
@@ -35,6 +36,7 @@ pub const NAME_ATTRS_GENE: &[&str] = &[
 ];
 
 pub const NAME_ATTRS_CDS: &[&str] = &[
+  "nextclade_name",
   "Name",
   "name",
   "Alias",
@@ -55,6 +57,7 @@ pub const NAME_ATTRS_CDS: &[&str] = &[
 ];
 
 pub const NAME_ATTRS_PROTEIN: &[&str] = &[
+  "nextclade_name",
   "product",
   "protein_id",
   "gene_synonym",
