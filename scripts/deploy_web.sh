@@ -8,7 +8,7 @@ trap "exit" INT
 
 export AWS_MAX_ATTEMPTS=10
 
-pushd "packages_rs/nextclade-web/.build/production/web" >/dev/null
+pushd "packages/nextclade-web/.build/production/web" >/dev/null
 
 # Precompress files
 pigz -kfrq .

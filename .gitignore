@@ -7,8 +7,8 @@
 /e2e/cli/snapshots/
 /e2e/cli/tmp/
 /example-data/
-/packages_rs/*/target/
-/packages_rs/nextclade-web/src/gen
+/packages/*/target/
+/packages/nextclade-web/src/gen
 /paper/paper.pdf
 /paper/preprint.pdf
 /paper/tex2pdf*

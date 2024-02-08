@@ -116,10 +116,10 @@ export FILES_TO_WATCH="\
 -w 'Cargo.lock' \
 -w 'Cargo.toml' \
 -w 'clippy.toml' \
--w 'packages_rs/nextclade-web/src' \
--w 'packages_rs/nextclade-web/Cargo.toml' \
--w 'packages_rs/nextclade/src' \
--w 'packages_rs/nextclade/Cargo.toml' \
+-w 'packages/nextclade-web/src' \
+-w 'packages/nextclade-web/Cargo.toml' \
+-w 'packages/nextclade/src' \
+-w 'packages/nextclade/Cargo.toml' \
 -w 'rust-toolchain.toml' \
 -w 'rustfmt.toml' \
 "
@@ -129,7 +129,7 @@ export FILES_TO_IGNORE="\
 -i '.cache' \
 -i '.vscode' \
 -i 'target/' \
--i 'packages_rs/nextclade-web/src/gen/' \
+-i 'packages/nextclade-web/src/gen/' \
 "
 
 export LINT_FIX="--fix --allow-staged"
@@ -471,11 +471,11 @@ elif [ "${BUILD}" == "1" ]; then
 elif [ "${SMOKE_TEST}" == "1" ]; then
   COMMAND="./tests/run-smoke-tests 'cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} --bin=nextclade'"
 elif [ "${WASM}" == "1" ]; then
-  COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn install && yarn wasm-${RELEASE}\""
+  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && yarn install && yarn wasm-${RELEASE}\""
 elif [ "${WEB}" == "1" ]; then
   PORTS="-p 3000:3000"
   COMMAND=${COMMAND:=yarn install && yarn ${RELEASE}}
-  COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && ${COMMAND}\""
+  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${TEST}" == "1" ]; then
   PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result|TEST START\" || true )"
   COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} ${*:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"

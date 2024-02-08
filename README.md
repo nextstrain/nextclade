@@ -109,7 +109,7 @@ by Nextstrain team
 
   <a href="packages/web/package.json">
     <img
-      src="https://img.shields.io/github/package-json/v/nextstrain/nextclade/master/packages_rs/nextclade-web?label=web&logo=npm"
+      src="https://img.shields.io/github/package-json/v/nextstrain/nextclade/master/packages/nextclade-web?label=web&logo=npm"
       alt="package.json version"
     />
   </a>

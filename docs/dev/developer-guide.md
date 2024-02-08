@@ -211,7 +211,7 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 5. Install NPM dependencies (once)
 
     ```bash
-    cd packages_rs/nextclade-web
+    cd packages/nextclade-web
     yarn install
     ```
 
@@ -220,11 +220,11 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 6. Build the WebAssembly module
 
     ```bash
-    cd packages_rs/nextclade-web
+    cd packages/nextclade-web
     yarn wasm-prod
     ```
 
-   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into  `packages_rs/nextclade-web/src/gen/`. The web application should be able to find it there.
+   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into  `packages/nextclade-web/src/gen/`. The web application should be able to find it there.
 
    Repeat this step every time you are touching Rust code.
 
@@ -235,7 +235,7 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
    The development version can be built using:
 
     ```bash
-    cd packages_rs/nextclade-web
+    cd packages/nextclade-web
     yarn dev
     ```
 
@@ -250,7 +250,7 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 
    Open `http://localhost:8080/` in the browser.
 
-   The resulting HTML, CSS and JS files should be available under `packages_rs/nextclade-web/.build/production/web`.
+   The resulting HTML, CSS and JS files should be available under `packages/nextclade-web/.build/production/web`.
 
    Production build does not have automatic rebuild and reload. You need to do full rebuild on every code change.
 
@@ -321,7 +321,7 @@ For routine development, it is recommended to configure your text editor to see 
 The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) as a part of development command, but the same lints also be run separately:
 
 ```bash
-cd packages_rs/nextclade-web
+cd packages/nextclade-web
 yarn lint
 ```
 
@@ -340,7 +340,7 @@ cargo fmt --all
 Typescript:
 
 ```bash
-cd packages_rs/nextclade-web
+cd packages/nextclade-web
 yarn format:fix
 ```
 
