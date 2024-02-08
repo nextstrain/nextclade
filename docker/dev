@@ -7,52 +7,52 @@
 # (see dev guide).
 #
 # See the full list of possible commands in the long `case` block halfway through the script.
-# Here are some of the most useful ones:
+# Here are some of the most useful ones (run them from project root):
 #
 # * Build nextclade binary in debug mode:
-#   ./docker-dev b nextclade
+#   ./docker/dev b nextclade
 #
 # * Build nextclade binary in release mode:
-#   ./docker-dev br nextclade
+#   ./docker/dev br nextclade
 #
 # * Build and run nextclade binary in debug mode, with arguments:
-#   ./docker-dev r nextclade -- dataset list --help
+#   ./docker/dev r nextclade -- dataset list --help
 #
 # * Build and run nextclade binary in release mode, with arguments:
-#   ./docker-dev rr nextclade -- dataset list --help
+#   ./docker/dev rr nextclade -- dataset list --help
 #
 # * Cross-compile nextclade binary for Windows in release mode:
-#   CROSS=x86_64-pc-windows-gnu ./docker-dev br
+#   CROSS=x86_64-pc-windows-gnu ./docker/dev br
 #
 # * Build WebAssembly module in debug mode:
-#   ./docker-dev W
+#   ./docker/dev W
 #
 # * Build WebAssembly module in release mode:
-#   ./docker-dev Wr
+#   ./docker/dev Wr
 #
 # * Build and run web application in debug mode:
-#   ./docker-dev a
+#   ./docker/dev a
 #
 # * Build and run web application in release mode:
-#   ./docker-dev war
+#   ./docker/dev war
 #
 # * Lint Rust code:
-#   ./docker-dev l
+#   ./docker/dev l
 #
 # * Lint Rust code, apply automatic fixes:
-#   ./docker-dev lf
+#   ./docker/dev lf
 #
 # * Format Rust code:
-#   ./docker-dev f
+#   ./docker/dev f
 #
 # * Shell into the container:
-#   ./docker-dev bash
+#   ./docker/dev bash
 #
 # * Run arbitrary command inside the container:
-#   ./docker-dev cargo --version
+#   ./docker/dev cargo --version
 #
 # * Run arbitrary yarn command, in the context of web app, inside the container:
-#   ./docker-dev a yarn add --dev react
+#   ./docker/dev a yarn add --dev react
 #
 
 set -euo pipefail
@@ -75,7 +75,7 @@ HANDLE_SIGINT="trap \"${CANCELLED}; exit 0\" INT"
 export PACKAGE_NAME="nextclade"
 export PACKAGE_DIR_REL=""
 
-export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
+export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}/..")"
 export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
 export DOCKER_REPO="nextstrain/nextclade_builder"
@@ -108,7 +108,7 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   . "${PROJECT_ROOT_DIR}/.env"
 fi
 
-. "${THIS_DIR}/scripts/is_ci.sh"
+. "${PROJECT_ROOT_DIR}/scripts/is_ci.sh"
 
 export EXTENSIONS_TO_WATCH="rs,toml,lock"
 

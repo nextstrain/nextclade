@@ -21,7 +21,7 @@ targets=(
 function run_one() {
   target=${1:?}
   printf "\nBuilding for %s\n" "${target}"
-  CROSS=${target} ./docker-dev br
+  CROSS=${target} ./docker/dev br
 }
 export -f run_one
 
