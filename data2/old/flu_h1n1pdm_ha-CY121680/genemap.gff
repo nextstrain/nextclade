@@ -1,5 +1,0 @@
-##gff-version 3
-##sequence-region CY121680.1 1 1752
-CY121680.1	feature	gene	21	71	.	+	.	gene_name="SigPep"
-CY121680.1	feature	gene	72	1052	.	+	.	gene_name="HA1"
-CY121680.1	feature	gene	1053	1718	.	+	.	gene_name="HA2"

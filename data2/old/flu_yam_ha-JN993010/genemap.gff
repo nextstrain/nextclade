@@ -1,5 +1,0 @@
-##gff-version 3
-##sequence-region JN993010.1 1 1755
-JN993010.1	feature	gene	1	45	.	+	.	gene_name=SigPep
-JN993010.1	feature	gene	46	1083	.	+	.	gene_name=HA1
-JN993010.1	feature	gene	1084	1755	.	+	.	gene_name=HA2
