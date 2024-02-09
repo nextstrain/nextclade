@@ -4,7 +4,6 @@ use crate::graph::node::{GraphNode, GraphNodeKey};
 use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::file::create_file_or_stdout;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
 use std::io::Write;
 use std::path::Path;
 

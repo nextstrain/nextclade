@@ -1,7 +1,6 @@
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::virus_properties::{PhenotypeAttrDesc, PhenotypeData, VirusProperties};
 use itertools::Itertools;
-use num_traits::real::Real;
 
 pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[AaSub]) -> f64 {
   let aa_substitutions = aa_substitutions

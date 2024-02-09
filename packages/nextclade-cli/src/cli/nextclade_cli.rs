@@ -8,7 +8,7 @@ use crate::cli::verbosity::{Verbosity, WarnLevel};
 use crate::io::http_client::ProxyConfig;
 use clap::builder::styling;
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
-use clap_complete::{generate, Generator, Shell};
+use clap_complete::{generate, Shell};
 use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;

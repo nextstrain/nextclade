@@ -2,7 +2,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::coord::coord_map::{make_aln_to_ref_map, make_ref_to_aln_map};
 use crate::coord::position::{NucAlnGlobalPosition, NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{NucAlnGlobalRange, NucRefGlobalRange, Range};
-use itertools::Itertools;
+
 use serde::{Deserialize, Serialize};
 
 /// Converts from global alignment coordinates to global reference coordinates and vice versa.

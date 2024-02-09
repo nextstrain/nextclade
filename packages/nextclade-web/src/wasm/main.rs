@@ -1,5 +1,5 @@
 use crate::wasm::jserr::jserr;
-use eyre::{Report, WrapErr};
+use eyre::WrapErr;
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
@@ -11,8 +11,6 @@ use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
-use std::io::Read;
-use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 /// Nextclade WebAssembly module.

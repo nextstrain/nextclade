@@ -1,6 +1,6 @@
 use crate::align::params::AlignPairwiseParams;
 use crate::alphabet::nuc::Nuc;
-use crate::coord::range::NucRefGlobalRange;
+
 use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
 use either::Either;

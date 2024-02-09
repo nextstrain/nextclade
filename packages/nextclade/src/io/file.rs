@@ -1,7 +1,7 @@
 use crate::io::fs::ensure_dir;
 use eyre::{Report, WrapErr};
 use log::{info, warn};
-use std::fmt::Debug;
+
 use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};

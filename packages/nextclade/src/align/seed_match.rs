@@ -8,7 +8,7 @@ use bio::data_structures::bwt::{bwt, less, Less, Occ, BWT};
 use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
 use eyre::Report;
-use gcollections::ops::{Bounded, Intersection, IsEmpty, Union};
+use gcollections::ops::{Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
 use std::borrow::Cow;

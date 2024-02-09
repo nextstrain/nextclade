@@ -4,14 +4,14 @@ use crate::utils::collections::get_first_of;
 use crate::utils::string::surround_with_quotes;
 use bio::io::gff::{GffType, Record as GffRecord, Writer as GffWriter};
 use color_eyre::{Section, SectionExt};
-use eyre::{eyre, Report, WrapErr};
+use eyre::{eyre, Report};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::borrow::BorrowMut;
+
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::hash::Hash;
-use std::io::Read;
+
+
 
 /// Possible keys for name attribute (in order of preference!)
 pub const NAME_ATTRS_GENE: &[&str] = &[

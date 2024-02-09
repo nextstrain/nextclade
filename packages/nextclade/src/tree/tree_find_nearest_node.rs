@@ -2,9 +2,9 @@ use crate::alphabet::nuc::Nuc;
 use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::coord::range::{NucRefGlobalRange, Range};
+use crate::coord::range::NucRefGlobalRange;
 use crate::graph::node::GraphNodeKey;
-use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload, TreeNodeAttr};
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
 use eyre::Report;
 use itertools::Itertools;
 use traversal::DftPre;
@@ -126,10 +126,11 @@ mod tests {
   use std::collections::BTreeMap;
 
   use crate::alphabet::nuc::Nuc;
-  use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttrs, TreeNodeTempData};
+  use crate::tree::tree::{TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData};
 
   use super::*;
   use crate::coord::position::NucRefGlobalPosition;
+  use crate::coord::range::Range;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};

@@ -2,13 +2,13 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::alphabet::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
-use color_eyre::SectionExt;
-use eyre::Report;
+
+
 use itertools::Itertools;
-use serde::de::Error;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use std::str::FromStr;
+
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Insertion<T: Letter<T>> {

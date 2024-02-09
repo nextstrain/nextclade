@@ -2,7 +2,6 @@ use crate::alphabet::letter::Letter;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
-use itertools::Itertools;
 
 /// Decides whether a given position in nucleotide sequence is considered "sequenced".
 /// The position is considered sequenced if it is not contained in any of the missing regions

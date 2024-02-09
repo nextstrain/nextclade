@@ -2,7 +2,7 @@ use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
 use crate::alphabet::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
 use eyre::{eyre, Report, WrapErr};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 #[repr(u8)]

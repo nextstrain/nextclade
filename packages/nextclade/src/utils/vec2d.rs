@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display, Formatter, Write};
+use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Index, IndexMut};
 
 /// Row-major, 2-dimensional container with contiguous, flat underlying storage

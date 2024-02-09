@@ -9,8 +9,6 @@ use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::datetime::date_now;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::io::Read;
-use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]

@@ -1,7 +1,7 @@
 use crate::align::params::AlignPairwiseParamsOptional;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::pcr_primers::PcrPrimer;
+
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
@@ -18,7 +18,6 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::Path;
-use std::str::FromStr;
 use validator::Validate;
 
 const PATHOGEN_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
