@@ -12,26 +12,26 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 assert2 = "=0.3.11"
-chrono = { version = "=0.4.26", default-features = false, features = ["clock", "std", "wasmbind"] }
+chrono = { version = "=0.4.33", default-features = false, features = ["clock", "std", "wasmbind"] }
 console_error_panic_hook = "=0.1.7"
-eyre = "=0.6.8"
-getrandom = { version = "=0.2.10", features = ["js"] }
-itertools = "=0.11.0"
-js-sys = { version = "=0.3.64", features = [] }
-log = "=0.4.19"
+eyre = "=0.6.12"
+getrandom = { version = "=0.2.12", features = ["js"] }
+itertools = "=0.12.1"
+js-sys = { version = "=0.3.68", features = [] }
+log = "=0.4.20"
 nextclade = { path = "../nextclade" }
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
-serde = { version = "=1.0.164", features = ["derive"] }
-serde-wasm-bindgen = { version = "=0.5.0" }
-wasm-bindgen = { version = "=0.2.87", features = ["serde-serialize"] }
+schemars = { version = "=0.8.16", features = ["chrono", "either", "enumset", "indexmap1"] }
+serde = { version = "=1.0.196", features = ["derive"] }
+serde-wasm-bindgen = { version = "=0.6.3" }
+wasm-bindgen = { version = "=0.2.91", features = ["serde-serialize"] }
 wasm-logger = "=0.2.0"
-web-sys = { version = "=0.3.64", features = ["console"] }
+web-sys = { version = "=0.3.68", features = ["console"] }
 
 [build-dependencies]
 nextclade = { path = "../nextclade" }
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
-eyre = "=0.6.8"
+schemars = { version = "=0.8.16", features = ["chrono", "either", "enumset", "indexmap1"] }
+eyre = "=0.6.12"
 
 [dev-dependencies]
 assert2 = "=0.3.11"
-wasm-bindgen-test = "=0.3.37"
+wasm-bindgen-test = "=0.3.41"
