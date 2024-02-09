@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::align::seed_alignment::create_alignment_band;
-use nextclade::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
+use nextclade::align::seed_match::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
 use nextclade::alphabet::nuc::to_nuc_seq;
 
 pub fn bench_seed_alignment(c: &mut Criterion) {

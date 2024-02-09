@@ -1,10 +1,10 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::band_2d::Stripe;
 use crate::align::band_2d::{full_matrix, simple_stripes};
-use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::create_alignment_band;
-use crate::align::seed_match2::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
+use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_match::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;

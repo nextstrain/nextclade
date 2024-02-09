@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use nextclade::align::seed_alignment::create_alignment_band;
-use nextclade::align::seed_match2::SeedMatch2;
+use nextclade::align::seed_match::SeedMatch2;
 
 pub fn bench_create_stripes(c: &mut Criterion) {
   let seed_matches = black_box(vec![

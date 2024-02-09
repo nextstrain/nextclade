@@ -83,9 +83,5 @@ name = "bench_create_stripes"
 harness = false
 
 [[bench]]
-name = "bench_seed_match"
-harness = false
-
-[[bench]]
 name = "bench_seed_alignment"
 harness = false
