@@ -703,7 +703,7 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@7.17.9", "@babel/core@>=7.9.0", "@babel/core@^7.1.0", "@babel/core@^7.12.3", "@babel/core@^7.15.5", "@babel/core@^7.16.0", "@babel/core@^7.3.4":
+"@babel/core@7.17.9":
   version "7.17.9"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.17.9.tgz#6bae81a06d95f4d0dec5bb9d74bbc1f58babdcfe"
   integrity sha512-5ug+SfZCpDAkVp9SFIZAzlW18rlzsOcJGaetCjkySnrXXDUw9AR8cDUm1iByTmdWM6yxX6/zycaV76w3YTF2gw==
@@ -746,7 +746,7 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@^7.7.2", "@babel/core@^7.8.0":
+"@babel/core@>=7.9.0", "@babel/core@^7.1.0", "@babel/core@^7.12.3", "@babel/core@^7.15.5", "@babel/core@^7.16.0", "@babel/core@^7.3.4", "@babel/core@^7.7.2", "@babel/core@^7.8.0":
   version "7.23.5"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.23.5.tgz#6e23f2acbcb77ad283c5ed141f824fd9f70101c7"
   integrity sha512-Cwc2XjUrG4ilcfOw4wBAK+enbdgwAcAJCfGUItPBKR7Mjw4aEfAFYrLxeRp4jWgtNIKn3n2AlBOfwwafl+42/g==
@@ -4574,10 +4574,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.51.0:
-  version "2.51.0"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.51.0.tgz#702758275005ea29c9e9baab8ff6bc875fa758d2"
-  integrity sha512-mj5M8eVENE46LHdO68d759ucWFzNni55hrjn6Ft9tBwQG/4KTS6H1stKh836uOCGyI79t5C95Gt4SHgT/UacVQ==
+auspice@2.52.0:
+  version "2.52.0"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.52.0.tgz#61e2cbd79b0dd76fa161f3603906d23393e6d513"
+  integrity sha512-LGsxd4B9ChRCMAiY72XjNPWKmkgmxdhwTf46ik77rcCwwB/U8GdDJH//aAQO7jX7eM4Tw1/xGT2M5syNfMqcog==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
