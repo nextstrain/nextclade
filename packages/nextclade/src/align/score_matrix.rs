@@ -27,6 +27,9 @@ pub fn score_matrix<T: Letter<T>>(
   stripes: &[Stripe],
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
+  assert!(gap_open_close.len() > 0);
+  assert!(stripes.len() > 0);
+
   let query_size = qry_seq.len();
   let ref_len = ref_seq.len();
   let n_rows = ref_len + 1;

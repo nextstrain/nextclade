@@ -157,6 +157,8 @@ pub const fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapC
 
 /// Replaces first and second gap in a not-all-gap triplet with `N`
 pub fn protect_codon_in_place(triplet: &mut [Nuc]) {
+  assert!(triplet.len() > 1);
+
   if triplet[0].is_gap() {
     triplet[0] = Nuc::N;
 

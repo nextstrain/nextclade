@@ -278,7 +278,7 @@ fn flatten_feature_map_recursive(
   depth: usize,
   feature_map_flat: &mut Vec<(usize, Feature)>,
 ) {
-  feature_map.iter().cloned().for_each(|feature_group| {
+  feature_map.iter().for_each(|feature_group| {
     feature_map_flat.extend(
       feature_group
         .features

@@ -27,8 +27,8 @@ pub fn nextclade_dataset_list(
 ) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
 
-  let mut http = HttpClient::new(&server, &proxy_config, verbose)?;
-  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(&mut http)?;
+  let http = HttpClient::new(&server, &proxy_config, verbose)?;
+  let DatasetsIndexJson { collections, .. } = download_datasets_index_json(&http)?;
 
   let filtered = collections
     .into_iter()

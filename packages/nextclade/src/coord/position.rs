@@ -99,12 +99,12 @@ where
   L: SeqTypeMarker,
 {
   #[inline]
-  pub fn new(pos: isize) -> Self {
+  pub const fn new(pos: isize) -> Self {
     Self {
       inner: pos,
-      _coordinate_marker: PhantomData::default(),
-      _locality_marker: PhantomData::default(),
-      _sequence_marker: PhantomData::default(),
+      _coordinate_marker: PhantomData,
+      _locality_marker: PhantomData,
+      _sequence_marker: PhantomData,
     }
   }
 }
@@ -185,7 +185,7 @@ where
   L: SeqTypeMarker,
 {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    self.inner.partial_cmp(&other.inner)
+    Some(self.cmp(other))
   }
 }
 

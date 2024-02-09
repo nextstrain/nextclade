@@ -187,7 +187,7 @@ impl Ord for DatasetVersion {
 
 impl PartialOrd<Self> for DatasetVersion {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    (self.tag).partial_cmp(&other.tag)
+    Some(self.cmp(other))
   }
 }
 

@@ -421,19 +421,15 @@ where
     self.roots = self
       .nodes
       .iter()
-      .filter_map(|node| {
-        let node = node;
-        node.is_root().then(|| node.key())
-      })
+      .filter(|node| node.is_root())
+      .map(Node::key)
       .collect_vec();
 
     self.leaves = self
       .nodes
       .iter()
-      .filter_map(|node| {
-        let node = node;
-        node.is_leaf().then(|| node.key())
-      })
+      .filter(|node| node.is_leaf())
+      .map(Node::key)
       .collect_vec();
 
     Ok(())
@@ -495,7 +491,7 @@ where
 
     let mut zipped = pre_outbound_order
       .into_iter()
-      .zip(order_outbound_nodes.into_iter())
+      .zip(order_outbound_nodes)
       .collect::<Vec<_>>();
     zipped.sort_by(|&(_, a), &(_, b)| a.cmp(b));
 

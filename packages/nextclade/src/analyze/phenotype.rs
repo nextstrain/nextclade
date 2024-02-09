@@ -6,7 +6,7 @@ use num_traits::real::Real;
 pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[AaSub]) -> f64 {
   let aa_substitutions = aa_substitutions
     .iter()
-    .filter_map(|sub| (sub.cds_name == phenotype_data.cds && phenotype_data.aa_range.contains(sub.pos)).then_some(sub))
+    .filter(|sub| (sub.cds_name == phenotype_data.cds && phenotype_data.aa_range.contains(sub.pos)))
     .collect_vec();
 
   let phenotype: f64 = phenotype_data

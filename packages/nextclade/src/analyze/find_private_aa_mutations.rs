@@ -95,13 +95,8 @@ pub fn find_private_aa_mutations_for_one_gene(
   );
 
   // Iterate over sequence deletions
-  let non_reversion_deletions = process_seq_deletions(
-    cds,
-    node_mut_map,
-    aa_deletions,
-    ref_peptide,
-    &mut seq_positions_mutated_or_deleted,
-  );
+  let non_reversion_deletions =
+    process_seq_deletions(cds, node_mut_map, aa_deletions, &mut seq_positions_mutated_or_deleted);
 
   // Iterate over node substitutions and deletions and find reversions
   let reversion_substitutions = find_reversions(
@@ -110,7 +105,7 @@ pub fn find_private_aa_mutations_for_one_gene(
     aa_unknowns,
     aa_unsequenced_ranges,
     ref_peptide,
-    &mut seq_positions_mutated_or_deleted,
+    &seq_positions_mutated_or_deleted,
   );
 
   let mut private_substitutions = concat_to_vec(&reversion_substitutions, &non_reversion_substitutions);
@@ -200,7 +195,6 @@ fn process_seq_deletions(
   cds: &Cds,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   deletions: &[&AaDel],
-  ref_seq: &[Aa],
   seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,
 ) -> Vec<AaDel> {
   let mut non_reversion_deletions = Vec::<AaDel>::new();
@@ -249,7 +243,7 @@ fn find_reversions(
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
   ref_peptide: &[Aa],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<AaRefPosition>,
+  seq_positions_mutated_or_deleted: &BTreeSet<AaRefPosition>,
 ) -> Vec<AaSub> {
   let mut reversion_substitutions = Vec::<AaSub>::new();
 

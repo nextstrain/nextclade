@@ -99,8 +99,7 @@ fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnp
 }
 
 fn process_snp_clusters(snp_clusters: Vec<Vec<isize>>) -> Vec<ClusteredSnp> {
-  let mut result = vec![];
-  result.reserve(snp_clusters.len());
+  let mut result = Vec::with_capacity(snp_clusters.len());
   for cluster in snp_clusters {
     result.push(ClusteredSnp {
       start: cluster[0] as usize,

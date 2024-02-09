@@ -27,20 +27,19 @@ pub fn nextclade_dataset_get(
 ) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
 
-  let mut http = HttpClient::new(server, proxy_config, verbose)?;
-  let dataset = dataset_http_get(&mut http, name, tag)?;
+  let http = HttpClient::new(server, proxy_config, verbose)?;
+  let dataset = dataset_http_get(&http, name, tag)?;
 
   if let Some(output_dir) = &output_dir {
-    dataset_dir_download(&mut http, &dataset, output_dir)?;
+    dataset_dir_download(&http, &dataset, output_dir)?;
   } else if let Some(output_zip) = &output_zip {
-    dataset_zip_download(&mut http, &dataset, output_zip)?;
-  } else {
+    dataset_zip_download(&http, &dataset, output_zip)?;
   }
 
   Ok(())
 }
 
-pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Option<String>) -> Result<Dataset, Report> {
+pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: &Option<String>) -> Result<Dataset, Report> {
   let name = name.as_ref();
   let tag = tag.as_ref();
 
@@ -100,7 +99,7 @@ pub fn dataset_http_get(http: &mut HttpClient, name: impl AsRef<str>, tag: &Opti
 }
 
 pub fn dataset_file_http_get(
-  http: &mut HttpClient,
+  http: &HttpClient,
   dataset: &Dataset,
   filename: impl AsRef<str>,
 ) -> Result<String, Report> {

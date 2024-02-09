@@ -56,7 +56,6 @@ fn extend_and_rewind(
   minimal_bandwidth: isize,
   ref_len: isize,
 ) -> RewindResult {
-  let current_seed_end = (current_seed.ref_pos + current_seed.length) as isize;
   let mut current_band = current_band;
   let mut look_back_length = look_back_length;
   // generate new current trapezoid for the body of the current seed
@@ -254,6 +253,7 @@ fn trace_stripe_stats(stripes: &[Stripe]) {
   trace!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
 }
 
+#[cfg(feature = "debug-seed-alignment")]
 fn trace_matches(matches: &[SeedMatch2]) {
   for (i, seed) in matches.iter().enumerate() {
     trace!(
@@ -266,6 +266,7 @@ fn trace_matches(matches: &[SeedMatch2]) {
   }
 }
 
+#[cfg(feature = "debug-seed-alignment")]
 fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
   use std::io::Write;
   let mut file = std::fs::File::create(filename).unwrap();
@@ -275,6 +276,7 @@ fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
   }
 }
 
+#[cfg(feature = "debug-seed-alignment")]
 pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
   use std::io::Write;
   let mut file = std::fs::File::create(filename).unwrap();
