@@ -84,7 +84,9 @@ pub fn run_minimizer_search(
         break;
       }
     }
-    datasets.truncate(chop);
+    if chop > 0 {
+      datasets.truncate(chop);
+    }
   }
 
   Ok(MinimizerSearchResult {
