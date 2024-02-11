@@ -21,7 +21,7 @@ pub struct NextcladeSeqSortParams {
 impl Default for NextcladeSeqSortParams {
   fn default() -> Self {
     Self {
-      min_score: 0.3,
+      min_score: 0.1,
       min_hits: 10,
     }
   }
