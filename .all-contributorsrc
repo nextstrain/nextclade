@@ -21,6 +21,17 @@
       ]
     },
     {
+      "login": "anna-parker",
+      "name": "Anna Parker",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50943381?v=4",
+      "profile": "https://github.com/anna-parker",
+      "contributions": [
+        "code",
+        "test",
+        "ideas"
+      ]
+    },
+    {
       "login": "tsibley",
       "name": "Thomas Sibley",
       "avatar_url": "https://avatars2.githubusercontent.com/u/79913?v=4",
