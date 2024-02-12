@@ -35,3 +35,10 @@ eyre = "=0.6.12"
 [dev-dependencies]
 assert2 = "=0.3.11"
 wasm-bindgen-test = "=0.3.41"
+
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = ['--enable-simd']
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ['--enable-simd']
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['--enable-simd']

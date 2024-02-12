@@ -5,7 +5,6 @@ FROM $DOCKER_BASE_IMAGE as base
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 ARG DOCKER_BASE_IMAGE
-ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
 ARG NODEMON_VERSION="2.0.15"
 ARG YARN_VERSION="1.22.18"
@@ -118,15 +117,15 @@ ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:
 RUN set -euxo pipefail >/dev/null \
 && pip3 install --user --upgrade cram
 
-# Install dasel, a tool to query TOML files
+# Install js, a tool to query JSON files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL -o "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
+&& curl -fsSL -o "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" \
 && chmod +x "/usr/bin/jq" \
 && jq --version
 
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
+&& curl -fsSL -o "/usr/bin/dasel" "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" \
 && chmod +x "/usr/bin/dasel" \
 && dasel --version
 
@@ -190,7 +189,7 @@ USER ${USER}
 COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
 && curl --proto '=https' -sSf https://sh.rustup.rs > rustup-init \
 && chmod +x rustup-init \
 && ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}" \
@@ -199,24 +198,24 @@ RUN set -euxo pipefail >/dev/null \
 # Install toolchain from rust-toolchain.toml and make it default
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
 && rustup toolchain install "${HOME}" \
 && rustup default "${RUST_TOOLCHAIN}"
 
 # Install remaining toolchain components from rust-toolchain.toml
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
 && rustup show \
 && rustup default "${RUST_TOOLCHAIN}"
 
 RUN set -euxo pipefail >/dev/null \
-&& export SEQKIT_VERSION="2.5.0" \
+&& export SEQKIT_VERSION="2.7.0" \
 && curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "seqkit" \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_BINSTALL_VERSION="1.0.0" \
+&& export CARGO_BINSTALL_VERSION="1.6.2" \
 && curl -sSL "https://github.com/cargo-bins/cargo-binstall/releases/download/v${CARGO_BINSTALL_VERSION}/cargo-binstall-x86_64-unknown-linux-gnu.tgz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-binstall" \
 && chmod +x "${CARGO_HOME}/bin/cargo-binstall"
 
@@ -226,12 +225,12 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_BINDGEN_CLI_VERSION="0.2.87" \
+&& export WASM_BINDGEN_CLI_VERSION="0.2.91" \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
 RUN set -euxo pipefail >/dev/null \
-&& export BINARYEN_VERSION="114" \
+&& export BINARYEN_VERSION="116" \
 && curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*' \
 && chmod +x ${CARGO_HOME}/bin/wasm*
 

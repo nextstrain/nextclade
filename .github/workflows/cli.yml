@@ -111,7 +111,7 @@ jobs:
         run: |
           export PATH="${PATH}:${HOME}/bin"
 
-          version=$(dasel select -p toml -s ".package.version" -f "packages/nextclade/Cargo.toml")
+          version=$(dasel select -r toml -w - -s ".package.version" -f "packages/nextclade/Cargo.toml")
           if [[ "$version" =~ (rc|beta|alpha) ]]; then
               export DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org/v3"
           fi

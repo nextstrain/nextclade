@@ -69,11 +69,10 @@ symlink_to_cache "packages/nextclade-web/node_modules"
 # Install rustup and toolchain from rust-toolchain.toml, if not already in the cache
 if ! command cargo &>/dev/null; then
   # Install dasel
-  DASEL_VERSION="1.22.1"
-  curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel"
+  curl -fsSL -o "/usr/bin/dasel" "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64"
   chmod +x "/usr/bin/dasel"
 
-  RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml")
+  RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml")
   curl -sSf https://sh.rustup.rs >rustup-init
   chmod +x rustup-init
   ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}"
@@ -90,11 +89,11 @@ if ! command cargo &>/dev/null; then
   which rustc
   ls -al "$(which rustc)"
 
-  export WASM_BINDGEN_CLI_VERSION="0.2.87"
+  export WASM_BINDGEN_CLI_VERSION="0.2.91"
   curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen"
   chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
-  export BINARYEN_VERSION="114"
+  export BINARYEN_VERSION="116"
   curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*'
   chmod +x ${CARGO_HOME}/bin/wasm*
 
