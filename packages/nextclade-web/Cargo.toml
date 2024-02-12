@@ -1,37 +1,41 @@
 [package]
 name = "nextclade-web"
-version = "3.2.0"
-description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. WebAssembly module."
-edition = "2021"
-license = "MIT"
-publish = false
 build = "src/build.rs"
+
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+version.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-assert2 = "=0.3.11"
-chrono = { version = "=0.4.26", default-features = false, features = ["clock", "std", "wasmbind"] }
-console_error_panic_hook = "=0.1.7"
-eyre = "=0.6.8"
-getrandom = { version = "=0.2.10", features = ["js"] }
-itertools = "=0.11.0"
-js-sys = { version = "=0.3.64", features = [] }
-log = "=0.4.19"
+assert2 = { workspace = true }
+chrono = { workspace = true }
+console_error_panic_hook = { workspace = true }
+eyre = { workspace = true }
+getrandom = { workspace = true }
+itertools = { workspace = true }
+js-sys = { workspace = true }
+log = { workspace = true }
 nextclade = { path = "../nextclade" }
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
-serde = { version = "=1.0.164", features = ["derive"] }
-serde-wasm-bindgen = { version = "=0.5.0" }
-wasm-bindgen = { version = "=0.2.87", features = ["serde-serialize"] }
-wasm-logger = "=0.2.0"
-web-sys = { version = "=0.3.64", features = ["console"] }
+schemars = { workspace = true }
+serde = { workspace = true }
+serde-wasm-bindgen = { workspace = true }
+wasm-bindgen = { workspace = true }
+wasm-logger = { workspace = true }
+web-sys = { workspace = true }
 
 [build-dependencies]
 nextclade = { path = "../nextclade" }
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap1"] }
-eyre = "=0.6.8"
+schemars = { workspace = true }
+eyre = { workspace = true }
 
 [dev-dependencies]
-assert2 = "=0.3.11"
-wasm-bindgen-test = "=0.3.37"
+assert2 = { workspace = true }
