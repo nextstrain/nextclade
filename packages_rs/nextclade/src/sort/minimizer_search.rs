@@ -79,7 +79,7 @@ pub fn run_minimizer_search(
   if datasets.len() > 1 {
     let mut chop: usize = 0;
     for i in 1..datasets.len() {
-      if datasets[i - 1].score > datasets[i].score + 0.2 {
+      if datasets[i - 1].score > datasets[i].score + search_params.max_score_gap {
         chop = i;
         break;
       }

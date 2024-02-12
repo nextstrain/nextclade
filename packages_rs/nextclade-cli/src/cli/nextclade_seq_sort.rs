@@ -153,6 +153,7 @@ fn writer_thread(
     output_dir,
     output_path,
     output_results_tsv,
+    search_params,
     ..
   } = args;
 
@@ -173,7 +174,13 @@ fn writer_thread(
   for record in result_receiver {
     stats.print_seq(&record);
 
-    let datasets = &record.result.datasets;
+    let datasets = &{
+      if search_params.all_matches {
+        record.result.datasets
+      } else {
+        record.result.datasets.into_iter().take(1).collect_vec()
+      }
+    };
 
     if datasets.is_empty() {
       results_csv.map_mut_fallible(|results_csv| {
