@@ -275,10 +275,16 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-r`, `--output-results-tsv <OUTPUT_RESULTS_TSV>` — Path to output results TSV file
 * `--min-score <MIN_SCORE>` — Minimum value of the score being considered for a detection
 
-  Default value: `0.3`
+  Default value: `0.1`
 * `--min-hits <MIN_HITS>` — Minimum number of the index hits required for a detection
 
-  Default value: `10`
+  Default value: `5`
+* `--max-score-gap <MAX_SCORE_GAP>` — Maximum score difference between two adjacent dataset matches, after which the less fitting datasets are not considered
+
+  Default value: `0.2`
+* `--all-matches` — Whether to consider all datasets
+
+  Default value: `false`
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
 * `--server <SERVER>` — Use custom dataset server
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
