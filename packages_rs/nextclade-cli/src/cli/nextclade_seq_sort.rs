@@ -138,6 +138,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbo
 #[derive(Clone, Default, Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct SeqSortCsvEntry<'a> {
+  index: usize,
   seq_name: &'a str,
   dataset: Option<&'a str>,
   score: Option<f64>,
@@ -185,6 +186,7 @@ fn writer_thread(
     if datasets.is_empty() {
       results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
+          index: record.fasta_record.index,
           seq_name: &record.fasta_record.seq_name,
           dataset: None,
           score: None,
@@ -196,6 +198,7 @@ fn writer_thread(
     for dataset in datasets {
       results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
+          index: record.fasta_record.index,
           seq_name: &record.fasta_record.seq_name,
           dataset: Some(&dataset.name),
           score: Some(dataset.score),
