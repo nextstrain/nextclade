@@ -30,6 +30,7 @@ pub struct Cds {
 }
 
 impl Cds {
+  #[allow(clippy::iter_over_hash_type)]
   pub fn from_feature_group(feature_group: &FeatureGroup) -> Result<Self, Report> {
     assert_eq!(feature_group.feature_type, "CDS");
 

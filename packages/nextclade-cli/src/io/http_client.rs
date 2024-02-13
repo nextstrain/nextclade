@@ -6,6 +6,7 @@ use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
 use reqwest::{Method, Proxy};
 use std::str::FromStr;
+use std::time::Duration;
 use url::Url;
 
 #[derive(Parser, Debug, Default)]
@@ -62,7 +63,7 @@ impl HttpClient {
 
     let client = client_builder
       .connection_verbose(verbose)
-      .connect_timeout(Some(std::time::Duration::from_secs(60)))
+      .connect_timeout(Some(Duration::from_secs(60)))
       .user_agent(user_agent)
       .build()?;
 

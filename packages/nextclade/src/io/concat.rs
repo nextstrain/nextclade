@@ -92,6 +92,7 @@ mod tests {
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
+  #[allow(clippy::redundant_type_annotations)]
   #[rstest]
   fn concatenates_readers_with_delimiter() {
     // The idea is that readers (e.g. files) don't contain newline at the end, making line parsing incorrect on reader

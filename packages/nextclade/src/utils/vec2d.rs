@@ -87,6 +87,7 @@ impl<T: Default + Clone> IndexMut<(i32, i32)> for Vec2d<T> {
   }
 }
 
+#[allow(clippy::absolute_paths)]
 /// Allows to pretty-print Vec2d<T>
 impl<T: Default + Clone + Display> Debug for Vec2d<T> {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

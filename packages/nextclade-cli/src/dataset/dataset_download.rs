@@ -17,7 +17,7 @@ use nextclade::{make_error, make_internal_error, o};
 use rayon::iter::ParallelIterator;
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, Write};
+use std::io::{BufReader, Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use zip::ZipArchive;
@@ -50,19 +50,19 @@ pub fn nextclade_get_inputs(
 }
 
 #[inline]
-pub fn download_datasets_index_json(http: &mut HttpClient) -> Result<DatasetsIndexJson, Report> {
+pub fn download_datasets_index_json(http: &HttpClient) -> Result<DatasetsIndexJson, Report> {
   let data_bytes = http.get("/index.json")?;
   let data_str = String::from_utf8(data_bytes)?;
   DatasetsIndexJson::from_str(data_str)
 }
 
-pub fn dataset_zip_fetch(http: &mut HttpClient, dataset: &Dataset) -> Result<Vec<u8>, Report> {
+pub fn dataset_zip_fetch(http: &HttpClient, dataset: &Dataset) -> Result<Vec<u8>, Report> {
   http
     .get(&dataset.file_path("dataset.zip"))
     .wrap_err_with(|| format!("When fetching zip file for dataset '{}'", dataset.path))
 }
 
-pub fn dataset_zip_download(http: &mut HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
+pub fn dataset_zip_download(http: &HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
   let mut file =
     create_file_or_stdout(output_file_path).wrap_err_with(|| format!("When opening file {output_file_path:?}"))?;
 
@@ -127,9 +127,9 @@ pub fn dataset_zip_load(
   })
 }
 
-pub fn dataset_dir_download(http: &mut HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
+pub fn dataset_dir_download(http: &HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
   let mut content = dataset_zip_fetch(http, dataset)?;
-  let mut reader = std::io::Cursor::new(content.as_mut_slice());
+  let mut reader = Cursor::new(content.as_mut_slice());
   let mut zip = ZipArchive::new(&mut reader)?;
 
   ensure_dir(output_dir).wrap_err_with(|| format!("When creating directory {output_dir:#?}"))?;
@@ -278,6 +278,7 @@ pub fn dataset_individual_files_load(
   }
 }
 
+#[allow(clippy::struct_field_names)]
 pub struct DatasetFilePaths<'a> {
   input_ref: &'a Path,
   input_tree: &'a Option<PathBuf>,
@@ -286,7 +287,7 @@ pub struct DatasetFilePaths<'a> {
 }
 
 pub fn read_from_path_or_url(
-  http: &mut HttpClient,
+  http: &HttpClient,
   dataset: &Dataset,
   filepath: &Option<impl AsRef<Path>>,
   url: &Option<String>,
@@ -304,7 +305,7 @@ pub fn dataset_str_download_and_load(
   cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let verbose = log::max_level() > LevelFilter::Info;
-  let mut http = HttpClient::new(&run_args.inputs.server, &ProxyConfig::default(), verbose)?;
+  let http = HttpClient::new(&run_args.inputs.server, &ProxyConfig::default(), verbose)?;
 
   let name = run_args
     .inputs
@@ -312,10 +313,10 @@ pub fn dataset_str_download_and_load(
     .as_ref()
     .expect("Dataset name is expected, but got 'None'");
 
-  let dataset = dataset_http_get(&mut http, name, &None)?;
+  let dataset = dataset_http_get(&http, name, &None)?;
 
   let virus_properties = read_from_path_or_url(
-    &mut http,
+    &http,
     &dataset,
     &run_args.inputs.input_pathogen_json,
     &Some(o!("pathogen.json")),
@@ -325,7 +326,7 @@ pub fn dataset_str_download_and_load(
   .ok_or_else(|| eyre!("Required file not found in dataset: 'pathogen.json'. Please report it to dataset authors."))?;
 
   let ref_record = read_from_path_or_url(
-    &mut http,
+    &http,
     &dataset,
     &run_args.inputs.input_ref,
     &Some(dataset.files.reference.clone()),
@@ -334,7 +335,7 @@ pub fn dataset_str_download_and_load(
   .wrap_err("When reading reference sequence from dataset")?;
 
   let gene_map = read_from_path_or_url(
-    &mut http,
+    &http,
     &dataset,
     &run_args.inputs.input_annotation,
     &dataset.files.genome_annotation,
@@ -344,14 +345,9 @@ pub fn dataset_str_download_and_load(
   .map(|gene_map| filter_gene_map(gene_map, cdses))
   .unwrap_or_default();
 
-  let tree = read_from_path_or_url(
-    &mut http,
-    &dataset,
-    &run_args.inputs.input_tree,
-    &dataset.files.tree_json,
-  )?
-  .map_ref_fallible(AuspiceTree::from_str)
-  .wrap_err("When reading reference tree from dataset")?;
+  let tree = read_from_path_or_url(&http, &dataset, &run_args.inputs.input_tree, &dataset.files.tree_json)?
+    .map_ref_fallible(AuspiceTree::from_str)
+    .wrap_err("When reading reference tree from dataset")?;
 
   Ok(NextcladeParams {
     ref_record,

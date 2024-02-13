@@ -24,15 +24,15 @@ pub fn graph_preprocess_in_place(
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<(), Report> {
-  let mut parent_nuc_muts = BTreeMap::<NucRefGlobalPosition, Nuc>::new();
-  let mut parent_aa_muts = BTreeMap::<String, BTreeMap<AaRefPosition, Aa>>::new();
+  let parent_nuc_muts = btreemap! {};
+  let parent_aa_muts = btreemap! {};
 
   let root_key = graph.get_exactly_one_root()?.key();
   graph_preprocess_in_place_recursive(
     graph,
     root_key,
-    &mut parent_nuc_muts,
-    &mut parent_aa_muts,
+    &parent_nuc_muts,
+    &parent_aa_muts,
     ref_seq,
     ref_translation,
   )?;
@@ -43,12 +43,12 @@ pub fn graph_preprocess_in_place(
 pub fn graph_preprocess_in_place_recursive(
   graph: &mut AuspiceGraph,
   graph_node_key: GraphNodeKey,
-  parent_nuc_muts: &mut BTreeMap<NucRefGlobalPosition, Nuc>,
-  parent_aa_muts: &mut BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
+  parent_nuc_muts: &BTreeMap<NucRefGlobalPosition, Nuc>,
+  parent_aa_muts: &BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
   ref_seq: &[Nuc],
   ref_translation: &Translation,
 ) -> Result<GraphNodeKey, Report> {
-  let (mut nuc_muts, mut aa_muts) = {
+  let (nuc_muts, aa_muts) = {
     let node = graph.get_node_mut(graph_node_key)?.payload_mut();
 
     let nuc_muts: BTreeMap<NucRefGlobalPosition, Nuc> = map_nuc_muts(node, ref_seq, parent_nuc_muts)
@@ -75,7 +75,7 @@ pub fn graph_preprocess_in_place_recursive(
   };
 
   for child_key in graph.iter_child_keys_of_by_key(graph_node_key).collect_vec() {
-    graph_preprocess_in_place_recursive(graph, child_key, &mut nuc_muts, &mut aa_muts, ref_seq, ref_translation)?;
+    graph_preprocess_in_place_recursive(graph, child_key, &nuc_muts, &aa_muts, ref_seq, ref_translation)?;
   }
 
   Ok(graph_node_key)

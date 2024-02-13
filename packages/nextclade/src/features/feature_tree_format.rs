@@ -128,8 +128,8 @@ fn format_feature_group<W: Write>(
 
   let max_name_len = max_name_len - INDENT * depth;
 
-  match &features.as_slice() {
-    &[feature] => {
+  match features.as_slice() {
+    [feature] => {
       format_feature(w, feature, max_name_len, depth)?;
     }
     features => {
@@ -144,7 +144,7 @@ fn format_feature_group<W: Write>(
       .style(style_for_feature_type(feature_type)?)
       .to_string();
       writeln!(w, "{formatted}")?;
-      for feature in features.iter() {
+      for feature in features {
         format_feature(w, feature, max_name_len - INDENT, depth + 1)?;
       }
     }

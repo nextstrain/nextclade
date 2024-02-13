@@ -17,7 +17,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
   table.set_header([o!("name"), o!("attributes"), o!("versions")]);
 
-  for dataset in filtered.iter() {
+  for dataset in filtered {
     let Dataset {
       path,
       shortcuts,

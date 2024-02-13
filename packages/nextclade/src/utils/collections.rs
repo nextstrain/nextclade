@@ -34,7 +34,10 @@ where
 /// Check is all elements are pairwise equal
 /// Credits: https://sts10.github.io/2019/06/06/is-all-equal-function.html
 pub fn are_all_equal<T: PartialEq>(arr: &[T]) -> bool {
-  arr.windows(2).all(|w| w[0] == w[1])
+  arr.windows(2).all(|w| {
+    assert!(w.len() > 1);
+    w[0] == w[1]
+  })
 }
 
 // Iterate over 2 Maps synchronized by keys. Assumes Maps have exactly the same keys.

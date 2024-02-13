@@ -109,7 +109,7 @@ pub fn find_private_nuc_mutations(
     alignment_range,
     ref_seq,
     non_acgtns,
-    &mut seq_positions_mutated_or_deleted,
+    &seq_positions_mutated_or_deleted,
   );
 
   let (_undeletions, reversion_substitutions) = reversion_substitutions_and_undeletions
@@ -263,7 +263,7 @@ fn find_reversions(
   alignment_range: &NucRefGlobalRange,
   ref_seq: &[Nuc],
   non_acgtns: &[NucRange],
-  seq_positions_mutated_or_deleted: &mut BTreeSet<NucRefGlobalPosition>,
+  seq_positions_mutated_or_deleted: &BTreeSet<NucRefGlobalPosition>,
 ) -> Vec<NucSub> {
   let mut reversion_substitutions = Vec::<NucSub>::new();
 

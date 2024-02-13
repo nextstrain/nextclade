@@ -243,8 +243,7 @@ pub fn attach_to_internal_node(
   divergence_new_node: f64,
 ) -> Result<(), Report> {
   //generated auspice payload for new node
-  let mut new_graph_node: AuspiceGraphNodePayload =
-    create_new_auspice_node(result, new_private_mutations, divergence_new_node);
+  let mut new_graph_node = create_new_auspice_node(result, new_private_mutations, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
 
   // Create and add the new node to the graph.
@@ -390,7 +389,7 @@ pub fn knit_into_graph(
     // update the mutations on the branch from the new_internal_node to the target node (without the shared mutations)
     // the mutations are inverted in the shared mutations struct, so have to invert them back
     let target_node = graph.get_node_mut(target_key)?;
-    let mut target_node_auspice = target_node.payload_mut();
+    let target_node_auspice = target_node.payload_mut();
     target_node_auspice.tmp.private_mutations = muts_target_node;
     target_node_auspice.branch_attrs.mutations =
       convert_private_mutations_to_node_branch_attrs(&target_node_auspice.tmp.private_mutations);
