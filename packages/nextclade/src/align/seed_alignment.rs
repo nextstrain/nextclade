@@ -1,21 +1,12 @@
-use crate::align::band_2d::full_matrix;
 use crate::align::band_2d::Stripe;
-use crate::align::params::AlignPairwiseParams;
-use crate::align::seed_match::seed_match;
-use crate::align::seed_match2::{get_seed_matches2, CodonSpacedIndex, SeedMatch2};
+use crate::align::seed_match::SeedMatch2;
 use crate::alphabet::letter::Letter;
-use crate::alphabet::nuc::Nuc;
-use crate::coord::position::LocalSpace;
-use crate::make_error;
-use crate::utils::collections::first;
 use eyre::Report;
 use log::trace;
 use num_traits::abs;
 use num_traits::clamp;
-use num_traits::clamp_min;
 use std::cmp::max;
 use std::cmp::min;
-use std::collections::BTreeMap;
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.

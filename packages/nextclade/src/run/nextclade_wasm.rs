@@ -1,5 +1,5 @@
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat, GapScoreMap};
-use crate::align::seed_match2::CodonSpacedIndex;
+use crate::align::seed_match::CodonSpacedIndex;
 use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
