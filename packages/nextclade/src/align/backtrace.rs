@@ -1,10 +1,10 @@
-use crate::align::band_2d::{Band2d, Stripe};
+use crate::align::band_2d::{Band2d};
 use crate::align::score_matrix::{BOUNDARY, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
 use crate::alphabet::letter::Letter;
-use crate::utils::vec2d::Vec2d;
-use log::warn;
+
+
 use serde::{Deserialize, Serialize};
-use std::cmp;
+
 
 const fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
   si - band_width + mean_shift
@@ -108,7 +108,7 @@ mod tests {
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::params::AlignPairwiseParams;
-  use crate::align::score_matrix;
+  
   use crate::alphabet::nuc::{to_nuc_seq, Nuc};
   use crate::gene::gene_map::GeneMap;
   use eyre::Report;

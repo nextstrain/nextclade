@@ -1,13 +1,12 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::coord::position::{
-  AaRefPosition, AlignmentCoords, CoordsMarker, NucRefLocalPosition, NucSpace, Position, PositionLike, ReferenceCoords,
-  SeqTypeMarker, SpaceMarker,
+  AaRefPosition, AlignmentCoords, NucRefLocalPosition, NucSpace, Position, PositionLike, ReferenceCoords, SpaceMarker,
 };
 use crate::coord::range::{AaRefRange, NucRefLocalRange};
-use itertools::Itertools;
+
 use num::integer::div_floor;
-use serde::{Deserialize, Serialize};
+
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
 /// Given a position of a letter in the aligned sequence, the "alignment to reference" coordinate map allows to

@@ -18,7 +18,6 @@ use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::option::OptionMapRefFallible;
 use std::collections::HashMap;
-use std::hash::Hasher;
 
 /// Writes output files, potentially preserving the initial order of records (same as in the inputs)
 pub struct NextcladeOrderedWriter {

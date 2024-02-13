@@ -1,7 +1,7 @@
 use crate::align::band_2d::Stripe;
 use crate::align::seed_match::SeedMatch2;
 use crate::alphabet::letter::Letter;
-use eyre::Report;
+
 use log::trace;
 use num_traits::abs;
 use num_traits::clamp;

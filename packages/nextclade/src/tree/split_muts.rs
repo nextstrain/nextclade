@@ -8,7 +8,7 @@ use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
 use std::collections::BTreeMap;
 use std::fmt::Display;
-use std::hash::Hash;
+
 
 #[derive(Debug, Clone)]
 pub struct SplitMutsResult {

@@ -1,7 +1,7 @@
 use crate::io::file::create_file_or_stdout;
 use crate::types::outputs::NextcladeErrorOutputs;
 use eyre::{Report, WrapErr};
-use std::fmt::Debug;
+
 use std::io::{LineWriter, Write};
 use std::path::{Path, PathBuf};
 

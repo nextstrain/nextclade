@@ -1,4 +1,4 @@
-use crate::alphabet::aa::{from_aa, Aa};
+use crate::alphabet::aa::{Aa};
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;

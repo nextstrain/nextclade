@@ -1,7 +1,7 @@
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
-use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive, SaturatingAdd, SaturatingMul, SaturatingSub};
+use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive};
 use schemars::gen::SchemaGenerator;
 use schemars::schema::Schema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

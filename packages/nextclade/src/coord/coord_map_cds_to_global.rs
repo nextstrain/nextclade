@@ -1,14 +1,14 @@
-use crate::alphabet::letter::Letter;
+
 use crate::coord::position::{
-  AaRefPosition, CoordsMarker, NucRefGlobalPosition, NucRefLocalPosition, PositionLike, SeqTypeMarker, SpaceMarker,
+  AaRefPosition, NucRefGlobalPosition, NucRefLocalPosition, PositionLike,
 };
 use crate::coord::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange};
 use crate::gene::cds::Cds;
-use crate::gene::cds_segment::WrappingPart;
+
 use crate::gene::gene::GeneStrand;
 use assert2::assert;
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+
 
 pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPosition {
   assert!(pos < cds.len() as isize);

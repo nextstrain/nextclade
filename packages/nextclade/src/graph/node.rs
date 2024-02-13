@@ -1,6 +1,6 @@
 use crate::graph::edge::GraphEdgeKey;
 use crate::io::json::is_json_value_null;
-use core::fmt::{Debug, Display};
+use core::fmt::{Debug};
 use derive_more::Display;
 use schemars::gen::SchemaGenerator;
 use schemars::schema::Schema;

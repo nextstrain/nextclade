@@ -14,7 +14,6 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
-use std::str::FromStr;
 use traversal::{Bft, DftPost, DftPre};
 use validator::Validate;
 

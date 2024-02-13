@@ -1,6 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
-use crate::qc::qc_config::{QcConfig, QcRulesConfigMixedSites};
+use crate::qc::qc_config::{QcRulesConfigMixedSites};
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};

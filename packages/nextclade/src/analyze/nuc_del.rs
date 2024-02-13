@@ -5,7 +5,7 @@ use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]

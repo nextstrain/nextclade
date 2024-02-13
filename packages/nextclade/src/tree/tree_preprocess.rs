@@ -3,7 +3,7 @@ use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
-use crate::analyze::nuc_del::NucDel;
+
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::graph::node::GraphNodeKey;
