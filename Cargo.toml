@@ -1,10 +1,9 @@
 [workspace]
 
 members = [
-  "packages_rs/*",
+  "packages/*",
 ]
 
 exclude = [
-  "packages_rs/3rdparty",
-  "packages_rs/tree-builder-prototype"
+  "packages/3rdparty",
 ]

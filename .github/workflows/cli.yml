@@ -111,7 +111,7 @@ jobs:
         run: |
           export PATH="${PATH}:${HOME}/bin"
 
-          version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
+          version=$(dasel select -p toml -s ".package.version" -f "packages/nextclade/Cargo.toml")
           if [[ "$version" =~ (rc|beta|alpha) ]]; then
               export DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org/v3"
           fi
@@ -129,11 +129,11 @@ jobs:
 
       - name: "Build docker image (${{ matrix.arch }})"
         run: |
-          CROSS="${{ matrix.arch }}" ./docker-dev docker-image-build-push
+          CROSS="${{ matrix.arch }}" ./docker/dev docker-image-build-push
 
       - name: "Build CLI (${{ matrix.arch }})"
         run: |
-          CROSS="${{ matrix.arch }}" ./docker-dev build-release
+          CROSS="${{ matrix.arch }}" ./docker/dev build-release
 
       - name: "Upload build artifacts (${{ matrix.arch }})"
         uses: actions/upload-artifact@v4
@@ -185,7 +185,7 @@ jobs:
 
       - name: "Run unit tests"
         run: |
-          ./docker-dev test
+          ./docker/dev test
 
 
   run-lints:
@@ -231,7 +231,7 @@ jobs:
 
       - name: "Run lints"
         run: |
-          ./docker-dev lint-ci
+          ./docker/dev lint-ci
 
 
   run-smoke-tests:

@@ -8,7 +8,6 @@
 #  export PATH="${HOME}/bin:${PATH}"
 #  curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
 #  curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
-#  curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
 #  curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
 set -euo pipefail
@@ -57,7 +56,7 @@ done
 [ -z "$repo" ] && echo "--repo is required" >/dev/stderr && exit 1
 [ -z "$git_sha" ] && echo "--git_sha is required" >/dev/stderr && exit 1
 
-version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
+version=$(dasel select -p toml -s ".package.version" -f "packages/nextclade-cli/Cargo.toml")
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 prerelease_flag=${release_type:+--prerelease}
 

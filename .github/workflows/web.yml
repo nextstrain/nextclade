@@ -83,7 +83,7 @@ jobs:
           path: |
             .build/
             .cache/docker/.cargo
-            packages_rs/nextclade-web/.build/docker
+            packages/nextclade-web/.build/docker
           key: cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
@@ -94,9 +94,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            packages_rs/nextclade-web/.build/production/tmp/cache
-            packages_rs/nextclade-web/.cache
-            packages_rs/nextclade-web/node_modules
+            packages/nextclade-web/.build/production/tmp/cache
+            packages/nextclade-web/.cache
+            packages/nextclade-web/node_modules
           key: cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
@@ -118,33 +118,33 @@ jobs:
 
       - name: "Build docker image"
         run: |
-          CROSS="wasm32-unknown-unknown" ./docker-dev docker-image-build-push
+          CROSS="wasm32-unknown-unknown" ./docker/dev docker-image-build-push
 
       - name: "Install Node.js packages"
         run: |
-          ./docker-dev web yarn install
+          ./docker/dev web yarn install
 
       - name: "Build WebAssembly module"
         run: |
-          ./docker-dev wasm-release
+          ./docker/dev wasm-release
 
       - name: "Build web app"
         run: |
-          ./docker-dev web-release
+          ./docker/dev web-release
 
       - name: "Lint web app code"
         run: |
-          ./docker-dev web yarn lint:ci
+          ./docker/dev web yarn lint:ci
 
       - name: "Lint Rust code"
         run: |
-          ./docker-dev lint-ci
+          ./docker/dev lint-ci
 
       - name: "Upload build artifacts"
         uses: actions/upload-artifact@v4
         with:
           name: out
-          path: "packages_rs/nextclade-web/.build/production/web"
+          path: "packages/nextclade-web/.build/production/web"
 
 
   deploy-web:
@@ -191,7 +191,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: "out"
-          path: "packages_rs/nextclade-web/.build/production/web"
+          path: "packages/nextclade-web/.build/production/web"
 
       - name: "Install deploy dependencies"
         run: |
@@ -218,7 +218,7 @@ jobs:
           git config user.email "${{ secrets.GIT_USER_EMAIL }}"
           git config user.name "${{ secrets.GIT_USER_NAME }}"
 
-          pushd packages_rs/nextclade-web  >/dev/null
+          pushd packages/nextclade-web  >/dev/null
 
           export version=$(node -e "\
             const pkg = require('./package.json'); \

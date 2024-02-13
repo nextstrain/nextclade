@@ -1,8 +1,0 @@
-##gff-version 3
-#!gff-spec-version 1.21
-#!processor NCBI annotwriter
-##sequence-region CY073894.1 1 1401
-##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=604436
-CY073894.1	Genbank	region	1	1401	.	+	.	ID=CY073894.1:1..1401;Dbxref=taxon:604436;Name=6;collection-date=Aug-2008;country=Australia: Brisbane;gbkey=Src;lab-host=MDCK passage(s);mol_type=viral cRNA;nat-host=Homo sapiens;segment=6;strain=B/Brisbane/60/2008
-CY073894.1	Genbank	CDS	1	1401	.	+	0	Name=NA;gene=NA;gbkey=CDS;protein_id=ADN32819.1;product=neuraminidase;ID=cds-ADN32819.1;Dbxref=NCBI_GP:ADN32819.1
-CY073894.1	Genbank	CDS	1	296	.	+	2	Name=NB;gene=NB;gbkey=CDS;start_range=.,1;partial=true;product=NB protein;protein_id=ADN32818.1;ID=cds-ADN32818.1;Dbxref=NCBI_GP:ADN32818.1

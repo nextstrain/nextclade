@@ -16,7 +16,7 @@ THIS_DIR="$(
 
 : "${1:?Branch name is required as the first argument.}"
 
-version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
+version=$(dasel select -p toml -s ".package.version" -f "packages/nextclade-cli/Cargo.toml")
 prerel=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 branch="${1}"
 
