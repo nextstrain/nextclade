@@ -30,7 +30,6 @@
 \.tmp
 \.Trashes
 \.vscode/*
-!.vscode/settings.json
 ehthumbs.db
 node_modules/
 Thumbs.db

@@ -129,11 +129,11 @@ jobs:
 
       - name: "Build docker image (${{ matrix.arch }})"
         run: |
-          CROSS="${{ matrix.arch }}" ./docker-dev docker-image-build-push
+          CROSS="${{ matrix.arch }}" ./docker/dev docker-image-build-push
 
       - name: "Build CLI (${{ matrix.arch }})"
         run: |
-          CROSS="${{ matrix.arch }}" ./docker-dev build-release
+          CROSS="${{ matrix.arch }}" ./docker/dev build-release
 
       - name: "Upload build artifacts (${{ matrix.arch }})"
         uses: actions/upload-artifact@v4
@@ -185,7 +185,7 @@ jobs:
 
       - name: "Run unit tests"
         run: |
-          ./docker-dev test
+          ./docker/dev test
 
 
   run-lints:
@@ -231,7 +231,7 @@ jobs:
 
       - name: "Run lints"
         run: |
-          ./docker-dev lint-ci
+          ./docker/dev lint-ci
 
 
   run-smoke-tests:

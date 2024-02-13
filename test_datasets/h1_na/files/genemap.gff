@@ -1,7 +1,0 @@
-##gff-version 3
-#!gff-spec-version 1.21
-#!processor NCBI annotwriter
-##sequence-region MW626056.1 1 1433
-##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=11320
-MW626056.1	Genbank	region	1	1433	.	+	.	ID=MW626056.1:1..1433;Dbxref=taxon:11320;Name=6;collection-date=19-Dec-2019;country=USA: Wisconsin;gbkey=Src;mol_type=viral cRNA;nat-host=Homo sapiens;note=passage details:C2S1 (2020-05-15);segment=6;serotype=H1N1;strain=A/Wisconsin/588/2019
-MW626056.1	Genbank	CDS	9	1418	.	+	0	Name=NA;gene=NA;gbkey=CDS;protein_id=QRV63257.1;product=neuraminidase;ID=cds-QRV63257.1;Dbxref=NCBI_GP:QRV63257.1
