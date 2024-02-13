@@ -56,7 +56,7 @@ done
 [ -z "$repo" ] && echo "--repo is required" >/dev/stderr && exit 1
 [ -z "$git_sha" ] && echo "--git_sha is required" >/dev/stderr && exit 1
 
-version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
+version=$(dasel select -p toml -s ".package.version" -f "packages/nextclade-cli/Cargo.toml")
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 prerelease_flag=${release_type:+--prerelease}
 

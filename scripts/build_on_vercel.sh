@@ -62,9 +62,9 @@ export PATH=/usr/lib/llvm-13/bin:${HOME}/.local/bin:${CARGO_HOME}/bin:${CARGO_HO
 
 symlink_to_cache ".build"
 symlink_to_cache ".cache"
-symlink_to_cache "packages_rs/nextclade-web/.build/production/tmp"
-symlink_to_cache "packages_rs/nextclade-web/.cache"
-symlink_to_cache "packages_rs/nextclade-web/node_modules"
+symlink_to_cache "packages/nextclade-web/.build/production/tmp"
+symlink_to_cache "packages/nextclade-web/.cache"
+symlink_to_cache "packages/nextclade-web/node_modules"
 
 # Install rustup and toolchain from rust-toolchain.toml, if not already in the cache
 if ! command cargo &>/dev/null; then
@@ -117,7 +117,7 @@ sed -i'' "s|PROD_ENABLE_STYLELINT=1|PROD_ENABLE_STYLELINT=0|g" .env
 
 sed -i'' "s|DATA_TRY_GITHUB_BRANCH=0|DATA_TRY_GITHUB_BRANCH=1|g" .env
 
-cd packages_rs/nextclade-web
+cd packages/nextclade-web
 
 yarn install --frozen-lockfile
 

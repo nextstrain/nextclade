@@ -12,7 +12,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/packages_rs/nextclade-web/"
+    directory: "/packages/nextclade-web/"
     schedule:
       interval: "daily"
     allow:

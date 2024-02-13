@@ -82,7 +82,7 @@ if [ "$1" == "cli" ]; then
 
   echo "Bumping package versions in 'Cargo.toml' files"
   cargo set-version --workspace --bump="${2:-}" >/dev/null
-  version=$(dasel select -r toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
+  version=$(dasel select -r toml -s ".package.version" -f "packages/nextclade/Cargo.toml")
 
   echo "Running \`cargo build\` to update 'Cargo.lock' file"
   cargo build --quiet >/dev/null
@@ -113,7 +113,7 @@ elif [ "$1" == "web" ]; then
     exit 1
   fi
 
-  pushd "packages_rs/nextclade-web" >/dev/null
+  pushd "packages/nextclade-web" >/dev/null
 
   if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
     version=$(npm version "$2")

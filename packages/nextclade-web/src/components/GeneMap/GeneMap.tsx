@@ -37,8 +37,6 @@ export function getGeneMapDimensions(cdsSegments: CdsSegment[], isGlobal: boolea
     geneStrandOffset += GENE_STRAND_SPACING
   } else if (hasStrands) {
     geneMapHeight += geneStrandOffset + GENE_STRAND_SPACING
-  } else if (hasFrames) {
-    geneMapHeight += geneFrameOffset * 3
   } else {
     geneMapHeight += geneFrameOffset * 3
   }
