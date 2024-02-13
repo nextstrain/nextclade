@@ -62,7 +62,7 @@ pub fn run_minimizer_search(
   let max_score = scores.iter().copied().fold(0.0, f64::max);
   let total_hits: u64 = hit_counts.iter().sum();
 
-  let datasets = izip!(&index.references, hit_counts, scores)
+  let mut datasets = izip!(&index.references, hit_counts, scores)
     .filter_map(|(ref_info, n_hits, score)| {
       (n_hits >= search_params.min_hits && score >= search_params.min_score).then_some(MinimizerSearchDatasetResult {
         name: ref_info.name.clone(),
@@ -73,6 +73,21 @@ pub fn run_minimizer_search(
     })
     .sorted_by_key(|result| -OrderedFloat(result.score))
     .collect_vec();
+
+  // if there is more than one dataset, check whether there is a gap > 0.2 in their scores
+  // if so, only keep those with scores above the gap
+  if datasets.len() > 1 {
+    let mut chop: usize = 0;
+    for i in 1..datasets.len() {
+      if datasets[i - 1].score > datasets[i].score + search_params.max_score_gap {
+        chop = i;
+        break;
+      }
+    }
+    if chop > 0 {
+      datasets.truncate(chop);
+    }
+  }
 
   Ok(MinimizerSearchResult {
     total_hits,

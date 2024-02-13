@@ -9,7 +9,7 @@ use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
-use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
+use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchDatasetResult, MinimizerSearchRecord};
 use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
@@ -138,6 +138,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbo
 #[derive(Clone, Default, Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct SeqSortCsvEntry<'a> {
+  index: usize,
   seq_name: &'a str,
   dataset: Option<&'a str>,
   score: Option<f64>,
@@ -153,6 +154,7 @@ fn writer_thread(
     output_dir,
     output_path,
     output_results_tsv,
+    search_params,
     ..
   } = args;
 
@@ -171,13 +173,20 @@ fn writer_thread(
     output_results_tsv.map_ref_fallible(|output_results_tsv| CsvStructFileWriter::new(output_results_tsv, b'\t'))?;
 
   for record in result_receiver {
-    stats.print_seq(&record);
+    let datasets = &{
+      if search_params.all_matches {
+        record.result.datasets
+      } else {
+        record.result.datasets.into_iter().take(1).collect_vec()
+      }
+    };
 
-    let datasets = &record.result.datasets;
+    stats.print_seq(datasets, &record.fasta_record.seq_name);
 
     if datasets.is_empty() {
       results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
+          index: record.fasta_record.index,
           seq_name: &record.fasta_record.seq_name,
           dataset: None,
           score: None,
@@ -189,6 +198,7 @@ fn writer_thread(
     for dataset in datasets {
       results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
+          index: record.fasta_record.index,
           seq_name: &record.fasta_record.seq_name,
           dataset: Some(&dataset.name),
           score: Some(dataset.score),
@@ -258,19 +268,17 @@ impl StatsPrinter {
     }
   }
 
-  pub fn print_seq(&mut self, record: &MinimizerSearchRecord) {
+  pub fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) {
     if !self.enabled {
       return;
     }
 
-    let datasets = record
-      .result
-      .datasets
+    let datasets = datasets
       .iter()
       .sorted_by_key(|dataset| -OrderedFloat(dataset.score))
       .collect_vec();
 
-    print!("{:<40}", truncate(&record.fasta_record.seq_name, 40));
+    print!("{:<40}", truncate(seq_name, 40));
 
     if datasets.is_empty() {
       println!(" │ {:40} │ {:>10.3} │ {:>10} │", "undetected".red(), "", "");
