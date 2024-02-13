@@ -1,3 +1,25 @@
+## Nextclade 3.2.0
+
+### General
+
+#### Minimizer search algorithm configuration has been improved
+
+Minimizer search algorithm used in dataset auto-suggestion in Nextclade Web as well as in `sort` command of Nextclade CLI.
+
+The default value for minimum match score (`--min-score`) has been reduced from 0.3 to 0.1. The default value for minimum number of hits (`--min-hits`) required for a detection has been reduced from 10 to 5. This should allow to better handle more diverse viruses.
+
+If there is a sufficiently large gap between dataset scores, the algorithm will now only consider the group of datasets before the gap. The gap size can be configured using `--max-score-gap` argument in Nextclade CLI. The default value is `0.2`.
+
+Additionally, in Nextclade CLI `sort` command the algorithm now chooses only the best matching dataset. In order to select all matching datasets, the `--all-matches` flag has been added.
+
+
+### Nextclade CLI
+
+#### Sequence index in the output TSV file of the `sort` command
+
+The TSV output of the `sort` command (requested with `--output-results-tsv`) now contains additional column: `index`. The cells under this column contain index of the corresponding input sequence in the FASTA file. These indices can be used in the downstream processing to reliably map input sequences to the output results. Sequence names alone can be unreliable because they are arbitrary strings which are not guaranteed to be unique.
+
+
 ## Nextclade 3.1.0
 
 ### CLI
