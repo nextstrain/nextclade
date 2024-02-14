@@ -52,9 +52,9 @@ pub fn split_muts(left: &BranchMutations, right: &BranchMutations) -> Result<Spl
 
 #[derive(Debug, Clone)]
 struct SplitAaMutsResult {
-  pub aa_muts_left: BTreeMap<String, Vec<AaSub>>,
-  pub aa_muts_shared: BTreeMap<String, Vec<AaSub>>,
-  pub aa_muts_right: BTreeMap<String, Vec<AaSub>>,
+  aa_muts_left: BTreeMap<String, Vec<AaSub>>,
+  aa_muts_shared: BTreeMap<String, Vec<AaSub>>,
+  aa_muts_right: BTreeMap<String, Vec<AaSub>>,
 }
 
 fn split_aa_muts(
@@ -79,9 +79,9 @@ fn split_aa_muts(
 
 #[derive(Debug, Clone)]
 struct Split3WayResult<T> {
-  pub left: Vec<T>,
-  pub shared: Vec<T>,
-  pub right: Vec<T>,
+  left: Vec<T>,
+  shared: Vec<T>,
+  right: Vec<T>,
 }
 
 fn split_3_way<P, L, M>(left: &[M], right: &[M]) -> Result<Split3WayResult<M>, Report>

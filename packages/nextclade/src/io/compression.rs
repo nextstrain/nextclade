@@ -115,7 +115,7 @@ impl<'r> Decompressor<'r> {
   }
 }
 
-impl<'r> Read for Decompressor<'r> {
+impl Read for Decompressor<'_> {
   fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
     self
       .decompressor
@@ -174,7 +174,7 @@ impl<'w> Compressor<'w> {
   }
 }
 
-impl<'w> Write for Compressor<'w> {
+impl Write for Compressor<'_> {
   fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
     self
       .compressor
@@ -208,7 +208,7 @@ impl<'w> Write for Compressor<'w> {
   }
 }
 
-impl<'w> Drop for Compressor<'w> {
+impl Drop for Compressor<'_> {
   fn drop(&mut self) {
     self.flush().unwrap();
   }

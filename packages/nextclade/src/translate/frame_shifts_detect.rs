@@ -17,7 +17,7 @@ struct FrameShiftDetector {
 }
 
 impl FrameShiftDetector {
-  pub fn new(start_frame: i32) -> Self {
+  fn new(start_frame: i32) -> Self {
     Self {
       frame_shifts: vec![],
       frame: start_frame,
@@ -30,22 +30,22 @@ impl FrameShiftDetector {
   }
 
   /// Returns frame shifts detected so far */
-  pub fn get_frame_shifts(&self) -> &[NucAlnLocalRange] {
+  fn get_frame_shifts(&self) -> &[NucAlnLocalRange] {
     &self.frame_shifts
   }
 
   /// Call this for every insertion */
-  pub fn add_insertion(&mut self, pos: i32) {
+  fn add_insertion(&mut self, pos: i32) {
     self.update(-1, pos);
   }
 
   /// Call this for every deletion */
-  pub fn add_deletion(&mut self, pos: i32) {
+  fn add_deletion(&mut self, pos: i32) {
     self.update(1, pos);
   }
 
   /// Call this for every non-shifting character (not an indel) */
-  pub fn advance(&mut self, pos: i32) {
+  fn advance(&mut self, pos: i32) {
     // Avoid full run in advance() on every character.
     // Only run 1 character when requested by setting `dirty = true` in `update()`.
     if !self.dirty {
@@ -72,7 +72,7 @@ impl FrameShiftDetector {
   }
 
   /// Run this after sequence iteration is over, with the length of the sequence */
-  pub fn done(&mut self, pos: i32) {
+  fn done(&mut self, pos: i32) {
     if self.begin != POSITION_INVALID {
       debug_assert!(self.begin >= 0);
       debug_assert!(self.begin <= pos);
@@ -84,7 +84,7 @@ impl FrameShiftDetector {
   }
 
   /** Resets the state of the detector */
-  pub fn reset(&mut self) {
+  fn reset(&mut self) {
     self.begin = POSITION_INVALID;
     self.end = POSITION_INVALID;
     self.last_indel = POSITION_INVALID;
