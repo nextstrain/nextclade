@@ -76,7 +76,7 @@ nextclade dataset get --help
 
    There are more advanced arguments to control alignment and other parts of the algorithm. Refer to `nextclade run --help` for more details.
 
-   You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for a detailed description of each subcommand and each flag.
+   You can learn more about input and output files in sections: [Input files](../input-files), [Output files](../output-files) and [Nextclade datasets](../datasets). Read the built-in help (`nextclade --help`) for a detailed description of each subcommand and each flag.
 
 3. Find the output files in the `output/` directory:
 
@@ -93,8 +93,8 @@ nextclade dataset get --help
 
 Congratulations, You have learned how to use Nextclade CLI!
 
-Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](algorithm) section. The required input data is described in [Input files](input-files) section. And produced files are described in [Output files](output-files) section. The datasets are described in more details in the [Nextclade datasets](datasets) section.
+Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](../algorithm) section. The required input data is described in [Input files](../input-files) section. And produced files are described in [Output files](../output-files) section. The datasets are described in more details in the [Nextclade datasets](../datasets) section.
 
-For a more convenient online tool, check out [Nextclade Web](nextclade-web).
+For a more convenient online tool, check out [Nextclade Web](../nextclade-web).
 
 Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want report a bug, suggest a feature, or contribute code.
