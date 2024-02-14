@@ -11,6 +11,9 @@ publish.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[lints]
+workspace = true
+
 [lib]
 crate-type = ["lib"]
 
