@@ -6,11 +6,9 @@ import { useRecoilState, useRecoilValue } from 'recoil'
 import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase, CardL1Header } from 'src/components/Common/Card'
 import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
-import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { hasRequiredInputsAtom, useQuerySeqInputs } from 'src/state/inputs.state'
-import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
-import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { useQuerySeqInputs } from 'src/state/inputs.state'
+import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
@@ -168,19 +166,10 @@ function DatasetCurrentOrSelectButton() {
   }, [dataset, setDataset, topSuggestion])
 
   const { push } = useRouter()
-  const runAutodetect = useRunSeqAutodetect()
-  const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
-  const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
-  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
   const toDatasetSelection = useCallback(() => {
     // eslint-disable-next-line no-void
-    void push('/dataset').then(() => {
-      if (shouldSuggestDatasets && hasRequiredInputs && autodetectRunState !== AutodetectRunState.Started) {
-        runAutodetect()
-      }
-      return undefined
-    })
-  }, [autodetectRunState, hasRequiredInputs, push, runAutodetect, shouldSuggestDatasets])
+    void push('/dataset')
+  }, [push])
 
   if (!dataset) {
     return (
