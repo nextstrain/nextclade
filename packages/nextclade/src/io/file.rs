@@ -1,3 +1,4 @@
+use crate::io::compression::{Compressor, Decompressor};
 use crate::io::fs::ensure_dir;
 use eyre::{Report, WrapErr};
 use log::info;
@@ -5,34 +6,14 @@ use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-#[cfg(not(target_arch = "wasm32"))]
-use log::warn;
-
-use crate::io::compression::{Compressor, Decompressor};
-#[cfg(not(target_arch = "wasm32"))]
-use atty::{is as is_tty, Stream};
-
 pub const DEFAULT_FILE_BUF_SIZE: usize = 256 * 1024;
-
-const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
-
- - if you want to read fasta from the output of another program, try:
-
-    cat /path/to/file | nextclade <your other flags>
-
- - if you want to read from file(s), don't forget to provide a path:
-
-    nextclade /path/to/file
-"#;
 
 /// Open stdin
 pub fn open_stdin() -> Result<Box<dyn BufRead>, Report> {
   info!("Reading from standard input");
 
   #[cfg(not(target_arch = "wasm32"))]
-  if is_tty(Stream::Stdin) {
-    warn!("{TTY_WARNING}");
-  }
+  non_wasm::warn_if_tty();
 
   Ok(Box::new(BufReader::new(stdin())))
 }
@@ -82,4 +63,28 @@ pub fn is_path_stdin(filepath: impl AsRef<Path>) -> bool {
 pub fn is_path_stdout(filepath: impl AsRef<Path>) -> bool {
   let filepath = filepath.as_ref();
   filepath == PathBuf::from("-") || filepath == PathBuf::from("/dev/stdout")
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+mod non_wasm {
+  use atty::{is as is_tty, Stream};
+  use log::warn;
+
+  #[cfg(not(target_arch = "wasm32"))]
+  const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
+
+ - if you want to read fasta from the output of another program, try:
+
+    cat /path/to/file | nextclade <your other flags>
+
+ - if you want to read from file(s), don't forget to provide a path:
+
+    nextclade /path/to/file
+"#;
+
+  pub(super) fn warn_if_tty() {
+    if is_tty(Stream::Stdin) {
+      warn!("{TTY_WARNING}");
+    }
+  }
 }

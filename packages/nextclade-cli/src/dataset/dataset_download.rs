@@ -16,10 +16,8 @@ use nextclade::{make_error, make_internal_error, o};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read, Seek, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use zip::ZipArchive;
-
-const PATHOGEN_JSON: &str = "pathogen.json";
 
 pub fn nextclade_get_inputs(
   run_args: &NextcladeRunArgs,
@@ -273,14 +271,6 @@ pub fn dataset_individual_files_load(
     }
     _ => make_internal_error!("Reached unknown match arm"),
   }
-}
-
-#[allow(clippy::struct_field_names)]
-pub struct DatasetFilePaths<'a> {
-  input_ref: &'a Path,
-  input_tree: &'a Option<PathBuf>,
-  input_pathogen_json: &'a Option<PathBuf>,
-  input_annotation: &'a Option<PathBuf>,
 }
 
 pub fn read_from_path_or_url(

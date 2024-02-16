@@ -109,9 +109,7 @@ trivial_numeric_casts = "warn"
 
 # Disable some of the lints enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html
-dead_code = "allow"
 elided_lifetimes_in_paths = "allow"
-unused_variables = "allow"
 
 # Enable lints not enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
@@ -210,6 +208,7 @@ pattern_type_mismatch = "allow"
 print_stderr = "allow"
 print_stdout = "allow"
 pub_use = "allow"
+pub_with_shorthand = "allow"
 question_mark_used = "allow"
 self_named_module_files = "allow"
 semicolon_inside_block = "allow"

@@ -124,12 +124,10 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       });
     }
 
-    let writer = s.spawn(move || {
+    s.spawn(move || {
       let nextclade = &nextclade;
 
       let AnalysisInitialData {
-        genome_size,
-        gene_map,
         clade_node_attr_key_descs,
         phenotype_attr_descs,
         aa_motif_keys,

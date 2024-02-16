@@ -3,12 +3,7 @@ use crate::utils::datetime::{date_format_precise, date_now};
 use env_logger::Env;
 use log::{Level, LevelFilter, Record};
 use owo_colors::OwoColorize;
-use std::env;
 use std::io::Write;
-
-fn get_current_exe_filename() -> Option<String> {
-  env::current_exe().ok().and_then(filename_maybe)
-}
 
 fn get_file_line(record: &Record) -> String {
   let file = record.file().and_then(filename_maybe);
@@ -42,7 +37,6 @@ pub fn setup_logger(filter_level: LevelFilter) {
   env_logger::Builder::from_env(Env::default().default_filter_or("warn"))
     .filter_level(filter_level)
     .format(|buf, record| {
-      let current_exe = get_current_exe_filename().unwrap_or_default().dimmed().to_string();
       let file_line = get_file_line(record);
       let level = color_log_level(record);
       let date = date_format_precise(&date_now()).dimmed().to_string();

@@ -85,9 +85,6 @@ fn format_sequence_region_feature<W: Write>(
   Ok(())
 }
 
-const PASS_ICON: &str = "│  ";
-const FORK_ICON: &str = "├──";
-const IMPASSE_ICON: &str = "└──";
 const INDENT: usize = 2;
 
 fn format_feature_groups<W: Write>(w: &mut W, feature_map: &[FeatureGroup], max_name_len: usize) -> Result<(), Report> {
@@ -103,7 +100,7 @@ fn format_feature_groups_recursive<W: Write>(
   feature_groups
     .iter()
     .enumerate()
-    .try_for_each(|(height, feature_group)| -> Result<(), Report> {
+    .try_for_each(|(_, feature_group)| -> Result<(), Report> {
       format_feature_group(w, feature_group, max_name_len, depth)?;
       format_feature_groups_recursive(w, &feature_group.children, max_name_len, depth + 1)?;
       Ok(())

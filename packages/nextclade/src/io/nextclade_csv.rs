@@ -234,7 +234,7 @@ fn prepare_headers(
       .categories
       .iter()
       .flat_map(|(_, columns)| columns.iter())
-      .filter(|(column, enabled)| **enabled)
+      .filter(|(_, enabled)| **enabled)
       .map(|(column, _)| column.as_str());
 
     let individual_headers = column_config.individual.iter().map(String::as_str);
@@ -799,14 +799,7 @@ pub fn format_escape(escape: &[PhenotypeValue]) -> String {
 fn format_aa_motifs(motifs: &[AaMotif]) -> String {
   motifs
     .iter()
-    .map(
-      |AaMotif {
-         name,
-         cds,
-         position,
-         seq,
-       }| format!("{}:{}:{seq}", cds, position + 1),
-    )
+    .map(|AaMotif { cds, position, seq, .. }| format!("{}:{}:{seq}", cds, position + 1))
     .join(";")
 }
 

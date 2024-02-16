@@ -46,7 +46,6 @@ struct NextcladeResultWithAa {
   total_aminoacid_insertions: usize,
   nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>>,
   missing_genes: Vec<String>,
-  present_genes: HashSet<String>,
   warnings: Vec<PeptideWarning>,
   aa_insertions: Vec<AaIns>,
   frame_shifts: Vec<FrameShift>,
@@ -148,7 +147,6 @@ pub fn nextclade_run_one(
     total_unknown_aa,
     aa_alignment_ranges,
     aa_unsequenced_ranges,
-    ..
   } = if !gene_map.is_empty() {
     let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
 
@@ -232,7 +230,6 @@ pub fn nextclade_run_one(
       total_aminoacid_insertions,
       nuc_to_aa_muts,
       missing_genes,
-      present_genes,
       warnings,
       aa_insertions,
       frame_shifts,

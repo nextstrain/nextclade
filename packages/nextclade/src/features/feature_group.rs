@@ -37,7 +37,7 @@ impl PartialOrd for FeatureGroup {
 }
 
 impl FeatureGroup {
-  pub fn new(id: &str, features: &[Feature]) -> Self {
+  pub fn new(features: &[Feature]) -> Self {
     let index = features
       .iter()
       .map(|feature| feature.index)

@@ -87,7 +87,7 @@ fn read_gff3_feature_tree_str(content: impl AsRef<str>) -> Result<Vec<SequenceRe
     ranges
     .into_iter()
     .enumerate()
-    .map(|(index,(content, content_begin, content_end))| {
+    .map(|(index,(content, content_begin, _))| {
       let content = content.trim();
 
       // Extract '##sequence-region' header line
@@ -228,7 +228,7 @@ fn build_hierarchy_of_features(features: &[Feature]) -> Result<Vec<FeatureGroup>
     .iter()
     .group_by(|feature| feature.id.clone())
     .into_iter()
-    .map(|(id, features)| FeatureGroup::new(&id, &features.cloned().collect_vec()))
+    .map(|(_, features)| FeatureGroup::new(&features.cloned().collect_vec()))
     .collect_vec();
 
   // Find top-level features (having no parents)

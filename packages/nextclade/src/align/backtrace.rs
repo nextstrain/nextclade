@@ -1,14 +1,7 @@
-use crate::align::band_2d::{Band2d};
+use crate::align::band_2d::Band2d;
 use crate::align::score_matrix::{BOUNDARY, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
 use crate::alphabet::letter::Letter;
-
-
 use serde::{Deserialize, Serialize};
-
-
-const fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
-  si - band_width + mean_shift
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, PartialEq, Eq)]
 pub struct AlignmentOutput<T> {
@@ -27,8 +20,6 @@ pub fn backtrace<T: Letter<T>>(
 ) -> AlignmentOutput<T> {
   let num_cols = scores.num_cols();
   let num_rows = scores.num_rows();
-  let qry_len = qry_seq.len() as i32;
-  let ref_len = ref_seq.len() as i32;
 
   // max length of the alignment is the sum of query and reference length
   let aln_capacity = scores.num_cols() + scores.num_rows();
@@ -108,7 +99,7 @@ mod tests {
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::align::params::AlignPairwiseParams;
-  
+
   use crate::alphabet::nuc::{to_nuc_seq, Nuc};
   use crate::gene::gene_map::GeneMap;
   use eyre::Report;

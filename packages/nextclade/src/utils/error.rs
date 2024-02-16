@@ -15,14 +15,6 @@ pub fn from_eyre_error<T, E: FromStr>(val_or_err: Result<T, Report>) -> Result<T
   val_or_err.map_err(|report| E::from_str(&report_to_string(&report)).ok().unwrap())
 }
 
-pub fn report_to_string_debug_only(report: &Report) -> String {
-  #[cfg(not(debug_assertions))]
-  return "An unexpected error occurred. Please try again later.".to_owned();
-
-  #[cfg(debug_assertions)]
-  report_to_string(report)
-}
-
 /// Preserves only the Result::Ok values in a given collection
 pub fn keep_ok<T, E>(results: &[Result<T, E>]) -> impl Iterator<Item = &T> {
   results.iter().filter_map(|res| match res {

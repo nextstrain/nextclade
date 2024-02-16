@@ -127,7 +127,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbo
       });
     }
 
-    let writer = s.spawn(move || {
+    s.spawn(move || {
       writer_thread(args, result_receiver, verbose).unwrap();
     });
   });
