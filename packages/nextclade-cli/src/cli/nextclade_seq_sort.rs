@@ -250,7 +250,7 @@ struct StatsPrinter {
 }
 
 impl StatsPrinter {
-  pub fn new(enabled: bool) -> Self {
+  fn new(enabled: bool) -> Self {
     if enabled {
       println!("Suggested datasets for each sequence");
       println!("{}┐", "─".repeat(110));
@@ -268,7 +268,7 @@ impl StatsPrinter {
     }
   }
 
-  pub fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) {
+  fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) {
     if !self.enabled {
       return;
     }
@@ -304,7 +304,7 @@ impl StatsPrinter {
     println!("{}┤", "─".repeat(110));
   }
 
-  pub fn finish(&self) {
+  fn finish(&self) {
     if !self.enabled {
       return;
     }

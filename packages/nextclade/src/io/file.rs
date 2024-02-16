@@ -1,10 +1,12 @@
 use crate::io::fs::ensure_dir;
 use eyre::{Report, WrapErr};
-use log::{info, warn};
-
+use log::info;
 use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
+
+#[cfg(not(target_arch = "wasm32"))]
+use log::warn;
 
 use crate::io::compression::{Compressor, Decompressor};
 #[cfg(not(target_arch = "wasm32"))]

@@ -42,7 +42,7 @@ impl Serialize for GraphNodeKey {
   }
 }
 
-impl schemars::JsonSchema for GraphNodeKey {
+impl JsonSchema for GraphNodeKey {
   fn schema_name() -> String {
     "GraphNodeKey".to_owned()
   }
