@@ -11,8 +11,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-
-
 /// Possible keys for name attribute (in order of preference!)
 pub const NAME_ATTRS_GENE: &[&str] = &[
   "Gene",
@@ -162,24 +160,9 @@ impl GffCommonInfo {
   }
 }
 
-/// Retrieve GFF records of a certain "feature_type"
-fn get_records_by_feature_type<'r>(
-  records: &'r [(usize, GffRecord)],
-  record_type: &str,
-) -> Vec<&'r (usize, GffRecord)> {
-  records
-    .iter()
-    .filter(|(i, record)| {
-      let searched = record_type.to_lowercase();
-      let candidate = record.feature_type().to_lowercase();
-      (candidate == searched) || (candidate == get_sequence_onthology_code(&searched).unwrap_or_default())
-    })
-    .collect_vec()
-}
-
 #[inline]
 #[must_use]
-pub fn get_sequence_onthology_code(feature_name: &str) -> Option<&str> {
+pub fn get_sequence_ontology_code(feature_name: &str) -> Option<&str> {
   match feature_name {
     "cds" => Some("SO:0000316"),
     "gene" => Some("SO:0000704"),

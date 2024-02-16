@@ -55,9 +55,7 @@ pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_len: usize, qry_le
 
 pub fn full_matrix(ref_len: usize, qry_len: usize) -> Vec<Stripe> {
   let mut stripes = Vec::<Stripe>::with_capacity(ref_len + 1);
-  let ref_len_i32 = ref_len.to_i32().unwrap();
-  let qry_len_i32 = qry_len.to_i32().unwrap();
-  for i in 0..=ref_len_i32 {
+  for _ in 0..=ref_len {
     stripes.push(Stripe::new(0, qry_len + 1));
   }
   stripes
@@ -67,7 +65,7 @@ pub fn full_matrix(ref_len: usize, qry_len: usize) -> Vec<Stripe> {
 ///
 /// The underlying storage is sparse - the row storage consists of `Stripe`s, each of a given size (`stripe.length`)
 /// and shifted by a given amount (`stripe.begin`) relative to the left boundary of the matrix. In each row, the cells
-/// which are outside of the corresponding stripe are not allocated and accessing them is illegal.
+/// which are outside the corresponding stripe are not allocated and accessing them is illegal.
 ///
 /// Stripe begins must increase monotonically
 #[derive(Clone, PartialEq, Eq)]

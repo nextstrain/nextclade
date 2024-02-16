@@ -94,7 +94,6 @@ pub fn score_matrix<T: Letter<T>>(
       let r_gap_extend: i32;
       let r_gap_open: i32;
       let q_gap_open: i32;
-      let tmp_match: i32;
       let mut tmp_score: i32;
 
       if qpos == 0 {
@@ -209,7 +208,7 @@ mod tests {
   use super::*;
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  
+
   use crate::alphabet::nuc::{to_nuc_seq, Nuc};
   use crate::gene::gene_map::GeneMap;
   use eyre::Report;

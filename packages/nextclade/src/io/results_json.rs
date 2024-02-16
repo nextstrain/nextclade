@@ -6,10 +6,10 @@ use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
 };
 use crate::utils::datetime::date_iso_now;
+use crate::utils::info::this_package_version_str;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use crate::utils::info::this_package_version_str;
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -129,7 +129,7 @@ pub fn results_to_ndjson_string(
 
     let output_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
 
-    for (i, output_or_error) in output_or_errors {
+    for (_, output_or_error) in output_or_errors {
       match output_or_error {
         NextcladeOutputOrError::Outputs(output) => writer.write(&output),
         NextcladeOutputOrError::Error(error) => writer.write_nuc_error(error.index, &error.seq_name, &error.errors),

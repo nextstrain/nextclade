@@ -1,33 +1,9 @@
 use crate::align::band_2d::Stripe;
 use crate::align::seed_match::SeedMatch2;
-use crate::alphabet::letter::Letter;
-
-use log::trace;
 use num_traits::abs;
 use num_traits::clamp;
 use std::cmp::max;
 use std::cmp::min;
-
-/// generate a vector of query sequence positions that are followed by at least `seed_length`
-/// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
-fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) -> Vec<usize> {
-  let qry_len = qry_seq.len();
-
-  let mut map_to_good_positions = Vec::<usize>::with_capacity(qry_len);
-  let mut distance_to_last_bad_pos: i32 = 0;
-
-  for (i, letter) in qry_seq.iter().enumerate() {
-    // TODO: Exclude ambiguous letters
-    if letter.is_unknown() {
-      distance_to_last_bad_pos = 0;
-    } else if distance_to_last_bad_pos >= seed_length as i32 {
-      map_to_good_positions.push(i - seed_length);
-    }
-    distance_to_last_bad_pos += 1;
-  }
-
-  map_to_good_positions
-}
 
 #[derive(Debug, Clone, Copy)]
 pub struct SeedMatch {
@@ -201,7 +177,6 @@ pub fn create_alignment_band(
       });
     }
   }
-  // write_stripes_to_file(&stripes, "stripes.csv");
 
   // trim stripes to reachable regions
   regularize_stripes(stripes, qry_len as usize)
@@ -236,53 +211,58 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>,
   (stripes, band_area)
 }
 
-fn trace_stripe_stats(stripes: &[Stripe]) {
-  let mut stripe_lengths = Vec::new();
-  for stripe in stripes {
-    assert!(
-      stripe.begin <= stripe.end,
-      "Stripe begin must be <= stripe end for stripe {stripe:?}",
-    );
-    stripe_lengths.push(stripe.end - stripe.begin);
-  }
-  stripe_lengths.sort_unstable();
-  let median = stripe_lengths[stripe_lengths.len() / 2];
-  let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
-  let max = stripe_lengths[stripe_lengths.len() - 1];
-  let min = stripe_lengths[0];
-  trace!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
-}
-
 #[cfg(feature = "debug-seed-alignment")]
-fn trace_matches(matches: &[SeedMatch2]) {
-  for (i, seed) in matches.iter().enumerate() {
-    trace!(
-      "Match {}: ref_pos: {}, qry_offset: {}, length: {}",
-      i,
-      seed.ref_pos,
-      -seed.offset,
-      seed.length,
-    );
-  }
-}
+mod debug {
+  use crate::align::band_2d::Stripe;
+  use crate::align::seed_match::SeedMatch2;
+  use crate::alphabet::letter::Letter;
+  use log::trace;
 
-#[cfg(feature = "debug-seed-alignment")]
-fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
-  use std::io::Write;
-  let mut file = std::fs::File::create(filename).unwrap();
-  writeln!(file, "ref,begin,end").unwrap();
-  for (i, stripe) in stripes.iter().enumerate() {
-    writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
+  fn trace_stripe_stats(stripes: &[Stripe]) {
+    let mut stripe_lengths = Vec::new();
+    for stripe in stripes {
+      assert!(
+        stripe.begin <= stripe.end,
+        "Stripe begin must be <= stripe end for stripe {stripe:?}",
+      );
+      stripe_lengths.push(stripe.end - stripe.begin);
+    }
+    stripe_lengths.sort_unstable();
+    let median = stripe_lengths[stripe_lengths.len() / 2];
+    let mean = stripe_lengths.iter().sum::<usize>() as f32 / stripe_lengths.len() as f32;
+    let max = stripe_lengths[stripe_lengths.len() - 1];
+    let min = stripe_lengths[0];
+    trace!("Stripe width stats: min: {min}, max: {max}, mean: {mean:.1}, median: {median}",);
   }
-}
 
-#[cfg(feature = "debug-seed-alignment")]
-pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
-  use std::io::Write;
-  let mut file = std::fs::File::create(filename).unwrap();
-  writeln!(file, "ref_pos,qry_pos,length").unwrap();
-  for match_ in matches {
-    writeln!(file, "{},{},{}", match_.ref_pos, match_.qry_pos, match_.length).unwrap();
+  fn trace_matches(matches: &[SeedMatch2]) {
+    for (i, seed) in matches.iter().enumerate() {
+      trace!(
+        "Match {}: ref_pos: {}, qry_offset: {}, length: {}",
+        i,
+        seed.ref_pos,
+        -seed.offset,
+        seed.length,
+      );
+    }
+  }
+
+  fn write_stripes_to_file(stripes: &[Stripe], filename: &str) {
+    use std::io::Write;
+    let mut file = std::fs::File::create(filename).unwrap();
+    writeln!(file, "ref,begin,end").unwrap();
+    for (i, stripe) in stripes.iter().enumerate() {
+      writeln!(file, "{i},{begin},{end}", begin = stripe.begin, end = stripe.end).unwrap();
+    }
+  }
+
+  pub fn write_matches_to_file(matches: &[SeedMatch2], filename: &str) {
+    use std::io::Write;
+    let mut file = std::fs::File::create(filename).unwrap();
+    writeln!(file, "ref_pos,qry_pos,length").unwrap();
+    for match_ in matches {
+      writeln!(file, "{},{},{}", match_.ref_pos, match_.qry_pos, match_.length).unwrap();
+    }
   }
 }
 

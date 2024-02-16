@@ -32,7 +32,7 @@ pub fn rule_mixed_sites(
   // Calculate total of mixed (ambiguous) nucleotides: non-ACGT, non-N, non-Gap
   let total_mixed_sites = nucleotide_composition
     .iter()
-    .filter(|(nuc, total)| !(nuc.is_acgtn() || nuc.is_gap()))
+    .filter(|(nuc, _)| !(nuc.is_acgtn() || nuc.is_gap()))
     .map(|(_, total)| total)
     .sum();
 
