@@ -56,7 +56,7 @@ pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: &Option<S
     .filter(|dataset| -> bool  {
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
       if let Some(tag) = tag.as_ref() {
-        dataset.is_tag(tag)
+        dataset.has_tag(tag)
       } else {
         true
       }

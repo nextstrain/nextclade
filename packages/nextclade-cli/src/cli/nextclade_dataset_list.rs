@@ -35,7 +35,7 @@ pub fn nextclade_dataset_list(
     .flat_map(|collection| collection.datasets)
     .filter(|dataset| -> bool {
       if let Some(tag) = tag.as_ref() {
-        dataset.is_tag(tag)
+        dataset.has_tag(tag)
       } else {
         let is_compatible = include_incompatible || dataset.is_cli_compatible(this_package_version());
         let is_not_deprecated = include_deprecated || !dataset.deprecated();
