@@ -82,7 +82,7 @@ if [ "$1" == "cli" ]; then
 
   echo "Bumping package versions in 'Cargo.toml' files"
   cargo set-version --workspace --bump="${2:-}" >/dev/null
-  version=$(dasel select -r toml -w - -s ".package.version" -f "packages/nextclade/Cargo.toml")
+  version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
 
   echo "Running \`cargo build\` to update 'Cargo.lock' file"
   cargo build --quiet >/dev/null

@@ -41,7 +41,7 @@ declare -a BASE_IMAGES=(
   "debian"
 )
 
-version=$(dasel select -p toml -s ".package.version" -f "packages/nextclade-cli/Cargo.toml")
+version=$(dasel select -p toml -s ".workspace.package.version" -f "Cargo.toml")
 version_major=$("${THIS_DIR}/semver" get major "${version}")
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 release_type=${release_type:=latest}

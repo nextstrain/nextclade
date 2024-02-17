@@ -1,3 +1,12 @@
+## Nextclade 3.2.1
+
+### Nextclade CLI
+
+#### Fix "Dataset not found" error when using `nextclade dataset get` with  `--tag` argument.
+
+This fixes a bug in the dataset filtering logic causing "Dataset not found" error when even correct name and tag were requested using `nextclade dataset get` with  `--tag` argument.
+
+
 ## Nextclade 3.2.0
 
 ### General
