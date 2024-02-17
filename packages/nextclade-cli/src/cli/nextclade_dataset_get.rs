@@ -5,9 +5,9 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{warn, LevelFilter};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
+use nextclade::make_error;
 use nextclade::utils::info::{this_package_version, this_package_version_str};
 use nextclade::utils::string::find_similar_strings;
-use nextclade::{make_error, make_internal_error};
 
 pub struct DatasetHttpGetParams<'s> {
   pub name: &'s str,
@@ -31,9 +31,9 @@ pub fn nextclade_dataset_get(
   let dataset = dataset_http_get(&http, name, tag)?;
 
   if let Some(output_dir) = &output_dir {
-    dataset_dir_download(&http, &dataset, output_dir)?;
+    dataset_dir_download(&http, &dataset, tag, output_dir)?;
   } else if let Some(output_zip) = &output_zip {
-    dataset_zip_download(&http, &dataset, output_zip)?;
+    dataset_zip_download(&http, &dataset, tag, output_zip)?;
   }
 
   Ok(())
@@ -50,52 +50,52 @@ pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: &Option<S
     .flat_map(|collection| collection.datasets)
     .collect_vec();
 
-  let paths = datasets.iter().map(|dataset| dataset.path.clone()).collect_vec();
+  let with_matching_name = datasets
+    .iter()
+    .find(|dataset| dataset.path == name || dataset.shortcuts.contains(&String::from(name)));
 
-  let mut filtered = datasets.into_iter()
-    .filter(|dataset| -> bool  {
-      // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
-      if let Some(tag) = tag.as_ref() {
-        dataset.has_tag(tag)
-      } else {
-        true
-      }
-    })
-    // Filter by name
-    .filter(|dataset| {
-      dataset.path == name || dataset.shortcuts.contains(&String::from(name))
-    })
-    .collect_vec();
-
-  let dataset = match &filtered.len() {
-    0 => {
-      let suggestions = find_similar_strings(paths.iter(), &name).take(10).collect_vec();
-      let suggestions_msg = (!suggestions.is_empty())
-        .then(|| {
-          let suggestions = suggestions.iter().map(|s| format!("- {s}")).join("\n");
-          format!("\n\nDid you mean:\n{suggestions}\n?")
-        })
-        .unwrap_or_default();
+  let (dataset, tag) = match with_matching_name {
+    None => {
+      // If name is incorrect, display error
+      let names = datasets.iter().flat_map(Dataset::path_and_shortcuts);
+      let suggestions_msg = format_suggestions(names, name);
       make_error!(
-        "Dataset not found: '{name}'.{suggestions_msg}\n\nType `nextclade dataset list` to show available datasets."
+        "Dataset not found: '{name}'.{suggestions_msg}\n\nType `nextclade dataset list` to show available datasets.",
       )
     }
-    1 => Ok(filtered.remove(0)),
-    _ => {
-      make_internal_error!("Expected to find a single dataset, but multiple datasets found.")
-    }
+    // If name is correct...
+    Some(dataset) => match tag.map(String::as_str) {
+      None | Some("latest") => {
+        // ...and if tag is not provided or a placeholder, use latest tag
+        let tag = dataset.tag_latest();
+        Ok((dataset, tag.to_owned()))
+      }
+      Some(tag) => {
+        if dataset.has_tag(tag) {
+          // ...and if a tag is matching, use that tag
+          let tag = dataset.resolve_tag(&Some(tag));
+          Ok((dataset, tag))
+        } else {
+          // ...and if no tags matching, display error
+          let suggestions_msg = format_suggestions(dataset.tags(), tag);
+          make_error!(
+              "Dataset '{name}' is found, but requested version tag for it not found: '{tag}'.{suggestions_msg}\n\nType `nextclade dataset list --name='{name}'` to show available version tags for this dataset or use --tag='latest' or omit the --tag argument to use the latest version tag.",
+            )
+        }
+      }
+    },
   }?;
 
-  if !dataset.is_cli_compatible(this_package_version()) {
+  if !dataset.is_cli_compatible(this_package_version(), &tag)? {
     warn!(
       "The requested dataset '{}' with version tag '{}' is not compatible with this version of Nextclade ({}). This may cause errors and unexpected results. Please try to upgrade your Nextclade version and/or report this to dataset authors.",
       dataset.path,
-      dataset.tag(),
+      tag,
       this_package_version_str()
     );
   }
 
-  Ok(dataset)
+  Ok(dataset.clone())
 }
 
 pub fn dataset_file_http_get(
@@ -104,7 +104,7 @@ pub fn dataset_file_http_get(
   filename: impl AsRef<str>,
 ) -> Result<String, Report> {
   let filename = filename.as_ref();
-  let url = dataset.file_path(filename);
+  let url = dataset.file_path_latest(filename);
 
   let content = http
     .get(&url)
@@ -113,4 +113,14 @@ pub fn dataset_file_http_get(
   let content_string = String::from_utf8(content)?;
 
   Ok(content_string)
+}
+
+fn format_suggestions(candidates: impl Iterator<Item = impl AsRef<str> + Copy>, actual: impl AsRef<str>) -> String {
+  let suggestions = find_similar_strings(candidates, &actual).take(20).collect_vec();
+  (!suggestions.is_empty())
+    .then(|| {
+      let suggestions = suggestions.iter().map(|s| format!("- {}", s.as_ref())).join("\n");
+      format!("\n\nDid you mean:\n{suggestions}\n?")
+    })
+    .unwrap_or_default()
 }

@@ -1,7 +1,7 @@
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
-use crate::o;
 use crate::utils::any::AnyType;
+use crate::{make_internal_error, o};
 use eyre::Report;
 use itertools::{chain, Itertools};
 use schemars::JsonSchema;
@@ -86,6 +86,14 @@ impl Dataset {
     self.attributes.get("name").and_then(AnyType::as_str_maybe)
   }
 
+  pub fn shortcuts(&self) -> impl Iterator<Item = &str> {
+    self.shortcuts.iter().map(String::as_str)
+  }
+
+  pub fn path_and_shortcuts(&self) -> impl Iterator<Item = &str> {
+    chain!([self.path.as_str()], self.shortcuts())
+  }
+
   pub fn search_strings(&self) -> impl Iterator<Item = &str> {
     let names = [
       Some(self.path.as_str()),
@@ -100,6 +108,7 @@ impl Dataset {
 
     chain!(names, shortcuts)
   }
+
   pub fn ref_name(&self) -> Option<&str> {
     self.attributes.get("reference name").and_then(AnyType::as_str_maybe)
   }
@@ -131,24 +140,48 @@ impl Dataset {
     self.path.starts_with("nextstrain/")
   }
 
-  pub fn tag(&self) -> &str {
+  pub fn tag_latest(&self) -> &str {
     &self.version.tag
   }
 
-  pub fn root_path(&self) -> String {
-    [&self.path, &self.version.tag].iter().join("/")
+  pub fn tags(&self) -> impl Iterator<Item = &str> {
+    self.versions.iter().map(|ver| ver.tag.as_str())
   }
 
-  pub fn file_path(&self, filename: impl AsRef<str>) -> String {
-    [&self.root_path(), filename.as_ref()].iter().join("/")
+  pub fn resolve_tag(&self, tag: &Option<impl AsRef<str>>) -> String {
+    match tag.as_ref().map(AsRef::as_ref) {
+      None | Some("latest") => &self.version.tag,
+      Some(tag) => tag,
+    }
+    .to_owned()
   }
 
-  pub fn is_cli_compatible(&self, cli_version: &Version) -> bool {
-    self
-      .version
-      .compatibility
-      .as_ref()
-      .map_or(true, |compat| compat.is_cli_compatible(cli_version))
+  pub fn file_path(&self, filename: impl AsRef<str>, tag: &Option<String>) -> String {
+    [&self.path, &self.resolve_tag(tag), filename.as_ref()].iter().join("/")
+  }
+
+  pub fn file_path_latest(&self, filename: impl AsRef<str>) -> String {
+    [&self.path, self.tag_latest(), filename.as_ref()].iter().join("/")
+  }
+
+  pub fn zip_path(&self, tag: &Option<String>) -> String {
+    self.file_path("dataset.zip", tag)
+  }
+
+  pub fn is_cli_compatible(&self, cli_version: &Version, tag: impl AsRef<str>) -> Result<bool, Report> {
+    let version = self.versions.iter().find(|version| version.tag == tag.as_ref());
+
+    let version = match version {
+      None => make_internal_error!("Dataset version tag is expected, but not found: '{}'", tag.as_ref()),
+      Some(version) => Ok(version),
+    }?;
+
+    let is_compatible = match &version.compatibility {
+      None => true,
+      Some(compatibility) => compatibility.is_cli_compatible(cli_version),
+    };
+
+    Ok(is_compatible)
   }
 
   pub fn has_tag(&self, tag: impl AsRef<str>) -> bool {
