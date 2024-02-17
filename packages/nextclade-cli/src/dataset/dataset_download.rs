@@ -51,17 +51,22 @@ pub fn download_datasets_index_json(http: &HttpClient) -> Result<DatasetsIndexJs
   DatasetsIndexJson::from_str(data_str)
 }
 
-pub fn dataset_zip_fetch(http: &HttpClient, dataset: &Dataset) -> Result<Vec<u8>, Report> {
+pub fn dataset_zip_fetch(http: &HttpClient, dataset: &Dataset, tag: &Option<String>) -> Result<Vec<u8>, Report> {
   http
-    .get(&dataset.file_path("dataset.zip"))
+    .get(&dataset.zip_path(tag))
     .wrap_err_with(|| format!("When fetching zip file for dataset '{}'", dataset.path))
 }
 
-pub fn dataset_zip_download(http: &HttpClient, dataset: &Dataset, output_file_path: &Path) -> Result<(), Report> {
+pub fn dataset_zip_download(
+  http: &HttpClient,
+  dataset: &Dataset,
+  tag: &Option<String>,
+  output_file_path: &Path,
+) -> Result<(), Report> {
   let mut file =
     create_file_or_stdout(output_file_path).wrap_err_with(|| format!("When opening file {output_file_path:?}"))?;
 
-  let content = dataset_zip_fetch(http, dataset)?;
+  let content = dataset_zip_fetch(http, dataset, tag)?;
 
   file
     .write_all(&content)
@@ -122,8 +127,13 @@ pub fn dataset_zip_load(
   })
 }
 
-pub fn dataset_dir_download(http: &HttpClient, dataset: &Dataset, output_dir: &Path) -> Result<(), Report> {
-  let mut content = dataset_zip_fetch(http, dataset)?;
+pub fn dataset_dir_download(
+  http: &HttpClient,
+  dataset: &Dataset,
+  tag: &Option<String>,
+  output_dir: &Path,
+) -> Result<(), Report> {
+  let mut content = dataset_zip_fetch(http, dataset, tag)?;
   let mut reader = Cursor::new(content.as_mut_slice());
   let mut zip = ZipArchive::new(&mut reader)?;
 

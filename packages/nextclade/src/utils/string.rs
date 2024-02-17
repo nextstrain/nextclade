@@ -38,7 +38,12 @@ pub fn find_similar_strings<T: AsRef<str> + Copy, U: AsRef<str>>(
   needle: U,
 ) -> impl Iterator<Item = T> {
   let scores = haystack
-    .map(|candidate| (candidate, sorensen_dice(candidate.as_ref(), needle.as_ref())))
+    .map(|candidate| {
+      (
+        candidate,
+        sorensen_dice(&candidate.as_ref().to_lowercase(), &needle.as_ref().to_lowercase()),
+      )
+    })
     .filter(|(_, score)| *score > 0.0)
     .sorted_by_key(|(_, score)| -(score * 1000.0) as isize)
     .collect_vec();
