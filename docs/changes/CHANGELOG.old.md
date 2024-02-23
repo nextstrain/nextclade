@@ -4,6 +4,10 @@ For the latest changes please see [CHANGELOG.md](../../CHANGELOG.md)
 
 ---
 
+## Nextclade Web 2.15.0 (2023-12-15)
+
+Nextclade Web v2 is deprecated in preparation for Nextclade v3 release. Added an alert informing users that this version is no longer recommended.
+
 ## Nextclade Web 2.14.1 (2023-05-11)
 
 This is a small bugfix release for Nextclade Web.
