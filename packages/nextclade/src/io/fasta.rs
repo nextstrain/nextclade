@@ -91,19 +91,22 @@ impl<'a> FastaReader<'a> {
     Ok(Self::new(Box::new(concat_buf)))
   }
 
-  pub fn read_line(&mut self) -> Result<usize, Report> {
-    let n_bytes = self.reader.read_line(&mut self.line)?;
-    Ok(n_bytes)
-  }
-
   #[allow(clippy::string_slice)]
   pub fn read(&mut self, record: &mut FastaRecord) -> Result<(), Report> {
     record.clear();
 
     if self.line.is_empty() {
-      self.reader.read_line(&mut self.line)?;
-      if self.line.is_empty() {
-        return Ok(());
+      loop {
+        self.line.clear();
+
+        let n_bytes = self.reader.read_line(&mut self.line)?;
+        if n_bytes == 0 {
+          return Ok(());
+        }
+
+        if !self.line.trim_end().is_empty() {
+          break;
+        }
       }
     }
 
@@ -252,6 +255,18 @@ mod tests {
   use std::io::Cursor;
 
   #[rstest]
+  fn test_fasta_reader_fail_on_non_fasta() {
+    let data =
+      b"This is not a valid FASTA string.\nIt is not empty, and not entirely whitespace\nbut does not contain 'greater than' character.\n";
+    let mut reader = FastaReader::new(Box::new(Cursor::new(data)));
+    let mut record = FastaRecord::new();
+    assert_eq!(
+      reader.read(&mut record).unwrap_err().to_string(),
+      "Expected character '>' at record start."
+    );
+  }
+
+  #[rstest]
   fn test_fasta_reader_read_empty() {
     let data = b"";
     let mut reader = FastaReader::new(Box::new(Cursor::new(data)));
@@ -300,7 +315,7 @@ mod tests {
   }
 
   #[rstest]
-  fn test_fasta_reader_read_single_record_with_leading_newlines() {
+  fn test_fasta_reader_read_single_record_with_multiple_leading_newlines() {
     let data = b"\n\n\n>seq1\nATCG\n";
     let mut reader = FastaReader::new(Box::new(Cursor::new(data)));
 
