@@ -19,7 +19,7 @@ pub const fn is_char_allowed(c: char) -> bool {
   c.is_ascii_alphabetic() || c == '*'
 }
 
-#[derive(Clone, Default, Debug, Deserialize, Serialize, schemars::JsonSchema)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize, schemars::JsonSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct FastaRecord {
   pub seq_name: String,
@@ -250,6 +250,7 @@ impl FastaPeptideWriter {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::o;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use std::io::Cursor;
@@ -391,5 +392,114 @@ mod tests {
     assert_eq!(record.seq_name, "seq1");
     assert_eq!(record.seq, "ATCG");
     assert_eq!(record.index, 0);
+  }
+
+  #[rstest]
+  fn test_fasta_reader_example_1() {
+    let data = b"\n\n>a\nACGCTCGATC\n\n>b\nCCGCGC";
+    let mut reader = FastaReader::new(Box::new(Cursor::new(data)));
+
+    let mut record = FastaRecord::new();
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("a"),
+        seq: o!("ACGCTCGATC"),
+        index: 0,
+      }
+    );
+
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("b"),
+        seq: o!("CCGCGC"),
+        index: 1,
+      }
+    );
+  }
+
+  #[rstest]
+  fn test_fasta_reader_example_2() {
+    let data = b">a\nACGCTCGATC\n>b\nCCGCGC\n>c";
+    let mut reader = FastaReader::new(Box::new(Cursor::new(data)));
+
+    let mut record = FastaRecord::new();
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("a"),
+        seq: o!("ACGCTCGATC"),
+        index: 0,
+      }
+    );
+
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("b"),
+        seq: o!("CCGCGC"),
+        index: 1,
+      }
+    );
+
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("c"),
+        seq: o!(""),
+        index: 2,
+      }
+    );
+  }
+
+  #[rstest]
+  fn test_fasta_reader_example_3() {
+    let data = b">a\nACGCTCGATC\n>b\n>c\nCCGCGC";
+    let mut reader = FastaReader::new(Box::new(Cursor::new(data)));
+
+    let mut record = FastaRecord::new();
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("a"),
+        seq: o!("ACGCTCGATC"),
+        index: 0,
+      }
+    );
+
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("b"),
+        seq: o!(""),
+        index: 1,
+      }
+    );
+
+    reader.read(&mut record).unwrap();
+
+    assert_eq!(
+      record,
+      FastaRecord {
+        seq_name: o!("c"),
+        seq: o!("CCGCGC"),
+        index: 2,
+      }
+    );
   }
 }
