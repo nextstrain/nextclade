@@ -1,3 +1,22 @@
+## Nextclade 3.3.0
+
+### General
+
+#### Allow FASTA files with leading newlines
+
+Previously Nextclade would report an error "Expected character '>' at record start" when input FASTA file contained trailing newline or when it was empty. This was fixed.
+
+### Nextclade Web
+
+#### Don't run dataset suggestion when navigating to "Datasets" page
+
+Dataset suggestion will no longer run each time "Datasets" page is opened
+
+#### Upgrade Auspice tree renderer from version 2.51.0 to 2.52.1
+
+See changelog [here](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md)
+
+
 ## Nextclade 3.2.1
 
 ### Nextclade CLI
