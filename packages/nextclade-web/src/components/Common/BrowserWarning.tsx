@@ -25,7 +25,7 @@ export function BrowserWarning() {
       chrome: '>60',
       edge: '>79',
       firefox: '>52',
-      safari: '>=16',
+      safari: '>=16.5',
     })
 
     if (isSupportedBrowser || dismissed) {
