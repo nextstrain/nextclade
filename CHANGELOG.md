@@ -1,3 +1,10 @@
+## Nextclade Web 3.3.1
+
+### Restrict Safari browser support to >= 16.5
+
+Nextclade reports WebWorker-related errors when analysis is started on Safari browser. The minimum working version of Safari we were able to successfully test Nextclade on is 16.5. We still recommend using Chrome or Firefox for the best experience.
+
+
 ## Nextclade 3.3.0
 
 ### General
