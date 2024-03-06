@@ -4,7 +4,7 @@ use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::print_help_markdown::print_help_markdown;
-use crate::cli::verbosity::{Verbosity, WarnLevel};
+use crate::cli::verbosity::Verbosity;
 use crate::io::http_client::ProxyConfig;
 use clap::builder::styling;
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
@@ -60,7 +60,7 @@ pub struct NextcladeArgs {
 
   /// Make output more quiet or more verbose
   #[clap(flatten, next_help_heading = "Verbosity")]
-  pub verbosity: Verbosity<WarnLevel>,
+  pub verbosity: Verbosity,
 }
 
 #[derive(Subcommand, Debug)]
