@@ -45,7 +45,9 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 ###### **Options:**
 
-* `--verbosity <VERBOSITY>` — Set verbosity level of console output [default: warn]
+* `--verbosity <VERBOSITY>` — Set verbosity level of console output
+
+  Default value: `warn`
 
   Possible values: `off`, `error`, `warn`, `info`, `debug`, `trace`
 
