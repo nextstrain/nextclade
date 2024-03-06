@@ -1,3 +1,10 @@
+## Nextclade CLI 3.3.1
+
+### Fix crash when using `--verbosity` option
+
+Nextclade was crashing with internal error when `--verbosity` option was present. This has been fixed.
+
+
 ## Nextclade Web 3.3.1
 
 ### Restrict Safari browser support to >= 16.5
