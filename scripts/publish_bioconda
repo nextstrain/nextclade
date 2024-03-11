@@ -29,6 +29,7 @@ export artifacts_dir="${THIS_DIR}/../artifacts"
 
 artifacts=(
   'nextclade-aarch64-apple-darwin'
+  'nextclade-aarch64-unknown-linux-gnu'
   'nextclade-x86_64-apple-darwin'
   'nextclade-x86_64-unknown-linux-gnu'
 )
