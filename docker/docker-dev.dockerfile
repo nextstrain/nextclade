@@ -200,7 +200,7 @@ RUN set -euxo pipefail >/dev/null \
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
 && RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
-&& rustup toolchain install "${HOME}" \
+&& rustup toolchain install "${RUST_TOOLCHAIN}" \
 && rustup default "${RUST_TOOLCHAIN}"
 
 # Install remaining toolchain components from rust-toolchain.toml
