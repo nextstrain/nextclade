@@ -77,7 +77,7 @@ if ! command cargo &>/dev/null; then
   curl -sSf https://sh.rustup.rs >rustup-init
   chmod +x rustup-init
   ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}"
-  rustup toolchain install "${HOME}"
+  rustup toolchain install "${RUST_TOOLCHAIN}"
   rustup default "${RUST_TOOLCHAIN}"
   rustup target add wasm32-unknown-unknown
 
