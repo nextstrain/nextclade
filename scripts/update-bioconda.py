@@ -11,8 +11,9 @@ import sys
 
 archs = {
   "linux64": "x86_64-unknown-linux-gnu",
+  "aarch64": "aarch64-unknown-linux-gnu",
   "osx and x86_64": "x86_64-apple-darwin",
-  "arm64": "aarch64-apple-darwin"
+  "osx and arm64": "aarch64-apple-darwin",
 }
 
 if __name__ == '__main__':
