@@ -1,3 +1,16 @@
+## Unreleased
+
+### Nextclade CLI
+
+#### Don't read dataset's `tree.json` and `genome_annotation.gff3` unless they are declared
+
+Nextclade CLI will no longer read `tree.json` and `genome_annotation.gff3` from the dataset, unless they are declared in the `pathogen.json`. These are optional files and we cannot assume their presence or filenames.
+
+#### Warn user if input dataset contains extra files
+
+Nextclade CLI will warn users when input datasets contains extra files which are not declared in the dataset's  pathogen.json, or if there's extra declarations of files in the pathogen.json, but the files are not actually present in the dataset. This is mostly only useful to dataset authors for debugging issues in their datasets.
+
+
 ## Nextclade CLI 3.3.1
 
 ### Fix crash when using `--verbosity` option
