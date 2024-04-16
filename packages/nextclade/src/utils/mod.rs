@@ -3,6 +3,7 @@ pub mod boolean;
 pub mod collections;
 pub mod datetime;
 pub mod error;
+pub mod fs;
 pub mod getenv;
 pub mod global_init;
 pub mod info;

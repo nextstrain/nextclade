@@ -4,7 +4,7 @@ use crate::io::http_client::{HttpClient, ProxyConfig};
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
-use log::LevelFilter;
+use log::{warn, LevelFilter};
 use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::dataset::{Dataset, DatasetFiles, DatasetMeta, DatasetsIndexJson};
@@ -13,12 +13,14 @@ use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
+use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
 use nextclade::{make_error, make_internal_error, o};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read, Seek, Write};
+use std::ops::Deref;
 use std::path::Path;
 use zip::ZipArchive;
 
@@ -107,6 +109,7 @@ pub fn dataset_zip_load(
   dataset_zip: impl AsRef<Path>,
   cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
+  let dataset_zip = dataset_zip.as_ref();
   let file = File::open(dataset_zip)?;
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
@@ -139,12 +142,61 @@ pub fn dataset_zip_load(
     .map_ref_fallible(AuspiceTree::from_str)
     .wrap_err("When reading reference tree JSON from dataset")?;
 
+  verify_dataset_files(&virus_properties, zip.file_names());
+
   Ok(NextcladeParams {
     ref_record,
     gene_map,
     tree,
     virus_properties,
   })
+}
+
+fn verify_dataset_files<'a, T: AsRef<str> + 'a + ?Sized>(
+  virus_properties: &VirusProperties,
+  files_present: impl Iterator<Item = &'a T> + 'a,
+) {
+  let declared: BTreeSet<&str> = [
+    Some(virus_properties.files.reference.as_str()),
+    Some(virus_properties.files.pathogen_json.as_str()),
+    virus_properties.files.genome_annotation.as_deref(),
+    virus_properties.files.tree_json.as_deref(),
+    virus_properties.files.examples.as_deref(),
+    virus_properties.files.readme.as_deref(),
+    virus_properties.files.changelog.as_deref(),
+  ]
+  .into_iter()
+  .flatten()
+  .chain(virus_properties.files.rest_files.values().map(Deref::deref))
+  .collect();
+
+  let present: BTreeSet<&str> = files_present.map(AsRef::as_ref).collect();
+
+  let mut warnings = vec![];
+  let not_declared: BTreeSet<&str> = present.difference(&declared).copied().collect();
+  if !not_declared.is_empty() {
+    warnings.push(format!(
+      "The following files are present in the dataset archive, but are not declared in its pathogen.json:\n{}",
+      format_list(Indent(2), not_declared.iter()),
+    ));
+  }
+
+  let not_present: BTreeSet<&str> = declared.difference(&present).copied().collect();
+  if !not_present.is_empty() {
+    warnings.push(format!(
+      "The following files are not present in the dataset archive, but are declared in its pathogen.json:\n{}",
+      format_list(Indent(2), not_present.iter()),
+    ));
+  }
+
+  if !warnings.is_empty() {
+    warnings.push(format!(
+      "\nContext:\nFiles declared in pathogen.json:\n{}\nFiles present in the archive:\n{}\n",
+      format_list(Indent(2), declared.iter()),
+      format_list(Indent(2), present.iter()),
+    ));
+    warn!("When reading dataset: {}\nThis is not an error. Nextclade ignores unknown file declarations and undeclared files. But this could be a mistake by the dataset author. For example, there could be a typo in pathogen.json file declaration, or a file could have been added to the dataset, but not declared in the pathogen.json. In this case, Nextclade analysis could be missing some of the features intended by the author. Contact the author to resolve this. It could also be that the dataset contains files for a newer version of Nextclade, and that the currently used version does not recognize these files. In which case try to upgrade Nextclade.", warnings.join("\n"));
+  }
 }
 
 pub fn dataset_dir_download(
@@ -215,6 +267,13 @@ pub fn dataset_dir_load(
     })
     .map_ref_fallible(AuspiceTree::from_path)
     .wrap_err("When reading reference tree JSON")?;
+
+  let dataset_dir_files = list_files_recursive(dataset_dir)?
+    .into_iter()
+    .map(|p| p.strip_prefix(dataset_dir).unwrap_or(&p).to_owned())
+    .map(|p| p.to_string_lossy().into_owned())
+    .collect_vec();
+  verify_dataset_files(&virus_properties, dataset_dir_files.iter());
 
   Ok(NextcladeParams {
     ref_record,
