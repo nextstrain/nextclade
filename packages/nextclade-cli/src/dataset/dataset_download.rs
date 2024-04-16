@@ -73,21 +73,24 @@ pub fn dataset_zip_download(
     .wrap_err_with(|| format!("When writing downloaded dataset zip file to {output_file_path:#?}"))
 }
 
-pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Result<String, Report> {
+pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: impl AsRef<str>) -> Result<String, Report> {
   let mut s = String::new();
-  zip.by_name(name)?.read_to_string(&mut s)?;
+  zip.by_name(name.as_ref())?.read_to_string(&mut s)?;
   Ok(s)
 }
 
 pub fn read_from_path_or_zip(
   filepath: &Option<impl AsRef<Path>>,
   zip: &mut ZipArchive<BufReader<File>>,
-  zip_filename: &str,
+  zip_filename: &Option<impl AsRef<str>>,
 ) -> Result<Option<String>, Report> {
   if let Some(filepath) = filepath {
-    return Ok(Some(read_file_to_string(filepath)?));
+    Ok(Some(read_file_to_string(filepath)?))
+  } else if let Some(zip_filename) = zip_filename {
+    zip_read_str(zip, zip_filename).map(Some)
+  } else {
+    Ok(None)
   }
-  Ok(zip_read_str(zip, zip_filename).ok())
 }
 
 pub fn dataset_zip_load(
@@ -99,23 +102,31 @@ pub fn dataset_zip_load(
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
 
-  let virus_properties = read_from_path_or_zip(&run_args.inputs.input_pathogen_json, &mut zip, "pathogen.json")?
+  let virus_properties = read_from_path_or_zip(&run_args.inputs.input_pathogen_json, &mut zip, &Some("pathogen.json"))?
     .map_ref_fallible(VirusProperties::from_str)
     .wrap_err("When reading pathogen JSON from dataset")?
     .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
 
-  let ref_record = read_from_path_or_zip(&run_args.inputs.input_ref, &mut zip, &virus_properties.files.reference)?
-    .map_ref_fallible(read_one_fasta_str)
-    .wrap_err("When reading reference sequence from dataset")?
-    .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
+  let ref_record = read_from_path_or_zip(
+    &run_args.inputs.input_ref,
+    &mut zip,
+    &Some(&virus_properties.files.reference),
+  )?
+  .map_ref_fallible(read_one_fasta_str)
+  .wrap_err("When reading reference sequence from dataset")?
+  .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
-  let gene_map = read_from_path_or_zip(&run_args.inputs.input_annotation, &mut zip, "genome_annotation.gff3")?
-    .map_ref_fallible(GeneMap::from_str)
-    .wrap_err("When reading genome annotation from dataset")?
-    .map(|gene_map| filter_gene_map(gene_map, cdses))
-    .unwrap_or_default();
+  let gene_map = read_from_path_or_zip(
+    &run_args.inputs.input_annotation,
+    &mut zip,
+    &virus_properties.files.genome_annotation,
+  )?
+  .map_ref_fallible(GeneMap::from_str)
+  .wrap_err("When reading genome annotation from dataset")?
+  .map(|gene_map| filter_gene_map(gene_map, cdses))
+  .unwrap_or_default();
 
-  let tree = read_from_path_or_zip(&run_args.inputs.input_tree, &mut zip, "tree.json")?
+  let tree = read_from_path_or_zip(&run_args.inputs.input_tree, &mut zip, &virus_properties.files.tree_json)?
     .map_ref_fallible(AuspiceTree::from_str)
     .wrap_err("When reading reference tree JSON from dataset")?;
 
