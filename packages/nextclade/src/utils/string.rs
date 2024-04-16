@@ -1,11 +1,31 @@
 use itertools::Itertools;
+use std::fmt::Display;
 use strsim::sorensen_dice;
 
 /// Return copy of a string surrounded with quotation marks
 #[must_use]
-pub fn surround_with_quotes(s: impl AsRef<str>) -> String {
-  let s = s.as_ref();
-  format!(r#""{s}""#)
+pub fn surround_with_quotes(item: impl Display) -> String {
+  format!(r#""{item}""#)
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Indent(pub usize);
+
+impl Default for Indent {
+  fn default() -> Self {
+    Self(2)
+  }
+}
+
+/// Display elements as a bullet list
+#[must_use]
+pub fn format_list(n: Indent, items: impl Iterator<Item = impl Display>) -> String {
+  items.map(|s| format!("- {s}")).map(indent(n)).join("\n")
+}
+
+/// Indent by given number of spaces
+pub fn indent<U: Display>(n: Indent) -> impl FnMut(U) -> String {
+  move |s: U| format!("{:indent$}{s}", "", indent = n.0)
 }
 
 /// Return copy of a string truncated up to a given length

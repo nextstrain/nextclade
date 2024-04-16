@@ -1,7 +1,9 @@
 use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
 use crate::io::http_client::{HttpClient, ProxyConfig};
+use color_eyre::{Section, SectionExt};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
+use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
@@ -12,6 +14,7 @@ use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
 use nextclade::utils::option::OptionMapRefFallible;
+use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
 use nextclade::{make_error, make_internal_error, o};
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -87,7 +90,13 @@ pub fn read_from_path_or_zip(
   if let Some(filepath) = filepath {
     Ok(Some(read_file_to_string(filepath)?))
   } else if let Some(zip_filename) = zip_filename {
-    zip_read_str(zip, zip_filename).map(Some)
+    zip_read_str(zip, zip_filename)
+      .map(Some)
+      .wrap_err_with(|| format!("When extracting file {:#?}", zip_filename.as_ref()))
+      .with_section(|| {
+        let files = zip.file_names().take(30).sorted().map(surround_with_quotes);
+        format_list(Indent::default(), files).header("The archive contains the following files:")
+      })
   } else {
     Ok(None)
   }
