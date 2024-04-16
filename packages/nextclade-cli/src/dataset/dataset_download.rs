@@ -1,7 +1,9 @@
 use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
 use crate::io::http_client::{HttpClient, ProxyConfig};
+use color_eyre::{Section, SectionExt};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
+use itertools::Itertools;
 use log::LevelFilter;
 use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
@@ -12,6 +14,7 @@ use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
 use nextclade::utils::option::OptionMapRefFallible;
+use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
 use nextclade::{make_error, make_internal_error, o};
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -73,21 +76,30 @@ pub fn dataset_zip_download(
     .wrap_err_with(|| format!("When writing downloaded dataset zip file to {output_file_path:#?}"))
 }
 
-pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: &str) -> Result<String, Report> {
+pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: impl AsRef<str>) -> Result<String, Report> {
   let mut s = String::new();
-  zip.by_name(name)?.read_to_string(&mut s)?;
+  zip.by_name(name.as_ref())?.read_to_string(&mut s)?;
   Ok(s)
 }
 
 pub fn read_from_path_or_zip(
   filepath: &Option<impl AsRef<Path>>,
   zip: &mut ZipArchive<BufReader<File>>,
-  zip_filename: &str,
+  zip_filename: &Option<impl AsRef<str>>,
 ) -> Result<Option<String>, Report> {
   if let Some(filepath) = filepath {
-    return Ok(Some(read_file_to_string(filepath)?));
+    Ok(Some(read_file_to_string(filepath)?))
+  } else if let Some(zip_filename) = zip_filename {
+    zip_read_str(zip, zip_filename)
+      .map(Some)
+      .wrap_err_with(|| format!("When extracting file {:#?}", zip_filename.as_ref()))
+      .with_section(|| {
+        let files = zip.file_names().take(30).sorted().map(surround_with_quotes);
+        format_list(Indent::default(), files).header("The archive contains the following files:")
+      })
+  } else {
+    Ok(None)
   }
-  Ok(zip_read_str(zip, zip_filename).ok())
 }
 
 pub fn dataset_zip_load(
@@ -99,23 +111,31 @@ pub fn dataset_zip_load(
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
 
-  let virus_properties = read_from_path_or_zip(&run_args.inputs.input_pathogen_json, &mut zip, "pathogen.json")?
+  let virus_properties = read_from_path_or_zip(&run_args.inputs.input_pathogen_json, &mut zip, &Some("pathogen.json"))?
     .map_ref_fallible(VirusProperties::from_str)
     .wrap_err("When reading pathogen JSON from dataset")?
     .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
 
-  let ref_record = read_from_path_or_zip(&run_args.inputs.input_ref, &mut zip, &virus_properties.files.reference)?
-    .map_ref_fallible(read_one_fasta_str)
-    .wrap_err("When reading reference sequence from dataset")?
-    .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
+  let ref_record = read_from_path_or_zip(
+    &run_args.inputs.input_ref,
+    &mut zip,
+    &Some(&virus_properties.files.reference),
+  )?
+  .map_ref_fallible(read_one_fasta_str)
+  .wrap_err("When reading reference sequence from dataset")?
+  .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
-  let gene_map = read_from_path_or_zip(&run_args.inputs.input_annotation, &mut zip, "genome_annotation.gff3")?
-    .map_ref_fallible(GeneMap::from_str)
-    .wrap_err("When reading genome annotation from dataset")?
-    .map(|gene_map| filter_gene_map(gene_map, cdses))
-    .unwrap_or_default();
+  let gene_map = read_from_path_or_zip(
+    &run_args.inputs.input_annotation,
+    &mut zip,
+    &virus_properties.files.genome_annotation,
+  )?
+  .map_ref_fallible(GeneMap::from_str)
+  .wrap_err("When reading genome annotation from dataset")?
+  .map(|gene_map| filter_gene_map(gene_map, cdses))
+  .unwrap_or_default();
 
-  let tree = read_from_path_or_zip(&run_args.inputs.input_tree, &mut zip, "tree.json")?
+  let tree = read_from_path_or_zip(&run_args.inputs.input_tree, &mut zip, &virus_properties.files.tree_json)?
     .map_ref_fallible(AuspiceTree::from_str)
     .wrap_err("When reading reference tree JSON from dataset")?;
 
