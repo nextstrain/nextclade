@@ -38,7 +38,7 @@ export function SuggestionPanel() {
 export function ButtonSuggest() {
   const { t } = useTranslationSafe()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
-  const runSuggest = useRunSeqAutodetect()
+  const runSuggest = useRunSeqAutodetect({ shouldSetCurrentDataset: true })
   const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
   const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
