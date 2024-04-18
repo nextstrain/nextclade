@@ -2,6 +2,7 @@ pub mod any;
 pub mod boolean;
 pub mod collections;
 pub mod datetime;
+pub mod entry;
 pub mod error;
 pub mod getenv;
 pub mod global_init;

@@ -25,6 +25,7 @@ color-eyre = { workspace = true }
 comfy-table = { workspace = true }
 crossbeam = { workspace = true }
 crossbeam-channel = { workspace = true }
+crossbeam-skiplist = { workspace = true }
 ctor = { workspace = true }
 dotenv = { workspace = true }
 dotenv_codegen = { workspace = true }

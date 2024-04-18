@@ -17,6 +17,7 @@ use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::option::OptionMapRefFallible;
 
+#[derive(Debug)]
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
