@@ -172,8 +172,8 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
 
   const datasetsActive = itemsInclude
   const datasetsInactive = itemsNotInclude
-  const topSuggestion = autodetectResults ? first(datasetsActive) : undefined
-  const numSuggestions = autodetectResults ? datasetsActive.length : 0
+  const topSuggestion = first(datasetsActive)
+  const numSuggestions = datasetsActive.length
 
   return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions }
 }
