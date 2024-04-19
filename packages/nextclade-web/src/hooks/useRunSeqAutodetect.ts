@@ -9,9 +9,10 @@ import {
   autodetectResultsAtom,
   AutodetectRunState,
   autodetectRunStateAtom,
+  autodetectShouldSetCurrentDatasetAtom,
   minimizerIndexAtom,
 } from 'src/state/autodetect.state'
-import { datasetCurrentAtom, datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import type { Dataset, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
@@ -28,11 +29,11 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
     ({ set, reset, snapshot }) =>
       () => {
         const { getPromise } = snapshot
-        const snapshotRelease = snapshot.retain()
 
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
         reset(autodetectRunStateAtom)
+        reset(autodetectShouldSetCurrentDatasetAtom)
 
         function onResult(results: MinimizerSearchRecord[]) {
           results.forEach((res) => {
@@ -47,6 +48,7 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 
         function onComplete() {
           set(autodetectRunStateAtom, AutodetectRunState.Done)
+          set(autodetectShouldSetCurrentDatasetAtom, params?.shouldSetCurrentDataset ?? false)
         }
 
         set(autodetectRunStateAtom, AutodetectRunState.Started)
@@ -61,26 +63,11 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
             set(minimizerIndexAtom, minimizerIndex)
             return runAutodetect(fasta, minimizerIndex, { onResult, onError, onComplete })
           })
-          .then(async () => {
-            if (params?.shouldSetCurrentDataset) {
-              const datasets = await getPromise(datasetsAtom)
-              const autodetectResults = await getPromise(autodetectResultsAtom)
-              const autodetectRunState = await getPromise(autodetectRunStateAtom)
-              if (autodetectRunState === AutodetectRunState.Done) {
-                const { topSuggestion } = processSuggestionResults(datasets.datasets, autodetectResults)
-                set(datasetCurrentAtom, topSuggestion)
-              }
-            }
-            return undefined
-          })
-          .finally(() => {
-            snapshotRelease()
-          })
           .catch((error) => {
             throw error
           })
       },
-    [params],
+    [params?.shouldSetCurrentDataset],
   )
 }
 
