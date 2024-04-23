@@ -126,3 +126,8 @@ export const isAutodetectRunningAtom = selector({
   key: 'isAutodetectRunningAtom',
   get: ({ get }) => get(autodetectRunStateAtom) === AutodetectRunState.Started,
 })
+
+export const autodetectShouldSetCurrentDatasetAtom = atom<boolean>({
+  key: 'autodetectShouldSetCurrentDatasetAtom',
+  default: false,
+})

@@ -8,6 +8,7 @@ import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
+import { autodetectShouldSetCurrentDatasetAtom } from 'src/state/autodetect.state'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
@@ -158,12 +159,13 @@ function DatasetCurrentOrSelectButton() {
   const run = useRunAnalysis()
   const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
   const { topSuggestion } = useDatasetSuggestionResults()
+  const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
 
   useEffect(() => {
-    if (!dataset) {
+    if (!dataset || autodetectShouldSetCurrentDataset) {
       setDataset(topSuggestion)
     }
-  }, [dataset, setDataset, topSuggestion])
+  }, [autodetectShouldSetCurrentDataset, dataset, setDataset, topSuggestion])
 
   const { push } = useRouter()
   const toDatasetSelection = useCallback(() => {
