@@ -1,4 +1,15 @@
-## Unreleased
+## Nextclade 3.4.0
+
+### Nextclade Web
+
+#### Remove redundant scrollbars in dataset names
+
+In dataset selector, sometimes there were extra scrollbars displayed to the right of the dataset names. This has been fixed.
+
+#### Select suggested dataset automatically when suggestion is triggered manually
+
+When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will now automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
+
 
 ### Nextclade CLI
 
@@ -9,6 +20,10 @@ Nextclade CLI will no longer read `tree.json` and `genome_annotation.gff3` from 
 #### Warn user if input dataset contains extra files
 
 Nextclade CLI will warn users when input datasets contains extra files which are not declared in the dataset's  pathogen.json, or if there's extra declarations of files in the pathogen.json, but the files are not actually present in the dataset. This is mostly only useful to dataset authors for debugging issues in their datasets.
+
+#### Add Bioconda Linux ARM build
+
+We added one more build variant to Bioconda distribution channel - for Linux operating system on 64-bit ARM hardware architecture. It uses `nextclade-aarch64-unknown-linux-gnu` executable underneath. This can be useful if you prefer to manage Nextclade CLI installation on your Linux ARM machine or in a Docker ARM container with Conda package manager. However, because Nextclade CLI is a self-contained single-file executable, we still recommend [direct downloads from GitHub Releases](https://github.com/nextstrain/nextclade/releases) rather than Conda or other installation methods.
 
 
 ## Nextclade CLI 3.3.1
