@@ -36,7 +36,7 @@ export const FlexRight = styled.div`
 export const DatasetName = styled.h4`
   margin-bottom: 0;
   font-weight: bold;
-  overflow-x: hidden;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
