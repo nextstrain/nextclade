@@ -62,7 +62,7 @@ Nextclade Web always uses the latest versions of datasets available at the momen
 
 Nextclade Web loads the latest compatible datasets automatically. User can choose one of the datasets before starting the analysis using the dataset selector.
 
-The [datasets page](https://github.com/nextstrain/nextclade_data/tree/release/data/datasets) displays all the available datasets and allows to download them. These downloaded datasets can be used with Nextclade Web in advanced mode or with Nextclade CLI. They can also serve as a starting point for creating your own datasets.
+The [datasets page](https://github.com/nextstrain/nextclade_data/tree/release/data/) displays all the available datasets and allows to download them. These downloaded datasets can be used with Nextclade Web in advanced mode or with Nextclade CLI. They can also serve as a starting point for creating your own datasets.
 
 ### Datasets in Nextclade CLI
 
