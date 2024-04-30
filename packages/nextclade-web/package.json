@@ -88,7 +88,7 @@
   "dependencies": {
     "@floating-ui/react": "0.26.1",
     "animate.css": "4.1.1",
-    "auspice": "2.52.1",
+    "auspice": "2.53.0",
     "autoprefixer": "10.4.5",
     "awesomplete": "1.1.5",
     "axios": "0.27.1",
