@@ -3,12 +3,14 @@ use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::{intersect, Range};
 use crate::translate::translate_genes::Translation;
-use crate::utils::collections::{cloned_into, zip_map_hashmap};
+use crate::utils::collections::cloned_into;
+use crate::utils::zip_map::zip_by_key;
 use eyre::Report;
 use itertools::{Either, Itertools, Zip};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 use std::fmt::Debug;
+use std::ops::Deref;
 
 pub type AaMotifsMap = BTreeMap<String, Vec<AaMotif>>;
 pub type AaMotifsChangesMap = BTreeMap<String, AaMotifChanges>;
@@ -40,21 +42,14 @@ pub fn find_aa_motifs_changes(
   ref_translation: &Translation,
   qry_translation: &Translation,
 ) -> Result<AaMotifsChangesMap, Report> {
-  let query_motif_keys = aa_motifs_qry.keys().collect_vec();
-
-  // Exclude ref motifs missing in query
-  let aa_motifs_ref: AaMotifsMap = aa_motifs_ref
-    .iter()
-    .filter(|(name, _)| query_motif_keys.contains(name))
-    .map(|(key, val)| (key.clone(), val.clone()))
-    .collect();
-
-  zip_map_hashmap(&aa_motifs_ref, aa_motifs_qry, |name, motifs_ref, motifs_qry| {
-    let changes = find_aa_motifs_changes_one(motifs_ref, motifs_qry, ref_translation, qry_translation)?;
-
-    Ok((name.clone(), changes))
-  })
-  .collect()
+  zip_by_key(aa_motifs_ref, aa_motifs_qry)
+    .map(|(name, motifs_ref, motifs_qry)| {
+      let motifs_ref = motifs_ref.map(Deref::deref).unwrap_or_default();
+      let motifs_qry = motifs_qry.map(Deref::deref).unwrap_or_default();
+      let changes = find_aa_motifs_changes_one(motifs_ref, motifs_qry, ref_translation, qry_translation)?;
+      Ok((name.clone(), changes))
+    })
+    .collect()
 }
 
 fn find_aa_motifs_changes_one(
