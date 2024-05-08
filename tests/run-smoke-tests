@@ -6,7 +6,9 @@ trap "exit 0" INT
 # https://en.wikipedia.org/wiki/Smoke_testing_(software)
 #
 # Dependencies:
-#   sudo apt-get install -y bash parallel
+#   sudo apt-get install -y bash curl parallel
+#
+#   curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 #
 # Usage (NOTE: you must build and re-build Nextclade executable yourself, this script does not do that):
 #
@@ -31,6 +33,22 @@ export DATASETS_DIR="${THIS_DIR}/../tmp/smoke-tests/dataset"
 export RESULTS_DIR="${THIS_DIR}/../tmp/smoke-tests/result"
 
 
+function run_with_name() {
+  set -o errtrace
+
+  name="${1}"
+  sequences="${2}"
+  out_dir="${RESULTS_DIR}/${name}/with_name"
+
+  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+    --dataset-name="${name}" \
+    --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
+    --output-all="${out_dir}" \
+    "${sequences}"
+}
+export -f run_with_name
+
+
 function run_with_dataset_dir() {
   set -o errtrace
 
@@ -50,12 +68,12 @@ export -f run_with_dataset_dir
 
 function run_with_dataset_zip() {
   name="${1}"
-  dataset_dir="${2}"
+  zip_path="${2}"
   sequences="${3}"
   out_dir="${RESULTS_DIR}/${name}/with_dataset_zip"
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
-    --input-dataset="${dataset_dir}/dataset.zip" \
+    --input-dataset="${zip_path}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
     "${sequences}"
@@ -134,60 +152,30 @@ function run_with_ref_and_annotation_and_tree() {
 export -f run_with_ref_and_annotation_and_tree
 
 
-function run_single_dataset() {
-  dataset_dir=$1
-  name="$(realpath --relative-to="$INPUT_DATASETS_DIR" "$dataset_dir")"
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/mpx* ]]; then
-    return
-  fi
-
-  sequences="$dataset_dir/sequences.fasta"
-  msg_no_sequences=""
-  if [ ! -f "${sequences}" ]; then
-    sequences="$dataset_dir/reference.fasta"
-    msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
-  fi
-
-  echo "Running '${NEXTCLADE_BIN}' for '${name}'${msg_no_sequences}"
-
-  run_with_dataset_dir                    "${name}" "${dataset_dir}" "${sequences}"
-  run_with_dataset_zip                    "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_only                       "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_and_annotation             "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_and_tree                   "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_and_annotation_and_tree    "${name}" "${dataset_dir}" "${sequences}"
-}
-export -f run_single_dataset
-
-
 function download_and_run_single_dataset() {
   set -o errtrace
 
   name=$1
-  dataset_dir="${DATASETS_DIR}/${name}"
-
-  # This dataset is crashing, due to a defect in the dataset's genome annotation
-  if [[ "$name" =~ nextstrain/mpx* ]]; then
-    return
-  fi
+  dataset_dir="${DATASETS_DIR}/dir/${name}"
+  zip_path="${DATASETS_DIR}/zip/${name}/dataset.zip"
 
   ${NEXTCLADE_BIN} dataset get --name="${name}" --output-dir="$dataset_dir"
 
-  ${NEXTCLADE_BIN} dataset get --name="${name}" --output-zip="$dataset_dir/dataset.zip"
+  ${NEXTCLADE_BIN} dataset get --name="${name}" --output-zip="$zip_path"
 
-  sequences="$dataset_dir/sequences.fasta"
+  sequences=$(jq -re ".files.examples | select(length > 0)" "$dataset_dir/pathogen.json")
+  sequences="$dataset_dir/$sequences"
   msg_no_sequences=""
-  if [ ! -f "${sequences}" ]; then
+  if [ -z "${sequences}" ] || [ ! -f "$sequences" ]; then
     sequences="$dataset_dir/reference.fasta"
-    msg_no_sequences=" (Note: this dataset contains no example sequences. Using reference sequence as query.)"
+    msg_no_sequences="\n\e[93mWarning: dataset '${name}' contains no example sequences. Will use reference sequence as query input.\e[0m"
   fi
 
-  echo "Running '${NEXTCLADE_BIN}' for '${name}'${msg_no_sequences}"
+  echo -e "\nRunning '${NEXTCLADE_BIN}' for '${name}'$msg_no_sequences"
 
+  run_with_name                           "${name}" "${sequences}"
   run_with_dataset_dir                    "${name}" "${dataset_dir}" "${sequences}"
-  run_with_dataset_zip                    "${name}" "${dataset_dir}" "${sequences}"
+  run_with_dataset_zip                    "${name}" "${zip_path}"    "${sequences}"
   run_with_ref_only                       "${name}" "${dataset_dir}" "${sequences}"
   run_with_ref_and_annotation             "${name}" "${dataset_dir}" "${sequences}"
   run_with_ref_and_tree                   "${name}" "${dataset_dir}" "${sequences}"
@@ -195,10 +183,5 @@ function download_and_run_single_dataset() {
 }
 export -f download_and_run_single_dataset
 
-
-if [ -z "${INPUT_DATASETS_DIR}" ]; then
-  all_datasets=$(${NEXTCLADE_BIN} dataset list --include-deprecated --only-names)
-  parallel --keep-order --jobs=+0 download_and_run_single_dataset ::: "${all_datasets}"
-else
-  find "${INPUT_DATASETS_DIR}" -iname "pathogen.json" -exec dirname '{}' \; |  parallel --keep-order --jobs=+0 run_single_dataset
-fi
+all_datasets=$(${NEXTCLADE_BIN} dataset list --include-deprecated --only-names)
+parallel --keep-order --jobs=+0 download_and_run_single_dataset ::: "${all_datasets}"
