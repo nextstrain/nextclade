@@ -91,13 +91,13 @@ as well as to the `--help` text for each tool.
     # (Re-)build Nextclade in debug mode and use it to download a dataset to `data_dev/` directory.
     cargo run --bin=nextclade -- dataset get \
       --name='sars-cov-2' \
-      --output-dir='data_dev/sars-cov-2'
+      --output-all='data_dev/sars-cov-2'
 
     # (Re-)build Nextclade in debug mode and run the analysis using the dataset we just downloaded (to `data_dev/`) and output results to the `out/` directory.
     cargo run --bin=nextclade -- run \
       'data_dev/sars-cov-2/sequences.fasta' \
       --input-dataset='data_dev/sars-cov-2/' \
-      --output-dir='out/'
+      --output-all='out/'
     ```
 
    > 💡 Note, depending on your computer hardware and internet speed, your first build can take significant amount of time, because the necessary Rust toolchain version and all dependency packages (crates) will be downloaded and compiled. Next time the existing toolchain and cached packages are used, so the repeated builds should be much faster.
