@@ -91,7 +91,7 @@ as well as to the `--help` text for each tool.
     # (Re-)build Nextclade in debug mode and use it to download a dataset to `data_dev/` directory.
     cargo run --bin=nextclade -- dataset get \
       --name='sars-cov-2' \
-      --output-all='data_dev/sars-cov-2'
+      --output-dir='data_dev/sars-cov-2'
 
     # (Re-)build Nextclade in debug mode and run the analysis using the dataset we just downloaded (to `data_dev/`) and output results to the `out/` directory.
     cargo run --bin=nextclade -- run \
