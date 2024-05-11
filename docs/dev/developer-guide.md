@@ -97,7 +97,7 @@ as well as to the `--help` text for each tool.
     cargo run --bin=nextclade -- run \
       'data_dev/sars-cov-2/sequences.fasta' \
       --input-dataset='data_dev/sars-cov-2/' \
-      --output-dir='out/'
+      --output-all='out/'
     ```
 
    > 💡 Note, depending on your computer hardware and internet speed, your first build can take significant amount of time, because the necessary Rust toolchain version and all dependency packages (crates) will be downloaded and compiled. Next time the existing toolchain and cached packages are used, so the repeated builds should be much faster.
