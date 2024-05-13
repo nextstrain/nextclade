@@ -3,6 +3,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::NucRefGlobalRange;
+use crate::gene::gene::GeneStrand;
 use crate::graph::edge::{Edge, GraphEdge};
 use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, Node};
@@ -10,6 +11,7 @@ use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
+use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -390,8 +392,68 @@ impl AuspiceDisplayDefaults {
   }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AuspiceGenomeAnnotationNuc {
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct StartEnd {
+  pub start: usize,
+  pub end: usize,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(untagged)]
+pub enum Segments {
+  OneSegment(StartEnd),
+  MultipleSegments { segments: Vec<StartEnd> },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AuspiceGenomeAnnotationCds {
+  #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+  pub r#type: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub gene: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub color: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub display_name: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+
+  #[serde(default)]
+  pub strand: GeneStrand,
+
+  #[serde(flatten)]
+  pub segments: Segments,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AuspiceGenomeAnnotations {
+  pub nuc: AuspiceGenomeAnnotationNuc,
+
+  #[serde(flatten)]
+  pub cdses: BTreeMap<String, AuspiceGenomeAnnotationCds>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub genome_annotations: Option<AuspiceGenomeAnnotations>,
+
   #[serde(default, skip_serializing_if = "AuspiceMetaExtensions::is_empty")]
   pub extensions: AuspiceMetaExtensions,
 
@@ -471,6 +533,9 @@ pub struct AuspiceTree {
   pub meta: AuspiceTreeMeta,
 
   pub tree: AuspiceTreeNode,
+
+  #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+  pub root_sequence: BTreeMap<String, String>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

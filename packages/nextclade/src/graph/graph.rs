@@ -13,6 +13,7 @@ use num_traits::Float;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use maplit::btreemap;
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[allow(clippy::partial_pub_fields)]
@@ -556,6 +557,7 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
     version: graph.data.auspice_tree_version.clone(),
     meta: graph.data.meta.clone(),
     tree,
+    root_sequence: btreemap! {},
     other: graph.data.other.clone(),
   })
 }
