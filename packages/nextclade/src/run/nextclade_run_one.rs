@@ -11,7 +11,9 @@ use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
-use crate::analyze::find_relative_mutations::{find_relative_mutations, RelativeNucMutations};
+use crate::analyze::find_relative_mutations::{
+  find_relative_aa_mutations, find_relative_nuc_mutations, RelativeAaMutations, RelativeNucMutations,
+};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
   find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, CdsAaRange, NucRange,
@@ -68,6 +70,7 @@ struct NextcladeResultWithGraph {
   nearest_node_id: GraphNodeKey,
   nearest_nodes: Option<Vec<String>>,
   relative_nuc_mutations: Vec<RelativeNucMutations>,
+  relative_aa_mutations: Vec<RelativeAaMutations>,
 }
 
 pub fn nextclade_run_one(
@@ -250,6 +253,7 @@ pub fn nextclade_run_one(
     private_nuc_mutations,
     private_aa_mutations,
     relative_nuc_mutations,
+    relative_aa_mutations,
     phenotype_values,
     divergence,
     custom_node_attributes,
@@ -304,7 +308,7 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
-    let relative_nuc_mutations = find_relative_mutations(
+    let relative_nuc_mutations = find_relative_nuc_mutations(
       graph,
       &clade,
       &clade_node_attrs,
@@ -315,6 +319,18 @@ pub fn nextclade_run_one(
       ref_seq,
       &non_acgtns,
       virus_properties,
+    )?;
+
+    let relative_aa_mutations = find_relative_aa_mutations(
+      graph,
+      &clade,
+      &clade_node_attrs,
+      &aa_substitutions,
+      &aa_deletions,
+      &unknown_aa_ranges,
+      &aa_unsequenced_ranges,
+      ref_translation,
+      gene_map,
     )?;
 
     let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
@@ -340,6 +356,7 @@ pub fn nextclade_run_one(
       private_nuc_mutations,
       private_aa_mutations,
       relative_nuc_mutations,
+      relative_aa_mutations,
       phenotype_values,
       divergence,
       custom_node_attributes: clade_node_attrs,
@@ -415,6 +432,7 @@ pub fn nextclade_run_one(
       private_nuc_mutations,
       private_aa_mutations,
       relative_nuc_mutations,
+      relative_aa_mutations,
       phenotype_values,
       divergence,
       custom_node_attributes,
