@@ -30,6 +30,7 @@ import {
   genesAtom,
   genomeSizeAtom,
   phenotypeAttrDescsAtom,
+  refNodesAtom,
   treeAtom,
   treeNwkAtom,
 } from 'src/state/results.state'
@@ -78,6 +79,7 @@ export function useRunAnalysis() {
             cdsOrderPreference,
             cladeNodeAttrKeyDescs,
             phenotypeAttrDescs,
+            refNodes,
             aaMotifsDescs,
             csvColumnConfigDefault,
           }) {
@@ -100,6 +102,7 @@ export function useRunAnalysis() {
             //  another from JSON-schema generated types
             set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs as unknown as CladeNodeAttrDesc[])
             set(phenotypeAttrDescsAtom, phenotypeAttrDescs)
+            set(refNodesAtom, refNodes)
             set(aaMotifsDescsAtom, aaMotifsDescs)
             set(csvColumnConfigAtom, csvColumnConfigDefault)
           },

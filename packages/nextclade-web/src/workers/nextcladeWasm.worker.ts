@@ -1,7 +1,7 @@
 import 'regenerator-runtime'
 
 import type { CladeNodeAttrDesc } from 'auspice'
-import { AnalysisInitialData, OutputTrees } from 'src/types'
+import { AnalysisInitialData, AuspiceRefNode, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
@@ -124,6 +124,7 @@ export async function serializeResultsJson(
   errors: AnalysisError[],
   cladeNodeAttrsJson: CladeNodeAttrDesc[],
   phenotypeAttrsJson: PhenotypeAttrDesc[],
+  refNodes: AuspiceRefNode[],
   nextcladeWebVersion: string,
 ) {
   return NextcladeWasm.serialize_results_json(
@@ -131,6 +132,7 @@ export async function serializeResultsJson(
     JSON.stringify(errors),
     JSON.stringify(cladeNodeAttrsJson),
     JSON.stringify(phenotypeAttrsJson),
+    JSON.stringify(refNodes),
     nextcladeWebVersion,
   )
 }

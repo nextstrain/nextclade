@@ -14,6 +14,7 @@ import {
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
   phenotypeAttrDescsAtom,
+  refNodesAtom,
   treeAtom,
   treeNwkAtom,
 } from 'src/state/results.state'
@@ -157,7 +158,8 @@ async function prepareResultsJson(snapshot: Snapshot, worker: ExportWorker) {
   const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
-  return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, PACKAGE_VERSION)
+  const refNodes = await snapshot.getPromise(refNodesAtom)
+  return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, PACKAGE_VERSION)
 }
 
 export function useExportJson() {
