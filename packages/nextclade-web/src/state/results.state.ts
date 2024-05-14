@@ -321,6 +321,11 @@ export const refNodesAtom = atom<AuspiceRefNode[]>({
   default: [],
 })
 
+export const currentRefNodeNameAtom = atom<string>({
+  key: 'currentRefNode',
+  default: '_parent',
+})
+
 export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({
   key: 'aaMotifsDescsAtom',
   default: [],
