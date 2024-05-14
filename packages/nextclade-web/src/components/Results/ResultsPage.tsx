@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
+import { RefNodeSelector } from 'src/components/Results/RefNodeSelector'
 import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import { Layout } from 'src/components/Layout/Layout'
@@ -49,6 +50,10 @@ export function ResultsPage() {
       <Container>
         <WrapperOuter>
           <WrapperInner $minWidth={totalWidth}>
+            <div>
+              <RefNodeSelector />
+            </div>
+
             <ResultsFilter />
 
             <MainContent>
