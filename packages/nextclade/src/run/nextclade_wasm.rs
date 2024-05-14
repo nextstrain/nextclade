@@ -16,7 +16,7 @@ use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{AuspiceGraph, AuspiceTree, CladeNodeAttrKeyDesc};
+use crate::tree::tree::{AuspiceGraph, AuspiceRefNode, AuspiceTree, CladeNodeAttrKeyDesc};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
@@ -90,6 +90,7 @@ pub struct AnalysisInitialData<'a> {
   pub cds_order_preference: Vec<String>,
   pub clade_node_attr_key_descs: &'a [CladeNodeAttrKeyDesc],
   pub phenotype_attr_descs: &'a [PhenotypeAttrDesc],
+  pub ref_nodes: &'a [AuspiceRefNode],
   pub aa_motifs_descs: &'a [AaMotifsDesc],
   pub aa_motif_keys: &'a [String],
   pub csv_column_config_default: CsvColumnConfig,
@@ -137,6 +138,7 @@ pub struct Nextclade {
   pub graph: Option<AuspiceGraph>,
   pub clade_attr_descs: Vec<CladeNodeAttrKeyDesc>,
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
+  pub ref_nodes: Vec<AuspiceRefNode>,
 }
 
 pub struct InitialStateWithAa {
@@ -223,6 +225,11 @@ impl Nextclade {
     let aa_motifs_descs = virus_properties.aa_motifs.clone();
     let aa_motifs_keys = aa_motifs_descs.iter().map(|desc| desc.name.clone()).collect_vec();
 
+    let ref_nodes = graph
+      .as_ref()
+      .map(|graph| graph.data.meta.extensions.nextclade.reference_nodes.clone())
+      .unwrap_or_default();
+
     Ok(Self {
       ref_record,
       ref_seq,
@@ -240,6 +247,7 @@ impl Nextclade {
       graph,
       clade_attr_descs,
       phenotype_attr_descs,
+      ref_nodes,
     })
   }
 
@@ -251,6 +259,7 @@ impl Nextclade {
       cds_order_preference: self.virus_properties.cds_order_preference.clone(),
       clade_node_attr_key_descs: &self.clade_attr_descs,
       phenotype_attr_descs: &self.phenotype_attr_descs,
+      ref_nodes: &self.ref_nodes,
       aa_motifs_descs: &self.aa_motifs_descs,
       aa_motif_keys: &self.aa_motifs_keys,
       csv_column_config_default: CsvColumnConfig::default(),

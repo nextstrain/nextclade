@@ -6,6 +6,7 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
+use crate::analyze::find_relative_mutations::RelativeNucMutations;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
@@ -73,6 +74,7 @@ pub struct NextcladeOutputs {
   pub clade: String,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
+  pub relative_nuc_mutations: Vec<RelativeNucMutations>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_cdses: Vec<String>,
   pub divergence: f64,

@@ -8,6 +8,7 @@ pub mod find_aa_motifs;
 pub mod find_aa_motifs_changes;
 pub mod find_private_aa_mutations;
 pub mod find_private_nuc_mutations;
+pub mod find_relative_mutations;
 pub mod is_sequenced;
 pub mod letter_composition;
 pub mod letter_ranges;

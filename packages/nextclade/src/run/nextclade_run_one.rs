@@ -11,6 +11,7 @@ use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
+use crate::analyze::find_relative_mutations::{find_relative_mutations, RelativeNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
   find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, CdsAaRange, NucRange,
@@ -66,6 +67,7 @@ struct NextcladeResultWithGraph {
   custom_node_attributes: BTreeMap<String, String>,
   nearest_node_id: GraphNodeKey,
   nearest_nodes: Option<Vec<String>>,
+  relative_nuc_mutations: Vec<RelativeNucMutations>,
 }
 
 pub fn nextclade_run_one(
@@ -180,9 +182,9 @@ pub fn nextclade_run_one(
 
       if alignment.is_reverse_complement {
         warnings.push(PeptideWarning {
-            cds_name: "nuc".to_owned(),
-            warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
-          });
+          cds_name: "nuc".to_owned(),
+          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
+        });
       }
 
       warnings
@@ -247,6 +249,7 @@ pub fn nextclade_run_one(
     clade,
     private_nuc_mutations,
     private_aa_mutations,
+    relative_nuc_mutations,
     phenotype_values,
     divergence,
     custom_node_attributes,
@@ -259,11 +262,11 @@ pub fn nextclade_run_one(
 
     let nearest_nodes = params.general.include_nearest_node_info.then_some(
       nearest_node_candidates
-    .iter()
-    // Choose all nodes with distance equal to the distance of the nearest node
-    .filter(|n| n.distance == nearest_node_candidates[0].distance)
-    .map(|n| Ok(graph.get_node(n.node_key)?.payload().name.clone()))
-    .collect::<Result<Vec<String>, Report>>()?,
+        .iter()
+        // Choose all nodes with distance equal to the distance of the nearest node
+        .filter(|n| n.distance == nearest_node_candidates[0].distance)
+        .map(|n| Ok(graph.get_node(n.node_key)?.payload().name.clone()))
+        .collect::<Result<Vec<String>, Report>>()?,
     );
 
     let clade = nearest_node.clade();
@@ -301,6 +304,19 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
+    let relative_nuc_mutations = find_relative_mutations(
+      graph,
+      &clade,
+      &clade_node_attrs,
+      &substitutions,
+      &deletions,
+      &missing,
+      &alignment_range,
+      ref_seq,
+      &non_acgtns,
+      virus_properties,
+    )?;
+
     let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
       phenotype_data
         .iter()
@@ -323,6 +339,7 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      relative_nuc_mutations,
       phenotype_values,
       divergence,
       custom_node_attributes: clade_node_attrs,
@@ -397,6 +414,7 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      relative_nuc_mutations,
       phenotype_values,
       divergence,
       custom_node_attributes,

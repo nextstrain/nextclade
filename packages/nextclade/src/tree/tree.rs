@@ -319,6 +319,24 @@ pub struct CladeNodeAttrKeyDesc {
   pub other: serde_json::Value,
 }
 
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceRefNode {
+  pub name: String,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub display_name: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub include: BTreeMap<String, Vec<String>>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -326,6 +344,9 @@ pub struct AuspiceMetaExtensionsNextclade {
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub placement_mask_ranges: Vec<NucRefGlobalRange>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub reference_nodes: Vec<AuspiceRefNode>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
