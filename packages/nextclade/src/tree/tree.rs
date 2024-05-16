@@ -398,6 +398,16 @@ impl AuspiceDisplayDefaults {
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct AuspiceGenomeAnnotationNuc {
+  pub start: isize,
+
+  pub end: isize,
+
+  #[serde(default)]
+  pub strand: GeneStrand,
+
+  #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+  pub r#type: Option<String>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
