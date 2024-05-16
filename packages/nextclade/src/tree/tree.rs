@@ -404,8 +404,8 @@ pub struct AuspiceGenomeAnnotationNuc {
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct StartEnd {
-  pub start: usize,
-  pub end: usize,
+  pub start: isize,
+  pub end: isize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

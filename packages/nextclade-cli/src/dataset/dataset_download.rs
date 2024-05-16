@@ -5,19 +5,20 @@ use color_eyre::{Section, SectionExt};
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use log::{warn, LevelFilter};
-use nextclade::analyze::virus_properties::{LabelledMutationsConfig, VirusProperties};
+use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
-use nextclade::io::dataset::{Dataset, DatasetFiles, DatasetMeta, DatasetsIndexJson};
-use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
+use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
+use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaRecord};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
+use nextclade::utils::any::AnyType;
 use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
 use nextclade::{make_error, make_internal_error, o};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read, Seek, Write};
 use std::ops::Deref;
@@ -35,13 +36,16 @@ pub fn nextclade_get_inputs(
     if input_dataset.is_file() && has_extension(input_dataset, "zip") {
       dataset_zip_load(run_args, input_dataset, cdses)
         .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
+    } else if input_dataset.is_file() && has_extension(input_dataset, "json") {
+      dataset_json_load(run_args, input_dataset, cdses)
+        .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
     } else if input_dataset.is_dir() {
       dataset_dir_load(run_args, input_dataset, cdses)
         .wrap_err_with(|| format!("When loading dataset from {input_dataset:#?}"))
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
-        Expected a directory path or a zip archive file path, but got: '{input_dataset:#?}'"
+        Expected a directory path, a zip file path or json file path, but got: '{input_dataset:#?}'"
       )
     }
   } else {
@@ -279,6 +283,66 @@ pub fn dataset_dir_load(
     ref_record,
     gene_map,
     tree,
+    virus_properties,
+  })
+}
+
+pub fn dataset_json_load(
+  run_args: &NextcladeRunArgs,
+  dataset_json: impl AsRef<Path>,
+  cdses: &Option<Vec<String>>,
+) -> Result<NextcladeParams, Report> {
+  let dataset_json = dataset_json.as_ref();
+
+  // let NextcladeRunInputArgs {
+  //   input_ref,
+  //   input_tree,
+  //   input_pathogen_json,
+  //   input_annotation,
+  //   ..
+  // } = &run_args.inputs;
+
+  let auspice_json = AuspiceTree::from_path(dataset_json).wrap_err("When reading Auspice JSON v2")?;
+
+  let virus_properties = auspice_json
+    .meta
+    .extensions
+    .nextclade
+    .pathogen
+    .as_ref()
+    .cloned()
+    .unwrap_or_default();
+
+  let ref_record = {
+    let ref_name = virus_properties
+      .attributes
+      .get("reference name")
+      .cloned()
+      .unwrap_or_else(|| AnyType::String("reference".to_owned()))
+      .as_str()
+      .wrap_err("When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`")?
+      .to_owned();
+
+    let ref_seq = auspice_json.root_sequence.get("nuc")
+    .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc)"))?.to_owned();
+
+    FastaRecord {
+      index: 0,
+      seq_name: ref_name,
+      seq: ref_seq,
+    }
+  };
+
+  let gene_map = auspice_json
+    .meta
+    .genome_annotations
+    .map_ref_fallible(GeneMap::from_auspice_annotations)?
+    .unwrap_or_default();
+
+  Ok(NextcladeParams {
+    ref_record,
+    gene_map,
+    tree: Some(auspice_json),
     virus_properties,
   })
 }

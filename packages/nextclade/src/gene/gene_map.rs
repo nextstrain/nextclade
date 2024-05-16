@@ -1,11 +1,13 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_tree::FeatureTree;
 use crate::features::sequence_region::SequenceRegion;
+use crate::gene::auspice_annotations::convert_auspice_annotations_to_genes;
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::{find_cdses, Gene};
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
+use crate::tree::tree::AuspiceGenomeAnnotations;
 use crate::utils::collections::take_exactly_one;
 use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_report};
@@ -15,7 +17,6 @@ use log::warn;
 use num::Integer;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use std::path::Path;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
@@ -35,6 +36,11 @@ impl GeneMap {
 
   pub fn from_feature_tree(feature_tree: &FeatureTree) -> Result<Self, Report> {
     convert_feature_tree_to_gene_map(feature_tree)
+  }
+
+  pub fn from_auspice_annotations(anns: &AuspiceGenomeAnnotations) -> Result<Self, Report> {
+    let genes = convert_auspice_annotations_to_genes(anns)?;
+    Ok(GeneMap::from_genes(genes))
   }
 
   pub fn from_path<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
