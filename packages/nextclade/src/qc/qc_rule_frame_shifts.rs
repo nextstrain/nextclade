@@ -45,7 +45,7 @@ pub fn rule_frame_shifts(
   let total_frame_shifts = frame_shifts.len();
   let total_frame_shifts_ignored = frame_shifts_ignored.len();
 
-  let score = total_frame_shifts as f64 * config.score_weight;
+  let score = total_frame_shifts as f64 * *config.score_weight;
   let status = QcStatus::from_score(score);
 
   Some(QcResultFrameShifts {

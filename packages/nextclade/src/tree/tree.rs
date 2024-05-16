@@ -1,6 +1,7 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
+use crate::analyze::virus_properties::VirusProperties;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::gene::GeneStrand;
@@ -321,13 +322,16 @@ pub struct CladeNodeAttrKeyDesc {
   pub other: serde_json::Value,
 }
 
-#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub placement_mask_ranges: Vec<NucRefGlobalRange>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pathogen: Option<VirusProperties>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

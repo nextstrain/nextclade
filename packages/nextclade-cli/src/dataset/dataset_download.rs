@@ -297,41 +297,7 @@ pub fn dataset_individual_files_load(
         .and_then(|input_pathogen_json| read_file_to_string(input_pathogen_json).ok())
         .map_ref_fallible(VirusProperties::from_str)
         .wrap_err("When reading pathogen JSON")?
-        .unwrap_or_else(|| {
-          // The only case where we allow pathogen.json to be missing is when there's no dataset and files are provided
-          // explicitly through args. Let's create a dummy value to avoid making the field optional,
-          // and avoid adding `Default` trait.
-          VirusProperties {
-            schema_version: "".to_owned(),
-            attributes: BTreeMap::default(),
-            shortcuts: vec![],
-            meta: DatasetMeta::default(),
-            files: DatasetFiles {
-              reference: "".to_owned(),
-              pathogen_json: "".to_owned(),
-              genome_annotation: None,
-              tree_json: None,
-              examples: None,
-              readme: None,
-              changelog: None,
-              rest_files: BTreeMap::default(),
-              other: serde_json::Value::default(),
-            },
-            default_cds: None,
-            cds_order_preference: vec![],
-            mut_labels: LabelledMutationsConfig::default(),
-            qc: None,
-            general_params: None,
-            alignment_params: None,
-            tree_builder_params: None,
-            phenotype_data: None,
-            aa_motifs: vec![],
-            versions: vec![],
-            version: None,
-            compatibility: None,
-            other: serde_json::Value::default(),
-          }
-        });
+        .unwrap_or_default();
 
       let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
 

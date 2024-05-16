@@ -24,7 +24,7 @@ pub fn rule_missing_data(total_missing: usize, config: &QcRulesConfigMissingData
   }
 
   let score = clamp_min(
-    ((total_missing as f64 - config.score_bias) * 100.0) / config.missing_data_threshold,
+    ((total_missing as f64 - *config.score_bias) * 100.0) / *config.missing_data_threshold,
     0.0,
   );
   let status = QcStatus::from_score(score);
@@ -33,6 +33,6 @@ pub fn rule_missing_data(total_missing: usize, config: &QcRulesConfigMissingData
     score,
     status,
     total_missing,
-    missing_data_threshold: config.missing_data_threshold + config.score_bias,
+    missing_data_threshold: *config.missing_data_threshold + *config.score_bias,
   })
 }

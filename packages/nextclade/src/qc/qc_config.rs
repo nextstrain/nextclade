@@ -2,21 +2,22 @@ use crate::coord::range::AaRefRange;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigMissingData {
   pub enabled: bool,
-  pub missing_data_threshold: f64,
-  pub score_bias: f64,
+  pub missing_data_threshold: OrderedFloat<f64>,
+  pub score_bias: OrderedFloat<f64>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigMixedSites {
@@ -24,49 +25,49 @@ pub struct QcRulesConfigMixedSites {
   pub mixed_sites_threshold: usize,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigPrivateMutations {
   pub enabled: bool,
 
   #[serde(default = "one")]
-  pub weight_reversion_substitutions: f64,
+  pub weight_reversion_substitutions: OrderedFloat<f64>,
 
   #[serde(default = "one")]
-  pub weight_reversion_deletions: f64,
+  pub weight_reversion_deletions: OrderedFloat<f64>,
 
   #[serde(default = "one")]
-  pub weight_labeled_substitutions: f64,
+  pub weight_labeled_substitutions: OrderedFloat<f64>,
 
   #[serde(default = "one")]
-  pub weight_labeled_deletions: f64,
+  pub weight_labeled_deletions: OrderedFloat<f64>,
 
   #[serde(default = "one")]
-  pub weight_unlabeled_substitutions: f64,
+  pub weight_unlabeled_substitutions: OrderedFloat<f64>,
 
   #[serde(default = "one")]
-  pub weight_unlabeled_deletions: f64,
+  pub weight_unlabeled_deletions: OrderedFloat<f64>,
 
-  pub typical: f64,
-  pub cutoff: f64,
+  pub typical: OrderedFloat<f64>,
+  pub cutoff: OrderedFloat<f64>,
 }
 
-const fn one() -> f64 {
-  1.0
+const fn one() -> OrderedFloat<f64> {
+  OrderedFloat(1.0)
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigSnpClusters {
   pub enabled: bool,
   pub window_size: usize,
   pub cluster_cut_off: usize,
-  pub score_weight: f64,
+  pub score_weight: OrderedFloat<f64>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct FrameShiftLocation {
@@ -74,14 +75,14 @@ pub struct FrameShiftLocation {
   pub codon_range: AaRefRange,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ignored_frame_shifts: Vec<FrameShiftLocation>,
-  pub score_weight: f64,
+  pub score_weight: OrderedFloat<f64>,
 }
 
 impl Default for QcRulesConfigFrameShifts {
@@ -89,7 +90,7 @@ impl Default for QcRulesConfigFrameShifts {
     Self {
       enabled: false,
       ignored_frame_shifts: vec![],
-      score_weight: 75.0,
+      score_weight: OrderedFloat(75.0),
     }
   }
 }
@@ -101,14 +102,14 @@ pub struct StopCodonLocation {
   pub codon: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ignored_stop_codons: Vec<StopCodonLocation>,
-  pub score_weight: f64,
+  pub score_weight: OrderedFloat<f64>,
 }
 
 impl Default for QcRulesConfigStopCodons {
@@ -116,12 +117,12 @@ impl Default for QcRulesConfigStopCodons {
     Self {
       enabled: false,
       ignored_stop_codons: vec![],
-      score_weight: 75.0,
+      score_weight: OrderedFloat(75.0),
     }
   }
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcConfig {
