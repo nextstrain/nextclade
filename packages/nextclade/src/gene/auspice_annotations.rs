@@ -16,7 +16,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
     index: 0,
     id: "landmark".to_owned(),
     name: "landmark".to_owned(),
-    range: NucRefGlobalRange::from_isize(anns.nuc.start, anns.nuc.end),
+    range: NucRefGlobalRange::from_isize(anns.nuc.start.saturating_sub(1), anns.nuc.end),
     strand: anns.nuc.strand,
     is_circular: true,
   };
@@ -72,8 +72,7 @@ fn convert_cds_segments(
   for (index, &StartEnd { start, end }) in ann_segments.iter().enumerate() {
     let name = format!("{cds_name}_fragment_{index}");
 
-    let start = start.saturating_sub(1);
-    let range = NucRefGlobalRange::from_isize(start, end);
+    let range = NucRefGlobalRange::from_isize(start.saturating_sub(1), end);
     let range_local = Range::from_usize(begin, begin + range.len());
     let phase = Phase::from_begin(range_local.begin)?;
     let frame = Frame::from_begin(range.begin)?;
