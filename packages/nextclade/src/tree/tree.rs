@@ -11,7 +11,7 @@ use crate::graph::node::{GraphNode, Node};
 use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
-use eyre::{Report, WrapErr};
+use eyre::{eyre, Report, WrapErr};
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
@@ -466,6 +466,17 @@ pub struct AuspiceGenomeAnnotations {
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl AuspiceGenomeAnnotations {
+  pub fn from_tree_json_str(content: impl AsRef<str>) -> Result<Self, Report> {
+    let content = content.as_ref();
+    let tree = AuspiceTree::from_str(content)?;
+    tree
+      .meta
+      .genome_annotations
+      .ok_or_else(|| eyre!("Auspice JSON does not contain `.genome_annotations` field, but required"))
+  }
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
