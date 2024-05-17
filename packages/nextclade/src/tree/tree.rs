@@ -416,13 +416,21 @@ pub struct AuspiceGenomeAnnotationNuc {
 pub struct StartEnd {
   pub start: isize,
   pub end: isize,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum Segments {
   OneSegment(StartEnd),
-  MultipleSegments { segments: Vec<StartEnd> },
+  MultipleSegments {
+    segments: Vec<StartEnd>,
+
+    #[serde(flatten)]
+    other: serde_json::Value,
+  },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -447,9 +455,6 @@ pub struct AuspiceGenomeAnnotationCds {
 
   #[serde(flatten)]
   pub segments: Segments,
-
-  #[serde(flatten)]
-  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

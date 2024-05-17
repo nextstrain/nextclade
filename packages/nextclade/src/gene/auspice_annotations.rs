@@ -30,7 +30,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
 
       let segments = match &ann.segments {
         Segments::OneSegment(segment) => convert_cds_segments(ann, &landmark, cds_name, &[segment.to_owned()]),
-        Segments::MultipleSegments { segments } => convert_cds_segments(ann, &landmark, cds_name, segments),
+        Segments::MultipleSegments { segments, .. } => convert_cds_segments(ann, &landmark, cds_name, segments),
       }?;
 
       let cds = Cds {
@@ -69,7 +69,7 @@ fn convert_cds_segments(
   let mut begin = 0;
   let mut segments = vec![];
 
-  for (index, &StartEnd { start, end }) in ann_segments.iter().enumerate() {
+  for (index, &StartEnd { start, end, .. }) in ann_segments.iter().enumerate() {
     let name = format!("{cds_name}_fragment_{index}");
 
     let range = NucRefGlobalRange::from_isize(start.saturating_sub(1), end);
