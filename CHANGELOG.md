@@ -1,3 +1,27 @@
+## Nextclade 3.5.0
+
+### Algorithm
+
+#### Detect loss of amino acid motifs correctly
+
+Nextclade sometimes failed to detect a motif loss if that motif was the only one in its category. This is now fixed and users could observe changes in detected lost motifs. This affects datasets using `aaMotifs` property in their pathogen.json file, notably the flu datasets.
+
+
+### Nextclade Web
+
+#### Ensure currently selected dataset is reloaded when it changes remotely
+
+When `dataset-url` URL parameter is provided Nextclade Web would not update the dataset's pathogen.json file when remote dataset changes without changing its version. This is now fixed. It only affected users providing custom datasets using `dataset-url` URL parameter.
+
+
+### General
+
+#### Upgrade Auspice
+
+The Auspice tree rendering package has been updated from version 2.52.1 to version 2.53.0. See the list of changes [here](https://github.com/nextstrain/auspice/releases)
+
+
+
 ## Nextclade 3.4.0
 
 ### Nextclade Web
