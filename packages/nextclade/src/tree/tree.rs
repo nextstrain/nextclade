@@ -564,8 +564,8 @@ pub struct AuspiceTree {
 
   pub tree: AuspiceTreeNode,
 
-  #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-  pub root_sequence: BTreeMap<String, String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub root_sequence: Option<BTreeMap<String, String>>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,

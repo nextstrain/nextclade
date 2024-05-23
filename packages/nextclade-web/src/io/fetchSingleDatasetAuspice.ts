@@ -10,7 +10,7 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const auspiceJson = await axiosFetch<AuspiceTree>(datasetJsonUrl)
   const pathogen = auspiceJson.meta?.extensions?.nextclade?.pathogen
 
-  if (isEmpty(auspiceJson.root_sequence.nuc)) {
+  if (isEmpty(auspiceJson.root_sequence?.nuc)) {
     throw new FatalError(`Auspice JSON does not contain required field '.root_sequence.nuc': ${datasetJsonUrl_}`)
   }
 

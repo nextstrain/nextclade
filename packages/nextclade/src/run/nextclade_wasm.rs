@@ -59,7 +59,7 @@ impl NextcladeParams {
         .wrap_err("When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`")?
         .to_owned();
 
-      let ref_seq = auspice_json.root_sequence.get("nuc")
+      let ref_seq = auspice_json.root_sequence.as_ref().and_then(|root_sequence| root_sequence.get("nuc"))
       .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc)"))?.to_owned();
 
       FastaRecord {
