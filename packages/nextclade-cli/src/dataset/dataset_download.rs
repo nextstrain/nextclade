@@ -8,12 +8,11 @@ use log::{warn, LevelFilter};
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
-use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaRecord};
+use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::NextcladeParams;
 use nextclade::tree::tree::AuspiceTree;
-use nextclade::utils::any::AnyType;
 use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
@@ -288,9 +287,9 @@ pub fn dataset_dir_load(
 }
 
 pub fn dataset_json_load(
-  run_args: &NextcladeRunArgs,
+  _run_args: &NextcladeRunArgs,
   dataset_json: impl AsRef<Path>,
-  cdses: &Option<Vec<String>>,
+  _cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let dataset_json = dataset_json.as_ref();
 

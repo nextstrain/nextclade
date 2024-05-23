@@ -8,6 +8,7 @@ import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValu
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
+import type { Dataset, AuspiceTree } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
@@ -56,8 +57,6 @@ import {
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
-import { Dataset } from '../types'
-import { AuspiceTree } from '../types'
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false
 
