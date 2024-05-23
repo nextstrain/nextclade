@@ -14,7 +14,7 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
     throw new FatalError(`Auspice JSON does not contain required field '.root_sequence.nuc': ${datasetJsonUrl_}`)
   }
 
-  const currentDataset: Dataset = {
+  const currentDataset: Dataset & { auspiceJson?: AuspiceTree } = {
     path: datasetJsonUrl,
     capabilities: {
       primers: false,
@@ -24,6 +24,8 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
 
     // HACK: there is no files if dataset comes from Auspice JSON, neither they are needed. What to do?
     files: {} as unknown as DatasetFiles,
+
+    auspiceJson,
   }
 
   const datasets = [currentDataset]
@@ -32,5 +34,5 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const defaultDatasetName = currentDatasetName
   const defaultDatasetNameFriendly = attrStrMaybe(currentDataset.attributes, 'name') ?? currentDatasetName
 
-  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset, auspiceJson }
+  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
 }

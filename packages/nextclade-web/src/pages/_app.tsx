@@ -56,6 +56,8 @@ import {
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
+import { Dataset } from '../types'
+import { AuspiceTree } from '../types'
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false
 
@@ -102,8 +104,8 @@ export function RecoilStateInitializer() {
 
         const datasetInfo = await fetchSingleDataset(urlQuery)
         if (!isNil(datasetInfo)) {
-          const { datasets, currentDataset, auspiceJson } = datasetInfo
-          return { datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
+          const { datasets, currentDataset } = datasetInfo
+          return { datasets, currentDataset, minimizerIndexVersion: undefined }
         }
         return { datasets, currentDataset, minimizerIndexVersion }
       })
@@ -113,13 +115,13 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
+      .then(async ({ datasets, currentDataset, minimizerIndexVersion }) => {
         set(datasetsAtom, { datasets })
         const previousDataset = await getPromise(datasetCurrentAtom)
-        const dataset = currentDataset ?? previousDataset
+        const dataset: (Dataset & { auspiceJson?: AuspiceTree }) | undefined = currentDataset ?? previousDataset
         set(datasetCurrentAtom, dataset)
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
-        set(datasetJsonAtom, auspiceJson)
+        set(datasetJsonAtom, dataset?.auspiceJson)
         return dataset
       })
       .then(async (dataset) => {

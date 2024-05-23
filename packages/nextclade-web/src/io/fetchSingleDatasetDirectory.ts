@@ -2,7 +2,7 @@ import axios from 'axios'
 import urljoin from 'url-join'
 import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
-import { attrStrMaybe, Dataset, DatasetFiles, VirusProperties } from 'src/types'
+import { attrStrMaybe, AuspiceTree, Dataset, DatasetFiles, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead, axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -15,7 +15,7 @@ export async function fetchSingleDatasetDirectory(
 
   const pathogen = await fetchPathogenJson(datasetRootUrl)
 
-  const currentDataset: Dataset = {
+  const currentDataset: Dataset & { auspiceJson?: AuspiceTree } = {
     path: datasetRootUrl,
     capabilities: {
       primers: false,
@@ -49,14 +49,7 @@ export async function fetchSingleDatasetDirectory(
     Object.entries(currentDataset.files).filter(([filename, _]) => !['sequences.fasta'].includes(filename)),
   )
 
-  return {
-    datasets,
-    defaultDataset,
-    defaultDatasetName,
-    defaultDatasetNameFriendly,
-    currentDataset,
-    auspiceJson: undefined,
-  }
+  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
 }
 
 async function fetchPathogenJson(datasetRootUrl: string) {

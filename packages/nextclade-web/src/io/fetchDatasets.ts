@@ -9,7 +9,7 @@ import {
   parseGithubRepoUrl,
 } from 'src/io/fetchSingleDatasetFromGithub'
 
-import { Dataset } from 'src/types'
+import { type AuspiceTree, Dataset } from 'src/types'
 import {
   fetchDatasetsIndex,
   filterDatasets,
@@ -128,7 +128,11 @@ export async function initializeDatasets(datasetServerUrl: string, urlQuery: Par
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
   // Check if URL params specify dataset params and try to find the corresponding dataset
-  const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
+  const currentDataset:
+    | (Dataset & {
+        auspiceJson?: AuspiceTree
+      })
+    | undefined = await getDatasetFromUrlParams(urlQuery, datasets)
 
   return { datasets, currentDataset, minimizerIndexVersion }
 }
