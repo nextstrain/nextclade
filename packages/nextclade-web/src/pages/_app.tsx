@@ -16,6 +16,7 @@ import { mdxComponents } from 'src/mdx-components'
 import LoadingPage from 'src/pages/loading'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
+  datasetJsonAtom,
   geneMapInputAtom,
   qrySeqInputsStorageAtom,
   refSeqInputAtom,
@@ -101,8 +102,8 @@ export function RecoilStateInitializer() {
 
         const datasetInfo = await fetchSingleDataset(urlQuery)
         if (!isNil(datasetInfo)) {
-          const { datasets, currentDataset } = datasetInfo
-          return { datasets, currentDataset, minimizerIndexVersion: undefined }
+          const { datasets, currentDataset, auspiceJson } = datasetInfo
+          return { datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
         }
         return { datasets, currentDataset, minimizerIndexVersion }
       })
@@ -112,12 +113,13 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(async ({ datasets, currentDataset, minimizerIndexVersion }) => {
+      .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
         set(datasetsAtom, { datasets })
         const previousDataset = await getPromise(datasetCurrentAtom)
         const dataset = currentDataset ?? previousDataset
         set(datasetCurrentAtom, dataset)
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
+        set(datasetJsonAtom, auspiceJson)
         return dataset
       })
       .then(async (dataset) => {

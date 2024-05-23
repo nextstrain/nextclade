@@ -7,37 +7,7 @@ import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead, axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
-export class NextcladeV2Error extends Error {
-  public readonly datasetRootUrl: string
-
-  public constructor(datasetRootUrl: string) {
-    super()
-    this.datasetRootUrl = datasetRootUrl
-  }
-}
-
-function checkDatasetV2FilesExist(datasetRootUrl: string) {
-  return Promise.all([
-    ['genemap.gff', 'primers.csv', 'qc.json', 'tag.json', 'virus_properties.json'].map((file) =>
-      axiosHeadOrUndefined(urljoin(datasetRootUrl, file)),
-    ),
-  ])
-}
-
-async function fetchPathogenJson(datasetRootUrl: string) {
-  let pathogen
-  try {
-    pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error) && error.status === '404' && (await checkDatasetV2FilesExist(datasetRootUrl))) {
-      throw new NextcladeV2Error(datasetRootUrl)
-    }
-    throw error
-  }
-  return pathogen
-}
-
-export async function fetchSingleDatasetFromUrl(
+export async function fetchSingleDatasetDirectory(
   datasetRootUrl_: string,
   meta?: { datasetOriginalUrl?: string; datasetGithubRepo?: string },
 ) {
@@ -79,7 +49,44 @@ export async function fetchSingleDatasetFromUrl(
     Object.entries(currentDataset.files).filter(([filename, _]) => !['sequences.fasta'].includes(filename)),
   )
 
-  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
+  return {
+    datasets,
+    defaultDataset,
+    defaultDatasetName,
+    defaultDatasetNameFriendly,
+    currentDataset,
+    auspiceJson: undefined,
+  }
+}
+
+async function fetchPathogenJson(datasetRootUrl: string) {
+  let pathogen
+  try {
+    pathogen = await axiosFetch<VirusProperties>(urljoin(datasetRootUrl, 'pathogen.json'))
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.status === '404' && (await checkDatasetV2FilesExist(datasetRootUrl))) {
+      throw new NextcladeV2Error(datasetRootUrl)
+    }
+    throw error
+  }
+  return pathogen
+}
+
+export class NextcladeV2Error extends Error {
+  public readonly datasetRootUrl: string
+
+  public constructor(datasetRootUrl: string) {
+    super()
+    this.datasetRootUrl = datasetRootUrl
+  }
+}
+
+function checkDatasetV2FilesExist(datasetRootUrl: string) {
+  return Promise.all([
+    ['genemap.gff', 'primers.csv', 'qc.json', 'tag.json', 'virus_properties.json'].map((file) =>
+      axiosHeadOrUndefined(urljoin(datasetRootUrl, file)),
+    ),
+  ])
 }
 
 export class ErrorDatasetFileMissing extends Error {

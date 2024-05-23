@@ -303,48 +303,7 @@ pub fn dataset_json_load(
   // } = &run_args.inputs;
 
   let auspice_json = AuspiceTree::from_path(dataset_json).wrap_err("When reading Auspice JSON v2")?;
-
-  let virus_properties = auspice_json
-    .meta
-    .extensions
-    .nextclade
-    .pathogen
-    .as_ref()
-    .cloned()
-    .unwrap_or_default();
-
-  let ref_record = {
-    let ref_name = virus_properties
-      .attributes
-      .get("reference name")
-      .cloned()
-      .unwrap_or_else(|| AnyType::String("reference".to_owned()))
-      .as_str()
-      .wrap_err("When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`")?
-      .to_owned();
-
-    let ref_seq = auspice_json.root_sequence.get("nuc")
-    .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc)"))?.to_owned();
-
-    FastaRecord {
-      index: 0,
-      seq_name: ref_name,
-      seq: ref_seq,
-    }
-  };
-
-  let gene_map = auspice_json
-    .meta
-    .genome_annotations
-    .map_ref_fallible(GeneMap::from_auspice_annotations)?
-    .unwrap_or_default();
-
-  Ok(NextcladeParams {
-    ref_record,
-    gene_map,
-    tree: Some(auspice_json),
-    virus_properties,
-  })
+  NextcladeParams::from_auspice(&auspice_json)
 }
 
 pub fn dataset_individual_files_load(

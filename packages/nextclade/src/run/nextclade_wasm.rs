@@ -20,7 +20,9 @@ use crate::tree::tree::{AuspiceGraph, AuspiceTree, CladeNodeAttrKeyDesc};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
-use eyre::{Report, WrapErr};
+use crate::utils::any::AnyType;
+use crate::utils::option::OptionMapRefFallible;
+use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -37,38 +39,104 @@ pub struct NextcladeParams {
 }
 
 impl NextcladeParams {
-  pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Self, Report> {
-    let virus_properties = VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
+  pub fn from_auspice(auspice_json: &AuspiceTree) -> Result<Self, Report> {
+    let virus_properties = auspice_json
+      .meta
+      .extensions
+      .nextclade
+      .pathogen
+      .as_ref()
+      .cloned()
+      .unwrap_or_default();
 
-    let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
+    let ref_record = {
+      let ref_name = virus_properties
+        .attributes
+        .get("reference name")
+        .cloned()
+        .unwrap_or_else(|| AnyType::String("reference".to_owned()))
+        .as_str()
+        .wrap_err("When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`")?
+        .to_owned();
 
-    let tree = raw
-      .tree
-      .map(|tree| AuspiceTree::from_str(tree).wrap_err("When parsing reference tree Auspice JSON v2"))
-      .transpose()?;
+      let ref_seq = auspice_json.root_sequence.get("nuc")
+      .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc)"))?.to_owned();
 
-    let gene_map = raw.gene_map.map_or_else(
-      || Ok(GeneMap::new()), // If genome annotation is not provided, use an empty one
-      |gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"),
-    )?;
+      FastaRecord {
+        index: 0,
+        seq_name: ref_name,
+        seq: ref_seq,
+      }
+    };
+
+    let gene_map = auspice_json
+      .meta
+      .genome_annotations
+      .map_ref_fallible(GeneMap::from_auspice_annotations)?
+      .unwrap_or_default();
 
     Ok(Self {
       ref_record,
       gene_map,
-      tree,
+      tree: Some(auspice_json.to_owned()),
       virus_properties,
     })
+  }
+
+  pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Self, Report> {
+    match raw {
+      NextcladeParamsRaw::Auspice(raw) => {
+        let auspice_json = AuspiceTree::from_str(raw.tree)?;
+        Self::from_auspice(&auspice_json)
+      }
+      NextcladeParamsRaw::Dir(raw) => {
+        let virus_properties =
+          VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
+
+        let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
+
+        let tree = raw
+          .tree
+          .map(|tree| AuspiceTree::from_str(tree).wrap_err("When parsing reference tree Auspice JSON v2"))
+          .transpose()?;
+
+        let gene_map = raw
+          .gene_map
+          .map(|gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"))
+          .transpose()?
+          .unwrap_or_default();
+
+        Ok(Self {
+          ref_record,
+          gene_map,
+          tree,
+          virus_properties,
+        })
+      }
+    }
   }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct NextcladeParamsRaw {
+pub struct NextcladeParamsRawAuspice {
+  pub tree: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct NextcladeParamsRawDir {
   #[schemars(with = "String")]
   pub ref_seq: String,
   pub gene_map: Option<String>,
   pub tree: Option<String>,
   pub virus_properties: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
+pub enum NextcladeParamsRaw {
+  Auspice(NextcladeParamsRawAuspice),
+  Dir(NextcladeParamsRawDir),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]

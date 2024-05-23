@@ -2,7 +2,6 @@ import { concurrent } from 'fasy'
 import { isEmpty, merge } from 'lodash'
 import type {
   AlgorithmInput,
-  Dataset,
   FastaRecordId,
   NextcladeResult,
   CsvColumnConfig,
@@ -11,10 +10,8 @@ import type {
   OutputTrees,
 } from 'src/types'
 import { AlgorithmGlobalStatus } from 'src/types'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
-import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 export interface LaunchAnalysisInputs {
   refSeq: Promise<AlgorithmInput | undefined>
@@ -35,9 +32,8 @@ export interface LaunchAnalysisCallbacks {
 
 export async function launchAnalysis(
   qryFastaInputs: Promise<AlgorithmInput[]>,
-  paramInputs: LaunchAnalysisInputs,
+  params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
-  datasetPromise: Promise<Dataset | undefined>,
   numThreads: Promise<number>,
   csvColumnConfigPromise: Promise<CsvColumnConfig | undefined>,
 ) {
@@ -45,13 +41,6 @@ export async function launchAnalysis(
 
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(await qryFastaInputs)
-
-  const [dataset] = await Promise.all([datasetPromise])
-  if (!dataset) {
-    throw new ErrorInternal('Dataset is required but not found')
-  }
-
-  const params = await getParams(paramInputs, dataset)
 
   const csvColumnConfig = await csvColumnConfigPromise
 
@@ -95,34 +84,4 @@ export async function getQueryFasta(inputs: AlgorithmInput[]) {
 
   const contents = await concurrent.map(async (input) => input.getContent(), inputs)
   return contents.join('\n')
-}
-
-/** Resolves all param inputs into strings */
-async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsRaw> {
-  const entries = [
-    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset.files.genomeAnnotation },
-    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset.files.reference },
-    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset.files.treeJson },
-    { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset.files.pathogenJson },
-  ]
-
-  return Object.fromEntries(
-    await concurrent.map(async ({ key, input, datasetFileUrl }) => {
-      return [key, await resolveInput(await input, datasetFileUrl)]
-    }, entries),
-  ) as unknown as NextcladeParamsRaw
-}
-
-async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string | undefined) {
-  // If data is provided explicitly, load it
-  if (input) {
-    return input.getContent()
-  }
-
-  // Otherwise fetch corresponding file from the dataset
-  if (datasetFileUrl) {
-    return axiosFetchRaw(datasetFileUrl)
-  }
-
-  return undefined
 }
