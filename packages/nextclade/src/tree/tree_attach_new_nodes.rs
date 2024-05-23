@@ -68,7 +68,7 @@ pub fn create_new_auspice_node(
     },
     node_attrs: TreeNodeAttrs {
       div: Some(new_divergence),
-      clade_membership: TreeNodeAttr::new(&result.clade),
+      clade_membership: result.clade.as_ref().map(|clade| TreeNodeAttr::new(clade)),
       node_type: Some(TreeNodeAttr::new("New")),
       region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
