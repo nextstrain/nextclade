@@ -149,10 +149,10 @@ mod tests {
 
       node_attrs: TreeNodeAttrs {
         div: None,
-        clade_membership: TreeNodeAttr {
+        clade_membership: Some(TreeNodeAttr {
           value: "Test_Clade".to_owned(),
           other: serde_json::Value::default(),
-        },
+        }),
         node_type: None,
         region: None,
         country: None,
