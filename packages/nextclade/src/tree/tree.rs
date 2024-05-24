@@ -136,7 +136,8 @@ pub struct TreeNodeAttrs {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub div: Option<f64>,
 
-  pub clade_membership: TreeNodeAttr,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub clade_membership: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Node type")]
@@ -243,8 +244,12 @@ impl From<&AuspiceTreeNode> for AuspiceGraphNodePayload {
 
 impl AuspiceGraphNodePayload {
   /// Extracts clade of the node
-  pub fn clade(&self) -> String {
-    self.node_attrs.clade_membership.value.clone()
+  pub fn clade(&self) -> Option<String> {
+    self
+      .node_attrs
+      .clade_membership
+      .as_ref()
+      .map(|clade_membership| clade_membership.value.clone())
   }
 
   /// Extracts clade-like node attributes, given a list of key descriptions

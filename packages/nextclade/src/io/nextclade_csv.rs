@@ -351,7 +351,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("index", index)?;
     self.add_entry("seqName", seq_name)?;
 
-    self.add_entry("clade", clade)?;
+    self.add_entry("clade", &clade.as_deref().unwrap_or_default())?;
     self.add_entry("qc.overallScore", &format_qc_score(qc.overall_score))?;
     self.add_entry("qc.overallStatus", &qc.overall_status.to_string())?;
     self.add_entry("totalSubstitutions", &total_substitutions.to_string())?;
