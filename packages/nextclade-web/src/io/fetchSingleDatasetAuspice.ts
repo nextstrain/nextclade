@@ -8,7 +8,22 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const auspiceJson = await axiosFetch<AuspiceTree>(datasetJsonUrl, {
     headers: { Accept: 'application/json, text/plain, */*' },
   })
-  const pathogen = auspiceJson.meta?.extensions?.nextclade?.pathogen
+  const pathogen = auspiceJson.meta.extensions?.nextclade?.pathogen
+
+  const name =
+    auspiceJson.meta.title ??
+    auspiceJson.meta.description ??
+    attrStrMaybe(pathogen?.attributes, 'name') ??
+    datasetJsonUrl
+
+  let version = pathogen?.version
+  if (!version) {
+    const updatedAt = pathogen?.version?.updatedAt ?? auspiceJson.meta.updated
+    version = {
+      tag: updatedAt ?? '',
+      updatedAt,
+    }
+  }
 
   const currentDataset: Dataset & { auspiceJson?: AuspiceTree } = {
     path: datasetJsonUrl,
@@ -17,6 +32,11 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
       qc: [],
     },
     ...pathogen,
+    attributes: {
+      name,
+      ...pathogen?.attributes,
+    },
+    version,
     auspiceJson,
   }
 
