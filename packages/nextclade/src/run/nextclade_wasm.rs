@@ -69,7 +69,7 @@ impl NextcladeParams {
             .to_owned();
 
           let ref_seq = auspice_json.root_sequence.as_ref().and_then(|root_sequence| root_sequence.get("nuc"))
-          .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc)"))?.to_owned();
+          .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc) and a reference sequence is not provided any other way."))?.to_owned();
 
           FastaRecord {
             index: 0,
