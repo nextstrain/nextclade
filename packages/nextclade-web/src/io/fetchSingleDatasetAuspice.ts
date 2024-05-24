@@ -7,7 +7,9 @@ import { axiosFetch } from 'src/io/axiosFetch'
 export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const datasetJsonUrl = removeTrailingSlash(datasetJsonUrl_)
 
-  const auspiceJson = await axiosFetch<AuspiceTree>(datasetJsonUrl)
+  const auspiceJson = await axiosFetch<AuspiceTree>(datasetJsonUrl, {
+    headers: { Accept: 'application/json, text/plain, */*' },
+  })
   const pathogen = auspiceJson.meta?.extensions?.nextclade?.pathogen
 
   if (isEmpty(auspiceJson.root_sequence?.nuc)) {
