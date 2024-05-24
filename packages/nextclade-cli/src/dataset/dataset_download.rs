@@ -11,7 +11,7 @@ use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
-use nextclade::run::nextclade_wasm::NextcladeParams;
+use nextclade::run::nextclade_wasm::{NextcladeParams, NextcladeParamsOptional};
 use nextclade::tree::tree::AuspiceTree;
 use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
@@ -292,22 +292,48 @@ pub fn dataset_dir_load(
 }
 
 pub fn dataset_json_load(
-  _run_args: &NextcladeRunArgs,
+  run_args: &NextcladeRunArgs,
   dataset_json: impl AsRef<Path>,
-  _cdses: &Option<Vec<String>>,
+  cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let dataset_json = dataset_json.as_ref();
 
-  // let NextcladeRunInputArgs {
-  //   input_ref,
-  //   input_tree,
-  //   input_pathogen_json,
-  //   input_annotation,
-  //   ..
-  // } = &run_args.inputs;
+  let NextcladeRunInputArgs {
+    input_ref,
+    input_tree,
+    input_pathogen_json,
+    input_annotation,
+    ..
+  } = &run_args.inputs;
 
   let auspice_json = AuspiceTree::from_path(dataset_json).wrap_err("When reading Auspice JSON v2")?;
-  NextcladeParams::from_auspice(&auspice_json)
+
+  let overrides = {
+    let virus_properties = input_pathogen_json
+      .map_ref_fallible(VirusProperties::from_path)
+      .wrap_err("When parsing pathogen JSON")?;
+
+    let ref_record = input_ref
+      .map_ref_fallible(read_one_fasta)
+      .wrap_err("When parsing reference sequence")?;
+
+    let tree = input_tree
+      .map_ref_fallible(AuspiceTree::from_path)
+      .wrap_err("When parsing reference tree Auspice JSON v2")?;
+
+    let gene_map = input_annotation
+      .map_ref_fallible(GeneMap::from_path)
+      .wrap_err("When parsing genome annotation")?;
+
+    NextcladeParamsOptional {
+      ref_record,
+      gene_map,
+      tree,
+      virus_properties,
+    }
+  };
+
+  NextcladeParams::from_auspice(&auspice_json, &overrides, cdses)
 }
 
 pub fn dataset_individual_files_load(

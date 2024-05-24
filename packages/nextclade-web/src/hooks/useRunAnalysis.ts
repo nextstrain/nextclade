@@ -1,10 +1,12 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { concurrent } from 'fasy'
+import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { AlgorithmGlobalStatus, AlgorithmInput, Dataset, NextcladeParamsRaw, NextcladeParamsRawDir } from 'src/types'
@@ -140,7 +142,21 @@ export function useRunAnalysis() {
 
             let params: NextcladeParamsRaw
             if (tree) {
-              params = { Auspice: { tree: JSON.stringify(tree) } }
+              const overridesEntries = [
+                { key: 'geneMap', input: inputs.geneMap },
+                { key: 'refSeq', input: inputs.refSeq },
+                { key: 'tree', input: inputs.tree },
+                { key: 'virusProperties', input: inputs.virusProperties },
+              ]
+              const overrides = await concurrent.map(async ({ key, input }) => {
+                const awaitedInput = await input
+                if (isNil(awaitedInput)) {
+                  return undefined
+                }
+                return [key, await awaitedInput.getContent()]
+              }, overridesEntries)
+              const overridesPresent = overrides.filter(notUndefinedOrNull)
+              params = { Auspice: { auspiceJson: JSON.stringify(tree), ...Object.fromEntries(overridesPresent) } }
             } else {
               const dataset = await datasetCurrent
               if (!dataset) {

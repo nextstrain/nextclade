@@ -59,3 +59,8 @@ impl<'o, T: 'o> OptionMapMutFallible<'o, T> for Option<T> {
     (*self).as_mut().map(f).transpose()
   }
 }
+
+/// Find first Some in a list of Options
+pub fn find_some<'a, T>(options: &'a [&'a Option<T>]) -> Option<&'a T> {
+  options.iter().find_map(|&x| x.as_ref())
+}
