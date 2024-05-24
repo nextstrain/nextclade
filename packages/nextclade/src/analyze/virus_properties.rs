@@ -39,6 +39,7 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
   pub meta: DatasetMeta,
 
+  #[serde(default, skip_serializing_if = "DatasetFiles::is_default")]
   pub files: DatasetFiles,
 
   pub default_cds: Option<String>,

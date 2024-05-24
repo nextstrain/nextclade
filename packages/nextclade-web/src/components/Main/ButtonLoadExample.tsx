@@ -45,7 +45,7 @@ export function ButtonLoadExample({ ...rest }) {
     setExampleSequences(datasetCurrent)
   }, [datasetCurrent, setExampleSequences])
 
-  if (isEmpty(datasetCurrent?.files.examples)) {
+  if (isEmpty(datasetCurrent?.files?.examples)) {
     return null
   }
 

@@ -164,10 +164,10 @@ export function useRunAnalysis() {
 /** Resolves all param inputs into strings */
 async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsRawDir> {
   const entries = [
-    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset.files.genomeAnnotation },
-    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset.files.reference },
-    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset.files.treeJson },
-    { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset.files.pathogenJson },
+    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset?.files?.genomeAnnotation },
+    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset?.files?.reference },
+    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset?.files?.treeJson },
+    { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset?.files?.pathogenJson },
   ]
 
   return Object.fromEntries(

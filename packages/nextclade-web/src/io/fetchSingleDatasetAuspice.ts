@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash'
 import { FatalError } from 'next/dist/lib/fatal-error'
-import { attrStrMaybe, AuspiceTree, Dataset, DatasetFiles } from 'src/types'
+import { attrStrMaybe, AuspiceTree, Dataset } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch } from 'src/io/axiosFetch'
 
@@ -23,10 +23,6 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
       qc: [],
     },
     ...pathogen,
-
-    // HACK: there is no files if dataset comes from Auspice JSON, neither they are needed. What to do?
-    files: {} as unknown as DatasetFiles,
-
     auspiceJson,
   }
 

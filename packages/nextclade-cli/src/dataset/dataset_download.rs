@@ -122,14 +122,10 @@ pub fn dataset_zip_load(
     .wrap_err("When reading pathogen JSON from dataset")?
     .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
 
-  let ref_record = read_from_path_or_zip(
-    &run_args.inputs.input_ref,
-    &mut zip,
-    &Some(&virus_properties.files.reference),
-  )?
-  .map_ref_fallible(read_one_fasta_str)
-  .wrap_err("When reading reference sequence from dataset")?
-  .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
+  let ref_record = read_from_path_or_zip(&run_args.inputs.input_ref, &mut zip, &virus_properties.files.reference)?
+    .map_ref_fallible(read_one_fasta_str)
+    .wrap_err("When reading reference sequence from dataset")?
+    .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
   let gene_map = read_from_path_or_zip(
     &run_args.inputs.input_annotation,
@@ -160,8 +156,8 @@ fn verify_dataset_files<'a, T: AsRef<str> + 'a + ?Sized>(
   files_present: impl Iterator<Item = &'a T> + 'a,
 ) {
   let declared: BTreeSet<&str> = [
-    Some(virus_properties.files.reference.as_str()),
-    Some(virus_properties.files.pathogen_json.as_str()),
+    virus_properties.files.reference.as_deref(),
+    virus_properties.files.pathogen_json.as_deref(),
     virus_properties.files.genome_annotation.as_deref(),
     virus_properties.files.tree_json.as_deref(),
     virus_properties.files.examples.as_deref(),
@@ -241,8 +237,17 @@ pub fn dataset_dir_load(
   let virus_properties = VirusProperties::from_path(input_pathogen_json)?;
 
   let input_ref = input_ref
-    .clone()
-    .unwrap_or_else(|| dataset_dir.join(&virus_properties.files.reference));
+    .as_ref()
+    .cloned()
+    .or_else(|| {
+      virus_properties
+        .files
+        .reference
+        .as_ref()
+        .map(|reference| dataset_dir.join(reference))
+    })
+    .expect("Reference sequence is required but it is neither declared in the dataset's pathogen.json `.files` section, nor provided as a separate file");
+
   let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
 
   let gene_map = input_annotation
@@ -389,14 +394,9 @@ pub fn dataset_str_download_and_load(
   .wrap_err("When reading pathogen JSON from dataset")?
   .ok_or_else(|| eyre!("Required file not found in dataset: 'pathogen.json'. Please report it to dataset authors."))?;
 
-  let ref_record = read_from_path_or_url(
-    &http,
-    &dataset,
-    &run_args.inputs.input_ref,
-    &Some(dataset.files.reference.clone()),
-  )?
-  .map_ref_fallible(read_one_fasta_str)?
-  .wrap_err("When reading reference sequence from dataset")?;
+  let ref_record = read_from_path_or_url(&http, &dataset, &run_args.inputs.input_ref, &dataset.files.reference)?
+    .map_ref_fallible(read_one_fasta_str)?
+    .wrap_err("When reading reference sequence from dataset")?;
 
   let gene_map = read_from_path_or_url(
     &http,

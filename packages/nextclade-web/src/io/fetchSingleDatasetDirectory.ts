@@ -2,7 +2,7 @@ import axios from 'axios'
 import urljoin from 'url-join'
 import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
-import { attrStrMaybe, AuspiceTree, Dataset, DatasetFiles, VirusProperties } from 'src/types'
+import { attrStrMaybe, AuspiceTree, Dataset, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead, axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -15,6 +15,8 @@ export async function fetchSingleDatasetDirectory(
 
   const pathogen = await fetchPathogenJson(datasetRootUrl)
 
+  const files = mapValues(pathogen.files, (file) => (file ? urljoin(datasetRootUrl, file) : file))
+
   const currentDataset: Dataset & { auspiceJson?: AuspiceTree } = {
     path: datasetRootUrl,
     capabilities: {
@@ -22,7 +24,7 @@ export async function fetchSingleDatasetDirectory(
       qc: [],
     },
     ...pathogen,
-    files: mapValues(pathogen.files, (file) => (file ? urljoin(datasetRootUrl, file) : file)) as DatasetFiles,
+    files,
   }
 
   const datasets = [currentDataset]
@@ -32,7 +34,7 @@ export async function fetchSingleDatasetDirectory(
   const defaultDatasetNameFriendly = attrStrMaybe(currentDataset.attributes, 'name') ?? currentDatasetName
 
   await concurrent.forEach(
-    async ([filename, fileUrl]) => {
+    async ([filename, fileUrl]: [string, string]) => {
       try {
         await axiosHead(fileUrl)
       } catch (error_: unknown) {
@@ -46,7 +48,7 @@ export async function fetchSingleDatasetDirectory(
         })
       }
     },
-    Object.entries(currentDataset.files).filter(([filename, _]) => !['sequences.fasta'].includes(filename)),
+    Object.entries(files).filter(([_, key]) => !['examples', 'readme'].includes(key)),
   )
 
   return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
