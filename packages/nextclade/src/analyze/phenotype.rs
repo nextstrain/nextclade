@@ -16,7 +16,7 @@ pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[A
         .iter()
         .map(|AaSub { pos, qry_aa: qry, .. }| phenotype_data.get_coeff(*pos, *qry))
         .sum();
-      phenotype_data.weight * (-phenotype_for_antibody).exp()
+      *phenotype_data.weight * (-phenotype_for_antibody).exp()
     })
     .sum();
 

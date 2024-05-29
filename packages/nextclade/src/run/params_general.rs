@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[allow(clippy::struct_excessive_bools)]
 #[optfield(pub NextcladeGeneralParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
-#[derive(Parser, Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeGeneralParams {
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.

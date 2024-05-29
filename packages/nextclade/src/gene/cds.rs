@@ -14,7 +14,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Cds {
@@ -199,7 +198,7 @@ impl Cds {
 ///   - the part from segment start to landmark end, before the wrap around
 ///   - (optionally) the middle parts spanning the entire sequence
 ///   - the last part from landmark start to segment end
-fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment>, Report> {
+pub fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSegment>, Report> {
   let mut linear_segments = vec![];
   for segment in segments {
     if let Some(landmark) = &segment.landmark {

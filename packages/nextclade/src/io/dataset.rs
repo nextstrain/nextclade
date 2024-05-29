@@ -66,6 +66,7 @@ pub struct Dataset {
   #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
   pub meta: DatasetMeta,
 
+  #[serde(default, skip_serializing_if = "DatasetFiles::is_default")]
   pub files: DatasetFiles,
 
   #[serde(default, skip_serializing_if = "DatasetCapabilities::is_default")]
@@ -328,12 +329,14 @@ impl DatasetMeta {
   }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetFiles {
-  pub reference: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub reference: Option<String>,
 
-  pub pathogen_json: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub pathogen_json: Option<String>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub genome_annotation: Option<String>,
@@ -355,6 +358,13 @@ pub struct DatasetFiles {
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl DatasetFiles {
+  #[inline]
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

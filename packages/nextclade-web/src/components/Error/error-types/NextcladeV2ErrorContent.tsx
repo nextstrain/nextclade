@@ -3,8 +3,8 @@ import React, { useMemo } from 'react'
 import { ErrorContainer, ErrorMessage } from 'src/components/Error/ErrorStyles'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { PROJECT_NAME, RELEASE_OLD_URL } from 'src/constants'
+import { NextcladeV2Error } from 'src/io/fetchSingleDatasetDirectory'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { NextcladeV2Error } from 'src/io/fetchSingleDatasetFromUrl'
 import urljoin from 'url-join'
 
 export interface Props {

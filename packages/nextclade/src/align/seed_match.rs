@@ -481,15 +481,15 @@ pub fn get_seed_matches2(
   // write_matches_to_file(&seed_matches, "chained_matches.csv");
 
   let sum_of_seed_length: usize = seed_matches.iter().map(|sm| sm.length).sum();
-  if (sum_of_seed_length as f64 / qry_seq.len() as f64) < params.min_seed_cover {
+  if (sum_of_seed_length as f64 / qry_seq.len() as f64) < *params.min_seed_cover {
     let query_knowns = qry_seq.iter().filter(|n| n.is_acgt()).count();
-    if (sum_of_seed_length as f64 / query_knowns as f64) < params.min_seed_cover {
+    if (sum_of_seed_length as f64 / query_knowns as f64) < *params.min_seed_cover {
       return make_error!(
         "Unable to align: seed alignment covers {:.2}% of the query sequence, which is less than expected {:.2}% \
         (configurable using 'min seed cover' CLI flag or dataset property). This is likely due to low quality of the \
         provided sequence, or due to using incorrect reference sequence.",
         100.0 * (sum_of_seed_length as f64) / (query_knowns as f64),
-        100.0 * params.min_seed_cover
+        100.0 * *params.min_seed_cover
       );
     }
   }

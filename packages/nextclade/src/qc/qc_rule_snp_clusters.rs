@@ -52,7 +52,7 @@ pub fn rule_snp_clusters(
   let clustered_snps = process_snp_clusters(snp_clusters);
   let total_snps = clustered_snps.iter().map(|cluster| cluster.number_of_snps).sum();
 
-  let score = clamp_min(total_clusters as f64 * config.score_weight, 0.0);
+  let score = clamp_min(total_clusters as f64 * *config.score_weight, 0.0);
   let status = QcStatus::from_score(score);
 
   Some(QcResultSnpClusters {

@@ -1,17 +1,16 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { Button, Col, Row } from 'reactstrap'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { NextcladeV2Error } from 'src/io/fetchSingleDatasetFromUrl'
 import styled from 'styled-components'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { FaClipboardCheck, FaClipboardList } from 'react-icons/fa'
-
 import { ErrorGeneric } from 'src/components/Error/error-types/ErrorGeneric'
 import { ErrorNetworkConnectionFailure } from 'src/components/Error/error-types/ErrorNetworkConnectionFailure'
 import { ErrorNetworkRequestFailure } from 'src/components/Error/error-types/ErrorNetworkRequestFailure'
 import { NextcladeV2ErrorContent } from 'src/components/Error/error-types/NextcladeV2ErrorContent'
 import { ErrorContentExplanation, getErrorReportText } from 'src/components/Error/ErrorContentExplanation'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import { NextcladeV2Error } from 'src/io/fetchSingleDatasetDirectory'
 import { HttpRequestError } from 'src/io/axiosFetch'
 import { ErrorMessageMonospace } from './ErrorStyles'
 
