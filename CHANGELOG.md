@@ -1,3 +1,28 @@
+## Nextclade 3.6.0
+
+
+#### Make reference tree node attribute `clade_membership` optional
+
+Previously Nextclade required clade information to be always present in the input reference tree in the form of the `.node_attrs.clade_membership` field on each tree node. However, for certain datasets we might not have or need clade information. Making such datasets required workarounds, such as adding an empty string to the `clade_membership` field.
+
+In this version we make `clade_membership` field optional. This allows to make datasets without clades. This is useful when working with organisms for which clades don't make sense or for which the nomenclature is not sufficiently established. This is also useful for dataset authors, who can now bootstrap simple datasets without clades first and then add clades and other features gradually later.
+
+With this change, if `clade_membership` is not present in the dataset's reference tree nodes, then
+
+ - Clade assignment will not run
+
+ - Any clade-related functionality will not work
+
+ - Output JSON/NDJSON result entries will not contain clade field
+
+ - Clade column in output CSV/TSV will be empty
+
+ - Clade column in Nextclade Web will be empty
+
+
+This change does not affect any other parts of the application. Notably, clade-like attributes (from `.meta.extensions.nextclade.clade_node_attrs`), if present, are still assigned and being written to the output as before.
+
+
 ## Nextclade 3.5.0
 
 ### Algorithm
