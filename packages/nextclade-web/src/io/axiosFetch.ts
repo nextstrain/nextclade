@@ -83,7 +83,7 @@ export async function axiosFetch<TData = unknown>(url_: string | undefined, opti
       const accept = mime.acceptHeader ?? ''
       const contentType = mime.contentTypeHeader ?? ''
       throw new Error(
-        `Unable to fetch: request to URL "${url}" resulted in incompatible MIME type: Content-Type was "${accept}", while Accept was "${contentType}"`,
+        `Unable to fetch: request to URL "${url}" resulted in incompatible MIME type: Content-Type was "${contentType}", while Accept was "${accept}"`,
       )
     }
   }
