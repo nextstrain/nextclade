@@ -570,18 +570,20 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
     if visited {
       // We are done with child nodes and are going backwards.
       // Finalize this node: move child nodes from the map into new node's `children` array.
-      let child_keys = graph.iter_child_keys_of_by_key(node_key).collect_vec();
-      for child_key in child_keys {
-        let new_child = new_nodes
-          .remove(&child_key)
-          .ok_or_else(|| make_internal_report!("Node '{child_key}' is expected, but not found"))?;
+      let children = graph
+        .iter_child_keys_of_by_key(node_key)
+        .map(|child_key| {
+          new_nodes
+            .remove(&child_key)
+            .ok_or_else(|| make_internal_report!("Node '{child_key}' is expected, but not found"))
+        })
+        .collect::<Result<Vec<AuspiceTreeNode>, Report>>()?;
 
-        let new_node = new_nodes
-          .get_mut(&node_key)
-          .ok_or_else(|| make_internal_report!("Node '{node_key}' is expected, but not found"))?;
+      let new_node = new_nodes
+        .get_mut(&node_key)
+        .ok_or_else(|| make_internal_report!("Node '{node_key}' is expected, but not found"))?;
 
-        new_node.children.push(new_child);
-      }
+      new_node.children = children;
     } else {
       // We are going forward, exploring child nodes
       stack.push((node_key, true));
