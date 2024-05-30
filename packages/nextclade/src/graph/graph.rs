@@ -567,10 +567,20 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
   let root = graph.get_exactly_one_root()?;
   let mut stack = vec![(root.key(), false)];
   while let Some((node_key, visited)) = stack.pop() {
-    if visited {
-      // We are done with child nodes and are going backwards.
-      // Finalize this node: move child nodes from the map into new node's `children` array.
+    if !visited {
+      // Not visited yet: we are going forward. Explore child nodes.
+
+      stack.push((node_key, true));
+
       let children = graph
+        .iter_child_keys_of_by_key(node_key)
+        .map(|child_key| (child_key, false));
+
+      stack.extend(children);
+    } else {
+      // Already visited before: we are done with child nodes and are returning back.
+      // Finalize this node: move child nodes from the map into new node's `children` array.
+      let new_children = graph
         .iter_child_keys_of_by_key(node_key)
         .map(|child_key| {
           new_nodes
@@ -583,14 +593,7 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
         .get_mut(&node_key)
         .ok_or_else(|| make_internal_report!("Node '{node_key}' is expected, but not found"))?;
 
-      new_node.children = children;
-    } else {
-      // We are going forward, exploring child nodes
-      stack.push((node_key, true));
-      let children = graph
-        .iter_child_keys_of_by_key(node_key)
-        .map(|child_key| (child_key, false));
-      stack.extend(children);
+      new_node.children = new_children;
     }
   }
 
