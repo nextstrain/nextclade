@@ -578,14 +578,16 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
 
         let new_node = new_nodes
           .get_mut(&node_key)
-          .ok_or_else(|| make_internal_report!("Node '{child_key}' is expected, but not found"))?;
+          .ok_or_else(|| make_internal_report!("Node '{node_key}' is expected, but not found"))?;
 
         new_node.children.push(new_child);
       }
     } else {
       // We are going forward, exploring child nodes
       stack.push((node_key, true));
-      let child_keys = graph.iter_child_keys_of_by_key(node_key).collect_vec();
+      let child_keys = graph.iter_child_keys_of_by_key(node_key).map(||).collect_vec();
+      stack.extend()
+
       for child_key in child_keys {
         stack.push((child_key, false));
       }
