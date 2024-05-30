@@ -51,7 +51,7 @@ export interface CheckMimeTypesResult {
   contentTypeHeader?: string
 }
 
-export function checkMimeType(req?: RequestConfig, res?: AxiosResponse): CheckMimeTypesResult {
+export function checkMimeTypes(req?: RequestConfig, res?: AxiosResponse): CheckMimeTypesResult {
   const acceptHeader = req?.headers?.Accept
   const contentTypeHeader = res?.headers['content-type']
   if (isString(acceptHeader) && isString(contentTypeHeader)) {
@@ -78,7 +78,7 @@ export async function axiosFetch<TData = unknown>(url_: string | undefined, opti
   }
 
   if (options?.strictAccept) {
-    const mime = checkMimeType(options, res)
+    const mime = checkMimeTypes(options, res)
     if (!mime.isCompatible) {
       const accept = mime.acceptHeader ?? ''
       const contentType = mime.contentTypeHeader ?? ''
