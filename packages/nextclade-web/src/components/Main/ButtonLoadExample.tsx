@@ -1,4 +1,5 @@
 import { Dataset } from '_SchemaRoot'
+import { isEmpty } from 'lodash'
 import React, { useCallback } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
@@ -43,6 +44,10 @@ export function ButtonLoadExample({ ...rest }) {
   const onClick = useCallback(() => {
     setExampleSequences(datasetCurrent)
   }, [datasetCurrent, setExampleSequences])
+
+  if (isEmpty(datasetCurrent?.files?.examples)) {
+    return null
+  }
 
   return (
     <Button {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>

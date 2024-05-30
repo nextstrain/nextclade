@@ -8,14 +8,16 @@ import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValu
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
+import type { Dataset, AuspiceTree } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
-import { createInputFastasFromUrlParam, createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import { loadInputs } from 'src/io/loadInputs'
 import { mdxComponents } from 'src/mdx-components'
 import LoadingPage from 'src/pages/loading'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
+  datasetJsonAtom,
   geneMapInputAtom,
   qrySeqInputsStorageAtom,
   refSeqInputAtom,
@@ -37,7 +39,6 @@ import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientConfig, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
-
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
@@ -116,25 +117,25 @@ export function RecoilStateInitializer() {
       .then(async ({ datasets, currentDataset, minimizerIndexVersion }) => {
         set(datasetsAtom, { datasets })
         const previousDataset = await getPromise(datasetCurrentAtom)
-        const dataset = currentDataset ?? previousDataset
+        const dataset: (Dataset & { auspiceJson?: AuspiceTree }) | undefined = currentDataset ?? previousDataset
         set(datasetCurrentAtom, dataset)
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
+        set(datasetJsonAtom, dataset?.auspiceJson)
         return dataset
       })
       .then(async (dataset) => {
-        const inputFastas = await createInputFastasFromUrlParam(urlQuery, dataset)
+        const { inputFastas, refSeq, geneMap, refTree, virusProperties } = await loadInputs(urlQuery, dataset)
+
+        set(refSeqInputAtom, refSeq)
+        set(geneMapInputAtom, geneMap)
+        set(refTreeInputAtom, refTree)
+        set(virusPropertiesInputAtom, virusProperties)
 
         if (!isEmpty(inputFastas)) {
           set(qrySeqInputsStorageAtom, inputFastas)
-        }
-
-        set(refSeqInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-ref'))
-        set(geneMapInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-annotation'))
-        set(refTreeInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
-        set(virusPropertiesInputAtom, await createInputFromUrlParamMaybe(urlQuery, 'input-pathogen-json'))
-
-        if (!isEmpty(inputFastas) && !isEmpty(dataset)) {
-          run()
+          if (!isEmpty(dataset)) {
+            run()
+          }
         }
 
         return undefined

@@ -556,6 +556,7 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
     version: graph.data.auspice_tree_version.clone(),
     meta: graph.data.meta.clone(),
     tree,
+    root_sequence: None,
     other: graph.data.other.clone(),
   })
 }

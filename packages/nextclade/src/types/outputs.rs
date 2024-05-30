@@ -71,7 +71,8 @@ pub struct NextcladeOutputs {
   pub aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
-  pub clade: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub clade: Option<String>,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
   pub relative_nuc_mutations: Vec<RelativeNucMutations>,

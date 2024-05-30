@@ -1,5 +1,6 @@
 use clap::Parser;
 use optfield::optfield;
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
 // NOTE: The `optfield` attribute creates a struct that have the same fields, but which are wrapped into `Option`,
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 // into self (mutably).
 #[allow(clippy::struct_excessive_bools)]
 #[optfield(pub TreeBuilderParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
-#[derive(Parser, Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Parser, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TreeBuilderParams {
   /// Disable greedy tree builder algorithm
@@ -16,7 +17,7 @@ pub struct TreeBuilderParams {
   pub without_greedy_tree_builder: bool,
 
   #[clap(long)]
-  pub masked_muts_weight: f64,
+  pub masked_muts_weight: OrderedFloat<f64>,
 }
 
 #[allow(clippy::derivable_impls)]
@@ -24,7 +25,7 @@ impl Default for TreeBuilderParams {
   fn default() -> Self {
     Self {
       without_greedy_tree_builder: false,
-      masked_muts_weight: 0.05,
+      masked_muts_weight: OrderedFloat(0.05),
     }
   }
 }

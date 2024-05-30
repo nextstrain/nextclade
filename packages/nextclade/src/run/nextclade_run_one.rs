@@ -61,7 +61,7 @@ struct NextcladeResultWithAa {
 
 #[derive(Default)]
 struct NextcladeResultWithGraph {
-  clade: String,
+  clade: Option<String>,
   private_nuc_mutations: PrivateNucMutations,
   private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
   phenotype_values: Option<Vec<PhenotypeValue>>,
@@ -338,8 +338,10 @@ pub fn nextclade_run_one(
         .iter()
         .filter_map(|phenotype_data| {
           let PhenotypeData { name, cds, ignore, .. } = phenotype_data;
-          if ignore.clades.contains(&clade) {
-            return None;
+          if let Some(clade) = &clade {
+            if ignore.clades.contains(clade) {
+              return None;
+            }
           }
           let phenotype = calculate_phenotype(phenotype_data, &aa_substitutions);
           Some(PhenotypeValue {

@@ -29,7 +29,7 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
   const { datasets: allDatasets } = useRecoilValue(datasetsAtom)
 
   const filtered = useMemo(() => {
-    const datasets = allDatasets.filter((dataset) => !isNil(dataset.files.examples))
+    const datasets = allDatasets.filter((dataset) => !isNil(dataset?.files?.examples))
     if (searchTerm.trim().length === 0) {
       return datasets
     }

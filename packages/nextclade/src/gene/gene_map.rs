@@ -1,13 +1,16 @@
 use crate::features::feature_group::FeatureGroup;
 use crate::features::feature_tree::FeatureTree;
 use crate::features::sequence_region::SequenceRegion;
+use crate::gene::auspice_annotations::convert_auspice_annotations_to_genes;
 use crate::gene::cds::Cds;
 use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::{find_cdses, Gene};
 use crate::io::file::open_file_or_stdin;
 use crate::io::yaml::yaml_parse;
+use crate::tree::tree::AuspiceGenomeAnnotations;
 use crate::utils::collections::take_exactly_one;
 use crate::utils::error::report_to_string;
+use crate::utils::string::{format_list, Indent};
 use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
@@ -15,8 +18,9 @@ use log::warn;
 use num::Integer;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use std::path::Path;
+
+type GeneMapParserFn = Box<dyn Fn(&str) -> Result<GeneMap, Report>>;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[must_use]
@@ -37,6 +41,11 @@ impl GeneMap {
     convert_feature_tree_to_gene_map(feature_tree)
   }
 
+  pub fn from_auspice_annotations(anns: &AuspiceGenomeAnnotations) -> Result<Self, Report> {
+    let genes = convert_auspice_annotations_to_genes(anns)?;
+    Ok(GeneMap::from_genes(genes))
+  }
+
   pub fn from_path<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
     let filename = filename.as_ref();
     let mut file = open_file_or_stdin(&Some(filename))?;
@@ -45,25 +54,44 @@ impl GeneMap {
     Self::from_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
   }
 
-  // TODO: rename this function, because it handles more than GFF3
   pub fn from_str(content: impl AsRef<str>) -> Result<Self, Report> {
     let content = content.as_ref();
-    let gene_map_yaml: Result<GeneMap, Report> = Self::from_yaml_str(content);
-    let gene_map_gff: Result<GeneMap, Report> = Self::from_gff3_str(content);
 
-    let gene_map = match (gene_map_yaml, gene_map_gff) {
-      (Err(json_err), Err(gff_err)) => {
-        return make_error!("Attempted to parse the genome annotation as JSON and as GFF, but both attempts failed:\nJSON error: {}\n\nGFF3 error: {}\n",
-          report_to_string(&json_err),
-          report_to_string(&gff_err),
-        )
-      },
-      (Ok(gene_map), _) => gene_map,
-      (_, Ok(gene_map)) => gene_map,
-    };
+    let parsers: Vec<(&str, GeneMapParserFn)> = vec![
+      (
+        "Genome annotation in GFF3 format",
+        Box::new(|content| Self::from_gff3_str(content)),
+      ),
+      (
+        "Genome annotation in external JSON format",
+        Box::new(|content| Self::from_yaml_str(content)),
+      ),
+      (
+        "Genome annotation extracted from Auspice JSON",
+        Box::new(|content| Self::from_tree_json_str(content)),
+      ),
+    ];
 
-    gene_map.validate()?;
-    Ok(gene_map)
+    let mut errors = Vec::new();
+    for (name, parser) in &parsers {
+      match parser(content) {
+        Ok(map) => {
+          map.validate()?;
+          return Ok(map);
+        }
+        Err(err) => {
+          errors.push(format!(
+            "When attempted to parse as {name}: {}\n",
+            report_to_string(&err)
+          ));
+        }
+      }
+    }
+
+    make_error!(
+      "Attempted to parse the genome annotation but failed. Tried multiple formats:\n\n{}\n",
+      format_list(Indent::default(), errors.into_iter())
+    )
   }
 
   fn from_yaml_str(content: impl AsRef<str>) -> Result<Self, Report> {
@@ -72,6 +100,11 @@ impl GeneMap {
 
   fn from_gff3_str(content: impl AsRef<str>) -> Result<Self, Report> {
     Self::from_feature_tree(&FeatureTree::from_gff3_str(content.as_ref())?)
+  }
+
+  fn from_tree_json_str(content: impl AsRef<str>) -> Result<Self, Report> {
+    let anns = AuspiceGenomeAnnotations::from_tree_json_str(content)?;
+    Self::from_auspice_annotations(&anns)
   }
 
   #[must_use]

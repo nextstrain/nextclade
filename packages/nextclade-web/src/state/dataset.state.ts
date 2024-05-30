@@ -4,7 +4,6 @@ import { autodetectResultsAtom } from 'src/state/autodetect.state'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
-import { areDatasetsEqual } from 'src/types'
 
 export interface Datasets {
   datasets: Dataset[]
@@ -29,11 +28,11 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
   get({ get }) {
     return get(datasetCurrentStorageAtom)
   },
-  set({ get, set, reset }, dataset: Dataset | undefined | DefaultValue) {
+  set({ set, reset }, dataset: Dataset | undefined | DefaultValue) {
     if (isDefaultValue(dataset) || isNil(dataset)) {
       reset(autodetectResultsAtom)
       reset(datasetCurrentStorageAtom)
-    } else if (!areDatasetsEqual(get(datasetCurrentStorageAtom), dataset)) {
+    } else {
       set(datasetCurrentStorageAtom, dataset)
     }
   },

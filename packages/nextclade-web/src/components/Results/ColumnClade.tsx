@@ -15,7 +15,7 @@ export function ColumnClade({ analysisResult }: ColumnCladeProps) {
 
   const { clade, seqName, index } = analysisResult
   const id = getSafeId('col-clade', { index, seqName })
-  const cladeText = clade ?? t('Pending...')
+  const cladeText = clade ?? ''
 
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])

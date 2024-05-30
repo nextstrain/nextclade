@@ -1,16 +1,39 @@
 import type { ParsedUrlQuery } from 'querystring'
+import { ErrorFatal } from 'src/helpers/ErrorFatal'
+import { fetchSingleDatasetAuspice } from 'src/io/fetchSingleDatasetAuspice'
+import { fetchSingleDatasetDirectory } from 'src/io/fetchSingleDatasetDirectory'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
-import { fetchSingleDatasetFromUrl } from 'src/io/fetchSingleDatasetFromUrl'
 import { isGithubUrlOrShortcut, parseGitHubRepoUrlOrShortcut } from 'src/io/fetchSingleDatasetFromGithub'
 
 export async function fetchSingleDataset(urlQuery: ParsedUrlQuery) {
   const datasetUrl = getQueryParamMaybe(urlQuery, 'dataset-url')
-  if (!datasetUrl) {
+  const datasetUrlJson = getQueryParamMaybe(urlQuery, 'dataset-json-url')
+
+  if (datasetUrl && datasetUrlJson) {
+    throw new ErrorFatal(
+      "URL parameters 'dataset-url' and 'dataset-url-json' are mutually exclusive, but both provided. Please remove one or the other.",
+    )
+  }
+
+  let finalUrl
+  let options
+  let fetchFunction
+
+  if (datasetUrl) {
+    finalUrl = datasetUrl
+    fetchFunction = fetchSingleDatasetDirectory
+  } else if (datasetUrlJson) {
+    finalUrl = datasetUrlJson
+    fetchFunction = fetchSingleDatasetAuspice
+  } else {
     return undefined
   }
-  if (isGithubUrlOrShortcut(datasetUrl)) {
-    const { directUrl } = await parseGitHubRepoUrlOrShortcut(datasetUrl)
-    return fetchSingleDatasetFromUrl(directUrl, { datasetOriginalUrl: datasetUrl })
+
+  if (isGithubUrlOrShortcut(finalUrl)) {
+    const { directUrl } = await parseGitHubRepoUrlOrShortcut(finalUrl)
+    options = { datasetOriginalUrl: finalUrl }
+    finalUrl = directUrl
   }
-  return fetchSingleDatasetFromUrl(datasetUrl)
+
+  return fetchFunction(finalUrl, options)
 }

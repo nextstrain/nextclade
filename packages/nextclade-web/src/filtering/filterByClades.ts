@@ -11,6 +11,6 @@ export function filterByClades(cladesFilter: string) {
     }
 
     const { clade } = result.result.analysisResult
-    return cladesFilters.some((filter) => clade.toLowerCase().startsWith(filter.toLowerCase()))
+    return cladesFilters.some((filter) => clade?.toLowerCase().startsWith(filter.toLowerCase()))
   }
 }

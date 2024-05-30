@@ -1,11 +1,11 @@
 import { isEmpty } from 'lodash'
 import { useCallback, useEffect } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
+import type { AlgorithmInput, AuspiceTree } from 'src/types'
 import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { analysisResultsAtom, analysisStatusGlobalAtom, treeAtom } from 'src/state/results.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
-import { AlgorithmInput } from 'src/types'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
 
@@ -101,6 +101,11 @@ export const hasRequiredInputsAtom = selector({
   },
 })
 
+export const datasetJsonAtom = atom<AuspiceTree | undefined>({
+  key: 'datasetJson',
+  default: undefined,
+})
+
 /** Counts how many custom inputs are set */
 export const inputCustomizationCounterAtom = selector<number>({
   key: 'inputCustomizationCounterAtom',
@@ -130,5 +135,6 @@ export const datasetFilesResetAtom = selector<undefined>({
     reset(geneMapInputAtom)
     reset(refTreeInputAtom)
     reset(virusPropertiesInputAtom)
+    reset(datasetJsonAtom)
   },
 })

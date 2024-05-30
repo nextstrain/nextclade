@@ -1,3 +1,4 @@
+pub mod auspice_annotations;
 pub mod cds;
 pub mod cds_segment;
 pub mod frame;

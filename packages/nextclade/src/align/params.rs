@@ -1,12 +1,14 @@
+use crate::utils::any::AnyType;
 use crate::{make_error, o};
 use clap::{Parser, ValueEnum};
 use eyre::Report;
 use itertools::Itertools;
 use optfield::optfield;
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(ValueEnum, Copy, Clone, Debug, Deserialize, Serialize, schemars::JsonSchema)]
+#[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum GapAlignmentSide {
   Left,
@@ -25,7 +27,7 @@ impl Default for GapAlignmentSide {
 
 #[allow(clippy::struct_excessive_bools)]
 #[optfield(pub AlignPairwiseParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
-#[derive(Parser, Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
   /// Minimum length of nucleotide sequence to consider for alignment.
@@ -116,7 +118,7 @@ pub struct AlignPairwiseParams {
   /// Fraction of the query sequence that has to be covered by extended seeds
   /// to proceed with the banded alignment.
   #[clap(long)]
-  pub min_seed_cover: f64,
+  pub min_seed_cover: OrderedFloat<f64>,
 
   /// Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
   #[clap(long)]
@@ -125,27 +127,27 @@ pub struct AlignPairwiseParams {
   // The following args are deprecated and are kept for backwards compatibility (to emit errors if they are set)
   /// REMOVED
   #[clap(long, hide_long_help = true, hide_short_help = true)]
-  pub max_indel: Option<f64>,
+  pub max_indel: Option<AnyType>,
 
   /// REMOVED
   #[clap(long, hide_long_help = true, hide_short_help = true)]
-  pub seed_length: Option<f64>,
+  pub seed_length: Option<AnyType>,
 
   /// REMOVED
   #[clap(long, hide_long_help = true, hide_short_help = true)]
-  pub mismatches_allowed: Option<f64>,
+  pub mismatches_allowed: Option<AnyType>,
 
   /// REMOVED
   #[clap(long, hide_long_help = true, hide_short_help = true)]
-  pub min_seeds: Option<f64>,
+  pub min_seeds: Option<AnyType>,
 
   /// REMOVED
   #[clap(long, hide_long_help = true, hide_short_help = true)]
-  pub min_match_rate: Option<f64>,
+  pub min_match_rate: Option<AnyType>,
 
   /// REMOVED
   #[clap(long, hide_long_help = true, hide_short_help = true)]
-  pub seed_spacing: Option<f64>,
+  pub seed_spacing: Option<AnyType>,
 }
 
 impl Default for AlignPairwiseParams {
@@ -166,7 +168,7 @@ impl Default for AlignPairwiseParams {
       gap_alignment_side: GapAlignmentSide::default(),
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
-      min_seed_cover: 0.33,
+      min_seed_cover: OrderedFloat(0.33),
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
       kmer_distance: 50,     // Distance between successive k-mers
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low

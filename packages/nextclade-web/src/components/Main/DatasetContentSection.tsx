@@ -21,12 +21,12 @@ export function DatasetContentSection() {
   return (
     <ContentSection>
       <Nav tabs>
-        {currentDataset?.files.readme && (
+        {currentDataset?.files?.readme && (
           <TabLabel tabId={0} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {'Summary'}
           </TabLabel>
         )}
-        {currentDataset?.files.changelog && (
+        {currentDataset?.files?.changelog && (
           <TabLabel tabId={1} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {'History'}
           </TabLabel>
@@ -40,10 +40,10 @@ export function DatasetContentSection() {
       </Nav>
       <TabContent activeTab={activeTabId}>
         <TabPane tabId={0}>
-          {currentDataset?.files.readme && <MarkdownRemote url={currentDataset?.files.readme} />}
+          {currentDataset?.files?.readme && <MarkdownRemote url={currentDataset?.files.readme} />}
         </TabPane>
         <TabPane tabId={1}>
-          {currentDataset?.files.changelog && <MarkdownRemote url={currentDataset?.files.changelog} />}
+          {currentDataset?.files?.changelog && <MarkdownRemote url={currentDataset?.files.changelog} />}
         </TabPane>
         <TabPane tabId={2}>{currentDataset && <DatasetContentTabAdvanced />}</TabPane>
       </TabContent>

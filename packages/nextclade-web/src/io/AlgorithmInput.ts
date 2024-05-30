@@ -1,3 +1,6 @@
+import { isEmpty } from 'lodash'
+import { FatalError } from 'next/dist/lib/fatal-error'
+import serializeJavascript from 'serialize-javascript'
 import { uniqueId } from 'src/helpers/uniqueId'
 import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/types'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
@@ -115,6 +118,10 @@ export class AlgorithmInputDefault implements AlgorithmInput {
   }
 
   public async getContent(): Promise<string> {
-    return axiosFetchRaw(this.dataset.files.examples)
+    if (isEmpty(this.dataset.files?.examples)) {
+      const url = serializeJavascript(this.dataset.files?.examples)
+      throw new FatalError(`Attempting to fetch dataset example sequences from an invalid URL: '${url}'`)
+    }
+    return axiosFetchRaw(this.dataset.files?.examples)
   }
 }

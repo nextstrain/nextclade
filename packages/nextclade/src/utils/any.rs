@@ -1,17 +1,21 @@
 use crate::io::json::{json_stringify, JsonPretty};
+use crate::make_error;
 use eyre::{eyre, Report};
+use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum AnyType {
   String(String),
   Int(isize),
-  Float(f64),
+  Float(OrderedFloat<f64>),
   Bool(bool),
   Array(Vec<AnyType>),
   Object(BTreeMap<String, AnyType>),
@@ -51,7 +55,7 @@ impl AnyType {
 
   pub const fn as_float_maybe(&self) -> Option<f64> {
     match &self {
-      AnyType::Float(x) => Some(*x),
+      AnyType::Float(x) => Some(x.0),
       _ => None,
     }
   }
@@ -77,5 +81,43 @@ impl AnyType {
 
   pub fn as_bool(&self) -> Result<bool, Report> {
     self.as_bool_maybe().ok_or(eyre!("Cannot parse value as bool"))
+  }
+}
+
+impl FromStr for AnyType {
+  type Err = Report;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    let value: Value = match serde_json::from_str(s) {
+      Ok(v) => v,
+      Err(err) => return make_error!("Failed to parse JSON: {err}"),
+    };
+
+    match value {
+      Value::String(s) => Ok(AnyType::String(s)),
+      Value::Number(n) => {
+        if let Some(int_val) = n.as_i64() {
+          Ok(AnyType::Int(int_val as isize))
+        } else {
+          Ok(AnyType::Float(OrderedFloat(n.as_f64().unwrap())))
+        }
+      }
+      Value::Bool(b) => Ok(AnyType::Bool(b)),
+      Value::Array(arr) => {
+        let mut parsed_array = Vec::new();
+        for val in arr {
+          parsed_array.push(AnyType::from_str(&val.to_string())?);
+        }
+        Ok(AnyType::Array(parsed_array))
+      }
+      Value::Object(obj) => {
+        let mut parsed_object = BTreeMap::new();
+        for (key, val) in obj {
+          parsed_object.insert(key, AnyType::from_str(&val.to_string())?);
+        }
+        Ok(AnyType::Object(parsed_object))
+      }
+      Value::Null => Ok(AnyType::Null),
+    }
   }
 }

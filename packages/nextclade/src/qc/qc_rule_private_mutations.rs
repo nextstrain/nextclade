@@ -46,13 +46,13 @@ pub fn rule_private_mutations(
   let total_deletion_ranges = deletion_ranges.len();
 
   let weighted_total = 0.0
-    + config.weight_reversion_substitutions * num_reversion_substitutions as f64
-    + config.weight_labeled_substitutions * num_labeled_substitutions as f64
-    + config.weight_unlabeled_substitutions * num_unlabeled_substitutions as f64
+    + *config.weight_reversion_substitutions * num_reversion_substitutions as f64
+    + *config.weight_labeled_substitutions * num_labeled_substitutions as f64
+    + *config.weight_unlabeled_substitutions * num_unlabeled_substitutions as f64
     + total_deletion_ranges as f64;
 
   // the score hits 100 if the excess mutations equals the cutoff value
-  let score = (clamp_min(weighted_total - config.typical, 0.0) * 100.0) / config.cutoff;
+  let score = (clamp_min(weighted_total - *config.typical, 0.0) * 100.0) / *config.cutoff;
   let status = QcStatus::from_score(score);
 
   Some(QcResultPrivateMutations {
@@ -63,8 +63,8 @@ pub fn rule_private_mutations(
     num_unlabeled_substitutions,
     total_deletion_ranges,
     weighted_total,
-    excess: weighted_total - config.typical,
-    cutoff: config.cutoff,
+    excess: weighted_total - *config.typical,
+    cutoff: *config.cutoff,
   })
 }
 
