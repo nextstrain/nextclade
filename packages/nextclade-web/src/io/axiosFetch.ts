@@ -57,8 +57,8 @@ export function checkMimeType(req?: RequestConfig, res?: AxiosResponse): CheckMi
   if (isString(acceptHeader) && isString(contentTypeHeader)) {
     const acceptTypes = parseAcceptHeader(acceptHeader)
     const contentType = parseContentTypeHeader(contentTypeHeader)
-    const compatible = acceptTypes.includes(contentType.mime)
-    return { isCompatible: compatible, acceptTypes, contentType, acceptHeader, contentTypeHeader }
+    const isCompatible = acceptTypes.includes(contentType.mime)
+    return { isCompatible, acceptTypes, contentType, acceptHeader, contentTypeHeader }
   }
   return { isCompatible: false, acceptHeader, contentTypeHeader }
 }
