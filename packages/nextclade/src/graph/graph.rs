@@ -585,12 +585,10 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
     } else {
       // We are going forward, exploring child nodes
       stack.push((node_key, true));
-      let child_keys = graph.iter_child_keys_of_by_key(node_key).map(||).collect_vec();
-      stack.extend()
-
-      for child_key in child_keys {
-        stack.push((child_key, false));
-      }
+      let children = graph
+        .iter_child_keys_of_by_key(node_key)
+        .map(|child_key| (child_key, false));
+      stack.extend(children);
     }
   }
 
