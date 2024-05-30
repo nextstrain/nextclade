@@ -11,7 +11,9 @@
 
 @import './components/Results';
 
-html, body, #__next {
+html,
+body,
+#__next {
   overflow: hidden;
   height: 100%;
   width: 100%;

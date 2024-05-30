@@ -79,7 +79,6 @@ export async function axiosFetch<TData = unknown>(url_: string | undefined, opti
 
   if (options?.strictAccept) {
     const mime = checkMimeType(options, res)
-    console.log(JSON.stringify(mime))
     if (!mime.isCompatible) {
       const accept = mime.acceptHeader ?? ''
       const contentType = mime.contentTypeHeader ?? ''
