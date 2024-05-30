@@ -7,7 +7,7 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const datasetJsonUrl = removeTrailingSlash(datasetJsonUrl_)
 
   const auspiceJson = await axiosFetch<AuspiceTree>(datasetJsonUrl, {
-    headers: { Accept: 'application/json, text/plain, */*' },
+    headers: { Accept: 'application/vnd.nextstrain.dataset.main+json;q=1, application/json;q=0.9, text/plain;q=0.8, */*;q=0.1' },
   })
 
   if (isEmpty(auspiceJson.root_sequence)) {
