@@ -1,6 +1,7 @@
+import { isEmpty } from 'lodash'
 import { attrStrMaybe, AuspiceTree, Dataset } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
-import { axiosFetch } from 'src/io/axiosFetch'
+import { axiosFetch, axiosFetchOrUndefined } from 'src/io/axiosFetch'
 
 export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const datasetJsonUrl = removeTrailingSlash(datasetJsonUrl_)
@@ -8,6 +9,16 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const auspiceJson = await axiosFetch<AuspiceTree>(datasetJsonUrl, {
     headers: { Accept: 'application/json, text/plain, */*' },
   })
+
+  if (isEmpty(auspiceJson.root_sequence)) {
+    const sidecar = await axiosFetchOrUndefined<Record<string, string>>(datasetJsonUrl, {
+      headers: { Accept: 'application/vnd.nextstrain.dataset.root-sequence+json' },
+    })
+    if (!isEmpty(sidecar)) {
+      auspiceJson.root_sequence = sidecar
+    }
+  }
+
   const pathogen = auspiceJson.meta.extensions?.nextclade?.pathogen
 
   const name =
