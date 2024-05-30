@@ -13,6 +13,7 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   if (isEmpty(auspiceJson.root_sequence)) {
     const sidecar = await axiosFetchOrUndefined<Record<string, string>>(datasetJsonUrl, {
       headers: { Accept: 'application/vnd.nextstrain.dataset.root-sequence+json' },
+      strictAccept: true,
     })
     if (!isEmpty(sidecar)) {
       auspiceJson.root_sequence = sidecar
