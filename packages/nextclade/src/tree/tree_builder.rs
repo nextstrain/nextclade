@@ -38,7 +38,7 @@ pub fn graph_attach_new_nodes_in_place(
     })?;
   }
 
-  graph.ladderize_tree().wrap_err("When ladderizing the resulting tree")?;
+  graph.ladderize().wrap_err("When ladderizing the resulting tree")?;
 
   add_auspice_metadata_in_place(&mut graph.data.meta);
 
