@@ -125,14 +125,17 @@ export async function parseGitHubRepoUrlOrShortcut(url_: string): Promise<GitHub
   if (isGithubShortcut(url)) {
     return parseGitHubRepoShortcut(url)
   }
-  if (isGithubUrl(url)) {
+  if (isGithubRepoUrl(url)) {
     return parseGithubRepoUrl(url)
   }
   throw new ErrorDatasetGithubUrlPatternInvalid(url)
 }
 
-export function isGithubUrl(url: string): boolean {
-  return !isNil(/^https?:\/\/github.com\/.*/.exec(url))
+export function isGithubRepoUrl(url: string): boolean {
+  const excludedPaths = ['assets', 'gist', 'gists', 'releases', 'settings', 'user-attachments']
+  const excludedPathsPattern = excludedPaths.join('|')
+  const githubUrlPattern = new RegExp(`^https?:\\/\\/github\\.com\\/(?!${excludedPathsPattern}\\/).*`) // eslint-disable-line security/detect-non-literal-regexp
+  return githubUrlPattern.test(url)
 }
 
 export function isGithubShortcut(url: string): boolean {
@@ -140,7 +143,7 @@ export function isGithubShortcut(url: string): boolean {
 }
 
 export function isGithubUrlOrShortcut(url: string): boolean {
-  return isGithubUrl(url) || isGithubShortcut(url)
+  return isGithubRepoUrl(url) || isGithubShortcut(url)
 }
 
 const GITHUB_URL_ERROR_HINTS = ` Check the correctness of the URL. If it's a full GitHub URL, please try to navigate to it - you should see a GitHub repo branch with your files listed. If it's a GitHub URL shortcut, please double-check the syntax. See documentation for the correct syntax and examples. If you don't intend to use custom datasets, remove the parameter from the address or restart the application.`

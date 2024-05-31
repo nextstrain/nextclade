@@ -60,7 +60,7 @@ pub struct GraphTempData {
   pub other: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct AuspiceGraphMeta {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub auspice_tree_version: Option<String>,
@@ -141,7 +141,7 @@ impl TreeBranchAttrs {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrs {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub div: Option<f64>,
@@ -205,6 +205,7 @@ pub struct TreeNodeAttrs {
 /// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
 #[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
+  pub child_visit: usize,
   pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub private_mutations: BranchMutations,
@@ -212,7 +213,7 @@ pub struct TreeNodeTempData {
   pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceGraphNodePayload {
   pub name: String,
 
@@ -254,6 +255,13 @@ impl From<&AuspiceTreeNode> for AuspiceGraphNodePayload {
 }
 
 impl AuspiceGraphNodePayload {
+  pub fn new(name: impl AsRef<str>) -> Self {
+    Self {
+      name: name.as_ref().to_owned(),
+      ..Self::default()
+    }
+  }
+
   /// Extracts clade of the node
   pub fn clade(&self) -> Option<String> {
     self
@@ -493,7 +501,7 @@ impl AuspiceGenomeAnnotations {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub title: Option<String>,

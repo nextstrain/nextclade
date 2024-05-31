@@ -4,7 +4,7 @@ import { findSimilarStrings } from 'src/helpers/string'
 import { axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import {
   isGithubShortcut,
-  isGithubUrl,
+  isGithubRepoUrl,
   parseGitHubRepoShortcut,
   parseGithubRepoUrl,
 } from 'src/io/fetchSingleDatasetFromGithub'
@@ -94,7 +94,7 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
       return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
     }
 
-    if (isGithubUrl(datasetServerUrl)) {
+    if (isGithubRepoUrl(datasetServerUrl)) {
       const { owner, repo, branch, path } = await parseGithubRepoUrl(datasetServerUrl)
       return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
     }
