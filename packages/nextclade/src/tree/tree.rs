@@ -111,7 +111,7 @@ impl TreeNodeAttrF64 {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrsLabels {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub aa: Option<String>,
@@ -123,7 +123,7 @@ pub struct TreeBranchAttrsLabels {
   pub other: serde_json::Value,
 }
 
-#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
@@ -132,6 +132,13 @@ pub struct TreeBranchAttrs {
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl TreeBranchAttrs {
+  #[inline]
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
 }
 
 #[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
@@ -210,6 +217,7 @@ pub struct TreeNodeTempData {
 pub struct AuspiceGraphNodePayload {
   pub name: String,
 
+  #[serde(default, skip_serializing_if = "TreeBranchAttrs::is_default")]
   pub branch_attrs: TreeBranchAttrs,
 
   pub node_attrs: TreeNodeAttrs,
@@ -298,6 +306,7 @@ impl HasName for AuspiceGraphNodePayload {
 pub struct AuspiceTreeNode {
   pub name: String,
 
+  #[serde(default, skip_serializing_if = "TreeBranchAttrs::is_default")]
   pub branch_attrs: TreeBranchAttrs,
 
   pub node_attrs: TreeNodeAttrs,
