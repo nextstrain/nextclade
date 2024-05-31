@@ -8,7 +8,7 @@ use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{filter_gene_map, GeneMap};
-use crate::graph::graph::{convert_auspice_tree_to_graph, convert_graph_to_auspice_tree};
+use crate::graph::graph::Graph;
 use crate::io::fasta::{read_one_fasta_str, FastaRecord};
 use crate::io::nextclade_csv::CsvColumnConfig;
 use crate::io::nwk_writer::convert_graph_to_nwk_string;
