@@ -1,17 +1,17 @@
 use crate::graph::convert_auspice_tree_to_graph::convert_auspice_tree_to_graph;
 use crate::graph::convert_graph_to_auspice_tree::convert_graph_to_auspice_tree;
 use crate::graph::edge::{Edge, GraphEdge, GraphEdgeKey};
+use crate::graph::ladderize::graph_ladderize;
 use crate::graph::node::{GraphNode, GraphNodeKey, Node};
 use crate::io::json::is_json_value_null;
 use crate::tree::tree::{
   AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphMeta, AuspiceGraphNodePayload, AuspiceTree,
 };
 use crate::{make_error, make_internal_error, make_internal_report};
-use eyre::{eyre, ContextCompat, Report, WrapErr};
+use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[allow(clippy::partial_pub_fields)]
@@ -416,6 +416,10 @@ where
     Ok(new_node_key)
   }
 
+  pub fn ladderize(&mut self) -> Result<(), Report> {
+    graph_ladderize(self)
+  }
+
   pub fn build_ref(&mut self) -> Result<(), Report> {
     self.roots = self
       .nodes
@@ -437,104 +441,6 @@ where
   pub fn build(mut self) -> Result<Graph<N, E, D>, Report> {
     self.build_ref()?;
     Ok(self)
-  }
-
-  pub fn get_ladderize_map(&self) -> Result<HashMap<GraphNodeKey, Vec<GraphEdgeKey>>, Report> {
-    let root = self.get_exactly_one_root()?;
-    let mut terminal_count_map = HashMap::<GraphNodeKey, usize>::new();
-    self.get_terminal_number_map_recursive(root.key(), &mut terminal_count_map)?;
-    let mut new_edge_order_map = HashMap::<GraphNodeKey, Vec<GraphEdgeKey>>::new();
-    self.get_ladderize_map_recursive(root.key(), &terminal_count_map, &mut new_edge_order_map)?;
-    Ok(new_edge_order_map)
-  }
-
-  pub fn get_terminal_number_map_recursive(
-    &self,
-    node_key: GraphNodeKey,
-    terminal_count_map: &mut HashMap<GraphNodeKey, usize>,
-  ) -> Result<(), Report> {
-    let node = self.get_node(node_key).wrap_err("When preparing terminal number map")?;
-
-    for child in self.iter_child_keys_of(node) {
-      self.get_terminal_number_map_recursive(child, terminal_count_map)?;
-    }
-
-    if self.is_leaf_key(node_key) {
-      terminal_count_map.insert(node_key, 1);
-    } else {
-      let mut num_terminals = 0;
-      for child in self.iter_child_keys_of(node) {
-        let child_terminals = terminal_count_map.get(&child).unwrap();
-        num_terminals += child_terminals;
-      }
-      terminal_count_map.insert(node_key, num_terminals);
-    }
-
-    Ok(())
-  }
-
-  pub fn get_ladderize_map_recursive(
-    &self,
-    node_key: GraphNodeKey,
-    terminal_count_map: &HashMap<GraphNodeKey, usize>,
-    new_edge_order_map: &mut HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
-  ) -> Result<(), Report> {
-    let node = self.get_node(node_key).wrap_err("When preparing ladderize map")?;
-
-    let pre_outbound_order = node.outbound().iter().copied().collect_vec();
-    let order_outbound_nodes = pre_outbound_order
-      .iter()
-      .map(|edge_key| self.get_edge(*edge_key).expect("Node not found").target())
-      .map(|node_key| terminal_count_map.get(&node_key).expect("Node not found"))
-      .collect_vec();
-
-    let mut zipped = pre_outbound_order
-      .into_iter()
-      .zip(order_outbound_nodes)
-      .collect::<Vec<_>>();
-    zipped.sort_by(|&(_, a), &(_, b)| a.cmp(b));
-
-    let sorted_outbound: Vec<GraphEdgeKey> = zipped.into_iter().map(|(a, _)| a).collect();
-    new_edge_order_map.insert(node_key, sorted_outbound);
-
-    for child in self.iter_child_keys_of(node) {
-      self.get_ladderize_map_recursive(child, terminal_count_map, new_edge_order_map)?;
-    }
-
-    Ok(())
-  }
-
-  pub fn ladderize_tree(&mut self) -> Result<(), Report> {
-    let new_edge_order_map = self.get_ladderize_map()?;
-    let node_key = self.roots[0];
-    self.ladderize_tree_recursive(node_key, &new_edge_order_map)
-  }
-
-  fn ladderize_tree_recursive(
-    &mut self,
-    node_key: GraphNodeKey,
-    new_edge_order_map: &HashMap<GraphNodeKey, Vec<GraphEdgeKey>>,
-  ) -> Result<(), Report> {
-    let node = self
-      .get_node_mut(node_key)
-      .wrap_err_with(|| eyre!("Node with key {node_key} not found in graph"))?;
-
-    let new_edge_order = new_edge_order_map
-      .get(&node_key)
-      .wrap_err_with(|| eyre!("Node with key {node_key} not found in edge order map"))?;
-
-    node.outbound_mut().clear();
-    for edge_key in new_edge_order {
-      node.outbound_mut().push(*edge_key);
-    }
-    for edge_key in new_edge_order {
-      self.ladderize_tree_recursive(
-        self.get_edge(*edge_key).expect("Edge not found").target(),
-        new_edge_order_map,
-      )?;
-    }
-
-    Ok(())
   }
 }
 

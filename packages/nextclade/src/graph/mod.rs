@@ -1,5 +1,6 @@
 pub mod edge;
 pub mod graph;
+pub mod ladderize;
 pub mod node;
 pub mod traits;
 

@@ -329,8 +329,7 @@ impl Nextclade {
 
     let graph = tree
       .map(|tree| -> Result<AuspiceGraph, Report> {
-        let mut graph =
-          convert_auspice_tree_to_graph(tree).wrap_err("When converting Auspice tree to Nextclade graph")?;
+        let mut graph = Graph::from_auspice_tree(tree).wrap_err("When converting Auspice tree to Nextclade graph")?;
 
         graph_preprocess_in_place(&mut graph, &ref_seq, &ref_translation)
           .wrap_err("When preprocessing Nextclade graph")?;
@@ -395,7 +394,7 @@ impl Nextclade {
   pub fn get_output_trees(&mut self, results: Vec<NextcladeOutputs>) -> Result<Option<OutputTrees>, Report> {
     if let Some(graph) = &mut self.graph {
       graph_attach_new_nodes_in_place(graph, results, self.ref_seq.len(), &self.params.tree_builder)?;
-      let auspice = convert_graph_to_auspice_tree(graph)?;
+      let auspice = Graph::to_auspice_tree(graph)?;
       let nwk = convert_graph_to_nwk_string(graph)?;
       Ok(Some(OutputTrees { auspice, nwk }))
     } else {
