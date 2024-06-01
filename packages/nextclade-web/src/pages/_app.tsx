@@ -25,14 +25,8 @@ import {
   virusPropertiesInputAtom,
 } from 'src/state/inputs.state'
 import { localeAtom } from 'src/state/locale.state'
-import {
-  changelogIsShownAtom,
-  changelogLastVersionSeenAtom,
-  changelogShouldShowOnUpdatesAtom,
-  isInitializedAtom,
-} from 'src/state/settings.state'
+import { isInitializedAtom } from 'src/state/settings.state'
 import { configureStore } from 'src/state/store'
-import { shouldShowChangelog } from 'src/state/utils/changelog'
 import { ThemeProvider } from 'styled-components'
 import { Provider as ReactReduxProvider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
@@ -64,7 +58,7 @@ RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false
  * Dummy component that allows to set recoil state asynchronously. Needed because RecoilRoot's initializeState
  * currently only handles synchronous update and any calls to set() from promises have no effect
  */
-export function RecoilStateInitializer() {
+function RecoilStateInitializer() {
   const router = useRouter()
 
   // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
@@ -138,13 +132,6 @@ export function RecoilStateInitializer() {
           }
         }
 
-        return undefined
-      })
-      .then(async () => {
-        const changelogShouldShowOnUpdates = await getPromise(changelogShouldShowOnUpdatesAtom)
-        const changelogLastVersionSeen = await getPromise(changelogLastVersionSeenAtom)
-        set(changelogIsShownAtom, shouldShowChangelog(changelogLastVersionSeen, changelogShouldShowOnUpdates))
-        set(changelogLastVersionSeenAtom, (prev) => process.env.PACKAGE_VERSION ?? prev ?? '')
         return undefined
       })
       .then(() => {
