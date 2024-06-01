@@ -25,9 +25,9 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const pathogen = auspiceJson.meta.extensions?.nextclade?.pathogen
 
   const name =
+    attrStrMaybe(pathogen?.attributes, 'name') ??
     auspiceJson.meta.title ??
     auspiceJson.meta.description ??
-    attrStrMaybe(pathogen?.attributes, 'name') ??
     datasetJsonUrl
 
   let version = pathogen?.version
