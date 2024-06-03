@@ -21,16 +21,6 @@ export const numThreadsAtom = atom<number>({
   effects: [persistAtom],
 })
 
-export const isSettingsDialogOpenAtom = atom<boolean>({
-  key: 'isSettingsDialogOpen',
-  default: false,
-})
-
-export const isNewRunPopupShownAtom = atom<boolean>({
-  key: 'isNewRunPopupShown',
-  default: false,
-})
-
 export const isResultsFilterPanelCollapsedAtom = atom<boolean>({
   key: 'isResultsFilterPanelCollapsedAtom',
   default: true,
@@ -51,18 +41,6 @@ export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
 export const changelogIsShownAtom = atom<boolean>({
   key: 'changelogIsShown',
   default: false,
-})
-
-export const changelogShouldShowOnUpdatesAtom = atom<boolean>({
-  key: 'changelogShouldShowOnUpdates',
-  default: true,
-  effects: [persistAtom],
-})
-
-export const changelogLastVersionSeenAtom = atom<string>({
-  key: 'changelogLastVersionSeen',
-  default: '',
-  effects: [persistAtom],
 })
 
 export const lastNotifiedAppVersionAtom = atom<string | undefined>({
