@@ -126,6 +126,8 @@ lazy_static! {
   // Default configuration and layout of CSV column categories
   pub static ref CSV_COLUMN_CONFIG_MAP_DEFAULT: CsvColumnConfigMap = indexmap! {
     CsvColumnCategory::General => indexmap! {
+      o!("index") => true,
+      o!("seqName") => true,
       o!("clade") => true,
       o!("qc.overallScore") => true,
       o!("qc.overallStatus") => true,
@@ -228,8 +230,6 @@ fn prepare_headers(
 ) -> Vec<String> {
   // Get names of enabled columns
   let mut headers = {
-    let mandatory_headers = vec!["index", "seqName"].into_iter();
-
     let category_headers = column_config
       .categories
       .iter()
@@ -239,7 +239,7 @@ fn prepare_headers(
 
     let individual_headers = column_config.individual.iter().map(String::as_str);
 
-    chain![mandatory_headers, category_headers, individual_headers]
+    chain![category_headers, individual_headers]
       .unique()
       .map(String::from)
       .collect_vec()
