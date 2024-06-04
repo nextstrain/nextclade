@@ -674,7 +674,7 @@ impl AuspiceTree {
     self
       .root_sequence
       .as_ref()
-      .and_then(|map| map.get("nuc"))
+      .and_then(|root_sequence| root_sequence.get("nuc"))
       .map(String::as_str)
   }
 }
