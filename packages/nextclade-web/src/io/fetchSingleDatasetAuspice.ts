@@ -39,7 +39,7 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
     }
   }
 
-  const currentDataset: Dataset & { auspiceJson?: AuspiceTree } = {
+  const currentDataset: Dataset = {
     path: datasetJsonUrl,
     capabilities: {
       primers: false,
@@ -50,8 +50,8 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
       name,
       ...pathogen?.attributes,
     },
+    type: 'auspiceJson',
     version,
-    auspiceJson,
   }
 
   const datasets = [currentDataset]
@@ -60,5 +60,5 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
   const defaultDatasetName = currentDatasetName
   const defaultDatasetNameFriendly = attrStrMaybe(currentDataset.attributes, 'name') ?? currentDatasetName
 
-  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
+  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset, auspiceJson }
 }

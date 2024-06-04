@@ -128,11 +128,7 @@ export async function initializeDatasets(datasetServerUrl: string, urlQuery: Par
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
   // Check if URL params specify dataset params and try to find the corresponding dataset
-  const currentDataset:
-    | (Dataset & {
-        auspiceJson?: AuspiceTree
-      })
-    | undefined = await getDatasetFromUrlParams(urlQuery, datasets)
+  const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
 
   return { datasets, currentDataset, minimizerIndexVersion }
 }
