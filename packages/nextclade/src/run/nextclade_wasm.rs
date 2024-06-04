@@ -16,7 +16,7 @@ use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{AuspiceGraph, AuspiceTree, CladeNodeAttrKeyDesc};
+use crate::tree::tree::{check_ref_seq_mismatch, AuspiceGraph, AuspiceTree, CladeNodeAttrKeyDesc};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
@@ -133,6 +133,12 @@ impl NextcladeParams {
             .map_ref_fallible(GeneMap::from_str)
             .wrap_err("When parsing genome annotation")?;
 
+          if let (Some(tree), Some(ref_record)) = (&tree, &ref_record) {
+            if let Some(tree_ref) = tree.root_sequence() {
+              check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+            }
+          }
+
           NextcladeParamsOptional {
             ref_record,
             gene_map,
@@ -159,6 +165,12 @@ impl NextcladeParams {
           .map(|gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"))
           .transpose()?
           .unwrap_or_default();
+
+        if let Some(tree) = &tree {
+          if let Some(tree_ref) = tree.root_sequence() {
+            check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+          }
+        }
 
         Ok(Self {
           ref_record,
