@@ -9,7 +9,7 @@ import {
   parseGithubRepoUrl,
 } from 'src/io/fetchSingleDatasetFromGithub'
 
-import { type AuspiceTree, Dataset } from 'src/types'
+import { Dataset } from 'src/types'
 import {
   fetchDatasetsIndex,
   filterDatasets,
