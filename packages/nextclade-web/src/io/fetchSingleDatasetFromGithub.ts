@@ -1,4 +1,4 @@
-/* eslint-disable security/detect-unsafe-regex,prefer-const */
+/* eslint-disable security/detect-unsafe-regex */
 import type { Optional } from 'utility-types'
 import { isEmpty, isNil, trim } from 'lodash'
 import pMemoize from 'p-memoize'

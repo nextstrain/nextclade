@@ -130,6 +130,7 @@ module.exports = {
     'no-shadow': 'off',
     'no-unused-vars': 'off',
     'only-ascii/only-ascii': 'warn',
+    'prefer-const': ['warn', { destructuring: 'all' }],
     'prefer-for-of': 'off',
     'prettier/prettier': 'warn',
     'react-hooks/exhaustive-deps': [
@@ -148,7 +149,7 @@ module.exports = {
     'react/state-in-constructor': 'off',
     'security/detect-non-literal-fs-filename': 'off',
     'security/detect-object-injection': 'off',
-    'sonarjs/cognitive-complexity': ['warn', 20],
+    'sonarjs/cognitive-complexity': 'off',
     'unicorn/consistent-function-scoping': 'off',
     'unicorn/escape-case': 'off',
     'unicorn/filename-case': 'off',

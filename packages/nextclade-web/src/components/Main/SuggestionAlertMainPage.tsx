@@ -13,7 +13,6 @@ export function SuggestionAlertMainPage({ ...restProps }) {
   const { numSuggestions, datasetsActive: datasetSuggestions } = useDatasetSuggestionResults()
   const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   const alert = useMemo(() => {
     const hasMatch = datasetCurrent && datasetSuggestions.some((suggestion) => suggestion.path === datasetCurrent.path)
 

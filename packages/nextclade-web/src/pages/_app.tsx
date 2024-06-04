@@ -8,7 +8,6 @@ import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValu
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import type { Dataset, AuspiceTree } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
@@ -97,10 +96,10 @@ function RecoilStateInitializer() {
 
         const datasetInfo = await fetchSingleDataset(urlQuery)
         if (!isNil(datasetInfo)) {
-          const { datasets, currentDataset } = datasetInfo
-          return { datasets, currentDataset, minimizerIndexVersion: undefined }
+          const { datasets, currentDataset, auspiceJson } = datasetInfo
+          return { datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
         }
-        return { datasets, currentDataset, minimizerIndexVersion }
+        return { datasets, currentDataset, minimizerIndexVersion, auspiceJson: undefined }
       })
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary
@@ -108,13 +107,24 @@ function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(async ({ datasets, currentDataset, minimizerIndexVersion }) => {
+      .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
         set(datasetsAtom, { datasets })
-        const previousDataset = await getPromise(datasetCurrentAtom)
-        const dataset: (Dataset & { auspiceJson?: AuspiceTree }) | undefined = currentDataset ?? previousDataset
+        let previousDataset = await getPromise(datasetCurrentAtom)
+        if (previousDataset?.type === 'auspiceJson') {
+          // Disregard previously saved dataset if it's Auspice dataset, because the data is no longer available.
+          // We might re-fetch instead, but need to persist URL for that somehow.
+          previousDataset = undefined
+        }
+
+        const dataset = currentDataset ?? previousDataset
         set(datasetCurrentAtom, dataset)
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
-        set(datasetJsonAtom, dataset?.auspiceJson)
+
+        if (dataset?.type === 'auspiceJson' && !isNil(auspiceJson)) {
+          set(datasetJsonAtom, auspiceJson)
+        } else {
+          set(datasetJsonAtom, undefined)
+        }
         return dataset
       })
       .then(async (dataset) => {

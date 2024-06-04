@@ -78,6 +78,9 @@ pub struct Dataset {
   #[serde(default, skip_serializing_if = "DatasetVersion::is_empty")]
   pub version: DatasetVersion,
 
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub r#type: Option<DatasetType>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -385,4 +388,12 @@ pub struct MinimizerIndexVersion {
   pub path: String,
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum DatasetType {
+  Directory,
+  AuspiceJson,
+  Other,
 }
