@@ -15,13 +15,14 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     .apply_modifier(UTF8_SOLID_INNER_BORDERS)
     .set_content_arrangement(ContentArrangement::Dynamic);
 
-  table.set_header([o!("name"), o!("attributes"), o!("versions")]);
+  table.set_header([o!("name"), o!("attributes"), o!("versions"), o!("capabilities")]);
 
   for dataset in filtered {
     let Dataset {
       path,
       shortcuts,
       attributes,
+      capabilities,
       ..
     } = dataset;
 
@@ -45,7 +46,26 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
     let versions = dataset.versions.iter().map(|ver| &ver.tag).join("\n");
 
-    table.add_row([&name, &attrs, &versions]);
+    let capabilities = {
+      let mut caps = vec![];
+      if let Some(n_clades) = capabilities.clades {
+        caps.push(format!("clade ({n_clades})"));
+      }
+
+      capabilities.custom_clades.iter().for_each(|(attr, n_attrs)| {
+        caps.push(format!("{attr} ({n_attrs})"));
+      });
+
+      capabilities.qc.iter().for_each(|rule| {
+        caps.push(format!("qc.{rule}"));
+      });
+
+      caps.extend_from_slice(&capabilities.other);
+
+      caps.join("\n")
+    };
+
+    table.add_row([&name, &attrs, &versions, &capabilities]);
   }
 
   table.to_string()
