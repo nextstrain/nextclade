@@ -1,6 +1,6 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::aa_changes::AaChangesGroup;
+use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};

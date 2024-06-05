@@ -3,7 +3,9 @@ use crate::align::insertions_strip::{get_aa_insertions, insertions_strip, AaIns,
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::aa_changes::{find_aa_changes, AaChangesGroup, FindAaChangesOutput};
+use crate::analyze::aa_changes_find::aa_changes_find;
+use crate::analyze::aa_changes_find_for_cds::FindAaChangesOutput;
+use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_branch_length;
@@ -198,7 +200,7 @@ pub fn nextclade_run_one(
       aa_substitutions,
       aa_deletions,
       nuc_to_aa_muts,
-    } = find_aa_changes(
+    } = aa_changes_find(
       ref_seq,
       &stripped.qry_seq,
       ref_translation,

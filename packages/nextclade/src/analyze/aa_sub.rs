@@ -1,9 +1,10 @@
 use crate::alphabet::aa::{from_aa, Aa};
 use crate::alphabet::letter::Letter;
-use crate::analyze::aa_changes::AaChangeWithContext;
+use crate::analyze::aa_change_with_context::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
+use crate::coord::range::AaRefRange;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
@@ -151,4 +152,17 @@ impl From<&AaChangeWithContext> for AaSub {
       qry_aa: change.qry_aa,
     }
   }
+}
+
+/// Check whether a given pair if reference and query aminoacids constitute a mutation or deletion
+pub fn is_aa_mutated_or_deleted(ref_aa: Aa, qry_aa: Aa) -> bool {
+  // NOTE: We chose to ignore mutations to `X`.
+  qry_aa != ref_aa && qry_aa != Aa::X
+}
+
+/// Check whether a given codon position corresponds to a sequenced aminoacid
+pub fn is_codon_sequenced(aa_alignment_ranges: &[AaRefRange], codon: AaRefPosition) -> bool {
+  aa_alignment_ranges
+    .iter()
+    .any(|aa_alignment_range| aa_alignment_range.contains(codon))
 }
