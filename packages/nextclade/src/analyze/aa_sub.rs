@@ -14,6 +14,15 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+/// Represents minimal aminoacid substitution (regardless of CDS)
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AaSubMin {
+  pub pos: AaRefPosition,
+  pub ref_aa: Aa,
+  pub qry_aa: Aa,
+}
+
 /// Represents aminoacid substitution
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]

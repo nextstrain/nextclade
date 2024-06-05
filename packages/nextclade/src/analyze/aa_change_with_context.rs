@@ -1,14 +1,13 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::aa_sub::is_aa_mutated_or_deleted;
+use crate::analyze::aa_sub::{is_aa_mutated_or_deleted, AaSubMin};
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
-use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::cds::Cds;
 use crate::gene::gene::GeneStrand;
 use crate::translate::complement::reverse_complement_in_place;
-use crate::translate::translate_genes::CdsTranslation;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -34,16 +33,8 @@ pub struct AaChangeWithContext {
 }
 
 impl AaChangeWithContext {
-  pub fn new(
-    cds: &Cds,
-    pos: AaRefPosition,
-    qry_seq: &[Nuc],
-    ref_seq: &[Nuc],
-    ref_tr: &CdsTranslation,
-    qry_tr: &CdsTranslation,
-  ) -> Self {
-    let ref_aa = ref_tr.seq[pos.as_usize()];
-    let qry_aa = qry_tr.seq[pos.as_usize()];
+  pub fn new(cds: &Cds, sub: &AaSubMin, qry_seq: &[Nuc], ref_seq: &[Nuc]) -> Self {
+    let AaSubMin { pos, ref_aa, qry_aa } = *sub;
     let nuc_ranges = cds_codon_pos_to_ref_range(cds, pos);
 
     let ref_triplet = nuc_ranges

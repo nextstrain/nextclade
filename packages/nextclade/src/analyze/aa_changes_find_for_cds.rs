@@ -1,5 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::aa_alignment::AaAlignment;
 use crate::analyze::aa_change_with_context::AaChangeWithContext;
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
@@ -51,6 +52,8 @@ pub fn aa_changes_find_for_cds(
   assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
+  let tr = AaAlignment::new(cds, ref_tr, qry_tr);
+
   let aa_alignment_ranges = &qry_tr.alignment_ranges;
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
@@ -61,24 +64,18 @@ pub fn aa_changes_find_for_cds(
 
     let ref_aa = ref_tr.seq[codon.as_usize()];
     let qry_aa = qry_tr.seq[codon.as_usize()];
+
     if is_aa_mutated_or_deleted(ref_aa, qry_aa) {
       match curr_group.last() {
         // If current group is empty, then we are about to insert the first codon into the first group.
         None => {
           if codon > 0 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
             // Also prepend one codon to the left, for additional context, to start the group
-            curr_group.push(AaChangeWithContext::new(
-              cds,
-              codon - 1,
-              qry_seq,
-              ref_seq,
-              ref_tr,
-              qry_tr,
-            ));
+            curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
           }
 
           // The current codon itself
-          curr_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
+          curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon), qry_seq, ref_seq));
         }
         // Current group is not empty
         Some(prev) => {
@@ -88,18 +85,11 @@ pub fn aa_changes_find_for_cds(
             // If previous codon in the group is not exactly adjacent, there is 1 item in between,
             // then cover the hole by inserting previous codon.
             if codon == prev.pos + 2 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
-              curr_group.push(AaChangeWithContext::new(
-                cds,
-                codon - 1,
-                qry_seq,
-                ref_seq,
-                ref_tr,
-                qry_tr,
-              ));
+              curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
             }
 
             // And insert the current codon
-            curr_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
+            curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon), qry_seq, ref_seq));
           }
           // If previous codon in the group is not adjacent, then terminate the current group and start a new group.
           else {
@@ -107,11 +97,9 @@ pub fn aa_changes_find_for_cds(
             if is_codon_sequenced(aa_alignment_ranges, prev.pos + 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
-                prev.pos + 1,
+                &tr.mut_at(prev.pos + 1),
                 qry_seq,
                 ref_seq,
-                ref_tr,
-                qry_tr,
               ));
             }
 
@@ -120,18 +108,11 @@ pub fn aa_changes_find_for_cds(
             // Start a new group and push the current codon into it.
             if is_codon_sequenced(aa_alignment_ranges, codon - 1) {
               // Also prepend one codon to the left, for additional context, to start the new group.
-              new_group.push(AaChangeWithContext::new(
-                cds,
-                codon - 1,
-                qry_seq,
-                ref_seq,
-                ref_tr,
-                qry_tr,
-              ));
+              new_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
             }
 
             // Push the current codon to the new group
-            new_group.push(AaChangeWithContext::new(cds, codon, qry_seq, ref_seq, ref_tr, qry_tr));
+            new_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon), qry_seq, ref_seq));
 
             aa_changes_groups.push(new_group);
 
@@ -147,11 +128,9 @@ pub fn aa_changes_find_for_cds(
     if is_codon_sequenced(aa_alignment_ranges, last.pos + 1) {
       curr_group.push(AaChangeWithContext::new(
         cds,
-        last.pos + 1,
+        &tr.mut_at(last.pos + 1),
         qry_seq,
         ref_seq,
-        ref_tr,
-        qry_tr,
       ));
     }
   }
