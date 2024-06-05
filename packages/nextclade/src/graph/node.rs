@@ -1,15 +1,15 @@
 use crate::graph::edge::GraphEdgeKey;
 use crate::io::json::is_json_value_null;
-use core::fmt::{Debug};
-use derive_more::Display;
+use core::fmt::Debug;
 use schemars::gen::SchemaGenerator;
 use schemars::schema::Schema;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt::{Display, Formatter};
 
 pub trait GraphNode: Clone + Debug {}
 
-#[derive(Copy, Clone, Debug, Default, Display, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct GraphNodeKey(usize);
 
 impl GraphNodeKey {
@@ -23,6 +23,18 @@ impl GraphNodeKey {
   #[must_use]
   pub const fn as_usize(self) -> usize {
     self.0
+  }
+}
+
+impl Display for GraphNodeKey {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.as_usize())
+  }
+}
+
+impl Debug for GraphNodeKey {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    Display::fmt(self, f)
   }
 }
 

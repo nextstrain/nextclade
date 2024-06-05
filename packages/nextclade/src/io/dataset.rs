@@ -78,6 +78,9 @@ pub struct Dataset {
   #[serde(default, skip_serializing_if = "DatasetVersion::is_empty")]
   pub version: DatasetVersion,
 
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub r#type: Option<DatasetType>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -289,14 +292,23 @@ pub struct DatasetCollectionMeta {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCapabilities {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub clades: Option<usize>,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub custom_clades: BTreeMap<String, usize>,
+
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub qc: Vec<String>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub primers: Option<bool>,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub other: Vec<String>,
+
   #[serde(flatten)]
-  pub other: serde_json::Value,
+  pub rest: serde_json::Value,
 }
 
 impl DatasetCapabilities {
@@ -385,4 +397,12 @@ pub struct MinimizerIndexVersion {
   pub path: String,
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum DatasetType {
+  Directory,
+  AuspiceJson,
+  Other,
 }

@@ -313,6 +313,8 @@ pub struct NextcladeRunInputArgs {
   /// If both the `--input-dataset` and individual `--input-*` flags are provided, each individual flag overrides the
   /// corresponding file in the dataset.
   ///
+  /// Experimental feature: this argument also accepts a path to Auspice JSON file. In this case the files to be treated as a Nextclade dataset. This requires Auspice JSON file which contains `.root_sequence.nuc` field.
+  ///
   /// Please refer to Nextclade documentation for more details about Nextclade datasets and their files.
   #[clap(long, short = 'D')]
   #[clap(value_hint = ValueHint::AnyPath)]

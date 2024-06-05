@@ -1,6 +1,6 @@
 {
   "name": "@nextstrain/nextclade-web",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -87,6 +87,8 @@
   },
   "dependencies": {
     "@floating-ui/react": "0.26.1",
+    "@hapi/accept": "6.0.3",
+    "@hapi/content": "6.0.0",
     "animate.css": "4.1.1",
     "auspice": "2.53.0",
     "autoprefixer": "10.4.5",
@@ -200,6 +202,7 @@
     "@types/friendly-errors-webpack-plugin": "0.1.4",
     "@types/fs-extra": "9.0.13",
     "@types/glob": "7.2.0",
+    "@types/hapi__content": "6.0.3",
     "@types/history": "4.7.11",
     "@types/intercept-stdout": "0.1.0",
     "@types/jest": "27.4.1",

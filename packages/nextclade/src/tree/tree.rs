@@ -60,7 +60,7 @@ pub struct GraphTempData {
   pub other: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct AuspiceGraphMeta {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub auspice_tree_version: Option<String>,
@@ -111,7 +111,7 @@ impl TreeNodeAttrF64 {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrsLabels {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub aa: Option<String>,
@@ -123,7 +123,7 @@ pub struct TreeBranchAttrsLabels {
   pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
   pub mutations: BTreeMap<String, Vec<String>>,
 
@@ -134,7 +134,14 @@ pub struct TreeBranchAttrs {
   pub other: serde_json::Value,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+impl TreeBranchAttrs {
+  #[inline]
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrs {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub div: Option<f64>,
@@ -198,6 +205,7 @@ pub struct TreeNodeAttrs {
 /// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
 #[derive(Clone, Debug, Default)]
 pub struct TreeNodeTempData {
+  pub child_visit: usize,
   pub substitutions: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub mutations: BTreeMap<NucRefGlobalPosition, Nuc>,
   pub private_mutations: BranchMutations,
@@ -205,10 +213,11 @@ pub struct TreeNodeTempData {
   pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceGraphNodePayload {
   pub name: String,
 
+  #[serde(default, skip_serializing_if = "TreeBranchAttrs::is_default")]
   pub branch_attrs: TreeBranchAttrs,
 
   pub node_attrs: TreeNodeAttrs,
@@ -246,6 +255,13 @@ impl From<&AuspiceTreeNode> for AuspiceGraphNodePayload {
 }
 
 impl AuspiceGraphNodePayload {
+  pub fn new(name: impl AsRef<str>) -> Self {
+    Self {
+      name: name.as_ref().to_owned(),
+      ..Self::default()
+    }
+  }
+
   /// Extracts clade of the node
   pub fn clade(&self) -> Option<String> {
     self
@@ -290,6 +306,7 @@ impl HasName for AuspiceGraphNodePayload {
 pub struct AuspiceTreeNode {
   pub name: String,
 
+  #[serde(default, skip_serializing_if = "TreeBranchAttrs::is_default")]
   pub branch_attrs: TreeBranchAttrs,
 
   pub node_attrs: TreeNodeAttrs,
@@ -505,7 +522,7 @@ impl AuspiceGenomeAnnotations {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceTreeMeta {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub title: Option<String>,

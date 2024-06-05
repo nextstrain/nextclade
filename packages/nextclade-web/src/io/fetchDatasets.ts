@@ -4,12 +4,12 @@ import { findSimilarStrings } from 'src/helpers/string'
 import { axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import {
   isGithubShortcut,
-  isGithubUrl,
+  isGithubRepoUrl,
   parseGitHubRepoShortcut,
   parseGithubRepoUrl,
 } from 'src/io/fetchSingleDatasetFromGithub'
 
-import { type AuspiceTree, Dataset } from 'src/types'
+import { Dataset } from 'src/types'
 import {
   fetchDatasetsIndex,
   filterDatasets,
@@ -94,7 +94,7 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
       return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
     }
 
-    if (isGithubUrl(datasetServerUrl)) {
+    if (isGithubRepoUrl(datasetServerUrl)) {
       const { owner, repo, branch, path } = await parseGithubRepoUrl(datasetServerUrl)
       return urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
     }
@@ -128,11 +128,7 @@ export async function initializeDatasets(datasetServerUrl: string, urlQuery: Par
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
   // Check if URL params specify dataset params and try to find the corresponding dataset
-  const currentDataset:
-    | (Dataset & {
-        auspiceJson?: AuspiceTree
-      })
-    | undefined = await getDatasetFromUrlParams(urlQuery, datasets)
+  const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
 
   return { datasets, currentDataset, minimizerIndexVersion }
 }

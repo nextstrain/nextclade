@@ -12,7 +12,6 @@ use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{AuspiceGraph, AuspiceRefNode};
 use eyre::{eyre, Report, WrapErr};
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -25,7 +24,7 @@ pub struct RelativeNucMutations {
 
 pub fn find_relative_nuc_mutations(
   graph: &AuspiceGraph,
-  clade: &str,
+  clade: &Option<String>,
   clade_node_attrs: &BTreeMap<String, String>,
   substitutions: &[NucSub],
   deletions: &[NucDelRange],
@@ -74,7 +73,7 @@ pub struct RelativeAaMutations {
 
 pub fn find_relative_aa_mutations(
   graph: &AuspiceGraph,
-  clade: &str,
+  clade: &Option<String>,
   clade_node_attrs: &BTreeMap<String, String>,
   aa_substitutions: &[AaSub],
   aa_deletions: &[AaDel],
@@ -115,7 +114,7 @@ pub fn find_relative_aa_mutations(
 /// Take only ref nodes which are relevant for this sample, according to the node's include list
 pub fn filter_ref_nodes<'a>(
   graph: &'a AuspiceGraph,
-  clade: &str,
+  clade: &Option<String>,
   clade_node_attrs: &BTreeMap<String, String>,
 ) -> Vec<&'a AuspiceRefNode> {
   graph
@@ -126,12 +125,14 @@ pub fn filter_ref_nodes<'a>(
     .reference_nodes
     .iter()
     .filter(|node| {
-      // For each attribute key in includes, check that the attribute value of this sample match
-      // at least one item in the include list
       node.include.iter().all(|(key, includes)| {
-        let curr_value = if key == "clade" { clade } else { &clade_node_attrs[key] };
-        includes.iter().any(|include_value| include_value == curr_value) // TODO: consider regex match rather than equality
+        let curr_value = if key == "clade" {
+          clade.as_deref().unwrap_or("")
+        } else {
+          clade_node_attrs.get(key).map_or("", String::as_str)
+        };
+        includes.iter().any(|include_value| include_value == curr_value)
       })
     })
-    .collect_vec()
+    .collect()
 }

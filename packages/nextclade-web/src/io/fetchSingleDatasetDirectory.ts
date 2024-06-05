@@ -2,7 +2,7 @@ import axios from 'axios'
 import urljoin from 'url-join'
 import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
-import { attrStrMaybe, AuspiceTree, Dataset, VirusProperties } from 'src/types'
+import { attrStrMaybe, Dataset, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead, axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -17,7 +17,7 @@ export async function fetchSingleDatasetDirectory(
 
   const files = mapValues(pathogen.files, (file) => (file ? urljoin(datasetRootUrl, file) : file))
 
-  const currentDataset: Dataset & { auspiceJson?: AuspiceTree } = {
+  const currentDataset: Dataset = {
     path: datasetRootUrl,
     capabilities: {
       primers: false,
@@ -25,6 +25,7 @@ export async function fetchSingleDatasetDirectory(
     },
     ...pathogen,
     files,
+    type: 'directory',
   }
 
   const datasets = [currentDataset]
@@ -51,7 +52,14 @@ export async function fetchSingleDatasetDirectory(
     Object.entries(files).filter(([_, key]) => !['examples', 'readme'].includes(key)),
   )
 
-  return { datasets, defaultDataset, defaultDatasetName, defaultDatasetNameFriendly, currentDataset }
+  return {
+    datasets,
+    defaultDataset,
+    defaultDatasetName,
+    defaultDatasetNameFriendly,
+    currentDataset,
+    auspiceJson: undefined,
+  }
 }
 
 async function fetchPathogenJson(datasetRootUrl: string) {

@@ -1,5 +1,32 @@
-## Nextclade 3.6.0
+## Nextclade 3.7.0
 
+#### Use Auspice JSON as a full dataset (experimental)
+
+Nextclade can now optionally use Auspice datasets (in Auspice v2 JSON format) not only as reference trees, but also as self-contained full Nextclade datasets. Nextclade will take pathogen info, genome annotation, reference sequence, and, of course, reference tree from Auspice JSON. No other files are needed. This allows to use almost any Auspice dataset (e.g. from [nextstrain.org](https://nextstrain.org)) as Nextclade dataset.
+
+- In Nextclade CLI, `--input-dataset` argument now also accepts a path to Auspice JSON file (in addition to accepting the usual paths to a dataset directory and zip archive)
+
+- Nextclade Web now has a new URL parameter `dataset-json-url`, which accepts a URL to Auspice JSON file or even to a dataset URL on nextstrain.org
+
+This feature is currently in experimental stage. For details and discussion see PR [#1455](https://github.com/nextstrain/nextclade/pull/1455).
+
+#### Make reference tree branch attributes optional
+
+Nextclade now accepts Auspice JSONs without `.branch_attrs` on tree nodes.
+
+#### Allow `index` and `seqName` in column selection
+
+Previously, Nextclade treated output CSV/TSV columns index and seqName as mandatory and they were always present in the output files. In this release they are made configurable. One can:
+
+- in CLI: add or omit `index` and `seqName` values when using `--output-columns-selection` argument
+- in Web: tick or untick checkboxes for `index` and `seqName` in "Column config" tab of "Export" page
+
+#### Add dataset capabilities
+
+The table in the `nextclade dataset list` command now displays an additional column "capabilities", which lists dataset capabilities, i.e. whether dataset contains information allowing clade assignment, QC, etc. The same information is available in JSON format (unstable) if you pass `--json` flag.
+
+
+## Nextclade 3.6.0
 
 #### Make reference tree node attribute `clade_membership` optional
 
