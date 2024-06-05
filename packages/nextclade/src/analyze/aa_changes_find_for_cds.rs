@@ -4,11 +4,11 @@ use crate::analyze::aa_alignment::AaAlignment;
 use crate::analyze::aa_change_with_context::AaChangeWithContext;
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
-use crate::analyze::aa_sub::{is_aa_mutated_or_deleted, is_codon_sequenced, AaSub};
+use crate::analyze::aa_sub::AaSub;
+use crate::analyze::abstract_mutation::AbstractMutation;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
-use crate::coord::position::PositionLike;
 use crate::coord::range::{have_intersection, AaRefRange};
 use crate::gene::cds::Cds;
 use crate::translate::translate_genes::CdsTranslation;
@@ -52,24 +52,22 @@ pub fn aa_changes_find_for_cds(
   assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
-  let tr = AaAlignment::new(cds, ref_tr, qry_tr);
+  let tr = AaAlignment::new(cds, ref_tr, qry_tr, &qry_tr.alignment_ranges);
 
-  let aa_alignment_ranges = &qry_tr.alignment_ranges;
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
   for codon in AaRefRange::from_usize(0, qry_tr.seq.len()).iter() {
-    if !is_codon_sequenced(aa_alignment_ranges, codon) {
+    if !tr.is_codon_sequenced(codon) {
       continue;
     }
 
-    let ref_aa = ref_tr.seq[codon.as_usize()];
-    let qry_aa = qry_tr.seq[codon.as_usize()];
+    let aa_mut = tr.mut_at(codon);
 
-    if is_aa_mutated_or_deleted(ref_aa, qry_aa) {
+    if aa_mut.is_mutated_and_not_unknown() {
       match curr_group.last() {
         // If current group is empty, then we are about to insert the first codon into the first group.
         None => {
-          if codon > 0 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
+          if codon > 0 && tr.is_codon_sequenced(codon - 1) {
             // Also prepend one codon to the left, for additional context, to start the group
             curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
           }
@@ -84,7 +82,7 @@ pub fn aa_changes_find_for_cds(
           if codon <= prev.pos + 2 {
             // If previous codon in the group is not exactly adjacent, there is 1 item in between,
             // then cover the hole by inserting previous codon.
-            if codon == prev.pos + 2 && is_codon_sequenced(aa_alignment_ranges, codon - 1) {
+            if codon == prev.pos + 2 && tr.is_codon_sequenced(codon - 1) {
               curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
             }
 
@@ -94,7 +92,7 @@ pub fn aa_changes_find_for_cds(
           // If previous codon in the group is not adjacent, then terminate the current group and start a new group.
           else {
             // Add one codon to the right, for additional context, to finalize the current group
-            if is_codon_sequenced(aa_alignment_ranges, prev.pos + 1) {
+            if tr.is_codon_sequenced(prev.pos + 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
                 &tr.mut_at(prev.pos + 1),
@@ -106,7 +104,7 @@ pub fn aa_changes_find_for_cds(
             let mut new_group = AaChangesGroup::new(&cds.name);
 
             // Start a new group and push the current codon into it.
-            if is_codon_sequenced(aa_alignment_ranges, codon - 1) {
+            if tr.is_codon_sequenced(codon - 1) {
               // Also prepend one codon to the left, for additional context, to start the new group.
               new_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
             }
@@ -125,7 +123,7 @@ pub fn aa_changes_find_for_cds(
 
   // Add one codon to the right, for additional context, to finalize the last group
   if let Some(last) = curr_group.last() {
-    if is_codon_sequenced(aa_alignment_ranges, last.pos + 1) {
+    if tr.is_codon_sequenced(last.pos + 1) {
       curr_group.push(AaChangeWithContext::new(
         cds,
         &tr.mut_at(last.pos + 1),
@@ -165,7 +163,7 @@ pub fn aa_changes_find_for_cds(
   let (aa_substitutions, aa_deletions): (Vec<AaSub>, Vec<AaDel>) = aa_changes_groups
     .iter()
     .flat_map(|aa_changes_group| &aa_changes_group.changes)
-    .filter(|change| is_aa_mutated_or_deleted(change.ref_aa, change.qry_aa))
+    .filter(|change| change.is_mutated_and_not_unknown())
     .partition_map(|change| {
       if change.qry_aa.is_gap() {
         Either::Right(AaDel {
@@ -190,7 +188,7 @@ pub fn aa_changes_find_for_cds(
       group
         .changes
         .iter()
-        .filter(|change| AaChangeWithContext::is_mutated_or_deleted(change))
+        .filter(|change| change.is_mutated_and_not_unknown())
         .flat_map(|change| {
           change.nuc_ranges.iter().flat_map(move |range| {
             range.iter()

@@ -66,6 +66,7 @@ impl Display for Aa {
 
 impl Letter<Aa> for Aa {
   const GAP: Aa = Aa::Gap;
+  const UNKNOWN: Aa = Aa::X;
 
   #[inline]
   fn is_gap(&self) -> bool {

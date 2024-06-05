@@ -4,7 +4,6 @@ use crate::analyze::aa_change_with_context::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
-use crate::coord::range::AaRefRange;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
@@ -13,15 +12,6 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-
-/// Represents minimal aminoacid substitution (regardless of CDS)
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct AaSubMin {
-  pub pos: AaRefPosition,
-  pub ref_aa: Aa,
-  pub qry_aa: Aa,
-}
 
 /// Represents aminoacid substitution
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
@@ -63,11 +53,6 @@ impl Pos<AaRefPosition> for AaSub {
 }
 
 impl AaSub {
-  /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
-  pub fn is_del(&self) -> bool {
-    self.qry_aa.is_gap()
-  }
-
   pub fn from_str_and_gene(mut_str: impl AsRef<str>, cds_name: impl AsRef<str>) -> Result<Self, Report> {
     Self::from_str(&format!("{}:{}", cds_name.as_ref(), mut_str.as_ref()))
   }
@@ -163,15 +148,15 @@ impl From<&AaChangeWithContext> for AaSub {
   }
 }
 
-/// Check whether a given pair if reference and query aminoacids constitute a mutation or deletion
-pub fn is_aa_mutated_or_deleted(ref_aa: Aa, qry_aa: Aa) -> bool {
-  // NOTE: We chose to ignore mutations to `X`.
-  qry_aa != ref_aa && qry_aa != Aa::X
-}
-
-/// Check whether a given codon position corresponds to a sequenced aminoacid
-pub fn is_codon_sequenced(aa_alignment_ranges: &[AaRefRange], codon: AaRefPosition) -> bool {
-  aa_alignment_ranges
-    .iter()
-    .any(|aa_alignment_range| aa_alignment_range.contains(codon))
-}
+// /// Check whether a given pair if reference and query aminoacids constitute a mutation or deletion
+// pub fn is_aa_mutated_or_deleted(ref_aa: Aa, qry_aa: Aa) -> bool {
+//   // NOTE: We chose to ignore mutations to `X`.
+//   qry_aa != ref_aa && qry_aa != Aa::X
+// }
+//
+// /// Check whether a given codon position corresponds to a sequenced aminoacid
+// pub fn is_codon_sequenced(aa_alignment_ranges: &[AaRefRange], codon: AaRefPosition) -> bool {
+//   aa_alignment_ranges
+//     .iter()
+//     .any(|aa_alignment_range| aa_alignment_range.contains(codon))
+// }
