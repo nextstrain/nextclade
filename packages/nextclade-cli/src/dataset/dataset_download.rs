@@ -12,7 +12,7 @@ use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::{NextcladeParams, NextcladeParamsOptional};
-use nextclade::tree::tree::AuspiceTree;
+use nextclade::tree::tree::{check_ref_seq_mismatch, AuspiceTree};
 use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
@@ -142,6 +142,12 @@ pub fn dataset_zip_load(
     .wrap_err("When reading reference tree JSON from dataset")?;
 
   verify_dataset_files(&virus_properties, zip.file_names());
+
+  if let Some(tree) = &tree {
+    if let Some(tree_ref) = tree.root_sequence() {
+      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+    }
+  }
 
   Ok(NextcladeParams {
     ref_record,
@@ -283,6 +289,12 @@ pub fn dataset_dir_load(
     .collect_vec();
   verify_dataset_files(&virus_properties, dataset_dir_files.iter());
 
+  if let Some(tree) = &tree {
+    if let Some(tree_ref) = tree.root_sequence() {
+      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+    }
+  }
+
   Ok(NextcladeParams {
     ref_record,
     gene_map,
@@ -324,6 +336,12 @@ pub fn dataset_json_load(
     let gene_map = input_annotation
       .map_ref_fallible(GeneMap::from_path)
       .wrap_err("When parsing genome annotation")?;
+
+    if let (Some(tree), Some(ref_record)) = (&tree, &ref_record) {
+      if let Some(tree_ref) = tree.root_sequence() {
+        check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+      }
+    }
 
     NextcladeParamsOptional {
       ref_record,
@@ -369,6 +387,12 @@ pub fn dataset_individual_files_load(
         .as_ref()
         .map_ref_fallible(AuspiceTree::from_path)
         .wrap_err("When reading reference tree JSON")?;
+
+      if let Some(tree) = &tree {
+        if let Some(tree_ref) = tree.root_sequence() {
+          check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+        }
+      }
 
       Ok(NextcladeParams {
         ref_record,
@@ -438,6 +462,12 @@ pub fn dataset_str_download_and_load(
   let tree = read_from_path_or_url(&http, &dataset, &run_args.inputs.input_tree, &dataset.files.tree_json)?
     .map_ref_fallible(AuspiceTree::from_str)
     .wrap_err("When reading reference tree from dataset")?;
+
+  if let Some(tree) = &tree {
+    if let Some(tree_ref) = tree.root_sequence() {
+      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+    }
+  }
 
   Ok(NextcladeParams {
     ref_record,
