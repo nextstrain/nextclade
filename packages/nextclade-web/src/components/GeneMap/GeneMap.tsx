@@ -134,8 +134,8 @@ export function CdsSegmentView({
   const onClick = useCallback(() => {
     clearInterval(timeoutId)
     setHovered(false)
-    setViewedGene(name)
-  }, [name, setViewedGene, timeoutId])
+    setViewedGene(cds.name)
+  }, [cds.name, setViewedGene, timeoutId])
 
   return (
     <rect
