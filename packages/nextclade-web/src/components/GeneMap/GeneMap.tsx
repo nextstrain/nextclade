@@ -117,7 +117,7 @@ export function CdsSegmentView({
   const openTooltip = useCallback(() => setHoveredSmart(true), [setHoveredSmart])
   const closeTooltip = useCallback(() => setHoveredSmart(false), [setHoveredSmart])
 
-  const { name, color, range, rangeLocal, frame, phase, strand } = cdsSeg
+  const { color, range, rangeLocal, frame, phase, strand } = cdsSeg
   const lengthNucsOrCodons = global ? cdsSegmentNucLength(cdsSeg) : cdsSegmentAaLength(cdsSeg)
   const width = Math.max(BASE_MIN_WIDTH_PX, lengthNucsOrCodons * pixelsPerBase) - 1 // `-1` to make border visible
   const x = (global ? range.begin : rangeLocal.begin / 3) * pixelsPerBase + 1 // `+1 to make border visible`
