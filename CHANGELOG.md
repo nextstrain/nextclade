@@ -1,3 +1,13 @@
+## Nextclade 3.7.1
+
+### Warn if reference sequence does not match root sequence of the tree
+
+When both a standalone reference sequence and Auspice tree containing `.root.sequence.nuc` are present, Nextclade will check that these are the same sequence. If not, a warning is emitted to stderr for Nextclade CLI and to browser's dev console for Nextclade Web. This is mostly useful for dataset authors, for debugging.
+
+### Fix error when selecting a CDS in genome annotation visualization in Nextclade Web
+
+Nextclade sometimes displayed an error in the peptide view when switching CDS by clicking on annotation visualization. This has been fixed now.
+
 ## Nextclade 3.7.0
 
 #### Use Auspice JSON as a full dataset (experimental)
@@ -25,7 +35,6 @@ Previously, Nextclade treated output CSV/TSV columns index and seqName as mandat
 
 The table in the `nextclade dataset list` command now displays an additional column "capabilities", which lists dataset capabilities, i.e. whether dataset contains information allowing clade assignment, QC, etc. The same information is available in JSON format (unstable) if you pass `--json` flag.
 
-
 ## Nextclade 3.6.0
 
 #### Make reference tree node attribute `clade_membership` optional
@@ -36,19 +45,17 @@ In this version we make `clade_membership` field optional. This allows to make d
 
 With this change, if `clade_membership` is not present in the dataset's reference tree nodes, then
 
- - Clade assignment will not run
+- Clade assignment will not run
 
- - Any clade-related functionality will not work
+- Any clade-related functionality will not work
 
- - Output JSON/NDJSON result entries will not contain clade field
+- Output JSON/NDJSON result entries will not contain clade field
 
- - Clade column in output CSV/TSV will be empty
+- Clade column in output CSV/TSV will be empty
 
- - Clade column in Nextclade Web will be empty
-
+- Clade column in Nextclade Web will be empty
 
 This change does not affect any other parts of the application. Notably, clade-like attributes (from `.meta.extensions.nextclade.clade_node_attrs`), if present, are still assigned and being written to the output as before.
-
 
 ## Nextclade 3.5.0
 
@@ -58,21 +65,17 @@ This change does not affect any other parts of the application. Notably, clade-l
 
 Nextclade sometimes failed to detect a motif loss if that motif was the only one in its category. This is now fixed and users could observe changes in detected lost motifs. This affects datasets using `aaMotifs` property in their pathogen.json file, notably the flu datasets.
 
-
 ### Nextclade Web
 
 #### Ensure currently selected dataset is reloaded when it changes remotely
 
 When `dataset-url` URL parameter is provided Nextclade Web would not update the dataset's pathogen.json file when remote dataset changes without changing its version. This is now fixed. It only affected users providing custom datasets using `dataset-url` URL parameter.
 
-
 ### General
 
 #### Upgrade Auspice
 
 The Auspice tree rendering package has been updated from version 2.52.1 to version 2.53.0. See the list of changes [here](https://github.com/nextstrain/auspice/releases)
-
-
 
 ## Nextclade 3.4.0
 
@@ -86,7 +89,6 @@ In dataset selector, sometimes there were extra scrollbars displayed to the righ
 
 When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will now automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
 
-
 ### Nextclade CLI
 
 #### Don't read dataset's `tree.json` and `genome_annotation.gff3` unless they are declared
@@ -95,12 +97,11 @@ Nextclade CLI will no longer read `tree.json` and `genome_annotation.gff3` from 
 
 #### Warn user if input dataset contains extra files
 
-Nextclade CLI will warn users when input datasets contains extra files which are not declared in the dataset's  pathogen.json, or if there's extra declarations of files in the pathogen.json, but the files are not actually present in the dataset. This is mostly only useful to dataset authors for debugging issues in their datasets.
+Nextclade CLI will warn users when input datasets contains extra files which are not declared in the dataset's pathogen.json, or if there's extra declarations of files in the pathogen.json, but the files are not actually present in the dataset. This is mostly only useful to dataset authors for debugging issues in their datasets.
 
 #### Add Bioconda Linux ARM build
 
 We added one more build variant to Bioconda distribution channel - for Linux operating system on 64-bit ARM hardware architecture. It uses `nextclade-aarch64-unknown-linux-gnu` executable underneath. This can be useful if you prefer to manage Nextclade CLI installation on your Linux ARM machine or in a Docker ARM container with Conda package manager. However, because Nextclade CLI is a self-contained single-file executable, we still recommend [direct downloads from GitHub Releases](https://github.com/nextstrain/nextclade/releases) rather than Conda or other installation methods.
-
 
 ## Nextclade CLI 3.3.1
 
@@ -108,13 +109,11 @@ We added one more build variant to Bioconda distribution channel - for Linux ope
 
 Nextclade was crashing with internal error when `--verbosity` option was present. This has been fixed.
 
-
 ## Nextclade Web 3.3.1
 
 ### Restrict Safari browser support to >= 16.5
 
 Nextclade reports WebWorker-related errors when analysis is started on Safari browser. The minimum working version of Safari we were able to successfully test Nextclade on is 16.5. We still recommend using Chrome or Firefox for the best experience.
-
 
 ## Nextclade 3.3.0
 
@@ -134,7 +133,6 @@ Dataset suggestion will no longer run each time "Datasets" page is opened
 
 See changelog [here](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md)
 
-
 ## Nextclade 3.2.1
 
 ### Nextclade CLI
@@ -142,7 +140,6 @@ See changelog [here](https://github.com/nextstrain/auspice/blob/master/CHANGELOG
 #### Fix "Dataset not found" error when using `nextclade dataset get` with  `--tag` argument.
 
 This fixes a bug in the dataset filtering logic causing "Dataset not found" error when even correct name and tag were requested using `nextclade dataset get` with  `--tag` argument.
-
 
 ## Nextclade 3.2.0
 
@@ -158,13 +155,11 @@ If there is a sufficiently large gap between dataset scores, the algorithm will 
 
 Additionally, in Nextclade CLI `sort` command the algorithm now chooses only the best matching dataset. In order to select all matching datasets, the `--all-matches` flag has been added.
 
-
 ### Nextclade CLI
 
 #### Sequence index in the output TSV file of the `sort` command
 
 The TSV output of the `sort` command (requested with `--output-results-tsv`) now contains additional column: `index`. The cells under this column contain index of the corresponding input sequence in the FASTA file. These indices can be used in the downstream processing to reliably map input sequences to the output results. Sequence names alone can be unreliable because they are arbitrary strings which are not guaranteed to be unique.
-
 
 ## Nextclade 3.1.0
 
