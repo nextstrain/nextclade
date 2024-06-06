@@ -1,6 +1,6 @@
-use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_alignment::AaAlignment;
 use crate::analyze::aa_changes_find_for_cds::{aa_changes_find_for_cds, FindAaChangesOutput};
+use crate::analyze::nuc_alignment::NucAlignment;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::gene::gene_map::GeneMap;
@@ -13,8 +13,7 @@ use eyre::Report;
 /// ## Precondition
 /// Nucleotide sequences and peptides are required to be stripped from insertions
 pub fn aa_changes_find(
-  ref_seq: &[Nuc],
-  qry_seq: &[Nuc],
+  aln: &NucAlignment,
   ref_translation: &Translation,
   qry_translation: &Translation,
   gene_map: &GeneMap,
@@ -25,7 +24,7 @@ pub fn aa_changes_find(
     let ref_tr = ref_translation.get_cds(qry_name)?;
     let cds = gene_map.get_cds(&qry_tr.name)?;
     let tr = AaAlignment::new(cds, ref_tr, qry_tr);
-    Ok(aa_changes_find_for_cds(qry_seq, ref_seq, &tr, nuc_subs, nuc_dels))
+    Ok(aa_changes_find_for_cds(aln, &tr, nuc_subs, nuc_dels))
   })
   .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
   .into_iter()
