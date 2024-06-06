@@ -13,7 +13,6 @@ use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::{have_intersection, AaRefRange};
 use crate::gene::cds::Cds;
-use crate::translate::translate_genes::CdsTranslation;
 use either::Either;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -43,24 +42,20 @@ pub struct FindAaChangesOutput {
 /// might not always be established without knowing the order in which nucleotide changes have occurred. And in the
 /// context of Nextclade we don't have this information.
 pub fn aa_changes_find_for_cds(
-  cds: &Cds,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_tr: &CdsTranslation,
-  qry_tr: &CdsTranslation,
+  tr: &AaAlignment,
   nuc_subs: &[NucSub],
   nuc_dels: &[NucDelRange],
 ) -> FindAaChangesOutput {
   assert_eq!(qry_seq.len(), ref_seq.len());
 
-  let tr = AaAlignment::new(cds, ref_tr, qry_tr, &qry_tr.alignment_ranges);
-
-  let aa_changes = AaRefRange::from_usize(0, qry_tr.seq.len())
+  let aa_changes = AaRefRange::from_usize(0, tr.len())
     .iter()
     .filter_map(|codon| tr.is_codon_sequenced(codon).then_some(tr.mut_at(codon)))
     .collect_vec();
 
-  aa_changes_group(&aa_changes, cds, qry_seq, ref_seq, nuc_subs, nuc_dels, &tr)
+  aa_changes_group(&aa_changes, tr.cds(), qry_seq, ref_seq, nuc_subs, nuc_dels, tr)
 }
 
 pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(

@@ -1,32 +1,28 @@
 use crate::alphabet::aa::Aa;
 use crate::analyze::aa_sub_min::AaSubMin;
 use crate::coord::position::{AaRefPosition, PositionLike};
-use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
 use crate::translate::translate_genes::CdsTranslation;
 
 /// Represents a pair of aligned amino acid sequences (resulting from pairwise alignment
-pub struct AaAlignment<'c, 'r, 'q, 'ar> {
+pub struct AaAlignment<'c, 'r, 'q> {
   cds: &'c Cds,
   ref_tr: &'r CdsTranslation,
   qry_tr: &'q CdsTranslation,
-  aln_ranges: &'ar [AaRefRange],
 }
 
-impl<'c, 'r, 'q, 'ar> AaAlignment<'c, 'r, 'q, 'ar> {
-  pub fn new(
-    cds: &'c Cds,
-    ref_tr: &'r CdsTranslation,
-    qry_tr: &'q CdsTranslation,
-    aln_ranges: &'ar [AaRefRange],
-  ) -> Self {
+impl<'c, 'r, 'q> AaAlignment<'c, 'r, 'q> {
+  pub fn new(cds: &'c Cds, ref_tr: &'r CdsTranslation, qry_tr: &'q CdsTranslation) -> Self {
     assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
-    Self {
-      cds,
-      ref_tr,
-      qry_tr,
-      aln_ranges,
-    }
+    Self { cds, ref_tr, qry_tr }
+  }
+
+  pub const fn cds(&self) -> &Cds {
+    self.cds
+  }
+
+  pub fn len(&self) -> usize {
+    self.ref_tr.seq.len()
   }
 
   pub fn ref_at(&self, pos: AaRefPosition) -> Aa {
@@ -49,7 +45,8 @@ impl<'c, 'r, 'q, 'ar> AaAlignment<'c, 'r, 'q, 'ar> {
   pub fn is_codon_sequenced(&self, pos: AaRefPosition) -> bool {
     pos >= 0
       && self
-        .aln_ranges
+        .qry_tr
+        .alignment_ranges
         .iter()
         .any(|aa_alignment_range| aa_alignment_range.contains(pos))
   }
