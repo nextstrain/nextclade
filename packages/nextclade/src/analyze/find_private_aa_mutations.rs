@@ -40,36 +40,39 @@ pub fn find_private_aa_mutations(
 ) -> BTreeMap<String, PrivateAaMutations> {
   gene_map
     .iter_cdses()
-    .filter_map(|cds| match node.tmp.aa_mutations.get(&cds.name) {
-      //node.tmp contains mutations accumulated from root
-      None => None,
-      Some(node_mut_map) => {
-        let ref_peptide = ref_peptides.get_cds(&cds.name).unwrap();
+    .filter_map(|cds| {
+      node
+        .tmp
+        .aa_mutations
+        .get(&cds.name)
+        .map(|node_mut_map| (cds, node_mut_map))
+    })
+    .map(|(cds, node_mut_map)| {
+      let ref_peptide = ref_peptides.get_cds(&cds.name).unwrap();
 
-        let empty = vec![];
-        let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
+      let empty = vec![];
+      let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
 
-        let aa_substitutions = aa_substitutions
-          .iter()
-          .filter(|sub| sub.cds_name == cds.name)
-          .collect_vec();
+      let aa_substitutions = aa_substitutions
+        .iter()
+        .filter(|sub| sub.cds_name == cds.name)
+        .collect_vec();
 
-        let aa_deletions = aa_deletions.iter().filter(|del| del.cds_name == cds.name).collect_vec();
+      let aa_deletions = aa_deletions.iter().filter(|del| del.cds_name == cds.name).collect_vec();
 
-        let aa_unknowns = aa_unknowns.iter().filter(|unk| unk.cds_name == cds.name).collect_vec();
+      let aa_unknowns = aa_unknowns.iter().filter(|unk| unk.cds_name == cds.name).collect_vec();
 
-        let private_aa_mutations = find_private_aa_mutations_for_one_gene(
-          cds,
-          node_mut_map,
-          &aa_substitutions,
-          &aa_deletions,
-          &aa_unknowns,
-          aa_unsequenced_ranges,
-          &ref_peptide.seq,
-        );
+      let private_aa_mutations = find_private_aa_mutations_for_one_gene(
+        cds,
+        node_mut_map,
+        &aa_substitutions,
+        &aa_deletions,
+        &aa_unknowns,
+        aa_unsequenced_ranges,
+        &ref_peptide.seq,
+      );
 
-        Some((cds.name.clone(), private_aa_mutations))
-      }
+      (cds.name.clone(), private_aa_mutations)
     })
     .collect()
 }
