@@ -50,11 +50,6 @@ impl Pos<NucRefGlobalPosition> for NucSub {
 }
 
 impl NucSub {
-  /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
-  pub fn is_del(&self) -> bool {
-    self.qry_nuc.is_gap()
-  }
-
   pub const fn genotype(&self) -> Genotype<Nuc> {
     Genotype {
       pos: self.pos,

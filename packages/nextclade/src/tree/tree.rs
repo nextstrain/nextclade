@@ -12,6 +12,7 @@ use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use eyre::{eyre, Report, WrapErr};
+use log::warn;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
@@ -689,4 +690,37 @@ impl AuspiceTree {
   pub fn map_nodes_mut(&mut self, action: fn((usize, &mut AuspiceTreeNode))) {
     Self::map_nodes_mut_rec(0, &mut self.tree, action);
   }
+
+  pub fn root_sequence(&self) -> Option<&str> {
+    self
+      .root_sequence
+      .as_ref()
+      .and_then(|root_sequence| root_sequence.get("nuc"))
+      .map(String::as_str)
+  }
+}
+
+pub fn check_ref_seq_mismatch(
+  standalone_ref_seq: impl AsRef<str>,
+  tree_ref_seq: impl AsRef<str>,
+) -> Result<(), Report> {
+  if standalone_ref_seq.as_ref() != tree_ref_seq.as_ref() {
+    warn!(
+      r#"Nextclade detected that reference sequence provided does not exactly match reference (root) sequence in Auspice JSON.
+
+     This could be due to one of the reasons:
+
+     - Nextclade dataset author provided reference sequence and reference tree that are incompatible
+     - The reference tree has been constructed incorrectly
+     - The reference sequence provided using `--input-ref` CLI argument is not compatible with the reference tree in the dataset
+     - The reference tree provided using `--input-tree` CLI argument is not compatible with the reference sequence in the dataset
+     - The reference sequence provided using `&input-ref` parameter in Nextclade Web URL is not compatible with the reference tree in the dataset
+     - The reference tree provided using `&input-tree` parameter in Nextclade Web URL is not compatible with the reference sequence in the dataset
+
+     This warning signals that there is a potential for failures if the mismatch is not intended.
+    "#
+    );
+  }
+
+  Ok(())
 }

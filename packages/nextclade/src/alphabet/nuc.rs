@@ -57,6 +57,7 @@ impl Display for Nuc {
 
 impl Letter<Nuc> for Nuc {
   const GAP: Nuc = Nuc::Gap;
+  const UNKNOWN: Nuc = Nuc::N;
 
   #[inline]
   fn is_gap(&self) -> bool {
