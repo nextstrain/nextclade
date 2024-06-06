@@ -11,6 +11,7 @@ pub trait ScoreMatrixLookup<T> {
 /// Generic representation of a character defining nucleotide or amino acid
 pub trait Letter<L>: Copy + Display + Eq + Ord + ScoreMatrixLookup<L> {
   const GAP: L;
+  const UNKNOWN: L;
 
   fn is_gap(&self) -> bool;
 

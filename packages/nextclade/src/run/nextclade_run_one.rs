@@ -3,7 +3,9 @@ use crate::align::insertions_strip::{get_aa_insertions, insertions_strip, AaIns,
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::aa_changes::{find_aa_changes, AaChangesGroup, FindAaChangesOutput};
+use crate::analyze::aa_changes_find::aa_changes_find;
+use crate::analyze::aa_changes_find_for_cds::FindAaChangesOutput;
+use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_branch_length;
@@ -15,6 +17,7 @@ use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
   find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, CdsAaRange, NucRange,
 };
+use crate::analyze::nuc_alignment::NucAlignment;
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
@@ -108,6 +111,8 @@ pub fn nextclade_run_one(
     alignment_range,
   } = find_nuc_changes(&stripped.qry_seq, ref_seq);
 
+  let aln = NucAlignment::new(ref_seq, &stripped.qry_seq, &alignment_range);
+
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(NucDelRange::len).sum();
 
@@ -198,9 +203,8 @@ pub fn nextclade_run_one(
       aa_substitutions,
       aa_deletions,
       nuc_to_aa_muts,
-    } = find_aa_changes(
-      ref_seq,
-      &stripped.qry_seq,
+    } = aa_changes_find(
+      &aln,
       ref_translation,
       &translation,
       gene_map,
@@ -259,11 +263,11 @@ pub fn nextclade_run_one(
 
     let nearest_nodes = params.general.include_nearest_node_info.then_some(
       nearest_node_candidates
-    .iter()
-    // Choose all nodes with distance equal to the distance of the nearest node
-    .filter(|n| n.distance == nearest_node_candidates[0].distance)
-    .map(|n| Ok(graph.get_node(n.node_key)?.payload().name.clone()))
-    .collect::<Result<Vec<String>, Report>>()?,
+      .iter()
+      // Choose all nodes with distance equal to the distance of the nearest node
+      .filter(|n| n.distance == nearest_node_candidates[0].distance)
+      .map(|n| Ok(graph.get_node(n.node_key)?.payload().name.clone()))
+      .collect::<Result<Vec<String>, Report>>()?,
     );
 
     let clade = nearest_node.clade();
