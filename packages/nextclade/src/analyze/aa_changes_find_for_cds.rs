@@ -56,12 +56,13 @@ pub fn aa_changes_find_for_cds(
 
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
-  for codon in AaRefRange::from_usize(0, qry_tr.seq.len()).iter() {
-    if !tr.is_codon_sequenced(codon) {
-      continue;
-    }
 
-    let aa_mut = tr.mut_at(codon);
+  let aa_muts = AaRefRange::from_usize(0, qry_tr.seq.len())
+    .iter()
+    .filter_map(|codon| tr.is_codon_sequenced(codon).then_some(tr.mut_at(codon)));
+
+  for aa_mut in aa_muts {
+    let codon = aa_mut.pos;
 
     if aa_mut.is_mutated_and_not_unknown() {
       match curr_group.last() {
