@@ -1,3 +1,4 @@
+use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_alignment::AaAlignment;
@@ -9,6 +10,7 @@ use crate::analyze::abstract_mutation::AbstractMutation;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
+use crate::coord::position::AaRefPosition;
 use crate::coord::range::{have_intersection, AaRefRange};
 use crate::gene::cds::Cds;
 use crate::translate::translate_genes::CdsTranslation;
@@ -49,20 +51,32 @@ pub fn aa_changes_find_for_cds(
   nuc_subs: &[NucSub],
   nuc_dels: &[NucDelRange],
 ) -> FindAaChangesOutput {
-  assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
   let tr = AaAlignment::new(cds, ref_tr, qry_tr, &qry_tr.alignment_ranges);
 
+  let aa_changes = AaRefRange::from_usize(0, qry_tr.seq.len())
+    .iter()
+    .filter_map(|codon| tr.is_codon_sequenced(codon).then_some(tr.mut_at(codon)))
+    .collect_vec();
+
+  aa_changes_group(&aa_changes, cds, qry_seq, ref_seq, nuc_subs, nuc_dels, &tr)
+}
+
+pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
+  aa_muts: &[M],
+  cds: &Cds,
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  nuc_subs: &[NucSub],
+  nuc_dels: &[NucDelRange],
+  tr: &AaAlignment,
+) -> FindAaChangesOutput {
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
   let mut curr_group = aa_changes_groups.last_mut().unwrap();
 
-  let aa_muts = AaRefRange::from_usize(0, qry_tr.seq.len())
-    .iter()
-    .filter_map(|codon| tr.is_codon_sequenced(codon).then_some(tr.mut_at(codon)));
-
   for aa_mut in aa_muts {
-    let codon = aa_mut.pos;
+    let codon = aa_mut.pos();
 
     if aa_mut.is_mutated_and_not_unknown() {
       match curr_group.last() {
@@ -193,9 +207,9 @@ pub fn aa_changes_find_for_cds(
         .flat_map(|change| {
           change.nuc_ranges.iter().flat_map(move |range| {
             range.iter()
-             // TODO: We convert position to string here, because when communicating with WASM we will pass through
-             //   JSON schema, and JSON object keys must be strings. Maybe there is a way to keep the keys as numbers?
-            .map(move |pos| (pos.to_string(), AaSub::from(change)))
+              // TODO: We convert position to string here, because when communicating with WASM we will pass through
+              //   JSON schema, and JSON object keys must be strings. Maybe there is a way to keep the keys as numbers?
+              .map(move |pos| (pos.to_string(), AaSub::from(change)))
           })
         })
     })

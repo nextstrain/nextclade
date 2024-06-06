@@ -14,12 +14,13 @@ pub struct AaAlignment<'c, 'r, 'q, 'ar> {
 }
 
 impl<'c, 'r, 'q, 'ar> AaAlignment<'c, 'r, 'q, 'ar> {
-  pub const fn new(
+  pub fn new(
     cds: &'c Cds,
     ref_tr: &'r CdsTranslation,
     qry_tr: &'q CdsTranslation,
     aln_ranges: &'ar [AaRefRange],
   ) -> Self {
+    assert_eq!(ref_tr.seq.len(), qry_tr.seq.len());
     Self {
       cds,
       ref_tr,
