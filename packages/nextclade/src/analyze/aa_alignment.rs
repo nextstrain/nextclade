@@ -41,8 +41,7 @@ impl<'c, 'r, 'q> AaAlignment<'c, 'r, 'q> {
     }
   }
 
-  /// Check whether a given codon position falls within alignment
-  pub fn is_codon_sequenced(&self, pos: AaRefPosition) -> bool {
+  pub fn is_sequenced(&self, pos: AaRefPosition) -> bool {
     pos >= 0
       && self
         .qry_tr

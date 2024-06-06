@@ -52,7 +52,7 @@ pub fn aa_changes_find_for_cds(
 
   let aa_changes = AaRefRange::from_usize(0, tr.len())
     .iter()
-    .filter_map(|codon| tr.is_codon_sequenced(codon).then_some(tr.mut_at(codon)))
+    .filter_map(|codon| tr.is_sequenced(codon).then_some(tr.mut_at(codon)))
     .collect_vec();
 
   aa_changes_group(&aa_changes, tr.cds(), qry_seq, ref_seq, nuc_subs, nuc_dels, tr)
@@ -77,7 +77,7 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
       match curr_group.last() {
         // If current group is empty, then we are about to insert the first codon into the first group.
         None => {
-          if codon > 0 && tr.is_codon_sequenced(codon - 1) {
+          if codon > 0 && tr.is_sequenced(codon - 1) {
             // Also prepend one codon to the left, for additional context, to start the group
             curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
           }
@@ -92,7 +92,7 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
           if codon <= prev.pos + 2 {
             // If previous codon in the group is not exactly adjacent, there is 1 item in between,
             // then cover the hole by inserting previous codon.
-            if codon == prev.pos + 2 && tr.is_codon_sequenced(codon - 1) {
+            if codon == prev.pos + 2 && tr.is_sequenced(codon - 1) {
               curr_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
             }
 
@@ -102,7 +102,7 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
           // If previous codon in the group is not adjacent, then terminate the current group and start a new group.
           else {
             // Add one codon to the right, for additional context, to finalize the current group
-            if tr.is_codon_sequenced(prev.pos + 1) {
+            if tr.is_sequenced(prev.pos + 1) {
               curr_group.push(AaChangeWithContext::new(
                 cds,
                 &tr.mut_at(prev.pos + 1),
@@ -114,7 +114,7 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
             let mut new_group = AaChangesGroup::new(&cds.name);
 
             // Start a new group and push the current codon into it.
-            if tr.is_codon_sequenced(codon - 1) {
+            if tr.is_sequenced(codon - 1) {
               // Also prepend one codon to the left, for additional context, to start the new group.
               new_group.push(AaChangeWithContext::new(cds, &tr.mut_at(codon - 1), qry_seq, ref_seq));
             }
@@ -133,7 +133,7 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
 
   // Add one codon to the right, for additional context, to finalize the last group
   if let Some(last) = curr_group.last() {
-    if tr.is_codon_sequenced(last.pos + 1) {
+    if tr.is_sequenced(last.pos + 1) {
       curr_group.push(AaChangeWithContext::new(
         cds,
         &tr.mut_at(last.pos + 1),
