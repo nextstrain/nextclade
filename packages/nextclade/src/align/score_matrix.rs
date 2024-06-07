@@ -217,7 +217,6 @@ mod tests {
 
   struct Context {
     params: AlignPairwiseParams,
-    gene_map: GeneMap,
     gap_open_close: GapScoreMap,
   }
 
@@ -233,11 +232,7 @@ mod tests {
     let dummy_ref_seq = vec![Nuc::Gap; 100];
     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
 
-    Context {
-      params,
-      gene_map,
-      gap_open_close,
-    }
+    Context { params, gap_open_close }
   }
 
   #[rstest]

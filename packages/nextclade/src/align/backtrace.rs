@@ -97,41 +97,13 @@ mod tests {
   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
   use super::*;
   use crate::align::band_2d::simple_stripes;
-  use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  use crate::align::params::AlignPairwiseParams;
-
-  use crate::alphabet::nuc::{to_nuc_seq, Nuc};
-  use crate::gene::gene_map::GeneMap;
+  use crate::alphabet::nuc::to_nuc_seq;
   use eyre::Report;
   use pretty_assertions::assert_eq;
-  use rstest::{fixture, rstest};
-
-  struct Context {
-    params: AlignPairwiseParams,
-    gene_map: GeneMap,
-    gap_open_close: GapScoreMap,
-  }
-  #[fixture]
-  fn ctx() -> Context {
-    let params = AlignPairwiseParams {
-      min_length: 3,
-      ..AlignPairwiseParams::default()
-    };
-
-    let gene_map = GeneMap::new();
-
-    let dummy_ref_seq = vec![Nuc::Gap; 100];
-    let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
-
-    Context {
-      params,
-      gene_map,
-      gap_open_close,
-    }
-  }
+  use rstest::rstest;
 
   #[rstest]
-  fn test_backtrace(ctx: Context) -> Result<(), Report> {
+  fn test_backtrace() -> Result<(), Report> {
     let qry_seq = to_nuc_seq("CTCGCT")?;
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
 
