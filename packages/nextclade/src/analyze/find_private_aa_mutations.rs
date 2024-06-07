@@ -1,10 +1,16 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
+use crate::analyze::aa_alignment::AaAlignment;
+use crate::analyze::aa_changes_find_for_cds::aa_changes_group;
+use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::CdsAaRange;
-use crate::coord::position::{AaRefPosition, PositionLike};
+use crate::analyze::nuc_alignment::NucAlignment;
+use crate::analyze::nuc_del::NucDelRange;
+use crate::analyze::nuc_sub::NucSub;
+use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
 use crate::gene::gene_map::GeneMap;
@@ -25,6 +31,7 @@ pub struct PrivateAaMutations {
   pub total_private_substitutions: usize,
   pub total_private_deletions: usize,
   pub total_reversion_substitutions: usize,
+  pub aa_changes_groups: Vec<AaChangesGroup>,
 }
 
 /// Finds private aminoacid mutations.
@@ -36,8 +43,12 @@ pub fn find_private_aa_mutations(
   aa_deletions: &[AaDel],
   aa_unknowns: &[CdsAaRange],
   aa_unsequenced_ranges: &BTreeMap<String, Vec<AaRefRange>>,
-  ref_peptides: &Translation,
+  ref_translation: &Translation,
+  qry_translation: &Translation,
   gene_map: &GeneMap,
+  aln: &NucAlignment,
+  substitutions: &[NucSub],
+  deletions: &[NucDelRange],
 ) -> Result<BTreeMap<String, PrivateAaMutations>, Report> {
   gene_map
     .iter_cdses()
@@ -49,7 +60,9 @@ pub fn find_private_aa_mutations(
         .map(|node_mut_map| (cds, node_mut_map))
     })
     .map(|(cds, node_mut_map)| {
-      let ref_peptide = ref_peptides.get_cds(&cds.name)?;
+      let ref_peptide = ref_translation.get_cds(&cds.name)?;
+      let qry_peptide = qry_translation.get_cds(&cds.name)?;
+      let tr = AaAlignment::new(cds, ref_peptide, qry_peptide);
 
       let empty = vec![];
       let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
@@ -64,13 +77,15 @@ pub fn find_private_aa_mutations(
       let aa_unknowns = aa_unknowns.iter().filter(|unk| unk.cds_name == cds.name).collect_vec();
 
       let private_aa_mutations = find_private_aa_mutations_for_one_gene(
-        cds,
+        &tr,
         node_mut_map,
         &aa_substitutions,
         &aa_deletions,
         &aa_unknowns,
         aa_unsequenced_ranges,
-        &ref_peptide.seq,
+        aln,
+        substitutions,
+        deletions,
       );
 
       Ok((cds.name.clone(), private_aa_mutations))
@@ -79,14 +94,18 @@ pub fn find_private_aa_mutations(
 }
 
 pub fn find_private_aa_mutations_for_one_gene(
-  cds: &Cds,
+  tr: &AaAlignment,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_substitutions: &[&AaSub],
   aa_deletions: &[&AaDel],
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
-  ref_peptide: &[Aa],
+  aln: &NucAlignment,
+  substitutions: &[NucSub],
+  deletions: &[NucDelRange],
 ) -> PrivateAaMutations {
+  let cds = tr.cds();
+
   // Remember which positions we cover while iterating sequence mutations,
   // to be able to skip them when we iterate over node mutations
   let mut seq_positions_mutated_or_deleted = BTreeSet::<AaRefPosition>::new();
@@ -104,11 +123,10 @@ pub fn find_private_aa_mutations_for_one_gene(
 
   // Iterate over node substitutions and deletions and find reversions
   let reversion_substitutions = find_reversions(
-    cds,
+    tr,
     node_mut_map,
     aa_unknowns,
     aa_unsequenced_ranges,
-    ref_peptide,
     &seq_positions_mutated_or_deleted,
   );
 
@@ -124,10 +142,13 @@ pub fn find_private_aa_mutations_for_one_gene(
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
 
+  let grouped = aa_changes_group(&private_substitutions, aln, tr, substitutions, deletions);
+
   PrivateAaMutations {
     private_substitutions,
     private_deletions,
     reversion_substitutions,
+    aa_changes_groups: grouped.aa_changes_groups,
     total_private_substitutions,
     total_private_deletions,
     total_reversion_substitutions,
@@ -242,11 +263,10 @@ fn process_seq_deletions(
 
 /// Iterates over node mutations, compares node and sequence mutations and finds reversion mutations.
 fn find_reversions(
-  cds: &Cds,
+  tr: &AaAlignment,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
-  ref_peptide: &[Aa],
   seq_positions_mutated_or_deleted: &BTreeSet<AaRefPosition>,
 ) -> Vec<AaSub> {
   let mut reversion_substitutions = Vec::<AaSub>::new();
@@ -261,10 +281,10 @@ fn find_reversions(
       // handled in process_seq_substitutions)
       // Action: Add mutation from node query character to character in reference sequence.
       reversion_substitutions.push(AaSub {
-        cds_name: cds.name.clone(),
+        cds_name: tr.cds().name.clone(),
         ref_aa: *node_qry,
         pos,
-        qry_aa: ref_peptide[pos.as_usize()],
+        qry_aa: tr.ref_at(pos),
       });
     }
   }

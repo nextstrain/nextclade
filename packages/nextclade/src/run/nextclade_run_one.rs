@@ -300,7 +300,11 @@ pub fn nextclade_run_one(
       &unknown_aa_ranges,
       &aa_unsequenced_ranges,
       ref_translation,
+      &translation,
       gene_map,
+      &aln,
+      &substitutions,
+      &deletions,
     )?;
     let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
     let masked_ranges = graph.data.meta.placement_mask_ranges();
@@ -334,7 +338,11 @@ pub fn nextclade_run_one(
       &unknown_aa_ranges,
       &aa_unsequenced_ranges,
       ref_translation,
+      &translation,
       gene_map,
+      &aln,
+      &substitutions,
+      &deletions,
     )?;
 
     let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {

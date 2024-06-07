@@ -4,6 +4,7 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
+use crate::analyze::nuc_alignment::NucAlignment;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::virus_properties::VirusProperties;
@@ -80,7 +81,11 @@ pub fn find_relative_aa_mutations(
   aa_unknowns: &[CdsAaRange],
   aa_unsequenced_ranges: &BTreeMap<String, Vec<AaRefRange>>,
   ref_peptides: &Translation,
+  qry_peptides: &Translation,
   gene_map: &GeneMap,
+  aln: &NucAlignment,
+  substitutions: &[NucSub],
+  deletions: &[NucDelRange],
 ) -> Result<Vec<RelativeAaMutations>, Report> {
   let ref_nodes = filter_ref_nodes(graph, clade, clade_node_attrs);
 
@@ -99,7 +104,11 @@ pub fn find_relative_aa_mutations(
         aa_unknowns,
         aa_unsequenced_ranges,
         ref_peptides,
+        qry_peptides,
         gene_map,
+        aln,
+        substitutions,
+        deletions,
       )?;
 
       Ok(RelativeAaMutations {
