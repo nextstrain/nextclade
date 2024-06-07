@@ -307,6 +307,8 @@ SHELL ["bash", "-euxo", "pipefail", "-c"]
 RUN set -euxo pipefail >/dev/null \
 && rustup target add wasm32-unknown-unknown
 
+USER ${USER}
+
 
 # Cross-compilation for Linux ARM64
 FROM base as cross-aarch64-unknown-linux-gnu
