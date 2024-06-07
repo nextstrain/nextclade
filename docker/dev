@@ -61,7 +61,7 @@ function abspath() {
   readlink -m "$1"
 }
 
-# Checks whether we are running on a Continuous integration server
+# Checks whether we are running on a continuous integration server
 function is_ci() {
   if false ||
     [ "${BUILD_ID:=}" == "1" ] || [ "${BUILD_ID:=}" == "true" ] ||
@@ -405,11 +405,6 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-#  ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
-#  if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
-#    docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container >/dev/null
-#  fi
-
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --push"
   else
@@ -419,9 +414,6 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   BUILDX_CACHE_DIR="${CACHE_DIR}/buildx"
 
   mkdir -p "${BUILDX_CACHE_DIR}"
-  if [ -f "${BUILDX_CACHE_DIR}/index.json" ]; then
-    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --cache-from=\"type=local,src=${BUILDX_CACHE_DIR}\""
-  fi
 
   images=(
     "${DOCKER_REPO}:dev" \
@@ -441,6 +433,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="type=local,src=${BUILDX_CACHE_DIR}" \
     --cache-to="type=local,dest=${BUILDX_CACHE_DIR},mode=max,compression=zstd,ignore-error=true" \
     --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
     --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
