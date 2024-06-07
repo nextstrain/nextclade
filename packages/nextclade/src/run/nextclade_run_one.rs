@@ -301,7 +301,7 @@ pub fn nextclade_run_one(
       &aa_unsequenced_ranges,
       ref_translation,
       gene_map,
-    );
+    )?;
     let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
     let masked_ranges = graph.data.meta.placement_mask_ranges();
     let divergence = parent_div

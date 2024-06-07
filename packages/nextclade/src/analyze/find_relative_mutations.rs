@@ -100,7 +100,7 @@ pub fn find_relative_aa_mutations(
         aa_unsequenced_ranges,
         ref_peptides,
         gene_map,
-      );
+      )?;
 
       Ok(RelativeAaMutations {
         ref_node: ref_node.to_owned(),

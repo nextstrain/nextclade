@@ -11,6 +11,7 @@ use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceGraphNodePayload;
 use crate::utils::collections::concat_to_vec;
+use eyre::Report;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -37,7 +38,7 @@ pub fn find_private_aa_mutations(
   aa_unsequenced_ranges: &BTreeMap<String, Vec<AaRefRange>>,
   ref_peptides: &Translation,
   gene_map: &GeneMap,
-) -> BTreeMap<String, PrivateAaMutations> {
+) -> Result<BTreeMap<String, PrivateAaMutations>, Report> {
   gene_map
     .iter_cdses()
     .filter_map(|cds| {
@@ -48,7 +49,7 @@ pub fn find_private_aa_mutations(
         .map(|node_mut_map| (cds, node_mut_map))
     })
     .map(|(cds, node_mut_map)| {
-      let ref_peptide = ref_peptides.get_cds(&cds.name).unwrap();
+      let ref_peptide = ref_peptides.get_cds(&cds.name)?;
 
       let empty = vec![];
       let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
@@ -72,7 +73,7 @@ pub fn find_private_aa_mutations(
         &ref_peptide.seq,
       );
 
-      (cds.name.clone(), private_aa_mutations)
+      Ok((cds.name.clone(), private_aa_mutations))
     })
     .collect()
 }
