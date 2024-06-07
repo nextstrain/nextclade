@@ -61,6 +61,27 @@ function abspath() {
   readlink -m "$1"
 }
 
+# Checks whether we are running on a Continuous integration server
+function is_ci() {
+  if false ||
+    [ "${BUILD_ID:=}" == "1" ] || [ "${BUILD_ID:=}" == "true" ] ||
+    [ "${CI:=}" == "1" ] || [ "${CI:=}" == "true" ] ||
+    [ "${CIRCLECI:=}" == "1" ] || [ "${CIRCLECI:=}" == "true" ] ||
+    [ "${CIRRUS_CI:=}" == "1" ] || [ "${CIRRUS_CI:=}" == "true" ] ||
+    [ "${CODEBUILD_BUILD_ID:=}" == "1" ] || [ "${CODEBUILD_BUILD_ID:=}" == "true" ] ||
+    [ "${GITHUB_ACTIONS:=}" == "1" ] || [ "${GITHUB_ACTIONS:=}" == "true" ] ||
+    [ "${GITLAB_CI:=}" == "1" ] || [ "${GITLAB_CI:=}" == "true" ] ||
+    [ "${HEROKU_TEST_RUN_ID:=}" == "1" ] || [ "${HEROKU_TEST_RUN_ID:=}" == "true" ] ||
+    [ "${TEAMCITY_VERSION:=}" == "1" ] || [ "${TEAMCITY_VERSION:=}" == "true" ] ||
+    [ "${TF_BUILD:=}" == "1" ] || [ "${TF_BUILD:=}" == "true" ] ||
+    [ "${TRAVIS:=}" == "1" ] || [ "${TRAVIS:=}" == "true" ] \
+    ; then
+    echo "1"
+  else
+    echo "0"
+  fi
+}
+
 export THIS_DIR=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd
@@ -103,12 +124,13 @@ export RUST_BACKTRACE="full"
 export COLORBT_SHOW_HIDDEN="0"
 export RUST_LOG="warn"
 
-. "${PROJECT_ROOT_DIR}/.env.example"
+if [ -f "${PROJECT_ROOT_DIR}/.env.example" ]; then
+  . "${PROJECT_ROOT_DIR}/.env.example"
+fi
+
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   . "${PROJECT_ROOT_DIR}/.env"
 fi
-
-. "${PROJECT_ROOT_DIR}/scripts/is_ci.sh"
 
 export EXTENSIONS_TO_WATCH="rs,toml,lock"
 
@@ -350,7 +372,7 @@ fi
 
 DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04}"
 CLANG_VERSION="${CLANG_VERSION:=13}"
-DOCKER_TARGET="dev"
+DOCKER_TARGET="${DOCKER_TARGET:-dev}"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   if [[ "${CROSS}" == *linux-gnu ]]; then
@@ -373,8 +395,7 @@ DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null ||
   [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
 
-  # export DOCKER_BUILDKIT=1
-#  export BUILDKIT_PROGRESS=plain
+  export BUILDKIT_PROGRESS=plain
   export PROGRESS_NO_TRUNC=1
 
   ADDITIONAL_DOCKER_BUILD_ARGS=
@@ -384,10 +405,10 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-  ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
-  if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
-    docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container --driver-opt network=host >/dev/null
-  fi
+#  ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --builder=${DOCKER_IMAGE_NAME_SAFE}"
+#  if ! docker buildx inspect "${DOCKER_IMAGE_NAME_SAFE}" &>/dev/null; then
+#    docker buildx create --use --name "${DOCKER_IMAGE_NAME_SAFE}" --driver docker-container >/dev/null
+#  fi
 
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --push"
@@ -395,28 +416,32 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --load"
   fi
 
-  BRANCH="$(git rev-parse --abbrev-ref HEAD || echo "${GITHUB_REF_NAME:=}")"
-  CACHE_SCOPE="${DOCKER_REPO}-${DOCKER_TARGET}-${BRANCH}"
   BUILDX_CACHE_DIR="${CACHE_DIR}/buildx"
 
   mkdir -p "${BUILDX_CACHE_DIR}"
-
-  if [ "${VERBOSE:=0}" != "1" ]; then
-    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} -q"
+  if [ -f "${BUILDX_CACHE_DIR}/index.json" ]; then
+    ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --cache-from=\"type=local,src=${BUILDX_CACHE_DIR}\""
   fi
+
+  images=(
+    "${DOCKER_REPO}:dev" \
+    "${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}"
+    "${DOCKER_REPO}:${DOCKER_TARGET}"
+    "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}"
+  )
+
+  parallel 'docker pull -q {} >/dev/null 2>&1 || true' ::: "${images[@]}"
 
   ${NICE} docker buildx build \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
-    --cache-from="${DOCKER_REPO}" \
     --cache-from="${DOCKER_REPO}:dev" \
     --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
-    --cache-from="type=local,src=${BUILDX_CACHE_DIR},scope=${CACHE_SCOPE}" \
-    --cache-to="type=local,dest=${BUILDX_CACHE_DIR},mode=max,compression=zstd,scope=${CACHE_SCOPE}" \
+    --cache-to="type=local,dest=${BUILDX_CACHE_DIR},mode=max,compression=zstd,ignore-error=true" \
     --build-arg="DOCKER_BASE_IMAGE=${DOCKER_BASE_IMAGE}" \
     --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
     --build-arg="UID=$(id -u)" \
@@ -457,7 +482,7 @@ elif [ "${EXAMPLE}" == "1" ]; then
   if [ "$(is_ci)" == "1" ]; then
     PARAMS=" --locked ${PARAMS}"
   fi
-  COMMAND="cargo run -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
+  COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
   PARAMS="$(echo "${@:-}" | xargs)"
   if [ -n "${PARAMS}" ]; then
@@ -466,7 +491,7 @@ elif [ "${BUILD}" == "1" ]; then
   if [ "$(is_ci)" == "1" ]; then
     PARAMS=" --locked ${PARAMS}"
   fi
-  COMMAND="cargo build -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
+  COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${SMOKE_TEST}" == "1" ]; then
   COMMAND="./tests/run-smoke-tests 'cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} --bin=nextclade'"
 elif [ "${WASM}" == "1" ]; then
@@ -479,7 +504,7 @@ elif [ "${TEST}" == "1" ]; then
     COMMAND="cargo -q nextest run --cargo-quiet --no-fail-fast --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} -- ${*:-} ${SUCCESS_OR_FAILURE}"
 elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"
-  COMMAND="cargo bench --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
+  COMMAND="cargo -q bench --workspace --benches --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all-targets --all ${FIX:-} ${LINT_DENY}"
 elif [ "${FORMAT}" == "1" ]; then
@@ -517,7 +542,6 @@ fi
 # shellcheck disable=SC2086
 ${NICE} docker run --rm \
   ${ADDITIONAL_DOCKER_RUN_ARGS} \
-  --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
   --hostname="${DOCKER_IMAGE_NAME_SAFE}" \
@@ -543,8 +567,8 @@ ${NICE} docker run --rm \
 if [ -n "${CROSS:-}" ] && [ -n "${RELEASE:-}" ] && { [ "${BUILD:-}" == 1 ] || [ "${RUN:-}" == 1 ]; }; then
   mkdir -p .out/
   if [[ "${CROSS}" == *windows* ]]; then
-    cp "${BUILD_DIR}/${CROSS}/release/nextclade.exe" ".out/nextclade-${CROSS}.exe"
+    cp "${BUILD_DIR}/${CROSS}/release/${PACKAGE_NAME}.exe" ".out/${PACKAGE_NAME}-${CROSS}.exe"
   else
-    cp "${BUILD_DIR}/${CROSS}/release/nextclade" ".out/nextclade-${CROSS}"
+    cp "${BUILD_DIR}/${CROSS}/release/${PACKAGE_NAME}" ".out/${PACKAGE_NAME}-${CROSS}"
   fi
 fi

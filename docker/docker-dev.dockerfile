@@ -69,6 +69,7 @@ RUN set -euxo pipefail >/dev/null \
   gnupg \
   libssl-dev \
   lsb-release \
+  make \
   parallel \
   pigz \
   pixz \
@@ -114,11 +115,42 @@ ENV RUSTUP_HOME="${HOME}/.rustup"
 ENV NODE_DIR="/opt/node"
 ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
 
+# Make a user and group
+RUN set -euxo pipefail >/dev/null \
+&& \
+  if [ -z "$(getent group ${GID})" ]; then \
+    groupadd --system --gid ${GID} ${GROUP}; \
+  else \
+    groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
+  fi \
+&& export SUDO_GROUP="sudo" \
+&& \
+  if [[ "$DOCKER_BASE_IMAGE" == centos* ]] || [[ "$DOCKER_BASE_IMAGE" == *manylinux2014* ]]; then \
+    export SUDO_GROUP="wheel"; \
+  fi \
+&& \
+  if [ -z "$(getent passwd ${UID})" ]; then \
+    useradd \
+      --system \
+      --create-home --home-dir ${HOME} \
+      --shell /bin/bash \
+      --gid ${GROUP} \
+      --groups ${SUDO_GROUP} \
+      --uid ${UID} \
+      ${USER}; \
+  fi \
+&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
+&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
+&& sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
+&& echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& touch ${HOME}/.hushlogin
+
 # Install Python dependencies
 RUN set -euxo pipefail >/dev/null \
 && pip3 install --user --upgrade cram
 
-# Install dasel, a tool to query TOML files
+# Install jq, a tool to query JSON files
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL -o "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
 && chmod +x "/usr/bin/jq" \
@@ -151,38 +183,8 @@ RUN set -euxo pipefail >/dev/null \
 && sed -i'' "s/_this2\.reporter.warn(_this2\.reporter.lang('ignoredScripts'));//g" "${NODE_DIR}/lib/node_modules/yarn/lib/cli.js" \
 && sed -i'' 's/_this3\.reporter\.warn(_this3\.reporter\.lang(peerError.*;//g' "/opt/node/lib/node_modules/yarn/lib/cli.js"
 
-# Make a user and group
 RUN set -euxo pipefail >/dev/null \
-&& \
-  if [ -z "$(getent group ${GID})" ]; then \
-    groupadd --system --gid ${GID} ${GROUP}; \
-  else \
-    groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
-  fi \
-&& export SUDO_GROUP="sudo" \
-&& \
-  if [[ "$DOCKER_BASE_IMAGE" == centos* ]] || [[ "$DOCKER_BASE_IMAGE" == *manylinux2014* ]]; then \
-    export SUDO_GROUP="wheel"; \
-  fi \
-&& \
-  if [ -z "$(getent passwd ${UID})" ]; then \
-    useradd \
-      --system \
-      --create-home --home-dir ${HOME} \
-      --shell /bin/bash \
-      --gid ${GROUP} \
-      --groups ${SUDO_GROUP} \
-      --uid ${UID} \
-      ${USER}; \
-  fi \
-&& sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g' \
-&& sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD:ALL/g' \
-&& sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
-&& echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-&& echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-&& touch ${HOME}/.hushlogin \
 && chown -R ${UID}:${GID} "${HOME}"
-
 
 USER ${USER}
 
@@ -262,9 +264,6 @@ RUN set -euxo pipefail >/dev/null \
 
 USER ${USER}
 
-WORKDIR ${HOME}/src
-
-
 
 # Native compilation for Linux x86_64 with gnu-libc
 FROM base as dev
@@ -335,7 +334,6 @@ RUN set -euxo pipefail >/dev/null \
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-
 
 # Cross-compilation for Linux ARM64 with libmusl
 FROM base as cross-aarch64-unknown-linux-musl
@@ -414,6 +412,17 @@ ENV CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER=x86_64-apple-darwin20.2-clang
 ENV CARGO_TARGET_X86_64_APPLE_DARWIN_STRIP=x86_64-apple-darwin20.2-strip
 
 
+USER 0
+
+ENV OSXCROSS_MP_INC=1
+ENV MACOSX_DEPLOYMENT_TARGET=10.7
+
+RUN set -euxo pipefail >/dev/null \
+&& echo "1" | osxcross-macports install openssl -v
+
+USER ${USER}
+
+
 # Cross-compilation for macOS ARM64
 FROM osxcross as cross-aarch64-apple-darwin
 
@@ -429,3 +438,13 @@ ENV CC_aarch64-apple-darwin=aarch64-apple-darwin20.2-clang
 ENV CXX_aarch64-apple-darwin=aarch64-apple-darwin20.2-clang++
 ENV CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER=aarch64-apple-darwin20.2-clang
 ENV CARGO_TARGET_AARCH64_APPLE_DARWIN_STRIP=aarch64-apple-darwin20.2-strip
+
+USER 0
+
+ENV OSXCROSS_MP_INC=1
+ENV MACOSX_DEPLOYMENT_TARGET=10.7
+
+RUN set -euxo pipefail >/dev/null \
+&& echo "1" | osxcross-macports install openssl -v
+
+USER ${USER}
