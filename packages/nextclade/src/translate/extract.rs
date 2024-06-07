@@ -76,8 +76,6 @@ mod coord_map_tests {
   use rstest::rstest;
 
   fn create_fake_cds(segment_ranges: &[(isize, isize)]) -> Cds {
-    let foo = 0;
-
     Cds {
       id: "".to_owned(),
       name: "".to_owned(),

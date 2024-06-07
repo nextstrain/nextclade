@@ -292,11 +292,10 @@ mod tests {
     let terminal_bandwidth = 5;
     let excess_bandwidth = 2;
     let allowed_mismatches = 2;
-    let max_indel = 100;
     let qry_len = 30;
     let ref_len = 40;
 
-    let result = create_alignment_band(
+    let _band: (Vec<Stripe>, usize) = create_alignment_band(
       &seed_matches,
       qry_len,
       ref_len,
@@ -304,6 +303,8 @@ mod tests {
       excess_bandwidth,
       allowed_mismatches,
     );
+
+    // FIXME: there is no assertion in this test
 
     Ok(())
   }

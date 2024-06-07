@@ -3,7 +3,7 @@ name: web
 
 on:
   push:
-    branches: ['master', 'staging', 'release']
+    branches: [ 'master', 'staging', 'release' ]
 
   pull_request:
 
@@ -32,6 +32,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
       - name: "Free disk space"
         run: |
           sudo swapoff -a || true
