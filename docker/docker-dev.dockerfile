@@ -245,6 +245,10 @@ RUN set -euxo pipefail >/dev/null \
 && curl -sSL "https://github.com/watchexec/cargo-watch/releases/download/v${CARGO_WATCH_VERSION}/cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu.tar.xz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xJ "cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu/cargo-watch" \
 && chmod +x "${CARGO_HOME}/bin/cargo-watch"
 
+RUN set -euxo pipefail >/dev/null \
+&& export CARGO_NEXTEST_VERSION="0.9.67" \
+&& curl -sSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
+&& chmod +x "${CARGO_HOME}/bin/cargo-nextest"
 
 # Setup bash
 RUN set -euxo pipefail >/dev/null \
