@@ -1,22 +1,17 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { PeptideViewAbsolute } from 'src/components/SequenceView/PeptideViewAbsolute'
+import { PeptideViewRelative } from 'src/components/SequenceView/PeptideViewRelative'
 import styled from 'styled-components'
-import type { AnalysisResult, Gene, PeptideWarning } from 'src/types'
-import { cdsCodonLength } from 'src/types'
-import { cdsAtom } from 'src/state/results.state'
+import type { AnalysisResult, PeptideWarning } from 'src/types'
+import { cdsAtom, currentRefNodeNameAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { formatRange } from 'src/helpers/formatRange'
-import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
-import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
-import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
-import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
-import { PeptideMarkerInsertion } from './PeptideMarkerInsertion'
+import { SequenceViewWrapper } from './SequenceView'
 
 const MissingRow = styled.div`
   background-color: ${(props) => props.theme.gray650};
@@ -63,120 +58,40 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
   warnings?: PeptideWarning[]
-  geneMap?: Gene[]
   viewedGene: string
 }
 
 export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: PeptideViewProps) {
   const { t } = useTranslationSafe()
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
   const cds = useRecoilValue(cdsAtom(viewedGene))
 
-  if (!width) {
-    return (
-      <SequenceViewWrapper>
-        <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
-      </SequenceViewWrapper>
-    )
-  }
+  const view = useMemo(() => {
+    if (!width) {
+      return null
+    }
 
-  if (!cds) {
-    return (
-      <SequenceViewWrapper>
-        {t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: viewedGene })}
-      </SequenceViewWrapper>
-    )
-  }
+    if (!cds) {
+      return <>{t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: viewedGene })}</>
+    }
 
-  const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === viewedGene)
-  if (warningsForThisGene.length > 0) {
-    return (
-      <SequenceViewWrapper>
-        <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
-      </SequenceViewWrapper>
-    )
-  }
+    const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === viewedGene)
+    if (warningsForThisGene.length > 0) {
+      return <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
+    }
 
-  const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaUnsequencedRanges } = sequence
-  const cdsLength = cdsCodonLength(cds)
-  const pixelsPerAa = width / Math.round(cdsLength)
-  const groups = aaChangesGroups.filter((group) => group.name === viewedGene)
+    if (refNodeName === '_root') {
+      return <PeptideViewAbsolute width={width} cds={cds} sequence={sequence} />
+    }
 
-  const unknownAaRangesForGene = unknownAaRanges.find((range) => range.cdsName === viewedGene)
-  const unsequencedRanges = aaUnsequencedRanges[viewedGene] ?? []
+    if (refNodeName === '_parent') {
+      return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
+    }
 
-  const frameShiftMarkers = frameShifts
-    .filter((frameShift) => frameShift.cdsName === cds.name)
-    .map((frameShift) => {
-      const id = getSafeId('frame-shift-aa-marker', { ...frameShift })
-      return (
-        <PeptideMarkerFrameShift
-          key={id}
-          index={index}
-          seqName={seqName}
-          frameShift={frameShift}
-          pixelsPerAa={pixelsPerAa}
-        />
-      )
-    })
+    return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
+  }, [cds, refNodeName, sequence, t, viewedGene, warnings, width])
 
-  const insertionMarkers = aaInsertions
-    .filter((ins) => ins.cds === viewedGene)
-    .map((insertion) => {
-      return (
-        <PeptideMarkerInsertion
-          key={insertion.pos}
-          index={index}
-          seqName={seqName}
-          insertion={insertion}
-          pixelsPerAa={pixelsPerAa}
-        />
-      )
-    })
-
-  const unsequenced = unsequencedRanges.map((range, index) => (
-    <SequenceMarkerUnsequenced
-      key={`${seqName}-${formatRange(range)}`}
-      index={index}
-      seqName={seqName}
-      range={range}
-      pixelsPerBase={pixelsPerAa}
-    />
-  ))
-
-  return (
-    <SequenceViewWrapper>
-      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
-        <rect fill="transparent" x={0} y={-10} width={cdsLength} height="30" />
-
-        {unsequenced}
-
-        {unknownAaRangesForGene &&
-          unknownAaRangesForGene.ranges.map((range) => (
-            <PeptideMarkerUnknown
-              key={range.range.begin}
-              index={index}
-              seqName={seqName}
-              range={range}
-              pixelsPerAa={pixelsPerAa}
-            />
-          ))}
-
-        {groups.map((group) => {
-          return (
-            <PeptideMarkerMutationGroup
-              key={group.range.begin}
-              index={index}
-              seqName={seqName}
-              group={group}
-              pixelsPerAa={pixelsPerAa}
-            />
-          )
-        })}
-        {frameShiftMarkers}
-        {insertionMarkers}
-      </SequenceViewSVG>
-    </SequenceViewWrapper>
-  )
+  return <SequenceViewWrapper>{view}</SequenceViewWrapper>
 }
 
 export const PeptideViewUnmemoed = withResizeDetector(PeptideViewUnsized)
