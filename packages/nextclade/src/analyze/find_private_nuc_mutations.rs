@@ -1,6 +1,7 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::{is_nuc_non_acgtn, is_nuc_sequenced};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
@@ -41,6 +42,9 @@ pub struct PrivateNucMutations {
 
   /// All private deletion mutations
   pub private_deletions: Vec<NucDel>,
+
+  /// All private deletion mutations in form of ranges
+  pub private_deletion_ranges: Vec<NucDelRange>,
 
   /// A subset of `private_substitutions` which are reversions
   pub reversion_substitutions: Vec<NucSub>,
@@ -129,6 +133,8 @@ pub fn find_private_nuc_mutations(
   private_deletions.sort();
   private_deletions.dedup();
 
+  let private_deletion_ranges = group_adjacent(&private_deletions);
+
   let total_private_substitutions = private_substitutions.len();
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
@@ -140,6 +146,7 @@ pub fn find_private_nuc_mutations(
   PrivateNucMutations {
     private_substitutions,
     private_deletions,
+    private_deletion_ranges,
     reversion_substitutions,
     labeled_substitutions,
     unlabeled_substitutions,

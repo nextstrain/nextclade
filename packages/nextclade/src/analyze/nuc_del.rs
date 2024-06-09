@@ -1,11 +1,11 @@
-use crate::alphabet::nuc::Nuc;
+use crate::alphabet::nuc::{to_nuc, Nuc};
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
+use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]
@@ -77,6 +77,13 @@ impl Pos<NucRefGlobalPosition> for NucDel {
 }
 
 impl NucDel {
+  pub fn from_raw(pos: usize, ref_nuc: char) -> Result<Self, Report> {
+    Ok(Self {
+      pos: pos.into(),
+      ref_nuc: to_nuc(ref_nuc)?,
+    })
+  }
+
   pub const fn to_sub(&self) -> NucSub {
     NucSub {
       ref_nuc: self.ref_nuc,
