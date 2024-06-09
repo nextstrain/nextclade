@@ -129,7 +129,6 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
 
   return (
     <>
-      <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
       <SequenceMarkerUnsequencedStart
         index={index}
         seqName={seqName}
