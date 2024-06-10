@@ -3,8 +3,9 @@ use crate::alphabet::letter::Letter;
 use crate::analyze::aa_alignment::AaAlignment;
 use crate::analyze::aa_changes_find_for_cds::aa_changes_group;
 use crate::analyze::aa_changes_group::AaChangesGroup;
-use crate::analyze::aa_del::AaDel;
+use crate::analyze::aa_del::{AaDel, AaDelRange};
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::CdsAaRange;
 use crate::analyze::nuc_alignment::NucAlignment;
@@ -27,6 +28,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub struct PrivateAaMutations {
   pub private_substitutions: Vec<AaSub>,
   pub private_deletions: Vec<AaDel>,
+  pub private_deletion_ranges: Vec<AaDelRange>,
   pub reversion_substitutions: Vec<AaSub>,
   pub total_private_substitutions: usize,
   pub total_private_deletions: usize,
@@ -144,9 +146,15 @@ pub fn find_private_aa_mutations_for_one_gene(
 
   let grouped = aa_changes_group(&private_substitutions, aln, tr, substitutions, deletions);
 
+  let private_deletion_ranges = group_adjacent(&private_deletions)
+    .into_iter()
+    .map(|r| AaDelRange::new(r.begin, r.end))
+    .collect_vec();
+
   PrivateAaMutations {
     private_substitutions,
     private_deletions,
+    private_deletion_ranges,
     reversion_substitutions,
     aa_changes_groups: grouped.aa_changes_groups,
     total_private_substitutions,

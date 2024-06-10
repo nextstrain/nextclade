@@ -1,7 +1,8 @@
-use crate::alphabet::aa::{Aa};
+use crate::alphabet::aa::Aa;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
+use crate::coord::range::AaRefRange;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -57,5 +58,40 @@ impl AaDel {
 impl Display for AaDel {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     self.to_sub().fmt(f)
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct AaDelRange {
+  pub range: AaRefRange,
+}
+
+impl AaDelRange {
+  pub fn new(begin: AaRefPosition, end: AaRefPosition) -> Self {
+    Self {
+      range: AaRefRange::new(begin, end),
+    }
+  }
+
+  pub fn from_usize(begin: usize, end: usize) -> Self {
+    Self {
+      range: AaRefRange::from_usize(begin, end),
+    }
+  }
+
+  #[inline]
+  pub fn len(&self) -> usize {
+    self.range.len()
+  }
+
+  #[inline]
+  pub fn is_empty(&self) -> bool {
+    self.range.is_empty()
+  }
+
+  #[inline]
+  pub const fn range(&self) -> &AaRefRange {
+    &self.range
   }
 }

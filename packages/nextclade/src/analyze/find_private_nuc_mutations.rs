@@ -11,6 +11,7 @@ use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
 use crate::tree::tree::AuspiceGraphNodePayload;
 use crate::utils::collections::concat_to_vec;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -133,7 +134,10 @@ pub fn find_private_nuc_mutations(
   private_deletions.sort();
   private_deletions.dedup();
 
-  let private_deletion_ranges = group_adjacent(&private_deletions);
+  let private_deletion_ranges = group_adjacent(&private_deletions)
+    .into_iter()
+    .map(|r| NucDelRange::new(r.begin, r.end))
+    .collect_vec();
 
   let total_private_substitutions = private_substitutions.len();
   let total_private_deletions = private_deletions.len();

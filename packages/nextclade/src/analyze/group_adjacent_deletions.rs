@@ -1,18 +1,23 @@
+use crate::analyze::aa_del::{AaDel, AaDelRange};
+use crate::analyze::abstract_mutation::Pos;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
+use crate::coord::position::PositionLike;
+use crate::coord::range::Range;
+use itertools::Itertools;
 
-pub fn group_adjacent(dels: &[NucDel]) -> Vec<NucDelRange> {
+pub fn group_adjacent<P: PositionLike>(dels: &[impl Pos<P>]) -> Vec<Range<P>> {
   let mut ranges = Vec::with_capacity(dels.len() / 2);
   if let Some(first) = dels.first() {
-    let mut begin = first.pos;
+    let mut begin = first.pos();
     let mut end = begin;
     for del in dels.iter().skip(1) {
-      if del.pos != end + 1 {
-        ranges.push(NucDelRange::new(begin, end));
-        begin = del.pos;
+      if del.pos().as_isize() != end.as_isize() + 1 {
+        ranges.push(Range::new(begin, end));
+        begin = del.pos();
       }
-      end = del.pos;
+      end = del.pos();
     }
-    ranges.push(NucDelRange::new(begin, end));
+    ranges.push(Range::new(begin, end));
   } else {
     return vec![];
   }
@@ -20,15 +25,30 @@ pub fn group_adjacent(dels: &[NucDel]) -> Vec<NucDelRange> {
   ranges
 }
 
+pub fn group_adjacent_nuc_dels(dels: &[NucDel]) -> Vec<NucDelRange> {
+  group_adjacent(dels)
+    .into_iter()
+    .map(|r| NucDelRange::new(r.begin, r.end))
+    .collect_vec()
+}
+
+pub fn group_adjacent_aa_dels(dels: &[AaDel]) -> Vec<AaDelRange> {
+  group_adjacent(dels)
+    .into_iter()
+    .map(|r| AaDelRange::new(r.begin, r.end))
+    .collect_vec()
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::analyze::nuc_del::{NucDel, NucDelRange};
   use eyre::Report;
 
   #[test]
   fn test_group_adjacent_empty_input() -> Result<(), Report> {
     let dels = vec![];
-    let ranges = group_adjacent(&dels);
+    let ranges = group_adjacent_nuc_dels(&dels);
     assert!(ranges.is_empty());
     Ok(())
   }
@@ -36,7 +56,7 @@ mod tests {
   #[test]
   fn test_group_adjacent_single_deletion() -> Result<(), Report> {
     let dels = vec![NucDel::from_raw(5, 'A')?];
-    let ranges = group_adjacent(&dels);
+    let ranges = group_adjacent_nuc_dels(&dels);
     assert_eq!(ranges, vec![NucDelRange::from_usize(5, 5)]);
     Ok(())
   }
@@ -48,7 +68,7 @@ mod tests {
       NucDel::from_raw(3, 'T')?,
       NucDel::from_raw(5, 'G')?,
     ];
-    let ranges = group_adjacent(&dels);
+    let ranges = group_adjacent_nuc_dels(&dels);
     assert_eq!(
       ranges,
       vec![
@@ -67,7 +87,7 @@ mod tests {
       NucDel::from_raw(2, 'T')?,
       NucDel::from_raw(3, 'G')?,
     ];
-    let ranges = group_adjacent(&dels);
+    let ranges = group_adjacent_nuc_dels(&dels);
     assert_eq!(ranges, vec![NucDelRange::from_usize(1, 3)]);
     Ok(())
   }
@@ -92,7 +112,7 @@ mod tests {
       NucDel::from_raw(24, 'G')?,
       NucDel::from_raw(26, 'C')?,
     ];
-    let ranges = group_adjacent(&dels);
+    let ranges = group_adjacent_nuc_dels(&dels);
     assert_eq!(
       ranges,
       vec![
