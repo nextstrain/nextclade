@@ -40,26 +40,6 @@ export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
 
-export interface PrivateMutationsInternal {
-  reversionSubstitutions: NucSub[]
-  labeledSubstitutions: NucSubLabeled[]
-  unlabeledSubstitutions: NucSub[]
-  totalMutations: number
-}
-
-export function convertPrivateMutations(privateNucMutations: PrivateNucMutations): PrivateMutationsInternal {
-  const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
-
-  const totalMutations = reversionSubstitutions.length + labeledSubstitutions.length + unlabeledSubstitutions.length
-
-  return {
-    reversionSubstitutions,
-    labeledSubstitutions,
-    unlabeledSubstitutions,
-    totalMutations,
-  }
-}
-
 export function cdsNucLength(cds: Cds) {
   return sumBy(cds.segments, cdsSegmentNucLength)
 }
@@ -78,6 +58,38 @@ export function cdsSegmentAaLength(cdsSeg: CdsSegment) {
 
 export function iterRange(r: Range): number[] {
   return range(r.begin, r.end)
+}
+
+export function getNucMutations(analysisResult: AnalysisResult, refNodeName: string) {
+  if (refNodeName === '_root') {
+    return { subs: analysisResult.substitutions }
+  }
+  if (refNodeName === '_parent') {
+    return {
+      subs: analysisResult.privateNucMutations.privateSubstitutions,
+      relMuts: analysisResult.privateNucMutations,
+    }
+  }
+  const relMuts = analysisResult.relativeNucMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  return {
+    subs: relMuts?.privateSubstitutions ?? [],
+    relMuts,
+  }
+}
+
+export function getAaMutations(analysisResult: AnalysisResult, refNodeName: string) {
+  if (refNodeName === '_root') {
+    return { aaSubs: analysisResult.aaSubstitutions }
+  }
+  if (refNodeName === '_parent') {
+    const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
+    const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
+    return { aaSubs, relAaMuts }
+  }
+  const muts = analysisResult.relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
+  const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
+  return { aaSubs, relAaMuts }
 }
 
 export interface QCFilters {

@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react'
-
-import { convertPrivateMutations } from 'src/types'
-import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'
+import { useRecoilValue } from 'recoil'
+import { currentRefNodeNameAtom } from 'src/state/results.state'
+import { getAaMutations, getNucMutations } from 'src/types'
+import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { TableSlim } from 'src/components/Common/TableSlim'
-import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOfAminoacidSubstitutions'
-import { ListOfPrivateNucMutations } from 'src/components/Results/ListOfPrivateNucMutations'
+import { ListOfNucMuts } from 'src/components/Results/ListOfNucMuts'
+import { ListOfAaSubs } from 'src/components/SequenceView/ListOfAaSubs'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
@@ -16,44 +16,55 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { index, seqName, substitutions, aaSubstitutions, privateNucMutations } = analysisResult
+  const { index, seqName } = analysisResult
   const id = getSafeId('mutations-label', { index, seqName })
 
-  const privateNucMutationsInternal = useMemo(() => convertPrivateMutations(privateNucMutations), [privateNucMutations])
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
+  const { subs } = getNucMutations(analysisResult, refNodeName)
+  const { aaSubs } = getAaMutations(analysisResult, refNodeName)
+
+  const nodeName = useMemo(() => {
+    if (refNodeName === '_root') {
+      return t('reference')
+    }
+    if (refNodeName === '_parent') {
+      return t('parent')
+    }
+    return `"${refNodeName}"`
+  }, [refNodeName, t])
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      {substitutions.length}
+      {subs.length}
       <Tooltip isOpen={showTooltip} target={id} wide fullWidth>
         <TableSlim borderless className="mb-1">
           <thead />
           <tbody>
             <tr>
-              <th>{t('Nucleotide substitutions rel. to reference ({{ n }})', { n: substitutions.length })}</th>
+              <th>
+                {t('Nucleotide mutations relative to {{ what }} ({{ quantity }})', {
+                  what: nodeName,
+                  quantity: subs.length,
+                })}
+              </th>
             </tr>
             <tr>
               <td>
-                <ListOfMutationsGeneric substitutions={substitutions} />
-              </td>
-            </tr>
-
-            <tr>
-              <th>{t('Aminoacid substitutions rel. to reference ({{ n }})', { n: aaSubstitutions.length })}</th>
-            </tr>
-            <tr>
-              <td>
-                <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
+                <ListOfNucMuts analysisResult={analysisResult} />
               </td>
             </tr>
 
             <tr>
               <th>
-                {t('Private mutations rel. to tree ({{ n }})', { n: privateNucMutationsInternal.totalMutations })}
+                {t('Aminoacid substitutions rel. to {{ what }} ({{ quantity }})', {
+                  what: nodeName,
+                  quantity: aaSubs.length,
+                })}
               </th>
             </tr>
             <tr>
               <td>
-                <ListOfPrivateNucMutations privateNucMutationsInternal={privateNucMutationsInternal} />
+                <ListOfAaSubs analysisResult={analysisResult} />
               </td>
             </tr>
           </tbody>

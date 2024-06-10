@@ -1,9 +1,9 @@
 import React from 'react'
 import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
-
-import type { AaSub } from 'src/types'
+import { type AnalysisResult, getAaMutations } from 'src/types'
 import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
+import { currentRefNodeNameAtom } from 'src/state/results.state'
 import { formatAAMutation } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
@@ -12,18 +12,21 @@ import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { sortByCdsName } from './sortByCdsName'
 
 export interface ListOfAminoacidMutationsProps {
-  aminoacidSubstitutions: AaSub[]
+  analysisResult: AnalysisResult
 }
 
-export function ListOfAminoacidSubstitutions({ aminoacidSubstitutions }: ListOfAminoacidMutationsProps) {
+export function ListOfAaSubs({ analysisResult }: ListOfAminoacidMutationsProps) {
   const { t } = useTranslationSafe()
 
   const geneOrderPreference = useRecoilValue(cdsOrderPreferenceAtom)
 
-  const totalMutations = aminoacidSubstitutions.length
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
+  const { aaSubs } = getAaMutations(analysisResult, refNodeName)
+
+  const totalMutations = aaSubs.length
   const maxRows = Math.min(8, totalMutations)
   const numCols = 8
-  const substitutionsSelected = copy(aminoacidSubstitutions)
+  const substitutionsSelected = copy(aaSubs)
     .sort(sortByCdsName(geneOrderPreference))
     .slice(0, maxRows * numCols)
 
