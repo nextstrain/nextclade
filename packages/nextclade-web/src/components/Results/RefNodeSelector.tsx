@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { rgba } from 'polished'
 import React, { useCallback, useMemo } from 'react'
-import type { ActionMeta, GroupBase, OnChangeValue } from 'react-select/dist/declarations/src/types'
+import styled from 'styled-components'
+import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import Select, { OptionProps } from 'react-select'
+import Select, { OptionProps, StylesConfig } from 'react-select'
 import { IsMultiValue } from 'src/components/Common/Dropdown'
 import { DropdownOption } from 'src/components/Common/DropdownOption'
 import { currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
-import styled from 'styled-components'
 import { SelectComponents } from 'react-select/dist/declarations/src/components'
 
-interface RefNodeSelectorDatum {
+interface Option {
   value: string
   label: string
   description?: string
 }
 
-const builtinRefs: RefNodeSelectorDatum[] = [
+const builtinRefs: Option[] = [
   {
     value: '_root',
     label: 'Reference',
@@ -54,20 +54,51 @@ export function RefNodeSelector() {
     [setCurrentRefNodeName],
   )
 
+  const reactSelectTheme = useCallback((theme: Theme): Theme => {
+    return {
+      ...theme,
+      borderRadius: 2,
+      spacing: {
+        ...theme.spacing,
+        menuGutter: 0,
+      },
+      colors: {
+        ...theme.colors,
+      },
+    }
+  }, [])
+
+  const reactSelectStyles = useMemo((): StylesConfig<Option, false> => {
+    return {
+      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+      menuList: (base) => ({ ...base, fontSize: '1rem' }),
+      option: (base) => ({ ...base, fontSize: '1.0rem', padding: '2px 8px' }),
+      singleValue: (base, state) => ({
+        ...base,
+        fontSize: '1.0rem',
+        display: state.selectProps.menuIsOpen ? 'none' : 'block',
+      }),
+    }
+  }, [])
+
   return (
-    <Select
-      className="w-25"
-      components={COMPONENTS}
-      options={options}
-      value={currentOption}
-      isMulti={false}
-      onChange={handleChange}
-      menuPortalTarget={document.body}
-    />
+    <div>
+      <Select
+        components={COMPONENTS}
+        options={options}
+        value={currentOption}
+        isMulti={false}
+        onChange={handleChange}
+        menuPortalTarget={document.body}
+        styles={reactSelectStyles}
+        theme={reactSelectTheme}
+        maxMenuHeight={200}
+      />
+    </div>
   )
 }
 
-const COMPONENTS: Partial<SelectComponents<RefNodeSelectorDatum, false, GroupBase<RefNodeSelectorDatum>>> = {
+const COMPONENTS: Partial<SelectComponents<Option, false, GroupBase<Option>>> = {
   Option: RefNodeSelectorOption,
 }
 
@@ -78,7 +109,7 @@ function RefNodeSelectorOption({
   isSelected,
   innerRef,
   innerProps,
-}: OptionProps<RefNodeSelectorDatum, false>) {
+}: OptionProps<Option, false>) {
   return (
     <OptionBody
       // @ts-ignore

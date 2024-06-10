@@ -30,11 +30,7 @@ export function ButtonFilter({ ...rest }: ButtonProps) {
 }
 
 export const PanelButton = styled(Button)`
-  margin: auto 0;
-  left: 20px;
-  top: -4px;
   height: 36px;
   width: 36px;
-  padding: 0;
   color: ${(props) => props.theme.gray600};
 `
