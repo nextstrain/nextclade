@@ -14,9 +14,6 @@ import type {
   NextcladeOutputs,
   NextcladeResult,
   Nuc,
-  NucSub,
-  NucSubLabeled,
-  PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
@@ -86,8 +83,8 @@ export function getAaMutations(analysisResult: AnalysisResult, refNodeName: stri
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }
-  const muts = analysisResult.relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
-  const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
+  const muts = analysisResult.relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts ?? []
+  const relAaMuts = Object.values(muts).flat()
   const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
   return { aaSubs, relAaMuts }
 }
