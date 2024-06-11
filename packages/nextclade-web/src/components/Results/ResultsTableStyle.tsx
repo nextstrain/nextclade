@@ -68,10 +68,11 @@ export const TableCellText = styled.p`
   margin: auto;
 `
 
-export const TableRow = styled.div<{ backgroundColor?: string }>`
+export const TableRow = styled.div<{ backgroundColor?: string; opacity?: number }>`
   display: flex;
   align-items: stretch;
   background-color: ${(props) => props.backgroundColor};
+  opacity: ${(props) => props.opacity};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
 `
 

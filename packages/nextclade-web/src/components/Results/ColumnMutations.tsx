@@ -33,9 +33,17 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     return refNodeName
   }, [refNodeName, t])
 
+  if (!nucMuts) {
+    return (
+      <div className="d-flex w-100 h-100">
+        <div className="d-flex m-auto">{t('N/A')}</div>
+      </div>
+    )
+  }
+
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      {nucMuts?.subs.length}
+      {nucMuts.subs.length}
       <Tooltip isOpen={showTooltip} target={id} wide fullWidth>
         <TableSlim borderless className="mb-1">
           <thead />
