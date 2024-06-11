@@ -27,6 +27,7 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateAaMutations {
+  pub cds_name: String,
   pub private_substitutions: Vec<AaSub>,
   pub private_deletions: Vec<AaDel>,
   pub private_deletion_ranges: Vec<AaDelRange>,
@@ -159,6 +160,7 @@ pub fn find_private_aa_mutations_for_one_gene(
     .collect_vec();
 
   PrivateAaMutations {
+    cds_name: cds.name.clone(),
     private_substitutions,
     private_deletions,
     private_deletion_ranges,

@@ -1,6 +1,6 @@
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
-import type { AnalysisResult } from 'src/types'
+import { AnalysisResult, getNucMutations } from 'src/types'
 import React from 'react'
 import { useRecoilValue } from 'recoil'
 import { genomeSizeAtom } from 'src/state/results.state'
@@ -11,6 +11,7 @@ import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
+import { SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewRelativeProps {
   sequence: AnalysisResult
@@ -19,18 +20,7 @@ export interface SequenceViewRelativeProps {
 }
 
 export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceViewRelativeProps) {
-  const {
-    index,
-    seqName,
-    missing,
-    alignmentRange,
-    frameShifts,
-    insertions,
-    nucToAaMuts,
-    nonACGTNs,
-    relativeNucMutations,
-    privateNucMutations,
-  } = sequence
+  const { index, seqName, missing, alignmentRange, frameShifts, insertions, nucToAaMuts, nonACGTNs } = sequence
 
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
@@ -38,72 +28,66 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
   const genomeSize = useRecoilValue(genomeSizeAtom)
   const pixelsPerBase = width / genomeSize
 
-  const muts =
-    refNodeName === '_parent'
-      ? privateNucMutations
-      : relativeNucMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
-
-  const mutationViews = (muts?.privateSubstitutions ?? []).map((substitution) => {
+  const muts = getNucMutations(sequence, refNodeName)
+  if (!muts) {
     return (
-      <SequenceMarkerMutation
-        key={substitution.pos}
-        index={index}
-        seqName={seqName}
-        substitution={substitution}
-        nucToAaMuts={nucToAaMuts}
-        pixelsPerBase={pixelsPerBase}
-      />
+      <div className="d-flex w-100 h-100">
+        <div className="d-flex m-auto">{t('Not applicable')}</div>
+      </div>
     )
-  })
+  }
 
-  const deletionViews = (muts?.privateDeletionRanges ?? []).map((deletion) => {
-    return (
-      <SequenceMarkerGap
-        key={deletion.range.begin}
-        index={index}
-        seqName={seqName}
-        deletion={deletion}
-        nucToAaMuts={nucToAaMuts}
-        pixelsPerBase={pixelsPerBase}
-      />
-    )
-  })
+  const mutationViews = muts.subs.map((substitution) => (
+    <SequenceMarkerMutation
+      key={substitution.pos}
+      index={index}
+      seqName={seqName}
+      substitution={substitution}
+      nucToAaMuts={nucToAaMuts}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
 
-  const missingViews = missing.map((oneMissing) => {
-    return (
-      <SequenceMarkerMissing
-        key={oneMissing.range.begin}
-        index={index}
-        seqName={seqName}
-        missing={oneMissing}
-        pixelsPerBase={pixelsPerBase}
-      />
-    )
-  })
+  const deletionViews = (muts.relMuts?.privateDeletionRanges ?? []).map((deletion) => (
+    <SequenceMarkerGap
+      key={deletion.range.begin}
+      index={index}
+      seqName={seqName}
+      deletion={deletion}
+      nucToAaMuts={nucToAaMuts}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
 
-  const ambigViews = nonACGTNs.map((ambig) => {
-    return (
-      <SequenceMarkerAmbiguous
-        key={ambig.range.begin}
-        index={index}
-        seqName={seqName}
-        ambiguous={ambig}
-        pixelsPerBase={pixelsPerBase}
-      />
-    )
-  })
+  const missingViews = missing.map((oneMissing) => (
+    <SequenceMarkerMissing
+      key={oneMissing.range.begin}
+      index={index}
+      seqName={seqName}
+      missing={oneMissing}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
 
-  const insertionViews = insertions.map((insertion) => {
-    return (
-      <SequenceMarkerInsertion
-        key={insertion.pos}
-        index={index}
-        seqName={seqName}
-        insertion={insertion}
-        pixelsPerBase={pixelsPerBase}
-      />
-    )
-  })
+  const ambigViews = nonACGTNs.map((ambig) => (
+    <SequenceMarkerAmbiguous
+      key={ambig.range.begin}
+      index={index}
+      seqName={seqName}
+      ambiguous={ambig}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
+
+  const insertionViews = insertions.map((insertion) => (
+    <SequenceMarkerInsertion
+      key={insertion.pos}
+      index={index}
+      seqName={seqName}
+      insertion={insertion}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
 
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
@@ -134,7 +118,7 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
   }
 
   return (
-    <>
+    <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
       <SequenceMarkerUnsequencedStart
         index={index}
         seqName={seqName}
@@ -154,6 +138,6 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
-    </>
+    </SequenceViewSVG>
   )
 }

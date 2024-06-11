@@ -11,6 +11,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
+import { SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewAbsoluteProps {
   sequence: AnalysisResult
@@ -128,7 +129,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
   }
 
   return (
-    <>
+    <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
       <SequenceMarkerUnsequencedStart
         index={index}
         seqName={seqName}
@@ -148,6 +149,6 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
-    </>
+    </SequenceViewSVG>
   )
 }

@@ -1,6 +1,7 @@
 import { isNil, isNumber, isFinite, isString, range, sumBy, isBoolean, get } from 'lodash'
 import type {
   Aa,
+  AaSub,
   AnyType,
   Cds,
   CdsSegment,
@@ -14,6 +15,9 @@ import type {
   NextcladeOutputs,
   NextcladeResult,
   Nuc,
+  NucSub,
+  PrivateAaMutations,
+  PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
@@ -57,9 +61,17 @@ export function iterRange(r: Range): number[] {
   return range(r.begin, r.end)
 }
 
-export function getNucMutations(analysisResult: AnalysisResult, refNodeName: string) {
+export function getNucMutations(
+  analysisResult: AnalysisResult,
+  refNodeName: string,
+):
+  | {
+      subs: NucSub[]
+      relMuts?: PrivateNucMutations
+    }
+  | undefined {
   if (refNodeName === '_root') {
-    return { subs: analysisResult.substitutions }
+    return { subs: analysisResult.substitutions, relMuts: undefined }
   }
   if (refNodeName === '_parent') {
     return {
@@ -68,22 +80,36 @@ export function getNucMutations(analysisResult: AnalysisResult, refNodeName: str
     }
   }
   const relMuts = analysisResult.relativeNucMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  if (!relMuts) {
+    return undefined
+  }
   return {
-    subs: relMuts?.privateSubstitutions ?? [],
+    subs: relMuts.privateSubstitutions,
     relMuts,
   }
 }
 
-export function getAaMutations(analysisResult: AnalysisResult, refNodeName: string) {
+export function getAaMutations(
+  analysisResult: AnalysisResult,
+  refNodeName: string,
+):
+  | {
+      aaSubs: AaSub[]
+      relAaMuts?: PrivateAaMutations[]
+    }
+  | undefined {
   if (refNodeName === '_root') {
-    return { aaSubs: analysisResult.aaSubstitutions }
+    return { aaSubs: analysisResult.aaSubstitutions, relAaMuts: undefined }
   }
   if (refNodeName === '_parent') {
     const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }
-  const muts = analysisResult.relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts ?? []
+  const muts = analysisResult.relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  if (!muts) {
+    return undefined
+  }
   const relAaMuts = Object.values(muts).flat()
   const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
   return { aaSubs, relAaMuts }

@@ -17,7 +17,12 @@ export function ListOfNucMuts({ analysisResult }: ListOfPrivateNucMutationsProps
   const { t } = useTranslationSafe()
 
   const refNodeName = useRecoilValue(currentRefNodeNameAtom)
-  const { subs, relMuts } = getNucMutations(analysisResult, refNodeName)
+  const muts = getNucMutations(analysisResult, refNodeName)
+  if (!muts) {
+    return null
+  }
+
+  const { subs, relMuts } = muts
 
   return (
     <div className="d-flex">

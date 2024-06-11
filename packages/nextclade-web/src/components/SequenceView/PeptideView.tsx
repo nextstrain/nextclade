@@ -11,7 +11,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { SequenceViewWrapper } from './SequenceView'
+import { SequenceViewWrapper } from './SequenceViewStyles'
 
 const MissingRow = styled.div`
   background-color: ${(props) => props.theme.gray650};

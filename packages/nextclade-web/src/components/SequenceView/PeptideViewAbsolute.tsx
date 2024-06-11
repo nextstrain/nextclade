@@ -5,10 +5,10 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { formatRange } from 'src/helpers/formatRange'
 import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
-import { SequenceViewSVG } from './SequenceView'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
 import { PeptideMarkerInsertion } from './PeptideMarkerInsertion'
+import { SequenceViewSVG } from './SequenceViewStyles'
 
 export interface PeptideViewAbsoluteProps {
   sequence: AnalysisResult
@@ -66,8 +66,6 @@ export function PeptideViewAbsoluteUnmemoed({ width, cds, sequence }: PeptideVie
 
   return (
     <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
-      <rect fill="transparent" x={0} y={-10} width={cdsLength} height="30" />
-
       {unsequenced}
 
       {unknownAaRangesForGene &&

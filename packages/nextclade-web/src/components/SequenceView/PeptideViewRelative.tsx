@@ -1,15 +1,14 @@
-import { get } from 'lodash'
 import React from 'react'
-import type { AnalysisResult, Cds } from 'src/types'
-import { cdsCodonLength } from 'src/types'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { AnalysisResult, Cds, getAaMutations, cdsCodonLength } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { formatRange } from 'src/helpers/formatRange'
 import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
-import { SequenceViewSVG } from './SequenceView'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
 import { PeptideMarkerInsertion } from './PeptideMarkerInsertion'
+import { SequenceViewSVG } from './SequenceViewStyles'
 
 export interface PeptideViewRelativeProps {
   sequence: AnalysisResult
@@ -19,28 +18,27 @@ export interface PeptideViewRelativeProps {
 }
 
 export function PeptideViewRelativeUnmemoed({ width, cds, sequence, refNodeName }: PeptideViewRelativeProps) {
-  const {
-    index,
-    seqName,
-    unknownAaRanges,
-    frameShifts,
-    aaInsertions,
-    aaUnsequencedRanges,
-    privateAaMutations,
-    relativeAaMutations,
-  } = sequence
+  const { t } = useTranslationSafe()
+
+  const { index, seqName, unknownAaRanges, frameShifts, aaInsertions, aaUnsequencedRanges } = sequence
+
   const cdsLength = cdsCodonLength(cds)
   const pixelsPerAa = width / Math.round(cdsLength)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.cdsName === cds.name)
   const unsequencedRanges = aaUnsequencedRanges[cds.name] ?? []
 
-  const allMuts =
-    refNodeName === '_parent'
-      ? privateAaMutations
-      : relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  const allMuts = getAaMutations(sequence, refNodeName)
+  if (!allMuts) {
+    return (
+      <div className="d-flex w-100 h-100">
+        <div className="d-flex m-auto">{t('Not applicable')}</div>
+      </div>
+    )
+  }
 
-  const groups = get(allMuts, cds.name)?.aaChangesGroups ?? []
+  const { relAaMuts } = allMuts
+  const groups = relAaMuts?.find((m) => m.cdsName === cds.name)?.aaChangesGroups ?? []
 
   const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.cdsName === cds.name)

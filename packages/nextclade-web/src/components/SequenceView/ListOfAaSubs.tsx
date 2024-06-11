@@ -21,7 +21,13 @@ export function ListOfAaSubs({ analysisResult }: ListOfAminoacidMutationsProps) 
   const geneOrderPreference = useRecoilValue(cdsOrderPreferenceAtom)
 
   const refNodeName = useRecoilValue(currentRefNodeNameAtom)
-  const { aaSubs } = getAaMutations(analysisResult, refNodeName)
+  const muts = getAaMutations(analysisResult, refNodeName)
+
+  if (!muts) {
+    return null
+  }
+
+  const { aaSubs } = muts
 
   const totalMutations = aaSubs.length
   const maxRows = Math.min(8, totalMutations)

@@ -20,8 +20,8 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const id = getSafeId('mutations-label', { index, seqName })
 
   const refNodeName = useRecoilValue(currentRefNodeNameAtom)
-  const { subs } = getNucMutations(analysisResult, refNodeName)
-  const { aaSubs } = getAaMutations(analysisResult, refNodeName)
+  const nucMuts = getNucMutations(analysisResult, refNodeName)
+  const aaMuts = getAaMutations(analysisResult, refNodeName)
 
   const nodeName = useMemo(() => {
     if (refNodeName === '_root') {
@@ -30,21 +30,21 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     if (refNodeName === '_parent') {
       return t('parent')
     }
-    return `"${refNodeName}"`
+    return refNodeName
   }, [refNodeName, t])
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      {subs.length}
+      {nucMuts?.subs.length}
       <Tooltip isOpen={showTooltip} target={id} wide fullWidth>
         <TableSlim borderless className="mb-1">
           <thead />
           <tbody>
             <tr>
               <th>
-                {t('Nucleotide mutations relative to {{ what }} ({{ quantity }})', {
+                {t('Nucleotide mutations relative to "{{ what }}" ({{ quantity }})', {
                   what: nodeName,
-                  quantity: subs.length,
+                  quantity: nucMuts?.subs.length,
                 })}
               </th>
             </tr>
@@ -56,9 +56,9 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
 
             <tr>
               <th>
-                {t('Aminoacid substitutions rel. to {{ what }} ({{ quantity }})', {
+                {t('Aminoacid substitutions relative to "{{ what }}" ({{ quantity }})', {
                   what: nodeName,
-                  quantity: aaSubs.length,
+                  quantity: aaMuts?.aaSubs.length,
                 })}
               </th>
             </tr>
