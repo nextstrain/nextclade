@@ -76,6 +76,7 @@ impl NextcladeOrderedWriter {
         b';',
         &clade_node_attr_keys,
         &phenotype_attr_keys,
+        ref_nodes,
         aa_motifs_keys,
         csv_column_config,
       )
@@ -87,6 +88,7 @@ impl NextcladeOrderedWriter {
         b'\t',
         &clade_node_attr_keys,
         &phenotype_attr_keys,
+        ref_nodes,
         aa_motifs_keys,
         csv_column_config,
       )

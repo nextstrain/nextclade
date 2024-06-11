@@ -363,6 +363,12 @@ pub struct AuspiceRefNode {
   pub other: serde_json::Value,
 }
 
+impl AuspiceRefNode {
+  pub fn display_name_or_name(&self) -> &str {
+    self.display_name.as_ref().unwrap_or(&self.name)
+  }
+}
+
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -573,6 +579,10 @@ impl AuspiceTreeMeta {
   /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
   pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
     self.extensions_nextclade().clade_node_attrs.as_slice()
+  }
+
+  pub fn reference_nodes(&self) -> &[AuspiceRefNode] {
+    self.extensions_nextclade().reference_nodes.as_slice()
   }
 }
 

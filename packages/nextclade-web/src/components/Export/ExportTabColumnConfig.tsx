@@ -80,6 +80,26 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
     [allState, onAllChange, t],
   )
 
+  const relMutsColumnsState = useMemo(() => csvColumnConfig?.includeRelMuts ?? false, [csvColumnConfig?.includeRelMuts])
+
+  const onRelMutsColumnsStateChange = useCallback(() => {
+    setCsvColumnConfig((config) => (config ? { ...config, includeRelMuts: !config.includeRelMuts } : undefined))
+  }, [setCsvColumnConfig])
+
+  const relMuts = useMemo(
+    () => (
+      <FormGroup inline check>
+        <Label check>
+          <Input type="checkbox" checked={relMutsColumnsState} onChange={onRelMutsColumnsStateChange} />
+          <TextWithHelp title={t('Mutations relative to nodes of interest (if defined in the dataset tree)')}>
+            {t('Mutations relative to nodes of interest (relative mutations)')}
+          </TextWithHelp>
+        </Label>
+      </FormGroup>
+    ),
+    [onRelMutsColumnsStateChange, relMutsColumnsState, t],
+  )
+
   const dynamicColumnsState = useMemo(() => csvColumnConfig?.includeDynamic ?? false, [csvColumnConfig?.includeDynamic])
 
   const onDynamicColumnsStateChange = useCallback(() => {
@@ -120,6 +140,7 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
         <Form>
           <CategoryCard header={all} />
           {categories}
+          <CategoryCard header={relMuts} />
           <CategoryCard header={dynamic} />
         </Form>
       </Main>

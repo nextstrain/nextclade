@@ -13,6 +13,7 @@ use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
+use crate::tree::tree::AuspiceRefNode;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
@@ -44,6 +45,7 @@ pub enum CsvColumnCategory {
   General,
   RefMuts,
   PrivMuts,
+  RelMuts,
   ErrsWarns,
   Qc,
   Primers,
@@ -59,6 +61,7 @@ pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
   pub include_dynamic: bool,
+  pub include_rel_muts: bool,
 }
 
 impl CsvColumnConfig {
@@ -94,6 +97,8 @@ impl CsvColumnConfig {
     } else {
       let include_dynamic = categories.contains(&CsvColumnCategory::Dynamic);
 
+      let include_rel_muts = categories.contains(&CsvColumnCategory::RelMuts);
+
       let categories = categories
         .into_iter()
         .filter(|category| !matches!(category, CsvColumnCategory::Dynamic)) // Dynamic columns are handled specially
@@ -107,6 +112,7 @@ impl CsvColumnConfig {
         categories,
         individual,
         include_dynamic,
+        include_rel_muts,
       })
     }
   }
@@ -118,6 +124,7 @@ impl Default for CsvColumnConfig {
       categories: CSV_COLUMN_CONFIG_MAP_DEFAULT.clone(),
       individual: vec![],
       include_dynamic: true,
+      include_rel_muts: true,
     }
   }
 }
@@ -225,6 +232,7 @@ lazy_static! {
 fn prepare_headers(
   custom_node_attr_keys: &[String],
   phenotype_attr_keys: &[String],
+  ref_nodes: &[AuspiceRefNode],
   aa_motifs_keys: &[String],
   column_config: &CsvColumnConfig,
 ) -> Vec<String> {
@@ -268,7 +276,33 @@ fn prepare_headers(
     });
   }
 
+  if column_config.include_rel_muts {
+    // Insert columns after this column index
+    let mut insert_custom_cols_at_index = headers
+      .iter()
+      .position(|header| header == "unknownAaRanges")
+      .unwrap_or_else(|| headers.len().saturating_sub(1));
+
+    // For each ref node insert a set of columns
+    for ref_node in ref_nodes {
+      for col in &ref_node_cols(ref_node) {
+        headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
+        insert_custom_cols_at_index += 1;
+      }
+    }
+  }
+
   headers
+}
+
+fn ref_node_cols(ref_node: &AuspiceRefNode) -> [String; 4] {
+  let node_name = ref_node.display_name_or_name();
+  [
+    format!("relativeMutations['{node_name}'].substitutions"),
+    format!("relativeMutations['{node_name}'].deletions"),
+    format!("relativeMutations['{node_name}'].aaSubstitutions"),
+    format!("relativeMutations['{node_name}'].aaDeletions"),
+  ]
 }
 
 /// Writes content of nextclade.csv and nextclade.tsv files (but not necessarily files themselves - writer is generic)
@@ -331,6 +365,9 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       is_reverse_complement,
       warnings,
       aa_motifs,
+      ref_nodes,
+      relative_nuc_mutations,
+      relative_aa_mutations,
       ..
     } = nextclade_outputs;
 
@@ -347,6 +384,67 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     aa_motifs
       .iter()
       .try_for_each(|(name, motifs)| self.add_entry(name, &format_aa_motifs(motifs)))?;
+
+    ref_nodes.iter().try_for_each(|ref_node| {
+      let node_name = ref_node.display_name_or_name();
+
+      let na = o!("N/A");
+
+      let (nuc_subs, nuc_dels) = {
+        let rel_nuc_mut = relative_nuc_mutations
+          .iter()
+          .find(|rel_nuc_mut| rel_nuc_mut.ref_node.name == ref_node.name);
+
+        let nuc_subs = rel_nuc_mut.as_ref().map_or_else(
+          || na.clone(),
+          |rel| format_nuc_substitutions(&rel.muts.private_substitutions, ARRAY_ITEM_DELIMITER),
+        );
+
+        let nuc_dels = rel_nuc_mut.as_ref().map_or_else(
+          || na.clone(),
+          |rel| format_nuc_deletions(&rel.muts.private_deletion_ranges, ARRAY_ITEM_DELIMITER),
+        );
+
+        (nuc_subs, nuc_dels)
+      };
+
+      let (aa_subs, aa_dels) = {
+        let rel_aa_mut = relative_aa_mutations
+          .iter()
+          .find(|rel_aa_mut| rel_aa_mut.ref_node.name == ref_node.name);
+
+        let aa_subs = rel_aa_mut
+          .as_ref()
+          .map(|rel| {
+            rel
+              .muts
+              .iter()
+              .flat_map(|(_, m)| &m.private_substitutions)
+              .cloned()
+              .collect_vec()
+          })
+          .map_or_else(|| na.clone(), |m| format_aa_substitutions(&m, ARRAY_ITEM_DELIMITER));
+
+        let aa_dels = rel_aa_mut
+          .as_ref()
+          .map(|rel| {
+            rel
+              .muts
+              .iter()
+              .flat_map(|(_, m)| &m.private_deletions)
+              .cloned()
+              .collect_vec()
+          })
+          .map_or_else(|| na.clone(), |m| format_aa_deletions(&m, ARRAY_ITEM_DELIMITER));
+
+        (aa_subs, aa_dels)
+      };
+
+      self.add_entry(format!("relativeMutations['{node_name}'].substitutions"), &nuc_subs)?;
+      self.add_entry(format!("relativeMutations['{node_name}'].deletions"), &nuc_dels)?;
+      self.add_entry(format!("relativeMutations['{node_name}'].aaSubstitutions"), &aa_subs)?;
+      self.add_entry(format!("relativeMutations['{node_name}'].aaDeletions"), &aa_dels)
+    })?;
 
     self.add_entry("index", index)?;
     self.add_entry("seqName", seq_name)?;
@@ -613,10 +711,17 @@ impl NextcladeResultsCsvFileWriter {
     delimiter: u8,
     clade_attr_keys: &[String],
     phenotype_attr_keys: &[String],
+    ref_nodes: &[AuspiceRefNode],
     aa_motifs_keys: &[String],
     column_config: &CsvColumnConfig,
   ) -> Result<Self, Report> {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys, aa_motifs_keys, column_config);
+    let headers: Vec<String> = prepare_headers(
+      clade_attr_keys,
+      phenotype_attr_keys,
+      ref_nodes,
+      aa_motifs_keys,
+      column_config,
+    );
     let csv_writer = CsvVecFileWriter::new(filepath, delimiter, &headers)?;
     let writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
     Ok(Self { writer })
@@ -808,6 +913,7 @@ pub fn results_to_csv_string(
   errors: &[NextcladeErrorOutputs],
   clade_attr_keys: &[String],
   phenotype_attr_keys: &[String],
+  ref_nodes: &[AuspiceRefNode],
   aa_motifs_keys: &[String],
   delimiter: u8,
   column_config: &CsvColumnConfig,
@@ -815,7 +921,13 @@ pub fn results_to_csv_string(
   let mut buf = Vec::<u8>::new();
 
   {
-    let headers: Vec<String> = prepare_headers(clade_attr_keys, phenotype_attr_keys, aa_motifs_keys, column_config);
+    let headers: Vec<String> = prepare_headers(
+      clade_attr_keys,
+      phenotype_attr_keys,
+      ref_nodes,
+      aa_motifs_keys,
+      column_config,
+    );
     let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
     let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
 

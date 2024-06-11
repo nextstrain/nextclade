@@ -364,7 +364,7 @@ impl Nextclade {
 
     let ref_nodes = graph
       .as_ref()
-      .map(|graph| graph.data.meta.extensions.nextclade.reference_nodes.clone())
+      .map(|graph| graph.data.meta.reference_nodes().to_vec())
       .unwrap_or_default();
 
     Ok(Self {

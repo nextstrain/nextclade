@@ -122,6 +122,7 @@ async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delim
   const errors = await mapErrors(snapshot, (err) => err)
   const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
   const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
+  const refNodes = await snapshot.getPromise(refNodesAtom)
   const aaMotifsDescs = await snapshot.getPromise(aaMotifsDescsAtom)
   const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
   if (!csvColumnConfig) {
@@ -133,6 +134,7 @@ async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delim
     errors,
     cladeNodeAttrDescs,
     phenotypeAttrDescs,
+    refNodes,
     aaMotifsDescs,
     delimiter,
     csvColumnConfig,

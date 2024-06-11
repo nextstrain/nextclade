@@ -94,6 +94,7 @@ pub fn nextclade_run_one(
     aa_motifs_ref,
     graph,
     primers,
+    ref_nodes,
     ..
   } = &state;
 
@@ -445,6 +446,7 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      ref_nodes: ref_nodes.to_owned(),
       relative_nuc_mutations,
       relative_aa_mutations,
       phenotype_values,

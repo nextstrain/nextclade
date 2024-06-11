@@ -19,8 +19,8 @@ use std::collections::BTreeMap;
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeNucMutations {
-  ref_node: AuspiceRefNode,
-  muts: PrivateNucMutations,
+  pub ref_node: AuspiceRefNode,
+  pub muts: PrivateNucMutations,
 }
 
 pub fn find_relative_nuc_mutations(
@@ -68,8 +68,8 @@ pub fn find_relative_nuc_mutations(
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeAaMutations {
-  ref_node: AuspiceRefNode,
-  muts: BTreeMap<String, PrivateAaMutations>,
+  pub ref_node: AuspiceRefNode,
+  pub muts: BTreeMap<String, PrivateAaMutations>,
 }
 
 pub fn find_relative_aa_mutations(

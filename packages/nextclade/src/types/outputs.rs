@@ -19,6 +19,7 @@ use crate::translate::frame_shifts_translate::FrameShift;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use crate::tree::tree::AuspiceRefNode;
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -75,6 +76,7 @@ pub struct NextcladeOutputs {
   pub clade: Option<String>,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
+  pub ref_nodes: Vec<AuspiceRefNode>,
   pub relative_nuc_mutations: Vec<RelativeNucMutations>,
   pub relative_aa_mutations: Vec<RelativeAaMutations>,
   pub warnings: Vec<PeptideWarning>,
