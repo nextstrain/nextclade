@@ -1,12 +1,12 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
-use crate::analyze::aa_alignment::AaAlignment;
+use crate::analyze::aa_alignment::{AaAlignment, AaAlignmentAbstract};
 use crate::analyze::aa_change_with_context::AaChangeWithContext;
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::AbstractMutation;
-use crate::analyze::nuc_alignment::NucAlignment;
+use crate::analyze::nuc_alignment::{NucAlignment, NucAlignmentAbstract};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
@@ -56,8 +56,8 @@ pub fn aa_changes_find_for_cds(
 
 pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
   aa_muts: &[M],
-  aln: &NucAlignment,
-  tr: &AaAlignment,
+  aln: &impl NucAlignmentAbstract,
+  tr: &impl AaAlignmentAbstract,
   nuc_subs: &[NucSub],
   nuc_dels: &[NucDelRange],
 ) -> FindAaChangesOutput {

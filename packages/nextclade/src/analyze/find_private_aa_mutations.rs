@@ -1,6 +1,6 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
-use crate::analyze::aa_alignment::AaAlignment;
+use crate::analyze::aa_alignment::{AaAlignment, AaAlignmentAbstract, AaAlignmentView};
 use crate::analyze::aa_changes_find_for_cds::aa_changes_group;
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::{AaDel, AaDelRange};
@@ -8,7 +8,7 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::CdsAaRange;
-use crate::analyze::nuc_alignment::NucAlignment;
+use crate::analyze::nuc_alignment::{NucAlignment, NucAlignmentAbstract, NucAlignmentWithOverlay};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::AaRefPosition;
@@ -20,6 +20,7 @@ use crate::tree::tree::AuspiceGraphNodePayload;
 use crate::utils::collections::concat_to_vec;
 use eyre::Report;
 use itertools::Itertools;
+use maplit::btreemap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -59,12 +60,18 @@ pub fn find_private_aa_mutations(
         .tmp
         .aa_mutations
         .get(&cds.name)
-        .map(|node_mut_map| (cds, node_mut_map))
+        .map(|node_mut_map| (cds, node, node_mut_map))
     })
-    .map(|(cds, node_mut_map)| {
+    .map(|(cds, node, node_mut_map)| {
+      let aln = NucAlignmentWithOverlay::new(aln, &node.tmp.mutations);
+
       let ref_peptide = ref_translation.get_cds(&cds.name)?;
       let qry_peptide = qry_translation.get_cds(&cds.name)?;
+
+      let empty = btreemap! {};
+      let node_aa_muts = node.tmp.aa_mutations.get(&cds.name).unwrap_or(&empty);
       let tr = AaAlignment::new(cds, ref_peptide, qry_peptide);
+      let tr = AaAlignmentView::new(&tr, node_aa_muts);
 
       let empty = vec![];
       let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
@@ -85,7 +92,7 @@ pub fn find_private_aa_mutations(
         &aa_deletions,
         &aa_unknowns,
         aa_unsequenced_ranges,
-        aln,
+        &aln,
         substitutions,
         deletions,
       );
@@ -96,13 +103,13 @@ pub fn find_private_aa_mutations(
 }
 
 pub fn find_private_aa_mutations_for_one_gene(
-  tr: &AaAlignment,
+  tr: &impl AaAlignmentAbstract,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_substitutions: &[&AaSub],
   aa_deletions: &[&AaDel],
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
-  aln: &NucAlignment,
+  aln: &impl NucAlignmentAbstract,
   substitutions: &[NucSub],
   deletions: &[NucDelRange],
 ) -> PrivateAaMutations {
@@ -271,7 +278,7 @@ fn process_seq_deletions(
 
 /// Iterates over node mutations, compares node and sequence mutations and finds reversion mutations.
 fn find_reversions(
-  tr: &AaAlignment,
+  tr: &impl AaAlignmentAbstract,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],

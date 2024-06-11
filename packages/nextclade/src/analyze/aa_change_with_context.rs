@@ -3,7 +3,7 @@ use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub_min::AaSubMin;
 use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
-use crate::analyze::nuc_alignment::NucAlignment;
+use crate::analyze::nuc_alignment::NucAlignmentAbstract;
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::NucRefGlobalRange;
@@ -65,14 +65,14 @@ impl AbstractMutation<AaRefPosition, Aa> for AaChangeWithContext {
 }
 
 impl AaChangeWithContext {
-  pub fn new(cds: &Cds, sub: &AaSubMin, aln: &NucAlignment) -> Self {
+  pub fn new(cds: &Cds, sub: &AaSubMin, aln: &impl NucAlignmentAbstract) -> Self {
     let AaSubMin { pos, ref_aa, qry_aa } = *sub;
     let nuc_ranges = cds_codon_pos_to_ref_range(cds, pos);
 
     let ref_triplet = nuc_ranges
       .iter()
       .flat_map(|(range, strand)| {
-        let mut nucs = aln.ref_range(range).to_vec();
+        let mut nucs = aln.ref_range(range).into_iter().collect_vec();
         if strand == &GeneStrand::Reverse {
           reverse_complement_in_place(&mut nucs);
         }
@@ -83,7 +83,7 @@ impl AaChangeWithContext {
     let qry_triplet = nuc_ranges
       .iter()
       .flat_map(|(range, strand)| {
-        let mut nucs = aln.qry_range(range).to_vec();
+        let mut nucs = aln.qry_range(range).into_iter().collect_vec();
         if strand == &GeneStrand::Reverse {
           reverse_complement_in_place(&mut nucs);
         }
