@@ -98,3 +98,12 @@ impl Display for NucDel {
     self.to_sub().fmt(f)
   }
 }
+
+impl From<&NucSub> for NucDel {
+  fn from(del: &NucSub) -> Self {
+    Self {
+      pos: del.pos,
+      ref_nuc: del.ref_nuc,
+    }
+  }
+}

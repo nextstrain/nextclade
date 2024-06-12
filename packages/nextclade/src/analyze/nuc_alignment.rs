@@ -86,6 +86,7 @@ pub struct NucAlignmentWithOverlay<'b, 'r, 'q, 'a, 'o> {
   overlay: &'o BTreeMap<NucRefGlobalPosition, Nuc>,
 }
 
+#[allow(dead_code)]
 impl<'b, 'r, 'q, 'a, 'o> NucAlignmentWithOverlay<'b, 'r, 'q, 'a, 'o> {
   pub const fn new(source: &'b NucAlignment<'r, 'q, 'a>, overlay: &'o BTreeMap<NucRefGlobalPosition, Nuc>) -> Self {
     Self { source, overlay }

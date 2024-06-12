@@ -84,8 +84,6 @@ pub fn find_relative_aa_mutations(
   qry_peptides: &Translation,
   gene_map: &GeneMap,
   aln: &NucAlignment,
-  substitutions: &[NucSub],
-  deletions: &[NucDelRange],
 ) -> Result<Vec<RelativeAaMutations>, Report> {
   let ref_nodes = filter_ref_nodes(graph, clade, clade_node_attrs);
 
@@ -107,8 +105,6 @@ pub fn find_relative_aa_mutations(
         qry_peptides,
         gene_map,
         aln,
-        substitutions,
-        deletions,
       )?;
 
       Ok(RelativeAaMutations {

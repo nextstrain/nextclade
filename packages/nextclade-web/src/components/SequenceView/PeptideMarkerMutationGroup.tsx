@@ -1,6 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
 import type { AaChangeWithContext, AaChangesGroup } from 'src/types'
+import { toSub } from 'src/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -9,7 +10,6 @@ import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
-import { formatRange } from 'src/helpers/formatRange'
 import { PeptideContext } from './PeptideContext'
 
 export interface PeptideMarkerMutationProps {
@@ -153,11 +153,10 @@ function PeptideMarkerMutationGroupUnmemoed({
                 ))}
 
                 {nucDels.map((del) => {
-                  const rangeStr = formatRange(del.range)
                   return (
-                    <tr key={rangeStr}>
+                    <tr key={del.pos}>
                       <td>{t('Deletion')}</td>
-                      <td>{}</td>
+                      <td>{<NucleotideMutationBadge mutation={toSub(del)} />}</td>
                     </tr>
                   )
                 })}

@@ -6,12 +6,13 @@ use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::AbstractMutation;
+use crate::analyze::group_adjacent_deletions::group_adjacent_nuc_dels;
 use crate::analyze::nuc_alignment::{NucAlignment, NucAlignmentAbstract};
-use crate::analyze::nuc_del::NucDelRange;
+use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
 use crate::coord::position::AaRefPosition;
-use crate::coord::range::{have_intersection, AaRefRange};
+use crate::coord::range::AaRefRange;
 use either::Either;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -40,26 +41,19 @@ pub struct FindAaChangesOutput {
 /// was not always accurate, because if there are multiple nucleotide changes in a codon, the direct correspondence
 /// might not always be established without knowing the order in which nucleotide changes have occurred. And in the
 /// context of Nextclade we don't have this information.
-pub fn aa_changes_find_for_cds(
-  aln: &NucAlignment,
-  tr: &AaAlignment,
-  nuc_subs: &[NucSub],
-  nuc_dels: &[NucDelRange],
-) -> FindAaChangesOutput {
+pub fn aa_changes_find_for_cds(aln: &NucAlignment, tr: &AaAlignment) -> FindAaChangesOutput {
   let aa_changes = AaRefRange::from_usize(0, tr.len())
     .iter()
     .filter_map(|codon| tr.mut_at(codon))
     .collect_vec();
 
-  aa_changes_group(&aa_changes, aln, tr, nuc_subs, nuc_dels)
+  aa_changes_group(&aa_changes, aln, tr)
 }
 
 pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
   aa_muts: &[M],
   aln: &impl NucAlignmentAbstract,
   node_tr: &impl AaAlignmentAbstract,
-  nuc_subs: &[NucSub],
-  nuc_dels: &[NucDelRange],
 ) -> FindAaChangesOutput {
   let cds = node_tr.cds();
   let mut aa_changes_groups = vec![AaChangesGroup::new(&cds.name)];
@@ -132,7 +126,8 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
   aa_changes_groups.retain(|group| !group.range.is_empty() && !group.changes.is_empty());
 
   aa_changes_groups.iter_mut().for_each(|group| {
-    let ranges = group
+    // Find out nuc ranges to which the group's aa range corresponds
+    let nuc_ranges = group
       .range
       .iter()
       .flat_map(|codon| {
@@ -142,17 +137,30 @@ pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
       })
       .collect_vec();
 
-    group.nuc_subs = nuc_subs
+    // Find nuc muts in these ranges.
+    let nuc_muts = nuc_ranges
       .iter()
-      .filter(|nuc_sub| ranges.iter().any(|range| range.contains(nuc_sub.pos)))
-      .cloned()
+      .filter_map(|range| {
+        let muts = range.iter().filter_map(|pos| aln.mut_at(pos)).collect_vec();
+        (!muts.is_empty()).then_some(muts)
+      })
+      .flatten()
       .collect_vec();
 
-    group.nuc_dels = nuc_dels
-      .iter()
-      .filter(|nuc_del| ranges.iter().any(|range| have_intersection(range, nuc_del.range())))
-      .cloned()
-      .collect_vec();
+    // Split substitutions and deletions apart
+    let (nuc_subs, nuc_dels): (Vec<NucSub>, Vec<NucDel>) = nuc_muts.into_iter().partition_map(|m| {
+      if m.is_del() {
+        Either::Right(NucDel::from(&m))
+      } else {
+        Either::Left(m)
+      }
+    });
+
+    let nuc_del_ranges = group_adjacent_nuc_dels(&nuc_dels);
+
+    group.nuc_subs = nuc_subs;
+    group.nuc_dels = nuc_dels;
+    group.nuc_del_ranges = nuc_del_ranges;
   });
 
   let (aa_substitutions, aa_deletions): (Vec<AaSub>, Vec<AaDel>) = aa_changes_groups

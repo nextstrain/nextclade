@@ -10,8 +10,6 @@ use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::CdsAaRange;
 use crate::analyze::nuc_alignment::{NucAlignment, NucAlignmentAbstract, NucAlignmentWithOverlay};
-use crate::analyze::nuc_del::NucDelRange;
-use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
@@ -52,8 +50,6 @@ pub fn find_private_aa_mutations(
   qry_translation: &Translation,
   gene_map: &GeneMap,
   aln: &NucAlignment,
-  substitutions: &[NucSub],
-  deletions: &[NucDelRange],
 ) -> Result<BTreeMap<String, PrivateAaMutations>, Report> {
   gene_map
     .iter_cdses()
@@ -96,8 +92,6 @@ pub fn find_private_aa_mutations(
         &aa_unknowns,
         aa_unsequenced_ranges,
         &aln,
-        substitutions,
-        deletions,
       );
 
       Ok((cds.name.clone(), private_aa_mutations))
@@ -114,8 +108,6 @@ pub fn find_private_aa_mutations_for_one_gene(
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
   aln: &impl NucAlignmentAbstract,
-  substitutions: &[NucSub],
-  deletions: &[NucDelRange],
 ) -> PrivateAaMutations {
   let cds = ref_tr.cds();
 
@@ -155,7 +147,7 @@ pub fn find_private_aa_mutations_for_one_gene(
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
 
-  let grouped = aa_changes_group(&private_substitutions, aln, node_tr, substitutions, deletions);
+  let grouped = aa_changes_group(&private_substitutions, aln, node_tr);
 
   let private_deletion_ranges = group_adjacent(&private_deletions)
     .into_iter()

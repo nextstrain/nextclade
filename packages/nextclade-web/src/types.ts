@@ -15,6 +15,7 @@ import type {
   NextcladeOutputs,
   NextcladeResult,
   Nuc,
+  NucDel,
   NucSub,
   PrivateAaMutations,
   PrivateNucMutations,
@@ -198,4 +199,8 @@ export function attrNumberMaybe(attributes: Record<string, AnyType> | undefined,
 
 export function attrBoolMaybe(attributes: Record<string, AnyType> | undefined, name: string): boolean | undefined {
   return anyAsBoolMaybe(get(attributes, name))
+}
+
+export function toSub(del: NucDel): NucSub {
+  return { ...del, qryNuc: '-' }
 }
