@@ -90,14 +90,19 @@ impl<'b, 'r, 'q, 'a, 'o> NucAlignmentWithOverlay<'b, 'r, 'q, 'a, 'o> {
   pub const fn new(source: &'b NucAlignment<'r, 'q, 'a>, overlay: &'o BTreeMap<NucRefGlobalPosition, Nuc>) -> Self {
     Self { source, overlay }
   }
-}
 
-impl NucAlignmentAbstract for NucAlignmentWithOverlay<'_, '_, '_, '_, '_> {
-  fn len(&self) -> usize {
-    self.source.len()
+  /// Lookup source sequence
+  fn source_at(&self, pos: NucRefGlobalPosition) -> Nuc {
+    self.source.ref_at(pos)
   }
 
-  fn ref_at(&self, pos: NucRefGlobalPosition) -> Nuc {
+  /// Lookup a range in source sequence
+  fn source_range(&self, range: &NucRefGlobalRange) -> impl IntoIterator<Item = Nuc> + '_ {
+    range.clamp_range(0, self.len()).iter().map(|pos| self.source_at(pos))
+  }
+
+  /// Lookup overlay sequence
+  fn overlay_at(&self, pos: NucRefGlobalPosition) -> Nuc {
     // If there's an overlay mutation at this position, return it
     if let Some(sub) = self.overlay.get(&pos) {
       *sub
@@ -107,8 +112,27 @@ impl NucAlignmentAbstract for NucAlignmentWithOverlay<'_, '_, '_, '_, '_> {
     }
   }
 
+  /// Lookup a range in overlay sequence
+  fn overlay_range(&self, range: &NucRefGlobalRange) -> impl IntoIterator<Item = Nuc> + '_ {
+    range.clamp_range(0, self.len()).iter().map(|pos| self.overlay_at(pos))
+  }
+}
+
+impl NucAlignmentAbstract for NucAlignmentWithOverlay<'_, '_, '_, '_, '_> {
+  fn len(&self) -> usize {
+    self.source.len()
+  }
+
+  /// By convention, we treat overlay as a "virtual" reference, so this returns overlay letter.
+  /// If you need the source reference, use .source_at() instead.
+  fn ref_at(&self, pos: NucRefGlobalPosition) -> Nuc {
+    self.overlay_at(pos)
+  }
+
+  /// By convention, we treat overlay as a "virtual" reference, so this returns overlay range.
+  /// If you need the source reference, use .source_range() instead.
   fn ref_range(&self, range: &NucRefGlobalRange) -> impl IntoIterator<Item = Nuc> {
-    range.clamp_range(0, self.len()).iter().map(|pos| self.ref_at(pos))
+    self.overlay_range(range)
   }
 
   fn qry_at(&self, pos: NucRefGlobalPosition) -> Nuc {
