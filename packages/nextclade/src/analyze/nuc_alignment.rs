@@ -1,4 +1,5 @@
 use crate::alphabet::nuc::Nuc;
+use crate::analyze::abstract_mutation::AbstractMutation;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
@@ -13,12 +14,17 @@ pub trait NucAlignmentAbstract {
   fn qry_at(&self, pos: NucRefGlobalPosition) -> Nuc;
   fn qry_range(&self, range: &NucRefGlobalRange) -> impl IntoIterator<Item = Nuc>;
 
-  fn mut_at(&self, pos: NucRefGlobalPosition) -> NucSub {
+  fn pair_at(&self, pos: NucRefGlobalPosition) -> NucSub {
     NucSub {
       ref_nuc: self.ref_at(pos),
       pos,
       qry_nuc: self.qry_at(pos),
     }
+  }
+
+  fn mut_at(&self, pos: NucRefGlobalPosition) -> Option<NucSub> {
+    let p = self.pair_at(pos);
+    (self.is_sequenced(pos) && p.is_mutated_and_not_unknown()).then_some(p)
   }
 
   fn alignment_range(&self) -> &NucRefGlobalRange;

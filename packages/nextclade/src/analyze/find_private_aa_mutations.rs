@@ -5,6 +5,7 @@ use crate::analyze::aa_changes_find_for_cds::aa_changes_group;
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::{AaDel, AaDelRange};
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::abstract_mutation::AbstractMutation;
 use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::CdsAaRange;
@@ -71,8 +72,8 @@ pub fn find_private_aa_mutations(
 
       let empty = btreemap! {};
       let node_aa_muts = node.tmp.aa_mutations.get(&cds.name).unwrap_or(&empty);
-      let tr = AaAlignment::new(cds, ref_peptide, qry_peptide);
-      let tr = AaAlignmentView::new(&tr, node_aa_muts);
+      let ref_tr = AaAlignment::new(cds, ref_peptide, qry_peptide); // alignment ref -> qry
+      let node_tr = AaAlignmentView::new(&ref_tr, node_aa_muts); // alignment node -> qry
 
       let empty = vec![];
       let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
@@ -87,7 +88,8 @@ pub fn find_private_aa_mutations(
       let aa_unknowns = aa_unknowns.iter().filter(|unk| unk.cds_name == cds.name).collect_vec();
 
       let private_aa_mutations = find_private_aa_mutations_for_one_gene(
-        &tr,
+        &ref_tr,
+        &node_tr,
         node_mut_map,
         &aa_substitutions,
         &aa_deletions,
@@ -104,7 +106,8 @@ pub fn find_private_aa_mutations(
 }
 
 pub fn find_private_aa_mutations_for_one_gene(
-  tr: &impl AaAlignmentAbstract,
+  ref_tr: &AaAlignment,
+  node_tr: &AaAlignmentView,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_substitutions: &[&AaSub],
   aa_deletions: &[&AaDel],
@@ -114,7 +117,7 @@ pub fn find_private_aa_mutations_for_one_gene(
   substitutions: &[NucSub],
   deletions: &[NucDelRange],
 ) -> PrivateAaMutations {
-  let cds = tr.cds();
+  let cds = ref_tr.cds();
 
   // Remember which positions we cover while iterating sequence mutations,
   // to be able to skip them when we iterate over node mutations
@@ -133,7 +136,7 @@ pub fn find_private_aa_mutations_for_one_gene(
 
   // Iterate over node substitutions and deletions and find reversions
   let reversion_substitutions = find_reversions(
-    tr,
+    ref_tr,
     node_mut_map,
     aa_unknowns,
     aa_unsequenced_ranges,
@@ -152,7 +155,7 @@ pub fn find_private_aa_mutations_for_one_gene(
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
 
-  let grouped = aa_changes_group(&private_substitutions, aln, tr, substitutions, deletions);
+  let grouped = aa_changes_group(&private_substitutions, aln, node_tr, substitutions, deletions);
 
   let private_deletion_ranges = group_adjacent(&private_deletions)
     .into_iter()
@@ -280,7 +283,7 @@ fn process_seq_deletions(
 
 /// Iterates over node mutations, compares node and sequence mutations and finds reversion mutations.
 fn find_reversions(
-  tr: &impl AaAlignmentAbstract,
+  ref_tr: &AaAlignment,
   node_mut_map: &BTreeMap<AaRefPosition, Aa>,
   aa_unknowns: &[&CdsAaRange],
   aa_unsequenced_ranges: &[AaRefRange],
@@ -297,12 +300,17 @@ fn find_reversions(
       // State in sequence reverts the character to ref seq. (the case when un-deleted state is mutated in
       // handled in process_seq_substitutions)
       // Action: Add mutation from node query character to character in reference sequence.
-      reversion_substitutions.push(AaSub {
-        cds_name: tr.cds().name.clone(),
+
+      let sub = AaSub {
+        cds_name: ref_tr.cds().name.clone(),
         ref_aa: *node_qry,
         pos,
-        qry_aa: tr.ref_at(pos),
-      });
+        qry_aa: ref_tr.ref_at(pos),
+      };
+
+      if sub.is_mutated_and_not_unknown() {
+        reversion_substitutions.push(sub);
+      }
     }
   }
 
