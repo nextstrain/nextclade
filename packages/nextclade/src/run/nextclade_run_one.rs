@@ -209,7 +209,7 @@ pub fn nextclade_run_one(
       aa_substitutions,
       aa_deletions,
       nuc_to_aa_muts,
-    } = aa_changes_find(&aln, ref_translation, &translation, gene_map)?;
+    } = aa_changes_find(&aln, ref_translation, &translation, gene_map, &params.aa_changes)?;
 
     let total_aminoacid_substitutions = aa_substitutions.len();
     let total_aminoacid_deletions = aa_deletions.len();
@@ -297,6 +297,7 @@ pub fn nextclade_run_one(
       &translation,
       gene_map,
       &aln,
+      &params.aa_changes,
     )?;
     let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
     let masked_ranges = graph.data.meta.placement_mask_ranges();
@@ -333,6 +334,7 @@ pub fn nextclade_run_one(
       &translation,
       gene_map,
       &aln,
+      &params.aa_changes,
     )?;
 
     let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
