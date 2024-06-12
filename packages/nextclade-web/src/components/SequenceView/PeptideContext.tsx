@@ -242,9 +242,9 @@ export function PeptideContext({ group }: PeptideContextProps) {
     let itemsBegin = changes
     let itemsEnd: typeof changes = []
     let ellipsis = null
-    if (changes.length > 8) {
-      itemsBegin = changes.slice(0, 4)
-      itemsEnd = changes.slice(-4)
+    if (changes.length > 12) {
+      itemsBegin = changes.slice(0, 6)
+      itemsEnd = changes.slice(-6)
       ellipsis = <PeptideContextEllipsis />
     }
 
