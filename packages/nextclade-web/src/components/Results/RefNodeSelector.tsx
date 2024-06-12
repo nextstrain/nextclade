@@ -92,7 +92,7 @@ export function RefNodeSelector() {
         menuPortalTarget={document.body}
         styles={reactSelectStyles}
         theme={reactSelectTheme}
-        maxMenuHeight={200}
+        maxMenuHeight={400}
       />
     </div>
   )
