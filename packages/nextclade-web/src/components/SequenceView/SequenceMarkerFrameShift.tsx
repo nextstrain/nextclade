@@ -7,7 +7,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { SeqMarkerFrameShiftState, seqMarkerFrameShiftStateAtom } from 'src/state/seqViewSettings.state'
+import { SeqMarkerState, seqMarkerFrameShiftStateAtom } from 'src/state/seqViewSettings.state'
 import { cdsAtom } from 'src/state/results.state'
 
 const frameShiftColor = '#eb0d2a'
@@ -86,7 +86,7 @@ function SequenceMarkerFrameShiftSegment({
 
   const seqMarkerFrameShiftState = useRecoilValue(seqMarkerFrameShiftStateAtom)
   const cds = useRecoilValue(cdsAtom(geneName))
-  if (!cds || seqMarkerFrameShiftState === SeqMarkerFrameShiftState.Off) {
+  if (!cds || seqMarkerFrameShiftState === SeqMarkerState.Off) {
     return null
   }
 

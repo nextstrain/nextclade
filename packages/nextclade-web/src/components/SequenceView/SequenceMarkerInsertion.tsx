@@ -1,4 +1,6 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
+import { useRecoilValue } from 'recoil'
+import { seqMarkerInsertionStateAtom, SeqMarkerState } from 'src/state/seqViewSettings.state'
 import { useTheme } from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -38,6 +40,11 @@ function SequenceMarkerInsertionUnmemoed({ index, seqName, insertion, pixelsPerB
   const insertions = useMemo(() => [insertion], [insertion])
   const pointsMain = useMemo(() => `${x} 10, ${x + 5} 19, ${x - 5} 19`, [x])
   const pointsOutline = useMemo(() => `${x} 7, ${x + 7} 22, ${x - 7} 22`, [x])
+
+  const seqMarkerInsertionState = useRecoilValue(seqMarkerInsertionStateAtom)
+  if (seqMarkerInsertionState === SeqMarkerState.Off) {
+    return null
+  }
 
   return (
     <g id={id} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
