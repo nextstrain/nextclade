@@ -54,8 +54,8 @@ pub fn aa_changes_find_for_cds(aln: &NucAlignment, tr: &AaAlignment, params: &Aa
   aa_changes_group(&aa_changes, aln, tr, params)
 }
 
-pub fn aa_changes_group<M: AbstractMutation<AaRefPosition, Aa>>(
-  aa_muts: &[M],
+pub fn aa_changes_group<'a, M: AbstractMutation<AaRefPosition, Aa> + 'a + ?Sized>(
+  aa_muts: impl IntoIterator<Item = &'a M>,
   aln: &impl NucAlignmentAbstract,
   node_tr: &impl AaAlignmentAbstract,
   params: &AaChangesParams,

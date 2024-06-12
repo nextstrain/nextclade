@@ -1,5 +1,5 @@
 use crate::alphabet::aa::{from_aa, Aa};
-use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
+use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,9 @@ pub struct AaSubMin {
   pub qry_aa: Aa,
 }
 
-impl AbstractMutation<AaRefPosition, Aa> for AaSubMin {
+impl AbstractMutation<AaRefPosition, Aa> for AaSubMin {}
+
+impl CloneableMutation<AaRefPosition, Aa> for AaSubMin {
   fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
     Self {
       pos: params.pos,

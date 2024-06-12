@@ -18,7 +18,7 @@ use crate::translate::translate_genes::Translation;
 use crate::tree::tree::AuspiceGraphNodePayload;
 use crate::utils::collections::concat_to_vec;
 use eyre::Report;
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use maplit::btreemap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -150,7 +150,18 @@ pub fn find_private_aa_mutations_for_one_gene(
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
 
-  let grouped = aa_changes_group(&private_substitutions, aln, node_tr, params);
+  #[allow(trivial_casts)]
+  let all_private_mutations = chain!(
+    private_substitutions
+      .iter()
+      .map(|x| x as &dyn AbstractMutation<AaRefPosition, Aa>),
+    private_deletions
+      .iter()
+      .map(|x| x as &dyn AbstractMutation<AaRefPosition, Aa>)
+  )
+  .sorted_by_key(|m| m.pos());
+
+  let grouped = aa_changes_group(all_private_mutations, aln, node_tr, params);
 
   let private_deletion_ranges = group_adjacent(&private_deletions)
     .into_iter()

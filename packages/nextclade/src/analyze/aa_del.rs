@@ -1,6 +1,6 @@
 use crate::alphabet::aa::Aa;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
+use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,9 @@ pub struct AaDel {
   pub ref_aa: Aa,
 }
 
-impl AbstractMutation<AaRefPosition, Aa> for AaDel {
+impl AbstractMutation<AaRefPosition, Aa> for AaDel {}
+
+impl CloneableMutation<AaRefPosition, Aa> for AaDel {
   fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
     Self {
       cds_name: self.cds_name.clone(),

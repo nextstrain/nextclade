@@ -2,7 +2,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub_min::AaSubMin;
-use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
+use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_alignment::NucAlignmentAbstract;
 use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
@@ -52,7 +52,9 @@ impl RefLetter<Aa> for AaChangeWithContext {
   }
 }
 
-impl AbstractMutation<AaRefPosition, Aa> for AaChangeWithContext {
+impl AbstractMutation<AaRefPosition, Aa> for AaChangeWithContext {}
+
+impl CloneableMutation<AaRefPosition, Aa> for AaChangeWithContext {
   fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
     Self {
       cds_name: self.cds_name.clone(),
