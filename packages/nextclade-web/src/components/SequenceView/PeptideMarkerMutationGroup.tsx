@@ -1,7 +1,6 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { Row, Col } from 'reactstrap'
 import type { AaChangeWithContext, AaChangesGroup } from 'src/types'
-import { toSub } from 'src/types'
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -10,6 +9,7 @@ import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { SeqNameHeading } from 'src/components/Common/SeqNameHeading'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
+import { formatRange } from 'src/helpers/formatRange'
 import { PeptideContext } from './PeptideContext'
 
 export interface PeptideMarkerMutationProps {
@@ -45,7 +45,7 @@ function PeptideMarkerMutationGroupUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { name, range, changes: changesWithContext, nucSubs, nucDels } = group
+  const { name, range, changes: changesWithContext, nucSubs, nucDels, nucDelRanges } = group
   const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
 
   const contextTitle = useMemo(() => t('Context'), [t])
@@ -152,11 +152,12 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </tr>
                 ))}
 
-                {nucDels.map((del) => {
+                {nucDelRanges.map((del) => {
+                  const rangeStr = formatRange(del.range)
                   return (
-                    <tr key={del.pos}>
+                    <tr key={rangeStr}>
                       <td>{t('Deletion')}</td>
-                      <td>{<NucleotideMutationBadge mutation={toSub(del)} />}</td>
+                      <td>{rangeStr}</td>
                     </tr>
                   )
                 })}
