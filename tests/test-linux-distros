@@ -22,8 +22,8 @@ export VOLUME
 export RUN_COMMAND="/nextclade dataset list >/dev/null"
 
 distros=(
-  "debian:8.0"
-  "debian:9.0"
+  "debian/eol:jessie"  # 8
+  "debian/eol:stretch" # 9
   "debian:10.0"
   "debian:11.0"
   "debian:12.0"
