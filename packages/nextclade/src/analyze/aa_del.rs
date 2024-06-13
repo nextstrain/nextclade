@@ -1,8 +1,9 @@
-use crate::alphabet::aa::Aa;
+use crate::alphabet::aa::{to_aa, Aa};
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
+use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -45,6 +46,14 @@ impl Pos<AaRefPosition> for AaDel {
 }
 
 impl AaDel {
+  pub fn from_raw(cds: impl AsRef<str>, pos: usize, ref_nuc: char) -> Result<Self, Report> {
+    Ok(Self {
+      cds_name: cds.as_ref().to_owned(),
+      pos: pos.into(),
+      ref_aa: to_aa(ref_nuc)?,
+    })
+  }
+
   /// Converts deletion to substitution to Gap
   #[inline]
   pub fn to_sub(&self) -> AaSub {
