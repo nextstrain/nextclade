@@ -121,7 +121,7 @@ RUN set -euxo pipefail >/dev/null \
   if [ -z "$(getent group ${GID})" ]; then \
     groupadd --system --gid ${GID} ${GROUP}; \
   else \
-    groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
+    groupmod --new-name ${GROUP} $(getent group ${GID} | cut -d: -f1); \
   fi \
 && export SUDO_GROUP="sudo" \
 && \
@@ -132,20 +132,24 @@ RUN set -euxo pipefail >/dev/null \
   if [ -z "$(getent passwd ${UID})" ]; then \
     useradd \
       --system \
-      --create-home --home-dir ${HOME} \
+      --home-dir ${HOME} \
+      --create-home \
       --shell /bin/bash \
       --gid ${GROUP} \
-      --groups ${SUDO_GROUP} \
+      --groups "${SUDO_GROUP},${GROUP}" \
       --uid ${UID} \
       ${USER}; \
   else \
     usermod \
       --home ${HOME} \
+      --move-home \
       --shell /bin/bash \
       --gid ${GROUP} \
-      --groups ${SUDO_GROUP} \
+      --groups "${SUDO_GROUP},${GROUP}" \
+      --append \
       --uid ${UID} \
-     ${USER}; \
+      --login "${USER}" \
+      ${USER}; \
   fi \
 && sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
@@ -196,7 +200,7 @@ RUN set -euxo pipefail >/dev/null \
 RUN set -euxo pipefail >/dev/null \
 && chown -R ${UID}:${GID} "${HOME}"
 
-USER ${USER}
+USER ${UID}
 
 # Install rustup and toolchain from rust-toolchain.toml
 COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
@@ -272,7 +276,7 @@ RUN set -euxo pipefail >/dev/null \
 && rustup completions bash cargo >>  ~/.bash_completion \
 && echo "source ~/.bash_completion" >> ~/.bashrc
 
-USER ${USER}
+USER ${UID}
 
 
 # Native compilation for Linux x86_64 with gnu-libc
@@ -299,7 +303,7 @@ SHELL ["bash", "-euxo", "pipefail", "-c"]
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
 
-USER ${USER}
+USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add x86_64-unknown-linux-musl
@@ -317,7 +321,7 @@ SHELL ["bash", "-euxo", "pipefail", "-c"]
 RUN set -euxo pipefail >/dev/null \
 && rustup target add wasm32-unknown-unknown
 
-USER ${USER}
+USER ${UID}
 
 
 # Cross-compilation for Linux ARM64
@@ -338,7 +342,7 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
 
-USER ${USER}
+USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add aarch64-unknown-linux-gnu
@@ -357,7 +361,7 @@ SHELL ["bash", "-euxo", "pipefail", "-c"]
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
 
-USER ${USER}
+USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add aarch64-unknown-linux-musl
@@ -384,7 +388,7 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
 
-USER ${USER}
+USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add x86_64-pc-windows-gnu
@@ -404,7 +408,7 @@ RUN set -euxo pipefail >/dev/null \
 && mkdir -p "/opt/osxcross" \
 && curl -fsSL "${OSXCROSS_URL}" | tar -C "/opt/osxcross" -xJ
 
-USER ${USER}
+USER ${UID}
 
 
 # Cross-compilation for macOS x86_64
@@ -412,7 +416,7 @@ FROM osxcross as cross-x86_64-apple-darwin
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
-USER ${USER}
+USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add x86_64-apple-darwin
@@ -432,7 +436,7 @@ ENV MACOSX_DEPLOYMENT_TARGET=10.7
 RUN set -euxo pipefail >/dev/null \
 && echo "1" | osxcross-macports install openssl -v
 
-USER ${USER}
+USER ${UID}
 
 
 # Cross-compilation for macOS ARM64
@@ -440,7 +444,7 @@ FROM osxcross as cross-aarch64-apple-darwin
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
-USER ${USER}
+USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add aarch64-apple-darwin
@@ -459,4 +463,4 @@ ENV MACOSX_DEPLOYMENT_TARGET=10.7
 RUN set -euxo pipefail >/dev/null \
 && echo "1" | osxcross-macports install openssl -v
 
-USER ${USER}
+USER ${UID}

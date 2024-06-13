@@ -439,8 +439,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --build-arg="CLANG_VERSION=${CLANG_VERSION}" \
     --build-arg="UID=$(id -u)" \
     --build-arg="GID=$(id -g)" \
-    --build-arg="USER=user" \
-    --build-arg="GROUP=user" \
+    --build-arg="USER=${USER}" \
+    --build-arg="GROUP=${GROUP}" \
     ${ADDITIONAL_DOCKER_BUILD_ARGS} \
     . \
     >/dev/null
