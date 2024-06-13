@@ -31,6 +31,7 @@ import {
   cdsesAtom,
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
+  currentRefNodeNameAtom,
   genesAtom,
   genomeSizeAtom,
   phenotypeAttrDescsAtom,
@@ -58,6 +59,8 @@ export function useRunAnalysis() {
         reset(clearAllFiltersAtom)
         reset(treeAtom)
         reset(viewedCdsAtom)
+        reset(refNodesAtom)
+        reset(currentRefNodeNameAtom)
         reset(cdsOrderPreferenceAtom)
 
         const numThreads = getPromise(numThreadsAtom)
