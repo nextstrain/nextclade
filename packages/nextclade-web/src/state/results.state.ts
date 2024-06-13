@@ -35,7 +35,7 @@ import {
 } from 'src/state/resultFilters.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { REF_NODE_PARENT } from 'src/constants'
+import { REF_NODE_ROOT } from 'src/constants'
 
 // Stores analysis result for a single sequence (defined by sequence name)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
@@ -324,7 +324,7 @@ export const refNodesAtom = atom<AuspiceRefNode[]>({
 
 export const currentRefNodeNameAtom = atom<string>({
   key: 'currentRefNode',
-  default: REF_NODE_PARENT,
+  default: REF_NODE_ROOT,
 })
 
 export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({
