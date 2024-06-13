@@ -138,12 +138,22 @@ RUN set -euxo pipefail >/dev/null \
       --groups ${SUDO_GROUP} \
       --uid ${UID} \
       ${USER}; \
+  else \
+    usermod \
+      --home ${HOME} \
+      --shell /bin/bash \
+      --gid ${GROUP} \
+      --groups ${SUDO_GROUP} \
+      --uid ${UID} \
+     ${USER}; \
   fi \
 && sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
 && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 && echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+&& mkdir -p ${HOME} \
+&& chown -R ${UID}:${GID} "${HOME}" \
 && touch ${HOME}/.hushlogin
 
 # Install Python dependencies
