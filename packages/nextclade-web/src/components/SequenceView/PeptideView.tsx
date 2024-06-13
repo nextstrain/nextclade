@@ -4,6 +4,7 @@ import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { PeptideViewAbsolute } from 'src/components/SequenceView/PeptideViewAbsolute'
 import { PeptideViewRelative } from 'src/components/SequenceView/PeptideViewRelative'
+import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import styled from 'styled-components'
 import type { AnalysisResult, PeptideWarning } from 'src/types'
 import { cdsAtom, currentRefNodeNameAtom } from 'src/state/results.state'
@@ -80,11 +81,11 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
       return <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
     }
 
-    if (refNodeName === '_root') {
+    if (refNodeName === REF_NODE_ROOT) {
       return <PeptideViewAbsolute width={width} cds={cds} sequence={sequence} />
     }
 
-    if (refNodeName === '_parent') {
+    if (refNodeName === REF_NODE_PARENT) {
       return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
     }
 

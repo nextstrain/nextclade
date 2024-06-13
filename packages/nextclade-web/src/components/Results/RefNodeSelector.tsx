@@ -9,6 +9,7 @@ import { IsMultiValue } from 'src/components/Common/Dropdown'
 import { DropdownOption } from 'src/components/Common/DropdownOption'
 import { currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
 import { SelectComponents } from 'react-select/dist/declarations/src/components'
+import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 
 interface Option {
   value: string
@@ -18,12 +19,12 @@ interface Option {
 
 const builtinRefs: Option[] = [
   {
-    value: '_root',
+    value: REF_NODE_ROOT,
     label: 'Reference',
     description: 'Reference sequence',
   },
   {
-    value: '_parent',
+    value: REF_NODE_PARENT,
     label: 'Parent',
     description: 'Nearest node on reference tree',
   },

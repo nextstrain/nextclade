@@ -1,6 +1,7 @@
 import { isEmpty, isNil } from 'lodash'
 import React, { ReactNode } from 'react'
 import { useRecoilValue } from 'recoil'
+import { REF_NODE_PARENT } from 'src/constants'
 import { currentRefNodeNameAtom } from 'src/state/results.state'
 import { type AnalysisResult, getNucMutations, NucSub, NucSubLabeled } from 'src/types'
 import { LiInvisible, UlInvisible } from 'src/components/Common/List'
@@ -37,14 +38,14 @@ export function ListOfNucMuts({ analysisResult }: ListOfPrivateNucMutationsProps
             subs={relMuts?.reversionSubstitutions}
           />
 
-          {refNodeName === '_parent' && (
+          {refNodeName === REF_NODE_PARENT && (
             <ListOfNucMutationsOneTypeLabelled
               heading={t('Labeled substitutions ({{ n }})', { n: relMuts?.labeledSubstitutions.length })}
               subs={relMuts?.labeledSubstitutions}
             />
           )}
 
-          {refNodeName === '_parent' && (
+          {refNodeName === REF_NODE_PARENT && (
             <ListOfNucMutationsOneType
               heading={t('Unlabeled substitutions ({{ n }})', { n: relMuts?.unlabeledSubstitutions.length })}
               subs={relMuts?.unlabeledSubstitutions}

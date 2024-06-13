@@ -1,4 +1,5 @@
 import { isNil, isNumber, isFinite, isString, range, sumBy, isBoolean, get } from 'lodash'
+import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import type {
   Aa,
   AaSub,
@@ -71,10 +72,10 @@ export function getNucMutations(
       relMuts?: PrivateNucMutations
     }
   | undefined {
-  if (refNodeName === '_root') {
+  if (refNodeName === REF_NODE_ROOT) {
     return { subs: analysisResult.substitutions, relMuts: undefined }
   }
-  if (refNodeName === '_parent') {
+  if (refNodeName === REF_NODE_PARENT) {
     return {
       subs: analysisResult.privateNucMutations.privateSubstitutions,
       relMuts: analysisResult.privateNucMutations,
@@ -99,10 +100,10 @@ export function getAaMutations(
       relAaMuts?: PrivateAaMutations[]
     }
   | undefined {
-  if (refNodeName === '_root') {
+  if (refNodeName === REF_NODE_ROOT) {
     return { aaSubs: analysisResult.aaSubstitutions, relAaMuts: undefined }
   }
-  if (refNodeName === '_parent') {
+  if (refNodeName === REF_NODE_PARENT) {
     const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }

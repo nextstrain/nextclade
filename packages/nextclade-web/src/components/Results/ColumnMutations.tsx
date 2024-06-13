@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
+import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { currentRefNodeNameAtom } from 'src/state/results.state'
 import { getAaMutations, getNucMutations } from 'src/types'
 import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
@@ -24,10 +25,10 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const aaMuts = getAaMutations(analysisResult, refNodeName)
 
   const nodeName = useMemo(() => {
-    if (refNodeName === '_root') {
+    if (refNodeName === REF_NODE_ROOT) {
       return t('reference')
     }
-    if (refNodeName === '_parent') {
+    if (refNodeName === REF_NODE_PARENT) {
       return t('parent')
     }
     return refNodeName
