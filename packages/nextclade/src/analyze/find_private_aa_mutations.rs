@@ -61,16 +61,22 @@ pub fn find_private_aa_mutations(
         .get(&cds.name)
         .map(|node_mut_map| (cds, node, node_mut_map))
     })
-    .map(|(cds, node, node_mut_map)| {
+    .filter_map(|(cds, node, node_mut_map)| {
+      let ref_peptide = ref_translation.get_cds(&cds.name).ok();
+      let qry_peptide = qry_translation.get_cds(&cds.name).ok();
+      if let (Some(ref_peptide), Some(qry_peptide)) = (ref_peptide, qry_peptide) {
+        Some((cds, node, node_mut_map, ref_peptide, qry_peptide))
+      } else {
+        None
+      }
+    })
+    .map(|(cds, node, node_mut_map, ref_peptide, qry_peptide)| {
       let aln = NucAlignmentWithOverlay::new(aln, &node.tmp.mutations);
-
-      let ref_peptide = ref_translation.get_cds(&cds.name)?;
-      let qry_peptide = qry_translation.get_cds(&cds.name)?;
 
       let empty = btreemap! {};
       let node_aa_muts = node.tmp.aa_mutations.get(&cds.name).unwrap_or(&empty);
-      let ref_tr = AaAlignment::new(cds, ref_peptide, qry_peptide); // alignment ref -> qry
-      let node_tr = AaAlignmentView::new(&ref_tr, node_aa_muts); // alignment node -> qry
+      let ref_tr = AaAlignment::new(cds, ref_peptide, qry_peptide); // alignment: ref -> qry
+      let node_tr = AaAlignmentView::new(&ref_tr, node_aa_muts); // alignment: node -> qry
 
       let empty = vec![];
       let aa_unsequenced_ranges = aa_unsequenced_ranges.get(&cds.name).unwrap_or(&empty);
