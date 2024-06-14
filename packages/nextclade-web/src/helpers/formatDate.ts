@@ -1,4 +1,4 @@
-import { isEmpty } from 'lodash'
+import { isEmpty, negate } from 'lodash'
 import { DateTime } from 'luxon'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 
@@ -17,5 +17,5 @@ export function formatDateIsoUtcSimple(dateTimeStr: string) {
     includeOffset: false,
   })
 
-  return [date, time, `(${utc.zoneName})`].filter(notUndefinedOrNull).filter(isEmpty).join(' ')
+  return [date, time, `(${utc.zoneName})`].filter(notUndefinedOrNull).filter(negate(isEmpty)).join(' ')
 }
