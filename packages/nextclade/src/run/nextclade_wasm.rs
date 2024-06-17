@@ -16,7 +16,9 @@ use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{check_ref_seq_mismatch, AuspiceGraph, AuspiceRefNode, AuspiceTree, CladeNodeAttrKeyDesc};
+use crate::tree::tree::{
+  check_ref_seq_mismatch, AuspiceGraph, AuspiceRefNode, AuspiceRefNodesDesc, AuspiceTree, CladeNodeAttrKeyDesc,
+};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
@@ -277,6 +279,7 @@ pub struct Nextclade {
   pub clade_attr_descs: Vec<CladeNodeAttrKeyDesc>,
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   pub ref_nodes: Vec<AuspiceRefNode>,
+  pub ref_nodes2: AuspiceRefNodesDesc,
 }
 
 pub struct InitialStateWithAa {
@@ -367,6 +370,11 @@ impl Nextclade {
       .map(|graph| graph.data.meta.reference_nodes().to_vec())
       .unwrap_or_default();
 
+    let ref_nodes2 = graph
+      .as_ref()
+      .map(|graph| graph.data.meta.ref_nodes().to_owned())
+      .unwrap_or_default();
+
     Ok(Self {
       ref_record,
       ref_seq,
@@ -385,6 +393,7 @@ impl Nextclade {
       clade_attr_descs,
       phenotype_attr_descs,
       ref_nodes,
+      ref_nodes2,
     })
   }
 

@@ -35,6 +35,7 @@ use crate::translate::aa_alignment_ranges::{gather_aa_alignment_ranges, GatherAa
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{translate_genes, Translation};
+use crate::tree::tree_find_ancestors_of_interest::graph_find_ancestors_of_interest;
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use eyre::Report;
@@ -95,6 +96,7 @@ pub fn nextclade_run_one(
     graph,
     primers,
     ref_nodes,
+    ref_nodes2,
     ..
   } = &state;
 
@@ -308,6 +310,10 @@ pub fn nextclade_run_one(
         graph.data.tmp.divergence_units,
         ref_seq.len(),
       );
+
+    let ref_nodes_result = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes2)?;
+
+    dbg!(&ref_nodes_result);
 
     let relative_nuc_mutations = find_relative_nuc_mutations(
       graph,

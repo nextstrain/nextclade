@@ -348,7 +348,7 @@ pub struct CladeNodeAttrKeyDesc {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, Copy, Eq, PartialEq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
-pub enum AuspiceRefNodeSearchType {
+pub enum AuspiceNodeSearchAlgo {
   AncestorNearest,
   AncestorEarliest,
   #[default]
@@ -359,7 +359,7 @@ pub enum AuspiceRefNodeSearchType {
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeCriterion {
   #[serde(default)]
-  pub search_type: AuspiceRefNodeSearchType,
+  pub search_algo: AuspiceNodeSearchAlgo,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub names: Vec<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]

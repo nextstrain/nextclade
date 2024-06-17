@@ -2,7 +2,7 @@ use crate::graph::node::{GraphNodeKey, Node};
 use crate::graph::search::{graph_find_backwards_first, graph_find_backwards_last};
 use crate::tree::tree::{
   AuspiceGraph, AuspiceGraphNodePayload, AuspiceQryCriterion, AuspiceRefNodeCriterion, AuspiceRefNodeSearchCriteria,
-  AuspiceRefNodeSearchDesc, AuspiceRefNodeSearchType, AuspiceRefNodesDesc,
+  AuspiceRefNodeSearchDesc, AuspiceNodeSearchAlgo, AuspiceRefNodesDesc,
 };
 use eyre::Report;
 use itertools::Itertools;
@@ -94,14 +94,14 @@ fn find_node(
   nearest_node_key: GraphNodeKey,
   criterion: &AuspiceRefNodeCriterion,
 ) -> Result<Option<AncestralSearchMatch>, Report> {
-  match criterion.search_type {
-    AuspiceRefNodeSearchType::AncestorNearest => {
+  match criterion.search_algo {
+    AuspiceNodeSearchAlgo::AncestorNearest => {
       graph_find_backwards_first(graph, nearest_node_key, |node| node_matches(node, criterion))
     }
-    AuspiceRefNodeSearchType::AncestorEarliest => {
+    AuspiceNodeSearchAlgo::AncestorEarliest => {
       graph_find_backwards_last(graph, nearest_node_key, |node| node_matches(node, criterion))
     }
-    AuspiceRefNodeSearchType::Full => Ok(graph.iter_nodes().find_map(|node| node_matches(node, criterion))),
+    AuspiceNodeSearchAlgo::Full => Ok(graph.iter_nodes().find_map(|node| node_matches(node, criterion))),
   }
 }
 
