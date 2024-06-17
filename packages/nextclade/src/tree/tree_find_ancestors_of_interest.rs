@@ -1,8 +1,8 @@
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::graph::search::{graph_find_backwards_first, graph_find_backwards_last};
 use crate::tree::tree::{
-  AuspiceGraph, AuspiceGraphNodePayload, AuspiceQryCriterion, AuspiceRefNodeCriterion, AuspiceRefNodeSearchCriteria,
-  AuspiceRefNodeSearchDesc, AuspiceNodeSearchAlgo, AuspiceRefNodesDesc,
+  AuspiceGraph, AuspiceGraphNodePayload, AuspiceNodeSearchAlgo, AuspiceQryCriterion, AuspiceRefNodeCriterion,
+  AuspiceRefNodeSearchCriteria, AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc,
 };
 use eyre::Report;
 use itertools::Itertools;
@@ -119,15 +119,15 @@ fn node_matches(
   // In order to be "found", the ancestral node need to fulfill ONE OR MORE of the following requirements:
 
   // 1. Name of the candidate node matches at least ONE OF criteria names
-  let name = criteria.names.iter().find(|&name| name == &node.name).cloned();
+  let name = criteria.name.iter().find(|&name| name == &node.name).cloned();
 
   // 2. Candidate clade matches at least ONE OF the clades in the criteria
-  let clade = find_matching_clade(&node.clade(), &criteria.clades);
+  let clade = find_matching_clade(&node.clade(), &criteria.clade);
 
   // 3. ALL clade-like attribute keys in the criteria are also defined in the candidate node,
   //    AND
   //    for each key, query value matches at least ONE OF the values in the criteria
-  let clade_like_attrs = find_matching_clade_like_attrs(node, &criteria.clade_like_attrs);
+  let clade_like_attrs = find_matching_clade_like_attrs(node, &criteria.clade_node_attrs);
 
   match (name, clade, clade_like_attrs) {
     // Nothing matched
@@ -172,6 +172,10 @@ fn find_matching_clade_like_attrs(
         })
     })
     .collect_vec();
+
+  if result.is_empty() {
+    return None;
+  }
 
   // NOTE: Here we chose to treat any missing attributes as a complete mismatch
   (result.len() == anc_attrs.len()).then_some(result)

@@ -361,11 +361,11 @@ pub struct AuspiceRefNodeCriterion {
   #[serde(default)]
   pub search_algo: AuspiceNodeSearchAlgo,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub names: Vec<String>,
+  pub name: Vec<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub clades: Vec<String>,
+  pub clade: Vec<String>,
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub clade_like_attrs: BTreeMap<String, Vec<String>>,
+  pub clade_node_attrs: BTreeMap<String, Vec<String>>,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }

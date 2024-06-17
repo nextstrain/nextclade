@@ -313,7 +313,12 @@ pub fn nextclade_run_one(
 
     let ref_nodes_result = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes2)?;
 
-    dbg!(&ref_nodes_result);
+    let res = ref_nodes_result
+      .iter()
+      .flat_map(|r| r.results.iter().flat_map(|r| r.results.iter().flatten()))
+      .collect_vec();
+
+    dbg!(res);
 
     let relative_nuc_mutations = find_relative_nuc_mutations(
       graph,
