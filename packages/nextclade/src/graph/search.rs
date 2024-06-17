@@ -16,7 +16,7 @@ where
   E: GraphEdge,
   F: FnMut(&Node<N>) -> Option<R>,
 {
-  let current = graph
+  let mut current = graph
     .get_node(start)
     .wrap_err("In graph_search_backwards(): When retrieving starting node")?;
 
@@ -38,6 +38,8 @@ where
     if let Some(result) = result {
       return Ok(Some(result));
     }
+
+    current = parent;
   }
 }
 
@@ -53,7 +55,7 @@ where
   E: GraphEdge,
   F: FnMut(&Node<N>) -> Option<R>,
 {
-  let current = graph
+  let mut current = graph
     .get_node(start)
     .wrap_err("In graph_search_backwards(): When retrieving starting node")?;
 
@@ -77,6 +79,8 @@ where
     if let Some(result) = result {
       found = Some(result);
     }
+
+    current = parent;
   }
 
   Ok(found)
