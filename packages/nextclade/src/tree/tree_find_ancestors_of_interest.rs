@@ -1,8 +1,8 @@
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::graph::search::{graph_find_backwards_first, graph_find_backwards_last};
 use crate::tree::tree::{
-  AuspiceGraph, AuspiceGraphNodePayload, AuspiceQryCriterion, AuspiceRefNodeCriterion, AuspiceRefNodeSearchDesc,
-  AuspiceRefNodeSearchType, AuspiceRefNodesDesc,
+  AuspiceGraph, AuspiceGraphNodePayload, AuspiceQryCriterion, AuspiceRefNodeCriterion, AuspiceRefNodeSearchCriteria,
+  AuspiceRefNodeSearchDesc, AuspiceRefNodeSearchType, AuspiceRefNodesDesc,
 };
 use eyre::Report;
 use itertools::Itertools;
@@ -19,6 +19,12 @@ pub struct AttrPair {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct AncestralSearchResult {
   pub search: AuspiceRefNodeSearchDesc,
+  pub results: Vec<AncestralSearchResultForCriteria>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AncestralSearchResultForCriteria {
+  pub criteria: AuspiceRefNodeSearchCriteria,
   pub result: Option<AncestralSearchMatch>,
 }
 
@@ -43,14 +49,24 @@ pub fn graph_find_ancestors_of_interest(
     .search
     .iter()
     .map(|search| {
-      let qry_node = graph.get_node(nearest_node_key)?.payload();
-      let result = is_qry_match(qry_node, &search.criteria.qry)
-        .then(|| find_node(graph, nearest_node_key, &search.criteria.node))
-        .transpose()?
-        .flatten();
+      let results = search
+        .criteria
+        .iter()
+        .map(|criteria| {
+          let qry_node = graph.get_node(nearest_node_key)?.payload();
+          let result = is_qry_match(qry_node, &criteria.qry)
+            .then(|| find_node(graph, nearest_node_key, &criteria.node))
+            .transpose()?
+            .flatten();
+          Ok(AncestralSearchResultForCriteria {
+            criteria: criteria.clone(),
+            result,
+          })
+        })
+        .collect::<Result<_, Report>>()?;
       Ok(AncestralSearchResult {
         search: search.clone(),
-        result,
+        results,
       })
     })
     .collect()

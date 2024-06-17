@@ -422,7 +422,8 @@ pub struct AuspiceRefNodeSearchDesc {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
 
-  pub criteria: AuspiceRefNodeSearchCriteria,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub criteria: Vec<AuspiceRefNodeSearchCriteria>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
