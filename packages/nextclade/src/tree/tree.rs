@@ -272,18 +272,19 @@ impl AuspiceGraphNodePayload {
       .map(|clade_membership| clade_membership.value.clone())
   }
 
+  /// Extracts clade-like node attribute, given its name
+  pub fn get_clade_node_attr(&self, name: impl AsRef<str>) -> Option<&str> {
+    self.node_attrs.other.get(name.as_ref()).and_then(|val| val.as_str())
+  }
+
   /// Extracts clade-like node attributes, given a list of key descriptions
   pub fn get_clade_node_attrs(&self, clade_node_attr_keys: &[CladeNodeAttrKeyDesc]) -> BTreeMap<String, String> {
     clade_node_attr_keys
       .iter()
       .filter_map(|attr| {
-        let key = &attr.name;
-        let attr_obj = self.node_attrs.other.get(key);
-        match attr_obj {
-          Some(attr) => attr.get("value"),
-          None => None,
-        }
-        .and_then(|val| val.as_str().map(|val| (key.clone(), val.to_owned())))
+        self
+          .get_clade_node_attr(&attr.name)
+          .map(|val| (attr.name.clone(), val.to_owned()))
       })
       .collect()
   }
@@ -345,6 +346,94 @@ pub struct CladeNodeAttrKeyDesc {
   pub other: serde_json::Value,
 }
 
+#[derive(Clone, Debug, Default, Serialize, Deserialize, Copy, Eq, PartialEq, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum AuspiceRefNodeSearchType {
+  AncestorNearest,
+  AncestorEarliest,
+  #[default]
+  Full,
+}
+
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceRefNodeCriterion {
+  #[serde(default)]
+  pub search_type: AuspiceRefNodeSearchType,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub names: Vec<String>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub clades: Vec<String>,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub clade_like_attrs: BTreeMap<String, Vec<String>>,
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl AuspiceRefNodeCriterion {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceQryCriterion {
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub names: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub clades: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub clade_like_attrs: BTreeMap<String, Vec<String>>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl AuspiceQryCriterion {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceRefNodeSearchCriteria {
+  #[serde(default, skip_serializing_if = "AuspiceQryCriterion::is_empty")]
+  pub qry: AuspiceQryCriterion,
+
+  #[serde(default, skip_serializing_if = "AuspiceRefNodeCriterion::is_empty")]
+  pub node: AuspiceRefNodeCriterion,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceRefNodeSearchDesc {
+  pub name: String,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub display_name: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+
+  pub criteria: AuspiceRefNodeSearchCriteria,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl AuspiceRefNodeSearchDesc {
+  pub fn display_name_or_name(&self) -> &str {
+    self.display_name.as_ref().unwrap_or(&self.name)
+  }
+}
+
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNode {
@@ -369,6 +458,24 @@ impl AuspiceRefNode {
   }
 }
 
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceRefNodesDesc {
+  pub default: String,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub search: Vec<AuspiceRefNodeSearchDesc>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+impl AuspiceRefNodesDesc {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -379,6 +486,9 @@ pub struct AuspiceMetaExtensionsNextclade {
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub reference_nodes: Vec<AuspiceRefNode>,
+
+  #[serde(default, skip_serializing_if = "AuspiceRefNodesDesc::is_empty")]
+  pub ref_nodes: AuspiceRefNodesDesc,
 
   #[serde(skip_serializing_if = "Option::is_none")]
   pub pathogen: Option<VirusProperties>,
@@ -583,6 +693,10 @@ impl AuspiceTreeMeta {
 
   pub fn reference_nodes(&self) -> &[AuspiceRefNode] {
     self.extensions_nextclade().reference_nodes.as_slice()
+  }
+
+  pub const fn ref_nodes(&self) -> &AuspiceRefNodesDesc {
+    &self.extensions_nextclade().ref_nodes
   }
 }
 
