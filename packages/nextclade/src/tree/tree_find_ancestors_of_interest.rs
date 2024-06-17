@@ -25,7 +25,8 @@ pub struct AncestralSearchResult {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct AncestralSearchResultForCriteria {
   pub criteria: AuspiceRefNodeSearchCriteria,
-  pub result: Option<AncestralSearchMatch>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub results: Option<Vec<AncestralSearchMatch>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -54,13 +55,29 @@ pub fn graph_find_ancestors_of_interest(
         .iter()
         .map(|criteria| {
           let qry_node = graph.get_node(nearest_node_key)?.payload();
-          let result = is_qry_match(qry_node, &criteria.qry)
-            .then(|| find_node(graph, nearest_node_key, &criteria.node))
-            .transpose()?
-            .flatten();
+
+          // Proceed only if at least ONE OF the query criteria is met
+          let qry_is_ok = criteria
+            .qry
+            .iter()
+            .any(|criteria_qry| is_qry_match(qry_node, criteria_qry));
+
+          if !qry_is_ok {
+            return Ok(AncestralSearchResultForCriteria {
+              criteria: criteria.clone(),
+              results: None,
+            });
+          }
+
+          let results = criteria
+            .node
+            .iter()
+            .filter_map(|criteria_node| find_node(graph, nearest_node_key, criteria_node).transpose())
+            .collect::<Result<_, Report>>()?;
+
           Ok(AncestralSearchResultForCriteria {
             criteria: criteria.clone(),
-            result,
+            results: Some(results),
           })
         })
         .collect::<Result<_, Report>>()?;

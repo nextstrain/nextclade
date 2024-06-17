@@ -401,11 +401,11 @@ impl AuspiceQryCriterion {
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeSearchCriteria {
-  #[serde(default, skip_serializing_if = "AuspiceQryCriterion::is_empty")]
-  pub qry: AuspiceQryCriterion,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub qry: Vec<AuspiceQryCriterion>,
 
-  #[serde(default, skip_serializing_if = "AuspiceRefNodeCriterion::is_empty")]
-  pub node: AuspiceRefNodeCriterion,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub node: Vec<AuspiceRefNodeCriterion>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
