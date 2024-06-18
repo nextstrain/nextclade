@@ -413,13 +413,14 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       let (aa_subs, aa_dels) = {
         let rel_aa_mut = relative_aa_mutations
           .iter()
-          .find(|rel_aa_mut| rel_aa_mut.ref_node.name == ref_node.name);
+          .find(|rel_aa_mut| rel_aa_mut.search.search.name == ref_node.name)
+          .and_then(|rel_aa_mut| rel_aa_mut.result.as_ref())
+          .map(|res| &res.muts);
 
         let aa_subs = rel_aa_mut
           .as_ref()
-          .map(|rel| {
-            rel
-              .muts
+          .map(|muts| {
+            muts
               .iter()
               .flat_map(|(_, m)| &m.private_substitutions)
               .cloned()
@@ -429,9 +430,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
 
         let aa_dels = rel_aa_mut
           .as_ref()
-          .map(|rel| {
-            rel
-              .muts
+          .map(|muts| {
+            muts
               .iter()
               .flat_map(|(_, m)| &m.private_deletions)
               .cloned()

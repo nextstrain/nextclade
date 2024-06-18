@@ -22,6 +22,7 @@ pub struct AttrPair {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct AncestralSearchResult {
   pub search: AuspiceRefNodeSearchDesc,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub result: Option<AncestralSearchResultForCriteria>,
 }
 

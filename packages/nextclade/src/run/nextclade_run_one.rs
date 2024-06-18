@@ -11,13 +11,14 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_branch_length;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
-use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
+use crate::analyze::find_private_aa_mutations::{
+  find_private_aa_mutations, FindPrivateAaMutationsParams, PrivateAaMutations,
+};
 use crate::analyze::find_private_nuc_mutations::{
   find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
 };
-use crate::analyze::find_relative_aa_mutations::{
-  find_relative_aa_mutations, find_relative_nuc_mutations, RelativeAaMutations, RelativeNucMutations,
-};
+use crate::analyze::find_relative_aa_mutations::{find_relative_aa_mutations, RelativeAaMutations};
+use crate::analyze::find_relative_nuc_mutations::{find_relative_nuc_mutations, RelativeNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
   find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, CdsAaRange, NucRange,
@@ -296,15 +297,18 @@ pub fn nextclade_run_one(
 
     let private_aa_mutations = find_private_aa_mutations(
       nearest_node,
-      &aa_substitutions,
-      &aa_deletions,
-      &unknown_aa_ranges,
-      &aa_unsequenced_ranges,
-      ref_translation,
-      &translation,
-      gene_map,
-      &aln,
-      &params.aa_changes,
+      &FindPrivateAaMutationsParams {
+        graph,
+        aa_substitutions: &aa_substitutions,
+        aa_deletions: &aa_deletions,
+        aa_unknowns: &unknown_aa_ranges,
+        aa_unsequenced_ranges: &aa_unsequenced_ranges,
+        ref_translation,
+        qry_translation: &translation,
+        gene_map,
+        aln: &aln,
+        params: &params.aa_changes,
+      },
     )?;
     let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
     let masked_ranges = graph.data.meta.placement_mask_ranges();
@@ -333,18 +337,19 @@ pub fn nextclade_run_one(
     )?;
 
     let relative_aa_mutations = find_relative_aa_mutations(
-      graph,
-      &clade,
-      &clade_node_attrs,
-      &aa_substitutions,
-      &aa_deletions,
-      &unknown_aa_ranges,
-      &aa_unsequenced_ranges,
-      ref_translation,
-      &translation,
-      gene_map,
-      &aln,
-      &params.aa_changes,
+      &ref_node_search_results,
+      &FindPrivateAaMutationsParams {
+        graph,
+        aa_substitutions: &aa_substitutions,
+        aa_deletions: &aa_deletions,
+        aa_unknowns: &unknown_aa_ranges,
+        aa_unsequenced_ranges: &aa_unsequenced_ranges,
+        ref_translation,
+        qry_translation: &translation,
+        gene_map,
+        aln: &aln,
+        params: &params.aa_changes,
+      },
     )?;
 
     let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
