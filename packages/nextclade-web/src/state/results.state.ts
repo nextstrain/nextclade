@@ -4,7 +4,7 @@ import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 import type {
   AaMotifsDesc,
-  AuspiceRefNode,
+  AuspiceRefNodesDesc,
   Cds,
   CsvColumnConfig,
   Gene,
@@ -317,9 +317,8 @@ export const phenotypeAttrKeysAtom = selector<string[]>({
   get: ({ get }) => get(phenotypeAttrDescsAtom).map((desc) => desc.name),
 })
 
-export const refNodesAtom = atom<AuspiceRefNode[]>({
+export const refNodesAtom = atom<AuspiceRefNodesDesc>({
   key: 'refNodes',
-  default: [],
 })
 
 export const currentRefNodeNameAtom = atom<string>({

@@ -81,7 +81,7 @@ export function getNucMutations(
       relMuts: analysisResult.privateNucMutations,
     }
   }
-  const relMuts = analysisResult.relativeNucMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  const relMuts = analysisResult.relativeNucMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!relMuts) {
     return undefined
   }
@@ -108,7 +108,7 @@ export function getAaMutations(
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }
-  const muts = analysisResult.relativeAaMutations.find((relMuts) => relMuts.refNode.name === refNodeName)?.muts
+  const muts = analysisResult.relativeAaMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!muts) {
     return undefined
   }

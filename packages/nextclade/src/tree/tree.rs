@@ -435,7 +435,6 @@ impl AuspiceRefNodeSearchDesc {
 pub struct AuspiceRefNodesDesc {
   pub default: String,
 
-  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub search: Vec<AuspiceRefNodeSearchDesc>,
 
   #[serde(flatten)]

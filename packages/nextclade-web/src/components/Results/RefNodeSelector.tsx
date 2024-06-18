@@ -35,7 +35,7 @@ export function RefNodeSelector() {
   const [currentRefNodeName, setCurrentRefNodeName] = useRecoilState(currentRefNodeNameAtom)
 
   const { options, currentOption } = useMemo(() => {
-    const refs = refNodes.map((node) => ({
+    const refs = refNodes.search.map((node) => ({
       value: node.name,
       label: node.displayName ?? node.name,
       description: node.description,
