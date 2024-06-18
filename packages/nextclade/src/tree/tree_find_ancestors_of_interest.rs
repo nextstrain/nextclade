@@ -14,12 +14,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct AttrPair {
   pub key: String,
   pub value: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct AncestralSearchResult {
   pub search: AuspiceRefNodeSearchDesc,
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,6 +29,7 @@ pub struct AncestralSearchResult {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct AncestralSearchResultForCriteria {
   pub criterion: AuspiceRefNodeSearchCriteria,
 
@@ -37,8 +40,10 @@ pub struct AncestralSearchResultForCriteria {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct AncestralSearchMatch {
   pub node_key: GraphNodeKey,
+  pub node_name: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub name: Option<String>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -175,11 +180,12 @@ fn is_qry_match(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCrit
 fn node_matches(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCriterion) -> Option<AncestralSearchMatch> {
   let node_key = node.key();
   let node = node.payload();
+  let node_name = node.name.clone();
 
   // In order to be "found", the ancestral node need to fulfill ONE OR MORE of the following requirements:
 
   // 1. Name of the candidate node matches at least ONE OF criteria names
-  let name = criteria.name.iter().find(|&name| name == &node.name).cloned();
+  let name = criteria.name.iter().find(|&name| name == &node_name).cloned();
 
   // 2. Candidate clade matches at least ONE OF the clades in the criteria
   let clade = find_matching_clade(&node.clade(), &criteria.clade);
@@ -196,6 +202,7 @@ fn node_matches(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCrit
     // At least one matched
     (name, clade, clade_like_attrs) => Some(AncestralSearchMatch {
       node_key,
+      node_name,
       name,
       clade,
       clade_like_attrs,
