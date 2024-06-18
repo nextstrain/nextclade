@@ -15,7 +15,7 @@ use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, Priva
 use crate::analyze::find_private_nuc_mutations::{
   find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
 };
-use crate::analyze::find_relative_mutations::{
+use crate::analyze::find_relative_aa_mutations::{
   find_relative_aa_mutations, find_relative_nuc_mutations, RelativeAaMutations, RelativeNucMutations,
 };
 use crate::analyze::letter_composition::get_letter_composition;
