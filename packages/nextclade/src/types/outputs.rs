@@ -18,6 +18,7 @@ use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::tree::tree::AuspiceRefNodesDesc;
+use crate::tree::tree_find_ancestors_of_interest::AncestralSearchResult;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -78,6 +79,7 @@ pub struct NextcladeOutputs {
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
   pub ref_nodes: AuspiceRefNodesDesc,
+  pub ref_node_search_results: Vec<AncestralSearchResult>,
   pub relative_nuc_mutations: Vec<RelativeNucMutations>,
   pub relative_aa_mutations: Vec<RelativeAaMutations>,
   pub warnings: Vec<PeptideWarning>,

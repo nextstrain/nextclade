@@ -38,7 +38,7 @@ use crate::translate::aa_alignment_ranges::{gather_aa_alignment_ranges, GatherAa
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{translate_genes, Translation};
-use crate::tree::tree_find_ancestors_of_interest::graph_find_ancestors_of_interest;
+use crate::tree::tree_find_ancestors_of_interest::{graph_find_ancestors_of_interest, AncestralSearchResult};
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use eyre::Report;
@@ -76,6 +76,7 @@ struct NextcladeResultWithGraph {
   custom_node_attributes: BTreeMap<String, String>,
   nearest_node_id: GraphNodeKey,
   nearest_nodes: Option<Vec<String>>,
+  ref_node_search_results: Vec<AncestralSearchResult>,
   relative_nuc_mutations: Vec<RelativeNucMutations>,
   relative_aa_mutations: Vec<RelativeAaMutations>,
 }
@@ -254,6 +255,7 @@ pub fn nextclade_run_one(
     clade,
     private_nuc_mutations,
     private_aa_mutations,
+    ref_node_search_results,
     relative_nuc_mutations,
     relative_aa_mutations,
     phenotype_values,
@@ -375,6 +377,7 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
       phenotype_values,
@@ -452,6 +455,7 @@ pub fn nextclade_run_one(
       private_nuc_mutations,
       private_aa_mutations,
       ref_nodes: ref_nodes.to_owned(),
+      ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
       phenotype_values,

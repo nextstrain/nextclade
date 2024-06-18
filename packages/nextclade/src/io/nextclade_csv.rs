@@ -295,13 +295,14 @@ fn prepare_headers(
   headers
 }
 
-fn ref_node_cols(ref_node: &AuspiceRefNodeSearchDesc) -> [String; 4] {
-  let node_name = ref_node.display_name_or_name();
+fn ref_node_cols(desc: &AuspiceRefNodeSearchDesc) -> [String; 5] {
+  let name = desc.display_name_or_name();
   [
-    format!("relativeMutations['{node_name}'].substitutions"),
-    format!("relativeMutations['{node_name}'].deletions"),
-    format!("relativeMutations['{node_name}'].aaSubstitutions"),
-    format!("relativeMutations['{node_name}'].aaDeletions"),
+    format!("relativeMutations['{name}'].nodeName"),
+    format!("relativeMutations['{name}'].substitutions"),
+    format!("relativeMutations['{name}'].deletions"),
+    format!("relativeMutations['{name}'].aaSubstitutions"),
+    format!("relativeMutations['{name}'].aaDeletions"),
   ]
 }
 
@@ -366,6 +367,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       warnings,
       aa_motifs,
       ref_nodes,
+      ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
       ..
@@ -385,15 +387,15 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       .iter()
       .try_for_each(|(name, motifs)| self.add_entry(name, &format_aa_motifs(motifs)))?;
 
-    ref_nodes.search.iter().try_for_each(|ref_node| {
-      let node_name = ref_node.display_name_or_name();
+    ref_nodes.search.iter().try_for_each(|desc| {
+      let name = desc.display_name_or_name();
 
       let na = o!("N/A");
 
       let (nuc_subs, nuc_dels) = {
         let rel_nuc_mut = relative_nuc_mutations
           .iter()
-          .find(|rel_nuc_mut| rel_nuc_mut.search.search.name == ref_node.name)
+          .find(|rel_nuc_mut| rel_nuc_mut.search.search.name == desc.name)
           .and_then(|rel_nuc_mut| rel_nuc_mut.result.as_ref())
           .map(|res| &res.muts);
 
@@ -413,7 +415,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       let (aa_subs, aa_dels) = {
         let rel_aa_mut = relative_aa_mutations
           .iter()
-          .find(|rel_aa_mut| rel_aa_mut.search.search.name == ref_node.name)
+          .find(|rel_aa_mut| rel_aa_mut.search.search.name == desc.name)
           .and_then(|rel_aa_mut| rel_aa_mut.result.as_ref())
           .map(|res| &res.muts);
 
@@ -442,10 +444,18 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
         (aa_subs, aa_dels)
       };
 
-      self.add_entry(format!("relativeMutations['{node_name}'].substitutions"), &nuc_subs)?;
-      self.add_entry(format!("relativeMutations['{node_name}'].deletions"), &nuc_dels)?;
-      self.add_entry(format!("relativeMutations['{node_name}'].aaSubstitutions"), &aa_subs)?;
-      self.add_entry(format!("relativeMutations['{node_name}'].aaDeletions"), &aa_dels)
+      let node_name = ref_node_search_results
+        .iter()
+        .find(|d| d.search.name == desc.name)
+        .and_then(|r| r.result.as_ref())
+        .and_then(|r| r.r#match.as_ref())
+        .map_or(&na, |r| &r.node_name);
+
+      self.add_entry(format!("relativeMutations['{name}'].nodeName"), &node_name)?;
+      self.add_entry(format!("relativeMutations['{name}'].substitutions"), &nuc_subs)?;
+      self.add_entry(format!("relativeMutations['{name}'].deletions"), &nuc_dels)?;
+      self.add_entry(format!("relativeMutations['{name}'].aaSubstitutions"), &aa_subs)?;
+      self.add_entry(format!("relativeMutations['{name}'].aaDeletions"), &aa_dels)
     })?;
 
     self.add_entry("index", index)?;
