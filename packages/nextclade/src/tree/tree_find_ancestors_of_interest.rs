@@ -69,10 +69,11 @@ pub fn graph_find_ancestors_of_interest(
           let qry_node = graph.get_node(nearest_node_key)?;
 
           // Proceed only if at least ONE OF the query criteria is met
-          let qry_is_ok = criterion
-            .qry
-            .iter()
-            .any(|criteria_qry| is_qry_match(qry_node, criteria_qry));
+          let qry_is_ok = criterion.qry.is_empty()
+            || criterion
+              .qry
+              .iter()
+              .any(|criteria_qry| is_qry_match(qry_node, criteria_qry));
 
           if !qry_is_ok {
             return Ok(AncestralSearchResultForCriteria {
