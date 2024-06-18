@@ -17,22 +17,26 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { index, seqName } = analysisResult
+  const { index, seqName, refName, nearestNodeName, refNodeSearchResults } = analysisResult
   const id = getSafeId('mutations-label', { index, seqName })
 
-  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
-  const nucMuts = getNucMutations(analysisResult, refNodeName)
-  const aaMuts = getAaMutations(analysisResult, refNodeName)
+  const nodeSearchName = useRecoilValue(currentRefNodeNameAtom)
+  const nucMuts = getNucMutations(analysisResult, nodeSearchName)
+  const aaMuts = getAaMutations(analysisResult, nodeSearchName)
 
-  const nodeName = useMemo(() => {
-    if (refNodeName === REF_NODE_ROOT) {
-      return t('reference')
+  const { searchNameFriendly, nodeName } = useMemo(() => {
+    if (nodeSearchName === REF_NODE_ROOT) {
+      return { searchNameFriendly: t('reference'), nodeName: refName }
     }
-    if (refNodeName === REF_NODE_PARENT) {
-      return t('parent')
+    if (nodeSearchName === REF_NODE_PARENT) {
+      return { searchNameFriendly: t('parent'), nodeName: nearestNodeName }
     }
-    return refNodeName
-  }, [refNodeName, t])
+    const nodeName =
+      refNodeSearchResults.find((r) => r.search.name === nodeSearchName)?.result?.match?.nodeName ?? t('unknown')
+    const searchNameFriendly =
+      refNodeSearchResults.find((r) => r.search.name === nodeSearchName)?.search.displayName ?? t('unknown')
+    return { searchNameFriendly, nodeName }
+  }, [nodeSearchName, refNodeSearchResults, t, refName, nearestNodeName])
 
   if (!nucMuts) {
     return (
@@ -51,8 +55,9 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
           <tbody>
             <tr>
               <th>
-                {t('Nucleotide mutations relative to "{{ what }}" ({{ quantity }})', {
-                  what: nodeName,
+                {t('{{ quantity }} nucleotide mutations relative to "{{ what }}" ("{{ node }}")', {
+                  what: searchNameFriendly,
+                  node: nodeName,
                   quantity: nucMuts?.subs.length,
                 })}
               </th>
@@ -65,8 +70,9 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
 
             <tr>
               <th>
-                {t('Aminoacid substitutions relative to "{{ what }}" ({{ quantity }})', {
-                  what: nodeName,
+                {t('{{ quantity }} aminoacid mutations relative to "{{ what }}" ("{{ node }}")', {
+                  what: searchNameFriendly,
+                  node: nodeName,
                   quantity: aaMuts?.aaSubs.length,
                 })}
               </th>

@@ -43,6 +43,7 @@ pub struct PhenotypeValue {
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
+  pub ref_name: String,
   pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
   pub deletions: Vec<NucDelRange>,
@@ -89,6 +90,7 @@ pub struct NextcladeOutputs {
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: GraphNodeKey,
+  pub nearest_node_name: String,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub nearest_nodes: Option<Vec<String>>,
   pub is_reverse_complement: bool,

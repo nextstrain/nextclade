@@ -75,6 +75,7 @@ struct NextcladeResultWithGraph {
   divergence: f64,
   custom_node_attributes: BTreeMap<String, String>,
   nearest_node_id: GraphNodeKey,
+  nearest_node_name: String,
   nearest_nodes: Option<Vec<String>>,
   ref_node_search_results: Vec<AncestralSearchResult>,
   relative_nuc_mutations: Vec<RelativeNucMutations>,
@@ -89,6 +90,7 @@ pub fn nextclade_run_one(
 ) -> Result<AnalysisOutput, Report> {
   let Nextclade {
     ref_seq,
+    ref_record,
     seed_index,
     gap_open_close_nuc,
     virus_properties,
@@ -262,11 +264,13 @@ pub fn nextclade_run_one(
     divergence,
     custom_node_attributes,
     nearest_node_id,
+    nearest_node_name,
     nearest_nodes,
   } = if let Some(graph) = graph {
     let nearest_node_candidates = graph_find_nearest_nodes(graph, &substitutions, &missing, &alignment_range)?;
-    let nearest_node_key = nearest_node_candidates[0].node_key;
-    let nearest_node = graph.get_node(nearest_node_key)?.payload();
+    let nearest_node_id = nearest_node_candidates[0].node_key;
+    let nearest_node = graph.get_node(nearest_node_id)?.payload();
+    let nearest_node_name = nearest_node.name.clone();
 
     let nearest_nodes = params.general.include_nearest_node_info.then_some(
       nearest_node_candidates
@@ -321,7 +325,7 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
-    let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes)?;
+    let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_id, ref_nodes)?;
 
     let relative_nuc_mutations = find_relative_nuc_mutations(
       &ref_node_search_results,
@@ -383,7 +387,8 @@ pub fn nextclade_run_one(
       phenotype_values,
       divergence,
       custom_node_attributes: clade_node_attrs,
-      nearest_node_id: nearest_node_key,
+      nearest_node_id,
+      nearest_node_name,
       nearest_nodes,
     }
   } else {
@@ -416,6 +421,7 @@ pub fn nextclade_run_one(
     analysis_result: NextcladeOutputs {
       index,
       seq_name: seq_name.to_owned(),
+      ref_name: ref_record.seq_name.clone(),
       substitutions,
       total_substitutions,
       deletions,
@@ -462,6 +468,7 @@ pub fn nextclade_run_one(
       divergence,
       custom_node_attributes,
       nearest_node_id,
+      nearest_node_name,
       nearest_nodes,
       is_reverse_complement,
     },
