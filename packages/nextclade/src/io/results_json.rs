@@ -1,7 +1,7 @@
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
 use crate::io::json::{json_stringify, json_write, JsonPretty};
 use crate::io::ndjson::NdjsonWriter;
-use crate::tree::tree::{AuspiceRefNode, CladeNodeAttrKeyDesc};
+use crate::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
 };
@@ -27,7 +27,7 @@ pub struct ResultsJson {
 
   pub phenotype_attr_keys: Vec<PhenotypeAttrDesc>,
 
-  pub ref_nodes: Vec<AuspiceRefNode>,
+  pub ref_nodes: AuspiceRefNodesDesc,
 
   pub results: Vec<NextcladeOutputs>,
 
@@ -38,7 +38,7 @@ impl ResultsJson {
   pub fn new(
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
-    ref_nodes: &[AuspiceRefNode],
+    ref_nodes: &AuspiceRefNodesDesc,
   ) -> Self {
     Self {
       schema_version: "3.0.0".to_owned(),
@@ -47,7 +47,7 @@ impl ResultsJson {
       created_at: date_iso_now(),
       clade_node_attr_keys: clade_node_attrs.to_vec(),
       phenotype_attr_keys: phenotype_attr_keys.to_vec(),
-      ref_nodes: ref_nodes.to_vec(),
+      ref_nodes: ref_nodes.to_owned(),
       results: vec![],
       errors: vec![],
     }
@@ -58,7 +58,7 @@ impl ResultsJson {
     errors: &[NextcladeErrorOutputs],
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
-    ref_nodes: &[AuspiceRefNode],
+    ref_nodes: &AuspiceRefNodesDesc,
     nextclade_web_version: &Option<String>,
   ) -> Self {
     let mut this = Self::new(clade_node_attrs, phenotype_attr_keys, ref_nodes);
@@ -79,7 +79,7 @@ impl ResultsJsonWriter {
     filepath: impl AsRef<Path>,
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
-    ref_nodes: &[AuspiceRefNode],
+    ref_nodes: &AuspiceRefNodesDesc,
   ) -> Result<Self, Report> {
     Ok(Self {
       filepath: filepath.as_ref().to_owned(),
@@ -116,7 +116,7 @@ pub fn results_to_json_string(
   errors: &[NextcladeErrorOutputs],
   clade_node_attrs: &[CladeNodeAttrKeyDesc],
   phenotype_attr_keys: &[PhenotypeAttrDesc],
-  ref_nodes: &[AuspiceRefNode],
+  ref_nodes: &AuspiceRefNodesDesc,
   nextclade_web_version: &Option<String>,
 ) -> Result<String, Report> {
   let results_json = ResultsJson::from_outputs(

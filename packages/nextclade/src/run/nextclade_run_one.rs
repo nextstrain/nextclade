@@ -99,7 +99,6 @@ pub fn nextclade_run_one(
     graph,
     primers,
     ref_nodes,
-    ref_nodes2,
     ..
   } = &state;
 
@@ -320,7 +319,7 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
-    let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes2)?;
+    let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes)?;
 
     let relative_nuc_mutations = find_relative_nuc_mutations(
       &ref_node_search_results,

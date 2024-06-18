@@ -16,9 +16,7 @@ use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{
-  check_ref_seq_mismatch, AuspiceGraph, AuspiceRefNode, AuspiceRefNodesDesc, AuspiceTree, CladeNodeAttrKeyDesc,
-};
+use crate::tree::tree::{check_ref_seq_mismatch, AuspiceGraph, AuspiceRefNodesDesc, AuspiceTree, CladeNodeAttrKeyDesc};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
@@ -230,7 +228,7 @@ pub struct AnalysisInitialData<'a> {
   pub cds_order_preference: Vec<String>,
   pub clade_node_attr_key_descs: &'a [CladeNodeAttrKeyDesc],
   pub phenotype_attr_descs: &'a [PhenotypeAttrDesc],
-  pub ref_nodes: &'a [AuspiceRefNode],
+  pub ref_nodes: &'a AuspiceRefNodesDesc,
   pub aa_motifs_descs: &'a [AaMotifsDesc],
   pub aa_motif_keys: &'a [String],
   pub csv_column_config_default: CsvColumnConfig,
@@ -278,8 +276,7 @@ pub struct Nextclade {
   pub graph: Option<AuspiceGraph>,
   pub clade_attr_descs: Vec<CladeNodeAttrKeyDesc>,
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
-  pub ref_nodes: Vec<AuspiceRefNode>,
-  pub ref_nodes2: AuspiceRefNodesDesc,
+  pub ref_nodes: AuspiceRefNodesDesc,
 }
 
 pub struct InitialStateWithAa {
@@ -367,12 +364,8 @@ impl Nextclade {
 
     let ref_nodes = graph
       .as_ref()
-      .map(|graph| graph.data.meta.reference_nodes().to_vec())
-      .unwrap_or_default();
-
-    let ref_nodes2 = graph
-      .as_ref()
-      .map(|graph| graph.data.meta.ref_nodes().to_owned())
+      .map(|graph| graph.data.meta.reference_nodes())
+      .cloned()
       .unwrap_or_default();
 
     Ok(Self {
@@ -393,7 +386,6 @@ impl Nextclade {
       clade_attr_descs,
       phenotype_attr_descs,
       ref_nodes,
-      ref_nodes2,
     })
   }
 

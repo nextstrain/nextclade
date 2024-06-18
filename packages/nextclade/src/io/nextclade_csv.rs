@@ -13,7 +13,7 @@ use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::tree::tree::AuspiceRefNode;
+use crate::tree::tree::{AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc};
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
@@ -232,7 +232,7 @@ lazy_static! {
 fn prepare_headers(
   custom_node_attr_keys: &[String],
   phenotype_attr_keys: &[String],
-  ref_nodes: &[AuspiceRefNode],
+  ref_nodes: &AuspiceRefNodesDesc,
   aa_motifs_keys: &[String],
   column_config: &CsvColumnConfig,
 ) -> Vec<String> {
@@ -284,7 +284,7 @@ fn prepare_headers(
       .unwrap_or_else(|| headers.len().saturating_sub(1));
 
     // For each ref node insert a set of columns
-    for ref_node in ref_nodes {
+    for ref_node in &ref_nodes.search {
       for col in &ref_node_cols(ref_node) {
         headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
         insert_custom_cols_at_index += 1;
@@ -295,7 +295,7 @@ fn prepare_headers(
   headers
 }
 
-fn ref_node_cols(ref_node: &AuspiceRefNode) -> [String; 4] {
+fn ref_node_cols(ref_node: &AuspiceRefNodeSearchDesc) -> [String; 4] {
   let node_name = ref_node.display_name_or_name();
   [
     format!("relativeMutations['{node_name}'].substitutions"),
@@ -385,7 +385,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       .iter()
       .try_for_each(|(name, motifs)| self.add_entry(name, &format_aa_motifs(motifs)))?;
 
-    ref_nodes.iter().try_for_each(|ref_node| {
+    ref_nodes.search.iter().try_for_each(|ref_node| {
       let node_name = ref_node.display_name_or_name();
 
       let na = o!("N/A");
@@ -713,7 +713,7 @@ impl NextcladeResultsCsvFileWriter {
     delimiter: u8,
     clade_attr_keys: &[String],
     phenotype_attr_keys: &[String],
-    ref_nodes: &[AuspiceRefNode],
+    ref_nodes: &AuspiceRefNodesDesc,
     aa_motifs_keys: &[String],
     column_config: &CsvColumnConfig,
   ) -> Result<Self, Report> {
@@ -915,7 +915,7 @@ pub fn results_to_csv_string(
   errors: &[NextcladeErrorOutputs],
   clade_attr_keys: &[String],
   phenotype_attr_keys: &[String],
-  ref_nodes: &[AuspiceRefNode],
+  ref_nodes: &AuspiceRefNodesDesc,
   aa_motifs_keys: &[String],
   delimiter: u8,
   column_config: &CsvColumnConfig,

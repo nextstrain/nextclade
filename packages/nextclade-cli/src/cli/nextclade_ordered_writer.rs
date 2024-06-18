@@ -13,7 +13,7 @@ use nextclade::io::results_json::ResultsJsonWriter;
 use nextclade::run::nextclade_wasm::AnalysisOutput;
 use nextclade::run::params::NextcladeInputParams;
 use nextclade::translate::translate_genes::Translation;
-use nextclade::tree::tree::{AuspiceRefNode, CladeNodeAttrKeyDesc};
+use nextclade::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::option::OptionMapRefFallible;
@@ -37,7 +37,7 @@ impl NextcladeOrderedWriter {
     gene_map: &GeneMap,
     clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
-    ref_nodes: &[AuspiceRefNode],
+    ref_nodes: &AuspiceRefNodesDesc,
     aa_motifs_keys: &[String],
     csv_column_config: &CsvColumnConfig,
     output_params: &NextcladeRunOutputArgs,
