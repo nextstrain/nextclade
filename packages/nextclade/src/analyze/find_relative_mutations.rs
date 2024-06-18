@@ -1,18 +1,19 @@
-use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes_find_for_cds::AaChangesParams;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
-use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
-use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
+use crate::analyze::find_private_nuc_mutations::{
+  find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
+};
+use crate::analyze::letter_ranges::CdsAaRange;
 use crate::analyze::nuc_alignment::NucAlignment;
-use crate::analyze::nuc_del::NucDelRange;
-use crate::analyze::nuc_sub::NucSub;
-use crate::analyze::virus_properties::VirusProperties;
-use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::coord::range::AaRefRange;
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
-use crate::tree::tree::{AuspiceGraph, AuspiceRefNode};
+use crate::tree::tree::{AuspiceGraph, AuspiceRefNode, AuspiceRefNodeSearchCriteria};
+use crate::tree::tree_find_ancestors_of_interest::{
+  AncestralSearchMatch, AncestralSearchResult, AncestralSearchResultForCriteria,
+};
 use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -20,50 +21,60 @@ use std::collections::BTreeMap;
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeNucMutations {
-  pub ref_node: AuspiceRefNode,
+  pub search: AncestralSearchResult,
+  pub result: Option<RelativeNucMutationsResult>,
+}
+
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct RelativeNucMutationsResult {
+  pub criterion: AuspiceRefNodeSearchCriteria,
+  pub r#match: AncestralSearchMatch,
   pub muts: PrivateNucMutations,
 }
 
 pub fn find_relative_nuc_mutations(
-  graph: &AuspiceGraph,
-  clade: &Option<String>,
-  clade_node_attrs: &BTreeMap<String, String>,
-  substitutions: &[NucSub],
-  deletions: &[NucDelRange],
-  missing: &[NucRange],
-  alignment_range: &NucRefGlobalRange,
-  ref_seq: &[Nuc],
-  non_acgtns: &[NucRange],
-  virus_properties: &VirusProperties,
+  search_results: &[AncestralSearchResult],
+  params: &FindPrivateNucMutationsParams,
 ) -> Result<Vec<RelativeNucMutations>, Report> {
-  let ref_nodes = filter_ref_nodes(graph, clade, clade_node_attrs);
-
-  ref_nodes
+  search_results
     .iter()
-    .map(|&ref_node| -> Result<_, Report> {
-      let node = graph
-        .iter_nodes()
-        .find(|node| node.payload().name == ref_node.name)
-        .ok_or_else(|| eyre!("Unable to find reference node on the tree: '{}'", &ref_node.name))?;
+    .map(|result| find_relative_nuc_mutations_for_one_node(result, params))
+    .collect()
+}
 
-      let muts = find_private_nuc_mutations(
-        node.payload(),
-        substitutions,
-        deletions,
-        missing,
-        alignment_range,
-        ref_seq,
-        non_acgtns,
-        virus_properties,
-      );
+fn find_relative_nuc_mutations_for_one_node(
+  search: &AncestralSearchResult,
+  params: &FindPrivateNucMutationsParams,
+) -> Result<RelativeNucMutations, Report> {
+  let result = search
+    .result
+    .as_ref()
+    .and_then(|result| find_relative_nuc_mutations_for_one_criterion(result, params).transpose())
+    .transpose()?;
+  Ok(RelativeNucMutations {
+    search: search.to_owned(),
+    result,
+  })
+}
 
-      Ok(RelativeNucMutations {
-        ref_node: ref_node.to_owned(),
+fn find_relative_nuc_mutations_for_one_criterion(
+  result: &AncestralSearchResultForCriteria,
+  params: &FindPrivateNucMutationsParams,
+) -> Result<Option<RelativeNucMutationsResult>, Report> {
+  result
+    .r#match
+    .as_ref()
+    .map(|r#match| {
+      let node = params.graph.get_node(r#match.node_key)?;
+      let muts = find_private_nuc_mutations(node.payload(), params);
+      Ok(RelativeNucMutationsResult {
+        criterion: result.criterion.clone(),
+        r#match: r#match.to_owned(),
         muts,
       })
     })
-    .collect::<Result<Vec<RelativeNucMutations>, Report>>()
-    .wrap_err("When calling nucleotide mutations relative to a reference node")
+    .transpose()
 }
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]

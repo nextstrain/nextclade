@@ -12,7 +12,9 @@ use crate::analyze::divergence::calculate_branch_length;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
-use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
+use crate::analyze::find_private_nuc_mutations::{
+  find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
+};
 use crate::analyze::find_relative_mutations::{
   find_relative_aa_mutations, find_relative_nuc_mutations, RelativeAaMutations, RelativeNucMutations,
 };
@@ -280,13 +282,16 @@ pub fn nextclade_run_one(
 
     let private_nuc_mutations = find_private_nuc_mutations(
       nearest_node,
-      &substitutions,
-      &deletions,
-      &missing,
-      &alignment_range,
-      ref_seq,
-      &non_acgtns,
-      virus_properties,
+      &FindPrivateNucMutationsParams {
+        graph,
+        substitutions: &substitutions,
+        deletions: &deletions,
+        missing: &missing,
+        alignment_range: &alignment_range,
+        ref_seq,
+        non_acgtns: &non_acgtns,
+        virus_properties,
+      },
     );
 
     let private_aa_mutations = find_private_aa_mutations(
@@ -311,26 +316,20 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
-    let ref_nodes_result = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes2)?;
-
-    let res = ref_nodes_result
-      .iter()
-      .flat_map(|r| r.results.iter().flat_map(|r| r.results.iter().flatten()))
-      .collect_vec();
-
-    dbg!(res);
+    let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_key, ref_nodes2)?;
 
     let relative_nuc_mutations = find_relative_nuc_mutations(
-      graph,
-      &clade,
-      &clade_node_attrs,
-      &substitutions,
-      &deletions,
-      &missing,
-      &alignment_range,
-      ref_seq,
-      &non_acgtns,
-      virus_properties,
+      &ref_node_search_results,
+      &FindPrivateNucMutationsParams {
+        graph,
+        substitutions: &substitutions,
+        deletions: &deletions,
+        missing: &missing,
+        alignment_range: &alignment_range,
+        ref_seq,
+        non_acgtns: &non_acgtns,
+        virus_properties,
+      },
     )?;
 
     let relative_aa_mutations = find_relative_aa_mutations(

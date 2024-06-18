@@ -1,11 +1,14 @@
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::graph::search::{graph_find_backwards_first, graph_find_backwards_last};
+use crate::io::json::{json_stringify, JsonPretty};
 use crate::tree::tree::{
   AuspiceGraph, AuspiceGraphNodePayload, AuspiceNodeSearchAlgo, AuspiceQryCriterion, AuspiceRefNodeCriterion,
   AuspiceRefNodeSearchCriteria, AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc,
 };
+use crate::utils::string::{format_list, Indent};
 use eyre::Report;
 use itertools::Itertools;
+use log::warn;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -19,14 +22,17 @@ pub struct AttrPair {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct AncestralSearchResult {
   pub search: AuspiceRefNodeSearchDesc,
-  pub results: Vec<AncestralSearchResultForCriteria>,
+  pub result: Option<AncestralSearchResultForCriteria>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct AncestralSearchResultForCriteria {
-  pub criteria: AuspiceRefNodeSearchCriteria,
+  pub criterion: AuspiceRefNodeSearchCriteria,
+
+  #[serde(rename = "match")]
+  #[schemars(rename = "match")]
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub results: Option<Vec<AncestralSearchMatch>>,
+  pub r#match: Option<AncestralSearchMatch>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -53,37 +59,81 @@ pub fn graph_find_ancestors_of_interest(
       let results = search
         .criteria
         .iter()
-        .map(|criteria| {
+        .map(|criterion| {
           let qry_node = graph.get_node(nearest_node_key)?.payload();
 
           // Proceed only if at least ONE OF the query criteria is met
-          let qry_is_ok = criteria
+          let qry_is_ok = criterion
             .qry
             .iter()
             .any(|criteria_qry| is_qry_match(qry_node, criteria_qry));
 
           if !qry_is_ok {
             return Ok(AncestralSearchResultForCriteria {
-              criteria: criteria.clone(),
-              results: None,
+              criterion: criterion.clone(),
+              r#match: None,
             });
           }
 
-          let results = criteria
+          let results = criterion
             .node
             .iter()
             .filter_map(|criteria_node| find_node(graph, nearest_node_key, criteria_node).transpose())
-            .collect::<Result<_, Report>>()?;
+            .collect::<Result<Vec<AncestralSearchMatch>, Report>>()?;
+
+          if results.len() > 1 {
+            let msg_items = results
+              .iter()
+              .map(|result| {
+                Ok(format!(
+                  "match: '{}', criteria: '{}'",
+                  json_stringify(result, JsonPretty(false))?,
+                  json_stringify(criterion, JsonPretty(false))?
+                ))
+              })
+              .collect::<Result<Vec<String>, Report>>()?
+              .into_iter();
+
+            warn!(
+              "Found multiple matches for ref nodes of interest for the same criteria:\n{}\n\
+              This might mean that the dataset is configured incorrectly. \
+              Will take only the first match into account.",
+              format_list(Indent::default(), msg_items)
+            );
+          }
 
           Ok(AncestralSearchResultForCriteria {
-            criteria: criteria.clone(),
-            results: Some(results),
+            criterion: criterion.clone(),
+            r#match: results.first().cloned(),
           })
         })
-        .collect::<Result<_, Report>>()?;
+        .collect::<Result<Vec<AncestralSearchResultForCriteria>, Report>>()?;
+
+      if results.len() > 1 {
+        let msg_items = results
+          .iter()
+          .filter_map(|r| r.r#match.as_ref().map(|r#match| (r#match, &r.criterion)))
+          .map(|(r#match, criteria)| {
+            Ok(format!(
+              "match: '{}', criteria: '{}'",
+              json_stringify(r#match, JsonPretty(false))?,
+              json_stringify(criteria, JsonPretty(false))?
+            ))
+          })
+          .collect::<Result<Vec<String>, Report>>()?
+          .into_iter();
+
+        warn!(
+          "Found multiple matches for ref nodes of interest for different criteria:\n{}\n\
+          This might mean that the dataset is configured incorrectly. \
+          Will take only the first match into account.",
+          format_list(Indent::default(), msg_items)
+        );
+      }
+
       Ok(AncestralSearchResult {
         search: search.clone(),
-        results,
+        result: results.first().cloned(),
       })
     })
     .collect()

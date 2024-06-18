@@ -393,16 +393,18 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       let (nuc_subs, nuc_dels) = {
         let rel_nuc_mut = relative_nuc_mutations
           .iter()
-          .find(|rel_nuc_mut| rel_nuc_mut.ref_node.name == ref_node.name);
+          .find(|rel_nuc_mut| rel_nuc_mut.search.search.name == ref_node.name)
+          .and_then(|rel_nuc_mut| rel_nuc_mut.result.as_ref())
+          .map(|res| &res.muts);
 
         let nuc_subs = rel_nuc_mut.as_ref().map_or_else(
           || na.clone(),
-          |rel| format_nuc_substitutions(&rel.muts.private_substitutions, ARRAY_ITEM_DELIMITER),
+          |muts| format_nuc_substitutions(&muts.private_substitutions, ARRAY_ITEM_DELIMITER),
         );
 
         let nuc_dels = rel_nuc_mut.as_ref().map_or_else(
           || na.clone(),
-          |rel| format_nuc_deletions(&rel.muts.private_deletion_ranges, ARRAY_ITEM_DELIMITER),
+          |muts| format_nuc_deletions(&muts.private_deletion_ranges, ARRAY_ITEM_DELIMITER),
         );
 
         (nuc_subs, nuc_dels)

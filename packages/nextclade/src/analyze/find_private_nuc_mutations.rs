@@ -9,7 +9,7 @@ use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
-use crate::tree::tree::AuspiceGraphNodePayload;
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
 use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -63,6 +63,17 @@ pub struct PrivateNucMutations {
   pub total_unlabeled_substitutions: usize,
 }
 
+pub struct FindPrivateNucMutationsParams<'a> {
+  pub graph: &'a AuspiceGraph,
+  pub substitutions: &'a [NucSub],
+  pub deletions: &'a [NucDelRange],
+  pub missing: &'a [NucRange],
+  pub alignment_range: &'a NucRefGlobalRange,
+  pub ref_seq: &'a [Nuc],
+  pub non_acgtns: &'a [NucRange],
+  pub virus_properties: &'a VirusProperties,
+}
+
 /// Finds private mutations.
 ///
 /// Private mutations are the mutations in the query (user-provided) sequence relative to the parent node on the
@@ -85,14 +96,19 @@ pub struct PrivateNucMutations {
 /// analysis steps.
 pub fn find_private_nuc_mutations(
   node: &AuspiceGraphNodePayload,
-  substitutions: &[NucSub],
-  deletions: &[NucDelRange],
-  missing: &[NucRange],
-  alignment_range: &NucRefGlobalRange,
-  ref_seq: &[Nuc],
-  non_acgtns: &[NucRange],
-  virus_properties: &VirusProperties,
+  params: &FindPrivateNucMutationsParams,
 ) -> PrivateNucMutations {
+  let FindPrivateNucMutationsParams {
+    substitutions,
+    deletions,
+    missing,
+    alignment_range,
+    ref_seq,
+    non_acgtns,
+    virus_properties,
+    ..
+  } = params;
+
   let node_mut_map = &node.tmp.mutations;
 
   // Remember which positions we cover while iterating sequence mutations,
