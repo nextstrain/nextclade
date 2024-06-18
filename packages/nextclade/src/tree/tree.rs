@@ -433,8 +433,10 @@ impl AuspiceRefNodeSearchDesc {
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodesDesc {
-  pub default: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub default: Option<String>,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub search: Vec<AuspiceRefNodeSearchDesc>,
 
   #[serde(flatten)]

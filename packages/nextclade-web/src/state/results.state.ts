@@ -319,7 +319,7 @@ export const phenotypeAttrKeysAtom = selector<string[]>({
 
 export const refNodesAtom = atom<AuspiceRefNodesDesc>({
   key: 'refNodes',
-  default: { default: '__root__', search: [] },
+  default: { default: REF_NODE_ROOT, search: [] },
 })
 
 export const currentRefNodeNameAtom = atom<string>({
