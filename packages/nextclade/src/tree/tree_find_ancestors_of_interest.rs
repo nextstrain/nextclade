@@ -2,7 +2,7 @@ use crate::graph::node::{GraphNodeKey, Node};
 use crate::graph::search::{graph_find_backwards_first, graph_find_backwards_last};
 use crate::io::json::{json_stringify, JsonPretty};
 use crate::tree::tree::{
-  AuspiceGraph, AuspiceGraphNodePayload, AuspiceNodeSearchAlgo, AuspiceQryCriterion, AuspiceRefNodeCriterion,
+  AuspiceGraph, AuspiceGraphNodePayload, AuspiceNodeCriterion, AuspiceNodeSearchAlgo, AuspiceRefNodeCriterion,
   AuspiceRefNodeSearchCriteria, AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc,
 };
 use crate::utils::string::{format_list, Indent};
@@ -60,7 +60,7 @@ pub fn graph_find_ancestors_of_interest(
         .criteria
         .iter()
         .map(|criterion| {
-          let qry_node = graph.get_node(nearest_node_key)?.payload();
+          let qry_node = graph.get_node(nearest_node_key)?;
 
           // Proceed only if at least ONE OF the query criteria is met
           let qry_is_ok = criterion
@@ -97,7 +97,7 @@ pub fn graph_find_ancestors_of_interest(
             warn!(
               "Found multiple matches for ref nodes of interest for the same criteria:\n{}\n\
               This might mean that the dataset is configured incorrectly. \
-              Will take only the first match into account.",
+              Will take only the first match into account.\n",
               format_list(Indent::default(), msg_items)
             );
           }
@@ -109,8 +109,10 @@ pub fn graph_find_ancestors_of_interest(
         })
         .collect::<Result<Vec<AncestralSearchResultForCriteria>, Report>>()?;
 
-      if results.len() > 1 {
-        let msg_items = results
+      let non_empty_results = results.into_iter().filter(|res| res.r#match.is_some()).collect_vec();
+
+      if non_empty_results.len() > 1 {
+        let msg_items = non_empty_results
           .iter()
           .filter_map(|r| r.r#match.as_ref().map(|r#match| (r#match, &r.criterion)))
           .map(|(r#match, criteria)| {
@@ -126,14 +128,14 @@ pub fn graph_find_ancestors_of_interest(
         warn!(
           "Found multiple matches for ref nodes of interest for different criteria:\n{}\n\
           This might mean that the dataset is configured incorrectly. \
-          Will take only the first match into account.",
+          Will take only the first match into account.\n",
           format_list(Indent::default(), msg_items)
         );
       }
 
       Ok(AncestralSearchResult {
         search: search.clone(),
-        result: results.first().cloned(),
+        result: non_empty_results.first().cloned(),
       })
     })
     .collect()
@@ -142,9 +144,10 @@ pub fn graph_find_ancestors_of_interest(
 fn find_node(
   graph: &AuspiceGraph,
   nearest_node_key: GraphNodeKey,
-  criterion: &AuspiceRefNodeCriterion,
+  ref_criterion: &AuspiceRefNodeCriterion,
 ) -> Result<Option<AncestralSearchMatch>, Report> {
-  match criterion.search_algo {
+  let criterion = &ref_criterion.criterion;
+  match ref_criterion.search_algo {
     AuspiceNodeSearchAlgo::AncestorNearest => {
       graph_find_backwards_first(graph, nearest_node_key, |node| node_matches(node, criterion))
     }
@@ -155,14 +158,20 @@ fn find_node(
   }
 }
 
-const fn is_qry_match(_node: &AuspiceGraphNodePayload, _criterion: &AuspiceQryCriterion) -> bool {
-  true
+fn is_qry_match(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCriterion) -> bool {
+  let node = node.payload();
+
+  let res = [
+    find_matching_clade(&node.clade(), &criteria.clade).is_some(),
+    find_matching_clade_like_attrs(node, &criteria.clade_node_attrs).is_some(),
+  ]
+  .iter()
+  .any(|c| *c);
+
+  res
 }
 
-fn node_matches(
-  node: &Node<AuspiceGraphNodePayload>,
-  criteria: &AuspiceRefNodeCriterion,
-) -> Option<AncestralSearchMatch> {
+fn node_matches(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCriterion) -> Option<AncestralSearchMatch> {
   let node_key = node.key();
   let node = node.payload();
 

@@ -360,14 +360,9 @@ pub enum AuspiceNodeSearchAlgo {
 pub struct AuspiceRefNodeCriterion {
   #[serde(default)]
   pub search_algo: AuspiceNodeSearchAlgo,
-  #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub name: Vec<String>,
-  #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub clade: Vec<String>,
-  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub clade_node_attrs: BTreeMap<String, Vec<String>>,
+
   #[serde(flatten)]
-  pub other: serde_json::Value,
+  pub criterion: AuspiceNodeCriterion,
 }
 
 impl AuspiceRefNodeCriterion {
@@ -378,21 +373,21 @@ impl AuspiceRefNodeCriterion {
 
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct AuspiceQryCriterion {
+pub struct AuspiceNodeCriterion {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub names: Vec<String>,
+  pub name: Vec<String>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub clades: Vec<String>,
+  pub clade: Vec<String>,
 
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub clade_like_attrs: BTreeMap<String, Vec<String>>,
+  pub clade_node_attrs: BTreeMap<String, Vec<String>>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
 
-impl AuspiceQryCriterion {
+impl AuspiceNodeCriterion {
   pub fn is_empty(&self) -> bool {
     self == &Self::default()
   }
@@ -402,7 +397,7 @@ impl AuspiceQryCriterion {
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeSearchCriteria {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
-  pub qry: Vec<AuspiceQryCriterion>,
+  pub qry: Vec<AuspiceNodeCriterion>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub node: Vec<AuspiceRefNodeCriterion>,
