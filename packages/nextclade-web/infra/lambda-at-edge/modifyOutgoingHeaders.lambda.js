@@ -7,33 +7,15 @@
 // Usage: Create an AWS Lambda@Edge function and attach it to "Viewer Response"
 // event of a Cloudfront distribution
 
-const FEATURE_POLICY = {
-  accelerometer: `'none'`,
-  camera: `'none'`,
-  geolocation: `'none'`,
-  gyroscope: `'none'`,
-  magnetometer: `'none'`,
-  microphone: `'none'`,
-  payment: `'none'`,
-  usb: `'none'`,
-}
-
-function generateFeaturePolicyHeader(featurePolicyObject) {
-  return Object.entries(featurePolicyObject)
-    .map(([policy, value]) => `${policy} ${value}`)
-    .join('; ')
-}
-
 const PERMISSIONS_POLICY = {
-  'accelerometer': '()',
-  'camera': '()',
-  'geolocation': '()',
-  'gyroscope': '()',
-  'magnetometer': '()',
-  'microphone': '()',
-  'payment': '()',
-  'usb': '()',
-  'interest-cohort': '()',
+  accelerometer: '()',
+  camera: '()',
+  geolocation: '()',
+  gyroscope: '()',
+  magnetometer: '()',
+  microphone: '()',
+  payment: '()',
+  usb: '()',
 }
 
 function generatePermissionsPolicyHeader(permissionsPolicyObject) {
@@ -41,6 +23,7 @@ function generatePermissionsPolicyHeader(permissionsPolicyObject) {
     .map(([policy, value]) => `${policy}=${value}`)
     .join(', ')
 }
+
 const NEW_HEADERS = {
   'Content-Security-Policy':
     "default-src 'self'; script-src 'self' 'unsafe-eval' plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: *.githubusercontent.com; connect-src *",
@@ -51,7 +34,6 @@ const NEW_HEADERS = {
   'X-Download-Options': 'noopen',
   'X-Frame-Options': 'SAMEORIGIN',
   'X-XSS-Protection': '1; mode=block',
-  'Feature-Policy': generateFeaturePolicyHeader(FEATURE_POLICY),
   'Permissions-Policy': generatePermissionsPolicyHeader(PERMISSIONS_POLICY),
 }
 

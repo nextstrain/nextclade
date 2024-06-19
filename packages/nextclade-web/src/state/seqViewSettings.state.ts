@@ -76,14 +76,37 @@ export const seqMarkerUnsequencedHeightStateAtom = atom<SeqMarkerHeightState>({
   effects: [persistAtom],
 })
 
-export enum SeqMarkerFrameShiftState {
+export enum SeqMarkerState {
   Off = 'Off',
   On = 'On',
 }
 
-export const seqMarkerFrameShiftStateAtom = atom<SeqMarkerFrameShiftState>({
+export const SEQ_MARKER_STATES = Object.keys(SeqMarkerState)
+
+export function seqMarkerStateToString(val: SeqMarkerState) {
+  return val.toString()
+}
+
+export function seqMarkerStateFromString(key: string) {
+  // prettier-ignore
+  switch (key) {
+    case 'On':
+      return SeqMarkerState.On
+    case 'Off':
+      return SeqMarkerState.Off
+  }
+  throw new ErrorInternal(`When converting string to 'SeqMarkerState': Unknown variant'${key}'`)
+}
+
+export const seqMarkerInsertionStateAtom = atom<SeqMarkerState>({
+  key: 'seqMarkerInsertionStateAtom',
+  default: SeqMarkerState.On,
+  effects: [persistAtom],
+})
+
+export const seqMarkerFrameShiftStateAtom = atom<SeqMarkerState>({
   key: 'seqMarkerFrameShiftState',
-  default: SeqMarkerFrameShiftState.On,
+  default: SeqMarkerState.On,
   effects: [persistAtom],
 })
 
