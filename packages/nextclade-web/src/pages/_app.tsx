@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-
+import 'core-js'
 import 'css.escape'
 
 import { isEmpty, isNil } from 'lodash'
