@@ -123,6 +123,33 @@ function Table({ ...restProps }) {
   return <TableSlim striped {...restProps} />
 }
 
+export const Details = styled.details`
+  & {
+    overflow: hidden;
+    position: relative;
+    border: 1px #ccc9 solid;
+    border-radius: 5px;
+    background-color: ${(props) => props.theme.gray100};
+  }
+
+  &[open] {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  & summary {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0.7rem;
+    cursor: pointer;
+    font-weight: bold;
+    border: 1px #ccc9 solid;
+    border-radius: 5px;
+    background-color: ${(props) => props.theme.gray200};
+  }
+`
+
 export const mdxComponents = {
   h1: H1,
   h2: H2,
@@ -137,4 +164,5 @@ export const mdxComponents = {
   pre: Pre,
   code: Code,
   table: Table,
+  details: Details,
 }
