@@ -7,15 +7,21 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRecoilStateDeferred } from 'src/hooks/useRecoilStateDeferred'
 import {
   SEQ_MARKER_HEIGHT_STATES,
+  SEQ_MARKER_STATES,
   SeqMarkerHeightState,
-  seqMarkerHeightStateFromString,
-  seqMarkerMissingHeightStateAtom,
-  seqMarkerHeightStateToString,
-  seqMarkerGapHeightStateAtom,
-  seqMarkerMutationHeightStateAtom,
-  seqMarkerUnsequencedHeightStateAtom,
+  SeqMarkerState,
   maxNucMarkersAtom,
   seqMarkerAmbiguousHeightStateAtom,
+  seqMarkerFrameShiftStateAtom,
+  seqMarkerGapHeightStateAtom,
+  seqMarkerHeightStateFromString,
+  seqMarkerHeightStateToString,
+  seqMarkerInsertionStateAtom,
+  seqMarkerMissingHeightStateAtom,
+  seqMarkerMutationHeightStateAtom,
+  seqMarkerStateFromString,
+  seqMarkerStateToString,
+  seqMarkerUnsequencedHeightStateAtom,
 } from 'src/state/seqViewSettings.state'
 
 /** Adapts Recoil state  `enum` to `string` */
@@ -41,8 +47,12 @@ export function useEnumRecoilState<T>(
   return [stringValue, setStringValue]
 }
 
-export function useSeqMarkerState(state: RecoilState<SeqMarkerHeightState>) {
+export function useSeqMarkerHeightState(state: RecoilState<SeqMarkerHeightState>) {
   return useEnumRecoilState(state, seqMarkerHeightStateToString, seqMarkerHeightStateFromString)
+}
+
+export function useSeqMarkerState(state: RecoilState<SeqMarkerState>) {
+  return useEnumRecoilState(state, seqMarkerStateToString, seqMarkerStateFromString)
 }
 
 export function SeqViewSettings() {
@@ -50,23 +60,27 @@ export function SeqViewSettings() {
 
   const [maxNucMarkers, setMaxNucMarkers] = useRecoilStateDeferred(maxNucMarkersAtom)
 
-  const [seqMarkerMissingHeightState, setSeqMarkerMissingHeightState] = useSeqMarkerState(
+  const [seqMarkerMissingHeightState, setSeqMarkerMissingHeightState] = useSeqMarkerHeightState(
     seqMarkerMissingHeightStateAtom,
   )
 
-  const [seqMarkerAmbiguousHeightState, setSeqMarkerAmbiguousHeightState] = useSeqMarkerState(
+  const [seqMarkerAmbiguousHeightState, setSeqMarkerAmbiguousHeightState] = useSeqMarkerHeightState(
     seqMarkerAmbiguousHeightStateAtom,
   )
 
-  const [seqMarkerGapHeightState, setSeqMarkerGapHeightState] = useSeqMarkerState(seqMarkerGapHeightStateAtom)
+  const [seqMarkerGapHeightState, setSeqMarkerGapHeightState] = useSeqMarkerHeightState(seqMarkerGapHeightStateAtom)
 
-  const [seqMarkerMutationHeightState, setSeqMarkerMutationHeightState] = useSeqMarkerState(
+  const [seqMarkerMutationHeightState, setSeqMarkerMutationHeightState] = useSeqMarkerHeightState(
     seqMarkerMutationHeightStateAtom,
   )
 
-  const [seqMarkerUnsequencedHeightState, setSeqMarkerUnsequencedHeightState] = useSeqMarkerState(
+  const [seqMarkerUnsequencedHeightState, setSeqMarkerUnsequencedHeightState] = useSeqMarkerHeightState(
     seqMarkerUnsequencedHeightStateAtom,
   )
+
+  const [seqMarkerInsertionState, setSeqMarkerInsertionState] = useSeqMarkerState(seqMarkerInsertionStateAtom)
+
+  const [seqMarkerFrameShiftState, setSeqMarkerFrameShiftState] = useSeqMarkerState(seqMarkerFrameShiftStateAtom)
 
   const labels: Record<SeqMarkerHeightState, string> = useMemo(
     () => ({
@@ -74,6 +88,14 @@ export function SeqViewSettings() {
       [SeqMarkerHeightState.Top]: t('top'),
       [SeqMarkerHeightState.Bottom]: t('bottom'),
       [SeqMarkerHeightState.Full]: t('full'),
+    }),
+    [t],
+  )
+
+  const labelsSpecial: Record<SeqMarkerState, string> = useMemo(
+    () => ({
+      [SeqMarkerState.Off]: t('off'),
+      [SeqMarkerState.On]: t('on'),
     }),
     [t],
   )
@@ -148,6 +170,30 @@ export function SeqViewSettings() {
             labels={labels}
             currentValue={seqMarkerUnsequencedHeightState}
             onChange={setSeqMarkerUnsequencedHeightState}
+          />
+        </Label>
+      </FormGroup>
+
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle markers for insertions')}>
+          {t('Insertions')}
+          <Multitoggle
+            values={SEQ_MARKER_STATES}
+            labels={labelsSpecial}
+            currentValue={seqMarkerInsertionState}
+            onChange={setSeqMarkerInsertionState}
+          />
+        </Label>
+      </FormGroup>
+
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle markers for insertions')}>
+          {t('Frame shifts')}
+          <Multitoggle
+            values={SEQ_MARKER_STATES}
+            labels={labelsSpecial}
+            currentValue={seqMarkerFrameShiftState}
+            onChange={setSeqMarkerFrameShiftState}
           />
         </Label>
       </FormGroup>
