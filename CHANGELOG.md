@@ -1,3 +1,11 @@
+## Nextclade 3.7.4
+
+### Nextclade Web
+
+### Upgrade Auspice to 2.55.0, add polyfills
+
+This definitively resolves crash due to missing JavaScript polyfills, which occurred in Nextclade Web 3.7.2
+
 ## Nextclade 3.7.3
 
 ### Nextclade Web
