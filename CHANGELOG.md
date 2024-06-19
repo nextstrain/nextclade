@@ -1,3 +1,11 @@
+## Nextclade 3.7.3
+
+### Nextclade Web
+
+### Fix crash on tree page in Nextclade Web
+
+Temporarily downgrade Auspice from 2.55.0 to 2.54.3 to prevent the tree page in Nextclade Web from crashing. The definitive fix will follow.
+
 ## Nextclade 3.7.2
 
 ### General
