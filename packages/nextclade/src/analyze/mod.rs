@@ -7,6 +7,7 @@ pub mod aa_del;
 pub mod aa_sub;
 pub mod aa_sub_min;
 pub mod abstract_mutation;
+pub mod find_clade_founder;
 pub mod count_gaps;
 pub mod divergence;
 pub mod find_aa_motifs;

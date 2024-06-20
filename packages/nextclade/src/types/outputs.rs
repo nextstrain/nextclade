@@ -4,6 +4,7 @@ use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
+use crate::analyze::find_clade_founder::{CladeFounderInfo, CladeNodeAttrFounderInfo};
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::find_relative_aa_mutations::RelativeAaMutations;
@@ -79,6 +80,8 @@ pub struct NextcladeOutputs {
   pub clade: Option<String>,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
+  pub clade_founder_info: Option<CladeFounderInfo>,
+  pub clade_node_attr_founder_info: BTreeMap<String, CladeNodeAttrFounderInfo>,
   pub ref_nodes: AuspiceRefNodesDesc,
   pub ref_node_search_results: Vec<AncestralSearchResult>,
   pub relative_nuc_mutations: Vec<RelativeNucMutations>,

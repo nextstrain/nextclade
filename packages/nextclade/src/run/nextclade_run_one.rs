@@ -11,6 +11,9 @@ use crate::analyze::aa_sub::AaSub;
 use crate::analyze::divergence::calculate_branch_length;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
+use crate::analyze::find_clade_founder::{
+  find_clade_founder, find_clade_node_attrs_founders, CladeFounderInfo, CladeNodeAttrFounderInfo,
+};
 use crate::analyze::find_private_aa_mutations::{
   find_private_aa_mutations, FindPrivateAaMutationsParams, PrivateAaMutations,
 };
@@ -80,6 +83,8 @@ struct NextcladeResultWithGraph {
   ref_node_search_results: Vec<AncestralSearchResult>,
   relative_nuc_mutations: Vec<RelativeNucMutations>,
   relative_aa_mutations: Vec<RelativeAaMutations>,
+  clade_founder_info: Option<CladeFounderInfo>,
+  clade_node_attr_founder_info: BTreeMap<String, CladeNodeAttrFounderInfo>,
 }
 
 pub fn nextclade_run_one(
@@ -257,6 +262,8 @@ pub fn nextclade_run_one(
     clade,
     private_nuc_mutations,
     private_aa_mutations,
+    clade_founder_info,
+    clade_node_attr_founder_info,
     ref_node_search_results,
     relative_nuc_mutations,
     relative_aa_mutations,
@@ -286,35 +293,34 @@ pub fn nextclade_run_one(
     let clade_node_attr_keys = graph.data.meta.clade_node_attr_descs();
     let clade_node_attrs = nearest_node.get_clade_node_attrs(clade_node_attr_keys);
 
-    let private_nuc_mutations = find_private_nuc_mutations(
-      nearest_node,
-      &FindPrivateNucMutationsParams {
-        graph,
-        substitutions: &substitutions,
-        deletions: &deletions,
-        missing: &missing,
-        alignment_range: &alignment_range,
-        ref_seq,
-        non_acgtns: &non_acgtns,
-        virus_properties,
-      },
-    );
+    let nuc_params = FindPrivateNucMutationsParams {
+      graph,
+      substitutions: &substitutions,
+      deletions: &deletions,
+      missing: &missing,
+      alignment_range: &alignment_range,
+      ref_seq,
+      non_acgtns: &non_acgtns,
+      virus_properties,
+    };
 
-    let private_aa_mutations = find_private_aa_mutations(
-      nearest_node,
-      &FindPrivateAaMutationsParams {
-        graph,
-        aa_substitutions: &aa_substitutions,
-        aa_deletions: &aa_deletions,
-        aa_unknowns: &unknown_aa_ranges,
-        aa_unsequenced_ranges: &aa_unsequenced_ranges,
-        ref_translation,
-        qry_translation: &translation,
-        gene_map,
-        aln: &aln,
-        params: &params.aa_changes,
-      },
-    )?;
+    let aa_params = FindPrivateAaMutationsParams {
+      graph,
+      aa_substitutions: &aa_substitutions,
+      aa_deletions: &aa_deletions,
+      aa_unknowns: &unknown_aa_ranges,
+      aa_unsequenced_ranges: &aa_unsequenced_ranges,
+      ref_translation,
+      qry_translation: &translation,
+      gene_map,
+      aln: &aln,
+      params: &params.aa_changes,
+    };
+
+    let private_nuc_mutations = find_private_nuc_mutations(nearest_node, &nuc_params);
+
+    let private_aa_mutations = find_private_aa_mutations(nearest_node, &aa_params)?;
+
     let parent_div = nearest_node.node_attrs.div.unwrap_or(0.0);
     let masked_ranges = graph.data.meta.placement_mask_ranges();
     let divergence = parent_div
@@ -325,37 +331,16 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
+    let clade_founder_info = find_clade_founder(graph, nearest_node_id, &clade, &nuc_params, &aa_params)?;
+
+    let clade_node_attr_founder_info =
+      find_clade_node_attrs_founders(graph, nearest_node_id, &clade_node_attrs, &nuc_params, &aa_params)?;
+
     let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_id, ref_nodes)?;
 
-    let relative_nuc_mutations = find_relative_nuc_mutations(
-      &ref_node_search_results,
-      &FindPrivateNucMutationsParams {
-        graph,
-        substitutions: &substitutions,
-        deletions: &deletions,
-        missing: &missing,
-        alignment_range: &alignment_range,
-        ref_seq,
-        non_acgtns: &non_acgtns,
-        virus_properties,
-      },
-    )?;
+    let relative_nuc_mutations = find_relative_nuc_mutations(&ref_node_search_results, &nuc_params)?;
 
-    let relative_aa_mutations = find_relative_aa_mutations(
-      &ref_node_search_results,
-      &FindPrivateAaMutationsParams {
-        graph,
-        aa_substitutions: &aa_substitutions,
-        aa_deletions: &aa_deletions,
-        aa_unknowns: &unknown_aa_ranges,
-        aa_unsequenced_ranges: &aa_unsequenced_ranges,
-        ref_translation,
-        qry_translation: &translation,
-        gene_map,
-        aln: &aln,
-        params: &params.aa_changes,
-      },
-    )?;
+    let relative_aa_mutations = find_relative_aa_mutations(&ref_node_search_results, &aa_params)?;
 
     let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
       phenotype_data
@@ -381,6 +366,8 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      clade_founder_info,
+      clade_node_attr_founder_info,
       ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
@@ -460,6 +447,8 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      clade_founder_info,
+      clade_node_attr_founder_info,
       ref_nodes: ref_nodes.to_owned(),
       ref_node_search_results,
       relative_nuc_mutations,
