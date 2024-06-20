@@ -66,7 +66,7 @@ export function getNucMutations(
     }
   }
 
-  // Custom config
+  // Custom node
   const relMuts = analysisResult.relativeNucMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!relMuts) {
     return undefined
@@ -86,14 +86,19 @@ export function getAaMutations(
       relAaMuts?: PrivateAaMutations[]
     }
   | undefined {
+  // Reference sequence
   if (refNodeName === REF_NODE_ROOT) {
     return { aaSubs: analysisResult.aaSubstitutions, relAaMuts: undefined }
   }
+
+  // Parent node
   if (refNodeName === REF_NODE_PARENT) {
     const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }
+
+  // Clade founder
   if (refNodeName === REF_NODE_CLADE_FOUNDER) {
     const muts = analysisResult.cladeFounderInfo?.aaMutations
     if (!muts) {
@@ -103,6 +108,23 @@ export function getAaMutations(
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }
+
+  // Clade-like attribute founder
+  // eslint-disable-next-line no-lone-blocks
+  {
+    const founderInfo = findCladeNodeAttrFounderInfo(analysisResult.cladeNodeAttrFounderInfo, refNodeName)
+    if (founderInfo) {
+      const cladeMuts = founderInfo?.aaMutations
+      if (!cladeMuts) {
+        return undefined
+      }
+      const relAaMuts = Object.values(cladeMuts).flat()
+      const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
+      return { aaSubs, relAaMuts }
+    }
+  }
+
+  // Custom node
   const muts = analysisResult.relativeAaMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!muts) {
     return undefined
