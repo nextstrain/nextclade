@@ -273,18 +273,22 @@ impl AuspiceGraphNodePayload {
   }
 
   /// Extracts clade-like node attribute, given its name
-  pub fn get_clade_node_attr(&self, name: impl AsRef<str>) -> Option<&str> {
-    self.node_attrs.other.get(name.as_ref()).and_then(|val| val.as_str())
+  pub fn get_clade_node_attr(&self, key: impl AsRef<str>) -> Option<&str> {
+    self
+      .node_attrs
+      .other
+      .get(key.as_ref())
+      .and_then(|val| val.get("value"))
+      .and_then(|val| val.as_str())
   }
 
   /// Extracts clade-like node attributes, given a list of key descriptions
-  pub fn get_clade_node_attrs(&self, clade_node_attr_keys: &[CladeNodeAttrKeyDesc]) -> BTreeMap<String, String> {
-    clade_node_attr_keys
+  pub fn get_clade_node_attrs(&self, clade_node_attr_descs: &[CladeNodeAttrKeyDesc]) -> BTreeMap<String, String> {
+    clade_node_attr_descs
       .iter()
-      .filter_map(|attr| {
-        self
-          .get_clade_node_attr(&attr.name)
-          .map(|val| (attr.name.clone(), val.to_owned()))
+      .filter_map(|key| {
+        let val = self.get_clade_node_attr(&key.name);
+        val.map(|val| (key.name.clone(), val.to_owned()))
       })
       .collect()
   }
