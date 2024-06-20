@@ -1,6 +1,7 @@
+import { getNucMutations } from 'src/helpers/relativeMuts'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
-import { AnalysisResult, getNucMutations } from 'src/types'
+import { AnalysisResult } from 'src/types'
 import React from 'react'
 import { useRecoilValue } from 'recoil'
 import { genomeSizeAtom } from 'src/state/results.state'

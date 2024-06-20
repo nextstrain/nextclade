@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { rgba } from 'polished'
 import React, { useCallback, useMemo } from 'react'
+import { getCladeNodeAttrFounderSearchId } from 'src/helpers/relativeMuts'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import Select, { OptionProps, StylesConfig } from 'react-select'
 import { IsMultiValue } from 'src/components/Common/Dropdown'
 import { DropdownOption } from 'src/components/Common/DropdownOption'
-import { currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
+import { cladeNodeAttrDescsAtom, currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
 import { SelectComponents } from 'react-select/dist/declarations/src/components'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 
@@ -36,20 +38,35 @@ const builtinRefs: Option[] = [
 ]
 
 export function RefNodeSelector() {
+  const { t } = useTranslationSafe()
+
   const refNodes = useRecoilValue(refNodesAtom)
+  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
   const [currentRefNodeName, setCurrentRefNodeName] = useRecoilState(currentRefNodeNameAtom)
 
   const { options, currentOption } = useMemo(() => {
-    const refs = (refNodes.search ?? []).map((node) => ({
-      value: node.name,
-      label: node.displayName ?? node.name,
-      description: node.description,
+    const refs = (refNodes.search ?? []).map((search) => ({
+      value: search.name,
+      label: search.displayName ?? search.name,
+      description: search.description,
     }))
-    const options = [...builtinRefs, ...refs]
+
+    const cladeNodeAttrFounders = cladeNodeAttrDescs.map((desc) => {
+      const searchId = getCladeNodeAttrFounderSearchId(desc.name)
+      return {
+        value: searchId,
+        label: t("'{{ attr }}' founder", { attr: desc.displayName }),
+        description: t("Earliest ancestor node having the same value of attribute '{{ attr }}'", {
+          attr: desc.displayName,
+        }),
+      }
+    })
+
+    const options = [...builtinRefs, ...cladeNodeAttrFounders, ...refs]
     const currentOption = options.find((o) => o.value === currentRefNodeName)
 
     return { options, currentOption }
-  }, [currentRefNodeName, refNodes])
+  }, [cladeNodeAttrDescs, currentRefNodeName, refNodes.search, t])
 
   const handleChange = useCallback(
     (option: OnChangeValue<DropdownOption<string>, IsMultiValue>, _actionMeta: ActionMeta<DropdownOption<string>>) => {

@@ -1,8 +1,6 @@
-import { isNil, isNumber, isFinite, isString, range, sumBy, isBoolean, get } from 'lodash'
-import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
+import { get, isBoolean, isFinite, isNil, isNumber, isString, range, sumBy } from 'lodash'
 import type {
   Aa,
-  AaSub,
   AnyType,
   Cds,
   CdsSegment,
@@ -18,8 +16,6 @@ import type {
   Nuc,
   NucDel,
   NucSub,
-  PrivateAaMutations,
-  PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
@@ -61,79 +57,6 @@ export function cdsSegmentAaLength(cdsSeg: CdsSegment) {
 
 export function iterRange(r: Range): number[] {
   return range(r.begin, r.end)
-}
-
-export function getNucMutations(
-  analysisResult: AnalysisResult,
-  refNodeName: string,
-):
-  | {
-      subs: NucSub[]
-      relMuts?: PrivateNucMutations
-    }
-  | undefined {
-  if (refNodeName === REF_NODE_ROOT) {
-    return { subs: analysisResult.substitutions, relMuts: undefined }
-  }
-  if (refNodeName === REF_NODE_PARENT) {
-    return {
-      subs: analysisResult.privateNucMutations.privateSubstitutions,
-      relMuts: analysisResult.privateNucMutations,
-    }
-  }
-  if (refNodeName === REF_NODE_CLADE_FOUNDER) {
-    const cladeMuts = analysisResult.cladeFounderInfo?.nucMutations
-    if (!cladeMuts) {
-      return undefined
-    }
-    return {
-      subs: cladeMuts.privateSubstitutions,
-      relMuts: cladeMuts,
-    }
-  }
-  const relMuts = analysisResult.relativeNucMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
-  if (!relMuts) {
-    return undefined
-  }
-  return {
-    subs: relMuts.privateSubstitutions,
-    relMuts,
-  }
-}
-
-export function getAaMutations(
-  analysisResult: AnalysisResult,
-  refNodeName: string,
-):
-  | {
-      aaSubs: AaSub[]
-      relAaMuts?: PrivateAaMutations[]
-    }
-  | undefined {
-  if (refNodeName === REF_NODE_ROOT) {
-    return { aaSubs: analysisResult.aaSubstitutions, relAaMuts: undefined }
-  }
-  if (refNodeName === REF_NODE_PARENT) {
-    const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
-    const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
-    return { aaSubs, relAaMuts }
-  }
-  if (refNodeName === REF_NODE_CLADE_FOUNDER) {
-    const muts = analysisResult.cladeFounderInfo?.aaMutations
-    if (!muts) {
-      return undefined
-    }
-    const relAaMuts = Object.values(muts).flat()
-    const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
-    return { aaSubs, relAaMuts }
-  }
-  const muts = analysisResult.relativeAaMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
-  if (!muts) {
-    return undefined
-  }
-  const relAaMuts = Object.values(muts).flat()
-  const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
-  return { aaSubs, relAaMuts }
 }
 
 export interface QCFilters {

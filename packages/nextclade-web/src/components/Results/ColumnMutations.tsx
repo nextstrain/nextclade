@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
+import { findCladeNodeAttrFounderInfo, getAaMutations, getNucMutations } from 'src/helpers/relativeMuts'
 import { currentRefNodeNameAtom } from 'src/state/results.state'
-import { getAaMutations, getNucMutations } from 'src/types'
 import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { TableSlim } from 'src/components/Common/TableSlim'
@@ -17,7 +17,8 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { index, seqName, refName, nearestNodeName, refNodeSearchResults, cladeFounderInfo } = analysisResult
+  const { index, seqName, refName, nearestNodeName, refNodeSearchResults, cladeFounderInfo, cladeNodeAttrFounderInfo } =
+    analysisResult
   const id = getSafeId('mutations-label', { index, seqName })
 
   const nodeSearchName = useRecoilValue(currentRefNodeNameAtom)
@@ -34,12 +35,27 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     if (nodeSearchName === REF_NODE_CLADE_FOUNDER) {
       return { searchNameFriendly: t('clade founder'), nodeName: cladeFounderInfo?.nodeName }
     }
+    const cladeNodeAttr = findCladeNodeAttrFounderInfo(cladeNodeAttrFounderInfo, nodeSearchName)
+    if (cladeNodeAttr) {
+      return {
+        searchNameFriendly: t('Founder of {{ attr }}', { attr: cladeNodeAttr.key }),
+        nodeName: cladeFounderInfo?.nodeName,
+      }
+    }
     const nodeName =
       refNodeSearchResults.find((r) => r.search.name === nodeSearchName)?.result?.match?.nodeName ?? t('unknown')
     const searchNameFriendly =
       refNodeSearchResults.find((r) => r.search.name === nodeSearchName)?.search.displayName ?? t('unknown')
     return { searchNameFriendly, nodeName }
-  }, [nodeSearchName, refNodeSearchResults, t, refName, nearestNodeName, cladeFounderInfo?.nodeName])
+  }, [
+    nodeSearchName,
+    cladeNodeAttrFounderInfo,
+    refNodeSearchResults,
+    t,
+    refName,
+    nearestNodeName,
+    cladeFounderInfo?.nodeName,
+  ])
 
   if (!nucMuts) {
     return (

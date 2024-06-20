@@ -1,6 +1,7 @@
 import React from 'react'
+import { getAaMutations } from 'src/helpers/relativeMuts'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { AnalysisResult, Cds, getAaMutations, cdsCodonLength } from 'src/types'
+import { AnalysisResult, Cds, cdsCodonLength } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { formatRange } from 'src/helpers/formatRange'
 import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
