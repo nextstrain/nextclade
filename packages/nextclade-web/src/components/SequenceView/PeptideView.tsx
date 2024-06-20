@@ -2,10 +2,9 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-import { PeptideViewAbsolute } from 'src/components/SequenceView/PeptideViewAbsolute'
-import { PeptideViewRelative } from 'src/components/SequenceView/PeptideViewRelative'
-import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import styled from 'styled-components'
+import { REF_NODE_ROOT } from 'src/constants'
+import { PeptideViewRelative } from 'src/components/SequenceView/PeptideViewRelative'
 import type { AnalysisResult, PeptideWarning } from 'src/types'
 import { cdsAtom, currentRefNodeNameAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -13,6 +12,7 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { SequenceViewWrapper } from './SequenceViewStyles'
+import { PeptideViewAbsolute } from './PeptideViewAbsolute'
 
 const MissingRow = styled.div`
   background-color: ${(props) => props.theme.gray650};
@@ -71,24 +71,16 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     if (!width) {
       return null
     }
-
     if (!cds) {
       return <>{t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: viewedGene })}</>
     }
-
     const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === viewedGene)
     if (warningsForThisGene.length > 0) {
       return <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
     }
-
     if (refNodeName === REF_NODE_ROOT) {
       return <PeptideViewAbsolute width={width} cds={cds} sequence={sequence} />
     }
-
-    if (refNodeName === REF_NODE_PARENT) {
-      return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
-    }
-
     return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
   }, [cds, refNodeName, sequence, t, viewedGene, warnings, width])
 

@@ -5,7 +5,7 @@ import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
-import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
+import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
@@ -117,7 +117,8 @@ export function useRunAnalysis() {
 
             const searchNames = (refNodes.search ?? []).map((s) => s.name)
             const defaultSearchName =
-              !isNil(refNodes.default) && [...searchNames, REF_NODE_ROOT, REF_NODE_PARENT].includes(refNodes.default)
+              !isNil(refNodes.default) &&
+              [...searchNames, REF_NODE_ROOT, REF_NODE_PARENT, REF_NODE_CLADE_FOUNDER].includes(refNodes.default)
                 ? refNodes.default
                 : REF_NODE_ROOT
             set(currentRefNodeNameAtom, defaultSearchName)

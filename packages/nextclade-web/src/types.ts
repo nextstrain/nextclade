@@ -1,5 +1,5 @@
 import { isNil, isNumber, isFinite, isString, range, sumBy, isBoolean, get } from 'lodash'
-import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
+import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import type {
   Aa,
   AaSub,
@@ -81,6 +81,16 @@ export function getNucMutations(
       relMuts: analysisResult.privateNucMutations,
     }
   }
+  if (refNodeName === REF_NODE_CLADE_FOUNDER) {
+    const cladeMuts = analysisResult.cladeFounderInfo?.nucMutations
+    if (!cladeMuts) {
+      return undefined
+    }
+    return {
+      subs: cladeMuts.privateSubstitutions,
+      relMuts: cladeMuts,
+    }
+  }
   const relMuts = analysisResult.relativeNucMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!relMuts) {
     return undefined
@@ -105,6 +115,15 @@ export function getAaMutations(
   }
   if (refNodeName === REF_NODE_PARENT) {
     const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
+    const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
+    return { aaSubs, relAaMuts }
+  }
+  if (refNodeName === REF_NODE_CLADE_FOUNDER) {
+    const muts = analysisResult.cladeFounderInfo?.aaMutations
+    if (!muts) {
+      return undefined
+    }
+    const relAaMuts = Object.values(muts).flat()
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }

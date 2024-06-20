@@ -22,6 +22,7 @@ export const AA_MIN_WIDTH_PX = 4 as const
 
 export const REF_NODE_ROOT = '__root__' as const
 export const REF_NODE_PARENT = '__parent__' as const
+export const REF_NODE_CLADE_FOUNDER = '__clade_founder__' as const
 
 export const URL_GITHUB = 'https://github.com/nextstrain/nextclade' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const
