@@ -5,6 +5,7 @@ use crate::analyze::find_private_nuc_mutations::{
   find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
 };
 use crate::graph::node::GraphNodeKey;
+use crate::o;
 use crate::tree::tree::AuspiceGraph;
 use crate::tree::tree_find_clade_founder::{graph_find_clade_founder, graph_find_node_attr_founder};
 use eyre::Report;
@@ -12,10 +13,11 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Serialize, Deserialize, JsonSchema, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CladeFounderInfo {
-  pub clade: String,
+pub struct CladeNodeAttrFounderInfo {
+  pub key: String,
+  pub value: String,
   pub node_key: GraphNodeKey,
   pub node_name: String,
   pub nuc_mutations: PrivateNucMutations,
@@ -28,7 +30,7 @@ pub fn find_clade_founder(
   clade: &Option<String>,
   nuc_params: &FindPrivateNucMutationsParams,
   aa_params: &FindPrivateAaMutationsParams,
-) -> Result<Option<CladeFounderInfo>, Report> {
+) -> Result<Option<CladeNodeAttrFounderInfo>, Report> {
   clade
     .as_ref()
     .map(|clade| -> Result<_, Report> {
@@ -36,8 +38,9 @@ pub fn find_clade_founder(
       let node = graph.get_node(node_key)?.payload();
       let nuc_mutations = find_private_nuc_mutations(node, nuc_params);
       let aa_mutations = find_private_aa_mutations(node, aa_params)?;
-      Ok(CladeFounderInfo {
-        clade: clade.to_owned(),
+      Ok(CladeNodeAttrFounderInfo {
+        key: o!("clade"),
+        value: clade.to_owned(),
         node_key,
         node_name: node.name.clone(),
         nuc_mutations,
@@ -45,17 +48,6 @@ pub fn find_clade_founder(
       })
     })
     .transpose()
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct CladeNodeAttrFounderInfo {
-  pub key: String,
-  pub value: String,
-  pub node_key: GraphNodeKey,
-  pub node_name: String,
-  pub nuc_mutations: PrivateNucMutations,
-  pub aa_mutations: BTreeMap<String, PrivateAaMutations>,
 }
 
 pub fn find_clade_node_attrs_founders(

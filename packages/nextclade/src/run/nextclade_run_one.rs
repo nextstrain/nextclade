@@ -12,7 +12,7 @@ use crate::analyze::divergence::calculate_branch_length;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
 use crate::analyze::find_clade_founder::{
-  find_clade_founder, find_clade_node_attrs_founders, CladeFounderInfo, CladeNodeAttrFounderInfo,
+  find_clade_founder, find_clade_node_attrs_founders, CladeNodeAttrFounderInfo,
 };
 use crate::analyze::find_private_aa_mutations::{
   find_private_aa_mutations, FindPrivateAaMutationsParams, PrivateAaMutations,
@@ -83,7 +83,7 @@ struct NextcladeResultWithGraph {
   ref_node_search_results: Vec<AncestralSearchResult>,
   relative_nuc_mutations: Vec<RelativeNucMutations>,
   relative_aa_mutations: Vec<RelativeAaMutations>,
-  clade_founder_info: Option<CladeFounderInfo>,
+  clade_founder_info: Option<CladeNodeAttrFounderInfo>,
   clade_node_attr_founder_info: BTreeMap<String, CladeNodeAttrFounderInfo>,
 }
 

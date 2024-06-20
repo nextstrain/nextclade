@@ -4,6 +4,7 @@ use crate::alphabet::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs::AaMotif;
+use crate::analyze::find_clade_founder::CladeNodeAttrFounderInfo;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
@@ -34,6 +35,8 @@ use strum;
 use strum::VariantNames;
 use strum_macros::{Display, EnumString, EnumVariantNames};
 
+const ARRAY_ITEM_DELIMITER: &str = ",";
+
 // List of categories of CSV columns
 #[derive(
   Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, EnumVariantNames,
@@ -45,6 +48,7 @@ pub enum CsvColumnCategory {
   General,
   RefMuts,
   PrivMuts,
+  CladeFounderMuts,
   RelMuts,
   ErrsWarns,
   Qc,
@@ -61,6 +65,7 @@ pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
   pub include_dynamic: bool,
+  pub include_clade_founder_muts: bool,
   pub include_rel_muts: bool,
 }
 
@@ -99,6 +104,8 @@ impl CsvColumnConfig {
 
       let include_rel_muts = categories.contains(&CsvColumnCategory::RelMuts);
 
+      let include_clade_founder_muts = categories.contains(&CsvColumnCategory::CladeFounderMuts);
+
       let categories = categories
         .into_iter()
         .filter(|category| !matches!(category, CsvColumnCategory::Dynamic)) // Dynamic columns are handled specially
@@ -112,6 +119,7 @@ impl CsvColumnConfig {
         categories,
         individual,
         include_dynamic,
+        include_clade_founder_muts,
         include_rel_muts,
       })
     }
@@ -124,6 +132,7 @@ impl Default for CsvColumnConfig {
       categories: CSV_COLUMN_CONFIG_MAP_DEFAULT.clone(),
       individual: vec![],
       include_dynamic: true,
+      include_clade_founder_muts: true,
       include_rel_muts: true,
     }
   }
@@ -276,16 +285,35 @@ fn prepare_headers(
     });
   }
 
+  if column_config.include_clade_founder_muts {
+    // Insert columns after this column index
+    let mut insert_custom_cols_at_index = headers
+      .iter()
+      .position(|header| header == "missing")
+      .unwrap_or_else(|| headers.len().saturating_sub(1));
+
+    let builtin_attrs = vec![o!("clade")];
+    let attrs = chain!(&builtin_attrs, custom_node_attr_keys);
+
+    // For each attribute insert a set of columns
+    for attr in attrs {
+      for col in &clade_founder_cols(attr) {
+        headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
+        insert_custom_cols_at_index += 1;
+      }
+    }
+  }
+
   if column_config.include_rel_muts {
     // Insert columns after this column index
     let mut insert_custom_cols_at_index = headers
       .iter()
-      .position(|header| header == "unknownAaRanges")
+      .position(|header| header == "missing")
       .unwrap_or_else(|| headers.len().saturating_sub(1));
 
     // For each ref node insert a set of columns
     for ref_node in &ref_nodes.search {
-      for col in &ref_node_cols(ref_node) {
+      for col in &rel_mut_cols(ref_node) {
         headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
         insert_custom_cols_at_index += 1;
       }
@@ -295,7 +323,18 @@ fn prepare_headers(
   headers
 }
 
-fn ref_node_cols(desc: &AuspiceRefNodeSearchDesc) -> [String; 5] {
+fn clade_founder_cols(name: impl AsRef<str>) -> [String; 5] {
+  let name = name.as_ref();
+  [
+    format!("founderMuts['{name}'].nodeName"),
+    format!("founderMuts['{name}'].substitutions"),
+    format!("founderMuts['{name}'].deletions"),
+    format!("founderMuts['{name}'].aaSubstitutions"),
+    format!("founderMuts['{name}'].aaDeletions"),
+  ]
+}
+
+fn rel_mut_cols(desc: &AuspiceRefNodeSearchDesc) -> [String; 5] {
   let name = desc.display_name_or_name();
   [
     format!("relativeMutations['{name}'].nodeName"),
@@ -325,8 +364,6 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
 
   /// Writes one row into nextclade.csv or .tsv file
   pub fn write(&mut self, nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
-    const ARRAY_ITEM_DELIMITER: &str = ",";
-
     let NextcladeOutputs {
       index,
       seq_name,
@@ -370,6 +407,8 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
+      clade_founder_info,
+      clade_node_attr_founder_info,
       ..
     } = nextclade_outputs;
 
@@ -386,6 +425,13 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     aa_motifs
       .iter()
       .try_for_each(|(name, motifs)| self.add_entry(name, &format_aa_motifs(motifs)))?;
+
+    if let Some(info) = clade_founder_info {
+      self.add_clade_founder_cols("clade", info)?;
+    }
+    for (name, info) in clade_node_attr_founder_info {
+      self.add_clade_founder_cols(name, info)?;
+    }
 
     ref_nodes.search.iter().try_for_each(|desc| {
       let name = desc.display_name_or_name();
@@ -664,6 +710,48 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
 
     self.write_row()?;
 
+    Ok(())
+  }
+
+  fn add_clade_founder_cols(
+    &mut self,
+    name: impl AsRef<str>,
+    clade_founder_info: &CladeNodeAttrFounderInfo,
+  ) -> Result<(), Report> {
+    let name = name.as_ref();
+    let node_name = &clade_founder_info.node_name;
+
+    let nuc_subs = format_nuc_substitutions(
+      &clade_founder_info.nuc_mutations.private_substitutions,
+      ARRAY_ITEM_DELIMITER,
+    );
+
+    let nuc_dels = format_nuc_deletions(
+      &clade_founder_info.nuc_mutations.private_deletion_ranges,
+      ARRAY_ITEM_DELIMITER,
+    );
+
+    let aa_subs = clade_founder_info
+      .aa_mutations
+      .values()
+      .flat_map(|m| &m.private_substitutions)
+      .cloned()
+      .collect_vec();
+    let aa_subs = format_aa_substitutions(&aa_subs, ARRAY_ITEM_DELIMITER);
+
+    let aa_dels = clade_founder_info
+      .aa_mutations
+      .values()
+      .flat_map(|m| &m.private_deletions)
+      .cloned()
+      .collect_vec();
+    let aa_dels = format_aa_deletions(&aa_dels, ARRAY_ITEM_DELIMITER);
+
+    self.add_entry(format!("founderMuts['{name}'].nodeName"), &node_name)?;
+    self.add_entry(format!("founderMuts['{name}'].substitutions"), &nuc_subs)?;
+    self.add_entry(format!("founderMuts['{name}'].deletions"), &nuc_dels)?;
+    self.add_entry(format!("founderMuts['{name}'].aaSubstitutions"), &aa_subs)?;
+    self.add_entry(format!("founderMuts['{name}'].aaDeletions"), &aa_dels)?;
     Ok(())
   }
 
