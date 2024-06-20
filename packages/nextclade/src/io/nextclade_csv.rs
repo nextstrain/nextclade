@@ -285,6 +285,22 @@ fn prepare_headers(
     });
   }
 
+  if column_config.include_rel_muts {
+    // Insert columns after this column index
+    let mut insert_custom_cols_at_index = headers
+      .iter()
+      .position(|header| header == "missing")
+      .unwrap_or_else(|| headers.len().saturating_sub(1));
+
+    // For each ref node insert a set of columns
+    for ref_node in &ref_nodes.search {
+      for col in &rel_mut_cols(ref_node) {
+        headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
+        insert_custom_cols_at_index += 1;
+      }
+    }
+  }
+
   if column_config.include_clade_founder_muts {
     // Insert columns after this column index
     let mut insert_custom_cols_at_index = headers
@@ -298,22 +314,6 @@ fn prepare_headers(
     // For each attribute insert a set of columns
     for attr in attrs {
       for col in &clade_founder_cols(attr) {
-        headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
-        insert_custom_cols_at_index += 1;
-      }
-    }
-  }
-
-  if column_config.include_rel_muts {
-    // Insert columns after this column index
-    let mut insert_custom_cols_at_index = headers
-      .iter()
-      .position(|header| header == "missing")
-      .unwrap_or_else(|| headers.len().saturating_sub(1));
-
-    // For each ref node insert a set of columns
-    for ref_node in &ref_nodes.search {
-      for col in &rel_mut_cols(ref_node) {
         headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
         insert_custom_cols_at_index += 1;
       }
