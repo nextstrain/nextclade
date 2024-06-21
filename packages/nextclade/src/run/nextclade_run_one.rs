@@ -334,7 +334,7 @@ pub fn nextclade_run_one(
     let clade_founder_info = find_clade_founder(graph, nearest_node_id, &clade, &nuc_params, &aa_params)?;
 
     let clade_node_attr_founder_info =
-      find_clade_node_attrs_founders(graph, nearest_node_id, &clade_node_attr_descs, &nuc_params, &aa_params)?;
+      find_clade_node_attrs_founders(graph, nearest_node_id, clade_node_attr_descs, &nuc_params, &aa_params)?;
 
     let ref_node_search_results = graph_find_ancestors_of_interest(graph, nearest_node_id, ref_nodes)?;
 
