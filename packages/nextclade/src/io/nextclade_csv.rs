@@ -267,21 +267,22 @@ fn prepare_headers(
     let mut insert_custom_cols_at_index = headers
       .iter()
       .position(|header| header == "clade")
-      .unwrap_or_else(|| headers.len().saturating_sub(1));
+      .unwrap_or_else(|| headers.len().saturating_sub(1))
+      .clamp(0, headers.len());
 
     custom_node_attr_keys.iter().rev().for_each(|key| {
-      headers.insert(insert_custom_cols_at_index + 1, key.clone());
+      insert_after(&mut headers, insert_custom_cols_at_index, key.clone());
+      insert_custom_cols_at_index += 1;
     });
-    insert_custom_cols_at_index += custom_node_attr_keys.len();
 
     phenotype_attr_keys.iter().rev().for_each(|key| {
-      headers.insert(insert_custom_cols_at_index + 1, key.clone());
+      insert_after(&mut headers, insert_custom_cols_at_index, key.clone());
+      insert_custom_cols_at_index += 1;
     });
-    insert_custom_cols_at_index += phenotype_attr_keys.len();
 
     aa_motifs_keys.iter().rev().for_each(|key| {
-      headers.insert(insert_custom_cols_at_index + 1, key.clone());
-      insert_custom_cols_at_index += aa_motifs_keys.len();
+      insert_after(&mut headers, insert_custom_cols_at_index, key.clone());
+      insert_custom_cols_at_index += 1;
     });
   }
 
@@ -290,12 +291,13 @@ fn prepare_headers(
     let mut insert_custom_cols_at_index = headers
       .iter()
       .position(|header| header == "missing")
-      .unwrap_or_else(|| headers.len().saturating_sub(1));
+      .unwrap_or_else(|| headers.len().saturating_sub(1))
+      .clamp(0, headers.len());
 
     // For each ref node insert a set of columns
     for ref_node in &ref_nodes.search {
       for col in &rel_mut_cols(ref_node) {
-        headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
+        insert_after(&mut headers, insert_custom_cols_at_index, col.to_owned());
         insert_custom_cols_at_index += 1;
       }
     }
@@ -306,7 +308,8 @@ fn prepare_headers(
     let mut insert_custom_cols_at_index = headers
       .iter()
       .position(|header| header == "missing")
-      .unwrap_or_else(|| headers.len().saturating_sub(1));
+      .unwrap_or_else(|| headers.len().saturating_sub(1))
+      .clamp(0, headers.len());
 
     let builtin_attrs = vec![o!("clade")];
     let attrs = chain!(&builtin_attrs, custom_node_attr_keys);
@@ -314,7 +317,7 @@ fn prepare_headers(
     // For each attribute insert a set of columns
     for attr in attrs {
       for col in &clade_founder_cols(attr) {
-        headers.insert(insert_custom_cols_at_index + 1, col.to_owned());
+        insert_after(&mut headers, insert_custom_cols_at_index, col.to_owned());
         insert_custom_cols_at_index += 1;
       }
     }
@@ -343,6 +346,14 @@ fn rel_mut_cols(desc: &AuspiceRefNodeSearchDesc) -> [String; 5] {
     format!("relativeMutations['{name}'].aaSubstitutions"),
     format!("relativeMutations['{name}'].aaDeletions"),
   ]
+}
+
+fn insert_after<T>(v: &mut Vec<T>, index: usize, val: T) {
+  if index > v.len() {
+    v.push(val);
+  } else {
+    v.insert(index + 1, val);
+  }
 }
 
 /// Writes content of nextclade.csv and nextclade.tsv files (but not necessarily files themselves - writer is generic)
