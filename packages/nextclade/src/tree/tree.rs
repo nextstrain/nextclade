@@ -346,6 +346,8 @@ pub struct CladeNodeAttrKeyDesc {
   pub description: Option<String>,
   #[serde(default)]
   pub hide_in_web: bool,
+  #[serde(default)]
+  pub skip_as_reference: bool,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }

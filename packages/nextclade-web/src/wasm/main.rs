@@ -177,7 +177,7 @@ impl NextcladeWasm {
       json_parse(errors_json_str).wrap_err("When serializing results into CSV: When parsing errors JSON internally"),
     )?;
 
-    let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
+    let clade_node_attr_descs: Vec<CladeNodeAttrKeyDesc> = jserr(
       json_parse(clade_node_attrs_json_str)
         .wrap_err("When serializing results into CSV: When parsing clade node attrs JSON internally"),
     )?;
@@ -197,7 +197,6 @@ impl NextcladeWasm {
         .wrap_err("When serializing results into CSV: When parsing AA motifs keys JSON internally"),
     )?;
 
-    let clade_node_attr_keys = clade_node_attrs.into_iter().map(|attr| attr.name).collect_vec();
     let phenotype_attr_keys = phenotype_attrs.into_iter().map(|attr| attr.name).collect_vec();
     let aa_motifs_keys = aa_motifs_descs.into_iter().map(|desc| desc.name).collect_vec();
 
@@ -209,7 +208,7 @@ impl NextcladeWasm {
     jserr(results_to_csv_string(
       &outputs,
       &errors,
-      &clade_node_attr_keys,
+      &clade_node_attr_descs,
       &phenotype_attr_keys,
       &ref_nodes,
       &aa_motifs_keys,

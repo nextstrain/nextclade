@@ -51,16 +51,18 @@ export function RefNodeSelector() {
       description: search.description,
     }))
 
-    const cladeNodeAttrFounders = cladeNodeAttrDescs.map((desc) => {
-      const searchId = getCladeNodeAttrFounderSearchId(desc.name)
-      return {
-        value: searchId,
-        label: t("'{{ attr }}' founder", { attr: desc.displayName }),
-        description: t("Earliest ancestor node having the same value of attribute '{{ attr }}'", {
-          attr: desc.displayName,
-        }),
-      }
-    })
+    const cladeNodeAttrFounders = cladeNodeAttrDescs
+      .filter((desc) => !desc.skipAsReference)
+      .map((desc) => {
+        const searchId = getCladeNodeAttrFounderSearchId(desc.name)
+        return {
+          value: searchId,
+          label: t("'{{ attr }}' founder", { attr: desc.displayName }),
+          description: t("Earliest ancestor node having the same value of attribute '{{ attr }}'", {
+            attr: desc.displayName,
+          }),
+        }
+      })
 
     const options = [...builtinRefs, ...cladeNodeAttrFounders, ...refs]
     const currentOption = options.find((o) => o.value === currentRefNodeName)

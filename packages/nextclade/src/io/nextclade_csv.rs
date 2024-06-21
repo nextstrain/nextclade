@@ -14,7 +14,7 @@ use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::tree::tree::{AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc};
+use crate::tree::tree::{AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, PeptideWarning,
   PhenotypeValue,
@@ -239,7 +239,7 @@ lazy_static! {
 }
 
 fn prepare_headers(
-  custom_node_attr_keys: &[String],
+  custom_node_attr_descs: &[CladeNodeAttrKeyDesc],
   phenotype_attr_keys: &[String],
   ref_nodes: &AuspiceRefNodesDesc,
   aa_motifs_keys: &[String],
@@ -270,8 +270,8 @@ fn prepare_headers(
       .unwrap_or_else(|| headers.len().saturating_sub(1))
       .clamp(0, headers.len());
 
-    custom_node_attr_keys.iter().rev().for_each(|key| {
-      insert_after(&mut headers, insert_custom_cols_at_index, key.clone());
+    custom_node_attr_descs.iter().rev().for_each(|desc| {
+      insert_after(&mut headers, insert_custom_cols_at_index, desc.name.clone());
       insert_custom_cols_at_index += 1;
     });
 
@@ -312,10 +312,17 @@ fn prepare_headers(
       .clamp(0, headers.len());
 
     let builtin_attrs = vec![o!("clade")];
-    let attrs = chain!(&builtin_attrs, custom_node_attr_keys);
+    let attrs = chain!(
+      builtin_attrs.iter(),
+      custom_node_attr_descs
+        .iter()
+        .filter(|desc| !desc.skip_as_reference)
+        .map(|desc| &desc.name)
+    )
+    .collect_vec();
 
     // For each attribute insert a set of columns
-    for attr in attrs {
+    for attr in &attrs {
       for col in &clade_founder_cols(attr) {
         insert_after(&mut headers, insert_custom_cols_at_index, col.to_owned());
         insert_custom_cols_at_index += 1;
@@ -820,14 +827,14 @@ impl NextcladeResultsCsvFileWriter {
   pub fn new(
     filepath: impl AsRef<Path>,
     delimiter: u8,
-    clade_attr_keys: &[String],
+    clade_node_attr_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[String],
     ref_nodes: &AuspiceRefNodesDesc,
     aa_motifs_keys: &[String],
     column_config: &CsvColumnConfig,
   ) -> Result<Self, Report> {
     let headers: Vec<String> = prepare_headers(
-      clade_attr_keys,
+      clade_node_attr_descs,
       phenotype_attr_keys,
       ref_nodes,
       aa_motifs_keys,
@@ -1022,7 +1029,7 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
 pub fn results_to_csv_string(
   outputs: &[NextcladeOutputs],
   errors: &[NextcladeErrorOutputs],
-  clade_attr_keys: &[String],
+  clade_node_attr_descs: &[CladeNodeAttrKeyDesc],
   phenotype_attr_keys: &[String],
   ref_nodes: &AuspiceRefNodesDesc,
   aa_motifs_keys: &[String],
@@ -1033,7 +1040,7 @@ pub fn results_to_csv_string(
 
   {
     let headers: Vec<String> = prepare_headers(
-      clade_attr_keys,
+      clade_node_attr_descs,
       phenotype_attr_keys,
       ref_nodes,
       aa_motifs_keys,

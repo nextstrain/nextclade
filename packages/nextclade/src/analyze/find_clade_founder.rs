@@ -6,7 +6,7 @@ use crate::analyze::find_private_nuc_mutations::{
 };
 use crate::graph::node::GraphNodeKey;
 use crate::o;
-use crate::tree::tree::AuspiceGraph;
+use crate::tree::tree::{AuspiceGraph, CladeNodeAttrKeyDesc};
 use crate::tree::tree_find_clade_founder::{graph_find_clade_founder, graph_find_node_attr_founder};
 use eyre::Report;
 use schemars::JsonSchema;
@@ -53,22 +53,30 @@ pub fn find_clade_founder(
 pub fn find_clade_node_attrs_founders(
   graph: &AuspiceGraph,
   nearest_node_id: GraphNodeKey,
-  clade_node_attrs: &BTreeMap<String, String>,
+  clade_node_attr_descs: &[CladeNodeAttrKeyDesc],
   nuc_params: &FindPrivateNucMutationsParams,
   aa_params: &FindPrivateAaMutationsParams,
 ) -> Result<BTreeMap<String, CladeNodeAttrFounderInfo>, Report> {
-  clade_node_attrs
+  let node = graph.get_node(nearest_node_id)?.payload();
+
+  clade_node_attr_descs
     .iter()
+    .filter(|desc| !desc.skip_as_reference)
+    .filter_map(|desc| {
+      let key = desc.name.clone();
+      let value = node.get_clade_node_attr(&key);
+      value.map(|value| (key, value.to_owned()))
+    })
     .map(|(key, value)| {
-      let node_key = graph_find_node_attr_founder(graph, nearest_node_id, key, value)?;
+      let node_key = graph_find_node_attr_founder(graph, nearest_node_id, &key, &value)?;
       let node = graph.get_node(node_key)?.payload();
       let nuc_mutations = find_private_nuc_mutations(node, nuc_params);
       let aa_mutations = find_private_aa_mutations(node, aa_params)?;
       Ok((
         key.clone(),
         CladeNodeAttrFounderInfo {
-          key: key.to_owned(),
-          value: value.to_owned(),
+          key,
+          value,
           node_key,
           node_name: node.name.clone(),
           nuc_mutations,

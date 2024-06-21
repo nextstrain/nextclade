@@ -35,7 +35,7 @@ pub struct NextcladeOrderedWriter {
 impl NextcladeOrderedWriter {
   pub fn new(
     gene_map: &GeneMap,
-    clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
+    clade_node_attr_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
     aa_motifs_keys: &[String],
@@ -50,20 +50,10 @@ impl NextcladeOrderedWriter {
       .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
     let output_json_writer = output_params.output_json.map_ref_fallible(|output_json| {
-      ResultsJsonWriter::new(
-        output_json,
-        clade_node_attr_key_descs,
-        phenotype_attr_key_desc,
-        ref_nodes,
-      )
+      ResultsJsonWriter::new(output_json, clade_node_attr_descs, phenotype_attr_key_desc, ref_nodes)
     })?;
 
     let output_ndjson_writer = output_params.output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;
-
-    let clade_node_attr_keys = clade_node_attr_key_descs
-      .iter()
-      .map(|desc| desc.name.clone())
-      .collect_vec();
 
     let phenotype_attr_keys = phenotype_attr_key_desc
       .iter()
@@ -74,7 +64,7 @@ impl NextcladeOrderedWriter {
       NextcladeResultsCsvFileWriter::new(
         output_csv,
         b';',
-        &clade_node_attr_keys,
+        clade_node_attr_descs,
         &phenotype_attr_keys,
         ref_nodes,
         aa_motifs_keys,
@@ -86,7 +76,7 @@ impl NextcladeOrderedWriter {
       NextcladeResultsCsvFileWriter::new(
         output_tsv,
         b'\t',
-        &clade_node_attr_keys,
+        clade_node_attr_descs,
         &phenotype_attr_keys,
         ref_nodes,
         aa_motifs_keys,
