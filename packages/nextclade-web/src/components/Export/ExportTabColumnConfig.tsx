@@ -54,12 +54,16 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
         if (state === CheckboxState.Checked) {
           const newState = enableAllCategories(config, true)
           newState.includeDynamic = true
+          newState.includeCladeFounderMuts = true
+          newState.includeRelMuts = true
           return newState
         }
         if (state === CheckboxState.Unchecked) {
           const newState = enableAllCategories(config, false)
           newState.individual = []
           newState.includeDynamic = false
+          newState.includeCladeFounderMuts = false
+          newState.includeRelMuts = false
           return newState
         }
         return config
@@ -101,8 +105,8 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
       <FormGroup inline check>
         <Label check>
           <Input type="checkbox" checked={cladeFounderMutsColumnState} onChange={onCladeFounderMutsColumnStateChange} />
-          <TextWithHelp title={t('Mutations relative to nodes of interest (if defined in the dataset tree)')}>
-            {t('Mutations relative to nodes of interest (relative mutations)')}
+          <TextWithHelp title={t('Mutations relative to the founder of the corresponding clade')}>
+            {t('Mutations relative to clade founder')}
           </TextWithHelp>
         </Label>
       </FormGroup>
