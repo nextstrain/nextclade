@@ -15,7 +15,7 @@ use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
-use crate::tree::tree::AuspiceGraphNodePayload;
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
 use crate::utils::collections::concat_to_vec;
 use eyre::Report;
 use itertools::{chain, Itertools};
@@ -37,21 +37,39 @@ pub struct PrivateAaMutations {
   pub aa_changes_groups: Vec<AaChangesGroup>,
 }
 
+pub struct FindPrivateAaMutationsParams<'a> {
+  pub graph: &'a AuspiceGraph,
+  pub aa_substitutions: &'a [AaSub],
+  pub aa_deletions: &'a [AaDel],
+  pub aa_unknowns: &'a [CdsAaRange],
+  pub aa_unsequenced_ranges: &'a BTreeMap<String, Vec<AaRefRange>>,
+  pub ref_translation: &'a Translation,
+  pub qry_translation: &'a Translation,
+  pub gene_map: &'a GeneMap,
+  pub aln: &'a NucAlignment<'a, 'a, 'a>,
+  pub params: &'a AaChangesParams,
+}
+
 /// Finds private aminoacid mutations.
 ///
 /// For a simpler version with explanation see the sister function for nucleotide mutations
 pub fn find_private_aa_mutations(
   node: &AuspiceGraphNodePayload,
-  aa_substitutions: &[AaSub],
-  aa_deletions: &[AaDel],
-  aa_unknowns: &[CdsAaRange],
-  aa_unsequenced_ranges: &BTreeMap<String, Vec<AaRefRange>>,
-  ref_translation: &Translation,
-  qry_translation: &Translation,
-  gene_map: &GeneMap,
-  aln: &NucAlignment,
-  params: &AaChangesParams,
+  params: &FindPrivateAaMutationsParams,
 ) -> Result<BTreeMap<String, PrivateAaMutations>, Report> {
+  let FindPrivateAaMutationsParams {
+    aa_substitutions,
+    aa_deletions,
+    aa_unknowns,
+    aa_unsequenced_ranges,
+    ref_translation,
+    qry_translation,
+    gene_map,
+    aln,
+    params,
+    ..
+  } = params;
+
   gene_map
     .iter_cdses()
     .filter_map(|cds| {

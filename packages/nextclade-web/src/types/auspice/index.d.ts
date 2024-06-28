@@ -203,7 +203,8 @@ declare module 'auspice' {
     name: string
     displayName: string
     description: string
-    hideInWeb: boolean
+    hideInWeb?: boolean
+    skipAsReference?: boolean
   }
 
   export declare interface AuspiceMetadata {

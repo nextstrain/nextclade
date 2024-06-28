@@ -1,3 +1,63 @@
+## Nextclade 3.7.4
+
+### Nextclade Web
+
+### Upgrade Auspice to 2.55.0, add polyfills
+
+This definitively resolves crash due to missing JavaScript polyfills, which occurred in Nextclade Web 3.7.2
+
+## Nextclade 3.7.3
+
+### Nextclade Web
+
+### Fix crash on tree page in Nextclade Web
+
+Temporarily downgrade Auspice from 2.55.0 to 2.54.3 to prevent the tree page in Nextclade Web from crashing. The definitive fix will follow.
+
+## Nextclade 3.7.2
+
+### General
+
+### [fix] Avoid duplicate node names in the output Auspice JSON tree
+
+When multiple query samples were to be placed onto the same node on the reference tree, sometimes multiple auxiliary nodes could be created having the same name. Node names are expected to be unique for Auspice visualization to work correctly, so when visualizing the tree Auspice have been renaming these nodes and emitting warnings into browsers' dev console.
+
+In this version we pick unique names for the auxiliary nodes during placement, so that there are no more warnings. Users may observe changes in some of the node names when inspecting output Auspice JSON file. However, this unlikely to affect most users' work.
+
+### Nextclade Web
+
+### [fix] Ensure dataset "updated at" date is displayed in Nextclade Web
+
+Since 3.7.0 Nextclade Web is not showing  "updated at" date for any datasets. This has been fixed.
+
+### [fix] Ensure frame shift and insertion markers in sequence views can also be toggled
+
+Most markers can be toggled on or off on the sequence views in "Settings" page in Nextclade Web, however frame shifts and insertions could not be. We added the missing toggles.
+
+### [fix] Correctly style details/summary component
+
+The text in details/summary ("collapse", "spoiler") component (e.g. the list of SC2 lineages) overflowing and producing garbled text in dataset readmes and changelogs. This has been fixed.
+
+### [dep] Update Auspice tree visualization to 2.55.0
+
+Auspice tree visualization package has been updated from 2.53.0 to 2.55.0. See Auspice changelog [here](https://github.com/nextstrain/auspice/releases).
+
+### Internal
+
+### [infra] Fix feature-policy and permission-policy HTTP headers
+
+The deprecated `feature-policy` header was removed entirely and `interest-cohort` entry was removed from the `permission-policy` header. Latest versions of web browsers should no longer emit warnings into console.
+
+### [test] Test Nextclade CLI on more Linx distros
+
+Additionally to the previous, we now test Nextclade CLI on the following newer Linux distributions:
+
+- Amazon Linux 2.0.2024
+- Debian 12
+- Fedora 41
+- Oracle Linux 8.9
+- Ubuntu 24.04
+
 ## Nextclade 3.7.1
 
 ### Warn if reference sequence does not match root sequence of the tree

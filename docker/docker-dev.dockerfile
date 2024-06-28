@@ -136,7 +136,7 @@ RUN set -euxo pipefail >/dev/null \
       --create-home \
       --shell /bin/bash \
       --gid ${GROUP} \
-      --groups "${SUDO_GROUP},${GROUP}" \
+      --groups ${SUDO_GROUP},${GROUP} \
       --uid ${UID} \
       ${USER}; \
   else \
@@ -145,7 +145,7 @@ RUN set -euxo pipefail >/dev/null \
       --move-home \
       --shell /bin/bash \
       --gid ${GROUP} \
-      --groups "${SUDO_GROUP},${GROUP}" \
+      --groups ${SUDO_GROUP},${GROUP} \
       --append \
       --uid ${UID} \
       --login "${USER}" \
@@ -315,6 +315,8 @@ ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=x86_64-linux-musl-gcc
 
 # Cross-compilation to WebAssembly
 FROM base as cross-wasm32-unknown-unknown
+
+USER 0
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 

@@ -124,22 +124,6 @@ body {
   cursor: pointer;
 }
 
-details {
-  height: auto;
-  max-height: 5rem;
-  transition: all 0.25s ease;
-}
-
-details[open] {
-  max-height: 99rem;
-  transition: all 0.25s ease;
-}
-
-details summary {
-  cursor: pointer;
-  font-weight: bold;
-}
-
 small {
   line-height: 100% !important;
 }

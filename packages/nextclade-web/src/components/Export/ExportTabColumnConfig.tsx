@@ -54,12 +54,16 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
         if (state === CheckboxState.Checked) {
           const newState = enableAllCategories(config, true)
           newState.includeDynamic = true
+          newState.includeCladeFounderMuts = true
+          newState.includeRelMuts = true
           return newState
         }
         if (state === CheckboxState.Unchecked) {
           const newState = enableAllCategories(config, false)
           newState.individual = []
           newState.includeDynamic = false
+          newState.includeCladeFounderMuts = false
+          newState.includeRelMuts = false
           return newState
         }
         return config
@@ -78,6 +82,36 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
       </FormGroup>
     ),
     [allState, onAllChange, t],
+  )
+
+  const cladeFounderMutsColumnState = useMemo(
+    () => csvColumnConfig?.includeCladeFounderMuts ?? false,
+    [csvColumnConfig?.includeCladeFounderMuts],
+  )
+
+  const onCladeFounderMutsColumnStateChange = useCallback(() => {
+    setCsvColumnConfig((config) =>
+      config
+        ? {
+            ...config,
+            includeCladeFounderMuts: !config.includeCladeFounderMuts,
+          }
+        : undefined,
+    )
+  }, [setCsvColumnConfig])
+
+  const cladeFounderMuts = useMemo(
+    () => (
+      <FormGroup inline check>
+        <Label check>
+          <Input type="checkbox" checked={cladeFounderMutsColumnState} onChange={onCladeFounderMutsColumnStateChange} />
+          <TextWithHelp title={t('Mutations relative to the founder of the corresponding clade')}>
+            {t('Mutations relative to clade founder')}
+          </TextWithHelp>
+        </Label>
+      </FormGroup>
+    ),
+    [cladeFounderMutsColumnState, onCladeFounderMutsColumnStateChange, t],
   )
 
   const relMutsColumnsState = useMemo(() => csvColumnConfig?.includeRelMuts ?? false, [csvColumnConfig?.includeRelMuts])
@@ -140,6 +174,7 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
         <Form>
           <CategoryCard header={all} />
           {categories}
+          <CategoryCard header={cladeFounderMuts} />
           <CategoryCard header={relMuts} />
           <CategoryCard header={dynamic} />
         </Form>
