@@ -1,5 +1,5 @@
 import { CladeNodeAttrDesc } from 'auspice'
-import type { AaMotifsDesc, AnalysisError, AnalysisResult, PhenotypeAttrDesc } from 'src/types'
+import type { AaMotifsDesc, AnalysisError, AnalysisResult, AuspiceRefNodesDesc, PhenotypeAttrDesc } from 'src/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 import { CsvColumnConfig } from 'src/types'
@@ -29,6 +29,7 @@ export class ExportWorker {
     errors: AnalysisError[],
     cladeNodeAttrsJson: CladeNodeAttrDesc[],
     phenotypeAttrsJson: PhenotypeAttrDesc[],
+    refNodes: AuspiceRefNodesDesc,
     nextcladeWebVersion: string,
   ): Promise<string> {
     return this.thread.serializeResultsJson(
@@ -36,6 +37,7 @@ export class ExportWorker {
       errors,
       cladeNodeAttrsJson,
       phenotypeAttrsJson,
+      refNodes,
       nextcladeWebVersion,
     )
   }
@@ -45,6 +47,7 @@ export class ExportWorker {
     errors: AnalysisError[],
     cladeNodeAttrs: CladeNodeAttrDesc[],
     phenotypeAttrs: PhenotypeAttrDesc[],
+    refNodes: AuspiceRefNodesDesc,
     aaMotifsDescs: AaMotifsDesc[],
     delimiter: string,
     csvColumnConfig: CsvColumnConfig,
@@ -54,6 +57,7 @@ export class ExportWorker {
       errors,
       cladeNodeAttrs,
       phenotypeAttrs,
+      refNodes,
       aaMotifsDescs,
       delimiter,
       csvColumnConfig,

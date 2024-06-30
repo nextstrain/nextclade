@@ -1,8 +1,9 @@
+import { isNil } from 'lodash'
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import type { CladeNodeAttrDesc } from 'auspice'
-
+import { getNucMutations } from 'src/helpers/relativeMuts'
 import { AaMotifsDesc, PhenotypeAttrDesc, QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
@@ -27,7 +28,7 @@ import {
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { analysisResultAtom } from 'src/state/results.state'
+import { analysisResultAtom, currentRefNodeNameAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
 
@@ -57,21 +58,25 @@ export function getQcRowColor(qcStatus: QcStatus) {
 export function TableRowColored({
   index,
   overallStatus,
+  muted,
   children,
   ...restProps
 }: {
   index: number
   overallStatus: QcStatus
+  muted?: boolean
   children?: ReactNode
 }) {
-  const backgroundColor = useMemo(() => {
+  const { backgroundColor, opacity } = useMemo(() => {
     const even = index % 2 === 0
     const baseRowColor = even ? '#ededed' : '#fcfcfc'
     const qcRowColor = getQcRowColor(overallStatus)
-    return mix(0.5, baseRowColor, qcRowColor)
-  }, [index, overallStatus])
+    const backgroundColor = mix(0.5, baseRowColor, qcRowColor)
+    const opacity = muted ? 0.5 : undefined
+    return { backgroundColor, opacity }
+  }, [index, muted, overallStatus])
   return (
-    <TableRow {...restProps} backgroundColor={backgroundColor}>
+    <TableRow {...restProps} backgroundColor={backgroundColor} opacity={opacity}>
       {children}
     </TableRow>
   )
@@ -91,6 +96,7 @@ export function ResultsTableRowResult({
   ...restProps
 }: ResultsTableRowResultProps) {
   const { seqName, result } = useRecoilValue(analysisResultAtom(seqIndex))
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
 
   const data = useMemo(() => {
     if (!result) {
@@ -109,8 +115,11 @@ export function ResultsTableRowResult({
 
   const { analysisResult, qc, warnings } = data
 
+  const nucMuts = getNucMutations(analysisResult, refNodeName)
+  const muted = isNil(nucMuts)
+
   return (
-    <TableRowColored {...restProps} index={rowIndex} overallStatus={qc.overallStatus}>
+    <TableRowColored {...restProps} index={rowIndex} overallStatus={qc.overallStatus} muted={muted}>
       <TableCellRowIndex basis={columnWidthsPx.rowIndex} grow={0} shrink={0}>
         <TableCellText>{rowIndex}</TableCellText>
       </TableCellRowIndex>

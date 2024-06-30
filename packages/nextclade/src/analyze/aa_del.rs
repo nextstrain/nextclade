@@ -1,7 +1,9 @@
-use crate::alphabet::aa::{Aa};
+use crate::alphabet::aa::{to_aa, Aa};
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
+use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
+use crate::coord::range::AaRefRange;
+use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -13,7 +15,9 @@ pub struct AaDel {
   pub ref_aa: Aa,
 }
 
-impl AbstractMutation<AaRefPosition, Aa> for AaDel {
+impl AbstractMutation<AaRefPosition, Aa> for AaDel {}
+
+impl CloneableMutation<AaRefPosition, Aa> for AaDel {
   fn clone_with(&self, params: MutParams<AaRefPosition, Aa>) -> Self {
     Self {
       cds_name: self.cds_name.clone(),
@@ -42,6 +46,14 @@ impl Pos<AaRefPosition> for AaDel {
 }
 
 impl AaDel {
+  pub fn from_raw(cds: impl AsRef<str>, pos: usize, ref_nuc: char) -> Result<Self, Report> {
+    Ok(Self {
+      cds_name: cds.as_ref().to_owned(),
+      pos: pos.into(),
+      ref_aa: to_aa(ref_nuc)?,
+    })
+  }
+
   /// Converts deletion to substitution to Gap
   #[inline]
   pub fn to_sub(&self) -> AaSub {
@@ -57,5 +69,40 @@ impl AaDel {
 impl Display for AaDel {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     self.to_sub().fmt(f)
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct AaDelRange {
+  pub range: AaRefRange,
+}
+
+impl AaDelRange {
+  pub fn new(begin: AaRefPosition, end: AaRefPosition) -> Self {
+    Self {
+      range: AaRefRange::new(begin, end),
+    }
+  }
+
+  pub fn from_usize(begin: usize, end: usize) -> Self {
+    Self {
+      range: AaRefRange::from_usize(begin, end),
+    }
+  }
+
+  #[inline]
+  pub fn len(&self) -> usize {
+    self.range.len()
+  }
+
+  #[inline]
+  pub fn is_empty(&self) -> bool {
+    self.range.is_empty()
+  }
+
+  #[inline]
+  pub const fn range(&self) -> &AaRefRange {
+    &self.range
   }
 }

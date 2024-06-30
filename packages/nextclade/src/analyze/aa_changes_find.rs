@@ -1,8 +1,6 @@
 use crate::analyze::aa_alignment::AaAlignment;
-use crate::analyze::aa_changes_find_for_cds::{aa_changes_find_for_cds, FindAaChangesOutput};
+use crate::analyze::aa_changes_find_for_cds::{aa_changes_find_for_cds, AaChangesParams, FindAaChangesOutput};
 use crate::analyze::nuc_alignment::NucAlignment;
-use crate::analyze::nuc_del::NucDelRange;
-use crate::analyze::nuc_sub::NucSub;
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use crate::utils::collections::extend_map_of_vecs;
@@ -17,14 +15,13 @@ pub fn aa_changes_find(
   ref_translation: &Translation,
   qry_translation: &Translation,
   gene_map: &GeneMap,
-  nuc_subs: &[NucSub],
-  nuc_dels: &[NucDelRange],
+  params: &AaChangesParams,
 ) -> Result<FindAaChangesOutput, Report> {
   let mut changes = qry_translation.iter_cdses().map(|(qry_name, qry_tr)| {
     let ref_tr = ref_translation.get_cds(qry_name)?;
     let cds = gene_map.get_cds(&qry_tr.name)?;
     let tr = AaAlignment::new(cds, ref_tr, qry_tr);
-    Ok(aa_changes_find_for_cds(aln, &tr, nuc_subs, nuc_dels))
+    Ok(aa_changes_find_for_cds(aln, &tr, params))
   })
   .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
   .into_iter()

@@ -1,6 +1,7 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub::AaSub;
+use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::{is_nuc_non_acgtn, is_nuc_sequenced};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelRange};
@@ -8,8 +9,9 @@ use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::virus_properties::{NucLabelMap, VirusProperties};
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
-use crate::tree::tree::AuspiceGraphNodePayload;
+use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
 use crate::utils::collections::concat_to_vec;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -42,6 +44,9 @@ pub struct PrivateNucMutations {
   /// All private deletion mutations
   pub private_deletions: Vec<NucDel>,
 
+  /// All private deletion mutations in form of ranges
+  pub private_deletion_ranges: Vec<NucDelRange>,
+
   /// A subset of `private_substitutions` which are reversions
   pub reversion_substitutions: Vec<NucSub>,
 
@@ -56,6 +61,17 @@ pub struct PrivateNucMutations {
   pub total_reversion_substitutions: usize,
   pub total_labeled_substitutions: usize,
   pub total_unlabeled_substitutions: usize,
+}
+
+pub struct FindPrivateNucMutationsParams<'a> {
+  pub graph: &'a AuspiceGraph,
+  pub substitutions: &'a [NucSub],
+  pub deletions: &'a [NucDelRange],
+  pub missing: &'a [NucRange],
+  pub alignment_range: &'a NucRefGlobalRange,
+  pub ref_seq: &'a [Nuc],
+  pub non_acgtns: &'a [NucRange],
+  pub virus_properties: &'a VirusProperties,
 }
 
 /// Finds private mutations.
@@ -80,14 +96,19 @@ pub struct PrivateNucMutations {
 /// analysis steps.
 pub fn find_private_nuc_mutations(
   node: &AuspiceGraphNodePayload,
-  substitutions: &[NucSub],
-  deletions: &[NucDelRange],
-  missing: &[NucRange],
-  alignment_range: &NucRefGlobalRange,
-  ref_seq: &[Nuc],
-  non_acgtns: &[NucRange],
-  virus_properties: &VirusProperties,
+  params: &FindPrivateNucMutationsParams,
 ) -> PrivateNucMutations {
+  let FindPrivateNucMutationsParams {
+    substitutions,
+    deletions,
+    missing,
+    alignment_range,
+    ref_seq,
+    non_acgtns,
+    virus_properties,
+    ..
+  } = params;
+
   let node_mut_map = &node.tmp.mutations;
 
   // Remember which positions we cover while iterating sequence mutations,
@@ -129,6 +150,11 @@ pub fn find_private_nuc_mutations(
   private_deletions.sort();
   private_deletions.dedup();
 
+  let private_deletion_ranges = group_adjacent(&private_deletions)
+    .into_iter()
+    .map(|r| NucDelRange::new(r.begin, r.end))
+    .collect_vec();
+
   let total_private_substitutions = private_substitutions.len();
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
@@ -140,6 +166,7 @@ pub fn find_private_nuc_mutations(
   PrivateNucMutations {
     private_substitutions,
     private_deletions,
+    private_deletion_ranges,
     reversion_substitutions,
     labeled_substitutions,
     unlabeled_substitutions,

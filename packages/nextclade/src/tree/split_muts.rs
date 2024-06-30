@@ -1,6 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::analyze::aa_sub::AaSub;
-use crate::analyze::abstract_mutation::{AbstractMutation, MutParams};
+use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams};
 use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::coord::position::PositionLike;
 use crate::make_internal_error;
@@ -8,7 +8,6 @@ use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
 use std::collections::BTreeMap;
 use std::fmt::Display;
-
 
 #[derive(Debug, Clone)]
 pub struct SplitMutsResult {
@@ -179,7 +178,7 @@ fn union<P, L, M>(left: &[M], right: &[M]) -> Result<Vec<M>, Report>
 where
   P: PositionLike,
   L: Letter<L>,
-  M: AbstractMutation<P, L> + Clone + Ord + Display,
+  M: AbstractMutation<P, L> + CloneableMutation<P, L> + Clone + Ord + Display,
 {
   let mut union = Vec::with_capacity(left.len() + right.len());
 
@@ -262,7 +261,7 @@ fn difference<P, L, M>(left: &[M], right: &[M]) -> Result<Vec<M>, Report>
 where
   P: PositionLike,
   L: Letter<L>,
-  M: AbstractMutation<P, L> + Clone + Ord,
+  M: AbstractMutation<P, L> + CloneableMutation<P, L> + Clone + Ord,
 {
   let mut diff = Vec::with_capacity(left.len() + right.len());
 

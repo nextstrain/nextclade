@@ -2,7 +2,15 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { AaMotifsDesc, Cds, CsvColumnConfig, Gene, NextcladeResult, PhenotypeAttrDesc } from 'src/types'
+import type {
+  AaMotifsDesc,
+  AuspiceRefNodesDesc,
+  Cds,
+  CsvColumnConfig,
+  Gene,
+  NextcladeResult,
+  PhenotypeAttrDesc,
+} from 'src/types'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
@@ -27,6 +35,7 @@ import {
 } from 'src/state/resultFilters.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { persistAtom } from 'src/state/persist/localStorage'
+import { REF_NODE_ROOT } from 'src/constants'
 
 // Stores analysis result for a single sequence (defined by sequence name)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
@@ -306,6 +315,16 @@ export const phenotypeAttrDescsAtom = atom<PhenotypeAttrDesc[]>({
 export const phenotypeAttrKeysAtom = selector<string[]>({
   key: 'phenotypeAttrKeys',
   get: ({ get }) => get(phenotypeAttrDescsAtom).map((desc) => desc.name),
+})
+
+export const refNodesAtom = atom<AuspiceRefNodesDesc>({
+  key: 'refNodes',
+  default: { default: REF_NODE_ROOT, search: [] },
+})
+
+export const currentRefNodeNameAtom = atom<string>({
+  key: 'currentRefNode',
+  default: REF_NODE_ROOT,
 })
 
 export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({

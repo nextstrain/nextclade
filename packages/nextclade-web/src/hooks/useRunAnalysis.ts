@@ -5,6 +5,7 @@ import { isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
+import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
@@ -31,9 +32,11 @@ import {
   cdsesAtom,
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
+  currentRefNodeNameAtom,
   genesAtom,
   genomeSizeAtom,
   phenotypeAttrDescsAtom,
+  refNodesAtom,
   treeAtom,
   treeNwkAtom,
 } from 'src/state/results.state'
@@ -57,6 +60,8 @@ export function useRunAnalysis() {
         reset(clearAllFiltersAtom)
         reset(treeAtom)
         reset(viewedCdsAtom)
+        reset(refNodesAtom)
+        reset(currentRefNodeNameAtom)
         reset(cdsOrderPreferenceAtom)
 
         const numThreads = getPromise(numThreadsAtom)
@@ -85,6 +90,7 @@ export function useRunAnalysis() {
             cdsOrderPreference,
             cladeNodeAttrKeyDescs,
             phenotypeAttrDescs,
+            refNodes,
             aaMotifsDescs,
             csvColumnConfigDefault,
           }) {
@@ -107,6 +113,16 @@ export function useRunAnalysis() {
             //  another from JSON-schema generated types
             set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs as unknown as CladeNodeAttrDesc[])
             set(phenotypeAttrDescsAtom, phenotypeAttrDescs)
+            set(refNodesAtom, refNodes)
+
+            const searchNames = (refNodes.search ?? []).map((s) => s.name)
+            const defaultSearchName =
+              !isNil(refNodes.default) &&
+              [...searchNames, REF_NODE_ROOT, REF_NODE_PARENT, REF_NODE_CLADE_FOUNDER].includes(refNodes.default)
+                ? refNodes.default
+                : REF_NODE_ROOT
+            set(currentRefNodeNameAtom, defaultSearchName)
+
             set(aaMotifsDescsAtom, aaMotifsDescs)
             set(csvColumnConfigAtom, csvColumnConfigDefault)
           },

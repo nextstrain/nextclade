@@ -1,4 +1,4 @@
-import { isNil, isNumber, isFinite, isString, range, sumBy, isBoolean, get } from 'lodash'
+import { get, isBoolean, isFinite, isNil, isNumber, isString, range, sumBy } from 'lodash'
 import type {
   Aa,
   AnyType,
@@ -14,9 +14,8 @@ import type {
   NextcladeOutputs,
   NextcladeResult,
   Nuc,
+  NucDel,
   NucSub,
-  NucSubLabeled,
-  PrivateNucMutations,
   RangeFor_Position, // eslint-disable-line camelcase
 } from 'src/gen/_SchemaRoot'
 import { StrictOmit } from 'ts-essentials'
@@ -39,26 +38,6 @@ export type AnalysisResult = NextcladeOutputs
 export type AnalysisError = NextcladeErrorOutputs
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
-
-export interface PrivateMutationsInternal {
-  reversionSubstitutions: NucSub[]
-  labeledSubstitutions: NucSubLabeled[]
-  unlabeledSubstitutions: NucSub[]
-  totalMutations: number
-}
-
-export function convertPrivateMutations(privateNucMutations: PrivateNucMutations): PrivateMutationsInternal {
-  const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
-
-  const totalMutations = reversionSubstitutions.length + labeledSubstitutions.length + unlabeledSubstitutions.length
-
-  return {
-    reversionSubstitutions,
-    labeledSubstitutions,
-    unlabeledSubstitutions,
-    totalMutations,
-  }
-}
 
 export function cdsNucLength(cds: Cds) {
   return sumBy(cds.segments, cdsSegmentNucLength)
@@ -163,4 +142,8 @@ export function attrNumberMaybe(attributes: Record<string, AnyType> | undefined,
 
 export function attrBoolMaybe(attributes: Record<string, AnyType> | undefined, name: string): boolean | undefined {
   return anyAsBoolMaybe(get(attributes, name))
+}
+
+export function toSub(del: NucDel): NucSub {
+  return { ...del, qryNuc: '-' }
 }

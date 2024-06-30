@@ -131,6 +131,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         clade_node_attr_key_descs,
         phenotype_attr_descs,
         aa_motif_keys,
+        ref_nodes,
         ..
       } = nextclade.get_initial_data();
 
@@ -138,6 +139,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
         &nextclade.gene_map,
         clade_node_attr_key_descs,
         phenotype_attr_descs,
+        ref_nodes,
         aa_motif_keys,
         &csv_column_config,
         &run_args.outputs,

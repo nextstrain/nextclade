@@ -1,4 +1,5 @@
 import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
+import { SequenceViewColumnHeader } from 'src/components/SequenceView/SequenceViewColumnHeader'
 
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
@@ -52,8 +53,6 @@ import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
 import HelpTipsColumnFrameShifts from './HelpTips/HelpTipsColumnFrameShifts.mdx'
 import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
-import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
-import { SequenceSelector } from '../SequenceView/SequenceSelector'
 
 const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
 
@@ -391,12 +390,7 @@ export function ResultsTable() {
         </TableHeaderCell>
 
         <TableHeaderCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
-          <TableHeaderCellContent>
-            <SequenceSelector />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-seq-view" tooltipWidth="600px">
-            <HelpTipsColumnSeqView />
-          </ButtonHelpStyled>
+          <SequenceViewColumnHeader />
         </TableHeaderCell>
       </TableHeaderRow>
 
