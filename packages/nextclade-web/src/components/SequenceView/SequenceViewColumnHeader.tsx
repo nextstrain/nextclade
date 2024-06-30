@@ -1,4 +1,6 @@
 import React from 'react'
+import { SelectGeneHelp } from 'src/components/Help/SelectGeneHelp'
+import { SelectRefNodeHelp } from 'src/components/Help/SelectRefNodeHelp'
 import HelpTipsColumnSeqView from 'src/components/Results/HelpTips/HelpTipsColumnSeqView.mdx'
 import { RefNodeSelector } from 'src/components/Results/RefNodeSelector'
 import { ButtonHelpStyled } from 'src/components/Results/ResultsTableStyle'
@@ -19,11 +21,21 @@ export function SequenceViewColumnHeader() {
       <FlexLarge>
         <FlexOuter>
           <DropdownWrapper className="ml-auto">
-            <span className="pb-1 px-1">{t('Genetic feature')}</span>
+            <span className="pb-1 px-1 d-flex">
+              <span className="my-auto">{t('Genetic feature')}</span>
+              <span className="my-auto">
+                <SelectGeneHelp />
+              </span>
+            </span>
             <SequenceSelector />
           </DropdownWrapper>
           <DropdownWrapper className="mr-auto">
-            <span className="pb-1 px-1">{t('Relative to')}</span>
+            <span className="pb-1 px-1 d-flex">
+              <span className="my-auto">{t('Relative to')}</span>
+              <span className="my-auto">
+                <SelectRefNodeHelp />
+              </span>
+            </span>
             <RefNodeSelector />
           </DropdownWrapper>
         </FlexOuter>

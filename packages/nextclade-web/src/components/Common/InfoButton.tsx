@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react'
-import { Button as ButtonBase, CardBody } from 'reactstrap'
+import { Button as ButtonBase, ButtonProps, CardBody } from 'reactstrap'
 import styled, { useTheme } from 'styled-components'
 import { FaInfo as InfoIcon } from 'react-icons/fa6'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -14,11 +14,11 @@ import {
   autoPlacement,
 } from '@floating-ui/react'
 
-export interface InfoButtonProps {
+export interface InfoButtonProps extends Omit<ButtonProps, 'size'> {
   size?: number
 }
 
-export function InfoButton({ size = 18, children }: PropsWithChildren<InfoButtonProps>) {
+export function InfoButton({ size = 18, children, ...restProps }: PropsWithChildren<InfoButtonProps>) {
   const { t } = useTranslationSafe()
   const theme = useTheme()
 
@@ -41,6 +41,7 @@ export function InfoButton({ size = 18, children }: PropsWithChildren<InfoButton
         title={t('Click to get help information')}
         $size={size}
         {...getReferenceProps({ onClick: toggle })}
+        {...restProps}
       >
         <Icon color={theme.primary} size={size * 0.66} />
       </Button>
@@ -73,7 +74,7 @@ const Card = styled.div`
 `
 
 const Button = styled.button<{ $size?: number }>`
-  display: flex;
+  display: inline-flex;
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
   border-radius: ${(props) => props.$size}px;
