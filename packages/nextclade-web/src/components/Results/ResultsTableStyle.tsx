@@ -5,9 +5,9 @@ import { ButtonHelp } from 'src/components/Results/ButtonHelp'
 
 export const ROW_HEIGHT = 30
 
-export const HEADER_ROW_HEIGHT = 90
+export const HEADER_ROW_HEIGHT = 75
 
-export const HEADER_ROW_CONTENT_HEIGHT = 65
+export const HEADER_ROW_CONTENT_HEIGHT = 60
 
 export const DYNAMIC_CLADE_COLUMN_WIDTH = 85
 export const DYNAMIC_PHENOTYPE_COLUMN_WIDTH = 65
@@ -68,11 +68,10 @@ export const TableCellText = styled.p`
   margin: auto;
 `
 
-export const TableRow = styled.div<{ backgroundColor?: string; opacity?: number }>`
+export const TableRow = styled.div<{ backgroundColor?: string }>`
   display: flex;
   align-items: stretch;
   background-color: ${(props) => props.backgroundColor};
-  opacity: ${(props) => props.opacity};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
 `
 

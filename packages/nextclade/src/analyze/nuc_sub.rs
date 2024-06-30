@@ -1,6 +1,6 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::{from_nuc, Nuc};
-use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
+use crate::analyze::abstract_mutation::{AbstractMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_del::NucDel;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::gene::genotype::Genotype;
@@ -21,9 +21,7 @@ pub struct NucSub {
   pub qry_nuc: Nuc,
 }
 
-impl AbstractMutation<NucRefGlobalPosition, Nuc> for NucSub {}
-
-impl CloneableMutation<NucRefGlobalPosition, Nuc> for NucSub {
+impl AbstractMutation<NucRefGlobalPosition, Nuc> for NucSub {
   fn clone_with(&self, params: MutParams<NucRefGlobalPosition, Nuc>) -> Self {
     Self {
       pos: params.pos,

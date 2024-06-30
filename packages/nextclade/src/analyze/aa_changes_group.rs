@@ -1,5 +1,5 @@
 use crate::analyze::aa_change_with_context::AaChangeWithContext;
-use crate::analyze::nuc_del::{NucDel, NucDelRange};
+use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::range::AaRefRange;
 use itertools::{Itertools, MinMaxResult};
@@ -12,8 +12,7 @@ pub struct AaChangesGroup {
   pub range: AaRefRange,
   pub changes: Vec<AaChangeWithContext>,
   pub nuc_subs: Vec<NucSub>,
-  pub nuc_dels: Vec<NucDel>,
-  pub nuc_del_ranges: Vec<NucDelRange>,
+  pub nuc_dels: Vec<NucDelRange>,
 }
 
 impl AaChangesGroup {
@@ -28,7 +27,6 @@ impl AaChangesGroup {
       changes,
       nuc_subs: vec![],
       nuc_dels: vec![],
-      nuc_del_ranges: vec![],
     }
   }
 

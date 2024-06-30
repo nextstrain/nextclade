@@ -4,11 +4,8 @@ use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::AaSub;
 use crate::analyze::find_aa_motifs_changes::{AaMotifsChangesMap, AaMotifsMap};
-use crate::analyze::find_clade_founder::CladeNodeAttrFounderInfo;
 use crate::analyze::find_private_aa_mutations::PrivateAaMutations;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::find_relative_aa_mutations::RelativeAaMutations;
-use crate::analyze::find_relative_nuc_mutations::RelativeNucMutations;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
@@ -18,8 +15,6 @@ use crate::graph::node::GraphNodeKey;
 use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::tree::tree::AuspiceRefNodesDesc;
-use crate::tree::tree_find_ancestors_of_interest::AncestralSearchResult;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -44,7 +39,6 @@ pub struct PhenotypeValue {
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
-  pub ref_name: String,
   pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
   pub deletions: Vec<NucDelRange>,
@@ -80,12 +74,6 @@ pub struct NextcladeOutputs {
   pub clade: Option<String>,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
-  pub clade_founder_info: Option<CladeNodeAttrFounderInfo>,
-  pub clade_node_attr_founder_info: BTreeMap<String, CladeNodeAttrFounderInfo>,
-  pub ref_nodes: AuspiceRefNodesDesc,
-  pub ref_node_search_results: Vec<AncestralSearchResult>,
-  pub relative_nuc_mutations: Vec<RelativeNucMutations>,
-  pub relative_aa_mutations: Vec<RelativeAaMutations>,
   pub warnings: Vec<PeptideWarning>,
   pub missing_cdses: Vec<String>,
   pub divergence: f64,
@@ -93,7 +81,6 @@ pub struct NextcladeOutputs {
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: GraphNodeKey,
-  pub nearest_node_name: String,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub nearest_nodes: Option<Vec<String>>,
   pub is_reverse_complement: bool,

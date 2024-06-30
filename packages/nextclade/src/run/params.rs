@@ -1,11 +1,13 @@
 use crate::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional};
-use crate::analyze::aa_changes_find_for_cds::{AaChangesParams, AaChangesParamsOptional};
 use crate::analyze::virus_properties::VirusProperties;
 use crate::run::params_general::{NextcladeGeneralParams, NextcladeGeneralParamsOptional};
 use crate::tree::params::{TreeBuilderParams, TreeBuilderParamsOptional};
+
 use clap::Parser;
 use eyre::Report;
+
 use serde::{Deserialize, Serialize};
+
 
 #[derive(Parser, Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -18,9 +20,6 @@ pub struct NextcladeInputParamsOptional {
 
   #[clap(flatten, next_help_heading = "Alignment parameters")]
   pub alignment: Option<AlignPairwiseParamsOptional>,
-
-  #[clap(flatten, next_help_heading = "Amino acid related parameters")]
-  pub aa_changes: Option<AaChangesParamsOptional>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
@@ -29,7 +28,6 @@ pub struct NextcladeInputParams {
   pub general: NextcladeGeneralParams,
   pub tree_builder: TreeBuilderParams,
   pub alignment: AlignPairwiseParams,
-  pub aa_changes: AaChangesParams,
 }
 
 impl NextcladeInputParams {
@@ -82,25 +80,10 @@ impl NextcladeInputParams {
       tree_builder_params
     };
 
-    let aa_changes = {
-      // Start with defaults
-      let mut aa_changes_params = AaChangesParams::default();
-      // Merge params coming from virus_properties
-      if let Some(aa_changes_params_from_file) = &virus_properties.aa_changes_params {
-        aa_changes_params.merge_opt(aa_changes_params_from_file.clone());
-      }
-      // Merge incoming params
-      if let Some(aa_changes_params_incoming) = &params.aa_changes {
-        aa_changes_params.merge_opt(aa_changes_params_incoming.clone());
-      }
-      aa_changes_params
-    };
-
     Ok(Self {
       general,
       tree_builder,
       alignment,
-      aa_changes,
     })
   }
 }

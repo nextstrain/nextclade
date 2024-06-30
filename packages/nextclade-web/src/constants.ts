@@ -1,4 +1,5 @@
-import type { Aminoacid, Nucleotide } from 'src/types'
+import type { Nucleotide } from 'src/types'
+import { Aminoacid } from 'src/types'
 
 export const PROJECT_NAME = 'Nextclade' as const
 export const PROJECT_DESCRIPTION =
@@ -19,10 +20,6 @@ export const MS_TILE_COLOR = '#2b5797' as const
 export const UNKNOWN_VALUE = `Unknown ` // HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
 export const BASE_MIN_WIDTH_PX = 4 as const
 export const AA_MIN_WIDTH_PX = 4 as const
-
-export const REF_NODE_ROOT = '__root__' as const
-export const REF_NODE_PARENT = '__parent__' as const
-export const REF_NODE_CLADE_FOUNDER = '__clade_founder__' as const
 
 export const URL_GITHUB = 'https://github.com/nextstrain/nextclade' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const

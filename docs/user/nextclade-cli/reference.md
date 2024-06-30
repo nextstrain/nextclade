@@ -186,9 +186,6 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 
 
-* `--aa-group-spacing <AA_GROUP_SPACING>`
-* `--aa-group-padding <AA_GROUP_PADDING>`
-* `--other <OTHER>`
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
 
 

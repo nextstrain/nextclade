@@ -45,7 +45,7 @@ function PeptideMarkerMutationGroupUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { name, range, changes: changesWithContext, nucSubs, nucDels, nucDelRanges } = group
+  const { name, range, changes: changesWithContext, nucSubs, nucDels } = group
   const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
 
   const contextTitle = useMemo(() => t('Context'), [t])
@@ -152,12 +152,12 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </tr>
                 ))}
 
-                {nucDelRanges.map((del) => {
+                {nucDels.map((del) => {
                   const rangeStr = formatRange(del.range)
                   return (
                     <tr key={rangeStr}>
                       <td>{t('Deletion')}</td>
-                      <td>{rangeStr}</td>
+                      <td>{}</td>
                     </tr>
                   )
                 })}

@@ -50,9 +50,7 @@ impl Translation {
       .iter()
       .find_map(|(_, gene)| gene.cdses.get(cds_name))
       .ok_or_else(|| {
-        make_internal_report!(
-          "Translation::get_cds():  When looking up a CDS translation: CDS '{cds_name}' is expected, but not found"
-        )
+        make_internal_report!("When looking up a CDS translation: CDS '{cds_name}' is expected, but not found")
       })
   }
 
@@ -117,7 +115,7 @@ impl GeneTranslation {
     let cds_name = cds_name.as_ref();
     self.cdses.get(cds_name).ok_or_else(|| {
       make_internal_report!(
-        "GeneTranslation::get_cds(): When looking up a CDS translation: CDS '{cds_name}' in gene '{}' is expected, but not found",
+        "When looking up a CDS translation: CDS '{cds_name}' in gene '{}' is expected, but not found",
         self.gene.name
       )
     })

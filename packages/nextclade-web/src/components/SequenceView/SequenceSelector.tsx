@@ -7,6 +7,7 @@ import type { FilterOptionOption } from 'react-select/dist/declarations/src/filt
 import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/Select'
 import type { Theme } from 'react-select/dist/declarations/src/types'
 import { Badge as BadgeBase } from 'reactstrap'
+import { ButtonFilter } from 'src/components/Results/ButtonFilter'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import styled from 'styled-components'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
@@ -89,23 +90,33 @@ export function SequenceSelector() {
   }, [])
 
   return (
-    <div>
-      <ReactSelect
-        name="sequence-view-gene-dropdown"
-        options={options}
-        filterOption={filterOptions}
-        formatOptionLabel={OptionLabel}
-        isMulti={false}
-        value={option}
-        onChange={onChange}
-        menuPortalTarget={menuPortalTarget}
-        styles={reactSelectStyles}
-        theme={reactSelectTheme}
-        maxMenuHeight={400}
-      />
+    <div className="d-flex w-100">
+      <ButtonFilter />
+      <InnerWrapper>
+        <ReactSelect
+          name="sequence-view-gene-dropdown"
+          options={options}
+          filterOption={filterOptions}
+          formatOptionLabel={OptionLabel}
+          isMulti={false}
+          value={option}
+          onChange={onChange}
+          menuPortalTarget={menuPortalTarget}
+          styles={reactSelectStyles}
+          theme={reactSelectTheme}
+          maxMenuHeight={400}
+        />
+      </InnerWrapper>
     </div>
   )
 }
+
+const InnerWrapper = styled.div`
+  width: 100%;
+  min-width: 100px;
+  max-width: 300px;
+  margin: 0.5rem auto;
+`
 
 function OptionLabel(option: Option, meta: FormatOptionLabelMeta<Option>) {
   if (option.gene && option.cds) {

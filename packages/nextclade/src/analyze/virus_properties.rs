@@ -1,7 +1,7 @@
 use crate::align::params::AlignPairwiseParamsOptional;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
-use crate::analyze::aa_changes_find_for_cds::AaChangesParamsOptional;
+
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
@@ -42,7 +42,6 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "DatasetFiles::is_default")]
   pub files: DatasetFiles,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub default_cds: Option<String>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -51,20 +50,13 @@ pub struct VirusProperties {
   #[serde(default)]
   pub mut_labels: LabelledMutationsConfig,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub qc: Option<QcConfig>,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub general_params: Option<NextcladeGeneralParamsOptional>,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
 
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub tree_builder_params: Option<TreeBuilderParamsOptional>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub aa_changes_params: Option<AaChangesParamsOptional>,
 
   pub phenotype_data: Option<Vec<PhenotypeData>>,
 

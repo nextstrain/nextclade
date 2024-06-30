@@ -39,6 +39,10 @@ where
   P: PositionLike,
   L: Letter<L>,
 {
+  /// Creates a copy of the mutation, overwriting some of the fields according to the provided parameters
+  #[must_use]
+  fn clone_with(&self, params: MutParams<P, L>) -> Self;
+
   #[must_use]
   fn is_mutated(&self) -> bool {
     self.qry_letter() != self.ref_letter()
@@ -61,16 +65,6 @@ where
 
   #[must_use]
   fn is_mutated_and_not_unknown(&self) -> bool {
-    self.is_mutated() && !self.is_unknown()
+    self.is_sub() || self.is_del()
   }
-}
-
-pub trait CloneableMutation<P, L>: Pos<P> + QryLetter<L> + RefLetter<L>
-where
-  P: PositionLike,
-  L: Letter<L>,
-{
-  /// Creates a copy of the mutation, overwriting some of the fields according to the provided parameters
-  #[must_use]
-  fn clone_with(&self, params: MutParams<P, L>) -> Self;
 }
