@@ -12,6 +12,36 @@ Nextclade also gathers and reports other useful statistics, such as the number o
 
 Similarly, aminoacid mutations and statistics are gathered from the aligned peptides obtained after [translation](./02-translation). This step only runs if a [genome annotation](../input-files/03-genome-annotation) is provided.
 
+### Private mutations
+
+Following the [tree placement](03-phylogenetic-placement.md), Nextclade identifies "private mutations" - the mutations between the query sequence and the sequence corresponding to the nearest neighbor (parent) on the tree.
+
+In the figure, the query sequence (dashed) is compared to all sequences (including internal nodes) of the reference tree to identify the nearest neighbor. The yellow and dark green mutations are private mutations, as they occur in addition to the 3 mutations of the attachment node.
+
+![Identification of private mutations](../assets/algo_private-muts.png)
+
+Many sequence quality problems are identifiable by the presence of private mutations. Sequences with unusually many private mutations are unlikely to be biological and are thus [flagged as bad](06-quality-control.md#private-mutations-p).
+
+Nextclade classifies private mutations further into 3 categories to be more sensitive to potential contamination, co-infection and recombination:
+
+1. Reversions: Private mutations that go back to the reference sequence, i.e. a mutation with respect to reference is present on the attachment node but not on the query sequence.
+2. Labeled mutations: Private mutations to a genotype that is known to be common in a clade.
+3. Unlabeled mutations: Private mutations that are neither reversions nor labeled.
+
+For an illustration of these 3 types, see the figure below.
+
+![Classification of private mutations](../assets/algo_private-muts-classification.png)
+
+Reversions are common artefacts in some bioinformatic pipelines when there is amplicon dropout.
+They are also a sign of contamination, co-infection or recombination. Labeled mutations also contain commonly when there's contamination, co-infection or recombination.
+
+Reversions and labeled mutations are weighted several times higher than unlabeled mutations due to their higher sensitivity and specificity for quality problems (and recombination).
+In February 2022, every reversion was counted 6 times (`weightReversionSubstitutions`) while every labeled mutation was counted 4 times (`weightLabeledSubstitutions`). Unlabeled mutations get weight 1 (`weightUnlabeledSubstitutions`).
+
+From the weighted sum, 8 (`typical`) is subtracted. The score is then a linear interpolation between 0 and 100 (and above), where 100 corresponds to 24 (`cutoff`).
+
+Private deletion ranges (including reversion) are currently counted as a single unlabeled substitution, but this could change in the future.
+
 ### Results
 
 The nucleotide mutations can be viewed in "Sequence view" column of the results table in [Nextclade Web](../nextclade-web). Switching "Sequence view" to a particular gene will show mutations in the corresponding peptide.
