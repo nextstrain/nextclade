@@ -1,4 +1,6 @@
 import React from 'react'
+import { HelpTipsColumnSeqViewGeneLegend } from 'src/components/Results/HelpTips/HelpTipsColumnSeqViewGeneLegend'
+import { HelpTipsColumnSeqViewNucLegend } from 'src/components/Results/HelpTips/HelpTipsColumnSeqViewNucLegend'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { InfoButton } from 'src/components/Common/InfoButton'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -8,22 +10,71 @@ export function SelectGeneHelp() {
 
   return (
     <InfoButton color="link">
-      <p>{t('Select genetic feature.')}</p>
-
-      <p>{t('This allows to...')}</p>
+      <h5>{t('Select a genetic feature.')}</h5>
 
       <p>
         {t(
-          'You can select one of the datasets manually or to use automatic dataset suggestion function. Automatic suggestion will attempt to guess the most appropriate dataset from your sequence data.',
+          'This allows to switch sequence views between nucleotide sequence and peptides (translated CDSes; only available if the dataset contains {{genome annotation}}).',
         )}
       </p>
 
+      <hr />
+
       <p>
+        {t(
+          'Each row of the table displays a schema of the corresponding sequence, highlighting the differences relative to the target selected in the "Relative to" dropdown.',
+        )}
+      </p>
+
+      <hr />
+
+      <h5>{t('Nucleotide Sequence mode')}</h5>
+
+      <p>
+        {t(
+          'In "Nucleotide Sequence" mode, the whole nucleotide sequence is shown. Line markers represent nucleotide mutations. They are colored by the resulting (query) nucleotide:',
+        )}
+      </p>
+
+      <HelpTipsColumnSeqViewNucLegend />
+
+      <p>
+        {t('Mouse hover on a mutation marker to show details of that mutation.')}
+        <br />
+        {t("Unsequenced regions at the 5' and 3' end are indicated as light gray areas on both ends.")}
+        <br />
+        {t('For a mapping between positions in the sequence and genes, see Genome Annotation view below the table.')}
+      </p>
+
+      <hr />
+
+      <h5>{t('Peptide mode')}</h5>
+
+      <p>
+        {t(
+          'When a CDS is selected, each row displays a schema of the corresponding translated peptide sequence by highlighting the differences compared to the reference sequence along the genome.',
+        )}
+        <br />
+        {t(
+          'Line markers on sequence views represent amino acid mutations colored by the resulting (query) amino acid:',
+        )}
+      </p>
+
+      <HelpTipsColumnSeqViewGeneLegend />
+
+      <p>
+        {t('Note: Sometimes mutations are so close to each other that they overlap.')}
+        <br />
+        {t('Note: Positions are 1-based.')}
+      </p>
+
+      <hr />
+
+      <p className="p-0 m-0 small">
         {t('Learn more in Nextclade {{documentation}}')}
         <LinkExternal href="https://docs.nextstrain.org/projects/nextclade/en/stable">
           {t('documentation')}
         </LinkExternal>
-        {t('.')}
       </p>
     </InfoButton>
   )

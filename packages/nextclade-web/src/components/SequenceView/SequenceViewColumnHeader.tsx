@@ -1,7 +1,6 @@
 import React from 'react'
 import { SelectGeneHelp } from 'src/components/Help/SelectGeneHelp'
 import { SelectRefNodeHelp } from 'src/components/Help/SelectRefNodeHelp'
-import HelpTipsColumnSeqView from 'src/components/Results/HelpTips/HelpTipsColumnSeqView.mdx'
 import { RefNodeSelector } from 'src/components/Results/RefNodeSelector'
 import { ButtonHelpStyled } from 'src/components/Results/ResultsTableStyle'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -40,12 +39,6 @@ export function SequenceViewColumnHeader() {
           </DropdownWrapper>
         </FlexOuter>
       </FlexLarge>
-
-      <FlexSmall className="mr-2">
-        <ButtonHelpStyledLeft identifier="btn-help-col-seq-view" tooltipWidth="600px">
-          <HelpTipsColumnSeqView />
-        </ButtonHelpStyledLeft>
-      </FlexSmall>
     </FlexOuter>
   )
 }

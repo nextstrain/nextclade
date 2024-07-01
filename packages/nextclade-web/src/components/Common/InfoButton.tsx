@@ -12,13 +12,14 @@ import {
   useRole,
   FloatingPortal,
   autoPlacement,
+  shift,
 } from '@floating-ui/react'
 
 export interface InfoButtonProps extends Omit<ButtonProps, 'size'> {
   size?: number
 }
 
-export function InfoButton({ size = 18, children, ...restProps }: PropsWithChildren<InfoButtonProps>) {
+export function InfoButton({ size = 20, children, ...restProps }: PropsWithChildren<InfoButtonProps>) {
   const { t } = useTranslationSafe()
   const theme = useTheme()
 
@@ -26,7 +27,7 @@ export function InfoButton({ size = 18, children, ...restProps }: PropsWithChild
   const { refs, context, floatingStyles } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
-    middleware: [autoPlacement()],
+    middleware: [shift({ padding: 5 }), autoPlacement()],
   })
   const dismiss = useDismiss(context)
   const focus = useFocus(context)
@@ -60,9 +61,6 @@ export function InfoButton({ size = 18, children, ...restProps }: PropsWithChild
 
 const Floating = styled.div`
   z-index: 1005;
-  width: 500px;
-  max-width: 80vw;
-  max-height: 80vh;
 `
 
 const Card = styled.div`
@@ -71,6 +69,9 @@ const Card = styled.div`
   border-radius: 5px;
   height: 100%;
   background-color: ${(props) => props.theme.bodyBg};
+  max-height: 80vh;
+  max-width: 80vw;
+  width: 500px;
 `
 
 const Button = styled.button<{ $size?: number }>`
