@@ -6,7 +6,7 @@ The annotation is required for codon-aware alignment, for translation of CDS (Co
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3%2Emd).
 
-Since version 3, Nextclade supports multi-fragment CDSs which enable the correct translation of complex features including programmed ribosomal slippage (e.g. ORF1ab in SARS-CoV-2), genes crossing the origin of a circular genome (e.g. Hepatitis B virus) and CDS that require splicing (e.g. HIV).
+Nextclade supports multi-fragment CDSs which enable the correct translation of complex features including programmed ribosomal slippage (e.g. ORF1ab in SARS-CoV-2), genes crossing the origin of a circular genome (e.g. Hepatitis B virus) and CDS that require splicing (e.g. HIV).
 
 Almost any syntactically correct [spec](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3%2Emd)-compliant GFF3 annotation (e.g. downloaded from Genbank) should work. In practice, because GFF3 format allows for great freedom of how to express features as well as how to interpret them, some processing may be required to make it work satisfactory in Nextclade.
 
