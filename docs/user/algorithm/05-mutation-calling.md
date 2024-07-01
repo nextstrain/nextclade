@@ -1,5 +1,9 @@
 # 5. Mutation calling
 
+Nextclade calls nucleotide and aminoacid mutations relative to multiple targets.
+
+### Mutations relative to reference sequence
+
 In order to detect nucleotide mutations, aligned nucleotide sequences are compared with the reference nucleotide sequence, one nucleotide at a time. Mismatches between the query and reference sequences are then noted and reported differently, depending on their nature:
 
 - Nucleotide substitutions: a change from one character to another. For example a change from `A` in the reference sequence to `G` in the query sequence. They are shown in sequence views in [Nextclade Web](../nextclade-web) as colored markers, where color signifies the resulting character (in query sequence).
