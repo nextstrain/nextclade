@@ -1,4 +1,4 @@
-# 5. Phylogenetic placement
+# 3. Phylogenetic placement
 
 After reference alignment and mutation calling, Nextclade places each query sequence on the reference phylogenetic tree.
 

@@ -1,4 +1,4 @@
-# 7. Quality Control (QC)
+# 6. Quality Control (QC)
 
 [Whole-genome sequencing](https://en.wikipedia.org/wiki/Whole_genome_sequencing) of viruses is a complex biotechnological process. Results can vary significantly in their quality, in particular, from scarce or degraded input material. Some parts of the sequence might be missing and the bioinformatic analysis pipelines that turn raw data into a consensus genome sometimes produce artefacts. Such artefacts typically manifest in spurious differences of the sequence from the reference.
 

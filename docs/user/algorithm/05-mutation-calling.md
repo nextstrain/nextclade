@@ -1,4 +1,4 @@
-# 3. Mutation calling
+# 5. Mutation calling
 
 In order to detect nucleotide mutations, aligned nucleotide sequences are compared with the reference nucleotide sequence, one nucleotide at a time. Mismatches between the query and reference sequences are then noted and reported differently, depending on their nature:
 

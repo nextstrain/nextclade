@@ -1,4 +1,4 @@
-# 4. Detection of PCR primer changes
+# 7. Detection of PCR primer changes
 
 [Polymerase chain reactions (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets called "primers" that are [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. High similarity between primers and the genome region they are supposed to bind to is required for PCR to work. Changes in the virus genome can interfere with this requirement. If Nextclade is provided with a table of PCR primers in the pathogen metadata file, it can analyze these regions in query sequences and report changes that may indicate reduced primer binding.
 

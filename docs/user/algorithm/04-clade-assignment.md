@@ -1,4 +1,4 @@
-# 6. Clade assignment
+# 4. Clade assignment
 
 To simplify discussion of co-circulating virus variants, viral diversity of is often broken down into [Clades](../terminology.html#clade) or lineages which are defined by specific combinations of signature mutations. Clades are groups of related sequences that share a common ancestor. For SARS-CoV-2, Nextclade can assign both broad clades defined by the Nextstrain team as well as more fine-grained lineages defined by the PANGO consortium.
 
