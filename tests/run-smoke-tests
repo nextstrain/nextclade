@@ -87,6 +87,8 @@ function run_with_ref_only() {
   sequences="${3}"
   out_dir="${RESULTS_DIR}/${name}/with_ref_only"
 
+  if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
+
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -102,6 +104,7 @@ function run_with_ref_and_annotation() {
   sequences="${3}"
   out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation"
 
+  if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
@@ -120,6 +123,7 @@ function run_with_ref_and_tree() {
   sequences="${3}"
   out_dir="${RESULTS_DIR}/${name}/with_ref_and_tree"
 
+  if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
   ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
