@@ -5,7 +5,7 @@ dependencies:
   - make
   - recommonmark
   - requests
-  - sphinx
+  - sphinx=7.2
   - pip
   - pip:
     - nextstrain-sphinx-theme>=2022.5
