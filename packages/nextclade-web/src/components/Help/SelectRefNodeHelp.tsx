@@ -10,7 +10,11 @@ export function SelectRefNodeHelp() {
   return (
     <InfoButton color="link">
       <h5>{t('Select target for mutation calling.')}</h5>
-      <p>{t('The sequence view below shows differences between each query sequence and a "comparison target" that can be selected using this dropdown. Possible options are:')}</p>
+      <p>
+        {t(
+          'The sequence view below shows differences between each query sequence and a "comparison target" that can be selected using this dropdown. Possible options are:',
+        )}
+      </p>
 
       <Ul>
         <Li>{t('"Reference" - shows mutations relative to the reference sequence (as defined in the dataset).')}</Li>
