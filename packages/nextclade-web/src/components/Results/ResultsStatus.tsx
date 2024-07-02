@@ -2,7 +2,7 @@ import React, { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { FaCheckSquare as CheckIcon } from 'react-icons/fa'
 import { IoWarning as WarnIcon } from 'react-icons/io5'
-import i18n from 'src/i18n/i18n'
+import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled, { useTheme } from 'styled-components'
 import { LoadingSpinner } from 'src/components/Loading/Loading'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -48,6 +48,7 @@ const ResultsStatusSpinnerWrapper = styled.span`
 `
 
 export function ResultsStatus({ ...restProps }) {
+  const { t } = useTranslationSafe()
   const theme = useTheme()
 
   const numThreads = useRecoilValue(numThreadsAtom)
@@ -59,7 +60,7 @@ export function ResultsStatus({ ...restProps }) {
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { text, spinner } = useMemo(() => {
-    const { statusText, failureText, hasFailures } = selectStatus(statusGlobal, analysisResultStatuses, numThreads)
+    const { statusText, failureText, hasFailures } = selectStatus(statusGlobal, analysisResultStatuses, numThreads, t)
 
     let text = <span>{statusText}</span>
     if (failureText) {
@@ -81,7 +82,7 @@ export function ResultsStatus({ ...restProps }) {
       )
     }
     return { text, spinner }
-  }, [analysisResultStatuses, numThreads, statusGlobal, theme.success, theme.warning])
+  }, [analysisResultStatuses, numThreads, statusGlobal, t, theme.success, theme.warning])
 
   if (statusGlobal === AlgorithmGlobalStatus.idle) {
     return null
@@ -104,6 +105,7 @@ export function selectStatus(
   statusGlobal: AlgorithmGlobalStatus,
   analysisResultStatuses: AlgorithmSequenceStatus[],
   numThreads: number,
+  t: TFunc,
 ) {
   const hasFailures = analysisResultStatuses.includes(AlgorithmSequenceStatus.failed)
 
@@ -114,7 +116,7 @@ export function selectStatus(
   const treeBuildDonePercent = 90
   const allDonePercent = 100
 
-  let statusText = i18n.t('Idle')
+  let statusText = t('Idle')
   let failureText: string | undefined
   let percent = 0
 
@@ -122,21 +124,21 @@ export function selectStatus(
   switch (statusGlobal) {
     case AlgorithmGlobalStatus.idle:
       {
-        statusText = i18n.t('Idle')
+        statusText = t('Idle')
         percent = idlingPercent
       }
       break
 
     case AlgorithmGlobalStatus.loadingData:
       {
-        statusText = i18n.t('Loading data...')
+        statusText = t('Loading data...')
         percent = loadingDataPercent
       }
       break
 
     case AlgorithmGlobalStatus.initWorkers:
       {
-        statusText = i18n.t('Starting {{numWorkers}} threads...', { numWorkers: numThreads })
+        statusText = t('Starting {{numWorkers}} threads...', { numWorkers: numThreads })
         percent = loadingDataDonePercent
       }
       break
@@ -148,9 +150,9 @@ export function selectStatus(
         const failed = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.failed).length
         const done = succeeded + failed
         percent = loadingDataDonePercent + (done / total) * (treeBuildPercent - loadingDataDonePercent)
-        statusText = i18n.t('Analysing sequences: Found: {{total}}. Analyzed: {{done}}', { done, total })
+        statusText = t('Analysing sequences: Found: {{total}}. Analyzed: {{done}}', { done, total })
         if (failed > 0) {
-          failureText = i18n.t('Failed: {{failed}}', { failed, total })
+          failureText = t('Failed: {{failed}}', { failed, total })
         }
       }
       break
@@ -158,7 +160,7 @@ export function selectStatus(
     case AlgorithmGlobalStatus.buildingTree:
       {
         percent = treeBuildDonePercent
-        statusText = i18n.t('Building tree')
+        statusText = t('Building tree')
       }
       break
 
@@ -168,16 +170,16 @@ export function selectStatus(
         const total = analysisResultStatuses.length
         const succeeded = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.done).length
         const failed = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.failed).length
-        statusText = i18n.t('Done. Total sequences: {{total}}. Succeeded: {{succeeded}}', { succeeded, total })
+        statusText = t('Done. Total sequences: {{total}}. Succeeded: {{succeeded}}', { succeeded, total })
         if (failed > 0) {
-          failureText = i18n.t('Failed: {{failed}}', { failed, total })
+          failureText = t('Failed: {{failed}}', { failed, total })
         }
       }
       break
 
     case AlgorithmGlobalStatus.failed:
       {
-        failureText = i18n.t('Failed due to error.')
+        failureText = t('Failed due to error.')
         percent = 100
       }
       break
