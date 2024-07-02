@@ -1,4 +1,4 @@
-# 7. Quality Control (QC)
+# 6. Quality Control (QC)
 
 [Whole-genome sequencing](https://en.wikipedia.org/wiki/Whole_genome_sequencing) of viruses is a complex biotechnological process. Results can vary significantly in their quality, in particular, from scarce or degraded input material. Some parts of the sequence might be missing and the bioinformatic analysis pipelines that turn raw data into a consensus genome sometimes produce artefacts. Such artefacts typically manifest in spurious differences of the sequence from the reference.
 
@@ -11,7 +11,7 @@ Nextclade scans each query sequence for issues which may indicate problems occur
 For each query sequence each individual QC rule produces a quality score. These **individual QC scores** are empirically calibrated to fit the following thresholds:
 
 | Score         | Meaning            | Color designation |
-| ------------- | ------------------ | ----------------- |
+|---------------|--------------------|-------------------|
 | 0 to 29       | "good" quality     | green             |
 | 30 to 99      | "mediocre" quality | yellow            |
 | 100 and above | "bad" quality      | red               |
@@ -43,36 +43,7 @@ Ambiguous nucleotides (such as `R`, `Y`, etc) are often indicative of contaminat
 
 ### Private mutations (P)
 
-In order to assign clades, Nextclade places sequences on a reference tree that is representative of the global phylogeny (see figure below). The query sequence (dashed) is compared to all sequences (including internal nodes) of the reference tree to identify the nearest neighbor.
-
-As a by-product of this placement, Nextclade identifies the mutations, called "private mutations", that differ between the query sequence and the nearest neighbor sequence. In the figure, the yellow and dark green mutations are private mutations, as they occur in addition to the 3 mutations of the attachment node.
-
-![Identification of private mutations](../assets/algo_private-muts.png)
-
-Many sequence quality problems are identifiable by the presence of private mutations. Sequences with unusually many private mutations are unlikely to be biological and are thus flagged as bad.
-
-Since web version 1.13.0 (CLI 1.10.0), Nextclade classifies private mutations further into 3 categories to be more sensitive to potential contamination, co-infection and recombination:
-
-1. Reversions: Private mutations that go back to the reference sequence, i.e. a mutation with respect to reference is present on the attachment node but not on the query sequence.
-2. Labeled mutations: Private mutations to a genotype that is known to be common in a clade.
-3. Unlabeled mutations: Private mutations that are neither reversions nor labeled.
-
-For an illustration of these 3 types, see the figure below.
-
-![Classification of private mutations](../assets/algo_private-muts-classification.png)
-
-Reversions are common artefacts in some bioinformatic pipelines when there is amplicon dropout.
-They are also a sign of contamination, co-infection or recombination. Labeled mutations also contain commonly when there's contamination, co-infection or recombination.
-
-Reversions and labeled mutations are weighted several times higher than unlabeled mutations due to their higher sensitivity and specificity for quality problems (and recombination).
-In February 2022, every reversion was counted 6 times (`weightReversionSubstitutions`) while every labeled mutation was counted 4 times (`weightLabeledSubstitutions`). Unlabeled mutations get weight 1 (`weightUnlabeledSubstitutions`).
-
-From the weighted sum, 8 (`typical`) is subtracted. The score is then a linear interpolation between 0 and 100 (and above), where 100 corresponds to 24 (`cutoff`).
-
-Private deletion ranges (including reversion) are currently counted as a single unlabeled substitution, but this could change in the future.
-
-Which genotypes get "labeled" is determined in the dataset config file `virus_properties.json` which can also be found in the [Github repo](https://github.com/nextstrain/nextclade_data/blob/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-02-07T12:00:00Z/files/virus_properties.json).
-Currently, all mutations that appear in at least 30% of the sequences of a clade or in at least 100k sequences in a clade get that clade's label.
+[Private mutations](05-mutation-calling.md#private-mutations) may indicate sequencing errors or unusual variants.
 
 ### Mutation clusters (C)
 
