@@ -36,11 +36,11 @@ For an illustration of these 3 types, see the figure below.
 
 ![Classification of private mutations](../assets/algo_private-muts-classification.png)
 
-Reversions are common artefacts in some bioinformatic pipelines when there is amplicon dropout.
-They are also a sign of contamination, co-infection or recombination. Labeled mutations also contain commonly when there's contamination, co-infection or recombination.
+Reversions are common artefacts in some bioinformatic pipelines when there is amplicon dropout and missing sequence is "fill-in" with the reference.
+They are also a sign of contamination, co-infection or recombination. Labeled mutations are also a common sign of contamination, co-infection or recombination and deserve special attention.
 
-Reversions and labeled mutations are weighted several times higher than unlabeled mutations due to their higher sensitivity and specificity for quality problems (and recombination).
-In February 2022, every reversion was counted 6 times (`weightReversionSubstitutions`) while every labeled mutation was counted 4 times (`weightLabeledSubstitutions`). Unlabeled mutations get weight 1 (`weightUnlabeledSubstitutions`).
+For some datasets, reversions and labeled mutations are therefore weighted several times higher than unlabeled mutations due to their higher sensitivity and specificity for quality problems (and recombination).
+In February 2022, the SARS-CoV-2 dataset weighed every reversion 6 (`weightReversionSubstitutions`) while every labeled mutation was weighed 4 times (`weightLabeledSubstitutions`). Unlabeled mutations get weight 1 (`weightUnlabeledSubstitutions`).
 
 From the weighted sum, 8 (`typical`) is subtracted. The score is then a linear interpolation between 0 and 100 (and above), where 100 corresponds to 24 (`cutoff`).
 
@@ -48,7 +48,7 @@ Private deletion ranges (including reversion) are currently counted as a single 
 
 ### Clade founder search and mutations relative to clade founder
 
-For each query sample possessing a clade, Nextclade finds a corresponding "clade founder" node in the reference tree - the most ancestral node having the same clade. It stars with parent node (nearest node) obtained during [tree placement](03-phylogenetic-placement.md) and traverses the tree towards the root, until it finds the last node with the same clade as the parent node.
+For each query sample possessing a clade, Nextclade finds a corresponding "clade founder" node in the reference tree - the most ancestral node having the same clade. It starts with parent node (nearest node) obtained during [tree placement](03-phylogenetic-placement.md) and traverses the tree towards the root, until it finds the last node with the same clade as the parent node.
 
 After that Nextclade calls nucleotide and aminoacid mutations relative to the clade founder.
 
@@ -60,7 +60,7 @@ Clade founder search is a built-in convenience wrapper for a [node search and re
 
 ### Arbitrary node search and relative mutations
 
-Additionally to the built-in search for clade founder nodes (see above), [dataset](../datasets.md) authors may define criteria for an arbitrary nodes of interest on the [reference tree](../input-files/04-reference-tree.md). Nextclade will then search these nodes, similarly to how it finds clade founder nodes, and will calculate mutations relative to each of these nodes.
+In addition to the built-in search for clade founder nodes (see above), [dataset](../datasets.md) authors may define criteria for arbitrary nodes of interest on the [reference tree](../input-files/04-reference-tree.md). Nextclade will then search these nodes, similarly to how it finds clade founder nodes, and will calculate mutations relative to each of these nodes.
 
 This could be useful, for example, for comparing sequences to the vaccine strains.
 
@@ -70,7 +70,7 @@ The mutation calling step results in a set of mutations and various practical me
 
 Mutations can be viewed in the last column of the results table in [Nextclade Web](../nextclade-web).
 
-The "Genetic feature" dropdown allows to switch between nucleotide sequence and CDSes (if genome annotation is provided). The "Relative to" dropdown allows to select the target for comparison:
+The "Genetic feature" dropdown allows switching between nucleotide sequence and CDSes (if genome annotation is provided). The "Relative to" dropdown allows to select the target for comparison:
 
 - "Reference" - shows mutations relative to the [reference sequence](../input-files/02-reference-sequence.md)
 - "Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node
