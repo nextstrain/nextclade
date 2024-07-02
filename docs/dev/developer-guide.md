@@ -256,6 +256,57 @@ Install Node.js version 14+ (latest LTS release is recommended), by either downl
 
    The `yarn prod:serve` command runs Express underneath and it is just an example of a simple (also slow and insecure) local file web server. But the produced HTML, CSS and JS files can be served using any static file web server or static file hosting service. The official deployment uses AWS S3 + Cloudfront.
 
+### Internationalization (translation)
+
+Nextclade Web is using `react-i18n` for internationalization. It is configured in [`packages/nextclade-web/src/i18n`](https://github.com/nextstrain/nextclade/tree/master/packages/nextclade-web/src/i18n). Note that parts of Auspice used in Nextclade are configured separately, but in the same directory.
+
+The actual translations are in [`packages/nextclade-web/src/i18n/resources/`](https://github.com/nextstrain/nextclade/tree/master/packages/nextclade-web/src/i18n/resources).
+
+For machine translation we use [`json-autotranslate`](https://www.npmjs.com/package/json-autotranslate), configured
+in [`packages/nextclade-web/json-autotranslate.json`](https://github.com/nextstrain/nextclade/blob/master/packages/nextclade-web/json-autotranslate.json). It stores cache of strings in [`packages/nextclade-web/.json-autotranslate-cache/`](https://github.com/nextstrain/nextclade/blob/master/packages/nextclade-web/.json-autotranslate-cache).
+
+#### Update machine translations
+
+Use this script to extract strings apply machine translations:
+
+```bash
+# Extract English strings from the code of Nextclade Web.
+# The result will be in `packages/nextclade-web/src/i18n/resources/en/`.
+yarn i18n
+
+# Deduplicate, correct, sort and otherwise 'massage' the extracted strings.
+yarn i18n:fix
+
+# Translate strings from English to all languages using json-autotranslate.
+# Cached strings will be copied as is from cache. If a string is not present in cache,
+# it will be machine translated using AWS Translate.
+# This step requires AWS credentials (see json-autotranslate docs and ask your AWS admin).
+i18n:translate
+
+# 'Massage' the newly translated strings again.
+yarn i18n:fix
+```
+
+#### Apply manual corrections
+
+If you want to override machine translation, then edit the cached strings in [`packages/nextclade-web/.json-autotranslate-cache/`](https://github.com/nextstrain/nextclade/blob/master/packages/nextclade-web/.json-autotranslate-cache) and submit your changes in a pull request. Developers will check your changes and integrate them into the web app, by running:
+
+```bash
+# Deduplicate, correct, sort and otherwise 'massage' the extracted strings.
+yarn i18n:fix
+
+# Translate strings from English to all languages using json-autotranslate.
+# Cached strings will be copied as is from cache. If a string is not present in cache,
+# it will be machine translated using AWS Translate.
+# This step requires AWS credentials (see json-autotranslate docs and ask your AWS admin).
+i18n:translate
+
+# 'Massage' the newly translated strings again.
+yarn i18n:fix
+```
+
+Note that dev team does not necessarily understand all supported languages, so it cannot verify quality of either machine or human translations for most languages, except a few.
+
 ### Linting (static analysis)
 
 #### Linting Rust code
