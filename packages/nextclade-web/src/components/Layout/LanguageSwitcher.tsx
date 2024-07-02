@@ -5,9 +5,11 @@ import {
   DropdownMenu as DropdownMenuBase,
   DropdownItem as DropdownItemBase,
   DropdownProps,
+  UncontrolledAlert,
 } from 'reactstrap'
 import { useRecoilState } from 'recoil'
 import { SearchBox } from 'src/components/Common/SearchBox'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { search } from 'src/helpers/search'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
@@ -45,6 +47,19 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
         <SearchBoxWrapper>
           <SearchBox searchTitle={t('Search languages')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
         </SearchBoxWrapper>
+        <UncontrolledAlert
+          closeClassName="d-none"
+          fade={false}
+          color="warning"
+          className="m-0 mb-2 mr-3 py-1 px-2 small"
+        >
+          {t(
+            'All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}',
+          )}
+          <LinkExternal href="https://github.com/nextstrain/nextclade/blob/feat/i18n/docs/dev/developer-guide.md#internationalization-translation">
+            {t('here')}
+          </LinkExternal>
+        </UncontrolledAlert>
         <DropdownMenuListWrapper>
           {localesFiltered.map((locale) => {
             const isCurrent = locale.key === currentLocale
@@ -115,7 +130,7 @@ const DropdownMenu = styled(DropdownMenuBase)`
   transition: opacity ease-out 0.25s;
   padding: 1rem;
   padding-right: 0;
-  width: 275px;
+  width: 320px;
 `
 
 const DropdownItem = styled(DropdownItemBase)`
