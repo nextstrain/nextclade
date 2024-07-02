@@ -56,6 +56,7 @@ WORKDIR /workdir
 COPY environment.yml /workdir
 
 RUN set -euxo pipefail >/dev/null \
+  && conda config --add channels conda-forge \
   && conda env create -n "docs.clades.nextstrain.org"
 
 USER ${USER}

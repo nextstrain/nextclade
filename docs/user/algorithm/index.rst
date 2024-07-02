@@ -10,8 +10,8 @@ Internally, Nextclade is implemented as a parallel pipeline which consists of se
 
     01-sequence-alignment.md
     02-translation.md
-    03-mutation-calling.md
-    04-pcr-primer-changes-detection.md
-    05-phylogenetic-placement.md
-    06-clade-assignment.md
-    07-quality-control.md
+    03-phylogenetic-placement.md
+    04-clade-assignment.md
+    05-mutation-calling.md
+    06-quality-control.md
+    07-pcr-primer-changes-detection.md
