@@ -14,7 +14,7 @@ export function SelectGeneHelp() {
 
       <p>
         {t(
-          'This allows to switch sequence views between nucleotide sequence and peptides (translated CDSes; only available if the dataset contains {{genome annotation}}).',
+          'This allows to switch sequence views between nucleotide sequence and peptides (translated CDSes; only available if the dataset provides a genome annotation).',
         )}
       </p>
 
@@ -39,7 +39,7 @@ export function SelectGeneHelp() {
       <HelpTipsColumnSeqViewNucLegend />
 
       <p>
-        {t('Mouse hover on a mutation marker to show details of that mutation.')}
+        {t('Mouse hover on a mutation marker to show details of that mutation and its neighborhood in the alignment.')}
         <br />
         {t("Unsequenced regions at the 5' and 3' end are indicated as light gray areas on both ends.")}
         <br />
@@ -48,11 +48,11 @@ export function SelectGeneHelp() {
 
       <hr />
 
-      <h5>{t('Peptide mode')}</h5>
+      <h5>{t('Peptide/protein mode')}</h5>
 
       <p>
         {t(
-          'When a CDS is selected, each row displays a schema of the corresponding translated peptide sequence by highlighting the differences compared to the reference sequence along the genome.',
+          'When a CDS is selected, each row displays a schema of the corresponding translated amino acid sequence by highlighting the differences to the corresponding peptide in the reference/target. Note that the CDS might be split into multiple segments or be located on the reverse strand.',
         )}
         <br />
         {t(

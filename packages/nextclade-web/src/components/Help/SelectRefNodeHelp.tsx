@@ -10,22 +10,23 @@ export function SelectRefNodeHelp() {
   return (
     <InfoButton color="link">
       <h5>{t('Select target for mutation calling.')}</h5>
+      <p>{t('The sequence view below shows differences between each query sequence and a "comparison target" that can be selected using this dropdown. Possible options are:')}</p>
 
       <Ul>
-        <Li>{t('"Reference" - shows mutations relative to the reference sequence (as defined in the dataset)')}</Li>
+        <Li>{t('"Reference" - shows mutations relative to the reference sequence (as defined in the dataset).')}</Li>
         <Li>
           {t(
-            '"Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node to which the query sample has been attached to during phylogenetic placement.',
+            '"Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.',
           )}
         </Li>
         <Li>
           {t(
-            '"Clade founder" - shows mutations relative to the founder of the clade that has been assigned to the query sample',
+            '"Clade founder" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.',
           )}
         </Li>
         <Li>
           {t(
-            'Entries of format "\'<attribute>\' founder" show mutations relative to the founder node of a particular clade-like attribute  (if any defined in the dataset). Dataset authors may choose to exclude certain attributes.',
+            'Entries of format "\'<attribute>\' founder" show mutations relative to the founder node of a particular clade-like attribute  (if any are defined in the dataset). Dataset authors may choose to exclude certain attributes.',
           )}
         </Li>
         <Li>
