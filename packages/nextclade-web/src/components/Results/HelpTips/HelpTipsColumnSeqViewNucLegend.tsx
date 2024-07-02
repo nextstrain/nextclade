@@ -1,18 +1,19 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Col, Row } from 'reactstrap'
-
 import { NUCLEOTIDE_COLORS } from 'src/helpers/getNucleotideColor'
+import { splitToColumns } from './HelpTipsColumnSeqViewGeneLegend'
 
 const SIZE = 20
 
 export const Legend = styled(Row)`
   width: 100%;
-  margin-bottom: 10px;
+  //margin-bottom: 10px;
 `
 
 export const LegendItem = styled(Col)`
   display: flex;
+  margin: 3px;
 `
 
 export const LegendColorBox = styled.span`
@@ -25,14 +26,23 @@ export const LegendColorBox = styled.span`
 `
 
 export function HelpTipsColumnSeqViewNucLegend() {
+  const columns = splitToColumns(NUCLEOTIDE_COLORS, 5)
+
   return (
     <Legend>
-      {Object.entries(NUCLEOTIDE_COLORS).map(([nuc, color]) => (
-        <LegendItem key={nuc}>
-          <LegendColorBox color={color} />
-          {nuc}
-        </LegendItem>
-      ))}
+      <Row>
+        {columns.map((col, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <Col key={i}>
+            {Object.entries(col).map(([aa, color]) => (
+              <LegendItem key={aa}>
+                <LegendColorBox color={color} />
+                {aa}
+              </LegendItem>
+            ))}
+          </Col>
+        ))}
+      </Row>
     </Legend>
   )
 }
