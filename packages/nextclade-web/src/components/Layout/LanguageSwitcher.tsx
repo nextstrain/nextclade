@@ -56,7 +56,7 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
           {t(
             'All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}',
           )}
-          <LinkExternal href="https://github.com/nextstrain/nextclade/blob/feat/i18n/docs/dev/developer-guide.md#internationalization-translation">
+          <LinkExternal href="https://github.com/nextstrain/nextclade/blob/master/docs/dev/developer-guide.md#internationalization-translation">
             {t('here')}
           </LinkExternal>
         </UncontrolledAlert>
