@@ -40,6 +40,7 @@
   "All categories": "หมวดหมู่ทั้งหมด",
   "All files in a {{formatName}} archive.": "ไฟล์ทั้งหมดในไฟล์เก็บถาวร {{formatName}}",
   "All substitutions ({{ n }})": "การทดแทนทั้งหมด ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ข้อความทั้งหมดยกเว้นภาษาอังกฤษถูกสร้างขึ้นโดยใช้การแปลเครื่องไม่รับประกันความถูกต้องกรุณาส่งการแก้ไขของคุณ {{ here }}",
   "Ambiguous markers": "เครื่องหมายที่คลุมเครือ",
   "Ambiguous:": "คลุมเครือ:",
   "Ambiguous: {{ambiguous}}": "คลุมเครือ: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} ทำงานได้ดีที่สุดในเวอร์ชันล่าสุดของ ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ข้อมูลเพิ่มเติมสำหรับนักพัฒนา (คลิกเพื่อขยาย)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ตรวจพบโคดอนหยุดที่ไม่ถูกต้องยีนที่ได้รับผลกระทบ: {{geneList}}.คะแนนคิวซี: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ข้อความทั้งหมดยกเว้นภาษาอังกฤษถูกสร้างขึ้นโดยใช้การแปลเครื่องไม่รับประกันความถูกต้องกรุณาส่งการแก้ไขของคุณ {{ here }}"
+  "Customize": "ปรับแต่ง",
+  "History": "ประวัติศาสตร์",
+  "Summary": "สรุป"
 }

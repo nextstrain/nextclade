@@ -40,6 +40,7 @@
   "All categories": "Lahat ng mga kategorya",
   "All files in a {{formatName}} archive.": "Lahat ng mga file sa isang {{formatName}} archive.",
   "All substitutions ({{ n }})": "Lahat ng mga kapalit ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Ang lahat ng teksto maliban sa Ingles ay nabuo gamit ang machine translation. Hindi garantisado ang katumpakan. Mangyaring isumite ang iyong mga pag-aayos {{ here }}",
   "Ambiguous markers": "Hindi malinaw na mga marker",
   "Ambiguous:": "Hindi malinaw:",
   "Ambiguous: {{ambiguous}}": "Hindi malinaw: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "Pinakamahusay na gumagana ang {{project}} sa pinakabagong bersyon ng ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Karagdagang impormasyon para sa mga developer (i-click upang palawakin)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Nakita ang mga maling lugar na stop codon (s) {{totalStopCodons}}. Mga apektadong gene: {{geneList}}. Marka ng QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Ang lahat ng teksto maliban sa Ingles ay nabuo gamit ang machine translation. Hindi garantisado ang katumpakan. Mangyaring isumite ang iyong mga pag-aayos {{ here }}"
+  "Customize": "Ipasadya",
+  "History": "Kasaysayan",
+  "Summary": "Buod"
 }

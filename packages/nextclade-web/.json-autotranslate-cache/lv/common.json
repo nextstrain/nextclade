@@ -40,6 +40,7 @@
   "All categories": "Visas kategorijas",
   "All files in a {{formatName}} archive.": "Visi faili {{formatName}} arhīvā.",
   "All substitutions ({{ n }})": "Visas aizvietošanas iespējas ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Viss teksts, izņemot angļu, tiek ģenerēts, izmantojot mašīntulkošanu. Precizitāte nav garantēta. Lūdzu, iesniedziet labojumus {{ here }}",
   "Ambiguous markers": "Neskaidri marķieri",
   "Ambiguous:": "Neskaidrs:",
   "Ambiguous: {{ambiguous}}": "Neskaidrs: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} vislabāk darbojas jaunākajās versijās ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Papildu informācija izstrādātājiem (noklikšķiniet, lai izvērstu)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} atklāts nepareizi novietots stopkodons (-i). Ietekmētais gēns (-i): {{geneList}}. QC rezultāts: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Viss teksts, izņemot angļu, tiek ģenerēts, izmantojot mašīntulkošanu. Precizitāte nav garantēta. Lūdzu, iesniedziet labojumus {{ here }}"
+  "Customize": "Pielāgot",
+  "History": "Vēsture",
+  "Summary": "Kopsavilkums"
 }

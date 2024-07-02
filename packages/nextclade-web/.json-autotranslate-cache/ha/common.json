@@ -40,6 +40,7 @@
   "All categories": "Duk nau'ikan",
   "All files in a {{formatName}} archive.": "Duk fayiloli a cikin adana bayanai na {{formatName}}.",
   "All substitutions ({{ n }})": "Duk maye gurbin abubuwa ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Duk rubutu banda Turanci ana samar da shi ta amfani da fassarar injin. Ba a tabbatar da daidaito ba. Da fatan za a gabatar da gyaran ku {{ here }}",
   "Ambiguous markers": "Alamomin marasa kyau",
   "Ambiguous:": "Babu mai ban mamaki:",
   "Ambiguous: {{ambiguous}}": "Matsakaicin abu: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} yana aiki mafi kyau a cikin sabbin nau'ikan ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Ƙarin bayani ga masu haɓakawa (danna don fadada)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} da aka gano codon (s) na tsayawa mara kyau. Abubuwan da aka shafa (s): {{geneList}}. Sakamakon QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Duk rubutu banda Turanci ana samar da shi ta amfani da fassarar injin. Ba a tabbatar da daidaito ba. Da fatan za a gabatar da gyaran ku {{ here }}"
+  "Customize": "Keɓance",
+  "History": "Tarihi",
+  "Summary": "Takaitawa"
 }

@@ -40,6 +40,7 @@
   "All categories": "සියලුම කාණ්ඩ",
   "All files in a {{formatName}} archive.": "{{formatName}} ලේඛනාගාරයක ඇති සියලුම ලිපිගොනු.",
   "All substitutions ({{ n }})": "සියලුම ආදේශන ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ඉංග්රීසි හැරුණු විට සියලුම පෙළ යන්ත්ර පරිවර්තනය භාවිතයෙන් ජනනය වේ. නිරවද්යතාව සහතික නොකෙරේ. කරුණාකර ඔබගේ නිවැරදි කිරීම් ඉදිරිපත් කරන්න {{ here }}",
   "Ambiguous markers": "අපැහැදිලි සලකුණු",
   "Ambiguous:": "අපැහැදිලි:",
   "Ambiguous: {{ambiguous}}": "අපැහැදිලි: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} හි නවතම අනුවාදයන්හි වඩාත් හොඳින් ක්රියා කරයි ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} සංවර්ධකයින් සඳහා අමතර තොරතුරු (පුළුල් කිරීමට ක්ලික් කරන්න)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} අස්ථානගත වූ නැවතුම් කෝඩන් (න්) හඳුනාගෙන ඇත. බලපෑමට ලක් වූ ජානය (න්): {{geneList}}. QC ලකුණු: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ඉංග්රීසි හැරුණු විට සියලුම පෙළ යන්ත්ර පරිවර්තනය භාවිතයෙන් ජනනය වේ. නිරවද්යතාව සහතික නොකෙරේ. කරුණාකර ඔබගේ නිවැරදි කිරීම් ඉදිරිපත් කරන්න {{ here }}"
+  "Customize": "අභිරුචිකරණය කරන්න",
+  "History": "ඉතිහාසය",
+  "Summary": "සාරාංශය"
 }

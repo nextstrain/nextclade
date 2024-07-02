@@ -40,6 +40,7 @@
   "All categories": "Todas as categorias",
   "All files in a {{formatName}} archive.": "Todos os arquivos em um arquivo {{formatName}}.",
   "All substitutions ({{ n }})": "Todas as substituições ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Todo o texto, exceto o inglês, é gerado usando tradução automática. A precisão não é garantida. Por favor, envie suas correções {{ here }}",
   "Ambiguous markers": "Marcadores ambíguos",
   "Ambiguous:": "Ambíguo:",
   "Ambiguous: {{ambiguous}}": "Ambíguo: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} funciona melhor nas versões mais recentes do ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informações adicionais para desenvolvedores (clique para expandir)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} detectados códons de parada extraviados. Genes afetados: {{geneList}}. Pontuação no QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Todo o texto, exceto o inglês, é gerado usando tradução automática. A precisão não é garantida. Por favor, envie suas correções {{ here }}"
+  "Customize": "Personalizar",
+  "History": "História",
+  "Summary": "Resumo"
 }

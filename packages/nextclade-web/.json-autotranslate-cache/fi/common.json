@@ -40,6 +40,7 @@
   "All categories": "Kaikki kategoriat",
   "All files in a {{formatName}} archive.": "Kaikki tiedostot {{formatName}} -arkistossa.",
   "All substitutions ({{ n }})": "Kaikki korvatut ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Kaikki teksti paitsi englanti luodaan konekäännöksen avulla. Tarkkuutta ei taata. Lähetä korjauksesi {{ here }}",
   "Ambiguous markers": "Epäselvät merkit",
   "Ambiguous:": "Epäselvä:",
   "Ambiguous: {{ambiguous}}": "Epäselvä: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} toimii parhaiten uusimmissa versioissa ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Lisätietoja kehittäjille (laajenna napsauttamalla)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} väärin sijoitetut pysäytyskodoni (t) havaittu. Vaurioitunut geeni (t): {{geneList}}. QC-pisteet: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Kaikki teksti paitsi englanti luodaan konekäännöksen avulla. Tarkkuutta ei taata. Lähetä korjauksesi {{ here }}"
+  "Customize": "Mukauta",
+  "History": "Historia",
+  "Summary": "Yhteenveto"
 }

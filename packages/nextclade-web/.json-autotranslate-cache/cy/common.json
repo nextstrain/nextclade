@@ -40,6 +40,7 @@
   "All categories": "Pob categori",
   "All files in a {{formatName}} archive.": "Pob ffeil mewn archif {{formatName}}.",
   "All substitutions ({{ n }})": "Pob dirprwyon ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Mae'r holl destun ac eithrio Saesneg yn cael ei gynhyrchu gan ddefnyddio cyfieithu peirianyddol. Nid yw cywirdeb wedi'i warantu. Cyflwynwch eich atgyweiriadau {{ here }}",
   "Ambiguous markers": "Marcwyr amwys",
   "Ambiguous:": "Amwys:",
   "Ambiguous: {{ambiguous}}": "Amwys: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "Mae {{project}} yn gweithio orau yn y fersiynau diweddaraf o ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Gwybodaeth ychwanegol i ddatblygwyr (cliciwch i ehangu)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} canfuwyd codon (au) stop anghywir. Genynnau yr effeithir arnynt: {{geneList}}. Sgôr QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Mae'r holl destun ac eithrio Saesneg yn cael ei gynhyrchu gan ddefnyddio cyfieithu peirianyddol. Nid yw cywirdeb wedi'i warantu. Cyflwynwch eich atgyweiriadau {{ here }}"
+  "Customize": "Addasu",
+  "History": "Hanes",
+  "Summary": "Crynodeb"
 }

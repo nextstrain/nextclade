@@ -40,6 +40,7 @@
   "All categories": "Всі категорії",
   "All files in a {{formatName}} archive.": "Усі файли в архіві {{formatName}}.",
   "All substitutions ({{ n }})": "Усі заміни ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Весь текст, крім англійської, генерується за допомогою машинного перекладу. Точність не гарантується. Будь ласка, надішліть свої виправлення {{ here }}",
   "Ambiguous markers": "Неоднозначні маркери",
   "Ambiguous:": "неоднозначні:",
   "Ambiguous: {{ambiguous}}": "Неоднозначний: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} найкраще працює в останніх версіях ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Додаткова інформація для розробників (натисніть, щоб розгорнути)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Виявлено {{totalStopCodons}} неправильно розміщений стоп-кодон (и). Уражені гени: {{geneList}}. Оцінка якості: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Весь текст, крім англійської, генерується за допомогою машинного перекладу. Точність не гарантується. Будь ласка, надішліть свої виправлення {{ here }}"
+  "Customize": "Налаштувати",
+  "History": "Історія",
+  "Summary": "Короткий зміст"
 }

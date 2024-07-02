@@ -40,6 +40,7 @@
   "All categories": "Wszystkie kategorie",
   "All files in a {{formatName}} archive.": "Wszystkie pliki w archiwum {{formatName}}.",
   "All substitutions ({{ n }})": "Wszystkie zamienniki ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Cały tekst z wyjątkiem angielskiego jest generowany przy użyciu tłumaczenia maszynowego. Dokładność nie jest gwarantowana. Prześlij swoje poprawki {{ here }}",
   "Ambiguous markers": "Niejednoznaczne znaczniki",
   "Ambiguous:": "Niejednoznaczne:",
   "Ambiguous: {{ambiguous}}": "Niejednoznaczne: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} działa najlepiej w najnowszych wersjach ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Dodatkowe informacje dla programistów (kliknij, aby rozwinąć)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Wykryto nieprawidłowo umieszczony kodon (y) stop (y) {{totalStopCodons}}. Dotknięty gen (y): {{geneList}}. Wynik QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Cały tekst z wyjątkiem angielskiego jest generowany przy użyciu tłumaczenia maszynowego. Dokładność nie jest gwarantowana. Prześlij swoje poprawki {{ here }}"
+  "Customize": "Dostosuj",
+  "History": "Historia",
+  "Summary": "Podsumowanie"
 }

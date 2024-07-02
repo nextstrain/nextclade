@@ -40,6 +40,7 @@
   "All categories": "כל הקטגוריות",
   "All files in a {{formatName}} archive.": "כל הקבצים בארכיון {{formatName}}.",
   "All substitutions ({{ n }})": "כל ההחלפות ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "כל הטקסט למעט אנגלית נוצר באמצעות תרגום מכונה. הדיוק אינו מובטח. אנא שלח את התיקונים שלך {{ here }}",
   "Ambiguous markers": "סמנים מעורפלים",
   "Ambiguous:": "דו משמעי:",
   "Ambiguous: {{ambiguous}}": "דו משמעי: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} עובד הכי טוב בגרסאות האחרונות של ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} מידע נוסף למפתחים (לחץ להרחבה)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} זוהו קודון עצירה שלא במקומם. גנים מושפעים: {{geneList}}. ציון QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "כל הטקסט למעט אנגלית נוצר באמצעות תרגום מכונה. הדיוק אינו מובטח. אנא שלח את התיקונים שלך {{ here }}"
+  "Customize": "התאמה אישית",
+  "History": "היסטוריה",
+  "Summary": "סיכום"
 }

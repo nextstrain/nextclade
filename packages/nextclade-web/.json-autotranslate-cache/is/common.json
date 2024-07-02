@@ -40,6 +40,7 @@
   "All categories": "Allir flokkar",
   "All files in a {{formatName}} archive.": "Allar skrár í {{formatName}} skjalasafni.",
   "All substitutions ({{ n }})": "Allar skiptingar ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Allur texti nema enska er myndaður með vélþýðingu. Nákvæmni er ekki tryggð. Vinsamlegast sendu inn lagfæringar þínar {{ here }}",
   "Ambiguous markers": "Ótvíræð merki",
   "Ambiguous:": "Ótvírætt:",
   "Ambiguous: {{ambiguous}}": "Ótvírætt: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} virkar best í nýjustu útgáfum ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Viðbótarupplýsingar fyrir forritara (smelltu til að stækka)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ranglega staðsettur stöðvunarkódon (s) greindur. Áhrifin gen (s): {{geneList}}. QC skor: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Allur texti nema enska er myndaður með vélþýðingu. Nákvæmni er ekki tryggð. Vinsamlegast sendu inn lagfæringar þínar {{ here }}"
+  "Customize": "Sérsníða",
+  "History": "Saga",
+  "Summary": "Samantekt"
 }

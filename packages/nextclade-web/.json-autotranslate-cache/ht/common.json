@@ -40,6 +40,7 @@
   "All categories": "Tout kategori",
   "All files in a {{formatName}} archive.": "Tout dosye nan yon achiv {{formatName}}.",
   "All substitutions ({{ n }})": "Tout ranplasman ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Tout tèks eksepte angle se pwodwi lè l sèvi avèk tradiksyon machin. Presizyon pa garanti. Tanpri soumèt fikse ou {{ here }}",
   "Ambiguous markers": "Makè anjibik",
   "Ambiguous:": "Anjibik:",
   "Ambiguous: {{ambiguous}}": "Anjibik: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} travay pi byen nan vèsyon yo dènye nan ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Enfòmasyon adisyonèl pou devlopè (klike sou pou elaji)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon (yo) sispann mal kote detekte. Jèn afekte (yo): {{geneList}}. Nòt QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Tout tèks eksepte angle se pwodwi lè l sèvi avèk tradiksyon machin. Presizyon pa garanti. Tanpri soumèt fikse ou {{ here }}"
+  "Customize": "Customize",
+  "History": "Istwa",
+  "Summary": "Rezime"
 }

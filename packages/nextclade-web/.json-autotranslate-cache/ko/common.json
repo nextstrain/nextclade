@@ -40,6 +40,7 @@
   "All categories": "모든 카테고리",
   "All files in a {{formatName}} archive.": "{{formatName}} 아카이브의 모든 파일",
   "All substitutions ({{ n }})": "모든 대체품 ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "영어를 제외한 모든 텍스트는 기계 번역을 사용하여 생성됩니다.정확성은 보장되지 않습니다.수정 사항을 제출해 주세요 {{ here }}",
   "Ambiguous markers": "모호한 마커",
   "Ambiguous:": "모호함:",
   "Ambiguous: {{ambiguous}}": "모호함: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} 은 (는) 최신 버전에서 가장 잘 작동합니다. ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} 개발자를 위한 추가 정보 (확대하려면 클릭)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} 잘못 배치된 정지 코돈이 감지되었습니다.영향을 받은 유전자: {{geneList}}.품질 관리 점수: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "영어를 제외한 모든 텍스트는 기계 번역을 사용하여 생성됩니다.정확성은 보장되지 않습니다.수정 사항을 제출해 주세요 {{ here }}"
+  "Customize": "사용자 지정",
+  "History": "역사",
+  "Summary": "요약"
 }

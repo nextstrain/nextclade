@@ -40,6 +40,7 @@
   "All categories": "Всички категории",
   "All files in a {{formatName}} archive.": "Всички файлове в архив {{formatName}}.",
   "All substitutions ({{ n }})": "Всички замествания ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Целият текст с изключение на английски се генерира с помощта на машинен превод. Точността не е гарантирана. Моля, изпратете вашите корекции {{ here }}",
   "Ambiguous markers": "Неясни маркери",
   "Ambiguous:": "Двусмислено:",
   "Ambiguous: {{ambiguous}}": "Двусмислено: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} работи най-добре в последните версии на ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Допълнителна информация за разработчиците (щракнете, за да разширите)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} Открит е неправилно поставен стоп кодон (и). Засегнат ген (и): {{geneList}}. QC резултат: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Целият текст с изключение на английски се генерира с помощта на машинен превод. Точността не е гарантирана. Моля, изпратете вашите корекции {{ here }}"
+  "Customize": "Персонализиране",
+  "History": "История",
+  "Summary": "Резюме"
 }

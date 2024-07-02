@@ -40,6 +40,7 @@
   "All categories": "ყველა კატეგორია",
   "All files in a {{formatName}} archive.": "ყველა ფაილი {{formatName}} არქივში.",
   "All substitutions ({{ n }})": "ყველა ჩანაცვლება ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ინგლისურის გარდა ყველა ტექსტი გენერირდება მანქანური თარგმან სიზუსტე არ არის გარანტირებული. გთხოვთ, გააგზავნოთ თქვენი გამო {{ here }}",
   "Ambiguous markers": "ორაზროვანი მარკ",
   "Ambiguous:": "ორაზროვანი:",
   "Ambiguous: {{ambiguous}}": "ორაზროვანი: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} საუკეთესოდ მუშაობს უახლეს ვერსიებში ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} დამატებითი ინფორმაცია დეველოპერებისთვის (დააჭირეთ გაფართოებისთვის",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "გამოვლინდა {{totalStopCodons}} არასწორად განთავსებული შეჩერების კოდონი (ები). დაზარალებული გენი (ები): {{geneList}}. QC ქულა: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ინგლისურის გარდა ყველა ტექსტი გენერირდება მანქანური თარგმან სიზუსტე არ არის გარანტირებული. გთხოვთ, გააგზავნოთ თქვენი გამო {{ here }}"
+  "Customize": "მორგეთ",
+  "History": "ისტორია",
+  "Summary": "რეზიუმე"
 }

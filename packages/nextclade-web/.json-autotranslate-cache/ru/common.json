@@ -40,6 +40,7 @@
   "All categories": "Все категории",
   "All files in a {{formatName}} archive.": "Все файлы в архиве {{formatName}}.",
   "All substitutions ({{ n }})": "Все замены ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Весь текст, кроме английского, создан с помощью машинного перевода. Точность не гарантируется. Пожалуйста, отправьте свои исправления {{ here }}",
   "Ambiguous markers": "Двусмысленные маркеры",
   "Ambiguous:": "Неоднозначный:",
   "Ambiguous: {{ambiguous}}": "Неоднозначно: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} лучше всего работает в последних версиях ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Дополнительная информация для разработчиков (нажмите, чтобы развернуть)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Обнаружен неправильный стоп-кодон (ы) {{totalStopCodons}}. Затронутый ген (ы): {{geneList}}. Оценка качества: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Весь текст, кроме английского, создан с помощью машинного перевода. Точность не гарантируется. Пожалуйста, отправьте свои исправления {{ here }}"
+  "Customize": "Настроить",
+  "History": "История",
+  "Summary": "Резюме"
 }

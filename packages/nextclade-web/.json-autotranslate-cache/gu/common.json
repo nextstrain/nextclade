@@ -40,6 +40,7 @@
   "All categories": "તમામ કેટેગરીઝ",
   "All files in a {{formatName}} archive.": "{{formatName}} આર્કાઇવમાં બધી ફાઇલો.",
   "All substitutions ({{ n }})": "બધા વિકલ્પો ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "અંગ્રેજી સિવાયના તમામ ટેક્સ્ટ મશીન અનુવાદનો ઉપયોગ કરીને જનરેટ કરવામાં આવે છે. ચોકસાઈની ખાતરી આપવામાં આવી નથી. કૃપા કરીને તમારા સુધારાઓ સબમિટ કરો {{ here }}",
   "Ambiguous markers": "અસ્પષ્ટ માર્કર્સ",
   "Ambiguous:": "અસ્પષ્ટ:",
   "Ambiguous: {{ambiguous}}": "સંદિગ્ધ: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} ના નવીનતમ સંસ્કરણોમાં શ્રેષ્ઠ કાર્ય કરે છે ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} વિકાસકર્તાઓ માટે વધારાની માહિતી (વિસ્તૃત કરવા માટે ક્લિક કરો)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ખોટી રીતે મૂકવામાં આવેલા સ્ટોપ કોડન (ઓ) શોધાયેલ. અસરગ્રસ્ત જનીન (ઓ): {{geneList}}. ક્યુસી સ્કોર: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "અંગ્રેજી સિવાયના તમામ ટેક્સ્ટ મશીન અનુવાદનો ઉપયોગ કરીને જનરેટ કરવામાં આવે છે. ચોકસાઈની ખાતરી આપવામાં આવી નથી. કૃપા કરીને તમારા સુધારાઓ સબમિટ કરો {{ here }}"
+  "Customize": "કસ્ટમાઇઝ કરો",
+  "History": "ઇતિહાસ",
+  "Summary": "સારાંશ"
 }

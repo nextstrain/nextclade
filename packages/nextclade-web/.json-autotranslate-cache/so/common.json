@@ -40,6 +40,7 @@
   "All categories": "Dhamaan kooxaha",
   "All files in a {{formatName}} archive.": "Dhamaan fayilada oo ku jira {{formatName}} arkiisa.",
   "All substitutions ({{ n }})": "Dhamaan bedelka ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Dhammaan qoraalka marka laga reer Ingiriiska waxaa lagu sameeyo tarjim Saxiga ma dhaqaaniin. Fadlan soo gudbin saxaallkaaga {{ here }}",
   "Ambiguous markers": "Markaamada muuqaal",
   "Ambiguous:": "Muuqaal:",
   "Ambiguous: {{ambiguous}}": "Muuqaal: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} waxaa ugu wanaagsan noqooyinka ugu dambeeyay ee ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Macluumaad dheeraad ah ee horumarka (riix si aad u ballaaran)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} waayay joojin codon (s) la ogaaday. Gene (s) saameeyay: {{geneList}}. Gool QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Dhammaan qoraalka marka laga reer Ingiriiska waxaa lagu sameeyo tarjim Saxiga ma dhaqaaniin. Fadlan soo gudbin saxaallkaaga {{ here }}"
+  "Customize": "Customize",
+  "History": "Taariikhda",
+  "Summary": "Kooban"
 }

@@ -40,6 +40,7 @@
   "All categories": "Sve kategorije",
   "All files in a {{formatName}} archive.": "Sve datoteke u arhivi {{formatName}}.",
   "All substitutions ({{ n }})": "Sve zamene ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Sav tekst osim engleskog se generiše pomoću mašinskog prevođenja. Tačnost nije zagarantovana. Molimo pošaljite ispravke {{ here }}",
   "Ambiguous markers": "Dvosmisleni markeri",
   "Ambiguous:": "Dvosmisleno:",
   "Ambiguous: {{ambiguous}}": "Dvosmisleno: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} najbolje funkcioniše u najnovijim verzijama ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Dodatne informacije za programere (kliknite da biste proširili)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} otkriveni pogrešno postavljeni stop kodoni. Pogođeni geni: {{geneList}}. KC rezultat: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Sav tekst osim engleskog se generiše pomoću mašinskog prevođenja. Tačnost nije zagarantovana. Molimo pošaljite ispravke {{ here }}"
+  "Customize": "Prilagodite",
+  "History": "Istorija",
+  "Summary": "Rezime"
 }

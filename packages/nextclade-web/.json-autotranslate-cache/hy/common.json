@@ -40,6 +40,7 @@
   "All categories": "Բոլոր կատեգորիաները",
   "All files in a {{formatName}} archive.": "Բոլոր ֆայլերը {{formatName}} արխիվում:",
   "All substitutions ({{ n }})": "Բոլոր փոխարինումները ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Բոլոր տեքստը, բացի անգլերենից, գեներացվում է մեքենայական թարգմանության միջոցով: Ճշգրտությունը երաշխավորված չէ: Խնդրում ենք ներկայացնել ձեր շտկումները {{ here }}",
   "Ambiguous markers": "Երկիմաստ նշիչներ",
   "Ambiguous:": "Երկիմաստ:",
   "Ambiguous: {{ambiguous}}": "Երկիմաստ ՝ {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} -ը լավագույնս աշխատում է վերջին տարբերակներում ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Լրացուցիչ տեղեկություններ մշակողների համար (սեղմեք ընդլայնելու համար)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Հայտնաբերվել է {{totalStopCodons}} սխալ տեղադրված կանգառային կոդոն (ներ): Տուժած գեն (ներ) ՝ {{geneList}}. QC գնահատականը՝ {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Բոլոր տեքստը, բացի անգլերենից, գեներացվում է մեքենայական թարգմանության միջոցով: Ճշգրտությունը երաշխավորված չէ: Խնդրում ենք ներկայացնել ձեր շտկումները {{ here }}"
+  "Customize": "Անհատականացրեք",
+  "History": "Պատմություն",
+  "Summary": "Ամփոփում"
 }

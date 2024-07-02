@@ -40,6 +40,7 @@
   "All categories": "Semua kategori",
   "All files in a {{formatName}} archive.": "Semua file dalam arsip {{formatName}}.",
   "All substitutions ({{ n }})": "Semua pergantian ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Semua teks kecuali bahasa Inggris dihasilkan menggunakan terjemahan mesin. Akurasi tidak dijamin. Silakan kirim perbaikan Anda {{ here }}",
   "Ambiguous markers": "Penanda ambigu",
   "Ambiguous:": "Ambigu:",
   "Ambiguous: {{ambiguous}}": "Ambigu: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} bekerja paling baik di versi terbaru ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informasi tambahan untuk pengembang (klik untuk memperluas)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon stop yang salah tempat terdeteksi. Gen yang terpengaruh: {{geneList}}. Skor QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Semua teks kecuali bahasa Inggris dihasilkan menggunakan terjemahan mesin. Akurasi tidak dijamin. Silakan kirim perbaikan Anda {{ here }}"
+  "Customize": "Kustomisasi",
+  "History": "Sejarah",
+  "Summary": "Ringkasan"
 }

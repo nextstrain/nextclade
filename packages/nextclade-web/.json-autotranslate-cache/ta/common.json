@@ -40,6 +40,7 @@
   "All categories": "அனைத்து பிரிவுகளும்",
   "All files in a {{formatName}} archive.": "{{formatName}} காப்பகத்தில் உள்ள அனைத்து கோப்புகளும்.",
   "All substitutions ({{ n }})": "அனைத்து மாற்றுகளும் ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ஆங்கிலம் தவிர அனைத்து உரையும் இயந்திர மொழிபெயர்ப்பைப் பயன்படுத்தி துல்லியம் உத்தரவாதம் அளிக்கவில்லை. உங்கள் திருத்தங்களை சமர்ப்பிக்கவும் {{ here }}",
   "Ambiguous markers": "தெளிவற்ற குறிப்பான்கள்",
   "Ambiguous:": "தெளிவற்ற:",
   "Ambiguous: {{ambiguous}}": "தெளிவற்ற: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "இன் சமீபத்திய பதிப்புகளில் {{project}} சிறப்பாக வேலை செய்கிறது ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} டெவலப்பர்களுக்கான கூடுதல் தகவல் (விரிவாக்க கிளிக் செய்க)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} தவறான இடைநிறுத்தக் கோடன் (கள்) கண்டறியப்பட்டது. பாதிக்கப்பட்ட மரபணு (கள்): {{geneList}}. QC மதிப்பெண்: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ஆங்கிலம் தவிர அனைத்து உரையும் இயந்திர மொழிபெயர்ப்பைப் பயன்படுத்தி துல்லியம் உத்தரவாதம் அளிக்கவில்லை. உங்கள் திருத்தங்களை சமர்ப்பிக்கவும் {{ here }}"
+  "Customize": "தனிப்பயன்",
+  "History": "வரலாறு",
+  "Summary": "சுருக்கம்"
 }

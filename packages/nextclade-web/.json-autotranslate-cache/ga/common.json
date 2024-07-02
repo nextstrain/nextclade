@@ -40,6 +40,7 @@
   "All categories": "Gach catagóir",
   "All files in a {{formatName}} archive.": "Gach comhad i gcartlann {{formatName}}.",
   "All substitutions ({{ n }})": "Gach ionadú ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Gintear gach téacs seachas an Béarla trí aistriúchán meaisín a úsáid. Ní ráthaítear cruinneas. Cuir isteach do dheisiúcháin {{ here }}",
   "Ambiguous markers": "Marcóirí débhríoch",
   "Ambiguous:": "Débhríoch:",
   "Ambiguous: {{ambiguous}}": "Débhríoch: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "Oibríonn {{project}} is fearr sna leaganacha is déanaí de ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Faisnéis bhreise d'fhorbróirí (cliceáil chun leathnú)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} braithíodh codon (í) stad míshuite. Géin (í) a bhfuil tionchar orthu: {{geneList}}. Scór QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Gintear gach téacs seachas an Béarla trí aistriúchán meaisín a úsáid. Ní ráthaítear cruinneas. Cuir isteach do dheisiúcháin {{ here }}"
+  "Customize": "Saincheapadh",
+  "History": "Stair",
+  "Summary": "Achoimre"
 }

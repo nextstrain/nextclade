@@ -40,6 +40,7 @@
   "All categories": "सर्व श्रेणी",
   "All files in a {{formatName}} archive.": "{{formatName}} संग्रहनावरील सर्व फाइल्स.",
   "All substitutions ({{ n }})": "सर्व पर्याय ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "इंग्रजी वगळता सर्व मजकूर मशीन भाषांतर अचूकतेची हमी नाही. कृपया आपले निराकरण {{ here }} सब",
   "Ambiguous markers": "अस्पष्ट मार्",
   "Ambiguous:": "अस्पष्ट:",
   "Ambiguous: {{ambiguous}}": "अस्पष्ट: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} च्या नवीनतम आवृत्त्यांमध्ये सर्वोत्तम ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} विकसकांसाठी अतिरिक्त माहिती (विस्तार करण्यासाठी क्",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} चुकीचे ठेवलेले स्टॉप कोडन आढळले. प्रभावित जीन (या): {{geneList}}. क्यूसी स्कोअर: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "इंग्रजी वगळता सर्व मजकूर मशीन भाषांतर अचूकतेची हमी नाही. कृपया आपले निराकरण {{ here }} सब"
+  "Customize": "सानुकूल",
+  "History": "इतिहास",
+  "Summary": "सारांश"
 }

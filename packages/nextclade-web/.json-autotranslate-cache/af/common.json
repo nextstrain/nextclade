@@ -40,6 +40,7 @@
   "All categories": "Alle kategorieë",
   "All files in a {{formatName}} archive.": "Alle lêers in 'n {{formatName}} -argief.",
   "All substitutions ({{ n }})": "Alle vervangings ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Alle teks behalwe Engels word gegenereer deur masjienvertaling te gebruik. Akkuraatheid is nie gewaarborg nie. Dien asseblief jou regstellings in {{ here }}",
   "Ambiguous markers": "dubbelsinnige merkers",
   "Ambiguous:": "Dubbelsinnig:",
   "Ambiguous: {{ambiguous}}": "Dubbelsinnig: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} werk die beste in die nuutste weergawes van ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Bykomende inligting vir ontwikkelaars (klik om uit te brei)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} verkeerde stopkodon (s) opgespoor. Geaffekteerde gene (s): {{geneList}}. QC-telling: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Alle teks behalwe Engels word gegenereer deur masjienvertaling te gebruik. Akkuraatheid is nie gewaarborg nie. Dien asseblief jou regstellings in {{ here }}"
+  "Customize": "Pas aan",
+  "History": "Geskiedenis",
+  "Summary": "Opsomming"
 }

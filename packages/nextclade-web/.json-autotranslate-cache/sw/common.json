@@ -40,6 +40,7 @@
   "All categories": "Jamii zote",
   "All files in a {{formatName}} archive.": "Faili zote katika kumbukumbu ya {{formatName}}.",
   "All substitutions ({{ n }})": "Mbadala wote ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Maandishi yote isipokuwa Kiingereza hutolewa kwa kutumia tafsiri ya mashine. Usahihi hauhakikishwa. Tafadhali wasilisha marekebisho yako {{ here }}",
   "Ambiguous markers": "Alama zisizo na u",
   "Ambiguous:": "Ni dhahiri:",
   "Ambiguous: {{ambiguous}}": "Haijulikani: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} inafanya kazi vizuri katika matoleo ya hivi karibuni ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Maelezo ya ziada kwa watengenezaji (bofya kupanua)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} codon (s) ya kusimamisha zilizowekwa kugunduliwa. Jeni zilizoathiriwa: {{geneList}}. Alama ya QC: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "Maandishi yote isipokuwa Kiingereza hutolewa kwa kutumia tafsiri ya mashine. Usahihi hauhakikishwa. Tafadhali wasilisha marekebisho yako {{ here }}"
+  "Customize": "Ubinafsisha",
+  "History": "Historia",
+  "Summary": "Muhtasari"
 }

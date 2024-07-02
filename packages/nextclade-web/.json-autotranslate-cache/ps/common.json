@@ -40,6 +40,7 @@
   "All categories": "ټول کټګورۍ",
   "All files in a {{formatName}} archive.": "ټول فایلونه په {{formatName}} آرشیف کې.",
   "All substitutions ({{ n }})": "ټول بدلونه ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "د انګلیسي په پرته ټول متن د ماشین ژباړې په کار دقت تضمین نه دی. مهرباني وکړئ خپل اصلاحات {{ here }}",
   "Ambiguous markers": "ناڅرګنده مارکر",
   "Ambiguous:": "ناڅرګنده:",
   "Ambiguous: {{ambiguous}}": "ناڅرګنده: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} په وروستي نسخونو کې غوره کار کوي ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} د پرمختګانو لپاره اضافي معلومات (د پراختیا لپاره کلیک وکړئ)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} غلط ځای بند کوډون (s) موندل شو. اغیزمن جین (s): {{geneList}}. د QC نمره: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "د انګلیسي په پرته ټول متن د ماشین ژباړې په کار دقت تضمین نه دی. مهرباني وکړئ خپل اصلاحات {{ here }}"
+  "Customize": "تخصیص کړئ",
+  "History": "تاریخ",
+  "Summary": "لنډه"
 }

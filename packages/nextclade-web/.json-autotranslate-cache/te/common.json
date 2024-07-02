@@ -40,6 +40,7 @@
   "All categories": "అన్ని వర్గాలు",
   "All files in a {{formatName}} archive.": "{{formatName}} ఆర్కైవ్లోని అన్ని ఫైళ్లు.",
   "All substitutions ({{ n }})": "అన్ని ప్రత్యామ్నాయాలు ({{ n }})",
+  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ఇంగ్లీష్ మినహా అన్ని టెక్స్ట్ యంత్ర అనువాదం ఉపయోగించి ఉత్పత్తి చేయబడుతుంది. ఖచ్చితత్వానికి హామీ ఇవ్వబడలేదు. దయచేసి మీ పరిష్కారాలను సమర్పించండి {{ here }}",
   "Ambiguous markers": "అస్పష్టమైన గుర్తులు",
   "Ambiguous:": "అస్పష్టమైన:",
   "Ambiguous: {{ambiguous}}": "అస్పష్టమైన: {{ambiguous}}",
@@ -481,5 +482,7 @@
   "{{project}} works best in the latest versions of ": "{{project}} యొక్క తాజా వెర్షన్లలో ఉత్తమంగా పనిచేస్తుంది ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} డెవలపర్ల కోసం అదనపు సమాచారం (విస్తరించడానికి క్లిక్ చేయండి)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} తప్పుగా ఉంచబడిన స్టాప్ కోడాన్ (లు) కనుగొనబడింది. ప్రభావిత జన్యువు (లు): {{geneList}}. క్యూసి స్కోర్: {{score}}",
-  "All text except English is generated using machine translation. Accuracy is not guaranteed. Please submit your fixes {{ here }}": "ఇంగ్లీష్ మినహా అన్ని టెక్స్ట్ యంత్ర అనువాదం ఉపయోగించి ఉత్పత్తి చేయబడుతుంది. ఖచ్చితత్వానికి హామీ ఇవ్వబడలేదు. దయచేసి మీ పరిష్కారాలను సమర్పించండి {{ here }}"
+  "Customize": "అనుకూలీకరించండి",
+  "History": "చరిత్ర",
+  "Summary": "సారాంశం"
 }
