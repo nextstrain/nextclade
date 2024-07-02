@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react'
-import { Button as ButtonBase, CardBody } from 'reactstrap'
+import { Button as ButtonBase, ButtonProps, CardBody } from 'reactstrap'
 import styled, { useTheme } from 'styled-components'
 import { FaInfo as InfoIcon } from 'react-icons/fa6'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -12,13 +12,14 @@ import {
   useRole,
   FloatingPortal,
   autoPlacement,
+  shift,
 } from '@floating-ui/react'
 
-export interface InfoButtonProps {
+export interface InfoButtonProps extends Omit<ButtonProps, 'size'> {
   size?: number
 }
 
-export function InfoButton({ size = 18, children }: PropsWithChildren<InfoButtonProps>) {
+export function InfoButton({ size = 20, children, ...restProps }: PropsWithChildren<InfoButtonProps>) {
   const { t } = useTranslationSafe()
   const theme = useTheme()
 
@@ -26,7 +27,7 @@ export function InfoButton({ size = 18, children }: PropsWithChildren<InfoButton
   const { refs, context, floatingStyles } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
-    middleware: [autoPlacement()],
+    middleware: [shift({ padding: 5 }), autoPlacement()],
   })
   const dismiss = useDismiss(context)
   const focus = useFocus(context)
@@ -41,6 +42,7 @@ export function InfoButton({ size = 18, children }: PropsWithChildren<InfoButton
         title={t('Click to get help information')}
         $size={size}
         {...getReferenceProps({ onClick: toggle })}
+        {...restProps}
       >
         <Icon color={theme.primary} size={size * 0.66} />
       </Button>
@@ -59,9 +61,6 @@ export function InfoButton({ size = 18, children }: PropsWithChildren<InfoButton
 
 const Floating = styled.div`
   z-index: 1005;
-  width: 500px;
-  max-width: 80vw;
-  max-height: 80vh;
 `
 
 const Card = styled.div`
@@ -70,10 +69,13 @@ const Card = styled.div`
   border-radius: 5px;
   height: 100%;
   background-color: ${(props) => props.theme.bodyBg};
+  max-height: 80vh;
+  max-width: 80vw;
+  width: 500px;
 `
 
 const Button = styled.button<{ $size?: number }>`
-  display: flex;
+  display: inline-flex;
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
   border-radius: ${(props) => props.$size}px;

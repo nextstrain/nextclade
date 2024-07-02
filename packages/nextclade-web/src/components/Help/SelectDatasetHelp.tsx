@@ -32,12 +32,11 @@ export function SelectDatasetHelp() {
         )}
       </p>
 
-      <p>
-        {t('Learn more about Nextclade datasets in the {{documentation}}')}
-        <LinkExternal href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html">
+      <p className="p-0 m-0 small">
+        {t('Learn more in Nextclade {{documentation}}')}
+        <LinkExternal href="https://docs.nextstrain.org/projects/nextclade/en/stable">
           {t('documentation')}
         </LinkExternal>
-        {t('.')}
       </p>
     </InfoButton>
   )

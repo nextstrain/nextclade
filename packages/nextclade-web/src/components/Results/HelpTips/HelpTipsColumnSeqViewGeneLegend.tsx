@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-
 import { AMINOACID_COLORS } from 'src/helpers/getAminoacidColor'
 import { Col, Row } from 'reactstrap'
 
@@ -13,6 +12,7 @@ export const Legend = styled.div`
 
 export const LegendItem = styled.div`
   display: flex;
+  margin: 3px;
 `
 
 export const LegendColorBox = styled.span`
@@ -41,7 +41,7 @@ export function splitToColumns(obj: { [key: string]: string }, colSize: number) 
 }
 
 export function HelpTipsColumnSeqViewGeneLegend() {
-  const columns = splitToColumns(AMINOACID_COLORS, 4)
+  const columns = splitToColumns(AMINOACID_COLORS, 5)
 
   return (
     <Legend>
