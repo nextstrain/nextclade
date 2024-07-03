@@ -1,3 +1,17 @@
+## Nextclade 3.8.0
+
+### Relative mutations
+
+Nextclade now calls mutations relative to multiple targets. Additionally to previously available mutations relative to reference and mutations relative to parent tree node (private mutations), Nextclade now calls mutations relative to clade founder tree nodes, and relative to custom nodes of interest if defined in the dataset (e.g. vaccine strains).
+
+Nextclade Web now has an additional dropdown selector for the target of mutation calling. Output files has new columns/fields for mutations relative to clade founders (`founderMuts`) as well as for mutations relative to custom nodes (`relativeMutations`).
+
+See [documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/05-mutation-calling.html) for more details.
+
+### Update Auspice tree visualization to 2.56.0
+
+Auspice tree visualization package has been updated from 2.55.0 to 2.56.0. See Auspice changelog [here](https://github.com/nextstrain/auspice/releases).
+
 ## Nextclade 3.7.4
 
 ### Nextclade Web
