@@ -177,13 +177,11 @@ Nextclade CLI will warn users when input datasets contains extra files which are
 
 We added one more build variant to Bioconda distribution channel - for Linux operating system on 64-bit ARM hardware architecture. It uses `nextclade-aarch64-unknown-linux-gnu` executable underneath. This can be useful if you prefer to manage Nextclade CLI installation on your Linux ARM machine or in a Docker ARM container with Conda package manager. However, because Nextclade CLI is a self-contained single-file executable, we still recommend [direct downloads from GitHub Releases](https://github.com/nextstrain/nextclade/releases) rather than Conda or other installation methods.
 
-## Nextclade CLI 3.3.1
+## Nextclade 3.3.1
 
 ### Fix crash when using `--verbosity` option
 
 Nextclade was crashing with internal error when `--verbosity` option was present. This has been fixed.
-
-## Nextclade Web 3.3.1
 
 ### Restrict Safari browser support to >= 16.5
 
@@ -249,7 +247,7 @@ Due to popular demand, we are bringing back `--input-pcr-primers` argument for N
 
 Results table stripes are always alternating now, regardless of sorting and filtering applied. This is only a visual change and does not affect any functionality.
 
-## Nextclade CLI 3.0.1
+## Nextclade 3.0.1
 
 #### Bug fixes
 
@@ -261,11 +259,11 @@ Results table stripes are always alternating now, regardless of sorting and filt
 
 - Added a section to the v3 migration guide about the renamed default path for translations, a breaking change. The new default output path for translations is `nextclade.cds_translation.{cds}.fasta`. Before v3, the default path was `nextclade_gene_{gene}.translation.fasta`. You can emulate the old (default) behavior by passing `--output-translations="nextclade_gene_{cds}.translation.fasta"` to `nextclade3`.
 
-## Nextclade Web 3.0.1
+### Fix links
 
 Fixed links on navigation bar: "Docs" and "CLI"
 
-## 3.0.0
+## Nextclade 3.0.0
 
 We are happy to present a major release of Nextclade, containing new features and bug fixes.
 
@@ -544,4 +542,4 @@ The change in genome annotation handling had significant consequences for coordi
 
 ## Older versions
 
-For changes in Nextclade v2 and below, see [docs/changes/CHANGELOG.old.md](docs/changes/CHANGELOG.old.md)
+For changes in older versions, see [docs/changes/CHANGELOG.old.md](https://github.com/nextstrain/nextclade/blob/master/docs/changes/CHANGELOG.old.md)
