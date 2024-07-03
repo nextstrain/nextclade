@@ -19,24 +19,6 @@ interface Option {
   description?: string
 }
 
-const builtinRefs: Option[] = [
-  {
-    value: REF_NODE_ROOT,
-    label: 'Reference',
-    description: 'Reference sequence',
-  },
-  {
-    value: REF_NODE_PARENT,
-    label: 'Parent',
-    description: 'Nearest node on reference tree',
-  },
-  {
-    value: REF_NODE_CLADE_FOUNDER,
-    label: 'Clade founder',
-    description: 'Earliest ancestor node with the same clade on reference tree',
-  },
-]
-
 export function RefNodeSelector() {
   const { t } = useTranslationSafe()
 
@@ -63,6 +45,24 @@ export function RefNodeSelector() {
           }),
         }
       })
+
+    const builtinRefs: Option[] = [
+      {
+        value: REF_NODE_ROOT,
+        label: t('Reference'),
+        description: t('Reference sequence'),
+      },
+      {
+        value: REF_NODE_PARENT,
+        label: t('Parent'),
+        description: t('Nearest node on reference tree'),
+      },
+      {
+        value: REF_NODE_CLADE_FOUNDER,
+        label: t('Clade founder'),
+        description: t('Earliest ancestor node with the same clade on reference tree'),
+      },
+    ]
 
     const options = [...builtinRefs, ...cladeNodeAttrFounders, ...refs]
     const currentOption = options.find((o) => o.value === currentRefNodeName)

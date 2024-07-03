@@ -1,5 +1,6 @@
 import classnames from 'classnames'
 import React, { PropsWithChildren, useCallback, useState } from 'react'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 import {
   Nav as NavBase,
@@ -16,6 +17,7 @@ import { DatasetContentTabAdvanced } from 'src/components/Main/DatasetContentTab
 import { DatasetCustomizationIndicator } from 'src/components/Main/DatasetCustomizationIndicator'
 
 export function DatasetContentSection() {
+  const { t } = useTranslationSafe()
   const [activeTabId, setActiveTabId] = useState(0)
   const currentDataset = useRecoilValue(datasetCurrentAtom)
   return (
@@ -23,17 +25,17 @@ export function DatasetContentSection() {
       <Nav tabs>
         {currentDataset?.files?.readme && (
           <TabLabel tabId={0} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-            {'Summary'}
+            {t('Summary')}
           </TabLabel>
         )}
         {currentDataset?.files?.changelog && (
           <TabLabel tabId={1} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-            {'History'}
+            {t('History')}
           </TabLabel>
         )}
         {currentDataset && (
           <TabLabel tabId={2} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-            {'Customize'}
+            {t('Customize')}
             <DatasetCustomizationIndicator />
           </TabLabel>
         )}
