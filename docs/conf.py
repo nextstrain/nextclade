@@ -96,3 +96,13 @@ html_theme_options = {
 
 intersphinx_mapping = {
 }
+
+
+# Force full rebuild, including updating static files (such as custom css)
+# https://github.com/sphinx-doc/sphinx/issues/2090#issuecomment-572902572
+def env_get_outdated(app, env, added, changed, removed):
+  return ['index']
+
+
+def setup(app):
+  app.connect('env-get-outdated', env_get_outdated)
