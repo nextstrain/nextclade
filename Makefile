@@ -77,5 +77,6 @@ docker-paper-preprint:
 	--volume="$(shell pwd):/home/user/src" \
 	--workdir="/home/user/src" \
 	--env "TERM=xterm-256colors" \
+	--ulimit core=0 \
 	"$${CONTAINER_IMAGE_NAME}" \
 		bash -c "make paper-preprint"
