@@ -19,8 +19,11 @@ help:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-autobuild:
+autobuild: clean
 	sphinx-autobuild --host=0.0.0.0 --port=8000 . build/html
 
 linkcheck:
 	sphinx-build -b linkcheck $(SOURCEDIR) $(BUILDDIR)/linkcheck $(SPHINXOPTS) $(O)
+
+clean:
+	rm -rf "$(BUILDDIR)"
