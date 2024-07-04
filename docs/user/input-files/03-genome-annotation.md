@@ -2,7 +2,7 @@
 
 A tab separated table describing the genes of the virus (name, frame, position, etc.)
 
-The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of amino acid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and amino acid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](../algorithm/01-sequence-alignment) and [Algorithm: Translation](../algorithm/02-translation)).
+The annotation is required for codon-aware alignment, for translation of CDS (CoDing Sequences), and for calling of amino acid mutations. Without annotation (sometimes called genemap), peptide sequences will not be output and amino acid mutations will not be detected. Without annotation the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](../algorithm/01-sequence-alignment.md) and [Algorithm: Translation](../algorithm/02-translation.md)).
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3%2Emd).
 
@@ -22,7 +22,7 @@ When a linked `gene` and `CDS` are present (`CDS`s specify their parents by list
 
 Example gene map for SARS-CoV-2:
 
-```tsv
+```
 # seqname	source	feature	start	end	score	strand	frame	attribute
 .	.	gene	266	21555	.	+	.	gene=ORF1ab;ID=gene-ORF1ab
 .	.	CDS	266	13468	.	+	.	gene=ORF1ab;ID=cds-ORF1ab;Parent=gene-ORF1ab
@@ -49,4 +49,4 @@ Note: For historical reasons, Nextclade uses _gene name_ when it really means _C
 
 It is recommended that the `gene` attribute is used to specify the gene/CDS name.
 
-> 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression) for more details.
+> 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression.md) for more details.

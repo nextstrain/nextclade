@@ -1,6 +1,6 @@
 # Usage
 
-> This section assumes you've installed Nextclade CLI, it's available in your system path as `nextclade` and has executable permissions. If not, please refer to [installation](installation) section for more information.
+> This section assumes you've installed Nextclade CLI, it's available in your system path as `nextclade` and has executable permissions. If not, please refer to [installation](installation/index.rst) section for more information.
 
 Refer to the help prompt for usage of Nextclade by running it without any arguments or with `--help`:
 
@@ -29,7 +29,7 @@ nextclade dataset get --help
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
-   > 💡️ This command will download the latest SARS-CoV-2 dataset. You should run it periodically to update the dataset, in order to get the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](../datasets) section.
+   > 💡️ This command will download the latest SARS-CoV-2 dataset. You should run it periodically to update the dataset, in order to get the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](../datasets.md) section.
 
 2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
@@ -76,25 +76,25 @@ nextclade dataset get --help
 
    There are more advanced arguments to control alignment and other parts of the algorithm. Refer to `nextclade run --help` for more details.
 
-   You can learn more about input and output files in sections: [Input files](../input-files), [Output files](../output-files) and [Nextclade datasets](../datasets). Read the built-in help (`nextclade --help`) for a detailed description of each subcommand and each flag.
+   You can learn more about input and output files in sections: [Input files](../input-files/index.rst), [Output files](../output-files/index.rst) and [Nextclade datasets](../datasets.md). Read the built-in help (`nextclade --help`) for a detailed description of each subcommand and each flag.
 
 3. Find the output files in the `output/` directory:
 
-   - `nextclade.aligned.fasta` - aligned input sequences
-   - `nextclade_cds_<cds_name>.translation.fasta` - aligned peptides corresponding to each coding sequence (CDS)
-   - `nextclade.tsv` - results of the analysis in TSV format
-   - `nextclade.csv` - same results, but in CSV format
-   - `nextclade.json` - detailed results of the analysis in JSON format
-   - `nextclade.ndjson` - detailed results of the analysis in newline-delimited JSON format
-   - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it and in Auspice v2 JSON format
-   - `nextclade.tree.nwk` - same as input tree, but with the input sequences placed onto it and in Newick format
+  - `nextclade.aligned.fasta` - aligned input sequences
+  - `nextclade_cds_<cds_name>.translation.fasta` - aligned peptides corresponding to each coding sequence (CDS)
+  - `nextclade.tsv` - results of the analysis in TSV format
+  - `nextclade.csv` - same results, but in CSV format
+  - `nextclade.json` - detailed results of the analysis in JSON format
+  - `nextclade.ndjson` - detailed results of the analysis in newline-delimited JSON format
+  - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it and in Auspice v2 JSON format
+  - `nextclade.tree.nwk` - same as input tree, but with the input sequences placed onto it and in Newick format
 
 ## What's next?
 
 Congratulations, You have learned how to use Nextclade CLI!
 
-Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](../algorithm) section. The required input data is described in [Input files](../input-files) section. And produced files are described in [Output files](../output-files) section. The datasets are described in more details in the [Nextclade datasets](../datasets) section.
+Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](../algorithm/index.rst) section. The required input data is described in [Input files](../input-files/index.rst) section. And produced files are described in [Output files](../output-files/index.rst) section. The datasets are described in more details in the [Nextclade datasets](../datasets.md) section.
 
-For a more convenient online tool, check out [Nextclade Web](../nextclade-web).
+For a more convenient online tool, check out [Nextclade Web](../nextclade-web/index.rst).
 
 Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want report a bug, suggest a feature, or contribute code.

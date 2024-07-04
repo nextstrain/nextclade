@@ -4,7 +4,7 @@ Nextclade Web: download `nextclade.auspice.json` or `nextclade.nwk`
 
 Nextclade CLI flags: `--output-tree`/`-T` or `--output-tree-nwk`
 
-Output phylogenetic tree. This is the input [reference tree](../input-files/04-reference-tree.md), with [query sequences](../input-files/01-sequence-data.md) placed onto it during the [phylogenetic placement step](../algorithm/05-phylogenetic-placement).
+Output phylogenetic tree. This is the input [reference tree](../input-files/04-reference-tree.md), with [query sequences](../input-files/01-sequence-data.md) placed onto it during the [phylogenetic placement step](../algorithm/03-phylogenetic-placement.md).
 
 The tree comes either in Auspice JSON v2 format or in Newick format.
 

@@ -526,19 +526,19 @@ See Nextclade CLI user documentation for more details about available command in
 
 To provide Nextclade with the alternative location of the dataset server, add the `dataset-server` URL parameter with value set to URL of the custom dataset server:
 
-```url
+```
 https://clades.nextstrain.org?dataset-server=http://example.com
 ```
 
 Local URLs should also work:
 
-```url
+```
 https://clades.nextstrain.org?dataset-server=http://localhost:3001
 ```
 
 Combining locally built Nextclade Web and local dataset server too:
 
-```url
+```
 https://localhost:3000?dataset-server=http://localhost:3001
 ```
 

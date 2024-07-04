@@ -124,11 +124,11 @@ A set of entries describing [CDS](#cds) for a particular virus. This includes na
 
 The process of arranging [Query sequence](#query-sequence) against [Reference sequence](#reference-sequence) (or [Query peptide](#query-peptide) against [Reference peptide](#reference-peptide)) to identify regions of similarity that may be a consequence of functional, structural, or evolutionary relationships between the sequences.
 
-During alignment, the fragments of the query sequence are compared to the fragments of the reference sequence, the similarities are identified and the fragments are repositioned such that to increase similarity. The resulting [aligned sequences](#alignment-result) allow comparisons on nucleotide (or aminoacid) level and to perform further analysis for example deducing mutations and other features of practical interest).
+During alignment, the fragments of the query sequence are compared to the fragments of the reference sequence, the similarities are identified and the fragments are repositioned such that to increase similarity. The resulting [aligned sequences](#alignment-result) allow comparisons on nucleotide (or aminoacid) level and to perform further analysis for example deducing mutations and other features of practical interest.
 
 (this definition is adapted with modifications from: [wikipedia: Sequence alignment](https://en.wikipedia.org/wiki/Sequence_alignment))
 
-See [Algorithm: phylogenetic placement](algorithm#alignment) for more details.
+See [Algorithm: phylogenetic placement](algorithm/01-sequence-alignment.md) for more details.
 
 ### Alignment (result)
 
@@ -146,9 +146,9 @@ See also: [Wikipedia: Clade](https://en.wikipedia.org/wiki/Clade)
 
 ### Phylogenetic placement
 
-The process of adding [New nodes](#new-node) to the the [Reference](#reference-tree-concept) tree.
+The process of adding [New nodes](#new-node) to the [Reference](#reference-tree-concept) tree.
 
-See [Algorithm: phylogenetic placement](algorithm#phylogenetic-placement) for more details.
+See [Algorithm: phylogenetic placement](algorithm/03-phylogenetic-placement.md) for more details.
 
 ### Analysis
 

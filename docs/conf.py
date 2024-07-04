@@ -13,11 +13,8 @@
 import os
 import sys
 from datetime import datetime
-sys.path.insert(0, os.path.abspath('.'))
 
-# At top on conf.py (with other import statements)
-import recommonmark
-from recommonmark.transform import AutoStructify
+sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
@@ -25,21 +22,20 @@ project = 'Nextclade'
 copyright = f'2020-{datetime.now().year}, Trevor Bedford and Richard Neher'
 author = 'The Nextstrain Team'
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'recommonmark',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.mathjax',
-    'sphinx_markdown_tables',
-    'sphinxarg.ext',
-    'sphinx.ext.autodoc',
-    'sphinx_tabs.tabs',
-    'nextstrain.sphinx.theme',
+  'myst_parser',
+  'sphinx.ext.intersphinx',
+  'sphinx.ext.mathjax',
+  'sphinx_markdown_tables',
+  'sphinxarg.ext',
+  'sphinx.ext.autodoc',
+  'sphinx_tabs.tabs',
+  'nextstrain.sphinx.theme',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,10 +45,28 @@ templates_path = ['templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = [
-    "README.md"
-    "dev/**/*"
+  "README.md",
+  "assets/**",
+  "build/**",
+  "changes/CHANGELOG.old.md",
+  "dev/docs-meta.md",
+  "dev/old-versions.md",
 ]
 
+myst_enable_extensions = [
+  "amsmath",
+  "dollarmath",
+  "linkify",
+  "strikethrough",
+]
+myst_heading_anchors = 6
+myst_gfm_only = False  # For math to work. GitHub renders this syntax just fine though.
+myst_linkify_fuzzy_links = False
+myst_url_schemes = ["mailto", "http", "https"]
+
+suppress_warnings = [
+  "myst.header"
+]
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -67,30 +81,18 @@ html_theme = 'nextstrain-sphinx-theme'
 html_static_path = ['_static']
 
 html_css_files = [
-    'css/custom.css',
+  'css/custom.css',
 ]
 
 html_favicon = '_static/favicon.ico'
 
 html_theme_options = {
-    'logo_only': False,
-    'collapse_navigation': False,
-    'titles_only': True,
+  'logo_only': False,
+  'collapse_navigation': False,
+  'titles_only': True,
 }
-
 
 # -- Cross-project references ------------------------------------------------
 
 intersphinx_mapping = {
 }
-
-
-# At the bottom of conf.py
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-        'url_resolver': lambda url: github_doc_root + url,
-        'auto_toc_tree_section': 'Contents',
-        'enable_math': True,
-        'enable_inline_math': True,
-    }, True)
-    app.add_transform(AutoStructify)
