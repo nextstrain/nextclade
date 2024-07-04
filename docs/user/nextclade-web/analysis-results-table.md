@@ -7,13 +7,13 @@ Nextclade analyzes your sequences locally in your browser. Sequences never leave
 The analysis pipeline comprises the following steps:
 
 1. Sequence alignment: Sequences are aligned to the reference genome using a banded Waterman-Smith sequence alignment algorithm.
-1. Translation: Coding nucleotide segments are extracted and translated to amino acid sequences.
-1. Mutation calling: Nucleotide and amino acid changes relative to the reference are identified
-1. Phylogenetic placement: Sequences are placed on a reference tree, private mutations are identified
-1. Clade assignment: Clades are inferred from the place the sequence attached on the reference tree
-1. Quality Control (QC): Quality control metrics are calculated
+2. Translation: Coding nucleotide segments are extracted and translated to amino acid sequences.
+3. Mutation calling: Nucleotide and amino acid changes relative to the reference are identified
+4. Phylogenetic placement: Sequences are placed on a reference tree, private mutations are identified
+5. Clade assignment: Clades are inferred from the place the sequence attached on the reference tree
+6. Quality Control (QC): Quality control metrics are calculated
 
-See the [Algorithm](algorithm) section of these docs for more details.
+See the [Algorithm](../algorithm/index.rst) section of these docs for more details.
 
 You can get a quick overview of the results screen in the screenshot below:
 ![Results overview](../assets/web_overview.png)
@@ -24,7 +24,7 @@ Nextclade implements a variety of quality control metrics to quickly spot proble
 
 ![QC hover](../assets/web_QC.png)
 
-Every icon corresponds to a different metric. See [Quality control](algorithm/07-quality-control) section for the detailed explanation of QC metrics.
+Every icon corresponds to a different metric. See [Quality control](../algorithm/06-quality-control.md) section for the detailed explanation of QC metrics.
 
 > Bear in mind that QC metrics are heuristics and that good quality sequences can occasionally fail some of the metrics (e.g. due to recombination or absence of close relatives in the reference tree).
 
@@ -72,6 +72,6 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 
 ### Next steps
 
-After the analysis is complete, you can view the phylogenetic tree with your sequences placed on it: See [Phylogenetic tree view](phylogenetic-tree-view) for details.
+After the analysis is complete, you can view the phylogenetic tree with your sequences placed on it: See [Phylogenetic tree view](phylogenetic-tree-view.md) for details.
 
 You can also download the analysis results in a variety of formats: See [Export](export) for details.

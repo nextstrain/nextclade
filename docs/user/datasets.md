@@ -26,7 +26,7 @@ Optionally, a dataset can contain the following additional files:
 - a changelog file describing changes between versions (`CHANGELOG.md`)
 - example sequence data for testing and demonstration (`sequences.fasta`)
 
-For in-depth documentation of the input files, see: [Input files](input-files)
+For in-depth documentation of the input files, see: [Input files](input-files/index.rst)
 
 An instance of a dataset is a directory containing the dataset files or an equivalent zip archive.
 

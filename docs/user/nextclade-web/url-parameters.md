@@ -1,10 +1,10 @@
 ## URL parameters
 
-Nextclade Web can be configured using URL parameters. The names of the parameters match or are similar to the corresponding arguments of [Nextclade CLI](../nextclade-cli).
+Nextclade Web can be configured using URL parameters. The names of the parameters match or are similar to the corresponding arguments of [Nextclade CLI](../nextclade-cli/index.rst).
 
 These URL parameters allow to construct URLs for navigation to Nextclade Web already preconfigured with certain dataset and to feed input sequence data and other files from remote locations. This might be useful for testing new datasets as well as for third-party integrations.
 
-This section assumes basic knowledge about how Nextclade Web works as well as about input files and datasets. You can learn more about input files and datasets in the dedicated sections: [Input files](../input-files), and [Nextclade datasets](../datasets).
+This section assumes basic knowledge about how Nextclade Web works as well as about input files and datasets. You can learn more about input files and datasets in the dedicated sections: [Input files](../input-files/index.rst), and [Nextclade datasets](../datasets.md).
 
 All URL parameters are optional. If all parameters are omitted, Nextclade Web behaves normally. Adding a parameter configures certain aspect of the application:
 
@@ -25,7 +25,7 @@ If an `input-fasta` URL parameter is provided, Nextclade Web automatically start
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 
-```url
+```
 https://clades.nextstrain.org?dataset-name=sars-cov-2
     &input-fasta=https://example.com/sequences.fasta
 ```
@@ -38,13 +38,13 @@ In this case, Nextclade will download the latest SARS-CoV-2 dataset and the prov
 
 The special value `&input-fasta=example` will instruct Nextclade to use the example sequences of the dataset (this option is useful for demonstration purposes as users will not need to click anything):
 
-```url
+```
 https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=example
 ```
 
 Multiple files can be specified, for example the sequences and the reference tree:
 
-```url
+```
 https://clades.nextstrain.org
     ?dataset-name=sars-cov-2
     &input-fasta=https://example.com/sequences.fasta
@@ -53,7 +53,7 @@ https://clades.nextstrain.org
 
 Another dataset can be specified with `dataset-name`:
 
-```url
+```
 https://clades.nextstrain.org
     ?dataset-name=flu_h3n2_ha
     &input-fasta=https://example.com/flu_sequences.fasta
@@ -61,25 +61,25 @@ https://clades.nextstrain.org
 
 A custom dataset server can be specified using `dataset-server` param. In this case the dataset list (index) will be downloaded from this server instead of the default. Example:
 
-```url
+```
 https://clades.nextstrain.org?dataset-server=http://example.com
 ```
 
 Local URLs should also work:
 
-```url
+```
 https://clades.nextstrain.org?dataset-server=http://localhost:8080
 ```
 
 All mentioned parameters accept the usual full HTTP URLs
 
-```url
+```
 https://clades.nextstrain.org?dataset-url=http://example.com/path/to/dataset
 ```
 
 as well as URLs to GitHub repos:
 
-```txt
+```text
 ?dataset-url=https://github.com/owner/repo
 ?dataset-url=https://github.com/owner/repo/tree/branch
 ?dataset-url=https://github.com/owner/repo/blob/branch/path/to/file
@@ -87,7 +87,7 @@ as well as URLs to GitHub repos:
 
 as well as shortcuts to GitHub repos in the following format:
 
-```txt
+```text
 ?dataset-url=gh:owner/repo
 ?dataset-url=gh:owner/repo/path/to/file
 ?dataset-url=gh:owner/repo@branch@

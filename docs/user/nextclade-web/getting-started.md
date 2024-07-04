@@ -1,7 +1,7 @@
 ## Getting started
 
 | <video controls autoplay loop muted src="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4" width="680"></video>                                                                  |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Brief video demonstration of Nextclade Web features. A high resolution version is available <a target="_blank" href="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4">here</a>. |
 
 Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
@@ -28,9 +28,9 @@ There are a number of options for providing input data to Nextclade, including:
 - Provide a URL (link) to a file publicly available on the internet: click the "Link" tab and paste the URL
 - Paste sequence data from clipboard: click the "Paste" tab and paste the fasta data
 - Select example sequences: click "Examples" and choose a pathogen from the menu.
-- Provide an `input-fasta` URL parameter (See [URL parameters](./url-parameters))
+- Provide an `input-fasta` URL parameter (See [URL parameters](./url-parameters.md))
 
-We recommend to analyze at most a few hundred sequences at a time in Nextclade Web. On high-end hardware, Nextclade web can handle up to around 50 MB of input FASTA data. If you need to analyze more sequences, try the command-line version of Nextclade called [Nextclade CLI](../nextclade-cli) which can handle arbitrarily large datasets (300 GB and more).
+We recommend to analyze at most a few hundred sequences at a time in Nextclade Web. On high-end hardware, Nextclade web can handle up to around 50 MB of input FASTA data. If you need to analyze more sequences, try the command-line version of Nextclade called [Nextclade CLI](../nextclade-cli/index.rst) which can handle arbitrarily large datasets (300 GB and more).
 
 In order to allow trying out Nextclade without your own sequences, Nextclade provides example sequences for all supported viruses. You can load example sequences by clicking on "Example" and selecting one of the provided viruses/datasets:
 
@@ -38,7 +38,7 @@ In order to allow trying out Nextclade without your own sequences, Nextclade pro
 
 ### 2. Select a dataset
 
-Besides input sequences, Nextclade needs to know which dataset to use to perform the analysis. A dataset is a set of files that configures Nextclade to work with a particular virus or strain. For example, a SARS-CoV-2 dataset contains a SARS-CoV-2 specific reference genome, a genome annotation, a reference tree, and other configuration files. You can learn more about datasets in the [Datasets](../datasets) section.
+Besides input sequences, Nextclade needs to know which dataset to use to perform the analysis. A dataset is a set of files that configures Nextclade to work with a particular virus or strain. For example, a SARS-CoV-2 dataset contains a SARS-CoV-2 specific reference genome, a genome annotation, a reference tree, and other configuration files. You can learn more about datasets in the [Datasets](../datasets.md) section.
 
 Most users don't need to worry about the dataset files, because Nextclade provides datasets for a variety of viruses out of the box. The only thing you need to do is to choose an appropriate dataset for your sequences.
 
@@ -57,8 +57,8 @@ On the dataset page you can see the list of all existing datasets. The subset of
 
 On that page You can also find some information about dataset in the "Summary" tab. As well as a history of changes in the "History" tab.
 
-Advanced users may override dataset files on the "Customize" tab. This requires good understanding of [Input files](../input-files) and of the [Nextclade algorithms](../algorithm).
+Advanced users may override dataset files on the "Customize" tab. This requires good understanding of [Input files](../input-files/index.rst) and of the [Nextclade algorithms](../algorithm/index.rst).
 
 ### 3. Run the analysis
 
-Once you are happy with the set of sequences and with the selected dataset, click "Run" to start the analysis. Nextclade will then automatically navigate to the [analysis results page](analysis-results-table).
+Once you are happy with the set of sequences and with the selected dataset, click "Run" to start the analysis. Nextclade will then automatically navigate to the [analysis results page](analysis-results-table.md).

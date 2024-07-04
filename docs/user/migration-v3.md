@@ -104,7 +104,7 @@ It might be that it does not require parameter tuning anymore. If you observe se
 
 Nextclade v3 now has the ability to phylogenetically resolve relationships between input sequences, where v2 would only attach sequences to the reference tree. Nextclade v3 thus may produce trees that are different from the trees produced in Nextclade v2.
 
-Please read the [Phylogenetic placement](algorithm/05-phylogenetic-placement) section in the documentation for more details.
+Please read the [Phylogenetic placement: Tree building](algorithm/03-phylogenetic-placement.md#tree-building) section in the documentation for more details.
 
 ##### Migration paths
 

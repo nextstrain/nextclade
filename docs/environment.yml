@@ -2,14 +2,15 @@ name: docs.clades.nextstrain.org
 channels:
   - defaults
 dependencies:
+  - linkify-it-py
   - make
-  - recommonmark
+  - myst-parser
+  - pip
   - requests
   - sphinx
-  - pip
   - pip:
     - nextstrain-sphinx-theme>=2022.5
-    - sphinx-markdown-tables
     - sphinx-argparse
-    - sphinx-tabs
     - sphinx-autobuild
+    - sphinx-markdown-tables
+    - sphinx-tabs

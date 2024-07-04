@@ -32,7 +32,7 @@ Example:
 }
 ```
 
-See [Input files](../input-files) section for more details.
+See [Input files](../input-files/index.rst) section for more details.
 
 ### Optional
 
@@ -54,7 +54,7 @@ Example:
 
 #### `qc`
 
-Optional. Quality control (QC) configuration. If not provided, Nextclade does not do any QC checks. Details of the QC algorithms and their parameters are described in [Algorithm: Quality control](../algorithm/07-quality-control).
+Optional. Quality control (QC) configuration. If not provided, Nextclade does not do any QC checks. Details of the QC algorithms and their parameters are described in [Algorithm: Quality control](../algorithm/06-quality-control.md).
 
 > ⚠️ Positions in the input files are 0-indexed and ranges are semi-open (ends are excluded). So `ORF3a:257-276` should be encoded as `{"begin": 256, "end": 276 }`.
 
@@ -179,4 +179,4 @@ TODO
 
 TODO
 
-> 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression) for more details.
+> 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression.md) for more details.
