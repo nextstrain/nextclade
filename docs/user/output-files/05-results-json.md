@@ -30,7 +30,7 @@ NDJSON file (newline-delimited JSON) combines only `results` and `errors` arrays
 >
 > <br/>
 >
-> Care should be taken to check for `errors`, `warnings` and `failedCdses` columns or fields, to avoid treating missing or empty entries incorrectly. For example if and `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
+> Care should be taken to check for `errors`, `warnings` and `failedCdses` columns or fields, to avoid treating missing or empty entries incorrectly. For example if an `errors` column is non-empty in the TSV output file, it means that the sequence processing failed completely, and treating the empty `substitutions` column as if no mutations detected is incorrect.
 >
 > <br/>
 >
