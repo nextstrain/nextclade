@@ -1,0 +1,39 @@
+# Trigger rebuild in https://github.com/nextstrain/docker-base
+name: nextstrain-docker-base
+
+on:
+  release:
+    types:
+      - published
+
+  repository_dispatch:
+    types: nextstrain-docker-base
+
+  workflow_dispatch:
+
+  workflow_call:
+
+concurrency:
+  group: nextstrain-docker-base-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+env:
+  GITHUB_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  VERBOSE: 1
+
+jobs:
+
+  trigger-build-nextstrain-docker-base:
+    if: "!github.event.release.prerelease"
+
+    name: "Trigger build in nextstrain/docker-base"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - run: gh workflow run ci.yml --repo nextstrain/docker-base
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_NEXTSTRAIN_BOT_WORKFLOW_DISPATCH }}
