@@ -6,13 +6,6 @@ on:
     types:
       - released
 
-  repository_dispatch:
-    types: nextstrain-docker-base
-
-  workflow_dispatch:
-
-  workflow_call:
-
 concurrency:
   group: nextstrain-docker-base-${{ github.workflow }}-${{ github.ref_type }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
