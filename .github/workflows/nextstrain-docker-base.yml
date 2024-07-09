@@ -4,7 +4,7 @@ name: nextstrain-docker-base
 on:
   release:
     types:
-      - published
+      - released
 
   repository_dispatch:
     types: nextstrain-docker-base
@@ -28,8 +28,6 @@ env:
 jobs:
 
   trigger-build-nextstrain-docker-base:
-    if: "!github.event.release.prerelease"
-
     name: "Trigger build in nextstrain/docker-base"
     runs-on: ubuntu-22.04
 
