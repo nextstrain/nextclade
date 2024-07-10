@@ -355,7 +355,7 @@ fn rel_mut_cols(desc: &AuspiceRefNodeSearchDesc) -> [String; 5] {
 }
 
 fn insert_after<T>(v: &mut Vec<T>, index: usize, val: T) {
-  if index > v.len() {
+  if index >= v.len() {
     v.push(val);
   } else {
     v.insert(index + 1, val);
