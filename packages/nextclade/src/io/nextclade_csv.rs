@@ -108,10 +108,9 @@ impl CsvColumnConfig {
 
       let categories = categories
         .into_iter()
-        .filter(|category| !matches!(category, CsvColumnCategory::Dynamic)) // Dynamic columns are handled specially
-        .map(|category| {
-          let columns = CSV_COLUMN_CONFIG_MAP_DEFAULT.get(&category).unwrap().clone();
-          (category, columns)
+        .filter_map(|category| {
+          let columns = CSV_COLUMN_CONFIG_MAP_DEFAULT.get(&category)?.clone();
+          Some((category, columns))
         })
         .collect();
 
