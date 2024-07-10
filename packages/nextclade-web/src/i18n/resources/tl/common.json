@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Tagapagtatag ng Clade” - nagpapakita ng mga mutasyon na nauugnay sa tagapagtatag ng clade na itinalaga sa sample ng query. Tandaan na ang mga query mula sa iba't ibang clade ay ihahambing sa iba't ibang mga target sa kasong ito.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Magulang” - nagpapakita ng mga pribadong mutasyon, ibig sabihin, mga mutasyon na nauugnay sa magulang (pinakamalapit) node ng sanggunian na puno kung saan nakalakip ang sample ng query sa panahon ng phylogenic na paglalagay.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Sanggunian” - nagpapakita ng mga mutasyon na kaugnay sa pagkakasunud-sunod ng sanggunian (tulad ng tinukoy sa dataset).",
-  "'{{ attr }}' founder": "Tagapagtatag ng ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "Tagapagtatag ng “ {{ attr }} \"",
   "(truncated)": "(pinutol)",
   "* Current value. This amount can change depending on load": "* Kasalukuyang halaga. Ang halagang ito ay maaaring magbago depende sa pag-load",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Ang {{appName}} ay nangangailangan ng hindi bababa sa {{memoryRequired}} ng memorya bawat thread",

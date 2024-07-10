@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Fundatur Clade” - juri mutazzjonijiet relattivi għall-fundatur tal-clade li ġie assenjat għall-kampjun tal-mistoqsija. Innota li mistoqsijiet minn clades differenti se jitqabblu ma 'miri differenti f'dan il-każ.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ġenitur” - juri mutazzjonijiet privati, jiġifieri mutazzjonijiet relattivi għall-ġenitur (eqreb) node tas-siġra ta' referenza li magħha ġie mehmuż il-kampjun tal-mistoqsija waqt it-tqegħid filogenetiku.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referenza” - turi mutazzjonijiet relattivi għas-sekwenza ta' referenza (kif definit fis-sett tad-dejta).",
-  "'{{ attr }}' founder": "Fundatur '{{ attr }}'",
   "(truncated)": "(maqtugħ)",
   "* Current value. This amount can change depending on load": "* Valur kurrenti. Dan l-ammont jista' jinbidel skont it-tagħbija",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} jeħtieġ mill-inqas {{memoryRequired}} ta 'memorja għal kull ħajt",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Sett tad-dejta magħżul bħalissa ma jidhirx li jaqbel mas-sekwenzi tiegħek, iżda hemm {{ n }} settijiet ta 'data oħra li jistgħu. Ikklikkja “Ibdel is-sett tad-dejta ta' referenza” biex tara l-lista.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Sett tad-dejta magħżul bħalissa ma jidhirx li jaqbel mas-sekwenzi tiegħek, iżda hemm sett ta 'data 1 li jista'. Ikklikkja “Ibdel is-sett tad-dejta ta' referenza” biex tara l-lista.",
   "Customizations": "Personalizzazzjonijiet",
+  "Customize": "Ippersonalizza",
   "Customize dataset files": "Ippersonalizza fajls tas-sett tad-dejta",
   "Dataset": "Sett tad-dejta",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "L-awturi tas-sett tad-dejta mmarkaw dan is-sett tad-dejta bħala deprecated, li jfisser li s-sett tad-dejta huwa skadut, mhux se jibqa' jiġi aġġornat jew mhux rilevanti mod ieħor. Jekk jogħġbok ikkuntattja lill-awturi tas-sett tad-dejta għal",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Hawnhekk tista 'tissorvelja fajls individwali fis-sett tad-dejta. Jekk fajl ma jiġix ipprovdut, dan jiġi sostitwit mis-sett tad-dejta magħżul bħalissa. Tgħallem aktar fil-{{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Hawnhekk tista 'tagħżel kolonni (individwali jew kategoriji) li se jinkitbu f'fajls CSV u TSV.",
   "Hide dataset files": "Aħbi fajls tas-sett tad-dejta",
+  "History": "Storja",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Madankollu, dan mhux irrakkomandat: din il-verżjoni tal-applikazzjoni m'għadhiex aġġornata jew appoġġjata, u ma nistgħux niggarantixxu li se taħdem, u li se tipproduċi riżultati korretti.",
   "I want to try anyway": "Irrid nipprova xorta waħda",
   "Idle": "Mhux",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "L-algoritmu tas-suġġeriment naqas. Jekk jogħġbok irrapporta dan lill-iżviluppaturi.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "L-algoritmu ta 'suġġeriment ma setax isib sett ta' dejta adattat għas-sekwenzi tiegħek. Agħżel sett tad-dejta manwalment. Jekk ma jkunx hemm sett tad-dejta adattat, ikkunsidra li toħloq u tikkontribwixxi wieħed għall-ġbir tas-sett tad-dejta tal-komunità Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Riżultati fil-qosor tal-analiżi fil-format {{formatName}}.",
+  "Summary": "Sommarju",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Il-qlib tal-mira se tbiddel il-mutazzjonijiet murija fil-fehmiet tas-sekwenza kif ukoll fil-kolonna “Mut” tat-tabella u l-tooltip mouseover tagħha.",
   "Text": "Test",
   "The address to the file is correct": "L-indirizz tal-fajl huwa korrett",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} jaħdem l-aħjar fl-aħħar verżjonijiet ta ' ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informazzjoni addizzjonali għall-iżviluppaturi (ikklikkja biex tespandi)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodonu (i) tal-waqfien f'post ħażin misjub. Ġene (i) affettwat: {{geneList}}. Punteġġ QC: {{score}}",
-  "Customize": "Ippersonalizza",
-  "History": "Storja",
-  "Summary": "Sommarju"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" fundatur"
 }

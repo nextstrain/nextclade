@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade Founder“ - viser mutationer i forhold til grundlæggeren af kladen, der er blevet tildelt forespørgselsprøven. Bemærk, at forespørgsler fra forskellige klader vil blive sammenlignet med forskellige mål i dette tilfælde.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Forælder“ - viser private mutationer, dvs. mutationer i forhold til den overordnede (nærmeste) node i referencetræet, som forespørgselsprøven er knyttet til under fylogenetisk placering.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Reference“ - viser mutationer i forhold til referencesekvensen (som defineret i datasættet).",
-  "'{{ attr }}' founder": "'{{ attr }}' grundlægger",
   "(truncated)": "(afkortet)",
   "* Current value. This amount can change depending on load": "* Nuværende værdi. Dette beløb kan ændres afhængigt af belastning",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} kræver mindst {{memoryRequired}} hukommelse pr. Tråd",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "I øjeblikket valgt datasæt ser ikke ud til at matche dine sekvenser, men der er {{ n }} andre datasæt, der måske kan. Klik på „Skift referencesæt“ for at se listen.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "I øjeblikket valgt datasæt ser ikke ud til at matche dine sekvenser, men der er 1 datasæt, som måske. Klik på „Skift referencesæt“ for at se listen.",
   "Customizations": "Tilpasninger",
+  "Customize": "Tilpas",
   "Customize dataset files": "Tilpas datasætfiler",
   "Dataset": "Datasæt",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Datasætforfattere markerede dette datasæt som forældet, hvilket betyder, at datasættet er forældet, vil ikke længere blive opdateret eller ikke er relevant på anden måde. Kontakt datasætsforfattere for detaljer.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Her kan du tilsidesætte individuelle filer i datasættet. Hvis en fil ikke er angivet, erstattes den fra det aktuelt valgte datasæt. Læs mere i {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Her kan du vælge kolonner (individuelle eller kategorier), som vil blive skrevet i CSV- og TSV-filer.",
   "Hide dataset files": "Skjul datasætfiler",
+  "History": "Historie",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Dette anbefales dog ikke: Denne version af applikationen opdateres eller understøttes ikke længere, og vi kan ikke garantere, at den fungerer, og at den giver korrekte resultater.",
   "I want to try anyway": "Jeg vil prøve alligevel",
   "Idle": "Tomgang",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Forslagsalgoritmen mislykkedes. Rapporter dette til udviklere.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Forslagsalgoritmen kunne ikke finde et datasæt, der passer til dine sekvenser. Vælg et datasæt manuelt. Hvis der ikke er noget passende datasæt, kan du overveje at oprette og bidrage med et til Nextclade community datasætsamling.",
   "Summarized results of the analysis in {{formatName}} format.": "Opsummerede resultater af analysen i {{formatName}} -format.",
+  "Summary": "Resumé",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Skift af mål ændrer mutationer, der vises i sekvensvisningerne såvel som i kolonnen „Mut“ i tabellen og dens værktøjstip med musen over.",
   "Text": "Tekst",
   "The address to the file is correct": "Adressen til filen er korrekt",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} fungerer bedst i de nyeste versioner af ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Yderligere oplysninger til udviklere (klik for at udvide)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} fejlplacerede stopkodon (er) detekteret. Berørt gen (er): {{geneList}}. QC-score: {{score}}",
-  "Customize": "Tilpas",
-  "History": "Historie",
-  "Summary": "Resumé"
+  "\"{{ attr }}\" founder": "„{{ attr }}\" grundlægger"
 }

@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ക്ലേഡ് സ്ഥാപകൻ” - ക്വറി സാമ്പിളിലേക്ക് നിയോഗിച്ചിട്ടുള്ള ക്ലേഡിന്റെ സ്ഥാപകനുമായി ബന്ധപ്പെട്ടുള്ള മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു. വ്യത്യസ്ത ക്ലാഡുകളിൽ നിന്നുള്ള അന്വേഷണങ്ങൾ ഈ സാഹചര്യത്തിൽ വ്യത്യസ്ത ടാർഗെറ്റുകളുമായി താരതമ്യം ചെയ്യുമെന്ന് ശ്രദ്ധിക്കുക.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“പാരന്റ്” - സ്വകാര്യ മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു, അതായത് ഫൈലോജെനറ്റിക് പ്ലേസ്മെന്റ് സമയത്ത് ക്വറി സാമ്പിൾ അറ്റാച്ചുചെയ്തിരിക്കുന്ന റഫറൻസ് ട്രീയുടെ പാരന്റ് (അടുത്തുള്ള) നോഡുമായി ബന്ധപ്പെട്ട മ്യൂട്ടേഷനുകൾ.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“റഫറൻസ്” - റഫറൻസ് സീക്വൻസുമായി ബന്ധപ്പെട്ട മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു (ഡാറ്റാസെറ്റിൽ നിർവചിച്ചതുപോലെ).",
-  "'{{ attr }}' founder": "' {{ attr }} ' സ്ഥാപകൻ",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" സ്ഥാപകൻ",
   "(truncated)": "(ചുരുങ്ങിയത്)",
   "* Current value. This amount can change depending on load": "* നിലവിലെ മൂല്യം. ലോഡിനെ ആശ്രയിച്ച് ഈ തുക മാറാം",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ഓരോ ത്രെഡിനും കുറഞ്ഞത് {{memoryRequired}} മെമ്മറി ആവശ്യമാണ്",

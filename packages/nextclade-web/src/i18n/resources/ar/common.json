@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«مؤسس Clade» - يُظهر الطفرات المتعلقة بمؤسس الكليد الذي تم تعيينه لعينة الاستعلام. لاحظ أنه ستتم مقارنة الاستعلامات من مجموعات مختلفة بأهداف مختلفة في هذه الحالة.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«الوالد» - يُظهر الطفرات الخاصة، أي الطفرات المتعلقة بالعقدة الأم (الأقرب) للشجرة المرجعية التي تم إرفاق عينة الاستعلام بها أثناء وضع النشوء والتطور.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«المرجع» - يعرض الطفرات المتعلقة بالتسلسل المرجعي (كما هو محدد في مجموعة البيانات).",
-  "'{{ attr }}' founder": "مؤسس ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "مؤسس \"{{ attr }}\"",
   "(truncated)": "(مقطوعة)",
   "* Current value. This amount can change depending on load": "* القيمة الحالية. يمكن أن يتغير هذا المبلغ اعتمادًا على التحميل.",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} يتطلب {{memoryRequired}} على الأقل من الذاكرة لكل مؤشر ترابط",

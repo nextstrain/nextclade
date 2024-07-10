@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade asutaja” - näitab mutatsioone päringuväidile määratud klaadi asutaja suhtes. Pange tähele, et erinevate klaadide päringuid võrreldakse sel juhul erinevate sihtmärkidega.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Vanem” - näitab privaatseid mutatsioone, st mutatsioone võrdluspuu vanema (lähima) sõlme suhtes, millele päringuproov on fülogeneetilise paigutamise ajal kinnitatud.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Viide” - näitab mutatsioone võrdlusjärjestuse suhtes (nagu on määratletud andmekogumis).",
-  "'{{ attr }}' founder": "' {{ attr }} ' asutaja",
+  "\"{{ attr }}\" founder": "„ {{ attr }} \" asutaja",
   "(truncated)": "(kärbitud)",
   "* Current value. This amount can change depending on load": "* Praegune väärtus. See summa võib sõltuvalt koormusest muutuda",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} nõuab lõime kohta vähemalt {{memoryRequired}} mälu",

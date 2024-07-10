@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade įkūrėjas” - rodo mutacijas, palyginti su klado įkūrėju, kuris buvo priskirtas užklausos mėginiui. Atkreipkite dėmesį, kad užklausos iš skirtingų kladų bus lyginamos su skirtingais tikslais šiuo atveju.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Tėvas” - rodo privačias mutacijas, t.y. mutacijas, palyginti su pamatinio medžio pirminiu (artimiausiu) mazgu, prie kurio buvo prijungtas užklausos mėginys filogenetinio talpinimo metu.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Nuoroda” - rodo mutacijas, palyginti su etalonine seka (kaip apibrėžta duomenų rinkinyje).",
-  "'{{ attr }}' founder": "“ {{ attr }} ” įkūrėjas",
+  "\"{{ attr }}\" founder": "“ {{ attr }} ” įkūrėjas",
   "(truncated)": "(sutrumpintas)",
   "* Current value. This amount can change depending on load": "* Dabartinė vertė. Ši suma gali keistis priklausomai nuo apkrovos",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} reikia bent {{memoryRequired}} atminties vienai sričiai",

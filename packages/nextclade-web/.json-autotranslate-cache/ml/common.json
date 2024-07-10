@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ക്ലേഡ് സ്ഥാപകൻ” - ക്വറി സാമ്പിളിലേക്ക് നിയോഗിച്ചിട്ടുള്ള ക്ലേഡിന്റെ സ്ഥാപകനുമായി ബന്ധപ്പെട്ടുള്ള മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു. വ്യത്യസ്ത ക്ലാഡുകളിൽ നിന്നുള്ള അന്വേഷണങ്ങൾ ഈ സാഹചര്യത്തിൽ വ്യത്യസ്ത ടാർഗെറ്റുകളുമായി താരതമ്യം ചെയ്യുമെന്ന് ശ്രദ്ധിക്കുക.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“പാരന്റ്” - സ്വകാര്യ മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു, അതായത് ഫൈലോജെനറ്റിക് പ്ലേസ്മെന്റ് സമയത്ത് ക്വറി സാമ്പിൾ അറ്റാച്ചുചെയ്തിരിക്കുന്ന റഫറൻസ് ട്രീയുടെ പാരന്റ് (അടുത്തുള്ള) നോഡുമായി ബന്ധപ്പെട്ട മ്യൂട്ടേഷനുകൾ.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“റഫറൻസ്” - റഫറൻസ് സീക്വൻസുമായി ബന്ധപ്പെട്ട മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു (ഡാറ്റാസെറ്റിൽ നിർവചിച്ചതുപോലെ).",
-  "'{{ attr }}' founder": "'{{ attr }}' സ്ഥാപകൻ",
   "(truncated)": "(ചുരുങ്ങിയത്)",
   "* Current value. This amount can change depending on load": "* നിലവിലെ മൂല്യം. ലോഡിനെ ആശ്രയിച്ച് ഈ തുക മാറാം",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ഓരോ ത്രെഡിനും കുറഞ്ഞത് {{memoryRequired}} മെമ്മറി ആവശ്യമാണ്",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "നിലവിൽ തിരഞ്ഞെടുത്ത ഡാറ്റാസെറ്റ് നിങ്ങളുടെ സീക്വൻസുകളുമായി പൊരുത്തപ്പെടുന്നതായി തോന്നുന്നില്ല, പക്ഷേ {{ n }} ആകേണ്ടതിന്നു മറ്റ് ഡാറ്റാസെറ്റുകൾ ഉണ്ട്. ലിസ്റ്റ് കാണാൻ “റഫറൻസ് ഡാറ്റാസെറ്റ് മാറ്റുക” ക്ലിക്കുചെയ്യുക.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "നിലവിൽ തിരഞ്ഞെടുത്ത ഡാറ്റാസെറ്റ് നിങ്ങളുടെ സീക്വൻസുകളുമായി പൊരുത്തപ്പെടുന്നതായി തോന്നുന്നില്ല, പക്ഷേ അവിടെ 1 ഡാറ്റാസെറ്റ് അത് ആകേണ്ടതിന്നു. ലിസ്റ്റ് കാണാൻ “റഫറൻസ് ഡാറ്റാസെറ്റ് മാറ്റുക” ക്ലിക്കുചെയ്യുക.",
   "Customizations": "ഇഷ്ടാനുസൃതമാക്കലുകൾ",
+  "Customize": "കസ്റ്റമൈസ് ചെയ്യുക",
   "Customize dataset files": "ഡാറ്റാസെറ്റ് ഫയലുകൾ ഇഷ്ടാനുസൃതമാക്ക",
   "Dataset": "ഡാറ്റാസെറ്റ്",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "ഡാറ്റാസെറ്റ് രചയിതാക്കൾ ഈ ഡാറ്റാസെറ്റ് ഡീപ്രാക്കേറ്റഡ് എന്ന് അടയാളപ്പെടുത്തി, അതായത് ഡാറ്റാസെറ്റ് കാലഹരണപ്പെട്ടതാണ്, ഇനി അപ്ഡേറ്റ് ചെയ്യില്ല അല്ലെങ്കിൽ മറ്റുവിധത്തിൽ പ്രസക്തമല്ല. പ്രത്യേകതകൾക്കായി ഡാറ്റാസെറ്റ് രചയിതാക്കളുമായി ബന്ധപ്പെടുക.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "ഇവിടെ നിങ്ങൾക്ക് ഡാറ്റാസെറ്റിലെ വ്യക്തിഗത ഫയലുകൾ അസാധുവാക്കാനാകും. ഒരു ഫയൽ നൽകിയില്ലെങ്കിൽ, നിലവിൽ തിരഞ്ഞെടുത്ത ഡാറ്റാസെറ്റിൽ നിന്ന് അത് പകരമാകും. {{documentation}} ൽ കൂടുതൽ അറിയുക",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "ഇവിടെ നിങ്ങൾ CSV, TSV ഫയലുകൾ കയറി എഴുതപ്പെടും ഏത് നിരകൾ (വ്യക്തിഗത അല്ലെങ്കിൽ വിഭാഗങ്ങൾ) തിരഞ്ഞെടുക്കാം.",
   "Hide dataset files": "ഡാറ്റാസെറ്റ് ഫയലുകൾ മറയ്ക്കുക",
+  "History": "ചരിത്രം",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "എന്നിരുന്നാലും, ഇത് ശുപാർശ ചെയ്തിട്ടില്ല: ആപ്ലിക്കേഷന്റെ ഈ പതിപ്പ് ഇനി അപ്ഡേറ്റ് ചെയ്യുകയോ പിന്തുണയ്ക്കുകയോ ചെയ്തിട്ടില്ല, മാത്രമല്ല ഇത് പ്രവർത്തിക്കുമെന്നും ശരിയായ ഫലങ്ങൾ ഉണ്ടാക്കുമെന്നും ഞങ്ങൾക്ക് ഉറപ്പ് നൽകാൻ കഴിയില്ല.",
   "I want to try anyway": "എന്തായാലും ശ്രമിക്കണം",
   "Idle": "നിഷ്ക്രിയ",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "നിർദ്ദേശം അൽഗോരിതം പരാജയപ്പെട്ടു. ഇത് ഡവലപ്പർമാർക്ക് റിപ്പോർട്ട് ചെയ്യുക.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "നിങ്ങളുടെ സീക്വൻസുകൾക്ക് അനുയോജ്യമായ ഒരു ഡാറ്റാസെറ്റ് കണ്ടെത്താൻ നിർദ്ദേശം അൽഗോരിതം കഴിഞ്ഞില്ല. ഒരു ഡാറ്റാസെറ്റ് സ്വമേധയാ തിരഞ്ഞെടുക്കുക. അനുയോജ്യമായ ഡാറ്റാസെറ്റ് ഇല്ലെങ്കിൽ, നെക്സ്റ്റ്ക്ലേഡ് കമ്മ്യൂണിറ്റി ഡാറ്റാസെറ്റ് ശേഖരത്തിലേക്ക് ഒന്ന് സൃഷ്ടിക്കുന്നതും സംഭാവന ചെയ്യുന്നതും പരിഗണിക്കുക.",
   "Summarized results of the analysis in {{formatName}} format.": "വിശകലനത്തിന്റെ സംഗ്രഹഫലങ്ങൾ {{formatName}} ഫോർമാറ്റിൽ.",
+  "Summary": "സംഗ്രഹം",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "ടാർഗെറ്റ് മാറുന്നത് സീക്വൻസ് കാഴ്ചകളിലും പട്ടികയുടെ “മുട്ട്” നിരയിലും അതിന്റെ മൗസ്ഓവർ ടൂൾടിപ്പിലും പ്രദർശിപ്പിക്കുന്ന മ്യൂട്ടേഷനുകൾ മാറ്റും.",
   "Text": "വാചകം",
   "The address to the file is correct": "ഫയലിലേക്കുള്ള വിലാസം ശരിയാണ്",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} ഏറ്റവും പുതിയ പതിപ്പുകളിൽ മികച്ച രീതിയിൽ പ്രവർത്തിക്കുന്നു ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ഡവലപ്പർമാർക്കുള്ള അധിക വിവരങ്ങൾ (വിപുലീകരിക്കാൻ ക്ലിക്ക് ചെയ്യുക)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} തെറ്റായ സ്റ്റോപ്പ് കോഡൺ (കൾ) കണ്ടെത്തി. ബാധിച്ച ജീൻ (കൾ): {{geneList}}. ക്യുസി സ്കോർ: {{score}}",
-  "Customize": "കസ്റ്റമൈസ് ചെയ്യുക",
-  "History": "ചരിത്രം",
-  "Summary": "സംഗ്രഹം"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" സ്ഥാപകൻ"
 }

@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Fundatur Clade” - juri mutazzjonijiet relattivi għall-fundatur tal-clade li ġie assenjat għall-kampjun tal-mistoqsija. Innota li mistoqsijiet minn clades differenti se jitqabblu ma 'miri differenti f'dan il-każ.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ġenitur” - juri mutazzjonijiet privati, jiġifieri mutazzjonijiet relattivi għall-ġenitur (eqreb) node tas-siġra ta' referenza li magħha ġie mehmuż il-kampjun tal-mistoqsija waqt it-tqegħid filogenetiku.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referenza” - turi mutazzjonijiet relattivi għas-sekwenza ta' referenza (kif definit fis-sett tad-dejta).",
-  "'{{ attr }}' founder": "Fundatur ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" fundatur",
   "(truncated)": "(maqtugħ)",
   "* Current value. This amount can change depending on load": "* Valur kurrenti. Dan l-ammont jista' jinbidel skont it-tagħbija",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} jeħtieġ mill-inqas {{memoryRequired}} ta 'memorja għal kull ħajt",

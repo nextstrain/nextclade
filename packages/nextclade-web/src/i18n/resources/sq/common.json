@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Themeluesi i Clade” - tregon mutacione në lidhje me themeluesin e kladës që i është caktuar mostrës së pyetjes. Vini re se pyetjet nga klasat e ndryshme do të krahasohen me objektiva të ndryshme në këtë rast.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Prind” - tregon mutacione private, d.m.th. mutacionet në lidhje me nyjen prind (më të afërt) të pemës së referencës në të cilën është bashkangjitur mostra e pyetjes gjatë vendosjes filogenetike.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referenca” - tregon mutacionet në lidhje me sekuencën e referencës (siç përcaktohet në grupin e të dhënave).",
-  "'{{ attr }}' founder": "Themeluesi i ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "Themeluesi i “ {{ attr }} \"",
   "(truncated)": "(i prerë)",
   "* Current value. This amount can change depending on load": "* Vlera aktuale. Kjo shumë mund të ndryshojë në varësi të ngarkesës",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} kërkon të paktën {{memoryRequired}} të kujtesës për fije",

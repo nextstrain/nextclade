@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«بنیان‌گذار کلاد» - جهش‌هایی را نسبت به بنیان‌گذار کلاد نشان می‌دهد که به نمونه پرس و جو اختصاص داده شده‌است. توجه داشته باشید که پرس و جو ها از کلادهای مختلف در این مورد با اهداف مختلف مقایسه می شوند.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«والد» - جهش‌های خصوصی را نشان می‌دهد، یعنی جهش‌هایی نسبت به گره والد (نزدیک‌ترین) درخت مرجع که نمونه پرس و جو در طول قرار دادن فیلوژنتیک به آن متصل شده‌است.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«مرجع» - جهش ها را نسبت به توالی مرجع نشان می دهد (همانطور که در مجموعه داده تعریف شده است).",
-  "'{{ attr }}' founder": "بنیانگذار ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "بنیانگذار {{ attr }}",
   "(truncated)": "(کوتاه شده)",
   "* Current value. This amount can change depending on load": "* مقدار فعلی. این مقدار بسته به بار می تواند تغییر کند",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} حداقل به {{memoryRequired}} حافظه در هر موضوع نیاز دارد",

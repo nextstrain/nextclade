@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Основател на клада“ - показва мутации спрямо основателя на клада, който е присвоен към извадката от заявката. Имайте предвид, че заявките от различни кладове ще бъдат сравнени с различни цели в този случай.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Родител“ - показва частни мутации, т.е. мутации спрямо родителския (най-близкия) възел на референтното дърво, към което е прикрепена пробата от заявката по време на филогенетичното поставяне.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Референция“ - показва мутации спрямо референтната последователност (както е дефинирано в набора от данни).",
-  "'{{ attr }}' founder": "Основател на ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "„ {{ attr }} \" основател",
   "(truncated)": "(пресечен)",
   "* Current value. This amount can change depending on load": "* Текуща стойност. Тази сума може да се променя в зависимост от натоварването",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} изисква поне {{memoryRequired}} памет на нишка",

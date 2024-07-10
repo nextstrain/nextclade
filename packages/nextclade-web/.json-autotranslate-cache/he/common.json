@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "\"מייסד קלייד\" - מציג מוטציות ביחס למייסד הקלייד שהוקצה לדגימת השאילתה. שים לב שאילתות מקליידים שונים יושוו עם יעדים שונים במקרה זה.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "\"הורה\" - מציג מוטציות פרטיות, כלומר מוטציות ביחס לצומת ההורה (הקרוב ביותר) של עץ ההתייחסות שאליו צורף דגימת השאילתה במהלך מיקום פילוגנטי.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "\"הפניה\" - מציג מוטציות ביחס לרצף ההתייחסות (כהגדרתו במערך הנתונים).",
-  "'{{ attr }}' founder": "מייסד '{{ attr }}'",
   "(truncated)": "(קטום)",
   "* Current value. This amount can change depending on load": "* ערך נוכחי. סכום זה יכול להשתנות בהתאם לעומס",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} דורש לפחות {{memoryRequired}} של זיכרון לכל שרשור",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "נראה כי מערך הנתונים שנבחר כעת אינו תואם את הרצפים שלך, אך ישנם {{ n }} מערכי נתונים אחרים שעשויים. לחץ על \"שנה מערך נתונים של הפניות\" כדי לראות את הרשימה.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "נראה כי מערך הנתונים שנבחר כעת אינו תואם את הרצפים שלך, אך יש מערך נתונים אחד שעשוי. לחץ על \"שנה מערך נתונים של הפניות\" כדי לראות את הרשימה.",
   "Customizations": "התאמות אישיות",
+  "Customize": "התאמה אישית",
   "Customize dataset files": "התאמה אישית של קבצי מערך נתונים",
   "Dataset": "מערך נתונים",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "מחברי מערך הנתונים סימנו את מערך הנתונים הזה כמיושן, מה שאומר שמערך הנתונים מיושן, לא יעודכן עוד או אינו רלוונטי אחרת. אנא צור קשר עם מחברי מערך הנתונים לפרטים.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "כאן תוכל לעקוף קבצים בודדים במערך הנתונים. אם קובץ לא מסופק, הוא יוחלף ממערך הנתונים שנבחר כעת. למידע נוסף ב- {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "כאן תוכלו לבחור עמודות (בודדות או קטגוריות) אשר ייכתבו לקבצי CSV ו- TSV.",
   "Hide dataset files": "הסתר קבצי מערך נתונים",
+  "History": "היסטוריה",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "עם זאת, זה לא מומלץ: גרסה זו של היישום כבר לא מעודכנת או נתמכת, ואנחנו לא יכולים להבטיח שהיא תעבוד, וכי היא תניב תוצאות נכונות.",
   "I want to try anyway": "אני רוצה לנסות בכל מקרה",
   "Idle": "סרק",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "אלגוריתם ההצעה נכשל. אנא דווח על כך למפתחים.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "אלגוריתם ההצעה לא הצליח למצוא מערך נתונים המתאים לרצפים שלך. בחר מערך נתונים באופן ידני. אם אין מערך נתונים מתאים, שקול ליצור ולתרום אחד לאוסף מערכי הנתונים של קהילת Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "תוצאות הניתוח מסוכמות בפורמט {{formatName}}.",
+  "Summary": "סיכום",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "החלפת היעד תשנה מוטציות המוצגות בתצוגות הרצף וכן בעמודה \"Mut\" של הטבלה וטיפ הכלים של העכבר שלה.",
   "Text": "טקסט",
   "The address to the file is correct": "הכתובת לקובץ נכונה",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} עובד הכי טוב בגרסאות האחרונות של ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} מידע נוסף למפתחים (לחץ להרחבה)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} זוהו קודון עצירה שלא במקומם. גנים מושפעים: {{geneList}}. ציון QC: {{score}}",
-  "Customize": "התאמה אישית",
-  "History": "היסטוריה",
-  "Summary": "סיכום"
+  "\"{{ attr }}\" founder": "מייסד \"{{ attr }}\""
 }

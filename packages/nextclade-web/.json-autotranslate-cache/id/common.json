@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Pendiri Clade” - menunjukkan mutasi relatif terhadap pendiri clade yang telah ditugaskan ke sampel kueri. Perhatikan bahwa kueri dari clades yang berbeda akan dibandingkan dengan target yang berbeda dalam kasus ini.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Induk” - menunjukkan mutasi pribadi, yaitu mutasi relatif terhadap simpul induk (terdekat) dari pohon referensi tempat sampel kueri telah dilampirkan selama penempatan filogenetik.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referensi” - menunjukkan mutasi relatif terhadap urutan referensi (seperti yang didefinisikan dalam kumpulan data).",
-  "'{{ attr }}' founder": "Pendiri '{{ attr }}'",
   "(truncated)": "(terpotong)",
   "* Current value. This amount can change depending on load": "* Nilai saat ini. Jumlah ini dapat berubah tergantung pada beban",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} membutuhkan setidaknya {{memoryRequired}} memori per utas",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Dataset yang dipilih saat ini tampaknya tidak cocok dengan urutan Anda, tetapi ada {{ n }} kumpulan data lain yang mungkin. Klik “Ubah kumpulan data referensi” untuk melihat daftar.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Dataset yang dipilih saat ini tampaknya tidak cocok dengan urutan Anda, tetapi ada 1 dataset yang mungkin. Klik “Ubah kumpulan data referensi” untuk melihat daftar.",
   "Customizations": "Kustomisasi",
+  "Customize": "Kustomisasi",
   "Customize dataset files": "Kustomisasi file dataset",
   "Dataset": "Dataset",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Penulis dataset menandai kumpulan data ini sebagai usang, yang berarti kumpulan data sudah usang, tidak akan lagi diperbarui atau tidak relevan sebaliknya. Silakan hubungi penulis dataset untuk detailnya.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Di sini Anda dapat mengganti file individual dalam dataset. Jika file tidak disediakan, itu akan diganti dari dataset yang dipilih saat ini. Pelajari lebih lanjut di {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Di sini Anda dapat memilih kolom (individu atau kategori) yang akan ditulis ke dalam file CSV dan TSV.",
   "Hide dataset files": "Sembunyikan file dataset",
+  "History": "Sejarah",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Namun, ini tidak disarankan: versi aplikasi ini tidak lagi diperbarui atau didukung, dan kami tidak dapat menjamin bahwa itu akan berfungsi, dan itu akan menghasilkan hasil yang benar.",
   "I want to try anyway": "Saya ingin mencoba bagaimanapun",
   "Idle": "Menganggur",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritma saran gagal. Silakan laporkan ini ke pengembang.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Algoritma saran tidak dapat menemukan kumpulan data yang cocok untuk urutan Anda. Pilih dataset secara manual. Jika tidak ada kumpulan data yang sesuai, pertimbangkan untuk membuat dan menyumbangkannya ke koleksi kumpulan kumpulan data komunitas Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Hasil analisis dirangkum dalam format {{formatName}}.",
+  "Summary": "Ringkasan",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Mengalihkan target akan mengubah mutasi yang ditampilkan dalam tampilan urutan serta di kolom “Mut” tabel dan tooltip mouseover-nya.",
   "Text": "Teks",
   "The address to the file is correct": "Alamat file sudah benar",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} bekerja paling baik di versi terbaru ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informasi tambahan untuk pengembang (klik untuk memperluas)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon stop yang salah tempat terdeteksi. Gen yang terpengaruh: {{geneList}}. Skor QC: {{score}}",
-  "Customize": "Kustomisasi",
-  "History": "Sejarah",
-  "Summary": "Ringkasan"
+  "\"{{ attr }}\" founder": "Pendiri “{{ attr }}”"
 }

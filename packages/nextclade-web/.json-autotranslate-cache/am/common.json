@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«ክላድ መስራች» - ለጥያቄ ናሙና ከተመደበው ክላድ መስራች ጋር አንጻራዊ ሚውቶችን ያሳያል። በተለያዩ ክፍሎች የሚመጡ ጥያቄዎች በዚህ ሁኔታ ከተለያዩ ኢላማዎች ጋር እንደሚወዳደር ልብ ይበሉ።",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«ወላጅ» - የግል ሚውቶችን ያሳያል፣ ማለትም በፋይሎጄኔቲክ ምደባ ወቅት ጥያቄው ናሙናው ከተያያዘው የማጣቀሻ ዛፍ ወላጅ (ቅርብ ያለው) ንጥፍ ጋር አንጻራዊ ሚውቴሽኖችን",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«ማጣቀሻ» - ከማጣቀሻ ቅደም ተከተል ጋር አንጻራዊ ሚውቶችን ያሳያል (በውሂብ ስብስብ ውስጥ እንደተገለ",
-  "'{{ attr }}' founder": "'{{ attr }}' መስራች",
   "(truncated)": "(የተቆረጠ)",
   "* Current value. This amount can change depending on load": "* የአሁኑ እሴት። ይህ መጠን በጭነት ላይ በመመስረት ሊለወጥ ይችላል",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} በአንድ ክር ቢያንስ {{memoryRequired}} የማህደረ ትውስታ ይጠይቃል",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "በአሁኑ ጊዜ የተመረጠው የውሂብ ስብስብ ከእርስዎ ቅደም ተከተል ጋር የሚዛመድ አይመስልም፣ ግን ሊሆኑ የሚችሉ {{ n }} ሌሎች የውሂብ ዝርዝሩን ለማየት «የማጣቀሻ ውሂብ ስብስብ ይለውጡ» ን ጠቅ",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "በአሁኑ ጊዜ የተመረጠው የውሂብ ስብስብ ከእርስዎ ቅደም ተከተል ጋር የሚዛመድ አይመስልም፣ ግን ሊሆን ይችላል 1 የውሂብ ዝርዝሩን ለማየት «የማጣቀሻ ውሂብ ስብስብ ይለውጡ» ን ጠቅ",
   "Customizations": "ማበጀት",
+  "Customize": "ማበጀት",
   "Customize dataset files": "የመረጃ ስብስብ ፋይሎችን",
   "Dataset": "የመረጃ ስብስብ",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "የውሂብ ስብስብ ደራሲዎች ይህንን የውሂብ ስብስብ እንደቆየ ምልክት አድርገዋል፣ ይህም ማለት የውሂብ ስብስቡ ጊዜ ያለፈበት ነው፣ ከአሁን በኋላ አይዘምንም ወይም ሌላ ለዝርዝር ነገሮች እባክዎ የውሂብ ስብስብ",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "እዚህ በውሂብ ስብስቡ ውስጥ ያሉ ግለሰብ ፋይሎችን መሻሻል ይችላሉ። ፋይል ካልቀረበ በአሁኑ ጊዜ ከተመረጠው የውሂብ ስብስብ ይተካል። በ {{documentation}} ውስጥ የበለጠ ይወቁ",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "እዚህ ወደ CSV እና TSV ፋይሎች የሚጽፉ አምዶችን (ግለሰብ ወይም ምድቦች) መምረጥ ይችላሉ።",
   "Hide dataset files": "የመረጃ ስብስብ ፋይሎችን",
+  "History": "ታሪክ",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "ሆኖም፣ ይህ አይመከርም - ይህ የመተግበሪያው ስሪት ከእንግዲህ የዘመነ ወይም አይደገፋም፣ እና እንደሚሰራ እና ትክክለኛ ውጤቶችን እንደሚያመጣ ዋስትና ማረጋገጥ አንችልም።",
   "I want to try anyway": "ለማንኛውም መሞከር እፈልጋለሁ",
   "Idle": "አልባ",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "የጥቆሚያ ስልተ ቀመር አል እባክዎን ይህንን ለገንቢዎች ዘገቡ።",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "የጥቆማ ስልተ ቀመር ለእርስዎ ቅደም ተከተል ተስማሚ የውሂብ ስብስብ የውሂብ ስብስብ በእጅ ምረጥ። ተስማሚ የውሂብ ስብስብ ከሌለ ለNextclade ማህበረሰብ የውሂብ ስብስብ አንድ መፍጠር እና አስተዋጽኦ ያስቡ።",
   "Summarized results of the analysis in {{formatName}} format.": "በ {{formatName}} ቅርጸት ውስጥ የትንታኔው አጠቃላይ ውጤቶች።",
+  "Summary": "ማጠቃለያ",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "ኢላማውን መቀየር በቅደም ተከተል እይታዎች እንዲሁም በሰንጠረዥ «ሙት» አምድ እና በየመዳጃ መሳሪያው ውስጥ የሚታዩ ሚውቶችን ይለውጣል።",
   "Text": "ጽሑፍ",
   "The address to the file is correct": "የፋይሉ አድራሻ ትክክል ነው",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} በቅርብ ጊዜዎቹ ስሪቶች ውስጥ በጣም ጥሩ ይሰራል ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ለገንቢዎች ተጨማሪ መረጃ (ለማስፋት ጠቅ ያድርጉ)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} የተሳሳተ የማቆሚያ ኮዶን (ዎች) ተገኝተዋል። የተጎዱ ጂን (ዎች): {{geneList}} ። የ QC ውጤት: {{score}}",
-  "Customize": "ማበጀት",
-  "History": "ታሪክ",
-  "Summary": "ማጠቃለያ"
+  "\"{{ attr }}\" founder": "«{{ attr }}\" መስራች"
 }

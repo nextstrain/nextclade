@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade үүсгэн байгуулагч” - асуулгын дээжид томилогдсон clade үүсгэн байгуулагчтай харьцангуй мутацийг харуулдаг. Янз бүрийн кладын асуулгыг энэ тохиолдолд өөр өөр зорилтуудтай харьцуулах болно гэдгийг анхаарна уу.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Эцэг эх” - хувийн мутацийг харуулдаг, өөрөөр хэлбэл филогенетик байрлуулах үед асуулгын дээжийг хавсаргасан лавлагааны модны эцэг эх (хамгийн ойрын) зангилаатай харьцангуй мутаци.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Лавлагаа” - лавлагааны дараалалтай харьцангуй мутацийг харуулдаг (өгөгдлийн багцад тодорхойлсноор).",
-  "'{{ attr }}' founder": "' {{ attr }} ' үүсгэн байгуулагч",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" үүсгэн байгуулагч",
   "(truncated)": "(тасарсан)",
   "* Current value. This amount can change depending on load": "* Одоогийн үнэ цэнэ. Энэ хэмжээ ачааллаас хамааран өөрчлөгдөж болно",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} нь утас бүрт дор хаяж {{memoryRequired}} санах ой шаарддаг",

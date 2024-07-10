@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "\"מייסד קלייד\" - מציג מוטציות ביחס למייסד הקלייד שהוקצה לדגימת השאילתה. שים לב שאילתות מקליידים שונים יושוו עם יעדים שונים במקרה זה.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "\"הורה\" - מציג מוטציות פרטיות, כלומר מוטציות ביחס לצומת ההורה (הקרוב ביותר) של עץ ההתייחסות שאליו צורף דגימת השאילתה במהלך מיקום פילוגנטי.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "\"הפניה\" - מציג מוטציות ביחס לרצף ההתייחסות (כהגדרתו במערך הנתונים).",
-  "'{{ attr }}' founder": "מייסד ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "מייסד \"{{ attr }}\"",
   "(truncated)": "(קטום)",
   "* Current value. This amount can change depending on load": "* ערך נוכחי. סכום זה יכול להשתנות בהתאם לעומס",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} דורש לפחות {{memoryRequired}} של זיכרון לכל שרשור",

@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade stigter” - toon mutasies relatief tot die stigter van die klade wat aan die navraagmonster toegeken is. Let daarop dat navrae van verskillende klades in hierdie geval met verskillende teikens vergelyk sal word.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ouer” - toon private mutasies, dit wil sê mutasies relatief tot die ouer (naaste) knoop van die verwysingsboom waaraan die navraagmonster geheg is tydens filogenetiese plasing.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Verwysing” - toon mutasies relatief tot die verwysingsvolgorde (soos gedefinieer in die datastel).",
-  "'{{ attr }}' founder": "Stigter van ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" stigter",
   "(truncated)": "(afgesny)",
   "* Current value. This amount can change depending on load": "* Huidige waarde. Hierdie bedrag kan verander na gelang van las",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} benodig ten minste {{memoryRequired}} geheue per draad",

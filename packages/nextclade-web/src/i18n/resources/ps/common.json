@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«د کلیډ بنسټ ایز» - د کلاډ بنسټ ایز سره نسبت د بدلون ښودل کوي چې د پوښتنې نمونې ته ټاکل شوی دی. یادونه وکړئ چې د مختلفو کليډونو څخه پوښتنې به په دې قضیه کې د مختلف اهدافو سره پرتله",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«والدین» - خصوصي تغیرات ښیي، یعنی د حوالې جرګې د والدین (نږدې) نوډ سره نسبت د میوټیشن کوم چې د پوښتنې نمونه د فیلوجینیټیک ځای پرمهال سره منسلک شوی دی.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«حواله» - د حوالې ترتیب سره نسبت د تغیرات ښکاري (لکه څنګه چې په ډاټاسټ کې تعریف شوي).",
-  "'{{ attr }}' founder": "د ' {{ attr }} ' بنسټ ایز",
+  "\"{{ attr }}\" founder": "« {{ attr }} \" بنسټ ایز",
   "(truncated)": "(ټوټه شوی)",
   "* Current value. This amount can change depending on load": "* اوسنۍ ارزښت. دا مقدار کولی شي د بار په اړه بدل شي",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} په هر موضوع لږترلږه {{memoryRequired}} حافظه ته اړتیا لري",

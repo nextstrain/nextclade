@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade dibinātājs” - parāda mutācijas attiecībā pret klādes dibinātāju, kas piešķirts vaicājuma paraugam. Ņemiet vērā, ka šajā gadījumā dažādu klažu vaicājumi tiks salīdzināti ar dažādiem mērķiem.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Vecāks” - parāda privātas mutācijas, t.i., mutācijas attiecībā pret atsauces koka vecāku (tuvāko) mezglu, kuram filoģenētiskās izvietošanas laikā ir pievienots vaicājuma paraugs.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Atsauce” - parāda mutācijas attiecībā pret atsauces secību (kā definēts datu kopā).",
-  "'{{ attr }}' founder": "'{{ attr }}' dibinātājs",
   "(truncated)": "(saīsināts)",
   "* Current value. This amount can change depending on load": "* Pašreizējā vērtība. Šī summa var mainīties atkarībā no slodzes",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} vienā pavedienā ir nepieciešama vismaz {{memoryRequired}} atmiņa",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Šķiet, ka pašlaik atlasītā datu kopa neatbilst jūsu secībām, taču ir {{ n }} citas datu kopas, kas varētu. Noklikšķiniet uz “Mainīt atsauces datu kopu”, lai redzētu sarakstu.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Šķiet, ka pašlaik atlasītā datu kopa neatbilst jūsu secībām, taču ir viena datu kopa, kas varētu. Noklikšķiniet uz “Mainīt atsauces datu kopu”, lai redzētu sarakstu.",
   "Customizations": "Pielāgojumi",
+  "Customize": "Pielāgot",
   "Customize dataset files": "Pielāgojiet datu kopas failus",
   "Dataset": "Datu kopa",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Datu kopas autori šo datu kopu atzīmēja kā novecojušu, kas nozīmē, ka datu kopa ir novecojusi, vairs netiks atjaunināta vai citādi nav būtiska. Lūdzu, sazinieties ar datu kopas autoriem, lai uzzinātu informāciju.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Šeit jūs varat ignorēt atsevišķus datu kopas failus. Ja fails netiek nodrošināts, tas tiks aizstāts no pašlaik atlasītās datu kopas. Uzziniet vairāk vietnē {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Šeit jūs varat izvēlēties kolonnas (atsevišķas vai kategorijas), kuras tiks ierakstītas CSV un TSV failos.",
   "Hide dataset files": "Slēpt datu kopas failus",
+  "History": "Vēsture",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Tomēr tas nav ieteicams: šī lietojumprogrammas versija vairs netiek atjaunināta vai atbalstīta, un mēs nevaram garantēt, ka tā darbosies un ka tā dos pareizus rezultātus.",
   "I want to try anyway": "Es gribu izmēģināt jebkurā gadījumā",
   "Idle": "Dīkstāve",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Ieteikumu algoritms neizdevās. Lūdzu, ziņojiet par to izstrādātājiem.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Ieteikumu algoritms nespēja atrast jūsu secībām piemērotu datu kopu. Atlasiet datu kopu manuāli. Ja nav piemērotas datu kopas, apsveriet iespēju izveidot un dot ieguldījumu Nextclade kopienas datu kopas kolekcijā.",
   "Summarized results of the analysis in {{formatName}} format.": "Apkopoti analīzes rezultāti {{formatName}} formātā.",
+  "Summary": "Kopsavilkums",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Mērķa pārslēgšana mainīs mutācijas, kas parādītas secības skatos, kā arī tabulas slejā “Mut” un tās peles pārejas rīka padomā.",
   "Text": "Teksts",
   "The address to the file is correct": "Faila adrese ir pareiza",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} vislabāk darbojas jaunākajās versijās ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Papildu informācija izstrādātājiem (noklikšķiniet, lai izvērstu)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} atklāts nepareizi novietots stopkodons (-i). Ietekmētais gēns (-i): {{geneList}}. QC rezultāts: {{score}}",
-  "Customize": "Pielāgot",
-  "History": "Vēsture",
-  "Summary": "Kopsavilkums"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" dibinātājs"
 }

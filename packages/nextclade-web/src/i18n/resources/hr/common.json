@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "\"Osnivač klade\" - pokazuje mutacije u odnosu na osnivača klade koji je dodijeljen uzorku upita. Imajte na umu da će se upiti iz različitih klasa u ovom slučaju usporediti s različitim ciljevima.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "\"Roditelj\" - prikazuje privatne mutacije, tj. mutacije u odnosu na roditeljski (najbliži) čvor referentnog stabla na koji je uzorak upita vezan tijekom filogenetskog postavljanja.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "\"Referenca\" - prikazuje mutacije u odnosu na referentni slijed (kako je definirano u skupu podataka).",
-  "'{{ attr }}' founder": "Osnivač ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "\"{{ attr }}\" osnivač",
   "(truncated)": "(skraćeno)",
   "* Current value. This amount can change depending on load": "* Trenutna vrijednost. Taj se iznos može mijenjati ovisno o opterećenju",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} zahtijeva najmanje {{memoryRequired}} memorije po niti",

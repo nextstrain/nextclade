@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade qurucusu” - sorğu nümunəsinə təyin edilmiş kladın qurucusuna nisbətən mutasiyaları göstərir. Qeyd edək ki, müxtəlif klaslardan gələn sorğular bu vəziyyətdə fərqli hədəflərlə müqayisə ediləcəkdir.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Valideyn” - xüsusi mutasiyaları, yəni filogenetik yerləşdirmə zamanı sorğu nümunəsinin əlavə edildiyi istinad ağacının ana (ən yaxın) düyününə nisbətən mutasiyaları göstərir.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“İstinad” - istinad ardıcıllığına nisbətən mutasiyaları göstərir (verilənlər bazasında müəyyən edildiyi kimi).",
-  "'{{ attr }}' founder": "'{{ attr }}' təsisçisi",
   "(truncated)": "(kəsilmiş)",
   "* Current value. This amount can change depending on load": "* Cari dəyər. Bu məbləğ yükdən asılı olaraq dəyişə bilər",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} hər mövzu üçün ən azı {{memoryRequired}} yaddaş tələb edir",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Hal-hazırda seçilmiş verilənlər bazası ardıcıllığınıza uyğun gəlmir, lakin ola biləcək {{ n }} digər məlumat dəstləri var. Siyahıya baxmaq üçün “İstinad məlumat bazasını dəyişdirin” düyməsini basın.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Hal-hazırda seçilmiş verilənlər bazası ardıcıllığınıza uyğun gəlmir, lakin ola biləcək 1 məlumat dəsti var. Siyahıya baxmaq üçün “İstinad məlumat bazasını dəyişdirin” düyməsini basın.",
   "Customizations": "Özelleştirmələr",
+  "Customize": "Özelleştir",
   "Customize dataset files": "Verilənlər bazası fayllarını fərdiləş",
   "Dataset": "Məlumat bazası",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Verilənlər bazası müəllifləri bu verilənlər bazasını köhnəlmiş kimi qeyd etdilər, yəni verilənlər dəstinin köhnəlmişdir, artıq yenilənməyəcək və ya başqa cür əlaqəli deyil. Xahiş edirəm məlumat bazası müəllifləri ilə əlaqə saxlayın",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Burada verilənlər bazasındakı fərdi faylları ləğv edə bilərsiniz. Bir fayl təqdim edilmirsə, hazırda seçilmiş verilənlər bazasından əvəz olunacaq. {{documentation}} -də daha çox məlumat əldə edin",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Burada CSV və TSV sənədlərinə yazılacaq sütunları (fərdi və ya kateqoriyalar) seçə bilərsiniz.",
   "Hide dataset files": "Verilənlər bazası fayllarını gizlədin",
+  "History": "Tarix",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Ancaq bu tövsiyə edilmir: tətbiqin bu versiyası artıq yenilənmir və ya dəstəklənmir və işləyəcəyinə və düzgün nəticələr verəcəyinə zəmanət verə bilmərik.",
   "I want to try anyway": "Hər halda cəhd etmək istəyirəm",
   "Idle": "Boş",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Təklif alqoritmi uğursuz Xahiş edirəm bunu inkişaf etdiricilərə bildirin.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Təklif alqoritmi ardıcıllıqlarınıza uyğun bir məlumat toplusu tapa bilmədi. Bir verilənlər bazasını əl ilə seçin. Müvafiq verilənlər bazası yoxdursa, Nextclade icma verilənlər toplusu yaratmağı və töhfə verməyi düşünün.",
   "Summarized results of the analysis in {{formatName}} format.": "Təhlilin {{formatName}} formatında ümumiləşdirilmiş nəticələri.",
+  "Summary": "Xülasə",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Hədəfin dəyişdirilməsi ardıcıllıq görünüşlərində, eləcə də cədvəlin “Mut” sütununda və onun siçan üzərindəki alət ucunda göstərilən mutasiyaları dəyişdirəcəkdir.",
   "Text": "Mətn",
   "The address to the file is correct": "Faylın ünvanı düzgündür",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} ən son versiyalarında ən yaxşı işləyir ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Tərtibatçılar üçün əlavə məlumat (genişləndirmək üçün klikləyin)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} səhv yerləşdirilmiş dayanma kodonu (lər) aşkar edildi. Təsirə məruz qalan gen (lər): {{geneList}}. QC hesabı: {{score}}",
-  "Customize": "Özelleştir",
-  "History": "Tarix",
-  "Summary": "Xülasə"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" qurucusu"
 }

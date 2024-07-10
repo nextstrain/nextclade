@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Osnivač klade“ - pokazuje mutacije u odnosu na osnivača klade koji je dodeljen uzorku upita. Imajte na umu da će se upiti iz različitih klasa upoređivati sa različitim ciljevima u ovom slučaju.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Roditelj“ - prikazuje privatne mutacije, tj. mutacije u odnosu na roditeljski (najbliži) čvor referentnog stabla na koji je uzorak upita vezan tokom filogenetskog postavljanja.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referenca“ - prikazuje mutacije u odnosu na referentnu sekvencu (kako je definisano u skupu podataka).",
-  "'{{ attr }}' founder": "Osnivač '{{ attr }}'",
   "(truncated)": "(skraćeno)",
   "* Current value. This amount can change depending on load": "* Trenutna vrednost. Ovaj iznos se može menjati u zavisnosti od opterećenja",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} zahteva najmanje {{memoryRequired}} memorije po niti",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Čini se da trenutno odabrani skup podataka ne odgovara vašim sekvencama, ali postoje {{ n }} drugi skupovi podataka koji bi mogli. Kliknite na „Promeni referentni skup podataka“ da biste videli listu.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Čini se da trenutno odabrani skup podataka ne odgovara vašim sekvencama, ali postoji 1 skup podataka koji bi mogao. Kliknite na „Promeni referentni skup podataka“ da biste videli listu.",
   "Customizations": "Prilagođavanja",
+  "Customize": "Prilagodite",
   "Customize dataset files": "Prilagodite datoteke skupa podataka",
   "Dataset": "Skup podataka",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Autori skupa podataka označili su ovaj skup podataka kao zastareo, što znači da je skup podataka zastario, više se neće ažurirati ili nije relevantan na drugi način. Molimo kontaktirajte autore skupa podataka za detalje.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Ovde možete zameniti pojedinačne datoteke u skupu podataka. Ako datoteka nije obezbeđena, ona će biti zamenjena iz trenutno izabranog skupa podataka. Saznajte više u {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Ovde možete odabrati kolone (pojedinačne ili kategorije) koje će biti zapisane u CSV i TSV datoteke.",
   "Hide dataset files": "Sakrij datoteke skupa podataka",
+  "History": "Istorija",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Međutim, ovo se ne preporučuje: ova verzija aplikacije više nije ažurirana ili podržana i ne možemo garantovati da će raditi i da će dati tačne rezultate.",
   "I want to try anyway": "Svejedno želim da probam",
   "Idle": "Neaktivan",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritam sugestije nije uspeo. Molimo vas da ovo prijavite programerima.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Algoritam sugestije nije uspeo da pronađe skup podataka pogodan za vaše sekvence. Ručno izaberite skup podataka. Ako ne postoji odgovarajući skup podataka, razmislite o stvaranju i doprinosu prikupljanju skupova podataka zajednice Nektclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Sažeti rezultati analize u formatu {{formatName}}.",
+  "Summary": "Rezime",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Prebacivanje cilja promeniće mutacije prikazane u prikazima sekvence, kao i u koloni „Mut“ tabele i njenom alatu za prelazak mišem.",
   "Text": "Tekst",
   "The address to the file is correct": "Adresa datoteke je tačna",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} najbolje funkcioniše u najnovijim verzijama ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Dodatne informacije za programere (kliknite da biste proširili)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} otkriveni pogrešno postavljeni stop kodoni. Pogođeni geni: {{geneList}}. KC rezultat: {{score}}",
-  "Customize": "Prilagodite",
-  "History": "Istorija",
-  "Summary": "Rezime"
+  "\"{{ attr }}\" founder": "Osnivač „{{ attr }}“"
 }

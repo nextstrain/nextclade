@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Themeluesi i Clade” - tregon mutacione në lidhje me themeluesin e kladës që i është caktuar mostrës së pyetjes. Vini re se pyetjet nga klasat e ndryshme do të krahasohen me objektiva të ndryshme në këtë rast.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Prind” - tregon mutacione private, d.m.th. mutacionet në lidhje me nyjen prind (më të afërt) të pemës së referencës në të cilën është bashkangjitur mostra e pyetjes gjatë vendosjes filogenetike.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referenca” - tregon mutacionet në lidhje me sekuencën e referencës (siç përcaktohet në grupin e të dhënave).",
-  "'{{ attr }}' founder": "Themeluesi i '{{ attr }}'",
   "(truncated)": "(i prerë)",
   "* Current value. This amount can change depending on load": "* Vlera aktuale. Kjo shumë mund të ndryshojë në varësi të ngarkesës",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} kërkon të paktën {{memoryRequired}} të kujtesës për fije",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Seti i të dhënave aktualisht i zgjedhur nuk duket se përputhet me sekuencat tuaja, por ka {{ n }} grupe të tjera të të dhënave që mund të jenë. Klikoni “Ndrysho grupin e të dhënave të referencës” për të parë listën.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Seti i të dhënave aktualisht i përzgjedhur nuk duket se përputhet me sekuencat tuaja, por ekziston 1 grup i të dhënave që mund të jetë. Klikoni “Ndrysho grupin e të dhënave të referencës” për të parë listën.",
   "Customizations": "Përshtatjet",
+  "Customize": "Personalizoni",
   "Customize dataset files": "Personalizoni skedarët e të dhënave",
   "Dataset": "Seti i të dhënave",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Autorët e grupit të dhënave shënuan këtë grup të të dhënave si të vjetëruar, që do të thotë se grupi i të dhënave është i vjetëruar, nuk do të azhurnohet më ose nuk është i rëndësishëm ndryshe. Ju lutemi kontaktoni autorët e grupit të të dhënave për specifika.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Këtu mund të anashkaloni skedarët individualë në grupin e të dhënave. Nëse një skedar nuk ofrohet, ai do të zëvendësohet nga grupi i të dhënave aktualisht i zgjedhur. Mësoni më shumë në {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Këtu mund të zgjidhni kolona (individuale ose kategori) të cilat do të shkruhen në skedarë CSV dhe TSV.",
   "Hide dataset files": "Fshih skedarët e të dhënave",
+  "History": "Histori",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Sidoqoftë, kjo nuk rekomandohet: ky version i aplikacionit nuk përditësohet ose mbështetet më dhe ne nuk mund të garantojmë se do të funksionojë dhe se do të prodhojë rezultate të sakta.",
   "I want to try anyway": "Unë dua të provoj gjithsesi",
   "Idle": "I papërpunuar",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritmi sugjerimi dështoi. Ju lutemi raportoni këtë tek zhvilluesit.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Algoritmi i sugjerimit nuk ishte në gjendje të gjejë një grup të dhënash të përshtatshëm për sekuencat Zgjidhni manualisht një set të dhënash. Nëse nuk ka një grup të dhënash të përshtatshëm, merrni parasysh krijimin dhe kontributin e një në mbledhjen e të dhënave të komunitetit Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Rezultatet e përmbledhura të analizës në formatin {{formatName}}.",
+  "Summary": "Përmbledhje",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Ndërrimi i objektivit do të ndryshojë mutacionet e shfaqura në pamjet e sekuencës, si dhe në kolonën “Mut” të tabelës dhe tipën e saj të veglave mbi miun.",
   "Text": "Teksti",
   "The address to the file is correct": "Adresa e skedarit është e saktë",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} funksionon më mirë në versionet më të fundit të ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informacion shtesë për zhvilluesit (klikoni për të zgjeruar)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Zbuluar kodon (et) e ndalimit të gabuar {{totalStopCodons}}. Gjeni (et) e prekur: {{geneList}}. Rezultati QC: {{score}}",
-  "Customize": "Personalizoni",
-  "History": "Histori",
-  "Summary": "Përmbledhje"
+  "\"{{ attr }}\" founder": "Themeluesi i “{{ attr }}\""
 }

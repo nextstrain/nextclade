@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Założyciel kladu” - pokazuje mutacje względem założyciela kladu, który został przypisany do próbki zapytania. Należy pamiętać, że zapytania z różnych kladów będą w tym przypadku porównywane z różnymi celami.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Rodzic” - pokazuje mutacje prywatne, tj. mutacje względem macierzystego (najbliższego) węzła drzewa referencyjnego, do którego próbka zapytania została dołączona podczas umieszczania filogenetycznego.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Odniesienie” - pokazuje mutacje względem sekwencji odniesienia (zgodnie z definicją w zbiorze danych).",
-  "'{{ attr }}' founder": "Założyciel ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "Założyciel „ {{ attr }} ”",
   "(truncated)": "(ścięty)",
   "* Current value. This amount can change depending on load": "* Aktualna wartość. Kwota ta może się zmieniać w zależności od obciążenia",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} wymaga co najmniej {{memoryRequired}} pamięci na wątek",

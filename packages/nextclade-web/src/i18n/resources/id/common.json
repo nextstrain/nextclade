@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Pendiri Clade” - menunjukkan mutasi relatif terhadap pendiri clade yang telah ditugaskan ke sampel kueri. Perhatikan bahwa kueri dari clades yang berbeda akan dibandingkan dengan target yang berbeda dalam kasus ini.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Induk” - menunjukkan mutasi pribadi, yaitu mutasi relatif terhadap simpul induk (terdekat) dari pohon referensi tempat sampel kueri telah dilampirkan selama penempatan filogenetik.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referensi” - menunjukkan mutasi relatif terhadap urutan referensi (seperti yang didefinisikan dalam kumpulan data).",
-  "'{{ attr }}' founder": "Pendiri ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "Pendiri “ {{ attr }} ”",
   "(truncated)": "(terpotong)",
   "* Current value. This amount can change depending on load": "* Nilai saat ini. Jumlah ini dapat berubah tergantung pada beban",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} membutuhkan setidaknya {{memoryRequired}} memori per utas",

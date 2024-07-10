@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“클레이드 설립자” - 쿼리 샘플에 할당된 클래드의 설립자와 관련된 돌연변이를 보여줍니다.참고로 이 경우에는 다른 클래드의 쿼리를 다른 대상과 비교하게 됩니다.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“부모” - 비공개 돌연변이, 즉 계통 발생 배치 중에 쿼리 샘플이 연결된 참조 트리의 상위 (가장 가까운) 노드와 관련된 돌연변이를 표시합니다.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“참조” - 참조 서열과 관련된 돌연변이를 보여줍니다 (데이터세트에 정의된 대로).",
-  "'{{ attr }}' founder": "'{{ attr }}' 설립자",
   "(truncated)": "(잘린)",
   "* Current value. This amount can change depending on load": "* 현재 값.이 금액은 부하에 따라 달라질 수 있습니다.",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} 에는 스레드당 최소 {{memoryRequired}} 메모리가 필요합니다.",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "현재 선택한 데이터셋이 사용자 시퀀스와 일치하지 않는 것 같지만 다른 데이터셋이 {{ n }} 있을 수 있습니다.“참조 데이터세트 변경”을 클릭하여 목록을 확인하세요.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "현재 선택한 데이터셋이 사용자 시퀀스와 일치하지 않는 것 같지만, 일치하는 데이터셋이 1개 있습니다.“참조 데이터세트 변경”을 클릭하여 목록을 확인하세요.",
   "Customizations": "커스터마이징",
+  "Customize": "사용자 지정",
   "Customize dataset files": "데이터세트 파일 맞춤설정",
   "Dataset": "데이터세트",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "데이터세트 작성자는 이 데이터세트를 더 이상 사용되지 않는 것으로 표시했는데, 이는 데이터세트가 더 이상 사용되지 않거나 더 이상 업데이트되지 않거나 다른 방법으로는 관련이 없음을 의미합니다.자세한 내용은 데이터세트 작성자에게 문의하세요.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "여기서 데이터세트의 개별 파일을 오버라이드할 수 있습니다.파일이 제공되지 않으면 현재 선택한 데이터셋으로 대체됩니다.{{documentation}} 에서 자세히 알아보세요.",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "여기에서 CSV 및 TSV 파일에 기록할 열 (개별 또는 범주) 을 선택할 수 있습니다.",
   "Hide dataset files": "데이터세트 파일 숨기기",
+  "History": "역사",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "그러나 이 버전은 권장되지 않습니다. 이 버전의 응용 프로그램은 더 이상 업데이트되거나 지원되지 않으므로 제대로 작동하고 올바른 결과를 얻을 수 있다고 보장할 수 없습니다.",
   "I want to try anyway": "어쨌든 시도하고 싶어요",
   "Idle": "유휴",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "제안 알고리즘이 실패했습니다.개발자에게 이 사실을 보고해 주세요.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "제안 알고리즘이 시퀀스에 적합한 데이터세트를 찾지 못했습니다.데이터세트를 수동으로 선택하세요.적합한 데이터세트가 없는 경우 데이터세트를 만들어 Nextclade 커뮤니티 데이터세트 컬렉션에 기여하는 것을 고려해 보세요.",
   "Summarized results of the analysis in {{formatName}} format.": "분석 결과를 {{formatName}} 형식으로 요약했습니다.",
+  "Summary": "요약",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "대상을 전환하면 시퀀스 뷰와 테이블의 “Mut” 열 및 마우스 오버 툴팁에 표시되는 돌연변이가 변경됩니다.",
   "Text": "텍스트",
   "The address to the file is correct": "파일 주소가 정확합니다",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} 은 (는) 최신 버전에서 가장 잘 작동합니다. ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} 개발자를 위한 추가 정보 (확대하려면 클릭)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} 잘못 배치된 정지 코돈이 감지되었습니다.영향을 받은 유전자: {{geneList}}.품질 관리 점수: {{score}}",
-  "Customize": "사용자 지정",
-  "History": "역사",
-  "Summary": "요약"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" 설립자"
 }

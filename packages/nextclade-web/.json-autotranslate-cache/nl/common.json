@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade-oprichter” - toont mutaties ten opzichte van de oprichter van de clade die is toegewezen aan de steekproef van de zoekopdracht. Houd er rekening mee dat vragen van verschillende clades in dit geval worden vergeleken met verschillende doelen.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Ouder” - toont privémutaties, d.w.z. mutaties ten opzichte van het (dichtstbijzijnde) ouderknooppunt van de referentieboom waaraan het zoekmonster is gekoppeld tijdens de fylogenetische plaatsing.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referentie” - toont mutaties ten opzichte van de referentiesequentie (zoals gedefinieerd in de dataset).",
-  "'{{ attr }}' founder": "Oprichter van '{{ attr }}'",
   "(truncated)": "(afgekapt)",
   "* Current value. This amount can change depending on load": "* Huidige waarde. Dit bedrag kan veranderen afhankelijk van de belasting",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} vereist minstens {{memoryRequired}} geheugen per thread",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "De momenteel geselecteerde dataset lijkt niet overeen te komen met uw sequenties, maar er zijn {{ n }} andere datasets die dat wel kunnen. Klik op „Referentiedataset wijzigen” om de lijst te zien.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "De momenteel geselecteerde dataset lijkt niet overeen te komen met uw sequenties, maar er is 1 dataset die dat wel kan. Klik op „Referentiedataset wijzigen” om de lijst te zien.",
   "Customizations": "Aanpassingen",
+  "Customize": "Aanpassen",
   "Customize dataset files": "Datasetbestanden aanpassen",
   "Dataset": "Dataset",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Auteurs van de dataset hebben deze dataset gemarkeerd als verouderd, wat betekent dat de dataset verouderd is, niet langer wordt bijgewerkt of anderszins niet relevant is. Neem contact op met de auteurs van de dataset voor meer informatie.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Hier kunt u individuele bestanden in de dataset overschrijven. Als een bestand niet wordt aangeleverd, wordt het vervangen door de momenteel geselecteerde dataset. Meer informatie vind je in de {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Hier kunt u kolommen (individueel of categorieën) selecteren die naar CSV- en TSV-bestanden worden geschreven.",
   "Hide dataset files": "Datasetbestanden verbergen",
+  "History": "Historie",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Dit wordt echter niet aanbevolen: deze versie van de applicatie wordt niet langer bijgewerkt of ondersteund, en we kunnen niet garanderen dat deze werkt en dat de juiste resultaten zullen opleveren.",
   "I want to try anyway": "Ik wil het toch proberen",
   "Idle": "Inactief",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Het suggestie-algoritme is mislukt. Meld dit alstublieft aan de ontwikkelaars.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Het suggestie-algoritme kon geen dataset vinden die geschikt was voor uw sequenties. Selecteer handmatig een dataset. Als er geen geschikte dataset is, overweeg dan om er een te maken en bij te dragen aan de verzameling datasets van de Nextclade-gemeenschap.",
   "Summarized results of the analysis in {{formatName}} format.": "Samengevatte resultaten van de analyse in {{formatName}} -formaat.",
+  "Summary": "Samenvatting",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Als u van doel wisselt, worden de mutaties gewijzigd die worden weergegeven in de sequentieweergaven en in de kolom „Mut” van de tabel en de bijbehorende mouseover-tooltip.",
   "Text": "Tekst",
   "The address to the file is correct": "Het adres van het bestand is correct",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} werkt het beste in de nieuwste versies van ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Aanvullende informatie voor ontwikkelaars (klik om uit te vouwen)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} misplaatste stopcodon (en) gedetecteerd. Getroffen gen (en): {{geneList}}. QC-score: {{score}}",
-  "Customize": "Aanpassen",
-  "History": "Historie",
-  "Summary": "Samenvatting"
+  "\"{{ attr }}\" founder": "„{{ attr }}\" oprichter"
 }

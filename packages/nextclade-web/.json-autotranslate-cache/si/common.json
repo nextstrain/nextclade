@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ක්ලේඩ් නිර්මාතෘ” - විමසුම් නියැදියට පවරා ඇති ක්ලේඩ් නිර්මාතෘවරයාට සාපේක්ෂව විකෘති පෙන්වයි. විවිධ ක්ලේඩ් වලින් විමසීම් මෙම නඩුවේ විවිධ ඉලක්ක සමඟ සංසන්දනය කරනු ලබන බව සලකන්න.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“මාපිය” - පුද්ගලික විකෘති පෙන්වයි, එනම් phylogenic ස්ථානගත කිරීමේදී විමසුම් නියැදියට අනුයුක්ත කර ඇති යොමු වෘක්ෂයේ මව් (ළඟම) නෝඩයට සාපේක්ෂව විකෘතිතාවයන් දක්වයි.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“යොමු” - යොමු අනුපිළිවෙලට සාපේක්ෂව විකෘති පෙන්වයි (දත්ත කට්ටලයේ අර්ථ දැක්වෙන පරිදි).",
-  "'{{ attr }}' founder": "'{{ attr }}' නිර්මාතෘ",
   "(truncated)": "(කප්පාදු කරන ලද)",
   "* Current value. This amount can change depending on load": "* වත්මන් අගය. බර මත පදනම්ව මෙම ප්රමාණය වෙනස් විය හැකිය",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} නූලයකට අවම වශයෙන් {{memoryRequired}} මතකයක් අවශ්ය වේ",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "දැනට තෝරාගත් දත්ත කට්ටලය ඔබේ අනුක්රමවලට ගැලපෙන බවක් නොපෙනේ, නමුත් {{ n }} විය හැකි වෙනත් දත්ත කට්ටල තිබේ. ලැයිස්තුව බැලීමට “යොමු දත්ත කට්ටලය වෙනස් කරන්න” ක්ලික් කරන්න.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "දැනට තෝරාගත් දත්ත කට්ටලය ඔබේ අනුක්රමවලට ගැලපෙන බවක් නොපෙනේ, නමුත් විය හැකි දත්ත කට්ටලය 1 ක් ඇත. ලැයිස්තුව බැලීමට “යොමු දත්ත කට්ටලය වෙනස් කරන්න” ක්ලික් කරන්න.",
   "Customizations": "අභිරුචිකරණය",
+  "Customize": "අභිරුචිකරණය කරන්න",
   "Customize dataset files": "දත්ත කට්ටල ගොනු රිසිකරණය කරන්න",
   "Dataset": "දත්ත කට්ටලය",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "දත්ත කට්ටල කතුවරුන් මෙම දත්ත කට්ටලය අවලංගු කරන ලද ලෙස සලකුණු කළ අතර එයින් අදහස් වන්නේ දත්ත කට්ටලය යල්පැන ගොස් ඇති අතර, තවදුරටත් යාවත්කාලීන නොවනු ඇත හෝ වෙනත් ආකාරයකින් අදාළ නොවේ. විශේෂතා සඳහා කරුණාකර දත්ත කට්ටල කතුවරුන් අමතන්න.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "මෙහිදී ඔබට දත්ත කට්ටලයේ තනි ගොනු අභිබවා යා හැකිය. ගොනුවක් ලබා නොදෙන්නේ නම්, එය දැනට තෝරාගත් දත්ත කට්ටලයෙන් ආදේශ කරනු ලැබේ. {{documentation}} හි වැඩි විස්තර දැනගන්න",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "මෙහිදී ඔබට CSV සහ TSV ගොනු බවට ලියනු ලබන තීරු (තනි හෝ කාණ්ඩ) තෝරා ගත හැකිය.",
   "Hide dataset files": "දත්ත කට්ටල ගොනු සඟවන්න",
+  "History": "ඉතිහාසය",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "කෙසේ වෙතත්, මෙය නිර්දේශ නොකෙරේ: යෙදුමේ මෙම අනුවාදය තවදුරටත් යාවත්කාලීන හෝ සහාය නොදක්වන අතර එය ක්රියාත්මක වන බවත් එය නිවැරදි ප්රතිඵල ලබා දෙන බවත් අපට සහතික කළ නොහැකිය.",
   "I want to try anyway": "මට කොහොම හරි උත්සාහ කරන්න ඕන",
   "Idle": "නිෂ්ඵල",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "යෝජනා ඇල්ගොරිතම අසාර්ථක විය. කරුණාකර මෙය සංවර්ධකයින්ට වාර්තා කරන්න.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "යෝජනා ඇල්ගොරිතමයට ඔබේ අනුපිළිවෙල සඳහා සුදුසු දත්ත සමූහයක් සොයා ගැනීමට නොහැකි විය. දත්ත කට්ටලයක් අතින් තෝරන්න. සුදුසු දත්ත සමුදායක් නොමැති නම්, NextClade ප්රජා දත්ත සමුදාය සඳහා එකක් නිර්මාණය කිරීම සහ දායක කිරීම සලකා බලන්න.",
   "Summarized results of the analysis in {{formatName}} format.": "විශ්ලේෂණයේ සාරාංශ ප්රතිඵල {{formatName}} ආකෘතියෙන්.",
+  "Summary": "සාරාංශය",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "ඉලක්කය මාරු කිරීමෙන් අනුපිළිවෙල දර්ශනවල මෙන්ම වගුවේ “මුට්” තීරුවේ සහ එහි mouseover tooltip තුළ ප්රදර්ශනය වන විකෘති වෙනස් වේ.",
   "Text": "පෙළ",
   "The address to the file is correct": "ගොනුවේ ලිපිනය නිවැරදියි",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} හි නවතම අනුවාදයන්හි වඩාත් හොඳින් ක්රියා කරයි ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} සංවර්ධකයින් සඳහා අමතර තොරතුරු (පුළුල් කිරීමට ක්ලික් කරන්න)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} අස්ථානගත වූ නැවතුම් කෝඩන් (න්) හඳුනාගෙන ඇත. බලපෑමට ලක් වූ ජානය (න්): {{geneList}}. QC ලකුණු: {{score}}",
-  "Customize": "අභිරුචිකරණය කරන්න",
-  "History": "ඉතිහාසය",
-  "Summary": "සාරාංශය"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" නිර්මාතෘ"
 }

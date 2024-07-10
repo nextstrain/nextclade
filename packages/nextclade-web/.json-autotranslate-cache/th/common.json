@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ผู้ก่อตั้ง Clade” - แสดงการกลายพันธุ์ที่สัมพันธ์กับผู้ก่อตั้งของคลาดที่ได้รับการกำหนดให้กับตัวอย่างแบบสอบถามโปรดทราบว่าการสืบค้นจากคลาดต่างๆจะถูกเปรียบเทียบกับเป้าหมายที่แตกต่างกันในกรณีนี้",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“ผู้ปกครอง” - แสดงการกลายพันธุ์ส่วนตัว เช่น การกลายพันธุ์ที่สัมพันธ์กับโหนดแม่ (ที่ใกล้ที่สุด) ของต้นไม้อ้างอิงที่แนบตัวอย่างแบบสอบถามในระหว่างการจัดวางสายวิวัฒนาการ",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“การอ้างอิง” - แสดงการกลายพันธุ์ที่สัมพันธ์กับลำดับอ้างอิง (ตามที่กำหนดไว้ในชุดข้อมูล)",
-  "'{{ attr }}' founder": "ผู้ก่อตั้ง '{{ attr }}'",
   "(truncated)": "(ตัดทอน)",
   "* Current value. This amount can change depending on load": "* ค่าปัจจุบันจำนวนนี้สามารถเปลี่ยนแปลงได้ขึ้นอยู่กับโหลด",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ต้องใช้หน่วยความจำอย่างน้อย {{memoryRequired}} ต่อเธรด",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "ชุดข้อมูลที่เลือกในปัจจุบันดูเหมือนจะไม่ตรงกับลำดับของคุณ แต่มี {{ n }} ชุดข้อมูลอื่น ๆ ที่อาจเกิดขึ้นคลิก “เปลี่ยนชุดข้อมูลอ้างอิง” เพื่อดูรายการ",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "ชุดข้อมูลที่เลือกในปัจจุบันดูเหมือนจะไม่ตรงกับลำดับของคุณ แต่มีชุดข้อมูล 1 ชุดซึ่งอาจเกิดขึ้นคลิก “เปลี่ยนชุดข้อมูลอ้างอิง” เพื่อดูรายการ",
   "Customizations": "การปรับแต่ง",
+  "Customize": "ปรับแต่ง",
   "Customize dataset files": "ปรับแต่งไฟล์ชุดข้อมูล",
   "Dataset": "ชุดข้อมูล",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "ผู้เขียนชุดข้อมูลทำเครื่องหมายชุดข้อมูลนี้ว่าล้าสมัย ซึ่งหมายความว่าชุดข้อมูลล้าสมัย จะไม่ได้รับการอัปเดตอีกต่อไปหรือไม่เกี่ยวข้องอย่างอื่นโปรดติดต่อผู้เขียนชุดข้อมูลสำหรับข้อมูลรายละเอียด",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "ที่นี่คุณสามารถแทนที่ไฟล์แต่ละไฟล์ในชุดข้อมูลหากไม่มีไฟล์ ไฟล์จะถูกแทนที่จากชุดข้อมูลที่เลือกในปัจจุบันเรียนรู้เพิ่มเติมใน {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "ที่นี่คุณสามารถเลือกคอลัมน์ (รายบุคคลหรือหมวดหมู่) ซึ่งจะถูกเขียนลงในไฟล์ CSV และ TSV",
   "Hide dataset files": "ซ่อนไฟล์ชุดข้อมูล",
+  "History": "ประวัติศาสตร์",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "อย่างไรก็ตามไม่แนะนำให้ใช้: แอปพลิเคชันเวอร์ชันนี้ไม่ได้รับการอัปเดตหรือรองรับอีกต่อไปและเราไม่สามารถรับประกันได้ว่ามันจะทำงานและจะให้ผลลัพธ์ที่ถูกต้อง",
   "I want to try anyway": "ฉันอยากลองอย่างไรก็ตาม",
   "Idle": "ไม่ใช้งาน",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "อัลกอริทึมคำแนะนำล้มเหลโปรดรายงานสิ่งนี้ให้กับนักพัฒนา",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "อัลกอริทึมข้อเสนอแนะไม่สามารถค้นหาชุดข้อมูลที่เหมาะสมกับลำดับของคุณได้เลือกชุดข้อมูลด้วยตนเองหากไม่มีชุดข้อมูลที่เหมาะสม ให้พิจารณาสร้างและสนับสนุนชุดข้อมูลชุมชน Nextclade",
   "Summarized results of the analysis in {{formatName}} format.": "สรุปผลการวิเคราะห์ในรูปแบบ {{formatName}}",
+  "Summary": "สรุป",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "การสลับเป้าหมายจะเปลี่ยนการกลายพันธุ์ที่แสดงในมุมมองลำดับเช่นเดียวกับในคอลัมน์ “Mut” ของตารางและเคล็ดลับเครื่องมือโอเวอร์เมาส์",
   "Text": "ข้อความ",
   "The address to the file is correct": "ที่อยู่ของไฟล์ถูกต้อง",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} ทำงานได้ดีที่สุดในเวอร์ชันล่าสุดของ ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ข้อมูลเพิ่มเติมสำหรับนักพัฒนา (คลิกเพื่อขยาย)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ตรวจพบโคดอนหยุดที่ไม่ถูกต้องยีนที่ได้รับผลกระทบ: {{geneList}}.คะแนนคิวซี: {{score}}",
-  "Customize": "ปรับแต่ง",
-  "History": "ประวัติศาสตร์",
-  "Summary": "สรุป"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" ผู้ก่อตั้ง"
 }

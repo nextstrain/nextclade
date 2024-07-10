@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ক্লেড প্রতিষ্ঠাতা” - ক্লেডের প্রতিষ্ঠাতার সাথে সম্পর্কিত পরিবর্তন দেখায় যা কোয়েরি নমুনায় বরাদ্দ করা হয়েছে। মনে রাখবেন যে বিভিন্ন ক্লেড থেকে প্রশ্নগুলি এই ক্ষেত্রে বিভিন্ন লক্ষ্যগুলির সাথে তুলনা করা হবে।",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“প্যারেন্ট” - প্রাইভেট মিউটেশন দেখায়, অর্থাৎ ফাইলোজেনেটিক স্থাপনের সময় কোয়েরি নমুনাটি সংযুক্ত করা হয়েছে এমন রেফারেন্স ট্রির পিতামাতার (নিকটতম) নোডের সাথে সম্পর্কিত রূপান্তরগুলি।",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“রেফারেন্স” - রেফারেন্স ক্রমের সাথে সম্পর্কিত পরিবর্তন দেখায় (ডাটাসেটে সংজ্ঞায়িত হিসাবে)।",
-  "'{{ attr }}' founder": "' {{ attr }} ' প্রতিষ্ঠাতা",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" প্রতিষ্ঠাতা",
   "(truncated)": "(কাটা)",
   "* Current value. This amount can change depending on load": "* বর্তমান মান। এই পরিমাণ লোডের উপর নির্ভর করে পরিবর্তন হতে পারে",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} প্রতি থ্রেডে কমপক্ষে {{memoryRequired}} মেমরি প্রয়োজন",

@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Основател на клада“ - показва мутации спрямо основателя на клада, който е присвоен към извадката от заявката. Имайте предвид, че заявките от различни кладове ще бъдат сравнени с различни цели в този случай.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Родител“ - показва частни мутации, т.е. мутации спрямо родителския (най-близкия) възел на референтното дърво, към което е прикрепена пробата от заявката по време на филогенетичното поставяне.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Референция“ - показва мутации спрямо референтната последователност (както е дефинирано в набора от данни).",
-  "'{{ attr }}' founder": "Основател на '{{ attr }}'",
   "(truncated)": "(пресечен)",
   "* Current value. This amount can change depending on load": "* Текуща стойност. Тази сума може да се променя в зависимост от натоварването",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} изисква поне {{memoryRequired}} памет на нишка",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Изглежда, че избраният в момента набор от данни не съвпада с вашите последователности, но има {{ n }} други набори от данни, които биха могли. Кликнете върху „Промяна на референтния набор от данни“, за да видите списъка.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Изглежда, че избраният в момента набор от данни не съответства на вашите последователности, но има 1 набор от данни, който може да бъде. Кликнете върху „Промяна на референтния набор от данни“, за да видите списъка.",
   "Customizations": "Персонализации",
+  "Customize": "Персонализиране",
   "Customize dataset files": "Персонализирайте файловете с набори от данни",
   "Dataset": "Набор от данни",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Авторите на набора от данни маркираха този набор от данни като остарял, което означава, че наборът от данни е остарял, вече няма да се актуализира или не е от значение по друг начин. Моля, свържете се с авторите на наборите от данни за подробности.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Тук можете да заместите отделни файлове в набора от данни. Ако файл не бъде предоставен, той ще бъде заменен от избрания в момента набор от данни. Научете повече в {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Тук можете да изберете колони (индивидуални или категории), които ще бъдат записани в CSV и TSV файлове.",
   "Hide dataset files": "Скриване на файлове с набор от данни",
+  "History": "История",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Това обаче не се препоръчва: тази версия на приложението вече не се актуализира или поддържа и не можем да гарантираме, че ще работи и че ще даде правилни резултати.",
   "I want to try anyway": "Искам да опитам така или иначе",
   "Idle": "На празен ход",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Алгоритъмът за предложение се провали Моля, докладвайте това на разработчиците.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Алгоритъмът за предложения не успя да намери набор от данни, подходящ за вашите последователности. Изберете набор от данни ръчно. Ако няма подходящ набор от данни, помислете за създаването и допринесването за събирането на набори от данни на общността Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Обобщени резултати от анализа във формат {{formatName}}.",
+  "Summary": "Резюме",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Превключването на целта ще промени мутациите, показани в изгледите на последователността, както и в колоната „Mut“ на таблицата и нейния набор с инструменти за прехвърляне на мишката.",
   "Text": "Текст",
   "The address to the file is correct": "Адресът към файла е правилен",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} работи най-добре в последните версии на ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Допълнителна информация за разработчиците (щракнете, за да разширите)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} Открит е неправилно поставен стоп кодон (и). Засегнат ген (и): {{geneList}}. QC резултат: {{score}}",
-  "Customize": "Персонализиране",
-  "History": "История",
-  "Summary": "Резюме"
+  "\"{{ attr }}\" founder": "„{{ attr }}\" основател"
 }

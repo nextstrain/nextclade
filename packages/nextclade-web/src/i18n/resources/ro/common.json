@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade Founder” - prezintă mutații în raport cu fondatorul cladei care a fost atribuită eșantionului de interogare. Rețineți că interogările din diferite clade vor fi comparate cu ținte diferite în acest caz.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Părinte” - arată mutații private, adică mutații în raport cu nodul părinte (cel mai apropiat) al arborelui de referință la care a fost atașat eșantionul de interogare în timpul plasării filogenetice.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referință” - arată mutații în raport cu secvența de referință (așa cum este definită în setul de date).",
-  "'{{ attr }}' founder": "Fondatorul ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "Fondatorul „ {{ attr }} ”",
   "(truncated)": "(trunchiat)",
   "* Current value. This amount can change depending on load": "* Valoarea curentă. Această sumă se poate modifica în funcție de sarcină",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} necesită cel puțin {{memoryRequired}} de memorie pe fir",
