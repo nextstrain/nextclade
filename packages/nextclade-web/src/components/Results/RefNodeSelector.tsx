@@ -39,7 +39,7 @@ export function RefNodeSelector() {
         const searchId = getCladeNodeAttrFounderSearchId(desc.name)
         return {
           value: searchId,
-          label: t("'{{ attr }}' founder", { attr: desc.displayName }),
+          label: t('"{{ attr }}" founder', { attr: desc.displayName }),
           description: t("Earliest ancestor node having the same value of attribute '{{ attr }}'", {
             attr: desc.displayName,
           }),
