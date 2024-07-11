@@ -1,8 +1,18 @@
+## Nextclade 3.8.1
+
+### Fix crash when using
+
+Since 3.8.0 Nextclade could crash when particular combinations of CSV/TSV columns selected in "Column config" tab on "Export" page in Nextclade Web or with `--output-columns-selection` argument in Nextclade CLI. This has been resolved.
+
+### Remove extra spaces in ref node selector
+
+Remove extra spaces in the text of entries in the "Relative to" dropdown selector in Nextclade Web.
+
 ## Nextclade 3.8.0
 
 ### Relative mutations
 
-Nextclade now calls mutations relative to multiple targets. Additionally to previously available mutations relative to reference and mutations relative to parent tree node (private mutations), Nextclade now calls mutations relative to clade founder tree nodes, and relative to custom nodes of interest if defined in the dataset (e.g. vaccine strains).
+Nextclade now calls mutations relative to multiple targets. Additionally, to previously available mutations relative to reference and mutations relative to parent tree node (private mutations), Nextclade now calls mutations relative to clade founder tree nodes, and relative to custom nodes of interest if defined in the dataset (e.g. vaccine strains).
 
 Nextclade Web now has an additional dropdown selector for the target of mutation calling. Output files has new columns/fields for mutations relative to clade founders (`founderMuts`) as well as for mutations relative to custom nodes (`relativeMutations`).
 
