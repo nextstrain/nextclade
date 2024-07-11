@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade stigter” - toon mutasies relatief tot die stigter van die klade wat aan die navraagmonster toegeken is. Let daarop dat navrae van verskillende klades in hierdie geval met verskillende teikens vergelyk sal word.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ouer” - toon private mutasies, dit wil sê mutasies relatief tot die ouer (naaste) knoop van die verwysingsboom waaraan die navraagmonster geheg is tydens filogenetiese plasing.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Verwysing” - toon mutasies relatief tot die verwysingsvolgorde (soos gedefinieer in die datastel).",
-  "'{{ attr }}' founder": "Stigter van '{{ attr }}'",
   "(truncated)": "(afgesny)",
   "* Current value. This amount can change depending on load": "* Huidige waarde. Hierdie bedrag kan verander na gelang van las",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} benodig ten minste {{memoryRequired}} geheue per draad",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Dit lyk asof tans geselekteerde datastel ooreenstem nie by u rye nie, maar daar is {{ n }} ander datastelle wat dit moontlik is. Klik op “Verander verwysingsdatastel” om die lys te sien.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Dit lyk asof tans geselekteerde datastel ooreenstem nie by u rye nie, maar daar is 1 datastel wat moontlik. Klik op “Verander verwysingsdatastel” om die lys te sien.",
   "Customizations": "Aanpassings",
+  "Customize": "Pas aan",
   "Customize dataset files": "Pas datastellêers aan",
   "Dataset": "Datastel",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Datastel-skrywers het hierdie datastel as verouderd gemerk, wat beteken dat die datastel verouderd is, nie meer opgedateer sal word of andersins nie relevant is nie. Kontak asseblief datastelskrywers vir besonderhede.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Hier kan u individuele lêers in die datastel oorskakel. As 'n lêer nie verskaf word nie, sal dit vervang word uit die tans geselekteerde datastel. Kom meer te wete in die {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Hier kan u kolomme (individueel of kategorieë) kies wat in CSV- en TSV-lêers geskryf sal word.",
   "Hide dataset files": "Versteek datastellêers",
+  "History": "Geskiedenis",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Dit word egter nie aanbeveel nie: hierdie weergawe van die toepassing word nie meer opgedateer of ondersteun nie, en ons kan nie waarborg dat dit sal werk en dat dit korrekte resultate sal lewer nie.",
   "I want to try anyway": "Ek wil in elk geval probeer",
   "Idle": "ledig",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Voorstelalgoritme het misluk. Rapporteer dit asseblief aan ontwikkelaars.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Voorstelalgoritme kon nie 'n datastel vind wat geskik is vir u rye nie. Kies 'n datastel handmatig. As daar geen geskikte datastel is nie, moet u dit oorweeg om een te skep en by te dra tot die versameling van die gemeenskapsdatastel van Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Opgesomme resultate van die analise in {{formatName}} -formaat.",
+  "Summary": "Opsomming",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Om die teiken te skakel, sal mutasies verander wat in die volgordesigte sowel as in die “Mut” -kolom van die tabel en sy muisoorgereedskappuntjie vertoon word.",
   "Text": "Teks",
   "The address to the file is correct": "Die adres van die lêer is korrek",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} werk die beste in die nuutste weergawes van ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Bykomende inligting vir ontwikkelaars (klik om uit te brei)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} verkeerde stopkodon (s) opgespoor. Geaffekteerde gene (s): {{geneList}}. QC-telling: {{score}}",
-  "Customize": "Pas aan",
-  "History": "Geskiedenis",
-  "Summary": "Opsomming"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" stigter"
 }

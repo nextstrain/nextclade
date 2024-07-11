@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade հիմնադիր” - ցույց է տալիս մուտացիաներ հարաբերական հիմնադրի clade, որը նշանակվել է հարցման նմուշի. Նկատի ունեցեք, որ տարբեր կլադների հարցումները կհամեմատվեն այս դեպքում տարբեր թիրախների հետ:",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ծնող” - ցույց է տալիս մասնավոր մուտացիաներ, այսինքն մուտացիաներ հղման ծառի ծնող (մոտակա) հանգույցի նկատմամբ, որին կցվել է հարցման նմուշը ֆիլոգենետիկ տեղաբաշխման ժամանակ։",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Տեղեկանք” - ցույց է տալիս մուտացիաները հղման հաջորդականության նկատմամբ (ինչպես սահմանված է տվյալների հավաքածուում):",
-  "'{{ attr }}' founder": "“ {{ attr }} ” հիմնադիր",
+  "\"{{ attr }}\" founder": "“ {{ attr }} ” -ի հիմնադիր",
   "(truncated)": "(կտրված)",
   "* Current value. This amount can change depending on load": "* Ընթացիկ արժեքը: Այս գումարը կարող է փոխվել կախված բեռից",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} -ը պահանջում է առնվազն {{memoryRequired}} հիշողություն մեկ թեմայի համար",

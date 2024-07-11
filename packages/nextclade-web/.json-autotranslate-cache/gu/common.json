@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ક્લેડ સ્થાપક” - ક્લેડના સ્થાપકને સંબંધિત પરિવર્તન બતાવે છે જે ક્વેરી નમૂનાને સોંપવામાં આવ્યું છે. નોંધ કરો કે વિવિધ ક્લેડ્સના ક્વેરીઝને આ કિસ્સામાં વિવિધ લક્ષ્યો સાથે સરખાવવામાં આવશે.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“પિતૃ” - ખાનગી પરિવર્તન બતાવે છે, એટલે કે સંદર્ભ વૃક્ષના પિતૃ (નજીકના) નોડ સાથે સંબંધિત પરિવર્તન કે જેની સાથે ક્વેરી સેમ્પલ ફાઇલોજેનેટિક પ્લેસમેન્ટ દરમિયાન જોડાયેલ છે.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“સંદર્ભ” - સંદર્ભ ક્રમ સંબંધિત પરિવર્તન બતાવે છે (જેમ કે ડેટાસેટમાં વ્યાખ્યાયિત કરવામાં આવે છે).",
-  "'{{ attr }}' founder": "'{{ attr }}' સ્થાપક",
   "(truncated)": "(કાપવામાં આવે છે)",
   "* Current value. This amount can change depending on load": "* વર્તમાન મૂલ્ય. આ રકમ લોડ પર આધાર રાખીને બદલાઈ શકે છે",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} માટે થ્રેડ દીઠ ઓછામાં ઓછી {{memoryRequired}} મેમરીની જરૂર છે",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "હાલમાં પસંદ કરેલ ડેટાસેટ તમારા સિક્વન્સ સાથે મેળ ખાય તેવું લાગતું નથી, પરંતુ ત્યાં છે {{ n }} અન્ય ડેટાસેટ્સ જે શકે છે. સૂચિ જોવા માટે “સંદર્ભ ડેટાસેટ બદલો” પર ક્લિક કરો.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "હાલમાં પસંદ કરેલ ડેટાસેટ તમારા સિક્વન્સ સાથે મેળ ખાય તેવું લાગતું નથી, પરંતુ ત્યાં 1 ડેટાસેટ છે જે કદાચ. સૂચિ જોવા માટે “સંદર્ભ ડેટાસેટ બદલો” પર ક્લિક કરો.",
   "Customizations": "કસ્ટમાઇઝેશન",
+  "Customize": "કસ્ટમાઇઝ કરો",
   "Customize dataset files": "ડેટાસેટ ફાઇલોને કસ્ટમાઇઝ કરો",
   "Dataset": "ડેટાસેટ",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "ડેટાસેટ લેખકોએ આ ડેટાસેટને અપ્રચલિત તરીકે ચિહ્નિત કર્યું છે, જેનો અર્થ છે કે ડેટાસેટ અપ્રચલિત છે, હવે અપડેટ કરવામાં આવશે નહીં અથવા અન્યથા સંબંધિત નથી. કૃપા કરીને વિશિષ્ટતાઓ માટે ડેટાસેટ લેખકોનો સંપર્ક કરો.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "અહીં તમે ડેટાસેટમાં વ્યક્તિગત ફાઇલોને ઓવરરાઇડ કરી શકો છો. જો કોઈ ફાઇલ પ્રદાન કરવામાં ન આવે, તો તે હાલમાં પસંદ કરેલ ડેટાસેટમાંથી અવેજી કરવામાં આવશે. {{documentation}} માં વધુ જાણો",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "અહીં તમે કૉલમ પસંદ કરી શકો છો (વ્યક્તિગત અથવા કેટેગરીઝ) જે CSV અને TSV ફાઇલોમાં લખવામાં આવશે.",
   "Hide dataset files": "ડેટાસેટ ફાઇલો છુપાવો",
+  "History": "ઇતિહાસ",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "જો કે, આની ભલામણ કરવામાં આવતી નથી: એપ્લિકેશનનું આ સંસ્કરણ હવે અપડેટ અથવા સપોર્ટેડ નથી, અને અમે ખાતરી આપી શકતા નથી કે તે કામ કરશે, અને તે યોગ્ય પરિણામો ઉત્પન્ન કરશે.",
   "I want to try anyway": "હું કોઈપણ રીતે પ્રયાસ કરવા માંગું છું",
   "Idle": "નિષ્ક્રિય",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "સૂચન અલ્ગોરિધમ નિષ્ફળ ગયો કૃપા કરીને વિકાસકર્તાઓને આની જાણ કરો.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "સૂચન અલ્ગોરિધમ તમારા સિક્વન્સ માટે યોગ્ય ડેટાસેટ શોધવામાં અસમર્થ હતું. મેન્યુઅલી ડેટાસેટ પસંદ કરો. જો ત્યાં કોઈ યોગ્ય ડેટાસેટ નથી, તો નેક્સક્લેડ સમુદાય ડેટાસેટ સંગ્રહમાં એક બનાવવા અને યોગદાન આપવાનું વિચારો.",
   "Summarized results of the analysis in {{formatName}} format.": "{{formatName}} ફોર્મેટમાં વિશ્લેષણના સારાંશ પરિણામો.",
+  "Summary": "સારાંશ",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "લક્ષ્યને સ્વિચ કરવાથી ક્રમ દૃશ્યોમાં તેમજ કોષ્ટકના “મટ” સ્તંભ અને તેના માઉસઓવર ટૂલટીપમાં પ્રદર્શિત પરિવર્તન બદલાશે.",
   "Text": "લખાણ",
   "The address to the file is correct": "ફાઇલનું સરનામું સાચું છે",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} ના નવીનતમ સંસ્કરણોમાં શ્રેષ્ઠ કાર્ય કરે છે ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} વિકાસકર્તાઓ માટે વધારાની માહિતી (વિસ્તૃત કરવા માટે ક્લિક કરો)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ખોટી રીતે મૂકવામાં આવેલા સ્ટોપ કોડન (ઓ) શોધાયેલ. અસરગ્રસ્ત જનીન (ઓ): {{geneList}}. ક્યુસી સ્કોર: {{score}}",
-  "Customize": "કસ્ટમાઇઝ કરો",
-  "History": "ઇતિહાસ",
-  "Summary": "સારાંશ"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" સ્થાપક"
 }

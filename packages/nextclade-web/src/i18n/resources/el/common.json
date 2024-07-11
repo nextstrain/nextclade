@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«Clade Founder» - δείχνει μεταλλάξεις σε σχέση με τον ιδρυτή του κλάδου που έχει εκχωρηθεί στο δείγμα ερωτήματος. Σημειώστε ότι τα ερωτήματα από διαφορετικές κατηγορίες θα συγκριθούν με διαφορετικούς στόχους σε αυτήν την περίπτωση.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«Γονέας» - δείχνει ιδιωτικές μεταλλάξεις, δηλαδή μεταλλάξεις σε σχέση με τον γονικό (πλησιέστερο) κόμβο του δέντρου αναφοράς στο οποίο έχει συνδεθεί το δείγμα ερωτήματος κατά τη διάρκεια της φυλογενετικής τοποθέτησης.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«Αναφορά» - δείχνει μεταλλάξεις σε σχέση με την ακολουθία αναφοράς (όπως ορίζεται στο σύνολο δεδομένων).",
-  "'{{ attr }}' founder": "Ιδρυτής « {{ attr }} »",
+  "\"{{ attr }}\" founder": "Ιδρυτής του « {{ attr }} »",
   "(truncated)": "(περικομμένο)",
   "* Current value. This amount can change depending on load": "* Τρέχουσα τιμή. Αυτό το ποσό μπορεί να αλλάξει ανάλογα με το φορτίο",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Το {{appName}} απαιτεί τουλάχιστον {{memoryRequired}} μνήμης ανά νήμα",

@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "”Clade Founder” - näyttää mutaatioita suhteessa kyselynäytteeseen määritetyn kladin perustajaan. Huomaa, että eri kladeiden kyselyjä verrataan tässä tapauksessa eri kohteisiin.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "”Vanhempi” - näyttää yksityisiä mutaatioita, eli mutaatioita suhteessa sen viitepuun vanhempaan (lähimpään) solmuun, johon kyselynäyte on liitetty fylogeneettisen sijoittelun aikana.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "”Viite” - näyttää mutaatiot suhteessa referenssisekvenssiin (sellaisena kuin se on määritelty tietoaineistossa).",
-  "'{{ attr }}' founder": "{{ attr }} -perustaja",
   "(truncated)": "(katkaistu)",
   "* Current value. This amount can change depending on load": "* Nykyinen arvo. Tämä määrä voi muuttua kuormituksesta riippuen",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} vaatii vähintään {{memoryRequired}} muistia säiettä kohden",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Tällä hetkellä valittu tietojoukko ei näytä vastaavan sekvenssejäsi, mutta on olemassa {{ n }} muita tietojoukkoja, jotka saattavat. Napsauta ”Muuta referenssitietoaineistoa” nähdäksesi luettelon.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Tällä hetkellä valittu tietojoukko ei näytä vastaavan sekvenssejäsi, mutta on olemassa 1 tietojoukko, joka saattaa. Napsauta ”Muuta referenssitietoaineistoa” nähdäksesi luettelon.",
   "Customizations": "Mukautukset",
+  "Customize": "Mukauta",
   "Customize dataset files": "Mukauta tietojoukkotiedostoja",
   "Dataset": "Tietoaineisto",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Tietojoukon tekijät merkitsivät tämän tietojoukon vanhentuneeksi, mikä tarkoittaa, että tietojoukko on vanhentunut, sitä ei enää päivitetä tai sillä ei ole merkitystä muuten. Ota yhteyttä tietojoukon tekijöihin saadaksesi lisätietoja.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Täällä voit ohittaa tietojoukon yksittäiset tiedostot. Jos tiedostoa ei toimiteta, se korvataan tällä hetkellä valitusta tietojoukosta. Lue lisää aiheesta {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Täällä voit valita sarakkeita (yksittäisiä tai luokkia), jotka kirjoitetaan CSV- ja TSV-tiedostoihin.",
   "Hide dataset files": "Piilota tietoaineistotiedostot",
+  "History": "Historia",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Tätä ei kuitenkaan suositella: tätä sovelluksen versiota ei enää päivitetä tai tueta, emmekä voi taata, että se toimii ja että se tuottaa oikeita tuloksia.",
   "I want to try anyway": "Haluan yrittää joka tapauksessa",
   "Idle": "Tyhjäkäynnillä",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Ehdotusalgoritmi epäonnistui. Ilmoita tästä kehittäjille.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Ehdotusalgoritmi ei löytänyt sekvensseillesi sopivaa tietojoukkoa. Valitse tietojoukko manuaalisesti. Jos sopivaa tietojoukkoa ei ole, harkitse sellaisen luomista ja lisäämistä Nextclade-yhteisön tietojoukkokokoelmaan.",
   "Summarized results of the analysis in {{formatName}} format.": "Yhteenveto analyysin tuloksista {{formatName}} -muodossa.",
+  "Summary": "Yhteenveto",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Kohteen vaihtaminen muuttaa mutaatioita, jotka näkyvät sekvenssinäkymissä sekä taulukon ”Mut” -sarakkeessa ja sen hiiren työkaluvihjeessä.",
   "Text": "Teksti",
   "The address to the file is correct": "Tiedoston osoite on oikea",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} toimii parhaiten uusimmissa versioissa ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Lisätietoja kehittäjille (laajenna napsauttamalla)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} väärin sijoitetut pysäytyskodoni (t) havaittu. Vaurioitunut geeni (t): {{geneList}}. QC-pisteet: {{score}}",
-  "Customize": "Mukauta",
-  "History": "Historia",
-  "Summary": "Yhteenveto"
+  "\"{{ attr }}\" founder": "”{{ attr }}\" perustaja"
 }

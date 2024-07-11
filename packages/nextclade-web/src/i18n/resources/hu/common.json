@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade alapító” - mutációkat mutál a lekérdezési mintához rendelt klád alapítójához viszonyítva. Ne feledje, hogy ebben az esetben a különböző kládokból származó lekérdezéseket összehasonlítjuk a különböző célokkal.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Szülői” - privát mutációkat mutál, azaz a referenciafa szülő (legközelebbi) csomópontjához viszonyított mutációkat, amelyhez a lekérdezési mintát csatolták a filogenetikai elhelyezés során.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referencia” - mutációkat mutál a referenciaszekvenciához viszonyítva (az adatkészletben meghatározottak szerint).",
-  "'{{ attr }}' founder": "„ {{ attr }} ” alapítója",
+  "\"{{ attr }}\" founder": "„ {{ attr }} \" alapító",
   "(truncated)": "(csonkított)",
   "* Current value. This amount can change depending on load": "* Aktuális érték. Ez az összeg a terheléstől függően változhat",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} szálonként legalább {{memoryRequired}} memóriát igényel",

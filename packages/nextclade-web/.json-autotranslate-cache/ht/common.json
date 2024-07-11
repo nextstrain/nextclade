@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade fondatè” - montre mitasyon relatif nan fondatè a nan clade la ki te asiyen nan echantiyon an rekèt. Remake byen ke requêtes de clades diferan yo pral konpare ak objektif diferan nan ka sa a.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Paran” - montre mitasyon prive, sa vle di mitasyon relatif nan ne paran an (ki pi pre) nan pye bwa a referans ki echantiyon an rekèt te tache ak pandan plasman phylogenic.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referans” - montre mitasyon relatif nan sekans referans lan (jan sa defini nan ansanm done a).",
-  "'{{ attr }}' founder": "Fondatè '{{ attr }}'",
   "(truncated)": "(tronke)",
   "* Current value. This amount can change depending on load": "* Valè aktyèl. Kantite lajan sa a ka chanje depann de chaj",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} mande pou omwen {{memoryRequired}} nan memwa pou chak fil",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Kounye a chwazi dataset pa sanble matche ak sekans ou, men gen {{ n }} lòt datasets ki ta ka. Klike sou “Chanje done referans” pou wè lis la.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Kounye a chwazi dataset pa sanble matche ak sekans ou, men gen 1 dataset ki ta ka. Klike sou “Chanje done referans” pou wè lis la.",
   "Customizations": "Pèrsonalizasyon",
+  "Customize": "Customize",
   "Customize dataset files": "Customize dosye ansanm done",
   "Dataset": "Done ansanm",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Otè Dataset make sa a dataset kòm deprecated, ki vle di dataset la se demode, pa pral mete ajou ankò oswa se pa enpòtan otreman. Tanpri kontakte otè ansanm done pou spesifik.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Isit la ou ka ranvèse dosye endividyèl nan ansanm done a. Si yon dosye pa bay, li pral ranplase soti nan ansanm done a chwazi kounye a. Aprann plis nan {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Isit la ou ka chwazi kolòn (endividyèl oswa kategori) ki pral ekri nan dosye CSV ak TSV.",
   "Hide dataset files": "Kache dosye ansanm done",
+  "History": "Istwa",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Sepandan, sa a pa rekòmande: vèsyon sa a nan aplikasyon an pa gen okenn ankò mete ajou oswa sipòte, epi nou pa ka garanti ke li pral travay, e ke li pral pwodwi rezilta kòrèk.",
   "I want to try anyway": "Mwen vle eseye de tout fason",
   "Idle": "san fè anyen",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritm sijesyon echwe. Tanpri rapòte sa bay devlopè.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Algorithm sijesyon te kapab jwenn yon ansanm done ki apwopriye pou sekans ou yo. Chwazi yon ansanm done manyèlman. Si pa gen okenn dataset apwopriye, konsidere kreye ak kontribye yon sèl nan koleksyon done kominote Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Rezime rezilta analiz la nan fòma {{formatName}}.",
+  "Summary": "Rezime",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Oblije chanje sib la pral chanje mitasyon parèt nan opinyon yo sekans kòm byen ke nan kolòn nan “Mut” nan tab la ak tooltip mouseover li yo.",
   "Text": "Tèks",
   "The address to the file is correct": "Adrès dosye a se kòrèk",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} travay pi byen nan vèsyon yo dènye nan ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Enfòmasyon adisyonèl pou devlopè (klike sou pou elaji)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon (yo) sispann mal kote detekte. Jèn afekte (yo): {{geneList}}. Nòt QC: {{score}}",
-  "Customize": "Customize",
-  "History": "Istwa",
-  "Summary": "Rezime"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" fondatè"
 }

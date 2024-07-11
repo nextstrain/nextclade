@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«Clade grunnlegger» - viser mutasjoner i forhold til grunnleggeren av kladen som er tildelt spørringsprøven. Merk at spørsmål fra forskjellige klader vil bli sammenlignet med forskjellige mål i dette tilfellet.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«Forelder» - viser private mutasjoner, dvs. mutasjoner i forhold til den overordnede (nærmeste) noden til referansetreet som spørringsprøven er knyttet til under fylogenetisk plassering.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«Referanse» - viser mutasjoner i forhold til referansesekvensen (som definert i datasettet).",
-  "'{{ attr }}' founder": "' {{ attr }} ' grunnlegger",
+  "\"{{ attr }}\" founder": "« {{ attr }} \" grunnlegger",
   "(truncated)": "(avkortet)",
   "* Current value. This amount can change depending on load": "* Nåværende verdi. Dette beløpet kan endres avhengig av belastning",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} krever minst {{memoryRequired}} minne per tråd",

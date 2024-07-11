@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«Засновник Clade» - показує мутації щодо засновника клади, яка була призначена для вибірки запиту. Зверніть увагу, що запити з різних кладів будуть порівнюватися з різними цілями в цьому випадку.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«Батько» - показує приватні мутації, тобто мутації відносно батьківського (найближчого) вузла еталонного дерева, до якого зразок запиту був приєднаний під час філогенетичного розміщення.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«Посилання» - показує мутації щодо еталонної послідовності (як визначено в наборі даних).",
-  "'{{ attr }}' founder": "Засновник '{{ attr }}'",
   "(truncated)": "(урізаний)",
   "* Current value. This amount can change depending on load": "* Поточне значення. Ця сума може змінюватися залежно від навантаження",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} вимагає принаймні {{memoryRequired}} пам'яті для кожного потоку",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Наразі вибраний набір даних, схоже, не відповідає вашим послідовностям, але є {{ n }} інші набори даних, які можуть бути. Натисніть «Змінити довідковий набір даних», щоб побачити список.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Наразі вибраний набір даних, схоже, не відповідає вашим послідовностям, але є 1 набір даних, який може бути. Натисніть «Змінити довідковий набір даних», щоб побачити список.",
   "Customizations": "Налаштування",
+  "Customize": "Налаштувати",
   "Customize dataset files": "Налаштування файлів набору даних",
   "Dataset": "Набір даних",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Автори набору даних позначили цей набір даних як застарілий, що означає, що набір даних застарілий, більше не буде оновлюватися або не має значення в іншому випадку. Будь ласка, зв'яжіться з авторами набору даних, щоб дізнатися більше.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Тут ви можете перевизначити окремі файли в наборі даних. Якщо файл не надано, він буде замінений з поточного вибраного набору даних. Дізнайтеся більше в {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Тут ви можете вибрати стовпці (окремі або категорії), які будуть записані у файли CSV та TSV.",
   "Hide dataset files": "Приховати файли набору даних",
+  "History": "Історія",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Однак це не рекомендується: ця версія програми більше не оновлюється і не підтримується, і ми не можемо гарантувати, що вона буде працювати, і що вона дасть правильні результати.",
   "I want to try anyway": "Я все одно хочу спробувати",
   "Idle": "Неактивний",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Алгоритм пропозиції не вдалося. Будь ласка, повідомте про це розробникам.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Алгоритм пропозицій не зміг знайти набір даних, відповідний для ваших послідовностей. Виберіть набір даних вручну. Якщо немає відповідного набору даних, подумайте про створення та внесення його до колекції наборів даних спільноти Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Підведені результати аналізу у форматі {{formatName}}.",
+  "Summary": "Короткий зміст",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Перемикання цілі змінить мутації, що відображаються у переглядах послідовності, а також у стовпці «Mut» таблиці та підказці миші.",
   "Text": "Текст",
   "The address to the file is correct": "Адреса до файлу правильна",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} найкраще працює в останніх версіях ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Додаткова інформація для розробників (натисніть, щоб розгорнути)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Виявлено {{totalStopCodons}} неправильно розміщений стоп-кодон (и). Уражені гени: {{geneList}}. Оцінка якості: {{score}}",
-  "Customize": "Налаштувати",
-  "History": "Історія",
-  "Summary": "Короткий зміст"
+  "\"{{ attr }}\" founder": "Засновник «{{ attr }}»"
 }

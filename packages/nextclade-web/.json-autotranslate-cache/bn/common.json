@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ক্লেড প্রতিষ্ঠাতা” - ক্লেডের প্রতিষ্ঠাতার সাথে সম্পর্কিত পরিবর্তন দেখায় যা কোয়েরি নমুনায় বরাদ্দ করা হয়েছে। মনে রাখবেন যে বিভিন্ন ক্লেড থেকে প্রশ্নগুলি এই ক্ষেত্রে বিভিন্ন লক্ষ্যগুলির সাথে তুলনা করা হবে।",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“প্যারেন্ট” - প্রাইভেট মিউটেশন দেখায়, অর্থাৎ ফাইলোজেনেটিক স্থাপনের সময় কোয়েরি নমুনাটি সংযুক্ত করা হয়েছে এমন রেফারেন্স ট্রির পিতামাতার (নিকটতম) নোডের সাথে সম্পর্কিত রূপান্তরগুলি।",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“রেফারেন্স” - রেফারেন্স ক্রমের সাথে সম্পর্কিত পরিবর্তন দেখায় (ডাটাসেটে সংজ্ঞায়িত হিসাবে)।",
-  "'{{ attr }}' founder": "'{{ attr }}' প্রতিষ্ঠাতা",
   "(truncated)": "(কাটা)",
   "* Current value. This amount can change depending on load": "* বর্তমান মান। এই পরিমাণ লোডের উপর নির্ভর করে পরিবর্তন হতে পারে",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} প্রতি থ্রেডে কমপক্ষে {{memoryRequired}} মেমরি প্রয়োজন",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "বর্তমানে নির্বাচিত ডেটাসেট আপনার সিকোয়েন্সের সাথে মিলে মনে হয় না, তবে {{ n }} অন্যান্য ডেটাসেট রয়েছে যা হতে পারে। তালিকাটি দেখতে “রেফারেন্স ডেটাসেট পরিবর্তন করুন” ক্লিক করুন।",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "বর্তমানে নির্বাচিত ডেটাসেট আপনার সিকোয়েন্সের সাথে মেলে বলে মনে হয় না, তবে 1 টি ডেটাসেট রয়েছে যা হতে পারে। তালিকাটি দেখতে “রেফারেন্স ডেটাসেট পরিবর্তন করুন” ক্লিক করুন।",
   "Customizations": "কাস্টমাইজেশন",
+  "Customize": "কাস্টমাইজ করুন",
   "Customize dataset files": "ডাটাসেট ফাইল কাস্টমাইজ করুন",
   "Dataset": "ডেটাসেট",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "ডেটাসেট লেখকরা এই ডেটাসেটটিকে অপ্রচলিত হিসাবে চিহ্নিত করেছেন, যার অর্থ ডেটাসেটটি অপ্রচলিত, আর আপডেট করা হবে না বা অন্যথায় প্রাসঙ্গিক নয়। নির্দিষ্টকরণের জন্য দয়া করে ডেটাসেট লেখকদের সাথে যো",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "এখানে আপনি ডেটাসেটে পৃথক ফাইলগুলি ওভাররাইড করতে পারেন। যদি কোনও ফাইল সরবরাহ না করা হয় তবে এটি বর্তমানে নির্বাচিত ডেটাসেট থেকে প্রতিস্থাপন করা হবে। {{documentation}} এ আরও জানুন",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "এখানে আপনি কলাম (পৃথক বা বিভাগ) নির্বাচন করতে পারেন যা CSV এবং TSV ফাইলগুলিতে লেখা হবে।",
   "Hide dataset files": "ডাটাসেট ফাইলগুলি লুকান",
+  "History": "ইতিহাস",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "যাইহোক, এটি সুপারিশ করা হয় না: অ্যাপ্লিকেশনটির এই সংস্করণটি আর আপডেট বা সমর্থিত নয় এবং আমরা গ্যারান্টি দিতে পারি না যে এটি কাজ করবে এবং এটি সঠিক ফলাফল তৈরি করবে।",
   "I want to try anyway": "আমি যাইহোক চেষ্টা করতে চাই",
   "Idle": "নিষ্ক্রিয়",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "পরামর্শ অ্যালগরিদম ব্য এটি ডেভেলপারদের কাছে রিপোর্ট করুন।",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "পরামর্শ অ্যালগরিদম আপনার ক্রমের জন্য উপযুক্ত ডেটাসেট খুঁজে পেতে অক্ষম ছিল। ম্যানুয়ালি একটি ডেটাসেট নির্বাচন করুন। যদি কোনও উপযুক্ত ডেটাসেট না থাকে তবে নেক্সটক্লেড কমিউনিটি ডেটাসেট সংগ্রহে একটি তৈরি এবং অবদান রাখার বিষয়ে বিবেচনা করুন।",
   "Summarized results of the analysis in {{formatName}} format.": "{{formatName}} ফর্ম্যাটে বিশ্লেষণের সংক্ষিপ্ত ফলাফল।",
+  "Summary": "সংক্ষিপ্ত",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "লক্ষ্যটি স্যুইচ করা ক্রম ভিউতে পাশাপাশি টেবিলের “মুট” কলাম এবং এর মাউসওভার টুলটিপে প্রদর্শিত পরিবর্তনগুলি পরিবর্তন করবে।",
   "Text": "পাঠ্য",
   "The address to the file is correct": "ফাইলের ঠিকানাটি সঠিক",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} এর সর্বশেষ সংস্করণগুলিতে সেরা কাজ করে ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ডেভেলপারদের জন্য অতিরিক্ত তথ্য (প্রসারিত করতে ক্লিক করুন)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ভুল অবস্থান করা স্টপ কোডন (গুলি) সনাক্ত করা হয়েছে। প্রভাবিত জিন (গুলি): {{geneList}} । কিউসি স্কোর: {{score}}",
-  "Customize": "কাস্টমাইজ করুন",
-  "History": "ইতিহাস",
-  "Summary": "সংক্ষিপ্ত"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" প্রতিষ্ঠাতা"
 }

@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ක්ලේඩ් නිර්මාතෘ” - විමසුම් නියැදියට පවරා ඇති ක්ලේඩ් නිර්මාතෘවරයාට සාපේක්ෂව විකෘති පෙන්වයි. විවිධ ක්ලේඩ් වලින් විමසීම් මෙම නඩුවේ විවිධ ඉලක්ක සමඟ සංසන්දනය කරනු ලබන බව සලකන්න.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“මාපිය” - පුද්ගලික විකෘති පෙන්වයි, එනම් phylogenic ස්ථානගත කිරීමේදී විමසුම් නියැදියට අනුයුක්ත කර ඇති යොමු වෘක්ෂයේ මව් (ළඟම) නෝඩයට සාපේක්ෂව විකෘතිතාවයන් දක්වයි.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“යොමු” - යොමු අනුපිළිවෙලට සාපේක්ෂව විකෘති පෙන්වයි (දත්ත කට්ටලයේ අර්ථ දැක්වෙන පරිදි).",
-  "'{{ attr }}' founder": "' {{ attr }} ' නිර්මාතෘ",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" නිර්මාතෘ",
   "(truncated)": "(කප්පාදු කරන ලද)",
   "* Current value. This amount can change depending on load": "* වත්මන් අගය. බර මත පදනම්ව මෙම ප්රමාණය වෙනස් විය හැකිය",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} නූලයකට අවම වශයෙන් {{memoryRequired}} මතකයක් අවශ්ය වේ",

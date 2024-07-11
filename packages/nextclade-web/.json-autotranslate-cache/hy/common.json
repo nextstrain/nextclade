@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade հիմնադիր” - ցույց է տալիս մուտացիաներ հարաբերական հիմնադրի clade, որը նշանակվել է հարցման նմուշի. Նկատի ունեցեք, որ տարբեր կլադների հարցումները կհամեմատվեն այս դեպքում տարբեր թիրախների հետ:",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ծնող” - ցույց է տալիս մասնավոր մուտացիաներ, այսինքն մուտացիաներ հղման ծառի ծնող (մոտակա) հանգույցի նկատմամբ, որին կցվել է հարցման նմուշը ֆիլոգենետիկ տեղաբաշխման ժամանակ։",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Տեղեկանք” - ցույց է տալիս մուտացիաները հղման հաջորդականության նկատմամբ (ինչպես սահմանված է տվյալների հավաքածուում):",
-  "'{{ attr }}' founder": "“{{ attr }}” հիմնադիր",
   "(truncated)": "(կտրված)",
   "* Current value. This amount can change depending on load": "* Ընթացիկ արժեքը: Այս գումարը կարող է փոխվել կախված բեռից",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} -ը պահանջում է առնվազն {{memoryRequired}} հիշողություն մեկ թեմայի համար",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Ներկայումս ընտրված տվյալների հավաքածուն կարծես չի համապատասխանում ձեր հաջորդականություններին, բայց կան {{ n }} այլ տվյալների հավաքածուներ, որոնք կարող են: Ցուցակը տեսնելու համար կտտացրեք “Փոխել հղման տվյալների հավաքածուն”:",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Ներկայումս ընտրված տվյալների հավաքածուն կարծես չի համապատասխանում ձեր հաջորդականություններին, բայց կա 1 տվյալների հավաքածու, որը կարող է: Ցուցակը տեսնելու համար կտտացրեք “Փոխել հղման տվյալների հավաքածուն”:",
   "Customizations": "Անհատականացումներ",
+  "Customize": "Անհատականացրեք",
   "Customize dataset files": "Անհատականացրեք տվյալների հավաքածուի ֆայլերը",
   "Dataset": "Տվյալների հավաքածու",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Տվյալների հավաքածուի հեղինակները այս տվյալների հավաքածուն նշել են որպես ապականված, ինչը նշանակում է, որ տվյալների հավաքածուն հնացած է, այլեւս չի թարմացվի կամ այլ կերպ համապատասխան չէ: Խնդրում ենք կապվել տվյալների հավաքածուի հեղինակների հետ մանրամասների համար:",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Այստեղ դուք կարող եք վերացնել տվյալների հավաքածուի առանձին ֆայլերը: Եթե ֆայլ չի տրամադրվում, այն կփոխարինվի ներկայումս ընտրված տվյալների հավաքածուից: Իմացեք ավելին {{documentation}} -ում",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Այստեղ դուք կարող եք ընտրել սյունակներ (անհատական կամ կատեգորիաներ), որոնք կգրվեն CSV եւ TSV ֆայլերի մեջ:",
   "Hide dataset files": "Թաքցնել տվյալների հավաքածուի ֆայլերը",
+  "History": "Պատմություն",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Այնուամենայնիվ, դա խորհուրդ չի տրվում. Հավելվածի այս տարբերակը այլեւս չի թարմացվում կամ աջակցվում, եւ մենք չենք կարող երաշխավորել, որ այն կաշխատի, եւ որ այն կտա ճիշտ արդյունքներ:",
   "I want to try anyway": "Ես ուզում եմ ամեն դեպքում փորձել",
   "Idle": "Պարապ",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Առաջարկության ալգորիթմը տապալվեց: Խնդրում ենք զեկուցել այս մասին մշակողներին:",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Առաջարկության ալգորիթմը չկարողացավ գտնել ձեր հաջորդականությունների համար հարմար տվյալների հավաքածու: Ձեռքով ընտրեք տվյալների հավաքածու: Եթե չկա հարմար տվյալների հավաքածու, հաշվի առեք Nextclade համայնքի տվյալների հավաքածուի ստեղծումը և նպաստելը:",
   "Summarized results of the analysis in {{formatName}} format.": "Վերլուծության ամփոփ արդյունքները {{formatName}} ձևաչափով:",
+  "Summary": "Ամփոփում",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Թիրախը փոխելը կփոխի մուտացիաները, որոնք ցուցադրվում են հաջորդականության դիտումներում, ինչպես նաև աղյուսակի “Մուտ” սյունակում և դրա mouseover tooltip- ում:",
   "Text": "Տեքստ",
   "The address to the file is correct": "Ֆայլի հասցեն ճիշտ է",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} -ը լավագույնս աշխատում է վերջին տարբերակներում ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Լրացուցիչ տեղեկություններ մշակողների համար (սեղմեք ընդլայնելու համար)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Հայտնաբերվել է {{totalStopCodons}} սխալ տեղադրված կանգառային կոդոն (ներ): Տուժած գեն (ներ) ՝ {{geneList}}. QC գնահատականը՝ {{score}}",
-  "Customize": "Անհատականացրեք",
-  "History": "Պատմություն",
-  "Summary": "Ամփոփում"
+  "\"{{ attr }}\" founder": "“{{ attr }}” -ի հիմնադիր"
 }

@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Tagapagtatag ng Clade” - nagpapakita ng mga mutasyon na nauugnay sa tagapagtatag ng clade na itinalaga sa sample ng query. Tandaan na ang mga query mula sa iba't ibang clade ay ihahambing sa iba't ibang mga target sa kasong ito.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Magulang” - nagpapakita ng mga pribadong mutasyon, ibig sabihin, mga mutasyon na nauugnay sa magulang (pinakamalapit) node ng sanggunian na puno kung saan nakalakip ang sample ng query sa panahon ng phylogenic na paglalagay.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Sanggunian” - nagpapakita ng mga mutasyon na kaugnay sa pagkakasunud-sunod ng sanggunian (tulad ng tinukoy sa dataset).",
-  "'{{ attr }}' founder": "Tagapagtatag ng '{{ attr }}'",
   "(truncated)": "(pinutol)",
   "* Current value. This amount can change depending on load": "* Kasalukuyang halaga. Ang halagang ito ay maaaring magbago depende sa pag-load",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Ang {{appName}} ay nangangailangan ng hindi bababa sa {{memoryRequired}} ng memorya bawat thread",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Ang kasalukuyang napiling dataset ay tila hindi tumutugma sa iyong mga pagkakasunud-sunod, ngunit mayroong {{ n }} iba pang mga dataset na maaaring. I-click ang “Baguhin ang sanggunian na dataset” upang makita ang listahan.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Ang kasalukuyang napiling dataset ay tila hindi tumutugma sa iyong mga pagkakasunud-sunod, ngunit mayroong 1 dataset na maaaring. I-click ang “Baguhin ang sanggunian na dataset” upang makita ang listahan.",
   "Customizations": "Pagpapasadya",
+  "Customize": "Ipasadya",
   "Customize dataset files": "Ipasadya ang mga file ng dataset",
   "Dataset": "Dataset",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Minarkahan ng mga may-akda ng dataset ang dataset na ito bilang hindi napapanahong, na nangangahulugan na ang dataset ay hindi pa ginagamit, hindi na mai-update o hindi nauugnay kung hindi man. Mangyaring makipag-ugnay sa mga may-akda ng dataset para sa mga",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Dito maaari mong i-override ang mga indibidwal na file sa dataset. Kung hindi ibinibigay ang isang file, papalitan ito mula sa kasalukuyang napiling dataset. Matuto nang higit pa sa {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Dito maaari kang pumili ng mga haligi (indibidwal o kategorya) na isusulat sa mga file ng CSV at TSV.",
   "Hide dataset files": "Itago ang mga file ng dataset",
+  "History": "Kasaysayan",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Gayunpaman, hindi ito inirerekomenda: ang bersyon na ito ng application ay hindi na na-update o sinusuportahan, at hindi namin magagarantiyahan na gagana ito, at magkakaroon ito ng tamang mga resulta.",
   "I want to try anyway": "Gusto kong subukan pa rin",
   "Idle": "Walang walang-loob",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Nabigo ang algorithm ng mungkahi. Mangyaring iulat ito sa mga developer.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Hindi makahanap ng algorithm ng mungkahi ang isang dataset na angkop para sa iyong mga pagkakasunud-sunod. Pumili ng isang dataset nang manu-mano. Kung walang angkop na dataset, isaalang-alang ang paglikha at mag-ambag ng isa sa koleksyon ng dataset ng komunidad ng Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Buod na mga resulta ng pagsusuri sa format na {{formatName}}.",
+  "Summary": "Buod",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Ang paglipat ng target ay magbabago ng mga mutasyon na ipinapakita sa mga view ng pagkakasunud-sunod pati na rin sa haligi na “Mut” ng talahanayan at sa tooltip ng mouseover nito.",
   "Text": "Teksto",
   "The address to the file is correct": "Ang address sa file ay tama",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "Pinakamahusay na gumagana ang {{project}} sa pinakabagong bersyon ng ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Karagdagang impormasyon para sa mga developer (i-click upang palawakin)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Nakita ang mga maling lugar na stop codon (s) {{totalStopCodons}}. Mga apektadong gene: {{geneList}}. Marka ng QC: {{score}}",
-  "Customize": "Ipasadya",
-  "History": "Kasaysayan",
-  "Summary": "Buod"
+  "\"{{ attr }}\" founder": "Tagapagtatag ng “{{ attr }}\""
 }

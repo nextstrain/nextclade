@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ક્લેડ સ્થાપક” - ક્લેડના સ્થાપકને સંબંધિત પરિવર્તન બતાવે છે જે ક્વેરી નમૂનાને સોંપવામાં આવ્યું છે. નોંધ કરો કે વિવિધ ક્લેડ્સના ક્વેરીઝને આ કિસ્સામાં વિવિધ લક્ષ્યો સાથે સરખાવવામાં આવશે.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“પિતૃ” - ખાનગી પરિવર્તન બતાવે છે, એટલે કે સંદર્ભ વૃક્ષના પિતૃ (નજીકના) નોડ સાથે સંબંધિત પરિવર્તન કે જેની સાથે ક્વેરી સેમ્પલ ફાઇલોજેનેટિક પ્લેસમેન્ટ દરમિયાન જોડાયેલ છે.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“સંદર્ભ” - સંદર્ભ ક્રમ સંબંધિત પરિવર્તન બતાવે છે (જેમ કે ડેટાસેટમાં વ્યાખ્યાયિત કરવામાં આવે છે).",
-  "'{{ attr }}' founder": "' {{ attr }} ' સ્થાપક",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" સ્થાપક",
   "(truncated)": "(કાપવામાં આવે છે)",
   "* Current value. This amount can change depending on load": "* વર્તમાન મૂલ્ય. આ રકમ લોડ પર આધાર રાખીને બદલાઈ શકે છે",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} માટે થ્રેડ દીઠ ઓછામાં ઓછી {{memoryRequired}} મેમરીની જરૂર છે",

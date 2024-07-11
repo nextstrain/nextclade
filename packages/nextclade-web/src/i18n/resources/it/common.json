@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«Fondatore del clade»: mostra le mutazioni relative al fondatore del clade che è stato assegnato all'esempio di query. Nota che in questo caso le query provenienti da diversi cladi verranno confrontate con obiettivi diversi.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«Genitore»: mostra le mutazioni private, ovvero le mutazioni relative al nodo padre (più vicino) dell'albero di riferimento a cui è stato collegato il campione di interrogazione durante il posizionamento filogenetico.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«Riferimento»: mostra le mutazioni relative alla sequenza di riferimento (come definita nel set di dati).",
-  "'{{ attr }}' founder": "fondatore di ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "fondatore di « {{ attr }} \"",
   "(truncated)": "(troncato)",
   "* Current value. This amount can change depending on load": "* Valore attuale. Questo importo può variare in base al carico",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} richiede almeno {{memoryRequired}} di memoria per thread",

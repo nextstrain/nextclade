@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ผู้ก่อตั้ง Clade” - แสดงการกลายพันธุ์ที่สัมพันธ์กับผู้ก่อตั้งของคลาดที่ได้รับการกำหนดให้กับตัวอย่างแบบสอบถามโปรดทราบว่าการสืบค้นจากคลาดต่างๆจะถูกเปรียบเทียบกับเป้าหมายที่แตกต่างกันในกรณีนี้",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“ผู้ปกครอง” - แสดงการกลายพันธุ์ส่วนตัว เช่น การกลายพันธุ์ที่สัมพันธ์กับโหนดแม่ (ที่ใกล้ที่สุด) ของต้นไม้อ้างอิงที่แนบตัวอย่างแบบสอบถามในระหว่างการจัดวางสายวิวัฒนาการ",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“การอ้างอิง” - แสดงการกลายพันธุ์ที่สัมพันธ์กับลำดับอ้างอิง (ตามที่กำหนดไว้ในชุดข้อมูล)",
-  "'{{ attr }}' founder": "ผู้ก่อตั้ง ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" ผู้ก่อตั้ง",
   "(truncated)": "(ตัดทอน)",
   "* Current value. This amount can change depending on load": "* ค่าปัจจุบันจำนวนนี้สามารถเปลี่ยนแปลงได้ขึ้นอยู่กับโหลด",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ต้องใช้หน่วยความจำอย่างน้อย {{memoryRequired}} ต่อเธรด",

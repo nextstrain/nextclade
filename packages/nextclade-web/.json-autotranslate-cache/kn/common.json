@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ಕ್ಲೇಡ್ ಸಂಸ್ಥಾಪಕ” - ಪ್ರಶ್ನೆ ಮಾದರಿಗೆ ನಿಯೋಜಿಸಲಾದ ಕ್ಲೇಡ್ನ ಸ್ಥಾಪಕನಿಗೆ ಸಂಬಂಧಿಸಿದ ರೂಪಾಂತರಗಳನ್ನು ತೋರಿಸುತ್ತದೆ. ವಿಭಿನ್ನ ಕ್ಲೇಡ್ಗಳಿಂದ ಬಂದ ಪ್ರಶ್ನೆಗಳನ್ನು ಈ ಸಂದರ್ಭದಲ್ಲಿ ವಿಭಿನ್ನ ಗುರಿಗಳೊಂದಿಗೆ ಹೋಲಿಸಲಾಗುವುದು ಎಂಬುದನ್ನು ಗಮನಿಸಿ.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“ಪೋಷಕ” - ಖಾಸಗಿ ರೂಪಾಂತರಗಳನ್ನು ತೋರಿಸುತ್ತದೆ, ಅಂದರೆ ಫೈಲೋಜೆನೆಟಿಕ್ ಪ್ಲೇಸ್ಮೆಂಟ್ ಸಮಯದಲ್ಲಿ ಪ್ರಶ್ನೆಯ ಮಾದರಿಯನ್ನು ಜೋಡಿಸಲಾದ ಉಲ್ಲೇಖ ಮರದ ಪೋಷಕ (ಹತ್ತಿರದ) ನೋಡ್ಗೆ ಸಂಬಂಧಿಸಿದ ರೂಪಾಂತರಗಳು.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“ಉಲ್ಲೇಖ” - ಉಲ್ಲೇಖ ಅನುಕ್ರಮಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ ರೂಪಾಂತರಗಳನ್ನು ತೋರಿಸುತ್ತದೆ (ಡೇಟಾಸೆಟ್ನಲ್ಲಿ ವ್ಯಾಖ್ಯಾನಿಸಿದಂತೆ).",
-  "'{{ attr }}' founder": "'{{ attr }}' ಸಂಸ್ಥಾಪಕ",
   "(truncated)": "(ಮೊಟಕುಗೊಳಿಸಲಾಗಿದೆ)",
   "* Current value. This amount can change depending on load": "* ಪ್ರಸ್ತುತ ಮೌಲ್ಯ. ಲೋಡ್ ಅನ್ನು ಅವಲಂಬಿಸಿ ಈ ಮೊತ್ತವು ಬದಲಾಗಬಹುದು",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ಗೆ ಪ್ರತಿ ಥ್ರೆಡ್ಗೆ ಕನಿಷ್ಠ {{memoryRequired}} ಮೆಮೊರಿ ಅಗತ್ಯವಿದೆ",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "ಪ್ರಸ್ತುತ ಆಯ್ಕೆಮಾಡಿದ ಡೇಟಾಸೆಟ್ ನಿಮ್ಮ ಅನುಕ್ರಮಗಳನ್ನು ಹೊಂದಿಕೆಯಾಗುವಂತೆ ತೋರುತ್ತಿಲ್ಲ, ಆದರೆ ಇರಬಹುದು ಇದು {{ n }} ಇತರ ಡೇಟಾಸೆಟ್ಗಳು ಇವೆ. ಪಟ್ಟಿಯನ್ನು ನೋಡಲು “ಉಲ್ಲೇಖ ಡೇಟಾಸೆಟ್ ಬದಲಾಯಿಸಿ” ಕ್ಲಿಕ್ ಮಾಡಿ.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "ಪ್ರಸ್ತುತ ಆಯ್ಕೆಮಾಡಿದ ಡೇಟಾಸೆಟ್ ನಿಮ್ಮ ಅನುಕ್ರಮಗಳನ್ನು ಹೊಂದಿಕೆಯಾಗುವಂತೆ ತೋರುತ್ತಿಲ್ಲ, ಆದರೆ ಇರಬಹುದು ಇದು 1 ಡೇಟಾಸೆಟ್ ಇದೆ. ಪಟ್ಟಿಯನ್ನು ನೋಡಲು “ಉಲ್ಲೇಖ ಡೇಟಾಸೆಟ್ ಬದಲಾಯಿಸಿ” ಕ್ಲಿಕ್ ಮಾಡಿ.",
   "Customizations": "ಗ್ರಾಹಕೀಕರಣಗಳು",
+  "Customize": "ಕಸ್ಟಮೈಸ್ ಮಾಡಿ",
   "Customize dataset files": "ಡೇಟಾಸೆಟ್ ಫೈಲ್ಗಳನ್ನು ಕಸ್ಟಮೈಸ್",
   "Dataset": "ಡೇಟಾಸೆಟ್",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "ಡೇಟಾಸೆಟ್ ಲೇಖಕರು ಈ ಡೇಟಾಸೆಟ್ ಅನ್ನು ಅಪ್ರಚೋದಿತ ಎಂದು ಗುರುತಿಸಿದ್ದಾರೆ, ಅಂದರೆ ಡೇಟಾಸೆಟ್ ಬಳಕೆಯಲ್ಲಿಲ್ಲ, ಇನ್ನು ಮುಂದೆ ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ ಅಥವಾ ಇಲ್ಲದಿದ್ದರೆ ಸಂಬಂಧಿತವಾಗಿಲ್ಲ. ನಿರ್ದಿಷ್ಟತೆಗಳಿಗಾಗಿ ದಯವಿಟ್ಟು ಡೇಟಾಸೆಟ್ ಲೇಖಕರನ್ನು ಸಂಪರ್ಕಿಸಿ.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "ಇಲ್ಲಿ ನೀವು ಡೇಟಾಸೆಟ್ನಲ್ಲಿ ಪ್ರತ್ಯೇಕ ಫೈಲ್ಗಳನ್ನು ಅತಿಕ್ರಮಿಸಬಹುದು. ಒಂದು ಫೈಲ್ ಅನ್ನು ಒದಗಿಸದಿದ್ದರೆ, ಪ್ರಸ್ತುತ ಆಯ್ಕೆಮಾಡಿದ ಡೇಟಾಸೆಟ್ನಿಂದ ಅದನ್ನು ಬದಲಾಯಿಸಲಾಗುತ್ತದೆ. {{documentation}} ನಲ್ಲಿ ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "ಇಲ್ಲಿ ನೀವು CSV ಮತ್ತು TSV ಕಡತಗಳನ್ನು ಒಳಗೆ ಬರೆಯಲಾಗುತ್ತದೆ ಇದು ಕಾಲಮ್ಗಳನ್ನು (ವೈಯಕ್ತಿಕ ಅಥವಾ ವರ್ಗಗಳು) ಆಯ್ಕೆ ಮಾಡಬಹುದು.",
   "Hide dataset files": "ಡೇಟಾಸೆಟ್ ಫೈಲ್ಗಳನ್ನು ಮರೆಮಾಡಿ",
+  "History": "ಇತಿಹಾಸ",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "ಆದಾಗ್ಯೂ, ಇದನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗಿಲ್ಲ: ಅಪ್ಲಿಕೇಶನ್ನ ಈ ಆವೃತ್ತಿಯನ್ನು ಇನ್ನು ಮುಂದೆ ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ ಅಥವಾ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ, ಮತ್ತು ಅದು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ ಮತ್ತು ಅದು ಸರಿಯಾದ ಫಲಿತಾಂಶಗಳನ್ನು ನೀಡುತ್ತದೆ ಎಂದು ನಾವು ಖಾತರಿಪಡಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.",
   "I want to try anyway": "ನಾನು ಹೇಗಾದರೂ ಪ್ರಯತ್ನಿಸಲು ಬಯಸುತ್ತೇನೆ",
   "Idle": "ಐಡಲ್",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "ಸಲಹೆ ಕ್ರಮಾವಳಿ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಇದನ್ನು ಡೆವಲಪರ್ಗಳಿಗೆ ವರದಿ ಮಾಡಿ.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "ಸಲಹೆ ಅಲ್ಗಾರಿದಮ್ ನಿಮ್ಮ ಅನುಕ್ರಮಗಳಿಗೆ ಸೂಕ್ತವಾದ ಡೇಟಾಸೆಟ್ ಅನ್ನು ಕಂಡುಹಿಡಿಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಡೇಟಾಸೆಟ್ ಅನ್ನು ಕೈಯಾರೆ ಆಯ್ಕೆ ಮಾಡಿ. ಸೂಕ್ತವಾದ ಡೇಟಾಸೆಟ್ ಇಲ್ಲದಿದ್ದರೆ, ನೆಕ್ಸ್ಟ್ಕ್ಲೇಡ್ ಸಮುದಾಯ ಡೇಟಾಸೆಟ್ ಸಂಗ್ರಹಕ್ಕೆ ಒಂದನ್ನು ರಚಿಸುವುದು ಮತ್ತು ಕೊಡುಗೆ ನೀಡುವುದನ್ನು ಪರಿಗಣಿಸಿ.",
   "Summarized results of the analysis in {{formatName}} format.": "{{formatName}} ಸ್ವರೂಪದಲ್ಲಿ ವಿಶ್ಲೇಷಣೆಯ ಸಂಕ್ಷಿಪ್ತ ಫಲಿತಾಂಶಗಳು.",
+  "Summary": "ಸಾರಾಂಶ",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "ಗುರಿಯನ್ನು ಬದಲಾಯಿಸುವುದು ಅನುಕ್ರಮ ವೀಕ್ಷಣೆಗಳಲ್ಲಿ ಹಾಗೂ ಟೇಬಲ್ನ “ಮಟ್” ಕಾಲಮ್ ಮತ್ತು ಅದರ ಮೌಸ್ಓವರ್ ಟೂಲ್ಟಿಪ್ನಲ್ಲಿ ಪ್ರದರ್ಶಿಸಲಾದ ರೂಪಾಂತರಗಳನ್ನು ಬದಲಾಯಿಸುತ್ತದೆ.",
   "Text": "ಪಠ್ಯ",
   "The address to the file is correct": "ಫೈಲ್ಗೆ ವಿಳಾಸ ಸರಿಯಾಗಿದೆ",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} ನ ಇತ್ತೀಚಿನ ಆವೃತ್ತಿಗಳಲ್ಲಿ ಉತ್ತಮವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ಡೆವಲಪರ್ಗಳಿಗೆ ಹೆಚ್ಚುವರಿ ಮಾಹಿತಿ (ವಿಸ್ತರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ತಪ್ಪಾಗಿ ಸ್ಥಾಪಿಸಲಾದ ಸ್ಟಾಪ್ ಕೋಡಾನ್ (ಗಳು) ಪತ್ತೆಯಾಗಿದೆ. ಪೀಡಿತ ಜೀನ್ (ಗಳು): {{geneList}}. ಕ್ಯೂಸಿ ಸ್ಕೋರ್: {{score}}",
-  "Customize": "ಕಸ್ಟಮೈಸ್ ಮಾಡಿ",
-  "History": "ಇತಿಹಾಸ",
-  "Summary": "ಸಾರಾಂಶ"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" ಸಂಸ್ಥಾಪಕ"
 }

@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade asoschisi” - so'rov namunasiga tayinlangan kladning asoschisiga nisbatan mutatsiyalarni ko'rsatadi. Turli xil kladlardan olingan so'rovlar bu holatda turli maqsadlar bilan taqqoslanishini unutmang.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ota-ona” - xususiy mutatsiyalarni ko'rsatadi. filogenetik joylashtirish vaqtida so'rov namunasi biriktirilgan mos yozuvlar daraxtining ota-ona (eng yaqin) tuguniga nisbatan mutatsiyalar.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Malumot” - mos yozuvlar ketma-ketligiga nisbatan mutatsiyalarni ko'rsatadi (ma'lumotlar to'plamida aniqlanganidek).",
-  "'{{ attr }}' founder": "“ {{ attr }} ” asoschisi",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" asoschisi",
   "(truncated)": "(kesilgan)",
   "* Current value. This amount can change depending on load": "* Joriy qiymat. Ushbu miqdor yukga qarab o'zgarishi mumkin",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ip boshiga xotiraning kamida {{memoryRequired}} ni talab qiladi",

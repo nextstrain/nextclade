@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“کلیڈ بانی” - کلیڈ کے بانی سے متعلق تبدیلیوں کو ظاہر کرتا ہے جو سوال کے نمونے کو تفویض کیا گیا ہے۔ نوٹ کریں کہ اس معاملے میں مختلف کلیڈز سے سوالات کا موازنہ مختلف اہداف کے ساتھ کیا جائے گا۔",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“والدین” - نجی تغیرات کو ظاہر کرتا ہے، یعنی ریفرنس درخت کے والدین (قریب ترین) نوڈ سے متعلق تغیرات جس سے فائلوجینیٹک پلیسمنٹ کے دوران سوال کا نمونہ منسلک کیا گیا ہے۔",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“حوالہ” - حوالہ ترتیب (جیسا کہ ڈیٹا سیٹ میں بیان کیا گیا ہے) کے سلسلے میں تبدیلیوں کو ظاہر کرتا ہے۔",
-  "'{{ attr }}' founder": "' {{ attr }} ' بانی",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" بانی",
   "(truncated)": "(کٹے ہوئے)",
   "* Current value. This amount can change depending on load": "* موجودہ قدر. یہ رقم بوجھ کے لحاظ سے تبدیل ہوسکتی ہے",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} کو فی تھریڈ میں کم از کم {{memoryRequired}} میموری کی ضرورت ہوتی ہے",

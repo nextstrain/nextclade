@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“클레이드 설립자” - 쿼리 샘플에 할당된 클래드의 설립자와 관련된 돌연변이를 보여줍니다.참고로 이 경우에는 다른 클래드의 쿼리를 다른 대상과 비교하게 됩니다.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“부모” - 비공개 돌연변이, 즉 계통 발생 배치 중에 쿼리 샘플이 연결된 참조 트리의 상위 (가장 가까운) 노드와 관련된 돌연변이를 표시합니다.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“참조” - 참조 서열과 관련된 돌연변이를 보여줍니다 (데이터세트에 정의된 대로).",
-  "'{{ attr }}' founder": "' {{ attr }} ' 설립자",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" 설립자",
   "(truncated)": "(잘린)",
   "* Current value. This amount can change depending on load": "* 현재 값.이 금액은 부하에 따라 달라질 수 있습니다.",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} 에는 스레드당 최소 {{memoryRequired}} 메모리가 필요합니다.",

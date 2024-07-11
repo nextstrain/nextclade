@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Bunaitheoir Clade” - taispeánann sócháin i gcoibhneas le bunaitheoir an chláid a sannadh don sampla ceisteanna. Tabhair faoi deara go ndéanfar ceisteanna ó chláid éagsúla comparáid le spriocanna éagsúla sa chás seo.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Tuismitheoir” - taispeánann sócháin phríobháideacha, ie sócháin i gcoibhneas leis an tuismitheoir (is gaire) den chrann tagartha lena bhfuil an sampla ceisteanna ceangailte leis le linn socrúcháin filogéiniteach.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Tagairt” - taispeánann sócháin i gcoibhneas leis an seicheamh tagartha (mar a shainmhínítear sa tacar sonraí).",
-  "'{{ attr }}' founder": "Bunaitheoir ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" bunaitheoir",
   "(truncated)": "(gearrtha)",
   "* Current value. This amount can change depending on load": "* Luach reatha. Is féidir leis an méid seo athrú ag brath ar ualach",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Éilíonn {{appName}} {{memoryRequired}} de chuimhne ar a laghad in aghaidh an snáithe",

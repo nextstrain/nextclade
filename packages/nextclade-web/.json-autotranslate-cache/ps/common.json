@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«د کلیډ بنسټ ایز» - د کلاډ بنسټ ایز سره نسبت د بدلون ښودل کوي چې د پوښتنې نمونې ته ټاکل شوی دی. یادونه وکړئ چې د مختلفو کليډونو څخه پوښتنې به په دې قضیه کې د مختلف اهدافو سره پرتله",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«والدین» - خصوصي تغیرات ښیي، یعنی د حوالې جرګې د والدین (نږدې) نوډ سره نسبت د میوټیشن کوم چې د پوښتنې نمونه د فیلوجینیټیک ځای پرمهال سره منسلک شوی دی.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«حواله» - د حوالې ترتیب سره نسبت د تغیرات ښکاري (لکه څنګه چې په ډاټاسټ کې تعریف شوي).",
-  "'{{ attr }}' founder": "د '{{ attr }}' بنسټ ایز",
   "(truncated)": "(ټوټه شوی)",
   "* Current value. This amount can change depending on load": "* اوسنۍ ارزښت. دا مقدار کولی شي د بار په اړه بدل شي",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} په هر موضوع لږترلږه {{memoryRequired}} حافظه ته اړتیا لري",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "اوس مهال ټاکل شوي ډاټاسیټ ستاسو ترتیب سره مخ نه ښکاري، مګر {{ n }} نور ډاټاسټونه شتون لري چې ممکن. د لیست لیدلو لپاره «حوالې ډاټاسیټ بدل کړئ» کلیک وکړئ.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "اوس مهال ټاکل شوي ډاټاسټ ستاسو ترتیب سره مخ نه ښکاري، مګر د 1 ډیټاسیټ شتون لري چې ممکن. د لیست لیدلو لپاره «حوالې ډاټاسیټ بدل کړئ» کلیک وکړئ.",
   "Customizations": "تخصیص",
+  "Customize": "تخصیص کړئ",
   "Customize dataset files": "د ډیټاسټ فایلونه تنظیم",
   "Dataset": "ډاټاسټ",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "د ډیټاسټ لیکوالانو دا ډاټاسیټ د منځه شوي په توګه نښه کړه، چې دا پدې مانا چې ډیټاسیټ متروک دی، نور به تازه نه شي یا نه اړونده وي مهرباني وکړئ د ځانګړتیاوو لپاره د ډاټ",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "دلته تاسو کولی شئ په ډاټاسیټ کې انفرادي فایلونه ورکړئ. که یو فایل چمتو نه شي، نو دا به د اوس مهال ټاکل شوي ډاټاسیټ څخه بدل شي. په {{documentation}} کې نور زده کړئ",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "دلته تاسو کولی شئ کالمونه (انفرادي یا کټګورۍ) غوره کړئ کوم چې به د CSV او TSV فایلونو کې لیکل شي.",
   "Hide dataset files": "د ډاټاسیټ فایلونه",
+  "History": "تاریخ",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "په هرصورت، دا سپارښتنه نه کیږي: د غوښتنلیک دا نسخه نور تازه یا ملاتړ نه کیږي، او موږ نشو نشو تضمین کولی چې دا به کار وکړي، او دا به صحیح پایلې راوړي.",
   "I want to try anyway": "زه غواړم هڅه وکړم",
   "Idle": "بې کار",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "د وړاندیز الگوریتم ناکام مهرباني وکړئ دا پراختیا ته راپور کړئ.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "د وړاندیز الګورتیم ستاسو د ترتیب لپاره مناسب ډاټاسیټ وموندلو ناتوان په لاسي ډاټاسټ غوره کړئ. که هیڅ مناسب ډیټاسیټ شتون نلري، نو د Nextclade ټولنې د ډاټاسیټ راټولولو کې د یو جوړولو او مرسته کولو",
   "Summarized results of the analysis in {{formatName}} format.": "په {{formatName}} بڼه کې د تحلیل خلاصه پایلې.",
+  "Summary": "لنډه",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "د هدف بدل کول به د ترتیب په نظرونو کې ښودل شوي بدلون او همدارنګه د میز او د هغې د ماؤس اوور تولټپ کې د «Mut» کالم کې ښودل شي.",
   "Text": "متن",
   "The address to the file is correct": "د فایل ته پته صحیح دی",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} په وروستي نسخونو کې غوره کار کوي ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} د پرمختګانو لپاره اضافي معلومات (د پراختیا لپاره کلیک وکړئ)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} غلط ځای بند کوډون (s) موندل شو. اغیزمن جین (s): {{geneList}}. د QC نمره: {{score}}",
-  "Customize": "تخصیص کړئ",
-  "History": "تاریخ",
-  "Summary": "لنډه"
+  "\"{{ attr }}\" founder": "«{{ attr }}\" بنسټ ایز"
 }

@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«Fondatore del clade»: mostra le mutazioni relative al fondatore del clade che è stato assegnato all'esempio di query. Nota che in questo caso le query provenienti da diversi cladi verranno confrontate con obiettivi diversi.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«Genitore»: mostra le mutazioni private, ovvero le mutazioni relative al nodo padre (più vicino) dell'albero di riferimento a cui è stato collegato il campione di interrogazione durante il posizionamento filogenetico.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«Riferimento»: mostra le mutazioni relative alla sequenza di riferimento (come definita nel set di dati).",
-  "'{{ attr }}' founder": "fondatore di '{{ attr }}'",
   "(truncated)": "(troncato)",
   "* Current value. This amount can change depending on load": "* Valore attuale. Questo importo può variare in base al carico",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} richiede almeno {{memoryRequired}} di memoria per thread",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Il set di dati attualmente selezionato non sembra corrispondere alle tue sequenze, ma ci sono {{ n }} altri set di dati che potrebbero. Fai clic su «Modifica set di dati di riferimento» per visualizzare l'elenco.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Il set di dati attualmente selezionato non sembra corrispondere alle tue sequenze, ma c'è 1 set di dati che potrebbe. Fai clic su «Modifica set di dati di riferimento» per visualizzare l'elenco.",
   "Customizations": "Personalizzazioni",
+  "Customize": "Personalizza",
   "Customize dataset files": "Personalizzazione dei file dei set di dati",
   "Dataset": "Set di dati",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Gli autori del set di dati hanno contrassegnato questo set di dati come obsoleto, il che significa che il set di dati è obsoleto, non verrà più aggiornato o non è pertinente altrimenti. Contatta gli autori del set di dati per informazioni specifiche.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Qui puoi sovrascrivere singoli file nel set di dati. Se un file non viene fornito, verrà sostituito dal set di dati attualmente selezionato. Scopri di più nella sezione {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Qui puoi selezionare le colonne (singole o categorie) che verranno scritte in file CSV e TSV.",
   "Hide dataset files": "Nascondi i file del set di dati",
+  "History": "Storia",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Tuttavia, questo non è consigliato: questa versione dell'applicazione non è più aggiornata o supportata e non possiamo garantire che funzionerà e che produrrà risultati corretti.",
   "I want to try anyway": "Voglio provare comunque",
   "Idle": "Inattivo",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritmo di suggerimento non riuscito. Segnalalo agli sviluppatori.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "L'algoritmo di suggerimento non è riuscito a trovare un set di dati adatto alle tue sequenze. Seleziona un set di dati manualmente. Se non esiste un set di dati adatto, valuta la possibilità di crearne uno e di contribuire alla raccolta di set di dati della community di Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Risultati riassunti dell'analisi nel formato {{formatName}}.",
+  "Summary": "Riepilogo",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Il cambio del bersaglio cambierà le mutazioni visualizzate nelle viste della sequenza, nella colonna «Mut» della tabella e nel relativo tooltip al passaggio del mouse.",
   "Text": "Testo",
   "The address to the file is correct": "L'indirizzo del file è corretto",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} funziona meglio nelle ultime versioni di ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informazioni aggiuntive per gli sviluppatori (clicca per espandere)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "È stato rilevato uno o più codoni di stop fuori posto {{totalStopCodons}}. Gene/i affetto/i: {{geneList}}. Punteggio QC: {{score}}",
-  "Customize": "Personalizza",
-  "History": "Storia",
-  "Summary": "Riepilogo"
+  "\"{{ attr }}\" founder": "fondatore di «{{ attr }}\""
 }

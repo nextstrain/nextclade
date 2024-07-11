@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Pengasas Clade” - menunjukkan mutasi berbanding dengan pengasas clade yang telah diberikan kepada sampel pertanyaan. Perhatikan bahawa pertanyaan dari klad yang berbeza akan dibandingkan dengan sasaran yang berbeza dalam kes ini.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ibu bapa” - menunjukkan mutasi peribadi, iaitu mutasi relatif kepada nod induk (terdekat) pokok rujukan yang mana sampel pertanyaan telah dilampirkan semasa penempatan filogenetik.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Rujukan” - menunjukkan mutasi relatif kepada urutan rujukan (seperti yang ditakrifkan dalam set data).",
-  "'{{ attr }}' founder": "Pengasas '{{ attr }}'",
   "(truncated)": "(dipotong)",
   "* Current value. This amount can change depending on load": "* Nilai semasa. Jumlah ini boleh berubah bergantung pada beban",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} memerlukan sekurang-kurangnya {{memoryRequired}} memori setiap thread",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Set data yang dipilih pada masa ini nampaknya tidak sepadan dengan urutan anda, tetapi terdapat {{ n }} set data lain yang mungkin. Klik “Tukar set data rujukan” untuk melihat senarai.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Set data yang dipilih pada masa ini nampaknya tidak sepadan dengan urutan anda, tetapi terdapat 1 set data yang mungkin. Klik “Tukar set data rujukan” untuk melihat senarai.",
   "Customizations": "Penyesuaian",
+  "Customize": "Sesuaikan",
   "Customize dataset files": "Sesuaikan fail set data",
   "Dataset": "Set Data",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Pengarang set data menandakan set data ini sebagai sudah lama, yang bermaksud set data sudah usang, tidak akan lagi dikemas kini atau tidak relevan sebaliknya. Sila hubungi pengarang set data untuk maklumat khusus.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Di sini anda boleh mengatasi fail individu dalam set data. Jika fail tidak disediakan, ia akan diganti daripada set data yang dipilih sekarang. Ketahui lebih lanjut dalam {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Di sini anda boleh memilih lajur (individu atau kategori) yang akan ditulis ke dalam fail CSV dan TSV.",
   "Hide dataset files": "Sembunyikan fail set data",
+  "History": "Sejarah",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Walau bagaimanapun, ini tidak disyorkan: versi aplikasi ini tidak lagi dikemas kini atau disokong, dan kami tidak dapat menjamin bahawa ia akan berfungsi, dan ia akan menghasilkan hasil yang betul.",
   "I want to try anyway": "Saya mahu cuba pula",
   "Idle": "Tidak terbiar",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritma cadangan gagal. Sila laporkan ini kepada pemaju.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Algoritma cadangan tidak dapat mencari set data yang sesuai untuk urutan anda. Pilih set data secara manual. Sekiranya tidak ada set data yang sesuai, pertimbangkan untuk membuat dan menyumbangkannya kepada koleksi set data komuniti Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Ringkaskan hasil analisis dalam format {{formatName}}.",
+  "Summary": "Ringkasan",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Menukar sasaran akan mengubah mutasi yang dipaparkan dalam paparan urutan serta dalam lajur “Mut” jadual dan tip alat mouseover.",
   "Text": "Teks",
   "The address to the file is correct": "Alamat ke fail adalah betul",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} berfungsi paling baik dalam versi terkini ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Maklumat tambahan untuk pemaju (klik untuk mengembangkan)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon berhenti yang salah dikesan. Gen yang terjejas: {{geneList}}. Skor QC: {{score}}",
-  "Customize": "Sesuaikan",
-  "History": "Sejarah",
-  "Summary": "Ringkasan"
+  "\"{{ attr }}\" founder": "Pengasas “{{ attr }}\""
 }

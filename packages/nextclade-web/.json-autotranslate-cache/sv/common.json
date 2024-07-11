@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "”Clade Founder” - visar mutationer i förhållande till grundaren av kladen som har tilldelats frågeprovet. Observera att frågor från olika klader kommer att jämföras med olika mål i det här fallet.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "”Förälder” - visar privata mutationer, dvs mutationer i förhållande till den överordnade (närmaste) noden i referensträdet som frågeprovet har kopplats till under fylogenetisk placering.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "”Referens” - visar mutationer i förhållande till referenssekvensen (som definieras i datamängden).",
-  "'{{ attr }}' founder": "'{{ attr }}' grundare",
   "(truncated)": "(trunkerad)",
   "* Current value. This amount can change depending on load": "* Nuvarande värde. Detta belopp kan ändras beroende på belastning",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} kräver minst {{memoryRequired}} minne per tråd",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "För närvarande vald datauppsättning verkar inte matcha dina sekvenser, men det finns {{ n }} andra datamängder som kan. Klicka på ”Ändra referensdataset” för att se listan.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "För närvarande vald datauppsättning verkar inte matcha dina sekvenser, men det finns 1 dataset som kan. Klicka på ”Ändra referensdataset” för att se listan.",
   "Customizations": "Anpassningar",
+  "Customize": "Anpassa",
   "Customize dataset files": "Anpassa datauppsättningsfiler",
   "Dataset": "Datauppsättning",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Datauppsättningsförfattare markerade denna datauppsättning som föråldrad, vilket innebär att datauppsättningen är föråldrad, kommer inte längre att uppdateras eller inte är relevant på annat sätt. Kontakta datauppsättningsförfattare för detaljer.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Här kan du åsidosätta enskilda filer i datamängden. Om en fil inte tillhandahålls kommer den att ersättas från den för närvarande valda datauppsättningen. Läs mer i {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Här kan du välja kolumner (enskilda eller kategorier) som ska skrivas in i CSV- och TSV-filer.",
   "Hide dataset files": "Dölj datauppsättningsfiler",
+  "History": "Historia",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Detta rekommenderas dock inte: den här versionen av applikationen uppdateras eller stöds inte längre, och vi kan inte garantera att den kommer att fungera och att den kommer att ge korrekta resultat.",
   "I want to try anyway": "Jag vill försöka ändå",
   "Idle": "Tomgång",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Förslagsalgoritmen misslyckades. Vänligen rapportera detta till utvecklare.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Förslagsalgoritmen kunde inte hitta en datauppsättning som passar dina sekvenser. Välj en datauppsättning manuellt. Om det inte finns någon lämplig datauppsättning, överväg att skapa och bidra med en till Nextclade community-datauppsättningen.",
   "Summarized results of the analysis in {{formatName}} format.": "Sammanfattade resultat av analysen i {{formatName}} -format.",
+  "Summary": "Sammanfattning",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Om du byter mål ändras mutationer som visas i sekvensvyerna såväl som i kolumnen ”Mut” i tabellen och dess verktygstips för muspekaren.",
   "Text": "Texten",
   "The address to the file is correct": "Adressen till filen är korrekt",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} fungerar bäst i de senaste versionerna av ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Ytterligare information för utvecklare (klicka för att expandera)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} felplacerade stoppkodon (er) detekterade. Berörd gen (er): {{geneList}}. QC-poäng: {{score}}",
-  "Customize": "Anpassa",
-  "History": "Historia",
-  "Summary": "Sammanfattning"
+  "\"{{ attr }}\" founder": "”{{ attr }}\" grundare"
 }

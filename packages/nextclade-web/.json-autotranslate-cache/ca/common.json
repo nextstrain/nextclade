@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade fundador” - mostra mutacions relatives al fundador del clade que s'ha assignat a la mostra de consulta. Tingueu en compte que les consultes de diferents clades es compararan amb diferents objectius en aquest cas.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Parent” - mostra mutacions privades, és a dir, mutacions relatives al node pare (més proper) de l'arbre de referència al qual s'ha unit la mostra de consulta durant la col·locació filogenètica.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referència” - mostra mutacions relatives a la seqüència de referència (tal com es defineix en el conjunt de dades).",
-  "'{{ attr }}' founder": "fundador de '{{ attr }}'",
   "(truncated)": "(truncat)",
   "* Current value. This amount can change depending on load": "* Valor actual. Aquesta quantitat pot canviar depenent de la càrrega",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} requereix almenys {{memoryRequired}} de memòria per fil",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "El conjunt de dades seleccionat actualment no sembla que coincideixi amb les vostres seqüències, però hi ha {{ n }} altres conjunts de dades que podrien. Feu clic a “Canviar el conjunt de dades de referència” per veure la llista.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "El conjunt de dades seleccionat actualment no sembla que coincideixi amb les vostres seqüències, però hi ha un conjunt de dades que podria. Feu clic a “Canviar el conjunt de dades de referència” per veure la llista.",
   "Customizations": "Personalitzacions",
+  "Customize": "Personalitzar",
   "Customize dataset files": "Personalitzar fitxers de conjunt de dades",
   "Dataset": "Conjunt de dades",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Els autors del conjunt de dades van marcar aquest conjunt de dades com a obsolet, el que significa que el conjunt de dades està obsolet, ja no s'actualitzarà o no és rellevant d'una altra manera. Poseu-vos en contacte amb els autors del conjunt de dades per obtenir més detalls.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Aquí podeu anul·lar fitxers individuals del conjunt de dades. Si no es proporciona un fitxer, serà substituït a partir del conjunt de dades seleccionat actualment. Obteniu més informació al {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Aquí podeu seleccionar columnes (individuals o categories) que s'escriuran en fitxers CSV i TSV.",
   "Hide dataset files": "Amagar fitxers del conjunt de dades",
+  "History": "Història",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "No obstant això, això no és recomanable: aquesta versió de l'aplicació ja no està actualitzada ni suportada, i no podem garantir que funcioni, i que produirà resultats correctes.",
   "I want to try anyway": "Vull provar de totes maneres",
   "Idle": "Inactiu",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "L'algorisme de suggeriment ha fallat. Si us plau, informeu-ho als desenvolupadors.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "L'algoritme de suggeriment no va poder trobar un conjunt de dades adequat per a les vostres seqüències. Seleccioneu un conjunt de dades manualment. Si no hi ha un conjunt de dades adequat, considereu crear-ne i aportar-ne un a la col·lecció de conjunts de dades de la comunitat Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Resumits resultats de l'anàlisi en format {{formatName}}.",
+  "Summary": "Resum",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "La commutació de l'objectiu canviarà les mutacions mostrades en les vistes de seqüència així com a la columna “Mut” de la taula i la seva punta d'eines per mouseover.",
   "Text": "Text",
   "The address to the file is correct": "L'adreça del fitxer és correcta",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} funciona millor en les últimes versions de ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informació addicional per a desenvolupadors (feu clic per ampliar)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} detectat codó (s) stop (s) mal col·locats. Gen (s) afectat/s: {{geneList}}. Puntuació QC: {{score}}",
-  "Customize": "Personalitzar",
-  "History": "Història",
-  "Summary": "Resum"
+  "\"{{ attr }}\" founder": "“{{ attr }}\" fundador"
 }

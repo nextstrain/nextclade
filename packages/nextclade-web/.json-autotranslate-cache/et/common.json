@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade asutaja” - näitab mutatsioone päringuväidile määratud klaadi asutaja suhtes. Pange tähele, et erinevate klaadide päringuid võrreldakse sel juhul erinevate sihtmärkidega.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Vanem” - näitab privaatseid mutatsioone, st mutatsioone võrdluspuu vanema (lähima) sõlme suhtes, millele päringuproov on fülogeneetilise paigutamise ajal kinnitatud.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Viide” - näitab mutatsioone võrdlusjärjestuse suhtes (nagu on määratletud andmekogumis).",
-  "'{{ attr }}' founder": "'{{ attr }}' asutaja",
   "(truncated)": "(kärbitud)",
   "* Current value. This amount can change depending on load": "* Praegune väärtus. See summa võib sõltuvalt koormusest muutuda",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} nõuab lõime kohta vähemalt {{memoryRequired}} mälu",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Tundub, et praegu valitud andmekogum ei vasta teie järjestustele, kuid on ka teisi andmekogumeid {{ n }}, mis võivad. Loendi vaatamiseks klõpsake nuppu „Muuda viiteandmekogumit”.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Tundub, et praegu valitud andmekogum ei vasta teie järjestustele, kuid on olemas 1 andmekogum, mis võib. Loendi vaatamiseks klõpsake nuppu „Muuda viiteandmekogumit”.",
   "Customizations": "Kohandused",
+  "Customize": "Kohandage",
   "Customize dataset files": "Andmekogumi failide kohandamine",
   "Dataset": "Andmekogum",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Andmekogumi autorid märkisid selle andmekogumi aegunuks, mis tähendab, et andmekogum on vananenud, seda enam ei värskendata või see pole muul viisil asjakohane. Täpsema teabe saamiseks pöörduge andmekogumi autorite poole.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Siin saate andmekogumi üksikud failid tühistada. Kui faili ei esitata, asendatakse see praegu valitud andmekogumist. Lisateavet leiate lehelt {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Siin saate valida veerud (üksikud või kategooriad), mis kirjutatakse CSV- ja TSV-failidesse.",
   "Hide dataset files": "Andmekogumi failide peitmine",
+  "History": "ajalugu",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Kuid see pole soovitatav: seda rakenduse versiooni ei värskendata ega toetata enam ning me ei saa garanteerida, et see töötab ja et see annab õigeid tulemusi.",
   "I want to try anyway": "Ma tahan niikuinii proovida",
   "Idle": "Tühikäik",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Soovituste algoritm ebaõnnestus. Palun teatage sellest arendajatele.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Soovitusalgoritm ei suutnud leida teie järjestustele sobivat andmekogumit. Valige andmekogum käsitsi. Kui sobivat andmekogumit pole, kaaluge selle loomist ja kaasamist Nextclade kogukonna andmekogumisse.",
   "Summarized results of the analysis in {{formatName}} format.": "Analüüsi kokkuvõtlikud tulemused formaadis {{formatName}}.",
+  "Summary": "Kokkuvõte",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Sihtmärgi vahetamine muudab mutatsioone, mis kuvatakse nii järjestusvaates kui ka tabeli veerus „Mut” ja selle hiiretööriistavihtis.",
   "Text": "Tekst",
   "The address to the file is correct": "Faili aadress on õige",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} töötab kõige paremini uusimates versioonides ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Lisainfo arendajatele (klõpsake laiendamiseks)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} tuvastati valesti paigutatud stoppkoodon (id). Mõjutatud geen (id): {{geneList}}. QC skoor: {{score}}",
-  "Customize": "Kohandage",
-  "History": "ajalugu",
-  "Summary": "Kokkuvõte"
+  "\"{{ attr }}\" founder": "„{{ attr }}\" asutaja"
 }

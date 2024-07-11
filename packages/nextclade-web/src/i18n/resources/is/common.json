@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade stofnandi” - sýnir stökkbreytingar miðað við stofnandi clade sem hefur verið úthlutað fyrirspurnarsýninu. Athugaðu að fyrirspurnir frá mismunandi clades verða bornar saman við mismunandi markmið í þessu tilfelli.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Foreldri” - sýnir einka stökkbreytingar, þ.e. stökkbreytingar miðað við foreldri (næsta) hnút viðmiðunartrésins sem fyrirspurnarsýnið hefur verið fest við meðan á phylogenic vistun stendur.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Tilvísun” - sýnir stökkbreytingar miðað við viðmiðunarröðina (eins og skilgreint er í gagnasafninu).",
-  "'{{ attr }}' founder": "Stofnandi ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" stofnandi",
   "(truncated)": "(stytt)",
   "* Current value. This amount can change depending on load": "* Núverandi gildi. Þessi upphæð getur breyst eftir álagi",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} krefst að minnsta kosti {{memoryRequired}} af minni á hvern þráð",

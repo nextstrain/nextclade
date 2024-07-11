@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade Founder” - prezintă mutații în raport cu fondatorul cladei care a fost atribuită eșantionului de interogare. Rețineți că interogările din diferite clade vor fi comparate cu ținte diferite în acest caz.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Părinte” - arată mutații private, adică mutații în raport cu nodul părinte (cel mai apropiat) al arborelui de referință la care a fost atașat eșantionul de interogare în timpul plasării filogenetice.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referință” - arată mutații în raport cu secvența de referință (așa cum este definită în setul de date).",
-  "'{{ attr }}' founder": "Fondatorul '{{ attr }}'",
   "(truncated)": "(trunchiat)",
   "* Current value. This amount can change depending on load": "* Valoarea curentă. Această sumă se poate modifica în funcție de sarcină",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} necesită cel puțin {{memoryRequired}} de memorie pe fir",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Setul de date selectat în prezent nu pare să se potrivească secvențelor dvs., dar există {{ n }} alte seturi de date care ar putea. Faceți clic pe „Modificați setul de date de referință” pentru a vedea lista.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Setul de date selectat în prezent nu pare să se potrivească secvențelor dvs., dar există 1 set de date care ar putea. Faceți clic pe „Modificați setul de date de referință” pentru a vedea lista.",
   "Customizations": "Personalizări",
+  "Customize": "Personalizați",
   "Customize dataset files": "Personalizați fișierele de date",
   "Dataset": "Setul de date",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Autorii setului de date au marcat acest set de date ca fiind învechit, ceea ce înseamnă că setul de date este învechit, nu va mai fi actualizat sau nu este relevant altfel. Vă rugăm să contactați autorii setului de date pentru detalii.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Aici puteți suprascrie fișierele individuale din setul de date. Dacă un fișier nu este furnizat, acesta va fi înlocuit din setul de date selectat în prezent. Aflați mai multe în {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Aici puteți selecta coloane (individuale sau categorii) care vor fi scrise în fișiere CSV și TSV.",
   "Hide dataset files": "Ascundeți fișierele de date",
+  "History": "Istorie",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Cu toate acestea, acest lucru nu este recomandat: această versiune a aplicației nu mai este actualizată sau acceptată și nu putem garanta că va funcționa și că va produce rezultate corecte.",
   "I want to try anyway": "Vreau să încerc oricum",
   "Idle": "Inactiv",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Algoritmul sugestiei a eșuat. Vă rugăm să raportați acest lucru dezvoltatorilor.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Algoritmul de sugestie nu a putut găsi un set de date potrivit pentru secvențele dvs. Selectați manual un set de date. Dacă nu există un set de date adecvat, luați în considerare crearea și contribuirea unuia la colecția de seturi de date comunitare Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Rezumate rezultatele analizei în format {{formatName}}.",
+  "Summary": "Rezumat",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Comutarea țintei va schimba mutațiile afișate în vizualizările secvenței, precum și în coloana „Mut” a tabelului și indicativul de instrumente al mouseover.",
   "Text": "Textul",
   "The address to the file is correct": "Adresa dosarului este corectă",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "{{project}} funcționează cel mai bine în cele mai recente versiuni de ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informații suplimentare pentru dezvoltatori (faceți clic pentru a extinde)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} detectat codon (i) de oprire greșit. Gene afectate: {{geneList}}. Punctaj QC: {{score}}",
-  "Customize": "Personalizați",
-  "History": "Istorie",
-  "Summary": "Rezumat"
+  "\"{{ attr }}\" founder": "Fondatorul „{{ attr }}”"
 }

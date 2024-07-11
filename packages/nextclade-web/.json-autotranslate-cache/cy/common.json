@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Sylfaenydd Clade” - yn dangos treigladau mewn perthynas â sylfaenydd y clade sydd wedi'i neilltuo i'r sampl ymholiad. Sylwch y bydd ymholiadau o wahanol clades yn cael eu cymharu â gwahanol dargedau yn yr achos hwn.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Rhiant” - yn dangos treigladau preifat, h.y. treigladau sy'n berthnasol i nod rhiant (agosaf) y goeden gyfeirio y mae'r sampl ymholiad wedi'i atodi iddi yn ystod lleoliad ffylogenetig.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Cyfeirnod” - yn dangos treigladau mewn perthynas â'r dilyniant cyfeirio (fel y'i diffinnir yn y set ddata).",
-  "'{{ attr }}' founder": "Sylfaenydd '{{ attr }}'",
   "(truncated)": "(wedi'i dorri)",
   "* Current value. This amount can change depending on load": "* Gwerth cyfredol. Gall y swm hwn newid yn dibynnu ar lwyth",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Mae {{appName}} yn gofyn am o leiaf {{memoryRequired}} o gof fesul edau",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Nid yw'n ymddangos bod set ddata a ddewiswyd ar hyn o bryd yn cyd-fynd â'ch dilyniannau, ond mae {{ n }} setiau data eraill a allai. Cliciwch “Newid set ddata cyfeirio” i weld y rhestr.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Nid yw'n ymddangos bod set ddata a ddewiswyd ar hyn o bryd yn cyd-fynd â'ch dilyniannau, ond mae 1 set ddata a allai. Cliciwch “Newid set ddata cyfeirio” i weld y rhestr.",
   "Customizations": "Addasiadau",
+  "Customize": "Addasu",
   "Customize dataset files": "Addasu ffeiliau set ddata",
   "Dataset": "Set ddata",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Marciodd awduron y set ddata hon fel un anghymeradwy, sy'n golygu bod y set ddata wedi darfod, na fydd bellach yn cael ei diweddaru neu nad yw'n berthnasol fel arall. Cysylltwch ag awduron set ddata am fanylion.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Yma gallwch ddiystyru ffeiliau unigol yn y set ddata. Os na ddarperir ffeil, caiff ei disodli o'r set ddata a ddewiswyd ar hyn o bryd. Dysgu mwy yn y {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Yma gallwch ddewis colofnau (unigol neu gategorïau) a fydd yn cael eu hysgrifennu i mewn i ffeiliau CSV a TSV.",
   "Hide dataset files": "Cuddio ffeiliau set ddata",
+  "History": "Hanes",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Fodd bynnag, ni argymhellir hyn: nid yw'r fersiwn hon o'r cais yn cael ei diweddaru na'i chefnogi mwyach, ac ni allwn warantu y bydd yn gweithio, ac y bydd yn cynhyrchu canlyniadau cywir.",
   "I want to try anyway": "Rwyf am geisio beth bynnag",
   "Idle": "Yn segur",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Methodd algorithm awgrym. Rhowch wybod am hyn i ddatblygwyr.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Nid oedd algorithm awgrym yn gallu dod o hyd i set ddata sy'n addas ar gyfer eich dilyniannau. Dewiswch set ddata â llaw. Os nad oes set ddata addas, ystyriwch greu a chyfrannu un at gasgliad setiau data cymunedol Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Canlyniadau'r dadansoddiad cryno ar fformat {{formatName}}.",
+  "Summary": "Crynodeb",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Bydd newid y targed yn newid treigladau a arddangosir yn y golygfeydd dilyniant yn ogystal ag yng ngholofn “Mut” y tabl a'i domen offer mouseover.",
   "Text": "Testun",
   "The address to the file is correct": "Mae'r cyfeiriad i'r ffeil yn gywir",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "Mae {{project}} yn gweithio orau yn y fersiynau diweddaraf o ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Gwybodaeth ychwanegol i ddatblygwyr (cliciwch i ehangu)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} canfuwyd codon (au) stop anghywir. Genynnau yr effeithir arnynt: {{geneList}}. Sgôr QC: {{score}}",
-  "Customize": "Addasu",
-  "History": "Hanes",
-  "Summary": "Crynodeb"
+  "\"{{ attr }}\" founder": "Sylfaenydd “{{ attr }}”"
 }

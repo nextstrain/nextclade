@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Mwanzilishi wa Clade” - anaonyesha mabadiliko kuhusiana na mwanzilishi wa clade ambayo imepewa kwa sampuli ya swali. Kumbuka kuwa maswali kutoka kwa clades tofauti yatalinganishwa na malengo tofauti katika kesi hii.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Mzazi” - inaonyesha mabadiliko ya kibinafsi, yaani mabadiliko yanayohusiana na node ya mzazi (karibu) ya mti wa kumbukumbu ambayo sampuli ya swali imeunganishwa nayo wakati wa uwekaji wa phylogenic.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Kumbukumbu” - inaonyesha mabadiliko kulingana na mlolongo wa kumbukumbu (kama ilivyofafanuliwa katika seti ya data).",
-  "'{{ attr }}' founder": "Mwanzilishi wa ' {{ attr }} '",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" mwanzilishi",
   "(truncated)": "(iliyopunguzwa)",
   "* Current value. This amount can change depending on load": "* Thamani ya sasa. Kiasi hiki kinaweza kubadilika kulingana na mzigo",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} inahitaji angalau {{memoryRequired}} ya kumbukumbu kwa kila nyuzi",

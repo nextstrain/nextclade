@@ -10,7 +10,6 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«Clade Founder» - δείχνει μεταλλάξεις σε σχέση με τον ιδρυτή του κλάδου που έχει εκχωρηθεί στο δείγμα ερωτήματος. Σημειώστε ότι τα ερωτήματα από διαφορετικές κατηγορίες θα συγκριθούν με διαφορετικούς στόχους σε αυτήν την περίπτωση.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«Γονέας» - δείχνει ιδιωτικές μεταλλάξεις, δηλαδή μεταλλάξεις σε σχέση με τον γονικό (πλησιέστερο) κόμβο του δέντρου αναφοράς στο οποίο έχει συνδεθεί το δείγμα ερωτήματος κατά τη διάρκεια της φυλογενετικής τοποθέτησης.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«Αναφορά» - δείχνει μεταλλάξεις σε σχέση με την ακολουθία αναφοράς (όπως ορίζεται στο σύνολο δεδομένων).",
-  "'{{ attr }}' founder": "Ιδρυτής «{{ attr }}»",
   "(truncated)": "(περικομμένο)",
   "* Current value. This amount can change depending on load": "* Τρέχουσα τιμή. Αυτό το ποσό μπορεί να αλλάξει ανάλογα με το φορτίο",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Το {{appName}} απαιτεί τουλάχιστον {{memoryRequired}} μνήμης ανά νήμα",
@@ -104,6 +103,7 @@
   "Currently selected dataset does not seem to match your sequences, but there are {{ n }} other datasets which might. Click \"Change reference dataset\" to see the list.": "Το τρέχον επιλεγμένο σύνολο δεδομένων δεν φαίνεται να ταιριάζει με τις ακολουθίες σας, αλλά υπάρχουν {{ n }} άλλα σύνολα δεδομένων που μπορεί να είναι. Κάντε κλικ στην επιλογή «Αλλαγή συνόλου δεδομένων αναφοράς» για να δείτε τη λίστα.",
   "Currently selected dataset does not seem to match your sequences, but there is 1 dataset which might. Click \"Change reference dataset\" to see the list.": "Το τρέχον επιλεγμένο σύνολο δεδομένων δεν φαίνεται να ταιριάζει με τις ακολουθίες σας, αλλά υπάρχει 1 σύνολο δεδομένων που μπορεί. Κάντε κλικ στην επιλογή «Αλλαγή συνόλου δεδομένων αναφοράς» για να δείτε τη λίστα.",
   "Customizations": "Προσαρμογές",
+  "Customize": "Προσαρμογή",
   "Customize dataset files": "Προσαρμογή αρχείων συνόλων δεδομένων",
   "Dataset": "Σύνολο δεδομένων",
   "Dataset authors marked this dataset as deprecated, which means the dataset is obsolete, will no longer be updated or is not relevant otherwise. Please contact dataset authors for specifics.": "Οι συντάκτες του συνόλου δεδομένων σημείωσαν αυτό το σύνολο δεδομένων ως απαρχαιωμένο, που σημαίνει ότι το σύνολο δεδομένων είναι ξεπερασμένο, δεν θα ενημερώνεται πλέον ή δεν είναι σχετικό διαφορετικά. Επικοινωνήστε με τους συντάκτες του συνόλου δεδομένων για λεπτομέρειες.",
@@ -186,6 +186,7 @@
   "Here you can override individual files in the dataset. If a file is not provided, it will be substituted from the currently selected dataset. Learn more in the {{documentation}}": "Εδώ μπορείτε να παρακάμψετε μεμονωμένα αρχεία στο σύνολο δεδομένων. Εάν ένα αρχείο δεν παρέχεται, θα αντικατασταθεί από το τρέχον επιλεγμένο σύνολο δεδομένων. Μάθετε περισσότερα στο {{documentation}}",
   "Here you can select columns (individual or categories) which will be written into CSV and TSV files.": "Εδώ μπορείτε να επιλέξετε στήλες (μεμονωμένες ή κατηγορίες) που θα εγγραφούν σε αρχεία CSV και TSV.",
   "Hide dataset files": "Απόκρυψη αρχείων συνόλου δεδομένων",
+  "History": "Ιστορία",
   "However, this is not recommended: this version of the application is no longer updated or supported, and we cannot guarantee that it will work, and that it will produce correct results.": "Ωστόσο, αυτό δεν συνιστάται: αυτή η έκδοση της εφαρμογής δεν ενημερώνεται ή υποστηρίζεται πλέον και δεν μπορούμε να εγγυηθούμε ότι θα λειτουργήσει και ότι θα παράγει σωστά αποτελέσματα.",
   "I want to try anyway": "Θέλω να δοκιμάσω ούτως ή άλλως",
   "Idle": "Αδρανής",
@@ -388,6 +389,7 @@
   "Suggestion algorithm failed. Please report this to developers.": "Ο αλγόριθμος πρότασης απέτυχε. Αναφέρετε αυτό στους προγραμματιστές.",
   "Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.": "Ο αλγόριθμος πρότασης δεν μπόρεσε να βρει ένα σύνολο δεδομένων κατάλληλο για τις ακολουθίες σας. Επιλέξτε ένα σύνολο δεδομένων χειροκίνητα. Εάν δεν υπάρχει κατάλληλο σύνολο δεδομένων, σκεφτείτε να δημιουργήσετε και να συνεισφέρετε ένα στη συλλογή συνόλων δεδομένων κοινότητας Nextclade.",
   "Summarized results of the analysis in {{formatName}} format.": "Συνοπτικά αποτελέσματα της ανάλυσης σε μορφή {{formatName}}.",
+  "Summary": "Περίληψη",
   "Switching the target will change mutations displayed in the sequence views as well as in the \"Mut\" column of the table and its mouseover tooltip.": "Η εναλλαγή του στόχου θα αλλάξει τις μεταλλάξεις που εμφανίζονται στις προβολές ακολουθίας καθώς και στη στήλη «Mut» του πίνακα και την επεξήγηση του ποντικιού του ποντικιού.",
   "Text": "Κείμενο",
   "The address to the file is correct": "Η διεύθυνση στο αρχείο είναι σωστή",
@@ -482,7 +484,5 @@
   "{{project}} works best in the latest versions of ": "Το {{project}} λειτουργεί καλύτερα στις πιο πρόσφατες εκδόσεις του ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Πρόσθετες πληροφορίες για προγραμματιστές (κάντε κλικ για επέκταση)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} εντοπίστηκαν λανθασμένα κωδικόνια διακοπής. Προσβεβλημένο γονίδιο (α): {{geneList}}. Βαθμολογία QC: {{score}}",
-  "Customize": "Προσαρμογή",
-  "History": "Ιστορία",
-  "Summary": "Περίληψη"
+  "\"{{ attr }}\" founder": "Ιδρυτής του «{{ attr }}»"
 }

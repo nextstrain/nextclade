@@ -10,7 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“क्लैड संस्थापक” - क्लैड के संस्थापक के सापेक्ष म्यूटेशन दिखाता है जिसे क्वेरी नमूने को सौंपा गया है। ध्यान दें कि इस मामले में अलग-अलग वर्गों के प्रश्नों की तुलना अलग-अलग लक्ष्यों के साथ की जाएगी।",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“पैरेंट” - निजी म्यूटेशन दिखाता है, यानी संदर्भ ट्री के पैरेंट (निकटतम) नोड के सापेक्ष म्यूटेशन, जिससे फ़ाइलोजेनेटिक प्लेसमेंट के दौरान क्वेरी नमूना संलग्न किया गया है।",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“संदर्भ” - संदर्भ अनुक्रम के सापेक्ष उत्परिवर्तन दिखाता है (जैसा कि डेटासेट में परिभाषित किया गया है)।",
-  "'{{ attr }}' founder": "' {{ attr }} ' के संस्थापक",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" के संस्थापक",
   "(truncated)": "(छोटा कर दिया गया)",
   "* Current value. This amount can change depending on load": "* मौजूदा मान। लोड के आधार पर यह राशि बदल सकती है।",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} को प्रति थ्रेड कम से कम {{memoryRequired}} मेमोरी की आवश्यकता होती है",
