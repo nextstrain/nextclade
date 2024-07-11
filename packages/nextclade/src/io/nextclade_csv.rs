@@ -108,10 +108,9 @@ impl CsvColumnConfig {
 
       let categories = categories
         .into_iter()
-        .filter(|category| !matches!(category, CsvColumnCategory::Dynamic)) // Dynamic columns are handled specially
-        .map(|category| {
-          let columns = CSV_COLUMN_CONFIG_MAP_DEFAULT.get(&category).unwrap().clone();
-          (category, columns)
+        .filter_map(|category| {
+          let columns = CSV_COLUMN_CONFIG_MAP_DEFAULT.get(&category)?.clone();
+          Some((category, columns))
         })
         .collect();
 
@@ -356,7 +355,7 @@ fn rel_mut_cols(desc: &AuspiceRefNodeSearchDesc) -> [String; 5] {
 }
 
 fn insert_after<T>(v: &mut Vec<T>, index: usize, val: T) {
-  if index > v.len() {
+  if index >= v.len() {
     v.push(val);
   } else {
     v.insert(index + 1, val);
