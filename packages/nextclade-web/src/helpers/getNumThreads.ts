@@ -52,7 +52,7 @@ export function getNumThreads() {
   }
 
   let numThreads = navigator?.hardwareConcurrency ?? DEFAULT_NUM_THREADS
-  numThreads = Math.max(numThreads, DEFAULT_NUM_THREADS)
+  numThreads = clamp(numThreads, DEFAULT_NUM_THREADS, MAXIMUM_NUM_THREADS)
 
   // Detect how much memory is available and adjust number of threads if per-thread memory is too low
   const guess = guessNumThreads()
