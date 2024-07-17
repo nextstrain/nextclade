@@ -1,6 +1,12 @@
+## Nextclade 3.8.2
+
+### Fix detection of number of threads Nextclade Web
+
+Sometimes Nextclade Web would detect incorrect number of available CPU threads and would create too many processing threads for processing. This could cause additional overhead and slowdown the runs. We observed this behavior on non_chromium based browsers, such as Firefox and Safari. This has been fixed now. The number of threads has been clamped to 3 by default. You can modify this in "Settings" dialog.
+
 ## Nextclade 3.8.1
 
-### Fix crash when using
+### Fix crash when using column config in Nextclade Web
 
 Since 3.8.0 Nextclade could crash when particular combinations of CSV/TSV columns selected in "Column config" tab on "Export" page in Nextclade Web or with `--output-columns-selection` argument in Nextclade CLI. This has been resolved.
 
