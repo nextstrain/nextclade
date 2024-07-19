@@ -5,7 +5,7 @@ import styled from 'styled-components'
 
 export const TableSlim = styled(ReactstrapTable)`
   & td {
-    padding: 0 0.5rem;
+    padding: 0.1rem 0.5rem;
   }
 
   & tr {
