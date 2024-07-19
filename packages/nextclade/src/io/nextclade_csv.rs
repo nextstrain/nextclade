@@ -28,6 +28,7 @@ use itertools::{chain, Either, Itertools};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::path::Path;
 use std::str::FromStr;
@@ -160,6 +161,7 @@ lazy_static! {
       o!("alignmentStart") => true,
       o!("alignmentEnd") => true,
       o!("coverage") => true,
+      o!("cdsCoverage") => true,
       o!("isReverseComplement") => true,
     },
     CsvColumnCategory::RefMuts => indexmap! {
@@ -414,6 +416,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
       missing_cdses,
       // divergence,
       coverage,
+      cds_coverage,
       phenotype_values,
       qc,
       custom_node_attributes,
@@ -599,6 +602,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     self.add_entry("alignmentStart", &(alignment_range.begin + 1).to_string())?;
     self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
+    self.add_entry("cdsCoverage", &format_cds_coverage(cds_coverage, ARRAY_ITEM_DELIMITER))?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -989,6 +993,14 @@ pub fn format_stop_codons(stop_codons: &[StopCodonLocation], delimiter: &str) ->
   stop_codons
     .iter()
     .map(|StopCodonLocation { cds_name, codon }| format!("{cds_name}:{codon}"))
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_cds_coverage(cds_coverage: &BTreeMap<String, f64>, delimiter: &str) -> String {
+  cds_coverage
+    .iter()
+    .map(|(cds, coverage)| format!("{cds}:{coverage}"))
     .join(delimiter)
 }
 

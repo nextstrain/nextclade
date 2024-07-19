@@ -90,6 +90,7 @@ pub struct NextcladeOutputs {
   pub missing_cdses: Vec<String>,
   pub divergence: f64,
   pub coverage: f64,
+  pub cds_coverage: BTreeMap<String, f64>,
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: GraphNodeKey,
