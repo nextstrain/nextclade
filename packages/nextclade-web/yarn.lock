@@ -4608,10 +4608,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.56.0:
-  version "2.56.0"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.56.0.tgz#bf262ad2b07d99fc2b4ec08185877eb1a6571e8a"
-  integrity sha512-P3372TSQne4fCcM8OpEz0cYsrxzkHMdBB65b6agH7jcwvRE8cLFNIPzQc+H5YkzAvWIX1Rg1tsUt0TYrSZEBcw==
+auspice@2.56.1:
+  version "2.56.1"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.56.1.tgz#605ac4ee1c929c2a00d5b7a1e75b537e0a7946a2"
+  integrity sha512-dnXcBePMoW2U2jc0gDdIBk8jXa9gPtIe+oKHiwiJOf1bJfBt2uRAFE+VUUOdaxe31iZlZAxnSUW7fSHsfZxGyA==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
