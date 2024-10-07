@@ -485,11 +485,11 @@ pub fn knit_into_graph(
       };
 
       // Vote for the most plausible clade
-      let (clade, same_as_target) = vote_for_clade(graph, target_node, result);
+      let (clade, should_relabel) = vote_for_clade(graph, target_node, result);
       new_internal_node.node_attrs.clade_membership = clade.as_deref().map(TreeNodeAttr::new);
 
-      // If the target clade is selected, then move the clade label from target node to the internal node
-      if same_as_target {
+      // If decided, then move the clade label from target node to the internal node
+      if should_relabel {
         let target_node = graph.get_node_mut(target_key)?;
         if let Some(target_labels) = &mut target_node.payload_mut().branch_attrs.labels {
           target_labels.clade = None;
@@ -573,7 +573,11 @@ fn vote_for_clade(
   let possible_clades = [parent_clade, query_clade, target_clade].into_iter().flatten(); // exclude None
   let clade = mode(possible_clades).cloned();
 
-  let same_as_target = target_clade.is_some() && target_clade == &clade;
+  // We will need to change branch label if both:
+  //  - clade transition happens from parent to the new node
+  // AND
+  //  -  when the target node's clade wins the vote
+  let should_relabel = (parent_clade != &clade) && (target_clade.is_some() && target_clade == &clade);
 
-  (clade, same_as_target)
+  (clade, should_relabel)
 }
