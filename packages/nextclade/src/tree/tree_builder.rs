@@ -467,7 +467,7 @@ pub fn knit_into_graph(
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
     let new_internal_node = {
-      let mut new_internal_node: AuspiceGraphNodePayload = target_node_auspice.clone();
+      let mut new_internal_node: AuspiceGraphNodePayload = target_node_auspice.to_owned();
       new_internal_node.tmp.private_mutations = muts_common_branch;
       new_internal_node.node_attrs.div = Some(divergence_middle_node);
       new_internal_node.branch_attrs.mutations =
@@ -477,15 +477,29 @@ pub fn knit_into_graph(
       }
       set_branch_attrs_aa_labels(&mut new_internal_node);
 
-      // Vote for the most plausible clade
-      new_internal_node.node_attrs.clade_membership = vote_for_clade(graph, target_node, result);
-
       new_internal_node.name = {
         let qry_name = &result.seq_name;
         let qry_index = &result.index;
         let target_name = &target_node_auspice.name;
         format!("nextclade__copy_of_{target_name}_for_placement_of_{qry_name}_#{qry_index}")
       };
+
+      // Vote for the most plausible clade
+      let (clade, same_as_target) = vote_for_clade(graph, target_node, result);
+      new_internal_node.node_attrs.clade_membership = clade.as_deref().map(TreeNodeAttr::new);
+
+      // If the target clade is selected, then move the clade label from target node to the internal node
+      if same_as_target {
+        let target_node = graph.get_node_mut(target_key)?;
+        if let Some(target_labels) = &mut target_node.payload_mut().branch_attrs.labels {
+          target_labels.clade = None;
+          new_internal_node
+            .branch_attrs
+            .labels
+            .get_or_insert(TreeBranchAttrsLabels::default())
+            .clade = clade;
+        }
+      }
 
       new_internal_node
     };
@@ -548,15 +562,18 @@ fn vote_for_clade(
   graph: &AuspiceGraph,
   target_node: &Node<AuspiceGraphNodePayload>,
   result: &NextcladeOutputs,
-) -> Option<TreeNodeAttr> {
+) -> (Option<String>, bool) {
   let query_clade = &result.clade;
 
   let parent_node = &graph.parent_of(target_node);
   let parent_clade = &parent_node.and_then(|node| node.payload().clade());
-  // let sibling_clades = graph.iter_children_of(&parent_node).map(|child| child.payload().clade());
 
   let target_clade = &target_node.payload().clade();
 
   let possible_clades = [parent_clade, query_clade, target_clade].into_iter().flatten(); // exclude None
-  mode(possible_clades).map(|c| TreeNodeAttr::new(c))
+  let clade = mode(possible_clades).cloned();
+
+  let same_as_target = target_clade.is_some() && target_clade == &clade;
+
+  (clade, same_as_target)
 }
