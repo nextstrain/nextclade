@@ -8,8 +8,9 @@ use eyre::{Report, WrapErr};
 use itertools::{chain, Itertools};
 use std::collections::BTreeMap;
 use std::fmt::Display;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SplitMutsResult {
   pub left: BranchMutations,
   pub shared: BranchMutations,
