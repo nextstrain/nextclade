@@ -9,11 +9,14 @@ use crate::graph::node::{GraphNodeKey, Node};
 use crate::io::json::{json_stringify, JsonPretty};
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
-use crate::tree::tree::{AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels};
+use crate::tree::tree::{
+  AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels, TreeNodeAttr,
+};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::tree::tree_preprocess::add_auspice_metadata_in_place;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
+use crate::utils::stats::mode;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use serde_json::json;
@@ -474,6 +477,9 @@ pub fn knit_into_graph(
       }
       set_branch_attrs_aa_labels(&mut new_internal_node);
 
+      // Vote for the most plausible clade
+      new_internal_node.node_attrs.clade_membership = vote_for_clade(graph, target_node, result);
+
       new_internal_node.name = {
         let qry_name = &result.seq_name;
         let qry_index = &result.index;
@@ -535,4 +541,22 @@ fn set_branch_attrs_aa_labels(node: &mut AuspiceGraphNodePayload) {
       other: serde_json::Value::default(),
     });
   }
+}
+
+// Vote for the most plausible clade for the new internal node
+fn vote_for_clade(
+  graph: &AuspiceGraph,
+  target_node: &Node<AuspiceGraphNodePayload>,
+  result: &NextcladeOutputs,
+) -> Option<TreeNodeAttr> {
+  let query_clade = &result.clade;
+
+  let parent_node = &graph.parent_of(target_node);
+  let parent_clade = &parent_node.and_then(|node| node.payload().clade());
+  // let sibling_clades = graph.iter_children_of(&parent_node).map(|child| child.payload().clade());
+
+  let target_clade = &target_node.payload().clade();
+
+  let possible_clades = [parent_clade, query_clade, target_clade].into_iter().flatten(); // exclude None
+  mode(possible_clades).map(|c| TreeNodeAttr::new(c))
 }

@@ -10,6 +10,7 @@ pub mod info;
 pub mod map;
 pub mod num;
 pub mod option;
+pub mod stats;
 pub mod string;
 pub mod vec2d;
 pub mod wraparound;
