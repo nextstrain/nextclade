@@ -134,7 +134,7 @@ fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = CertificateDer<'a>>, 
       let mut reader = BufReader::new(file);
 
       let certs = rustls_pemfile::certs(&mut reader)
-        .map(|c| c.wrap_err_with(|| "When parsing an extra CA certificate".to_owned()))
+        .map(|c| c.wrap_err("When parsing an extra CA certificate"))
         .collect::<Result<Vec<_>, Report>>()?;
 
       Ok(certs)
