@@ -1,12 +1,19 @@
 use clap::{Parser, ValueHint};
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use log::info;
 use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
 use reqwest::{Method, Proxy};
-use rustls_platform_verifier;
+use rustls::ClientConfig;
+use rustls_pemfile;
+use rustls_pki_types::CertificateDer;
+use rustls_platform_verifier::Verifier;
+use std::env;
+use std::io::BufReader;
+use std::fs::File;
 use std::str::FromStr;
+use std::sync::Arc;
 use std::time::Duration;
 use url::Url;
 
@@ -62,8 +69,13 @@ impl HttpClient {
 
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
 
+    let tls_config = ClientConfig::builder()
+      .dangerous() // …but the rustls_platform_verifier::Verifier is safe
+      .with_custom_certificate_verifier(Arc::new(Verifier::new_with_extra_roots(extra_ca_certs()?)?))
+      .with_no_client_auth();
+
     let client = client_builder
-      .use_preconfigured_tls(rustls_platform_verifier::tls_config())
+      .use_preconfigured_tls(tls_config)
       .connection_verbose(verbose)
       .connect_timeout(Some(Duration::from_secs(60)))
       .user_agent(user_agent)
@@ -110,5 +122,23 @@ impl HttpClient {
       .bytes()?
       .to_vec();
     Ok(content)
+  }
+}
+
+fn extra_ca_certs() -> Result<impl IntoIterator<Item = CertificateDer<'static>>, Report> {
+  match env::var_os("NEXTCLADE_EXTRA_CA_CERTS") {
+    Some(filename) => {
+      let file = File::open(filename.clone())
+        .wrap_err_with(|| format!("When opening NEXTCLADE_EXTRA_CA_CERTS file {filename:?}"))?;
+
+      let mut reader = BufReader::new(file);
+
+      let certs = rustls_pemfile::certs(&mut reader)
+        .map(|c| c.wrap_err_with(|| "When parsing an extra CA certificate".to_owned()))
+        .collect::<Result<Vec<_>, Report>>()?;
+
+      Ok(certs)
+    }
+    None => Ok(vec![])
   }
 }

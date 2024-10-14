@@ -1848,7 +1848,11 @@ dependencies = [
  "regex",
  "reqwest",
  "rstest",
+ "rustls",
+ "rustls-pemfile",
+ "rustls-pki-types",
  "rustls-platform-verifier",
+ "rustls-webpki",
  "schemars",
  "semver 1.0.17",
  "serde",
@@ -2502,6 +2506,7 @@ version = "0.23.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "415d9944693cb90382053259f89fbb077ea730ad7273047ec63b19bc9b160ba8"
 dependencies = [
+ "log",
  "once_cell",
  "ring",
  "rustls-pki-types",
@@ -2540,9 +2545,8 @@ checksum = "0e696e35370c65c9c541198af4543ccd580cf17fc25d8e05c5a242b202488c55"
 
 [[package]]
 name = "rustls-platform-verifier"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afbb878bdfdf63a336a5e63561b1835e7a8c91524f51621db870169eac84b490"
+version = "0.4.0"
+source = "git+https://github.com/rustls/rustls-platform-verifier.git?rev=ca87571fe47730665917b8c29f14a3989f3cbe57#ca87571fe47730665917b8c29f14a3989f3cbe57"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
@@ -2555,15 +2559,14 @@ dependencies = [
  "rustls-webpki",
  "security-framework",
  "security-framework-sys",
- "webpki-roots",
- "winapi",
+ "webpki-root-certs",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
 name = "rustls-platform-verifier-android"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f87165f0995f63a9fbeea62b64d10b4d9d8e78ec6d7d51fb2125fda7bb36788f"
+source = "git+https://github.com/rustls/rustls-platform-verifier.git?rev=ca87571fe47730665917b8c29f14a3989f3cbe57#ca87571fe47730665917b8c29f14a3989f3cbe57"
 
 [[package]]
 name = "rustls-webpki"
@@ -3474,6 +3477,15 @@ checksum = "9b85cbef8c220a6abc02aefd892dfc0fc23afb1c6a426316ec33253a3877249b"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "webpki-root-certs"
+version = "0.26.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8c6dfa3ac045bc517de14c7b1384298de1dbd229d38e08e169d9ae8c170937c"
+dependencies = [
+ "rustls-pki-types",
 ]
 
 [[package]]
