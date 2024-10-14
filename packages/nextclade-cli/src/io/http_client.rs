@@ -135,12 +135,12 @@ fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = TrustAnchor<'a>>, Rep
       let mut reader = BufReader::new(file);
 
       let certs = rustls_pemfile::certs(&mut reader)
-        .map(|c| c.wrap_err_with(|| "When parsing an extra CA certificate".to_owned()))
+        .map(|c| c.wrap_err("When parsing an extra CA certificate"))
         .collect::<Result<Vec<_>, Report>>()?;
 
       let anchors = certs
         .into_iter()
-        .map(|c| anchor_from_trusted_cert(&c).wrap_err_with(|| "When converting an extra CA certificate to a trust anchor".to_owned()).map(|a| a.to_owned()))
+        .map(|c| anchor_from_trusted_cert(&c).wrap_err("When converting an extra CA certificate to a trust anchor").map(|a| a.to_owned()))
         .collect::<Result<Vec<_>, Report>>()?;
 
       Ok(anchors)
