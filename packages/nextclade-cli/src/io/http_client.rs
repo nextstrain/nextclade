@@ -1,5 +1,6 @@
 use clap::{Parser, ValueHint};
 use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use log::info;
 use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
@@ -134,17 +135,17 @@ fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = TrustAnchor<'a>>, Rep
 
       let mut reader = BufReader::new(file);
 
-      let certs = rustls_pemfile::certs(&mut reader)
-        .map(|c| c.wrap_err("When parsing an extra CA certificate"))
-        .collect::<Result<Vec<_>, Report>>()?;
-
-      let anchors = certs
-        .into_iter()
-        .map(|c| anchor_from_trusted_cert(&c).wrap_err("When converting an extra CA certificate to a trust anchor").map(|a| a.to_owned()))
+      let anchors = rustls_pemfile::certs(&mut reader)
+        .map(|cert| {
+          let cert = cert.wrap_err("When parsing an extra CA certificate")?;
+          let anchor =
+            anchor_from_trusted_cert(&cert).wrap_err("When converting an extra CA certificate to a trust anchor")?;
+          Ok(anchor.to_owned())
+        })
         .collect::<Result<Vec<_>, Report>>()?;
 
       Ok(anchors)
     }
-    None => Ok(vec![])
+    None => Ok(vec![]),
   }
 }
