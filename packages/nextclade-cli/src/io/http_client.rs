@@ -126,7 +126,7 @@ impl HttpClient {
   }
 }
 
-fn extra_ca_certs() -> Result<impl IntoIterator<Item = TrustAnchor<'static>>, Report> {
+fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = TrustAnchor<'a>>, Report> {
   match env::var_os("NEXTCLADE_EXTRA_CA_CERTS") {
     Some(filename) => {
       let file = File::open(filename.clone())
