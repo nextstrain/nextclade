@@ -41,7 +41,11 @@ pretty_assertions = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
+rustls = { workspace = true }
 rustls-platform-verifier = { workspace = true }
+rustls-pemfile = { workspace = true }
+rustls-pki-types = { workspace = true }
+rustls-webpki = { workspace = true }
 schemars = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }

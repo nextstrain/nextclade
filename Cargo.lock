@@ -1848,7 +1848,11 @@ dependencies = [
  "regex",
  "reqwest",
  "rstest",
+ "rustls",
+ "rustls-pemfile",
+ "rustls-pki-types",
  "rustls-platform-verifier",
+ "rustls-webpki",
  "schemars",
  "semver 1.0.17",
  "serde",
@@ -2502,6 +2506,7 @@ version = "0.23.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "415d9944693cb90382053259f89fbb077ea730ad7273047ec63b19bc9b160ba8"
 dependencies = [
+ "log",
  "once_cell",
  "ring",
  "rustls-pki-types",
