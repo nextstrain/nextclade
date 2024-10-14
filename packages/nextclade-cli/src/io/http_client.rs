@@ -11,6 +11,7 @@ use rustls_pemfile;
 use rustls_pki_types::CertificateDer;
 use rustls_platform_verifier::Verifier;
 use std::env;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -33,6 +34,13 @@ pub struct ProxyConfig {
   #[clap(long)]
   #[clap(value_hint = ValueHint::Other)]
   pub proxy_pass: Option<String>,
+
+  /// Path to extra CA certificates
+  ///
+  /// You can also provide path to CA certificates in environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over environment variable if both are provided.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::Other)]
+  pub extra_ca_certs: Option<PathBuf>,
 }
 
 pub struct HttpClient {
@@ -68,9 +76,12 @@ impl HttpClient {
 
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
 
+    let extra_ca_certs_filepath = env::var_os("NEXTCLADE_EXTRA_CA_CERTS").map(PathBuf::from);
+    let extra_ca_certs_filepath = proxy_conf.extra_ca_certs.as_ref().or(extra_ca_certs_filepath.as_ref());
+
     let tls_config = ClientConfig::builder()
       .dangerous() // …but the rustls_platform_verifier::Verifier is safe
-      .with_custom_certificate_verifier(Arc::new(Verifier::new_with_extra_roots(extra_ca_certs()?)?))
+      .with_custom_certificate_verifier(Arc::new(Verifier::new_with_extra_roots(extra_ca_certs(extra_ca_certs_filepath)?)?))
       .with_no_client_auth();
 
     let client = client_builder
@@ -124,9 +135,12 @@ impl HttpClient {
   }
 }
 
-fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = CertificateDer<'a>>, Report> {
-  match env::var_os("NEXTCLADE_EXTRA_CA_CERTS") {
-    Some(filename) => {
+fn extra_ca_certs<'a>(
+  extra_ca_certs_filepath: Option<impl AsRef<Path>>,
+) -> Result<impl IntoIterator<Item = CertificateDer<'a>>, Report> {
+  extra_ca_certs_filepath.map_or_else(
+    || Ok(vec![]),
+    |filename| {
       let mut file = open_file_or_stdin(&Some(filename))?;
 
       let certs = rustls_pemfile::certs(&mut file)
@@ -134,7 +148,6 @@ fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = CertificateDer<'a>>, 
         .collect::<Result<Vec<_>, Report>>()?;
 
       Ok(certs)
-    }
-    None => Ok(vec![])
-  }
+    },
+  )
 }
