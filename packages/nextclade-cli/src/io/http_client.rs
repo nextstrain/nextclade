@@ -1,6 +1,7 @@
 use clap::{Parser, ValueHint};
 use eyre::{Report, WrapErr};
 use log::info;
+use nextclade::io::file::open_file_or_stdin;
 use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
@@ -10,8 +11,6 @@ use rustls_pemfile;
 use rustls_pki_types::CertificateDer;
 use rustls_platform_verifier::Verifier;
 use std::env;
-use std::io::BufReader;
-use std::fs::File;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -128,12 +127,9 @@ impl HttpClient {
 fn extra_ca_certs<'a>() -> Result<impl IntoIterator<Item = CertificateDer<'a>>, Report> {
   match env::var_os("NEXTCLADE_EXTRA_CA_CERTS") {
     Some(filename) => {
-      let file = File::open(filename.clone())
-        .wrap_err_with(|| format!("When opening NEXTCLADE_EXTRA_CA_CERTS file {filename:?}"))?;
+      let mut file = open_file_or_stdin(&Some(filename))?;
 
-      let mut reader = BufReader::new(file);
-
-      let certs = rustls_pemfile::certs(&mut reader)
+      let certs = rustls_pemfile::certs(&mut file)
         .map(|c| c.wrap_err("When parsing an extra CA certificate"))
         .collect::<Result<Vec<_>, Report>>()?;
 
