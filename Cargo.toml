@@ -90,7 +90,7 @@ traversal = "=0.1.2"
 url = { version = "=2.4.0", features = ["serde"] }
 urlencoding = "=2.1.2"
 validator = { version = "=0.16.1", features = ["derive"] }
-wasm-bindgen = { version = "=0.2.89", features = ["serde-serialize"] }
+wasm-bindgen = { version = "=0.2.93", features = ["serde-serialize"] }
 wasm-logger = "=0.2.0"
 web-sys = { version = "=0.3.64", features = ["console"] }
 xz2 = { version = "=0.1.7", features = ["static"] }
