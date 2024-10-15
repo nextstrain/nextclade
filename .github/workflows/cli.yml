@@ -180,6 +180,7 @@ jobs:
         with:
           name: out-${{ matrix.arch }}
           path: ./.out/*
+          include-hidden-files: true
 
 
   run-unit-tests:
