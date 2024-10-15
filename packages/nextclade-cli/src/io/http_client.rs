@@ -5,6 +5,7 @@ use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
 use reqwest::{Method, Proxy};
+use rustls_platform_verifier;
 use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
@@ -62,6 +63,7 @@ impl HttpClient {
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
 
     let client = client_builder
+      .use_preconfigured_tls(rustls_platform_verifier::tls_config())
       .connection_verbose(verbose)
       .connect_timeout(Some(Duration::from_secs(60)))
       .user_agent(user_agent)
