@@ -231,6 +231,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle
 
 
 
@@ -255,6 +256,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle
 
 
 
@@ -295,6 +297,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle
 
 
 
