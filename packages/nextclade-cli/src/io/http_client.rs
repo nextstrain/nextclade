@@ -1,10 +1,14 @@
 use clap::{Parser, ValueHint};
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use log::info;
+use nextclade::io::file::open_file_or_stdin;
 use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
+use reqwest::tls::Certificate;
 use reqwest::{Method, Proxy};
+use std::env;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
@@ -26,6 +30,15 @@ pub struct ProxyConfig {
   #[clap(long)]
   #[clap(value_hint = ValueHint::Other)]
   pub proxy_pass: Option<String>,
+
+  /// Path to extra CA certificates as a PEM bundle.
+  ///
+  /// You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided.
+  ///
+  /// Default CA certificates are those obtained from the platform/OS-level trust store plus those from a baked-in copy of Mozilla's common CA trust store. You can override the certs obtained from the platform trust store by setting `SSL_CERT_FILE` or `SSL_CERT_DIR`. Filenames in the latter must be hashed in the style of OpenSSL's `c_rehash` utility.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::Other)]
+  pub extra_ca_certs: Option<PathBuf>,
 }
 
 pub struct HttpClient {
@@ -58,6 +71,13 @@ impl HttpClient {
     } else {
       client_builder
     };
+
+    let extra_ca_certs_filepath = env::var_os("NEXTCLADE_EXTRA_CA_CERTS").map(PathBuf::from);
+    let extra_ca_certs_filepath = proxy_conf.extra_ca_certs.as_ref().or(extra_ca_certs_filepath.as_ref());
+
+    for cert in extra_ca_certs(extra_ca_certs_filepath)? {
+      client_builder = client_builder.add_root_certificate(cert);
+    }
 
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
 
@@ -109,4 +129,17 @@ impl HttpClient {
       .to_vec();
     Ok(content)
   }
+}
+
+fn extra_ca_certs(extra_ca_certs_filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certificate>, Report> {
+  extra_ca_certs_filepath.map_or_else(
+    || Ok(vec![]),
+    |filename| {
+      let mut pem = vec![];
+
+      open_file_or_stdin(&Some(filename))?.read_to_end(&mut pem)?;
+
+      Certificate::from_pem_bundle(&pem).wrap_err("While reading PEM bundle")
+    },
+  )
 }
