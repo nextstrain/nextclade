@@ -390,11 +390,15 @@ pub fn knit_into_graph(
         let target_node = graph.get_node_mut(target_key)?;
         if let Some(target_labels) = &mut target_node.payload_mut().branch_attrs.labels {
           target_labels.clade = None;
-          new_internal_node
+          let aa = target_labels.aa.take();
+
+          let labels = new_internal_node
             .branch_attrs
             .labels
-            .get_or_insert(TreeBranchAttrsLabels::default())
-            .clade = clade;
+            .get_or_insert(TreeBranchAttrsLabels::default());
+
+          labels.clade = clade;
+          labels.aa = aa;
         }
       }
 
