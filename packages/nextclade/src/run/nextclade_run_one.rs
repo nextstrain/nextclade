@@ -35,7 +35,6 @@ use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::AaRefRange;
 use crate::graph::node::GraphNodeKey;
-use crate::io::json::{json_stringify, JsonPretty};
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
 use crate::translate::aa_alignment_ranges::{gather_aa_alignment_ranges, GatherAaAlignmentRangesResult};
@@ -47,7 +46,6 @@ use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use eyre::Report;
 use itertools::Itertools;
-use serde_json::json;
 use std::collections::{BTreeMap, HashSet};
 
 #[derive(Default)]
@@ -292,16 +290,6 @@ pub fn nextclade_run_one(
 
     let clade = nearest_node.clade();
 
-    {
-      let nearest_node_clade = &clade;
-      println!(
-        "nearest    | {:>5} | {:>15} | {:} |",
-        nearest_node_id,
-        nearest_node_clade.as_deref().unwrap_or(""),
-        nearest_node_name
-      );
-    }
-
     let clade_node_attr_descs = graph.data.meta.clade_node_attr_descs();
     let clade_node_attrs = nearest_node.get_clade_node_attrs(clade_node_attr_descs);
 
@@ -373,30 +361,6 @@ pub fn nextclade_run_one(
         })
         .collect_vec()
     });
-
-    {
-      let nuc_subs = substitutions.iter().map(ToString::to_string).collect_vec();
-
-      let private_nuc_subs = private_nuc_mutations
-        .private_substitutions
-        .iter()
-        .map(ToString::to_string)
-        .collect_vec();
-
-      println!(
-        "{}",
-        json_stringify(
-          &json!({
-              "seq": {
-                  "name": &seq_name,
-                  "nuc_subs": nuc_subs,
-                  "private_nuc_subs": private_nuc_subs,
-              }
-          }),
-          JsonPretty(true)
-        )?
-      );
-    }
 
     NextcladeResultWithGraph {
       clade,

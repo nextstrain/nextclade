@@ -6,7 +6,6 @@ use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::range::NucRefGlobalRange;
 use crate::graph::node::{GraphNodeKey, Node};
-use crate::io::json::{json_stringify, JsonPretty};
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
 use crate::tree::tree::{
@@ -19,7 +18,6 @@ use crate::utils::collections::concat_to_vec;
 use crate::utils::stats::mode;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use serde_json::json;
 use std::collections::BTreeMap;
 
 pub fn graph_attach_new_nodes_in_place(
@@ -94,19 +92,6 @@ pub fn graph_attach_new_node_in_place(
     finetune_nearest_node(graph, result.nearest_node_id, &mutations_seq)?
   };
 
-  {
-    let finetuned_node_id = nearest_node_key;
-    let finetuned_node = graph.get_node(finetuned_node_id)?;
-    let finetuned_node_name = &finetuned_node.payload().name;
-    let finetuned_node_clade = &finetuned_node.payload().clade();
-    println!(
-      "finetuned  | {:>5} | {:>15} | {:} |",
-      finetuned_node_id,
-      finetuned_node_clade.as_deref().unwrap_or(""),
-      finetuned_node_name
-    );
-  }
-
   // add the new node at the fine-tuned position while accounting for shared mutations
   // on the branch leading to the nearest node.
   knit_into_graph(graph, nearest_node_key, result, &private_mutations, ref_seq_len, params)?;
@@ -129,7 +114,6 @@ pub fn finetune_nearest_node(
   let mut best_node = graph.get_node(nearest_node_key)?;
   let mut private_mutations = seq_private_mutations.clone();
 
-  let mut i = 0;
   loop {
     // Check how many mutations are shared with the branch leading to the current_best_node or any of its children
     let (candidate_node, candidate_split, shared_muts_score) =
@@ -139,76 +123,6 @@ pub fn finetune_nearest_node(
           best_node.payload().name
         )
       })?;
-
-    {
-      let best_key = &best_node.key();
-      let best_name = &best_node.payload().name;
-      let best_clade = &best_node.payload().clade().unwrap();
-      let best_div = &best_node.payload().node_attrs.div.unwrap();
-      let best_nuc_muts = &best_node.payload().branch_attrs.mutations["nuc"];
-
-      let candidate_key = &candidate_node.key();
-      let candidate_name = &candidate_node.payload().name;
-      let candidate_clade = &candidate_node.payload().clade().unwrap();
-      let candidate_div = &candidate_node.payload().node_attrs.div.unwrap();
-      let candidate_nuc_muts = &candidate_node.payload().branch_attrs.mutations["nuc"];
-
-      let left = &candidate_split
-        .left
-        .nuc_muts
-        .iter()
-        .map(ToString::to_string)
-        .collect_vec();
-
-      let shared = &candidate_split
-        .shared
-        .nuc_muts
-        .iter()
-        .map(ToString::to_string)
-        .collect_vec();
-
-      let right = &candidate_split
-        .right
-        .nuc_muts
-        .iter()
-        .map(ToString::to_string)
-        .collect_vec();
-
-      let private_muts = private_mutations.nuc_muts.iter().map(ToString::to_string).collect_vec();
-
-      println!("\n------------------------------------------");
-      println!("finetune_nearest_node: iteration {i}");
-      println!(
-        "{}",
-        json_stringify(
-          &json!({
-              "best": {
-                  "key": best_key,
-                  "name": best_name,
-                  "clade": best_clade,
-                  "div": best_div,
-                  "nuc_muts": best_nuc_muts
-              },
-              "candidate": {
-                  "key": candidate_key,
-                  "name": candidate_name,
-                  "clade": candidate_clade,
-                  "div": candidate_div,
-                  "nuc_muts": candidate_nuc_muts
-              },
-              "comparison": {
-                  "left": left,
-                  "shared": shared,
-                  "right": right,
-                  "private_muts": &private_muts,
-                  "shared_muts_score": &shared_muts_score
-              }
-          }),
-          JsonPretty(true)
-        )?
-      );
-      println!("\n\n");
-    }
 
     // Check if the new candidate node is better than the current best
     let left_muts_score = score_nuc_muts(&candidate_split.left.nuc_muts, masked_ranges);
@@ -224,8 +138,6 @@ pub fn finetune_nearest_node(
         best_node.payload().name
       )
     })?;
-
-    i += 1;
   }
 
   Ok((best_node.key(), private_mutations))
@@ -331,21 +243,6 @@ pub fn attach_to_internal_node(
   result: &NextcladeOutputs,
   divergence_new_node: f64,
 ) -> Result<(), Report> {
-  {
-    {
-      let attachment_node_id = nearest_node_id;
-      let attachment_node = graph.get_node(attachment_node_id)?;
-      let attachment_node_name = &attachment_node.payload().name;
-      let attachment_node_clade = &attachment_node.payload().clade();
-      println!(
-        "attachment | {:>5} | {:>15} | {:} |",
-        attachment_node_id,
-        attachment_node_clade.as_deref().unwrap_or(""),
-        attachment_node_name
-      );
-    }
-  }
-
   //generated auspice payload for new node
   let mut new_graph_node = create_new_auspice_node(result, new_private_mutations, divergence_new_node);
   new_graph_node.tmp.private_mutations = new_private_mutations.clone();
