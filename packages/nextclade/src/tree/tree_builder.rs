@@ -17,7 +17,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use crate::utils::stats::mode;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use std::collections::BTreeMap;
 
 pub fn graph_attach_new_nodes_in_place(
@@ -385,6 +385,10 @@ pub fn knit_into_graph(
       let (clade, should_relabel) = vote_for_clade(graph, target_node, result);
       new_internal_node.node_attrs.clade_membership = clade.as_deref().map(TreeNodeAttr::new);
 
+      // Vote for the most plausible clade-like attrs
+      let clade_attrs = vote_for_clade_like_attrs(graph, target_node, result);
+      new_internal_node.set_clade_node_attrs(clade_attrs);
+
       // If decided, then move the clade label from target node to the internal node
       if should_relabel {
         let target_node = graph.get_node_mut(target_key)?;
@@ -477,4 +481,30 @@ fn vote_for_clade(
   let should_relabel = (parent_clade != &clade) && (target_clade.is_some() && target_clade == &clade);
 
   (clade, should_relabel)
+}
+
+// Vote for the most plausible clade-like attribute values, for the new internal node
+fn vote_for_clade_like_attrs(
+  graph: &AuspiceGraph,
+  target_node: &Node<AuspiceGraphNodePayload>,
+  result: &NextcladeOutputs,
+) -> BTreeMap<String, String> {
+  let attr_descs = graph.data.meta.clade_node_attr_descs();
+
+  let query_attrs: &BTreeMap<String, String> = &result.custom_node_attributes;
+
+  let parent_node = &graph.parent_of(target_node);
+  let parent_attrs: &BTreeMap<String, String> = &parent_node
+    .map(|node| node.payload().get_clade_node_attrs(attr_descs))
+    .unwrap_or_default();
+
+  let target_attrs: &BTreeMap<String, String> = &target_node.payload().get_clade_node_attrs(attr_descs);
+
+  chain!(query_attrs.iter(), parent_attrs.iter(), target_attrs.iter())
+    .into_group_map()
+    .into_iter()
+    .filter_map(|(key, grouped_values)| {
+      mode(grouped_values.into_iter().cloned()).map(|most_common| (key.clone(), most_common))
+    })
+    .collect()
 }
