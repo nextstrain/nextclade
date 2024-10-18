@@ -430,7 +430,18 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   export -f docker_image_maybe_pull
   parallel docker_image_maybe_pull ::: "${images[@]}"
 
+  BUILDX_BUILDER=nextclade-builder
+
+  if ! docker buildx inspect "${BUILDX_BUILDER}" &>/dev/null; then
+      # Using a persistent builder allows for faster local development.
+      # However, if this is changed and it was previously run on your machine,
+      # you may need to remove the builder manually before running the script:
+      #     docker buildx rm "nextclade-builder"
+      docker buildx create --name "${BUILDX_BUILDER}" --driver docker-container --driver-opt network=host
+  fi
+
   ${NICE} docker buildx build \
+    --builder="${BUILDX_BUILDER}" \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
