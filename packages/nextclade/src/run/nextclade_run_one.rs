@@ -33,7 +33,7 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::range::AaRefRange;
+use crate::coord::range::{AaRefRange, Range};
 use crate::graph::node::GraphNodeKey;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
@@ -67,6 +67,7 @@ struct NextcladeResultWithAa {
   total_unknown_aa: usize,
   aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
   aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
+  cds_coverage: BTreeMap<String, f64>,
 }
 
 #[derive(Default)]
@@ -170,6 +171,7 @@ pub fn nextclade_run_one(
     total_unknown_aa,
     aa_alignment_ranges,
     aa_unsequenced_ranges,
+    cds_coverage,
   } = if !gene_map.is_empty() {
     let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
 
@@ -235,6 +237,28 @@ pub fn nextclade_run_one(
       aa_unsequenced_ranges,
     } = gather_aa_alignment_ranges(&translation, gene_map);
 
+    let cds_coverage = translation
+      .cdses()
+      .map(|cds| {
+        let ref_peptide_len = ref_translation.get_cds(&cds.name)?.seq.len();
+        let num_aligned_aa = cds.alignment_ranges.iter().map(Range::len).sum::<usize>();
+        let num_unknown_aa = unknown_aa_ranges
+          .iter()
+          .filter(|r| r.cds_name == cds.name)
+          .map(|r| r.length)
+          .sum();
+        let total_covered_aa = num_aligned_aa.saturating_sub(num_unknown_aa);
+
+        let coverage_aa = if ref_peptide_len == 0 {
+          0.0
+        } else {
+          total_covered_aa as f64 / ref_peptide_len as f64
+        };
+
+        Ok((cds.name.clone(), coverage_aa))
+      })
+      .collect::<Result<BTreeMap<String, f64>, Report>>()?;
+
     NextcladeResultWithAa {
       translation,
       aa_changes_groups,
@@ -253,6 +277,7 @@ pub fn nextclade_run_one(
       total_unknown_aa,
       aa_alignment_ranges,
       aa_unsequenced_ranges,
+      cds_coverage,
     }
   } else {
     NextcladeResultWithAa::default()
@@ -441,6 +466,7 @@ pub fn nextclade_run_one(
       warnings,
       missing_cdses: missing_genes,
       coverage,
+      cds_coverage,
       aa_motifs,
       aa_motifs_changes,
       qc,
