@@ -35,6 +35,8 @@ If you have Nextclade CLI installed, you can type `nextclade --help` to read the
     "$orig",
   )?;
 
+  let help = replace(&help, "Default value: `https://(.*)`", "")?;
+
   let help = replace(&help, "", "")?;
 
   println!("{help}");
