@@ -18,6 +18,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
+use serde_json::json;
 use traversal::{Bft, DftPost, DftPre};
 use validator::Validate;
 
@@ -283,8 +284,8 @@ impl AuspiceGraphNodePayload {
   }
 
   /// Sets clade-like node attribute
-  pub fn set_clade_node_attr(&mut self, key: impl AsRef<str>, value: String) {
-    self.node_attrs.other[key.as_ref()] = serde_json::Value::String(value);
+  pub fn set_clade_node_attr(&mut self, key: impl AsRef<str>, value: impl AsRef<str>) {
+    self.node_attrs.other[key.as_ref()] = json!({ "value": value.as_ref() });
   }
 
   /// Extracts clade-like node attributes, given a list of key descriptions
