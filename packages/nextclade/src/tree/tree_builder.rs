@@ -8,13 +8,16 @@ use crate::coord::range::NucRefGlobalRange;
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::tree::params::TreeBuilderParams;
 use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
-use crate::tree::tree::{AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels};
+use crate::tree::tree::{
+  AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels, TreeNodeAttr,
+};
 use crate::tree::tree_attach_new_nodes::create_new_auspice_node;
 use crate::tree::tree_preprocess::add_auspice_metadata_in_place;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
+use crate::utils::stats::mode;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 use std::collections::BTreeMap;
 
 pub fn graph_attach_new_nodes_in_place(
@@ -361,7 +364,7 @@ pub fn knit_into_graph(
     // generate new internal node
     // add private mutations, divergence, name and branch attrs to new internal node
     let new_internal_node = {
-      let mut new_internal_node: AuspiceGraphNodePayload = target_node_auspice.clone();
+      let mut new_internal_node: AuspiceGraphNodePayload = target_node_auspice.to_owned();
       new_internal_node.tmp.private_mutations = muts_common_branch;
       new_internal_node.node_attrs.div = Some(divergence_middle_node);
       new_internal_node.branch_attrs.mutations =
@@ -377,6 +380,27 @@ pub fn knit_into_graph(
         let target_name = &target_node_auspice.name;
         format!("nextclade__copy_of_{target_name}_for_placement_of_{qry_name}_#{qry_index}")
       };
+
+      // Vote for the most plausible clade
+      let (clade, should_relabel) = vote_for_clade(graph, target_node, result);
+      new_internal_node.node_attrs.clade_membership = clade.as_deref().map(TreeNodeAttr::new);
+
+      // Vote for the most plausible clade-like attrs
+      let clade_attrs = vote_for_clade_like_attrs(graph, target_node, result);
+      new_internal_node.set_clade_node_attrs(clade_attrs);
+
+      // If decided, then move the clade label from target node to the internal node
+      if should_relabel {
+        let target_node = graph.get_node_mut(target_key)?;
+        if let Some(target_labels) = &mut target_node.payload_mut().branch_attrs.labels {
+          target_labels.clade = None;
+          new_internal_node
+            .branch_attrs
+            .labels
+            .get_or_insert(TreeBranchAttrsLabels::default())
+            .clade = clade;
+        }
+      }
 
       new_internal_node
     };
@@ -432,4 +456,55 @@ fn set_branch_attrs_aa_labels(node: &mut AuspiceGraphNodePayload) {
       other: serde_json::Value::default(),
     });
   }
+}
+
+// Vote for the most plausible clade for the new internal node
+fn vote_for_clade(
+  graph: &AuspiceGraph,
+  target_node: &Node<AuspiceGraphNodePayload>,
+  result: &NextcladeOutputs,
+) -> (Option<String>, bool) {
+  let query_clade = &result.clade;
+
+  let parent_node = &graph.parent_of(target_node);
+  let parent_clade = &parent_node.and_then(|node| node.payload().clade());
+
+  let target_clade = &target_node.payload().clade();
+
+  let possible_clades = [parent_clade, query_clade, target_clade].into_iter().flatten(); // exclude None
+  let clade = mode(possible_clades).cloned();
+
+  // We will need to change branch label if both:
+  //  - clade transition happens from parent to the new node
+  // AND
+  //  -  when the target node's clade wins the vote
+  let should_relabel = (parent_clade != &clade) && (target_clade.is_some() && target_clade == &clade);
+
+  (clade, should_relabel)
+}
+
+// Vote for the most plausible clade-like attribute values, for the new internal node
+fn vote_for_clade_like_attrs(
+  graph: &AuspiceGraph,
+  target_node: &Node<AuspiceGraphNodePayload>,
+  result: &NextcladeOutputs,
+) -> BTreeMap<String, String> {
+  let attr_descs = graph.data.meta.clade_node_attr_descs();
+
+  let query_attrs: &BTreeMap<String, String> = &result.custom_node_attributes;
+
+  let parent_node = &graph.parent_of(target_node);
+  let parent_attrs: &BTreeMap<String, String> = &parent_node
+    .map(|node| node.payload().get_clade_node_attrs(attr_descs))
+    .unwrap_or_default();
+
+  let target_attrs: &BTreeMap<String, String> = &target_node.payload().get_clade_node_attrs(attr_descs);
+
+  chain!(query_attrs.iter(), parent_attrs.iter(), target_attrs.iter())
+    .into_group_map()
+    .into_iter()
+    .filter_map(|(key, grouped_values)| {
+      mode(grouped_values.into_iter().cloned()).map(|most_common| (key.clone(), most_common))
+    })
+    .collect()
 }
