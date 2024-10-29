@@ -1,3 +1,19 @@
+## Nextclade 3.9.0
+
+### Nextclade CLI: Obtain CA certificates from platform trust store; add `NEXTCLADE_EXTRA_CA_CERTS` / `--extra-ca-certs`
+
+Nextclade CLI users have previously reported issues with CA certificates when fetching datasets from an organization's network (e.g. in a university or in a company).
+
+Starting with this version, Nextclade CLI respects the OS-level trust store configurations. This includes private CAs and self-signed certificates. Ensures backward compatibility and functionality across different platforms, including those lacking a native trust store or with outdated ones.
+
+We introduced a `NEXTCLADE_EXTRA_CA_CERTS` environment variable and `--extra-ca-certs` option which allow adding additional CA certificates to the trust store specifically for Nextclade, for when modifying the system's trust store isn't desirable/possible. See [#1536](https://github.com/nextstrain/nextclade/pull/1536) for more details.
+
+
+### Update Auspice tree visualization to 2.58.0
+
+Auspice tree visualization package has been updated from 2.56.0 to 2.58.0. See Auspice changelog [here](https://github.com/nextstrain/auspice/releases).
+
+
 ## Nextclade 3.8.2
 
 ### Fix detection of number of threads Nextclade Web

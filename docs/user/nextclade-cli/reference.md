@@ -416,7 +416,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
    You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
 
-  Default value: `https://data.master.clades.nextstrain.org/v3`
+  
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
@@ -449,7 +449,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
    You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
 
-  Default value: `https://data.master.clades.nextstrain.org/v3`
+  
 * `-o`, `--output-dir <OUTPUT_DIR>` — Path to directory to write dataset files to.
 
    This flag is mutually exclusive with `--output-zip`, and provides the equivalent output, but in the form of a directory with files, instead of a compressed zip archive.
@@ -540,7 +540,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
    You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
 
-  Default value: `https://data.master.clades.nextstrain.org/v3`
+  
 * `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
 * `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
 * `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
