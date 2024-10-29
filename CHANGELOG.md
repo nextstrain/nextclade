@@ -1,3 +1,16 @@
+## Nextclade 3.9.1
+
+### Fix: clade mismatch between placed node and parent node
+
+This version addresses an issue when sometimes clade (or clade-like attribute, such as lineage) of the placed query node might not always match the clade of its parent.
+
+The query node placement is adjusted during the [greedy tree building](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/03-phylogenetic-placement.html#tree-building), and sometimes the branch needs to be split and a new auxiliary internal node to be inserted to accommodate the new node. Previously, Nextclade would copy the clade of this internal node from the attachment target node. However, this is not always correct and can lead to mismatch between clade of the query node and of the new internal node.
+
+In this version we added a voting mechanism, which calculates a [mode](https://en.wikipedia.org/wiki/Mode_(statistics)) of the clades involved: of the parent, target and query nodes. The same procedure is repeated for each clade-like attribute. After that, in some cases, branch labels also need to adjust their positions.
+
+This should not change the clade assignment for query samples, but only the clades of the inserted auxiliary internal nodes, to make sure that the tree is consistent.
+
+
 ## Nextclade 3.9.0
 
 ### Nextclade CLI: Obtain CA certificates from platform trust store; add `NEXTCLADE_EXTRA_CA_CERTS` / `--extra-ca-certs`
