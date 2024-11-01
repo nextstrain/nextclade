@@ -3,6 +3,7 @@ import { isEmpty } from 'lodash'
 import React, { useCallback } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -11,6 +12,7 @@ import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
+import styled from 'styled-components'
 
 export function useSetExampleSequences() {
   const { addQryInputs } = useQuerySeqInputs()
@@ -50,8 +52,16 @@ export function ButtonLoadExample({ ...rest }) {
   }
 
   return (
-    <Button {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>
+    <ButtonStyled {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>
       {t('Load example')}
-    </Button>
+    </ButtonStyled>
   )
 }
+
+const ButtonStyled = styled(Button)`
+  margin: 0 0.5rem;
+  max-width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`

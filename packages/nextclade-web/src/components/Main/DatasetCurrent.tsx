@@ -1,7 +1,9 @@
 import React from 'react'
 import { Col, Row, Container as ContainerBase } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { LinkOpenTree } from 'src/components/Main/LinkOpenTree'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
@@ -85,6 +87,15 @@ export function DatasetCurrent() {
             <Row noGutters className="w-100">
               <Col className="d-flex">
                 <DatasetInfo dataset={dataset} />
+              </Col>
+            </Row>
+
+            <Row noGutters className="d-flex w-100">
+              <Col className="d-flex">
+                <div className="d-flex ml-auto">
+                  <LinkOpenTree className="my-auto" dataset={dataset} />
+                  <ButtonLoadExample />
+                </div>
               </Col>
             </Row>
           </CurrentDatasetInfoBody>
