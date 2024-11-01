@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import type { Dataset } from 'src/types'
 import React, { HTMLProps, useMemo } from 'react'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -18,11 +19,20 @@ export function LinkOpenTree({ dataset }: LinkOpenTreeProps) {
     const path = dataset.files.treeJson.replace(/^https?:\/\//, '')
     return urljoin('https://nextstrain.org/fetch', path)
   }, [dataset.files?.treeJson])
+
+  const title = useMemo(
+    () =>
+      nextstrainOrgTreeUrl
+        ? t('Open reference tree for this dataset on nextstrain.org')
+        : t('There is no reference tree in this dataset'),
+    [nextstrainOrgTreeUrl, t],
+  )
+
   return (
     <LinkContainer className="mx-2">
       <LinkExternalStyled
-        disabled={!!nextstrainOrgTreeUrl}
-        title={t('Open reference tree for this dataset on nextstrain.org')}
+        className={classNames(!nextstrainOrgTreeUrl && 'disabled')}
+        title={title}
         href={nextstrainOrgTreeUrl}
       >
         {t('Open tree')}
@@ -40,4 +50,14 @@ const LinkContainer = styled.div`
 
 const LinkExternalStyled = styled(LinkExternal)`
   white-space: nowrap;
+
+  &.disabled {
+    color: #7b838a !important;
+    opacity: 0.65 !important;
+    text-decoration: none;
+    cursor: not-allowed !important;
+    transition: none !important;
+  }
+
+  transition: none !important;
 `

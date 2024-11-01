@@ -1,6 +1,6 @@
 import { Dataset } from '_SchemaRoot'
 import { isEmpty } from 'lodash'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -46,12 +46,22 @@ export function ButtonLoadExample({ ...rest }) {
     setExampleSequences(datasetCurrent)
   }, [datasetCurrent, setExampleSequences])
 
-  if (isEmpty(datasetCurrent?.files?.examples)) {
-    return null
-  }
+  const title = useMemo(
+    () =>
+      datasetCurrent?.files?.examples
+        ? t('Load example sequence data (for demonstration)')
+        : t('There is no example data in this dataset'),
+    [datasetCurrent?.files?.examples, t],
+  )
 
   return (
-    <ButtonStyled {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>
+    <ButtonStyled
+      {...rest}
+      color="link"
+      onClick={onClick}
+      title={title}
+      disabled={!datasetCurrent?.files?.examples || hasInputErrors || !datasetCurrent}
+    >
       {t('Load example')}
     </ButtonStyled>
   )
@@ -63,4 +73,13 @@ const ButtonStyled = styled(Button)`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  &:disabled {
+    text-decoration: none !important;
+    pointer-events: all !important;
+    cursor: not-allowed !important;
+    transition: none !important;
+  }
+
+  transition: none !important;
 `
