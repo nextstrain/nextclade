@@ -1,5 +1,4 @@
 import { Dataset } from '_SchemaRoot'
-import { isEmpty } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
