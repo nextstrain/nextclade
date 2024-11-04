@@ -5,6 +5,7 @@ import { MdClear as IconClearBase } from 'react-icons/md'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
 import { DatasetCustomizationsIndicatorLink } from 'src/components/Main/DatasetCustomizationIndicator'
+import { LinkOpenTree } from 'src/components/Main/LinkOpenTree'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
@@ -51,9 +52,13 @@ export function DatasetCurrentSummary() {
                 <DatasetCustomizationsIndicatorLink />
               </DatasetCustomizationWrapper>
             </Col>
-
-            <Col className="d-flex ml-auto mt-2">
-              <ButtonLoadExample className="ml-auto" />
+          </Row>
+          <Row noGutters className="d-flex w-100">
+            <Col className="d-flex">
+              <div className="d-flex ml-auto">
+                <LinkOpenTree className="my-auto" dataset={dataset} />
+                <ButtonLoadExample />
+              </div>
             </Col>
           </Row>
         </Col>

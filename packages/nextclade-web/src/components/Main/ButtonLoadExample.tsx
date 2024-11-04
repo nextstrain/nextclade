@@ -1,6 +1,5 @@
 import { Dataset } from '_SchemaRoot'
-import { isEmpty } from 'lodash'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -11,6 +10,7 @@ import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
+import styled from 'styled-components'
 
 export function useSetExampleSequences() {
   const { addQryInputs } = useQuerySeqInputs()
@@ -45,13 +45,40 @@ export function ButtonLoadExample({ ...rest }) {
     setExampleSequences(datasetCurrent)
   }, [datasetCurrent, setExampleSequences])
 
-  if (isEmpty(datasetCurrent?.files?.examples)) {
-    return null
-  }
+  const title = useMemo(
+    () =>
+      datasetCurrent?.files?.examples
+        ? t('Load example sequence data (for demonstration)')
+        : t('There is no example data in this dataset'),
+    [datasetCurrent?.files?.examples, t],
+  )
 
   return (
-    <Button {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>
+    <ButtonStyled
+      {...rest}
+      color="link"
+      onClick={onClick}
+      title={title}
+      disabled={!datasetCurrent?.files?.examples || hasInputErrors || !datasetCurrent}
+    >
       {t('Load example')}
-    </Button>
+    </ButtonStyled>
   )
 }
+
+const ButtonStyled = styled(Button)`
+  margin: 0 0.5rem;
+  max-width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  &:disabled {
+    text-decoration: none !important;
+    pointer-events: all !important;
+    cursor: not-allowed !important;
+    transition: none !important;
+  }
+
+  transition: none !important;
+`
