@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "「Clade Founder」-クエリサンプルに割り当てられたクレードの創始者に関連する変異を表示します。この場合、異なるクレードからのクエリが別のターゲットと比較されることに注意してください。",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "「親」-プライベートミューテーション、つまり系統配置中にクエリサンプルがアタッチされた参照ツリーの親（最も近い）ノードに関連するミューテーションを表示します。",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "「参照」-（データセットで定義されている）参照配列に関連する変異を表示します。",
+  "\"{{ attr }}\" founder": "「 {{ attr }} \" 創設者",
   "(truncated)": "(切り捨て)",
   "* Current value. This amount can change depending on load": "* 現在の値。この量は負荷によって変わることがあります。",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} はスレッドあたり少なくとも {{memoryRequired}} のメモリを必要とします",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} はの最新バージョンで最適に動作します ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} 開発者向けの追加情報 (クリックして拡大)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} の置き忘れた終止コドンが検出されました。影響を受けた遺伝子: {{geneList}}.品質管理スコア: {{score}}",
-  "\"{{ attr }}\" founder": "「{{ attr }}\" 創設者"
+  "Load example sequence data (for demonstration)": "サンプルシーケンスデータの読み込み (デモンストレーション用)",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.orgでこのデータセットのリファレンスツリーを開く",
+  "Open tree": "オープンツリー",
+  "There is no example data in this dataset": "このデータセットにはサンプルデータはありません",
+  "There is no reference tree in this dataset": "このデータセットには参照ツリーがありません"
 }

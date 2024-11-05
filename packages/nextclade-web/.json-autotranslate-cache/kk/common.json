@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade негізін қалаушы” - сұрау үлгісіне тағайындалған кладтың негізін қалаушыға қатысты мутацияларды көрсетеді. Әр түрлі кладалардан алынған сұраулар бұл жағдайда әртүрлі мақсаттармен салыстырылатынын ескеріңіз.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ата-ана” - жеке мутацияларды көрсетеді, яғни филогенетикалық орналастыру кезінде сұрау үлгісі бекітілген сілтеме ағашының ата-аналық (жақын) түйініне қатысты мутациялар.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Анықтама” - анықтамалық дәйектілікке қатысты мутацияларды көрсетеді (деректер жиынтығында анықталғандай).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} ” негізін қалаушы",
   "(truncated)": "(кесілген)",
   "* Current value. This amount can change depending on load": "* Ағымдағы мән. Бұл сома жүктемеге байланысты өзгеруі мүмкін",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} бір жіпке кем дегенде {{memoryRequired}} жадты қажет етеді",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} соңғы нұсқаларында жақсы жұмыс істейді ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Әзірлеушілерге арналған қосымша ақпарат (кеңейту үшін басыңыз)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} дұрыс емес тоқтату кодон (лар) анықталды. Зақымдалған ген (лар): {{geneList}}. QC ұпайы: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}” негізін қалаушы"
+  "Load example sequence data (for demonstration)": "Мысал реттілік деректерін жүктеңіз (демонстрация үшін)",
+  "Open reference tree for this dataset on nextstrain.org": "Nextstrain.org сайтында осы деректер жиынтығы үшін анықтамалық ағашты ашыңыз",
+  "Open tree": "Ашық ағаш",
+  "There is no example data in this dataset": "Бұл деректер жиынтығында мысал деректер жоқ",
+  "There is no reference tree in this dataset": "Бұл деректер жиынтығында сілтеме ағашы жоқ"
 }

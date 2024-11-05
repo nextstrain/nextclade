@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ക്ലേഡ് സ്ഥാപകൻ” - ക്വറി സാമ്പിളിലേക്ക് നിയോഗിച്ചിട്ടുള്ള ക്ലേഡിന്റെ സ്ഥാപകനുമായി ബന്ധപ്പെട്ടുള്ള മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു. വ്യത്യസ്ത ക്ലാഡുകളിൽ നിന്നുള്ള അന്വേഷണങ്ങൾ ഈ സാഹചര്യത്തിൽ വ്യത്യസ്ത ടാർഗെറ്റുകളുമായി താരതമ്യം ചെയ്യുമെന്ന് ശ്രദ്ധിക്കുക.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“പാരന്റ്” - സ്വകാര്യ മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു, അതായത് ഫൈലോജെനറ്റിക് പ്ലേസ്മെന്റ് സമയത്ത് ക്വറി സാമ്പിൾ അറ്റാച്ചുചെയ്തിരിക്കുന്ന റഫറൻസ് ട്രീയുടെ പാരന്റ് (അടുത്തുള്ള) നോഡുമായി ബന്ധപ്പെട്ട മ്യൂട്ടേഷനുകൾ.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“റഫറൻസ്” - റഫറൻസ് സീക്വൻസുമായി ബന്ധപ്പെട്ട മ്യൂട്ടേഷനുകൾ കാണിക്കുന്നു (ഡാറ്റാസെറ്റിൽ നിർവചിച്ചതുപോലെ).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" സ്ഥാപകൻ",
   "(truncated)": "(ചുരുങ്ങിയത്)",
   "* Current value. This amount can change depending on load": "* നിലവിലെ മൂല്യം. ലോഡിനെ ആശ്രയിച്ച് ഈ തുക മാറാം",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ഓരോ ത്രെഡിനും കുറഞ്ഞത് {{memoryRequired}} മെമ്മറി ആവശ്യമാണ്",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} ഏറ്റവും പുതിയ പതിപ്പുകളിൽ മികച്ച രീതിയിൽ പ്രവർത്തിക്കുന്നു ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ഡവലപ്പർമാർക്കുള്ള അധിക വിവരങ്ങൾ (വിപുലീകരിക്കാൻ ക്ലിക്ക് ചെയ്യുക)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} തെറ്റായ സ്റ്റോപ്പ് കോഡൺ (കൾ) കണ്ടെത്തി. ബാധിച്ച ജീൻ (കൾ): {{geneList}}. ക്യുസി സ്കോർ: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" സ്ഥാപകൻ"
+  "Load example sequence data (for demonstration)": "ഉദാഹരണ സീക്വൻസ് ഡാറ്റ ലോഡ് ചെയ്യുക (പ്രകടനത്തിനായി)",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.org ൽ ഈ ഡാറ്റാസെറ്റിനായി റഫറൻസ് ട്രീ തുറക്കുക",
+  "Open tree": "തുറന്ന മരം",
+  "There is no example data in this dataset": "ഈ ഡാറ്റാസെറ്റിൽ ഉദാഹരണ ഡാറ്റ ഇല്ല",
+  "There is no reference tree in this dataset": "ഈ ഡാറ്റാസെറ്റിൽ റഫറൻസ് ട്രീ ഇല്ല"
 }

@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade fondatè” - montre mitasyon relatif nan fondatè a nan clade la ki te asiyen nan echantiyon an rekèt. Remake byen ke requêtes de clades diferan yo pral konpare ak objektif diferan nan ka sa a.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Paran” - montre mitasyon prive, sa vle di mitasyon relatif nan ne paran an (ki pi pre) nan pye bwa a referans ki echantiyon an rekèt te tache ak pandan plasman phylogenic.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referans” - montre mitasyon relatif nan sekans referans lan (jan sa defini nan ansanm done a).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" fondatè",
   "(truncated)": "(tronke)",
   "* Current value. This amount can change depending on load": "* Valè aktyèl. Kantite lajan sa a ka chanje depann de chaj",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} mande pou omwen {{memoryRequired}} nan memwa pou chak fil",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} travay pi byen nan vèsyon yo dènye nan ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Enfòmasyon adisyonèl pou devlopè (klike sou pou elaji)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon (yo) sispann mal kote detekte. Jèn afekte (yo): {{geneList}}. Nòt QC: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" fondatè"
+  "Load example sequence data (for demonstration)": "Done sekans egzanp chaj (pou demonstrasyon)",
+  "Open reference tree for this dataset on nextstrain.org": "Louvri pyebwa referans pou ansanm done sa a sou nextstrain.org",
+  "Open tree": "Louvri pyebwa",
+  "There is no example data in this dataset": "Pa gen okenn done egzanp nan ansanm done sa a",
+  "There is no reference tree in this dataset": "Pa gen okenn pyebwa referans nan ansanm done sa a"
 }

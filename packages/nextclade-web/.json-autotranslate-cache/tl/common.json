@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Tagapagtatag ng Clade” - nagpapakita ng mga mutasyon na nauugnay sa tagapagtatag ng clade na itinalaga sa sample ng query. Tandaan na ang mga query mula sa iba't ibang clade ay ihahambing sa iba't ibang mga target sa kasong ito.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Magulang” - nagpapakita ng mga pribadong mutasyon, ibig sabihin, mga mutasyon na nauugnay sa magulang (pinakamalapit) node ng sanggunian na puno kung saan nakalakip ang sample ng query sa panahon ng phylogenic na paglalagay.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Sanggunian” - nagpapakita ng mga mutasyon na kaugnay sa pagkakasunud-sunod ng sanggunian (tulad ng tinukoy sa dataset).",
+  "\"{{ attr }}\" founder": "Tagapagtatag ng “ {{ attr }} \"",
   "(truncated)": "(pinutol)",
   "* Current value. This amount can change depending on load": "* Kasalukuyang halaga. Ang halagang ito ay maaaring magbago depende sa pag-load",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** Ang {{appName}} ay nangangailangan ng hindi bababa sa {{memoryRequired}} ng memorya bawat thread",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "Pinakamahusay na gumagana ang {{project}} sa pinakabagong bersyon ng ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Karagdagang impormasyon para sa mga developer (i-click upang palawakin)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Nakita ang mga maling lugar na stop codon (s) {{totalStopCodons}}. Mga apektadong gene: {{geneList}}. Marka ng QC: {{score}}",
-  "\"{{ attr }}\" founder": "Tagapagtatag ng “{{ attr }}\""
+  "Load example sequence data (for demonstration)": "Mag-load ng data ng pagkakasunud-sunod ng halimbawa (para",
+  "Open reference tree for this dataset on nextstrain.org": "Buksan ang sanggunian na puno para sa dataset na ito sa nextstrain.org",
+  "Open tree": "Buksan ang puno",
+  "There is no example data in this dataset": "Walang halimbawa ng data sa dataset na ito",
+  "There is no reference tree in this dataset": "Walang sanggunian na puno sa dataset na ito"
 }

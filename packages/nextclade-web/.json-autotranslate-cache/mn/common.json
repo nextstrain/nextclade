@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade үүсгэн байгуулагч” - асуулгын дээжид томилогдсон clade үүсгэн байгуулагчтай харьцангуй мутацийг харуулдаг. Янз бүрийн кладын асуулгыг энэ тохиолдолд өөр өөр зорилтуудтай харьцуулах болно гэдгийг анхаарна уу.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Эцэг эх” - хувийн мутацийг харуулдаг, өөрөөр хэлбэл филогенетик байрлуулах үед асуулгын дээжийг хавсаргасан лавлагааны модны эцэг эх (хамгийн ойрын) зангилаатай харьцангуй мутаци.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Лавлагаа” - лавлагааны дараалалтай харьцангуй мутацийг харуулдаг (өгөгдлийн багцад тодорхойлсноор).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" үүсгэн байгуулагч",
   "(truncated)": "(тасарсан)",
   "* Current value. This amount can change depending on load": "* Одоогийн үнэ цэнэ. Энэ хэмжээ ачааллаас хамааран өөрчлөгдөж болно",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} нь утас бүрт дор хаяж {{memoryRequired}} санах ой шаарддаг",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} хамгийн сүүлийн үеийн хувилбаруудад хамгийн сайн ажилладаг ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Хөгжүүлэгчдэд зориулсан нэмэлт мэдээлэл (өргөжүүлэхийн тулд дарна уу)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} буруу байрлуулсан зогсоох кодон (ууд) илэрсэн. Нөлөөлөлд өртсөн ген (ууд): {{geneList}}. QC оноо: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" үүсгэн байгуулагч"
+  "Load example sequence data (for demonstration)": "Жишээ дарааллын өгөгдлийг ачаалах (жагсаалд зориулагдсан)",
+  "Open reference tree for this dataset on nextstrain.org": "Nextstrain.org дээр энэ өгөгдлийн багцын лавлагааны модыг нээнэ үү",
+  "Open tree": "Нээлттэй мод",
+  "There is no example data in this dataset": "Энэ өгөгдлийн багцад жишээ өгөгдөл байхгүй",
+  "There is no reference tree in this dataset": "Энэ өгөгдлийн багцад лавлах мод байхгүй"
 }

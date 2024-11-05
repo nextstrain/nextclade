@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Osnivač klade“ - pokazuje mutacije u odnosu na osnivača klade koji je dodeljen uzorku upita. Imajte na umu da će se upiti iz različitih klasa upoređivati sa različitim ciljevima u ovom slučaju.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Roditelj“ - prikazuje privatne mutacije, tj. mutacije u odnosu na roditeljski (najbliži) čvor referentnog stabla na koji je uzorak upita vezan tokom filogenetskog postavljanja.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referenca“ - prikazuje mutacije u odnosu na referentnu sekvencu (kako je definisano u skupu podataka).",
+  "\"{{ attr }}\" founder": "Osnivač „ {{ attr }} “",
   "(truncated)": "(skraćeno)",
   "* Current value. This amount can change depending on load": "* Trenutna vrednost. Ovaj iznos se može menjati u zavisnosti od opterećenja",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} zahteva najmanje {{memoryRequired}} memorije po niti",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} najbolje funkcioniše u najnovijim verzijama ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Dodatne informacije za programere (kliknite da biste proširili)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} otkriveni pogrešno postavljeni stop kodoni. Pogođeni geni: {{geneList}}. KC rezultat: {{score}}",
-  "\"{{ attr }}\" founder": "Osnivač „{{ attr }}“"
+  "Load example sequence data (for demonstration)": "Učitajte primer podataka o sekvenci (za demonstraciju)",
+  "Open reference tree for this dataset on nextstrain.org": "Otvorite referentno stablo za ovaj skup podataka na nekstrain.org",
+  "Open tree": "Otvori drvo",
+  "There is no example data in this dataset": "U ovom skupu podataka nema primera podataka",
+  "There is no reference tree in this dataset": "U ovom skupu podataka nema referentnog stabla"
 }

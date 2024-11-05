@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade 创始人”-显示与分配给查询样本的 clade 创始人相关的突变。请注意，在这种情况下，来自不同分支的查询将与不同的目标进行比较。",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“父级”-显示私有突变，即相对于系统发育放置期间查询样本所附参考树的父（最近）节点的突变。",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“参考”-显示相对于参考序列的突变（如数据集中所定义）。",
+  "\"{{ attr }}\" founder": "“ {{ attr }} ” 创始人",
   "(truncated)": "（截断）",
   "* Current value. This amount can change depending on load": "* 当前值。该数量可能会根据负载而变化",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} 每个线程需要至少 {{memoryRequired}} 的内存",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} 在最新版本中效果最好 ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} 为开发人员提供的其他信息（点击展开）",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} 检测到错误放置的停止密码子。受影响的基因： {{geneList}}.质量控制分数： {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}” 创始人"
+  "Load example sequence data (for demonstration)": "加载示例序列数据（用于演示）",
+  "Open reference tree for this dataset on nextstrain.org": "在 nextstrain.org 上打开该数据集的参考树",
+  "Open tree": "打开树",
+  "There is no example data in this dataset": "此数据集中没有示例数据",
+  "There is no reference tree in this dataset": "此数据集中没有参考树"
 }

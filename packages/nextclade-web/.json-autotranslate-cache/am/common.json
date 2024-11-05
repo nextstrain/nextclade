@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "«ክላድ መስራች» - ለጥያቄ ናሙና ከተመደበው ክላድ መስራች ጋር አንጻራዊ ሚውቶችን ያሳያል። በተለያዩ ክፍሎች የሚመጡ ጥያቄዎች በዚህ ሁኔታ ከተለያዩ ኢላማዎች ጋር እንደሚወዳደር ልብ ይበሉ።",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "«ወላጅ» - የግል ሚውቶችን ያሳያል፣ ማለትም በፋይሎጄኔቲክ ምደባ ወቅት ጥያቄው ናሙናው ከተያያዘው የማጣቀሻ ዛፍ ወላጅ (ቅርብ ያለው) ንጥፍ ጋር አንጻራዊ ሚውቴሽኖችን",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "«ማጣቀሻ» - ከማጣቀሻ ቅደም ተከተል ጋር አንጻራዊ ሚውቶችን ያሳያል (በውሂብ ስብስብ ውስጥ እንደተገለ",
+  "\"{{ attr }}\" founder": "« {{ attr }} \" መስራች",
   "(truncated)": "(የተቆረጠ)",
   "* Current value. This amount can change depending on load": "* የአሁኑ እሴት። ይህ መጠን በጭነት ላይ በመመስረት ሊለወጥ ይችላል",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} በአንድ ክር ቢያንስ {{memoryRequired}} የማህደረ ትውስታ ይጠይቃል",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} በቅርብ ጊዜዎቹ ስሪቶች ውስጥ በጣም ጥሩ ይሰራል ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ለገንቢዎች ተጨማሪ መረጃ (ለማስፋት ጠቅ ያድርጉ)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} የተሳሳተ የማቆሚያ ኮዶን (ዎች) ተገኝተዋል። የተጎዱ ጂን (ዎች): {{geneList}} ። የ QC ውጤት: {{score}}",
-  "\"{{ attr }}\" founder": "«{{ attr }}\" መስራች"
+  "Load example sequence data (for demonstration)": "ምሳሌ ቅደም ተከተል መረጃን ይጫኑ (ለማሳያ",
+  "Open reference tree for this dataset on nextstrain.org": "በ nextstrain.org ላይ ለዚህ የውሂብ ስብስብ የማጣቀሻ ዛፍ ይክፈቱ",
+  "Open tree": "ክፍት ዛፍ",
+  "There is no example data in this dataset": "በዚህ የውሂብ ስብስብ ውስጥ ምሳሌ ውሂብ የለም",
+  "There is no reference tree in this dataset": "በዚህ የውሂብ ስብስብ ውስጥ ምንም የማጣቀሻ ዛፍ የለም"
 }

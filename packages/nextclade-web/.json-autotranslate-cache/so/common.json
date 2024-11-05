@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade aasaasayaasha” - muujinaysa muujinayaasha la xiriira aasaasiyiinta clade ee loo xilsaaray sameedka weydiinta. Xog gelin in weydihii ka socda clade kala duwan la barbar doono barbeedaha kala duwan ee kiiskan.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Waaldiinta” - muujinaysa muujinayaal gaar ah, iyadoo xidhi la xidhiidha waalidiinta (ugu dhow) ee geedka tahriinta oo sameeyaha weydihii lagu xidhigay xilliga dhigga phylogenic.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Reference” - muujinaysa muujinayaal la xidhiidda xiliidanka xidhiidda (sida lagu sheegay xidhiidka).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" aasayaasha",
   "(truncated)": "(la qaaday)",
   "* Current value. This amount can change depending on load": "* Qiimaha hadda. Lacagtan isbedeli kara oo ku xiray xulka",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} oo u baahan yahay ugu yaraan {{memoryRequired}} xasuustada kadib",
@@ -148,7 +149,7 @@
   "Enter reference sequence in {{formatName}} format": "Gol xilka tahay ee qaabka {{formatName}}",
   "Enter reference tree in {{formatName}} format": "Gol geedka tahay ee qaabka {{formatName}}",
   "Enter sequence data in FASTA format": "Gol xogta xog xog xiliga FASTA",
-  "Entries of format \"'<attribute>' founder\" show mutations relative to the founder node of a particular clade-like attribute  (if any are defined in the dataset). Dataset authors may choose to exclude certain attributes.": "Galooyinka qaabka “'<attribute>' aasaasaasi” ayaa muujinaysa muujinayaasha la xidhiidha nooda aasaasayaasha ee sifa gaar ah ah oo la mid ah (haddii wax laga qaaday xidhiidda). Qoraayaasha Dataset ayaa doorto karaa inay ka soo baxaan sifooyinka",
+  "Entries of format \"'<attribute>' founder\" show mutations relative to the founder node of a particular clade-like attribute  (if any are defined in the dataset). Dataset authors may choose to exclude certain attributes.": "Galooyinka qaabka “'<attribute>' aasaasaasi” ayaa muujinaysa muujinayaasha la xidhiidha noodka aasaasayaasha sifa gaar ah ah oo la mid ah (haddii wax laga qaaday xidhiidda). Qoraayaasha Dataset ayaa doorto karaa inay ka soo baxaan sifooyinka",
   "Error": "Khalad",
   "Errors & warnings": "Khalad & Digniin",
   "Example": "Tusaale",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} waxaa ugu wanaagsan noqooyinka ugu dambeeyay ee ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Macluumaad dheeraad ah ee horumarka (riix si aad u ballaaran)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} waayay joojin codon (s) la ogaaday. Gene (s) saameeyay: {{geneList}}. Gool QC: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" aasayaasha"
+  "Load example sequence data (for demonstration)": "Tusaale xog xog xog xog ah (banaanbax)",
+  "Open reference tree for this dataset on nextstrain.org": "Furan geedka tahay ee xoggan xogga ku saabsan nextstrain.org",
+  "Open tree": "Geed furan",
+  "There is no example data in this dataset": "Ma jiro xog tusaale ah oo xogta ku jiro xogta xog",
+  "There is no reference tree in this dataset": "Ma jiro geedka tahay ee xoggan"
 }

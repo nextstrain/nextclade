@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade հիմնադիր” - ցույց է տալիս մուտացիաներ հարաբերական հիմնադրի clade, որը նշանակվել է հարցման նմուշի. Նկատի ունեցեք, որ տարբեր կլադների հարցումները կհամեմատվեն այս դեպքում տարբեր թիրախների հետ:",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ծնող” - ցույց է տալիս մասնավոր մուտացիաներ, այսինքն մուտացիաներ հղման ծառի ծնող (մոտակա) հանգույցի նկատմամբ, որին կցվել է հարցման նմուշը ֆիլոգենետիկ տեղաբաշխման ժամանակ։",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Տեղեկանք” - ցույց է տալիս մուտացիաները հղման հաջորդականության նկատմամբ (ինչպես սահմանված է տվյալների հավաքածուում):",
+  "\"{{ attr }}\" founder": "“ {{ attr }} ” -ի հիմնադիր",
   "(truncated)": "(կտրված)",
   "* Current value. This amount can change depending on load": "* Ընթացիկ արժեքը: Այս գումարը կարող է փոխվել կախված բեռից",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} -ը պահանջում է առնվազն {{memoryRequired}} հիշողություն մեկ թեմայի համար",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} -ը լավագույնս աշխատում է վերջին տարբերակներում ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Լրացուցիչ տեղեկություններ մշակողների համար (սեղմեք ընդլայնելու համար)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Հայտնաբերվել է {{totalStopCodons}} սխալ տեղադրված կանգառային կոդոն (ներ): Տուժած գեն (ներ) ՝ {{geneList}}. QC գնահատականը՝ {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}” -ի հիմնադիր"
+  "Load example sequence data (for demonstration)": "Բեռնել օրինակի հաջորդականության տվյալները (ցուցադրման համար)",
+  "Open reference tree for this dataset on nextstrain.org": "Բացեք հղման ծառը այս տվյալների հավաքածուի համար nextstrain.org կայքում",
+  "Open tree": "Բաց ծառ",
+  "There is no example data in this dataset": "Այս տվյալների հավաքածուում չկան օրինակելի տվյալներ",
+  "There is no reference tree in this dataset": "Այս տվյալների հավաքածուում չկա հղման ծառ"
 }

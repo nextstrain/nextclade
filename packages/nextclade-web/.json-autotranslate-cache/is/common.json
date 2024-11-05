@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade stofnandi” - sýnir stökkbreytingar miðað við stofnandi clade sem hefur verið úthlutað fyrirspurnarsýninu. Athugaðu að fyrirspurnir frá mismunandi clades verða bornar saman við mismunandi markmið í þessu tilfelli.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Foreldri” - sýnir einka stökkbreytingar, þ.e. stökkbreytingar miðað við foreldri (næsta) hnút viðmiðunartrésins sem fyrirspurnarsýnið hefur verið fest við meðan á phylogenic vistun stendur.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Tilvísun” - sýnir stökkbreytingar miðað við viðmiðunarröðina (eins og skilgreint er í gagnasafninu).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" stofnandi",
   "(truncated)": "(stytt)",
   "* Current value. This amount can change depending on load": "* Núverandi gildi. Þessi upphæð getur breyst eftir álagi",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} krefst að minnsta kosti {{memoryRequired}} af minni á hvern þráð",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} virkar best í nýjustu útgáfum ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Viðbótarupplýsingar fyrir forritara (smelltu til að stækka)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ranglega staðsettur stöðvunarkódon (s) greindur. Áhrifin gen (s): {{geneList}}. QC skor: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" stofnandi"
+  "Load example sequence data (for demonstration)": "Hlaða dæmi um raðgögn (til sýningar)",
+  "Open reference tree for this dataset on nextstrain.org": "Opnaðu viðmiðunartré fyrir þetta gagnasett á nextstrain.org",
+  "Open tree": "Opið tré",
+  "There is no example data in this dataset": "Það eru engin dæmi gögn í þessu gagnasafni",
+  "There is no reference tree in this dataset": "Það er ekkert tilvísunartré í þessu gagnasafni"
 }

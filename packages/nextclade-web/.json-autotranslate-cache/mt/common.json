@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Fundatur Clade” - juri mutazzjonijiet relattivi għall-fundatur tal-clade li ġie assenjat għall-kampjun tal-mistoqsija. Innota li mistoqsijiet minn clades differenti se jitqabblu ma 'miri differenti f'dan il-każ.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ġenitur” - juri mutazzjonijiet privati, jiġifieri mutazzjonijiet relattivi għall-ġenitur (eqreb) node tas-siġra ta' referenza li magħha ġie mehmuż il-kampjun tal-mistoqsija waqt it-tqegħid filogenetiku.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referenza” - turi mutazzjonijiet relattivi għas-sekwenza ta' referenza (kif definit fis-sett tad-dejta).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" fundatur",
   "(truncated)": "(maqtugħ)",
   "* Current value. This amount can change depending on load": "* Valur kurrenti. Dan l-ammont jista' jinbidel skont it-tagħbija",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} jeħtieġ mill-inqas {{memoryRequired}} ta 'memorja għal kull ħajt",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} jaħdem l-aħjar fl-aħħar verżjonijiet ta ' ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informazzjoni addizzjonali għall-iżviluppaturi (ikklikkja biex tespandi)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodonu (i) tal-waqfien f'post ħażin misjub. Ġene (i) affettwat: {{geneList}}. Punteġġ QC: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" fundatur"
+  "Load example sequence data (for demonstration)": "Dejta ta' sekwenza ta' eżempju tat-tagħbija (għad-dimostrazzjoni)",
+  "Open reference tree for this dataset on nextstrain.org": "Siġra ta' referenza miftuħa għal dan is-sett tad-dejta fuq nextstrain.org",
+  "Open tree": "Siġra miftuħa",
+  "There is no example data in this dataset": "M'hemm l-ebda dejta eżempju f'dan is-sett tad-dejta",
+  "There is no reference tree in this dataset": "M'hemm l-ebda siġra ta' referenza f'dan is-sett tad-dejta"
 }

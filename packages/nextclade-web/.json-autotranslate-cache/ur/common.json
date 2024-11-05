@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“کلیڈ بانی” - کلیڈ کے بانی سے متعلق تبدیلیوں کو ظاہر کرتا ہے جو سوال کے نمونے کو تفویض کیا گیا ہے۔ نوٹ کریں کہ اس معاملے میں مختلف کلیڈز سے سوالات کا موازنہ مختلف اہداف کے ساتھ کیا جائے گا۔",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“والدین” - نجی تغیرات کو ظاہر کرتا ہے، یعنی ریفرنس درخت کے والدین (قریب ترین) نوڈ سے متعلق تغیرات جس سے فائلوجینیٹک پلیسمنٹ کے دوران سوال کا نمونہ منسلک کیا گیا ہے۔",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“حوالہ” - حوالہ ترتیب (جیسا کہ ڈیٹا سیٹ میں بیان کیا گیا ہے) کے سلسلے میں تبدیلیوں کو ظاہر کرتا ہے۔",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" بانی",
   "(truncated)": "(کٹے ہوئے)",
   "* Current value. This amount can change depending on load": "* موجودہ قدر. یہ رقم بوجھ کے لحاظ سے تبدیل ہوسکتی ہے",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} کو فی تھریڈ میں کم از کم {{memoryRequired}} میموری کی ضرورت ہوتی ہے",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} کے تازہ ترین ورژن میں بہترین کام کرتا ہے ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ڈویلپرز کے لئے اضافی معلومات (بڑھانے کے لئے کلک کریں)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} غلط اسٹاپ کوڈن (وں) کا پتہ لگایا۔ متاثرہ جین (ز): {{geneList}}. کیو سی اسکور: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" بانی"
+  "Load example sequence data (for demonstration)": "مثال ترتیب کا ڈیٹا لوڈ کریں (مظاہرے کے لئے)",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.org پر اس ڈیٹا سیٹ کے لئے حوالہ کا درخت کھولیں",
+  "Open tree": "کھلا درخت",
+  "There is no example data in this dataset": "اس ڈیٹا سیٹ میں کوئی مثال ڈیٹا نہیں ہے",
+  "There is no reference tree in this dataset": "اس ڈیٹا سیٹ میں کوئی حوالہ کا درخت نہیں ہے"
 }

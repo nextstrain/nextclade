@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade įkūrėjas” - rodo mutacijas, palyginti su klado įkūrėju, kuris buvo priskirtas užklausos mėginiui. Atkreipkite dėmesį, kad užklausos iš skirtingų kladų bus lyginamos su skirtingais tikslais šiuo atveju.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Tėvas” - rodo privačias mutacijas, t.y. mutacijas, palyginti su pamatinio medžio pirminiu (artimiausiu) mazgu, prie kurio buvo prijungtas užklausos mėginys filogenetinio talpinimo metu.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Nuoroda” - rodo mutacijas, palyginti su etalonine seka (kaip apibrėžta duomenų rinkinyje).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} ” įkūrėjas",
   "(truncated)": "(sutrumpintas)",
   "* Current value. This amount can change depending on load": "* Dabartinė vertė. Ši suma gali keistis priklausomai nuo apkrovos",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} reikia bent {{memoryRequired}} atminties vienai sričiai",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} geriausiai veikia naujausiose versijose ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Papildoma informacija kūrėjams (spustelėkite norėdami išplėsti)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} aptiktas netinkamas stabdymo kodonas (-ai). Paveiktas (-ai) genas (-ai): {{geneList}}. QC rezultatas: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}” įkūrėjas"
+  "Load example sequence data (for demonstration)": "Įkelkite pavyzdinius sekos duomenis (demonstravimui)",
+  "Open reference tree for this dataset on nextstrain.org": "Atidarykite šio duomenų rinkinio nuorodų medį svetainėje nextstrain.org",
+  "Open tree": "Atviras medis",
+  "There is no example data in this dataset": "Šiame duomenų rinkinyje nėra duomenų pavyzdžių",
+  "There is no reference tree in this dataset": "Šiame duomenų rinkinyje nėra atskaitos medžio"
 }

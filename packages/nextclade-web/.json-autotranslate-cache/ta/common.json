@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“கிளேட் நிறுவனர்” - வினவல் மாதிரிக்கு ஒதுக்கப்பட்ட கிளேட் நிறுவனர் தொடர்பான மாற்றங்களைக் காட்டுகிறது. இந்த விஷயத்தில் வெவ்வேறு கிளேடுகளின் வினவல்கள் வெவ்வேறு இலக்குகளுடன் ஒப்பிடப்படும் என்பதை நினைவில் கொள்",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“பெற்றோர்” - தனியார் மாற்றங்களைக் காட்டுகிறது, அதாவது பைலோஜெனடிக் வேலைவாய்ப்பின் போது வினவல் மாதிரி இணைக்கப்பட்ட குறிப்பு மரத்தின் பெற்றோர் (அருகிலுள்ள) முனையுடன் தொடர்புடைய பிறழ்வுகள்.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“குறிப்பு” - குறிப்பு வரிசையுடன் தொடர்புடைய மாற்றங்களைக் காட்டுகிறது (தரவுத்தொகுப்பில் வரையறுக்கப்பட்டுள்ளபடி).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" நிறுவனர்",
   "(truncated)": "(துண்டிக்கப்பட்டது)",
   "* Current value. This amount can change depending on load": "* தற்போதைய மதிப்பு. சுமையைப் பொறுத்து இந்த தொகை மாறலாம்",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} க்கு ஒரு நூலுக்கு குறைந்தது {{memoryRequired}} நினைவகம் தேவை",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "இன் சமீபத்திய பதிப்புகளில் {{project}} சிறப்பாக வேலை செய்கிறது ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} டெவலப்பர்களுக்கான கூடுதல் தகவல் (விரிவாக்க கிளிக் செய்க)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} தவறான இடைநிறுத்தக் கோடன் (கள்) கண்டறியப்பட்டது. பாதிக்கப்பட்ட மரபணு (கள்): {{geneList}}. QC மதிப்பெண்: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" நிறுவனர்"
+  "Load example sequence data (for demonstration)": "எடுத்துக்காட்டு வரிசை தரவை ஏற்றவும் (ஆர்ப்பாட்டத்திற்கு)",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.org இல் இந்த தரவுத்தொகுப்பிற்கான குறிப்பு மரத்தைத் திறக்கவும்",
+  "Open tree": "திறந்த மரம்",
+  "There is no example data in this dataset": "இந்த தரவுத்தொகுப்பில் எடுத்துக்காட்டு தரவு இல்லை",
+  "There is no reference tree in this dataset": "இந்த தரவுத்தொகுப்பில் குறிப்பு மரம் எதுவும் இல்லை"
 }

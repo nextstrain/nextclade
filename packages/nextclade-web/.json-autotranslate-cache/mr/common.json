@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“क्लेड संस्थापक” - क्वेरी नमुन्यावर नियुक्त केलेल्या क्लेडच्या संस्थापकाशी संबंधित परिवर्तन दर्शविते लक्षात घ्या की या प्रकरणात वेगवेगळ्या क्लेड्समधील प्रश्नांची तुलना वेगवेगळ",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“पालक” - खाजगी परिवर्तन दर्शविते, म्हणजे फायलोजेनेटिक प्लेसमेंट दरम्यान क्वेरी नमुना जोडलेल्या संदर्भ झाडाच्या पालक (जवळचे) नोडशी",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“संदर्भ” - संदर्भ क्रमांशी संबंधित परिवर्तन दर्शविते (डेटासेटमध्ये व्याख्य",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" संस्थापक",
   "(truncated)": "(कटकलेला)",
   "* Current value. This amount can change depending on load": "* वर्तमान मूल्य. लोडनुसार ही रक्कम बदलू शकते",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} प्रति थ्रेड किमान {{memoryRequired}} मेमरी आवश्यक आहे",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} च्या नवीनतम आवृत्त्यांमध्ये सर्वोत्तम ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} विकसकांसाठी अतिरिक्त माहिती (विस्तार करण्यासाठी क्",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} चुकीचे ठेवलेले स्टॉप कोडन आढळले. प्रभावित जीन (या): {{geneList}}. क्यूसी स्कोअर: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" संस्थापक"
+  "Load example sequence data (for demonstration)": "उदाहरण क्रम डेटा लोड करा (प्रदर्श",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.org वर या डेटासेटसाठी संदर्भ ट्री उघडा",
+  "Open tree": "उघडा झाड",
+  "There is no example data in this dataset": "या डेटासेटमध्ये उदाहरण डेटा नाही",
+  "There is no reference tree in this dataset": "या डेटासेटमध्ये कोणतेही संदर्भ झाड नाही"
 }
