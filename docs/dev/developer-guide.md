@@ -447,6 +447,18 @@ Nextclade build and deployment process is automated using GitHub Actions:
 
 The workflows run on every pull request on GitHub and every push to a major branch.
 
+> Hint if the bioconda release job fails due to push permissions:
+> 
+> You need to update the `nextstrain/bioconda` fork manually in order to be
+> 
+> Clone the fork https://github.com/nextstrain/bioconda-recipes as described in the readme. Follow the instructions precisely, don't invent anything new. Then push the latest updates from the upstream to the fork with this command:
+> 
+> ```
+> cd biooconda-recipes && git push nextstrain bioconda/master:master
+> ```
+> 
+> Then go to the failing job and restart it.
+
 ### Deployment environments
 
 Nextclade GitHub repository contains 3 major branches with special meaning: `master`, `staging` and `release`, each has a corresponding domain name for Nextclade Web. Nextclade built from one of these branches fetches datasets from the corresponding dataset deployment environment (See [Dataset server maintenance guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-server-maintenance.md))
