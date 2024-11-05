@@ -1,3 +1,15 @@
+## Nextclade 3.10.0
+
+### [web] Add links to open reference trees in nextstrain.org
+
+You can now click on "Open tree" link in the dataset info box to open reference tree of this dataset on [nextstrain.org](https://nextstrain.org/). This allows to browse the current trees for each dataset without running Nextclade analysis. If a dataset does not provide a reference tree, the link will be disabled.
+
+
+### [web] Correctly disable "Load example" links
+
+The "Load example" links are now correctly disabled, not hidden, for the datasets which do not provide example sequence data.
+
+
 ## Nextclade 3.9.1
 
 ### Fix: clade mismatch between placed node and parent node
