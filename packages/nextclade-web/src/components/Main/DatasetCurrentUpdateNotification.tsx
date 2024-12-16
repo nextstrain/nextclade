@@ -1,5 +1,6 @@
 import { isNil } from 'lodash'
-import React, { useCallback } from 'react'
+import path from 'path'
+import React, { useCallback, useMemo } from 'react'
 import { Button, Col, Row, UncontrolledAlert } from 'reactstrap'
 import { useRecoilState, useSetRecoilState } from 'recoil'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -17,6 +18,19 @@ export function DatasetCurrentUpdateNotification() {
     setDatasetUpdated(undefined)
   }, [datasetUpdated, setDatasetCurrent, setDatasetUpdated])
 
+  const changelogUrl = useMemo(() => {
+    if (
+      isNil(datasetUpdated) ||
+      isNil(datasetUpdated.path) ||
+      isNil(datasetUpdated.files) ||
+      isNil(datasetUpdated.files.changelog)
+    ) {
+      return undefined
+    }
+    const filename = path.basename(datasetUpdated.files.changelog)
+    return `https://github.com/nextstrain/nextclade_data/blob/release/data/${datasetUpdated.path}/${filename}`
+  }, [datasetUpdated])
+
   if (isNil(datasetUpdated)) {
     return null
   }
@@ -27,11 +41,11 @@ export function DatasetCurrentUpdateNotification() {
         <UncontrolledAlert closeClassName="d-none" fade={false} color="info" className="mx-1 py-2 px-2 d-flex w-100">
           <AlertTextWrapper>
             <p className="my-0">{t('A new version of this dataset is available.')}</p>
-            <p className="my-0">
-              <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md">
-                {"What's new?"}
-              </LinkExternal>
-            </p>
+            {datasetUpdated.files?.changelog && (
+              <p className="my-0">
+                <LinkExternal href={changelogUrl}>{t("What's new?")}</LinkExternal>
+              </p>
+            )}
           </AlertTextWrapper>
 
           <AlertButtonWrapper>
