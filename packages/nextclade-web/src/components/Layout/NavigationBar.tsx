@@ -156,6 +156,7 @@ export function NavigationBar() {
     return [
       { url: '/', content: t('Start'), title: t('Show start page') },
       { url: '/dataset', content: t('Dataset'), title: t('Show current dataset details') },
+      { url: '/sort', content: t('Sort'), title: t('Show sequences sorted by dataset') },
       {
         url: hasRan ? '/results' : undefined,
         content: t('Results'),

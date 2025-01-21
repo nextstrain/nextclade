@@ -150,6 +150,7 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
       topSuggestion: undefined,
       showSuggestions: false,
       numSuggestions: datasets.length,
+      recordsByDataset: undefined,
     }
   }
 
@@ -175,5 +176,5 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
   const topSuggestion = first(datasetsActive)
   const numSuggestions = datasetsActive.length
 
-  return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions }
+  return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions, recordsByDataset }
 }

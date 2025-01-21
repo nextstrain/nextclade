@@ -153,7 +153,7 @@ export function DatasetInfo({ dataset, showSuggestions, ...restProps }: DatasetI
   )
 }
 
-function formatReference(attributes: Record<string, AnyType> | undefined) {
+export function formatReference(attributes: Record<string, AnyType> | undefined) {
   const name = attrStrMaybe(attributes, 'reference name') ?? 'unknown'
   const accession = attrStrMaybe(attributes, 'reference accession')
   if (accession) {
