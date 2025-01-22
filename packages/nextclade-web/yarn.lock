@@ -4608,10 +4608,10 @@ attr-accept@^2.2.2:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==
 
-auspice@2.59.1:
-  version "2.59.1"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.59.1.tgz#f18479b17d09b9f1cf39ef6d19f44c7f4e974f79"
-  integrity sha512-JdfCQ2waAY/BPeIZ58tAUIYWwopY28FuQ3JjG+esa5fPbp5+Ovbx4rl6LqWCscohyojdxgJvJX4l8a1Av2b9ZA==
+auspice@2.62.0:
+  version "2.62.0"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.62.0.tgz#22530aabebed2c7bb4be9573615f3afc8ffe3397"
+  integrity sha512-5tkWkbLijsBaK52UgA2Kk/SUIFUfN13lxougBhVnH8IV2K/CU4835Kaw6gOvNSWG97kux37meFQBANqTDYyzYg==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -4663,7 +4663,7 @@ auspice@2.59.1:
     linspace "^1.0.0"
     lodash "^4.17.21"
     lodash-webpack-plugin "^0.11.6"
-    marked "^0.7.0"
+    marked "^4.0.10"
     mousetrap "^1.6.2"
     null-loader "^4.0.0"
     outer-product "0.0.4"
@@ -11386,7 +11386,7 @@ markdown-table@^2.0.0:
   dependencies:
     repeat-string "^1.0.0"
 
-marked@4.0.14, marked@^0.7.0:
+marked@4.0.14, marked@^4.0.10:
   version "4.0.14"
   resolved "https://registry.yarnpkg.com/marked/-/marked-4.0.14.tgz#7a3a5fa5c80580bac78c1ed2e3b84d7bd6fc3870"
   integrity sha512-HL5sSPE/LP6U9qKgngIIPTthuxC0jrfxpYMZ3LdGDD3vTnLs59m2Z7r6+LNDR3ToqEQdkKd6YaaEfJhodJmijQ==
