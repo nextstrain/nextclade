@@ -33,6 +33,7 @@ use std::collections::BTreeMap;
 #[optfield(pub NextcladeParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeParams {
+  pub dataset_name: String,
   #[schemars(with = "String")]
   pub ref_record: FastaRecord,
   pub gene_map: GeneMap,
@@ -100,6 +101,7 @@ impl NextcladeParams {
     };
 
     Ok(Self {
+      dataset_name: overrides.dataset_name.as_ref().unwrap().clone(),
       ref_record,
       gene_map,
       tree,
@@ -111,6 +113,8 @@ impl NextcladeParams {
     match raw {
       NextcladeParamsRaw::Auspice(raw) => {
         let auspice_json = AuspiceTree::from_str(raw.auspice_json)?;
+
+        let dataset_name = Some("Auspice JSON".to_owned());
 
         let overrides = {
           let virus_properties = raw
@@ -140,6 +144,7 @@ impl NextcladeParams {
           }
 
           NextcladeParamsOptional {
+            dataset_name,
             ref_record,
             gene_map,
             tree,
@@ -150,6 +155,8 @@ impl NextcladeParams {
         Self::from_auspice(&auspice_json, &overrides, &None)
       }
       NextcladeParamsRaw::Dir(raw) => {
+        let dataset_name = raw.dataset_name;
+
         let virus_properties =
           VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
 
@@ -173,6 +180,7 @@ impl NextcladeParams {
         }
 
         Ok(Self {
+          dataset_name,
           ref_record,
           gene_map,
           tree,
@@ -196,6 +204,7 @@ pub struct NextcladeParamsRawAuspice {
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeParamsRawDir {
+  pub dataset_name: String,
   #[schemars(with = "String")]
   pub ref_seq: String,
   pub gene_map: Option<String>,
@@ -255,6 +264,8 @@ pub struct NextcladeResult {
 }
 
 pub struct Nextclade {
+  pub dataset_name: String,
+
   // Always present
   pub ref_record: FastaRecord,
   pub ref_seq: Vec<Nuc>,
@@ -299,6 +310,7 @@ impl Nextclade {
     params: &NextcladeInputParamsOptional,
   ) -> Result<Self, Report> {
     let NextcladeParams {
+      dataset_name,
       ref_record,
       gene_map,
       tree,
@@ -369,6 +381,7 @@ impl Nextclade {
       .unwrap_or_default();
 
     Ok(Self {
+      dataset_name,
       ref_record,
       ref_seq,
       seed_index,

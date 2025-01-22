@@ -94,6 +94,7 @@ pub fn nextclade_run_one(
   state: &Nextclade,
 ) -> Result<AnalysisOutput, Report> {
   let Nextclade {
+    dataset_name,
     ref_seq,
     ref_record,
     seed_index,
@@ -409,6 +410,7 @@ pub fn nextclade_run_one(
       index,
       seq_name: seq_name.to_owned(),
       ref_name: ref_record.seq_name.clone(),
+      dataset_name: dataset_name.clone(),
       substitutions,
       total_substitutions,
       deletions,

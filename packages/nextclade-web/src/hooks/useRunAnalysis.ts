@@ -172,7 +172,13 @@ export function useRunAnalysis() {
                 return [key, await awaitedInput.getContent()]
               }, overridesEntries)
               const overridesPresent = overrides.filter(notUndefinedOrNull)
-              params = { Auspice: { auspiceJson: JSON.stringify(tree), ...Object.fromEntries(overridesPresent) } }
+              params = {
+                Auspice: {
+                  auspiceJson: JSON.stringify(tree),
+                  ...Object.fromEntries(overridesPresent),
+                  datasetName: 'Auspice JSON',
+                },
+              }
             } else {
               const dataset = await datasetCurrent
               if (!dataset) {
@@ -202,11 +208,13 @@ async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): P
     { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset?.files?.pathogenJson },
   ]
 
-  return Object.fromEntries(
+  const params = Object.fromEntries(
     await concurrent.map(async ({ key, input, datasetFileUrl }) => {
       return [key, await resolveInput(await input, datasetFileUrl)]
     }, entries),
   ) as unknown as NextcladeParamsRawDir
+
+  return { ...params, datasetName: dataset.path }
 }
 
 async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string | undefined) {

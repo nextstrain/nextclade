@@ -150,6 +150,7 @@ pub fn dataset_zip_load(
   }
 
   Ok(NextcladeParams {
+    dataset_name: dataset_zip.to_str().unwrap().to_owned(),
     ref_record,
     gene_map,
     tree,
@@ -296,6 +297,7 @@ pub fn dataset_dir_load(
   }
 
   Ok(NextcladeParams {
+    dataset_name: dataset_dir.to_str().unwrap().to_owned(),
     ref_record,
     gene_map,
     tree,
@@ -344,6 +346,7 @@ pub fn dataset_json_load(
     }
 
     NextcladeParamsOptional {
+      dataset_name: dataset_json.to_str().map(ToOwned::to_owned),
       ref_record,
       gene_map,
       tree,
@@ -395,6 +398,12 @@ pub fn dataset_individual_files_load(
       }
 
       Ok(NextcladeParams {
+        dataset_name: run_args
+          .inputs
+          .input_pathogen_json
+          .as_ref()
+          .map(|s| s.to_str().unwrap().to_owned())
+          .unwrap_or_default(),
         ref_record,
         gene_map,
         tree,
@@ -470,6 +479,7 @@ pub fn dataset_str_download_and_load(
   }
 
   Ok(NextcladeParams {
+    dataset_name: name.to_owned(),
     ref_record,
     gene_map,
     tree,
