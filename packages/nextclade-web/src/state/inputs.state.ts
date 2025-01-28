@@ -2,10 +2,9 @@ import { isEmpty } from 'lodash'
 import { useCallback, useEffect } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
 import type { AlgorithmInput, AuspiceTree } from 'src/types'
-import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
-import { analysisResultsAtom, analysisStatusGlobalAtom, treeAtom } from 'src/state/results.state'
-import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
+import { allTreesAtom, allTreesNwkAtom, analysisResultsAtom, analysisStatusGlobalAtom } from 'src/state/results.state'
+import { allViewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
 
@@ -21,9 +20,10 @@ export function useQuerySeqInputs() {
 
   const resetAnalysisStatusGlobal = useResetRecoilState(analysisStatusGlobalAtom)
   const resetAnalysisResults = useResetRecoilState(analysisResultsAtom)
-  const resetTree = useResetRecoilState(treeAtom)
-  const resetViewedCds = useResetRecoilState(viewedCdsAtom)
-  const resetCdsOrderPreference = useResetRecoilState(cdsOrderPreferenceAtom)
+  const resetTree = useResetRecoilState(allTreesAtom)
+  const resetNwkTree = useResetRecoilState(allTreesNwkAtom)
+  const resetViewedCds = useResetRecoilState(allViewedCdsAtom)
+  const resetCdsOrderPreference = useResetRecoilState(allViewedCdsAtom)
   const clearAllFilters = useResetRecoilState(clearAllFiltersAtom)
 
   const clearResults = useCallback(() => {
@@ -31,6 +31,7 @@ export function useQuerySeqInputs() {
     resetAnalysisStatusGlobal()
     resetAnalysisResults()
     resetTree()
+    resetNwkTree()
     resetViewedCds()
     resetCdsOrderPreference()
     clearAllFilters()
@@ -39,6 +40,7 @@ export function useQuerySeqInputs() {
     resetAnalysisResults,
     resetAnalysisStatusGlobal,
     resetCdsOrderPreference,
+    resetNwkTree,
     resetSuggestions,
     resetTree,
     resetViewedCds,
@@ -113,16 +115,6 @@ export const inputCustomizationCounterAtom = selector<number>({
     return [get(refSeqInputAtom), get(geneMapInputAtom), get(refTreeInputAtom), get(virusPropertiesInputAtom)].filter(
       notUndefinedOrNull,
     ).length
-  },
-})
-
-/** Resets all inputs (e.g. when switching datasets) */
-export const inputResetAtom = selector<undefined>({
-  key: 'inputReset',
-  get: () => undefined,
-  set({ reset }) {
-    reset(qrySeqInputsStorageAtom)
-    reset(datasetFilesResetAtom)
   },
 })
 

@@ -4,7 +4,7 @@ import { Button, ButtonProps } from 'reactstrap'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { datasetsCurrentAtom } from 'src/state/dataset.state'
 
 export interface DatasetNoneSectionProps {
   toDatasetSelection(): void
@@ -37,7 +37,7 @@ export interface ChangeDatasetButtonProps extends ButtonProps {
 
 export function ButtonChangeDataset({ onClick, ...restProps }: ChangeDatasetButtonProps) {
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
+  const dataset = useRecoilValue(datasetsCurrentAtom)
 
   const { color, text, tooltip } = useMemo(() => {
     const hasDataset = !isNil(dataset)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRecoilState } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
 import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
@@ -7,31 +7,31 @@ import { SuggestionAlertDatasetPage } from 'src/components/Main/SuggestionAlertD
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
+import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { SearchBox } from 'src/components/Common/SearchBox'
 
-export interface DatasetSelectorProps {
-  datasetHighlighted?: Dataset
-  onDatasetHighlighted?(dataset?: Dataset): void
-}
+export function DatasetAutosuggestionResultsList() {
+  const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
 
-export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDatasetHighlighted }: DatasetSelectorProps) {
   const [autodetectRunState, setAutodetectRunState] = useRecoilState(autodetectRunStateAtom)
   const { datasetsActive, datasetsInactive, topSuggestion, showSuggestions } = useDatasetSuggestionResults()
   useEffect(() => {
     if (autodetectRunState === AutodetectRunState.Done) {
-      onDatasetHighlighted?.(topSuggestion)
+      setDatasetsCurrent(topSuggestion ? [topSuggestion] : [])
     }
-  }, [autodetectRunState, onDatasetHighlighted, setAutodetectRunState, topSuggestion])
+  }, [autodetectRunState, setDatasetsCurrent, setAutodetectRunState, topSuggestion])
+
+  const datasetsHighlighted = useMemo(() => datasetsCurrent ?? [], [datasetsCurrent])
 
   return (
     <DatasetSelectorImpl
       datasetsActive={datasetsActive}
       datasetsInactive={datasetsInactive}
-      datasetHighlighted={datasetHighlighted}
-      onDatasetHighlighted={onDatasetHighlighted}
+      datasetsHighlighted={datasetsHighlighted}
+      onDatasetsHighlighted={setDatasetsCurrent}
       showSuggestions={showSuggestions}
     />
   )
@@ -40,16 +40,16 @@ export function DatasetAutosuggestionResultsList({ datasetHighlighted, onDataset
 export interface DatasetSelectorImplProps {
   datasetsActive: Dataset[]
   datasetsInactive?: Dataset[]
-  datasetHighlighted?: Dataset
-  onDatasetHighlighted?(dataset?: Dataset): void
+  datasetsHighlighted: Dataset[]
+  onDatasetsHighlighted(dataset: Dataset[]): void
   showSuggestions?: boolean
 }
 
 export function DatasetSelectorImpl({
   datasetsActive,
   datasetsInactive,
-  datasetHighlighted,
-  onDatasetHighlighted,
+  datasetsHighlighted,
+  onDatasetsHighlighted,
   showSuggestions,
 }: DatasetSelectorImplProps) {
   const { t } = useTranslationSafe()
@@ -76,8 +76,8 @@ export function DatasetSelectorImpl({
         <DatasetSelectorList
           datasetsActive={datasetsActive}
           datasetsInactive={datasetsInactive}
-          datasetHighlighted={datasetHighlighted}
-          onDatasetHighlighted={onDatasetHighlighted}
+          datasetsHighlighted={datasetsHighlighted}
+          onDatasetsHighlighted={onDatasetsHighlighted}
           searchTerm={searchTerm}
           showSuggestions={showSuggestions}
         />

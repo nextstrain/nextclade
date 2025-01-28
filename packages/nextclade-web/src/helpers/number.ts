@@ -15,3 +15,12 @@ export function isEven(x: number): boolean {
 export function isOdd(x: number): boolean {
   return !isEven(x)
 }
+
+export function safeDiv(numer?: number, denom?: number, defaultValue?: number): number
+export function safeDiv(numer?: number, denom?: number, defaultValue?: undefined): number | undefined
+export function safeDiv(numer?: number, denom?: number, defaultValue: number | undefined = 0): number | undefined {
+  if (denom === 0 || numer === undefined || denom === undefined) {
+    return defaultValue
+  }
+  return numer / denom
+}

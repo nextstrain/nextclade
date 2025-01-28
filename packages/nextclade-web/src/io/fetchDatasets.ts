@@ -12,20 +12,13 @@ import {
 import { Dataset } from 'src/types'
 import {
   fetchDatasetsIndex,
-  filterDatasets,
   findDataset,
   getCompatibleMinimizerIndexVersion,
   getLatestCompatibleEnabledDatasets,
 } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import {
-  datasetCurrentAtom,
-  datasetsAtom,
-  datasetServerUrlAtom,
-  datasetUpdatedAtom,
-  minimizerIndexVersionAtom,
-} from 'src/state/dataset.state'
+import { datasetsAtom, datasetServerUrlAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { useQuery } from 'react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
@@ -163,33 +156,33 @@ export function useUpdatedDatasetIndex() {
  * If an updated dataset is stored, user will receive a notification.
  */
 export function useUpdatedDataset() {
-  const { datasets } = useRecoilValue(datasetsAtom)
-  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const setDatasetUpdated = useSetRecoilState(datasetUpdatedAtom)
-
-  useQuery(
-    'currentDatasetState',
-    async () => {
-      const path = datasetCurrent?.path
-      const updatedAt = datasetCurrent?.version?.updatedAt
-      if (!isNil(updatedAt)) {
-        const candidateDatasets = filterDatasets(datasets, path)
-        const updatedDataset = candidateDatasets.find((candidate) => {
-          const candidateTag = candidate.version?.updatedAt
-          return candidateTag && candidateTag > updatedAt
-        })
-        setDatasetUpdated(updatedDataset)
-      }
-      return undefined
-    },
-    {
-      suspense: false,
-      staleTime: 0,
-      refetchInterval: 60 * 60 * 1000, // 1 hour
-      refetchIntervalInBackground: false,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      refetchOnWindowFocus: true,
-    },
-  )
+  // const { datasets } = useRecoilValue(datasetsAtom)
+  // const datasetsCurrent = useRecoilValue(datasetsCurrentAtom)
+  // const setDatasetUpdated = useSetRecoilState(datasetUpdatedAtom)
+  //
+  // useQuery(
+  //   'currentDatasetState',
+  //   async () => {
+  //     const path = datasetCurrent?.path
+  //     const updatedAt = datasetCurrent?.version?.updatedAt
+  //     if (!isNil(updatedAt)) {
+  //       const candidateDatasets = filterDatasets(datasets, path)
+  //       const updatedDataset = candidateDatasets.find((candidate) => {
+  //         const candidateTag = candidate.version?.updatedAt
+  //         return candidateTag && candidateTag > updatedAt
+  //       })
+  //       setDatasetUpdated(updatedDataset)
+  //     }
+  //     return undefined
+  //   },
+  //   {
+  //     suspense: false,
+  //     staleTime: 0,
+  //     refetchInterval: 60 * 60 * 1000, // 1 hour
+  //     refetchIntervalInBackground: false,
+  //     refetchOnMount: true,
+  //     refetchOnReconnect: true,
+  //     refetchOnWindowFocus: true,
+  //   },
+  // )
 }

@@ -10,8 +10,8 @@ import { DatasetListEntry } from 'src/components/Main/DatasetListEntry'
 export interface DatasetSelectorListProps {
   datasetsActive: Dataset[]
   datasetsInactive?: Dataset[]
-  datasetHighlighted?: Dataset
-  onDatasetHighlighted?(dataset?: Dataset): void
+  datasetsHighlighted: Dataset[]
+  onDatasetsHighlighted(dataset: Dataset[]): void
   searchTerm: string
   showSuggestions?: boolean
 }
@@ -19,14 +19,14 @@ export interface DatasetSelectorListProps {
 export function DatasetSelectorList({
   datasetsActive,
   datasetsInactive = [],
-  datasetHighlighted,
-  onDatasetHighlighted,
+  datasetsHighlighted,
+  onDatasetsHighlighted,
   searchTerm,
   showSuggestions,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
+  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetsHighlighted([dataset]), [onDatasetsHighlighted])
 
-  const listItemsRef = useScrollListToDataset(datasetHighlighted)
+  const listItemsRef = useScrollListToDataset(datasetsHighlighted[0])
 
   const searchResult = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -53,7 +53,7 @@ export function DatasetSelectorList({
             ref={nodeRefSetOrDelete(listItemsRef.current, dataset.path)}
             dataset={dataset}
             onClick={onItemClick(dataset)}
-            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            isCurrent={areDatasetsEqual(dataset, datasetsHighlighted[0])}
             showSuggestions={showSuggestions}
           />
         ))}
@@ -64,14 +64,14 @@ export function DatasetSelectorList({
             ref={nodeRefSetOrDelete(listItemsRef.current, dataset.path)}
             dataset={dataset}
             onClick={onItemClick(dataset)}
-            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
+            isCurrent={areDatasetsEqual(dataset, datasetsHighlighted[0])}
             showSuggestions={showSuggestions}
             isDimmed
           />
         ))}
       </Ul>
     ),
-    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick, showSuggestions],
+    [datasetsHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick, showSuggestions],
   )
 }
 

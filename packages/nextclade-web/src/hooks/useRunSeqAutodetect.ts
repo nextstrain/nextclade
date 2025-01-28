@@ -1,4 +1,4 @@
-import { first, get, isNil, mean, sortBy, uniq } from 'lodash'
+import { findKey, first, get, isNil, mean, some, sortBy, uniq } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
@@ -116,9 +116,14 @@ export class SeqAutodetectWasmWorker {
   }
 }
 
-export function groupByDatasets(records: MinimizerSearchRecord[]) {
+export interface MinimizerSearchRecordGroup {
+  records: MinimizerSearchRecord[]
+  meanScore: number
+}
+
+export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecordGroup> {
   const names = uniq(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
-  let byDataset: Record<string, { records: MinimizerSearchRecord[]; meanScore: number }> = {}
+  let byDataset: Record<string, MinimizerSearchRecordGroup> = {}
   // eslint-disable-next-line no-loops/no-loops
   for (const name of names) {
     // Find sequence records which match this dataset
@@ -177,4 +182,18 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
   const numSuggestions = datasetsActive.length
 
   return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions, recordsByDataset }
+}
+
+export function findDatasetNameBySeqNameStrings(
+  seqsNamesByDataset: Record<string, string[]>,
+  seqName: string,
+): string | undefined {
+  return findKey(seqsNamesByDataset, (names) => names.includes(seqName))
+}
+
+export function findDatasetNameBySeqNameRecords(
+  recordsByDataset: Record<string, MinimizerSearchRecordGroup>,
+  seqName: string,
+): string | undefined {
+  return findKey(recordsByDataset, (group) => some(group.records, { fastaRecord: { seqName } }))
 }

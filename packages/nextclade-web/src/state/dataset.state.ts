@@ -1,6 +1,7 @@
 import { isNil } from 'lodash'
-import { atom, DefaultValue, selector } from 'recoil'
+import { atom, atomFamily, DefaultValue, selector } from 'recoil'
 import { autodetectResultsAtom } from 'src/state/autodetect.state'
+import { multiAtom } from 'src/state/utils/multiAtom'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
@@ -17,35 +18,39 @@ export const datasetsAtom = atom<Datasets>({
   key: 'datasets',
 })
 
-const datasetCurrentStorageAtom = atom<Dataset | undefined>({
-  key: 'datasetCurrentStorage',
+const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({
+  key: 'datasetsCurrentStorage',
   default: undefined,
   effects: [persistAtom],
 })
 
-export const datasetCurrentAtom = selector<Dataset | undefined>({
-  key: 'datasetCurrent',
+export const datasetsCurrentAtom = selector<Dataset[] | undefined>({
+  key: 'datasetsCurrent',
   get({ get }) {
-    return get(datasetCurrentStorageAtom)
+    return get(datasetsCurrentStorageAtom)
   },
-  set({ set, reset }, dataset: Dataset | undefined | DefaultValue) {
-    if (isDefaultValue(dataset) || isNil(dataset)) {
+  set({ set, reset }, datasets: Dataset[] | undefined | DefaultValue) {
+    if (isDefaultValue(datasets) || isNil(datasets)) {
       reset(autodetectResultsAtom)
-      reset(datasetCurrentStorageAtom)
+      reset(datasetsCurrentStorageAtom)
     } else {
-      set(datasetCurrentStorageAtom, dataset)
+      set(datasetsCurrentStorageAtom, datasets)
     }
   },
 })
 
-export const datasetUpdatedAtom = atom<Dataset | undefined>({
+export const viewedDatasetNameAtom = atom<string>({
+  key: 'viewedDatasetName',
+  default: undefined,
+})
+
+export const datasetUpdatedAtom = atomFamily<Dataset | undefined, { datasetName: string }>({
   key: 'datasetUpdated',
   default: undefined,
 })
 
-export const cdsOrderPreferenceAtom = atom<string[]>({
+export const [cdsOrderPreferenceAtom, allCdsOrderPreferenceAtom] = multiAtom<string[], { datasetName: string }>({
   key: 'cdsOrderPreferenceAtom',
-  default: [],
 })
 
 export const minimizerIndexVersionAtom = atom<MinimizerIndexVersion | undefined>({

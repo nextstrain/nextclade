@@ -7,6 +7,7 @@ import {
   NavItem as NavItemBase,
 } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled, { useTheme } from 'styled-components'
 import { BsCaretRightFill as ArrowRight } from 'react-icons/bs'
 import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
@@ -148,7 +149,8 @@ export function NavigationBar() {
   const { t } = useTranslationSafe()
   const { pathname } = useRouter()
 
-  const hasTree = useRecoilValue(hasTreeAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const hasTree = useRecoilValue(hasTreeAtom({ datasetName }))
   const hasRan = useRecoilValue(hasRanAtom)
   const canDownload = useRecoilValue(canDownloadAtom)
 

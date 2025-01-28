@@ -354,7 +354,9 @@ pub fn dataset_json_load(
     }
   };
 
-  NextcladeParams::from_auspice(&auspice_json, &overrides, cdses)
+  // TODO: should we support multiple datasets here?
+  let mut datasets = NextcladeParams::from_auspice(&auspice_json, &overrides, cdses)?;
+  Ok(datasets.remove(0))
 }
 
 pub fn dataset_individual_files_load(

@@ -5,16 +5,16 @@ import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase, CardL1Header } from 'src/components/Common/Card'
 import { ButtonSortByDataset } from 'src/components/Main/ButtonSortByDataset'
+import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
 import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { autodetectShouldSetCurrentDatasetAtom } from 'src/state/autodetect.state'
 import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { DatasetCurrentSummary } from 'src/components/Main/DatasetCurrentSummary'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
@@ -118,7 +118,7 @@ export function LandingCardQuerySeqPicker() {
 
 export function LandingCardDataset() {
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
+  const dataset = useRecoilValue(datasetsCurrentAtom)
   const text = useMemo(() => {
     if (isNil(dataset)) {
       return t('Select reference dataset')
@@ -166,22 +166,22 @@ function DatasetCurrentOrSelectButton() {
     // eslint-disable-next-line no-void
     void push('/sort')
   }, [push, runSuggest])
-  const [dataset, setDataset] = useRecoilState(datasetCurrentAtom)
-  const { topSuggestion } = useDatasetSuggestionResults()
+  const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
+  const { datasetsActive } = useDatasetSuggestionResults()
   const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
 
   useEffect(() => {
-    if (!dataset || autodetectShouldSetCurrentDataset) {
-      setDataset(topSuggestion)
+    if (!datasetsCurrent || autodetectShouldSetCurrentDataset) {
+      setDatasetsCurrent(datasetsActive)
     }
-  }, [autodetectShouldSetCurrentDataset, dataset, setDataset, topSuggestion])
+  }, [autodetectShouldSetCurrentDataset, datasetsCurrent, datasetsActive, setDatasetsCurrent])
 
   const toDatasetSelection = useCallback(() => {
     // eslint-disable-next-line no-void
     void push('/dataset')
   }, [push])
 
-  if (!dataset) {
+  if (!datasetsCurrent) {
     return (
       <Container>
         <Row noGutters className="mb-1">
@@ -211,7 +211,7 @@ function DatasetCurrentOrSelectButton() {
 
       <Row noGutters className="my-1">
         <Col>
-          <DatasetCurrentSummary />
+          <DatasetCurrentList />
         </Col>
       </Row>
 

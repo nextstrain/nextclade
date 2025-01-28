@@ -5,7 +5,7 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { isAutodetectRunningAtom } from 'src/state/autodetect.state'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { canRunAtom } from 'src/state/results.state'
@@ -19,7 +19,7 @@ export function ButtonRun({ onClick, ...restProps }: ButtonRunProps) {
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
   const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)
-  const dataset = useRecoilValue(datasetCurrentAtom)
+  const dataset = useRecoilValue(datasetsCurrentAtom)
 
   const { t } = useTranslationSafe()
   const { isDisabled, color, tooltip } = useMemo(() => {

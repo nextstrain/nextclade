@@ -1,11 +1,11 @@
 import 'regenerator-runtime'
+import { findDatasetNameBySeqNameStrings } from 'src/hooks/useRunSeqAutodetect'
 
 import { AlgorithmGlobalStatus, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { omit } from 'lodash'
-
 import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
@@ -31,27 +31,34 @@ class LauncherWorkerImpl {
   analysisResultsObservable = new Subject<NextcladeResult>()
 
   // Relays tree result from webworker to the main thread
-  treeObservable = new Subject<OutputTrees>()
+  treeObservable = new Subject<Record<string, OutputTrees>>()
 
   fastaParser!: FastaParserWorker
 
   pool!: AnalysisWorkerPool
 
+  seqsNamesByDataset!: Record<string, string[]>
+
   private constructor() {}
 
-  public static async create(numThreads: number, params: NextcladeParamsRaw) {
+  public static async create(
+    numThreads: number,
+    seqsNamesByDataset: Record<string, string[]>,
+    params: NextcladeParamsRaw,
+  ) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, params)
+    await self.init(numThreads, seqsNamesByDataset, params)
     return self
   }
 
-  private async init(numThreads: number, params: NextcladeParamsRaw) {
+  private async init(numThreads: number, seqsNamesByDataset: Record<string, string[]>, params: NextcladeParamsRaw) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
+    this.seqsNamesByDataset = seqsNamesByDataset
   }
 
-  async getInitialData() {
-    return this.pool.getInitialData()
+  async getInitialData(datasetName: string) {
+    return this.pool.getInitialData(datasetName)
   }
 
   async launch(qryFastaStr: string) {
@@ -67,7 +74,9 @@ class LauncherWorkerImpl {
       )
       await this.pool.completed()
 
-      const trees = await this.pool.getOutputTrees()
+      const datasetNames = Object.keys(this.seqsNamesByDataset)
+      const trees = await this.pool.getOutputTrees(datasetNames)
+
       this.treeObservable.next(trees)
 
       this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.done)
@@ -89,8 +98,11 @@ class LauncherWorkerImpl {
   }
 
   private async onSequenceImpl(record: FastaRecord) {
-    const result = await this.pool.analyze(record)
-    this.analysisResultsObservable.next(result)
+    const datasetName = findDatasetNameBySeqNameStrings(this.seqsNamesByDataset, record.seqName)
+    if (datasetName) {
+      const result = await this.pool.analyze(datasetName, record)
+      this.analysisResultsObservable.next(result)
+    }
   }
 
   private onError(error: unknown) {
@@ -104,14 +116,14 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(numThreads: number, params: NextcladeParamsRaw) {
-    launcher = await LauncherWorkerImpl.create(numThreads, params)
+  async init(numThreads: number, seqsNamesByDataset: Record<string, string[]>, params: NextcladeParamsRaw) {
+    launcher = await LauncherWorkerImpl.create(numThreads, seqsNamesByDataset, params)
   },
-  async getInitialData() {
+  async getInitialData(datasetName: string) {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getInitialData')
     }
-    return launcher.getInitialData()
+    return launcher.getInitialData(datasetName)
   },
   async launch(qryFastaStr: string) {
     if (!launcher) {
@@ -132,19 +144,13 @@ const worker = {
     }
     return ThreadsObservable.from(launcher.analysisGlobalStatusObservable)
   },
-  getParsedFastaObservable(): ThreadsObservable<FastaRecordId> {
-    if (!launcher) {
-      throw new ErrorLauncherModuleNotInitialized('getParsedFastaObservable')
-    }
-    return ThreadsObservable.from(launcher.parsedFastaObservable)
-  },
   getAnalysisResultsObservable(): ThreadsObservable<NextcladeResult> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getAnalysisResultsObservable')
     }
     return ThreadsObservable.from(launcher.analysisResultsObservable)
   },
-  getTreeObservable(): ThreadsObservable<OutputTrees> {
+  getTreeObservable(): ThreadsObservable<Record<string, OutputTrees>> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getTreeObservable')
     }

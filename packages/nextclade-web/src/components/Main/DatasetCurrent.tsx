@@ -1,4 +1,5 @@
 import React from 'react'
+import type { Dataset } from 'src/types'
 import { Col, Row, Container as ContainerBase } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
@@ -7,7 +8,7 @@ import { LinkOpenTree } from 'src/components/Main/LinkOpenTree'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
@@ -61,12 +62,12 @@ const Main = styled.div`
   margin: 0.5rem 0;
 `
 
-export function DatasetCurrent() {
+export function DatasetCurrent({ dataset }: { dataset: Dataset }) {
   // Periodically checks if there's local update for the current dataset
   useUpdatedDataset()
 
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
+
   const run = useRunAnalysis()
 
   if (!dataset) {
@@ -82,7 +83,7 @@ export function DatasetCurrent() {
       <Container>
         <Header>
           <CurrentDatasetInfoBody>
-            <DatasetCurrentUpdateNotification />
+            <DatasetCurrentUpdateNotification dataset={dataset} />
 
             <Row noGutters className="w-100">
               <Col className="d-flex">
@@ -94,7 +95,7 @@ export function DatasetCurrent() {
               <Col className="d-flex">
                 <div className="d-flex ml-auto">
                   <LinkOpenTree className="my-auto" dataset={dataset} />
-                  <ButtonLoadExample />
+                  <ButtonLoadExample dataset={dataset} />
                 </div>
               </Col>
             </Row>
@@ -102,9 +103,20 @@ export function DatasetCurrent() {
         </Header>
 
         <Main>
-          <DatasetContentSection />
+          <DatasetContentSection dataset={dataset} />
         </Main>
       </Container>
     </CurrentDatasetInfoContainer>
+  )
+}
+
+export function DatasetCurrentList() {
+  const datasets = useRecoilValue(datasetsCurrentAtom)
+  return (
+    <div>
+      {datasets?.map((dataset) => (
+        <DatasetCurrent key={dataset.path} dataset={dataset} />
+      ))}
+    </div>
   )
 }

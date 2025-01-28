@@ -6,7 +6,6 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -35,22 +34,21 @@ export function useSetExampleSequences() {
   )
 }
 
-export function ButtonLoadExample({ ...rest }) {
+export function ButtonLoadExample({ dataset, ...rest }: { dataset?: Dataset }) {
   const { t } = useTranslationSafe()
 
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
-  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
   const setExampleSequences = useSetExampleSequences()
   const onClick = useCallback(() => {
-    setExampleSequences(datasetCurrent)
-  }, [datasetCurrent, setExampleSequences])
+    setExampleSequences(dataset)
+  }, [dataset, setExampleSequences])
 
   const title = useMemo(
     () =>
-      datasetCurrent?.files?.examples
+      dataset?.files?.examples
         ? t('Load example sequence data (for demonstration)')
         : t('There is no example data in this dataset'),
-    [datasetCurrent?.files?.examples, t],
+    [dataset?.files?.examples, t],
   )
 
   return (
@@ -59,7 +57,7 @@ export function ButtonLoadExample({ ...rest }) {
       color="link"
       onClick={onClick}
       title={title}
-      disabled={!datasetCurrent?.files?.examples || hasInputErrors || !datasetCurrent}
+      disabled={!dataset?.files?.examples || hasInputErrors || !dataset}
     >
       {t('Load example')}
     </ButtonStyled>

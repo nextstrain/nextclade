@@ -1,10 +1,12 @@
 import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
 import { SequenceViewColumnHeader } from 'src/components/SequenceView/SequenceViewColumnHeader'
+import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
 
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
@@ -68,16 +70,18 @@ export function ResultsTable() {
   const seqIndicesImmediate = useRecoilValue(seqIndicesFilteredAtom)
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
-  const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
-  const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom)
-  const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom)
-  const dynamicAaMotifsColumnWidthPx = useRecoilValue(resultsTableDynamicAaMotifsColumnWidthAtomPxAtom)
-  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
-  const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom)
-  const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+
+  const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom({ datasetName }))
+  const dynamicCladeColumnWidthPx = useRecoilValue(resultsTableDynamicCladeColumnWidthPxAtom({ datasetName }))
+  const dynamicPhenotypeColumnWidthPx = useRecoilValue(resultsTableDynamicPhenotypeColumnWidthPxAtom({ datasetName }))
+  const dynamicAaMotifsColumnWidthPx = useRecoilValue(resultsTableDynamicAaMotifsColumnWidthAtomPxAtom({ datasetName }))
+  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
+  const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
+  const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
 
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
-  const viewedGene = useRecoilValue(viewedCdsAtom)
+  const viewedGene = useRecoilValue(viewedCdsAtom({ datasetName })) ?? CDS_OPTION_NUC_SEQUENCE
 
   const rowData: TableRowDatum[] = useMemo(() => {
     return seqIndices.map((seqIndex) => ({
@@ -87,9 +91,9 @@ export function ResultsTable() {
       dynamicCladeColumnWidthPx,
       dynamicPhenotypeColumnWidthPx,
       dynamicAaMotifsColumnWidthPx,
-      cladeNodeAttrDescs,
-      phenotypeAttrDescs,
-      aaMotifsDescs,
+      cladeNodeAttrDescs: cladeNodeAttrDescs ?? [],
+      phenotypeAttrDescs: phenotypeAttrDescs ?? [],
+      aaMotifsDescs: aaMotifsDescs ?? [],
     }))
   }, [
     aaMotifsDescs,
@@ -193,62 +197,68 @@ export function ResultsTable() {
   ) // prettier-ignore
 
   const dynamicCladeColumns = useMemo(() => {
-    return cladeNodeAttrDescs
-      .filter((attr) => !attr.hideInWeb)
-      .map(({ name: attrKey, displayName, description }) => {
-        const sortAsc = sortByCustomNodeAttributes(attrKey, SortDirection.asc)
-        const sortDesc = sortByCustomNodeAttributes(attrKey, SortDirection.desc)
-        return (
-          <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
-            <TableHeaderCellContent>
-              <TableCellText>{displayName}</TableCellText>
-              <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-            </TableHeaderCellContent>
-            <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
-              <h5>{`Column: ${displayName}`}</h5>
-              <p>{description}</p>
-            </ButtonHelpStyled>
-          </TableHeaderCell>
-        )
-      })
+    return (
+      cladeNodeAttrDescs
+        ?.filter((attr) => !attr.hideInWeb)
+        .map(({ name: attrKey, displayName, description }) => {
+          const sortAsc = sortByCustomNodeAttributes(attrKey, SortDirection.asc)
+          const sortDesc = sortByCustomNodeAttributes(attrKey, SortDirection.desc)
+          return (
+            <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
+              <TableHeaderCellContent>
+                <TableCellText>{displayName}</TableCellText>
+                <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+              </TableHeaderCellContent>
+              <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
+                <h5>{`Column: ${displayName}`}</h5>
+                <p>{description}</p>
+              </ButtonHelpStyled>
+            </TableHeaderCell>
+          )
+        }) ?? []
+    )
   }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByCustomNodeAttributes])
 
   const dynamicPhenotypeColumns = useMemo(() => {
-    return phenotypeAttrDescs.map(({ name, nameFriendly, description }) => {
-      const sortAsc = sortByPhenotypeValues(name, SortDirection.asc)
-      const sortDesc = sortByPhenotypeValues(name, SortDirection.desc)
-      return (
-        <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
-          <TableHeaderCellContent>
-            <TableCellText>{nameFriendly}</TableCellText>
-            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
-            <h5>{`Column: ${nameFriendly}`}</h5>
-            <FormattedText text={description} />
-          </ButtonHelpStyled>
-        </TableHeaderCell>
-      )
-    })
+    return (
+      phenotypeAttrDescs?.map(({ name, nameFriendly, description }) => {
+        const sortAsc = sortByPhenotypeValues(name, SortDirection.asc)
+        const sortDesc = sortByPhenotypeValues(name, SortDirection.desc)
+        return (
+          <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{nameFriendly}</TableCellText>
+              <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
+              <h5>{`Column: ${nameFriendly}`}</h5>
+              <FormattedText text={description} />
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+        )
+      }) ?? []
+    )
   }, [phenotypeAttrDescs, sortByPhenotypeValues, dynamicPhenotypeColumnWidthPx])
 
   const dynamicAaMotifsColumns = useMemo(() => {
-    return aaMotifsDescs.map(({ name, nameFriendly, nameShort, description }) => {
-      const sortAsc = sortByMotifs(name, SortDirection.asc)
-      const sortDesc = sortByMotifs(name, SortDirection.desc)
-      return (
-        <TableHeaderCell key={name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
-          <TableHeaderCellContent>
-            <TableCellText>{nameShort}</TableCellText>
-            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier={`btn-help-col-aa-motifs-${name}`} tooltipWidth="600px">
-            <h5>{`Column: ${nameFriendly}`}</h5>
-            <FormattedText text={description} />
-          </ButtonHelpStyled>
-        </TableHeaderCell>
-      )
-    })
+    return (
+      aaMotifsDescs?.map(({ name, nameFriendly, nameShort, description }) => {
+        const sortAsc = sortByMotifs(name, SortDirection.asc)
+        const sortDesc = sortByMotifs(name, SortDirection.desc)
+        return (
+          <TableHeaderCell key={name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{nameShort}</TableCellText>
+              <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier={`btn-help-col-aa-motifs-${name}`} tooltipWidth="600px">
+              <h5>{`Column: ${nameFriendly}`}</h5>
+              <FormattedText text={description} />
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+        )
+      }) ?? []
+    )
   }, [aaMotifsDescs, sortByMotifs, dynamicAaMotifsColumnWidthPx])
 
   return (

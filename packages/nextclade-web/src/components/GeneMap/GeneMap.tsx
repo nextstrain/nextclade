@@ -3,9 +3,10 @@ import { transparentize } from 'polished'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { isInNucleotideViewAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
-import { BASE_MIN_WIDTH_PX } from 'src/constants'
+import { BASE_MIN_WIDTH_PX, CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
 import type { Cds, CdsSegment } from 'src/types'
 import { cdsSegmentAaLength, cdsSegmentNucLength, rangeLen } from 'src/types'
 import { cdsesAtom, genomeSizeAtom } from 'src/state/results.state'
@@ -85,7 +86,8 @@ export function CdsSegmentView({
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const setViewedGene = useSetRecoilState(viewedCdsAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const setViewedGene = useSetRecoilState(viewedCdsAtom({ datasetName }))
 
   const [hovered, setHovered] = useState(false)
   const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined)
@@ -219,18 +221,19 @@ export function CdsSegmentView({
 export type GeneMapProps = ReactResizeDetectorDimensions
 
 export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
-  const cdsesAll = useRecoilValue(cdsesAtom)
-  const genomeSize = useRecoilValue(genomeSizeAtom)
-  const viewedGene = useRecoilValue(viewedCdsAtom)
-  const isInNucView = useRecoilValue(isInNucleotideViewAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cdsesAll = useRecoilValue(cdsesAtom({ datasetName }))
+  const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
+  const viewedCds = useRecoilValue(viewedCdsAtom({ datasetName })) ?? CDS_OPTION_NUC_SEQUENCE
+  const isInNucView = useRecoilValue(isInNucleotideViewAtom({ datasetName }))
 
   const svgConfig = useMemo(() => {
-    const cdses = isInNucView ? cdsesAll : cdsesAll.filter((cds) => cds.name === viewedGene)
-    if (isEmpty(cdses)) {
+    const cdses = isInNucView ? cdsesAll : cdsesAll?.filter((cds) => cds.name === viewedCds)
+    if (isNil(cdses) || isEmpty(cdses)) {
       return undefined
     }
 
-    const length = getAxisLength(genomeSize, viewedGene, cdses)
+    const length = getAxisLength(genomeSize, viewedCds, cdses)
     const pixelsPerBase = width / length
     const cdsSegments = cdses.flatMap((cds) => cds.segments)
     const { geneFrameOffset, geneStrandOffset, geneMapHeight } = getGeneMapDimensions(cdsSegments, isInNucView)
@@ -254,7 +257,7 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
     )
 
     return { viewBox, cdsSegViews, geneMapHeight }
-  }, [cdsesAll, genomeSize, isInNucView, viewedGene, width])
+  }, [cdsesAll, genomeSize, isInNucView, viewedCds, width])
 
   if (!width || !height || isNil(svgConfig)) {
     return (

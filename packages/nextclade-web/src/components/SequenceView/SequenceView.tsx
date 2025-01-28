@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue } from 'recoil'
 import { REF_NODE_ROOT } from 'src/constants'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import type { AnalysisResult } from 'src/types'
 import { currentRefNodeNameAtom } from 'src/state/results.state'
 import { SequenceViewAbsolute } from './SequenceViewAbsolute'
@@ -13,7 +14,8 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName })) ?? REF_NODE_ROOT
 
   const view = useMemo(() => {
     if (!width) {

@@ -2,15 +2,9 @@ import { useRouter } from 'next/router'
 import React, { useCallback } from 'react'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import styled from 'styled-components'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { Row as RowBase, Col as ColBase } from 'reactstrap'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { DatasetAutosuggestionResultsList } from 'src/components/Main/DatasetSelector'
-import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
-
-export interface StepDatasetSelectionProps {
-  toLanding(): void
-}
+import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
 
 export function StepDatasetSelection() {
   return (
@@ -46,9 +40,6 @@ const MainFixed = styled.div`
 `
 
 function DatasetSelection() {
-  const dataset = useRecoilValue(datasetCurrentAtom)
-  const setDataset = useSetRecoilState(datasetCurrentAtom)
-
   const { push } = useRouter()
   const toMainPage = useCallback(() => {
     void push('/') // eslint-disable-line no-void
@@ -63,12 +54,12 @@ function DatasetSelection() {
               <QuerySequenceList toMainPage={toMainPage} />
             </MainFixed>
             <Main>
-              <DatasetAutosuggestionResultsList datasetHighlighted={dataset} onDatasetHighlighted={setDataset} />
+              <DatasetAutosuggestionResultsList />
             </Main>
           </Container>
         </Col>
         <Col lg={6}>
-          <DatasetCurrent />
+          <DatasetCurrentList />
         </Col>
       </Row>
     </Wrapper>

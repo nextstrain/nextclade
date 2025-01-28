@@ -1,4 +1,5 @@
-import type { AnalysisInitialData, AnalysisResult, FastaRecord, NextcladeParamsRaw } from 'src/types'
+import { concurrent } from 'fasy'
+import type { AnalysisInitialData, AnalysisResult, FastaRecord, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
 import { PoolExtended } from 'src/workers/ThreadPoolExtended'
 
@@ -29,12 +30,12 @@ export class AnalysisWorkerPool {
     await this.pool.forEachWorker(async (worker) => worker.create(params))
   }
 
-  public async getInitialData(): Promise<AnalysisInitialData> {
-    return this.pool.queue((worker) => worker.getInitialData())
+  public async getInitialData(datasetName: string): Promise<AnalysisInitialData> {
+    return this.pool.queue((worker) => worker.getInitialData(datasetName))
   }
 
-  public async analyze(record: FastaRecord) {
-    const result = await this.pool.queue((worker) => worker.analyze(record))
+  public async analyze(datasetName: string, record: FastaRecord) {
+    const result = await this.pool.queue((worker) => worker.analyze(datasetName, record))
 
     if (result.result) {
       this.results.push(result.result.analysisResult)
@@ -43,8 +44,13 @@ export class AnalysisWorkerPool {
     return result
   }
 
-  public async getOutputTrees() {
-    return this.pool.queue((worker) => worker.getOutputTrees(JSON.stringify(this.results)))
+  public async getOutputTrees(datasetNames: string[]): Promise<Record<string, OutputTrees>> {
+    return Object.fromEntries(
+      await concurrent.map(async (datasetName) => {
+        const tree = await this.pool.queue((worker) => worker.getOutputTrees(datasetName, JSON.stringify(this.results)))
+        return [datasetName, tree]
+      }, datasetNames),
+    )
   }
 
   public async destroy() {

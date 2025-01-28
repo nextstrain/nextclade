@@ -1,16 +1,18 @@
 use crate::wasm::jserr::jserr;
-use eyre::WrapErr;
+use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
+use nextclade::make_internal_report;
 use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult};
 use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::error::report_to_string;
+use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 
 /// Nextclade WebAssembly module.
@@ -18,7 +20,7 @@ use wasm_bindgen::prelude::*;
 /// Encapsulates all the Nextclade Rust functionality required for Nextclade Web to operate.
 #[wasm_bindgen]
 pub struct NextcladeWasm {
-  nextclade: Nextclade,
+  nextclades: BTreeMap<String, Nextclade>,
 }
 
 #[wasm_bindgen]
@@ -27,16 +29,43 @@ impl NextcladeWasm {
     let params_raw: NextcladeParamsRaw =
       jserr(json_parse(params).wrap_err_with(|| "When parsing Nextclade params JSON"))?;
 
-    let inputs: NextcladeParams =
+    let inputs: Vec<NextcladeParams> =
       jserr(NextcladeParams::from_raw(params_raw).wrap_err_with(|| "When parsing raw Nextclade params"))?;
 
     // FIXME: pass params from the frontend
     let params = NextcladeInputParamsOptional::default();
 
-    let nextclade: Nextclade =
-      jserr(Nextclade::new(inputs, vec![], &params).wrap_err_with(|| "When initializing Nextclade runner"))?;
+    let nextclades = jserr(
+      inputs
+        .into_iter()
+        .map(|inputs| {
+          let dataset_name = inputs.dataset_name.clone();
+          let nextclade = Nextclade::new(inputs, vec![], &params)
+            .wrap_err_with(|| format!("When initializing Nextclade runner for {dataset_name}"))?;
+          Ok((dataset_name, nextclade))
+        })
+        .collect::<Result<BTreeMap<String, Nextclade>, Report>>(),
+    )?;
 
-    Ok(Self { nextclade })
+    Ok(Self { nextclades })
+  }
+
+  fn get_nextclade_for_dataset(&self, dataset_name: &str) -> Result<&Nextclade, JsError> {
+    jserr(
+      self
+        .nextclades
+        .get(dataset_name)
+        .ok_or_else(|| make_internal_report!("Nextclade instance is not found for dataset '{dataset_name}'")),
+    )
+  }
+
+  fn get_mut_nextclade_for_dataset(&mut self, dataset_name: &str) -> Result<&mut Nextclade, JsError> {
+    jserr(
+      self
+        .nextclades
+        .get_mut(dataset_name)
+        .ok_or_else(|| make_internal_report!("Nextclade instance is not found for dataset '{dataset_name}'")),
+    )
   }
 
   pub fn parse_query_sequences(qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
@@ -61,16 +90,23 @@ impl NextcladeWasm {
     Ok(())
   }
 
-  pub fn get_initial_data(&self) -> Result<String, JsError> {
-    let initial_data = self.nextclade.get_initial_data();
+  pub fn get_initial_data(&self, dataset_name: &str) -> Result<String, JsError> {
+    let initial_data = self.get_nextclade_for_dataset(dataset_name)?.get_initial_data();
     jserr(json_stringify(&initial_data, JsonPretty(false)))
   }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
-  pub fn analyze(&mut self, input: &str) -> Result<String, JsError> {
+  pub fn analyze(&mut self, dataset_name: &str, input: &str) -> Result<String, JsError> {
     let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
 
-    let result = jserr(match self.nextclade.run(&input) {
+    let nextclade = jserr(
+      self
+        .nextclades
+        .get(dataset_name)
+        .ok_or_else(|| make_internal_report!("Nextclade instance is not found for dataset '{dataset_name}'")),
+    )?;
+
+    let result = jserr(match nextclade.run(&input) {
       Ok(result) => Ok(NextcladeResult {
         index: input.index,
         seq_name: input.seq_name.clone(),
@@ -90,9 +126,13 @@ impl NextcladeWasm {
 
   /// Takes ALL analysis results, runs tree placement and returns output tree.
   /// This should only run once, in one of the webworkers.
-  pub fn get_output_trees(&mut self, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
+  pub fn get_output_trees(&mut self, dataset_name: &str, nextclade_outputs_json_str: &str) -> Result<String, JsError> {
     let nextclade_outputs = jserr(NextcladeOutputs::many_from_str(nextclade_outputs_json_str))?;
-    let trees = jserr(self.nextclade.get_output_trees(nextclade_outputs))?;
+    let trees = jserr(
+      self
+        .get_mut_nextclade_for_dataset(dataset_name)?
+        .get_output_trees(nextclade_outputs),
+    )?;
     jserr(json_stringify(&trees, JsonPretty(false)))
   }
 

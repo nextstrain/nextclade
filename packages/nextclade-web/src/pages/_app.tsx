@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-await-expression-member */
 import 'reflect-metadata'
 import 'core-js'
 import 'css.escape'
@@ -42,7 +43,7 @@ import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import {
-  datasetCurrentAtom,
+  datasetsCurrentAtom,
   datasetsAtom,
   datasetServerUrlAtom,
   minimizerIndexVersionAtom,
@@ -109,7 +110,7 @@ function RecoilStateInitializer() {
       })
       .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
         set(datasetsAtom, { datasets })
-        let previousDataset = await getPromise(datasetCurrentAtom)
+        let previousDataset = (await getPromise(datasetsCurrentAtom))?.[0]
         if (previousDataset?.type === 'auspiceJson') {
           // Disregard previously saved dataset if it's Auspice dataset, because the data is no longer available.
           // We might re-fetch instead, but need to persist URL for that somehow.
@@ -117,7 +118,7 @@ function RecoilStateInitializer() {
         }
 
         const dataset = currentDataset ?? previousDataset
-        set(datasetCurrentAtom, dataset)
+        set(datasetsCurrentAtom, dataset ? [dataset] : [])
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
 
         if (dataset?.type === 'auspiceJson' && !isNil(auspiceJson)) {

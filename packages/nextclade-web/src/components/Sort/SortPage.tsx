@@ -1,8 +1,9 @@
 import { sortBy } from 'lodash'
 import { formatReference } from 'src/components/Main/DatasetInfo'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { attrStrMaybe, Dataset, MinimizerSearchRecord } from 'src/types'
 import { mix, transparentize } from 'polished'
-import React, { CSSProperties, useMemo } from 'react'
+import React, { CSSProperties, useCallback, useMemo } from 'react'
 import { ListChildComponentProps } from 'react-window'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState } from 'recoil'
@@ -77,10 +78,18 @@ const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
 export function SortPage() {
   const { t } = useTranslationSafe()
 
-  const run = useRunAnalysisMany()
   const { recordsByDataset } = useDatasetSuggestionResults()
-
   const [datasets] = useRecoilState(datasetsAtom)
+
+  const selectedDatasets: Dataset[] = useMemo(() => {
+    if (!recordsByDataset) {
+      return []
+    }
+    const selectedDatasetNames = Object.keys(recordsByDataset)
+    return datasets.datasets.filter((dataset) => selectedDatasetNames.includes(dataset.path))
+  }, [datasets.datasets, recordsByDataset])
+
+  const run = useRunAnalysisMany(selectedDatasets)
 
   const results = useMemo(() => {
     if (!recordsByDataset) {
@@ -182,8 +191,15 @@ export function SortPage() {
   )
 }
 
-export function useRunAnalysisMany() {
-  return () => {}
+export function useRunAnalysisMany(selectedDatasets: Dataset[]) {
+  const run = useRunAnalysis()
+  // const setDatasetCurrent = useSetRecoilState(datasetsCurrentAtom)
+  return useCallback(() => {
+    run()
+    // selectedDatasets.forEach((selectedDataset) => {
+    //   setDatasetCurrent(selectedDataset)
+    // })
+  }, [run])
 }
 
 export interface SortingTableRowDatum extends MinimizerSearchRecord {

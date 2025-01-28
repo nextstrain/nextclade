@@ -41,12 +41,18 @@ pub struct NextcladeParams {
   pub virus_properties: VirusProperties,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct NextcladeParamsMany {
+  pub params: Vec<NextcladeParams>,
+}
+
 impl NextcladeParams {
   pub fn from_auspice(
     auspice_json: &AuspiceTree,
     overrides: &NextcladeParamsOptional,
     cdses: &Option<Vec<String>>,
-  ) -> Result<Self, Report> {
+  ) -> Result<Vec<Self>, Report> {
     let virus_properties = find_some(&[
       &overrides.virus_properties,
       &auspice_json.meta.extensions.nextclade.pathogen,
@@ -100,40 +106,40 @@ impl NextcladeParams {
       }
     };
 
-    Ok(Self {
+    Ok(vec![Self {
       dataset_name: overrides.dataset_name.as_ref().unwrap().clone(),
       ref_record,
       gene_map,
       tree,
       virus_properties,
-    })
+    }])
   }
 
-  pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Self, Report> {
+  pub fn from_raw(raw: NextcladeParamsRaw) -> Result<Vec<Self>, Report> {
     match raw {
       NextcladeParamsRaw::Auspice(raw) => {
         let auspice_json = AuspiceTree::from_str(raw.auspice_json)?;
 
-        let dataset_name = Some("Auspice JSON".to_owned());
+        let dataset_name = Some(raw.dataset_name);
 
         let overrides = {
           let virus_properties = raw
-            .virus_properties
+            .pathogen_json
             .map_ref_fallible(VirusProperties::from_str)
             .wrap_err("When parsing pathogen JSON")?;
 
           let ref_record = raw
-            .ref_seq
+            .reference
             .map_ref_fallible(read_one_fasta_str)
             .wrap_err("When parsing reference sequence")?;
 
           let tree = raw
-            .tree
+            .tree_json
             .map_ref_fallible(AuspiceTree::from_str)
             .wrap_err("When parsing reference tree Auspice JSON v2")?;
 
           let gene_map = raw
-            .gene_map
+            .genome_annotation
             .map_ref_fallible(GeneMap::from_str)
             .wrap_err("When parsing genome annotation")?;
 
@@ -154,39 +160,42 @@ impl NextcladeParams {
 
         Self::from_auspice(&auspice_json, &overrides, &None)
       }
-      NextcladeParamsRaw::Dir(raw) => {
-        let dataset_name = raw.dataset_name;
+      NextcladeParamsRaw::Dir(raw) => raw
+        .into_iter()
+        .map(|raw| {
+          let dataset_name = raw.dataset_name;
 
-        let virus_properties =
-          VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
+          let virus_properties =
+            VirusProperties::from_str(&raw.pathogen_json).wrap_err("When parsing pathogen JSON")?;
 
-        let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
+          let ref_record = read_one_fasta_str(&raw.reference).wrap_err("When parsing reference sequence")?;
 
-        let tree = raw
-          .tree
-          .map(|tree| AuspiceTree::from_str(tree).wrap_err("When parsing reference tree Auspice JSON v2"))
-          .transpose()?;
+          let tree = raw
+            .tree_json
+            .map(|tree| AuspiceTree::from_str(tree).wrap_err("When parsing reference tree Auspice JSON v2"))
+            .transpose()?;
 
-        let gene_map = raw
-          .gene_map
-          .map(|gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"))
-          .transpose()?
-          .unwrap_or_default();
+          let gene_map = raw
+            .genome_annotation
+            .map(|gene_map| GeneMap::from_str(gene_map).wrap_err("When parsing genome annotation"))
+            .transpose()?
+            .unwrap_or_default();
 
-        if let Some(tree) = &tree {
-          if let Some(tree_ref) = tree.root_sequence() {
-            check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+          if let Some(tree) = &tree {
+            if let Some(tree_ref) = tree.root_sequence() {
+              check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
+            }
           }
-        }
 
-        Ok(Self {
-          dataset_name,
-          ref_record,
-          gene_map,
-          tree,
-          virus_properties,
+          Ok(Self {
+            dataset_name,
+            ref_record,
+            gene_map,
+            tree,
+            virus_properties,
+          })
         })
-      }
+        .collect::<Result<Vec<Self>, Report>>(),
     }
   }
 }
@@ -194,28 +203,28 @@ impl NextcladeParams {
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeParamsRawAuspice {
+  pub dataset_name: String,
   pub auspice_json: String,
-  pub ref_seq: Option<String>,
-  pub gene_map: Option<String>,
-  pub tree: Option<String>,
-  pub virus_properties: Option<String>,
+  pub reference: Option<String>,
+  pub genome_annotation: Option<String>,
+  pub tree_json: Option<String>,
+  pub pathogen_json: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeParamsRawDir {
   pub dataset_name: String,
-  #[schemars(with = "String")]
-  pub ref_seq: String,
-  pub gene_map: Option<String>,
-  pub tree: Option<String>,
-  pub virus_properties: String,
+  pub reference: String,
+  pub genome_annotation: Option<String>,
+  pub tree_json: Option<String>,
+  pub pathogen_json: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 pub enum NextcladeParamsRaw {
   Auspice(NextcladeParamsRawAuspice),
-  Dir(NextcladeParamsRawDir),
+  Dir(Vec<NextcladeParamsRawDir>),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]

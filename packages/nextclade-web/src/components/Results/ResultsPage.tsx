@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import { Layout } from 'src/components/Layout/Layout'
@@ -42,7 +43,8 @@ const Footer = styled.footer`
 `
 
 export function ResultsPage() {
-  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName }))
 
   return (
     <Layout>

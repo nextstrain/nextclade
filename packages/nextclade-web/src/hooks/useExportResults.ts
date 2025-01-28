@@ -2,6 +2,7 @@
 import { isEmpty, isNil } from 'lodash'
 import { useState } from 'react'
 import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import type { AnalysisError, AnalysisOutput } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
@@ -120,10 +121,13 @@ export function useExportFasta() {
 async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delimiter: string) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
   const errors = await mapErrors(snapshot, (err) => err)
-  const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
-  const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
-  const refNodes = await snapshot.getPromise(refNodesAtom)
-  const aaMotifsDescs = await snapshot.getPromise(aaMotifsDescsAtom)
+
+  const datasetName = await snapshot.getPromise(viewedDatasetNameAtom)
+
+  const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom({ datasetName }))
+  const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom({ datasetName }))
+  const refNodes = await snapshot.getPromise(refNodesAtom({ datasetName }))
+  const aaMotifsDescs = await snapshot.getPromise(aaMotifsDescsAtom({ datasetName }))
   const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
   if (!csvColumnConfig) {
     throw new ErrorInternal('CSV column config is not initialized, but it should be')
@@ -132,10 +136,10 @@ async function prepareResultsCsv(snapshot: Snapshot, worker: ExportWorker, delim
   return worker.serializeResultsCsv(
     results,
     errors,
-    cladeNodeAttrDescs,
-    phenotypeAttrDescs,
-    refNodes,
-    aaMotifsDescs,
+    cladeNodeAttrDescs ?? [],
+    phenotypeAttrDescs ?? [],
+    refNodes ?? {},
+    aaMotifsDescs ?? [],
     delimiter,
     csvColumnConfig,
   )
@@ -158,9 +162,13 @@ export function useExportTsv() {
 async function prepareResultsJson(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
   const errors = await mapErrors(snapshot, (err) => err)
-  const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom)
-  const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom)
-  const refNodes = await snapshot.getPromise(refNodesAtom)
+
+  const datasetName = await snapshot.getPromise(viewedDatasetNameAtom)
+
+  const cladeNodeAttrDescs = (await snapshot.getPromise(cladeNodeAttrDescsAtom({ datasetName }))) ?? []
+  const phenotypeAttrDescs = (await snapshot.getPromise(phenotypeAttrDescsAtom({ datasetName }))) ?? []
+  const refNodes = (await snapshot.getPromise(refNodesAtom({ datasetName }))) ?? {}
+
   return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, PACKAGE_VERSION)
 }
 
@@ -185,7 +193,8 @@ export function useExportNdjson() {
 }
 
 async function prepareOutputTree(snapshot: Snapshot) {
-  const tree = await snapshot.getPromise(treeAtom)
+  const datasetName = await snapshot.getPromise(viewedDatasetNameAtom)
+  const tree = await snapshot.getPromise(treeAtom({ datasetName }))
   if (!tree) {
     return undefined
   }
@@ -193,7 +202,8 @@ async function prepareOutputTree(snapshot: Snapshot) {
 }
 
 export function useExportTree() {
-  const tree = useRecoilValue(treeAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const tree = useRecoilValue(treeAtom({ datasetName }))
   const res = useResultsExport(async (filename, snapshot) => {
     const jsonStr = await prepareOutputTree(snapshot)
     if (isNil(jsonStr)) {
@@ -208,15 +218,13 @@ export function useExportTree() {
 }
 
 export async function prepareOutputTreeNwk(snapshot: Snapshot) {
-  const treeNwk = await snapshot.getPromise(treeNwkAtom)
-  if (!treeNwk) {
-    return undefined
-  }
-  return treeNwk
+  const datasetName = await snapshot.getPromise(viewedDatasetNameAtom)
+  return snapshot.getPromise(treeNwkAtom({ datasetName }))
 }
 
 export function useExportTreeNwk() {
-  const tree = useRecoilValue(treeNwkAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const tree = useRecoilValue(treeNwkAtom({ datasetName }))
 
   const res = useResultsExport(async (filename, snapshot, _) => {
     const nwk = await prepareOutputTreeNwk(snapshot)
@@ -260,7 +268,8 @@ async function preparePeptideFiles(snapshot: Snapshot) {
 }
 
 export function useExportPeptides() {
-  const cdses = useRecoilValue(cdsesAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cdses = useRecoilValue(cdsesAtom({ datasetName }))
 
   const res = useResultsExport(async (filename, snapshot) => {
     const files = await preparePeptideFiles(snapshot)
