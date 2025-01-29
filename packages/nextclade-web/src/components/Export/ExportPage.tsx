@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
+import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import styled from 'styled-components'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
@@ -15,6 +16,11 @@ export function ExportPage() {
   return (
     <Layout>
       <Container>
+        <div>
+          <label> {t('Select dataset')}</label>
+          <ViewedDatasetSelector />
+        </div>
+
         <Header>
           <h4 className="mx-auto">{t('Download output files')}</h4>
         </Header>

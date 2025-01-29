@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import styled, { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { connect } from 'react-redux'
@@ -98,6 +99,7 @@ function TreePageContentDisconnected({ treeMeta }: TreePageProps) {
   return (
     <Container>
       <MainContent>
+        <ViewedDatasetSelector />
         <AuspiceContainer>
           {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
           {/* @ts-ignore */}

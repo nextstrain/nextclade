@@ -24,7 +24,7 @@ import { colorHash } from 'src/helpers/colorHash'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { datasetsAtom, datasetsCurrentAtom } from 'src/state/dataset.state'
+import { datasetsAtom, datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 
@@ -194,10 +194,15 @@ export function SortPage() {
 export function useRunAnalysisMany(selectedDatasets: Dataset[]) {
   const run = useRunAnalysis()
   const setDatasetsCurrent = useSetRecoilState(datasetsCurrentAtom)
+  const setViewedDatasetName = useSetRecoilState(viewedDatasetNameAtom)
   return useCallback(() => {
-    setDatasetsCurrent(selectedDatasets)
-    run()
-  }, [run, selectedDatasets, setDatasetsCurrent])
+    if (selectedDatasets.length > 0) {
+      setDatasetsCurrent(selectedDatasets)
+      setViewedDatasetName(selectedDatasets[0].path)
+      run()
+    }
+    throw new ErrorInternal('Attempted to run analysis without any of the datasets selected')
+  }, [run, selectedDatasets, setDatasetsCurrent, setViewedDatasetName])
 }
 
 export interface SortingTableRowDatum extends MinimizerSearchRecord {

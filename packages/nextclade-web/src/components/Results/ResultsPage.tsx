@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
+import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
@@ -51,6 +52,8 @@ export function ResultsPage() {
       <Container>
         <WrapperOuter>
           <WrapperInner $minWidth={totalWidth}>
+            <ViewedDatasetSelector />
+
             <ResultsFilter />
 
             <MainContent>
