@@ -6,7 +6,7 @@ import { mix, transparentize } from 'polished'
 import React, { CSSProperties, useCallback, useMemo } from 'react'
 import { ListChildComponentProps } from 'react-window'
 import { Col, Row } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { AutoSizer, FixedSizeList } from 'src/components/Results/ResultsTable'
 import {
@@ -24,7 +24,7 @@ import { colorHash } from 'src/helpers/colorHash'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { datasetsAtom } from 'src/state/dataset.state'
+import { datasetsAtom, datasetsCurrentAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 
@@ -193,13 +193,11 @@ export function SortPage() {
 
 export function useRunAnalysisMany(selectedDatasets: Dataset[]) {
   const run = useRunAnalysis()
-  // const setDatasetCurrent = useSetRecoilState(datasetsCurrentAtom)
+  const setDatasetsCurrent = useSetRecoilState(datasetsCurrentAtom)
   return useCallback(() => {
+    setDatasetsCurrent(selectedDatasets)
     run()
-    // selectedDatasets.forEach((selectedDataset) => {
-    //   setDatasetCurrent(selectedDataset)
-    // })
-  }, [run])
+  }, [run, selectedDatasets, setDatasetsCurrent])
 }
 
 export interface SortingTableRowDatum extends MinimizerSearchRecord {
