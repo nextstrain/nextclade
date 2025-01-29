@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { ErrorInfo, useMemo } from 'react'
 import type { NextPageContext } from 'next'
 import { Col, Container as ContainerBase, Row } from 'reactstrap'
 import get from 'lodash/get'
@@ -39,10 +39,11 @@ export const MainContent = styled.main`
 export interface ErrorPageProps {
   statusCode?: number
   title?: string
-  error?: Error | undefined
+  error?: Error
+  errorInfo?: ErrorInfo
 }
 
-function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
+function ErrorPage({ statusCode, title, error, errorInfo }: ErrorPageProps) {
   const { t } = useTranslationSafe()
 
   const titleText = useMemo(() => {
@@ -64,11 +65,11 @@ function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
     return (
       <Row noGutters>
         <Col>
-          <ErrorContent error={error} detailed />
+          <ErrorContent error={error} errorInfo={errorInfo} detailed />
         </Col>
       </Row>
     )
-  }, [error])
+  }, [error, errorInfo])
 
   return (
     <Layout>
