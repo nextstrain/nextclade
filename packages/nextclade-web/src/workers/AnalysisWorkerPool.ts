@@ -47,7 +47,10 @@ export class AnalysisWorkerPool {
   public async getOutputTrees(datasetNames: string[]): Promise<Record<string, OutputTrees>> {
     return Object.fromEntries(
       await concurrent.map(async (datasetName) => {
-        const tree = await this.pool.queue((worker) => worker.getOutputTrees(datasetName, JSON.stringify(this.results)))
+        const resultsForDataset = this.results.filter((r) => r.datasetName === datasetName)
+        const tree = await this.pool.queue((worker) =>
+          worker.getOutputTrees(datasetName, JSON.stringify(resultsForDataset)),
+        )
         return [datasetName, tree]
       }, datasetNames),
     )
