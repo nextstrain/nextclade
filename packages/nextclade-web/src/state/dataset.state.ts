@@ -6,16 +6,13 @@ import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
-export interface Datasets {
-  datasets: Dataset[]
-}
-
 export const datasetServerUrlAtom = atom<string>({
   key: 'datasetServerUrlAtom',
 })
 
-export const datasetsAtom = atom<Datasets>({
+export const datasetsAtom = atom<Dataset[]>({
   key: 'datasets',
+  default: [],
 })
 
 const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({

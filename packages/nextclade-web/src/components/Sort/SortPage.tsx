@@ -6,7 +6,7 @@ import { mix, transparentize } from 'polished'
 import React, { CSSProperties, useCallback, useMemo } from 'react'
 import { ListChildComponentProps } from 'react-window'
 import { Col, Row } from 'reactstrap'
-import { useRecoilState } from 'recoil'
+import { useRecoilValue } from 'recoil'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { AutoSizer, FixedSizeList } from 'src/components/Results/ResultsTable'
 import {
@@ -79,15 +79,15 @@ export function SortPage() {
   const { t } = useTranslationSafe()
 
   const { recordsByDataset } = useDatasetSuggestionResults()
-  const [datasets] = useRecoilState(datasetsAtom)
+  const datasets = useRecoilValue(datasetsAtom)
 
   const selectedDatasets: Dataset[] = useMemo(() => {
     if (!recordsByDataset) {
       return []
     }
     const selectedDatasetNames = Object.keys(recordsByDataset)
-    return datasets.datasets.filter((dataset) => selectedDatasetNames.includes(dataset.path))
-  }, [datasets.datasets, recordsByDataset])
+    return datasets.filter((dataset) => selectedDatasetNames.includes(dataset.path))
+  }, [datasets, recordsByDataset])
 
   const run = useRunAnalysisMany(selectedDatasets)
 
@@ -97,7 +97,7 @@ export function SortPage() {
     }
 
     const results = Object.entries(recordsByDataset).flatMap(([datasetName, { records }]) => {
-      const dataset = datasets.datasets.find((dataset) => dataset.path === datasetName)
+      const dataset = datasets.find((dataset) => dataset.path === datasetName)
       if (!dataset) {
         throw new ErrorInternal(`Dataset info not found for: ${datasetName}`)
       }
@@ -108,7 +108,7 @@ export function SortPage() {
         })
     })
     return sortBy(results, (result) => result.fastaRecord.index)
-  }, [datasets.datasets, recordsByDataset])
+  }, [datasets, recordsByDataset])
 
   return (
     <Layout>

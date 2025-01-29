@@ -142,7 +142,7 @@ export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string
 }
 
 export function useDatasetSuggestionResults() {
-  const { datasets } = useRecoilValue(datasetsAtom)
+  const datasets = useRecoilValue(datasetsAtom)
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
   return useMemo(() => processSuggestionResults(datasets, autodetectResults), [autodetectResults, datasets])
 }

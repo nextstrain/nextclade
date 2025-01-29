@@ -109,7 +109,7 @@ function RecoilStateInitializer() {
         throw error
       })
       .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
-        set(datasetsAtom, { datasets })
+        set(datasetsAtom, datasets)
         let previousDataset = (await getPromise(datasetsCurrentAtom))?.[0]
         if (previousDataset?.type === 'auspiceJson') {
           // Disregard previously saved dataset if it's Auspice dataset, because the data is no longer available.

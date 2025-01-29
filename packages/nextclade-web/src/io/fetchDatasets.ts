@@ -116,7 +116,7 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
 export async function initializeDatasets(datasetServerUrl: string, urlQuery: ParsedUrlQuery = {}) {
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
-  const { datasets } = getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
+  const datasets = getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
 
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
@@ -135,7 +135,7 @@ export function useUpdatedDatasetIndex() {
   useQuery(
     'refetchDatasetIndex',
     async () => {
-      const { currentDataset: _, minimizerIndexVersion, ...datasets } = await initializeDatasets(datasetServerUrl)
+      const { minimizerIndexVersion, datasets } = await initializeDatasets(datasetServerUrl)
       setDatasetsState(datasets)
       setMinimizerIndexVersion(minimizerIndexVersion)
     },

@@ -26,7 +26,7 @@ export function ExampleSequencePicker({ ...restProps }: LanguageSwitcherProps) {
   const toggle = useCallback(() => {
     setDropdownOpen((prevState) => !prevState)
   }, [])
-  const { datasets: allDatasets } = useRecoilValue(datasetsAtom)
+  const allDatasets = useRecoilValue(datasetsAtom)
 
   const filtered = useMemo(() => {
     const datasets = allDatasets.filter((dataset) => !isNil(dataset?.files?.examples))
