@@ -1,12 +1,12 @@
 import 'regenerator-runtime'
-import { findDatasetNameBySeqNameStrings } from 'src/hooks/useRunSeqAutodetect'
 
-import { AlgorithmGlobalStatus, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
-import { omit } from 'lodash'
-import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/types'
+import { findKey, omit, some } from 'lodash'
+import { AlgorithmGlobalStatus } from 'src/types'
+import type { FastaRecord, FastaRecordId, NextcladeResult, NextcladeParamsRaw, OutputTrees } from 'src/types'
+import type { MinimizerSearchRecordGroup } from 'src/hooks/useRunSeqAutodetect'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
 import { FastaParserWorker } from 'src/workers/FastaParserThread'
@@ -162,3 +162,17 @@ expose(worker)
 
 export type LauncherWorker = typeof worker
 export type LauncherThread = LauncherWorker & Thread
+
+export function findDatasetNameBySeqNameStrings(
+  seqsNamesByDataset: Record<string, string[]>,
+  seqName: string,
+): string | undefined {
+  return findKey(seqsNamesByDataset, (names) => names.includes(seqName))
+}
+
+export function findDatasetNameBySeqNameRecords(
+  recordsByDataset: Record<string, MinimizerSearchRecordGroup>,
+  seqName: string,
+): string | undefined {
+  return findKey(recordsByDataset, (group) => some(group.records, { fastaRecord: { seqName } }))
+}

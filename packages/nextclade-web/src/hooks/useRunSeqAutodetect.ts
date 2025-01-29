@@ -1,4 +1,4 @@
-import { findKey, first, get, isNil, mean, some, sortBy, uniq } from 'lodash'
+import { first, get, isNil, mean, sortBy, uniq } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
@@ -182,18 +182,4 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
   const numSuggestions = datasetsActive.length
 
   return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions, recordsByDataset }
-}
-
-export function findDatasetNameBySeqNameStrings(
-  seqsNamesByDataset: Record<string, string[]>,
-  seqName: string,
-): string | undefined {
-  return findKey(seqsNamesByDataset, (names) => names.includes(seqName))
-}
-
-export function findDatasetNameBySeqNameRecords(
-  recordsByDataset: Record<string, MinimizerSearchRecordGroup>,
-  seqName: string,
-): string | undefined {
-  return findKey(recordsByDataset, (group) => some(group.records, { fastaRecord: { seqName } }))
 }
