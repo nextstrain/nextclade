@@ -202,7 +202,7 @@ declare module 'auspice' {
   export interface CladeNodeAttrDesc {
     name: string
     displayName: string
-    description: string
+    description?: string
     hideInWeb?: boolean
     skipAsReference?: boolean
   }

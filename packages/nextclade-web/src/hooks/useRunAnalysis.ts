@@ -139,9 +139,7 @@ export function useRunAnalysis() {
               set(cdsOrderPreferenceAtom({ datasetName }), cdsOrderPreference)
             }
 
-            // FIXME: This type is duplicated. One comes from handwritten Auspice typings,
-            //  another from JSON-schema generated types
-            set(cladeNodeAttrDescsAtom({ datasetName }), cladeNodeAttrKeyDescs as unknown as CladeNodeAttrDesc[])
+            set(cladeNodeAttrDescsAtom({ datasetName }), cladeNodeAttrKeyDescs)
             set(phenotypeAttrDescsAtom({ datasetName }), phenotypeAttrDescs)
             set(refNodesAtom({ datasetName }), refNodes)
 
