@@ -1,4 +1,4 @@
-import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { concurrent } from 'fasy'
 import { isEmpty, isNil, mapValues } from 'lodash'
