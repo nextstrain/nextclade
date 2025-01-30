@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { ErrorInfo, useMemo } from 'react'
 
 import styled from 'styled-components'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
@@ -18,11 +18,15 @@ const ExplanationText = styled.section`
   hyphens: auto;
 `
 
-export function getErrorStackText(error: Error) {
+export function getErrorStackText(error?: Error) {
   return error?.stack?.replace(/webpack-internal:\/{3}\.\//g, '')?.replace(/https?:\/\/(.+):\d+\//g, '')
 }
 
-export function getErrorReportText(error: Error) {
+export function getComponentStackText(errorInfo?: ErrorInfo) {
+  return errorInfo?.componentStack.replace(/webpack-internal:\/{3}\.\//g, '')?.replace(/https?:\/\/(.+):\d+\//g, '')
+}
+
+export function getErrorReportText(error: Error, errorInfo?: ErrorInfo) {
   const bowser = typeof window !== 'undefined' ? Bowser.parse(window?.navigator?.userAgent) : 'N/A'
 
   return `
@@ -39,6 +43,10 @@ Browser details: ${JSON.stringify(bowser)}
 Call stack:
 
 ${getErrorStackText(error) ?? 'N/A'}
+
+Component stack:
+
+${getComponentStackText(errorInfo) ?? 'N/A'}
   `
 }
 

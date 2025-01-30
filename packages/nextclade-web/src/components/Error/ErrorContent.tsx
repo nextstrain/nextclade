@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { ErrorInfo, useCallback, useMemo, useState } from 'react'
 import { Button, Col, Row } from 'reactstrap'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
@@ -56,7 +56,7 @@ export function ErrorContentMessage({ error }: { error: Error }) {
   return <ErrorGeneric error={error} />
 }
 
-export function ErrorContent(props: { error?: unknown; detailed?: boolean }) {
+export function ErrorContent(props: { error?: unknown; errorInfo?: ErrorInfo; detailed?: boolean }) {
   const { t } = useTranslationSafe()
   const error = useMemo(() => sanitizeError(props.error), [props.error])
 
