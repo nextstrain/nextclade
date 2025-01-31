@@ -1,7 +1,7 @@
-import { sortBy } from 'lodash'
+import { isEmpty } from 'lodash'
 import { formatReference } from 'src/components/Main/DatasetInfo'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { attrStrMaybe, Dataset, MinimizerSearchRecord } from 'src/types'
+import { attrStrMaybe, Dataset } from 'src/types'
 import { mix, transparentize } from 'polished'
 import React, { CSSProperties, useCallback, useMemo } from 'react'
 import { ListChildComponentProps } from 'react-window'
@@ -23,7 +23,7 @@ import {
 import { colorHash } from 'src/helpers/colorHash'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+import { DatasetSuggestionResult, useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { datasetsAtom, datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
@@ -78,37 +78,18 @@ const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
 export function SortPage() {
   const { t } = useTranslationSafe()
 
-  const { recordsByDataset } = useDatasetSuggestionResults()
-  const datasets = useRecoilValue(datasetsAtom)
+  const { suggestionResults, topDatasetNames } = useDatasetSuggestionResults()
+  const results = useMemo(() => suggestionResults ?? [], [suggestionResults])
 
+  const datasets = useRecoilValue(datasetsAtom)
   const selectedDatasets: Dataset[] = useMemo(() => {
-    if (!recordsByDataset) {
+    if (isEmpty(topDatasetNames)) {
       return []
     }
-    const selectedDatasetNames = Object.keys(recordsByDataset)
-    return datasets.filter((dataset) => selectedDatasetNames.includes(dataset.path))
-  }, [datasets, recordsByDataset])
+    return datasets.filter((dataset) => topDatasetNames.includes(dataset.path))
+  }, [topDatasetNames, datasets])
 
   const run = useRunAnalysisMany(selectedDatasets)
-
-  const results = useMemo(() => {
-    if (!recordsByDataset) {
-      return []
-    }
-
-    const results = Object.entries(recordsByDataset).flatMap(([datasetName, { records }]) => {
-      const dataset = datasets.find((dataset) => dataset.path === datasetName)
-      if (!dataset) {
-        throw new ErrorInternal(`Dataset info not found for: ${datasetName}`)
-      }
-      return records
-        .map((record) => ({ dataset, ...record }))
-        .filter(({ dataset, result }) => {
-          return result.datasets[0]?.name === dataset.path
-        })
-    })
-    return sortBy(results, (result) => result.fastaRecord.index)
-  }, [datasets, recordsByDataset])
 
   return (
     <Layout>
@@ -200,30 +181,28 @@ export function useRunAnalysisMany(selectedDatasets: Dataset[]) {
       setDatasetsCurrent(selectedDatasets)
       setViewedDatasetName(selectedDatasets[0].path)
       run()
+    } else {
+      throw new ErrorInternal('Attempted to run analysis without any of the datasets selected')
     }
-    throw new ErrorInternal('Attempted to run analysis without any of the datasets selected')
   }, [run, selectedDatasets, setDatasetsCurrent, setViewedDatasetName])
 }
 
-export interface SortingTableRowDatum extends MinimizerSearchRecord {
-  dataset: Dataset
-}
-
-export function SortingTableRow({ data, index, style }: ListChildComponentProps<SortingTableRowDatum[]>) {
+export function SortingTableRow({ data, index, style }: ListChildComponentProps<DatasetSuggestionResult[]>) {
   const record = useMemo(() => data[index], [data, index])
 
+  const { dataset, score } = record.datasets[0]
+  const nSuggestedDatasets = record.datasets.length
+
   const { backgroundColor, opacity } = useMemo(() => {
-    // const even = index % 2 === 0
-    // const baseRowColor = even ? '#ededed' : '#fcfcfc'
     const baseRowColor = '#fcfcfc'
-    const datasetColor = transparentize(0.5, colorHash(record.dataset.path, { reverse: true }))
+    const datasetColor = transparentize(0.5, colorHash(dataset.path, { reverse: true }))
     const backgroundColor = mix(0.5, baseRowColor, datasetColor)
     const opacity = undefined
     return { backgroundColor, opacity }
-  }, [record.dataset])
+  }, [dataset])
 
-  const datasetName = attrStrMaybe(record.dataset.attributes, 'name') ?? ''
-  const datasetRef = formatReference(record.dataset.attributes)
+  const datasetName = attrStrMaybe(dataset.attributes, 'name') ?? ''
+  const datasetRef = formatReference(dataset.attributes)
 
   return (
     <TableRow style={style} backgroundColor={backgroundColor} opacity={opacity}>
@@ -243,16 +222,16 @@ export function SortingTableRow({ data, index, style }: ListChildComponentProps<
         <div className="d-flex flex-column">
           <div className="font-weight-bold">{datasetName}</div>
           <div>{datasetRef}</div>
-          <i>{record.dataset.path}</i>
+          <i>{dataset.path}</i>
         </div>
       </TableCellName>
 
       <TableCell basis="60px" grow={0} shrink={0}>
-        <TableCellText>{record.result.datasets[0]?.score.toFixed(3) ?? ''}</TableCellText>
+        <TableCellText>{score.toFixed(3) ?? ''}</TableCellText>
       </TableCell>
 
       <TableCell basis="60px" grow={0} shrink={0}>
-        <TableCellText>{record.result.datasets.length}</TableCellText>
+        <TableCellText>{nSuggestedDatasets}</TableCellText>
       </TableCell>
     </TableRow>
   )

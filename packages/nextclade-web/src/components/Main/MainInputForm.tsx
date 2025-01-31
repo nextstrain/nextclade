@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react'
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -160,21 +160,21 @@ function DatasetCurrentOrSelectButton() {
   const { push } = useRouter()
 
   const run = useRunAnalysis()
-  const runSuggest = useRunSeqAutodetect({ shouldSetCurrentDataset: false })
+  const runSuggest = useRunSeqAutodetect({ shouldSetCurrentDataset: true })
   const sortByDataset = useCallback(() => {
     runSuggest()
     // eslint-disable-next-line no-void
     void push('/sort')
   }, [push, runSuggest])
   const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
-  const { datasetsActive } = useDatasetSuggestionResults()
+  const { topDatasets } = useDatasetSuggestionResults()
   const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
 
   useEffect(() => {
-    if (!datasetsCurrent || autodetectShouldSetCurrentDataset) {
-      setDatasetsCurrent(datasetsActive)
+    if (isNil(datasetsCurrent) || isEmpty(datasetsCurrent) || autodetectShouldSetCurrentDataset) {
+      setDatasetsCurrent(topDatasets)
     }
-  }, [autodetectShouldSetCurrentDataset, datasetsCurrent, datasetsActive, setDatasetsCurrent])
+  }, [autodetectShouldSetCurrentDataset, datasetsCurrent, setDatasetsCurrent, topDatasets])
 
   const toDatasetSelection = useCallback(() => {
     // eslint-disable-next-line no-void

@@ -29,7 +29,8 @@ export interface LaunchAnalysisCallbacks {
 }
 
 export async function launchAnalysis(
-  seqsNamesByDataset: Record<string, string[]>,
+  seqIndexToTopDatasetName: Map<number, string>,
+  datasetNames: string[],
   qryFastaInputs: AlgorithmInput[],
   params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
@@ -37,8 +38,6 @@ export async function launchAnalysis(
   csvColumnConfigPromise: Promise<CsvColumnConfig | undefined>,
 ) {
   const { onGlobalStatus, onInitialData, onAnalysisResult, onTree, onError, onComplete } = callbacks
-
-  const datasetNames = Object.keys(seqsNamesByDataset)
 
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(qryFastaInputs)
@@ -50,7 +49,7 @@ export async function launchAnalysis(
   )
 
   try {
-    await launcherWorker.init(numThreads, seqsNamesByDataset, params)
+    await launcherWorker.init(numThreads, seqIndexToTopDatasetName, datasetNames, params)
 
     // Subscribe to launcher worker events
     const subscriptions = [

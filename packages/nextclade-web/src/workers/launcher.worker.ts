@@ -3,10 +3,9 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
-import { findKey, omit, some } from 'lodash'
+import { omit } from 'lodash'
 import { AlgorithmGlobalStatus } from 'src/types'
 import type { FastaRecord, FastaRecordId, NextcladeResult, NextcladeParamsRaw, OutputTrees } from 'src/types'
-import type { MinimizerSearchRecordGroup } from 'src/hooks/useRunSeqAutodetect'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
 import { FastaParserWorker } from 'src/workers/FastaParserThread'
@@ -37,24 +36,33 @@ class LauncherWorkerImpl {
 
   pool!: AnalysisWorkerPool
 
-  seqsNamesByDataset!: Record<string, string[]>
+  seqIndexToTopDatasetName!: Map<number, string>
+
+  datasetNames!: string[]
 
   private constructor() {}
 
   public static async create(
     numThreads: number,
-    seqsNamesByDataset: Record<string, string[]>,
+    seqIndexToTopDatasetName: Map<number, string>,
+    datasetNames: string[],
     params: NextcladeParamsRaw,
   ) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, seqsNamesByDataset, params)
+    await self.init(numThreads, seqIndexToTopDatasetName, datasetNames, params)
     return self
   }
 
-  private async init(numThreads: number, seqsNamesByDataset: Record<string, string[]>, params: NextcladeParamsRaw) {
+  private async init(
+    numThreads: number,
+    seqIndexToTopDatasetName: Map<number, string>,
+    datasetNames: string[],
+    params: NextcladeParamsRaw,
+  ) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
-    this.seqsNamesByDataset = seqsNamesByDataset
+    this.seqIndexToTopDatasetName = seqIndexToTopDatasetName
+    this.datasetNames = datasetNames
   }
 
   async getInitialData(datasetName: string) {
@@ -74,8 +82,7 @@ class LauncherWorkerImpl {
       )
       await this.pool.completed()
 
-      const datasetNames = Object.keys(this.seqsNamesByDataset)
-      const trees = await this.pool.getOutputTrees(datasetNames)
+      const trees = await this.pool.getOutputTrees(this.datasetNames)
 
       this.treeObservable.next(trees)
 
@@ -98,11 +105,12 @@ class LauncherWorkerImpl {
   }
 
   private async onSequenceImpl(record: FastaRecord) {
-    const datasetName = findDatasetNameBySeqNameStrings(this.seqsNamesByDataset, record.seqName)
-    if (datasetName) {
-      const result = await this.pool.analyze(datasetName, record)
-      this.analysisResultsObservable.next(result)
+    const datasetName = this.seqIndexToTopDatasetName.get(record.index)
+    if (!datasetName) {
+      throw new ErrorInternal(`Unable to find selected dataset for sequence #${record.index} '${record.seqName}'`)
     }
+    const result = await this.pool.analyze(datasetName, record)
+    this.analysisResultsObservable.next(result)
   }
 
   private onError(error: unknown) {
@@ -116,8 +124,13 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(numThreads: number, seqsNamesByDataset: Record<string, string[]>, params: NextcladeParamsRaw) {
-    launcher = await LauncherWorkerImpl.create(numThreads, seqsNamesByDataset, params)
+  async init(
+    numThreads: number,
+    seqIndexToTopDatasetName: Map<number, string>,
+    datasetNames: string[],
+    params: NextcladeParamsRaw,
+  ) {
+    launcher = await LauncherWorkerImpl.create(numThreads, seqIndexToTopDatasetName, datasetNames, params)
   },
   async getInitialData(datasetName: string) {
     if (!launcher) {
@@ -162,17 +175,3 @@ expose(worker)
 
 export type LauncherWorker = typeof worker
 export type LauncherThread = LauncherWorker & Thread
-
-export function findDatasetNameBySeqNameStrings(
-  seqsNamesByDataset: Record<string, string[]>,
-  seqName: string,
-): string | undefined {
-  return findKey(seqsNamesByDataset, (names) => names.includes(seqName))
-}
-
-export function findDatasetNameBySeqNameRecords(
-  recordsByDataset: Record<string, MinimizerSearchRecordGroup>,
-  seqName: string,
-): string | undefined {
-  return findKey(recordsByDataset, (group) => some(group.records, { fastaRecord: { seqName } }))
-}

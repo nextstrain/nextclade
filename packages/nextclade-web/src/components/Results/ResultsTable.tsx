@@ -1,11 +1,13 @@
 import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
 import { SequenceViewColumnHeader } from 'src/components/SequenceView/SequenceViewColumnHeader'
 import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { intersection } from 'src/helpers/setOperations'
 
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
@@ -70,6 +72,8 @@ export function ResultsTable() {
   const seqIndicesImmediate = useRecoilValue(seqIndicesFilteredAtom)
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
+  const { datasetNameToSeqIndices } = useDatasetSuggestionResults()
+
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
 
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom({ datasetName }))
@@ -84,7 +88,16 @@ export function ResultsTable() {
   const viewedGene = useRecoilValue(viewedCdsAtom({ datasetName })) ?? CDS_OPTION_NUC_SEQUENCE
 
   const rowData: TableRowDatum[] = useMemo(() => {
-    return seqIndices.map((seqIndex) => ({
+    // Sequences which are already analyzed
+    const seqIndicesReady = new Set(seqIndices)
+
+    // Sequences belonging to the currently selected dataset
+    const seqIndicesSelected = new Set(datasetNameToSeqIndices.get(datasetName) ?? [])
+
+    // Sequences which are already analyzed and belonging to the currently selected dataset
+    const seqIndicesReadySelected = intersection(seqIndicesReady, seqIndicesSelected)
+
+    return [...seqIndicesReadySelected].map((seqIndex) => ({
       seqIndex,
       viewedGene,
       columnWidthsPx,
@@ -99,6 +112,8 @@ export function ResultsTable() {
     aaMotifsDescs,
     cladeNodeAttrDescs,
     columnWidthsPx,
+    datasetName,
+    datasetNameToSeqIndices,
     dynamicAaMotifsColumnWidthPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,

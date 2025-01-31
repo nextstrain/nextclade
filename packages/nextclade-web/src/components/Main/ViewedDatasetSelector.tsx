@@ -1,4 +1,4 @@
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -22,7 +22,7 @@ export function ViewedDatasetSelector() {
   const datasetsSelected = useRecoilValue(datasetsCurrentAtom)
 
   const { options, currentOption } = useMemo(() => {
-    const options = (datasetsSelected ?? []).map((dataset) => ({ value: dataset.path, dataset }))
+    const options = (datasetsSelected ?? []).map((dataset) => ({ value: dataset.path, dataset, label: dataset.path }))
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
   }, [datasetsSelected, viewedDatasetName])
@@ -31,7 +31,7 @@ export function ViewedDatasetSelector() {
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {
       if (option) {
         const datasetName = options.find((o) => o.value === option.value)?.dataset.path
-        if (isNil(datasetName)) {
+        if (isNil(datasetName) || isEmpty(datasetName)) {
           throw new ErrorInternal(
             `Attempted to select a non-existent dataset in the viewed dataset dropdown menu: '${option.value}'`,
           )

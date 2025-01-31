@@ -115,7 +115,7 @@ export function DatasetCurrentList() {
   return (
     <div>
       {datasets?.map((dataset) => (
-        <DatasetCurrent key={dataset.path} dataset={dataset} />
+        <div key={dataset.path}>{dataset.path}</div>
       ))}
     </div>
   )

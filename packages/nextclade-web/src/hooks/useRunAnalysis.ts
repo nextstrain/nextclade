@@ -1,7 +1,7 @@
 import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { concurrent } from 'fasy'
-import { isEmpty, isNil, mapValues } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
@@ -66,7 +66,7 @@ import { axiosFetchRaw } from 'src/io/axiosFetch'
 export function useRunAnalysis() {
   const router = useRouter()
   const dispatch = useDispatch()
-  const { recordsByDataset } = useDatasetSuggestionResults()
+  const { seqIndexToTopDatasetName, topDatasetNames } = useDatasetSuggestionResults()
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
@@ -186,18 +186,24 @@ export function useRunAnalysis() {
             if (isNil(datasets) || isEmpty(datasets)) {
               throw new ErrorInternal('At least one dataset selected is required, but none found')
             }
-            const seqsNamesByDataset = mapValues(recordsByDataset, (record) =>
-              record.records.map((r) => r.fastaRecord.seqName),
-            )
+
             const params: NextcladeParamsRaw = await resolveParams(tree, overrides, datasets)
-            return launchAnalysis(seqsNamesByDataset, qry, params, callbacks, numThreadsResolved, csvColumnConfig)
+            return launchAnalysis(
+              seqIndexToTopDatasetName,
+              topDatasetNames,
+              qry,
+              params,
+              callbacks,
+              numThreadsResolved,
+              csvColumnConfig,
+            )
           })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch, recordsByDataset],
+    [router, dispatch, seqIndexToTopDatasetName, topDatasetNames],
   )
 }
 

@@ -3,6 +3,7 @@ import type { Subscription } from 'observable-fns'
 import { useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { axiosFetch } from 'src/io/axiosFetch'
 import {
   autodetectResultByIndexAtom,
@@ -15,7 +16,7 @@ import {
 import { datasetsAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
-import type { Dataset, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import type { Dataset, FastaRecord, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
 import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
 import { spawn } from 'src/workers/spawn'
@@ -121,7 +122,21 @@ export interface MinimizerSearchRecordGroup {
   meanScore: number
 }
 
-export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecordGroup> {
+export interface DatasetScored {
+  dataset: Dataset
+  length: number
+  nHits: number
+  score: number
+}
+
+export interface DatasetSuggestionResult {
+  fastaRecord: FastaRecord
+  datasets: DatasetScored[]
+  maxScore: number
+  totalHits: number
+}
+
+export function mapDatasetToSeqs(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecordGroup> {
   const names = uniq(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
   let byDataset: Record<string, MinimizerSearchRecordGroup> = {}
   // eslint-disable-next-line no-loops/no-loops
@@ -141,13 +156,72 @@ export function groupByDatasets(records: MinimizerSearchRecord[]): Record<string
   return byDataset
 }
 
+/** Convert raw minimizer search results into a more convenient form */
+export function convertSuggestionResults(
+  datasets: Dataset[],
+  records: MinimizerSearchRecord[],
+): DatasetSuggestionResult[] {
+  return records.map((record) => {
+    const datasetsScored = record.result.datasets.map((resultDataset) => {
+      const dataset = datasets.find((dataset) => resultDataset.name === dataset.path)
+      if (!dataset) {
+        throw new ErrorInternal(`Unable to find dataset by name: '${resultDataset.name}'`)
+      }
+      return {
+        dataset,
+        length: resultDataset.length,
+        nHits: resultDataset.nHits,
+        score: resultDataset.score,
+      }
+    })
+    return {
+      fastaRecord: record.fastaRecord,
+      datasets: datasetsScored,
+      maxScore: record.result.maxScore,
+      totalHits: record.result.totalHits,
+    }
+  })
+}
+
+/** Map sequence index to a list of suggested datasets (sorted by score) */
+export function mapSeqToDatasets(records: DatasetSuggestionResult[]): Map<number, DatasetScored[]> {
+  return new Map(
+    records.map((record) => [record.fastaRecord.index, sortBy(record.datasets, (dataset) => -dataset.score)]),
+  )
+}
+
+/** Map sequence index to a top suggested dataset */
+export function mapSeqToTopDataset(seqToDatasets: Map<number, DatasetScored[]>): Map<number, DatasetScored> {
+  return new Map(Array.from(seqToDatasets, ([seqIndex, datasets]) => [seqIndex, datasets[0]]))
+}
+
 export function useDatasetSuggestionResults() {
   const datasets = useRecoilValue(datasetsAtom)
   const autodetectResults = useRecoilValue(autodetectResultsAtom)
   return useMemo(() => processSuggestionResults(datasets, autodetectResults), [autodetectResults, datasets])
 }
 
-export function processSuggestionResults(datasets: Dataset[], autodetectResults: MinimizerSearchRecord[] | undefined) {
+export interface SuggestionResultsGrouped {
+  datasetsActive: Dataset[]
+  datasetsInactive: Dataset[]
+  topSuggestion?: Dataset
+  showSuggestions: boolean
+  numSuggestions: number
+  autodetectResults?: MinimizerSearchRecord[]
+  suggestionResults?: DatasetSuggestionResult[]
+  datasetToSeqs: Record<string, MinimizerSearchRecordGroup>
+  datasetNameToSeqIndices: Map<string, number[]>
+  seqToDatasets: Map<number, DatasetScored[]>
+  seqToTopDataset: Map<number, DatasetScored>
+  seqIndexToTopDatasetName: Map<number, string>
+  topDatasets: Dataset[]
+  topDatasetNames: string[]
+}
+
+export function processSuggestionResults(
+  datasets: Dataset[],
+  autodetectResults: MinimizerSearchRecord[] | undefined,
+): SuggestionResultsGrouped {
   if (isNil(autodetectResults) || autodetectResults.length === 0) {
     return {
       datasetsActive: datasets,
@@ -155,22 +229,47 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
       topSuggestion: undefined,
       showSuggestions: false,
       numSuggestions: datasets.length,
-      recordsByDataset: undefined,
+      suggestionResults: undefined,
+      datasetToSeqs: {},
+      datasetNameToSeqIndices: new Map(),
+      seqToDatasets: new Map(),
+      seqToTopDataset: new Map(),
+      seqIndexToTopDatasetName: new Map(),
+      topDatasets: [],
+      topDatasetNames: [],
     }
   }
 
-  const recordsByDataset = groupByDatasets(autodetectResults)
+  const results = convertSuggestionResults(datasets, autodetectResults)
+  const seqToDatasets = mapSeqToDatasets(results)
+  const seqToTopDataset = mapSeqToTopDataset(seqToDatasets)
+
+  const seqIndexToTopDatasetName = new Map(
+    Array.from(seqToTopDataset.entries(), ([seqIndex, dataset]) => [seqIndex, dataset.dataset.path]),
+  )
+  const topDatasetNames = uniq(Array.from(seqToTopDataset.values(), (dataset) => dataset.dataset.path).sort())
+  const topDatasets = topDatasetNames
+    .map((name) => datasets.find((dataset) => dataset.path === name))
+    .filter(notUndefinedOrNull)
+
+  const datasetToSeqs = mapDatasetToSeqs(autodetectResults)
+  const datasetNameToSeqIndices = new Map(
+    Object.entries(datasetToSeqs).map(([datasetName, records]) => {
+      const seqIndices = records.records.map((record) => record.fastaRecord.index)
+      return [datasetName, seqIndices]
+    }),
+  )
 
   let itemsInclude = datasets.filter((candidate) =>
-    Object.entries(recordsByDataset).some(([dataset, _]) => dataset === candidate.path),
+    Object.entries(datasetToSeqs).some(([dataset, _]) => dataset === candidate.path),
   )
 
   itemsInclude = sortBy(itemsInclude, (dataset) => {
-    const record = get(recordsByDataset, dataset.path)
+    const record = get(datasetToSeqs, dataset.path)
     return -record.meanScore
   })
 
-  itemsInclude = sortBy(itemsInclude, (dataset) => -(get(recordsByDataset, dataset.path)?.records?.length ?? 0))
+  itemsInclude = sortBy(itemsInclude, (dataset) => -(get(datasetToSeqs, dataset.path)?.records?.length ?? 0))
 
   const itemsNotInclude = datasets.filter((candidate) => !itemsInclude.map((it) => it.path).includes(candidate.path))
 
@@ -181,5 +280,18 @@ export function processSuggestionResults(datasets: Dataset[], autodetectResults:
   const topSuggestion = first(datasetsActive)
   const numSuggestions = datasetsActive.length
 
-  return { datasetsActive, datasetsInactive, topSuggestion, showSuggestions, numSuggestions, recordsByDataset }
+  return {
+    datasetsActive,
+    datasetsInactive,
+    topSuggestion,
+    showSuggestions,
+    numSuggestions,
+    datasetToSeqs,
+    datasetNameToSeqIndices,
+    seqToDatasets,
+    seqToTopDataset,
+    seqIndexToTopDatasetName,
+    topDatasets,
+    topDatasetNames,
+  }
 }
