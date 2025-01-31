@@ -10,6 +10,7 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { promiseAllObject } from 'src/helpers/promise'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+import { useGetAuspiceState } from 'src/state/reducer'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allViewedCdsAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import {
@@ -58,6 +59,8 @@ import {
   treeAtom,
   treeNwkAtom,
   allCurrentRefNodeNameAtom,
+  auspiceStateAtom,
+  allAuspiceStatesAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
@@ -67,6 +70,7 @@ export function useRunAnalysis() {
   const router = useRouter()
   const dispatch = useDispatch()
   const { seqIndexToTopDatasetName, topDatasetNames } = useDatasetSuggestionResults()
+  const getAuspiceState = useGetAuspiceState()
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
@@ -79,6 +83,7 @@ export function useRunAnalysis() {
         reset(clearAllFiltersAtom)
 
         reset(allAaMotifsDescsAtom)
+        reset(allAuspiceStatesAtom)
         reset(allCdsOrderPreferenceAtom)
         reset(allCdsesAtom)
         reset(allCladeNodeAttrDescsAtom)
@@ -161,13 +166,19 @@ export function useRunAnalysis() {
             set(globalErrorAtom, error)
           },
           onTree(trees) {
-            Object.entries(trees).forEach(([datasetName, { auspice, nwk }], i) => {
-              if (i === 0) {
-                const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
-                dispatch(auspiceStartClean(auspiceState))
-                dispatch(changeColorBy())
-                dispatch(treeFilterByNodeType(['New']))
-              }
+            Object.entries(trees).forEach(([datasetName, { auspice, nwk }]) => {
+              // Compute Auspice redux state for this dataset
+              const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
+              dispatch(auspiceStartClean(auspiceState))
+              dispatch(changeColorBy())
+              dispatch(treeFilterByNodeType(['New']))
+
+              // HACK(auspice): Remember the entire Auspice redux state in an atom, for each dataset. This way we can
+              // save and load Auspice redux state when switching datasets, this way switching what Auspice is
+              // rendering without recomputing it all again.
+              const state = getAuspiceState()
+              set(auspiceStateAtom({ datasetName }), state)
+
               set(treeAtom({ datasetName }), auspice as unknown as AuspiceJsonV2)
               set(treeNwkAtom({ datasetName }), nwk)
             })
@@ -203,7 +214,7 @@ export function useRunAnalysis() {
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch, seqIndexToTopDatasetName, topDatasetNames],
+    [router, dispatch, getAuspiceState, seqIndexToTopDatasetName, topDatasetNames],
   )
 }
 

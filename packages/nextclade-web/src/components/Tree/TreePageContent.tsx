@@ -1,33 +1,15 @@
 import React, { useMemo } from 'react'
-import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import styled, { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { connect } from 'react-redux'
 import { AuspiceMetadata } from 'auspice'
-import type { State } from 'src/state/reducer'
+import { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 import { SidebarContainer as SidebarContainerBase } from 'auspice/src/components/main/styles'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 import { Tree } from 'src/components/Tree/Tree'
 import { Sidebar } from 'src/components/Tree/Sidebar'
-
-export const Container = styled.div`
-  flex: 1;
-  flex-basis: 100%;
-  width: 100%;
-  height: 100%;
-  min-width: 1080px;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-`
-
-const MainContent = styled.main`
-  flex: 1;
-  flex-basis: 100%;
-  overflow-y: hidden;
-`
 
 const AuspiceContainer = styled.div`
   display: flex;
@@ -97,34 +79,29 @@ function TreePageContentDisconnected({ treeMeta }: TreePageProps) {
   )
 
   return (
-    <Container>
-      <MainContent>
-        <ViewedDatasetSelector />
-        <AuspiceContainer>
-          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-          {/* @ts-ignore */}
-          <I18nextProvider i18n={i18nAuspice}>
-            <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
-              <SidebarContainer>
-                <Sidebar />
-              </SidebarContainer>
-              <TreeContainer>
-                <TreeTopPanel>
-                  <FiltersSummaryWrapper>
-                    <FiltersSummary />
-                  </FiltersSummaryWrapper>
-                  {isDataFromGisaid && (
-                    <LogoGisaidWrapper>
-                      <LogoGisaid />
-                    </LogoGisaidWrapper>
-                  )}
-                </TreeTopPanel>
-                <Tree />
-              </TreeContainer>
-            </ThemeProvider>
-          </I18nextProvider>
-        </AuspiceContainer>
-      </MainContent>
-    </Container>
+    <AuspiceContainer>
+      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+      {/* @ts-ignore */}
+      <I18nextProvider i18n={i18nAuspice}>
+        <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
+          <SidebarContainer>
+            <Sidebar />
+          </SidebarContainer>
+          <TreeContainer>
+            <TreeTopPanel>
+              <FiltersSummaryWrapper>
+                <FiltersSummary />
+              </FiltersSummaryWrapper>
+              {isDataFromGisaid && (
+                <LogoGisaidWrapper>
+                  <LogoGisaid />
+                </LogoGisaidWrapper>
+              )}
+            </TreeTopPanel>
+            <Tree />
+          </TreeContainer>
+        </ThemeProvider>
+      </I18nextProvider>
+    </AuspiceContainer>
   )
 }
