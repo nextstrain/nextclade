@@ -1,4 +1,4 @@
-import { first, get, isNil, mean, sortBy, uniq } from 'lodash'
+import { first, get, isEmpty, isNil, mean, sortBy, uniq } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
@@ -207,8 +207,8 @@ export interface SuggestionResultsGrouped {
   topSuggestion?: Dataset
   showSuggestions: boolean
   numSuggestions: number
-  autodetectResults?: MinimizerSearchRecord[]
-  suggestionResults?: DatasetSuggestionResult[]
+  autodetectResults: MinimizerSearchRecord[] | undefined
+  suggestionResults: DatasetSuggestionResult[] | undefined
   datasetToSeqs: Record<string, MinimizerSearchRecordGroup>
   datasetNameToSeqIndices: Map<string, number[]>
   seqToDatasets: Map<number, DatasetScored[]>
@@ -222,13 +222,14 @@ export function processSuggestionResults(
   datasets: Dataset[],
   autodetectResults: MinimizerSearchRecord[] | undefined,
 ): SuggestionResultsGrouped {
-  if (isNil(autodetectResults) || autodetectResults.length === 0) {
+  if (isNil(autodetectResults) || isEmpty(autodetectResults)) {
     return {
       datasetsActive: datasets,
       datasetsInactive: [],
       topSuggestion: undefined,
       showSuggestions: false,
       numSuggestions: datasets.length,
+      autodetectResults: undefined,
       suggestionResults: undefined,
       datasetToSeqs: {},
       datasetNameToSeqIndices: new Map(),
@@ -240,8 +241,8 @@ export function processSuggestionResults(
     }
   }
 
-  const results = convertSuggestionResults(datasets, autodetectResults)
-  const seqToDatasets = mapSeqToDatasets(results)
+  const suggestionResults = convertSuggestionResults(datasets, autodetectResults)
+  const seqToDatasets = mapSeqToDatasets(suggestionResults)
   const seqToTopDataset = mapSeqToTopDataset(seqToDatasets)
 
   const seqIndexToTopDatasetName = new Map(
@@ -286,6 +287,8 @@ export function processSuggestionResults(
     topSuggestion,
     showSuggestions,
     numSuggestions,
+    autodetectResults,
+    suggestionResults,
     datasetToSeqs,
     datasetNameToSeqIndices,
     seqToDatasets,
