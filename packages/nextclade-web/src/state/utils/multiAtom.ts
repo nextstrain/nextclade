@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import { atom, RecoilState, selectorFamily, SerializableParam } from 'recoil'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
@@ -27,7 +28,7 @@ export function multiAtom<T, P extends SerializableParam>({
 
   // Individual atom is a selector into storage item
   const individualAtom = selectorFamily<T | undefined, P>({
-    key,
+    key: `${key}_individual`,
     get:
       (param) =>
       ({ get }): T | undefined => {
@@ -37,12 +38,12 @@ export function multiAtom<T, P extends SerializableParam>({
     set:
       (param) =>
       ({ get, set }, value) => {
-        const storage = get(storageAtom)
-        if (value === undefined) {
+        const storage = new Map(get(storageAtom))
+        if (isNil(value)) {
           storage.delete(param)
         } else if (isDefaultValue(value)) {
           const defaultValue = defaultValues?.get(param)
-          if (defaultValue !== undefined) {
+          if (!isNil(defaultValue)) {
             storage.set(param, defaultValue)
           } else {
             storage.delete(param)
