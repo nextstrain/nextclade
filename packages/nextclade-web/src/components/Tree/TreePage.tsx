@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { Layout } from 'src/components/Layout/Layout'
@@ -46,17 +46,27 @@ export default function TreePageWrapper() {
       setAuspiceState(auspiceStateSaved)
     }
     return () => {
-      const state = getAuspiceState()
-      setAuspiceStateSaved(state)
+      setAuspiceStateSaved(auspiceStateCurrent)
     }
   }, [auspiceStateCurrent, auspiceStateSaved, datasetName, getAuspiceState, setAuspiceState, setAuspiceStateSaved])
+
+  const [componentsMap, setComponentsMap] = useState(new Map())
 
   const component = useMemo(() => {
     if (!auspiceStateCurrent) {
       return <div>{t('This dataset does not have a reference tree.')}</div>
     }
-    return <TreePageContent />
-  }, [auspiceStateCurrent, t])
+
+    if (componentsMap.has(datasetName)) {
+      return componentsMap.get(datasetName)
+    }
+
+    const newComponent = <TreePageContent key={datasetName} />
+    const newMap = new Map(componentsMap)
+    newMap.set(datasetName, newComponent)
+    setComponentsMap(newMap)
+    return newComponent
+  }, [auspiceStateCurrent, componentsMap, datasetName, t])
 
   return (
     <Container>
