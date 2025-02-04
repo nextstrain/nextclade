@@ -1,10 +1,12 @@
 import { isNil } from 'lodash'
-import { atom, RecoilState, selectorFamily, SerializableParam } from 'recoil'
+import { atom, AtomEffect, RecoilState, selectorFamily, SerializableParam } from 'recoil'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
 export interface MultiAtomOptions<P extends SerializableParam, T> {
   key: string
   defaultValues?: Map<P, T>
+  effects?: ReadonlyArray<AtomEffect<Map<P, T>>>
+  dangerouslyAllowMutability?: boolean
 }
 
 /**
@@ -19,11 +21,15 @@ export interface MultiAtomOptions<P extends SerializableParam, T> {
 export function multiAtom<T, P extends SerializableParam>({
   key,
   defaultValues,
+  effects,
+  dangerouslyAllowMutability,
 }: MultiAtomOptions<P, T>): [(param: P) => RecoilState<T | undefined>, RecoilState<Map<P, T>>] {
   // Storage atom stores all items in a Map
   const storageAtom = atom<Map<P, T>>({
     key: `${key}_storage`,
     default: defaultValues ?? new Map(),
+    effects,
+    dangerouslyAllowMutability,
   })
 
   // Individual atom is a selector into storage item

@@ -1,6 +1,8 @@
 import React from 'react'
+import { UlGeneric } from 'src/components/Common/List'
+import { DatasetInfoCompact } from 'src/components/Main/DatasetInfoCompact'
 import type { Dataset } from 'src/types'
-import { Col, Row, Container as ContainerBase } from 'reactstrap'
+import { Col, Row, Container as ContainerBase, Card } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { ButtonLoadExample } from 'src/components/Main/ButtonLoadExample'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
@@ -113,10 +115,31 @@ export function DatasetCurrent({ dataset }: { dataset: Dataset }) {
 export function DatasetCurrentList() {
   const datasets = useRecoilValue(datasetsCurrentAtom)
   return (
-    <div>
+    <Ul>
       {datasets?.map((dataset) => (
-        <div key={dataset.path}>{dataset.path}</div>
+        <Li key={dataset.path}>
+          <DatasetInfoCompact dataset={dataset} />
+        </Li>
       ))}
-    </div>
+    </Ul>
   )
 }
+
+const Ul = styled(UlGeneric)`
+  flex: 1;
+  overflow: auto;
+  max-height: 320px;
+`
+
+const Li = styled.li`
+  margin: 5px 0;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  border-bottom: 1px solid #ccc !important;
+
+  &:last-child {
+    border-bottom: none !important;
+  }
+`

@@ -115,6 +115,7 @@ module.exports = {
     'jsx-a11y/label-has-associated-control': ['warn', { assert: 'either' }],
     'lodash/chaining': 'off',
     'lodash/import-scope': 'off',
+    'lodash/matches-prop-shorthand': 'off',
     'lodash/prefer-constant': 'off',
     'lodash/prefer-lodash-chain': 'off',
     'lodash/prefer-lodash-method': 'off',
