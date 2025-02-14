@@ -113,7 +113,13 @@ export async function axiosFetchOrUndefined<TData = unknown>(
  * This version skips any transforms (such as JSON parsing) and returns plain string
  */
 export async function axiosFetchRaw(url: string | undefined, options?: RequestConfig): Promise<string> {
-  return axiosFetch(url, { ...options, transformResponse: [] })
+  return axiosFetch(url, {
+    ...options,
+    transformResponse: [],
+    headers: {
+      Accept: 'text/plain, */*',
+    },
+  })
 }
 
 export async function axiosFetchRawMaybe(url?: string): Promise<string | undefined> {
