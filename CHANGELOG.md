@@ -1,3 +1,10 @@
+## Unreleased
+
+### [web] Fetch custom inputs from URLs using correct "Accept" HTTP header
+
+Fixes Nextclade Web adding header `Accept: application/json, text/plain, */*` when making `GET` HTTP requests when fetching input files from use-provided URLs. This caused problems when fetching files from sources which allow to choose between different file formats using `Accept` header. The response would come in JSON format and this is not what we want. Now we add `Accept: text/plain, */*`, preferentially fetching all inputs as plaintext, as intended.
+
+
 ## Nextclade 3.10.0
 
 ### [web] Add links to open reference trees in nextstrain.org
