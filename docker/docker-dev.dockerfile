@@ -167,7 +167,7 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install jq, a tool to query JSON files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL -o "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
+&& curl -fsSL -o "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" \
 && chmod +x "/usr/bin/jq" \
 && jq --version
 
@@ -207,7 +207,7 @@ USER ${UID}
 COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
 && curl --proto '=https' -sSf https://sh.rustup.rs > rustup-init \
 && chmod +x rustup-init \
 && ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}" \
@@ -216,14 +216,14 @@ RUN set -euxo pipefail >/dev/null \
 # Install toolchain from rust-toolchain.toml and make it default
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
 && rustup toolchain install "${RUST_TOOLCHAIN}" \
 && rustup default "${RUST_TOOLCHAIN}"
 
 # Install remaining toolchain components from rust-toolchain.toml
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
 && rustup show \
 && rustup default "${RUST_TOOLCHAIN}"
 
