@@ -11,7 +11,6 @@ import LogoBiozentrum from 'src/assets/img/biozentrum_square.svg'
 import LogoSib from 'src/assets/img/sib.logo.svg'
 import LogoFredHutch from 'src/assets/img/fred_hutch.svg'
 import LogoNeherlab from 'src/assets/img/neherlab.svg'
-import LogoVercel from 'src/assets/img/powered-by-vercel.svg'
 
 const Container = styled.footer`
   height: 38px;
@@ -108,10 +107,6 @@ export function Footer() {
 
             <LogoLink url="https://www.fredhutch.org">
               <LogoFredHutch />
-            </LogoLink>
-
-            <LogoLink className="my-auto" url="https://vercel.com/?utm_source=nextstrain">
-              <LogoVercel />
             </LogoLink>
           </LogoContainer>
 
