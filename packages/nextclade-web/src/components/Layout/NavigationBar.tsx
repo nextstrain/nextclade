@@ -9,7 +9,7 @@ import {
 import { useRecoilValue } from 'recoil'
 import styled, { useTheme } from 'styled-components'
 import { BsCaretRightFill as ArrowRight } from 'react-icons/bs'
-import { FaDocker, FaGithub, FaXTwitter, FaDiscourse } from 'react-icons/fa6'
+import { FaDocker, FaGithub, FaDiscourse } from 'react-icons/fa6'
 import { NavigationMenu } from 'src/components/Layout/NavigationMenu'
 import { Link } from 'src/components/Link/Link'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
@@ -214,11 +214,6 @@ export function NavigationBar() {
 
   const linksSocial = useMemo(() => {
     return [
-      {
-        url: 'https://twitter.com/nextstrain',
-        title: t('Link to our X.com (Twitter)'),
-        content: <FaXTwitter size={20} color="#aaa" className="mb-1" />,
-      },
       {
         url: 'https://discussion.nextstrain.org/',
         title: t('Link to our discussion forum'),
