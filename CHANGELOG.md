@@ -1,4 +1,4 @@
-## Unreleased
+## 3.10.1
 
 ### [web] Fetch custom inputs from URLs using correct "Accept" HTTP header
 
