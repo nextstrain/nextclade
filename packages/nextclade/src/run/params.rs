@@ -1,4 +1,4 @@
-use crate::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional};
+use crate::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional, ALIGNMENT_PRESET_DEFAULT};
 use crate::analyze::aa_changes_find_for_cds::{AaChangesParams, AaChangesParamsOptional};
 use crate::analyze::virus_properties::VirusProperties;
 use crate::run::params_general::{NextcladeGeneralParams, NextcladeGeneralParamsOptional};
@@ -52,9 +52,16 @@ impl NextcladeInputParams {
       general_params
     };
 
+    let preset_name: String = params
+      .alignment
+      .as_ref()
+      .and_then(|a| a.alignment_preset.as_ref())
+      .cloned()
+      .unwrap_or_else(|| ALIGNMENT_PRESET_DEFAULT.to_owned());
+
     let alignment = {
       // Start with defaults
-      let mut alignment_params = AlignPairwiseParams::default();
+      let mut alignment_params = AlignPairwiseParams::from_preset(preset_name)?;
       // Merge params coming from virus_properties
       if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
         alignment_params.merge_opt(alignment_params_from_file.clone());

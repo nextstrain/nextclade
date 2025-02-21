@@ -30,6 +30,10 @@ impl Default for GapAlignmentSide {
 #[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
+  /// Alignment param preset
+  #[clap(long, default_value = ALIGNMENT_PRESET_DEFAULT)]
+  pub alignment_preset: String,
+
   /// Minimum length of nucleotide sequence to consider for alignment.
   ///
   /// If a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.
@@ -150,9 +154,13 @@ pub struct AlignPairwiseParams {
   pub seed_spacing: Option<AnyType>,
 }
 
+pub const ALIGNMENT_PRESET_DEFAULT: &str = "default";
+
 impl Default for AlignPairwiseParams {
   fn default() -> Self {
     Self {
+      alignment_preset: ALIGNMENT_PRESET_DEFAULT.to_owned(),
+
       min_length: 100,
       penalty_gap_extend: 0,
       penalty_gap_open: 6,
@@ -188,6 +196,29 @@ impl Default for AlignPairwiseParams {
 }
 
 impl AlignPairwiseParams {
+  pub fn from_preset(preset_name: impl AsRef<str>) -> Result<AlignPairwiseParams, Report> {
+    let preset_name = preset_name.as_ref();
+    match preset_name {
+      "default" => Ok(AlignPairwiseParams::default()),
+      "high-diversity" => Ok(AlignPairwiseParams {
+        alignment_preset: o!("high-diversity"),
+        penalty_gap_extend: 0,
+        penalty_gap_open: 999999,             // FIXME: dummy values
+        penalty_gap_open_in_frame: 88888,     // FIXME: dummy values
+        penalty_gap_open_out_of_frame: 77777, // FIXME: dummy values
+        penalty_mismatch: 6666,               // FIXME: dummy values
+        score_match: 33333,                   // FIXME: dummy values
+        ..AlignPairwiseParams::default()
+      }),
+      "short-sequences" => Ok(AlignPairwiseParams {
+        alignment_preset: o!("short-sequences"),
+        min_length: 0, // FIXME: dummy values
+        ..AlignPairwiseParams::default()
+      }),
+      _ => make_error!("Alignment params preset not found: {preset_name}"),
+    }
+  }
+
   pub fn validate(&self) -> Result<(), Report> {
     #[rustfmt::skip]
   let deprecated = BTreeMap::from([
