@@ -6,6 +6,7 @@ pub mod dataset;
 pub mod fasta;
 pub mod file;
 pub mod fs;
+pub mod genbank_feature_table;
 pub mod gff3;
 pub mod json;
 pub mod ndjson;
