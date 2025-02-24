@@ -5,10 +5,9 @@ use crate::utils::string::surround_with_quotes;
 use bio::io::gff::{GffType, Record as GffRecord, Writer as GffWriter};
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report};
+use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 /// Possible keys for name attribute (in order of preference!)
@@ -82,7 +81,7 @@ pub struct GffCommonInfo {
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   pub gff_record_str: String,
 }
 
@@ -139,8 +138,8 @@ impl GffCommonInfo {
     let is_circular =
       get_attribute_optional(record, "Is_circular").map_or(false, |is_circular| is_circular.to_lowercase() == "true");
 
-    // Convert MultiMap to HashMap of Vec
-    let attributes: HashMap<String, Vec<String>> = record
+    // Convert MultiMap to IndexMap of Vec
+    let attributes: IndexMap<String, Vec<String>> = record
       .attributes()
       .iter_all()
       .map(|(key, values)| (key.clone(), values.clone()))

@@ -5,9 +5,9 @@ use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo};
 use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
+use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -26,7 +26,7 @@ pub struct Feature {
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
 }

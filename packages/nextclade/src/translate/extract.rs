@@ -78,8 +78,8 @@ mod coord_map_tests {
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use eyre::Report;
+  use indexmap::indexmap;
   use itertools::Itertools;
-  use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -109,7 +109,7 @@ mod coord_map_tests {
               frame,
               phase,
               exceptions: vec![],
-              attributes: hashmap!(),
+              attributes: indexmap!(),
               source_record: None,
               compat_is_gene: false,
               color: None,
@@ -121,7 +121,7 @@ mod coord_map_tests {
       },
       proteins: vec![],
       exceptions: vec![],
-      attributes: hashmap! {},
+      attributes: indexmap! {},
       compat_is_gene: false,
       color: None,
     }

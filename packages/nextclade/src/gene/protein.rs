@@ -2,9 +2,9 @@ use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_group::FeatureGroup;
 use crate::make_internal_error;
 use eyre::Report;
+use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -66,7 +66,7 @@ pub struct ProteinSegment {
   pub name: String,
   pub range: NucRefGlobalRange,
   pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,

@@ -7,12 +7,11 @@ use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
+use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
-use maplit::hashmap;
 use num_traits::clamp_max;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +22,7 @@ pub struct Cds {
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
   pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   pub compat_is_gene: bool,
   pub color: Option<String>,
 }
@@ -84,8 +83,8 @@ impl Cds {
       .iter()
       .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, &mut proteins))?;
 
-    let attributes: HashMap<String, Vec<String>> = {
-      let mut attributes: HashMap<String, Vec<String>> = hashmap! {};
+    let attributes: IndexMap<String, Vec<String>> = {
+      let mut attributes: IndexMap<String, Vec<String>> = indexmap! {};
       for segment in &segments {
         for (k, vs) in &segment.attributes {
           attributes.entry(k.clone()).or_default().extend_from_slice(vs);

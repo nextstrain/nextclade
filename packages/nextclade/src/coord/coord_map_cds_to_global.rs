@@ -1,14 +1,10 @@
-
-use crate::coord::position::{
-  AaRefPosition, NucRefGlobalPosition, NucRefLocalPosition, PositionLike,
-};
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, NucRefLocalPosition, PositionLike};
 use crate::coord::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange};
 use crate::gene::cds::Cds;
 
 use crate::gene::gene::GeneStrand;
 use assert2::assert;
 use itertools::Itertools;
-
 
 pub fn cds_nuc_pos_to_ref(cds: &Cds, pos: NucRefLocalPosition) -> NucRefGlobalPosition {
   assert!(pos < cds.len() as isize);
@@ -84,7 +80,7 @@ mod coord_map_tests {
   use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::phase::Phase;
-  use maplit::hashmap;
+  use indexmap::indexmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -114,7 +110,7 @@ mod coord_map_tests {
               frame,
               phase,
               exceptions: vec![],
-              attributes: hashmap!(),
+              attributes: indexmap!(),
               source_record: None,
               compat_is_gene: false,
               color: None,
@@ -126,7 +122,7 @@ mod coord_map_tests {
       },
       proteins: vec![],
       exceptions: vec![],
-      attributes: hashmap! {},
+      attributes: indexmap! {},
       compat_is_gene: false,
       color: None,
     }

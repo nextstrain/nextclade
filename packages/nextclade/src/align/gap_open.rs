@@ -56,8 +56,8 @@ mod tests {
   use crate::gene::gene::{Gene, GeneStrand};
   use crate::gene::phase::Phase;
   use eyre::Report;
+  use indexmap::indexmap;
   use itertools::Itertools;
-  use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
 
@@ -87,7 +87,7 @@ mod tests {
               frame,
               phase,
               exceptions: vec![],
-              attributes: hashmap! {},
+              attributes: indexmap! {},
               source_record: None,
               compat_is_gene: false,
               color: None,
@@ -102,7 +102,7 @@ mod tests {
           segments,
           proteins: vec![],
           exceptions: vec![],
-          attributes: hashmap! {},
+          attributes: indexmap! {},
           compat_is_gene: false,
           color: None,
         })

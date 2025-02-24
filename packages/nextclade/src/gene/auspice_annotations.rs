@@ -8,8 +8,7 @@ use crate::gene::phase::Phase;
 use crate::io::json::{json_stringify, JsonPretty};
 use crate::tree::tree::{AuspiceGenomeAnnotationCds, AuspiceGenomeAnnotations, Segments, StartEnd};
 use eyre::Report;
-use maplit::hashmap;
-use std::collections::HashMap;
+use indexmap::{indexmap, IndexMap};
 
 pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> Result<Vec<Gene>, Report> {
   let landmark = Landmark {
@@ -40,7 +39,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
         segments,
         proteins: vec![],
         exceptions: vec![],
-        attributes: HashMap::default(),
+        attributes: IndexMap::default(),
         compat_is_gene: true,
         color: ann.color.clone(),
       };
@@ -51,7 +50,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
         name: gene_name.to_owned(),
         cdses: vec![cds],
         exceptions: vec![],
-        attributes: HashMap::default(),
+        attributes: IndexMap::default(),
         source_record: None,
         compat_is_cds: true,
         color: ann.color.clone(),
@@ -89,7 +88,7 @@ fn convert_cds_segments(
       frame,
       phase,
       exceptions: vec![],
-      attributes: hashmap! {},
+      attributes: indexmap! {},
       source_record: Some(json_stringify(ann, JsonPretty(true))?),
       compat_is_gene: false,
       color: ann.color.clone(),

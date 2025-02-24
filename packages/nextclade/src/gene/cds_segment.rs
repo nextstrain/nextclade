@@ -3,9 +3,9 @@ use crate::features::feature::Landmark;
 use crate::gene::frame::Frame;
 use crate::gene::gene::GeneStrand;
 use crate::gene::phase::Phase;
+use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Marks the parts of circular, wrapping segments
 ///
@@ -37,7 +37,7 @@ pub struct CdsSegment {
   pub frame: Frame,
   pub phase: Phase,
   pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_gene: bool,

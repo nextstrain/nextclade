@@ -2,11 +2,10 @@ use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::utils::collections::take_exactly_one;
 use eyre::{eyre, Report, WrapErr};
+use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
-use maplit::hashmap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema)]
@@ -47,7 +46,7 @@ pub struct Gene {
   pub name: String,
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
@@ -106,7 +105,7 @@ impl Gene {
       name,
       cdses: vec![cds.clone()],
       exceptions,
-      attributes: hashmap!(),
+      attributes: indexmap!(),
       source_record: None,
       compat_is_cds: true,
       color: None,
