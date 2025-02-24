@@ -76,7 +76,7 @@ fn read_gff3_feature_tree_str(content: impl AsRef<str>) -> Result<Vec<SequenceRe
       .tuple_windows()
       .map(|(content_begin, content_end)| {
         #[allow(clippy::string_slice)]
-        let content = &content[content_begin..content_end - 1];
+        let content = &content[content_begin..content_end];
         (content, content_begin, content_end)
       })
       .collect_vec()
@@ -88,8 +88,6 @@ fn read_gff3_feature_tree_str(content: impl AsRef<str>) -> Result<Vec<SequenceRe
     .into_iter()
     .enumerate()
     .map(|(index,(content, content_begin, _))| {
-      let content = content.trim();
-
       // Extract '##sequence-region' header line
       let header_line = content
         .lines()
