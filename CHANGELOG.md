@@ -1,3 +1,14 @@
+## 3.10.2
+
+### Correctly handle comments in GFF3 files
+
+Nextclade sometimes reported an error in GFF3 files containing comments. This has been fixed now.
+
+### [cli] Fix verbosity CLI arguments
+
+The Nextclade CLI arguments `-v` and `-q` were having no effect after a recent update. This has been fixed now.
+
+
 ## 3.10.1
 
 ### [web] Fetch custom inputs from URLs using correct "Accept" HTTP header
