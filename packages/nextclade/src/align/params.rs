@@ -202,13 +202,18 @@ impl AlignPairwiseParams {
       "default" => Ok(AlignPairwiseParams::default()),
       "high-diversity" => Ok(AlignPairwiseParams {
         alignment_preset: o!("high-diversity"),
-        penalty_gap_extend: 0,
-        penalty_gap_open: 999999,             // FIXME: dummy values
-        penalty_gap_open_in_frame: 88888,     // FIXME: dummy values
-        penalty_gap_open_out_of_frame: 77777, // FIXME: dummy values
-        penalty_mismatch: 6666,               // FIXME: dummy values
-        score_match: 33333,                   // FIXME: dummy values
-        ..AlignPairwiseParams::default()
+        penalty_gap_extend: 1,             // make longer gaps more costly
+        penalty_gap_open: 13,              // make gaps more expensive relative to mismatches
+        penalty_gap_open_in_frame: 18,     // increase the gap between gaps in coding and non-coding regions
+        penalty_gap_open_out_of_frame: 19, //
+        terminal_bandwidth: 50,
+        min_seed_cover: OrderedFloat(0.1),
+        kmer_length: 6,        // reduce to find more matches
+        kmer_distance: 25,     // reduce to try more seeds
+        min_match_length: 30,  // reduce to keep more seeds
+        allowed_mismatches: 15, // increase to keep more seeds
+        window_size: 30,
+          ..AlignPairwiseParams::default()
       }),
       "short-sequences" => Ok(AlignPairwiseParams {
         alignment_preset: o!("short-sequences"),
