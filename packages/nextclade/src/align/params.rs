@@ -30,7 +30,7 @@ impl Default for GapAlignmentSide {
 #[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
-  /// Alignment param preset
+  /// Alignment parameter presets. Available options are `default` (suitable for very similar sequences), `high-diversity` (suitable for more diverse viruses), and `short-sequences`. EXPERIMENTAL feature subject to adjustments.
   #[clap(long, default_value = ALIGNMENT_PRESET_DEFAULT)]
   pub alignment_preset: String,
 
@@ -206,7 +206,8 @@ impl AlignPairwiseParams {
         penalty_gap_open: 13,              // make gaps more expensive relative to mismatches
         penalty_gap_open_in_frame: 18,     // increase the gap between gaps in coding and non-coding regions
         penalty_gap_open_out_of_frame: 19, //
-        terminal_bandwidth: 50,
+        terminal_bandwidth: 100,
+        excess_bandwidth: 20,              // increase. Will results in slower and more memory-intensive alignments
         min_seed_cover: OrderedFloat(0.1),
         kmer_length: 6,        // reduce to find more matches
         kmer_distance: 25,     // reduce to try more seeds
@@ -217,7 +218,13 @@ impl AlignPairwiseParams {
       }),
       "short-sequences" => Ok(AlignPairwiseParams {
         alignment_preset: o!("short-sequences"),
-        min_length: 0, // FIXME: dummy values
+        min_length: 30, // FIXME: dummy values
+        kmer_length: 6,        // reduce to find more matches
+        kmer_distance: 3,      // reduce to try more seeds
+        min_match_length: 20,  // reduce to keep more seeds
+        allowed_mismatches: 5, // increase to keep more seeds
+        window_size: 20,
+        excess_bandwidth: 20,
         ..AlignPairwiseParams::default()
       }),
       _ => make_error!("Alignment params preset not found: {preset_name}"),
