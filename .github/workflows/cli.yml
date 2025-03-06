@@ -145,13 +145,13 @@ jobs:
       - name: "Install deps"
         run: |
           mkdir -p "${HOME}/bin"
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
       - name: "Prepare .env file"
         run: |
           export PATH="${PATH}:${HOME}/bin"
 
-          version=$(dasel select -p toml -s ".workspace.package.version" -f "Cargo.toml")
+          version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
           if [[ "$version" =~ (rc|beta|alpha) ]]; then
               export DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org/v3"
           fi
@@ -300,7 +300,7 @@ jobs:
         run: |
           mkdir -p "${HOME}/bin"
           export PATH="${HOME}/bin:${PATH}"
-          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
       - name: "Download build artifacts"
         uses: actions/download-artifact@v4
@@ -418,9 +418,9 @@ jobs:
         run: |
           mkdir -p "${HOME}/bin"
           curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
           curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
-          curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
       - name: "Publish build artifacts to GitHub releases"
         run: |
@@ -454,7 +454,7 @@ jobs:
       - name: "Install deploy dependencies"
         run: |
           mkdir -p "${HOME}/bin"
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
       - name: "Login to Docker Hub"
         uses: docker/login-action@v3

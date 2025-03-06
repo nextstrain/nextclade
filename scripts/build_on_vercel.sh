@@ -73,7 +73,7 @@ if ! command cargo &>/dev/null; then
   curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel"
   chmod +x "/usr/bin/dasel"
 
-  RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml")
+  RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml")
   curl -sSf https://sh.rustup.rs >rustup-init
   chmod +x rustup-init
   ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}"

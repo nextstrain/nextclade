@@ -319,27 +319,6 @@ We are thankful to all our contributors, no matter how they contribute: in ideas
 
 This project follows the <a target="_blank" rel="noopener noreferrer" href="https://github.com/all-contributors/all-contributors">all-contributors</a> specification. Contributions of any kind welcome!
 
-
-<h2 id="sponsors" align="center">
-🏢 Sponsors
-</h2>
-
-We are thankful to the following companies who supported us:
-
-<table>
-<tr>
-<td align="center">
-<a target="_blank" rel="noopener noreferrer" href="https://vercel.com/?utm_source=nextstrain">
-<img src="packages/web/src/assets/img/powered-by-vercel.svg" width="150px" alt="Vercel logo" />
-</a>
-</td>
-<td align="center">
-Vercel for sponsoring Nextclade builds on their platform
-</td>
-</tr>
-</table>
-
-
 <h2 id="license" align="center">
 ⚖️ License
 </h2>
