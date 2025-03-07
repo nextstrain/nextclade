@@ -153,13 +153,15 @@ pub fn find_best_datasets(
 
     unmatched = unmatched.difference(&matched).copied().collect();
 
-    top_hit_matches += top_hit_by_dataset[best_dataset];
+    // dbg!(&top_hit_by_dataset, &best_dataset)
+    
+    top_hit_matches += top_hit_by_dataset[best_top_dataset];
     total_matches += hit_by_dataset[best_dataset];
 
     debug!("Global search: iteration {}", i);
     debug!(
       "Global search: added dataset '{}' ({} hits, {} top hits)",
-      best_dataset, hit_by_dataset[best_dataset], top_hit_by_dataset[best_dataset]
+      best_dataset, hit_by_dataset[best_dataset], top_hit_by_dataset[best_top_dataset]
     );
     debug!("Global search: hit matches {}", total_matches);
     debug!("Global search: top hit matches {}", top_hit_matches);
