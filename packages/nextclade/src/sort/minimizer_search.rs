@@ -1,12 +1,16 @@
 use crate::io::fasta::FastaRecord;
+use crate::make_internal_report;
 use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
 use crate::sort::params::NextcladeSeqSortParams;
+use crate::utils::map::key_of_max_value;
 use eyre::Report;
 use itertools::{izip, Itertools};
+use log::debug;
+use maplit::btreemap;
 use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -94,6 +98,92 @@ pub fn run_minimizer_search(
     max_score,
     datasets,
   })
+}
+
+pub fn find_best_datasets(
+  results: &BTreeMap<usize, MinimizerSearchResult>,
+  params: &NextcladeSeqSortParams,
+) -> Result<Vec<DatasetSuggestionStats>, Report> {
+  let mut unmatched: BTreeSet<_> = results
+    .iter()
+    .filter(|(_, r)| !r.datasets.is_empty())
+    .map(|(i, _)| i)
+    .copied()
+    .collect();
+
+  let mut suggestions = vec![];
+  let mut top_hit_matches = 0;
+  let mut total_matches = 0;
+
+  for i in 0..params.max_iter {
+    let mut hit_by_dataset = btreemap! {};
+    let mut top_hit_by_dataset = btreemap! {};
+
+    for qry in &unmatched {
+      let hits = &results[qry].datasets;
+      for hit in hits {
+        *hit_by_dataset.entry(&hit.name).or_insert(0) += 1;
+      }
+      if !hits.is_empty() {
+        *top_hit_by_dataset.entry(&hits[0].name).or_insert(0) += 1;
+      }
+    }
+
+    let mut best_dataset = *key_of_max_value(&hit_by_dataset)
+      .ok_or_else(|| make_internal_report!("partition_sequences: no matching best dataset found"))?;
+
+    if hit_by_dataset[best_dataset] == 0 {
+      debug!("partition_sequences: no more hits");
+      break;
+    }
+
+    let best_top_dataset = *key_of_max_value(&top_hit_by_dataset)
+      .ok_or_else(|| make_internal_report!("partition_sequences: no matching best top dataset found"))?;
+
+    if hit_by_dataset[best_top_dataset] == hit_by_dataset[best_dataset] {
+      best_dataset = best_top_dataset;
+    };
+
+    let matched: BTreeSet<_> = results
+      .iter()
+      .filter(|(_, res)| res.datasets.iter().any(|dataset| &dataset.name == best_dataset))
+      .map(|(i, _)| i)
+      .copied()
+      .collect();
+
+    unmatched = unmatched.difference(&matched).copied().collect();
+
+    top_hit_matches += top_hit_by_dataset[best_dataset];
+    total_matches += hit_by_dataset[best_dataset];
+
+    debug!("Global search: iteration {}", i);
+    debug!(
+      "Global search: added dataset '{}' ({} hits, {} top hits)",
+      best_dataset, hit_by_dataset[best_dataset], top_hit_by_dataset[best_dataset]
+    );
+    debug!("Global search: hit matches {}", total_matches);
+    debug!("Global search: top hit matches {}", top_hit_matches);
+    debug!("Global search: unmatched remaining {}", unmatched.len());
+
+    suggestions.push(DatasetSuggestionStats {
+      name: best_dataset.to_owned(),
+      n_hits: hit_by_dataset[best_top_dataset],
+      qry_indices: matched.iter().copied().collect(),
+    });
+
+    if unmatched.is_empty() {
+      break;
+    }
+  }
+
+  let suggestions = suggestions.into_iter().sorted_by_key(|s| s.n_hits).collect_vec();
+  Ok(suggestions)
+}
+
+pub struct DatasetSuggestionStats {
+  pub name: String,
+  pub n_hits: usize,
+  pub qry_indices: Vec<usize>,
 }
 
 const fn invertible_hash(x: u64) -> u64 {
