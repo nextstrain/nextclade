@@ -7,7 +7,7 @@ use nextclade::alphabet::nuc::from_nuc_seq;
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
-use nextclade::io::genbank_feature_table::GenbankFeatureTableFileWriter;
+use nextclade::io::genbank_tbl::GenbankTblFileWriter;
 use nextclade::io::gff3_writer::Gff3FileWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
 use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
@@ -30,7 +30,7 @@ pub struct NextcladeOrderedWriter {
   output_csv_writer: Option<NextcladeResultsCsvFileWriter>,
   output_tsv_writer: Option<NextcladeResultsCsvFileWriter>,
   output_gff_writer: Option<Gff3FileWriter>,
-  output_tbl_writer: Option<GenbankFeatureTableFileWriter>,
+  output_tbl_writer: Option<GenbankTblFileWriter>,
   expected_index: usize,
   queue: HashMap<usize, NextcladeRecord>,
   in_order: bool,
@@ -94,7 +94,7 @@ impl NextcladeOrderedWriter {
 
     let output_tbl_writer = output_params
       .output_annotation_tbl
-      .map_ref_fallible(GenbankFeatureTableFileWriter::new)?;
+      .map_ref_fallible(GenbankTblFileWriter::new)?;
 
     Ok(Self {
       fasta_writer,

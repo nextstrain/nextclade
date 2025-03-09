@@ -1,5 +1,4 @@
 use crate::coord::position::PositionLike;
-use crate::coord::range::Range;
 use crate::gene::cds::Cds;
 use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
@@ -7,28 +6,17 @@ use crate::gene::gene_map::GeneMap;
 use crate::io::file::create_file_or_stdout;
 use csv::{Writer as CsvWriter, WriterBuilder as CsvWriterBuilder};
 use eyre::Report;
-use indexmap::IndexMap;
-use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::path::Path;
-
-/// An entry for Genbank Feature Table
-#[must_use]
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct GenbankFeatureTableEntry<P: PositionLike> {
-  pub seq_name: String,
-  pub gene_ranges_qry: IndexMap<String, Range<P>>,
-}
 
 /// Writes Genbank Feature Table into a writer (`std::io::Write`)
 ///
 /// See: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
-pub struct GenbankFeatureTableWriter<W: Write + Send> {
+pub struct GenbankTblWriter<W: Write + Send> {
   writer: CsvWriter<W>,
 }
 
-impl<W: Write + Send> GenbankFeatureTableWriter<W> {
+impl<W: Write + Send> GenbankTblWriter<W> {
   pub fn new(writer: W) -> Result<Self, Report> {
     let writer = CsvWriterBuilder::new()
       .delimiter(b'\t')
@@ -133,15 +121,15 @@ impl<W: Write + Send> GenbankFeatureTableWriter<W> {
 /// Writes Genbank Feature Table into a file
 ///
 /// See: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
-pub struct GenbankFeatureTableFileWriter {
-  writer: GenbankFeatureTableWriter<Box<dyn Write + Send>>,
+pub struct GenbankTblFileWriter {
+  writer: GenbankTblWriter<Box<dyn Write + Send>>,
 }
 
-impl GenbankFeatureTableFileWriter {
+impl GenbankTblFileWriter {
   pub fn new(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let file = create_file_or_stdout(filepath)?;
     Ok(Self {
-      writer: GenbankFeatureTableWriter::new(file)?,
+      writer: GenbankTblWriter::new(file)?,
     })
   }
 
