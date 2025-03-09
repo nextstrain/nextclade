@@ -37,6 +37,9 @@ impl Protein {
           compat_is_cds: false,
           compat_is_gene: false,
           color: None,
+          gff_seqid: feature.gff_seqid.clone(),
+          gff_source: feature.gff_source.clone(),
+          gff_feature_type: feature.gff_feature_type.clone(),
         })
       })
       .collect::<Result<Vec<ProteinSegment>, Report>>()?;
@@ -72,6 +75,9 @@ pub struct ProteinSegment {
   pub compat_is_cds: bool,
   pub compat_is_gene: bool,
   pub color: Option<String>,
+  pub gff_seqid: Option<String>,
+  pub gff_source: Option<String>,
+  pub gff_feature_type: Option<String>,
 }
 
 impl ProteinSegment {

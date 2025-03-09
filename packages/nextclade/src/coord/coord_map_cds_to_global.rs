@@ -114,6 +114,9 @@ mod coord_map_tests {
               source_record: None,
               compat_is_gene: false,
               color: None,
+              gff_seqid: None,
+              gff_source: None,
+              gff_feature_type: None,
             };
             segment_start = segment_start + end - begin;
             segment

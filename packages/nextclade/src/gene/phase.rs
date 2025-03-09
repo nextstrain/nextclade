@@ -25,6 +25,14 @@ impl Phase {
       }
     }
   }
+
+  pub const fn to_usize(self) -> usize {
+    match self {
+      Phase::_0 => 0,
+      Phase::_1 => 1,
+      Phase::_2 => 2,
+    }
+  }
 }
 
 impl Display for Phase {

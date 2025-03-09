@@ -87,8 +87,8 @@ impl ResultsJsonWriter {
     })
   }
 
-  pub fn write(&mut self, entry: NextcladeOutputs) {
-    self.result.results.push(entry);
+  pub fn write(&mut self, entry: &NextcladeOutputs) {
+    self.result.results.push(entry.clone());
   }
 
   pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) {

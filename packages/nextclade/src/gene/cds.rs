@@ -1,3 +1,4 @@
+use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::{NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
@@ -61,6 +62,9 @@ impl Cds {
               source_record: feature.source_record.clone(),
               compat_is_gene: false,
               color: None,
+              gff_seqid: feature.gff_seqid.clone(),
+              gff_source: feature.gff_source.clone(),
+              gff_feature_type: feature.gff_feature_type.clone(),
             };
 
             begin += feature.range.len();
@@ -129,6 +133,9 @@ impl Cds {
       compat_is_cds: true,
       compat_is_gene: true,
       color: None,
+      gff_seqid: feature.gff_seqid.clone(),
+      gff_source: feature.gff_source.clone(),
+      gff_feature_type: feature.gff_feature_type.clone(),
     };
 
     let protein = Protein {
@@ -159,6 +166,9 @@ impl Cds {
       source_record: feature.source_record.clone(),
       compat_is_gene: true,
       color: None,
+      gff_seqid: feature.gff_seqid.clone(),
+      gff_source: feature.gff_source.clone(),
+      gff_feature_type: feature.gff_feature_type.clone(),
     };
 
     let segments = vec![cds_segment];
@@ -179,6 +189,14 @@ impl Cds {
 
   pub fn name_and_type(&self) -> String {
     format!("CDS '{}'", self.name)
+  }
+
+  pub fn start(&self) -> NucRefGlobalPosition {
+    self.segments.iter().map(|s| s.range.begin).min().unwrap()
+  }
+
+  pub fn end(&self) -> NucRefGlobalPosition {
+    self.segments.iter().map(|s| s.range.end).min().unwrap()
   }
 
   #[inline]

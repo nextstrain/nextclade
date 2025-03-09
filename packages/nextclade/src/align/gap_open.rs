@@ -91,6 +91,9 @@ mod tests {
               source_record: None,
               compat_is_gene: false,
               color: None,
+              gff_seqid: None,
+              gff_source: None,
+              gff_feature_type: None,
             }
           })
           .collect_vec();

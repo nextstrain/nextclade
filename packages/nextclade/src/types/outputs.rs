@@ -14,6 +14,7 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
 use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
@@ -100,6 +101,7 @@ pub struct NextcladeOutputs {
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
+  pub gene_map_qry: GeneMap,
 }
 
 impl NextcladeOutputs {

@@ -7,6 +7,7 @@ pub mod fs;
 pub mod getenv;
 pub mod global_init;
 pub mod info;
+pub mod iter;
 pub mod map;
 pub mod num;
 pub mod option;

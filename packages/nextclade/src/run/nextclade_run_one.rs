@@ -33,8 +33,10 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::range::AaRefRange;
+use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
+use crate::o;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
 use crate::translate::aa_alignment_ranges::{gather_aa_alignment_ranges, GatherAaAlignmentRangesResult};
@@ -45,6 +47,7 @@ use crate::tree::tree_find_ancestors_of_interest::{graph_find_ancestors_of_inter
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use eyre::Report;
+use indexmap::indexmap;
 use itertools::Itertools;
 use std::collections::{BTreeMap, HashSet};
 
@@ -152,6 +155,8 @@ pub fn nextclade_run_one(
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
+  let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
+
   let NextcladeResultWithAa {
     translation,
     aa_changes_groups,
@@ -171,8 +176,6 @@ pub fn nextclade_run_one(
     aa_alignment_ranges,
     aa_unsequenced_ranges,
   } = if !gene_map.is_empty() {
-    let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
-
     let translation = translate_genes(
       &alignment.qry_seq,
       &alignment.ref_seq,
@@ -204,7 +207,7 @@ pub fn nextclade_run_one(
       if alignment.is_reverse_complement {
         warnings.push(PeptideWarning {
           cds_name: "nuc".to_owned(),
-          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
+          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID."),
         });
       }
 
@@ -402,6 +405,8 @@ pub fn nextclade_run_one(
 
   let is_reverse_complement = alignment.is_reverse_complement;
 
+  let gene_map_qry = calculate_gene_map_qry(index, seq_name, gene_map, &coord_map_global, is_reverse_complement)?;
+
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
     translation,
@@ -460,6 +465,53 @@ pub fn nextclade_run_one(
       nearest_node_name,
       nearest_nodes,
       is_reverse_complement,
+      gene_map_qry,
     },
   })
+}
+
+/// Calculate genome annotation for query sequence in alignment coordinates
+pub fn calculate_gene_map_qry(
+  index: usize,
+  seq_name: &str,
+  gene_map: &GeneMap,
+  coord_map_global: &CoordMapGlobal,
+  is_reverse_complement: bool,
+) -> Result<GeneMap, Report> {
+  let mut gene_map = gene_map.clone();
+
+  let mut additional_attributes = indexmap! {
+    o!("seq_index") => vec![index.to_string()],
+  };
+
+  if is_reverse_complement {
+    additional_attributes.insert(o!("is_reverse_complement"), vec![o!("true")]);
+  }
+
+  for gene in &mut gene_map.genes {
+    gene.gff_seqid = Some(seq_name.to_owned());
+    gene.attributes.extend(additional_attributes.clone());
+
+    for cds in &mut gene.cdses {
+      cds.attributes.extend(additional_attributes.clone());
+
+      for segment in &mut cds.segments {
+        segment.gff_seqid = Some(seq_name.to_owned());
+        segment.attributes.extend(additional_attributes.clone());
+
+        let aln_range = coord_map_global.ref_to_aln_range(&segment.range);
+
+        // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
+        // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"
+        // the NucAlnGlobalRange to the NucRefGlobalRange to satisfy this limitation.
+        // TODO: modify GeneMap class to allow for different range types, or just use plain range without subtyping.
+        segment.range = NucRefGlobalRange::from_range(aln_range);
+      }
+
+      // TODO: once we support proteins, modify protein coordinates as well
+      // for protein in &mut cds.proteins {}
+    }
+  }
+
+  Ok(gene_map)
 }
