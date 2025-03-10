@@ -1,4 +1,5 @@
 use crate::coord::position::PositionLike;
+use crate::gene::cds::Cds;
 use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
@@ -27,7 +28,7 @@ impl<W: Write> Gff3Writer<W> {
 
       for cds in &gene.cdses {
         for (i, segment) in cds.segments.iter().enumerate() {
-          let record = cds_to_bio_gff_record(segment)
+          let record = cds_to_bio_gff_record(gene, cds, segment)
             .wrap_err_with(|| format!("When converting segment {} of CDS {}", i, cds.name))?;
           self.write_record(&record)?;
         }
@@ -55,11 +56,23 @@ fn gene_to_bio_gff_record(gene: &Gene) -> Result<BioGffRecord, Report> {
   *record.score_mut() = o!(".");
   *record.strand_mut() = o!(".");
   *record.frame_mut() = o!(".");
-  *record.attributes_mut() = map_to_multimap(&gene.attributes);
+
+  let mut attributes = gene.attributes.clone();
+
+  // Add ID attribute to be able to link child CDSes back to this gene
+  attributes.insert(o!("ID"), vec![gene.id.clone()]);
+
+  // Add Name if not present
+  if !attributes.contains_key("Name") {
+    attributes.insert(o!("Name"), vec![gene.name.clone()]);
+  }
+
+  *record.attributes_mut() = map_to_multimap(&attributes);
+
   Ok(record)
 }
 
-fn cds_to_bio_gff_record(seg: &CdsSegment) -> Result<BioGffRecord, Report> {
+fn cds_to_bio_gff_record(gene: &Gene, _: &Cds, seg: &CdsSegment) -> Result<BioGffRecord, Report> {
   let mut record = BioGffRecord::new();
   *record.seqname_mut() = seg.gff_seqid.clone().unwrap_or_else(|| o!("."));
   *record.source_mut() = o!("nextclade");
@@ -69,7 +82,19 @@ fn cds_to_bio_gff_record(seg: &CdsSegment) -> Result<BioGffRecord, Report> {
   *record.score_mut() = o!(".");
   *record.strand_mut() = o!(".");
   *record.frame_mut() = o!(".");
-  *record.attributes_mut() = map_to_multimap(&seg.attributes);
+
+  let mut attributes = seg.attributes.clone();
+
+  // Link this CDS segment to its parent gene
+  attributes.insert(o!("Parent"), vec![gene.id.clone()]);
+
+  // Add Name if not present
+  if !attributes.contains_key("Name") {
+    attributes.insert(o!("Name"), vec![seg.name.clone()]);
+  }
+
+  *record.attributes_mut() = map_to_multimap(&attributes);
+
   Ok(record)
 }
 

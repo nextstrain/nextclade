@@ -67,6 +67,11 @@ impl<W: Write + Send> GenbankTblWriter<W> {
         self.writer.write_record(["", "", "", key, value])?;
       }
     }
+
+    // If there's no "Name" attribute, let's add it
+    if !gene.attributes.contains_key("Name") {
+      self.writer.write_record(["", "", "", "Name", &gene.name])?;
+    }
     Ok(())
   }
 
@@ -111,6 +116,11 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // If there's no "product" attribute, let's add it as CDS name
       if !segment.attributes.contains_key("product") {
         self.writer.write_record(["", "", "", "product", &cds.name])?;
+      }
+
+      // If there's no "Name" attribute, let's add it
+      if !segment.attributes.contains_key("Name") {
+        self.writer.write_record(["", "", "", "Name", &cds.name])?;
       }
     }
 
