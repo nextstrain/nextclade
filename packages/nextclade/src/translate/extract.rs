@@ -74,7 +74,8 @@ mod coord_map_tests {
   use crate::alphabet::nuc::to_nuc_seq;
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
-  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  use crate::gene::cds;
+use crate::gene::cds_segment::{CdsSegment, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use eyre::Report;
@@ -170,6 +171,10 @@ mod coord_map_tests {
       qry_cds_aln,
       to_nuc_seq("GCACACGCATC---TTTAAAACGGGTTTGCGGTGTCAGTCGTCTT")?
     );
+
+    let qry_cds = create_fake_cds(&[(3, 20), (19, 38), (41, 47)]);
+    let inferred_segments = cds.segments.iter().map(|cds_segment| global_coord_map.ref_to_qry_range(&cds_segment.range)).collect_vec();
+    assert_eq!(inferred_segments, qry_cds.segments.iter().map(|cds_segment| cds_segment.range.clone()).collect_vec());
 
     Ok(())
   }
