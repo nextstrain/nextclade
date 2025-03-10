@@ -81,7 +81,7 @@ fn cds_to_bio_gff_record(gene: &Gene, _: &Cds, seg: &CdsSegment) -> Result<BioGf
   *record.start_mut() = (seg.start().as_usize() + 1) as u64;
   *record.end_mut() = seg.end().as_usize() as u64;
   *record.score_mut() = o!(".");
-  *record.strand_mut() = o!(".");
+  *record.strand_mut() = seg.strand.to_string();
   *record.frame_mut() = o!(".");
 
   let mut attributes = seg.attributes.clone();
