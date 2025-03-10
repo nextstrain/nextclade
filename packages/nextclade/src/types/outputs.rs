@@ -101,6 +101,8 @@ pub struct NextcladeOutputs {
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
+  
+  #[serde(skip_serializing_if = "GeneMap::is_empty")]
   pub annotation: GeneMap,
 }
 
