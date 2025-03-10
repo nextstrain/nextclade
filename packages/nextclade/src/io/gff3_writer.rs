@@ -10,7 +10,7 @@ use eyre::{Report, WrapErr};
 use std::io::Write;
 use std::path::Path;
 
-pub const GFF_ATTRIBUTES_TO_REMOVE: &[&str] = &["translation"];
+pub const GFF_ATTRIBUTES_TO_REMOVE: &[&str] = &["translation", "codon_start"];
 
 pub struct Gff3Writer<W: Write> {
   writer: BioGffWriter<W>,
