@@ -50,7 +50,7 @@ fn gene_to_bio_gff_record(gene: &Gene) -> Result<BioGffRecord, Report> {
   *record.seqname_mut() = gene.gff_seqid.clone().unwrap_or_else(|| o!("."));
   *record.source_mut() = o!("nextclade");
   *record.feature_type_mut() = o!("gene");
-  *record.start_mut() = gene.start().as_usize() as u64;
+  *record.start_mut() = (gene.start().as_usize() + 1) as u64;
   *record.end_mut() = gene.end().as_usize() as u64;
   *record.score_mut() = o!(".");
   *record.strand_mut() = o!(".");
@@ -64,7 +64,7 @@ fn cds_to_bio_gff_record(seg: &CdsSegment) -> Result<BioGffRecord, Report> {
   *record.seqname_mut() = seg.gff_seqid.clone().unwrap_or_else(|| o!("."));
   *record.source_mut() = o!("nextclade");
   *record.feature_type_mut() = o!("CDS");
-  *record.start_mut() = seg.start().as_usize() as u64;
+  *record.start_mut() = (seg.start().as_usize() + 1) as u64;
   *record.end_mut() = seg.end().as_usize() as u64;
   *record.score_mut() = o!(".");
   *record.strand_mut() = o!(".");

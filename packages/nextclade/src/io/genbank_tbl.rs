@@ -49,7 +49,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
   }
 
   fn write_gene(&mut self, gene: &Gene) -> Result<(), Report> {
-    let start = gene.start().as_usize().to_string();
+    let start = (gene.start().as_usize() + 1).to_string(); // Convert to 1-based indexing
     let end = gene.end().as_usize().to_string();
 
     // Write a line with feature's boundaries and feature's kind
@@ -72,7 +72,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
 
   fn write_cds(&mut self, cds: &Cds) -> Result<(), Report> {
     for (i, segment) in cds.segments.iter().enumerate() {
-      let mut start = segment.start().as_usize().to_string();
+      let mut start = (segment.start().as_usize() + 1).to_string(); // Convert to 1-based indexing
       let mut end = segment.end().as_usize().to_string();
       if segment.strand == Reverse {
         (start, end) = (end, start);
