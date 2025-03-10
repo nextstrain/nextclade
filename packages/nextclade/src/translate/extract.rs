@@ -157,7 +157,7 @@ mod coord_map_tests {
     let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMapGlobal::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln, &qry_aln);
 
     let ref_cds_aln = extract_cds_from_aln(&ref_aln, &cds, &global_coord_map);
     assert_eq!(

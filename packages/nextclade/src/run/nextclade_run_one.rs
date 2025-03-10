@@ -155,7 +155,7 @@ pub fn nextclade_run_one(
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
-  let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
+  let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq, &alignment.qry_seq);
 
   let NextcladeResultWithAa {
     translation,
@@ -499,7 +499,7 @@ pub fn calculate_qry_annotation(
         segment.gff_seqid = Some(seq_name.to_owned());
         segment.attributes.extend(additional_attributes.clone());
 
-        let aln_range = coord_map_global.ref_to_aln_range(&segment.range);
+        let aln_range = coord_map_global.ref_to_qry_range(&segment.range);
 
         // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
         // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"

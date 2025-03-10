@@ -14,14 +14,16 @@ use serde::{Deserialize, Serialize};
 pub struct CoordMapGlobal {
   aln_to_ref_table: Vec<NucRefGlobalPosition>,
   ref_to_aln_table: Vec<NucAlnGlobalPosition>,
+  aln_to_qry_table: Vec<NucRefGlobalPosition>,
 }
 
 impl CoordMapGlobal {
   /// Takes aligned ref_seq before insertions (i.e. gaps in ref) are stripped
-  pub fn new(ref_seq_unstripped: &[Nuc]) -> Self {
+  pub fn new(ref_seq_unstripped: &[Nuc], qry_seq_unstripped: &[Nuc]) -> Self {
     Self {
       aln_to_ref_table: make_aln_to_ref_map(ref_seq_unstripped),
       ref_to_aln_table: make_ref_to_aln_map(ref_seq_unstripped),
+      aln_to_qry_table: make_aln_to_ref_map(qry_seq_unstripped),
     }
   }
 
@@ -33,6 +35,11 @@ impl CoordMapGlobal {
   #[inline]
   pub fn ref_to_aln_position(&self, reff: NucRefGlobalPosition) -> NucAlnGlobalPosition {
     self.ref_to_aln_table[reff.as_usize()]
+  }
+
+  #[inline]
+  pub fn ref_to_qry_position(&self, reff: NucRefGlobalPosition) -> NucRefGlobalPosition {
+    self.aln_to_qry_table[self.ref_to_aln_position(reff).as_usize()]
   }
 
   #[inline]
@@ -50,6 +57,16 @@ impl CoordMapGlobal {
       self.ref_to_aln_position(ref_range.end - 1) + 1,
     )
   }
+
+  #[inline]
+  pub fn ref_to_qry_range(&self, ref_range: &NucRefGlobalRange) -> NucRefGlobalRange {
+    Range::new(
+      self.ref_to_qry_position(ref_range.begin),
+      self.ref_to_qry_position(ref_range.end - 1) + 1,
+    )
+  }
+
+
 }
 
 #[cfg(test)]
@@ -68,8 +85,9 @@ mod coord_map_tests {
     // CDS range                                  2222222222222222222      333333
     // index                  012345678901234567890123456789012345678901234567890123456
     let ref_aln = to_nuc_seq("TGATGCACA---ATCGTTTTTAAACGGGTTTGCGGTGTAAGTGCAGCCCGTCTTACA")?;
+    let qry_aln = to_nuc_seq("TGATGCACAATCGTTTTTAAACGGGTTTGCGGTGTA---AGTGCAGCCCGTCTTACA")?;
 
-    let global_coord_map = CoordMapGlobal::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln, &qry_aln);
 
     assert_eq!(
       global_coord_map.aln_to_ref_table,
