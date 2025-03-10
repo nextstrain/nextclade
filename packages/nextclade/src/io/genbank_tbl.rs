@@ -4,8 +4,6 @@ use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
 use crate::gene::gene_map::GeneMap;
 use crate::io::file::create_file_or_stdout;
-use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
-use crate::o;
 use csv::{Writer as CsvWriter, WriterBuilder as CsvWriterBuilder};
 use eyre::Report;
 use std::io::Write;
@@ -59,22 +57,12 @@ impl<W: Write + Send> GenbankTblWriter<W> {
     // 21563 <TAB> 25384 <TAB> gene
     self.writer.write_record([&start, &end, "gene"])?;
 
-    let mut attributes = gene.attributes.clone();
-    GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
-      attributes.remove(*attr);
-    });
-
-    // If there's no "Name" attribute, let's add it
-    if !attributes.contains_key("Name") {
-      attributes.insert(o!("Name"), vec![gene.name.clone()]);
-    }
-
     // Write lines with feature's qualifiers
     // Example:
     // <TAB> <TAB> <TAB> product    <TAB> surface glycoprotein
     // <TAB> <TAB> <TAB> protein_id <TAB> gb|QHD43416.1|
     // <TAB> <TAB> <TAB> note       <TAB> structural protein
-    for (key, values) in &attributes {
+    for (key, values) in &gene.attributes {
       for value in values {
         self.writer.write_record(["", "", "", key, value])?;
       }
@@ -84,10 +72,10 @@ impl<W: Write + Send> GenbankTblWriter<W> {
   }
 
   fn write_cds(&mut self, cds: &Cds) -> Result<(), Report> {
-    for (i, segment) in cds.segments.iter().enumerate() {
-      let mut start = (segment.start().as_usize() + 1).to_string(); // Convert to 1-based indexing
-      let mut end = segment.end().as_usize().to_string();
-      if segment.strand == Reverse {
+    for (i, seg) in cds.segments.iter().enumerate() {
+      let mut start = (seg.start().as_usize() + 1).to_string(); // Convert to 1-based indexing
+      let mut end = seg.end().as_usize().to_string();
+      if seg.strand == Reverse {
         (start, end) = (end, start);
       }
 
@@ -99,27 +87,12 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // 21563 <TAB> 25384 <TAB> CDS
       self.writer.write_record([&start, &end, feature_type])?;
 
-      let mut attributes = segment.attributes.clone();
-      GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
-        attributes.remove(*attr);
-      });
-
-      // If there's no "Name" attribute, let's add it
-      if !attributes.contains_key("Name") {
-        attributes.insert(o!("Name"), vec![segment.name.clone()]);
-      }
-
-      // If there's no "product" attribute, let's add it as CDS name
-      if !segment.attributes.contains_key("product") {
-        attributes.insert(o!("product"), vec![cds.name.clone()]);
-      }
-
       // Write lines with feature's qualifiers
       // Example:
       // <TAB> <TAB> <TAB> product    <TAB> surface glycoprotein
       // <TAB> <TAB> <TAB> protein_id <TAB> gb|QHD43416.1|
       // <TAB> <TAB> <TAB> note       <TAB> structural protein
-      for (key, values) in &segment.attributes {
+      for (key, values) in &seg.attributes {
         for value in values {
           self.writer.write_record(["", "", "", key, value])?;
         }
@@ -128,7 +101,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // Phase is added as an additional "codon_start" qualifier on the first CDS interval
       // in one-based format. It is only added if it's not "1" (phase 0).
       if i == 0 {
-        let codon_start = segment.phase.to_usize() + 1;
+        let codon_start = seg.phase.to_usize() + 1;
         if codon_start != 1 {
           self
             .writer

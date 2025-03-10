@@ -36,6 +36,7 @@ use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
+use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
 use crate::o;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
@@ -491,24 +492,60 @@ pub fn calculate_qry_annotation(
   }
 
   for gene in &mut gene_map.genes {
+    let gene_id = format!("{:>03}-{}", index, gene.id);
+
     gene.gff_seqid = Some(seq_id.clone());
 
+    GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+      gene.attributes.remove(*attr);
+    });
+
     gene.attributes.extend(additional_attributes.clone());
+
+    // Add ID attribute to be able to link child CDSes back to this gene. Make it unique by appending seq index.
+    gene.attributes.insert(o!("ID"), vec![gene_id.clone()]);
+
+    // Add Name if not present
+    if !gene.attributes.contains_key("Name") {
+      gene.attributes.insert(o!("Name"), vec![gene.name.clone()]);
+    }
+
+    // If there's no "product" attribute, let's add it as CDS name
+    if !gene.attributes.contains_key("product") {
+      gene.attributes.insert(o!("product"), vec![gene.name.clone()]);
+    }
 
     for cds in &mut gene.cdses {
       cds.attributes.extend(additional_attributes.clone());
 
-      for segment in &mut cds.segments {
-        segment.gff_seqid = Some(seq_id.clone());
-        segment.attributes.extend(additional_attributes.clone());
+      for seg in &mut cds.segments {
+        seg.gff_seqid = Some(seq_id.clone());
+        seg.attributes.extend(additional_attributes.clone());
 
-        let aln_range = coord_map_global.ref_to_qry_range(&segment.range);
+        GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+          seg.attributes.remove(*attr);
+        });
+
+        // Link this CDS segment to its parent gene
+        seg.attributes.insert(o!("Parent"), vec![gene_id.clone()]);
+
+        // Add Name if not present
+        if !seg.attributes.contains_key("Name") {
+          seg.attributes.insert(o!("Name"), vec![seg.name.clone()]);
+        }
+
+        // If there's no "product" attribute, let's add it as CDS name
+        if !seg.attributes.contains_key("product") {
+          seg.attributes.insert(o!("product"), vec![seg.name.clone()]);
+        }
+
+        let aln_range = coord_map_global.ref_to_qry_range(&seg.range);
 
         // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
         // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"
         // the NucAlnGlobalRange to the NucRefGlobalRange to satisfy this limitation.
         // TODO: modify GeneMap class to allow for different range types, or just use plain range without subtyping.
-        segment.range = NucRefGlobalRange::from_range(aln_range);
+        seg.range = NucRefGlobalRange::from_range(aln_range);
       }
 
       // TODO: once we support proteins, modify protein coordinates as well
