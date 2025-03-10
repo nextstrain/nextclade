@@ -101,7 +101,7 @@ pub struct NextcladeOutputs {
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
-  pub gene_map_qry: GeneMap,
+  pub annotation: GeneMap,
 }
 
 impl NextcladeOutputs {

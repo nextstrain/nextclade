@@ -405,7 +405,7 @@ pub fn nextclade_run_one(
 
   let is_reverse_complement = alignment.is_reverse_complement;
 
-  let gene_map_qry = calculate_gene_map_qry(index, seq_name, gene_map, &coord_map_global, is_reverse_complement)?;
+  let annotation = calculate_qry_annotation(index, seq_name, gene_map, &coord_map_global, is_reverse_complement)?;
 
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
@@ -465,13 +465,13 @@ pub fn nextclade_run_one(
       nearest_node_name,
       nearest_nodes,
       is_reverse_complement,
-      gene_map_qry,
+      annotation,
     },
   })
 }
 
 /// Calculate genome annotation for query sequence in alignment coordinates
-pub fn calculate_gene_map_qry(
+pub fn calculate_qry_annotation(
   index: usize,
   seq_name: &str,
   gene_map: &GeneMap,
