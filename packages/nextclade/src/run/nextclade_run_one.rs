@@ -480,6 +480,8 @@ pub fn calculate_qry_annotation(
 ) -> Result<GeneMap, Report> {
   let mut gene_map = gene_map.clone();
 
+  let seq_id = seq_name.split(' ').next().unwrap().to_owned();
+
   let mut additional_attributes = indexmap! {
     o!("seq_index") => vec![index.to_string()],
   };
@@ -489,14 +491,15 @@ pub fn calculate_qry_annotation(
   }
 
   for gene in &mut gene_map.genes {
-    gene.gff_seqid = Some(seq_name.to_owned());
+    gene.gff_seqid = Some(seq_id.clone());
+
     gene.attributes.extend(additional_attributes.clone());
 
     for cds in &mut gene.cdses {
       cds.attributes.extend(additional_attributes.clone());
 
       for segment in &mut cds.segments {
-        segment.gff_seqid = Some(seq_name.to_owned());
+        segment.gff_seqid = Some(seq_id.clone());
         segment.attributes.extend(additional_attributes.clone());
 
         let aln_range = coord_map_global.ref_to_qry_range(&segment.range);
