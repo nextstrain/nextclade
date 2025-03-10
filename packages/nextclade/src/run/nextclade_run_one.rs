@@ -492,7 +492,7 @@ pub fn calculate_qry_annotation(
   }
 
   for gene in &mut gene_map.genes {
-    let gene_id = format!("{:>03}-{}", index, gene.id);
+    let gene_id = format!("{}-{}", index, gene.id);
 
     gene.gff_seqid = Some(seq_id.clone());
 
