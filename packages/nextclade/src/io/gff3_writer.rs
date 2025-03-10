@@ -16,7 +16,8 @@ pub struct Gff3Writer<W: Write> {
 }
 
 impl<W: Write> Gff3Writer<W> {
-  pub fn new(writer: W) -> Result<Self, Report> {
+  pub fn new(mut writer: W) -> Result<Self, Report> {
+    writeln!(writer, "##gff-version 3")?; // HACK: bio gff writer does not expose underlying writer, so we cannot write this later
     let writer = BioGffWriter::new(writer, BioGffType::GFF3);
     Ok(Self { writer })
   }
