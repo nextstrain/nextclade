@@ -4,6 +4,8 @@ use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
 use crate::gene::gene_map::GeneMap;
 use crate::io::file::create_file_or_stdout;
+use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
+use crate::o;
 use csv::{Writer as CsvWriter, WriterBuilder as CsvWriterBuilder};
 use eyre::Report;
 use std::io::Write;
@@ -57,21 +59,27 @@ impl<W: Write + Send> GenbankTblWriter<W> {
     // 21563 <TAB> 25384 <TAB> gene
     self.writer.write_record([&start, &end, "gene"])?;
 
-    // Write lines with feature's attributes
+    let mut attributes = gene.attributes.clone();
+    GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+      attributes.remove(*attr);
+    });
+
+    // If there's no "Name" attribute, let's add it
+    if !attributes.contains_key("Name") {
+      attributes.insert(o!("Name"), vec![gene.name.clone()]);
+    }
+
+    // Write lines with feature's qualifiers
     // Example:
     // <TAB> <TAB> <TAB> product    <TAB> surface glycoprotein
     // <TAB> <TAB> <TAB> protein_id <TAB> gb|QHD43416.1|
     // <TAB> <TAB> <TAB> note       <TAB> structural protein
-    for (key, values) in &gene.attributes {
+    for (key, values) in &attributes {
       for value in values {
         self.writer.write_record(["", "", "", key, value])?;
       }
     }
 
-    // If there's no "Name" attribute, let's add it
-    if !gene.attributes.contains_key("Name") {
-      self.writer.write_record(["", "", "", "Name", &gene.name])?;
-    }
     Ok(())
   }
 
@@ -90,6 +98,21 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // Example:
       // 21563 <TAB> 25384 <TAB> CDS
       self.writer.write_record([&start, &end, feature_type])?;
+
+      let mut attributes = segment.attributes.clone();
+      GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+        attributes.remove(*attr);
+      });
+
+      // If there's no "Name" attribute, let's add it
+      if !attributes.contains_key("Name") {
+        attributes.insert(o!("Name"), vec![segment.name.clone()]);
+      }
+
+      // If there's no "product" attribute, let's add it as CDS name
+      if !segment.attributes.contains_key("product") {
+        attributes.insert(o!("product"), vec![cds.name.clone()]);
+      }
 
       // Write lines with feature's qualifiers
       // Example:
@@ -111,16 +134,6 @@ impl<W: Write + Send> GenbankTblWriter<W> {
             .writer
             .write_record(["", "", "", "codon_start", &codon_start.to_string()])?;
         }
-      }
-
-      // If there's no "product" attribute, let's add it as CDS name
-      if !segment.attributes.contains_key("product") {
-        self.writer.write_record(["", "", "", "product", &cds.name])?;
-      }
-
-      // If there's no "Name" attribute, let's add it
-      if !segment.attributes.contains_key("Name") {
-        self.writer.write_record(["", "", "", "Name", &cds.name])?;
       }
     }
 

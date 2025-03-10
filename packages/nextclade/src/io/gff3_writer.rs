@@ -11,6 +11,8 @@ use eyre::{Report, WrapErr};
 use std::io::Write;
 use std::path::Path;
 
+pub const GFF_ATTRIBUTES_TO_REMOVE: &[&str] = &["translation"];
+
 pub struct Gff3Writer<W: Write> {
   writer: BioGffWriter<W>,
 }
@@ -59,6 +61,9 @@ fn gene_to_bio_gff_record(gene: &Gene) -> Result<BioGffRecord, Report> {
   *record.frame_mut() = o!(".");
 
   let mut attributes = gene.attributes.clone();
+  GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+    attributes.remove(*attr);
+  });
 
   // Add ID attribute to be able to link child CDSes back to this gene
   attributes.insert(o!("ID"), vec![gene.id.clone()]);
@@ -85,6 +90,9 @@ fn cds_to_bio_gff_record(gene: &Gene, _: &Cds, seg: &CdsSegment) -> Result<BioGf
   *record.frame_mut() = o!(".");
 
   let mut attributes = seg.attributes.clone();
+  GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+    attributes.remove(*attr);
+  });
 
   // Link this CDS segment to its parent gene
   attributes.insert(o!("Parent"), vec![gene.id.clone()]);
