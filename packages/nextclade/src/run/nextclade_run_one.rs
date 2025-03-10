@@ -481,7 +481,7 @@ pub fn calculate_qry_annotation(
 ) -> Result<GeneMap, Report> {
   let mut gene_map = gene_map.clone();
 
-  let seq_id = seq_name.split(' ').next().unwrap().to_owned();
+  let seq_id = seq_name.split(' ').next().unwrap_or_default().to_owned();
 
   let mut additional_attributes = indexmap! {
     o!("seq_index") => vec![index.to_string()],
