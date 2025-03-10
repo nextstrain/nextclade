@@ -471,7 +471,7 @@ pub fn nextclade_run_one(
   })
 }
 
-/// Calculate genome annotation for query sequence in alignment coordinates
+/// Calculate genome annotation for query sequence in query coordinates
 pub fn calculate_qry_annotation(
   index: usize,
   seq_name: &str,
