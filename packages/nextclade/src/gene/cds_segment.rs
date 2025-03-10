@@ -1,13 +1,9 @@
-use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::{NucRefGlobalRange, NucRefLocalRange};
 use crate::features::feature::Landmark;
 use crate::gene::frame::Frame;
 use crate::gene::gene::GeneStrand;
 use crate::gene::phase::Phase;
-use crate::o;
-use crate::utils::map::map_to_multimap;
-use bio::io::gff::Record as BioGffRecord;
-use eyre::Report;
 use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -73,23 +69,5 @@ impl CdsSegment {
   #[inline]
   pub fn is_empty(&self) -> bool {
     self.len() == 0
-  }
-}
-
-impl TryFrom<&CdsSegment> for BioGffRecord {
-  type Error = Report;
-
-  fn try_from(seg: &CdsSegment) -> Result<Self, Self::Error> {
-    let mut record = BioGffRecord::new();
-    *record.seqname_mut() = seg.gff_seqid.clone().unwrap_or_else(|| o!("."));
-    *record.source_mut() = o!("nextclade");
-    *record.feature_type_mut() = o!("CDS");
-    *record.start_mut() = seg.start().as_usize() as u64;
-    *record.end_mut() = seg.end().as_usize() as u64;
-    *record.score_mut() = o!(".");
-    *record.strand_mut() = o!(".");
-    *record.frame_mut() = o!(".");
-    *record.attributes_mut() = map_to_multimap(&seg.attributes);
-    Ok(record)
   }
 }

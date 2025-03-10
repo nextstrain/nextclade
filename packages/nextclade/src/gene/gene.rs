@@ -1,11 +1,8 @@
-use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::position::NucRefGlobalPosition;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
-use crate::o;
 use crate::utils::collections::take_exactly_one;
 use crate::utils::iter::single_unique_value;
-use crate::utils::map::map_to_multimap;
-use bio::io::gff::Record as BioGffRecord;
 use eyre::{eyre, Report, WrapErr};
 use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
@@ -177,22 +174,4 @@ fn find_cdses_recursive(feature_group: &FeatureGroup, cdses: &mut Vec<Cds>) -> R
     .children
     .iter()
     .try_for_each(|child_feature_group| find_cdses_recursive(child_feature_group, cdses))
-}
-
-impl TryFrom<&Gene> for BioGffRecord {
-  type Error = Report;
-
-  fn try_from(gene: &Gene) -> Result<Self, Self::Error> {
-    let mut record = BioGffRecord::new();
-    *record.seqname_mut() = gene.gff_seqid.clone().unwrap_or_else(|| o!("."));
-    *record.source_mut() = o!("nextclade");
-    *record.feature_type_mut() = o!("gene");
-    *record.start_mut() = gene.start().as_usize() as u64;
-    *record.end_mut() = gene.end().as_usize() as u64;
-    *record.score_mut() = o!(".");
-    *record.strand_mut() = o!(".");
-    *record.frame_mut() = o!(".");
-    *record.attributes_mut() = map_to_multimap(&gene.attributes);
-    Ok(record)
-  }
 }
