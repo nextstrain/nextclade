@@ -1,4 +1,4 @@
-use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::{NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
@@ -201,12 +201,13 @@ impl Cds {
 
   #[inline]
   pub fn len(&self) -> usize {
-    self.end().as_usize().saturating_sub(self.start().as_usize())
+    // sum of lengths of all segments
+    self.segments.iter().map(CdsSegment::len).sum()
   }
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.len() == 0
+    self.segments.len() == 0 || self.len() == 0
   }
 }
 
