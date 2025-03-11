@@ -192,11 +192,11 @@ impl Cds {
   }
 
   pub fn start(&self) -> NucRefGlobalPosition {
-    self.segments.iter().map(|s| s.range.begin).min().unwrap()
+    self.segments.iter().map(|s| s.range.begin).min().unwrap_or_default()
   }
 
   pub fn end(&self) -> NucRefGlobalPosition {
-    self.segments.iter().map(|s| s.range.end).max().unwrap()
+    self.segments.iter().map(|s| s.range.end).max().unwrap_or_default()
   }
 
   #[inline]

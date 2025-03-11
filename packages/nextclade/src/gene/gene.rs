@@ -128,11 +128,11 @@ impl Gene {
   }
 
   pub fn start(&self) -> NucRefGlobalPosition {
-    self.cdses.iter().map(Cds::start).min().unwrap()
+    self.cdses.iter().map(Cds::start).min().unwrap_or_default()
   }
 
   pub fn end(&self) -> NucRefGlobalPosition {
-    self.cdses.iter().map(Cds::end).max().unwrap()
+    self.cdses.iter().map(Cds::end).max().unwrap_or_default()
   }
 
   #[inline]
@@ -142,7 +142,7 @@ impl Gene {
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.cdses.len() == 0 || self.len() == 0
+    self.len() == 0
   }
 
   #[inline]
