@@ -548,10 +548,19 @@ pub fn calculate_qry_annotation(
         seg.range = NucRefGlobalRange::from_range(aln_range);
       }
 
+      // Remove empty CDS segments
+      cds.segments.retain(|seg| !seg.is_empty());
+
       // TODO: once we support proteins, modify protein coordinates as well
       // for protein in &mut cds.proteins {}
     }
+
+    // Remove empty CDS
+    gene.cdses.retain(|cds| !cds.is_empty());
   }
+
+  // Remove empty genes
+  gene_map.genes.retain(|gene| !gene.is_empty());
 
   Ok(gene_map)
 }

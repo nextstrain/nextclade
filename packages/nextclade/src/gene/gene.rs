@@ -1,4 +1,4 @@
-use crate::coord::position::NucRefGlobalPosition;
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::utils::collections::take_exactly_one;
@@ -137,7 +137,7 @@ impl Gene {
 
   #[inline]
   pub fn len(&self) -> usize {
-    self.cdses.iter().map(Cds::len).sum()
+    self.end().as_usize().saturating_sub(self.start().as_usize())
   }
 
   #[inline]

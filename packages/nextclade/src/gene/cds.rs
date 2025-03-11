@@ -1,4 +1,4 @@
-use crate::coord::position::NucRefGlobalPosition;
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
@@ -201,7 +201,7 @@ impl Cds {
 
   #[inline]
   pub fn len(&self) -> usize {
-    self.segments.iter().map(CdsSegment::len).sum()
+    self.end().as_usize().saturating_sub(self.start().as_usize())
   }
 
   #[inline]
