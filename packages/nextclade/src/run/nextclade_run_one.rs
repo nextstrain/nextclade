@@ -33,7 +33,7 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
 use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
@@ -406,7 +406,14 @@ pub fn nextclade_run_one(
 
   let is_reverse_complement = alignment.is_reverse_complement;
 
-  let annotation = calculate_qry_annotation(index, seq_name, gene_map, &coord_map_global, is_reverse_complement)?;
+  let annotation = calculate_qry_annotation(
+    index,
+    seq_name,
+    gene_map,
+    &coord_map_global,
+    &alignment_range,
+    is_reverse_complement,
+  )?;
 
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
@@ -477,6 +484,7 @@ pub fn calculate_qry_annotation(
   seq_name: &str,
   gene_map: &GeneMap,
   coord_map_global: &CoordMapGlobal,
+  alignment_range: &NucRefGlobalRange,
   is_reverse_complement: bool,
 ) -> Result<GeneMap, Report> {
   let mut gene_map = gene_map.clone();
@@ -539,8 +547,11 @@ pub fn calculate_qry_annotation(
           seg.attributes.insert(o!("product"), vec![seg.name.clone()]);
         }
 
-        let aln_range = coord_map_global.ref_to_qry_range(&seg.range);
+        // Take only the part of the segment which is within the alignment range
+        let included_range = intersect(alignment_range, &seg.range);
 
+        // Convert included segment range from reference to query coordinates
+        let aln_range = coord_map_global.ref_to_qry_range(&included_range);
         // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
         // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"
         // the NucAlnGlobalRange to the NucRefGlobalRange to satisfy this limitation.

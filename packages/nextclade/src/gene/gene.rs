@@ -142,7 +142,7 @@ impl Gene {
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.len() == 0
+    self.cdses.len() == 0 || self.len() == 0
   }
 
   #[inline]

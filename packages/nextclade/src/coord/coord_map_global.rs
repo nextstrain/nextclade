@@ -44,6 +44,12 @@ impl CoordMapGlobal {
 
   #[inline]
   pub fn aln_to_ref_range(&self, aln_range: &NucAlnGlobalRange) -> NucRefGlobalRange {
+    if aln_range.is_empty() {
+      return Range::new(
+        self.aln_to_ref_position(aln_range.begin),
+        self.aln_to_ref_position(aln_range.begin),
+      );
+    }
     Range::new(
       self.aln_to_ref_position(aln_range.begin),
       self.aln_to_ref_position(aln_range.end - 1) + 1,
@@ -52,6 +58,12 @@ impl CoordMapGlobal {
 
   #[inline]
   pub fn ref_to_aln_range(&self, ref_range: &NucRefGlobalRange) -> NucAlnGlobalRange {
+    if ref_range.is_empty() {
+      return Range::new(
+        self.ref_to_aln_position(ref_range.begin),
+        self.ref_to_aln_position(ref_range.begin),
+      );
+    }
     Range::new(
       self.ref_to_aln_position(ref_range.begin),
       self.ref_to_aln_position(ref_range.end - 1) + 1,
@@ -60,6 +72,12 @@ impl CoordMapGlobal {
 
   #[inline]
   pub fn ref_to_qry_range(&self, ref_range: &NucRefGlobalRange) -> NucRefGlobalRange {
+    if ref_range.is_empty() {
+      return Range::new(
+        self.ref_to_qry_position(ref_range.begin),
+        self.ref_to_qry_position(ref_range.begin),
+      );
+    }
     Range::new(
       self.ref_to_qry_position(ref_range.begin),
       self.ref_to_qry_position(ref_range.end - 1) + 1,

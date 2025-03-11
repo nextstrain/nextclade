@@ -1,5 +1,15 @@
-from Bio import SeqIO, Seq
+from Bio import SeqIO
 from collections import defaultdict
+
+
+# ./target/debug/nextclade run -d community/neherlab/hiv-1/hxb2 --output-all test-hiv hxb2/sequences.fasta
+# run test_gff.py --gff test-hiv/nextclade.gff --fasta hxb2/sequences.fasta
+
+# ./target/debug/nextclade run -d nextstrain/sars-cov-2/wuhan-hu-1/orfs --output-all test-sc2-orfs data/sars-cov-2/sequences.fasta
+# run test_gff.py --gff test-sc2-orfs/nextclade.gff --fasta data/sars-cov-2/sequences.fasta
+
+# ./target/debug/nextclade run -d nextstrain/sars-cov-2/wuhan-hu-1/proteins --output-all test-sc2-proteins data/sars-cov-2/sequences.fasta
+# run test_gff.py --gff test-sc2-proteins/nextclade.gff --fasta data/sars-cov-2/sequences.fasta
 
 if __name__=="__main__":
     # read a fasta file and a gff file from the command line
@@ -23,7 +33,11 @@ if __name__=="__main__":
     for seq in seqs:
         if seq.id in annotations:
             for f in annotations[seq.id]:
-                print(f.id, Seq.translate(f.extract(seq.seq)))
+                print(f, len(f.sub_features), f.location)
+                if f.type == 'gene':
+                    for c in f.sub_features:
+                        print(c.id, c.qualifiers['Name'][0], c.location, c.extract(seq.seq).translate())
+                # print(f.id, f.qualifiers['Name'][0], Seq.translate(f.extract(seq.seq)))
 
 
 
