@@ -552,7 +552,6 @@ pub fn calculate_qry_annotation(
 
         // Convert included segment range from reference to query coordinates
         let aln_range = coord_map_global.ref_to_qry_range(&included_range);
-
         // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
         // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"
         // the NucAlnGlobalRange to the NucRefGlobalRange to satisfy this limitation.

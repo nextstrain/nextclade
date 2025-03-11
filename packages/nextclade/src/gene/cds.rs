@@ -206,7 +206,7 @@ impl Cds {
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.len() == 0
+    self.segments.len()==0 || self.len() == 0
   }
 }
 
