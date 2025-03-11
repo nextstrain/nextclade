@@ -267,6 +267,12 @@ RUN set -euxo pipefail >/dev/null \
 && curl -sSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
 && chmod +x "${CARGO_HOME}/bin/cargo-nextest"
 
+
+RUN set -euxo pipefail >/dev/null \
+&& curl -fsSL "https://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/table2asn/linux64.table2asn.gz" | gzip -d > "${CARGO_HOME}/bin/table2asn" && chmod +x "${CARGO_HOME}/bin/table2asn" \
+&& "table2asn" -version
+
+
 # Setup bash
 RUN set -euxo pipefail >/dev/null \
 && echo 'alias ll="ls --color=always -alFhp"' >> ~/.bashrc \

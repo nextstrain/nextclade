@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+trap "exit 0" INT
+set -euo pipefail
+
+# Validates Genbank's "5-column tab-delimited feature table" (TBL) file.
+#   https://www.ncbi.nlm.nih.gov/genbank/feature_table
+# Uses `table2asn` tool
+#   https://www.ncbi.nlm.nih.gov/genbank/table2asn/
+#
+# Dependencies:
+#
+# 1. Install `table2asn` from NCBI FTP file server:
+#   curl -fsSL "https://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/table2asn/linux64.table2asn.gz" | gzip -d > "${HOME}/bin/table2asn" && chmod +x "${HOME}/bin/table2asn" && "table2asn" -version
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: $0 <sequence.fsa> <features.tbl>" >&2
+  exit 1
+fi
+
+FASTA_FILE="$1"
+TBL_FILE="$2"
+
+WORKDIR=$(mktemp -d)
+trap 'rm -rf "$WORKDIR"' EXIT
+
+cp "$FASTA_FILE" "$WORKDIR/sequence.fsa"
+cp "$TBL_FILE" "$WORKDIR/sequence.tbl"
+
+# This removes the qualifiers Genbank does not recognize, to avoid warnings.
+#
+# Example:
+#                  Warning:
+#  Problem:        Unrecognized qualifier name
+#  SeqId:          lcl|OR795385
+#  Line:           3
+#  FeatureName:    gene
+#  QualifierName:  seq_index
+#  QualifierValue: 0
+IGNORE_QUALIFIERS=("ID" "Name" "Parent" "gene_name" "seq_index")
+awk -F'\t' -v OFS='\t' -v ignore="$(IFS="|"; echo "${IGNORE_QUALIFIERS[*]}")" '
+  $4 && $4 ~ ("^(" ignore ")$") { next }
+  { print }
+' "$TBL_FILE" > "$WORKDIR/sequence.tbl"
+
+table2asn \
+  -i "$WORKDIR/sequence.fsa" \
+  -f "$WORKDIR/sequence.tbl" \
+  -Z \
+  -outdir "$WORKDIR"
