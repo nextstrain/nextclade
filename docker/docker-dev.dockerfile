@@ -269,8 +269,7 @@ RUN set -euxo pipefail >/dev/null \
 
 
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/table2asn/linux64.table2asn.gz" | gzip -d > "${CARGO_HOME}/bin/table2asn" && chmod +x "${CARGO_HOME}/bin/table2asn" \
-&& "table2asn" -version
+&& curl -fsSL "https://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/table2asn/linux64.table2asn.gz" | gzip -d > "${CARGO_HOME}/bin/table2asn" && chmod +x "${CARGO_HOME}/bin/table2asn"
 
 
 # Setup bash
