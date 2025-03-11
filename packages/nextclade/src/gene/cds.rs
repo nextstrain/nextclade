@@ -201,7 +201,8 @@ impl Cds {
 
   #[inline]
   pub fn len(&self) -> usize {
-    self.end().as_usize().saturating_sub(self.start().as_usize())
+    // sum of lengths of all segments
+    self.segments.iter().map(|s| s.len()).sum()
   }
 
   #[inline]
