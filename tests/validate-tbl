@@ -20,8 +20,13 @@ fi
 FASTA_FILE="$1"
 TBL_FILE="$2"
 
-WORKDIR=$(mktemp -d)
-trap 'rm -rf "$WORKDIR"' EXIT
+
+WORKDIR="tmp/out"
+
+#WORKDIR=$(mktemp -d)
+#trap 'rm -rf "$WORKDIR"' EXIT
+
+mkdir -p $WORKDIR
 
 cp "$FASTA_FILE" "$WORKDIR/sequence.fsa"
 cp "$TBL_FILE" "$WORKDIR/sequence.tbl"
@@ -45,5 +50,6 @@ awk -F'\t' -v OFS='\t' -v ignore="$(IFS="|"; echo "${IGNORE_QUALIFIERS[*]}")" '
 table2asn \
   -i "$WORKDIR/sequence.fsa" \
   -f "$WORKDIR/sequence.tbl" \
+  -V bvt \
   -Z \
   -outdir "$WORKDIR"
