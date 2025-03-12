@@ -552,18 +552,23 @@ pub fn calculate_qry_annotation(
         // Take only the part of the segment which is within the alignment range
         let included_range = intersect(alignment_range, &seg.range);
 
-        // Adjust phase, if the feature is incomplete
-        if seg.strand == GeneStrand::Forward && seg.range.begin < included_range.begin {
+        // Note if the feature is incomplete at the 5p (left) end
+        if seg.range.begin < included_range.begin {
           let truncation = included_range.begin - seg.range.begin;
-          seg.phase = seg.phase.shifted_by(truncation)?;
-          seg.attributes.insert(o!("Note"), vec![o!("incomplete")]);
+          if seg.strand == GeneStrand::Forward { // Adjust phase to correctly label start of codon
+            seg.phase = seg.phase.shifted_by(truncation)?;
+          }
+          // add note to list of Notes, add new attribute if it doesn't exist
+          seg.attributes.insert(o!("truncated-5p"), vec![truncation.to_string()]);
         }
 
-        // Adjust phase, if the feature is incomplete
-        if seg.strand == GeneStrand::Reverse && seg.range.end > included_range.end {
+        // Note if the feature is incomplete at the 3p (right) end
+        if seg.range.end > included_range.end {
           let truncation =  seg.range.end - included_range.end;
-          seg.phase = seg.phase.shifted_by(truncation)?;
-          seg.attributes.insert(o!("Note"), vec![o!("incomplete")]);
+          if seg.strand == GeneStrand::Reverse{ // Adjust phase to correctly label start of codon
+            seg.phase = seg.phase.shifted_by(truncation)?;
+          }
+          seg.attributes.insert(o!("truncated-3p"), vec![truncation.to_string()]);
         }
 
         // Convert included segment range from reference to query coordinates
