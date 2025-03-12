@@ -6,6 +6,7 @@ use schemars::schema::Schema;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter};
 
+#[must_use]
 #[repr(i8)]
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
 pub enum Phase {
@@ -32,6 +33,13 @@ impl Phase {
       Phase::_1 => 1,
       Phase::_2 => 2,
     }
+  }
+
+  pub fn shifted_by<P: PositionLike>(self, amount: P) -> Result<Phase, Report> {
+    let original_phase = self.to_usize();
+    let amount = amount.as_usize();
+    let begin = NucRefLocalPosition::from(original_phase + amount);
+    Phase::from_begin(begin)
   }
 }
 

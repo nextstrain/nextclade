@@ -33,8 +33,8 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::position::{Position, PositionLike};
-use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
+use crate::coord::position::{NucRefLocalPosition, Position, PositionLike};
+use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange, NucRefLocalRange};
 use crate::gene::gene_map::GeneMap;
 use crate::gene::phase::Phase;
 use crate::graph::node::GraphNodeKey;
@@ -552,11 +552,12 @@ pub fn calculate_qry_annotation(
 
         // Take only the part of the segment which is within the alignment range
         let included_range = intersect(alignment_range, &seg.range);
+
+        // Adjust phase, if the feature is incomplete
         if seg.range.begin < included_range.begin {
-          let truncation = included_range.begin.as_usize() - seg.range.begin.as_usize();
-          let orignal_phase = seg.phase.to_usize();
-          seg.phase = Phase::from_begin(Position::from((orignal_phase + truncation) as isize)).unwrap();
-          seg.attributes.insert("Note".to_owned(), ["incomplete".to_owned()].to_vec());
+          let truncation = included_range.begin - seg.range.begin;
+          seg.phase = seg.phase.shifted_by(truncation)?;
+          seg.attributes.insert(o!("Note"), vec![o!("incomplete")]);
         }
 
         // Convert included segment range from reference to query coordinates
