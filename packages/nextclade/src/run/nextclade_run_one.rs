@@ -33,8 +33,10 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
+use crate::coord::position::{Position, PositionLike};
 use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
 use crate::gene::gene_map::GeneMap;
+use crate::gene::phase::Phase;
 use crate::graph::node::GraphNodeKey;
 use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
 use crate::o;
@@ -530,6 +532,7 @@ pub fn calculate_qry_annotation(
         seg.gff_seqid = Some(seq_id.clone());
         seg.attributes.extend(additional_attributes.clone());
 
+        //dbg!(&seg);
         GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
           seg.attributes.remove(*attr);
         });
@@ -549,6 +552,12 @@ pub fn calculate_qry_annotation(
 
         // Take only the part of the segment which is within the alignment range
         let included_range = intersect(alignment_range, &seg.range);
+        if seg.range.begin < included_range.begin {
+          let truncation = included_range.begin.as_usize() - seg.range.begin.as_usize();
+          let orignal_phase = seg.phase.to_usize();
+          seg.phase = Phase::from_begin(Position::from((orignal_phase + truncation) as isize)).unwrap();
+          seg.attributes.insert("Note".to_owned(), ["incomplete".to_owned()].to_vec());
+        }
 
         // Convert included segment range from reference to query coordinates
         let aln_range = coord_map_global.ref_to_qry_range(&included_range);
