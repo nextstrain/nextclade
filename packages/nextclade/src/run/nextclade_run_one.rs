@@ -33,10 +33,9 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::position::{NucRefLocalPosition, Position, PositionLike};
-use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange, NucRefLocalRange};
+use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
+use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
-use crate::gene::phase::Phase;
 use crate::graph::node::GraphNodeKey;
 use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
 use crate::o;
@@ -554,8 +553,15 @@ pub fn calculate_qry_annotation(
         let included_range = intersect(alignment_range, &seg.range);
 
         // Adjust phase, if the feature is incomplete
-        if seg.range.begin < included_range.begin {
+        if seg.strand == GeneStrand::Forward && seg.range.begin < included_range.begin {
           let truncation = included_range.begin - seg.range.begin;
+          seg.phase = seg.phase.shifted_by(truncation)?;
+          seg.attributes.insert(o!("Note"), vec![o!("incomplete")]);
+        }
+
+        // Adjust phase, if the feature is incomplete
+        if seg.strand == GeneStrand::Reverse && seg.range.end > included_range.end {
+          let truncation =  seg.range.end - included_range.end;
           seg.phase = seg.phase.shifted_by(truncation)?;
           seg.attributes.insert(o!("Note"), vec![o!("incomplete")]);
         }
