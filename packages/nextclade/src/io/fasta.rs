@@ -145,6 +145,14 @@ pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report>
   let mut reader = FastaReader::from_path(filepath)?;
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
+  if record.is_empty() {
+    return make_error!("Expected exactly one FASTA record, but found none")
+      .wrap_err_with(|| format!("When reading file {filepath:?}"));
+  }
+  if record.seq.is_empty() {
+    return make_error!("Sequence is empty, but a non-empty sequence was expected")
+      .wrap_err_with(|| format!("When reading file {filepath:?}"));
+  }
   Ok(record)
 }
 
@@ -168,6 +176,12 @@ pub fn read_one_fasta_str(contents: impl AsRef<str>) -> Result<FastaRecord, Repo
   let mut reader = FastaReader::from_str(&contents)?;
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
+  if record.is_empty() {
+    return make_error!("Expected exactly one FASTA record, but found none");
+  }
+  if record.seq.is_empty() {
+    return make_error!("Sequence is empty, but a non-empty sequence was expected");
+  }
   Ok(record)
 }
 
