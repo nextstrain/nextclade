@@ -81,6 +81,13 @@ impl<W: Write + Send> GenbankTblWriter<W> {
 
       // Feature type is written only for the first segment
       let feature_type = if i == 0 { "CDS" } else { "" };
+      // If "truncated_5p"/"truncated_3p" attribute is present, prefix the start/end position with "<"/">"
+      if seg.attributes.contains_key("truncated-5p") {
+        start = "<".to_string() + &start;
+      };
+      if seg.attributes.contains_key("truncated-3p") {
+        end = ">".to_string() + &end;
+      };
 
       // Write a line with feature's boundaries and feature's kind
       // Example:
