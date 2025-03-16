@@ -528,6 +528,9 @@ pub fn calculate_qry_annotation(
       cds.attributes.extend(additional_attributes.clone());
 
       for seg in &mut cds.segments {
+        let segment_id = format!("{}-{}", index, seg.id);
+        seg.attributes.insert(o!("ID"), vec![segment_id.clone()]);
+
         seg.gff_seqid = Some(seq_id.clone());
         seg.attributes.extend(additional_attributes.clone());
 
