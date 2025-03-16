@@ -202,10 +202,10 @@ impl AlignPairwiseParams {
       "default" => Ok(AlignPairwiseParams::default()),
       "high-diversity" => Ok(AlignPairwiseParams {
         alignment_preset: o!("high-diversity"),
-        penalty_gap_extend: 1,             // make longer gaps more costly
-        penalty_gap_open: 13,              // make gaps more expensive relative to mismatches
-        penalty_gap_open_in_frame: 18,     // increase the gap between gaps in coding and non-coding regions
-        penalty_gap_open_out_of_frame: 19, //
+        penalty_gap_extend: 0,             // make longer gaps more costly
+        penalty_gap_open: 10,              // make gaps more expensive relative to mismatches
+        penalty_gap_open_in_frame: 15,     // increase the gap between gaps in coding and non-coding regions
+        penalty_gap_open_out_of_frame: 17, //
         terminal_bandwidth: 100,
         excess_bandwidth: 20,              // increase. Will results in slower and more memory-intensive alignments
         min_seed_cover: OrderedFloat(0.1),
@@ -219,6 +219,7 @@ impl AlignPairwiseParams {
       "short-sequences" => Ok(AlignPairwiseParams {
         alignment_preset: o!("short-sequences"),
         min_length: 30, // FIXME: dummy values
+        penalty_gap_extend: 1,             // avoid short sequences being split by long gaps
         kmer_length: 6,        // reduce to find more matches
         kmer_distance: 3,      // reduce to try more seeds
         min_match_length: 20,  // reduce to keep more seeds
