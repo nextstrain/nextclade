@@ -84,10 +84,10 @@ impl<W: Write + Send> GenbankTblWriter<W> {
 
       // If "truncated_5p"/"truncated_3p" attribute is present, prefix the start/end position with "<"/">"
       if seg.attributes.contains_key("truncated-5p") {
-        start = "<".to_string() + &start;
+        start = format!("<{start}");
       };
       if seg.attributes.contains_key("truncated-3p") {
-        end = ">".to_string() + &end;
+        end = format!(">{end}");
       };
 
       // Write a line with feature's boundaries and feature's kind
