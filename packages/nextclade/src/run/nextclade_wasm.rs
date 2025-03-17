@@ -9,7 +9,7 @@ use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{filter_gene_map, GeneMap};
 use crate::graph::graph::Graph;
-use crate::io::fasta::{read_one_fasta_str, FastaRecord};
+use crate::io::fasta::{read_one_fasta_from_str, FastaRecord};
 use crate::io::nextclade_csv::CsvColumnConfig;
 use crate::io::nwk_writer::convert_graph_to_nwk_string;
 use crate::run::nextclade_run_one::nextclade_run_one;
@@ -120,7 +120,7 @@ impl NextcladeParams {
 
           let ref_record = raw
             .ref_seq
-            .map_ref_fallible(read_one_fasta_str)
+            .map_ref_fallible(read_one_fasta_from_str)
             .wrap_err("When parsing reference sequence")?;
 
           let tree = raw
@@ -153,7 +153,7 @@ impl NextcladeParams {
         let virus_properties =
           VirusProperties::from_str(&raw.virus_properties).wrap_err("When parsing pathogen JSON")?;
 
-        let ref_record = read_one_fasta_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
+        let ref_record = read_one_fasta_from_str(&raw.ref_seq).wrap_err("When parsing reference sequence")?;
 
         let tree = raw
           .tree

@@ -21,6 +21,24 @@ impl Default for GapAlignmentSide {
   }
 }
 
+#[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum AlignmentPreset {
+  #[clap(help = "Suitable for very similar sequences (this is the default)")]
+  Default,
+
+  #[clap(help = "Suitable for more diverse viruses")]
+  HighDiversity,
+
+  #[clap(help = "Suitable for short and partial sequences")]
+  ShortSequences,
+}
+
+impl Default for AlignmentPreset {
+  fn default() -> Self {
+    Self::Default
+  }
+}
 // NOTE: The `optfield` attribute creates a struct that have the same fields, but which are wrapped into `Option`,
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
 // into self (mutably).
@@ -30,6 +48,10 @@ impl Default for GapAlignmentSide {
 #[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
+  /// Alignment parameter presets. EXPERIMENTAL feature subject to adjustments.
+  #[clap(long, value_enum)]
+  pub alignment_preset: AlignmentPreset,
+
   /// Minimum length of nucleotide sequence to consider for alignment.
   ///
   /// If a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.
@@ -153,6 +175,8 @@ pub struct AlignPairwiseParams {
 impl Default for AlignPairwiseParams {
   fn default() -> Self {
     Self {
+      alignment_preset: AlignmentPreset::default(),
+
       min_length: 100,
       penalty_gap_extend: 0,
       penalty_gap_open: 6,
@@ -188,6 +212,40 @@ impl Default for AlignPairwiseParams {
 }
 
 impl AlignPairwiseParams {
+  pub fn from_preset(preset: AlignmentPreset) -> Result<AlignPairwiseParams, Report> {
+    match preset {
+      AlignmentPreset::Default => Ok(AlignPairwiseParams::default()),
+      AlignmentPreset::HighDiversity => Ok(AlignPairwiseParams {
+        alignment_preset: AlignmentPreset::HighDiversity,
+        penalty_gap_extend: 0,             // make longer gaps more costly
+        penalty_gap_open: 10,              // make gaps more expensive relative to mismatches
+        penalty_gap_open_in_frame: 15,     // increase the gap between gaps in coding and non-coding regions
+        penalty_gap_open_out_of_frame: 17, //
+        terminal_bandwidth: 100,
+        excess_bandwidth: 20, // increase. Will results in slower and more memory-intensive alignments
+        min_seed_cover: OrderedFloat(0.1),
+        kmer_length: 6,         // reduce to find more matches
+        kmer_distance: 25,      // reduce to try more seeds
+        min_match_length: 30,   // reduce to keep more seeds
+        allowed_mismatches: 15, // increase to keep more seeds
+        window_size: 30,
+        ..AlignPairwiseParams::default()
+      }),
+      AlignmentPreset::ShortSequences => Ok(AlignPairwiseParams {
+        alignment_preset: AlignmentPreset::ShortSequences,
+        min_length: 30,
+        penalty_gap_extend: 1, // avoid short sequences being split by long gaps
+        kmer_length: 6,        // reduce to find more matches
+        kmer_distance: 3,      // reduce to try more seeds
+        min_match_length: 20,  // reduce to keep more seeds
+        allowed_mismatches: 5, // increase to keep more seeds
+        window_size: 20,
+        excess_bandwidth: 20,
+        ..AlignPairwiseParams::default()
+      }),
+    }
+  }
+
   pub fn validate(&self) -> Result<(), Report> {
     #[rustfmt::skip]
   let deprecated = BTreeMap::from([

@@ -343,6 +343,16 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
   Possible values: `true`, `false`
 
 * `--masked-muts-weight <MASKED_MUTS_WEIGHT>`
+* `--alignment-preset <ALIGNMENT_PRESET>` — Alignment parameter presets. EXPERIMENTAL feature subject to adjustments
+
+  Possible values:
+  - `default`:
+    Suitable for very similar sequences (this is the default)
+  - `high-diversity`:
+    Suitable for more diverse viruses
+  - `short-sequences`:
+    Suitable for short and partial sequences
+
 * `--min-length <MIN_LENGTH>` — Minimum length of nucleotide sequence to consider for alignment.
 
    If a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.
