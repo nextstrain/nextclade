@@ -21,6 +21,24 @@ impl Default for GapAlignmentSide {
   }
 }
 
+#[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum AlignmentPreset {
+  #[clap(help = "Suitable for very similar sequences (this is the default)")]
+  Default,
+
+  #[clap(help = "Suitable for more diverse viruses")]
+  HighDiversity,
+
+  #[clap(help = "Suitable for short and partial sequences")]
+  ShortSequences,
+}
+
+impl Default for AlignmentPreset {
+  fn default() -> Self {
+    Self::Default
+  }
+}
 // NOTE: The `optfield` attribute creates a struct that have the same fields, but which are wrapped into `Option`,
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
 // into self (mutably).
@@ -30,9 +48,9 @@ impl Default for GapAlignmentSide {
 #[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
-  /// Alignment parameter presets. Available options are `default` (suitable for very similar sequences), `high-diversity` (suitable for more diverse viruses), and `short-sequences`. EXPERIMENTAL feature subject to adjustments.
-  #[clap(long, default_value = ALIGNMENT_PRESET_DEFAULT)]
-  pub alignment_preset: String,
+  /// Alignment parameter presets. EXPERIMENTAL feature subject to adjustments.
+  #[clap(long, value_enum)]
+  pub alignment_preset: AlignmentPreset,
 
   /// Minimum length of nucleotide sequence to consider for alignment.
   ///
@@ -154,12 +172,10 @@ pub struct AlignPairwiseParams {
   pub seed_spacing: Option<AnyType>,
 }
 
-pub const ALIGNMENT_PRESET_DEFAULT: &str = "default";
-
 impl Default for AlignPairwiseParams {
   fn default() -> Self {
     Self {
-      alignment_preset: ALIGNMENT_PRESET_DEFAULT.to_owned(),
+      alignment_preset: AlignmentPreset::default(),
 
       min_length: 100,
       penalty_gap_extend: 0,
@@ -196,30 +212,29 @@ impl Default for AlignPairwiseParams {
 }
 
 impl AlignPairwiseParams {
-  pub fn from_preset(preset_name: impl AsRef<str>) -> Result<AlignPairwiseParams, Report> {
-    let preset_name = preset_name.as_ref();
-    match preset_name {
-      "default" => Ok(AlignPairwiseParams::default()),
-      "high-diversity" => Ok(AlignPairwiseParams {
-        alignment_preset: o!("high-diversity"),
+  pub fn from_preset(preset: AlignmentPreset) -> Result<AlignPairwiseParams, Report> {
+    match preset {
+      AlignmentPreset::Default => Ok(AlignPairwiseParams::default()),
+      AlignmentPreset::HighDiversity => Ok(AlignPairwiseParams {
+        alignment_preset: AlignmentPreset::HighDiversity,
         penalty_gap_extend: 0,             // make longer gaps more costly
         penalty_gap_open: 10,              // make gaps more expensive relative to mismatches
         penalty_gap_open_in_frame: 15,     // increase the gap between gaps in coding and non-coding regions
         penalty_gap_open_out_of_frame: 17, //
         terminal_bandwidth: 100,
-        excess_bandwidth: 20,              // increase. Will results in slower and more memory-intensive alignments
+        excess_bandwidth: 20, // increase. Will results in slower and more memory-intensive alignments
         min_seed_cover: OrderedFloat(0.1),
-        kmer_length: 6,        // reduce to find more matches
-        kmer_distance: 25,     // reduce to try more seeds
-        min_match_length: 30,  // reduce to keep more seeds
+        kmer_length: 6,         // reduce to find more matches
+        kmer_distance: 25,      // reduce to try more seeds
+        min_match_length: 30,   // reduce to keep more seeds
         allowed_mismatches: 15, // increase to keep more seeds
         window_size: 30,
-          ..AlignPairwiseParams::default()
+        ..AlignPairwiseParams::default()
       }),
-      "short-sequences" => Ok(AlignPairwiseParams {
-        alignment_preset: o!("short-sequences"),
-        min_length: 30, // FIXME: dummy values
-        penalty_gap_extend: 1,             // avoid short sequences being split by long gaps
+      AlignmentPreset::ShortSequences => Ok(AlignPairwiseParams {
+        alignment_preset: AlignmentPreset::ShortSequences,
+        min_length: 30,
+        penalty_gap_extend: 1, // avoid short sequences being split by long gaps
         kmer_length: 6,        // reduce to find more matches
         kmer_distance: 3,      // reduce to try more seeds
         min_match_length: 20,  // reduce to keep more seeds
@@ -228,7 +243,6 @@ impl AlignPairwiseParams {
         excess_bandwidth: 20,
         ..AlignPairwiseParams::default()
       }),
-      _ => make_error!("Alignment params preset not found: {preset_name}"),
     }
   }
 
