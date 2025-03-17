@@ -24,6 +24,16 @@ pub enum WrappingPart {
   WrappingEnd(usize),     // Last wrapping part.
 }
 
+// Shows whether the CDS is incomplete and by how much
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum Truncation {
+  #[default]
+  None,
+  FivePrime(usize),
+  ThreePrime(usize),
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsSegment {
@@ -37,6 +47,7 @@ pub struct CdsSegment {
   pub strand: GeneStrand,
   pub frame: Frame,
   pub phase: Phase,
+  pub truncation: Truncation,
   pub exceptions: Vec<String>,
   pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]

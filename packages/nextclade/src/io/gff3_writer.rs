@@ -72,7 +72,7 @@ fn cds_to_bio_gff_record(seg: &CdsSegment) -> Result<BioGffRecord, Report> {
   *record.end_mut() = seg.end().as_usize() as u64;
   *record.score_mut() = o!(".");
   *record.strand_mut() = seg.strand.to_string();
-  *record.frame_mut() = o!(".");
+  *record.frame_mut() = seg.phase.to_usize().to_string();
   *record.attributes_mut() = map_to_multimap(&seg.attributes);
   Ok(record)
 }

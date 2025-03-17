@@ -1,7 +1,7 @@
 use crate::coord::range::{NucRefGlobalRange, Range};
 use crate::features::feature::Landmark;
 use crate::gene::cds::{split_circular_cds_segments, Cds};
-use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
 use crate::gene::frame::Frame;
 use crate::gene::gene::Gene;
 use crate::gene::phase::Phase;
@@ -95,6 +95,7 @@ fn convert_cds_segments(
       strand: ann.strand,
       frame,
       phase,
+      truncation: Truncation::default(),
       exceptions: vec![],
       attributes: indexmap! {},
       source_record: Some(json_stringify(ann, JsonPretty(true))?),

@@ -33,7 +33,10 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
+use crate::coord::position::PositionLike;
 use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
+use crate::gene::cds_segment::Truncation;
+use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
 use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
@@ -527,9 +530,13 @@ pub fn calculate_qry_annotation(
       cds.attributes.extend(additional_attributes.clone());
 
       for seg in &mut cds.segments {
+        let segment_id = format!("{}-{}", index, seg.id);
+        seg.attributes.insert(o!("ID"), vec![segment_id.clone()]);
+
         seg.gff_seqid = Some(seq_id.clone());
         seg.attributes.extend(additional_attributes.clone());
 
+        //dbg!(&seg);
         GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
           seg.attributes.remove(*attr);
         });
@@ -549,6 +556,29 @@ pub fn calculate_qry_annotation(
 
         // Take only the part of the segment which is within the alignment range
         let included_range = intersect(alignment_range, &seg.range);
+
+        // Note if the feature is incomplete at the 5p (left) end
+        if seg.range.begin < included_range.begin {
+          let truncation = included_range.begin - seg.range.begin;
+          if seg.strand == GeneStrand::Forward {
+            // Adjust phase to correctly label start of codon
+            seg.phase = seg.phase.shifted_by(truncation)?;
+            seg.truncation = Truncation::FivePrime(truncation.as_usize());
+          }
+          // add note to list of Notes, add new attribute if it doesn't exist
+          seg.attributes.insert(o!("truncated-5p"), vec![truncation.to_string()]);
+        }
+
+        // Note if the feature is incomplete at the 3p (right) end
+        if seg.range.end > included_range.end {
+          let truncation = seg.range.end - included_range.end;
+          if seg.strand == GeneStrand::Reverse {
+            // Adjust phase to correctly label start of codon
+            seg.phase = seg.phase.shifted_by(truncation)?;
+            seg.truncation = Truncation::ThreePrime(truncation.as_usize());
+          }
+          seg.attributes.insert(o!("truncated-3p"), vec![truncation.to_string()]);
+        }
 
         // Convert included segment range from reference to query coordinates
         let aln_range = coord_map_global.ref_to_qry_range(&included_range);

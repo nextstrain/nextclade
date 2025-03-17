@@ -50,7 +50,7 @@ mod tests {
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
   use crate::gene::cds::Cds;
-  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
@@ -86,6 +86,7 @@ mod tests {
               strand: *strand,
               frame,
               phase,
+              truncation: Truncation::default(),
               exceptions: vec![],
               attributes: indexmap! {},
               source_record: None,
