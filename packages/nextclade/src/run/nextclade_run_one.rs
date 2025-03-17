@@ -558,7 +558,8 @@ pub fn calculate_qry_annotation(
         // Note if the feature is incomplete at the 5p (left) end
         if seg.range.begin < included_range.begin {
           let truncation = included_range.begin - seg.range.begin;
-          if seg.strand == GeneStrand::Forward { // Adjust phase to correctly label start of codon
+          if seg.strand == GeneStrand::Forward {
+            // Adjust phase to correctly label start of codon
             seg.phase = seg.phase.shifted_by(truncation)?;
           }
           // add note to list of Notes, add new attribute if it doesn't exist
@@ -567,8 +568,9 @@ pub fn calculate_qry_annotation(
 
         // Note if the feature is incomplete at the 3p (right) end
         if seg.range.end > included_range.end {
-          let truncation =  seg.range.end - included_range.end;
-          if seg.strand == GeneStrand::Reverse{ // Adjust phase to correctly label start of codon
+          let truncation = seg.range.end - included_range.end;
+          if seg.strand == GeneStrand::Reverse {
+            // Adjust phase to correctly label start of codon
             seg.phase = seg.phase.shifted_by(truncation)?;
           }
           seg.attributes.insert(o!("truncated-3p"), vec![truncation.to_string()]);
