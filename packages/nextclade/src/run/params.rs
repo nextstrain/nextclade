@@ -52,9 +52,15 @@ impl NextcladeInputParams {
       general_params
     };
 
+    let preset = params
+      .alignment
+      .as_ref()
+      .and_then(|a| a.alignment_preset)
+      .unwrap_or_default();
+
     let alignment = {
       // Start with defaults
-      let mut alignment_params = AlignPairwiseParams::default();
+      let mut alignment_params = AlignPairwiseParams::from_preset(preset)?;
       // Merge params coming from virus_properties
       if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
         alignment_params.merge_opt(alignment_params_from_file.clone());
