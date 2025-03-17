@@ -75,7 +75,7 @@ mod coord_map_tests {
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
   
-use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use eyre::Report;
@@ -109,6 +109,7 @@ use crate::gene::cds_segment::{CdsSegment, WrappingPart};
               strand: GeneStrand::Forward,
               frame,
               phase,
+              truncation: Truncation::default(),
               exceptions: vec![],
               attributes: indexmap!(),
               source_record: None,

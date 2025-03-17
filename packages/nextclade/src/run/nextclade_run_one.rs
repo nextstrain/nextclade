@@ -33,7 +33,9 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
+use crate::coord::position::PositionLike;
 use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
+use crate::gene::cds_segment::Truncation;
 use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
@@ -561,6 +563,7 @@ pub fn calculate_qry_annotation(
           if seg.strand == GeneStrand::Forward {
             // Adjust phase to correctly label start of codon
             seg.phase = seg.phase.shifted_by(truncation)?;
+            seg.truncation = Truncation::FivePrime(truncation.as_usize());
           }
           // add note to list of Notes, add new attribute if it doesn't exist
           seg.attributes.insert(o!("truncated-5p"), vec![truncation.to_string()]);
@@ -572,6 +575,7 @@ pub fn calculate_qry_annotation(
           if seg.strand == GeneStrand::Reverse {
             // Adjust phase to correctly label start of codon
             seg.phase = seg.phase.shifted_by(truncation)?;
+            seg.truncation = Truncation::ThreePrime(truncation.as_usize());
           }
           seg.attributes.insert(o!("truncated-3p"), vec![truncation.to_string()]);
         }

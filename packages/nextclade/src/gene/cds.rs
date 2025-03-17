@@ -2,7 +2,7 @@ use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::{NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
-use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
 use crate::gene::frame::Frame;
 use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
@@ -57,6 +57,7 @@ impl Cds {
               strand: feature.strand,
               frame,
               phase,
+              truncation: Truncation::default(),
               exceptions: feature.exceptions.clone(),
               attributes: feature.attributes.clone(),
               source_record: feature.source_record.clone(),
@@ -161,6 +162,7 @@ impl Cds {
       strand: feature.strand,
       frame,
       phase,
+      truncation: Truncation::default(),
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),

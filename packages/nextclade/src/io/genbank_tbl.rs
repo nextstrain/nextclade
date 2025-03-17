@@ -1,5 +1,6 @@
 use crate::coord::position::PositionLike;
 use crate::gene::cds::Cds;
+use crate::gene::cds_segment::Truncation;
 use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
 use crate::gene::gene_map::GeneMap;
@@ -82,12 +83,16 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // Feature type is written only for the first segment
       let feature_type = if i == 0 { "CDS" } else { "" };
 
-      // If "truncated_5p"/"truncated_3p" attribute is present, prefix the start/end position with "<"/">"
-      if seg.attributes.contains_key("truncated-5p") {
-        start = format!("<{start}");
-      };
-      if seg.attributes.contains_key("truncated-3p") {
-        end = format!(">{end}");
+      // If there is a truncation on 5' or 3' end, prefix the start/end position with "<" or ">",
+      // as an incomplete feature
+      match seg.truncation {
+        Truncation::FivePrime(_) => {
+          start = format!("<{start}");
+        }
+        Truncation::ThreePrime(_) => {
+          end = format!(">{end}");
+        }
+        Truncation::None => {}
       };
 
       // Write a line with feature's boundaries and feature's kind
