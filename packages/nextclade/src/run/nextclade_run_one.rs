@@ -503,7 +503,7 @@ pub fn calculate_qry_annotation(
   }
 
   for gene in &mut gene_map.genes {
-    let gene_id = format!("{}-{}", index, gene.id);
+    let gene_id = format!("Gene-{}-{}", index, gene.id);
 
     gene.gff_seqid = Some(seq_id.clone());
 
@@ -530,7 +530,7 @@ pub fn calculate_qry_annotation(
       cds.attributes.extend(additional_attributes.clone());
 
       for seg in &mut cds.segments {
-        let segment_id = format!("{}-{}", index, seg.id);
+        let segment_id = format!("CDS-{}-{}", index, seg.id);
         seg.attributes.insert(o!("ID"), vec![segment_id.clone()]);
 
         seg.gff_seqid = Some(seq_id.clone());
