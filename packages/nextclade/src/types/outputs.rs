@@ -45,6 +45,8 @@ pub struct PhenotypeValue {
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
+  pub seq_id: String,
+  pub seq_desc: String,
   pub ref_name: String,
   pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
@@ -101,7 +103,7 @@ pub struct NextcladeOutputs {
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
-  
+
   #[serde(skip_serializing_if = "GeneMap::is_empty")]
   pub annotation: GeneMap,
 }

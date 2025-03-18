@@ -7,23 +7,32 @@ use crate::o;
 use crate::utils::map::map_to_multimap;
 use bio::io::gff::{GffType as BioGffType, Record as BioGffRecord, Writer as BioGffWriter};
 use eyre::{Report, WrapErr};
+use indexmap::indexmap;
 use std::io::Write;
 use std::path::Path;
 
 pub const GFF_ATTRIBUTES_TO_REMOVE: &[&str] = &["translation", "codon_start"];
 
 pub struct Gff3Writer<W: Write> {
-  writer: BioGffWriter<W>,
+  writer: W,
 }
 
 impl<W: Write> Gff3Writer<W> {
   pub fn new(mut writer: W) -> Result<Self, Report> {
     writeln!(writer, "##gff-version 3")?; // HACK: bio gff writer does not expose underlying writer, so we cannot write this later
-    let writer = BioGffWriter::new(writer, BioGffType::GFF3);
     Ok(Self { writer })
   }
 
-  pub fn write_genemap(&mut self, gene_map: &GeneMap) -> Result<(), Report> {
+  pub fn write_genemap(
+    &mut self,
+    gene_map: &GeneMap,
+    seq_index: usize,
+    seq_id: &str,
+    seq_len: usize,
+  ) -> Result<(), Report> {
+    writeln!(self.writer, "##sequence-region {seq_id} 1 {seq_len}")?;
+    self.write_record(&create_bio_gff_region_record(seq_index, seq_id, seq_len)?)?;
+
     for gene in &gene_map.genes {
       let record = gene_to_bio_gff_record(gene).wrap_err_with(|| format!("When converting gene '{}'", gene.name))?;
       self.write_record(&record)?;
@@ -44,7 +53,13 @@ impl<W: Write> Gff3Writer<W> {
   }
 
   pub fn write_record(&mut self, record: &BioGffRecord) -> Result<(), Report> {
-    self.writer.write(record).wrap_err("When writing GFF3 record")
+    // HACK: this creates a new writer for each row. This is inefficient, but bio GFF writer consumes original writer
+    // and does not provide access to it afterward. So in order to be able to write a GFF where feature rows and
+    // pragmas are interleaved, we have to construct a new writer every time.
+    // TODO: use CSV writer directly instead: bio GFF writer provides very little value added and has a defective
+    // inconvenient interface.
+    let mut writer = BioGffWriter::new(&mut self.writer, BioGffType::GFF3);
+    writer.write(record).wrap_err("When writing GFF3 record")
   }
 }
 
@@ -77,6 +92,24 @@ fn cds_to_bio_gff_record(seg: &CdsSegment) -> Result<BioGffRecord, Report> {
   Ok(record)
 }
 
+fn create_bio_gff_region_record(seq_index: usize, seqid: &str, seq_len: usize) -> Result<BioGffRecord, Report> {
+  let mut record = BioGffRecord::new();
+  *record.seqname_mut() = seqid.to_owned();
+  *record.source_mut() = o!("nextclade");
+  *record.feature_type_mut() = o!("region");
+  *record.start_mut() = 1;
+  *record.end_mut() = seq_len as u64;
+  *record.score_mut() = o!(".");
+  *record.strand_mut() = o!(".");
+  *record.frame_mut() = o!(".");
+  *record.attributes_mut() = map_to_multimap(&indexmap! {
+    o!("seq_index") => vec![seq_index.to_string()],
+    o!("ID") => vec![seqid.to_owned()],
+    o!("Name") => vec![seqid.to_owned()],
+  });
+  Ok(record)
+}
+
 pub struct Gff3FileWriter {
   writer: Gff3Writer<Box<dyn Write + Send>>,
 }
@@ -89,8 +122,14 @@ impl Gff3FileWriter {
     })
   }
 
-  pub fn write_genemap(&mut self, gene_map: &GeneMap) -> Result<(), Report> {
-    self.writer.write_genemap(gene_map)
+  pub fn write_genemap(
+    &mut self,
+    gene_map: &GeneMap,
+    seq_index: usize,
+    seq_id: &str,
+    seq_len: usize,
+  ) -> Result<(), Report> {
+    self.writer.write_genemap(gene_map, seq_index, seq_id, seq_len)
   }
 
   pub fn write_record(&mut self, record: &BioGffRecord) -> Result<(), Report> {
