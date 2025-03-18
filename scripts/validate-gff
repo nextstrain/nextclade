@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+trap "exit 0" INT
+set -euo pipefail
+
+# Validates GFF3 files using genometools
+#
+# See:
+# - https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+# - https://github.com/genometools/genometools
+#
+# Dependencies:
+#
+#   apt-get install genometools
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 <path to directory or annotation.gff>" >&2
+  exit 1
+fi
+
+input="$1"
+
+IGNORED_MESSAGES=(
+  "has not been previously introduced with a \"##sequence-region\" line, create such a line automatically"
+  "input is valid GFF3"
+)
+
+function log() {
+  GREP_COLORS='mt=01;31' grep --line-buffered --color=always -iE "\b(err|error|fail|can not|cannot|can't|unable|critical|fatal|reject|deny|denied|terminat|abort|panic|fault|invalid|undefined symbol|not found|)\b" |
+  GREP_COLORS='mt=01;33' grep --line-buffered --color=always -iE "\b(warn|warning|caution|alert|notice|)\b" |
+  GREP_COLORS='mt=01;36' grep --line-buffered --color=always -iE "\b(note|info|status|detail|)\b"
+}
+
+status_accumulator=0
+
+function process_file() {
+  local file="$1"
+  local output
+  local status=0
+
+  output=$(gt gff3validator "$file" 2>&1) || status=$?
+  if [[ $status -ne 0 ]]; then
+    status_accumulator=1
+  fi
+
+  output_filtered=$(echo "$output" | sed 's|^gt gff3validator: ||' | grep -vE "$(IFS='|'; echo "${IGNORED_MESSAGES[*]}")" || true)
+
+  if [[ -n "$output_filtered" ]]; then
+    if [[ $status -ne 0 ]]; then
+      echo -e "\033[0;31m❌ '$file'\033[0m"
+    else
+      echo -e "\033[0;33m⚠️  '$file'\033[0m"
+    fi
+    echo "$output_filtered" | log
+    echo ""
+#  else
+#    echo -e "\033[0;32m✅ '$file'\033[0m"
+#    echo ""
+  fi
+
+}
+
+if [[ -d "$input" ]]; then
+  while IFS= read -r -d $'\0' file; do
+    if [[ -f "$file" ]] || [[ -L "$file" && -f "$(readlink -f "$file")" ]]; then
+      process_file "$file"
+    fi
+  done < <(find "$input" -type l -o -type f \( -name "*.gff" -o -name "*.gff3" \) -print0)
+elif [[ -f "$input" ]] || [[ -L "$input" && -f "$(readlink -f "$input")" ]]; then
+  process_file "$input"
+else
+  echo "Error: $input is not a valid file or directory" >&2
+  exit 1
+fi
+
+if [[ $status_accumulator -ne 0 ]]; then
+  exit 1
+fi

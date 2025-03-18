@@ -66,6 +66,7 @@ RUN set -euxo pipefail >/dev/null \
   build-essential \
   ca-certificates \
   curl \
+  genometools \
   git \
   gnupg \
   libssl-dev \
