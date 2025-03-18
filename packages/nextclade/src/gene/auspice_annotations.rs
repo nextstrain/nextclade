@@ -53,6 +53,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
         index,
         id: gene_name.to_owned(),
         name: gene_name.to_owned(),
+        range: cds.range(),
         cdses: vec![cds],
         exceptions: vec![],
         attributes: IndexMap::default(),
