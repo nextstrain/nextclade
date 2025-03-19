@@ -33,6 +33,10 @@ impl<W: Write> Gff3Writer<W> {
     seq_id: &str,
     seq_len: usize,
   ) -> Result<(), Report> {
+    if gene_map.is_empty() {
+      return Ok(());
+    }
+
     if !self.has_header_written {
       writeln!(self.writer, "##gff-version 3")?;
       self.has_header_written = true;
