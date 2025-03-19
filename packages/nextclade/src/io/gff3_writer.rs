@@ -15,12 +15,15 @@ pub const GFF_ATTRIBUTES_TO_REMOVE: &[&str] = &["translation", "codon_start"];
 
 pub struct Gff3Writer<W: Write> {
   writer: W,
+  has_header_written: bool,
 }
 
 impl<W: Write> Gff3Writer<W> {
-  pub fn new(mut writer: W) -> Result<Self, Report> {
-    writeln!(writer, "##gff-version 3")?; // HACK: bio gff writer does not expose underlying writer, so we cannot write this later
-    Ok(Self { writer })
+  pub const fn new(writer: W) -> Result<Self, Report> {
+    Ok(Self {
+      writer,
+      has_header_written: false,
+    })
   }
 
   pub fn write_genemap(
@@ -30,6 +33,11 @@ impl<W: Write> Gff3Writer<W> {
     seq_id: &str,
     seq_len: usize,
   ) -> Result<(), Report> {
+    if !self.has_header_written {
+      writeln!(self.writer, "##gff-version 3")?;
+      self.has_header_written = true;
+    }
+
     writeln!(self.writer, "##sequence-region {seq_id} 1 {seq_len}")?;
     self.write_record(&create_bio_gff_region_record(seq_index, seq_id, seq_len)?)?;
 
