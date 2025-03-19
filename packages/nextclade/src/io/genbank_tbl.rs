@@ -28,6 +28,10 @@ impl<W: Write + Send> GenbankTblWriter<W> {
   }
 
   pub fn write_genemap(&mut self, gene_map: &GeneMap) -> Result<(), Report> {
+    if gene_map.is_empty() {
+      return Ok(());
+    }
+
     let seq_id = gene_map
       .genes
       .first()
