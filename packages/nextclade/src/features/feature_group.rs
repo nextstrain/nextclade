@@ -112,7 +112,7 @@ impl FeatureGroup {
       .features
       .iter()
       .map(|feature| feature.range.end)
-      .min()
+      .max()
       .unwrap_or_default()
   }
 }
