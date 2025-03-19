@@ -1,4 +1,4 @@
-use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunOtherParams, NextcladeRunOutputArgs};
+use crate::cli::nextclade_cli::{NextcladeOutputSelection, NextcladeRunArgs};
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::nextclade_get_inputs;
 use eyre::{ContextCompat, Report, WrapErr};
@@ -21,10 +21,24 @@ pub struct NextcladeRecord {
   pub outputs_or_err: Result<AnalysisOutput, Report>,
 }
 
-pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
+pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{run_args:#?}");
 
   let inputs = nextclade_get_inputs(&run_args, &run_args.inputs.cds_selection)?;
+
+  if inputs.gene_map.is_empty() {
+    // If there is no genome annotation, then we cannot emit these output files
+    let to_remove = [
+      NextcladeOutputSelection::Gff,
+      NextcladeOutputSelection::Tbl,
+      NextcladeOutputSelection::All,
+      NextcladeOutputSelection::Translations,
+    ];
+    run_args.outputs.output_selection.retain(|o| !to_remove.contains(o));
+    run_args.outputs.output_annotation_gff = None;
+    run_args.outputs.output_annotation_tbl = None;
+    run_args.outputs.output_translations = None;
+  }
 
   let primers = run_args
     .inputs
