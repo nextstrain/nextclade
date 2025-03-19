@@ -179,7 +179,12 @@ impl NextcladeOrderedWriter {
         }
 
         if let Some(output_gff_writer) = &mut self.output_gff_writer {
-          output_gff_writer.write_genemap(&analysis_result.annotation)?;
+          output_gff_writer.write_genemap(
+            &analysis_result.annotation,
+            analysis_result.index,
+            &analysis_result.seq_id,
+            analysis_result.len_unaligned,
+          )?;
         }
 
         if let Some(output_tbl_writer) = &mut self.output_tbl_writer {

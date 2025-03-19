@@ -39,6 +39,7 @@ use crate::gene::cds_segment::Truncation;
 use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
+use crate::io::fasta::parse_fasta_header;
 use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
 use crate::o;
 use crate::qc::qc_run::qc_run;
@@ -116,6 +117,8 @@ pub fn nextclade_run_one(
     ref_nodes,
     ..
   } = &state;
+
+  let (seq_id, seq_desc) = parse_fasta_header(seq_name);
 
   let alignment = align_nuc(
     index,
@@ -411,12 +414,16 @@ pub fn nextclade_run_one(
 
   let annotation = calculate_qry_annotation(
     index,
-    seq_name,
+    &seq_id,
     gene_map,
     &coord_map_global,
     &alignment_range,
     is_reverse_complement,
   )?;
+
+  let len_unaligned = qry_seq.len();
+  let len_aligned = alignment.qry_seq.len();
+  let len_stripped = stripped.qry_seq.len();
 
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
@@ -424,6 +431,11 @@ pub fn nextclade_run_one(
     analysis_result: NextcladeOutputs {
       index,
       seq_name: seq_name.to_owned(),
+      seq_id,
+      seq_desc,
+      len_unaligned,
+      len_aligned,
+      len_stripped,
       ref_name: ref_record.seq_name.clone(),
       substitutions,
       total_substitutions,
@@ -484,15 +496,13 @@ pub fn nextclade_run_one(
 /// Calculate genome annotation for query sequence in query coordinates
 pub fn calculate_qry_annotation(
   index: usize,
-  seq_name: &str,
+  seq_id: &str,
   gene_map: &GeneMap,
   coord_map_global: &CoordMapGlobal,
   alignment_range: &NucRefGlobalRange,
   is_reverse_complement: bool,
 ) -> Result<GeneMap, Report> {
   let mut gene_map = gene_map.clone();
-
-  let seq_id = seq_name.split(' ').next().unwrap_or_default().to_owned();
 
   let mut additional_attributes = indexmap! {
     o!("seq_index") => vec![index.to_string()],
@@ -505,7 +515,7 @@ pub fn calculate_qry_annotation(
   for gene in &mut gene_map.genes {
     let gene_id = format!("Gene-{}-{}", index, gene.id);
 
-    gene.gff_seqid = Some(seq_id.clone());
+    gene.gff_seqid = Some(seq_id.to_owned());
 
     GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
       gene.attributes.remove(*attr);
@@ -544,7 +554,7 @@ pub fn calculate_qry_annotation(
         let segment_id = format!("CDS-{}-{}", index, seg.id);
         seg.attributes.insert(o!("ID"), vec![segment_id.clone()]);
 
-        seg.gff_seqid = Some(seq_id.clone());
+        seg.gff_seqid = Some(seq_id.to_owned());
         seg.attributes.extend(additional_attributes.clone());
 
         //dbg!(&seg);
