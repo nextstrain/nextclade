@@ -421,6 +421,10 @@ pub fn nextclade_run_one(
     is_reverse_complement,
   )?;
 
+  let len_unaligned = qry_seq.len();
+  let len_aligned = alignment.qry_seq.len();
+  let len_stripped = stripped.qry_seq.len();
+
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
     translation,
@@ -429,6 +433,9 @@ pub fn nextclade_run_one(
       seq_name: seq_name.to_owned(),
       seq_id,
       seq_desc,
+      len_unaligned,
+      len_aligned,
+      len_stripped,
       ref_name: ref_record.seq_name.clone(),
       substitutions,
       total_substitutions,

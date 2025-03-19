@@ -183,7 +183,7 @@ impl NextcladeOrderedWriter {
             &analysis_result.annotation,
             analysis_result.index,
             &analysis_result.seq_id,
-            query.len(),
+            analysis_result.len_unaligned,
           )?;
         }
 
