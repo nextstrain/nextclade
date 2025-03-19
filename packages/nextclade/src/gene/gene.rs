@@ -1,4 +1,5 @@
-use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::position::NucRefGlobalPosition;
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::utils::collections::take_exactly_one;
@@ -46,6 +47,7 @@ pub struct Gene {
   pub index: usize,
   pub id: String,
   pub name: String,
+  pub range: NucRefGlobalRange,
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
   pub attributes: IndexMap<String, Vec<String>>,
@@ -78,10 +80,21 @@ impl Gene {
       cdses.push(Cds::from_gene(feature)?);
     }
 
+    // Try to take gene's range from the source file directly
+    let mut range = feature_group.range();
+    if range.is_empty() {
+      // If gene range is empty in the source (it is often unset, and out parser defaults to an empty range),
+      // then calculate range based on max extent of child CDSes.
+      let start = cdses.iter().map(Cds::start).min().unwrap_or_default();
+      let end = cdses.iter().map(Cds::end).max().unwrap_or_default();
+      range = NucRefGlobalRange::new(start, end);
+    }
+
     Ok(Self {
       index: feature.index,
       id: feature.id.clone(),
       name: feature.name.clone(),
+      range,
       cdses,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
@@ -115,6 +128,7 @@ impl Gene {
       index,
       id,
       name,
+      range: cds.range(),
       cdses: vec![cds.clone()],
       exceptions,
       attributes: indexmap!(),
@@ -127,22 +141,22 @@ impl Gene {
     })
   }
 
-  pub fn start(&self) -> NucRefGlobalPosition {
-    self.cdses.iter().map(Cds::start).min().unwrap_or_default()
+  pub const fn start(&self) -> NucRefGlobalPosition {
+    self.range.begin
   }
 
-  pub fn end(&self) -> NucRefGlobalPosition {
-    self.cdses.iter().map(Cds::end).max().unwrap_or_default()
+  pub const fn end(&self) -> NucRefGlobalPosition {
+    self.range.end
   }
 
   #[inline]
   pub fn len(&self) -> usize {
-    self.end().as_usize().saturating_sub(self.start().as_usize())
+    self.range.len()
   }
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.len() == 0
+    self.range.is_empty()
   }
 
   #[inline]

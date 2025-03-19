@@ -1,5 +1,5 @@
 use crate::coord::position::NucRefGlobalPosition;
-use crate::coord::range::{NucRefLocalRange, Range};
+use crate::coord::range::{NucRefGlobalRange, NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
@@ -191,6 +191,10 @@ impl Cds {
 
   pub fn name_and_type(&self) -> String {
     format!("CDS '{}'", self.name)
+  }
+
+  pub fn range(&self) -> NucRefGlobalRange {
+    NucRefGlobalRange::new(self.start(), self.end())
   }
 
   pub fn start(&self) -> NucRefGlobalPosition {
