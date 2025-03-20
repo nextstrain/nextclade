@@ -20,7 +20,7 @@ The fundamental unit for Nextclade is a single `CDS`.
 
 When a linked `gene` and `CDS` are present (`CDS`s specify their parents by listing the `gene`'s `ID` in the `Parent` attribute), the `gene` is effectively ignored for all purposes but display in the web UI. `CDS` segments are joined if they have the same `ID`, otherwise they are treated as independent.
 
-Example annotations can be found in the [Nextclade data repository](https://github.com/search?q=repo%3Anextstrain%2Fnextclade_data++path%3Agenome_annotation.gff3&type=code).
+Example annotations can be found in the [Nextclade data repository](https://github.com/search?q=repo%3Anextstrain%2Fnextclade_data%20path%3Adata%2F**%2F*.gff*&type=code).
 
 Nextclade Web (advanced mode): accepted in "Genome annotation" drag & drop box.
 
