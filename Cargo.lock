@@ -1721,7 +1721,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade"
-version = "3.10.2"
+version = "3.11.0"
 dependencies = [
  "assert2",
  "atty",
@@ -1784,7 +1784,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-cli"
-version = "3.10.2"
+version = "3.11.0"
 dependencies = [
  "assert2",
  "clap",
@@ -1827,7 +1827,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-web"
-version = "3.10.2"
+version = "3.11.0"
 dependencies = [
  "assert2",
  "chrono",

@@ -2,7 +2,7 @@ use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
-use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
+use nextclade::io::fasta::{read_one_fasta_from_str, FastaReader, FastaRecord};
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
@@ -138,7 +138,7 @@ impl NextcladeWasm {
 
   /// Checks that a string containing ref sequence in FASTA format is correct
   pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<String, JsError> {
-    let record = jserr(read_one_fasta_str(ref_seq_str))?;
+    let record = jserr(read_one_fasta_from_str(ref_seq_str))?;
     jserr(json_stringify(&record, JsonPretty(false)))
   }
 

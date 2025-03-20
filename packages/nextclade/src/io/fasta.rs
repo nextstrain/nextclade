@@ -5,7 +5,9 @@ use crate::io::compression::Decompressor;
 use crate::io::concat::Concat;
 use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};
 use crate::translate::translate_genes::CdsTranslation;
+use crate::utils::string::truncate_with_ellipsis;
 use crate::{make_error, make_internal_error};
+use color_eyre::{Section, SectionExt};
 use eyre::{Report, WrapErr};
 use log::{info, trace};
 use serde::{Deserialize, Serialize};
@@ -140,21 +142,13 @@ impl<'a> FastaReader<'a> {
   }
 }
 
-pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report> {
-  let filepath = filepath.as_ref();
-  let mut reader = FastaReader::from_path(filepath)?;
-  let mut record = FastaRecord::default();
-  reader.read(&mut record)?;
-  Ok(record)
-}
-
 pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecord>, Report> {
   let mut reader = FastaReader::from_paths(filepaths)?;
   let mut fasta_records = Vec::<FastaRecord>::new();
 
   loop {
     let mut record = FastaRecord::default();
-    reader.read(&mut record).unwrap();
+    reader.read(&mut record)?;
     if record.is_empty() {
       break;
     }
@@ -164,10 +158,34 @@ pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecor
   Ok(fasta_records)
 }
 
-pub fn read_one_fasta_str(contents: impl AsRef<str>) -> Result<FastaRecord, Report> {
-  let mut reader = FastaReader::from_str(&contents)?;
+pub fn read_one_fasta_from_file(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report> {
+  let filepath = filepath.as_ref();
+  let reader = FastaReader::from_path(filepath)?;
+  read_one_fasta_from_fasta_reader(reader).wrap_err_with(|| format!("When reading file {filepath:?}"))
+}
+
+pub fn read_one_fasta_from_str(contents: impl AsRef<str>) -> Result<FastaRecord, Report> {
+  let contents = contents.as_ref();
+  let reader = FastaReader::from_str(&contents)?;
+  read_one_fasta_from_fasta_reader(reader)
+    .wrap_err("When reading FASTA string")
+    .with_section(|| truncate_with_ellipsis(contents, 100).header("FASTA string was:"))
+}
+
+pub fn read_one_fasta_from_reader(reader: impl BufRead) -> Result<FastaRecord, Report> {
+  let reader = FastaReader::new(Box::new(reader));
+  read_one_fasta_from_fasta_reader(reader)
+}
+
+pub fn read_one_fasta_from_fasta_reader(mut reader: FastaReader) -> Result<FastaRecord, Report> {
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
+  if record.is_empty() {
+    return make_error!("Expected exactly one FASTA record, but found none");
+  }
+  if record.seq.is_empty() {
+    return make_error!("Sequence is empty, but a non-empty sequence was expected");
+  }
   Ok(record)
 }
 

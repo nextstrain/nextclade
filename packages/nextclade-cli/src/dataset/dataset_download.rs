@@ -8,7 +8,7 @@ use log::{warn, LevelFilter};
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
-use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str};
+use nextclade::io::fasta::{read_one_fasta_from_file, read_one_fasta_from_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::{NextcladeParams, NextcladeParamsOptional};
@@ -123,7 +123,7 @@ pub fn dataset_zip_load(
     .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
 
   let ref_record = read_from_path_or_zip(&run_args.inputs.input_ref, &mut zip, &virus_properties.files.reference)?
-    .map_ref_fallible(read_one_fasta_str)
+    .map_ref_fallible(read_one_fasta_from_str)
     .wrap_err("When reading reference sequence from dataset")?
     .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
@@ -255,7 +255,7 @@ pub fn dataset_dir_load(
     })
     .expect("Reference sequence is required but it is neither declared in the dataset's pathogen.json `.files` section, nor provided as a separate file");
 
-  let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
+  let ref_record = read_one_fasta_from_file(input_ref).wrap_err("When reading reference sequence")?;
 
   let gene_map = input_annotation
     .clone()
@@ -328,7 +328,7 @@ pub fn dataset_json_load(
       .wrap_err("When parsing pathogen JSON")?;
 
     let ref_record = input_ref
-      .map_ref_fallible(read_one_fasta)
+      .map_ref_fallible(read_one_fasta_from_file)
       .wrap_err("When parsing reference sequence")?;
 
     let tree = input_tree
@@ -375,7 +375,7 @@ pub fn dataset_individual_files_load(
         .wrap_err("When reading pathogen JSON")?
         .unwrap_or_default();
 
-      let ref_record = read_one_fasta(input_ref).wrap_err("When reading reference sequence")?;
+      let ref_record = read_one_fasta_from_file(input_ref).wrap_err("When reading reference sequence")?;
 
       let gene_map = run_args
         .inputs
@@ -456,7 +456,7 @@ pub fn dataset_str_download_and_load(
   .ok_or_else(|| eyre!("Required file not found in dataset: 'pathogen.json'. Please report it to dataset authors."))?;
 
   let ref_record = read_from_path_or_url(&http, &dataset, &run_args.inputs.input_ref, &dataset.files.reference)?
-    .map_ref_fallible(read_one_fasta_str)?
+    .map_ref_fallible(read_one_fasta_from_str)?
     .wrap_err("When reading reference sequence from dataset")?;
 
   let gene_map = read_from_path_or_url(
