@@ -1,3 +1,20 @@
+## 3.11.0
+
+### Alignment presets
+
+Nextclade CLI now supports `--alignment-preset` argument, which switches between pre-defined sets of alignment parameters. Currently available values are:
+  - `default`: Suitable for aligning very similar sequences (this is the default)
+  - `high-diversity`: Suitable for more diverse viruses
+  - `short-sequences`: Suitable for short and partial sequences
+
+This is an experimental feature. Presets are subject to change.
+
+
+### Fix crash with empty reference sequence
+
+Nextclade crashed when an empty reference sequence file is provided. Now Nextclade checks for this condition and reports a useful error message instead.
+
+
 ## 3.10.2
 
 ### Correctly handle comments in GFF3 files
