@@ -68,7 +68,7 @@ version_old=$(sed -n 's|.*version = "\(.*\)".*|\1|p' "recipes/nextclade/meta.yam
 git remote add nextstrain "https://github.com/nextstrain/bioconda-recipes" >/dev/null
 
 # Update master branch of the fork
-git fetch bioconda master:nextstrain/master
+git fetch upstream master:nextstrain/master
 git push nextstrain nextstrain/master:master
 
 # Delete branch if already exists locally
