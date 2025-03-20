@@ -8,13 +8,16 @@ Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bio
 
 The phylogenetic reference tree which serves as a target for phylogenetic placement (see [Algorithm: Phylogenetic placement](../algorithm/03-phylogenetic-placement.md)). Nearest neighbor information is used to assign clades (see [Algorithm: Clade Assignment](../algorithm/04-clade-assignment.md)) and to identify private mutations, including reversions.
 
-The tree **must** be rooted at the sample that matches the [reference sequence](../terminology.md#reference-sequence). A workaround in case one does not want to root the tree to be rooted on the reference is to attach the mutational differences between the tree root and the reference on the branch leading to the root node. This can be accomplished by passing the reference sequence to `augur ancestral`'s `--root-sequence` argument (see the [`augur ancestral` docs](https://docs.nextstrain.org/projects/augur/en/stable/usage/cli/ancestral.html#inputs)).
-
-The tree **must** contain a clade definition for every node (including internal): every node must have a value at `node_attrs.clade_membership` (although it can be an empty string).
-
-The tree **should** be sufficiently large and diverse to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree can be assigned to [query sequences](../terminology.md#query-sequence).
-
 > 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression) for more details.
+
+### Requirements
+
+1. The tree **should** be rooted at the sample that matches the [reference sequence](02-reference-sequence.md). Otherwise the results of the analysis will be incorrect. It's user's or dataset author's responsibility that this assumption holds. Nextclade can sometimes detect a mismatch in certain cases, but not always. 
+
+   > ⚠️ A workaround in case one does not want the tree to be rooted on the reference is to attach the mutational differences between the tree root and the reference on the branch leading to the root node.
+   > This can be accomplished by passing the reference sequence to `augur ancestral`'s `--root-sequence` argument (see the [`augur ancestral` docs](https://docs.nextstrain.org/projects/augur/en/stable/usage/cli/ancestral.html#inputs)).
+
+2. The tree **should** be sufficiently large and diverse to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree can be assigned to [query sequences](01-sequence-data.md).
 
 ### Extensions
 

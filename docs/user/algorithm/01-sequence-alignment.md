@@ -11,6 +11,24 @@ The alignment algorithm is a variation of the classic [Smith–Waterman](https:/
 If the optimal alignment path hits the boundary of the allowed band, the parameters controlling the band are relaxed and alignment is redone.
 To prevent Nextclade from running out of memory during the alignment process, the total area of the band is limited to a configurable maximum (`--max-band-area`) and a query sequence that requires a larger band will be skipped.
 
+
+Nextclade implements a few pre-defined alignment parameter presets. In Nextclade CLI they can be switched using  `--alignment-preset` argument of the `run` command. Currently available values are:
+  - `default`: Suitable for aligning very similar sequences (this is the default)
+  - `high-diversity`: Suitable for more diverse viruses
+  - `short-sequences`: Suitable for short and partial sequences
+
+This is an experimental feature. Presets other than default are subject to change.
+
+Other than built-in presets, alignment parameters can be provided:
+ - (if a [dataset](../datasets) is used) by the dataset's [pathogen config file](../input-files/05-pathogen-config), if defined by the dataset author
+ - using CLI arguments (see `nextclade run --help` or [in "CLI reference" section](../nextclade-cli/reference.md#nextclade-run))
+
+If a parameter present in multiple sources, the order of preference of parameters is as follows:
+ - built-in preset
+ - dataset's pathogen config file (overrides parameters in preset)
+ - CLI arguments (overrides parameters in preset and in dataset config)
+
+
 After alignment, Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.
 As a result, each sequence is reported in coordinates of the reference sequence.
 
