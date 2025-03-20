@@ -4,14 +4,17 @@ use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{trace, LevelFilter};
+use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::path_to_string;
-use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
-use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchDatasetResult, MinimizerSearchRecord};
+use nextclade::sort::minimizer_search::{
+  find_best_datasets, run_minimizer_search, MinimizerSearchDatasetResult, MinimizerSearchRecord,
+};
 use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
 use nextclade::utils::string::truncate;
+use nextclade::{make_error, make_internal_report};
 use ordered_float::OrderedFloat;
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
@@ -151,6 +154,7 @@ fn writer_thread(
   verbose: bool,
 ) -> Result<(), Report> {
   let NextcladeSortArgs {
+    input_fastas,
     output_dir,
     output_path,
     output_results_tsv,
@@ -158,36 +162,114 @@ fn writer_thread(
     ..
   } = args;
 
-  let template = output_path.map_ref_fallible(move |output_path| -> Result<TinyTemplate, Report> {
-    let mut template = TinyTemplate::new();
-    template
-      .add_template("output", output_path)
-      .wrap_err_with(|| format!("When parsing template: '{output_path}'"))?;
-    Ok(template)
-  })?;
+  if search_params.global {
+    // NOTE(perf): this gathers all suggestions results and discards sequence data to make sure we don't store the
+    // whole thing in memory. We will have to read fasta again later to write some outputs.
+    let results: BTreeMap<usize, _> = result_receiver
+      .iter()
+      .map(|result| (result.fasta_record.index, result.result))
+      .collect();
 
-  let mut writers = BTreeMap::new();
-  let mut stats = StatsPrinter::new(verbose);
+    // let seqs_with_no_hits = results
+    //   .iter()
+    //   .filter(|(_, r)| r.datasets.is_empty())
+    //   .map(|(fasta_index, _)| fasta_index)
+    //   .sorted_unstable()
+    //   .copied()
+    //   .collect_vec();
 
-  let mut results_csv =
-    output_results_tsv.map_ref_fallible(|output_results_tsv| CsvStructFileWriter::new(output_results_tsv, b'\t'))?;
+    let best_datasets = find_best_datasets(&results, search_params)?;
 
-  for record in result_receiver {
-    let datasets = &{
-      if search_params.all_matches {
-        record.result.datasets
-      } else {
-        record.result.datasets.into_iter().take(1).collect_vec()
+    let mut stats = StatsPrinter::new(
+      "Suggested datasets for each sequence (after global optimization)",
+      verbose,
+    );
+    let mut reader = FastaReader::from_paths(input_fastas)?;
+    let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
+    loop {
+      let mut record = FastaRecord::default();
+      reader.read(&mut record)?;
+      if record.is_empty() {
+        break;
       }
-    };
 
-    stats.print_seq(datasets, &record.fasta_record.seq_name);
+      let best_dataset = best_datasets
+        .iter()
+        .find(|best_dataset| best_dataset.qry_indices.contains(&record.index));
 
+      let datasets = if let Some(best_dataset) = best_dataset {
+        let dataset = results[&record.index]
+          .datasets
+          .iter()
+          .find(|d| d.name == best_dataset.name)
+          .ok_or_else(|| make_internal_report!("Unable to find dataset '{}'", best_dataset.name))?;
+        vec![dataset.clone()]
+      } else {
+        vec![]
+      };
+      stats.print_seq(&datasets, &record.seq_name);
+      writer.write_one(&record, &datasets)?;
+    }
+  } else {
+    let mut stats = StatsPrinter::new("Suggested datasets for each sequence", verbose);
+    let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
+    for MinimizerSearchRecord { fasta_record, result } in result_receiver {
+      let datasets = {
+        if result.datasets.len() == 0 {
+          &[]
+        } else if search_params.all_matches {
+          &result.datasets[..]
+        } else {
+          &result.datasets[0..1]
+        }
+      };
+      stats.print_seq(datasets, &fasta_record.seq_name);
+      writer.write_one(&fasta_record, datasets)?;
+    }
+    stats.finish();
+  }
+
+  Ok(())
+}
+
+pub struct DatasetSortWriter<'t> {
+  writers: BTreeMap<PathBuf, FastaWriter>,
+  results_csv: Option<CsvStructFileWriter>,
+  output_dir: Option<PathBuf>,
+  template: Option<TinyTemplate<'t>>,
+}
+
+impl<'t> DatasetSortWriter<'t> {
+  pub fn new(
+    output_path: &'t Option<String>,
+    output_dir: &Option<PathBuf>,
+    output_results_tsv: &Option<String>,
+  ) -> Result<Self, Report> {
+    let template = output_path.map_ref_fallible(move |output_path| -> Result<TinyTemplate<'t>, Report> {
+      let mut template = TinyTemplate::new();
+      template
+        .add_template("output", output_path)
+        .wrap_err_with(|| format!("When parsing template: '{output_path}'"))?;
+      Ok(template)
+    })?;
+
+    let results_csv =
+      output_results_tsv.map_ref_fallible(|output_results_tsv| CsvStructFileWriter::new(output_results_tsv, b'\t'))?;
+
+    Ok(Self {
+      writers: btreemap! {},
+      results_csv,
+      output_dir: output_dir.clone(),
+      template,
+    })
+  }
+
+  pub fn write_one(&mut self, record: &FastaRecord, datasets: &[MinimizerSearchDatasetResult]) -> Result<(), Report> {
     if datasets.is_empty() {
-      results_csv.map_mut_fallible(|results_csv| {
+      self.results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
-          index: record.fasta_record.index,
-          seq_name: &record.fasta_record.seq_name,
+          index: record.index,
+          seq_name: &record.seq_name,
           dataset: None,
           score: None,
           num_hits: None,
@@ -196,10 +278,10 @@ fn writer_thread(
     }
 
     for dataset in datasets {
-      results_csv.map_mut_fallible(|results_csv| {
+      self.results_csv.map_mut_fallible(|results_csv| {
         results_csv.write(&SeqSortCsvEntry {
-          index: record.fasta_record.index,
-          seq_name: &record.fasta_record.seq_name,
+          index: record.index,
+          seq_name: &record.seq_name,
           dataset: Some(&dataset.name),
           score: Some(dataset.score),
           num_hits: Some(dataset.n_hits),
@@ -207,7 +289,7 @@ fn writer_thread(
       })?;
     }
 
-    let names = datasets
+    let dataset_names = datasets
       .iter()
       .map(|dataset| get_all_prefix_names(&dataset.name))
       .collect::<Result<Vec<Vec<String>>, Report>>()?
@@ -215,19 +297,15 @@ fn writer_thread(
       .flatten()
       .unique();
 
-    for name in names {
-      let filepath = get_filepath(&name, &template, output_dir)?;
-
+    for name in dataset_names {
+      let filepath = get_filepath(&name, &self.template, &self.output_dir)?;
       if let Some(filepath) = filepath {
-        let writer = get_or_insert_writer(&mut writers, filepath)?;
-        writer.write(&record.fasta_record.seq_name, &record.fasta_record.seq, false)?;
+        let writer = get_or_insert_writer(&mut self.writers, filepath)?;
+        writer.write(&record.seq_name, &record.seq, false)?;
       }
     }
+    Ok(())
   }
-
-  stats.finish();
-
-  Ok(())
 }
 
 pub fn get_all_prefix_names(name: impl AsRef<str>) -> Result<Vec<String>, Report> {
@@ -250,9 +328,9 @@ struct StatsPrinter {
 }
 
 impl StatsPrinter {
-  fn new(enabled: bool) -> Self {
+  fn new(title: impl AsRef<str>, enabled: bool) -> Self {
     if enabled {
-      println!("Suggested datasets for each sequence");
+      println!("{}", title.as_ref());
       println!("{}┐", "─".repeat(110));
       println!(
         "{:^40} │ {:^40} │ {:^10} │ {:^10} │",
