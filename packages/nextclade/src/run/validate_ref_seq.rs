@@ -28,7 +28,7 @@ fn seq_check_gaps(seq: &[Nuc]) -> Result<(), Report> {
   let ref_gap_ranges: Vec<NucRange> = find_letter_ranges(seq, Nuc::Gap);
   if !ref_gap_ranges.is_empty() {
     let ranges_formatted = ref_gap_ranges.into_iter().map(|r| r.range.to_string()).join(",");
-    return make_error!("Sequence contains gaps in the following positions: {ranges_formatted}. However, reference sequence is expected to be a high-quality, complete, and unambiguous as much as possible. Gaps are not allowed.");
+    return make_error!("Reference sequence contains gaps in the following positions: {ranges_formatted}. Gaps are not allowed; the reference sequence is expected to be high-quality, complete, and unambiguous.");
   }
   Ok(())
 }
