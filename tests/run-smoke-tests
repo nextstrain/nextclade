@@ -10,6 +10,8 @@ trap "exit 0" INT
 #
 #   curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 #
+#   curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v2.5.0/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
+#
 # Usage (NOTE: you must build and re-build Nextclade executable yourself, this script does not do that):
 #
 # 1. Download datasets from the default dataset server and run tests with a given nextclade executable:
