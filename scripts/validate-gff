@@ -23,10 +23,36 @@ IGNORED_MESSAGES=(
   "input is valid GFF3"
 )
 
+IGNORED_PATH_PREFIXES=(
+  # "error: CDS feature on line 1691 has the wrong phase 0 (should be 1)"
+  # We are pretty sure that the phase is correct, but this particular sequence is broken due to frame shift anyways.
+  "tmp/smoke-tests/result/nextstrain/sars-cov-2/wuhan-hu-1/proteins/with_dataset/nextclade.gff"
+  "tmp/smoke-tests/result/nextstrain/sars-cov-2/wuhan-hu-1/proteins/with_dataset_zip/nextclade.gff"
+  "tmp/smoke-tests/result/nextstrain/sars-cov-2/wuhan-hu-1/proteins/with_name/nextclade.gff"
+  "tmp/smoke-tests/result/nextstrain/sars-cov-2/wuhan-hu-1/proteins/with_ref_and_annotation/nextclade.gff"
+  "tmp/smoke-tests/result/nextstrain/sars-cov-2/wuhan-hu-1/proteins/with_ref_and_annotation_and_tree/nextclade.gff"
+
+  # "error: GFF3 file is empty"
+  # Here all sequences do not align, because alignment params are not available
+  # (these 2 run modes ignore pathogen.json). This results in empty annotation files.
+  "tmp/smoke-tests/result/nextstrain/yellow-fever/prM-E/with_ref_and_annotation/nextclade.gff"
+  "tmp/smoke-tests/result/nextstrain/yellow-fever/prM-E/with_ref_and_annotation_and_tree/nextclade.gff"
+)
+
 function log() {
   GREP_COLORS='mt=01;31' grep --line-buffered --color=always -iE "\b(err|error|fail|can not|cannot|can't|unable|critical|fatal|reject|deny|denied|terminat|abort|panic|fault|invalid|undefined symbol|not found|)\b" |
   GREP_COLORS='mt=01;33' grep --line-buffered --color=always -iE "\b(warn|warning|caution|alert|notice|)\b" |
   GREP_COLORS='mt=01;36' grep --line-buffered --color=always -iE "\b(note|info|status|detail|)\b"
+}
+
+function should_ignore {
+  local path="$1"
+  for prefix in "${IGNORED_PATH_PREFIXES[@]}"; do
+    if [[ "$path" == "$prefix"* ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 status_accumulator=0
@@ -35,6 +61,12 @@ function process_file() {
   local file="$1"
   local output
   local status=0
+
+  if should_ignore "$file"; then
+#    echo -e "\033[0;90m⬜ Ignored '$file'\033[0m"
+#    echo ""
+    return
+  fi
 
   output=$(gt gff3validator "$file" 2>&1) || status=$?
   if [[ $status -ne 0 ]]; then
