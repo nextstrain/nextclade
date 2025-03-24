@@ -412,18 +412,19 @@ pub fn nextclade_run_one(
 
   let is_reverse_complement = alignment.is_reverse_complement;
 
+  let len_unaligned = qry_seq.len();
+  let len_aligned = alignment.qry_seq.len();
+  let len_stripped = stripped.qry_seq.len();
+
   let annotation = calculate_qry_annotation(
     index,
     &seq_id,
+    len_unaligned,
     gene_map,
     &coord_map_global,
     &alignment_range,
     is_reverse_complement,
   )?;
-
-  let len_unaligned = qry_seq.len();
-  let len_aligned = alignment.qry_seq.len();
-  let len_stripped = stripped.qry_seq.len();
 
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
@@ -497,6 +498,7 @@ pub fn nextclade_run_one(
 pub fn calculate_qry_annotation(
   index: usize,
   seq_id: &str,
+  seq_len: usize,
   gene_map: &GeneMap,
   coord_map_global: &CoordMapGlobal,
   alignment_range: &NucRefGlobalRange,
@@ -540,12 +542,13 @@ pub fn calculate_qry_annotation(
     let included_range = intersect(alignment_range, &gene.range);
 
     // Convert included segment range from reference to query coordinates
-    let aln_range = coord_map_global.ref_to_qry_range(&included_range);
-    // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
-    // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"
-    // the NucAlnGlobalRange to the NucRefGlobalRange to satisfy this limitation.
-    // TODO: modify GeneMap class to allow for different range types, or just use plain range without subtyping.
-    gene.range = NucRefGlobalRange::from_range(aln_range);
+    let mut range = coord_map_global.ref_to_qry_range(&included_range);
+    if is_reverse_complement {
+      let begin = seq_len.saturating_sub(range.end.as_usize()).into();
+      let end = seq_len.saturating_sub(range.begin.as_usize()).into();
+      range = NucRefGlobalRange::new(begin, end);
+    }
+    gene.range = range;
 
     for cds in &mut gene.cdses {
       cds.attributes.extend(additional_attributes.clone());
@@ -602,12 +605,13 @@ pub fn calculate_qry_annotation(
         }
 
         // Convert included segment range from reference to query coordinates
-        let aln_range = coord_map_global.ref_to_qry_range(&included_range);
-        // HACK: the type of the range is incorrect here: GeneMap expects NucRefGlobalRange, i.e. range in reference
-        // coordinates, because it was initially designed for reference annotations only. Here we dangerously "cast"
-        // the NucAlnGlobalRange to the NucRefGlobalRange to satisfy this limitation.
-        // TODO: modify GeneMap class to allow for different range types, or just use plain range without subtyping.
-        seg.range = NucRefGlobalRange::from_range(aln_range);
+        let mut range = coord_map_global.ref_to_qry_range(&included_range);
+        if is_reverse_complement {
+          let begin = seq_len.saturating_sub(range.end.as_usize()).into();
+          let end = seq_len.saturating_sub(range.begin.as_usize()).into();
+          range = NucRefGlobalRange::new(begin, end);
+        }
+        seg.range = range;
       }
 
       // Remove empty CDS segments
