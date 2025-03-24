@@ -280,37 +280,25 @@ export function useExportPeptides() {
 
 async function prepareResultsGff(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
-  if (isEmpty(results)) {
-    return undefined
-  }
   return worker.serializeResultsGff(results)
 }
 
 export function useExportGff() {
   return useResultsExport(async (filename, snapshot, worker) => {
-    const gffStr = await prepareResultsGff(snapshot, worker)
-    if (isNil(gffStr)) {
-      return
-    }
-    saveFile(gffStr, filename, 'text/x-gff3;charset=utf-8')
+    const csvStr = await prepareResultsGff(snapshot, worker)
+    saveFile(csvStr, filename, 'text/x-gff3;charset=utf-8')
   })
 }
 
 async function prepareResultsTbl(snapshot: Snapshot, worker: ExportWorker) {
   const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
-  if (isEmpty(results)) {
-    return undefined
-  }
   return worker.serializeResultsTbl(results)
 }
 
 export function useExportTbl() {
   return useResultsExport(async (filename, snapshot, worker) => {
-    const tblStr = await prepareResultsTbl(snapshot, worker)
-    if (isNil(tblStr)) {
-      return
-    }
-    saveFile(tblStr, filename, 'text/x-tbl;charset=utf-8')
+    const csvStr = await prepareResultsTbl(snapshot, worker)
+    saveFile(csvStr, filename, 'text/x-tbl;charset=utf-8')
   })
 }
 
