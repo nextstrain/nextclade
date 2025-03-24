@@ -157,7 +157,7 @@ pub fn results_to_tbl_string(outputs: &[NextcladeOutputs]) -> Result<String, Rep
   {
     let mut writer = GenbankTblWriter::new(&mut buf)?;
     for output in outputs {
-      writer.write_genemap(&output.annotation)?
+      writer.write_genemap(&output.annotation)?;
     }
   }
   Ok(String::from_utf8(buf)?)
