@@ -40,7 +40,7 @@ function run_with_name() {
   sequences="${2}"
   out_dir="${RESULTS_DIR}/${name}/with_name"
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --dataset-name="${name}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -57,7 +57,7 @@ function run_with_dataset_dir() {
   sequences="${3}"
   out_dir="${RESULTS_DIR}/${name}/with_dataset"
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-dataset="${dataset_dir}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -72,7 +72,7 @@ function run_with_dataset_zip() {
   sequences="${3}"
   out_dir="${RESULTS_DIR}/${name}/with_dataset_zip"
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-dataset="${zip_path}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -89,7 +89,7 @@ function run_with_ref_only() {
 
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -107,7 +107,7 @@ function run_with_ref_and_annotation() {
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -126,7 +126,7 @@ function run_with_ref_and_tree() {
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-tree="${dataset_dir}/tree.json" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -145,7 +145,7 @@ function run_with_ref_and_annotation_and_tree() {
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --in-order --include-reference \
+  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --input-tree="${dataset_dir}/tree.json" \
@@ -173,6 +173,14 @@ function download_and_run_single_dataset() {
   if [ -z "${sequences}" ] || [ ! -f "$sequences" ]; then
     sequences="$dataset_dir/reference.fasta"
     msg_no_sequences="\n\e[93mWarning: dataset '${name}' contains no example sequences. Will use reference sequence as query input.\e[0m"
+  fi
+
+  if command -v seqkit &>/dev/null; then
+    sequences_orig="${sequences%.fasta}.orig.fasta"
+    sequences_rev_comp="${sequences%.fasta}.rev.fasta"
+    cp "${sequences}" "${sequences_orig}"
+    seqkit seq --quiet -t DNA -p -r "${sequences_orig}" | seqkit replace -p '(.*)' -r 'SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE|$1' > "${sequences_rev_comp}"
+    (cat "${sequences_orig}"; echo; cat "${sequences_rev_comp}") > "${sequences}"
   fi
 
   echo -e "\nRunning '${NEXTCLADE_BIN}' for '${name}'$msg_no_sequences"
