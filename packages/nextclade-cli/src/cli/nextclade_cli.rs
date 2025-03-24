@@ -639,11 +639,10 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree_nwk: Option<PathBuf>,
 
-  /// Path to output annotation for query sequences in GFF3 format.
+  /// Path to output annotation for query sequences in GFF3 format (EXPERIMENTAL)
   ///
-  /// This output contains annotation of genetic features (genes and CDSes) for each query sequence. This can
-  /// be used to extract genetic features as well as for uploading to genetic databases. The column "ID" contains IDs
-  /// of query sequences as they appear in the input files.
+  /// This output contains annotation of genetic features (genes and CDSes) for each query sequence.
+  /// This can be helpful when extracting genetic features from sequences as well as when uploading to genetic databases.
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
@@ -657,10 +656,10 @@ pub struct NextcladeRunOutputArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_annotation_gff: Option<PathBuf>,
 
-  /// Path to output annotation for query sequences in Genbank TBL format.
+  /// Path to output annotation for query sequences in Genbank TBL format (EXPERIMENTAL)
   ///
-  /// This output contains annotation of genetic features (genes and CDSes) for each query sequence. This can
-  /// be used to extract genetic features as well as for uploading to genetic databases.
+  /// This output contains annotation of genetic features (genes and CDSes) for each query sequence.
+  /// This can be helpful when extracting genetic features from sequences as well as when uploading to genetic databases.
   ///
   /// Learn more about Genbank's 5-column tab-delimited feature table (TBL) format:
   /// https://www.ncbi.nlm.nih.gov/genbank/feature_table/
