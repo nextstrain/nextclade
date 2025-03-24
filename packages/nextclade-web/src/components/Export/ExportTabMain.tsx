@@ -7,9 +7,11 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
   FileIconCsv,
   FileIconFasta,
+  FileIconGff,
   FileIconJson,
   FileIconNdjson,
   FileIconNwk,
+  FileIconTbl,
   FileIconTsv,
   FileIconZip,
 } from 'src/components/Common/FileIcons'
@@ -17,9 +19,11 @@ import {
   DEFAULT_EXPORT_PARAMS,
   useExportCsv,
   useExportFasta,
+  useExportGff,
   useExportJson,
   useExportNdjson,
   useExportPeptides,
+  useExportTbl,
   useExportTree,
   useExportTreeNwk,
   useExportTsv,
@@ -56,6 +60,8 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
   const { isRunning: isRunningNdjson, isDone: isDoneNdjson, fn: exportNdjson } = useExportNdjson()
 
   const exportPeptides = useExportPeptides()
+  const exportGff = useExportGff()
+  const exportTbl = useExportTbl()
   const exportTree = useExportTree()
   const exportTreeNwk = useExportTreeNwk()
 
@@ -196,6 +202,58 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
           onDownload={exportPeptides.fn}
           isRunning={exportPeptides.isRunning}
           isDone={exportPeptides.isDone}
+        />
+      )}
+
+      {exportGff && (
+        <ExportFileElement
+          Icon={FileIconGff}
+          filename={exportParams.filenameGff}
+          HelpMain={t('Genome annotations in {{formatName}} format', { formatName: 'GFF3' })}
+          HelpDetails={
+            <>
+              {t(
+                'Contains genome annotation for each of your sequences (except for sequences which had errors during analysis). See: ',
+              )}
+              <LinkExternal url="https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md">
+                {t('GFF3 format specification')}
+              </LinkExternal>
+              {'.'}
+            </>
+          }
+          HelpDownload={t(
+            'Download genome annotation in {{formatName}} format, one file per gene, all in a zip archive.',
+            { formatName: 'GFF3' },
+          )}
+          onDownload={exportGff.fn}
+          isRunning={exportGff.isRunning}
+          isDone={exportGff.isDone}
+        />
+      )}
+
+      {exportTbl && (
+        <ExportFileElement
+          Icon={FileIconTbl}
+          filename={exportParams.filenameTbl}
+          HelpMain={t('Genome annotations in Genbank 5-column tab-delimited feature table (TBL) format.')}
+          HelpDetails={
+            <>
+              {t(
+                'Contains genome annotation for each of your sequences (except for sequences which had errors during analysis). See: ',
+              )}
+              <LinkExternal url="https://www.ncbi.nlm.nih.gov/genbank/feature_table/">
+                {t('TBL format specification')}
+              </LinkExternal>
+              {'.'}
+            </>
+          }
+          HelpDownload={t(
+            'Download genome annotation in {{formatName}} format, one file per gene, all in a zip archive.',
+            { formatName: 'GFF3' },
+          )}
+          onDownload={exportTbl.fn}
+          isRunning={exportTbl.isRunning}
+          isDone={exportTbl.isDone}
         />
       )}
 

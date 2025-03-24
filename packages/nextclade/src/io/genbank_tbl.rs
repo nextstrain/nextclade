@@ -5,6 +5,7 @@ use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
 use crate::gene::gene_map::GeneMap;
 use crate::io::file::create_file_or_stdout;
+use crate::types::outputs::NextcladeOutputs;
 use csv::{Writer as CsvWriter, WriterBuilder as CsvWriterBuilder};
 use eyre::Report;
 use std::io::Write;
@@ -149,4 +150,15 @@ impl GenbankTblFileWriter {
   pub fn write_genemap(&mut self, gene_map: &GeneMap) -> Result<(), Report> {
     self.writer.write_genemap(gene_map)
   }
+}
+
+pub fn results_to_tbl_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
+  let mut buf = Vec::<u8>::new();
+  {
+    let mut writer = GenbankTblWriter::new(&mut buf)?;
+    for output in outputs {
+      writer.write_genemap(&output.annotation)?
+    }
+  }
+  Ok(String::from_utf8(buf)?)
 }

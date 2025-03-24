@@ -68,6 +68,14 @@ export class ExportWorker {
     return this.thread.serializeResultsNdjson(results, errors)
   }
 
+  public async serializeResultsGff(results: AnalysisResult[]) {
+    return this.thread.serializeResultsGff(results)
+  }
+
+  public async serializeResultsTbl(results: AnalysisResult[]) {
+    return this.thread.serializeResultsTbl(results)
+  }
+
   private async destroy() {
     await this.thread.destroy()
   }

@@ -21,6 +21,7 @@ export const DEFAULT_ICON_COLORS = {
   json: '#bb7e38',
   ndjson: '#bb5340',
   gff: '#6b29bb',
+  tbl: '#105076',
   zip: '#91640f',
 } as const
 
@@ -155,6 +156,18 @@ export function FileIconGff({ size }: FileIconProps) {
       type="spreadsheet"
       labelColor={DEFAULT_ICON_COLORS.gff}
       glyphColor={DEFAULT_ICON_COLORS.gff}
+    />
+  )
+}
+
+export function FileIconTbl({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'tbl'}
+      type={'spreadsheet'}
+      labelColor={DEFAULT_ICON_COLORS.tbl}
+      glyphColor={DEFAULT_ICON_COLORS.tbl}
     />
   )
 }

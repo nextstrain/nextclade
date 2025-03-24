@@ -4,6 +4,7 @@ use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::io::file::create_file_or_stdout;
 use crate::o;
+use crate::types::outputs::NextcladeOutputs;
 use crate::utils::map::map_to_multimap;
 use bio::io::gff::{GffType as BioGffType, Record as BioGffRecord, Writer as BioGffWriter};
 use eyre::{Report, WrapErr};
@@ -155,6 +156,17 @@ pub fn gff_record_to_string(record: &BioGffRecord) -> Result<String, Report> {
     let mut writer = Gff3Writer::new(&mut buf)?;
     writer.write_record(record)?;
   };
+  Ok(String::from_utf8(buf)?)
+}
+
+pub fn results_to_gff_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
+  let mut buf = Vec::<u8>::new();
+  {
+    let mut writer = Gff3Writer::new(&mut buf)?;
+    for output in outputs {
+      writer.write_genemap(&output.annotation, output.index, &output.seq_id, output.len_unaligned)?;
+    }
+  }
   Ok(String::from_utf8(buf)?)
 }
 
