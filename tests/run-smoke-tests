@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail -o errtrace
+set -euxo pipefail -o errtrace
 trap "exit 0" INT
 
 # Runs smoke tests - basic use-case checks with default data
@@ -36,7 +36,7 @@ export RESULTS_DIR="${THIS_DIR}/../tmp/smoke-tests/result"
 
 
 function run_with_name() {
-  set -o errtrace
+  set -xo errtrace
 
   name="${1}"
   sequences="${2}"
@@ -52,7 +52,7 @@ export -f run_with_name
 
 
 function run_with_dataset_dir() {
-  set -o errtrace
+  set -xo errtrace
 
   name="${1}"
   dataset_dir="${2}"
@@ -84,6 +84,8 @@ export -f run_with_dataset_zip
 
 
 function run_with_ref_only() {
+  set -xo errtrace
+
   name="${1}"
   dataset_dir="${2}"
   sequences="${3}"
@@ -101,6 +103,8 @@ export -f run_with_ref_only
 
 
 function run_with_ref_and_annotation() {
+  set -xo errtrace
+
   name="${1}"
   dataset_dir="${2}"
   sequences="${3}"
@@ -120,6 +124,8 @@ export -f run_with_ref_and_annotation
 
 
 function run_with_ref_and_tree() {
+  set -xo errtrace
+
   name="${1}"
   dataset_dir="${2}"
   sequences="${3}"
@@ -139,6 +145,8 @@ export -f run_with_ref_and_tree
 
 
 function run_with_ref_and_annotation_and_tree() {
+  set -xo errtrace
+
   name="${1}"
   dataset_dir="${2}"
   sequences="${3}"
@@ -159,7 +167,7 @@ export -f run_with_ref_and_annotation_and_tree
 
 
 function download_and_run_single_dataset() {
-  set -o errtrace
+  set -xo errtrace
 
   name=$1
   dataset_dir="${DATASETS_DIR}/dir/${name}"
@@ -177,13 +185,11 @@ function download_and_run_single_dataset() {
     msg_no_sequences="\n\e[93mWarning: dataset '${name}' contains no example sequences. Will use reference sequence as query input.\e[0m"
   fi
 
-  if command -v seqkit &>/dev/null; then
-    sequences_orig="${sequences%.fasta}.orig.fasta"
-    sequences_rev_comp="${sequences%.fasta}.rev.fasta"
-    cp "${sequences}" "${sequences_orig}"
-    seqkit seq --quiet -t DNA -p -r "${sequences_orig}" | seqkit replace -p '(.*)' -r 'SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE|$1' > "${sequences_rev_comp}"
-    (cat "${sequences_orig}"; echo; cat "${sequences_rev_comp}") > "${sequences}"
-  fi
+  sequences_orig="${sequences%.fasta}.orig.fasta"
+  sequences_rev_comp="${sequences%.fasta}.rev.fasta"
+  cp "${sequences}" "${sequences_orig}"
+  seqkit seq --quiet -t DNA -p -r "${sequences_orig}" | seqkit replace -p '(.*)' -r 'SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE|$1' > "${sequences_rev_comp}"
+  (cat "${sequences_orig}"; echo; cat "${sequences_rev_comp}") > "${sequences}"
 
   echo -e "\nRunning '${NEXTCLADE_BIN}' for '${name}'$msg_no_sequences"
 
