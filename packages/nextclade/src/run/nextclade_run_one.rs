@@ -610,6 +610,11 @@ pub fn calculate_qry_annotation(
           let begin = seq_len.saturating_sub(range.end.as_usize()).into();
           let end = seq_len.saturating_sub(range.begin.as_usize()).into();
           range = NucRefGlobalRange::new(begin, end);
+          seg.strand = if seg.strand == GeneStrand::Forward {
+            GeneStrand::Reverse
+          } else {
+            GeneStrand::Forward
+          };
         }
         seg.range = range;
       }
