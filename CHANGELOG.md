@@ -1,3 +1,18 @@
+## 3.12.0
+
+### Forbid reference sequences with gaps
+
+Starting from this version, Nextclade won't accept reference sequences (`reference.fasta`) which contain gap characters (`-`).
+
+This is true for reference sequences in Nextclade datasets (provided as `--input-dataset`, `--dataset-name` in CLI, or `?input-dataset`, `?dataset-name` in web), Auspice JSON datasets (through `--input-dataset-json` or `?input-dataset-json`) as well as for individually provided reference sequences, in absence of a dataset or when overriding its files (`--input-ref`, `?input-ref`).
+
+We could not find meaning for the gaps in reference sequences in the context of Nextclade (pairwise alignment and comparison of sequences to a reference). When a reference with gaps have been used, it could have been causing errors and even possibly produced incorrect results silently.
+
+Starting from this version, Nextclade will now stop with an explicit error if it detects gaps in reference sequence. To resolve, please use a reference sequence without gaps, if possible, or notify dataset authors about the problem.
+
+If you think that Nextclade needs to support reference sequences with gaps please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
+
+
 ## 3.11.0
 
 ### Alignment presets
