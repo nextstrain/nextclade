@@ -3,7 +3,7 @@ use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::utils::collections::take_exactly_one;
-use crate::utils::iter::single_unique_value;
+use crate::utils::iter::{single_unique_value, try_single_unique_value};
 use eyre::{eyre, Report, WrapErr};
 use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
@@ -176,6 +176,10 @@ impl Gene {
 
   pub fn name_and_type(&self) -> String {
     format!("Gene '{}'", self.name)
+  }
+
+  pub fn strand(&self) -> Result<GeneStrand, Report> {
+    try_single_unique_value(&self.cdses, Cds::strand)
   }
 }
 

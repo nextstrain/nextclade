@@ -55,8 +55,11 @@ impl<W: Write + Send> GenbankTblWriter<W> {
   }
 
   fn write_gene(&mut self, gene: &Gene) -> Result<(), Report> {
-    let start = (gene.start().as_usize() + 1).to_string(); // Convert to 1-based indexing
-    let end = gene.end().as_usize().to_string();
+    let mut start = (gene.start().as_usize() + 1).to_string(); // Convert to 1-based indexing
+    let mut end = gene.end().as_usize().to_string();
+    if gene.strand()? == Reverse {
+      (start, end) = (end, start);
+    }
 
     // Write a line with feature's boundaries and feature's kind
     // Example:

@@ -23,3 +23,14 @@ where
 
   Ok(unique_values.into_iter().next().unwrap())
 }
+
+/// Extracts a single unique value from an iterator after applying a provided function that returns a Result.
+pub fn try_single_unique_value<T, U, I, F>(iter: I, f: F) -> Result<U, Report>
+where
+  U: Clone + Eq + Hash,
+  I: IntoIterator<Item = T>,
+  F: FnMut(T) -> Result<U, Report>,
+{
+  let results = iter.into_iter().map(f).collect::<Result<Vec<_>, Report>>()?;
+  single_unique_value(results, |v| v)
+}

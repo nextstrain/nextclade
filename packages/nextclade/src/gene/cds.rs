@@ -4,8 +4,10 @@ use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
 use crate::gene::frame::Frame;
+use crate::gene::gene::GeneStrand;
 use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
+use crate::utils::iter::single_unique_value;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
 use indexmap::{indexmap, IndexMap};
@@ -214,6 +216,10 @@ impl Cds {
   #[inline]
   pub fn is_empty(&self) -> bool {
     self.segments.len() == 0 || self.len() == 0
+  }
+
+  pub fn strand(&self) -> Result<GeneStrand, Report> {
+    single_unique_value(&self.segments, |s| s.strand)
   }
 }
 

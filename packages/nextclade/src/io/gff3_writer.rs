@@ -84,7 +84,7 @@ fn gene_to_bio_gff_record(gene: &Gene) -> Result<BioGffRecord, Report> {
   *record.start_mut() = (gene.start().as_usize() + 1) as u64;
   *record.end_mut() = gene.end().as_usize() as u64;
   *record.score_mut() = o!(".");
-  *record.strand_mut() = o!(".");
+  *record.strand_mut() = gene.strand()?.to_string();
   *record.frame_mut() = o!(".");
   *record.attributes_mut() = map_to_multimap(&gene.attributes);
 
