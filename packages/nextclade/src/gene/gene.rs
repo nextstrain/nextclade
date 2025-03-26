@@ -11,12 +11,22 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
+#[must_use]
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema)]
 pub enum GeneStrand {
   #[serde(rename = "+")]
   Forward,
   #[serde(rename = "-")]
   Reverse,
+}
+
+impl GeneStrand {
+  pub const fn inverted(self) -> Self {
+    match self {
+      Self::Forward => Self::Reverse,
+      Self::Reverse => Self::Forward,
+    }
+  }
 }
 
 impl Default for GeneStrand {
