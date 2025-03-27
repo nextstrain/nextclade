@@ -14,6 +14,7 @@ use crate::io::nextclade_csv::CsvColumnConfig;
 use crate::io::nwk_writer::convert_graph_to_nwk_string;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
+use crate::run::validate_ref_seq::validate_ref_seq;
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::tree::{check_ref_seq_mismatch, AuspiceGraph, AuspiceRefNodesDesc, AuspiceTree, CladeNodeAttrKeyDesc};
@@ -76,7 +77,7 @@ impl NextcladeParams {
             .to_owned();
 
           let ref_seq = auspice_json.root_sequence.as_ref().and_then(|root_sequence| root_sequence.get("nuc"))
-          .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc) and a reference sequence is not provided any other way."))?.to_owned();
+            .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc) and a reference sequence is not provided any other way."))?.to_owned();
 
           FastaRecord {
             index: 0,
@@ -329,6 +330,14 @@ impl Nextclade {
     let params = NextcladeInputParams::from_optional(params, &virus_properties)?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
     let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
+
+    if let Some(tree) = &tree {
+      if let Some(tree_ref) = tree.root_sequence() {
+        check_ref_seq_mismatch(&ref_record.seq, tree_ref).wrap_err("When validating input files")?;
+      }
+    }
+
+    validate_ref_seq(&ref_record.seq_name, &ref_seq)?;
 
     // If genome annotation is present, calculate AA-related parameters
     let InitialStateWithAa {
