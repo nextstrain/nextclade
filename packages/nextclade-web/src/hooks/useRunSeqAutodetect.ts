@@ -191,7 +191,9 @@ export function mapSeqToDatasets(records: DatasetSuggestionResult[]): Map<number
 }
 
 /** Map sequence index to a top suggested dataset */
-export function mapSeqToTopDataset(seqToDatasets: Map<number, DatasetScored[]>): Map<number, DatasetScored> {
+export function mapSeqToTopDataset(
+  seqToDatasets: Map<number, DatasetScored[]>,
+): Map<number, DatasetScored | undefined> {
   return new Map(Array.from(seqToDatasets, ([seqIndex, datasets]) => [seqIndex, datasets[0]]))
 }
 
@@ -212,8 +214,8 @@ export interface SuggestionResultsGrouped {
   datasetToSeqs: Record<string, MinimizerSearchRecordGroup>
   datasetNameToSeqIndices: Map<string, number[]>
   seqToDatasets: Map<number, DatasetScored[]>
-  seqToTopDataset: Map<number, DatasetScored>
-  seqIndexToTopDatasetName: Map<number, string>
+  seqToTopDataset: Map<number, DatasetScored | undefined>
+  seqIndexToTopDatasetName: Map<number, string | undefined>
   topDatasets: Dataset[]
   topDatasetNames: string[]
 }
@@ -246,9 +248,15 @@ export function processSuggestionResults(
   const seqToTopDataset = mapSeqToTopDataset(seqToDatasets)
 
   const seqIndexToTopDatasetName = new Map(
-    Array.from(seqToTopDataset.entries(), ([seqIndex, dataset]) => [seqIndex, dataset.dataset.path]),
+    Array.from(seqToTopDataset.entries(), ([seqIndex, dataset]) => [seqIndex, dataset?.dataset.path]),
   )
-  const topDatasetNames = uniq(Array.from(seqToTopDataset.values(), (dataset) => dataset.dataset.path).sort())
+
+  const topDatasetNames = uniq(
+    Array.from(seqToTopDataset.values(), (dataset) => dataset?.dataset.path)
+      .filter(notUndefinedOrNull)
+      .sort(),
+  )
+
   const topDatasets = topDatasetNames
     .map((name) => datasets.find((dataset) => dataset.path === name))
     .filter(notUndefinedOrNull)
