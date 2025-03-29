@@ -588,9 +588,11 @@ pub fn calculate_qry_annotation(
             // Adjust phase to correctly label start of codon
             seg.phase = seg.phase.shifted_by(truncation)?;
             seg.truncation = Truncation::FivePrime(truncation.as_usize());
+          } else {
+            seg.truncation = Truncation::ThreePrime(truncation.as_usize());
           }
           // add note to list of Notes, add new attribute if it doesn't exist
-          seg.attributes.insert(o!("truncated-5p"), vec![truncation.to_string()]);
+          seg.attributes.insert(o!("truncated-right"), vec![truncation.to_string()]);
         }
 
         // Note if the feature is incomplete at the 3p (right) end
@@ -599,9 +601,11 @@ pub fn calculate_qry_annotation(
           if seg.strand == GeneStrand::Reverse {
             // Adjust phase to correctly label start of codon
             seg.phase = seg.phase.shifted_by(truncation)?;
+            seg.truncation = Truncation::FivePrime(truncation.as_usize());
+          } else {
             seg.truncation = Truncation::ThreePrime(truncation.as_usize());
           }
-          seg.attributes.insert(o!("truncated-3p"), vec![truncation.to_string()]);
+          seg.attributes.insert(o!("truncated-left"), vec![truncation.to_string()]);
         }
 
         // Convert included segment range from reference to query coordinates
