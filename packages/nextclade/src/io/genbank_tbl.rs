@@ -93,15 +93,12 @@ impl<W: Write + Send> GenbankTblWriter<W> {
 
       // If there is a truncation on 5' or 3' end, prefix the start/end position with "<" or ">",
       // as an incomplete feature
-      match seg.truncation {
-        Truncation::FivePrime(_) => {
-          start = format!("<{start}");
-        }
-        Truncation::ThreePrime(_) => {
-          end = format!(">{end}");
-        }
-        Truncation::None => {}
-      };
+      if seg.truncation.contains(Truncation::LEFT) {
+        start = format!("<{start}");
+      }
+      if seg.truncation.contains(Truncation::RIGHT) {
+        end = format!(">{end}");
+      }
 
       // Write a line with feature's boundaries and feature's kind
       // Example:

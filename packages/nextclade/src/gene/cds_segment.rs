@@ -4,9 +4,12 @@ use crate::features::feature::Landmark;
 use crate::gene::frame::Frame;
 use crate::gene::gene::GeneStrand;
 use crate::gene::phase::Phase;
+use bitflags::bitflags;
 use indexmap::IndexMap;
+use schemars::gen::SchemaGenerator;
+use schemars::schema::{InstanceType, Schema, SchemaObject};
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Marks the parts of circular, wrapping segments
 ///
@@ -25,13 +28,73 @@ pub enum WrappingPart {
 }
 
 // Shows whether the CDS is incomplete and by how much
-#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
-pub enum Truncation {
-  #[default]
-  None,
-  FivePrime(usize),
-  ThreePrime(usize),
+bitflags! {
+  #[derive(Clone, Debug, Default)]
+  pub struct Truncation : u8 {
+    const LEFT = 0b01;
+    const RIGHT = 0b10;
+  }
+}
+
+impl Serialize for Truncation {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    if self.is_empty() {
+      serializer.serialize_none()
+    } else {
+      let flag_str = if self.contains(Truncation::LEFT | Truncation::RIGHT) {
+        "both"
+      } else if self.contains(Truncation::LEFT) {
+        "left"
+      } else if self.contains(Truncation::RIGHT) {
+        "right"
+      } else {
+        return Err(serde::ser::Error::custom("Invalid truncation flags"));
+      };
+      serializer.serialize_str(flag_str)
+    }
+  }
+}
+
+impl<'de> Deserialize<'de> for Truncation {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    let s = Option::<String>::deserialize(deserializer)?;
+    match s.as_deref() {
+      Some("both") => Ok(Truncation::LEFT | Truncation::RIGHT),
+      Some("left") => Ok(Truncation::LEFT),
+      Some("right") => Ok(Truncation::RIGHT),
+      None => Ok(Truncation::empty()),
+      _ => Err(serde::de::Error::custom("Unexpected value for Truncation")),
+    }
+  }
+}
+
+impl JsonSchema for Truncation {
+  fn schema_name() -> String {
+    "Truncation".to_owned()
+  }
+
+  fn json_schema(_: &mut SchemaGenerator) -> Schema {
+    let enum_values = vec![
+      serde_json::Value::Null,
+      serde_json::Value::String("left".to_owned()),
+      serde_json::Value::String("right".to_owned()),
+      serde_json::Value::String("both".to_owned()),
+    ];
+
+    let schema = SchemaObject {
+      instance_type: Some(InstanceType::String.into()),
+      enum_values: Some(enum_values),
+      ..SchemaObject::default()
+    };
+
+    Schema::Object(schema)
+  }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
