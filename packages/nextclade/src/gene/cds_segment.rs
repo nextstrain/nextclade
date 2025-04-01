@@ -32,6 +32,7 @@ pub enum Truncation {
   None,
   FivePrime(usize),
   ThreePrime(usize),
+  Both((usize, usize)),
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]

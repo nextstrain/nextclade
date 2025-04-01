@@ -35,7 +35,7 @@ use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::position::PositionLike;
 use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
-use crate::gene::cds_segment::Truncation;
+use crate::gene::cds_segment::{CdsSegment, Truncation};
 use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
@@ -581,32 +581,7 @@ pub fn calculate_qry_annotation(
         // Take only the part of the segment which is within the alignment range
         let included_range = intersect(alignment_range, &seg.range);
 
-        // Note if the feature is incomplete at the 5p (left) end
-        if seg.range.begin < included_range.begin {
-          let truncation = included_range.begin - seg.range.begin;
-          if seg.strand == GeneStrand::Forward {
-            // Adjust phase to correctly label start of codon
-            seg.phase = seg.phase.shifted_by(truncation)?;
-            seg.truncation = Truncation::FivePrime(truncation.as_usize());
-          } else {
-            seg.truncation = Truncation::ThreePrime(truncation.as_usize());
-          }
-          // add note to list of Notes, add new attribute if it doesn't exist
-          seg.attributes.insert(o!("truncated-right"), vec![truncation.to_string()]);
-        }
-
-        // Note if the feature is incomplete at the 3p (right) end
-        if seg.range.end > included_range.end {
-          let truncation = seg.range.end - included_range.end;
-          if seg.strand == GeneStrand::Reverse {
-            // Adjust phase to correctly label start of codon
-            seg.phase = seg.phase.shifted_by(truncation)?;
-            seg.truncation = Truncation::FivePrime(truncation.as_usize());
-          } else {
-            seg.truncation = Truncation::ThreePrime(truncation.as_usize());
-          }
-          seg.attributes.insert(o!("truncated-left"), vec![truncation.to_string()]);
-        }
+        calculate_truncation(&included_range, seg)?;
 
         // Convert included segment range from reference to query coordinates
         let mut range = coord_map_global.ref_to_qry_range(&included_range);
@@ -634,4 +609,47 @@ pub fn calculate_qry_annotation(
   gene_map.genes.retain(|gene| !gene.is_empty());
 
   Ok(gene_map)
+}
+
+fn calculate_truncation(included_range: &NucRefGlobalRange, seg: &mut CdsSegment) -> Result<(), Report> {
+  let included_range = included_range.to_std();
+  let seg_range = seg.range.to_std();
+
+  let left_truncation = included_range.start.saturating_sub(seg_range.start);
+  let right_truncation = seg_range.end.saturating_sub(included_range.end);
+
+  let has_left_truncation = left_truncation > 0;
+  let has_right_truncation = right_truncation > 0;
+
+  if has_left_truncation && seg.strand == GeneStrand::Forward {
+    seg.phase = seg.phase.shifted_by(left_truncation)?;
+  }
+  if has_right_truncation && seg.strand == GeneStrand::Reverse {
+    seg.phase = seg.phase.shifted_by(right_truncation)?;
+  }
+
+  if has_left_truncation || has_right_truncation {
+    seg.truncation = match (seg.strand, has_left_truncation, has_right_truncation) {
+      (GeneStrand::Forward, true, true) => Truncation::Both((left_truncation, right_truncation)),
+      (GeneStrand::Forward, true, false) => Truncation::FivePrime(left_truncation),
+      (GeneStrand::Forward, false, true) => Truncation::ThreePrime(right_truncation),
+      (GeneStrand::Reverse, true, true) => Truncation::Both((left_truncation, right_truncation)),
+      (GeneStrand::Reverse, true, false) => Truncation::ThreePrime(left_truncation),
+      (GeneStrand::Reverse, false, true) => Truncation::FivePrime(right_truncation),
+      _ => Truncation::None,
+    };
+
+    if has_left_truncation {
+      seg
+        .attributes
+        .insert(o!("truncated-left"), vec![left_truncation.to_string()]);
+    }
+    if has_right_truncation {
+      seg
+        .attributes
+        .insert(o!("truncated-right"), vec![right_truncation.to_string()]);
+    }
+  }
+
+  Ok(())
 }

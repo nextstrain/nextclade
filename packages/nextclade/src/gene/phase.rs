@@ -35,9 +35,8 @@ impl Phase {
     }
   }
 
-  pub fn shifted_by<P: PositionLike>(self, amount: P) -> Result<Phase, Report> {
+  pub fn shifted_by(self, amount: usize) -> Result<Phase, Report> {
     let original_phase = self.to_usize();
-    let amount = amount.as_usize();
     let begin = NucRefLocalPosition::from(original_phase + amount);
     Phase::from_begin(begin)
   }
