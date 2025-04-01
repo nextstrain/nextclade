@@ -265,6 +265,13 @@ impl FastaPeptideWriter {
   }
 }
 
+pub fn parse_fasta_header(header: &str) -> (String, String) {
+  header
+    .split_once(' ')
+    .map(|(seqid, desc)| (seqid.to_owned(), desc.to_owned()))
+    .unwrap_or((header.to_owned(), String::new()))
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;

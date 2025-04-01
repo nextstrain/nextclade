@@ -298,9 +298,12 @@ jobs:
 
       - name: "Install dependencies"
         run: |
+          sudo apt-get install -yqq genometools
+
           mkdir -p "${HOME}/bin"
           export PATH="${HOME}/bin:${PATH}"
           curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v2.5.0/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
 
       - name: "Download build artifacts"
         uses: actions/download-artifact@v4
@@ -311,8 +314,14 @@ jobs:
 
       - name: "Run smoke tests (linux)"
         run: |
+          export PATH="${HOME}/bin:${PATH}"
+
           chmod +x ./.out/*
           JOBS=2 ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
+
+      - name: "Validate output query GFF files (linux)"
+        run: |
+          ./scripts/validate-gff "tmp/smoke-tests/result/"
 
   #  run-smoke-tests-mac:
   #    name: "Run smoke tests (mac)"

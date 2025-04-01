@@ -1,15 +1,15 @@
 use crate::coord::range::{NucRefGlobalRange, Range};
 use crate::features::feature::Landmark;
 use crate::gene::cds::{split_circular_cds_segments, Cds};
-use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
 use crate::gene::frame::Frame;
 use crate::gene::gene::Gene;
 use crate::gene::phase::Phase;
 use crate::io::json::{json_stringify, JsonPretty};
 use crate::tree::tree::{AuspiceGenomeAnnotationCds, AuspiceGenomeAnnotations, Segments, StartEnd};
+use crate::utils::iter::single_unique_value;
 use eyre::Report;
-use maplit::hashmap;
-use std::collections::HashMap;
+use indexmap::{indexmap, IndexMap};
 
 pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> Result<Vec<Gene>, Report> {
   let landmark = Landmark {
@@ -40,21 +40,29 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
         segments,
         proteins: vec![],
         exceptions: vec![],
-        attributes: HashMap::default(),
+        attributes: IndexMap::default(),
         compat_is_gene: true,
         color: ann.color.clone(),
       };
+
+      let gff_seqid = single_unique_value(&cds.segments, |s| &s.gff_seqid)?.clone();
+      let gff_source = single_unique_value(&cds.segments, |s| &s.gff_source)?.clone();
+      let gff_feature_type = single_unique_value(&cds.segments, |s| &s.gff_feature_type)?.clone();
 
       Ok(Gene {
         index,
         id: gene_name.to_owned(),
         name: gene_name.to_owned(),
+        range: cds.range(),
         cdses: vec![cds],
         exceptions: vec![],
-        attributes: HashMap::default(),
+        attributes: IndexMap::default(),
         source_record: None,
         compat_is_cds: true,
         color: ann.color.clone(),
+        gff_seqid,
+        gff_source,
+        gff_feature_type,
       })
     })
     .collect()
@@ -88,11 +96,15 @@ fn convert_cds_segments(
       strand: ann.strand,
       frame,
       phase,
+      truncation: Truncation::default(),
       exceptions: vec![],
-      attributes: hashmap! {},
+      attributes: indexmap! {},
       source_record: Some(json_stringify(ann, JsonPretty(true))?),
       compat_is_gene: false,
       color: ann.color.clone(),
+      gff_seqid: None,
+      gff_source: None,
+      gff_feature_type: None,
     });
 
     begin += range.len();

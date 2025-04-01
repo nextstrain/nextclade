@@ -1,13 +1,13 @@
 use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
-use crate::io::gff3::{get_one_of_attributes_optional, GffCommonInfo};
+use crate::io::gff3_reader::{get_one_of_attributes_optional, GffCommonInfo};
 use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
+use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -26,9 +26,12 @@ pub struct Feature {
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
+  pub gff_seqid: Option<String>,
+  pub gff_source: Option<String>,
+  pub gff_feature_type: Option<String>,
 }
 
 impl Feature {
@@ -43,6 +46,9 @@ impl Feature {
       is_circular,
       attributes,
       gff_record_str,
+      gff_seqid,
+      gff_source,
+      gff_feature_type,
     } = GffCommonInfo::from_gff_record(record)?;
 
     let name = name.unwrap_or_else(|| format!("Feature #{index}"));
@@ -75,6 +81,9 @@ impl Feature {
       is_circular,
       attributes,
       source_record: Some(gff_record_str),
+      gff_seqid,
+      gff_source,
+      gff_feature_type,
     })
   }
 

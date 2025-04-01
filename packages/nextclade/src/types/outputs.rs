@@ -14,6 +14,7 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
+use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
 use crate::io::json::json_parse;
 use crate::qc::qc_run::QcResult;
@@ -44,6 +45,11 @@ pub struct PhenotypeValue {
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
+  pub seq_id: String,
+  pub seq_desc: String,
+  pub len_unaligned: usize,
+  pub len_aligned: usize,
+  pub len_stripped: usize,
   pub ref_name: String,
   pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
@@ -100,6 +106,9 @@ pub struct NextcladeOutputs {
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
+
+  #[serde(skip_serializing_if = "GeneMap::is_empty")]
+  pub annotation: GeneMap,
 }
 
 impl NextcladeOutputs {

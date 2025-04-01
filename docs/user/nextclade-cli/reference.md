@@ -166,7 +166,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 
 
-* `-O`, `--output-all <OUTPUT_ALL>` — Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames.
+* `-O`, `--output-all <OUTPUT_ALL>` — Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of the output files into the same directory and don't care about their filenames.
 
    Output files can be optionally included or excluded using `--output-selection` flag. The base filename can be set using `--output-basename` flag.
 
@@ -177,7 +177,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
    If the required directory tree does not exist, it will be created.
 * `-n`, `--output-basename <OUTPUT_BASENAME>` — Set the base filename to use for output files.
 
-   By default the base filename is extracted from the input sequences file (provided with `--input-fasta`).
+   By default, the base filename is extracted from the input sequences file (provided with `--input-fasta`).
 
    Only valid together with `--output-all` flag.
 * `-s`, `--output-selection <OUTPUT_SELECTION>` — Restricts outputs for `--output-all` flag.
@@ -188,7 +188,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
    Only valid together with `--output-all` flag.
 
-  Possible values: `all`, `fasta`, `json`, `ndjson`, `csv`, `tsv`, `tree`, `tree-nwk`, `translations`
+  Possible values: `all`, `fasta`, `json`, `ndjson`, `csv`, `tsv`, `tree`, `tree-nwk`, `translations`, `gff`, `tbl`
 
 * `-o`, `--output-fasta <OUTPUT_FASTA>` — Path to output FASTA file with aligned sequences.
 
@@ -282,6 +282,28 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--output-tree-nwk <OUTPUT_TREE_NWK>` — Path to output phylogenetic tree with input sequences placed onto it, in Newick format (New Hampshire tree format)
 
    For file format description see: https://en.wikipedia.org/wiki/Newick_format
+
+   Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+
+   If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+
+   If the required directory tree does not exist, it will be created.
+* `--output-annotation-gff <OUTPUT_ANNOTATION_GFF>` — Path to output annotation for query sequences in GFF3 format (EXPERIMENTAL)
+
+   This output contains annotation of genetic features (genes and CDSes) for each query sequence. This can be helpful when extracting genetic features from sequences as well as when uploading to genetic databases.
+
+   Learn more about Generic Feature Format Version 3 (GFF3): https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+
+   Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+
+   If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+
+   If the required directory tree does not exist, it will be created.
+* `--output-annotation-tbl <OUTPUT_ANNOTATION_TBL>` — Path to output annotation for query sequences in Genbank TBL format (EXPERIMENTAL)
+
+   This output contains annotation of genetic features (genes and CDSes) for each query sequence. This can be helpful when extracting genetic features from sequences as well as when uploading to genetic databases.
+
+   Learn more about Genbank's 5-column tab-delimited feature table (TBL) format: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
 
    Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
 

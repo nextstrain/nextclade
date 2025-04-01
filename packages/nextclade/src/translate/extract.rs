@@ -2,7 +2,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::range::NucAlnGlobalRange;
 use crate::gene::cds::Cds;
-use crate::gene::cds_segment::WrappingPart;
+use crate::gene::cds_segment::{CdsSegment, WrappingPart};
 use crate::gene::gene::GeneStrand;
 use crate::translate::complement::reverse_complement_in_place;
 use itertools::Itertools;
@@ -10,31 +10,7 @@ use itertools::Itertools;
 pub fn extract_cds_from_aln(seq_aln: &[Nuc], cds: &Cds, coord_map_global: &CoordMapGlobal) -> Vec<Nuc> {
   let mut cds_aln_seq = vec![];
   for segment in &cds.segments {
-    // TODO: should we use `landmark.range.end` (converted to aln coords) instead of `seq_aln.len()`?
-    let range = match segment.wrapping_part {
-      WrappingPart::NonWrapping => coord_map_global.ref_to_aln_range(&segment.range),
-      WrappingPart::WrappingStart => {
-        // If segment is the first part of a segment that wraps around the origin,
-        // limit the range to end of alignment (trim the overflowing parts)
-        NucAlnGlobalRange::new(
-          coord_map_global.ref_to_aln_position(segment.range.begin),
-          seq_aln.len().into(),
-        )
-      }
-      WrappingPart::WrappingCentral(_) => {
-        // If segment is one of the the middle parts of a segment that wraps around the origin,
-        // it spans the entire aligned sequence.
-        NucAlnGlobalRange::from_usize(0, seq_aln.len())
-      }
-      WrappingPart::WrappingEnd(_) => {
-        // If segment is the last part of a segment that wraps around the origin,
-        // start range at the beginning of the alignment (trim the underflowing parts)
-        NucAlnGlobalRange::new(
-          0.into(),
-          coord_map_global.ref_to_aln_position(segment.range.end - 1) + 1,
-        )
-      }
-    };
+    let range = cds_segment_aln_range(seq_aln, coord_map_global, segment);
 
     let mut nucs = seq_aln[range.to_std()].to_vec();
     if segment.strand == GeneStrand::Reverse {
@@ -44,6 +20,38 @@ pub fn extract_cds_from_aln(seq_aln: &[Nuc], cds: &Cds, coord_map_global: &Coord
   }
 
   cds_aln_seq
+}
+
+pub fn cds_segment_aln_range(
+  seq_aln: &[Nuc],
+  coord_map_global: &CoordMapGlobal,
+  segment: &CdsSegment,
+) -> NucAlnGlobalRange {
+  // TODO: should we use `landmark.range.end` (converted to aln coords) instead of `seq_aln.len()`?
+  match segment.wrapping_part {
+    WrappingPart::NonWrapping => coord_map_global.ref_to_aln_range(&segment.range),
+    WrappingPart::WrappingStart => {
+      // If segment is the first part of a segment that wraps around the origin,
+      // limit the range to end of alignment (trim the overflowing parts)
+      NucAlnGlobalRange::new(
+        coord_map_global.ref_to_aln_position(segment.range.begin),
+        seq_aln.len().into(),
+      )
+    }
+    WrappingPart::WrappingCentral(_) => {
+      // If segment is one of the middle parts of a segment that wraps around the origin,
+      // it spans the entire aligned sequence.
+      NucAlnGlobalRange::from_usize(0, seq_aln.len())
+    }
+    WrappingPart::WrappingEnd(_) => {
+      // If segment is the last part of a segment that wraps around the origin,
+      // start range at the beginning of the alignment (trim the underflowing parts)
+      NucAlnGlobalRange::new(
+        0.into(),
+        coord_map_global.ref_to_aln_position(segment.range.end - 1) + 1,
+      )
+    }
+  }
 }
 
 pub fn extract_cds_from_ref(seq: &[Nuc], cds: &Cds) -> Vec<Nuc> {
@@ -66,12 +74,13 @@ mod coord_map_tests {
   use crate::alphabet::nuc::to_nuc_seq;
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
-  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  
+use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use eyre::Report;
+  use indexmap::indexmap;
   use itertools::Itertools;
-  use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -100,11 +109,15 @@ mod coord_map_tests {
               strand: GeneStrand::Forward,
               frame,
               phase,
+              truncation: Truncation::default(),
               exceptions: vec![],
-              attributes: hashmap!(),
+              attributes: indexmap!(),
               source_record: None,
               compat_is_gene: false,
               color: None,
+              gff_seqid: None,
+              gff_source: None,
+              gff_feature_type: None,
             };
             segment_start = segment_start + end - begin;
             segment
@@ -113,7 +126,7 @@ mod coord_map_tests {
       },
       proteins: vec![],
       exceptions: vec![],
-      attributes: hashmap! {},
+      attributes: indexmap! {},
       compat_is_gene: false,
       color: None,
     }
@@ -146,7 +159,7 @@ mod coord_map_tests {
     let qry_aln = to_nuc_seq("-GATGCACACGCATC---TTTAAACGGGTTTGCGGTGTCAGT---GCCCGTCTTACA")?;
 
     let cds = create_fake_cds(&[(4, 21), (20, 39), (45, 51)]);
-    let global_coord_map = CoordMapGlobal::new(&ref_aln);
+    let global_coord_map = CoordMapGlobal::new(&ref_aln, &qry_aln);
 
     let ref_cds_aln = extract_cds_from_aln(&ref_aln, &cds, &global_coord_map);
     assert_eq!(
@@ -159,6 +172,10 @@ mod coord_map_tests {
       qry_cds_aln,
       to_nuc_seq("GCACACGCATC---TTTAAAACGGGTTTGCGGTGTCAGTCGTCTT")?
     );
+
+    let qry_cds = create_fake_cds(&[(3, 20), (19, 38), (41, 47)]);
+    let inferred_segments = cds.segments.iter().map(|cds_segment| global_coord_map.ref_to_qry_range(&cds_segment.range)).collect_vec();
+    assert_eq!(inferred_segments, qry_cds.segments.iter().map(|cds_segment| cds_segment.range.clone()).collect_vec());
 
     Ok(())
   }
