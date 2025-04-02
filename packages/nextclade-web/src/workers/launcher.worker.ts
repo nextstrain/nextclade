@@ -3,7 +3,7 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
-import { omit } from 'lodash'
+import { omit, uniq } from 'lodash'
 import { AlgorithmGlobalStatus } from 'src/types'
 import type { FastaRecord, FastaRecordId, NextcladeResult, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -36,33 +36,27 @@ class LauncherWorkerImpl {
 
   pool!: AnalysisWorkerPool
 
-  seqIndexToTopDatasetName!: Map<number, string>
-
   datasetNames!: string[]
+
+  seqIndexToTopDatasetName!: Map<number, string>
 
   private constructor() {}
 
   public static async create(
     numThreads: number,
     seqIndexToTopDatasetName: Map<number, string>,
-    datasetNames: string[],
     params: NextcladeParamsRaw,
   ) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, seqIndexToTopDatasetName, datasetNames, params)
+    await self.init(numThreads, seqIndexToTopDatasetName, params)
     return self
   }
 
-  private async init(
-    numThreads: number,
-    seqIndexToTopDatasetName: Map<number, string>,
-    datasetNames: string[],
-    params: NextcladeParamsRaw,
-  ) {
+  private async init(numThreads: number, seqIndexToTopDatasetName: Map<number, string>, params: NextcladeParamsRaw) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
     this.seqIndexToTopDatasetName = seqIndexToTopDatasetName
-    this.datasetNames = datasetNames
+    this.datasetNames = uniq([...seqIndexToTopDatasetName.values()])
   }
 
   async getInitialData(datasetName: string) {
@@ -114,8 +108,8 @@ class LauncherWorkerImpl {
   }
 
   private onError(error: unknown) {
-    this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
-    this.analysisResultsObservable.error(sanitizeError(error))
+    this.analysisGlobalStatusObservable?.next(AlgorithmGlobalStatus.failed)
+    this.analysisResultsObservable?.error(sanitizeError(error))
     void this.destroy() // eslint-disable-line no-void
   }
 }
@@ -124,13 +118,8 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(
-    numThreads: number,
-    seqIndexToTopDatasetName: Map<number, string>,
-    datasetNames: string[],
-    params: NextcladeParamsRaw,
-  ) {
-    launcher = await LauncherWorkerImpl.create(numThreads, seqIndexToTopDatasetName, datasetNames, params)
+  async init(numThreads: number, seqIndexToTopDatasetName: Map<number, string>, params: NextcladeParamsRaw) {
+    launcher = await LauncherWorkerImpl.create(numThreads, seqIndexToTopDatasetName, params)
   },
   async getInitialData(datasetName: string) {
     if (!launcher) {

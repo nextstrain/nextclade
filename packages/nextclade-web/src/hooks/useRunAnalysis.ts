@@ -69,7 +69,7 @@ import { axiosFetchRaw } from 'src/io/axiosFetch'
 export function useRunAnalysis() {
   const router = useRouter()
   const dispatch = useDispatch()
-  const { seqIndexToTopDatasetName, topDatasetNames } = useDatasetSuggestionResults()
+  const { seqIndexToTopDatasetName } = useDatasetSuggestionResults()
   const getAuspiceState = useGetAuspiceState()
 
   return useRecoilCallback(
@@ -199,22 +199,14 @@ export function useRunAnalysis() {
             }
 
             const params: NextcladeParamsRaw = await resolveParams(tree, overrides, datasets)
-            return launchAnalysis(
-              seqIndexToTopDatasetName,
-              topDatasetNames,
-              qry,
-              params,
-              callbacks,
-              numThreadsResolved,
-              csvColumnConfig,
-            )
+            return launchAnalysis(seqIndexToTopDatasetName, qry, params, callbacks, numThreadsResolved, csvColumnConfig)
           })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch, getAuspiceState, seqIndexToTopDatasetName, topDatasetNames],
+    [router, dispatch, getAuspiceState, seqIndexToTopDatasetName],
   )
 }
 

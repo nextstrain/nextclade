@@ -1,238 +1,242 @@
-import { isEmpty } from 'lodash'
-import { formatReference } from 'src/components/Main/DatasetInfo'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { attrStrMaybe, Dataset } from 'src/types'
-import { mix, transparentize } from 'polished'
-import React, { CSSProperties, useCallback, useMemo } from 'react'
-import { ListChildComponentProps } from 'react-window'
-import { Col, Row } from 'reactstrap'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { AutoSizer, FixedSizeList } from 'src/components/Results/ResultsTable'
-import {
-  HEADER_ROW_HEIGHT,
-  TableCell,
-  TableCellName,
-  TableCellRowIndex,
-  TableCellText,
-  TableHeaderCell,
-  TableHeaderCellContent,
-  TableHeaderRow,
-  TableRow,
-} from 'src/components/Results/ResultsTableStyle'
-import { colorHash } from 'src/helpers/colorHash'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { DatasetSuggestionResult, useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { datasetsAtom, datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import styled from 'styled-components'
-import { Layout } from 'src/components/Layout/Layout'
-
-const ROW_HEIGHT = 60
-
-export const Container = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-`
-
-const WrapperOuter = styled.div`
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  display: flex;
-`
-
-const WrapperInner = styled.div<{ $minWidth: number }>`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  min-width: ${(props) => props.$minWidth}px;
-`
-
-const MainContent = styled.main`
-  flex: 1;
-  flex-basis: 100%;
-  border: none;
-`
-
-const Footer = styled.footer`
-  flex-shrink: 0;
-`
-
-export const Table = styled.div<{ rounded?: boolean }>`
-  font-size: 0.8rem;
-  width: 100%;
-  height: 100%;
-  background-color: #b3b3b3aa;
-  overflow: hidden;
-  transition: border-radius 250ms linear;
-`
-
-const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
+// import { isEmpty } from 'lodash'
+// import { formatReference } from 'src/components/Main/DatasetInfo'
+// import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+// import { attrStrMaybe, Dataset } from 'src/types'
+// import { mix, transparentize } from 'polished'
+// import React, { CSSProperties, useCallback, useMemo } from 'react'
+// import { ListChildComponentProps } from 'react-window'
+// import { Col, Row } from 'reactstrap'
+// import { useRecoilValue, useSetRecoilState } from 'recoil'
+// import { ButtonRun } from 'src/components/Main/ButtonRun'
+// import { AutoSizer, FixedSizeList } from 'src/components/Results/ResultsTable'
+// import {
+//   HEADER_ROW_HEIGHT,
+//   TableCell,
+//   TableCellName,
+//   TableCellRowIndex,
+//   TableCellText,
+//   TableHeaderCell,
+//   TableHeaderCellContent,
+//   TableHeaderRow,
+//   TableRow,
+// } from 'src/components/Results/ResultsTableStyle'
+// import { colorHash } from 'src/helpers/colorHash'
+// import { ErrorInternal } from 'src/helpers/ErrorInternal'
+// import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+// import { DatasetSuggestionResult, useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+// import { datasetsAtom, datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
+// import styled from 'styled-components'
+// import { Layout } from 'src/components/Layout/Layout'
+//
+// const ROW_HEIGHT = 60
+//
+// export const Container = styled.div`
+//   width: 100%;
+//   height: 100%;
+//   display: flex;
+//   flex-direction: column;
+//   flex-wrap: nowrap;
+// `
+//
+// const WrapperOuter = styled.div`
+//   flex: 1;
+//   width: 100%;
+//   height: 100%;
+//   overflow: auto;
+//   display: flex;
+// `
+//
+// const WrapperInner = styled.div<{ $minWidth: number }>`
+//   display: flex;
+//   flex-direction: column;
+//   width: 100%;
+//   height: 100%;
+//   min-width: ${(props) => props.$minWidth}px;
+// `
+//
+// const MainContent = styled.main`
+//   flex: 1;
+//   flex-basis: 100%;
+//   border: none;
+// `
+//
+// const Footer = styled.footer`
+//   flex-shrink: 0;
+// `
+//
+// export const Table = styled.div<{ rounded?: boolean }>`
+//   font-size: 0.8rem;
+//   width: 100%;
+//   height: 100%;
+//   background-color: #b3b3b3aa;
+//   overflow: hidden;
+//   transition: border-radius 250ms linear;
+// `
+//
+// const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
+//
+// export function SortPage() {
+//   const { t } = useTranslationSafe()
+//
+//   const { suggestionResults, topDatasetNames } = useDatasetSuggestionResults()
+//   const results = useMemo(() => suggestionResults ?? [], [suggestionResults])
+//
+//   const datasets = useRecoilValue(datasetsAtom)
+//   const selectedDatasets: Dataset[] = useMemo(() => {
+//     if (isEmpty(topDatasetNames)) {
+//       return []
+//     }
+//     return datasets.filter((dataset) => topDatasetNames.includes(dataset.path))
+//   }, [topDatasetNames, datasets])
+//
+//   const run = useRunAnalysisMany(selectedDatasets)
+//
+//   return (
+//     <Layout>
+//       <Container>
+//         <WrapperOuter>
+//           <WrapperInner $minWidth={0}>
+//             <MainContent>
+//               <Table rounded={false}>
+//                 <TableHeaderRow>
+//                   <TableHeaderCell first basis="60px" grow={0} shrink={0}>
+//                     <TableHeaderCellContent>
+//                       <TableCellText>{'#'}</TableCellText>
+//                     </TableHeaderCellContent>
+//                   </TableHeaderCell>
+//
+//                   <TableHeaderCell basis="60px" grow={0} shrink={0}>
+//                     <TableHeaderCellContent>
+//                       <TableCellText>{'i'}</TableCellText>
+//                     </TableHeaderCellContent>
+//                   </TableHeaderCell>
+//
+//                   <TableHeaderCell basis="300px" grow={1} shrink={1}>
+//                     <TableHeaderCellContent>
+//                       <TableCellText>{t('Sequence name')}</TableCellText>
+//                     </TableHeaderCellContent>
+//                   </TableHeaderCell>
+//
+//                   <TableHeaderCell basis="300px" grow={1} shrink={1}>
+//                     <TableHeaderCellContent>
+//                       <TableCellText>{t('Dataset')}</TableCellText>
+//                     </TableHeaderCellContent>
+//                   </TableHeaderCell>
+//
+//                   <TableHeaderCell basis="60px" grow={0} shrink={0}>
+//                     <TableHeaderCellContent>
+//                       <TableCellText>{t('Top score')}</TableCellText>
+//                     </TableHeaderCellContent>
+//                   </TableHeaderCell>
+//
+//                   <TableHeaderCell basis="60px" grow={0} shrink={0}>
+//                     <TableHeaderCellContent>
+//                       <TableCellText>{t('Candidate datasets')}</TableCellText>
+//                     </TableHeaderCellContent>
+//                   </TableHeaderCell>
+//                 </TableHeaderRow>
+//
+//                 <AutoSizer>
+//                   {({ width, height }) => {
+//                     return (
+//                       <FixedSizeList
+//                         overscanCount={10}
+//                         style={LIST_STYLE}
+//                         width={width}
+//                         height={height - HEADER_ROW_HEIGHT}
+//                         itemCount={results.length}
+//                         itemSize={ROW_HEIGHT}
+//                         itemData={results}
+//                       >
+//                         {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+//                         {/* @ts-ignore */}
+//                         {SortingTableRow}
+//                       </FixedSizeList>
+//                     )
+//                   }}
+//                 </AutoSizer>
+//               </Table>
+//             </MainContent>
+//
+//             <Footer>
+//               <Row noGutters className="w-100">
+//                 <Col className="w-100 d-flex">
+//                   <ButtonRun className="ml-auto" onClick={run} />
+//                 </Col>
+//               </Row>
+//             </Footer>
+//           </WrapperInner>
+//         </WrapperOuter>
+//       </Container>
+//     </Layout>
+//   )
+// }
+//
+// export function useRunAnalysisMany(selectedDatasets: Dataset[]) {
+//   const run = useRunAnalysis()
+//   const setDatasetsCurrent = useSetRecoilState(datasetsCurrentAtom)
+//   const setViewedDatasetName = useSetRecoilState(viewedDatasetNameAtom)
+//   return useCallback(() => {
+//     if (selectedDatasets.length > 0) {
+//       setDatasetsCurrent(selectedDatasets)
+//       setViewedDatasetName(selectedDatasets[0].path)
+//       run()
+//     } else {
+//       throw new ErrorInternal('Attempted to run analysis without any of the datasets selected')
+//     }
+//   }, [run, selectedDatasets, setDatasetsCurrent, setViewedDatasetName])
+// }
+//
+// export function SortingTableRow({ data, index, style }: ListChildComponentProps<DatasetSuggestionResult[]>) {
+//   const record = useMemo(() => data[index], [data, index])
+//
+//   const { dataset, score } = record.datasets[0]
+//   const nSuggestedDatasets = record.datasets.length
+//
+//   const { backgroundColor, opacity } = useMemo(() => {
+//     const baseRowColor = '#fcfcfc'
+//     const datasetColor = transparentize(0.5, colorHash(dataset.path, { reverse: true }))
+//     const backgroundColor = mix(0.5, baseRowColor, datasetColor)
+//     const opacity = undefined
+//     return { backgroundColor, opacity }
+//   }, [dataset])
+//
+//   const datasetName = attrStrMaybe(dataset.attributes, 'name') ?? ''
+//   const datasetRef = formatReference(dataset.attributes)
+//
+//   return (
+//     <TableRow style={style} backgroundColor={backgroundColor} opacity={opacity}>
+//       <TableCellRowIndex basis="60px" grow={0} shrink={0}>
+//         <TableCellText>{index}</TableCellText>
+//       </TableCellRowIndex>
+//
+//       <TableCell basis="60px" grow={0} shrink={0}>
+//         <TableCellText>{record.fastaRecord.index}</TableCellText>
+//       </TableCell>
+//
+//       <TableCellName basis="300px" grow={1} shrink={1}>
+//         {record.fastaRecord.seqName}
+//       </TableCellName>
+//
+//       <TableCellName basis="300px" grow={1} shrink={1}>
+//         <div className="d-flex flex-column">
+//           <div className="font-weight-bold">{datasetName}</div>
+//           <div>{datasetRef}</div>
+//           <i>{dataset.path}</i>
+//         </div>
+//       </TableCellName>
+//
+//       <TableCell basis="60px" grow={0} shrink={0}>
+//         <TableCellText>{score.toFixed(3) ?? ''}</TableCellText>
+//       </TableCell>
+//
+//       <TableCell basis="60px" grow={0} shrink={0}>
+//         <TableCellText>{nSuggestedDatasets}</TableCellText>
+//       </TableCell>
+//     </TableRow>
+//   )
+// }
 
 export function SortPage() {
-  const { t } = useTranslationSafe()
-
-  const { suggestionResults, topDatasetNames } = useDatasetSuggestionResults()
-  const results = useMemo(() => suggestionResults ?? [], [suggestionResults])
-
-  const datasets = useRecoilValue(datasetsAtom)
-  const selectedDatasets: Dataset[] = useMemo(() => {
-    if (isEmpty(topDatasetNames)) {
-      return []
-    }
-    return datasets.filter((dataset) => topDatasetNames.includes(dataset.path))
-  }, [topDatasetNames, datasets])
-
-  const run = useRunAnalysisMany(selectedDatasets)
-
-  return (
-    <Layout>
-      <Container>
-        <WrapperOuter>
-          <WrapperInner $minWidth={0}>
-            <MainContent>
-              <Table rounded={false}>
-                <TableHeaderRow>
-                  <TableHeaderCell first basis="60px" grow={0} shrink={0}>
-                    <TableHeaderCellContent>
-                      <TableCellText>{'#'}</TableCellText>
-                    </TableHeaderCellContent>
-                  </TableHeaderCell>
-
-                  <TableHeaderCell basis="60px" grow={0} shrink={0}>
-                    <TableHeaderCellContent>
-                      <TableCellText>{'i'}</TableCellText>
-                    </TableHeaderCellContent>
-                  </TableHeaderCell>
-
-                  <TableHeaderCell basis="300px" grow={1} shrink={1}>
-                    <TableHeaderCellContent>
-                      <TableCellText>{t('Sequence name')}</TableCellText>
-                    </TableHeaderCellContent>
-                  </TableHeaderCell>
-
-                  <TableHeaderCell basis="300px" grow={1} shrink={1}>
-                    <TableHeaderCellContent>
-                      <TableCellText>{t('Dataset')}</TableCellText>
-                    </TableHeaderCellContent>
-                  </TableHeaderCell>
-
-                  <TableHeaderCell basis="60px" grow={0} shrink={0}>
-                    <TableHeaderCellContent>
-                      <TableCellText>{t('Top score')}</TableCellText>
-                    </TableHeaderCellContent>
-                  </TableHeaderCell>
-
-                  <TableHeaderCell basis="60px" grow={0} shrink={0}>
-                    <TableHeaderCellContent>
-                      <TableCellText>{t('Candidate datasets')}</TableCellText>
-                    </TableHeaderCellContent>
-                  </TableHeaderCell>
-                </TableHeaderRow>
-
-                <AutoSizer>
-                  {({ width, height }) => {
-                    return (
-                      <FixedSizeList
-                        overscanCount={10}
-                        style={LIST_STYLE}
-                        width={width}
-                        height={height - HEADER_ROW_HEIGHT}
-                        itemCount={results.length}
-                        itemSize={ROW_HEIGHT}
-                        itemData={results}
-                      >
-                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                        {/* @ts-ignore */}
-                        {SortingTableRow}
-                      </FixedSizeList>
-                    )
-                  }}
-                </AutoSizer>
-              </Table>
-            </MainContent>
-
-            <Footer>
-              <Row noGutters className="w-100">
-                <Col className="w-100 d-flex">
-                  <ButtonRun className="ml-auto" onClick={run} />
-                </Col>
-              </Row>
-            </Footer>
-          </WrapperInner>
-        </WrapperOuter>
-      </Container>
-    </Layout>
-  )
-}
-
-export function useRunAnalysisMany(selectedDatasets: Dataset[]) {
-  const run = useRunAnalysis()
-  const setDatasetsCurrent = useSetRecoilState(datasetsCurrentAtom)
-  const setViewedDatasetName = useSetRecoilState(viewedDatasetNameAtom)
-  return useCallback(() => {
-    if (selectedDatasets.length > 0) {
-      setDatasetsCurrent(selectedDatasets)
-      setViewedDatasetName(selectedDatasets[0].path)
-      run()
-    } else {
-      throw new ErrorInternal('Attempted to run analysis without any of the datasets selected')
-    }
-  }, [run, selectedDatasets, setDatasetsCurrent, setViewedDatasetName])
-}
-
-export function SortingTableRow({ data, index, style }: ListChildComponentProps<DatasetSuggestionResult[]>) {
-  const record = useMemo(() => data[index], [data, index])
-
-  const { dataset, score } = record.datasets[0]
-  const nSuggestedDatasets = record.datasets.length
-
-  const { backgroundColor, opacity } = useMemo(() => {
-    const baseRowColor = '#fcfcfc'
-    const datasetColor = transparentize(0.5, colorHash(dataset.path, { reverse: true }))
-    const backgroundColor = mix(0.5, baseRowColor, datasetColor)
-    const opacity = undefined
-    return { backgroundColor, opacity }
-  }, [dataset])
-
-  const datasetName = attrStrMaybe(dataset.attributes, 'name') ?? ''
-  const datasetRef = formatReference(dataset.attributes)
-
-  return (
-    <TableRow style={style} backgroundColor={backgroundColor} opacity={opacity}>
-      <TableCellRowIndex basis="60px" grow={0} shrink={0}>
-        <TableCellText>{index}</TableCellText>
-      </TableCellRowIndex>
-
-      <TableCell basis="60px" grow={0} shrink={0}>
-        <TableCellText>{record.fastaRecord.index}</TableCellText>
-      </TableCell>
-
-      <TableCellName basis="300px" grow={1} shrink={1}>
-        {record.fastaRecord.seqName}
-      </TableCellName>
-
-      <TableCellName basis="300px" grow={1} shrink={1}>
-        <div className="d-flex flex-column">
-          <div className="font-weight-bold">{datasetName}</div>
-          <div>{datasetRef}</div>
-          <i>{dataset.path}</i>
-        </div>
-      </TableCellName>
-
-      <TableCell basis="60px" grow={0} shrink={0}>
-        <TableCellText>{score.toFixed(3) ?? ''}</TableCellText>
-      </TableCell>
-
-      <TableCell basis="60px" grow={0} shrink={0}>
-        <TableCellText>{nSuggestedDatasets}</TableCellText>
-      </TableCell>
-    </TableRow>
-  )
+  return null
 }

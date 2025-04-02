@@ -1,5 +1,5 @@
 import { concurrent } from 'fasy'
-import { isEmpty, merge } from 'lodash'
+import { isEmpty, merge, uniq } from 'lodash'
 import type {
   AlgorithmInput,
   NextcladeResult,
@@ -30,7 +30,6 @@ export interface LaunchAnalysisCallbacks {
 
 export async function launchAnalysis(
   seqIndexToTopDatasetName: Map<number, string>,
-  datasetNames: string[],
   qryFastaInputs: AlgorithmInput[],
   params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
@@ -49,7 +48,7 @@ export async function launchAnalysis(
   )
 
   try {
-    await launcherWorker.init(numThreads, seqIndexToTopDatasetName, datasetNames, params)
+    await launcherWorker.init(numThreads, seqIndexToTopDatasetName, params)
 
     // Subscribe to launcher worker events
     const subscriptions = [
@@ -59,6 +58,7 @@ export async function launchAnalysis(
     ]
 
     try {
+      const datasetNames = uniq([...seqIndexToTopDatasetName.values()])
       await concurrent.forEach(async (datasetName) => {
         const initialData = await launcherWorker.getInitialData(datasetName)
         initialData.csvColumnConfigDefault = merge(initialData.csvColumnConfigDefault, csvColumnConfig)

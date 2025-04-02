@@ -1,4 +1,4 @@
-import { isNil, last } from 'lodash'
+import { isEmpty, last } from 'lodash'
 import { darken } from 'polished'
 import React, { useMemo } from 'react'
 import { Badge } from 'reactstrap'
@@ -7,7 +7,7 @@ import { colorHash } from 'src/helpers/colorHash'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { firstLetter } from 'src/helpers/string'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { autodetectResultsByDatasetAtom, numberAutodetectResultsAtom } from 'src/state/autodetect.state'
+import { numberAutodetectResultsAtom, seqIndicesForDataset } from 'src/state/autodetect.state'
 import { AnyType, attrBoolMaybe, attrStrMaybe, DatasetVersion } from 'src/types'
 import type { Dataset } from 'src/types'
 import styled from 'styled-components'
@@ -191,11 +191,11 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
   const name = attrStrMaybe(attributes, 'name') ?? last(path.split('/')) ?? '?'
 
   const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
-  const records = useRecoilValue(autodetectResultsByDatasetAtom(path))
+  const seqIndices = useRecoilValue(seqIndicesForDataset(path))
   const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
 
   const { circleText, countText, percentage } = useMemo(() => {
-    if (!showSuggestions || isNil(records)) {
+    if (!showSuggestions || isEmpty(seqIndices)) {
       return {
         circleText: (firstLetter(name) ?? ' ').toUpperCase(),
         percentage: 0,
@@ -203,14 +203,14 @@ function DatasetInfoAutodetectProgressCircle({ dataset, showSuggestions }: Datas
       }
     }
 
-    if (records.length > 0) {
-      const percentage = records.length / numberAutodetectResults
+    if (seqIndices.length > 0) {
+      const percentage = seqIndices.length / numberAutodetectResults
       const circleText = `${(100 * percentage).toFixed(0)}%`
-      const countText = `${records.length} / ${numberAutodetectResults}`
+      const countText = `${seqIndices.length} / ${numberAutodetectResults}`
       return { circleText, percentage, countText }
     }
     return { circleText: `0%`, percentage: 0, countText: `0 / ${numberAutodetectResults}` }
-  }, [showSuggestions, records, numberAutodetectResults, name])
+  }, [showSuggestions, seqIndices, numberAutodetectResults, name])
 
   return (
     <>

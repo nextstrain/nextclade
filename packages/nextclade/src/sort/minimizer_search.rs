@@ -100,10 +100,17 @@ pub fn run_minimizer_search(
   })
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct FindBestDatasetsResult {
+  pub suggestions: Vec<DatasetSuggestionStats>,
+  pub results: BTreeMap<usize, MinimizerSearchResult>,
+}
+
 pub fn find_best_datasets(
   results: &BTreeMap<usize, MinimizerSearchResult>,
   params: &NextcladeSeqSortParams,
-) -> Result<Vec<DatasetSuggestionStats>, Report> {
+) -> Result<FindBestDatasetsResult, Report> {
   let mut unmatched: BTreeSet<_> = results
     .iter()
     .filter(|(_, r)| !r.datasets.is_empty())
@@ -153,8 +160,6 @@ pub fn find_best_datasets(
 
     unmatched = unmatched.difference(&matched).copied().collect();
 
-    // dbg!(&top_hit_by_dataset, &best_dataset)
-    
     top_hit_matches += top_hit_by_dataset[best_top_dataset];
     total_matches += hit_by_dataset[best_dataset];
 
@@ -179,9 +184,33 @@ pub fn find_best_datasets(
   }
 
   let suggestions = suggestions.into_iter().sorted_by_key(|s| s.n_hits).collect_vec();
-  Ok(suggestions)
+  Ok(FindBestDatasetsResult {
+    suggestions,
+    results: results.to_owned(),
+  })
 }
 
+pub fn find_best_suggestion_for_seq(
+  best_datasets: &FindBestDatasetsResult,
+  qry_index: usize,
+) -> Option<MinimizerSearchDatasetResult> {
+  let &FindBestDatasetsResult { suggestions, results } = &best_datasets;
+
+  let best_dataset = suggestions
+    .iter()
+    .find(|best_dataset| best_dataset.qry_indices.contains(&qry_index));
+
+  best_dataset.and_then(|best_dataset| {
+    results[&qry_index]
+      .datasets
+      .iter()
+      .find(|d| d.name == best_dataset.name)
+      .cloned()
+  })
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct DatasetSuggestionStats {
   pub name: String,
   pub n_hits: usize,

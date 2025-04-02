@@ -1,4 +1,4 @@
-export function SuggestionAlertMainPage({ ...restProps }) {
+export function SuggestionAlertMainPage() {
   return null
 }
 

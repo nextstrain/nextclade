@@ -16,7 +16,7 @@ use nextclade::run::nextclade_wasm::{
   AnalysisInitialData, AnalysisInput, NextcladeParams, NextcladeParamsRaw, NextcladeResult, OutputTrees,
 };
 use nextclade::sort::minimizer_index::MinimizerIndexJson;
-use nextclade::sort::minimizer_search::{MinimizerSearchRecord, MinimizerSearchResult};
+use nextclade::sort::minimizer_search::{FindBestDatasetsResult, MinimizerSearchRecord, MinimizerSearchResult};
 use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
@@ -77,4 +77,5 @@ struct _SchemaRoot<'a> {
   _30: MinimizerIndexJson,
   _31: MinimizerSearchResult,
   _32: MinimizerSearchRecord,
+  _33: FindBestDatasetsResult,
 }

@@ -28,6 +28,7 @@ getrandom = { workspace = true }
 itertools = { workspace = true }
 js-sys = { workspace = true }
 log = { workspace = true }
+maplit = { workspace = true }
 nextclade = { path = "../nextclade" }
 schemars = { workspace = true }
 serde = { workspace = true }

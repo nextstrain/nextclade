@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector } from 'recoil'
 import { autodetectResultsAtom } from 'src/state/autodetect.state'

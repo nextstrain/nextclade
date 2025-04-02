@@ -4,14 +4,12 @@ import { useRouter } from 'next/router'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase, CardL1Header } from 'src/components/Common/Card'
-import { ButtonSortByDataset } from 'src/components/Main/ButtonSortByDataset'
 import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
 import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
-import { autodetectShouldSetCurrentDatasetAtom } from 'src/state/autodetect.state'
-import { useDatasetSuggestionResults, useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
+import { autodetectShouldSetCurrentDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
@@ -160,15 +158,9 @@ function DatasetCurrentOrSelectButton() {
   const { push } = useRouter()
 
   const run = useRunAnalysis()
-  const runSuggest = useRunSeqAutodetect({ shouldSetCurrentDataset: true })
-  const sortByDataset = useCallback(() => {
-    runSuggest()
-    // eslint-disable-next-line no-void
-    void push('/sort')
-  }, [push, runSuggest])
   const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
-  const { topDatasets } = useDatasetSuggestionResults()
   const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
+  const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
 
   useEffect(() => {
     if (isNil(datasetsCurrent) || isEmpty(datasetsCurrent) || autodetectShouldSetCurrentDataset) {
@@ -218,7 +210,6 @@ function DatasetCurrentOrSelectButton() {
       <Row noGutters className="my-1">
         <Col className="d-flex w-100">
           <ButtonChangeDataset className="mr-auto" onClick={toDatasetSelection} />
-          <ButtonSortByDataset className="" onClick={sortByDataset} />
           <ButtonRun className="ml-auto" onClick={run} />
         </Col>
       </Row>

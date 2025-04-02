@@ -8,13 +8,14 @@ use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::path_to_string;
+use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
 use nextclade::sort::minimizer_search::{
-  find_best_datasets, run_minimizer_search, MinimizerSearchDatasetResult, MinimizerSearchRecord,
+  find_best_datasets, find_best_suggestion_for_seq, run_minimizer_search, MinimizerSearchDatasetResult,
+  MinimizerSearchRecord,
 };
 use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
 use nextclade::utils::string::truncate;
-use nextclade::{make_error, make_internal_report};
 use ordered_float::OrderedFloat;
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
@@ -193,20 +194,10 @@ fn writer_thread(
         break;
       }
 
-      let best_dataset = best_datasets
-        .iter()
-        .find(|best_dataset| best_dataset.qry_indices.contains(&record.index));
+      let datasets = find_best_suggestion_for_seq(&best_datasets, record.index)
+        .into_iter()
+        .collect_vec();
 
-      let datasets = if let Some(best_dataset) = best_dataset {
-        let dataset = results[&record.index]
-          .datasets
-          .iter()
-          .find(|d| d.name == best_dataset.name)
-          .ok_or_else(|| make_internal_report!("Unable to find dataset '{}'", best_dataset.name))?;
-        vec![dataset.clone()]
-      } else {
-        vec![]
-      };
       stats.print_seq(&datasets, &record.seq_name);
       writer.write_one(&record, &datasets)?;
     }
