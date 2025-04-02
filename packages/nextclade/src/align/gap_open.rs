@@ -50,14 +50,14 @@ mod tests {
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
   use crate::gene::cds::Cds;
-  use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+  use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::gene::GeneStrand::{Forward, Reverse};
   use crate::gene::gene::{Gene, GeneStrand};
   use crate::gene::phase::Phase;
   use eyre::Report;
+  use indexmap::indexmap;
   use itertools::Itertools;
-  use maplit::hashmap;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
 
@@ -86,11 +86,15 @@ mod tests {
               strand: *strand,
               frame,
               phase,
+              truncation: Truncation::default(),
               exceptions: vec![],
-              attributes: hashmap! {},
+              attributes: indexmap! {},
               source_record: None,
               compat_is_gene: false,
               color: None,
+              gff_seqid: None,
+              gff_source: None,
+              gff_feature_type: None,
             }
           })
           .collect_vec();
@@ -102,7 +106,7 @@ mod tests {
           segments,
           proteins: vec![],
           exceptions: vec![],
-          attributes: hashmap! {},
+          attributes: indexmap! {},
           compat_is_gene: false,
           color: None,
         })

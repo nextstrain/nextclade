@@ -3,6 +3,8 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::fasta::{read_one_fasta_from_str, FastaReader, FastaRecord};
+use nextclade::io::genbank_tbl::results_to_tbl_string;
+use nextclade::io::gff3_writer::results_to_gff_string;
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
@@ -197,6 +199,20 @@ impl NextcladeWasm {
     )?;
 
     jserr(results_to_ndjson_string(&outputs, &errors))
+  }
+
+  pub fn serialize_results_gff(outputs_json_str: &str) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str).wrap_err("When serializing results into GFF: When parsing outputs JSON internally"),
+    )?;
+    jserr(results_to_gff_string(&outputs))
+  }
+
+  pub fn serialize_results_tbl(outputs_json_str: &str) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str).wrap_err("When serializing results into GFF: When parsing outputs JSON internally"),
+    )?;
+    jserr(results_to_tbl_string(&outputs))
   }
 
   pub fn serialize_results_csv(

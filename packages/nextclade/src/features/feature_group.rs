@@ -5,6 +5,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Debug;
+use crate::coord::range::NucRefGlobalRange;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -94,6 +95,10 @@ impl FeatureGroup {
     format!("{} '{}'", shorten_feature_type(&self.feature_type), self.name)
   }
 
+  pub fn range(&self) -> NucRefGlobalRange {
+    NucRefGlobalRange::new(self.start(), self.end())
+  }
+
   #[must_use]
   #[inline]
   pub fn start(&self) -> NucRefGlobalPosition {
@@ -112,7 +117,7 @@ impl FeatureGroup {
       .features
       .iter()
       .map(|feature| feature.range.end)
-      .min()
+      .max()
       .unwrap_or_default()
   }
 }

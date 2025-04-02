@@ -1,8 +1,10 @@
 use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;
 
-#[cfg(feature = "indexmap")]
+// #[cfg(feature = "indexmap")]
 use indexmap::IndexMap;
+
+use multimap::MultiMap;
 
 /// Generic interface for maps: HashMap, BTreeMap, IndexMap
 pub trait Map<K, V> {
@@ -239,7 +241,7 @@ where
   }
 }
 
-#[cfg(feature = "indexmap")]
+// #[cfg(feature = "indexmap")]
 impl<K, V> Map<K, V> for IndexMap<K, V>
 where
   K: Eq + Hash,
@@ -337,4 +339,11 @@ where
 // If several elements are equally maximum, the last element is returned. If the iterator is empty, None is returned.
 pub fn key_of_max_value<'k, K, V: Ord + 'k>(m: &'k impl Map<K, V>) -> Option<&'k K> {
   m.iter().max_by_key(|(_, v)| *v).map(|(k, _)| k)
+}
+
+pub fn map_to_multimap<K: Clone + Eq + Hash, V: Clone>(input: &impl Map<K, Vec<V>>) -> MultiMap<K, V> {
+  input
+    .iter()
+    .flat_map(|(k, vals)| vals.iter().map(|v| (k.clone(), v.clone())))
+    .collect()
 }

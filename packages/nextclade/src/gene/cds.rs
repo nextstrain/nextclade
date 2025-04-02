@@ -1,18 +1,20 @@
-use crate::coord::range::{NucRefLocalRange, Range};
+use crate::coord::position::NucRefGlobalPosition;
+use crate::coord::range::{NucRefGlobalRange, NucRefLocalRange, Range};
 use crate::features::feature::Feature;
 use crate::features::feature_group::FeatureGroup;
-use crate::gene::cds_segment::{CdsSegment, WrappingPart};
+use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
 use crate::gene::frame::Frame;
+use crate::gene::gene::GeneStrand;
 use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
+use crate::utils::iter::single_unique_value;
 use crate::{make_error, make_internal_error};
 use eyre::{eyre, Report, WrapErr};
+use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
-use maplit::hashmap;
 use num_traits::clamp_max;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +25,7 @@ pub struct Cds {
   pub segments: Vec<CdsSegment>,
   pub proteins: Vec<Protein>,
   pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   pub compat_is_gene: bool,
   pub color: Option<String>,
 }
@@ -57,11 +59,15 @@ impl Cds {
               strand: feature.strand,
               frame,
               phase,
+              truncation: Truncation::default(),
               exceptions: feature.exceptions.clone(),
               attributes: feature.attributes.clone(),
               source_record: feature.source_record.clone(),
               compat_is_gene: false,
               color: None,
+              gff_seqid: feature.gff_seqid.clone(),
+              gff_source: feature.gff_source.clone(),
+              gff_feature_type: feature.gff_feature_type.clone(),
             };
 
             begin += feature.range.len();
@@ -84,8 +90,8 @@ impl Cds {
       .iter()
       .try_for_each(|child_feature_group| find_proteins_recursive(child_feature_group, &mut proteins))?;
 
-    let attributes: HashMap<String, Vec<String>> = {
-      let mut attributes: HashMap<String, Vec<String>> = hashmap! {};
+    let attributes: IndexMap<String, Vec<String>> = {
+      let mut attributes: IndexMap<String, Vec<String>> = indexmap! {};
       for segment in &segments {
         for (k, vs) in &segment.attributes {
           attributes.entry(k.clone()).or_default().extend_from_slice(vs);
@@ -130,6 +136,9 @@ impl Cds {
       compat_is_cds: true,
       compat_is_gene: true,
       color: None,
+      gff_seqid: feature.gff_seqid.clone(),
+      gff_source: feature.gff_source.clone(),
+      gff_feature_type: feature.gff_feature_type.clone(),
     };
 
     let protein = Protein {
@@ -155,11 +164,15 @@ impl Cds {
       strand: feature.strand,
       frame,
       phase,
+      truncation: Truncation::default(),
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),
       compat_is_gene: true,
       color: None,
+      gff_seqid: feature.gff_seqid.clone(),
+      gff_source: feature.gff_source.clone(),
+      gff_feature_type: feature.gff_feature_type.clone(),
     };
 
     let segments = vec![cds_segment];
@@ -182,14 +195,31 @@ impl Cds {
     format!("CDS '{}'", self.name)
   }
 
+  pub fn range(&self) -> NucRefGlobalRange {
+    NucRefGlobalRange::new(self.start(), self.end())
+  }
+
+  pub fn start(&self) -> NucRefGlobalPosition {
+    self.segments.iter().map(|s| s.range.begin).min().unwrap_or_default()
+  }
+
+  pub fn end(&self) -> NucRefGlobalPosition {
+    self.segments.iter().map(|s| s.range.end).max().unwrap_or_default()
+  }
+
   #[inline]
   pub fn len(&self) -> usize {
+    // sum of lengths of all segments
     self.segments.iter().map(CdsSegment::len).sum()
   }
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.len() == 0
+    self.segments.len() == 0 || self.len() == 0
+  }
+
+  pub fn strand(&self) -> Result<GeneStrand, Report> {
+    single_unique_value(&self.segments, |s| s.strand)
   }
 }
 

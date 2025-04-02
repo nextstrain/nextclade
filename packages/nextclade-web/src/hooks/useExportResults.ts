@@ -34,6 +34,8 @@ export interface ExportParams {
   filenameFasta: string
   filenamePeptidesZip: string
   filenamePeptidesTemplate: string
+  filenameGff: string
+  filenameTbl: string
 }
 
 export const DEFAULT_EXPORT_PARAMS: ExportParams = {
@@ -47,6 +49,8 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
   filenamePeptidesTemplate: 'nextclade.cds_translation.{{cds}}.fasta',
+  filenameGff: 'nextclade.gff',
+  filenameTbl: 'nextclade.tbl',
 }
 
 function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
@@ -283,6 +287,30 @@ export function useExportPeptides() {
   return res
 }
 
+async function prepareResultsGff(snapshot: Snapshot, worker: ExportWorker) {
+  const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
+  return worker.serializeResultsGff(results)
+}
+
+export function useExportGff() {
+  return useResultsExport(async (filename, snapshot, worker) => {
+    const csvStr = await prepareResultsGff(snapshot, worker)
+    saveFile(csvStr, filename, 'text/x-gff3;charset=utf-8')
+  })
+}
+
+async function prepareResultsTbl(snapshot: Snapshot, worker: ExportWorker) {
+  const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
+  return worker.serializeResultsTbl(results)
+}
+
+export function useExportTbl() {
+  return useResultsExport(async (filename, snapshot, worker) => {
+    const csvStr = await prepareResultsTbl(snapshot, worker)
+    saveFile(csvStr, filename, 'text/x-tbl;charset=utf-8')
+  })
+}
+
 export function useExportZip() {
   return useResultsExport(async (filename, snapshot, worker) => {
     const csvStr = await prepareResultsCsv(snapshot, worker, ';')
@@ -293,6 +321,8 @@ export function useExportZip() {
     const treeNwkStr = await prepareOutputTreeNwk(snapshot)
     const fastaStr = await prepareOutputFasta(snapshot)
     const peptideFiles = await preparePeptideFiles(snapshot)
+    const gffStr = await prepareResultsGff(snapshot, worker)
+    const tblStr = await prepareResultsTbl(snapshot, worker)
 
     const files: ZipFileDescription[] = [
       ...peptideFiles,
@@ -309,6 +339,14 @@ export function useExportZip() {
 
     if (treeNwkStr) {
       files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTreeNwk, data: treeNwkStr })
+    }
+
+    if (gffStr) {
+      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameGff, data: gffStr })
+    }
+
+    if (tblStr) {
+      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTbl, data: tblStr })
     }
 
     await saveZip({ filename, files })

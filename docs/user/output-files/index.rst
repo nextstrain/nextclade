@@ -19,5 +19,6 @@ You can request one or multiple output files from Nextclade CLI by providing pat
     04-results-tsv
     05-results-json
     06-tree
+    07-genome-annotations
     errors-and-warnings
     compression

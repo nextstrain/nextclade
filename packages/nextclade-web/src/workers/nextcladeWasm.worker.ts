@@ -163,6 +163,14 @@ export async function serializeResultsCsv(
   )
 }
 
+export async function serializeResultsGff(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_results_gff(JSON.stringify(results))
+}
+
+export async function serializeResultsTbl(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_results_tbl(JSON.stringify(results))
+}
+
 const worker = {
   create,
   destroy,
@@ -174,6 +182,8 @@ const worker = {
   serializeResultsJson,
   serializeResultsCsv,
   serializeResultsNdjson,
+  serializeResultsGff,
+  serializeResultsTbl,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },

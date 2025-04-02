@@ -33,8 +33,15 @@ use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::range::AaRefRange;
+use crate::coord::position::PositionLike;
+use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange};
+use crate::gene::cds_segment::{CdsSegment, Truncation};
+use crate::gene::gene::GeneStrand;
+use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
+use crate::io::fasta::parse_fasta_header;
+use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
+use crate::o;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
 use crate::translate::aa_alignment_ranges::{gather_aa_alignment_ranges, GatherAaAlignmentRangesResult};
@@ -45,6 +52,7 @@ use crate::tree::tree_find_ancestors_of_interest::{graph_find_ancestors_of_inter
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use eyre::Report;
+use indexmap::indexmap;
 use itertools::Itertools;
 use std::collections::{BTreeMap, HashSet};
 
@@ -111,6 +119,8 @@ pub fn nextclade_run_one(
     ..
   } = &state;
 
+  let (seq_id, seq_desc) = parse_fasta_header(seq_name);
+
   let alignment = align_nuc(
     index,
     seq_name,
@@ -153,6 +163,8 @@ pub fn nextclade_run_one(
   let total_covered_nucs = total_aligned_nucs - total_missing - total_non_acgtns;
   let coverage = total_covered_nucs as f64 / ref_seq.len() as f64;
 
+  let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq, &alignment.qry_seq);
+
   let NextcladeResultWithAa {
     translation,
     aa_changes_groups,
@@ -172,8 +184,6 @@ pub fn nextclade_run_one(
     aa_alignment_ranges,
     aa_unsequenced_ranges,
   } = if !gene_map.is_empty() {
-    let coord_map_global = CoordMapGlobal::new(&alignment.ref_seq);
-
     let translation = translate_genes(
       &alignment.qry_seq,
       &alignment.ref_seq,
@@ -205,7 +215,7 @@ pub fn nextclade_run_one(
       if alignment.is_reverse_complement {
         warnings.push(PeptideWarning {
           cds_name: "nuc".to_owned(),
-          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID.")
+          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID."),
         });
       }
 
@@ -403,12 +413,31 @@ pub fn nextclade_run_one(
 
   let is_reverse_complement = alignment.is_reverse_complement;
 
+  let len_unaligned = qry_seq.len();
+  let len_aligned = alignment.qry_seq.len();
+  let len_stripped = stripped.qry_seq.len();
+
+  let annotation = calculate_qry_annotation(
+    index,
+    &seq_id,
+    len_unaligned,
+    gene_map,
+    &coord_map_global,
+    &alignment_range,
+    is_reverse_complement,
+  )?;
+
   Ok(AnalysisOutput {
     query: stripped.qry_seq,
     translation,
     analysis_result: NextcladeOutputs {
       index,
       seq_name: seq_name.to_owned(),
+      seq_id,
+      seq_desc,
+      len_unaligned,
+      len_aligned,
+      len_stripped,
       ref_name: ref_record.seq_name.clone(),
       dataset_name: dataset_name.clone(),
       substitutions,
@@ -462,6 +491,167 @@ pub fn nextclade_run_one(
       nearest_node_name,
       nearest_nodes,
       is_reverse_complement,
+      annotation,
     },
   })
+}
+
+/// Calculate genome annotation for query sequence in query coordinates
+pub fn calculate_qry_annotation(
+  index: usize,
+  seq_id: &str,
+  seq_len: usize,
+  gene_map: &GeneMap,
+  coord_map_global: &CoordMapGlobal,
+  alignment_range: &NucRefGlobalRange,
+  is_reverse_complement: bool,
+) -> Result<GeneMap, Report> {
+  let mut gene_map = gene_map.clone();
+
+  let mut additional_attributes = indexmap! {
+    o!("seq_index") => vec![index.to_string()],
+  };
+
+  if is_reverse_complement {
+    additional_attributes.insert(o!("is_reverse_complement"), vec![o!("true")]);
+  }
+
+  for gene in &mut gene_map.genes {
+    let gene_id = format!("Gene-{}-{}", index, gene.id);
+
+    gene.gff_seqid = Some(seq_id.to_owned());
+
+    GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+      gene.attributes.remove(*attr);
+    });
+
+    gene.attributes.extend(additional_attributes.clone());
+
+    // Add ID attribute to be able to link child CDSes back to this gene. Make it unique by appending seq index.
+    gene.attributes.insert(o!("ID"), vec![gene_id.clone()]);
+
+    // Add Name if not present
+    if !gene.attributes.contains_key("Name") {
+      gene.attributes.insert(o!("Name"), vec![gene.name.clone()]);
+    }
+
+    // If there's no "product" attribute, let's add it as CDS name
+    if !gene.attributes.contains_key("product") {
+      gene.attributes.insert(o!("product"), vec![gene.name.clone()]);
+    }
+
+    // Take only the part of the gene range which is within the alignment range
+    let included_range = intersect(alignment_range, &gene.range);
+
+    // Convert included segment range from reference to query coordinates
+    let mut range = coord_map_global.ref_to_qry_range(&included_range);
+    if is_reverse_complement {
+      let begin = seq_len.saturating_sub(range.end.as_usize()).into();
+      let end = seq_len.saturating_sub(range.begin.as_usize()).into();
+      range = NucRefGlobalRange::new(begin, end);
+    }
+    gene.range = range;
+
+    for cds in &mut gene.cdses {
+      cds.attributes.extend(additional_attributes.clone());
+
+      for seg in &mut cds.segments {
+        let segment_id = format!("CDS-{}-{}", index, seg.id);
+        seg.attributes.insert(o!("ID"), vec![segment_id.clone()]);
+
+        seg.gff_seqid = Some(seq_id.to_owned());
+        seg.attributes.extend(additional_attributes.clone());
+
+        //dbg!(&seg);
+        GFF_ATTRIBUTES_TO_REMOVE.iter().for_each(|attr| {
+          seg.attributes.remove(*attr);
+        });
+
+        // Link this CDS segment to its parent gene
+        seg.attributes.insert(o!("Parent"), vec![gene_id.clone()]);
+
+        // Add Name if not present
+        if !seg.attributes.contains_key("Name") {
+          seg.attributes.insert(o!("Name"), vec![seg.name.clone()]);
+        }
+
+        // If there's no "product" attribute, let's add it as CDS name
+        if !seg.attributes.contains_key("product") {
+          seg.attributes.insert(o!("product"), vec![seg.name.clone()]);
+        }
+
+        // Take only the part of the segment which is within the alignment range
+        let included_range = intersect(alignment_range, &seg.range);
+
+        calculate_truncation(&included_range, seg)?;
+
+        // Convert included segment range from reference to query coordinates
+        let mut range = coord_map_global.ref_to_qry_range(&included_range);
+        if is_reverse_complement {
+          let begin = seq_len.saturating_sub(range.end.as_usize()).into();
+          let end = seq_len.saturating_sub(range.begin.as_usize()).into();
+          range = NucRefGlobalRange::new(begin, end);
+          seg.strand = seg.strand.inverted();
+        }
+        seg.range = range;
+      }
+
+      // Remove empty CDS segments
+      cds.segments.retain(|seg| !seg.is_empty());
+
+      // TODO: once we support proteins, modify protein coordinates as well
+      // for protein in &mut cds.proteins {}
+    }
+
+    // Remove empty CDS
+    gene.cdses.retain(|cds| !cds.is_empty());
+  }
+
+  // Remove empty genes
+  gene_map.genes.retain(|gene| !gene.is_empty());
+
+  Ok(gene_map)
+}
+
+fn calculate_truncation(included_range: &NucRefGlobalRange, seg: &mut CdsSegment) -> Result<(), Report> {
+  let included_range = included_range.to_std();
+  let seg_range = seg.range.to_std();
+
+  let left_truncation = included_range.start.saturating_sub(seg_range.start);
+  let right_truncation = seg_range.end.saturating_sub(included_range.end);
+
+  let has_left_truncation = left_truncation > 0;
+  let has_right_truncation = right_truncation > 0;
+
+  if has_left_truncation && seg.strand == GeneStrand::Forward {
+    seg.phase = seg.phase.shifted_by(left_truncation)?;
+  }
+  if has_right_truncation && seg.strand == GeneStrand::Reverse {
+    seg.phase = seg.phase.shifted_by(right_truncation)?;
+  }
+
+  if has_left_truncation || has_right_truncation {
+    seg.truncation = match (seg.strand, has_left_truncation, has_right_truncation) {
+      (GeneStrand::Forward, true, true) => Truncation::Both((left_truncation, right_truncation)),
+      (GeneStrand::Forward, true, false) => Truncation::FivePrime(left_truncation),
+      (GeneStrand::Forward, false, true) => Truncation::ThreePrime(right_truncation),
+      (GeneStrand::Reverse, true, true) => Truncation::Both((left_truncation, right_truncation)),
+      (GeneStrand::Reverse, true, false) => Truncation::ThreePrime(left_truncation),
+      (GeneStrand::Reverse, false, true) => Truncation::FivePrime(right_truncation),
+      _ => Truncation::None,
+    };
+
+    if has_left_truncation {
+      seg
+        .attributes
+        .insert(o!("truncated-left"), vec![left_truncation.to_string()]);
+    }
+    if has_right_truncation {
+      seg
+        .attributes
+        .insert(o!("truncated-right"), vec![right_truncation.to_string()]);
+    }
+  }
+
+  Ok(())
 }

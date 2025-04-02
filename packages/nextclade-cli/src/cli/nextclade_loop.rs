@@ -1,6 +1,4 @@
-use crate::cli::nextclade_cli::{
-  NextcladeRunArgs, NextcladeRunInputArgs, NextcladeRunOtherParams, NextcladeRunOutputArgs,
-};
+use crate::cli::nextclade_cli::{NextcladeOutputSelection, NextcladeRunArgs};
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::dataset::dataset_download::nextclade_get_inputs;
 use eyre::{ContextCompat, Report, WrapErr};
@@ -23,28 +21,24 @@ pub struct NextcladeRecord {
   pub outputs_or_err: Result<AnalysisOutput, Report>,
 }
 
-pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
+pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{run_args:#?}");
 
-  let NextcladeRunArgs {
-    inputs: NextcladeRunInputArgs {
-      input_fastas,
-      cds_selection: cdses,
-      ..
-    },
-    outputs:
-      NextcladeRunOutputArgs {
-        output_columns_selection,
-        output_graph,
-        output_tree,
-        output_tree_nwk,
-        ..
-      },
-    params,
-    other_params: NextcladeRunOtherParams { jobs },
-  } = run_args.clone();
+  let inputs = nextclade_get_inputs(&run_args, &run_args.inputs.cds_selection)?;
 
-  let inputs = nextclade_get_inputs(&run_args, &cdses)?;
+  if inputs.gene_map.is_empty() {
+    // If there is no genome annotation, then we cannot emit these output files
+    let to_remove = [
+      NextcladeOutputSelection::Gff,
+      NextcladeOutputSelection::Tbl,
+      NextcladeOutputSelection::All,
+      NextcladeOutputSelection::Translations,
+    ];
+    run_args.outputs.output_selection.retain(|o| !to_remove.contains(o));
+    run_args.outputs.output_annotation_gff = None;
+    run_args.outputs.output_annotation_tbl = None;
+    run_args.outputs.output_translations = None;
+  }
 
   let primers = run_args
     .inputs
@@ -54,12 +48,14 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     .wrap_err("When parsing PCR primers input CSV")
     .unwrap_or_default();
 
-  let nextclade = Nextclade::new(inputs, primers, &params)?;
+  let nextclade = Nextclade::new(inputs, primers, &run_args.params)?;
 
-  let should_write_tree = output_tree.is_some() || output_tree_nwk.is_some() || output_graph.is_some();
+  let should_write_tree = run_args.outputs.output_tree.is_some()
+    || run_args.outputs.output_tree_nwk.is_some()
+    || run_args.outputs.output_graph.is_some();
   let mut outputs = Vec::<NextcladeOutputs>::new();
 
-  let csv_column_config = CsvColumnConfig::new(&output_columns_selection)?;
+  let csv_column_config = CsvColumnConfig::new(&run_args.outputs.output_columns_selection)?;
 
   info!("Parameters (final):\n{:#?}", &nextclade.params);
   info!("Genome annotation:\n{}", gene_map_to_table_string(&nextclade.gene_map)?);
@@ -74,7 +70,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     let run_args = &run_args;
 
     s.spawn(|| {
-      let mut reader = FastaReader::from_paths(&input_fastas).unwrap();
+      let mut reader = FastaReader::from_paths(&run_args.inputs.input_fastas).unwrap();
       loop {
         let mut record = FastaRecord::default();
         reader.read(&mut record).unwrap();
@@ -89,7 +85,7 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
       drop(fasta_sender);
     });
 
-    for _ in 0..jobs {
+    for _ in 0..run_args.other_params.jobs {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
 
@@ -178,12 +174,12 @@ pub fn nextclade_run(run_args: NextcladeRunArgs) -> Result<(), Report> {
     if let Some(mut graph) = graph {
       graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &params.tree_builder)?;
 
-      if let Some(output_tree) = output_tree {
+      if let Some(output_tree) = run_args.outputs.output_tree {
         let tree = Graph::to_auspice_tree(&graph)?;
         json_write(output_tree, &tree, JsonPretty(true))?;
       }
 
-      if let Some(output_tree_nwk) = output_tree_nwk {
+      if let Some(output_tree_nwk) = run_args.outputs.output_tree_nwk {
         nwk_write_to_file(output_tree_nwk, &graph)?;
       }
 
