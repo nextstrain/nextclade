@@ -90,7 +90,7 @@ if ! command cargo &>/dev/null; then
   which rustc
   ls -al "$(which rustc)"
 
-  export WASM_BINDGEN_CLI_VERSION="0.2.87"
+  export WASM_BINDGEN_CLI_VERSION="0.2.93"
   curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen"
   chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 

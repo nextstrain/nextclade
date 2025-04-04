@@ -27,6 +27,8 @@ use std::path::Path;
 const OUTPUT_JSON_SCHEMA: &str = "src/gen/_SchemaRoot.json";
 
 fn main() -> Result<(), Report> {
+  println!("cargo:rerun-if-changed={OUTPUT_JSON_SCHEMA}");
+
   ensure_dir(OUTPUT_JSON_SCHEMA)?;
   write_jsonschema::<_SchemaRoot>(OUTPUT_JSON_SCHEMA)?;
   Ok(())
