@@ -229,6 +229,7 @@
     "@types/react-window": "1.8.5",
     "@types/reactstrap": "8.7.1",
     "@types/recharts": "1.8.23",
+    "@types/regenerator-runtime": "0.13.8",
     "@types/rimraf": "3.0.2",
     "@types/semver": "7.3.9",
     "@types/serialize-javascript": "5.0.2",
