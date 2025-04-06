@@ -19,13 +19,13 @@ interface Option {
 
 export function ViewedDatasetSelector() {
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
-  const datasetsSelected = useRecoilValue(datasetsCurrentAtom)
+  const datasets = useRecoilValue(datasetsCurrentAtom)
 
   const { options, currentOption } = useMemo(() => {
-    const options = (datasetsSelected ?? []).map((dataset) => ({ value: dataset.path, dataset, label: dataset.path }))
+    const options = (datasets ?? []).map((dataset) => ({ value: dataset.path, dataset, label: dataset.path }))
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
-  }, [datasetsSelected, viewedDatasetName])
+  }, [datasets, viewedDatasetName])
 
   const handleChange = useCallback(
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {

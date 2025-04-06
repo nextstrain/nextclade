@@ -116,13 +116,13 @@ export function LandingCardQuerySeqPicker() {
 
 export function LandingCardDataset() {
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetsCurrentAtom)
+  const datasets = useRecoilValue(datasetsCurrentAtom)
   const text = useMemo(() => {
-    if (isNil(dataset)) {
+    if (isEmpty(datasets)) {
       return t('Select reference dataset')
     }
     return t('Selected reference dataset')
-  }, [dataset, t])
+  }, [datasets, t])
 
   return (
     <CardL1 className="d-flex flex-column h-100">
@@ -173,7 +173,7 @@ function DatasetCurrentOrSelectButton() {
     void push('/dataset')
   }, [push])
 
-  if (!datasetsCurrent) {
+  if (isEmpty(datasetsCurrent)) {
     return (
       <Container>
         <Row noGutters className="mb-1">

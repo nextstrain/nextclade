@@ -1,4 +1,4 @@
-import { isNil } from 'lodash'
+import { isEmpty } from 'lodash'
 import React, { useMemo } from 'react'
 import { Button, ButtonProps } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
@@ -19,17 +19,17 @@ export function ButtonRun({ onClick, ...restProps }: ButtonRunProps) {
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
   const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)
-  const dataset = useRecoilValue(datasetsCurrentAtom)
+  const datasets = useRecoilValue(datasetsCurrentAtom)
 
   const { t } = useTranslationSafe()
   const { isDisabled, color, tooltip } = useMemo(() => {
-    const isDisabled = !(canRun && hasRequiredInputs && !isAutodetectRunning) || hasInputErrors || isNil(dataset)
+    const isDisabled = !(canRun && hasRequiredInputs && !isAutodetectRunning) || hasInputErrors || isEmpty(datasets)
     return {
       isDisabled,
       color: isDisabled ? 'secondary' : 'success',
       tooltip: isDisabled ? t('Please provide sequence data first') : t('Launch the algorithm!'),
     }
-  }, [canRun, dataset, hasInputErrors, hasRequiredInputs, isAutodetectRunning, t])
+  }, [canRun, datasets, hasInputErrors, hasRequiredInputs, isAutodetectRunning, t])
 
   return (
     <ButtonStyled disabled={isDisabled} color={color} onClick={onClick} title={tooltip} {...restProps}>
