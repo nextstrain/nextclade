@@ -30,6 +30,7 @@ export interface LaunchAnalysisCallbacks {
 
 export async function launchAnalysis(
   seqIndexToTopDatasetName: Map<number, string>,
+  seqIndicesWithoutDatasetSuggestions: number[],
   qryFastaInputs: AlgorithmInput[],
   params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
@@ -48,7 +49,7 @@ export async function launchAnalysis(
   )
 
   try {
-    await launcherWorker.init(numThreads, seqIndexToTopDatasetName, params)
+    await launcherWorker.init(numThreads, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, params)
 
     // Subscribe to launcher worker events
     const subscriptions = [

@@ -40,22 +40,31 @@ class LauncherWorkerImpl {
 
   seqIndexToTopDatasetName!: Map<number, string>
 
+  seqIndicesWithoutDatasetSuggestions!: number[]
+
   private constructor() {}
 
   public static async create(
     numThreads: number,
     seqIndexToTopDatasetName: Map<number, string>,
+    seqIndicesWithoutDatasetSuggestions: number[],
     params: NextcladeParamsRaw,
   ) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, seqIndexToTopDatasetName, params)
+    await self.init(numThreads, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, params)
     return self
   }
 
-  private async init(numThreads: number, seqIndexToTopDatasetName: Map<number, string>, params: NextcladeParamsRaw) {
+  private async init(
+    numThreads: number,
+    seqIndexToTopDatasetName: Map<number, string>,
+    seqIndicesWithoutDatasetSuggestions: number[],
+    params: NextcladeParamsRaw,
+  ) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
     this.seqIndexToTopDatasetName = seqIndexToTopDatasetName
+    this.seqIndicesWithoutDatasetSuggestions = seqIndicesWithoutDatasetSuggestions
     this.datasetNames = uniq([...seqIndexToTopDatasetName.values()])
   }
 
@@ -99,6 +108,15 @@ class LauncherWorkerImpl {
   }
 
   private async onSequenceImpl(record: FastaRecord) {
+    if (this.seqIndicesWithoutDatasetSuggestions.includes(record.index)) {
+      this.analysisResultsObservable.next({
+        index: record.index,
+        seqName: record.seqName,
+        error: 'Unable to detect reference dataset',
+      })
+      return
+    }
+
     const datasetName = this.seqIndexToTopDatasetName.get(record.index)
     if (!datasetName) {
       throw new ErrorInternal(`Unable to find selected dataset for sequence #${record.index} '${record.seqName}'`)
@@ -118,8 +136,18 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(numThreads: number, seqIndexToTopDatasetName: Map<number, string>, params: NextcladeParamsRaw) {
-    launcher = await LauncherWorkerImpl.create(numThreads, seqIndexToTopDatasetName, params)
+  async init(
+    numThreads: number,
+    seqIndexToTopDatasetName: Map<number, string>,
+    seqIndicesWithoutDatasetSuggestions: number[],
+    params: NextcladeParamsRaw,
+  ) {
+    launcher = await LauncherWorkerImpl.create(
+      numThreads,
+      seqIndexToTopDatasetName,
+      seqIndicesWithoutDatasetSuggestions,
+      params,
+    )
   },
   async getInitialData(datasetName: string) {
     if (!launcher) {
