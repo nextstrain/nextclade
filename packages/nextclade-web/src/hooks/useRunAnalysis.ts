@@ -64,7 +64,7 @@ import {
 } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
-import { axiosFetchRaw } from 'src/io/axiosFetch'
+import { axiosFetchRaw, axiosFetchRawMaybe } from 'src/io/axiosFetch'
 
 export function useRunAnalysis() {
   const router = useRouter()
@@ -262,9 +262,9 @@ async function getDatasetFiles(datasets: Dataset[]): Promise<NextcladeParamsRawD
   return concurrent.map(async (dataset) => {
     return promiseAllObject({
       datasetName: dataset.path,
-      genomeAnnotation: await axiosFetchRaw(dataset?.files?.genomeAnnotation),
+      genomeAnnotation: await axiosFetchRawMaybe(dataset?.files?.genomeAnnotation),
       reference: await axiosFetchRaw(dataset?.files?.reference),
-      treeJson: await axiosFetchRaw(dataset?.files?.treeJson),
+      treeJson: await axiosFetchRawMaybe(dataset?.files?.treeJson),
       pathogenJson: await axiosFetchRaw(dataset?.files?.pathogenJson),
     })
   }, datasets)
