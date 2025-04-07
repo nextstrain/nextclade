@@ -95,7 +95,7 @@ class LauncherWorkerImpl {
 
   private onSequence(record: FastaRecord) {
     this.parsedFastaObservable.next(omit(record, 'seq'))
-    this.onSequenceImpl(record).catch(this.onError)
+    this.onSequenceImpl(record).catch((error) => this.onError(error))
   }
 
   private async onSequenceImpl(record: FastaRecord) {
@@ -108,8 +108,8 @@ class LauncherWorkerImpl {
   }
 
   private onError(error: unknown) {
-    this.analysisGlobalStatusObservable?.next(AlgorithmGlobalStatus.failed)
-    this.analysisResultsObservable?.error(sanitizeError(error))
+    this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
+    this.analysisResultsObservable.error(sanitizeError(error))
     void this.destroy() // eslint-disable-line no-void
   }
 }
