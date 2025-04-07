@@ -44,7 +44,7 @@ export class AnalysisWorkerPool {
     return result
   }
 
-  public async getOutputTrees(datasetNames: string[]): Promise<Record<string, OutputTrees>> {
+  public async getOutputTrees(datasetNames: string[]): Promise<Record<string, OutputTrees | undefined | null>> {
     return Object.fromEntries(
       await concurrent.map(async (datasetName) => {
         const resultsForDataset = this.results.filter((r) => r.datasetName === datasetName)

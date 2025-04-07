@@ -261,11 +261,11 @@ export const cdsAtom = selectorFamily<Cds | undefined, { datasetName: string; cd
       get(cdsesAtom({ datasetName }))?.find((cds) => cds.name === cdsName),
 })
 
-export const [treeAtom, allTreesAtom] = multiAtom<AuspiceJsonV2 | undefined, { datasetName: string }>({
+export const [treeAtom, allTreesAtom] = multiAtom<AuspiceJsonV2 | undefined | null, { datasetName: string }>({
   key: 'tree',
 })
 
-export const [treeNwkAtom, allTreesNwkAtom] = multiAtom<string | undefined, { datasetName: string }>({
+export const [treeNwkAtom, allTreesNwkAtom] = multiAtom<string | undefined | null, { datasetName: string }>({
   key: 'treeNwk',
 })
 

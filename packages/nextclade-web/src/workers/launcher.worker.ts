@@ -30,7 +30,7 @@ class LauncherWorkerImpl {
   analysisResultsObservable = new Subject<NextcladeResult>()
 
   // Relays tree result from webworker to the main thread
-  treeObservable = new Subject<Record<string, OutputTrees>>()
+  treeObservable = new Subject<Record<string, OutputTrees | undefined | null>>()
 
   fastaParser!: FastaParserWorker
 
@@ -180,7 +180,7 @@ const worker = {
     }
     return ThreadsObservable.from(launcher.analysisResultsObservable)
   },
-  getTreeObservable(): ThreadsObservable<Record<string, OutputTrees>> {
+  getTreeObservable(): ThreadsObservable<Record<string, OutputTrees | undefined | null>> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getTreeObservable')
     }

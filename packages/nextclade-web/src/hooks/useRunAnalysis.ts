@@ -166,21 +166,26 @@ export function useRunAnalysis() {
             set(globalErrorAtom, error)
           },
           onTree(trees) {
-            Object.entries(trees).forEach(([datasetName, { auspice, nwk }]) => {
-              // Compute Auspice redux state for this dataset
-              const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
-              dispatch(auspiceStartClean(auspiceState))
-              dispatch(changeColorBy())
-              dispatch(treeFilterByNodeType(['New']))
+            Object.entries(trees).forEach(([datasetName, trees]) => {
+              if (trees) {
+                // Compute Auspice redux state for this dataset
+                const auspiceState = createAuspiceState(trees.auspice as unknown as AuspiceJsonV2, dispatch)
+                dispatch(auspiceStartClean(auspiceState))
+                dispatch(changeColorBy())
+                dispatch(treeFilterByNodeType(['New']))
 
-              // HACK(auspice): Remember the entire Auspice redux state in an atom, for each dataset. This way we can
-              // save and load Auspice redux state when switching datasets, this way switching what Auspice is
-              // rendering without recomputing it all again.
-              const state = getAuspiceState()
-              set(auspiceStateAtom({ datasetName }), state)
+                // HACK(auspice): Remember the entire Auspice redux state in an atom, for each dataset. This way we can
+                // save and load Auspice redux state when switching datasets, this way switching what Auspice is
+                // rendering without recomputing it all again.
+                const state = getAuspiceState()
+                set(auspiceStateAtom({ datasetName }), state)
 
-              set(treeAtom({ datasetName }), auspice as unknown as AuspiceJsonV2)
-              set(treeNwkAtom({ datasetName }), nwk)
+                set(treeAtom({ datasetName }), trees.auspice as unknown as AuspiceJsonV2)
+                set(treeNwkAtom({ datasetName }), trees.nwk)
+              } else {
+                set(treeAtom({ datasetName }), null)
+                set(treeNwkAtom({ datasetName }), null)
+              }
             })
           },
           onComplete() {},

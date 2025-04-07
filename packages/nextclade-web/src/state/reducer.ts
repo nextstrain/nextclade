@@ -26,8 +26,8 @@ export const AUSPICE_RESET_STATE = 'AUSPICE_RESET_STATE' as const
 
 /** Returns function to get current entire auspice redux state */
 export function useGetAuspiceState() {
-  const store = useStore<AuspiceState>()
-  return useCallback((): AuspiceState => cloneDeep(store.getState()), [store])
+  const store = useStore<AuspiceState | undefined>()
+  return useCallback((): AuspiceState | undefined => cloneDeep(store.getState()), [store])
 }
 
 /** Returns function to set (replace) entire auspice redux state with a provided one */
@@ -41,7 +41,7 @@ export function useSetAuspiceState() {
   )
 }
 
-const reducers = combineReducers<AuspiceState>({
+const reducers = combineReducers<AuspiceState | undefined>({
   metadata,
   tree,
   frequencies,

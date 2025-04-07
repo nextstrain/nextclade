@@ -23,7 +23,7 @@ export interface LaunchAnalysisCallbacks {
   onGlobalStatus: (record: AlgorithmGlobalStatus) => void
   onInitialData: (datasetName: string, data: AnalysisInitialData) => void
   onAnalysisResult: (record: NextcladeResult) => void
-  onTree: (trees: Record<string, OutputTrees>) => void
+  onTree: (trees: Record<string, OutputTrees | undefined | null>) => void
   onError: (error: Error) => void
   onComplete: () => void
 }
