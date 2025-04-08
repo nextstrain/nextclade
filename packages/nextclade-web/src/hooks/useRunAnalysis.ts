@@ -275,10 +275,10 @@ async function getDatasetFiles(datasets: Dataset[]): Promise<NextcladeParamsRawD
   return concurrent.map(async (dataset) => {
     return promiseAllObject({
       datasetName: dataset.path,
-      genomeAnnotation: await axiosFetchRawMaybe(dataset?.files?.genomeAnnotation),
-      reference: await axiosFetchRaw(dataset?.files?.reference),
-      treeJson: await axiosFetchRawMaybe(dataset?.files?.treeJson),
-      pathogenJson: await axiosFetchRaw(dataset?.files?.pathogenJson),
+      genomeAnnotation: await axiosFetchRawMaybe(dataset.files?.genomeAnnotation),
+      reference: await axiosFetchRaw(dataset.files?.reference),
+      treeJson: await axiosFetchRawMaybe(dataset.files?.treeJson),
+      pathogenJson: await axiosFetchRaw(dataset.files?.pathogenJson),
     })
   }, datasets)
 }
