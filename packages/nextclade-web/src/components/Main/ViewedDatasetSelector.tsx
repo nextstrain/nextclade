@@ -1,5 +1,7 @@
 import { isEmpty, isNil } from 'lodash'
+import { useRouter } from 'next/router'
 import React, { useCallback, useMemo } from 'react'
+import { Badge } from 'reactstrap'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { rgba } from 'polished'
@@ -11,6 +13,7 @@ import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/d
 import { attrStrMaybe, Dataset } from 'src/types'
 import type { IsMultiValue } from 'src/components/Common/Dropdown'
 import { datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { hasTreeAtom } from 'src/state/results.state'
 
 interface Option {
   value: string
@@ -69,6 +72,12 @@ function OptionComponent({
 }: OptionProps<Option, false>) {
   const { t } = useTranslationSafe()
 
+  const { pathname } = useRouter()
+
+  const isTreePage = pathname === '/tree'
+  const hasTree = useRecoilValue(hasTreeAtom({ datasetName: dataset.path }))
+  const noTreeOrDisabled = isDisabled || (isTreePage && !hasTree)
+
   const { path, name, reference } = useMemo(() => {
     const { path, attributes } = dataset
     const name = attrStrMaybe(attributes, 'name') ?? t('Unknown')
@@ -83,13 +92,20 @@ function OptionComponent({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       /* @ts-ignore */
       ref={innerRef}
-      aria-disabled={isDisabled}
       isSelected={isSelected}
-      isDisabled={isDisabled}
       isFocused={isFocused}
+      isDisabled={noTreeOrDisabled}
+      aria-disabled={noTreeOrDisabled}
       {...innerProps}
     >
-      <div>{name}</div>
+      <div>
+        <span>{name}</span>
+        {noTreeOrDisabled && (
+          <Badge className="ml-1" color="secondary" size="sm">
+            {t('no tree')}
+          </Badge>
+        )}
+      </div>
       <div className="small">{reference}</div>
       <div className="small">{path}</div>
     </OptionBody>
@@ -98,10 +114,17 @@ function OptionComponent({
 
 const OptionBody = styled.div<{ isSelected?: boolean; isFocused?: boolean; isDisabled?: boolean }>`
   padding: 0.4rem 0.2rem;
-  cursor: pointer;
+  cursor: ${(props) => (props.isDisabled ? 'not-allowed' : 'pointer')};
+  pointer-events: ${(props) => (props.isDisabled ? 'none' : 'auto')};
   background-color: ${(props) =>
-    props.isSelected ? props.theme.primary : props.isFocused ? rgba(props.theme.primary, 0.33) : undefined};
-  color: ${(props) => props.isSelected && 'white'};
+    props.isDisabled
+      ? '#f9f9f9'
+      : props.isSelected
+      ? props.theme.primary
+      : props.isFocused
+      ? rgba(props.theme.primary, 0.33)
+      : 'inherit'};
+  color: ${(props) => (props.isDisabled ? '#cccccc' : props.isSelected ? 'white' : 'inherit')};
 `
 
 const COMPONENTS: Partial<SelectComponents<Option, false, GroupBase<Option>>> = {
