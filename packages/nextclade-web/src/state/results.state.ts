@@ -1,4 +1,4 @@
-/* eslint-disable no-void */
+/* eslint-disable no-void,import/no-cycle */
 import type { AuspiceJsonV2, AuspiceState, CladeNodeAttrDesc } from 'auspice'
 import { concurrent } from 'fasy'
 import { isNil } from 'lodash'

@@ -1,7 +1,10 @@
 /* eslint-disable import/no-cycle */
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector } from 'recoil'
 import { autodetectResultsAtom } from 'src/state/autodetect.state'
+import { AUSPICE_RESET_STATE } from 'src/state/reducer'
+import { auspiceStateAtom } from 'src/state/results.state'
+import { getGlobalStore } from 'src/state/store'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { persistAtom } from 'src/state/persist/localStorage'
@@ -40,6 +43,21 @@ export const datasetsCurrentAtom = selector<Dataset[] | undefined>({
 export const viewedDatasetNameAtom = atom<string>({
   key: 'viewedDatasetName',
   default: undefined,
+  effects: [
+    // Toggle Auspice state when toggling dataset
+    ({ getPromise, onSet }) => {
+      onSet((datasetName) => {
+        getPromise(auspiceStateAtom({ datasetName }))
+          .then((state) => {
+            if (!isEmpty(state)) {
+              getGlobalStore()?.dispatch({ type: AUSPICE_RESET_STATE, payload: state })
+            }
+            return undefined
+          })
+          .catch(console.error)
+      })
+    },
+  ],
 })
 
 export const datasetUpdatedAtom = atomFamily<Dataset | undefined, { datasetName: string }>({

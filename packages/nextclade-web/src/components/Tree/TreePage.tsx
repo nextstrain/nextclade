@@ -1,14 +1,15 @@
-import { isEqual, isNil } from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
+import { AuspiceState } from 'auspice'
+import { isEmpty, isNil } from 'lodash'
+import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { connect } from 'react-redux'
+import { useRecoilValue } from 'recoil'
 import { Layout } from 'src/components/Layout/Layout'
 import { LOADING } from 'src/components/Loading/Loading'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { useGetAuspiceState, useSetAuspiceState } from 'src/state/reducer'
-import { auspiceStateAtom } from 'src/state/results.state'
+import { hasTreeAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
 const TreePageContent = dynamic(() => import('src/components/Tree/TreePageContent'), {
@@ -27,33 +28,26 @@ export function TreePage() {
   )
 }
 
-export default function TreePageWrapper() {
+export interface TreePageWrapperDisconnectedProps {
+  hasAuspiceState: boolean
+}
+
+const mapStateToProps = (state: AuspiceState | undefined): TreePageWrapperDisconnectedProps => ({
+  hasAuspiceState: !isNil(state) && !isEmpty(state),
+})
+
+const TreePageWrapper = connect(mapStateToProps)(TreePageWrapperDisconnected)
+
+function TreePageWrapperDisconnected({ hasAuspiceState }: TreePageWrapperDisconnectedProps) {
   const { t } = useTranslationSafe()
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const [auspiceStateSaved, setAuspiceStateSaved] = useRecoilState(auspiceStateAtom({ datasetName }))
-
-  const getAuspiceState = useGetAuspiceState()
-  const setAuspiceState = useSetAuspiceState()
-
-  const auspiceStateCurrent = getAuspiceState()
-
-  // HACK(auspice): Remember the entire Auspice redux state in an atom, for each dataset. This way we can
-  // save and load Auspice redux state when switching datasets, this way switching what Auspice is
-  // rendering without recomputing it all again.
-  useEffect(() => {
-    if (!isEqual(auspiceStateCurrent, auspiceStateSaved)) {
-      setAuspiceState(auspiceStateSaved)
-    }
-    return () => {
-      setAuspiceStateSaved(auspiceStateCurrent)
-    }
-  }, [auspiceStateCurrent, auspiceStateSaved, datasetName, getAuspiceState, setAuspiceState, setAuspiceStateSaved])
+  const hasTree = useRecoilValue(hasTreeAtom({ datasetName }))
 
   const [componentsMap, setComponentsMap] = useState(new Map())
 
   const component = useMemo(() => {
-    if (!auspiceStateCurrent) {
+    if (!hasTree || !hasAuspiceState) {
       return <div>{t('This dataset does not have a reference tree.')}</div>
     }
 
@@ -66,7 +60,7 @@ export default function TreePageWrapper() {
     newMap.set(datasetName, newComponent)
     setComponentsMap(newMap)
     return newComponent
-  }, [auspiceStateCurrent, componentsMap, datasetName, t])
+  }, [componentsMap, datasetName, hasAuspiceState, hasTree, t])
 
   return (
     <Container>

@@ -65,8 +65,8 @@ export interface TreePageProps {
   treeMeta?: AuspiceMetadata
 }
 
-const mapStateToProps = (state: State) => ({
-  treeMeta: state.metadata,
+const mapStateToProps = (state: State | undefined) => ({
+  treeMeta: state?.metadata,
 })
 
 const TreePageContent = connect(mapStateToProps, null)(TreePageContentDisconnected)

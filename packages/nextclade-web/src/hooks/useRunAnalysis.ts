@@ -167,7 +167,7 @@ export function useRunAnalysis() {
           },
           onTree(trees) {
             Object.entries(trees).forEach(([datasetName, trees]) => {
-              if (trees) {
+              if (!isNil(trees) && !isEmpty(trees)) {
                 // Compute Auspice redux state for this dataset
                 const auspiceState = createAuspiceState(trees.auspice as unknown as AuspiceJsonV2, dispatch)
                 dispatch(auspiceStartClean(auspiceState))
@@ -183,8 +183,8 @@ export function useRunAnalysis() {
                 set(treeAtom({ datasetName }), trees.auspice as unknown as AuspiceJsonV2)
                 set(treeNwkAtom({ datasetName }), trees.nwk)
               } else {
-                set(treeAtom({ datasetName }), null)
-                set(treeNwkAtom({ datasetName }), null)
+                set(treeAtom({ datasetName }), undefined)
+                set(treeNwkAtom({ datasetName }), undefined)
               }
             })
           },
