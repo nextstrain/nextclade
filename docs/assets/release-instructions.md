@@ -15,6 +15,12 @@
 - 🐋 Docker images are available on [DockerHub](https://hub.docker.com/r/nextstrain/nextclade)
 - 🐍 Conda package is available in [bioconda channel](https://bioconda.github.io/recipes/nextclade/README.html).
 
+⌨️ Source code is on GitHub: [github.com/nextstrain/nextclade](https://github.com/nextstrain/nextclade)
+
+🚩 Report bugs, suggest features by submitting a [GitHub issue](https://github.com/nextstrain/nextclade/issues)
+
+💾 Nextclade datasets are [here](https://github.com/nextstrain/nextclade_data)
+
 </td>
 </tr>
 </tbody>
