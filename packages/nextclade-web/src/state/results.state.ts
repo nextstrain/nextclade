@@ -1,5 +1,5 @@
-/* eslint-disable no-void,import/no-cycle */
-import type { AuspiceJsonV2, AuspiceState, CladeNodeAttrDesc } from 'auspice'
+/* eslint-disable no-void */
+import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { concurrent } from 'fasy'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
@@ -267,13 +267,6 @@ export const [treeAtom, allTreesAtom] = multiAtom<AuspiceJsonV2 | undefined | nu
 
 export const [treeNwkAtom, allTreesNwkAtom] = multiAtom<string | undefined | null, { datasetName: string }>({
   key: 'treeNwk',
-})
-
-// HACK(auspice): Remember the entire Auspice redux state in an atom, for each dataset. This way we can
-// save and load Auspice redux state when switching datasets, this way switching what Auspice is
-// rendering without recomputing it all again.
-export const [auspiceStateAtom, allAuspiceStatesAtom] = multiAtom<AuspiceState | undefined, { datasetName: string }>({
-  key: 'auspiceState',
 })
 
 export const hasTreeAtom = selectorFamily<boolean, { datasetName: string }>({

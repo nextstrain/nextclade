@@ -1,16 +1,21 @@
 import { AuspiceState } from 'auspice'
-import { isEmpty, isNil } from 'lodash'
-import React, { useMemo, useState } from 'react'
+import { changeColorBy } from 'auspice/src/actions/colors'
+import { isNil } from 'lodash'
+import React, { useLayoutEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { connect } from 'react-redux'
+import { Provider as ReactReduxProvider } from 'react-redux'
 import { useRecoilValue } from 'recoil'
+import { Store } from 'redux'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
+import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { treeAtom } from 'src/state/results.state'
+import { configureStore } from 'src/state/store'
+import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 import { LOADING } from 'src/components/Loading/Loading'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { hasTreeAtom } from 'src/state/results.state'
-import styled from 'styled-components'
 
 const TreePageContent = dynamic(() => import('src/components/Tree/TreePageContent'), {
   ssr: false,
@@ -23,53 +28,48 @@ const TreePageContent = dynamic(() => import('src/components/Tree/TreePageConten
 export function TreePage() {
   return (
     <Layout>
-      <TreePageWrapper />
+      <Container>
+        <MainContent>
+          <ViewedDatasetSelector />
+          <TreePageWrapper />
+        </MainContent>
+      </Container>
     </Layout>
   )
 }
 
-export interface TreePageWrapperDisconnectedProps {
-  hasAuspiceState: boolean
-}
-
-const mapStateToProps = (state: AuspiceState | undefined): TreePageWrapperDisconnectedProps => ({
-  hasAuspiceState: !isNil(state) && !isEmpty(state),
-})
-
-const TreePageWrapper = connect(mapStateToProps)(TreePageWrapperDisconnected)
-
-function TreePageWrapperDisconnected({ hasAuspiceState }: TreePageWrapperDisconnectedProps) {
-  const { t } = useTranslationSafe()
-
+export function TreePageWrapper() {
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const hasTree = useRecoilValue(hasTreeAtom({ datasetName }))
+  const tree = useRecoilValue(treeAtom({ datasetName }))
 
-  const [componentsMap, setComponentsMap] = useState(new Map())
+  const [store, setStore] = useState<Store<AuspiceState> | null>(null)
 
-  const component = useMemo(() => {
-    if (!hasTree || !hasAuspiceState) {
-      return <div>{t('This dataset does not have a reference tree.')}</div>
+  useLayoutEffect(() => {
+    if (!isNil(tree)) {
+      const { store: newStore } = configureStore()
+      const { dispatch } = newStore
+      const auspiceState = createAuspiceState(tree, dispatch)
+      dispatch(auspiceStartClean(auspiceState))
+      dispatch(changeColorBy())
+      dispatch(treeFilterByNodeType(['New']))
+      setStore(newStore)
     }
+  }, [tree, datasetName])
 
-    if (componentsMap.has(datasetName)) {
-      return componentsMap.get(datasetName)
-    }
-
-    const newComponent = <TreePageContent key={datasetName} />
-    const newMap = new Map(componentsMap)
-    newMap.set(datasetName, newComponent)
-    setComponentsMap(newMap)
-    return newComponent
-  }, [componentsMap, datasetName, hasAuspiceState, hasTree, t])
+  if (!store) {
+    return <NoTreeContent />
+  }
 
   return (
-    <Container>
-      <MainContent>
-        <ViewedDatasetSelector />
-        {component}
-      </MainContent>
-    </Container>
+    <ReactReduxProvider store={store}>
+      <TreePageContent key={datasetName} />
+    </ReactReduxProvider>
   )
+}
+
+export function NoTreeContent() {
+  const { t } = useTranslationSafe()
+  return <div>{t('This dataset does not have a reference tree.')}</div>
 }
 
 const Container = styled.div`

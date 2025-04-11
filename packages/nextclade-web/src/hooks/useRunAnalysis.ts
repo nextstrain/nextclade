@@ -1,16 +1,13 @@
 import type { AuspiceJsonV2 } from 'auspice'
-import { changeColorBy } from 'auspice/src/actions/colors'
 import { concurrent } from 'fasy'
 import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
-import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { promiseAllObject } from 'src/helpers/promise'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { useGetAuspiceState } from 'src/state/reducer'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allViewedCdsAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import {
@@ -22,8 +19,6 @@ import {
   NextcladeParamsRawDir,
 } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { datasetsCurrentAtom, cdsOrderPreferenceAtom, allCdsOrderPreferenceAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
@@ -59,8 +54,6 @@ import {
   treeAtom,
   treeNwkAtom,
   allCurrentRefNodeNameAtom,
-  auspiceStateAtom,
-  allAuspiceStatesAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
@@ -68,9 +61,7 @@ import { axiosFetchRaw, axiosFetchRawMaybe } from 'src/io/axiosFetch'
 
 export function useRunAnalysis() {
   const router = useRouter()
-  const dispatch = useDispatch()
   const { seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions } = useDatasetSuggestionResults()
-  const getAuspiceState = useGetAuspiceState()
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
@@ -83,7 +74,6 @@ export function useRunAnalysis() {
         reset(clearAllFiltersAtom)
 
         reset(allAaMotifsDescsAtom)
-        reset(allAuspiceStatesAtom)
         reset(allCdsOrderPreferenceAtom)
         reset(allCdsesAtom)
         reset(allCladeNodeAttrDescsAtom)
@@ -167,25 +157,8 @@ export function useRunAnalysis() {
           },
           onTree(trees) {
             Object.entries(trees).forEach(([datasetName, trees]) => {
-              if (!isNil(trees) && !isEmpty(trees)) {
-                // Compute Auspice redux state for this dataset
-                const auspiceState = createAuspiceState(trees.auspice as unknown as AuspiceJsonV2, dispatch)
-                dispatch(auspiceStartClean(auspiceState))
-                dispatch(changeColorBy())
-                dispatch(treeFilterByNodeType(['New']))
-
-                // HACK(auspice): Remember the entire Auspice redux state in an atom, for each dataset. This way we can
-                // save and load Auspice redux state when switching datasets, this way switching what Auspice is
-                // rendering without recomputing it all again.
-                const state = getAuspiceState()
-                set(auspiceStateAtom({ datasetName }), state)
-
-                set(treeAtom({ datasetName }), trees.auspice as unknown as AuspiceJsonV2)
-                set(treeNwkAtom({ datasetName }), trees.nwk)
-              } else {
-                set(treeAtom({ datasetName }), undefined)
-                set(treeNwkAtom({ datasetName }), undefined)
-              }
+              set(treeAtom({ datasetName }), (trees?.auspice as unknown as AuspiceJsonV2) ?? undefined)
+              set(treeNwkAtom({ datasetName }), trees?.nwk ?? undefined)
             })
           },
           onComplete() {},
@@ -219,7 +192,7 @@ export function useRunAnalysis() {
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch, getAuspiceState, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions],
+    [router, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions],
   )
 }
 

@@ -1,3 +1,4 @@
+import { isEmpty, isNil } from 'lodash'
 import React, { useMemo } from 'react'
 import styled, { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
@@ -62,21 +63,27 @@ const AUSPICE_SIDEBAR_THEME = {
 }
 
 export interface TreePageProps {
+  hasTree: boolean
   treeMeta?: AuspiceMetadata
 }
 
 const mapStateToProps = (state: State | undefined) => ({
+  hasTree: !isNil(state?.tree) && !isEmpty(state?.tree),
   treeMeta: state?.metadata,
 })
 
-const TreePageContent = connect(mapStateToProps, null)(TreePageContentDisconnected)
+const TreePageContent = connect(mapStateToProps)(TreePageContentDisconnected)
 export default TreePageContent
 
-function TreePageContentDisconnected({ treeMeta }: TreePageProps) {
+function TreePageContentDisconnected({ hasTree, treeMeta }: TreePageProps) {
   const isDataFromGisaid = useMemo(
     () => treeMeta?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
     [treeMeta],
   )
+
+  if (!hasTree) {
+    return null
+  }
 
   return (
     <AuspiceContainer>
