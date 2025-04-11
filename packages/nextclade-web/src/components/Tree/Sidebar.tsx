@@ -6,19 +6,15 @@ import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
-import { ControlsContainer, HeaderContainer } from 'auspice/src/components/controls/styles'
+import { ControlsContainer } from 'auspice/src/components/controls/styles'
 import FilterData, { FilterInfo } from 'auspice/src/components/controls/filter'
 import { TreeInfo } from 'auspice/src/components/controls/miscInfoText'
 import { ControlHeader } from 'auspice/src/components/controls/controlHeader'
 import { AnnotatedTitle } from 'auspice/src/components/controls/annotatedTitle'
-
+import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
 
 export const StyledAuspiceControlsContainer = styled(ControlsContainer)``
-
-export const SidebarHeaderStyled = styled(HeaderContainer)`
-  margin-top: 0.75rem;
-`
 
 export const Bottom = styled.div`
   margin-top: auto;
@@ -34,6 +30,9 @@ export function Sidebar() {
 
   return (
     <StyledAuspiceControlsContainer>
+      <ControlHeader title={t('Dataset')} />
+      <ViewedDatasetSelector />
+
       <ControlHeader title={t('sidebar:Color By')} tooltip={ColorByInfo} />
       <ColorBy />
 

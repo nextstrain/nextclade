@@ -15,7 +15,6 @@ import { configureStore } from 'src/state/store'
 import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 import { LOADING } from 'src/components/Loading/Loading'
-import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 
 const TreePageContent = dynamic(() => import('src/components/Tree/TreePageContent'), {
   ssr: false,
@@ -30,7 +29,6 @@ export function TreePage() {
     <Layout>
       <Container>
         <MainContent>
-          <ViewedDatasetSelector />
           <TreePageWrapper />
         </MainContent>
       </Container>
