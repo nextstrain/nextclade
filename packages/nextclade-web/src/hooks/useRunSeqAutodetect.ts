@@ -14,7 +14,7 @@ import {
   seqIndexToTopDatasetNameAtom,
   seqIndicesWithoutDatasetSuggestionsAtom,
 } from 'src/state/autodetect.state'
-import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { minimizerIndexVersionAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import type { FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
@@ -37,6 +37,7 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
         reset(autodetectRunStateAtom)
         reset(autodetectShouldSetCurrentDatasetAtom)
         reset(allDatasetSuggestionResultsAtom)
+        reset(viewedDatasetNameAtom)
 
         function onResult(results: MinimizerSearchRecord[]) {
           results.forEach((res) => {
@@ -56,6 +57,7 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 
         function onBestResults(results: FindBestDatasetsResult) {
           set(allDatasetSuggestionResultsAtom, results)
+          set(viewedDatasetNameAtom, results.suggestions[0]?.name)
         }
 
         set(autodetectRunStateAtom, AutodetectRunState.Started)
