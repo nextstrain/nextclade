@@ -114,17 +114,17 @@ function OptionComponent({
 
 const OptionBody = styled.div<{ isSelected?: boolean; isFocused?: boolean; isDisabled?: boolean }>`
   padding: 0.4rem 0.2rem;
-  cursor: ${(props) => (props.isDisabled ? 'not-allowed' : 'pointer')};
-  pointer-events: ${(props) => (props.isDisabled ? 'none' : 'auto')};
-  background-color: ${(props) =>
-    props.isDisabled
+  cursor: ${(p) => (p.isDisabled ? 'not-allowed' : 'pointer')};
+  pointer-events: auto;
+  background-color: ${(p) =>
+    p.isSelected
+      ? p.theme.primary
+      : p.isFocused
+      ? rgba(p.theme.primary, p.isDisabled ? 0.1 : 0.33)
+      : p.isDisabled
       ? '#f9f9f9'
-      : props.isSelected
-      ? props.theme.primary
-      : props.isFocused
-      ? rgba(props.theme.primary, 0.33)
       : 'inherit'};
-  color: ${(props) => (props.isDisabled ? '#cccccc' : props.isSelected ? 'white' : 'inherit')};
+  color: ${(p) => (p.isDisabled ? rgba('#ccc', p.isFocused ? 0.8 : 1) : p.isSelected ? 'white' : 'inherit')};
 `
 
 const COMPONENTS: Partial<SelectComponents<Option, false, GroupBase<Option>>> = {
