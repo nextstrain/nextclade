@@ -1,5 +1,6 @@
 import React from 'react'
 import { Layout } from 'src/components/Layout/Layout'
+import { App } from 'src/components/Main/Dd'
 import { Landing } from 'src/components/Main/MainInputForm'
 import styled from 'styled-components'
 
@@ -16,10 +17,13 @@ const Main = styled.div`
 
 export function MainPage() {
   return (
-    <Layout>
-      <Main>
-        <Landing />
-      </Main>
-    </Layout>
+    // <Layout>
+    //   <Main>
+    <div className="w-25">
+      <App />
+    </div>
+    /* <Landing /> */
+    // </Main>
+    // </Layout>
   )
 }
