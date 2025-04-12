@@ -108,8 +108,9 @@ export function CustomSelect<OptionType extends BaseOption>({
 
   const filteredOptions = useMemo(() => {
     if (!inputValue.trim()) return options
-    return fuse.search(inputValue).map((r) => r.item)
-  }, [inputValue, fuse, options])
+    const results = fuse.search(inputValue).map((r) => r.item)
+    return value ? [value, ...results.filter((o) => o !== value)] : results
+  }, [inputValue, fuse, options, value])
 
   const defaultGetOptionLabel = (option: OptionType) => `${option.label} ${option.description} ${option.meta}`
 
@@ -130,7 +131,11 @@ export function CustomSelect<OptionType extends BaseOption>({
     <div ref={containerRef}>
       <Select<OptionType, false>
         value={value}
-        onChange={(val: SingleValue<OptionType>) => onChange(val)}
+        onChange={(val: SingleValue<OptionType>) => {
+          onChange(val)
+          setInputValue('')
+          setMenuIsOpen(false)
+        }}
         inputValue={inputValue}
         onInputChange={(val, { action }) => {
           if (action === 'input-change') setInputValue(val)
