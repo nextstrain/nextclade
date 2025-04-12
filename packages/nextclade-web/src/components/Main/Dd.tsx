@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { isEqual } from 'lodash'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Card, Input } from 'reactstrap'
 import { FaChevronDown } from 'react-icons/fa'
 import styled from 'styled-components'
@@ -117,6 +118,32 @@ const ResultContainer = styled(Card)`
   border-radius: 4px;
 `
 
+const stopPropagation = (e: React.MouseEvent) => {
+  e.stopPropagation()
+}
+
+const renderOptionContent = (option: Option) => (
+  <>
+    <OptionLabel>{option.label}</OptionLabel>
+    <OptionDescription>{option.description}</OptionDescription>
+    <OptionMeta>{option.meta}</OptionMeta>
+  </>
+)
+
+const filterOptions = (options: Option[], searchTerm: string) => {
+  const searchLower = searchTerm.toLowerCase()
+  return options.filter(
+    (option) =>
+      option.label.toLowerCase().includes(searchLower) ||
+      option.description.toLowerCase().includes(searchLower) ||
+      option.meta.toLowerCase().includes(searchLower),
+  )
+}
+
+const isOptionSelected = (value: Option | null, option: Option) => {
+  return value !== null && JSON.stringify(value) === JSON.stringify(option)
+}
+
 function EnhancedSelect<T extends Option>({
   options,
   value,
@@ -129,32 +156,41 @@ function EnhancedSelect<T extends Option>({
   const searchInputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = useCallback((event: MouseEvent) => {
     if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
       setIsOpen(false)
     }
-  }
+  }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
-  }
+  }, [])
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen)
-    if (!isOpen) {
+  const toggleMenu = useCallback(() => {
+    setIsOpen((prevIsOpen) => {
+      if (!prevIsOpen) {
+        setSearchTerm('')
+      }
+      return !prevIsOpen
+    })
+  }, [])
+
+  const handleSelect = useCallback(
+    (option: T) => {
+      onChange(option)
+      setIsOpen(false)
       setSearchTerm('')
-    }
-  }
+    },
+    [onChange],
+  )
 
-  const handleSelect = (option: T) => {
-    onChange(option)
-    setIsOpen(false)
-    setSearchTerm('')
-  }
-
-  const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
+  const handleOptionClick = useCallback(
+    (e: React.MouseEvent, option: T) => {
+      stopPropagation(e)
+      handleSelect(option)
+    },
+    [handleSelect],
+  )
 
   useEffect(() => {
     if (isOpen) {
@@ -164,7 +200,7 @@ function EnhancedSelect<T extends Option>({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isOpen])
+  }, [isOpen, handleClickOutside])
 
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
@@ -172,22 +208,7 @@ function EnhancedSelect<T extends Option>({
     }
   }, [isOpen])
 
-  const filteredOptions = options.filter((option) => {
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      option.label.toLowerCase().includes(searchLower) ||
-      option.description.toLowerCase().includes(searchLower) ||
-      option.meta.toLowerCase().includes(searchLower)
-    )
-  })
-
-  const renderOptionContent = (option: Option) => (
-    <>
-      <OptionLabel>{option.label}</OptionLabel>
-      <OptionDescription>{option.description}</OptionDescription>
-      <OptionMeta>{option.meta}</OptionMeta>
-    </>
-  )
+  const filteredOptions = useMemo(() => filterOptions(options, searchTerm), [options, searchTerm])
 
   return (
     <SelectContainer ref={containerRef}>
@@ -222,14 +243,11 @@ function EnhancedSelect<T extends Option>({
 
           <OptionsContainer>
             {filteredOptions.length > 0 ? (
-              filteredOptions.map((option, index) => (
+              filteredOptions.map((option) => (
                 <OptionItem
-                  key={index}
-                  isSelected={value !== null && JSON.stringify(value) === JSON.stringify(option)}
-                  onClick={(e) => {
-                    stopPropagation(e)
-                    handleSelect(option)
-                  }}
+                  key={option.label}
+                  isSelected={isEqual(value, option)}
+                  onClick={(e) => handleOptionClick(e, option)}
                 >
                   {renderOptionContent(option)}
                 </OptionItem>
