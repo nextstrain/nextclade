@@ -1,157 +1,183 @@
-import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useMemo } from 'react'
-import { Badge } from 'reactstrap'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { rgba } from 'polished'
+import React, { useMemo, useState } from 'react'
+import { MdArrowDropDown } from 'react-icons/md'
+import {
+  Dropdown as DropdownBase,
+  DropdownToggle as DropdownToggleBase,
+  DropdownMenu as DropdownMenuBase,
+  DropdownItem as DropdownItemBase,
+  DropdownProps,
+  Badge,
+} from 'reactstrap'
+import { useToggle } from 'src/hooks/useToggle'
+import { topSuggestedDatasetNamesAtom } from 'src/state/autodetect.state'
+import { hasTreeAtom } from 'src/state/results.state'
+import { attrStrMaybe, Dataset } from 'src/types'
 import styled from 'styled-components'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import Select, { OptionProps, StylesConfig } from 'react-select'
-import type { SelectComponents } from 'react-select/dist/declarations/src/components'
-import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
-import { attrStrMaybe, Dataset } from 'src/types'
-import type { IsMultiValue } from 'src/components/Common/Dropdown'
-import { datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { hasTreeAtom } from 'src/state/results.state'
+import { SearchBox } from 'src/components/Common/SearchBox'
+import { search } from 'src/helpers/search'
+import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { datasetAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 
-interface Option {
-  value: string
-  dataset: Dataset
-}
+export function ViewedDatasetSelector({ ...restProps }: DropdownProps) {
+  const { t } = useTranslationSafe()
 
-export function ViewedDatasetSelector() {
+  const { state: isOpen, toggle } = useToggle(false)
+
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
-  const datasets = useRecoilValue(datasetsCurrentAtom)
+  const datasetNames = useRecoilValue(topSuggestedDatasetNamesAtom)
 
-  const { options, currentOption } = useMemo(() => {
-    const options = (datasets ?? []).map((dataset) => ({ value: dataset.path, dataset, label: dataset.path }))
-    const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
-    return { options, currentOption }
-  }, [datasets, viewedDatasetName])
+  const [searchTerm, setSearchTerm] = useState('')
+  const filtered = useMemo(() => {
+    if (searchTerm.trim().length === 0) {
+      return datasetNames
+    }
+    const { itemsStartWith, itemsInclude } = search(datasetNames, searchTerm, (datasetName) => [datasetName])
+    return [...itemsStartWith, ...itemsInclude]
+  }, [datasetNames, searchTerm])
 
-  const handleChange = useCallback(
-    (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {
-      if (option) {
-        const datasetName = options.find((o) => o.value === option.value)?.dataset.path
-        if (isNil(datasetName) || isEmpty(datasetName)) {
-          throw new ErrorInternal(
-            `Attempted to select a non-existent dataset in the viewed dataset dropdown menu: '${option.value}'`,
-          )
-        }
-        setViewedDatasetName(datasetName)
-      }
-    },
-    [options, setViewedDatasetName],
-  )
+  if (!viewedDatasetName) {
+    return null
+  }
 
   return (
-    <div>
-      <Select
-        components={COMPONENTS}
-        options={options}
-        value={currentOption}
-        isMulti={false}
-        onChange={handleChange}
-        menuPortalTarget={document.body}
-        styles={STYLES}
-        theme={getTheme}
-        maxMenuHeight={400}
-      />
-    </div>
+    <Dropdown inNavbar nav direction="down" isOpen={isOpen} toggle={toggle} {...restProps}>
+      <DropdownToggle nav>
+        <LabelShort datasetName={viewedDatasetName} />
+        <MdArrowDropDown className="ml-2 my-auto" />
+      </DropdownToggle>
+      <DropdownMenu>
+        <SearchBoxWrapper>
+          <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
+        </SearchBoxWrapper>
+        <DropdownMenuListWrapper>
+          {filtered.map((datasetName) => {
+            const isCurrent = datasetName === viewedDatasetName
+            return (
+              <DropdownItem active={isCurrent} key={datasetName} onClick={() => setViewedDatasetName(datasetName)}>
+                <LanguageSwitcherItem datasetName={datasetName} />
+              </DropdownItem>
+            )
+          })}
+        </DropdownMenuListWrapper>
+      </DropdownMenu>
+    </Dropdown>
   )
 }
 
-function OptionComponent({
-  data: { dataset },
-  isDisabled,
-  isFocused,
-  isSelected,
-  innerRef,
-  innerProps,
-}: OptionProps<Option, false>) {
+export function LanguageSwitcherItem({ datasetName }: { datasetName: string }) {
+  return (
+    <LanguageSwitcherItemWrapper title={datasetName}>
+      <LabelShort datasetName={datasetName} />
+    </LanguageSwitcherItemWrapper>
+  )
+}
+
+export function LabelShort({ datasetName, ...restProps }: { datasetName: string }) {
   const { t } = useTranslationSafe()
 
   const { pathname } = useRouter()
 
   const isTreePage = pathname === '/tree'
-  const hasTree = useRecoilValue(hasTreeAtom({ datasetName: dataset.path }))
-  const noTreeOrDisabled = isDisabled || (isTreePage && !hasTree)
+  const hasTree = useRecoilValue(hasTreeAtom({ datasetName }))
+  const dataset = useRecoilValue(datasetAtom({ datasetName }))
+  const noTreeOrDisabled = isTreePage && !hasTree
 
   const { path, name, reference } = useMemo(() => {
-    const { path, attributes } = dataset
-    const name = attrStrMaybe(attributes, 'name') ?? t('Unknown')
-    const referenceName = attrStrMaybe(attributes, 'reference name') ?? t('Unknown')
-    const referenceAccession = attrStrMaybe(attributes, 'reference accession') ?? t('Unknown')
-    const reference = `${referenceName} (${referenceAccession})`
-    return { path, name, reference }
+    return getDatasetInfo(dataset, t)
   }, [dataset, t])
 
   return (
-    <OptionBody
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      /* @ts-ignore */
-      ref={innerRef}
-      isSelected={isSelected}
-      isFocused={isFocused}
-      isDisabled={noTreeOrDisabled}
-      aria-disabled={noTreeOrDisabled}
-      {...innerProps}
-    >
-      <div>
+    <LabelShortText className="cursor-pointer" {...restProps}>
+      <LabelTextMain>
         <span>{name}</span>
         {noTreeOrDisabled && (
           <Badge className="ml-1" color="secondary" size="sm">
             {t('no tree')}
           </Badge>
         )}
-      </div>
-      <div className="small">{reference}</div>
-      <div className="small">{path}</div>
-    </OptionBody>
+      </LabelTextMain>
+      <LabelText className="small">{reference}</LabelText>
+      <LabelText className="small">{path}</LabelText>
+    </LabelShortText>
   )
 }
 
-const OptionBody = styled.div<{ isSelected?: boolean; isFocused?: boolean; isDisabled?: boolean }>`
-  padding: 0.4rem 0.2rem;
-  cursor: ${(p) => (p.isDisabled ? 'not-allowed' : 'pointer')};
-  pointer-events: auto;
-  background-color: ${(p) =>
-    p.isSelected
-      ? p.theme.primary
-      : p.isFocused
-      ? rgba(p.theme.primary, p.isDisabled ? 0.1 : 0.33)
-      : p.isDisabled
-      ? '#f9f9f9'
-      : 'inherit'};
-  color: ${(p) => (p.isDisabled ? rgba('#ccc', p.isFocused ? 0.8 : 1) : p.isSelected ? 'white' : 'inherit')};
+export interface DatasetInfo {
+  path: string
+  name: string
+  reference: string
+}
+
+export function getDatasetInfo(dataset: Dataset, t: TFunc): DatasetInfo {
+  const { path, attributes } = dataset
+  const name = attrStrMaybe(attributes, 'name') ?? t('Unknown')
+  const referenceName = attrStrMaybe(attributes, 'reference name') ?? t('Unknown')
+  const referenceAccession = attrStrMaybe(attributes, 'reference accession') ?? t('Unknown')
+  const reference = `${referenceName} (${referenceAccession})`
+  return { path, name, reference }
+}
+
+const LabelText = styled.div`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `
 
-const COMPONENTS: Partial<SelectComponents<Option, false, GroupBase<Option>>> = {
-  Option: OptionComponent,
-}
+const LabelTextMain = styled.div`
+  font-size: 1rem;
+  font-weight: bold;
 
-function getTheme(theme: Theme): Theme {
-  return {
-    ...theme,
-    borderRadius: 2,
-    spacing: {
-      ...theme.spacing,
-      menuGutter: 0,
-    },
-    colors: {
-      ...theme.colors,
-    },
-  }
-}
+  ${LabelText}
+`
 
-const STYLES: StylesConfig<Option, false> = {
-  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-  menuList: (base) => ({ ...base, fontSize: '1rem' }),
-  option: (base) => ({ ...base, fontSize: '1.0rem', padding: '2px 8px' }),
-  singleValue: (base, state) => ({
-    ...base,
-    fontSize: '1.0rem',
-    display: state.selectProps.menuIsOpen ? 'none' : 'block',
-  }),
-}
+const LanguageSwitcherItemWrapper = styled.div`
+  flex: 1;
+  width: 100%;
+`
+
+const LabelShortText = styled.span`
+  cursor: pointer;
+`
+
+const Dropdown = styled(DropdownBase)`
+  display: block !important;
+  margin: 0 !important;
+`
+
+const DropdownToggle = styled(DropdownToggleBase)`
+  display: inline-flex !important;
+  color: ${(props) => props.theme.bodyColor};
+  padding: 0;
+  margin: 0;
+`
+
+const DropdownMenu = styled(DropdownMenuBase)`
+  position: absolute !important;
+  right: 0 !important;
+  top: 20px !important;
+
+  background-color: ${(props) => props.theme.bodyBg};
+  box-shadow: 1px 1px 20px 0 #0005;
+  transition: opacity ease-out 0.25s;
+  padding: 1rem;
+  padding-right: 0;
+  width: 320px;
+`
+
+const DropdownItem = styled(DropdownItemBase)`
+  width: 100% !important;
+  padding: 0 !important;
+`
+
+const SearchBoxWrapper = styled.div`
+  margin-bottom: 0.5rem;
+  margin-right: 1rem;
+`
+
+const DropdownMenuListWrapper = styled.div`
+  height: calc(80vh - 150px);
+  min-height: 100px;
+  overflow-y: scroll;
+`

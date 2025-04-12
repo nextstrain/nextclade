@@ -1,9 +1,10 @@
 /* eslint-disable import/no-cycle */
 import { isNil } from 'lodash'
-import { atom, atomFamily, DefaultValue, selector } from 'recoil'
+import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { autodetectResultsAtom } from 'src/state/autodetect.state'
 import { multiAtom } from 'src/state/utils/multiAtom'
-import type { Dataset, MinimizerIndexVersion } from 'src/types'
+import { Dataset, MinimizerIndexVersion } from 'src/types'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
@@ -14,6 +15,20 @@ export const datasetServerUrlAtom = atom<string>({
 export const datasetsAtom = atom<Dataset[]>({
   key: 'datasets',
   default: [],
+})
+
+export const datasetAtom = selectorFamily<Dataset, { datasetName: string }>({
+  key: 'dataset',
+  get:
+    ({ datasetName }) =>
+    ({ get }) => {
+      const datasets = get(datasetsAtom)
+      const dataset = datasets.find((dataset) => dataset.path === datasetName)
+      if (!dataset) {
+        throw new ErrorInternal(`Dataset '${datasetName}' not found`)
+      }
+      return dataset
+    },
 })
 
 const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({
