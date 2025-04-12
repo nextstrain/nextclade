@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import Select, { components, MenuListProps, SingleValue } from 'react-select'
 import Fuse from 'fuse.js'
 
@@ -83,6 +83,20 @@ export function CustomSelect<OptionType extends BaseOption>({
   customStyles = {},
 }: CustomSelectProps<OptionType>) {
   const [inputValue, setInputValue] = useState('')
+  const [menuIsOpen, setMenuIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setMenuIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const styles = {
     primaryText: { ...defaultStyles.primaryText, ...customStyles.primaryText },
@@ -97,9 +111,7 @@ export function CustomSelect<OptionType extends BaseOption>({
     return fuse.search(inputValue).map((r) => r.item)
   }, [inputValue, fuse, options])
 
-  const defaultGetOptionLabel = (option: OptionType) => {
-    return `${option.label} ${option.description} ${option.meta}`
-  }
+  const defaultGetOptionLabel = (option: OptionType) => `${option.label} ${option.description} ${option.meta}`
 
   const defaultFormatOptionLabel = (option: OptionType) => (
     <div style={{ lineHeight: 1.5 }}>
@@ -109,75 +121,93 @@ export function CustomSelect<OptionType extends BaseOption>({
     </div>
   )
 
-  const isOptionSelected = (option: OptionType, selectedValue: OptionType) => {
-    return (
-      option.label === selectedValue.label &&
-      option.description === selectedValue.description &&
-      option.meta === selectedValue.meta
-    )
-  }
+  const isOptionSelected = (option: OptionType, selectedValue: OptionType) =>
+    option.label === selectedValue.label &&
+    option.description === selectedValue.description &&
+    option.meta === selectedValue.meta
 
   return (
-    <Select<OptionType, false>
-      value={value}
-      onChange={(val: SingleValue<OptionType>) => onChange(val)}
-      inputValue={inputValue}
-      onInputChange={(val) => setInputValue(val)}
-      options={filteredOptions}
-      isSearchable
-      formatOptionLabel={formatOptionLabel || defaultFormatOptionLabel}
-      getOptionLabel={getOptionLabel || defaultGetOptionLabel}
-      isOptionSelected={isOptionSelected}
-      components={{
-        MenuList: (props) => <CustomMenuList<OptionType> {...props} search={inputValue} onSearch={setInputValue} />,
-        SingleValue: ({ data }) => (
-          <div style={{ lineHeight: 1.5 }}>
-            <div style={styles.primaryText}>{data.label || ''}</div>
-            <div style={styles.secondaryText}>{data.description || ''}</div>
-            <div style={styles.tertiaryText}>{data.meta || ''}</div>
-          </div>
-        ),
-        Placeholder: (props) => (
-          <components.Placeholder {...props}>
+    <div ref={containerRef}>
+      <Select<OptionType, false>
+        value={value}
+        onChange={(val: SingleValue<OptionType>) => onChange(val)}
+        inputValue={inputValue}
+        onInputChange={(val, { action }) => {
+          if (action === 'input-change') setInputValue(val)
+        }}
+        options={filteredOptions}
+        isSearchable
+        openMenuOnClick
+        openMenuOnFocus
+        menuIsOpen={menuIsOpen}
+        onMenuOpen={() => setMenuIsOpen(true)}
+        onMenuClose={() => setMenuIsOpen(false)}
+        formatOptionLabel={formatOptionLabel || defaultFormatOptionLabel}
+        getOptionLabel={getOptionLabel || defaultGetOptionLabel}
+        isOptionSelected={isOptionSelected}
+        components={{
+          ...components,
+          Control: (props) => {
+            const onMouseDown = (e: React.MouseEvent) => {
+              e.stopPropagation()
+              menuIsOpen ? setMenuIsOpen(false) : setMenuIsOpen(true)
+            }
+            return (
+              <div onMouseDown={onMouseDown}>
+                <components.Control {...props} />
+              </div>
+            )
+          },
+          MenuList: (props) => <CustomMenuList<OptionType> {...props} search={inputValue} onSearch={setInputValue} />,
+          SingleValue: ({ data }) => (
             <div style={{ lineHeight: 1.5 }}>
-              <div style={styles.primaryText}>Select...</div>
-              <div style={styles.secondaryText}>description</div>
-              <div style={styles.tertiaryText}>meta</div>
+              <div style={styles.primaryText}>{data.label || ''}</div>
+              <div style={styles.secondaryText}>{data.description || ''}</div>
+              <div style={styles.tertiaryText}>{data.meta || ''}</div>
             </div>
-          </components.Placeholder>
-        ),
-      }}
-      styles={{
-        input: (base) => ({ ...base, display: 'none' }),
-        control: (base) => ({
-          ...base,
-          minHeight: '72px',
-          alignItems: 'flex-start',
-          paddingTop: '6px',
-          paddingBottom: '6px',
-        }),
-        menu: (base) => ({
-          ...base,
-          maxHeight: '80vh',
-          position: 'absolute',
-          zIndex: 9999,
-          overflow: 'hidden',
-        }),
-        menuList: (base) => ({
-          ...base,
-          padding: '0',
-          maxHeight: 'none',
-        }),
-        option: (base) => ({
-          ...base,
-          paddingTop: '6px',
-          paddingBottom: '6px',
-        }),
-      }}
-      menuPlacement="auto"
-      menuPosition="absolute"
-      menuShouldScrollIntoView
-    />
+          ),
+          Placeholder: (props) => (
+            <components.Placeholder {...props}>
+              <div style={{ lineHeight: 1.5 }}>
+                <div style={styles.primaryText}>Select...</div>
+                <div style={styles.secondaryText}>description</div>
+                <div style={styles.tertiaryText}>meta</div>
+              </div>
+            </components.Placeholder>
+          ),
+        }}
+        styles={{
+          input: (base) => ({ ...base, display: 'none' }),
+          control: (base) => ({
+            ...base,
+            minHeight: '72px',
+            alignItems: 'flex-start',
+            paddingTop: '6px',
+            paddingBottom: '6px',
+          }),
+          menu: (base) => ({
+            ...base,
+            maxHeight: '80vh',
+            position: 'absolute',
+            zIndex: 9999,
+            overflow: 'hidden',
+          }),
+          menuList: (base) => ({
+            ...base,
+            padding: '0',
+            maxHeight: 'none',
+          }),
+          option: (base) => ({
+            ...base,
+            paddingTop: '6px',
+            paddingBottom: '6px',
+          }),
+        }}
+        menuPlacement="auto"
+        menuPosition="absolute"
+        menuShouldScrollIntoView
+      />
+    </div>
   )
 }
 
