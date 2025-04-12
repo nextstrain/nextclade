@@ -1,18 +1,121 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { Card, Input } from 'reactstrap'
+import { FaChevronDown } from 'react-icons/fa'
+import styled from 'styled-components'
 
-type Option = {
+interface Option {
   label: string
   description: string
   meta: string
   [key: string]: unknown
 }
 
-type EnhancedSelectProps<T extends Option> = {
+interface EnhancedSelectProps<T extends Option> {
   options: T[]
   value: T | null
   onChange: (option: T | null) => void
   placeholder?: string
 }
+
+const SelectContainer = styled.div`
+  position: relative;
+  width: 100%;
+  font-family: sans-serif;
+`
+
+const SelectControl = styled.div`
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: white;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+`
+
+const OptionLabel = styled.div`
+  font-size: 14px;
+`
+
+const OptionDescription = styled.div`
+  font-size: 12px;
+  color: #555;
+`
+
+const OptionMeta = styled.div`
+  font-size: 11px;
+  color: #999;
+`
+
+const ArrowIndicator = styled.div<{ isOpen: boolean }>`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%) rotate(${(props) => (props.isOpen ? '180deg' : '0deg')});
+  transition: transform 0.2s ease;
+`
+
+const SelectMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 80vh;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 4px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+`
+
+const SearchContainer = styled.div`
+  position: sticky;
+  top: 0;
+  padding: 8px;
+  background: white;
+  border-bottom: 1px solid #eee;
+  z-index: 2;
+`
+
+const OptionsContainer = styled.div`
+  overflow-y: auto;
+  max-height: calc(80vh - 60px);
+  padding: 4px 0;
+`
+
+const OptionItem = styled.div<{ isSelected: boolean }>`
+  padding: 8px 12px;
+  cursor: pointer;
+  line-height: 1.5;
+  border-bottom: 1px solid #f5f5f5;
+  background-color: ${(props) => (props.isSelected ? '#f0f7ff' : 'white')};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`
+
+const NoOptions = styled.div`
+  padding: 12px;
+  text-align: center;
+  color: #999;
+`
+
+const ResultContainer = styled(Card)`
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 4px;
+`
 
 function EnhancedSelect<T extends Option>({
   options,
@@ -26,22 +129,34 @@ function EnhancedSelect<T extends Option>({
   const searchInputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const filteredOptions = options.filter((option) => {
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      option.label.toLowerCase().includes(searchLower) ||
-      option.description.toLowerCase().includes(searchLower) ||
-      option.meta.toLowerCase().includes(searchLower)
-    )
-  })
+  const handleClickOutside = (event: MouseEvent) => {
+    if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      setIsOpen(false)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen)
+    if (!isOpen) {
+      setSearchTerm('')
+    }
+  }
+
+  const handleSelect = (option: T) => {
+    onChange(option)
+    setIsOpen(false)
+    setSearchTerm('')
+  }
+
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
@@ -57,189 +172,75 @@ function EnhancedSelect<T extends Option>({
     }
   }, [isOpen])
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen)
-    if (!isOpen) {
-      setSearchTerm('')
-    }
-  }
-
-  const handleSelect = (option: T) => {
-    onChange(option)
-    setIsOpen(false)
-    setSearchTerm('')
-  }
+  const filteredOptions = options.filter((option) => {
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      option.label.toLowerCase().includes(searchLower) ||
+      option.description.toLowerCase().includes(searchLower) ||
+      option.meta.toLowerCase().includes(searchLower)
+    )
+  })
 
   const renderOptionContent = (option: Option) => (
     <>
-      <div className="option-label">{option.label}</div>
-      <div className="option-description">{option.description}</div>
-      <div className="option-meta">{option.meta}</div>
+      <OptionLabel>{option.label}</OptionLabel>
+      <OptionDescription>{option.description}</OptionDescription>
+      <OptionMeta>{option.meta}</OptionMeta>
     </>
   )
 
   return (
-    <div
-      ref={containerRef}
-      className="enhanced-select-container"
-      style={{
-        position: 'relative',
-        width: '100%',
-        fontFamily: 'sans-serif',
-      }}
-    >
-      {/* Main control */}
-      <div
-        className="select-control"
-        onClick={toggleMenu}
-        style={{
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          padding: '8px 12px',
-          cursor: 'pointer',
-          background: 'white',
-          minHeight: '72px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
+    <SelectContainer ref={containerRef}>
+      <SelectControl onClick={toggleMenu}>
         {value ? (
-          <div className="selected-option" style={{ lineHeight: 1.5 }}>
-            {renderOptionContent(value)}
-          </div>
+          <div className="selected-option">{renderOptionContent(value)}</div>
         ) : (
-          <div className="placeholder" style={{ lineHeight: 1.5 }}>
-            <div className="option-label">{placeholder}</div>
-            <div className="option-description" style={{ fontSize: '12px', color: '#555' }}>
-              Select an option
-            </div>
-            <div className="option-meta" style={{ fontSize: '11px', color: '#999' }}>
-              Click to open
-            </div>
+          <div className="placeholder">
+            <OptionLabel>{placeholder}</OptionLabel>
+            <OptionDescription>Select an option</OptionDescription>
+            <OptionMeta>Click to open</OptionMeta>
           </div>
         )}
 
-        {/* Arrow indicator */}
-        <div
-          style={{
-            position: 'absolute',
-            right: '12px',
-            top: '50%',
-            transform: `translateY(-50%) rotate(${isOpen ? '180deg' : '0deg'})`,
-            transition: 'transform 0.2s ease',
-          }}
-        >
-          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 1L6 6L11 1" stroke="#888" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </div>
-      </div>
+        <ArrowIndicator isOpen={isOpen}>
+          <FaChevronDown />
+        </ArrowIndicator>
+      </SelectControl>
 
-      {/* Dropdown menu */}
       {isOpen && (
-        <div
-          ref={menuRef}
-          className="select-menu"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            maxHeight: '80vh',
-            background: 'white',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            marginTop: '4px',
-            zIndex: 1000,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {/* Search input (sticky) */}
-          <div
-            className="search-container"
-            style={{
-              position: 'sticky',
-              top: 0,
-              padding: '8px',
-              background: 'white',
-              borderBottom: '1px solid #eee',
-              zIndex: 2,
-            }}
-          >
-            <input
-              ref={searchInputRef}
+        <SelectMenu ref={menuRef}>
+          <SearchContainer>
+            <Input
+              innerRef={searchInputRef}
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Search..."
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-              }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={stopPropagation}
             />
-          </div>
+          </SearchContainer>
 
-          {/* Options list (scrollable) */}
-          <div
-            className="options-container"
-            style={{
-              overflowY: 'auto',
-              maxHeight: 'calc(80vh - 60px)',
-              padding: '4px 0',
-            }}
-          >
+          <OptionsContainer>
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option, index) => (
-                <div
+                <OptionItem
                   key={index}
-                  className="option-item"
+                  isSelected={value !== null && JSON.stringify(value) === JSON.stringify(option)}
                   onClick={(e) => {
-                    e.stopPropagation()
+                    stopPropagation(e)
                     handleSelect(option)
                   }}
-                  style={{
-                    padding: '8px 12px',
-                    cursor: 'pointer',
-                    lineHeight: 1.5,
-                    borderBottom: index === filteredOptions.length - 1 ? 'none' : '1px solid #f5f5f5',
-                    backgroundColor: value && JSON.stringify(value) === JSON.stringify(option) ? '#f0f7ff' : 'white',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f5f5f5'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      value && JSON.stringify(value) === JSON.stringify(option) ? '#f0f7ff' : 'white'
-                  }}
                 >
-                  <div className="option-label" style={{ fontSize: '14px' }}>
-                    {option.label}
-                  </div>
-                  <div className="option-description" style={{ fontSize: '12px', color: '#555' }}>
-                    {option.description}
-                  </div>
-                  <div className="option-meta" style={{ fontSize: '11px', color: '#999' }}>
-                    {option.meta}
-                  </div>
-                </div>
+                  {renderOptionContent(option)}
+                </OptionItem>
               ))
             ) : (
-              <div className="no-options" style={{ padding: '12px', textAlign: 'center', color: '#999' }}>
-                No options found
-              </div>
+              <NoOptions>No options found</NoOptions>
             )}
-          </div>
-        </div>
+          </OptionsContainer>
+        </SelectMenu>
       )}
-    </div>
+    </SelectContainer>
   )
 }
 
@@ -266,21 +267,26 @@ const options: Option[] = [
   { label: 'Pear', description: 'Green fruit', meta: 'Tree' },
 ]
 
+const AppContainer = styled.div`
+  max-width: 500px;
+  margin: 20px auto;
+`
+
 export function App() {
   const [selectedOption, setSelectedOption] = useState<Option | null>(null)
 
   return (
-    <div style={{ maxWidth: '500px', margin: '20px auto' }}>
+    <AppContainer>
       <EnhancedSelect
         options={options}
         value={selectedOption}
         onChange={setSelectedOption}
         placeholder="Select an item..."
       />
-      <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #eee', borderRadius: '4px' }}>
+      <ResultContainer>
         <h3>Selected Value:</h3>
         <pre>{selectedOption ? JSON.stringify(selectedOption, null, 2) : 'Nothing selected'}</pre>
-      </div>
-    </div>
+      </ResultContainer>
+    </AppContainer>
   )
 }
