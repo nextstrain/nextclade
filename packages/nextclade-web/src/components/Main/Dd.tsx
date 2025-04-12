@@ -22,6 +22,7 @@ interface OptionItemProps<T extends Option> {
   option: T
   isSelected: boolean
   onSelect: (option: T) => void
+  registerRef?: (element: HTMLDivElement) => void
 }
 
 const SelectContainer = styled.div`
@@ -147,7 +148,7 @@ const filterOptions = <T extends Option>(options: T[], searchTerm: string): T[] 
 }
 
 function OptionItemComponent<T extends Option>(props: OptionItemProps<T>) {
-  const { option, isSelected, onSelect } = props
+  const { option, isSelected, onSelect, registerRef } = props
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -157,8 +158,22 @@ function OptionItemComponent<T extends Option>(props: OptionItemProps<T>) {
     [option, onSelect],
   )
 
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isSelected && registerRef && ref.current) {
+      registerRef(ref.current)
+    }
+  }, [isSelected, registerRef])
+
   return (
-    <OptionItem isSelected={isSelected} onClick={handleClick}>
+    <OptionItem
+      ref={ref}
+      isSelected={isSelected}
+      onClick={handleClick}
+      className="option-item"
+      data-selected={isSelected}
+    >
       {renderOptionContent(option)}
     </OptionItem>
   )
@@ -177,6 +192,7 @@ function EnhancedSelect<T extends Option>({
   const containerRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [selectedItemElement, setSelectedItemElement] = useState<HTMLDivElement | null>(null)
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -206,6 +222,10 @@ function EnhancedSelect<T extends Option>({
     [onChange],
   )
 
+  const registerSelectedItemRef = useCallback((element: HTMLDivElement) => {
+    setSelectedItemElement(element)
+  }, [])
+
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
@@ -217,10 +237,19 @@ function EnhancedSelect<T extends Option>({
   }, [isOpen, handleClickOutside])
 
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
+    if (isOpen) {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus()
+      }
+
+      if (selectedItemElement) {
+        selectedItemElement.scrollIntoView({
+          block: 'center',
+          behavior: 'auto',
+        })
+      }
     }
-  }, [isOpen])
+  }, [isOpen, selectedItemElement])
 
   const filteredOptions = useMemo(() => filterOptions(options, searchTerm), [options, searchTerm])
 
@@ -261,8 +290,9 @@ function EnhancedSelect<T extends Option>({
                 <MemoizedOptionItem
                   key={option.label}
                   option={option}
-                  isSelected={isEqual(value, option)}
                   onSelect={handleSelect}
+                  isSelected={isEqual(value, option)}
+                  registerRef={isEqual(value, option) ? registerSelectedItemRef : undefined}
                 />
               ))
             ) : (
