@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react'
-import Select, { components, MenuListProps, SingleValue } from 'react-select'
+import { isEqual } from 'lodash'
+import React, { useState, useMemo } from 'react'
+import Select, { components, MenuListProps, SingleValue, ValueContainerProps } from 'react-select'
 import Fuse from 'fuse.js'
 
 type BaseOption = {
@@ -43,6 +44,8 @@ function CustomMenuList<OptionType>(props: CustomMenuListProps<OptionType>) {
           padding: '8px 12px',
           borderBottom: '1px solid #eee',
         }}
+        // onMouseDown={(e) => e.stopPropagation()}
+        // onClick={(e) => e.stopPropagation()}
       >
         <input
           type="text"
@@ -57,13 +60,29 @@ function CustomMenuList<OptionType>(props: CustomMenuListProps<OptionType>) {
             borderRadius: '4px',
             border: '1px solid #ccc',
           }}
+          // onMouseDown={(e) => e.stopPropagation()}
+          // onClick={(e) => e.stopPropagation()}
+          // onFocus={(e) => e.stopPropagation()}
         />
       </div>
-      <div {...innerProps} style={{ maxHeight: 'calc(80vh - 60px)', overflowY: 'auto' }}>
+      <div
+        {...innerProps}
+        style={{ maxHeight: 'calc(80vh - 60px)', overflowY: 'auto' }}
+        // onMouseDown={(e) => e.stopPropagation()}
+        // onClick={(e) => e.stopPropagation()}
+        // onFocus={(e) => e.stopPropagation()}
+      >
         {children}
       </div>
     </div>
   )
+}
+
+function CustomValueContainer<OptionType>(props: ValueContainerProps<OptionType, false>) {
+  const children = React.Children.toArray(props.children)
+  const filtered = children.filter((child: any) => child?.type?.displayName !== 'Input')
+
+  return <components.ValueContainer {...props}>{filtered}</components.ValueContainer>
 }
 
 const defaultStyles = {
@@ -83,20 +102,6 @@ export function CustomSelect<OptionType extends BaseOption>({
   customStyles = {},
 }: CustomSelectProps<OptionType>) {
   const [inputValue, setInputValue] = useState('')
-  const [menuIsOpen, setMenuIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setMenuIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
 
   const styles = {
     primaryText: { ...defaultStyles.primaryText, ...customStyles.primaryText },
@@ -122,97 +127,94 @@ export function CustomSelect<OptionType extends BaseOption>({
     </div>
   )
 
-  const isOptionSelected = (option: OptionType, selectedValue: OptionType) =>
-    option.label === selectedValue.label &&
-    option.description === selectedValue.description &&
-    option.meta === selectedValue.meta
+  const isOptionSelected = (option: OptionType, selectedValue: OptionType) => isEqual(option, selectedValue)
 
   return (
-    <div ref={containerRef}>
-      <Select<OptionType, false>
-        value={value}
-        onChange={(val: SingleValue<OptionType>) => {
-          onChange(val)
-          setInputValue('')
-          setMenuIsOpen(false)
-        }}
-        inputValue={inputValue}
-        onInputChange={(val, { action }) => {
-          if (action === 'input-change') setInputValue(val)
-        }}
-        options={filteredOptions}
-        isSearchable
-        openMenuOnClick
-        openMenuOnFocus
-        menuIsOpen={menuIsOpen}
-        onMenuOpen={() => setMenuIsOpen(true)}
-        onMenuClose={() => setMenuIsOpen(false)}
-        formatOptionLabel={formatOptionLabel || defaultFormatOptionLabel}
-        getOptionLabel={getOptionLabel || defaultGetOptionLabel}
-        isOptionSelected={isOptionSelected}
-        components={{
-          ...components,
-          Control: (props) => {
-            const onMouseDown = (e: React.MouseEvent) => {
-              e.stopPropagation()
-              menuIsOpen ? setMenuIsOpen(false) : setMenuIsOpen(true)
-            }
-            return (
-              <div onMouseDown={onMouseDown}>
-                <components.Control {...props} />
-              </div>
-            )
-          },
-          MenuList: (props) => <CustomMenuList<OptionType> {...props} search={inputValue} onSearch={setInputValue} />,
-          SingleValue: ({ data }) => (
+    <Select<OptionType, false>
+      value={value}
+      onChange={(val: SingleValue<OptionType>) => {
+        onChange(val)
+        setInputValue('')
+      }}
+      inputValue=""
+      onInputChange={() => {}}
+      options={filteredOptions}
+      isSearchable
+      openMenuOnClick
+      openMenuOnFocus
+      formatOptionLabel={formatOptionLabel || defaultFormatOptionLabel}
+      getOptionLabel={getOptionLabel || defaultGetOptionLabel}
+      isOptionSelected={isOptionSelected}
+      components={{
+        ...components,
+        MenuList: (props) => <CustomMenuList<OptionType> {...props} search={inputValue} onSearch={setInputValue} />,
+        ValueContainer: CustomValueContainer,
+        Input: (props) => (
+          <components.Input
+            {...props}
+            style={{
+              height: 0,
+              minHeight: 0,
+              maxHeight: 0,
+              opacity: 0,
+              padding: 0,
+              margin: 0,
+              border: 0,
+            }}
+          />
+        ),
+        SingleValue: ({ data }) => (
+          <div style={{ lineHeight: 1.5 }}>
+            <div style={styles.primaryText}>{data.label || ''}</div>
+            <div style={styles.secondaryText}>{data.description || ''}</div>
+            <div style={styles.tertiaryText}>{data.meta || ''}</div>
+          </div>
+        ),
+        Placeholder: (props) => (
+          <components.Placeholder {...props}>
             <div style={{ lineHeight: 1.5 }}>
-              <div style={styles.primaryText}>{data.label || ''}</div>
-              <div style={styles.secondaryText}>{data.description || ''}</div>
-              <div style={styles.tertiaryText}>{data.meta || ''}</div>
+              <div style={styles.primaryText}>Select...</div>
+              <div style={styles.secondaryText}>description</div>
+              <div style={styles.tertiaryText}>meta</div>
             </div>
-          ),
-          Placeholder: (props) => (
-            <components.Placeholder {...props}>
-              <div style={{ lineHeight: 1.5 }}>
-                <div style={styles.primaryText}>Select...</div>
-                <div style={styles.secondaryText}>description</div>
-                <div style={styles.tertiaryText}>meta</div>
-              </div>
-            </components.Placeholder>
-          ),
-        }}
-        styles={{
-          input: (base) => ({ ...base, display: 'none' }),
-          control: (base) => ({
-            ...base,
-            minHeight: '72px',
-            alignItems: 'flex-start',
-            paddingTop: '6px',
-            paddingBottom: '6px',
-          }),
-          menu: (base) => ({
-            ...base,
-            maxHeight: '80vh',
-            position: 'absolute',
-            zIndex: 9999,
-            overflow: 'hidden',
-          }),
-          menuList: (base) => ({
-            ...base,
-            padding: '0',
-            maxHeight: 'none',
-          }),
-          option: (base) => ({
-            ...base,
-            paddingTop: '6px',
-            paddingBottom: '6px',
-          }),
-        }}
-        menuPlacement="auto"
-        menuPosition="absolute"
-        menuShouldScrollIntoView
-      />
-    </div>
+          </components.Placeholder>
+        ),
+      }}
+      styles={{
+        input: (base) => ({ ...base, display: 'none' }),
+        control: (base) => ({
+          ...base,
+          minHeight: '72px',
+          alignItems: 'flex-start',
+          paddingTop: '6px',
+          paddingBottom: '6px',
+        }),
+        menu: (base) => ({
+          ...base,
+          maxHeight: '80vh',
+          position: 'absolute',
+          zIndex: 9999,
+          overflow: 'hidden',
+        }),
+        menuList: (base) => ({
+          ...base,
+          padding: '0',
+          maxHeight: 'none',
+        }),
+        option: (base) => ({
+          ...base,
+          paddingTop: '6px',
+          paddingBottom: '6px',
+        }),
+      }}
+      menuPlacement="auto"
+      menuPosition="absolute"
+      menuShouldScrollIntoView
+      menuPortalTarget={document.body}
+      menuShouldBlockScroll={false}
+      blurInputOnSelect={false}
+      backspaceRemovesValue={false}
+    />
   )
 }
 
