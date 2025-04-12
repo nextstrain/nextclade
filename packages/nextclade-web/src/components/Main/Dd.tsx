@@ -1,7 +1,16 @@
 import { isEqual } from 'lodash'
 import React, { useState, useMemo } from 'react'
-import Select, { components, MenuListProps, SingleValue, ValueContainerProps } from 'react-select'
-import Fuse from 'fuse.js'
+import Select, {
+  components,
+  MenuListProps,
+  SingleValue,
+  ValueContainerProps,
+  InputProps,
+  SingleValueProps,
+  PlaceholderProps,
+  StylesConfig,
+} from 'react-select'
+import Fuse, { FuseOptionKey } from 'fuse.js'
 
 type BaseOption = {
   label: string
@@ -14,7 +23,7 @@ type CustomSelectProps<OptionType extends BaseOption> = {
   options: OptionType[]
   value: OptionType | null
   onChange: (option: OptionType | null) => void
-  searchKeys?: (keyof OptionType)[]
+  searchKeys?: FuseOptionKey<OptionType>[]
   formatOptionLabel?: (data: OptionType) => React.ReactNode
   getOptionLabel?: (data: OptionType) => string
   threshold?: number
@@ -44,8 +53,6 @@ function CustomMenuList<OptionType>(props: CustomMenuListProps<OptionType>) {
           padding: '8px 12px',
           borderBottom: '1px solid #eee',
         }}
-        // onMouseDown={(e) => e.stopPropagation()}
-        // onClick={(e) => e.stopPropagation()}
       >
         <input
           type="text"
@@ -60,18 +67,9 @@ function CustomMenuList<OptionType>(props: CustomMenuListProps<OptionType>) {
             borderRadius: '4px',
             border: '1px solid #ccc',
           }}
-          // onMouseDown={(e) => e.stopPropagation()}
-          // onClick={(e) => e.stopPropagation()}
-          // onFocus={(e) => e.stopPropagation()}
         />
       </div>
-      <div
-        {...innerProps}
-        style={{ maxHeight: 'calc(80vh - 60px)', overflowY: 'auto' }}
-        // onMouseDown={(e) => e.stopPropagation()}
-        // onClick={(e) => e.stopPropagation()}
-        // onFocus={(e) => e.stopPropagation()}
-      >
+      <div {...innerProps} style={{ maxHeight: 'calc(80vh - 60px)', overflowY: 'auto' }}>
         {children}
       </div>
     </div>
@@ -129,6 +127,34 @@ export function CustomSelect<OptionType extends BaseOption>({
 
   const isOptionSelected = (option: OptionType, selectedValue: OptionType) => isEqual(option, selectedValue)
 
+  const selectStyles: StylesConfig<OptionType, false> = {
+    input: (base) => ({ ...base, display: 'none' }),
+    control: (base) => ({
+      ...base,
+      minHeight: '72px',
+      alignItems: 'flex-start',
+      paddingTop: '6px',
+      paddingBottom: '6px',
+    }),
+    menu: (base) => ({
+      ...base,
+      maxHeight: '80vh',
+      position: 'absolute',
+      zIndex: 9999,
+      overflow: 'hidden',
+    }),
+    menuList: (base) => ({
+      ...base,
+      padding: '0',
+      maxHeight: 'none',
+    }),
+    option: (base) => ({
+      ...base,
+      paddingTop: '6px',
+      paddingBottom: '6px',
+    }),
+  }
+
   return (
     <Select<OptionType, false>
       value={value}
@@ -147,30 +173,24 @@ export function CustomSelect<OptionType extends BaseOption>({
       isOptionSelected={isOptionSelected}
       components={{
         ...components,
-        MenuList: (props) => <CustomMenuList<OptionType> {...props} search={inputValue} onSearch={setInputValue} />,
+        MenuList: (props: MenuListProps<OptionType, false>) => (
+          <CustomMenuList<OptionType> {...props} search={inputValue} onSearch={setInputValue} />
+        ),
         ValueContainer: CustomValueContainer,
-        Input: (props) => (
+        Input: (props: InputProps) => (
           <components.Input
             {...props}
-            style={{
-              height: 0,
-              minHeight: 0,
-              maxHeight: 0,
-              opacity: 0,
-              padding: 0,
-              margin: 0,
-              border: 0,
-            }}
+            style={{ height: 0, minHeight: 0, maxHeight: 0, opacity: 0, padding: 0, margin: 0, border: 0 }}
           />
         ),
-        SingleValue: ({ data }) => (
+        SingleValue: ({ data }: SingleValueProps<OptionType, false>) => (
           <div style={{ lineHeight: 1.5 }}>
             <div style={styles.primaryText}>{data.label || ''}</div>
             <div style={styles.secondaryText}>{data.description || ''}</div>
             <div style={styles.tertiaryText}>{data.meta || ''}</div>
           </div>
         ),
-        Placeholder: (props) => (
+        Placeholder: (props: PlaceholderProps<OptionType, false>) => (
           <components.Placeholder {...props}>
             <div style={{ lineHeight: 1.5 }}>
               <div style={styles.primaryText}>Select...</div>
@@ -180,33 +200,7 @@ export function CustomSelect<OptionType extends BaseOption>({
           </components.Placeholder>
         ),
       }}
-      styles={{
-        input: (base) => ({ ...base, display: 'none' }),
-        control: (base) => ({
-          ...base,
-          minHeight: '72px',
-          alignItems: 'flex-start',
-          paddingTop: '6px',
-          paddingBottom: '6px',
-        }),
-        menu: (base) => ({
-          ...base,
-          maxHeight: '80vh',
-          position: 'absolute',
-          zIndex: 9999,
-          overflow: 'hidden',
-        }),
-        menuList: (base) => ({
-          ...base,
-          padding: '0',
-          maxHeight: 'none',
-        }),
-        option: (base) => ({
-          ...base,
-          paddingTop: '6px',
-          paddingBottom: '6px',
-        }),
-      }}
+      styles={selectStyles}
       menuPlacement="auto"
       menuPosition="absolute"
       menuShouldScrollIntoView
