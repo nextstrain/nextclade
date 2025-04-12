@@ -18,6 +18,12 @@ interface EnhancedSelectProps<T extends Option> {
   placeholder?: string
 }
 
+interface OptionItemProps<T extends Option> {
+  option: T
+  isSelected: boolean
+  onSelect: (option: T) => void
+}
+
 const SelectContainer = styled.div`
   position: relative;
   width: 100%;
@@ -130,7 +136,7 @@ const renderOptionContent = (option: Option) => (
   </>
 )
 
-const filterOptions = (options: Option[], searchTerm: string) => {
+const filterOptions = <T extends Option>(options: T[], searchTerm: string): T[] => {
   const searchLower = searchTerm.toLowerCase()
   return options.filter(
     (option) =>
@@ -140,9 +146,25 @@ const filterOptions = (options: Option[], searchTerm: string) => {
   )
 }
 
-const isOptionSelected = (value: Option | null, option: Option) => {
-  return value !== null && JSON.stringify(value) === JSON.stringify(option)
+function OptionItemComponent<T extends Option>(props: OptionItemProps<T>) {
+  const { option, isSelected, onSelect } = props
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onSelect(option)
+    },
+    [option, onSelect],
+  )
+
+  return (
+    <OptionItem isSelected={isSelected} onClick={handleClick}>
+      {renderOptionContent(option)}
+    </OptionItem>
+  )
 }
+
+const MemoizedOptionItem = React.memo(OptionItemComponent) as typeof OptionItemComponent
 
 function EnhancedSelect<T extends Option>({
   options,
@@ -182,14 +204,6 @@ function EnhancedSelect<T extends Option>({
       setSearchTerm('')
     },
     [onChange],
-  )
-
-  const handleOptionClick = useCallback(
-    (e: React.MouseEvent, option: T) => {
-      stopPropagation(e)
-      handleSelect(option)
-    },
-    [handleSelect],
   )
 
   useEffect(() => {
@@ -244,13 +258,12 @@ function EnhancedSelect<T extends Option>({
           <OptionsContainer>
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
-                <OptionItem
+                <MemoizedOptionItem
                   key={option.label}
+                  option={option}
                   isSelected={isEqual(value, option)}
-                  onClick={(e) => handleOptionClick(e, option)}
-                >
-                  {renderOptionContent(option)}
-                </OptionItem>
+                  onSelect={handleSelect}
+                />
               ))
             ) : (
               <NoOptions>No options found</NoOptions>
