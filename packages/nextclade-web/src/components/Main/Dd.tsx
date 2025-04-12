@@ -102,6 +102,7 @@ function EnhancedSelect<T extends Option>({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
+          position: 'relative',
         }}
       >
         {value ? (
@@ -119,6 +120,21 @@ function EnhancedSelect<T extends Option>({
             </div>
           </div>
         )}
+
+        {/* Arrow indicator */}
+        <div
+          style={{
+            position: 'absolute',
+            right: '12px',
+            top: '50%',
+            transform: `translateY(-50%) rotate(${isOpen ? '180deg' : '0deg'})`,
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1L6 6L11 1" stroke="#888" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
       </div>
 
       {/* Dropdown menu */}
