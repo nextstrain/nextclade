@@ -1,28 +1,30 @@
 import { isEqual } from 'lodash'
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo, ElementType } from 'react'
 import { Card, Input } from 'reactstrap'
 import { FaChevronDown } from 'react-icons/fa'
+import { search } from 'src/helpers/search'
 import styled from 'styled-components'
 
-interface Option {
-  label: string
-  description: string
-  meta: string
+export interface BaseOption {
   [key: string]: unknown
 }
 
-interface EnhancedSelectProps<T extends Option> {
+export interface EnhancedSelectProps<T extends BaseOption> {
   options: T[]
-  value: T | null
-  onChange: (option: T | null) => void
-  placeholder?: string
+  value: T | undefined
+  onChange: (option: T | undefined) => void
+  ControlComponent: ElementType<{ option: T | undefined }>
+  ItemComponent: ElementType<{ option: T | undefined; isSelected: boolean }>
+  EmptyOptionsComponent?: ElementType<Record<string, never>>
+  searchKeys?: (option: T) => string[]
 }
 
-interface OptionItemProps<T extends Option> {
+interface OptionItemProps<T extends BaseOption> {
   option: T
   isSelected: boolean
   onSelect: (option: T) => void
   registerRef?: (element: HTMLDivElement) => void
+  ItemComponent: ElementType<{ option: T | undefined; isSelected: boolean }>
 }
 
 const SelectContainer = styled.div`
@@ -129,26 +131,8 @@ const stopPropagation = (e: React.MouseEvent) => {
   e.stopPropagation()
 }
 
-const renderOptionContent = (option: Option) => (
-  <>
-    <OptionLabel>{option.label}</OptionLabel>
-    <OptionDescription>{option.description}</OptionDescription>
-    <OptionMeta>{option.meta}</OptionMeta>
-  </>
-)
-
-const filterOptions = <T extends Option>(options: T[], searchTerm: string): T[] => {
-  const searchLower = searchTerm.toLowerCase()
-  return options.filter(
-    (option) =>
-      option.label.toLowerCase().includes(searchLower) ||
-      option.description.toLowerCase().includes(searchLower) ||
-      option.meta.toLowerCase().includes(searchLower),
-  )
-}
-
-function OptionItemComponent<T extends Option>(props: OptionItemProps<T>) {
-  const { option, isSelected, onSelect, registerRef } = props
+function OptionItemComponent<T extends BaseOption>(props: OptionItemProps<T>) {
+  const { option, isSelected, onSelect, registerRef, ItemComponent } = props
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -167,27 +151,27 @@ function OptionItemComponent<T extends Option>(props: OptionItemProps<T>) {
   }, [isSelected, registerRef])
 
   return (
-    <OptionItem
-      ref={ref}
-      isSelected={isSelected}
-      onClick={handleClick}
-      className="option-item"
-      data-selected={isSelected}
-    >
-      {renderOptionContent(option)}
+    <OptionItem ref={ref} isSelected={isSelected} onClick={handleClick} data-selected={isSelected}>
+      {ItemComponent ? <ItemComponent option={option} isSelected={isSelected} /> : null}
     </OptionItem>
   )
 }
 
-const MemoizedOptionItem = React.memo(OptionItemComponent) as typeof OptionItemComponent
+const MemoizedOptionItem = React.memo(OptionItemComponent) as <T extends BaseOption>(
+  props: OptionItemProps<T>,
+) => React.ReactElement
 
-function EnhancedSelect<T extends Option>({
+function EnhancedSelect<T extends BaseOption>({
   options,
   value,
   onChange,
-  placeholder = 'Select an option...',
+  ControlComponent,
+  ItemComponent,
+  EmptyOptionsComponent,
+  searchKeys = () => [],
 }: EnhancedSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
+
   const [searchTerm, setSearchTerm] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -251,61 +235,79 @@ function EnhancedSelect<T extends Option>({
     }
   }, [isOpen, selectedItemElement])
 
-  const filteredOptions = useMemo(() => filterOptions(options, searchTerm), [options, searchTerm])
+  const filteredOptions = useMemo(() => {
+    if (searchTerm.trim().length === 0) {
+      return options
+    }
+    const { itemsStartWith, itemsInclude } = search(options, searchTerm, searchKeys)
+    return [...itemsStartWith, ...itemsInclude]
+  }, [options, searchTerm, searchKeys])
+
+  const renderOptionsList = useMemo(() => {
+    if (filteredOptions.length === 0) {
+      return EmptyOptionsComponent ? <EmptyOptionsComponent /> : null
+    }
+
+    return filteredOptions.map((option) => (
+      <MemoizedOptionItem
+        key={JSON.stringify(option)}
+        option={option}
+        onSelect={handleSelect}
+        isSelected={isEqual(value, option)}
+        registerRef={isEqual(value, option) ? registerSelectedItemRef : undefined}
+        ItemComponent={ItemComponent}
+      />
+    ))
+  }, [filteredOptions, handleSelect, value, registerSelectedItemRef, ItemComponent, EmptyOptionsComponent])
+
+  const renderSearchInput = useMemo(() => {
+    return (
+      <SearchContainer>
+        <Input
+          innerRef={searchInputRef}
+          type="text"
+          value={searchTerm}
+          onChange={handleInputChange}
+          onClick={stopPropagation}
+        />
+      </SearchContainer>
+    )
+  }, [searchTerm, handleInputChange])
+
+  const renderMenu = useMemo(() => {
+    if (!isOpen) {
+      return null
+    }
+
+    return (
+      <SelectMenu ref={menuRef}>
+        {renderSearchInput}
+        <OptionsContainer>{renderOptionsList}</OptionsContainer>
+      </SelectMenu>
+    )
+  }, [isOpen, renderSearchInput, renderOptionsList])
 
   return (
     <SelectContainer ref={containerRef}>
       <SelectControl onClick={toggleMenu}>
-        {value ? (
-          <div className="selected-option">{renderOptionContent(value)}</div>
-        ) : (
-          <div className="placeholder">
-            <OptionLabel>{placeholder}</OptionLabel>
-            <OptionDescription>Select an option</OptionDescription>
-            <OptionMeta>Click to open</OptionMeta>
-          </div>
-        )}
-
+        <ControlComponent option={value} />
         <ArrowIndicator isOpen={isOpen}>
           <FaChevronDown />
         </ArrowIndicator>
       </SelectControl>
-
-      {isOpen && (
-        <SelectMenu ref={menuRef}>
-          <SearchContainer>
-            <Input
-              innerRef={searchInputRef}
-              type="text"
-              value={searchTerm}
-              onChange={handleInputChange}
-              placeholder="Search..."
-              onClick={stopPropagation}
-            />
-          </SearchContainer>
-
-          <OptionsContainer>
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <MemoizedOptionItem
-                  key={option.label}
-                  option={option}
-                  onSelect={handleSelect}
-                  isSelected={isEqual(value, option)}
-                  registerRef={isEqual(value, option) ? registerSelectedItemRef : undefined}
-                />
-              ))
-            ) : (
-              <NoOptions>No options found</NoOptions>
-            )}
-          </OptionsContainer>
-        </SelectMenu>
-      )}
+      {renderMenu}
     </SelectContainer>
   )
 }
 
-const options: Option[] = [
+interface ItemOption extends BaseOption {
+  label: string
+  description: string
+  meta: string
+  [key: string]: unknown
+}
+
+const options: ItemOption[] = [
   { label: 'Apple', description: 'Fruit from tree', meta: 'Red' },
   { label: 'Banana', description: 'Yellow fruit', meta: 'Tropical' },
   { label: 'Cherry', description: 'Red fruit', meta: 'Tree' },
@@ -333,8 +335,44 @@ const AppContainer = styled.div`
   margin: 20px auto;
 `
 
+function renderOptionContent(option?: ItemOption) {
+  if (!option) {
+    return (
+      <div>
+        <OptionLabel>{'Select an item...'}</OptionLabel>
+        <OptionDescription>{'Select an option'}</OptionDescription>
+        <OptionMeta>{'Click to open'}</OptionMeta>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <OptionLabel>{option.label ?? ''}</OptionLabel>
+      <OptionDescription>{option.description}</OptionDescription>
+      <OptionMeta>{option.meta}</OptionMeta>
+    </>
+  )
+}
+
+function DefaultControl({ option }: { option?: ItemOption }) {
+  return renderOptionContent(option)
+}
+
+function DefaultItem({ option }: { option?: ItemOption; isSelected: boolean }) {
+  return renderOptionContent(option)
+}
+
+function EmptyOptions() {
+  return <NoOptions>No matching items found</NoOptions>
+}
+
 export function App() {
-  const [selectedOption, setSelectedOption] = useState<Option | null>(null)
+  const [selectedOption, setSelectedOption] = useState<ItemOption | undefined>(undefined)
+
+  const getSearchKeys = useCallback((option: ItemOption) => {
+    return [option.label, option.meta, option.description]
+  }, [])
 
   return (
     <AppContainer>
@@ -342,7 +380,10 @@ export function App() {
         options={options}
         value={selectedOption}
         onChange={setSelectedOption}
-        placeholder="Select an item..."
+        ControlComponent={DefaultControl}
+        ItemComponent={DefaultItem}
+        EmptyOptionsComponent={EmptyOptions}
+        searchKeys={getSearchKeys}
       />
       <ResultContainer>
         <h3>Selected Value:</h3>
