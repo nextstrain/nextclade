@@ -1,7 +1,8 @@
 import { isEqual } from 'lodash'
 import React, { useState, useRef, useEffect, useCallback, useMemo, ElementType } from 'react'
-import { Card, Input } from 'reactstrap'
+import { Card } from 'reactstrap'
 import { FaChevronDown } from 'react-icons/fa'
+import { SearchBox } from 'src/components/Common/SearchBox'
 import { search } from 'src/helpers/search'
 import styled from 'styled-components'
 
@@ -127,10 +128,6 @@ const ResultContainer = styled(Card)`
   border-radius: 4px;
 `
 
-const stopPropagation = (e: React.MouseEvent) => {
-  e.stopPropagation()
-}
-
 function OptionItemComponent<T extends BaseOption>(props: OptionItemProps<T>) {
   const { option, isSelected, onSelect, registerRef, ItemComponent } = props
 
@@ -182,10 +179,6 @@ function EnhancedSelect<T extends BaseOption>({
     if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
       setIsOpen(false)
     }
-  }, [])
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
   }, [])
 
   const toggleMenu = useCallback(() => {
@@ -260,20 +253,6 @@ function EnhancedSelect<T extends BaseOption>({
     ))
   }, [filteredOptions, handleSelect, value, registerSelectedItemRef, ItemComponent, EmptyOptionsComponent])
 
-  const renderSearchInput = useMemo(() => {
-    return (
-      <SearchContainer>
-        <Input
-          innerRef={searchInputRef}
-          type="text"
-          value={searchTerm}
-          onChange={handleInputChange}
-          onClick={stopPropagation}
-        />
-      </SearchContainer>
-    )
-  }, [searchTerm, handleInputChange])
-
   const renderMenu = useMemo(() => {
     if (!isOpen) {
       return null
@@ -281,11 +260,13 @@ function EnhancedSelect<T extends BaseOption>({
 
     return (
       <SelectMenu ref={menuRef}>
-        {renderSearchInput}
+        <SearchContainer>
+          <SearchBox searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
+        </SearchContainer>
         <OptionsContainer>{renderOptionsList}</OptionsContainer>
       </SelectMenu>
     )
-  }, [isOpen, renderSearchInput, renderOptionsList])
+  }, [isOpen, searchTerm, renderOptionsList])
 
   return (
     <SelectContainer ref={containerRef}>
