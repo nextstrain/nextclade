@@ -1,6 +1,6 @@
 import React from 'react'
 import { Layout } from 'src/components/Layout/Layout'
-import { App } from 'src/components/Main/Dd'
+import { App } from 'src/components/Common/Dropdown2'
 import { Landing } from 'src/components/Main/MainInputForm'
 import styled from 'styled-components'
 
