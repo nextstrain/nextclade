@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { Card } from 'reactstrap'
 import { Layout } from 'src/components/Layout/Layout'
-import { DropdownEnhancedBaseOption, DropdownEnhanced } from 'src/components/Common/Dropdown2'
+import { DropdownEnhancedBaseOption, DropdownEnhanced } from 'src/components/Common/DropdownEnhanced'
 import { Landing } from 'src/components/Main/MainInputForm'
 import styled from 'styled-components'
 
