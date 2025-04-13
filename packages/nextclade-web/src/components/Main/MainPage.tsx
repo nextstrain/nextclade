@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { Card } from 'reactstrap'
 import { Layout } from 'src/components/Layout/Layout'
-import { BaseOption, EnhancedSelect } from 'src/components/Common/Dropdown2'
+import { DropdownEnhancedBaseOption, DropdownEnhanced } from 'src/components/Common/Dropdown2'
 import { Landing } from 'src/components/Main/MainInputForm'
 import styled from 'styled-components'
 
@@ -38,7 +38,7 @@ export function App() {
 
   return (
     <AppContainer>
-      <EnhancedSelect
+      <DropdownEnhanced
         options={options}
         value={selectedOption}
         onChange={setSelectedOption}
@@ -55,7 +55,7 @@ export function App() {
   )
 }
 
-interface ItemOption extends BaseOption {
+interface ItemOption extends DropdownEnhancedBaseOption {
   label: string
   description: string
   meta: string

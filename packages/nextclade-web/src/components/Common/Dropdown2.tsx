@@ -1,15 +1,15 @@
 import { isEqual } from 'lodash'
 import React, { useState, useRef, useEffect, useCallback, useMemo, ElementType } from 'react'
 import { FaChevronDown } from 'react-icons/fa'
+import styled from 'styled-components'
 import { SearchBox } from 'src/components/Common/SearchBox'
 import { search } from 'src/helpers/search'
-import styled from 'styled-components'
 
-export interface BaseOption {
+export interface DropdownEnhancedBaseOption {
   [key: string]: unknown
 }
 
-export interface EnhancedSelectProps<T extends BaseOption> {
+export interface DropdownEnhancedProps<T extends DropdownEnhancedBaseOption> {
   options: T[]
   value: T | undefined
   onChange: (option: T | undefined) => void
@@ -19,7 +19,7 @@ export interface EnhancedSelectProps<T extends BaseOption> {
   searchKeys?: (option: T) => string[]
 }
 
-interface OptionItemProps<T extends BaseOption> {
+interface OptionItemProps<T extends DropdownEnhancedBaseOption> {
   option: T
   isSelected: boolean
   onSelect: (option: T) => void
@@ -27,13 +27,13 @@ interface OptionItemProps<T extends BaseOption> {
   ItemComponent: ElementType<{ option: T | undefined; isSelected: boolean }>
 }
 
-const SelectContainer = styled.div`
+const Container = styled.div`
   position: relative;
   width: 100%;
   font-family: sans-serif;
 `
 
-const SelectControl = styled.div`
+const Control = styled.div`
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 8px 12px;
@@ -54,7 +54,7 @@ const ArrowIndicator = styled.div<{ isOpen: boolean }>`
   transition: transform 0.2s ease;
 `
 
-const SelectMenu = styled.div`
+const Menu = styled.div`
   position: absolute;
   top: 100%;
   left: 0;
@@ -101,7 +101,7 @@ const OptionItem = styled.div<{ isSelected: boolean }>`
   }
 `
 
-function OptionItemComponent<T extends BaseOption>(props: OptionItemProps<T>) {
+function OptionItemComponent<T extends DropdownEnhancedBaseOption>(props: OptionItemProps<T>) {
   const { option, isSelected, onSelect, registerRef, ItemComponent } = props
 
   const handleClick = useCallback(
@@ -127,11 +127,11 @@ function OptionItemComponent<T extends BaseOption>(props: OptionItemProps<T>) {
   )
 }
 
-const MemoizedOptionItem = React.memo(OptionItemComponent) as <T extends BaseOption>(
+const MemoizedOptionItem = React.memo(OptionItemComponent) as <T extends DropdownEnhancedBaseOption>(
   props: OptionItemProps<T>,
 ) => React.ReactElement
 
-export function EnhancedSelect<T extends BaseOption>({
+export function DropdownEnhanced<T extends DropdownEnhancedBaseOption>({
   options,
   value,
   onChange,
@@ -139,7 +139,7 @@ export function EnhancedSelect<T extends BaseOption>({
   ItemComponent,
   EmptyOptionsComponent,
   searchKeys = () => [],
-}: EnhancedSelectProps<T>) {
+}: DropdownEnhancedProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -232,24 +232,24 @@ export function EnhancedSelect<T extends BaseOption>({
     }
 
     return (
-      <SelectMenu ref={menuRef}>
+      <Menu ref={menuRef}>
         <SearchContainer>
           <SearchBox searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
         </SearchContainer>
         <OptionsContainer>{renderOptionsList}</OptionsContainer>
-      </SelectMenu>
+      </Menu>
     )
   }, [isOpen, searchTerm, renderOptionsList])
 
   return (
-    <SelectContainer ref={containerRef}>
-      <SelectControl onClick={toggleMenu}>
+    <Container ref={containerRef}>
+      <Control onClick={toggleMenu}>
         <ControlComponent option={value} />
         <ArrowIndicator isOpen={isOpen}>
           <FaChevronDown />
         </ArrowIndicator>
-      </SelectControl>
+      </Control>
       {renderMenu}
-    </SelectContainer>
+    </Container>
   )
 }
