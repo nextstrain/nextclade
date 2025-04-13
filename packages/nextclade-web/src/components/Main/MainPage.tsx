@@ -134,12 +134,10 @@ const OptionLabel = styled.div`
 
 const OptionDescription = styled.div`
   font-size: 12px;
-  color: #555;
 `
 
 const OptionMeta = styled.div`
   font-size: 11px;
-  color: #999;
 `
 
 const NoOptions = styled.div`

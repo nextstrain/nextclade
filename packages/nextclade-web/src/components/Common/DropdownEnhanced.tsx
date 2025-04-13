@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash'
+import { lighten, transparentize } from 'polished'
 import React, { useState, useRef, useEffect, useCallback, useMemo, ElementType } from 'react'
 import { FaChevronDown } from 'react-icons/fa'
 import styled from 'styled-components'
@@ -90,14 +91,15 @@ const OptionItem = styled.div<{ isSelected: boolean }>`
   cursor: pointer;
   line-height: 1.5;
   border-bottom: 1px solid #f5f5f5;
-  background-color: ${(props) => (props.isSelected ? '#f0f7ff' : 'white')};
+  background-color: ${(props) => props.isSelected && props.theme.primary};
+  color: ${(props) => props.isSelected && props.theme.white};
 
   &:last-child {
     border-bottom: none;
   }
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: ${(props) => !props.isSelected && transparentize(0.75)(props.theme.primary)};
   }
 `
 
