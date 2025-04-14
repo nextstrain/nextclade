@@ -4,10 +4,13 @@ import { useRouter } from 'next/router'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase, CardL1Header } from 'src/components/Common/Card'
+import { TabMultiDatasetHelp } from 'src/components/Help/TabMultiDatasetHelp'
+import { TabSingleDatasetHelp } from 'src/components/Help/TabSingleDatasetHelp'
 import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
+import { useRecoilToggle } from 'src/hooks/useToggle'
 import styled from 'styled-components'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
-import { datasetsCurrentAtom } from 'src/state/dataset.state'
+import { datasetsCurrentAtom, isSingleDatasetTabActiveAtom } from 'src/state/dataset.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { autodetectShouldSetCurrentDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
@@ -20,6 +23,7 @@ import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 
 const ContainerFixed = styled.div`
   display: flex;
@@ -124,6 +128,15 @@ export function LandingCardDataset() {
     return t('Selected reference dataset')
   }, [datasets, t])
 
+  const { state: isSingle, setState: setIsSingle } = useRecoilToggle(isSingleDatasetTabActiveAtom)
+  const activeTabId = isSingle ? 'single' : 'multi'
+  const setActiveTabId = useCallback(
+    (activeTabId: string) => {
+      setIsSingle(activeTabId !== 'multi')
+    },
+    [setIsSingle],
+  )
+
   return (
     <CardL1 className="d-flex flex-column h-100">
       <CardL1Header>
@@ -133,7 +146,23 @@ export function LandingCardDataset() {
         </CardTitle>
       </CardL1Header>
       <CardL1Body className="d-flex flex-column h-100">
-        <DatasetCurrentOrSelectButton />
+        <TabNav>
+          <TabLabel href="#single" tabId="single" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {t('Single dataset')}
+            <TabSingleDatasetHelp />
+          </TabLabel>
+          <TabLabel href="#multi" tabId="multi" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {t('Multiple datasets')}
+            <TabMultiDatasetHelp />
+          </TabLabel>
+        </TabNav>
+
+        <TabContent activeTab={activeTabId}>
+          <TabPane tabId="single">{'Hello'}</TabPane>
+          <TabPane tabId="multi">
+            <DatasetCurrentOrSelectButton />
+          </TabPane>
+        </TabContent>
       </CardL1Body>
     </CardL1>
   )

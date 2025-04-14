@@ -55,3 +55,9 @@ export const minimizerIndexVersionAtom = atom<MinimizerIndexVersion | undefined>
   key: 'minimizerIndexVersionAtom',
   default: undefined,
 })
+
+export const isSingleDatasetTabActiveAtom = atom({
+  key: 'isSingleDatasetTabActiveAtom',
+  default: true,
+  effects: [persistAtom],
+})
