@@ -1,27 +1,21 @@
-import React, { useCallback, useEffect, useMemo } from 'react'
-import { isEmpty, isNil } from 'lodash'
-import { useRouter } from 'next/router'
+import React, { useCallback, useMemo } from 'react'
+import { isEmpty } from 'lodash'
 import { Col, Row } from 'reactstrap'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilValue } from 'recoil'
+import styled from 'styled-components'
 import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase, CardL1Header } from 'src/components/Common/Card'
 import { TabMultiDatasetHelp } from 'src/components/Help/TabMultiDatasetHelp'
 import { TabSingleDatasetHelp } from 'src/components/Help/TabSingleDatasetHelp'
-import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
+import { SectionDatasetMulti } from 'src/components/Main/SectionDatasetMulti'
+import { SectionDatasetSingle } from 'src/components/Main/SectionDatasetSingle'
 import { useRecoilToggle } from 'src/hooks/useToggle'
-import styled from 'styled-components'
-import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { datasetsCurrentAtom, isSingleDatasetTabActiveAtom } from 'src/state/dataset.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
-import { autodetectShouldSetCurrentDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
-import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
-import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { QuerySequenceFilePicker } from 'src/components/Main/QuerySequenceFilePicker'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
-import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 
@@ -32,12 +26,6 @@ const ContainerFixed = styled.div`
   width: 100%;
   margin: 0 auto;
   max-width: 1200px;
-`
-
-const Container = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
 `
 
 const Header = styled.div`
@@ -158,9 +146,11 @@ export function LandingCardDataset() {
         </TabNav>
 
         <TabContent activeTab={activeTabId}>
-          <TabPane tabId="single">{'Hello'}</TabPane>
+          <TabPane tabId="single">
+            <SectionDatasetSingle />
+          </TabPane>
           <TabPane tabId="multi">
-            <DatasetCurrentOrSelectButton />
+            <SectionDatasetMulti />
           </TabPane>
         </TabContent>
       </CardL1Body>
@@ -170,9 +160,7 @@ export function LandingCardDataset() {
 
 const CardL1 = styled(CardL1Base)``
 
-const CardL1Body = styled(CardL1BodyBase)`
-  //min-height: 386px;
-`
+const CardL1Body = styled(CardL1BodyBase)``
 
 export const CardTitle = styled.h4`
   display: inline-flex;
@@ -182,68 +170,3 @@ export const CardTitle = styled.h4`
   white-space: nowrap;
   text-overflow: ellipsis;
 `
-
-function DatasetCurrentOrSelectButton() {
-  const { push } = useRouter()
-
-  const run = useRunAnalysis()
-  const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
-  const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
-  const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
-
-  useEffect(() => {
-    if (isNil(datasetsCurrent) || isEmpty(datasetsCurrent) || autodetectShouldSetCurrentDataset) {
-      setDatasetsCurrent(topDatasets)
-    }
-  }, [autodetectShouldSetCurrentDataset, datasetsCurrent, setDatasetsCurrent, topDatasets])
-
-  const toDatasetSelection = useCallback(() => {
-    // eslint-disable-next-line no-void
-    void push('/dataset')
-  }, [push])
-
-  if (isEmpty(datasetsCurrent)) {
-    return (
-      <Container>
-        <Row noGutters className="mb-1">
-          <Col>
-            <SuggestionPanel />
-          </Col>
-        </Row>
-
-        <Row noGutters className="my-1">
-          <Col>
-            <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
-          </Col>
-        </Row>
-
-        <SuggestionAlertMainPage className="mt-1 w-100" />
-      </Container>
-    )
-  }
-
-  return (
-    <Container>
-      <Row noGutters className="mb-1">
-        <Col>
-          <SuggestionPanel />
-        </Col>
-      </Row>
-
-      <Row noGutters className="my-1">
-        <Col>
-          <DatasetCurrentList />
-        </Col>
-      </Row>
-
-      <Row noGutters className="my-1">
-        <Col className="d-flex w-100">
-          <ButtonChangeDataset className="mr-auto" onClick={toDatasetSelection} />
-          <ButtonRun className="ml-auto" onClick={run} />
-        </Col>
-      </Row>
-
-      <SuggestionAlertMainPage className="mt-1 w-100" />
-    </Container>
-  )
-}

@@ -158,6 +158,27 @@ export const topSuggestedDatasetsAtom = selector<Dataset[]>({
   },
 })
 
+export const firstTopSuggestedDatasetAtom = selector<Dataset | undefined>({
+  key: 'firstSuggestedDatasetAtom',
+  get: ({ get }) => {
+    return get(topSuggestedDatasetsAtom)[0]
+  },
+})
+
+export const numberTopSuggestedDatasetsAtom = selector<number>({
+  key: 'numberTopSuggestedDatasetsAtom',
+  get: ({ get }) => {
+    return get(topSuggestedDatasetsAtom).length
+  },
+})
+
+export const hasTopSuggestedDatasetsAtom = selector<boolean>({
+  key: 'hasTopSuggestedDatasetsAtom',
+  get: ({ get }) => {
+    return get(numberTopSuggestedDatasetsAtom) > 0
+  },
+})
+
 /** Map of sequence indices to their top suggested dataset's name. Sequences without suggestions are omitted */
 export const seqIndexToTopDatasetNameAtom = selector<Map<number, string>>({
   key: 'seqIndexToTopDatasetNameAtom',
