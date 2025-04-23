@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import { datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { DatasetSummary } from 'src/components/Main/DatasetCurrentSummary'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
@@ -10,22 +11,24 @@ import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { autodetectShouldSetCurrentDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
-import { datasetsCurrentAtom } from 'src/state/dataset.state'
+import { autodetectShouldSetCurrentDatasetAtom, firstTopSuggestedDatasetAtom } from 'src/state/autodetect.state'
 
 export function SectionDatasetSingle() {
   const { push } = useRouter()
 
-  const run = useRunAnalysis()
-  const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
+  const run = useRunAnalysis({ isSingle: true })
+  const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetSingleCurrentAtom)
   const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
-  const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
+  const firstTopSuggestedDataset = useRecoilValue(firstTopSuggestedDatasetAtom)
 
   useEffect(() => {
-    if (isNil(datasetsCurrent) || isEmpty(datasetsCurrent) || autodetectShouldSetCurrentDataset) {
-      setDatasetsCurrent(topDatasets)
+    if (
+      (isNil(datasetCurrent) || isEmpty(datasetCurrent) || autodetectShouldSetCurrentDataset) &&
+      !isEmpty(firstTopSuggestedDataset)
+    ) {
+      setDatasetCurrent(firstTopSuggestedDataset)
     }
-  }, [autodetectShouldSetCurrentDataset, datasetsCurrent, setDatasetsCurrent, topDatasets])
+  }, [autodetectShouldSetCurrentDataset, datasetCurrent, firstTopSuggestedDataset, setDatasetCurrent])
 
   const toDatasetSelection = useCallback(() => {
     // eslint-disable-next-line no-void
@@ -33,26 +36,26 @@ export function SectionDatasetSingle() {
   }, [push])
 
   const content = useMemo(() => {
-    if (isNil(datasetsCurrent) || isEmpty(datasetsCurrent) || isNil(datasetsCurrent[0])) {
+    if (isNil(datasetCurrent) || isEmpty(datasetCurrent) || isNil(datasetCurrent)) {
       return <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
     }
     return (
       <>
         <Row noGutters className="my-1">
           <Col>
-            <DatasetSummary dataset={datasetsCurrent[0]} />
+            <DatasetSummary dataset={datasetCurrent} />
           </Col>
         </Row>
 
         <Row noGutters className="my-1">
           <Col className="d-flex w-100">
             <ButtonChangeDataset className="mr-auto" onClick={toDatasetSelection} />
-            <ButtonRun className="ml-auto" onClick={run} />
+            <ButtonRun className="ml-auto" onClick={run} singleDatasetMode />
           </Col>
         </Row>
       </>
     )
-  }, [datasetsCurrent, run, toDatasetSelection])
+  }, [datasetCurrent, run, toDatasetSelection])
 
   return (
     <Container>

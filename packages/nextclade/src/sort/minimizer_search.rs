@@ -183,7 +183,12 @@ pub fn find_best_datasets(
     }
   }
 
-  let suggestions = suggestions.into_iter().sorted_by_key(|s| s.n_hits).collect_vec();
+  let suggestions = suggestions
+    .into_iter()
+    .sorted_by_key(|s| s.qry_indices.len())
+    .rev()
+    .collect_vec();
+
   Ok(FindBestDatasetsResult {
     suggestions,
     results: results.to_owned(),

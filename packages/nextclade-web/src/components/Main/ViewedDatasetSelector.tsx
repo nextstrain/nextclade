@@ -12,7 +12,7 @@ import type { SelectComponents } from 'react-select/dist/declarations/src/compon
 import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
 import { attrStrMaybe, Dataset } from 'src/types'
 import type { IsMultiValue } from 'src/components/Common/Dropdown'
-import { datasetsCurrentAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { hasTreeAtom } from 'src/state/results.state'
 
 interface Option {
@@ -22,7 +22,7 @@ interface Option {
 
 export function ViewedDatasetSelector() {
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
-  const datasets = useRecoilValue(datasetsCurrentAtom)
+  const datasets = useRecoilValue(datasetsForAnalysisAtom)
 
   const { options, currentOption } = useMemo(() => {
     const options = (datasets ?? []).map((dataset) => ({ value: dataset.path, dataset, label: dataset.path }))

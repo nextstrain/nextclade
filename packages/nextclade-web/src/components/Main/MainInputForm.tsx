@@ -9,7 +9,7 @@ import { TabSingleDatasetHelp } from 'src/components/Help/TabSingleDatasetHelp'
 import { SectionDatasetMulti } from 'src/components/Main/SectionDatasetMulti'
 import { SectionDatasetSingle } from 'src/components/Main/SectionDatasetSingle'
 import { useRecoilToggle } from 'src/hooks/useToggle'
-import { datasetsCurrentAtom, isSingleDatasetTabActiveAtom } from 'src/state/dataset.state'
+import { datasetSingleCurrentAtom, isSingleDatasetTabActiveAtom } from 'src/state/dataset.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
 import { useUpdatedDatasetIndex } from 'src/io/fetchDatasets'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
@@ -108,13 +108,13 @@ export function LandingCardQuerySeqPicker() {
 
 export function LandingCardDataset() {
   const { t } = useTranslationSafe()
-  const datasets = useRecoilValue(datasetsCurrentAtom)
+  const dataset = useRecoilValue(datasetSingleCurrentAtom)
   const text = useMemo(() => {
-    if (isEmpty(datasets)) {
+    if (isEmpty(dataset)) {
       return t('Select reference dataset')
     }
     return t('Selected reference dataset')
-  }, [datasets, t])
+  }, [dataset, t])
 
   const { state: isSingle, setState: setIsSingle } = useRecoilToggle(isSingleDatasetTabActiveAtom)
   const activeTabId = isSingle ? 'single' : 'multi'

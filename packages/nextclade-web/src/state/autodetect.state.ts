@@ -1,8 +1,7 @@
-/* eslint-disable import/no-cycle */
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 import { invertMap } from 'src/helpers/map'
-import { pairValueNotUndefinedOrNull } from 'src/helpers/notUndefined'
+import { notUndefinedOrNull, pairValueNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { datasetsAtom } from 'src/state/dataset.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import type { Dataset, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
@@ -154,12 +153,21 @@ export const topSuggestedDatasetsAtom = selector<Dataset[]>({
   get: ({ get }) => {
     const suggestedDatasetNames = get(topSuggestedDatasetNamesAtom)
     const datasets = get(datasetsAtom)
-    return datasets.filter((dataset) => suggestedDatasetNames.includes(dataset.path))
+    return suggestedDatasetNames
+      .map((datasetName) => datasets.find((dataset) => dataset.path === datasetName))
+      .filter(notUndefinedOrNull)
+  },
+})
+
+export const firstTopSuggestedDatasetNameAtom = selector<string | undefined>({
+  key: 'firstTopSuggestedDatasetNameAtom',
+  get: ({ get }) => {
+    return get(topSuggestedDatasetNamesAtom)[0]
   },
 })
 
 export const firstTopSuggestedDatasetAtom = selector<Dataset | undefined>({
-  key: 'firstSuggestedDatasetAtom',
+  key: 'firstTopSuggestedDatasetAtom',
   get: ({ get }) => {
     return get(topSuggestedDatasetsAtom)[0]
   },

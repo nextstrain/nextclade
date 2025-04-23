@@ -2,20 +2,17 @@ import { Dataset } from '_SchemaRoot'
 import React, { useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
-import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
-import styled from 'styled-components'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 
 export function useSetExampleSequences() {
   const { addQryInputs } = useQuerySeqInputs()
-  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
-  const runAnalysis = useRunAnalysis()
   const runAutodetect = useRunSeqAutodetect()
 
   return useCallback(
@@ -25,12 +22,9 @@ export function useSetExampleSequences() {
         if (shouldSuggestDatasets) {
           runAutodetect()
         }
-        if (shouldRunAutomatically) {
-          runAnalysis()
-        }
       }
     },
-    [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets],
+    [addQryInputs, runAutodetect, shouldSuggestDatasets],
   )
 }
 

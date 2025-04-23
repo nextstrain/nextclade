@@ -4,22 +4,20 @@ import path from 'path'
 import React, { useCallback, useMemo } from 'react'
 import { Button, Col, Row, UncontrolledAlert } from 'reactstrap'
 import { useRecoilState, useSetRecoilState } from 'recoil'
+import styled from 'styled-components'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetsCurrentAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
-import styled from 'styled-components'
+import { datasetSingleCurrentAtom, datasetUpdatedAtom } from 'src/state/dataset.state'
 
 export function DatasetCurrentUpdateNotification({ dataset }: { dataset: Dataset }) {
   const { t } = useTranslationSafe()
   const [datasetUpdated, setDatasetUpdated] = useRecoilState(datasetUpdatedAtom({ datasetName: dataset.path }))
-  const setDatasetsCurrent = useSetRecoilState(datasetsCurrentAtom)
+  const setDatasetCurrent = useSetRecoilState(datasetSingleCurrentAtom)
 
   const onDatasetUpdateClicked = useCallback(() => {
-    setDatasetsCurrent((datasets) =>
-      datasets?.map((dataset) => (dataset.path === datasetUpdated?.path ? datasetUpdated : dataset)),
-    )
+    setDatasetCurrent(datasetUpdated)
     setDatasetUpdated(undefined)
-  }, [datasetUpdated, setDatasetUpdated, setDatasetsCurrent])
+  }, [datasetUpdated, setDatasetCurrent, setDatasetUpdated])
 
   const changelogUrl = useMemo(() => {
     if (

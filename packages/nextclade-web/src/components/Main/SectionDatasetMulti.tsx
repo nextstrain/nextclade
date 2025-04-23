@@ -1,7 +1,7 @@
-import { isEmpty, isNil } from 'lodash'
-import React, { useEffect, useMemo } from 'react'
+import { isEmpty } from 'lodash'
+import React, { useMemo } from 'react'
 import { Col, Row } from 'reactstrap'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
@@ -9,24 +9,15 @@ import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMain
 import { ButtonSuggest, SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
-import { autodetectShouldSetCurrentDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
-import { datasetsCurrentAtom } from 'src/state/dataset.state'
+import { isAutodetectRunningAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 
 export function SectionDatasetMulti() {
-  const run = useRunAnalysis()
-  const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
-  const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
+  const run = useRunAnalysis({ isSingle: false })
   const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
 
-  useEffect(() => {
-    if (isNil(datasetsCurrent) || isEmpty(datasetsCurrent) || autodetectShouldSetCurrentDataset) {
-      setDatasetsCurrent(topDatasets)
-    }
-  }, [autodetectShouldSetCurrentDataset, datasetsCurrent, setDatasetsCurrent, topDatasets])
-
   const content = useMemo(() => {
-    if (isEmpty(datasetsCurrent)) {
+    if (isEmpty(topDatasets)) {
       return <SectionDatasetMultiEmpty />
     }
 
@@ -40,12 +31,12 @@ export function SectionDatasetMulti() {
 
         <Row noGutters className="my-1">
           <Col className="d-flex w-100">
-            <ButtonRun className="ml-auto" onClick={run} />
+            <ButtonRun className="ml-auto" onClick={run} singleDatasetMode={false} />
           </Col>
         </Row>
       </>
     )
-  }, [datasetsCurrent, run])
+  }, [run, topDatasets])
 
   return (
     <Container>
@@ -65,12 +56,16 @@ export function SectionDatasetMulti() {
 function SectionDatasetMultiEmpty() {
   const { t } = useTranslationSafe()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
+  const isRunning = useRecoilValue(isAutodetectRunningAtom)
   const content = useMemo(() => {
+    if (isRunning) {
+      return <>{t('Finding matching datasets...')}</>
+    }
     if (hasRequiredInputs) {
       return <ButtonSuggest />
     }
     return <>{t('Please provide sequence data')}</>
-  }, [hasRequiredInputs, t])
+  }, [hasRequiredInputs, isRunning, t])
   return (
     <ContainerEmpty>
       <span className="m-auto">{content}</span>

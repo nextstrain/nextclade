@@ -1,4 +1,4 @@
-/* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops */
+/* eslint-disable no-void,no-loops/no-loops */
 import { isEmpty, isNil } from 'lodash'
 import { useState } from 'react'
 import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'

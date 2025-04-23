@@ -1,11 +1,8 @@
-import React, { useCallback, useMemo } from 'react'
-import { isNil, reject } from 'lodash'
-import { FormGroup as FormGroupBase, Input, Label } from 'reactstrap'
-import { useRecoilState } from 'recoil'
+import React, { useMemo } from 'react'
+import { FormGroup as FormGroupBase } from 'reactstrap'
 import styled from 'styled-components'
 import { formatDatasetInfo } from 'src/components/Main/DatasetInfo'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import type { Dataset } from 'src/types'
 
 export const Container = styled.div`
@@ -67,30 +64,8 @@ export function DatasetInfoCompact({ dataset, ...restProps }: DatasetInfoProps) 
     [dataset, t],
   )
 
-  const [datasetsCurrent, setDatasetsCurrent] = useRecoilState(datasetsCurrentAtom)
-
-  const checked = useMemo(
-    () => !isNil(datasetsCurrent?.find((datasetCurrent) => datasetCurrent.path === dataset.path)),
-    [dataset.path, datasetsCurrent],
-  )
-
-  const handleOnChange = useCallback(() => {
-    setDatasetsCurrent((datasetsCurrent) => {
-      if (checked) {
-        return reject(datasetsCurrent ?? [], (datasetCurrent) => datasetCurrent.path === dataset.path)
-      }
-      return [...(datasetsCurrent ?? []), dataset]
-    })
-  }, [checked, dataset, setDatasetsCurrent])
-
   return (
     <Container {...restProps}>
-      <FormGroup check>
-        <Label check>
-          <Input type="checkbox" checked={checked} onChange={handleOnChange} />
-        </Label>
-      </FormGroup>
-
       <FlexRight>
         <DatasetName title={datasetName} color={color}>
           {datasetName}

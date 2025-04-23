@@ -3,7 +3,7 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
-import { omit, uniq } from 'lodash'
+import { omit } from 'lodash'
 import { AlgorithmGlobalStatus } from 'src/types'
 import type { FastaRecord, FastaRecordId, NextcladeResult, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -38,34 +38,36 @@ class LauncherWorkerImpl {
 
   datasetNames!: string[]
 
-  seqIndexToTopDatasetName!: Map<number, string>
+  seqIndexToTopDatasetName?: Map<number, string>
 
-  seqIndicesWithoutDatasetSuggestions!: number[]
+  seqIndicesWithoutDatasetSuggestions?: number[]
 
   private constructor() {}
 
   public static async create(
     numThreads: number,
-    seqIndexToTopDatasetName: Map<number, string>,
-    seqIndicesWithoutDatasetSuggestions: number[],
+    datasetNames: string[],
+    seqIndexToTopDatasetName: Map<number, string> | undefined,
+    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
     params: NextcladeParamsRaw,
   ) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, params)
+    await self.init(numThreads, datasetNames, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, params)
     return self
   }
 
   private async init(
     numThreads: number,
-    seqIndexToTopDatasetName: Map<number, string>,
-    seqIndicesWithoutDatasetSuggestions: number[],
+    datasetNames: string[],
+    seqIndexToTopDatasetName: Map<number, string> | undefined,
+    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
     params: NextcladeParamsRaw,
   ) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
     this.seqIndexToTopDatasetName = seqIndexToTopDatasetName
     this.seqIndicesWithoutDatasetSuggestions = seqIndicesWithoutDatasetSuggestions
-    this.datasetNames = uniq([...seqIndexToTopDatasetName.values()])
+    this.datasetNames = datasetNames
   }
 
   async getInitialData(datasetName: string) {
@@ -108,7 +110,7 @@ class LauncherWorkerImpl {
   }
 
   private async onSequenceImpl(record: FastaRecord) {
-    if (this.seqIndicesWithoutDatasetSuggestions.includes(record.index)) {
+    if (this.seqIndicesWithoutDatasetSuggestions?.includes(record.index)) {
       this.analysisResultsObservable.next({
         index: record.index,
         seqName: record.seqName,
@@ -117,7 +119,7 @@ class LauncherWorkerImpl {
       return
     }
 
-    const datasetName = this.seqIndexToTopDatasetName.get(record.index)
+    const datasetName = this.seqIndexToTopDatasetName?.get(record.index) ?? this.datasetNames[0]
     if (!datasetName) {
       throw new ErrorInternal(`Unable to find selected dataset for sequence #${record.index} '${record.seqName}'`)
     }
@@ -138,12 +140,14 @@ let launcher: LauncherWorkerImpl | undefined
 const worker = {
   async init(
     numThreads: number,
-    seqIndexToTopDatasetName: Map<number, string>,
-    seqIndicesWithoutDatasetSuggestions: number[],
+    datasetNames: string[],
+    seqIndexToTopDatasetName: Map<number, string> | undefined,
+    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
     params: NextcladeParamsRaw,
   ) {
     launcher = await LauncherWorkerImpl.create(
       numThreads,
+      datasetNames,
       seqIndexToTopDatasetName,
       seqIndicesWithoutDatasetSuggestions,
       params,

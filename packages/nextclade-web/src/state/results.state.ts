@@ -3,6 +3,7 @@ import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { concurrent } from 'fasy'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import type {
   AaMotifsDesc,
@@ -24,7 +25,6 @@ import {
   sortCustomNodeAttribute,
   sortPhenotypeValue,
 } from 'src/helpers/sortResults'
-import { datasetsCurrentAtom } from 'src/state/dataset.state'
 import {
   aaFilterAtom,
   cladesFilterAtom,
@@ -318,7 +318,7 @@ export const analysisStatusGlobalAtom = atom({
       onSet((status) => {
         switch (status) {
           case AlgorithmGlobalStatus.started:
-            void getPromise(datasetsCurrentAtom).then(async (datasets) => {
+            void getPromise(datasetsForAnalysisAtom).then(async (datasets) => {
               return concurrent.forEach(async (dataset) => {
                 plausible('Run started', { props: { 'dataset v3': dataset?.path ?? 'unknown' } })
               }, datasets)
@@ -326,7 +326,7 @@ export const analysisStatusGlobalAtom = atom({
             break
 
           case AlgorithmGlobalStatus.done:
-            void Promise.all([getPromise(analysisResultsAtom), getPromise(datasetsCurrentAtom)]).then(
+            void Promise.all([getPromise(analysisResultsAtom), getPromise(datasetsForAnalysisAtom)]).then(
               async ([results, datasets]) => {
                 return concurrent.forEach(async (dataset) => {
                   const resultsForDataset = results.filter(
@@ -351,11 +351,11 @@ export const analysisStatusGlobalAtom = atom({
     },
   ],
 })
-export const canRunAtom = selector({
-  key: 'canRun',
+export const isAnalysisRunningAtom = selector({
+  key: 'isAnalysisRunningAtom',
   get({ get }) {
     const status = get(analysisStatusGlobalAtom)
-    return (
+    return !(
       status === AlgorithmGlobalStatus.idle ||
       status === AlgorithmGlobalStatus.done ||
       status === AlgorithmGlobalStatus.failed

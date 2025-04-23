@@ -1,11 +1,9 @@
-/* eslint-disable import/no-cycle */
-import { isNil } from 'lodash'
-import { atom, atomFamily, DefaultValue, selector } from 'recoil'
-import { autodetectResultsAtom } from 'src/state/autodetect.state'
-import { multiAtom } from 'src/state/utils/multiAtom'
+import { isEmpty } from 'lodash'
+import { atom, atomFamily, selector } from 'recoil'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
+import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
 export const datasetServerUrlAtom = atom<string>({
   key: 'datasetServerUrlAtom',
@@ -16,29 +14,58 @@ export const datasetsAtom = atom<Dataset[]>({
   default: [],
 })
 
-const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({
-  key: 'datasetsCurrentStorage',
+export const datasetSingleCurrentAtom = atom<Dataset | undefined>({
+  key: 'datasetSingleCurrentAtom',
   default: undefined,
   effects: [persistAtom],
 })
 
-export const datasetsCurrentAtom = selector<Dataset[] | undefined>({
-  key: 'datasetsCurrent',
+export const hasSingleCurrentDatasetAtom = selector<boolean>({
+  key: 'hasSingleCurrentDatasetAtom',
   get({ get }) {
-    return get(datasetsCurrentStorageAtom)
+    return !isEmpty(get(datasetSingleCurrentAtom))
   },
-  set({ set, reset }, datasets: Dataset[] | undefined | DefaultValue) {
-    if (isDefaultValue(datasets) || isNil(datasets)) {
-      reset(autodetectResultsAtom)
-      reset(datasetsCurrentStorageAtom)
-    } else {
-      set(datasetsCurrentStorageAtom, datasets)
-    }
+})
+
+// const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({
+//   key: 'datasetsCurrentStorage',
+//   default: undefined,
+//   effects: [persistAtom],
+// })
+//
+// export const datasetsCurrentAtom = selector<Dataset[] | undefined>({
+//   key: 'datasetsCurrent',
+//   get({ get }) {
+//     return get(datasetsCurrentStorageAtom)
+//   },
+//   set({ set, reset }, datasets: Dataset[] | undefined | DefaultValue) {
+//     if (isDefaultValue(datasets) || isNil(datasets)) {
+//       reset(autodetectResultsAtom)
+//       reset(datasetsCurrentStorageAtom)
+//     } else {
+//       set(datasetsCurrentStorageAtom, datasets)
+//     }
+//   },
+// })
+
+export const datasetNamesForAnalysisAtom = atom<string[] | undefined>({
+  key: 'datasetNamesForAnalysisAtom',
+  default: undefined,
+})
+
+export const datasetsForAnalysisAtom = selector<Dataset[] | undefined>({
+  key: 'datasetsForAnalysisAtom',
+  get({ get }) {
+    const datasetNamesForAnalysis = get(datasetNamesForAnalysisAtom)
+    const datasets = get(datasetsAtom)
+    return datasetNamesForAnalysis
+      ?.map((datasetName) => datasets.find((dataset) => datasetName === dataset.path))
+      .filter(notUndefinedOrNull)
   },
 })
 
 export const viewedDatasetNameAtom = atom<string>({
-  key: 'viewedDatasetName',
+  key: 'viewedDatasetNameAtom',
   default: undefined,
 })
 

@@ -160,6 +160,7 @@ module.exports = {
     'unicorn/no-array-for-each': 'off',
     'unicorn/no-array-method-this-argument': 'off',
     'unicorn/no-array-reduce': 'off',
+    'unicorn/no-await-expression-member': 'off',
     'unicorn/no-fn-reference-in-iterator': 'off',
     'unicorn/no-null': 'off',
     'unicorn/no-reduce': 'off',

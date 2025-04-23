@@ -26,12 +26,6 @@ export const isResultsFilterPanelCollapsedAtom = atom<boolean>({
   default: true,
 })
 
-export const shouldRunAutomaticallyAtom = atom<boolean>({
-  key: 'shouldRunAutomatically',
-  default: false,
-  effects: [persistAtom],
-})
-
 export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
   key: 'shouldSuggestDatasetsOnDatasetPageAtom',
   default: true,
