@@ -8,7 +8,7 @@ import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-wi
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
@@ -73,6 +73,7 @@ export function ResultsTable() {
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
   const { datasetNameToSeqIndices } = useDatasetSuggestionResults()
+  const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
 
@@ -89,15 +90,17 @@ export function ResultsTable() {
 
   const rowData: TableRowDatum[] = useMemo(() => {
     // Sequences which are already analyzed
-    const seqIndicesReady = new Set(seqIndices)
+    let seqIndicesReady = new Set(seqIndices)
 
-    // Sequences belonging to the currently selected dataset
-    const seqIndicesSelected = new Set(datasetNameToSeqIndices.get(datasetName) ?? [])
+    if (datasetsForAnalysis?.length !== 1) {
+      // Sequences belonging to the currently selected dataset
+      const seqIndicesSelected = new Set(datasetNameToSeqIndices.get(datasetName) ?? [])
 
-    // Sequences which are already analyzed and belonging to the currently selected dataset
-    const seqIndicesReadySelected = intersection(seqIndicesReady, seqIndicesSelected)
+      // Sequences which are already analyzed and belonging to the currently selected dataset
+      seqIndicesReady = intersection(seqIndicesReady, seqIndicesSelected)
+    }
 
-    return [...seqIndicesReadySelected].map((seqIndex) => ({
+    return [...seqIndicesReady].map((seqIndex) => ({
       seqIndex,
       viewedGene,
       columnWidthsPx,
@@ -114,6 +117,7 @@ export function ResultsTable() {
     columnWidthsPx,
     datasetName,
     datasetNameToSeqIndices,
+    datasetsForAnalysis?.length,
     dynamicAaMotifsColumnWidthPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
