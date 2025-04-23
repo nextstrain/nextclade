@@ -108,7 +108,7 @@ pub struct NextcladeOutputs {
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
 
-  #[serde(skip_serializing_if = "GeneMap::is_empty")]
+  #[serde(default, skip_serializing_if = "GeneMap::is_empty")]
   pub annotation: GeneMap,
 }
 

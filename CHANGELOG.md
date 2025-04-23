@@ -1,3 +1,39 @@
+## 3.13.1
+
+### Fix crash on empty query annotations
+
+For certain samples which end up with an empty output genome annotation Nextclade Web could crash. This is now resolved.
+See [#1601](https://github.com/nextstrain/nextclade/issues/1601),[#1602](https://github.com/nextstrain/nextclade/issues/1602). Thanks @theosanderson for reporting.
+
+
+## 3.13.0
+
+### Output genome annotations
+
+Nextclade now outputs genome annotations for each unaligned input sequence.
+
+These annotations are derived from reference annotation (coming from a dataset or from `--input-annotation`), but with the ranges of genetic features (genes, CDSes) adjusted for unaligned input sequences. The word "unaligned" here refers to the input sequences being analyzed and before they are aligned, i.e. as they come in the input fasta file(s).
+
+These annotations can serve as a starting point for submissions to genetic databases. They also allow to extract nucleotide sequences of genes and CDSes from unaligned sequences, if you need this. Note that the extraction from aligned sequences (as being output by Nextclade) can still be done using reference annotation.
+
+Nextclade supports 2 formats for output annotations: 
+
+- Genbank’s 5-column tab-delimited feature table (TBL) format ([spec](https://www.ncbi.nlm.nih.gov/genbank/feature_table/))
+
+- Generic Feature Format Version 3 (GFF3) ([spec](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md))
+
+Both formats contain the same information, but GFF3 contains slightly more metadata due to this format being more flexible. Use one or the other, depending on your needs.
+
+In Nextclade Web, these new output annotations can be downloaded on the "Export" page, in the `nextclade.tbl
+` and `nextclade.gff` sections.
+
+In Nextclade CLI, if you are using `--output-all` the annotations are emitted into output directory as files `nextclade.tbl` and `nextclade.gff`. You can also add `--output-annotation-tbl` and/or `--output-annotation-gff` to override the path, or you can use only these parameters and omit `--output-all`, to emit only specified individual files (similar to all other `--output-*` parameters).
+
+Please note that the annotations can only be output if there's a reference annotation on the input (from a dataset or from `--input-annotation`).
+
+This feature is still in an experimental phase. Please report bugs by submitting a [GitHub issue](https://github.com/nextstrain/nextclade/issues).
+
+
 ## 3.12.0
 
 ### Forbid reference sequences with gaps
