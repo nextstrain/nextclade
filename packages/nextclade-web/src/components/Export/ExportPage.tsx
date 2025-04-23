@@ -1,7 +1,9 @@
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
+import { useRecoilValue } from 'recoil'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import styled from 'styled-components'
+import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
 import { ExportTabMain } from 'src/components/Export/ExportTabMain'
@@ -12,14 +14,17 @@ export function ExportPage() {
   const { t } = useTranslationSafe()
   const { asPath } = useRouter()
   const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
+  const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
   return (
     <Layout>
       <Container>
-        <div>
-          <label> {t('Select dataset')}</label>
-          <ViewedDatasetSelector />
-        </div>
+        {hasMultipleDatasetsForAnalysis && (
+          <div>
+            <label> {t('Select dataset')}</label>
+            <ViewedDatasetSelector />
+          </div>
+        )}
 
         <Header>
           <h4 className="mx-auto">{t('Download output files')}</h4>

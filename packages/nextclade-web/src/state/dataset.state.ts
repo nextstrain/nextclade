@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash'
 import { atom, atomFamily, selector } from 'recoil'
-import { notUndefinedOrNull } from 'src/helpers/notUndefined'
+import { mapMaybe, notUndefinedOrNull } from 'src/helpers/notUndefined'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
@@ -61,6 +61,20 @@ export const datasetsForAnalysisAtom = selector<Dataset[] | undefined>({
     return datasetNamesForAnalysis
       ?.map((datasetName) => datasets.find((dataset) => datasetName === dataset.path))
       .filter(notUndefinedOrNull)
+  },
+})
+
+export const numDatasetsForAnalysisAtom = selector<number | undefined>({
+  key: 'numDatasetsForAnalysisAtom',
+  get({ get }) {
+    return get(datasetsForAnalysisAtom)?.length
+  },
+})
+
+export const hasMultipleDatasetsForAnalysisAtom = selector<boolean | undefined>({
+  key: 'hasMultipleDatasetsForAnalysisAtom',
+  get({ get }) {
+    return mapMaybe(get(numDatasetsForAnalysisAtom), (n) => n > 1)
   },
 })
 

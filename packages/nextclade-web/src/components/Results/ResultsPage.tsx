@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
-import { viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { hasMultipleDatasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import { Layout } from 'src/components/Layout/Layout'
@@ -46,13 +46,14 @@ const Footer = styled.footer`
 export function ResultsPage() {
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName }))
+  const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
   return (
     <Layout>
       <Container>
         <WrapperOuter>
           <WrapperInner $minWidth={totalWidth}>
-            <ViewedDatasetSelector />
+            {hasMultipleDatasetsForAnalysis && <ViewedDatasetSelector />}
 
             <ResultsFilter />
 

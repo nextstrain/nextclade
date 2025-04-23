@@ -1,6 +1,6 @@
 import type { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
-import { isEmpty, isNil, uniq } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
@@ -8,7 +8,7 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { promiseAllObject } from 'src/helpers/promise'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { firstTopSuggestedDatasetNameAtom } from 'src/state/autodetect.state'
+import { firstTopSuggestedDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allViewedCdsAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import {
@@ -20,12 +20,7 @@ import {
   NextcladeParamsRawDir,
 } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import {
-  cdsOrderPreferenceAtom,
-  allCdsOrderPreferenceAtom,
-  datasetNamesForAnalysisAtom,
-  datasetsAtom,
-} from 'src/state/dataset.state'
+import { cdsOrderPreferenceAtom, allCdsOrderPreferenceAtom, datasetNamesForAnalysisAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   datasetJsonAtom,
@@ -68,7 +63,8 @@ import { axiosFetchRaw, axiosFetchRawMaybe } from 'src/io/axiosFetch'
 export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
   const router = useRouter()
   const { seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions } = useDatasetSuggestionResults()
-  const firstTopSuggestedDatasetName = useRecoilValue(firstTopSuggestedDatasetNameAtom)
+  const topSuggestedDatasets = useRecoilValue(topSuggestedDatasetsAtom)
+  const firstTopSuggestedDataset = useRecoilValue(firstTopSuggestedDatasetAtom)
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
@@ -99,7 +95,6 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
         const csvColumnConfig = getPromise(csvColumnConfigAtom)
 
         const datasetJsonPromise = getPromise(datasetJsonAtom)
-        const allDatasets = getPromise(datasetsAtom)
 
         const overrides: DatasetFilesOverrides = {
           reference: getPromise(refSeqInputAtom),
@@ -179,8 +174,8 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
             const tree = await datasetJsonPromise
             const numThreadsResolved = await numThreads
 
-            const datasetNames = findDatasetNames(isSingle, firstTopSuggestedDatasetName, seqIndexToTopDatasetName)
-            const datasets = (await allDatasets).filter((dataset) => datasetNames.includes(dataset.path))
+            const datasets = findDatasets(isSingle, firstTopSuggestedDataset, topSuggestedDatasets)
+            const datasetNames = datasets.map((dataset) => dataset.path)
             set(datasetNamesForAnalysisAtom, datasetNames)
 
             const params: NextcladeParamsRaw = await resolveParams(tree, overrides, datasets)
@@ -200,26 +195,32 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [firstTopSuggestedDatasetName, isSingle, router, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions],
+    [
+      firstTopSuggestedDataset,
+      isSingle,
+      router,
+      seqIndexToTopDatasetName,
+      seqIndicesWithoutDatasetSuggestions,
+      topSuggestedDatasets,
+    ],
   )
 }
 
-function findDatasetNames(
+function findDatasets(
   isSingleDatasetMode: boolean,
-  firstTopSuggestedDatasetName: string | undefined,
-  seqIndexToTopDatasetName: Map<number, string>,
+  firstTopSuggestedDataset: Dataset | undefined,
+  topSuggestedDatasets: Dataset[] | undefined,
 ) {
   if (isSingleDatasetMode) {
-    if (isNil(firstTopSuggestedDatasetName)) {
+    if (isNil(firstTopSuggestedDataset)) {
       throw new ErrorInternal(`Attempted to start analysis without dataset selected (single dataset mode)`)
     }
-    return [firstTopSuggestedDatasetName]
+    return [firstTopSuggestedDataset]
   }
-  const datasetNames = uniq([...seqIndexToTopDatasetName.values()])
-  if (isEmpty(firstTopSuggestedDatasetName)) {
+  if (isNil(topSuggestedDatasets) || isEmpty(topSuggestedDatasets)) {
     throw new ErrorInternal(`Attempted to start analysis without datasets selected (multi-dataset mode)`)
   }
-  return datasetNames
+  return topSuggestedDatasets
 }
 
 async function resolveParams(

@@ -1,4 +1,6 @@
 import React from 'react'
+import { useRecoilValue } from 'recoil'
+import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import ColorBy, { ColorByInfo } from 'auspice/src/components/controls/color-by'
@@ -27,11 +29,16 @@ export const Spacer = styled.span<{ sizePx: number }>`
 
 export function Sidebar() {
   const { t } = useTranslation()
+  const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
   return (
     <StyledAuspiceControlsContainer>
-      <ControlHeader title={t('Dataset')} />
-      <ViewedDatasetSelector />
+      {hasMultipleDatasetsForAnalysis && (
+        <>
+          <ControlHeader title={t('Dataset')} />
+          <ViewedDatasetSelector />
+        </>
+      )}
 
       <ControlHeader title={t('sidebar:Color By')} tooltip={ColorByInfo} />
       <ColorBy />
