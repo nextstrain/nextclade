@@ -1,3 +1,11 @@
+## 3.13.1
+
+### Fix crash on empty query annotations
+
+For certain samples which end up with an empty output genome annotation Nextclade Web could crash. This is now resolved.
+See [#1601](https://github.com/nextstrain/nextclade/issues/1601),[#1602](https://github.com/nextstrain/nextclade/issues/1602). Thanks @theosanderson for reporting.
+
+
 ## 3.13.0
 
 ### Output genome annotations
