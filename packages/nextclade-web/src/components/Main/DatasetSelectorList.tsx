@@ -22,7 +22,6 @@ export function DatasetSelectorList({
   datasetsHighlighted,
   onDatasetsHighlighted,
   searchTerm,
-  showSuggestions,
 }: DatasetSelectorListProps) {
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetsHighlighted([dataset]), [onDatasetsHighlighted])
 
@@ -54,7 +53,6 @@ export function DatasetSelectorList({
             dataset={dataset}
             onClick={onItemClick(dataset)}
             isCurrent={areDatasetsEqual(dataset, datasetsHighlighted[0])}
-            showSuggestions={showSuggestions}
           />
         ))}
 
@@ -65,13 +63,12 @@ export function DatasetSelectorList({
             dataset={dataset}
             onClick={onItemClick(dataset)}
             isCurrent={areDatasetsEqual(dataset, datasetsHighlighted[0])}
-            showSuggestions={showSuggestions}
             isDimmed
           />
         ))}
       </Ul>
     ),
-    [datasetsHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick, showSuggestions],
+    [datasetsHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick],
   )
 }
 
@@ -136,15 +133,14 @@ interface DatasetSelectorListItemProps {
   dataset: Dataset
   isCurrent?: boolean
   isDimmed?: boolean
-  showSuggestions?: boolean
   onClick?: () => void
 }
 
 const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
-  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick, showSuggestions }, ref) {
+  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
-        <DatasetListEntry dataset={dataset} showSuggestions={showSuggestions} />
+        <DatasetListEntry dataset={dataset} />
       </Li>
     )
   },

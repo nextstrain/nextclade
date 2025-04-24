@@ -5,7 +5,6 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
-import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { ButtonSuggest, SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -47,8 +46,6 @@ export function SectionDatasetMulti() {
       </Row>
 
       {content}
-
-      <SuggestionAlertMainPage className="mt-1 w-100" />
     </Container>
   )
 }
