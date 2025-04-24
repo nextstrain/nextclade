@@ -1,8 +1,8 @@
-import { Dataset } from '_SchemaRoot'
-import React, { useCallback, useMemo } from 'react'
+import React, { ComponentPropsWithoutRef, useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
+import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
@@ -28,7 +28,11 @@ export function useSetExampleSequences() {
   )
 }
 
-export function ButtonLoadExample({ dataset, ...rest }: { dataset?: Dataset }) {
+export interface ButtonLoadExampleProps extends ComponentPropsWithoutRef<typeof ButtonStyled> {
+  dataset?: Dataset
+}
+
+export function ButtonLoadExample({ dataset, ...rest }: ButtonLoadExampleProps) {
   const { t } = useTranslationSafe()
 
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
@@ -59,7 +63,6 @@ export function ButtonLoadExample({ dataset, ...rest }: { dataset?: Dataset }) {
 }
 
 const ButtonStyled = styled(Button)`
-  margin: 0 0.5rem;
   max-width: 300px;
   overflow: hidden;
   white-space: nowrap;

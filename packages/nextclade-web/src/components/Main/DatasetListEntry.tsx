@@ -19,7 +19,7 @@ export interface DatasetListEntryProps {
 export function DatasetListEntry({ dataset, showSuggestions }: DatasetListEntryProps) {
   return (
     <Container>
-      <DatasetInfo dataset={dataset} showSuggestions={showSuggestions} />
+      <DatasetInfo dataset={dataset} />
     </Container>
   )
 }

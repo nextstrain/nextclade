@@ -5,7 +5,7 @@ import { Col, Row } from 'reactstrap'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
-import { DatasetSummary } from 'src/components/Main/DatasetCurrentSummary'
+import { DatasetSingleCurrent } from 'src/components/Main/DatasetSingleCurrent'
 import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/ButtonChangeDataset'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
@@ -41,11 +41,7 @@ export function SectionDatasetSingle() {
     }
     return (
       <>
-        <Row noGutters className="my-1">
-          <Col>
-            <DatasetSummary dataset={datasetCurrent} />
-          </Col>
-        </Row>
+        {!isNil(datasetCurrent) && <DatasetSingleCurrent dataset={datasetCurrent} />}
 
         <Row noGutters className="my-1">
           <Col className="d-flex w-100">

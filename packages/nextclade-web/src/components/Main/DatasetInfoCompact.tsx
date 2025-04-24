@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { FormGroup as FormGroupBase } from 'reactstrap'
 import styled from 'styled-components'
 import { formatDatasetInfo } from 'src/components/Main/DatasetInfo'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -9,13 +8,6 @@ export const Container = styled.div`
   display: flex;
   flex: 1;
   margin: 0;
-`
-
-export const FormGroup = styled(FormGroupBase)`
-  flex: 0;
-  flex-direction: column;
-  //margin: auto 0;
-  margin-left: 0.5rem;
 `
 
 export const FlexRight = styled.div`

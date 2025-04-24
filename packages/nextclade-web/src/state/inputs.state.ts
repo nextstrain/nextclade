@@ -6,7 +6,7 @@ import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allTreesAtom, allTreesNwkAtom, analysisResultsAtom, analysisStatusGlobalAtom } from 'src/state/results.state'
 import { allViewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
+import { useResetSuggestions, useResetSuggestionsAndDatasets } from 'src/hooks/useResetSuggestions'
 
 export const qrySeqInputsStorageAtom = atom<AlgorithmInput[]>({
   key: 'qrySeqInputsStorage',
@@ -17,6 +17,7 @@ export function useQuerySeqInputs() {
   const [qryInputs, setQryInputs] = useRecoilState(qrySeqInputsStorageAtom)
   const resetSeqInputsStorage = useResetRecoilState(qrySeqInputsStorageAtom)
   const resetSuggestions = useResetSuggestions()
+  const resetSuggestionsAndDatasets = useResetSuggestionsAndDatasets()
 
   const resetAnalysisStatusGlobal = useResetRecoilState(analysisStatusGlobalAtom)
   const resetAnalysisResults = useResetRecoilState(analysisResultsAtom)
@@ -69,9 +70,9 @@ export function useQuerySeqInputs() {
 
   useEffect(() => {
     if (qryInputs.length === 0) {
-      resetSuggestions()
+      resetSuggestionsAndDatasets()
     }
-  }, [qryInputs, resetSuggestions])
+  }, [qryInputs, resetSuggestions, resetSuggestionsAndDatasets])
 
   return { qryInputs, addQryInputs, removeQryInput, clearQryInputs }
 }
