@@ -196,7 +196,7 @@ export function useExportNdjson({ datasetName }: { datasetName: string }) {
 }
 
 async function prepareOutputTree(snapshot: Snapshot, datasetName: string) {
-  const tree = await snapshot.getPromise(treeAtom({ datasetName }))
+  const tree = await snapshot.getPromise(treeAtom(datasetName))
   if (!tree) {
     return undefined
   }
@@ -204,7 +204,7 @@ async function prepareOutputTree(snapshot: Snapshot, datasetName: string) {
 }
 
 export function useExportTree({ datasetName }: { datasetName: string }) {
-  const tree = useRecoilValue(treeAtom({ datasetName }))
+  const tree = useRecoilValue(treeAtom(datasetName))
   const res = useResultsExport(async (filename, snapshot) => {
     const jsonStr = await prepareOutputTree(snapshot, datasetName)
     if (isNil(jsonStr)) {

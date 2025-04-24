@@ -38,7 +38,7 @@ export function TreePage() {
 
 export function TreePageWrapper() {
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const tree = useRecoilValue(treeAtom({ datasetName }))
+  const tree = useRecoilValue(treeAtom(datasetName))
 
   const [store, setStore] = useState<Store<AuspiceState> | null>(null)
 

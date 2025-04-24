@@ -2,8 +2,6 @@ import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useMemo } from 'react'
 import { Badge } from 'reactstrap'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { rgba } from 'polished'
 import styled from 'styled-components'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -13,29 +11,46 @@ import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/d
 import { attrStrMaybe, Dataset } from 'src/types'
 import type { IsMultiValue } from 'src/components/Common/Dropdown'
 import { datasetsForAnalysisAtom, UNKNOWN_DATASET_NAME, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { hasTreeAtom } from 'src/state/results.state'
+import { allTreesAtom } from 'src/state/results.state'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 interface Option {
   value: string
   label: string
   dataset?: Dataset
+  hasTree?: boolean
 }
 
 export function ViewedDatasetSelector() {
   const { t } = useTranslationSafe()
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
+  const allTrees = useRecoilValue(allTreesAtom)
+
+  const { pathname } = useRouter()
 
   const { options, currentOption } = useMemo(() => {
-    const options: Option[] = (datasets ?? []).map((dataset) => ({
-      value: dataset.path,
-      dataset,
-      label: attrStrMaybe(dataset.attributes, 'name') ?? dataset.path,
-    }))
-    options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unknown dataset'), dataset: undefined })
+    const isResultsPage = pathname === '/results'
+    const isTreePage = pathname === '/tree'
+    const options: Option[] = (datasets ?? []).map((dataset) => {
+      const hasTree = !isNil(allTrees.get(dataset.path))
+      const isDisabled = isTreePage && !hasTree
+      return {
+        value: dataset.path,
+        dataset,
+        label: attrStrMaybe(dataset.attributes, 'name') ?? dataset.path,
+        hasTree,
+        isDisabled,
+        isTreePage,
+      }
+    })
+    if (isResultsPage) {
+      options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unknown dataset') })
+    }
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
-  }, [datasets, t, viewedDatasetName])
+  }, [allTrees, datasets, pathname, t, viewedDatasetName])
 
   const handleChange = useCallback(
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {
@@ -83,7 +98,7 @@ function OptionComponent({ data, ...restProps }: OptionProps<Option, false>) {
 }
 
 function OptionComponentDataset({
-  data: { dataset },
+  data: { dataset, hasTree },
   isDisabled,
   isFocused,
   isSelected,
@@ -95,7 +110,6 @@ function OptionComponentDataset({
   const { pathname } = useRouter()
 
   const isTreePage = pathname === '/tree'
-  const hasTree = useRecoilValue(hasTreeAtom({ datasetName: dataset.path }))
   const noTreeOrDisabled = isDisabled || (isTreePage && !hasTree)
 
   const { path, name, reference } = useMemo(() => {
@@ -120,8 +134,13 @@ function OptionComponentDataset({
     >
       <div>
         <span>{name}</span>
-        {noTreeOrDisabled && (
-          <Badge className="ml-1" color="secondary" size="sm">
+        {!hasTree && (
+          <Badge
+            title={t('This dataset does not provide a reference tree. Related functionality is disabled.')}
+            className="ml-1"
+            color="secondary"
+            size="sm"
+          >
             {t('no tree')}
           </Badge>
         )}

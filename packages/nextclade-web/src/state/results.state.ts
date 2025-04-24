@@ -261,7 +261,7 @@ export const cdsAtom = selectorFamily<Cds | undefined, { datasetName: string; cd
       get(cdsesAtom({ datasetName }))?.find((cds) => cds.name === cdsName),
 })
 
-export const [treeAtom, allTreesAtom] = multiAtom<AuspiceJsonV2 | undefined | null, { datasetName: string }>({
+export const [treeAtom, allTreesAtom] = multiAtom<AuspiceJsonV2 | undefined | null, string>({
   key: 'tree',
 })
 
@@ -274,7 +274,7 @@ export const hasTreeAtom = selectorFamily<boolean, { datasetName: string }>({
   get:
     ({ datasetName }) =>
     ({ get }) => {
-      return !isNil(get(treeAtom({ datasetName })))
+      return !isNil(get(treeAtom(datasetName)))
     },
 })
 

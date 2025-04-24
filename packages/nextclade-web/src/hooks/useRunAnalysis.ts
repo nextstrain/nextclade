@@ -159,7 +159,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
           },
           onTree(trees) {
             Object.entries(trees).forEach(([datasetName, trees]) => {
-              set(treeAtom({ datasetName }), (trees?.auspice as unknown as AuspiceJsonV2) ?? undefined)
+              set(treeAtom(datasetName), (trees?.auspice as unknown as AuspiceJsonV2) ?? undefined)
               set(treeNwkAtom({ datasetName }), trees?.nwk ?? undefined)
             })
           },
