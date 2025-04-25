@@ -46,19 +46,17 @@ export function ViewedDatasetSelector() {
   )
 
   return (
-    <div>
-      <Select
-        components={COMPONENTS}
-        options={options}
-        value={currentOption}
-        isMulti={false}
-        onChange={handleChange}
-        menuPortalTarget={document.body}
-        styles={STYLES}
-        theme={getTheme}
-        maxMenuHeight={400}
-      />
-    </div>
+    <Select
+      components={COMPONENTS}
+      options={options}
+      value={currentOption}
+      isMulti={false}
+      onChange={handleChange}
+      menuPortalTarget={document.body}
+      styles={STYLES}
+      theme={getTheme}
+      maxMenuHeight={400}
+    />
   )
 }
 

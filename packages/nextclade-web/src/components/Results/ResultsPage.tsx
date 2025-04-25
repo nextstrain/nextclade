@@ -1,6 +1,8 @@
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
+import { ViewedDatasetHelp } from 'src/components/Help/ViewedDatasetHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { hasMultipleDatasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
@@ -44,6 +46,8 @@ const Footer = styled.footer`
 `
 
 export function ResultsPage() {
+  const { t } = useTranslationSafe()
+
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName }))
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
@@ -53,7 +57,19 @@ export function ResultsPage() {
       <Container>
         <WrapperOuter>
           <WrapperInner $minWidth={totalWidth}>
-            {hasMultipleDatasetsForAnalysis && <ViewedDatasetSelector />}
+            {hasMultipleDatasetsForAnalysis && (
+              <ViewedDatasetSelectorContainer>
+                <span className="ml-2 d-flex my-auto">
+                  <span className="mr-1">{t('Viewed dataset')}</span>
+                  <span className="mr-1">
+                    <ViewedDatasetHelp />
+                  </span>
+                </span>
+                <ViewedDatasetSelectorWrapper>
+                  <ViewedDatasetSelector />
+                </ViewedDatasetSelectorWrapper>
+              </ViewedDatasetSelectorContainer>
+            )}
 
             <ResultsFilter />
 
@@ -72,3 +88,11 @@ export function ResultsPage() {
     </Layout>
   )
 }
+
+const ViewedDatasetSelectorContainer = styled.div`
+  display: flex;
+`
+
+const ViewedDatasetSelectorWrapper = styled.div`
+  flex: 0 0 400px;
+`
