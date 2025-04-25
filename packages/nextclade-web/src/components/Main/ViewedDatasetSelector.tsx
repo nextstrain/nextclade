@@ -12,29 +12,40 @@ import type { SelectComponents } from 'react-select/dist/declarations/src/compon
 import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
 import { attrStrMaybe, Dataset } from 'src/types'
 import type { IsMultiValue } from 'src/components/Common/Dropdown'
-import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { datasetsForAnalysisAtom, UNKNOWN_DATASET_NAME, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { hasTreeAtom } from 'src/state/results.state'
 
 interface Option {
   value: string
-  dataset: Dataset
+  label: string
+  dataset?: Dataset
 }
 
 export function ViewedDatasetSelector() {
+  const { t } = useTranslationSafe()
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
 
   const { options, currentOption } = useMemo(() => {
-    const options = (datasets ?? []).map((dataset) => ({ value: dataset.path, dataset, label: dataset.path }))
+    const options: Option[] = (datasets ?? []).map((dataset) => ({
+      value: dataset.path,
+      dataset,
+      label: attrStrMaybe(dataset.attributes, 'name') ?? dataset.path,
+    }))
+    options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unknown dataset'), dataset: undefined })
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
-  }, [datasets, viewedDatasetName])
+  }, [datasets, t, viewedDatasetName])
 
   const handleChange = useCallback(
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {
       if (option) {
-        const datasetName = options.find((o) => o.value === option.value)?.dataset.path
-        if (isNil(datasetName) || isEmpty(datasetName)) {
+        if (option.value === UNKNOWN_DATASET_NAME) {
+          setViewedDatasetName(option.value)
+          return
+        }
+        const datasetName = options.find((o) => o.value === option.value)?.dataset?.path
+        if (datasetName !== UNKNOWN_DATASET_NAME && (isNil(datasetName) || isEmpty(datasetName))) {
           throw new ErrorInternal(
             `Attempted to select a non-existent dataset in the viewed dataset dropdown menu: '${option.value}'`,
           )
@@ -60,14 +71,25 @@ export function ViewedDatasetSelector() {
   )
 }
 
-function OptionComponent({
+function OptionComponent({ data, ...restProps }: OptionProps<Option, false>) {
+  if (!isNil(data.dataset)) {
+    const props = {
+      data: { ...data, dataset: data.dataset },
+      ...restProps,
+    } as OptionProps<Option & { dataset: Dataset }, false> // FIXME: fix types
+    return <OptionComponentDataset {...props} />
+  }
+  return <OptionComponentUnknownDataset data={data} {...restProps} />
+}
+
+function OptionComponentDataset({
   data: { dataset },
   isDisabled,
   isFocused,
   isSelected,
   innerRef,
   innerProps,
-}: OptionProps<Option, false>) {
+}: OptionProps<Option & { dataset: Dataset }, false>) {
   const { t } = useTranslationSafe()
 
   const { pathname } = useRouter()
@@ -106,6 +128,26 @@ function OptionComponent({
       </div>
       <div className="small">{reference}</div>
       <div className="small">{path}</div>
+    </OptionBody>
+  )
+}
+
+function OptionComponentUnknownDataset({ isFocused, isSelected, innerRef, innerProps }: OptionProps<Option, false>) {
+  const { t } = useTranslationSafe()
+  return (
+    <OptionBody
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      /* @ts-ignore */
+      ref={innerRef}
+      isSelected={isSelected}
+      isFocused={isFocused}
+      {...innerProps}
+    >
+      <div>
+        <span>{t('Unknown dataset')}</span>
+      </div>
+      <div className="small">{t('Sequences without dataset detected')}</div>
+      <div className="small">&nbsp;</div>
     </OptionBody>
   )
 }

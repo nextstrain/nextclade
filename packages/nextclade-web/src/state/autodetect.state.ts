@@ -212,6 +212,18 @@ export const seqIndicesWithoutDatasetSuggestionsAtom = selector<number[]>({
   },
 })
 
+/** List of suggestions for which we did not detect a dataset */
+export const resultsWithoutDatasetSuggestionsAtom = selector<MinimizerSearchRecord[]>({
+  key: 'resultsWithoutDatasetSuggestionsAtom',
+  get: ({ get }) => {
+    const seqIndicesWithoutDatasetSuggestions = get(seqIndicesWithoutDatasetSuggestionsAtom)
+    const autodetectResults = get(autodetectResultsAtom)
+    return seqIndicesWithoutDatasetSuggestions
+      .map((index) => autodetectResults?.find((result) => result.fastaRecord.index === index))
+      .filter(notUndefinedOrNull)
+  },
+})
+
 /** Map of dataset name to the indices of sequences for which this dataset is the best suggestion */
 export const datasetNameToSeqIndicesAtom = selector<Map<string, number[]>>({
   key: 'datasetNameToSeqIndicesAtom',

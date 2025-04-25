@@ -5,6 +5,8 @@ import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
 
+export const UNKNOWN_DATASET_NAME = '__UNKNOWN__' as const
+
 export const datasetServerUrlAtom = atom<string>({
   key: 'datasetServerUrlAtom',
 })
@@ -81,6 +83,13 @@ export const hasMultipleDatasetsForAnalysisAtom = selector<boolean | undefined>(
 export const viewedDatasetNameAtom = atom<string>({
   key: 'viewedDatasetNameAtom',
   default: undefined,
+})
+
+export const isViewedDatasetUnknownAtom = selector<boolean>({
+  key: 'viewedDatasetIsUnknownAtom',
+  get({ get }) {
+    return get(viewedDatasetNameAtom) === UNKNOWN_DATASET_NAME
+  },
 })
 
 export const datasetUpdatedAtom = atomFamily<Dataset | undefined, { datasetName: string }>({
