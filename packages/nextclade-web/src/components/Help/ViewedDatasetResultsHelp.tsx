@@ -3,7 +3,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { InfoButton } from 'src/components/Common/InfoButton'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-export function ViewedDatasetHelp() {
+export function ViewedDatasetResultsHelp() {
   const { t } = useTranslationSafe()
 
   return (

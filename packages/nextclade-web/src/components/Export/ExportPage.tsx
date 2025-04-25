@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { useRecoilValue } from 'recoil'
-import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
+import { Row, Col } from 'reactstrap'
 import styled from 'styled-components'
+import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
+import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
@@ -20,40 +22,67 @@ export function ExportPage() {
     <Layout>
       <Container>
         {hasMultipleDatasetsForAnalysis && (
-          <div>
-            <label> {t('Select dataset')}</label>
-            <ViewedDatasetSelector />
-          </div>
+          <Sidebar>
+            <div className="ml-2 d-flex my-auto pb-1">
+              <span className="mr-1">{t('Dataset')}</span>
+              <span className="mr-1">
+                <ViewedDatasetExportHelp />
+              </span>
+            </div>
+            <div>
+              <ViewedDatasetSelector />
+            </div>
+          </Sidebar>
         )}
 
-        <Header>
-          <h4 className="mx-auto">{t('Download output files')}</h4>
-        </Header>
+        <Row noGutters className="d-flex w-100 h-100 overflow-hidden">
+          <Col className="mx-auto h-100 overflow-hidden">
+            <MainContentInner>
+              <Header>
+                <h4 className="mx-auto">{t('Download output files')}</h4>
+              </Header>
 
-        <Main>
-          <TabNav>
-            <TabLabel tabId="files" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-              {t('Files')}
-            </TabLabel>
-            <TabLabel tabId="column-config" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-              {t('Column config')}
-            </TabLabel>
-          </TabNav>
-          <TabContent activeTab={activeTabId}>
-            <TabPane tabId="files">
-              <ExportTabMain setActiveTabId={setActiveTabId} />
-            </TabPane>
-            <TabPane tabId="column-config">
-              <ExportTabColumnConfig setActiveTabId={setActiveTabId} />
-            </TabPane>
-          </TabContent>
-        </Main>
+              <Main>
+                <TabNav>
+                  <TabLabel tabId="files" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+                    {t('Files')}
+                  </TabLabel>
+                  <TabLabel tabId="column-config" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+                    {t('Column config')}
+                  </TabLabel>
+                </TabNav>
+                <TabContent activeTab={activeTabId}>
+                  <TabPane tabId="files">
+                    <ExportTabMain setActiveTabId={setActiveTabId} />
+                  </TabPane>
+                  <TabPane tabId="column-config">
+                    <ExportTabColumnConfig setActiveTabId={setActiveTabId} />
+                  </TabPane>
+                </TabContent>
+              </Main>
+            </MainContentInner>
+          </Col>
+        </Row>
       </Container>
     </Layout>
   )
 }
 
 const Container = styled.div`
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+`
+
+const Sidebar = styled.aside`
+  flex: 0 0 260px;
+  height: 100%;
+  background-color: #f2f2f2;
+  padding: 20px;
+`
+
+const MainContentInner = styled.div`
   max-width: ${(props) => props.theme.containerMaxWidths.md};
   margin: auto;
   padding: 0.8rem 0;

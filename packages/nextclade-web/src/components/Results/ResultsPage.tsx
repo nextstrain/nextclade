@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
 import { useRecoilValue } from 'recoil'
-import { ViewedDatasetHelp } from 'src/components/Help/ViewedDatasetHelp'
+import { ViewedDatasetResultsHelp } from 'src/components/Help/ViewedDatasetResultsHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { hasMultipleDatasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
@@ -60,9 +60,9 @@ export function ResultsPage() {
             {hasMultipleDatasetsForAnalysis && (
               <ViewedDatasetSelectorContainer>
                 <span className="ml-2 d-flex my-auto">
-                  <span className="mr-1">{t('Viewed dataset')}</span>
+                  <span className="mr-1">{t('Dataset')}</span>
                   <span className="mr-1">
-                    <ViewedDatasetHelp />
+                    <ViewedDatasetResultsHelp />
                   </span>
                 </span>
                 <ViewedDatasetSelectorWrapper>
