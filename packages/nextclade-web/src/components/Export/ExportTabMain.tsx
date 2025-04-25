@@ -1,4 +1,6 @@
 import React, { FC, ReactNode, useMemo, useCallback } from 'react'
+import { useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { Button as ButtonBase, Row, Col, Spinner as SpinnerBase } from 'reactstrap'
 import { MdFileDownload, MdCheck } from 'react-icons/md'
@@ -34,6 +36,8 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): void }) {
   const { t } = useTranslationSafe()
 
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+
   const onClick = useCallback(() => {
     setActiveTabId('column-config')
   }, [setActiveTabId])
@@ -51,19 +55,19 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
     [onClick, t],
   )
 
-  // TODO: We could probably use a map and then iterate over it, to reduce duplication
-  const { isRunning: isRunningZip, isDone: isDoneZip, fn: exportZip } = useExportZip()
-  const { isRunning: isRunningFasta, isDone: isDoneFasta, fn: exportFasta } = useExportFasta()
-  const { isRunning: isRunningCsv, isDone: isDoneCsv, fn: exportCsv } = useExportCsv()
-  const { isRunning: isRunningTsv, isDone: isDoneTsv, fn: exportTsv } = useExportTsv()
-  const { isRunning: isRunningJson, isDone: isDoneJson, fn: exportJson } = useExportJson()
-  const { isRunning: isRunningNdjson, isDone: isDoneNdjson, fn: exportNdjson } = useExportNdjson()
+  // TODO: We could probably use a map and then iterate over it to reduce duplication
+  const { isRunning: isRunningZip, isDone: isDoneZip, fn: exportZip } = useExportZip({ datasetName })
+  const { isRunning: isRunningFasta, isDone: isDoneFasta, fn: exportFasta } = useExportFasta({ datasetName })
+  const { isRunning: isRunningCsv, isDone: isDoneCsv, fn: exportCsv } = useExportCsv({ datasetName })
+  const { isRunning: isRunningTsv, isDone: isDoneTsv, fn: exportTsv } = useExportTsv({ datasetName })
+  const { isRunning: isRunningJson, isDone: isDoneJson, fn: exportJson } = useExportJson({ datasetName })
+  const { isRunning: isRunningNdjson, isDone: isDoneNdjson, fn: exportNdjson } = useExportNdjson({ datasetName })
 
-  const exportPeptides = useExportPeptides()
-  const exportGff = useExportGff()
-  const exportTbl = useExportTbl()
-  const exportTree = useExportTree()
-  const exportTreeNwk = useExportTreeNwk()
+  const exportPeptides = useExportPeptides({ datasetName })
+  const exportGff = useExportGff({ datasetName })
+  const exportTbl = useExportTbl({ datasetName })
+  const exportTree = useExportTree({ datasetName })
+  const exportTreeNwk = useExportTreeNwk({ datasetName })
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
