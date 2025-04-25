@@ -1,10 +1,10 @@
 import { useRouter } from 'next/router'
 import React, { useCallback } from 'react'
+import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
 import styled from 'styled-components'
 import { Row as RowBase, Col as ColBase } from 'reactstrap'
 import { DatasetAutosuggestionResultsList } from 'src/components/Main/DatasetSelector'
-import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
 
 export function StepDatasetSelection() {
   return (
@@ -59,7 +59,9 @@ function DatasetSelection() {
           </Container>
         </Col>
         <Col lg={6}>
-          <DatasetCurrentList />
+          <div className="d-flex flex-column w-100">
+            <DatasetCurrent />
+          </div>
         </Col>
       </Row>
     </Wrapper>

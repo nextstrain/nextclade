@@ -1,5 +1,4 @@
 import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { lighten } from 'polished'
 import { ListGroup } from 'reactstrap'
 import styled from 'styled-components'
 import { areDatasetsEqual, attrStrMaybe, Dataset } from 'src/types'
@@ -10,22 +9,21 @@ import { DatasetListEntry } from 'src/components/Main/DatasetListEntry'
 export interface DatasetSelectorListProps {
   datasetsActive: Dataset[]
   datasetsInactive?: Dataset[]
-  datasetsHighlighted: Dataset[]
-  onDatasetsHighlighted(dataset: Dataset[]): void
+  datasetHighlighted?: Dataset
+  onDatasetHighlighted?(dataset?: Dataset): void
   searchTerm: string
-  showSuggestions?: boolean
 }
 
 export function DatasetSelectorList({
   datasetsActive,
   datasetsInactive = [],
-  datasetsHighlighted,
-  onDatasetsHighlighted,
+  datasetHighlighted,
+  onDatasetHighlighted,
   searchTerm,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetsHighlighted([dataset]), [onDatasetsHighlighted])
+  const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
 
-  const listItemsRef = useScrollListToDataset(datasetsHighlighted[0])
+  const listItemsRef = useScrollListToDataset(datasetHighlighted)
 
   const searchResult = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -52,7 +50,7 @@ export function DatasetSelectorList({
             ref={nodeRefSetOrDelete(listItemsRef.current, dataset.path)}
             dataset={dataset}
             onClick={onItemClick(dataset)}
-            isCurrent={areDatasetsEqual(dataset, datasetsHighlighted[0])}
+            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
           />
         ))}
 
@@ -62,13 +60,13 @@ export function DatasetSelectorList({
             ref={nodeRefSetOrDelete(listItemsRef.current, dataset.path)}
             dataset={dataset}
             onClick={onItemClick(dataset)}
-            isCurrent={areDatasetsEqual(dataset, datasetsHighlighted[0])}
+            isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
             isDimmed
           />
         ))}
       </Ul>
     ),
-    [datasetsHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick],
+    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick],
   )
 }
 
@@ -110,6 +108,8 @@ export const Ul = styled(ListGroup)`
 `
 
 export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
+  display: flex;
+
   cursor: pointer;
   opacity: ${(props) => props.$isDimmed && 0.4};
   background-color: transparent;
@@ -122,11 +122,11 @@ export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
     props.$active &&
     `
     color: ${props.theme.white};
-    background-color: ${lighten(0.033)(props.theme.primary)};
+    background-color: ${props.theme.primary};
     color: ${props.theme.gray100};
     box-shadow: -3px 3px 12px 3px #0005;
     opacity: ${props.$isDimmed && 0.66};
-   `};
+    `};
 `
 
 interface DatasetSelectorListItemProps {

@@ -3,8 +3,8 @@ import React, { useMemo } from 'react'
 import { Col, Row } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
+import { DatasetMultiList } from 'src/components/Main/DatasetMultiList'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { DatasetCurrentList } from 'src/components/Main/DatasetCurrent'
 import { ButtonSuggest, SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
@@ -24,7 +24,7 @@ export function SectionDatasetMulti() {
       <>
         <Row noGutters className="my-1">
           <Col>
-            <DatasetCurrentList />
+            <DatasetMultiList />
           </Col>
         </Row>
 

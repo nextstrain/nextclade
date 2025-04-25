@@ -8,15 +8,17 @@ import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AnyType, attrBoolMaybe, attrStrMaybe, DatasetVersion } from 'src/types'
 import type { Dataset } from 'src/types'
 
-export const DatasetName = styled.h4.attrs(({ color }) => ({
+export const DatasetNameHeading = styled.h4`
+  display: flex;
+  margin-bottom: 0;
+  overflow: hidden;
+`
+
+export const DatasetName = styled.span.attrs(({ color }) => ({
   style: { color },
 }))`
-  display: flex;
-
   font-size: 1.2rem;
-  margin-bottom: 0;
   font-weight: bold;
-
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -45,17 +47,17 @@ export interface DatasetInfoProps {
 export function DatasetInfo({ dataset, ...restProps }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
 
-  const { datasetName, datasetRef, datasetUpdatedAt, datasetPath, color } = useMemo(
+  const { datasetName, datasetRef, datasetUpdatedAt, datasetPath } = useMemo(
     () => formatDatasetInfo(dataset, t),
     [dataset, t],
   )
 
   return (
     <div className="d-flex flex-column" {...restProps}>
-      <DatasetName title={datasetName} color={color}>
-        <span>{datasetName}</span>
+      <DatasetNameHeading title={datasetName}>
+        <DatasetName>{datasetName}</DatasetName>
         <DatasetInfoBadges dataset={dataset} />
-      </DatasetName>
+      </DatasetNameHeading>
 
       <DatasetInfoLine title={datasetRef}>{datasetRef}</DatasetInfoLine>
       <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
