@@ -1,3 +1,4 @@
+import { darken } from 'polished'
 import React, { useMemo } from 'react'
 import { Badge } from 'reactstrap'
 import styled from 'styled-components'
@@ -69,11 +70,12 @@ export function formatDatasetInfo(dataset: Dataset, t: TFunc) {
   const datasetRef = t('Reference: {{ ref }}', { ref: formatReference(attributes) })
   const datasetUpdatedAt = t('Updated at: {{updated}}', { updated: formatUpdatedAt(version, t) })
   const datasetPath = t('Dataset name: {{name}}', { name: path })
-  const color = colorHash(path, {
-    lightness: [0.35, 0.5],
-    saturation: [0.35, 0.5],
-  })
+  const color = datasetColor(path)
   return { attributes, path, datasetName, datasetRef, datasetUpdatedAt, datasetPath, color }
+}
+
+export function datasetColor(datasetName: string) {
+  return darken(0.1)(colorHash(datasetName, { lightness: [0.35, 0.5], saturation: [0.35, 0.5] }))
 }
 
 export function formatReference(attributes: Record<string, AnyType> | undefined) {

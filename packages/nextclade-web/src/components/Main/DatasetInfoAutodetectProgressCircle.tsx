@@ -1,9 +1,8 @@
 import { isEmpty, last } from 'lodash'
-import { darken } from 'polished'
 import React, { useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { datasetColor } from 'src/components/Main/DatasetInfo'
 import styled from 'styled-components'
-import { colorHash } from 'src/helpers/colorHash'
 import { firstLetter } from 'src/helpers/string'
 import { numberAutodetectResultsAtom, seqIndicesForDataset } from 'src/state/autodetect.state'
 import { attrStrMaybe, type Dataset } from 'src/types'
@@ -16,7 +15,7 @@ export function DatasetInfoAutodetectProgressCircle({
   const { attributes, path } = dataset
   const name = attrStrMaybe(attributes, 'name') ?? last(path.split('/')) ?? '?'
 
-  const circleBg = useMemo(() => darken(0.1)(colorHash(path, { saturation: 0.5, reverse: true })), [path])
+  const circleBg = useMemo(() => datasetColor(path), [path])
   const seqIndices = useRecoilValue(seqIndicesForDataset(path))
   const numberAutodetectResults = useRecoilValue(numberAutodetectResultsAtom)
 
