@@ -73,7 +73,7 @@ regex = "=1.8.4"
 reqwest = { version = "=0.12.8", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 rstest = "=0.17.0"
 rstest_reuse = "=0.5.0"
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap"] }
+schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap"] }
 semver = { version = "=1.0.17", features = ["serde"] }
 serde = { version = "=1.0.164", features = ["derive"] }
 serde-wasm-bindgen = { version = "=0.5.0" }
