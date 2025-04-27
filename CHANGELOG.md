@@ -1,3 +1,13 @@
+## __NEXT__
+
+## Deprecate support for Ubuntu 12.04
+
+Nextclade CLI compiled for the "gnu" flavor of Linux no longer supports Ubuntu 12.04. Use the "musl" flavor of Nextclade CLI instead though it might be slower.  The list or Linux distributions we tested the new version of Nextclade on is [here](https://github.com/nextstrain/nextclade/blob/9f2b9a620a7bc9a068909634a4fc3f29757c059f/tests/test-linux-distros#L18-L62). Users of Nextclade CLI on macOS and Windows and users of Nextclade Web are not affected.
+
+## Internal changes
+
+- upgrade Rust to 1.80.0 (previously 1.76.0)
+
 ## 3.13.1
 
 ### Fix crash on empty query annotations

@@ -24,14 +24,13 @@ export RUN_COMMAND="/nextclade dataset list >/dev/null"
 distros=(
   "debian/eol:jessie"  # 8
   "debian/eol:stretch" # 9
-  "debian:10.0"
+  "debian/eol:buster"  # 10
   "debian:11.0"
   "debian:12.0"
   "debian:stable"
   "debian:testing"
   "debian:sid"
   "debian:latest"
-  "ubuntu:12.04"
   "ubuntu:14.04"
   "ubuntu:16.04"
   "ubuntu:18.04"
