@@ -2,7 +2,7 @@ use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
 use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive};
-use schemars::gen::SchemaGenerator;
+use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
@@ -274,8 +274,8 @@ where
     "Position".to_owned()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<isize>()
+  fn json_schema(r#gen: &mut SchemaGenerator) -> Schema {
+    r#gen.subschema_for::<isize>()
   }
 }
 

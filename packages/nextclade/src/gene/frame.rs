@@ -1,7 +1,7 @@
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::make_internal_error;
 use eyre::Report;
-use schemars::gen::SchemaGenerator;
+use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter};
@@ -46,7 +46,7 @@ impl schemars::JsonSchema for Frame {
     "Frame".to_owned()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<i8>()
+  fn json_schema(r#gen: &mut SchemaGenerator) -> Schema {
+    r#gen.subschema_for::<i8>()
   }
 }

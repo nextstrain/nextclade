@@ -3,7 +3,7 @@ use crate::io::json::is_json_value_null;
 use core::fmt::Debug;
 use core::fmt::{Display, Formatter};
 use derive_more::Display;
-use schemars::gen::SchemaGenerator;
+use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -48,8 +48,8 @@ impl JsonSchema for GraphEdgeKey {
     "GraphEdgeKey".to_owned()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<usize>()
+  fn json_schema(r#gen: &mut SchemaGenerator) -> Schema {
+    r#gen.subschema_for::<usize>()
   }
 }
 
