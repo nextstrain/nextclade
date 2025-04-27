@@ -116,7 +116,7 @@ impl<'a> FastaReader<'a> {
       return make_error!("Expected character '>' at record start.");
     }
 
-    record.seq_name = self.line[1..].trim().to_owned();
+    self.line[1..].trim().clone_into(&mut record.seq_name);
 
     loop {
       self.line.clear();

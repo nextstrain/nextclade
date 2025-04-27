@@ -128,7 +128,7 @@ where
   L: SeqTypeMarker,
 {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    std::fmt::Display::fmt(&self.inner, f)
+    Display::fmt(&self.inner, f)
   }
 }
 
@@ -139,7 +139,7 @@ where
   L: SeqTypeMarker,
 {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    std::fmt::Debug::fmt(&self.inner, f)
+    Debug::fmt(&self.inner, f)
   }
 }
 

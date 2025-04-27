@@ -23,14 +23,14 @@ pub enum QcStatus {
   Bad,
 }
 
-impl ToString for QcStatus {
-  fn to_string(&self) -> String {
-    match self {
-      QcStatus::Good => "good".to_owned(),
-      QcStatus::Mediocre => "mediocre".to_owned(),
-      QcStatus::Bad => "bad".to_owned(),
+impl std::fmt::Display for QcStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            QcStatus::Good => write!(f, "good"),
+            QcStatus::Mediocre => write!(f, "mediocre"),
+            QcStatus::Bad => write!(f, "bad"),
+        }
     }
-  }
 }
 
 impl QcStatus {
