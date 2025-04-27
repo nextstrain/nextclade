@@ -6,7 +6,7 @@ members = [
 ]
 
 exclude = [
-  "packages/3rdparty",
+  "packages/thirdparty",
 ]
 
 
