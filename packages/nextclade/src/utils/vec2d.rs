@@ -53,8 +53,8 @@ impl<T: Default + Clone> Index<(usize, usize)> for Vec2d<T> {
   type Output = T;
 
   #[inline]
-  fn index(&self, index2d: (usize, usize)) -> &Self::Output {
-    self.data.index(self.get_index(index2d))
+  fn index(&self, index: (usize, usize)) -> &Self::Output {
+    self.data.index(self.get_index(index))
   }
 }
 
@@ -62,8 +62,8 @@ impl<T: Default + Clone> Index<(usize, usize)> for Vec2d<T> {
 ///  arr[(row, col)]
 impl<T: Default + Clone> IndexMut<(usize, usize)> for Vec2d<T> {
   #[inline]
-  fn index_mut(&mut self, index2d: (usize, usize)) -> &mut Self::Output {
-    self.data.index_mut(self.get_index(index2d))
+  fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+    self.data.index_mut(self.get_index(index))
   }
 }
 
@@ -73,8 +73,8 @@ impl<T: Default + Clone> Index<(i32, i32)> for Vec2d<T> {
   type Output = T;
 
   #[inline]
-  fn index(&self, index2d: (i32, i32)) -> &Self::Output {
-    self.data.index(self.get_index_i32(index2d))
+  fn index(&self, index: (i32, i32)) -> &Self::Output {
+    self.data.index(self.get_index_i32(index))
   }
 }
 
@@ -82,8 +82,8 @@ impl<T: Default + Clone> Index<(i32, i32)> for Vec2d<T> {
 ///  arr[(row, col)]
 impl<T: Default + Clone> IndexMut<(i32, i32)> for Vec2d<T> {
   #[inline]
-  fn index_mut(&mut self, index2d: (i32, i32)) -> &mut Self::Output {
-    self.data.index_mut(self.get_index_i32(index2d))
+  fn index_mut(&mut self, index: (i32, i32)) -> &mut Self::Output {
+    self.data.index_mut(self.get_index_i32(index))
   }
 }
 

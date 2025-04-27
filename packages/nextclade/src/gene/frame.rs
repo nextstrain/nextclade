@@ -46,7 +46,7 @@ impl schemars::JsonSchema for Frame {
     "Frame".to_owned()
   }
 
-  fn json_schema(r#gen: &mut SchemaGenerator) -> Schema {
-    r#gen.subschema_for::<i8>()
+  fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+    generator.subschema_for::<i8>()
   }
 }

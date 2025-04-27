@@ -48,8 +48,8 @@ impl JsonSchema for GraphEdgeKey {
     "GraphEdgeKey".to_owned()
   }
 
-  fn json_schema(r#gen: &mut SchemaGenerator) -> Schema {
-    r#gen.subschema_for::<usize>()
+  fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+    generator.subschema_for::<usize>()
   }
 }
 
@@ -103,7 +103,7 @@ impl<E: GraphEdge> Edge<E> {
 }
 
 impl<E: GraphEdge> Display for Edge<E> {
-  fn fmt(&self, fmt: &mut Formatter<'_>) -> core::fmt::Result {
-    write!(fmt, "{} -> {}", self.source(), self.target())
+  fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+    write!(f, "{} -> {}", self.source(), self.target())
   }
 }

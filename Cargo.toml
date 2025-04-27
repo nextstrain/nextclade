@@ -100,12 +100,11 @@ zstd = { version = "=0.12.3", features = ["zstdmt"] }
 [workspace.lints.rust]
 # Lint groups
 # https://doc.rust-lang.org/rustc/lints/groups.html
-deprecated_in_future = "warn"
-future_incompatible = "warn"
-nonstandard_style = "warn"
-rust_2018_idioms = "warn"
-rust_2021_compatibility = "warn"
-trivial_numeric_casts = "warn"
+future_incompatible = { level = "warn", priority = -1 }
+keyword_idents = { level = "warn", priority = -1 }
+nonstandard_style = { level = "warn", priority = -1 }
+rust_2018_idioms = { level = "warn", priority = -1 }
+rust_2021_compatibility = { level = "warn", priority = -1 }
 
 # Disable some of the lints enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html
@@ -114,9 +113,9 @@ elided_lifetimes_in_paths = "allow"
 # Enable lints not enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
 absolute_paths_not_starting_with_crate = "warn"
+deprecated_in_future = "warn"
 explicit_outlives_requirements = "warn"
 ffi_unwind_calls = "warn"
-keyword_idents = "warn"
 let_underscore_drop = "warn"
 macro_use_extern_crate = "warn"
 meta_variable_misuse = "warn"
@@ -128,6 +127,7 @@ rust_2021_prefixes_incompatible_syntax = "warn"
 rust_2021_prelude_collisions = "warn"
 single_use_lifetimes = "warn"
 trivial_casts = "warn"
+trivial_numeric_casts = "warn"
 unit_bindings = "warn"
 unsafe_code = "warn"
 unsafe_op_in_unsafe_fn = "warn"

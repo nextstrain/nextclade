@@ -59,8 +59,8 @@ impl JsonSchema for GraphNodeKey {
     "GraphNodeKey".to_owned()
   }
 
-  fn json_schema(r#gen: &mut SchemaGenerator) -> Schema {
-    r#gen.subschema_for::<usize>()
+  fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+    generator.subschema_for::<usize>()
   }
 }
 
