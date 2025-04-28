@@ -1,10 +1,11 @@
-import { mapValues, sum } from 'lodash'
+import { sum } from 'lodash'
 import { atom, atomFamily, selectorFamily } from 'recoil'
 import {
   COLUMN_WIDTHS,
   DYNAMIC_AA_MOTIFS_COLUMN_WIDTH,
   DYNAMIC_CLADE_COLUMN_WIDTH,
   DYNAMIC_PHENOTYPE_COLUMN_WIDTH,
+  getColumnWidthsPx,
 } from 'src/components/Results/ResultsTableStyle'
 import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { persistAtom } from 'src/state/persist/localStorage'
@@ -54,7 +55,7 @@ export const resultsTableColumnWidthsPxAtom = selectorFamily<
   get:
     ({ datasetName }) =>
     ({ get }) =>
-      mapValues(get(resultsTableColumnWidthsAtom({ datasetName })), (width) => `${width}px`),
+      getColumnWidthsPx(get(resultsTableColumnWidthsAtom({ datasetName }))),
 })
 
 export const resultsTableDynamicCladeColumnWidthAtom = atomFamily<number, { datasetName: string }>({

@@ -1,3 +1,4 @@
+import { mapValues } from 'lodash'
 import styled from 'styled-components'
 
 import { ButtonHelp } from 'src/components/Results/ButtonHelp'
@@ -28,6 +29,14 @@ export const COLUMN_WIDTHS = {
   stopCodons: 50,
   sequenceView: 550,
 } as const
+
+export const COLUMN_WIDTHS_PX = getColumnWidthsPx(COLUMN_WIDTHS)
+
+export function getColumnWidthsPx(
+  columnWidths: Record<keyof typeof COLUMN_WIDTHS, number>,
+): Record<keyof typeof COLUMN_WIDTHS, string> {
+  return mapValues(columnWidths, (width) => `${width}px`)
+}
 
 export const Table = styled.div<{ rounded?: boolean }>`
   font-size: 0.8rem;

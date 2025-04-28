@@ -2,8 +2,8 @@ import React, { Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import { ViewedDatasetResultsHelp } from 'src/components/Help/ViewedDatasetResultsHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
+import { ResultsTableUnknownDataset } from 'src/components/Results/ResultsTableUnknownDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { resultsWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
 import {
   hasMultipleDatasetsForAnalysisAtom,
   isViewedDatasetUnknownAtom,
@@ -76,24 +76,10 @@ export function ResultsPage() {
 }
 
 function ResultsPageDatasetUnknown() {
-  const { t } = useTranslationSafe()
-  const resultsWithoutDatasetSuggestions = useRecoilValue(resultsWithoutDatasetSuggestionsAtom)
-
   return (
-    <div>
-      <h2>{t('Sequences without dataset detected')}</h2>
-      <ul>
-        {resultsWithoutDatasetSuggestions.map((result) => {
-          return (
-            <li key={result.fastaRecord.index}>
-              <span>{result.fastaRecord.index}</span>
-              <span>{' - '}</span>
-              <span>{result.fastaRecord.seqName}</span>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+    <MainContent>
+      <ResultsTableUnknownDataset />
+    </MainContent>
   )
 }
 
