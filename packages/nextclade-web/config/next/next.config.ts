@@ -79,6 +79,7 @@ const nextConfig: NextConfig = {
   experimental: {
     reactRoot: true,
     scrollRestoration: true,
+    esmExternals: 'loose',
   },
   swcMinify: true,
   productionBrowserSourceMaps: ENABLE_SOURCE_MAPS,
