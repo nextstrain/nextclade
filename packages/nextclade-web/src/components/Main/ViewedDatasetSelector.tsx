@@ -206,6 +206,7 @@ function getTheme(theme: Theme): Theme {
 
 const STYLES: StylesConfig<Option, false> = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  menu: (base) => ({ ...base, width: 400 }),
   menuList: (base) => ({ ...base, fontSize: '1rem' }),
   option: (base) => ({ ...base, fontSize: '1.0rem', padding: '2px 8px' }),
   singleValue: (base, state) => ({
