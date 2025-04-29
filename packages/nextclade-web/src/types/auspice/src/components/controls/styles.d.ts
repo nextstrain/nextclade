@@ -1,7 +1,9 @@
 declare module 'auspice/src/components/controls/styles' {
-  import { FC } from 'react'
+  import { PropsWithChildren, FC } from 'react'
 
-  export const HeaderContainer: FC
+  export const HeaderContainer: FC<PropsWithChildren>
 
-  export const ControlsContainer: FC
+  export const ControlsContainer: FC<PropsWithChildren>
+
+  export const TitleAndIconContainer: FC<PropsWithChildren>
 }

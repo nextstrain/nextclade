@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { HeaderTitle } from 'src/components/Common/CardHeaderWithToggle'
 import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
@@ -8,7 +9,7 @@ import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
-import { ControlsContainer } from 'auspice/src/components/controls/styles'
+import { ControlsContainer, HeaderContainer, TitleAndIconContainer } from 'auspice/src/components/controls/styles'
 import FilterData, { FilterInfo } from 'auspice/src/components/controls/filter'
 import { TreeInfo } from 'auspice/src/components/controls/miscInfoText'
 import { ControlHeader } from 'auspice/src/components/controls/controlHeader'
@@ -27,37 +28,72 @@ export const Spacer = styled.span<{ sizePx: number }>`
   margin-top: ${(props) => props.sizePx}px;
 `
 
-export function Sidebar() {
+export function Sidebar({ hasTree }: { hasTree: boolean }) {
+  // NOTE: when hasTree is false, the redux state is not available,
+  // so we need to make sure downstream components don't try to access it
   const { t } = useTranslation()
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
-  return (
-    <StyledAuspiceControlsContainer>
-      {hasMultipleDatasetsForAnalysis && (
+  const { datasetSwitcherWidget, remainingWidgets } = useMemo(() => {
+    let datasetSwitcherWidget = null
+    if (hasMultipleDatasetsForAnalysis) {
+      datasetSwitcherWidget = (
         <>
-          <ControlHeader title={t('Dataset')} />
+          <ControlHeaderCloneWithoutRedux title={t('Dataset')} />
           <ViewedDatasetSelector />
         </>
-      )}
+      )
+    }
 
-      <ControlHeader title={t('sidebar:Color By')} tooltip={ColorByInfo} />
-      <ColorBy />
+    let remainingWidgets = null
+    if (hasTree) {
+      remainingWidgets = (
+        <>
+          <ControlHeader title={t('sidebar:Color By')} tooltip={ColorByInfo} />
+          <ColorBy />
 
-      <ControlHeader title={t('sidebar:Filter Data')} tooltip={FilterInfo} />
-      <FilterData measurementsOn={false} />
+          <ControlHeader title={t('sidebar:Filter Data')} tooltip={FilterInfo} />
+          <FilterData measurementsOn={false} />
 
-      <Spacer sizePx={10} />
+          <Spacer sizePx={10} />
 
-      <TreePanel />
+          <TreePanel />
 
-      <Bottom>
-        <LogoPoweredByAuspice />
-      </Bottom>
+          <Bottom>
+            <LogoPoweredByAuspice />
+          </Bottom>
+        </>
+      )
+    }
+
+    return { datasetSwitcherWidget, remainingWidgets }
+  }, [hasMultipleDatasetsForAnalysis, hasTree, t])
+
+  return (
+    <StyledAuspiceControlsContainer>
+      {datasetSwitcherWidget}
+      {remainingWidgets}
     </StyledAuspiceControlsContainer>
   )
 }
 
-export default Sidebar
+// Ensures that we don't try to access redux state when there isn't one
+export function ControlHeaderCloneWithoutRedux({ title }: { title: ReactNode }) {
+  return (
+    <HeaderContainer>
+      <AnnotatedTitleCloneWithoutRedux title={title} />
+    </HeaderContainer>
+  )
+}
+
+// Ensures that we don't try to access redux state when there isn't one
+export function AnnotatedTitleCloneWithoutRedux({ title }: { title: ReactNode }) {
+  return (
+    <TitleAndIconContainer>
+      <HeaderTitle>{title}</HeaderTitle>
+    </TitleAndIconContainer>
+  )
+}
 
 function TreePanel() {
   const { t } = useTranslation()
