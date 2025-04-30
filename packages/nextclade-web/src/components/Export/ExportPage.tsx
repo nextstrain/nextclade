@@ -5,7 +5,7 @@ import { Row, Col } from 'reactstrap'
 import styled from 'styled-components'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
-import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
+import { hasMultipleDatasetsForAnalysisAtom, isViewedDatasetUnknownAtom } from 'src/state/dataset.state'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
 import { ExportTabMain } from 'src/components/Export/ExportTabMain'
@@ -14,8 +14,6 @@ import { Layout } from 'src/components/Layout/Layout'
 
 export function ExportPage() {
   const { t } = useTranslationSafe()
-  const { asPath } = useRouter()
-  const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
   return (
@@ -37,34 +35,55 @@ export function ExportPage() {
 
         <Row noGutters className="d-flex w-100 h-100 overflow-hidden">
           <Col className="mx-auto h-100 overflow-hidden">
-            <MainContentInner>
-              <Header>
-                <h4 className="mx-auto">{t('Download output files')}</h4>
-              </Header>
-
-              <Main>
-                <TabNav>
-                  <TabLabel tabId="files" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-                    {t('Files')}
-                  </TabLabel>
-                  <TabLabel tabId="column-config" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
-                    {t('Column config')}
-                  </TabLabel>
-                </TabNav>
-                <TabContent activeTab={activeTabId}>
-                  <TabPane tabId="files">
-                    <ExportTabMain setActiveTabId={setActiveTabId} />
-                  </TabPane>
-                  <TabPane tabId="column-config">
-                    <ExportTabColumnConfig setActiveTabId={setActiveTabId} />
-                  </TabPane>
-                </TabContent>
-              </Main>
-            </MainContentInner>
+            <MainContent />
           </Col>
         </Row>
       </Container>
     </Layout>
+  )
+}
+
+function MainContent() {
+  const { t } = useTranslationSafe()
+  const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
+
+  const { asPath } = useRouter()
+  const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
+
+  if (isViewedDatasetUnknown) {
+    return (
+      <div className="m-2">
+        <h4 className="mx-auto">{t('This dataset has no output files to export')}</h4>
+        <p>{t('Please select another dataset.')}</p>
+      </div>
+    )
+  }
+
+  return (
+    <MainContentInner>
+      <Header>
+        <h4 className="mx-auto">{t('Download output files')}</h4>
+      </Header>
+
+      <Main>
+        <TabNav>
+          <TabLabel tabId="files" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {t('Files')}
+          </TabLabel>
+          <TabLabel tabId="column-config" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+            {t('Column config')}
+          </TabLabel>
+        </TabNav>
+        <TabContent activeTab={activeTabId}>
+          <TabPane tabId="files">
+            <ExportTabMain setActiveTabId={setActiveTabId} />
+          </TabPane>
+          <TabPane tabId="column-config">
+            <ExportTabColumnConfig setActiveTabId={setActiveTabId} />
+          </TabPane>
+        </TabContent>
+      </Main>
+    </MainContentInner>
   )
 }
 
