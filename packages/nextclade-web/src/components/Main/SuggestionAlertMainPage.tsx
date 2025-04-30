@@ -63,7 +63,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
               <h6 className="font-weight-bold">{t('Multiple matching datasets.')}</h6>
               <p className="small">
                 {t(
-                  '{{ n }} datasets appear to match your sequences. Click "Change reference dataset" to see the list.',
+                  '{{ n }} datasets appear to match your sequences. Click "Change reference dataset" to see the list or use the "Multiple dataset" mode to analyze your data.',
                   {
                     n: numberTopSuggestedDatasets,
                   },
