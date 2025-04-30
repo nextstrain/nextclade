@@ -62,7 +62,7 @@ impl Default for NextcladeSeqSortParams {
       min_hits: 10,
       all_matches: false,
       max_score_gap: 0.2,
-      max_iter: 10,
+      max_iter: 1000,
       global: false,
     }
   }
