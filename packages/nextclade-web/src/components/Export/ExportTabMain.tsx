@@ -1,9 +1,10 @@
+import { isNil } from 'lodash'
 import React, { FC, ReactNode, useMemo, useCallback } from 'react'
 import { useRecoilValue } from 'recoil'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { Button as ButtonBase, Row, Col, Spinner as SpinnerBase } from 'reactstrap'
-import { MdFileDownload, MdCheck } from 'react-icons/md'
+import { MdFileDownload, MdFileDownloadOff, MdFileDownloadDone } from 'react-icons/md'
 import { UlGeneric } from 'src/components/Common/List'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
@@ -129,53 +130,51 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         isDone={isDoneTsv}
       />
 
-      {exportTree && (
-        <ExportFileElement
-          Icon={FileIconJson}
-          filename={exportParams.filenameTree}
-          HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-            formatName: 'Auspice JSON v2',
-          })}
-          HelpDetails={
-            <>
-              {t('Can be viewed locally with Nextstrain Auspice or in ')}
-              <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
-              {'.'}
-            </>
-          }
-          HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-            formatName: 'Auspice JSON v2',
-          })}
-          onDownload={exportTree.fn}
-          isRunning={exportTree.isRunning}
-          isDone={exportTree.isDone}
-        />
-      )}
+      <ExportFileElement
+        Icon={FileIconJson}
+        filename={exportParams.filenameTree}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Auspice JSON v2',
+        })}
+        HelpDetails={
+          <>
+            {t('Can be viewed locally with Nextstrain Auspice or in ')}
+            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
+            {'.'}
+          </>
+        }
+        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Auspice JSON v2',
+        })}
+        onDownload={exportTree?.fn}
+        isRunning={exportTree?.isRunning}
+        isDone={exportTree?.isDone}
+        isDisabled={isNil(exportTree)}
+      />
 
-      {exportTreeNwk && (
-        <ExportFileElement
-          Icon={FileIconNwk}
-          filename={exportParams.filenameTreeNwk}
-          HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-            formatName: 'Newick',
-          })}
-          HelpDetails={
-            <>
-              {t('Can be viewed in most tree viewers, including: ')}
-              <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
-              {t(' or ')}
-              <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
-              {'.'}
-            </>
-          }
-          HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
-            formatName: 'Newick',
-          })}
-          onDownload={exportTreeNwk.fn}
-          isRunning={exportTreeNwk.isRunning}
-          isDone={exportTreeNwk.isDone}
-        />
-      )}
+      <ExportFileElement
+        Icon={FileIconNwk}
+        filename={exportParams.filenameTreeNwk}
+        HelpMain={t('Phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Newick',
+        })}
+        HelpDetails={
+          <>
+            {t('Can be viewed in most tree viewers, including: ')}
+            <LinkExternal url="https://icytree.org/">{'icytree.org'}</LinkExternal>
+            {t(' or ')}
+            <LinkExternal url="https://auspice.us">{'auspice.us'}</LinkExternal>
+            {'.'}
+          </>
+        }
+        HelpDownload={t('Download phylogenetic tree with sequences placed onto it, in {{formatName}} format.', {
+          formatName: 'Newick',
+        })}
+        onDownload={exportTreeNwk?.fn}
+        isRunning={exportTreeNwk?.isRunning}
+        isDone={exportTreeNwk?.isDone}
+        isDisabled={isNil(exportTreeNwk)}
+      />
 
       <ExportFileElement
         Icon={FileIconFasta}
@@ -188,26 +187,25 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
         isDone={isDoneFasta}
       />
 
-      {exportPeptides && (
-        <ExportFileElement
-          Icon={FileIconZip}
-          filename={exportParams.filenamePeptidesZip}
-          HelpMain={t('Aligned peptides in {{formatName}} format, zipped', { formatName: 'FASTA' })}
-          HelpDetails={t(
-            'Contains results of translation of your sequences. One {{formatName}} file per gene, all in a zip archive.',
-            { formatName: 'FASTA' },
-          )}
-          HelpDownload={t(
-            'Download aligned peptides in {{formatName}} format, one file per gene, all in a zip archive.',
-            {
-              formatName: 'FASTA',
-            },
-          )}
-          onDownload={exportPeptides.fn}
-          isRunning={exportPeptides.isRunning}
-          isDone={exportPeptides.isDone}
-        />
-      )}
+      <ExportFileElement
+        Icon={FileIconZip}
+        filename={exportParams.filenamePeptidesZip}
+        HelpMain={t('Aligned peptides in {{formatName}} format, zipped', { formatName: 'FASTA' })}
+        HelpDetails={t(
+          'Contains results of translation of your sequences. One {{formatName}} file per gene, all in a zip archive.',
+          { formatName: 'FASTA' },
+        )}
+        HelpDownload={t(
+          'Download aligned peptides in {{formatName}} format, one file per gene, all in a zip archive.',
+          {
+            formatName: 'FASTA',
+          },
+        )}
+        onDownload={exportPeptides?.fn}
+        isRunning={exportPeptides?.isRunning}
+        isDone={exportPeptides?.isDone}
+        isDisabled={isNil(exportPeptides)}
+      />
 
       <ExportFileElement
         Icon={FileIconGff}
@@ -278,9 +276,10 @@ export interface ExportFileElementProps {
   HelpDetails: ReactNode
   HelpDownload: string
   Config?: ReactNode
-  onDownload(filename: string): void
+  onDownload?(filename: string): void
   isRunning?: boolean
   isDone?: boolean
+  isDisabled?: boolean
 }
 
 export function ExportFileElement({
@@ -293,8 +292,9 @@ export function ExportFileElement({
   onDownload,
   isRunning,
   isDone,
+  isDisabled,
 }: ExportFileElementProps) {
-  const handleDownload = useCallback(() => onDownload(filename), [filename, onDownload])
+  const handleDownload = useCallback(() => onDownload?.(filename), [filename, onDownload])
   const hasFilename = filename.length > 0
 
   const icon = useMemo(() => {
@@ -304,11 +304,14 @@ export function ExportFileElement({
     if (isDone) {
       return <SuccessIcon />
     }
+    if (isDisabled) {
+      return <DownloadDisabledIcon />
+    }
     return <DownloadIcon />
-  }, [isDone, isRunning])
+  }, [isDisabled, isDone, isRunning])
 
   return (
-    <Li className="d-flex">
+    <Li className="d-flex" isDisabled={isDisabled}>
       <span className="flex-grow-0">
         <Icon />
       </span>
@@ -322,7 +325,7 @@ export function ExportFileElement({
       <div className="d-inline-block ml-auto my-auto">
         <DownloadButton
           color="primary"
-          disabled={isRunning || !hasFilename}
+          disabled={isRunning || !hasFilename || isDisabled}
           title={HelpDownload}
           onClick={handleDownload}
         >
@@ -356,7 +359,14 @@ const DownloadIcon = styled(MdFileDownload)`
   display: inline;
 `
 
-const SuccessIcon = styled(MdCheck)`
+const DownloadDisabledIcon = styled(MdFileDownloadOff)`
+  width: 25px;
+  height: 25px;
+  margin-left: -1px;
+  display: inline;
+`
+
+const SuccessIcon = styled(MdFileDownloadDone)`
   width: 25px;
   height: 25px;
   margin-left: -1px;
@@ -369,11 +379,12 @@ export const Ul = styled(UlGeneric)`
   overflow: auto;
 `
 
-export const Li = styled.li`
+export const Li = styled.li<{ isDisabled?: boolean }>`
   margin: 10px 7px;
   display: flex;
   padding: 0.5rem 1rem;
   box-shadow: 0 0 12px 0 #0004;
   border: 1px #ccc9 solid;
   border-radius: 5px;
+  opacity: ${({ isDisabled }) => (isDisabled ? 0.5 : 1)};
 `
