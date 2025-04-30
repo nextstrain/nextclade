@@ -1,5 +1,4 @@
 import { isEmpty, isNil } from 'lodash'
-import { useRouter } from 'next/router'
 import React, { useCallback, useMemo } from 'react'
 import { Badge } from 'reactstrap'
 import { rgba } from 'polished'
@@ -28,29 +27,20 @@ export function ViewedDatasetSelector() {
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
   const allTrees = useRecoilValue(allTreesAtom)
 
-  const { pathname } = useRouter()
-
   const { options, currentOption } = useMemo(() => {
-    const isResultsPage = pathname === '/results'
-    const isTreePage = pathname === '/tree'
     const options: Option[] = (datasets ?? []).map((dataset) => {
       const hasTree = !isNil(allTrees.get(dataset.path))
-      const isDisabled = isTreePage && !hasTree
       return {
         value: dataset.path,
         dataset,
         label: attrStrMaybe(dataset.attributes, 'name') ?? dataset.path,
         hasTree,
-        isDisabled,
-        isTreePage,
       }
     })
-    if (isResultsPage) {
-      options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unknown dataset') })
-    }
+    options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unknown dataset') })
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
-  }, [allTrees, datasets, pathname, t, viewedDatasetName])
+  }, [allTrees, datasets, t, viewedDatasetName])
 
   const handleChange = useCallback(
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {
@@ -107,11 +97,6 @@ function OptionComponentDataset({
 }: OptionProps<Option & { dataset: Dataset }, false>) {
   const { t } = useTranslationSafe()
 
-  const { pathname } = useRouter()
-
-  const isTreePage = pathname === '/tree'
-  const noTreeOrDisabled = isDisabled || (isTreePage && !hasTree)
-
   const { path, name, reference } = useMemo(() => {
     const { path, attributes } = dataset
     const name = attrStrMaybe(attributes, 'name') ?? t('Unknown')
@@ -128,8 +113,8 @@ function OptionComponentDataset({
       ref={innerRef}
       isSelected={isSelected}
       isFocused={isFocused}
-      isDisabled={noTreeOrDisabled}
-      aria-disabled={noTreeOrDisabled}
+      isDisabled={isDisabled}
+      aria-disabled={isDisabled}
       {...innerProps}
     >
       <div>
