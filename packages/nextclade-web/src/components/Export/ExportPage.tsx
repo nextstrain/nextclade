@@ -5,7 +5,11 @@ import { Row, Col } from 'reactstrap'
 import styled from 'styled-components'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
-import { hasMultipleDatasetsForAnalysisAtom, isViewedDatasetUnknownAtom } from 'src/state/dataset.state'
+import {
+  hasMultipleDatasetsForAnalysisAtom,
+  isViewedDatasetUnknownAtom,
+  viewedDatasetNameAtom,
+} from 'src/state/dataset.state'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConfig'
 import { ExportTabMain } from 'src/components/Export/ExportTabMain'
@@ -15,7 +19,7 @@ import { Layout } from 'src/components/Layout/Layout'
 export function ExportPage() {
   const { t } = useTranslationSafe()
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
-
+  const viewedDatasetName = useRecoilValue(viewedDatasetNameAtom)
   return (
     <Layout>
       <Container>
@@ -35,7 +39,7 @@ export function ExportPage() {
 
         <Row noGutters className="d-flex w-100 h-100 overflow-hidden">
           <Col className="mx-auto h-100 overflow-hidden">
-            <MainContent />
+            <MainContent key={viewedDatasetName} />
           </Col>
         </Row>
       </Container>
