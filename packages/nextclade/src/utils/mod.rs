@@ -6,6 +6,7 @@ pub mod error;
 pub mod fs;
 pub mod getenv;
 pub mod global_init;
+pub mod indexmap;
 pub mod info;
 pub mod iter;
 pub mod map;

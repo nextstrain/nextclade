@@ -38,9 +38,11 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
 
   let verbose = log::max_level() >= LevelFilter::Info;
 
-  let minimizer_index = if let Some(input_minimizer_index_json) = &input_minimizer_index_json {
+  let (minimizer_index, ref_names) = if let Some(input_minimizer_index_json) = &input_minimizer_index_json {
     // If a file is provided, use data from it
-    MinimizerIndexJson::from_path(input_minimizer_index_json)
+    let minimizer_index = MinimizerIndexJson::from_path(input_minimizer_index_json)?;
+    let ref_names = minimizer_index.references.iter().map(|r| r.name.clone()).collect_vec();
+    Ok((minimizer_index, ref_names))
   } else {
     // Otherwise fetch from dataset server
     let http = HttpClient::new(server, proxy_config, verbose)?;
@@ -53,7 +55,13 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
 
     if let Some(minimizer_index_path) = minimizer_index_path {
       let minimizer_index_str = http.get(minimizer_index_path)?;
-      MinimizerIndexJson::from_str(String::from_utf8(minimizer_index_str)?)
+      let minimizer_index = MinimizerIndexJson::from_str(String::from_utf8(minimizer_index_str)?)?;
+      let ref_names = index
+        .collections
+        .iter()
+        .flat_map(|collection| collection.datasets.iter().map(|dataset| dataset.path.clone()))
+        .collect_vec();
+      Ok((minimizer_index, ref_names))
     } else {
       let server_versions = index
         .minimizer_index
@@ -70,10 +78,15 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
     }
   }?;
 
-  run(args, &minimizer_index, verbose)
+  run(args, &ref_names, &minimizer_index, verbose)
 }
 
-pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbose: bool) -> Result<(), Report> {
+pub fn run(
+  args: &NextcladeSortArgs,
+  ref_names: &[String],
+  minimizer_index: &MinimizerIndexJson,
+  verbose: bool,
+) -> Result<(), Report> {
   let NextcladeSortArgs {
     input_fastas,
     search_params,
@@ -132,7 +145,7 @@ pub fn run(args: &NextcladeSortArgs, minimizer_index: &MinimizerIndexJson, verbo
     }
 
     s.spawn(move || {
-      writer_thread(args, result_receiver, verbose).unwrap();
+      writer_thread(args, ref_names, result_receiver, verbose).unwrap();
     });
   });
 
@@ -151,6 +164,7 @@ struct SeqSortCsvEntry<'a> {
 
 fn writer_thread(
   args: &NextcladeSortArgs,
+  ref_names: &[String],
   result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
   verbose: bool,
 ) -> Result<(), Report> {
@@ -179,7 +193,7 @@ fn writer_thread(
     //   .copied()
     //   .collect_vec();
 
-    let best_datasets = find_best_datasets(&results, search_params)?;
+    let best_datasets = find_best_datasets(&results, ref_names, search_params)?;
 
     let mut stats = StatsPrinter::new(
       "Suggested datasets for each sequence (after global optimization)",

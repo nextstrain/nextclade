@@ -336,9 +336,15 @@ where
 
 // Returns the key of the maximum value.
 //
-// If several elements are equally maximum, the last element is returned. If the iterator is empty, None is returned.
+// If several elements are equally maximum, the first element is returned. If the iterator is empty, None is returned.
 pub fn key_of_max_value<'k, K, V: Ord + 'k>(m: &'k impl Map<K, V>) -> Option<&'k K> {
-  m.iter().max_by_key(|(_, v)| *v).map(|(k, _)| k)
+  m.iter()
+    .fold(None, |acc, (k, v)| match acc {
+      None => Some((k, v)),
+      Some((_, max_v)) if v > max_v => Some((k, v)),
+      Some(_) => acc,
+    })
+    .map(|(k, _)| k)
 }
 
 pub fn map_to_multimap<K: Clone + Eq + Hash, V: Clone>(input: &impl Map<K, Vec<V>>) -> MultiMap<K, V> {
@@ -346,4 +352,30 @@ pub fn map_to_multimap<K: Clone + Eq + Hash, V: Clone>(input: &impl Map<K, Vec<V
     .iter()
     .flat_map(|(k, vals)| vals.iter().map(|v| (k.clone(), v.clone())))
     .collect()
+}
+
+#[cfg(test)]
+mod tests {
+  use super::key_of_max_value;
+  use maplit::btreemap;
+
+  #[test]
+  fn test_key_of_max_value_distinct_max() {
+    let m = btreemap! {
+      "a" => 1,
+      "b" => 3,
+      "c" => 2,
+    };
+    assert_eq!(key_of_max_value(&m), Some(&"b"));
+  }
+
+  #[test]
+  fn test_key_of_max_value_first_max_selected() {
+    let m = btreemap! {
+      "a" => 5,
+      "b" => 3,
+      "c" => 5,
+    };
+    assert_eq!(key_of_max_value(&m), Some(&"a"));
+  }
 }

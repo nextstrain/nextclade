@@ -2,6 +2,7 @@ import type { Subscription } from 'observable-fns'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { axiosFetch } from 'src/io/axiosFetch'
+import { fetchDatasetsIndex } from 'src/io/fetchDatasetsIndex'
 import {
   AutodetectRunState,
   allDatasetSuggestionResultsAtom,
@@ -14,10 +15,10 @@ import {
   seqIndexToTopDatasetNameAtom,
   seqIndicesWithoutDatasetSuggestionsAtom,
 } from 'src/state/autodetect.state'
-import { minimizerIndexVersionAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { datasetServerUrlAtom, minimizerIndexVersionAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
-import type { FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import { DatasetsIndexJson, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
 import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
 import { spawn } from 'src/workers/spawn'
@@ -30,6 +31,7 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
       () => {
+        const snapshotRelease = snapshot.retain()
         const { getPromise } = snapshot
 
         reset(minimizerIndexAtom)
@@ -70,7 +72,14 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
             const fasta = await getQueryFasta(qrySeqInputs)
             const minimizerIndex: MinimizerIndexJson = await axiosFetch(minimizerIndexVersion.path)
             set(minimizerIndexAtom, minimizerIndex)
-            return runAutodetect(fasta, minimizerIndex, { onResult, onError, onComplete, onBestResults })
+
+            const datasetServerUrl = await getPromise(datasetServerUrlAtom)
+            const index = await fetchDatasetsIndex(datasetServerUrl)
+
+            return runAutodetect(fasta, index, minimizerIndex, { onResult, onError, onComplete, onBestResults })
+          })
+          .finally(() => {
+            snapshotRelease()
           })
           .catch((error) => {
             throw error
@@ -87,8 +96,13 @@ interface Callbacks {
   onBestResults?: (result: FindBestDatasetsResult) => void
 }
 
-async function runAutodetect(fasta: string, minimizerIndex: MinimizerIndexJson, callbacks: Callbacks) {
-  const worker = await SeqAutodetectWasmWorker.create(minimizerIndex)
+async function runAutodetect(
+  fasta: string,
+  index: DatasetsIndexJson,
+  minimizerIndex: MinimizerIndexJson,
+  callbacks: Callbacks,
+) {
+  const worker = await SeqAutodetectWasmWorker.create(index, minimizerIndex)
   await worker.autodetect(fasta, callbacks)
   await worker.destroy()
 }
@@ -99,20 +113,20 @@ export class SeqAutodetectWasmWorker {
 
   private constructor() {}
 
-  static async create(minimizerIndex: MinimizerIndexJson) {
+  static async create(index: DatasetsIndexJson, minimizerIndex: MinimizerIndexJson) {
     const self = new SeqAutodetectWasmWorker()
-    await self.init(minimizerIndex)
+    await self.init(index, minimizerIndex)
     return self
   }
 
-  async init(minimizerIndex: MinimizerIndexJson) {
+  async init(index: DatasetsIndexJson, minimizerIndex: MinimizerIndexJson) {
     this.thread = await spawn<NextcladeSeqAutodetectWasmWorker>(
       new Worker(new URL('src/workers/nextcladeAutodetect.worker.ts', import.meta.url), {
         name: 'nextcladeAutodetectWorker',
       }),
     )
 
-    await this.thread.create(minimizerIndex)
+    await this.thread.create(index, minimizerIndex)
   }
 
   async autodetect(fastaStr: string, { onResult, onError, onComplete, onBestResults }: Callbacks) {

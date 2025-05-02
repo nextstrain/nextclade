@@ -1,7 +1,9 @@
 use crate::wasm::jserr::{jserr, jserr2};
 use chrono::Duration;
 use eyre::WrapErr;
+use itertools::Itertools;
 use maplit::btreemap;
+use nextclade::io::dataset::DatasetsIndexJson;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::sort::minimizer_index::MinimizerIndexJson;
@@ -34,6 +36,7 @@ impl Default for NextcladeSeqAutodetectWasmParams {
 
 #[wasm_bindgen]
 pub struct NextcladeSeqAutodetectWasm {
+  index: DatasetsIndexJson,
   minimizer_index: MinimizerIndexJson,
   run_params: NextcladeSeqAutodetectWasmParams,
   search_params: NextcladeSeqSortParams,
@@ -42,12 +45,19 @@ pub struct NextcladeSeqAutodetectWasm {
 
 #[wasm_bindgen]
 impl NextcladeSeqAutodetectWasm {
-  pub fn new(minimizer_index_json_str: &str, params: &str) -> Result<NextcladeSeqAutodetectWasm, JsError> {
+  pub fn new(
+    index_json_str: &str,
+    minimizer_index_json_str: &str,
+    params: &str,
+  ) -> Result<NextcladeSeqAutodetectWasm, JsError> {
+    let index = jserr(DatasetsIndexJson::from_str(index_json_str))?;
+
     let minimizer_index = jserr(MinimizerIndexJson::from_str(minimizer_index_json_str))?;
 
     let search_params = NextcladeSeqSortParams::default();
 
     Ok(Self {
+      index,
       minimizer_index,
       run_params: jserr(json_parse(params))?,
       search_params,
@@ -104,8 +114,16 @@ impl NextcladeSeqAutodetectWasm {
   }
 
   pub fn find_best_datasets(&self) -> Result<String, JsError> {
-    let best_datasets =
-      jserr(find_best_datasets(&self.results, &self.search_params).wrap_err("When finding best datasets"))?;
+    let dataset_order = self
+      .index
+      .collections
+      .iter()
+      .flat_map(|collection| collection.datasets.iter().map(|dataset| dataset.path.clone()))
+      .collect_vec();
+
+    let best_datasets = jserr(
+      find_best_datasets(&self.results, &dataset_order, &self.search_params).wrap_err("When finding best datasets"),
+    )?;
     jserr(json_stringify(&best_datasets, JsonPretty(false)))
   }
 }

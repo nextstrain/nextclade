@@ -2,11 +2,12 @@ use crate::io::fasta::FastaRecord;
 use crate::make_internal_report;
 use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
 use crate::sort::params::NextcladeSeqSortParams;
+use crate::utils::indexmap::reorder_indexmap;
 use crate::utils::map::key_of_max_value;
 use eyre::Report;
+use indexmap::{indexmap, IndexMap};
 use itertools::{izip, Itertools};
 use log::debug;
-use maplit::btreemap;
 use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -109,6 +110,7 @@ pub struct FindBestDatasetsResult {
 
 pub fn find_best_datasets(
   results: &BTreeMap<usize, MinimizerSearchResult>,
+  dataset_order: &[String],
   params: &NextcladeSeqSortParams,
 ) -> Result<FindBestDatasetsResult, Report> {
   let mut unmatched: BTreeSet<_> = results
@@ -123,8 +125,8 @@ pub fn find_best_datasets(
   let mut total_matches = 0;
 
   for i in 0..params.max_iter {
-    let mut hit_by_dataset = btreemap! {};
-    let mut top_hit_by_dataset = btreemap! {};
+    let mut hit_by_dataset: IndexMap<&String, usize> = indexmap! {};
+    let mut top_hit_by_dataset: IndexMap<&String, usize> = indexmap! {};
 
     for qry in &unmatched {
       let hits = &results[qry].datasets;
@@ -135,6 +137,9 @@ pub fn find_best_datasets(
         *top_hit_by_dataset.entry(&hits[0].name).or_insert(0) += 1;
       }
     }
+
+    let hit_by_dataset = reorder_indexmap(hit_by_dataset, dataset_order);
+    let top_hit_by_dataset = reorder_indexmap(top_hit_by_dataset, dataset_order);
 
     let mut best_dataset = *key_of_max_value(&hit_by_dataset)
       .ok_or_else(|| make_internal_report!("partition_sequences: no matching best dataset found"))?;
