@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Button, Form as FormBase, FormGroup as FormGroupBase, Spinner } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
@@ -9,8 +9,6 @@ import { useResetSuggestionsAndDatasets } from 'src/hooks/useResetSuggestions'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
 import {
-  AutodetectRunState,
-  autodetectRunStateAtom,
   hasAutodetectResultsAtom,
   hasTopSuggestedDatasetsAtom,
   isAutodetectRunningAtom,
@@ -44,38 +42,44 @@ export function SuggestionPanel() {
 export function ButtonSuggest() {
   const { t } = useTranslationSafe()
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
-  const runSuggest = useRunSeqAutodetect({ shouldSetCurrentDataset: true })
+  const { run: runSuggest, stop: stopSuggest, isRunning } = useRunSeqAutodetect({ shouldSetCurrentDataset: true })
   const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
-  const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
   const { text, disabled, color, title } = useMemo(() => {
     const canRun = hasRequiredInputs
-    const isRunning = autodetectRunState === AutodetectRunState.Started
     return {
       text: isRunning ? (
         <span>
           <Spinner size="sm" />
-          <span className="ml-2">{t('Suggesting')}</span>
+          <span className="ml-2">{t('Stop')}</span>
         </span>
       ) : hasAutodetectResults ? (
         t('Re-suggest')
       ) : (
         t('Suggest')
       ),
-      disabled: !canRun || isRunning,
-      color: !canRun ? 'secondary' : 'primary',
+      disabled: !canRun,
+      color: !canRun ? 'secondary' : isRunning ? 'danger' : 'primary',
       title: isRunning
-        ? t('Running')
+        ? t('Stop')
         : !canRun
         ? t('Please provide sequence data for the algorithm')
         : hasAutodetectResults
-        ? t('Re-launch suggestions engine!')
+        ? t('Re-launch the suggestion engine!')
         : t('Launch suggestions engine!'),
     }
-  }, [autodetectRunState, hasAutodetectResults, hasRequiredInputs, t])
+  }, [hasAutodetectResults, hasRequiredInputs, isRunning, t])
+
+  const onClick = useCallback(() => {
+    if (isRunning) {
+      stopSuggest()
+    } else {
+      runSuggest()
+    }
+  }, [isRunning, runSuggest, stopSuggest])
 
   return (
-    <ButtonRunStyled onClick={runSuggest} disabled={disabled} color={color} title={title}>
+    <ButtonRunStyled onClick={onClick} disabled={disabled} color={color} title={title}>
       {text}
     </ButtonRunStyled>
   )

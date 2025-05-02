@@ -13,7 +13,7 @@ import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state
 export function useSetExampleSequences() {
   const { addQryInputs } = useQuerySeqInputs()
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
-  const runAutodetect = useRunSeqAutodetect()
+  const { run: runAutodetect, stop: stopAutodetect } = useRunSeqAutodetect()
 
   return useCallback(
     (dataset?: Dataset) => {

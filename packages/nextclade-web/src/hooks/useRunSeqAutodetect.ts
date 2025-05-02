@@ -1,4 +1,5 @@
 import type { Subscription } from 'observable-fns'
+import { useCallback, useReducer, useRef } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { axiosFetch } from 'src/io/axiosFetch'
@@ -21,15 +22,48 @@ import type { FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord 
 import { getQueryFasta } from 'src/workers/launchAnalysis'
 import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
 import { spawn } from 'src/workers/spawn'
+import { Thread } from 'threads'
 
 export interface AutosuggestionParams {
   shouldSetCurrentDataset?: boolean
 }
 
 export function useRunSeqAutodetect(params?: AutosuggestionParams) {
-  return useRecoilCallback(
+  const workerRef = useRef<SeqAutodetectWasmWorker>()
+  const locked = useRef(false)
+  const [, forceRender] = useReducer((x: number) => x + 1, 0)
+
+  const stop = useCallback(() => {
+    if (!workerRef.current || !locked.current) {
+      console.log({ '!workerRef.current': !workerRef.current, '!locked.current': !locked.current })
+      return
+    }
+    locked.current = true
+    // forceRender()
+
+    // eslint-disable-next-line promise/catch-or-return
+    workerRef.current
+      .terminate()
+      .catch((error) => {
+        throw error
+      })
+      .finally(() => {
+        console.log('finally')
+        workerRef.current = undefined
+        locked.current = false
+        forceRender()
+      })
+  }, [])
+
+  const run = useRecoilCallback(
     ({ set, reset, snapshot }) =>
-      () => {
+      function run() {
+        if (locked.current) {
+          return
+        }
+        locked.current = true
+        forceRender()
+
         const { getPromise } = snapshot
 
         reset(minimizerIndexAtom)
@@ -70,14 +104,21 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
             const fasta = await getQueryFasta(qrySeqInputs)
             const minimizerIndex: MinimizerIndexJson = await axiosFetch(minimizerIndexVersion.path)
             set(minimizerIndexAtom, minimizerIndex)
-            return runAutodetect(fasta, minimizerIndex, { onResult, onError, onComplete, onBestResults })
+
+            workerRef.current = await SeqAutodetectWasmWorker.create(minimizerIndex)
+            await workerRef.current.autodetect(fasta, { onResult, onBestResults, onComplete, onError })
+            stop()
+
+            return undefined
           })
           .catch((error) => {
             throw error
           })
       },
-    [params?.shouldSetCurrentDataset],
+    [params?.shouldSetCurrentDataset, stop],
   )
+
+  return { run, stop, isRunning: locked.current ?? false }
 }
 
 interface Callbacks {
@@ -85,12 +126,6 @@ interface Callbacks {
   onError?: (error: Error) => void
   onComplete?: () => void
   onBestResults?: (result: FindBestDatasetsResult) => void
-}
-
-async function runAutodetect(fasta: string, minimizerIndex: MinimizerIndexJson, callbacks: Callbacks) {
-  const worker = await SeqAutodetectWasmWorker.create(minimizerIndex)
-  await worker.autodetect(fasta, callbacks)
-  await worker.destroy()
 }
 
 export class SeqAutodetectWasmWorker {
@@ -121,9 +156,11 @@ export class SeqAutodetectWasmWorker {
     await this.thread.findBestDatasets().then((result) => onBestResults?.(result))
   }
 
-  async destroy() {
-    this.subscription?.unsubscribe()
-    await this.thread.destroy()
+  async terminate() {
+    console.log('terminate')
+    await Thread.terminate(this.thread)
+    // this.subscription?.unsubscribe()
+    // await this.thread.destroy()
   }
 }
 

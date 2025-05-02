@@ -37,6 +37,9 @@ async function destroy() {
 
   nextcladeAutodetect.free()
   nextcladeAutodetect = undefined
+
+  // eslint-disable-next-line no-restricted-globals
+  self.close()
 }
 
 async function autodetect(fasta: string): Promise<void> {

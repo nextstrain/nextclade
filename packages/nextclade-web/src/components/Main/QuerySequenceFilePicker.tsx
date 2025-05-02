@@ -20,7 +20,7 @@ export function QuerySequenceFilePicker() {
 
   const icon = useMemo(() => <FileIconFasta />, [])
 
-  const runAutodetect = useRunSeqAutodetect()
+  const { run: runAutodetect, stop: stopAutodetect } = useRunSeqAutodetect()
 
   const setSequences = useCallback(
     (inputs: AlgorithmInput[]) => {
