@@ -8,7 +8,7 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { promiseAllObject } from 'src/helpers/promise'
 import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { firstTopSuggestedDatasetAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
+import { topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allViewedCdsAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import {
@@ -20,7 +20,12 @@ import {
   NextcladeParamsRawDir,
 } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { cdsOrderPreferenceAtom, allCdsOrderPreferenceAtom, datasetNamesForAnalysisAtom } from 'src/state/dataset.state'
+import {
+  cdsOrderPreferenceAtom,
+  allCdsOrderPreferenceAtom,
+  datasetNamesForAnalysisAtom,
+  datasetSingleCurrentAtom,
+} from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   datasetJsonAtom,
@@ -64,7 +69,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
   const router = useRouter()
   const { seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions } = useDatasetSuggestionResults()
   const topSuggestedDatasets = useRecoilValue(topSuggestedDatasetsAtom)
-  const firstTopSuggestedDataset = useRecoilValue(firstTopSuggestedDatasetAtom)
+  const datasetSingleCurrent = useRecoilValue(datasetSingleCurrentAtom)
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
@@ -174,7 +179,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
             const tree = await datasetJsonPromise
             const numThreadsResolved = await numThreads
 
-            const datasets = findDatasets(isSingle, firstTopSuggestedDataset, topSuggestedDatasets)
+            const datasets = findDatasets(isSingle, datasetSingleCurrent, topSuggestedDatasets)
             const datasetNames = datasets.map((dataset) => dataset.path)
             set(datasetNamesForAnalysisAtom, datasetNames)
 
@@ -196,7 +201,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
           })
       },
     [
-      firstTopSuggestedDataset,
+      datasetSingleCurrent,
       isSingle,
       router,
       seqIndexToTopDatasetName,
@@ -208,14 +213,14 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
 
 function findDatasets(
   isSingleDatasetMode: boolean,
-  firstTopSuggestedDataset: Dataset | undefined,
+  datasetSingleCurrent: Dataset | undefined,
   topSuggestedDatasets: Dataset[] | undefined,
 ) {
   if (isSingleDatasetMode) {
-    if (isNil(firstTopSuggestedDataset)) {
-      throw new ErrorInternal(`Attempted to start analysis without dataset selected (single dataset mode)`)
+    if (isNil(datasetSingleCurrent)) {
+      throw new ErrorInternal(`Attempted to start analysis without a dataset selected (single dataset mode)`)
     }
-    return [firstTopSuggestedDataset]
+    return [datasetSingleCurrent]
   }
   if (isNil(topSuggestedDatasets) || isEmpty(topSuggestedDatasets)) {
     throw new ErrorInternal(`Attempted to start analysis without datasets selected (multi-dataset mode)`)
