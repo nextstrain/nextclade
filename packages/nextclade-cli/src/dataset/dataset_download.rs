@@ -243,8 +243,7 @@ pub fn dataset_dir_load(
   let virus_properties = VirusProperties::from_path(input_pathogen_json)?;
 
   let input_ref = input_ref
-    .as_ref()
-    .cloned()
+    .clone()
     .or_else(|| {
       virus_properties
         .files

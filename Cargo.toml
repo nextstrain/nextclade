@@ -6,12 +6,11 @@ members = [
 ]
 
 exclude = [
-  "packages/3rdparty",
+  "packages/thirdparty",
 ]
 
 
 [workspace.package]
-name = "nextclade"
 version = "3.13.1"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
 repository = "https://github.com/nextstrain/nextclade"
@@ -73,7 +72,7 @@ regex = "=1.8.4"
 reqwest = { version = "=0.12.8", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 rstest = "=0.17.0"
 rstest_reuse = "=0.5.0"
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap"] }
+schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap"] }
 semver = { version = "=1.0.17", features = ["serde"] }
 serde = { version = "=1.0.164", features = ["derive"] }
 serde-wasm-bindgen = { version = "=0.5.0" }
@@ -100,12 +99,11 @@ zstd = { version = "=0.12.3", features = ["zstdmt"] }
 [workspace.lints.rust]
 # Lint groups
 # https://doc.rust-lang.org/rustc/lints/groups.html
-deprecated_in_future = "warn"
-future_incompatible = "warn"
-nonstandard_style = "warn"
-rust_2018_idioms = "warn"
-rust_2021_compatibility = "warn"
-trivial_numeric_casts = "warn"
+future_incompatible = { level = "warn", priority = -1 }
+keyword_idents = { level = "warn", priority = -1 }
+nonstandard_style = { level = "warn", priority = -1 }
+rust_2018_idioms = { level = "warn", priority = -1 }
+rust_2021_compatibility = { level = "warn", priority = -1 }
 
 # Disable some of the lints enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html
@@ -114,9 +112,9 @@ elided_lifetimes_in_paths = "allow"
 # Enable lints not enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
 absolute_paths_not_starting_with_crate = "warn"
+deprecated_in_future = "warn"
 explicit_outlives_requirements = "warn"
 ffi_unwind_calls = "warn"
-keyword_idents = "warn"
 let_underscore_drop = "warn"
 macro_use_extern_crate = "warn"
 meta_variable_misuse = "warn"
@@ -128,13 +126,14 @@ rust_2021_prefixes_incompatible_syntax = "warn"
 rust_2021_prelude_collisions = "warn"
 single_use_lifetimes = "warn"
 trivial_casts = "warn"
+trivial_numeric_casts = "warn"
 unit_bindings = "warn"
 unsafe_code = "warn"
 unsafe_op_in_unsafe_fn = "warn"
 unused_lifetimes = "warn"
 unused_macro_rules = "warn"
 unused_qualifications = "warn"
-unused_tuple_struct_fields = "warn"
+dead_code = "warn"
 variant_size_differences = "warn"
 # missing_copy_implementations = "warn"
 # missing_debug_implementations = "warn"
@@ -155,6 +154,7 @@ allow_attributes = "allow"
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 assign_op_pattern = "allow"
+assigning_clones = "allow"
 bool_to_int_with_if = "allow"
 cast_lossless = "allow"
 cast_possible_truncation = "allow"
@@ -178,6 +178,7 @@ implicit_return = "allow"
 inconsistent_digit_grouping = "allow"
 indexing_slicing = "allow"
 integer_division = "allow"
+integer_division_remainder_used = "allow"
 iter_nth_zero = "allow"
 large_digit_groups = "allow"
 len_without_is_empty = "allow"

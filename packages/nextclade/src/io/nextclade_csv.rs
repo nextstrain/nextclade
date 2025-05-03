@@ -310,7 +310,7 @@ fn prepare_headers(
       .unwrap_or_else(|| headers.len().saturating_sub(1))
       .clamp(0, headers.len());
 
-    let builtin_attrs = vec![o!("clade")];
+    let builtin_attrs = [o!("clade")];
     let attrs = chain!(
       builtin_attrs.iter(),
       custom_node_attr_descs

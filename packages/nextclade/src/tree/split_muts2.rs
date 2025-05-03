@@ -54,12 +54,12 @@ pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMuts
   let keys_mut_left = left
     .aa_muts
     .keys()
-    .map(std::clone::Clone::clone)
+    .map(Clone::clone)
     .collect::<HashSet<_>>();
   let keys_mut_right = right
     .aa_muts
     .keys()
-    .map(std::clone::Clone::clone)
+    .map(Clone::clone)
     .collect::<HashSet<_>>();
   let mut shared_keys = keys_mut_left.intersection(&keys_mut_right).collect_vec();
   shared_keys.sort();

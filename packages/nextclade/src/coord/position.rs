@@ -2,7 +2,7 @@ use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
 use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive};
-use schemars::gen::SchemaGenerator;
+use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
@@ -128,7 +128,7 @@ where
   L: SeqTypeMarker,
 {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    std::fmt::Display::fmt(&self.inner, f)
+    Display::fmt(&self.inner, f)
   }
 }
 
@@ -139,7 +139,7 @@ where
   L: SeqTypeMarker,
 {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    std::fmt::Debug::fmt(&self.inner, f)
+    Debug::fmt(&self.inner, f)
   }
 }
 
@@ -274,8 +274,8 @@ where
     "Position".to_owned()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<isize>()
+  fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+    generator.subschema_for::<isize>()
   }
 }
 
@@ -422,10 +422,12 @@ pub type AaRefPosition = Position<ReferenceCoords, LocalSpace, AaSpace>;
 ///   does not work with generic types. See:
 ///    - https://github.com/carbotaniuman/auto_ops/blob/74d97b4fb0f39e73c7fd63934c877c91a2c4a031/README.md?plain=1#L47-L48
 ///    - https://github.com/carbotaniuman/auto_ops/issues/2
+///
 ///   Come back to this if Rust "specialization" feature is stabilized:
-///    - https://rust-lang.github.io/rfcs/1210-impl-specialization.html
+///    https://rust-lang.github.io/rfcs/1210-impl-specialization.html
 ///   and/or if `auto_ops` crate finds another way to work with generics:
-///    - https://github.com/carbotaniuman/auto_ops/pull/14
+///    https://github.com/carbotaniuman/auto_ops/pull/14
+///
 ///   The operators can then be implemented only once for the generic type, instead of for each of the specialized types.
 macro_rules! impl_ops_for_pos {
   ($t:ty) => {

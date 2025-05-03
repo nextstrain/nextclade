@@ -213,7 +213,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 5. Install other required tools (once)
 
     ```bash
-    cargo install wasm-pack
+    cargo install wasm-pack --locked
     ```
 
    <details>
@@ -233,6 +233,12 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
    > ```
 
     </details>
+
+    You might also have to install a particular version of `wasm-bindgen-cli` (if you get an error during `yarn wasm-prod`):
+
+    ```bash
+    cargo install wasm-bindgen-cli@0.2.93 --locked
+    ```
 
 6. Install NPM dependencies (once)
 

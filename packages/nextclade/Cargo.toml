@@ -17,6 +17,11 @@ workspace = true
 [lib]
 crate-type = ["lib"]
 
+[features]
+default = []
+debug-seed-alignment = []
+indexmap = []
+
 [dependencies]
 assert2 = { workspace = true }
 auto_ops = { workspace = true }
