@@ -269,3 +269,23 @@ jobs:
 
           git tag "web-${version}"
           git push origin "web-${version}"
+
+  deploy-preview:
+    name: "Deploy PR Preview"
+    if: github.event_name == 'pull_request'
+    needs: [ build-web ]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          name: "out" # Must match the artifact name from build-web
+          path: "preview-build"
+      - name: "Deploy PR Preview to GitHub Pages"
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: "preview-build" # Must match path from download-artifact
+          preview-branch: "gh-pages"
