@@ -1,7 +1,9 @@
 /* eslint-disable no-loops/no-loops */
 import chardet from 'jschardet'
-import { isString, sortBy } from 'lodash'
+import { isArrayBuffer, sortBy } from 'lodash'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+
+const AUTO_ENCODING_GUESS_MAX_BYTES = 64 * 1024
 
 export class FileReaderError extends Error {
   public readonly file: File
@@ -44,12 +46,16 @@ export function readFile(file: File): Promise<string> {
       if (!buf) {
         return reject(new FileReaderError(file, 'Result is empty'))
       }
-      if (!isString(buf)) {
-        return reject(new FileReaderError(file, 'Result is not a string'))
+      if (!isArrayBuffer(buf)) {
+        return reject(new FileReaderError(file, 'Result is not an array buffer'))
       }
 
-      const bytes = Uint8Array.from(buf, (x) => x.charCodeAt(0)) // eslint-disable-line unicorn/prefer-code-point
-      const encodings = sortBy(chardet.detectAll(buf), (enc) => -enc.confidence)
+      const bytes = new Uint8Array(buf)
+
+      // https://github.com/microsoft/vscode/blob/1.99.3/src/vs/workbench/services/textfile/common/encoding.ts#L325-L326
+      const limitedBuffer = Buffer.from(bytes.slice(0, AUTO_ENCODING_GUESS_MAX_BYTES))
+
+      const encodings = sortBy(chardet.detectAll(limitedBuffer), (enc) => -enc.confidence)
 
       if (encodings.length === 0) {
         return reject(new FileReaderEncodingError(file, 'Unable detect file encoding'))
@@ -80,6 +86,6 @@ export function readFile(file: File): Promise<string> {
       )
     })
 
-    reader.readAsBinaryString(file)
+    reader.readAsArrayBuffer(file)
   })
 }
