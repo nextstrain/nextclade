@@ -66,7 +66,16 @@ const clientEnv = {
   BLOCK_SEARCH_INDEXING: DOMAIN === RELEASE_URL ? '0' : '1',
 }
 
+// use PR_NUMBER from GitHub Actions for preview deployments
+const { PR_NUMBER } = process.env
+const previewNumber = PR_NUMBER
+const basePath = previewNumber ? `/nextclade/pr-preview/pr-${previewNumber}` : ''
+const assetPrefix = basePath || undefined
+
 const nextConfig: NextConfig = {
+  // use dynamic basePath on preview
+  basePath,
+  assetPrefix,
   distDir: `.build/${process.env.NODE_ENV}/tmp`,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx', 'all-contributorsrc'],
   onDemandEntries: {
@@ -79,6 +88,7 @@ const nextConfig: NextConfig = {
   experimental: {
     reactRoot: true,
     scrollRestoration: true,
+    esmExternals: 'loose',
   },
   swcMinify: true,
   productionBrowserSourceMaps: ENABLE_SOURCE_MAPS,
