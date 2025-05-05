@@ -1,3 +1,15 @@
+## 3.13.2
+
+### Speed up Nextclade web, fix crash when using files >45MB on Chromium v136 browsers
+
+In recently releaed version 136, Chromium-based browsers (e.g. Chrome, Edge) [reduced the maximum allowed fixed array size], causing Nextclade web to crash when files bigger than 46,505,915 bytes are used.
+
+It turns out that avoiding the need for a large array gets rid of most of the delay between clicking "Run" and the start of the analysis. For files of ~60MB the time saved is on the order of 5 seconds. A small but noticeable performance win! See [issue #1605] and [PR #1606] for more details.
+
+[reduced the maximum allowed fixed array size]: https://issues.chromium.org/issues/415572399
+[issue #1605]: https://github.com/nextstrain/nextclade/issues/1605
+[PR #1606]: https://github.com/nextstrain/nextclade/pull/1606
+
 ## 3.13.1
 
 ### Fix crash on empty query annotations
