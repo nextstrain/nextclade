@@ -2,7 +2,7 @@
 
 ### Speed up Nextclade web, fix crash when using files >45MB on Chromium v136 browsers
 
-In recently releaed version 136, Chromium-based browsers (e.g. Chrome, Edge) [reduced the maximum allowed fixed array size], causing Nextclade web to crash when files bigger than 46,505,915 bytes are used.
+In recently released version 136, Chromium-based browsers (e.g. Chrome, Edge) [reduced the maximum allowed fixed array size], causing Nextclade web to crash when files bigger than 46,505,915 bytes are used.
 
 It turns out that avoiding the need for a large array gets rid of most of the delay between clicking "Run" and the start of the analysis. For files of ~60MB the time saved is on the order of 5 seconds. A small but noticeable performance win! See [issue #1605] and [PR #1606] for more details.
 
@@ -58,7 +58,7 @@ We could not find meaning for the gaps in reference sequences in the context of 
 
 Starting from this version, Nextclade will now stop with an explicit error if it detects gaps in reference sequence. To resolve, please use a reference sequence without gaps, if possible, or notify dataset authors about the problem.
 
-If you think that Nextclade needs to support reference sequences with gaps please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
+If you think that Nextclade needs to support reference sequences with gaps, please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
 
 
 ## 3.11.0
@@ -316,7 +316,7 @@ In dataset selector, sometimes there were extra scrollbars displayed to the righ
 
 #### Select suggested dataset automatically when suggestion is triggered manually
 
-When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will now automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
+When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
 
 ### Nextclade CLI
 
