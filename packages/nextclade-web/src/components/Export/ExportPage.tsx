@@ -2,10 +2,13 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Row, Col } from 'reactstrap'
+import { formatDatasetInfo } from 'src/components/Main/DatasetInfo'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import styled from 'styled-components'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import {
+  datasetsAtom,
   hasMultipleDatasetsForAnalysisAtom,
   isViewedDatasetUnknownAtom,
   viewedDatasetNameAtom,
@@ -55,6 +58,8 @@ export function ExportPage() {
 function MainContent() {
   const { t } = useTranslationSafe()
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
+  const datasetPath = useRecoilValue(viewedDatasetNameAtom)
+  const datasets = useRecoilValue(datasetsAtom)
 
   const { asPath } = useRouter()
   const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
@@ -68,10 +73,16 @@ function MainContent() {
     )
   }
 
+  const dataset = datasets.find((dataset) => dataset.path === datasetPath)
+  if (!dataset) {
+    throw new ErrorInternal(`Dataset not found: '${datasetPath}'`)
+  }
+  const { datasetName } = formatDatasetInfo(dataset, t)
+
   return (
     <MainContentInner>
       <Header>
-        <h4 className="mx-auto">{t('Download output files')}</h4>
+        <h4 className="mx-auto">{t('Download output files for "{{ dataset }}"', { dataset: datasetName })}</h4>
       </Header>
 
       <Main>
