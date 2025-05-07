@@ -26,11 +26,16 @@ pub fn results_to_excel_sheet(
     &initial_data.aa_motif_keys,
     column_config,
   );
-  let mut row = NextcladeResultsCsvRow::new(headers)?;
-
-  let outputs_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
 
   let mut sheet = Worksheet::new();
+
+  // Write headers
+  for (icol, value) in headers.iter().enumerate() {
+    sheet.write_string(0, icol as u16, value)?;
+  }
+
+  let mut row = NextcladeResultsCsvRow::new(headers)?;
+  let outputs_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
   for (irow, output_or_error) in &outputs_or_errors {
     let formatted_row = match output_or_error {
       NextcladeOutputOrError::Outputs(output) => row.format(output)?,
@@ -39,7 +44,7 @@ pub fn results_to_excel_sheet(
       }
     };
     for (icol, value) in formatted_row.values().enumerate() {
-      sheet.write_string(*irow as u32, icol as u16, value)?;
+      sheet.write_string((*irow + 1) as u32, icol as u16, value)?;
     }
     row.clear();
   }
