@@ -2,6 +2,7 @@ pub mod any;
 pub mod boolean;
 pub mod collections;
 pub mod datetime;
+pub mod encode;
 pub mod error;
 pub mod fs;
 pub mod getenv;

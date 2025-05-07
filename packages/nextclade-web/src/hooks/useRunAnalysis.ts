@@ -60,6 +60,8 @@ import {
   treeAtom,
   treeNwkAtom,
   allCurrentRefNodeNameAtom,
+  initialDataAtom,
+  allInitialDataAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
@@ -88,6 +90,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
         reset(allCurrentRefNodeNameAtom)
         reset(allGenesAtom)
         reset(allGenomeSizesAtom)
+        reset(allInitialDataAtom)
         reset(allPhenotypeAttrDescsAtom)
         reset(allRefNodesAtom)
         reset(allTreesAtom)
@@ -112,9 +115,10 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
           onGlobalStatus(status) {
             set(analysisStatusGlobalAtom, status)
           },
-          onInitialData(
-            datasetName,
-            {
+          onInitialData(datasetName, initialData) {
+            set(initialDataAtom(datasetName), initialData)
+
+            const {
               geneMap,
               genomeSize,
               defaultCds,
@@ -124,8 +128,8 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
               refNodes,
               aaMotifsDescs,
               csvColumnConfigDefault,
-            },
-          ) {
+            } = initialData
+
             const genes = Object.values(geneMap.genes)
             set(genesAtom({ datasetName }), genes)
 

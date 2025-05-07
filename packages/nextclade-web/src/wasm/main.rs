@@ -6,14 +6,20 @@ use nextclade::io::fasta::{read_one_fasta_from_str, FastaReader, FastaRecord};
 use nextclade::io::genbank_tbl::results_to_tbl_string;
 use nextclade::io::gff3_writer::results_to_gff_string;
 use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
-use nextclade::io::nextclade_csv::{results_to_csv_string, CsvColumnConfig};
+use nextclade::io::nextclade_csv::results_to_csv_string;
+use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
+use nextclade::io::xlsx::{results_to_excel_sheet, EXCEL_SHEET_NAME_LEN_MAX};
 use nextclade::make_internal_report;
-use nextclade::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult};
+use nextclade::run::nextclade_wasm::{
+  AnalysisInitialData, Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult,
+};
 use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
+use nextclade::utils::encode::base64_encode;
 use nextclade::utils::error::report_to_string;
+use rust_xlsxwriter::Workbook;
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 
@@ -272,4 +278,83 @@ impl NextcladeWasm {
       &csv_colum_config,
     ))
   }
+
+  pub fn serialize_results_excel(
+    outputs_json_str: &str,
+    errors_json_str: &str,
+    all_initial_data: &str,
+    csv_colum_config_json_str: &str,
+  ) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str)
+        .wrap_err("When serializing results into Excel: When parsing outputs JSON internally"),
+    )?;
+
+    let errors: Vec<NextcladeErrorOutputs> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing results into Excel: When parsing errors JSON internally"),
+    )?;
+
+    let all_initial_data: BTreeMap<String, AnalysisInitialData> = jserr(
+      json_parse(all_initial_data)
+        .wrap_err("When serializing results into Excel: When parsing initial data JSON internally"),
+    )?;
+
+    let column_config: CsvColumnConfig = jserr(
+      json_parse(csv_colum_config_json_str)
+        .wrap_err("When serializing results into Excel: When parsing Excel column config JSON internally"),
+    )?;
+
+    let sheets = jserr(
+      all_initial_data
+        .iter()
+        .map(|(dataset_name, initial_data)| -> Result<_, Report> {
+          let mut sheet = results_to_excel_sheet(&outputs, &errors, initial_data, &column_config)?;
+          sheet.set_name(sanitize_sheet_name(dataset_name))?;
+          Ok(sheet)
+        })
+        .collect::<Result<Vec<_>, Report>>(),
+    )?;
+
+    let mut book = Workbook::new();
+    for sheet in sheets {
+      book.push_worksheet(sheet);
+    }
+    let buf = jserr(book_save_to_buffer(&mut book))?;
+
+    Ok(base64_encode(&buf))
+  }
+}
+
+fn book_save_to_buffer(book: &mut Workbook) -> Result<Vec<u8>, Report> {
+  let buf = book.save_to_buffer()?;
+  Ok(buf)
+}
+
+fn sanitize_sheet_name(name: &str) -> String {
+  const DISALLOWED_CHARS: &[char] = &[':', '\\', '/', '?', '*', '[', ']'];
+
+  let mut sanitized: String = name
+    .chars()
+    .map(|c| if DISALLOWED_CHARS.contains(&c) { '_' } else { c })
+    .collect();
+
+  sanitized = sanitized.trim().to_owned();
+
+  if sanitized.starts_with('\'') {
+    sanitized.remove(0);
+  }
+
+  if sanitized.is_empty() {
+    sanitized = "Sheet1".to_owned();
+  }
+
+  if sanitized.eq_ignore_ascii_case("History") {
+    sanitized.push('_');
+  }
+
+  if sanitized.len() > EXCEL_SHEET_NAME_LEN_MAX {
+    sanitized.truncate(EXCEL_SHEET_NAME_LEN_MAX);
+  }
+
+  sanitized
 }

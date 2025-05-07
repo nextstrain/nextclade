@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Row, Col } from 'reactstrap'
 import styled from 'styled-components'
+import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
+import { DEFAULT_EXPORT_PARAMS, useExportExcel } from 'src/hooks/useExportResults'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import {
@@ -20,6 +22,10 @@ export function ExportPage() {
   const { t } = useTranslationSafe()
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
   const viewedDatasetName = useRecoilValue(viewedDatasetNameAtom)
+
+  const { isRunning: isRunningExcel, isDone: isDoneExcel, fn: exportExcel } = useExportExcel()
+  const onClick = useCallback(() => exportExcel(DEFAULT_EXPORT_PARAMS.filenameExcel), [exportExcel])
+
   return (
     <Layout>
       <Container>
@@ -31,8 +37,13 @@ export function ExportPage() {
                 <ViewedDatasetExportHelp />
               </span>
             </div>
-            <div>
+            <div className="pb-1">
               <ViewedDatasetSelector />
+            </div>
+            <div className="pb-1">
+              <ButtonTransparent color="link" onClick={onClick} disabled={isRunningExcel}>
+                {t('Export all to Excel')}
+              </ButtonTransparent>
             </div>
           </Sidebar>
         )}

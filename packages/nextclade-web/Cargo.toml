@@ -30,6 +30,7 @@ js-sys = { workspace = true }
 log = { workspace = true }
 maplit = { workspace = true }
 nextclade = { path = "../nextclade" }
+rust_xlsxwriter = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 serde-wasm-bindgen = { workspace = true }

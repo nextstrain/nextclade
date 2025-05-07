@@ -166,6 +166,20 @@ export async function serializeResultsCsv(
   )
 }
 
+export async function serializeResultsExcel(
+  results: AnalysisResult[],
+  errors: AnalysisError[],
+  allInitialData: Map<string, AnalysisInitialData>,
+  csvColumnConfig: CsvColumnConfig,
+) {
+  return NextcladeWasm.serialize_results_excel(
+    JSON.stringify(results),
+    JSON.stringify(errors),
+    JSON.stringify(Object.fromEntries(allInitialData)),
+    JSON.stringify(csvColumnConfig),
+  )
+}
+
 export async function serializeResultsGff(results: AnalysisResult[]) {
   return NextcladeWasm.serialize_results_gff(JSON.stringify(results))
 }
@@ -184,6 +198,7 @@ const worker = {
   parseRefSequence,
   serializeResultsJson,
   serializeResultsCsv,
+  serializeResultsExcel,
   serializeResultsNdjson,
   serializeResultsGff,
   serializeResultsTbl,

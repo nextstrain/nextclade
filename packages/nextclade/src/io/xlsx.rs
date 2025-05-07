@@ -1,0 +1,47 @@
+use crate::io::nextclade_csv::prepare_headers;
+use crate::io::nextclade_csv_column_config::CsvColumnConfig;
+use crate::io::nextclade_csv_row::NextcladeResultsCsvRow;
+use crate::run::nextclade_wasm::AnalysisInitialData;
+use crate::types::outputs::{
+  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
+};
+use eyre::Report;
+use rust_xlsxwriter::Worksheet;
+
+pub const EXCEL_SHEET_NAME_LEN_MAX: usize = 31;
+
+pub const DEFAULT_NEXTCLADE_XLSX_SHEET_NAME: &str = "nextclade";
+
+pub fn results_to_excel_sheet(
+  outputs: &[NextcladeOutputs],
+  errors: &[NextcladeErrorOutputs],
+  initial_data: &AnalysisInitialData,
+  column_config: &CsvColumnConfig,
+) -> Result<Worksheet, Report> {
+  let headers: Vec<String> = prepare_headers(
+    &initial_data.clade_node_attr_key_descs,
+    &initial_data.phenotype_attr_keys,
+    &initial_data.ref_nodes,
+    &initial_data.aa_motif_keys,
+    column_config,
+  );
+  let mut row = NextcladeResultsCsvRow::new(headers)?;
+
+  let outputs_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
+
+  let mut sheet = Worksheet::new();
+  for (irow, output_or_error) in &outputs_or_errors {
+    let formatted_row = match output_or_error {
+      NextcladeOutputOrError::Outputs(output) => row.format(output)?,
+      NextcladeOutputOrError::Error(error) => {
+        row.write_nuc_error(error.index, &error.seq_name, &error.errors.join(";"))?
+      }
+    };
+    for (icol, value) in formatted_row.values().enumerate() {
+      sheet.write_string(*irow as u32, icol as u16, value)?;
+    }
+    row.clear();
+  }
+
+  Ok(sheet)
+}

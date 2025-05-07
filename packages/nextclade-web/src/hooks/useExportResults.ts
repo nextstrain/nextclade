@@ -1,14 +1,15 @@
-/* eslint-disable no-void,no-loops/no-loops */
+/* eslint-disable no-void,no-loops/no-loops,sonarjs/no-identical-functions */
 import { isEmpty, isNil } from 'lodash'
 import { useState } from 'react'
 import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'
 import type { AnalysisError, AnalysisOutput } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import { saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
+import { saveBase64File, saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   aaMotifsDescsAtom,
+  allInitialDataAtom,
   analysisResultsAtom,
   cdsesAtom,
   cladeNodeAttrDescsAtom,
@@ -35,6 +36,7 @@ export interface ExportParams {
   filenamePeptidesTemplate: string
   filenameGff: string
   filenameTbl: string
+  filenameExcel: string
 }
 
 export const DEFAULT_EXPORT_PARAMS: ExportParams = {
@@ -50,6 +52,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenamePeptidesTemplate: 'nextclade.cds_translation.{{cds}}.fasta',
   filenameGff: 'nextclade.gff',
   filenameTbl: 'nextclade.tbl',
+  filenameExcel: 'nextclade.xlsx',
 }
 
 function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
@@ -78,6 +81,31 @@ function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worke
     [exportFn, setIsRunning],
   )
   return { isRunning, isDone, fn }
+}
+
+async function mapAllGoodResults<T>(snapshot: Snapshot, mapFn: (result: AnalysisOutput) => T) {
+  const results = await snapshot.getPromise(analysisResultsAtom)
+  return results
+    .filter((result) => notUndefinedOrNull(result.result))
+    .map((result) => {
+      if (!result.result) {
+        throw new ErrorInternal('When preparing analysis results for export: expected result to be non-nil')
+      }
+      return mapFn(result.result)
+    })
+}
+
+async function mapAllErrors<T>(snapshot: Snapshot, mapFn: (result: AnalysisError) => T) {
+  const results = await snapshot.getPromise(analysisResultsAtom)
+
+  return results
+    .filter((result) => notUndefinedOrNull(result.error))
+    .map(({ error, seqName, index }) => {
+      if (!error) {
+        throw new ErrorInternal('When preparing analysis errors for export: expected error to be non-nil')
+      }
+      return mapFn({ index, seqName, errors: [error] })
+    })
 }
 
 async function mapGoodResults<T>(snapshot: Snapshot, datasetName: string, mapFn: (result: AnalysisOutput) => T) {
@@ -161,6 +189,26 @@ export function useExportTsv({ datasetName }: { datasetName: string }) {
   return useResultsExport(async (filename, snapshot, worker) => {
     const tsvStr = await prepareResultsCsv(snapshot, datasetName, worker, '\t')
     saveFile(tsvStr, filename, 'text/tab-separated-values;charset=utf-8')
+  })
+}
+
+async function prepareResultsExcel(snapshot: Snapshot, worker: ExportWorker) {
+  const results = await mapAllGoodResults(snapshot, (result) => result.analysisResult)
+  const errors = await mapAllErrors(snapshot, (err) => err)
+
+  const allInitialData = await snapshot.getPromise(allInitialDataAtom)
+  const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
+  if (!csvColumnConfig) {
+    throw new ErrorInternal('CSV column config is not initialized, but it should be')
+  }
+
+  return worker.serializeResultsExcel(results, errors, allInitialData, csvColumnConfig)
+}
+
+export function useExportExcel() {
+  return useResultsExport(async (filename, snapshot, worker) => {
+    const csvStr = await prepareResultsExcel(snapshot, worker)
+    saveBase64File(csvStr, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   })
 }
 

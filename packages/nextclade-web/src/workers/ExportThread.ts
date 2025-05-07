@@ -1,5 +1,12 @@
 import { CladeNodeAttrDesc } from 'auspice'
-import type { AaMotifsDesc, AnalysisError, AnalysisResult, AuspiceRefNodesDesc, PhenotypeAttrDesc } from 'src/types'
+import type {
+  AaMotifsDesc,
+  AnalysisError,
+  AnalysisInitialData,
+  AnalysisResult,
+  AuspiceRefNodesDesc,
+  PhenotypeAttrDesc,
+} from 'src/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 import { CsvColumnConfig } from 'src/types'
@@ -62,6 +69,15 @@ export class ExportWorker {
       delimiter,
       csvColumnConfig,
     )
+  }
+
+  public async serializeResultsExcel(
+    results: AnalysisResult[],
+    errors: AnalysisError[],
+    allInitialData: Map<string, AnalysisInitialData>,
+    csvColumnConfig: CsvColumnConfig,
+  ) {
+    return this.thread.serializeResultsExcel(results, errors, allInitialData, csvColumnConfig)
   }
 
   public async serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {

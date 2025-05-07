@@ -7,6 +7,7 @@ import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import type {
   AaMotifsDesc,
+  AnalysisInitialData,
   AuspiceRefNodesDesc,
   Cds,
   CsvColumnConfig,
@@ -302,6 +303,10 @@ export const [currentRefNodeNameAtom, allCurrentRefNodeNameAtom] = multiAtom<str
 
 export const [aaMotifsDescsAtom, allAaMotifsDescsAtom] = multiAtom<AaMotifsDesc[], { datasetName: string }>({
   key: 'aaMotifsDescsAtom',
+})
+
+export const [initialDataAtom, allInitialDataAtom] = multiAtom<AnalysisInitialData, string>({
+  key: 'initialDataAtom',
 })
 
 export const csvColumnConfigAtom = atom<CsvColumnConfig | undefined>({

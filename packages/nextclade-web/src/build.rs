@@ -9,7 +9,7 @@ use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::ensure_dir;
 use nextclade::io::json::{json_write_impl, JsonPretty};
-use nextclade::io::nextclade_csv::CsvColumnConfig;
+use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::QcResult;
 use nextclade::run::nextclade_wasm::{
@@ -50,7 +50,7 @@ fn write_jsonschema<T: JsonSchema>(output_file: impl AsRef<Path>) -> Result<(), 
 /// it. Instead, See the actual types in the `definitions` property of JSON schema.
 #[derive(Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-struct _SchemaRoot<'a> {
+struct _SchemaRoot {
   _1: GeneMap,
   _2: Translation,
   _3: AuspiceTree,
@@ -64,7 +64,7 @@ struct _SchemaRoot<'a> {
   _13: CladeNodeAttrKeyDesc,
   _14: PhenotypeAttrDesc,
   _15: FastaRecord,
-  _17: AnalysisInitialData<'a>,
+  _17: AnalysisInitialData,
   _18: AnalysisInput,
   _19: NextcladeResult,
   _20: NextcladeParams,

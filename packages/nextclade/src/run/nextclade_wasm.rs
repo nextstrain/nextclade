@@ -10,7 +10,7 @@ use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusPro
 use crate::gene::gene_map::{filter_gene_map, GeneMap};
 use crate::graph::graph::Graph;
 use crate::io::fasta::{read_one_fasta_from_str, FastaRecord};
-use crate::io::nextclade_csv::CsvColumnConfig;
+use crate::io::nextclade_csv_column_config::CsvColumnConfig;
 use crate::io::nwk_writer::convert_graph_to_nwk_string;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
@@ -236,20 +236,23 @@ pub struct AnalysisInput {
   pub qry_seq_str: String,
 }
 
-#[derive(Clone, Debug, Serialize, schemars::JsonSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AnalysisInitialData<'a> {
+pub struct AnalysisInitialData {
+  pub dataset_name: String,
   pub genome_size: usize,
   pub gene_map: GeneMap,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub default_cds: Option<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub cds_order_preference: Vec<String>,
-  pub clade_node_attr_key_descs: &'a [CladeNodeAttrKeyDesc],
-  pub phenotype_attr_descs: &'a [PhenotypeAttrDesc],
-  pub ref_nodes: &'a AuspiceRefNodesDesc,
-  pub aa_motifs_descs: &'a [AaMotifsDesc],
-  pub aa_motif_keys: &'a [String],
+  pub clade_node_attr_key_descs: Vec<CladeNodeAttrKeyDesc>,
+  pub clade_node_attr_keys: Vec<String>,
+  pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
+  pub phenotype_attr_keys: Vec<String>,
+  pub ref_nodes: AuspiceRefNodesDesc,
+  pub aa_motifs_descs: Vec<AaMotifsDesc>,
+  pub aa_motif_keys: Vec<String>,
   pub csv_column_config_default: CsvColumnConfig,
 }
 
@@ -422,15 +425,18 @@ impl Nextclade {
 
   pub fn get_initial_data(&self) -> AnalysisInitialData {
     AnalysisInitialData {
+      dataset_name: self.dataset_name.clone(),
       gene_map: self.gene_map.clone(),
       genome_size: self.ref_seq.len(),
       default_cds: self.virus_properties.default_cds.clone(),
       cds_order_preference: self.virus_properties.cds_order_preference.clone(),
-      clade_node_attr_key_descs: &self.clade_attr_descs,
-      phenotype_attr_descs: &self.phenotype_attr_descs,
-      ref_nodes: &self.ref_nodes,
-      aa_motifs_descs: &self.aa_motifs_descs,
-      aa_motif_keys: &self.aa_motifs_keys,
+      clade_node_attr_key_descs: self.clade_attr_descs.clone(),
+      clade_node_attr_keys: self.clade_attr_descs.iter().map(|desc| desc.name.clone()).collect(),
+      phenotype_attr_descs: self.phenotype_attr_descs.clone(),
+      phenotype_attr_keys: self.phenotype_attr_descs.iter().map(|desc| desc.name.clone()).collect(),
+      ref_nodes: self.ref_nodes.clone(),
+      aa_motifs_descs: self.aa_motifs_descs.clone(),
+      aa_motif_keys: self.aa_motifs_keys.clone(),
       csv_column_config_default: CsvColumnConfig::default(),
     }
   }
