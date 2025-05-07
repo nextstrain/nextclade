@@ -9,7 +9,7 @@ use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::io::nextclade_csv::results_to_csv_string;
 use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
-use nextclade::io::xlsx::{results_to_excel_sheet, EXCEL_SHEET_NAME_LEN_MAX};
+use nextclade::io::xlsx::{book_save_to_buffer, results_to_excel_sheet, sanitize_sheet_name};
 use nextclade::make_internal_report;
 use nextclade::run::nextclade_wasm::{
   AnalysisInitialData, Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult,
@@ -323,38 +323,4 @@ impl NextcladeWasm {
 
     Ok(base64_encode(&buf))
   }
-}
-
-fn book_save_to_buffer(book: &mut Workbook) -> Result<Vec<u8>, Report> {
-  let buf = book.save_to_buffer()?;
-  Ok(buf)
-}
-
-fn sanitize_sheet_name(name: &str) -> String {
-  const DISALLOWED_CHARS: &[char] = &[':', '\\', '/', '?', '*', '[', ']'];
-
-  let mut sanitized: String = name
-    .chars()
-    .map(|c| if DISALLOWED_CHARS.contains(&c) { '_' } else { c })
-    .collect();
-
-  sanitized = sanitized.trim().to_owned();
-
-  if sanitized.starts_with('\'') {
-    sanitized.remove(0);
-  }
-
-  if sanitized.is_empty() {
-    sanitized = "Sheet1".to_owned();
-  }
-
-  if sanitized.eq_ignore_ascii_case("History") {
-    sanitized.push('_');
-  }
-
-  if sanitized.len() > EXCEL_SHEET_NAME_LEN_MAX {
-    sanitized.truncate(EXCEL_SHEET_NAME_LEN_MAX);
-  }
-
-  sanitized
 }

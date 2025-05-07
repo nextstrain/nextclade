@@ -5,8 +5,9 @@ use crate::run::nextclade_wasm::AnalysisInitialData;
 use crate::types::outputs::{
   combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
 };
+use crate::utils::string::truncate_left;
 use eyre::Report;
-use rust_xlsxwriter::Worksheet;
+use rust_xlsxwriter::{Workbook, Worksheet};
 
 pub const EXCEL_SHEET_NAME_LEN_MAX: usize = 31;
 
@@ -44,4 +45,36 @@ pub fn results_to_excel_sheet(
   }
 
   Ok(sheet)
+}
+
+pub fn book_save_to_buffer(book: &mut Workbook) -> Result<Vec<u8>, Report> {
+  let buf = book.save_to_buffer()?;
+  Ok(buf)
+}
+
+pub fn sanitize_sheet_name(name: &str) -> String {
+  const DISALLOWED_CHARS: &[char] = &[':', '\\', '/', '?', '*', '[', ']'];
+
+  let mut sanitized: String = name
+    .chars()
+    .map(|c| if DISALLOWED_CHARS.contains(&c) { '_' } else { c })
+    .collect();
+
+  sanitized = sanitized.trim().to_owned();
+
+  if sanitized.starts_with('\'') {
+    sanitized.remove(0);
+  }
+
+  if sanitized.is_empty() {
+    sanitized = "Sheet1".to_owned();
+  }
+
+  if sanitized.eq_ignore_ascii_case("History") {
+    sanitized.push('_');
+  }
+
+  sanitized = truncate_left(&sanitized, EXCEL_SHEET_NAME_LEN_MAX, "...");
+
+  sanitized
 }
