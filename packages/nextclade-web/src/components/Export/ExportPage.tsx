@@ -23,7 +23,7 @@ export function ExportPage() {
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
   const viewedDatasetName = useRecoilValue(viewedDatasetNameAtom)
 
-  const { isRunning: isRunningExcel, isDone: isDoneExcel, fn: exportExcel } = useExportExcel()
+  const { isRunning: isRunningExcel, fn: exportExcel } = useExportExcel()
   const onClick = useCallback(() => exportExcel(DEFAULT_EXPORT_PARAMS.filenameExcel), [exportExcel])
 
   return (
