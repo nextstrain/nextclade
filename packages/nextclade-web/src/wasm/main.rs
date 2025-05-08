@@ -349,10 +349,10 @@ impl NextcladeWasm {
       book.push_worksheet(sheet);
     }
 
-    // Add a sheet for "Unknown dataset"
+    // Add a sheet for "unclassified" sequences
     {
       let mut sheet = Worksheet::new();
-      sheet.set_name("Unknown dataset")?;
+      sheet.set_name("unclassified")?;
       sheet.write_string(0, 0, "index")?;
       sheet.write_string(0, 1, "seqName")?;
       for (irow, seq_index) in seq_indices_without_dataset_suggestions.iter().enumerate() {

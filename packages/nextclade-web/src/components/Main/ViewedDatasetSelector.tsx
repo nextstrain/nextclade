@@ -37,7 +37,7 @@ export function ViewedDatasetSelector() {
         hasTree,
       }
     })
-    options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unknown dataset') })
+    options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unclassified') })
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
   }, [allTrees, datasets, t, viewedDatasetName])
@@ -148,7 +148,7 @@ function OptionComponentUnknownDataset({ isFocused, isSelected, innerRef, innerP
       {...innerProps}
     >
       <div>
-        <span>{t('Unknown dataset')}</span>
+        <span>{t('Unclassified')}</span>
       </div>
       <div className="small">{t('Sequences without dataset detected')}</div>
       <div className="small">&nbsp;</div>
