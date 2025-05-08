@@ -179,6 +179,9 @@ impl Gene {
   }
 
   pub fn strand(&self) -> Result<GeneStrand, Report> {
+    if self.cdses.is_empty() {
+      return Ok(GeneStrand::Forward);
+    }
     try_single_unique_value(&self.cdses, Cds::strand)
   }
 }
