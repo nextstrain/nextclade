@@ -36,7 +36,7 @@ pub fn results_to_excel_sheet(
 
   let mut row = NextcladeResultsCsvRow::new(headers)?;
   let outputs_or_errors = combine_outputs_and_errors_sorted(outputs, errors);
-  for (irow, output_or_error) in &outputs_or_errors {
+  for (irow, (_, output_or_error)) in outputs_or_errors.iter().enumerate() {
     let formatted_row = match output_or_error {
       NextcladeOutputOrError::Outputs(output) => row.format(output)?,
       NextcladeOutputOrError::Error(error) => {
@@ -44,7 +44,7 @@ pub fn results_to_excel_sheet(
       }
     };
     for (icol, value) in formatted_row.values().enumerate() {
-      sheet.write_string((*irow + 1) as u32, icol as u16, value)?;
+      sheet.write_string((irow + 1) as u32, icol as u16, value)?;
     }
     row.clear();
   }

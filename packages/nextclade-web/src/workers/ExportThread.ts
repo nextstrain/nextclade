@@ -76,8 +76,17 @@ export class ExportWorker {
     errors: AnalysisError[],
     allInitialData: Map<string, AnalysisInitialData>,
     csvColumnConfig: CsvColumnConfig,
+    datasetNameToSeqIndices: Map<string, number[]>,
+    seqIndicesWithoutDatasetSuggestions: number[],
   ) {
-    return this.thread.serializeResultsExcel(results, errors, allInitialData, csvColumnConfig)
+    return this.thread.serializeResultsExcel(
+      results,
+      errors,
+      allInitialData,
+      csvColumnConfig,
+      datasetNameToSeqIndices,
+      seqIndicesWithoutDatasetSuggestions,
+    )
   }
 
   public async serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {

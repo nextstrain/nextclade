@@ -171,12 +171,16 @@ export async function serializeResultsExcel(
   errors: AnalysisError[],
   allInitialData: Map<string, AnalysisInitialData>,
   csvColumnConfig: CsvColumnConfig,
+  datasetNameToSeqIndices: Map<string, number[]>,
+  seqIndicesWithoutDatasetSuggestions: number[],
 ) {
   return NextcladeWasm.serialize_results_excel(
     JSON.stringify(results),
     JSON.stringify(errors),
     JSON.stringify(Object.fromEntries(allInitialData)),
     JSON.stringify(csvColumnConfig),
+    JSON.stringify(Object.fromEntries(datasetNameToSeqIndices)),
+    JSON.stringify(seqIndicesWithoutDatasetSuggestions),
   )
 }
 

@@ -19,7 +19,7 @@ use nextclade::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::encode::base64_encode;
 use nextclade::utils::error::report_to_string;
-use rust_xlsxwriter::Workbook;
+use rust_xlsxwriter::{Workbook, Worksheet};
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 
@@ -284,6 +284,8 @@ impl NextcladeWasm {
     errors_json_str: &str,
     all_initial_data: &str,
     csv_colum_config_json_str: &str,
+    dataset_name_to_seq_indices_str: &str,
+    seq_indices_without_dataset_suggestions_str: &str,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
       json_parse(outputs_json_str)
@@ -304,10 +306,37 @@ impl NextcladeWasm {
         .wrap_err("When serializing results into Excel: When parsing Excel column config JSON internally"),
     )?;
 
+    let dataset_name_to_seq_indices_str: BTreeMap<String, Vec<usize>> =
+      jserr(json_parse(dataset_name_to_seq_indices_str).wrap_err(
+        "When serializing results into Excel: When parsing `dataset_name_to_seq_indices_str` JSON internally",
+      ))?;
+
+    let seq_indices_without_dataset_suggestions: Vec<usize> =
+      jserr(json_parse(seq_indices_without_dataset_suggestions_str).wrap_err(
+        "When serializing results into Excel: When parsing `seq_indices_without_dataset_suggestions_str` JSON internally",
+      ))?;
+
     let sheets = jserr(
       all_initial_data
         .iter()
         .map(|(dataset_name, initial_data)| -> Result<_, Report> {
+          let seq_indices = dataset_name_to_seq_indices_str
+            .get(dataset_name)
+            .cloned()
+            .unwrap_or_default();
+
+          let outputs = outputs
+            .iter()
+            .filter(|output| seq_indices.contains(&output.index))
+            .cloned()
+            .collect_vec();
+
+          let errors = errors
+            .iter()
+            .filter(|error| seq_indices.contains(&error.index))
+            .cloned()
+            .collect_vec();
+
           let mut sheet = results_to_excel_sheet(&outputs, &errors, initial_data, &column_config)?;
           sheet.set_name(sanitize_sheet_name(dataset_name))?;
           Ok(sheet)
@@ -319,6 +348,27 @@ impl NextcladeWasm {
     for sheet in sheets {
       book.push_worksheet(sheet);
     }
+
+    // Add a sheet for "Unknown dataset"
+    {
+      let mut sheet = Worksheet::new();
+      sheet.set_name("Unknown dataset")?;
+      sheet.write_string(0, 0, "index")?;
+      sheet.write_string(0, 1, "seqName")?;
+      for (irow, seq_index) in seq_indices_without_dataset_suggestions.iter().enumerate() {
+        let seq_name = errors
+          .iter()
+          .find_map(|error| (error.index == *seq_index).then_some(error.seq_name.clone()));
+
+        sheet.write_string((irow + 1) as u32, 0, seq_index.to_string())?;
+
+        if let Some(seq_name) = seq_name {
+          sheet.write_string((irow + 1) as u32, 1, seq_name)?;
+        }
+      }
+      book.push_worksheet(sheet);
+    }
+
     let buf = jserr(book_save_to_buffer(&mut book))?;
 
     Ok(base64_encode(&buf))

@@ -2,6 +2,7 @@
 import { isEmpty, isNil } from 'lodash'
 import { useState } from 'react'
 import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'
+import { datasetNameToSeqIndicesAtom, seqIndicesWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
 import type { AnalysisError, AnalysisOutput } from 'src/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
@@ -198,11 +199,20 @@ async function prepareResultsExcel(snapshot: Snapshot, worker: ExportWorker) {
 
   const allInitialData = await snapshot.getPromise(allInitialDataAtom)
   const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
+  const datasetNameToSeqIndices = await snapshot.getPromise(datasetNameToSeqIndicesAtom)
+  const seqIndicesWithoutDatasetSuggestions = await snapshot.getPromise(seqIndicesWithoutDatasetSuggestionsAtom)
   if (!csvColumnConfig) {
     throw new ErrorInternal('CSV column config is not initialized, but it should be')
   }
 
-  return worker.serializeResultsExcel(results, errors, allInitialData, csvColumnConfig)
+  return worker.serializeResultsExcel(
+    results,
+    errors,
+    allInitialData,
+    csvColumnConfig,
+    datasetNameToSeqIndices,
+    seqIndicesWithoutDatasetSuggestions,
+  )
 }
 
 export function useExportExcel() {
