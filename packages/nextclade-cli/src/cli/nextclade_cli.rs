@@ -2,6 +2,7 @@ use crate::cli::nextclade_dataset_get::nextclade_dataset_get;
 use crate::cli::nextclade_dataset_list::nextclade_dataset_list;
 use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
+use crate::cli::nextclade_run_sort_and_analysis::nextclade_run_sort_and_analysis;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::print_help_markdown::print_help_markdown;
 use crate::cli::verbosity::Verbosity;
@@ -94,6 +95,8 @@ pub enum NextcladeCommands {
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
   Sort(Box<NextcladeSortArgs>),
+
+  SortAndRun(Box<NextcladeSortArgs>),
 
   /// Read genome annotation and present it in Nextclade's internal formats. This is mostly only useful for Nextclade maintainers and the most curious users. Note that these internal formats have no stability guarantees and can be changed at any time without notice.
   ///
@@ -446,7 +449,7 @@ pub struct NextcladeRunInputArgs {
 }
 
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug, Clone, Default)]
 pub struct NextcladeRunOutputArgs {
   /// REMOVED. Use `--output-all` instead
   #[clap(long)]
@@ -1176,6 +1179,7 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
       }
     },
     NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
+    NextcladeCommands::SortAndRun(args) => nextclade_run_sort_and_analysis(&args),
     NextcladeCommands::ReadAnnotation(read_annotation_args) => nextclade_read_annotation(&read_annotation_args),
   }
 }

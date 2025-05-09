@@ -243,14 +243,14 @@ pub fn get_all_prefix_names(name: impl AsRef<str>) -> Result<Vec<String>, Report
     .collect()
 }
 
-struct StatsPrinter {
+pub struct StatsPrinter {
   enabled: bool,
   stats: BTreeMap<String, usize>,
   n_undetected: usize,
 }
 
 impl StatsPrinter {
-  fn new(enabled: bool) -> Self {
+  pub fn new(enabled: bool) -> Self {
     if enabled {
       println!("Suggested datasets for each sequence");
       println!("{}┐", "─".repeat(110));
@@ -268,7 +268,7 @@ impl StatsPrinter {
     }
   }
 
-  fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) {
+  pub fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) {
     if !self.enabled {
       return;
     }
@@ -304,7 +304,7 @@ impl StatsPrinter {
     println!("{}┤", "─".repeat(110));
   }
 
-  fn finish(&self) {
+  pub fn finish(&self) {
     if !self.enabled {
       return;
     }

@@ -476,3 +476,34 @@ pub fn dataset_str_download_and_load(
     virus_properties,
   })
 }
+
+pub fn dataset_download_by_name(http: &HttpClient, dataset_name: impl AsRef<str>) -> Result<NextcladeParams, Report> {
+  let dataset = dataset_http_get(&http, dataset_name.as_ref(), &None)?;
+
+  let virus_properties: VirusProperties =
+    VirusProperties::from_str(&dataset_file_http_get(&http, &dataset, &dataset.files.pathogen_json)?)?;
+
+  let ref_record = read_one_fasta_str(dataset_file_http_get(&http, &dataset, &dataset.files.reference)?)?;
+
+  let gene_map = dataset
+    .files
+    .genome_annotation
+    .as_ref()
+    .map_ref_fallible(|genome_annotation| {
+      let s = dataset_file_http_get(&http, &dataset, genome_annotation)?;
+      GeneMap::from_str(s)
+    })?
+    .unwrap_or_default();
+
+  let tree = dataset.files.tree_json.as_ref().map_ref_fallible(|tree_json| {
+    let s = dataset_file_http_get(&http, &dataset, tree_json)?;
+    AuspiceTree::from_str(s)
+  })?;
+
+  Ok(NextcladeParams {
+    ref_record,
+    gene_map,
+    tree,
+    virus_properties,
+  })
+}
