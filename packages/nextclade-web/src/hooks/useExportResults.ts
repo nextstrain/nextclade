@@ -38,6 +38,7 @@ export interface ExportParams {
   filenameGff: string
   filenameTbl: string
   filenameExcel: string
+  filenameUnknownTsv: string
 }
 
 export const DEFAULT_EXPORT_PARAMS: ExportParams = {
@@ -54,6 +55,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameGff: 'nextclade.gff',
   filenameTbl: 'nextclade.tbl',
   filenameExcel: 'nextclade.xlsx',
+  filenameUnknownTsv: 'nextclade.unclassified.tsv',
 }
 
 function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
@@ -402,5 +404,18 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
     }
 
     await saveZip({ filename, files })
+  })
+}
+
+async function prepareUnknownCsv(snapshot: Snapshot, worker: ExportWorker, delimiter: string) {
+  const errors = await mapAllErrors(snapshot, (err) => err)
+  const seqIndicesWithoutDatasetSuggestions = await snapshot.getPromise(seqIndicesWithoutDatasetSuggestionsAtom)
+  return worker.serializeUnknownCsv(errors, seqIndicesWithoutDatasetSuggestions, delimiter)
+}
+
+export function useExportUnknownSeqTsv() {
+  return useResultsExport(async (filename, snapshot, worker) => {
+    const tsvStr = await prepareUnknownCsv(snapshot, worker, '\t')
+    saveFile(tsvStr, filename, 'text/tab-separated-values;charset=utf-8')
   })
 }

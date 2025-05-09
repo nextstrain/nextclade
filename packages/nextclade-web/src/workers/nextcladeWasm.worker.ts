@@ -184,6 +184,18 @@ export async function serializeResultsExcel(
   )
 }
 
+export async function serializeUnknownCsv(
+  errors: AnalysisError[],
+  seqIndicesWithoutDatasetSuggestions: number[],
+  delimiter: string,
+) {
+  return NextcladeWasm.serialize_unknown_csv(
+    JSON.stringify(errors),
+    JSON.stringify(seqIndicesWithoutDatasetSuggestions),
+    delimiter,
+  )
+}
+
 export async function serializeResultsGff(results: AnalysisResult[]) {
   return NextcladeWasm.serialize_results_gff(JSON.stringify(results))
 }
@@ -206,6 +218,7 @@ const worker = {
   serializeResultsNdjson,
   serializeResultsGff,
   serializeResultsTbl,
+  serializeUnknownCsv,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },

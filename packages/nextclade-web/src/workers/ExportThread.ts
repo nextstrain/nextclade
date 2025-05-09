@@ -101,6 +101,14 @@ export class ExportWorker {
     return this.thread.serializeResultsTbl(results)
   }
 
+  public async serializeUnknownCsv(
+    errors: AnalysisError[],
+    seqIndicesWithoutDatasetSuggestions: number[],
+    delimiter: string,
+  ) {
+    return this.thread.serializeUnknownCsv(errors, seqIndicesWithoutDatasetSuggestions, delimiter)
+  }
+
   private async destroy() {
     await this.thread.destroy()
   }

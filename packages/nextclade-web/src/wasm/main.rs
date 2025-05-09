@@ -1,7 +1,9 @@
 use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use log::warn;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
+use nextclade::io::csv::{CsvVecWriter, VecWriter};
 use nextclade::io::fasta::{read_one_fasta_from_str, FastaReader, FastaRecord};
 use nextclade::io::genbank_tbl::results_to_tbl_string;
 use nextclade::io::gff3_writer::results_to_gff_string;
@@ -10,7 +12,6 @@ use nextclade::io::nextclade_csv::results_to_csv_string;
 use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::io::xlsx::{book_save_to_buffer, results_to_excel_sheet, sanitize_sheet_name};
-use nextclade::make_internal_report;
 use nextclade::run::nextclade_wasm::{
   AnalysisInitialData, Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeResult,
 };
@@ -19,6 +20,7 @@ use nextclade::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::encode::base64_encode;
 use nextclade::utils::error::report_to_string;
+use nextclade::{make_internal_report, o};
 use rust_xlsxwriter::{Workbook, Worksheet};
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
@@ -372,5 +374,40 @@ impl NextcladeWasm {
     let buf = jserr(book_save_to_buffer(&mut book))?;
 
     Ok(base64_encode(&buf))
+  }
+
+  pub fn serialize_unknown_csv(
+    errors_json_str: &str,
+    seq_indices_without_dataset_suggestions_str: &str,
+    delimiter: char,
+  ) -> Result<String, JsError> {
+    warn!("{}", &delimiter);
+
+    let errors: Vec<NextcladeErrorOutputs> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing results into Excel: When parsing errors JSON internally"),
+    )?;
+
+    let seq_indices_without_dataset_suggestions: Vec<usize> =
+      jserr(json_parse(seq_indices_without_dataset_suggestions_str).wrap_err(
+        "When serializing results into Excel: When parsing `seq_indices_without_dataset_suggestions_str` JSON internally",
+      ))?;
+
+    let errors = errors
+      .iter()
+      .filter(|error| seq_indices_without_dataset_suggestions.contains(&error.index))
+      .map(|error| (error.index, error.seq_name.clone()))
+      .collect_vec();
+
+    let mut buf = Vec::<u8>::new();
+
+    {
+      let headers = vec![o!("index"), o!("seqName")];
+      let mut csv_writer = jserr(CsvVecWriter::new(&mut buf, delimiter as u8, &headers))?;
+      for (index, seq_name) in errors {
+        jserr(csv_writer.write(vec![index.to_string(), seq_name]))?;
+      }
+    }
+
+    Ok(String::from_utf8(buf)?)
   }
 }

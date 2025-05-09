@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Row, Col } from 'reactstrap'
+import { ExportPageUnknownDataset } from 'src/components/Export/ExportPageUnknownDataset'
 import { formatDatasetInfo } from 'src/components/Main/DatasetInfo'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import styled from 'styled-components'
@@ -66,10 +67,15 @@ function MainContent() {
 
   if (isViewedDatasetUnknown) {
     return (
-      <div className="m-2">
-        <h4 className="mx-auto">{t('This dataset has no output files to export')}</h4>
-        <p>{t('Please select another dataset.')}</p>
-      </div>
+      <MainContentInner>
+        <Header>
+          <h4 className="mx-auto">{t('Download output files for unclassified sequences')}</h4>
+        </Header>
+
+        <Main>
+          <ExportPageUnknownDataset />
+        </Main>
+      </MainContentInner>
     )
   }
 
