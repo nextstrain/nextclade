@@ -21,7 +21,7 @@ export async function replace(filename: string, searchValue: string | RegExp, re
 export async function removeAuspiceTimers() {
   await fs.rm('node_modules/auspice/src/util/perf.js', { force: true })
 
-  const files = await promisify(glob)('node_modules/auspice/src/**/*.js')
+  const files = await promisify(glob)('node_modules/auspice/src/**/*.{js,ts}')
 
   await serial.forEach(async (file) => {
     await replace(file, /.*(timerStart|timerEnd)\(".+"\);.*\n/g, '')
