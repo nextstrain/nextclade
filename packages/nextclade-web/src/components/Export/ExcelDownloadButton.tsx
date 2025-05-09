@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
-import { Spinner as SpinnerBase } from 'reactstrap'
+import { Button, Spinner as SpinnerBase } from 'reactstrap'
 import styled from 'styled-components'
-import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { DEFAULT_EXPORT_PARAMS, useExportExcel } from 'src/hooks/useExportResults'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { RiFileExcel2Fill } from 'react-icons/ri'
@@ -23,10 +22,10 @@ export function ExcelDownloadLink() {
   }, [isDone, isRunning])
 
   return (
-    <ButtonTransparent color="link" onClick={onClick} disabled={isRunning}>
+    <Button color="secondary" onClick={onClick} disabled={isRunning}>
       <span className="mr-1 my-auto">{icon}</span>
       <span>{t('Export all to Excel')}</span>
-    </ButtonTransparent>
+    </Button>
   )
 }
 

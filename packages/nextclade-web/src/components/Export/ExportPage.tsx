@@ -20,6 +20,7 @@ import { ExportTabMain } from 'src/components/Export/ExportTabMain'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Layout } from 'src/components/Layout/Layout'
 import { ExcelDownloadLink } from 'src/components/Export/ExcelDownloadButton'
+import { ExcelExportHelp } from 'src/components/Help/ExcelExportHelp'
 
 export function ExportPage() {
   const { t } = useTranslationSafe()
@@ -31,17 +32,28 @@ export function ExportPage() {
       <Container>
         {hasMultipleDatasetsForAnalysis && (
           <Sidebar>
-            <div className="ml-2 d-flex my-auto pb-1">
-              <span className="mr-1">{t('Dataset')}</span>
+            <div className="mt-2 pb-1">
+              <span className="mr-1">{t('For all datasets')}</span>
+              <span className="mr-1">
+                <ExcelExportHelp />
+              </span>
+            </div>
+
+            <div className="pb-1">
+              <ExcelDownloadLink />
+            </div>
+
+            <div className="mt-2 pb-1 pt-2 border-top" />
+
+            <div className="d-flex my-auto pb-1">
+              <span className="mr-1">{t('For individual datasets')}</span>
               <span className="mr-1">
                 <ViewedDatasetExportHelp />
               </span>
             </div>
+
             <div className="pb-1">
               <ViewedDatasetSelector />
-            </div>
-            <div className="pb-1">
-              <ExcelDownloadLink />
             </div>
           </Sidebar>
         )}
