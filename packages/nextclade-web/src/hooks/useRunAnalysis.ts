@@ -71,7 +71,6 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
   const router = useRouter()
   const { seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions } = useDatasetSuggestionResults()
   const topSuggestedDatasets = useRecoilValue(topSuggestedDatasetsAtom)
-  const datasetSingleCurrent = useRecoilValue(datasetSingleCurrentAtom)
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
@@ -102,6 +101,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
         const qryInputs = getPromise(qrySeqInputsStorageAtom)
         const csvColumnConfig = getPromise(csvColumnConfigAtom)
 
+        const datasetSingleCurrentPromise = getPromise(datasetSingleCurrentAtom)
         const datasetJsonPromise = getPromise(datasetJsonAtom)
 
         const overrides: DatasetFilesOverrides = {
@@ -182,6 +182,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
             const qry = await qryInputs
             const tree = await datasetJsonPromise
             const numThreadsResolved = await numThreads
+            const datasetSingleCurrent = await datasetSingleCurrentPromise
 
             const datasets = findDatasets(isSingle, datasetSingleCurrent, topSuggestedDatasets)
             const datasetNames = datasets.map((dataset) => dataset.path)
@@ -204,14 +205,7 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [
-      datasetSingleCurrent,
-      isSingle,
-      router,
-      seqIndexToTopDatasetName,
-      seqIndicesWithoutDatasetSuggestions,
-      topSuggestedDatasets,
-    ],
+    [isSingle, router, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, topSuggestedDatasets],
   )
 }
 
