@@ -1,3 +1,23 @@
+## Unreleased
+
+
+### Nextclade Web: multi-dataset mode
+
+Nextclade Web now allows to run analysis for multiple datasets at once.
+
+You could provide sequences belonging to multiple organisms or for the dame organism, but based on different reference sequences. On "Multiple datasets" tab, Nextclade will try to deduce datasets that are best matching your sequences. You can then proceed to running analysis for each dataset. If multiple datasets have been detected, you will see a "Dataset" dropdown on "Results", "Tree" and "Export" page, which allows you to switch between results for different datasets.
+
+This is a convenience feature, i.e. the analysis runs for each dataset are still independent, just like in single-dataset mode, except you don't need to run multiple analyses for each dataset manually now.
+
+This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
+
+
+### Fix crash when exporting annotations for sequences with missing genes
+
+Nextclade Web and CLI would crash when attempting to output GFF and TBL files where entire genes are unsequenced or otherwise missing. This has been fixed.
+
+
+
 ## 3.13.2
 
 ### Speed up Nextclade web, fix crash when using files >45MB on Chromium v136 browsers
