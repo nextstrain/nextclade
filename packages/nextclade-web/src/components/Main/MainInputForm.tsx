@@ -135,11 +135,11 @@ export function LandingCardDataset() {
       </CardL1Header>
       <CardL1Body className="d-flex flex-column h-100">
         <TabNav>
-          <TabLabel href="#single" tabId="single" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+          <TabLabel tabId="single" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {t('Single dataset')}
             <TabSingleDatasetHelp />
           </TabLabel>
-          <TabLabel href="#multi" tabId="multi" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+          <TabLabel tabId="multi" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {t('Multiple datasets')}
             <TabMultiDatasetHelp />
           </TabLabel>
