@@ -25,6 +25,7 @@ import {
   allCdsOrderPreferenceAtom,
   datasetNamesForAnalysisAtom,
   datasetSingleCurrentAtom,
+  viewedDatasetNameAtom,
 } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
@@ -187,7 +188,9 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
             const datasets = findDatasets(isSingle, datasetSingleCurrent, topSuggestedDatasets)
             const datasetNames = datasets.map((dataset) => dataset.path)
             set(datasetNamesForAnalysisAtom, datasetNames)
-
+            if (!isNil(datasetNames[0])) {
+              set(viewedDatasetNameAtom, datasetNames[0])
+            }
             const params: NextcladeParamsRaw = await resolveParams(tree, overrides, datasets)
             return launchAnalysis(
               datasetNames,
