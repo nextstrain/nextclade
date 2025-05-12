@@ -51,6 +51,7 @@ pub struct NextcladeOutputs {
   pub len_aligned: usize,
   pub len_stripped: usize,
   pub ref_name: String,
+  pub dataset_name: String,
   pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
   pub deletions: Vec<NucDelRange>,

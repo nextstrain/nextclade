@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-await-expression-member,unicorn/prefer-module,@typescript-eslint/no-var-requires */
+/* eslint-disable unicorn/prefer-module,@typescript-eslint/no-var-requires */
 /**
  * Generate Typescript types from JSON schema
  */

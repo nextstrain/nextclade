@@ -1,9 +1,13 @@
-/* eslint-disable no-void,promise/always-return */
+/* eslint-disable no-void */
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import { concurrent } from 'fasy'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
+import { multiAtom } from 'src/state/utils/multiAtom'
 import type {
   AaMotifsDesc,
+  AnalysisInitialData,
   AuspiceRefNodesDesc,
   Cds,
   CsvColumnConfig,
@@ -22,7 +26,6 @@ import {
   sortCustomNodeAttribute,
   sortPhenotypeValue,
 } from 'src/helpers/sortResults'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import {
   aaFilterAtom,
   cladesFilterAtom,
@@ -35,7 +38,6 @@ import {
 } from 'src/state/resultFilters.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { REF_NODE_ROOT } from 'src/constants'
 
 // Stores analysis result for a single sequence (defined by sequence name)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
@@ -240,101 +242,71 @@ export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
   },
 })
 
-export const genomeSizeAtom = atom<number>({
+export const [genomeSizeAtom, allGenomeSizesAtom] = multiAtom<number, { datasetName: string }>({
   key: 'genomeSize',
 })
 
-export const genesAtom = atom<Gene[]>({
+export const [genesAtom, allGenesAtom] = multiAtom<Gene[], { datasetName: string }>({
   key: 'genes',
-  default: [],
 })
 
-export const geneNamesAtom = selector<string[]>({
-  key: 'geneNames',
-  get: ({ get }) => get(genesAtom).map((gene) => gene.name),
-})
-
-export const geneAtom = selectorFamily<Gene | undefined, string>({
-  key: 'gene',
-  get:
-    (name) =>
-    ({ get }) =>
-      get(genesAtom).find((gene) => gene.name === name),
-})
-
-export const cdsesAtom = atom<Cds[]>({
+export const [cdsesAtom, allCdsesAtom] = multiAtom<Cds[], { datasetName: string }>({
   key: 'cdses',
-  default: [],
 })
 
-export const cdsNamesAtom = selector<string[]>({
-  key: 'cdsNames',
-  get: ({ get }) => get(cdsesAtom).map((cds) => cds.name),
-})
-
-export const cdsAtom = selectorFamily<Cds | undefined, string>({
+export const cdsAtom = selectorFamily<Cds | undefined, { datasetName: string; cdsName: string }>({
   key: 'cds',
   get:
-    (name) =>
+    ({ datasetName, cdsName }) =>
     ({ get }) =>
-      get(cdsesAtom).find((cds) => cds.name === name),
+      get(cdsesAtom({ datasetName }))?.find((cds) => cds.name === cdsName),
 })
 
-export const treeAtom = atom<AuspiceJsonV2 | undefined>({
+export const [treeAtom, allTreesAtom] = multiAtom<AuspiceJsonV2 | undefined | null, string>({
   key: 'tree',
-  default: undefined,
 })
 
-export const treeNwkAtom = atom<string | undefined>({
+export const [treeNwkAtom, allTreesNwkAtom] = multiAtom<string | undefined | null, { datasetName: string }>({
   key: 'treeNwk',
-  default: undefined,
 })
 
-export const hasTreeAtom = selector<boolean>({
+export const hasTreeAtom = selectorFamily<boolean, { datasetName: string }>({
   key: 'hasTree',
-  get({ get }) {
-    return !isNil(get(treeAtom))
-  },
+  get:
+    ({ datasetName }) =>
+    ({ get }) => {
+      return !isNil(get(treeAtom(datasetName)))
+    },
 })
 
-export const cladeNodeAttrDescsAtom = atom<CladeNodeAttrDesc[]>({
+export const [cladeNodeAttrDescsAtom, allCladeNodeAttrDescsAtom] = multiAtom<
+  CladeNodeAttrDesc[],
+  { datasetName: string }
+>({
   key: 'cladeNodeAttrDescs',
-  default: [],
 })
 
-export const cladeNodeAttrKeysAtom = selector<string[]>({
-  key: 'cladeNodeAttrKeys',
-  get: ({ get }) => get(cladeNodeAttrDescsAtom).map((desc) => desc.name),
-})
-
-export const phenotypeAttrDescsAtom = atom<PhenotypeAttrDesc[]>({
+export const [phenotypeAttrDescsAtom, allPhenotypeAttrDescsAtom] = multiAtom<
+  PhenotypeAttrDesc[],
+  { datasetName: string }
+>({
   key: 'phenotypeAttrDescs',
-  default: [],
 })
 
-export const phenotypeAttrKeysAtom = selector<string[]>({
-  key: 'phenotypeAttrKeys',
-  get: ({ get }) => get(phenotypeAttrDescsAtom).map((desc) => desc.name),
-})
-
-export const refNodesAtom = atom<AuspiceRefNodesDesc>({
+export const [refNodesAtom, allRefNodesAtom] = multiAtom<AuspiceRefNodesDesc, { datasetName: string }>({
   key: 'refNodes',
-  default: { default: REF_NODE_ROOT, search: [] },
 })
 
-export const currentRefNodeNameAtom = atom<string>({
+export const [currentRefNodeNameAtom, allCurrentRefNodeNameAtom] = multiAtom<string, { datasetName: string }>({
   key: 'currentRefNode',
-  default: REF_NODE_ROOT,
 })
 
-export const aaMotifsDescsAtom = atom<AaMotifsDesc[]>({
+export const [aaMotifsDescsAtom, allAaMotifsDescsAtom] = multiAtom<AaMotifsDesc[], { datasetName: string }>({
   key: 'aaMotifsDescsAtom',
-  default: [],
 })
 
-export const aaMotifsKeysAtom = selector<string[]>({
-  key: 'aaMotifsKeysAtom',
-  get: ({ get }) => get(aaMotifsDescsAtom).map((desc) => desc.name),
+export const [initialDataAtom, allInitialDataAtom] = multiAtom<AnalysisInitialData, string>({
+  key: 'initialDataAtom',
 })
 
 export const csvColumnConfigAtom = atom<CsvColumnConfig | undefined>({
@@ -351,20 +323,27 @@ export const analysisStatusGlobalAtom = atom({
       onSet((status) => {
         switch (status) {
           case AlgorithmGlobalStatus.started:
-            void getPromise(datasetCurrentAtom).then((dataset) => {
-              plausible('Run started', { props: { 'dataset v3': dataset?.path ?? 'unknown' } })
+            void getPromise(datasetsForAnalysisAtom).then(async (datasets) => {
+              return concurrent.forEach(async (dataset) => {
+                plausible('Run started', { props: { 'dataset v3': dataset?.path ?? 'unknown' } })
+              }, datasets)
             })
             break
 
           case AlgorithmGlobalStatus.done:
-            void Promise.all([getPromise(analysisResultStatusesAtom), getPromise(datasetCurrentAtom)]).then(
-              ([results, dataset]) => {
-                plausible('Run completed', {
-                  props: {
-                    'sequences': results.length,
-                    'dataset v3': dataset?.path ?? 'unknown',
-                  },
-                })
+            void Promise.all([getPromise(analysisResultsAtom), getPromise(datasetsForAnalysisAtom)]).then(
+              async ([results, datasets]) => {
+                return concurrent.forEach(async (dataset) => {
+                  const resultsForDataset = results.filter(
+                    (result) => result.result?.analysisResult.datasetName === dataset.path,
+                  )
+                  plausible('Run completed', {
+                    props: {
+                      'sequences': resultsForDataset.length,
+                      'dataset v3': dataset?.path ?? 'unknown',
+                    },
+                  })
+                }, datasets)
               },
             )
             break
@@ -377,11 +356,11 @@ export const analysisStatusGlobalAtom = atom({
     },
   ],
 })
-export const canRunAtom = selector({
-  key: 'canRun',
+export const isAnalysisRunningAtom = selector({
+  key: 'isAnalysisRunningAtom',
   get({ get }) {
     const status = get(analysisStatusGlobalAtom)
-    return (
+    return !(
       status === AlgorithmGlobalStatus.idle ||
       status === AlgorithmGlobalStatus.done ||
       status === AlgorithmGlobalStatus.failed

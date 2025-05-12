@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react'
+import React, { MouseEvent, PropsWithChildren, useCallback } from 'react'
 import { Button as ButtonBase, ButtonProps, CardBody } from 'reactstrap'
 import styled, { useTheme } from 'styled-components'
 import { FaInfo as InfoIcon } from 'react-icons/fa6'
@@ -34,6 +34,14 @@ export function InfoButton({ size = 20, children, ...restProps }: PropsWithChild
   const role = useRole(context)
   const { getReferenceProps, getFloatingProps } = useInteractions([focus, dismiss, role])
 
+  const onClick = useCallback(
+    (e: MouseEvent<HTMLElement>) => {
+      toggle()
+      e.stopPropagation()
+    },
+    [toggle],
+  )
+
   return (
     <>
       <Button
@@ -41,7 +49,7 @@ export function InfoButton({ size = 20, children, ...restProps }: PropsWithChild
         as={ButtonBase} // NOTE: this works with styled-components v5, but "as" prop is removed in v6.
         title={t('Click to get help information')}
         $size={size}
-        {...getReferenceProps({ onClick: toggle })}
+        {...getReferenceProps({ onClick })}
         {...restProps}
       >
         <Icon color={theme.primary} size={size * 0.66} />

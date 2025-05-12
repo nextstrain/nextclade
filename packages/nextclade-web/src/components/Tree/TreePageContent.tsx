@@ -1,32 +1,24 @@
-import React, { useMemo } from 'react'
-import styled, { ThemeProvider } from 'styled-components'
+import { isNil } from 'lodash'
+import React, { useLayoutEffect, useState } from 'react'
+import { useRecoilValue } from 'recoil'
+import { Provider as ReactReduxProvider, useSelector } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
-import { connect } from 'react-redux'
-import { AuspiceMetadata } from 'auspice'
-import type { State } from 'src/state/reducer'
+import { Store } from 'redux'
+import styled, { ThemeProvider } from 'styled-components'
+import type { AuspiceState } from 'auspice'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
+import { changeColorBy } from 'auspice/src/actions/colors'
+import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { treeAtom } from 'src/state/results.state'
+import { configureStore } from 'src/state/store'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 import { SidebarContainer as SidebarContainerBase } from 'auspice/src/components/main/styles'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 import { Tree } from 'src/components/Tree/Tree'
 import { Sidebar } from 'src/components/Tree/Sidebar'
-
-export const Container = styled.div`
-  flex: 1;
-  flex-basis: 100%;
-  width: 100%;
-  height: 100%;
-  min-width: 1080px;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-`
-
-const MainContent = styled.main`
-  flex: 1;
-  flex-basis: 100%;
-  overflow-y: hidden;
-`
 
 const AuspiceContainer = styled.div`
   display: flex;
@@ -78,51 +70,89 @@ const AUSPICE_SIDEBAR_THEME = {
   'unselectedBackground': '#888',
 }
 
-export interface TreePageProps {
-  treeMeta?: AuspiceMetadata
-}
+export default function TreePageContent() {
+  const { t } = useTranslationSafe()
 
-const mapStateToProps = (state: State) => ({
-  treeMeta: state.metadata,
-})
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const tree = useRecoilValue(treeAtom(datasetName))
 
-const TreePageContent = connect(mapStateToProps, null)(TreePageContentDisconnected)
-export default TreePageContent
+  const [store, setStore] = useState<Store<AuspiceState> | null>(null)
 
-function TreePageContentDisconnected({ treeMeta }: TreePageProps) {
-  const isDataFromGisaid = useMemo(
-    () => treeMeta?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
-    [treeMeta],
-  )
+  useLayoutEffect(() => {
+    if (!isNil(tree)) {
+      const { store: newStore } = configureStore()
+      const { dispatch } = newStore
+      const auspiceState = createAuspiceState(tree, dispatch)
+      dispatch(auspiceStartClean(auspiceState))
+      dispatch(changeColorBy())
+      dispatch(treeFilterByNodeType(['New']))
+      setStore(newStore)
+    }
+  }, [tree, datasetName])
+
+  if (isNil(tree) || isNil(store)) {
+    return (
+      <AuspiceContainer>
+        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+        {/* @ts-ignore */}
+        <I18nextProvider i18n={i18nAuspice}>
+          <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
+            <SidebarContainer>
+              <Sidebar hasTree={false} />
+            </SidebarContainer>
+            <TreeContainer>
+              <TreeTopPanel>
+                <div className="m-2">
+                  <h4>{t('This dataset has no reference tree')}</h4>
+                  <p className="m-0">{t('Tree-related functionality is disabled.')}</p>
+                  <p className="m-0">{t('Please contact dataset authors for details.')}</p>
+                </div>
+              </TreeTopPanel>
+            </TreeContainer>
+          </ThemeProvider>
+        </I18nextProvider>
+      </AuspiceContainer>
+    )
+  }
 
   return (
-    <Container>
-      <MainContent>
-        <AuspiceContainer>
-          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-          {/* @ts-ignore */}
-          <I18nextProvider i18n={i18nAuspice}>
-            <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
-              <SidebarContainer>
-                <Sidebar />
-              </SidebarContainer>
-              <TreeContainer>
-                <TreeTopPanel>
-                  <FiltersSummaryWrapper>
-                    <FiltersSummary />
-                  </FiltersSummaryWrapper>
-                  {isDataFromGisaid && (
-                    <LogoGisaidWrapper>
-                      <LogoGisaid />
-                    </LogoGisaidWrapper>
-                  )}
-                </TreeTopPanel>
-                <Tree />
-              </TreeContainer>
-            </ThemeProvider>
-          </I18nextProvider>
-        </AuspiceContainer>
-      </MainContent>
-    </Container>
+    <AuspiceContainer>
+      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+      {/* @ts-ignore */}
+      <I18nextProvider i18n={i18nAuspice}>
+        <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
+          <ReactReduxProvider store={store}>
+            <SidebarContainer>
+              <Sidebar hasTree />
+            </SidebarContainer>
+            <TreeContainer>
+              <TreeTopPanel>
+                <FiltersSummaryWrapper>
+                  <FiltersSummary />
+                </FiltersSummaryWrapper>
+                <GisaidLogoWidget />
+              </TreeTopPanel>
+              <Tree />
+            </TreeContainer>
+          </ReactReduxProvider>
+        </ThemeProvider>
+      </I18nextProvider>
+    </AuspiceContainer>
+  )
+}
+
+function GisaidLogoWidget() {
+  const isDataFromGisaid = useSelector<AuspiceState>((state) =>
+    state.metadata?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
+  )
+
+  if (!isDataFromGisaid) {
+    return null
+  }
+
+  return (
+    <LogoGisaidWrapper>
+      <LogoGisaid />
+    </LogoGisaidWrapper>
   )
 }

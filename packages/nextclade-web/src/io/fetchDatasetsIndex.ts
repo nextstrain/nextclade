@@ -2,10 +2,10 @@ import { AxiosError } from 'axios'
 import { get, head, isNil, mapValues, sortBy, sortedUniq } from 'lodash'
 import semver from 'semver'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
-import urljoin from 'url-join'
+import { axiosFetch, axiosHeadOrUndefined, HttpRequestError } from 'src/io/axiosFetch'
 
 import { Dataset, DatasetFiles, DatasetsIndexJson, DatasetsIndexV2Json, MinimizerIndexVersion } from 'src/types'
-import { axiosFetch, axiosHeadOrUndefined, HttpRequestError } from 'src/io/axiosFetch'
+import urljoin from 'url-join'
 
 const DATASET_INDEX_SCHEMA_VERSION_MIN = '3.0.0'
 const MINIMIZER_INDEX_ALGO_VERSION = 'v1'
@@ -32,10 +32,9 @@ export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): 
 }
 
 export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {
-  const datasets = datasetsIndexJson.collections
+  return datasetsIndexJson.collections
     .flatMap((collection) => collection.datasets.filter(isCompatible).filter(isLatest))
     .map((dataset) => fileUrlsToAbsolute(datasetServerUrl, dataset))
-  return { datasets }
 }
 
 /** Find the latest dataset, optionally by name, ref and tag */

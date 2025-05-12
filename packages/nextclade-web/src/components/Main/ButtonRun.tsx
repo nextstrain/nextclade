@@ -1,35 +1,48 @@
-import { isNil } from 'lodash'
 import React, { useMemo } from 'react'
 import { Button, ButtonProps } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { hasSingleCurrentDatasetAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { isAutodetectRunningAtom } from 'src/state/autodetect.state'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { hasTopSuggestedDatasetsAtom, isAutodetectRunningAtom } from 'src/state/autodetect.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
-import { canRunAtom } from 'src/state/results.state'
+import { isAnalysisRunningAtom } from 'src/state/results.state'
 
 export interface ButtonRunProps extends ButtonProps {
   onClick(): void
+  singleDatasetMode: boolean
 }
 
-export function ButtonRun({ onClick, ...restProps }: ButtonRunProps) {
-  const canRun = useRecoilValue(canRunAtom)
+export function ButtonRun({ onClick, singleDatasetMode, ...restProps }: ButtonRunProps) {
+  const isAnalysisRunning = useRecoilValue(isAnalysisRunningAtom)
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
   const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)
-  const dataset = useRecoilValue(datasetCurrentAtom)
+
+  const hasSingleDataset = useRecoilValue(hasSingleCurrentDatasetAtom)
+  const hasMultiDatasets = useRecoilValue(hasTopSuggestedDatasetsAtom)
 
   const { t } = useTranslationSafe()
   const { isDisabled, color, tooltip } = useMemo(() => {
-    const isDisabled = !(canRun && hasRequiredInputs && !isAutodetectRunning) || hasInputErrors || isNil(dataset)
+    const hasDatasetsSelected = singleDatasetMode ? hasSingleDataset : hasMultiDatasets
+    const isDisabled =
+      isAnalysisRunning || !(hasRequiredInputs && !isAutodetectRunning) || hasInputErrors || !hasDatasetsSelected
     return {
       isDisabled,
       color: isDisabled ? 'secondary' : 'success',
       tooltip: isDisabled ? t('Please provide sequence data first') : t('Launch the algorithm!'),
     }
-  }, [canRun, dataset, hasInputErrors, hasRequiredInputs, isAutodetectRunning, t])
+  }, [
+    singleDatasetMode,
+    hasSingleDataset,
+    hasMultiDatasets,
+    isAnalysisRunning,
+    hasRequiredInputs,
+    isAutodetectRunning,
+    hasInputErrors,
+    t,
+  ])
 
   return (
     <ButtonStyled disabled={isDisabled} color={color} onClick={onClick} title={tooltip} {...restProps}>

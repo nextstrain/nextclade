@@ -25,9 +25,7 @@ import {
 } from 'src/state/inputs.state'
 import { localeAtom } from 'src/state/locale.state'
 import { isInitializedAtom } from 'src/state/settings.state'
-import { configureStore } from 'src/state/store'
 import { ThemeProvider } from 'styled-components'
-import { Provider as ReactReduxProvider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientConfig, QueryClientProvider } from 'react-query'
@@ -42,9 +40,9 @@ import { Plausible } from 'src/components/Common/Plausible'
 import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import {
-  datasetCurrentAtom,
   datasetsAtom,
   datasetServerUrlAtom,
+  datasetSingleCurrentAtom,
   minimizerIndexVersionAtom,
 } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
@@ -67,7 +65,7 @@ function RecoilStateInitializer() {
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
-  const run = useRunAnalysis()
+  const run = useRunAnalysis({ isSingle: true })
 
   const error = useRecoilValue(globalErrorAtom)
 
@@ -78,6 +76,8 @@ function RecoilStateInitializer() {
 
     const snapShotRelease = snapshot.retain()
     const { getPromise } = snapshot
+
+    const datasetSingleCurrent = getPromise(datasetSingleCurrentAtom)
 
     // eslint-disable-next-line no-void
     void Promise.resolve()
@@ -108,8 +108,8 @@ function RecoilStateInitializer() {
         throw error
       })
       .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
-        set(datasetsAtom, { datasets })
-        let previousDataset = await getPromise(datasetCurrentAtom)
+        set(datasetsAtom, datasets)
+        let previousDataset = await datasetSingleCurrent
         if (previousDataset?.type === 'auspiceJson') {
           // Disregard previously saved dataset if it's Auspice dataset, because the data is no longer available.
           // We might re-fetch instead, but need to persist URL for that somehow.
@@ -117,7 +117,7 @@ function RecoilStateInitializer() {
         }
 
         const dataset = currentDataset ?? previousDataset
-        set(datasetCurrentAtom, dataset)
+        set(datasetSingleCurrentAtom, dataset)
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
 
         if (dataset?.type === 'auspiceJson' && !isNil(auspiceJson)) {
@@ -174,7 +174,6 @@ const REACT_QUERY_OPTIONS: QueryClientConfig = {
 
 export function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(REACT_QUERY_OPTIONS), [])
-  const { store } = useMemo(() => configureStore(), [])
   const fallback = useMemo(() => <LoadingPage />, [])
 
   useEffect(() => {
@@ -188,32 +187,30 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
 
   return (
     <Suspense fallback={fallback}>
-      <ReactReduxProvider store={store}>
-        <RecoilRoot>
-          <ThemeProvider theme={theme}>
-            <MDXProvider components={mdxComponents}>
-              <Plausible domain={DOMAIN_STRIPPED} />
-              <QueryClientProvider client={queryClient}>
-                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                {/* @ts-ignore */}
-                <I18nextProvider i18n={i18n}>
-                  <ErrorBoundary>
-                    <Suspense>
-                      <RecoilStateInitializer />
-                    </Suspense>
-                    <Suspense fallback={fallback}>
-                      <SEO />
-                      <Component {...pageProps} />
-                      <ErrorPopup />
-                      <ReactQueryDevtools initialIsOpen={false} />
-                    </Suspense>
-                  </ErrorBoundary>
-                </I18nextProvider>
-              </QueryClientProvider>
-            </MDXProvider>
-          </ThemeProvider>
-        </RecoilRoot>
-      </ReactReduxProvider>
+      <RecoilRoot>
+        <ThemeProvider theme={theme}>
+          <MDXProvider components={mdxComponents}>
+            <Plausible domain={DOMAIN_STRIPPED} />
+            <QueryClientProvider client={queryClient}>
+              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+              {/* @ts-ignore */}
+              <I18nextProvider i18n={i18n}>
+                <ErrorBoundary>
+                  <Suspense>
+                    <RecoilStateInitializer />
+                  </Suspense>
+                  <Suspense fallback={fallback}>
+                    <SEO />
+                    <Component {...pageProps} />
+                    <ErrorPopup />
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  </Suspense>
+                </ErrorBoundary>
+              </I18nextProvider>
+            </QueryClientProvider>
+          </MDXProvider>
+        </ThemeProvider>
+      </RecoilRoot>
     </Suspense>
   )
 }

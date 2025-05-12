@@ -1,5 +1,6 @@
 import classnames from 'classnames'
 import React, { PropsWithChildren, useCallback, useState } from 'react'
+import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 import {
@@ -10,30 +11,27 @@ import {
   TabContent as TabContentBase,
   NavItemProps,
 } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
 import { MarkdownRemote } from 'src/components/Common/Markdown'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { DatasetContentTabAdvanced } from 'src/components/Main/DatasetContentTabAdvanced'
 import { DatasetCustomizationIndicator } from 'src/components/Main/DatasetCustomizationIndicator'
 
-export function DatasetContentSection() {
+export function DatasetContentSection({ dataset }: { dataset: Dataset }) {
   const { t } = useTranslationSafe()
   const [activeTabId, setActiveTabId] = useState(0)
-  const currentDataset = useRecoilValue(datasetCurrentAtom)
   return (
     <ContentSection>
       <Nav tabs>
-        {currentDataset?.files?.readme && (
+        {dataset?.files?.readme && (
           <TabLabel tabId={0} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {t('Summary')}
           </TabLabel>
         )}
-        {currentDataset?.files?.changelog && (
+        {dataset?.files?.changelog && (
           <TabLabel tabId={1} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {t('History')}
           </TabLabel>
         )}
-        {currentDataset && (
+        {dataset && (
           <TabLabel tabId={2} activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {t('Customize')}
             <DatasetCustomizationIndicator />
@@ -41,13 +39,9 @@ export function DatasetContentSection() {
         )}
       </Nav>
       <TabContent activeTab={activeTabId}>
-        <TabPane tabId={0}>
-          {currentDataset?.files?.readme && <MarkdownRemote url={currentDataset?.files.readme} />}
-        </TabPane>
-        <TabPane tabId={1}>
-          {currentDataset?.files?.changelog && <MarkdownRemote url={currentDataset?.files.changelog} />}
-        </TabPane>
-        <TabPane tabId={2}>{currentDataset && <DatasetContentTabAdvanced />}</TabPane>
+        <TabPane tabId={0}>{dataset?.files?.readme && <MarkdownRemote url={dataset?.files.readme} />}</TabPane>
+        <TabPane tabId={1}>{dataset?.files?.changelog && <MarkdownRemote url={dataset?.files.changelog} />}</TabPane>
+        <TabPane tabId={2}>{dataset && <DatasetContentTabAdvanced />}</TabPane>
       </TabContent>
     </ContentSection>
   )

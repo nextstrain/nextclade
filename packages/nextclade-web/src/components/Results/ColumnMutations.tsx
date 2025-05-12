@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { findCladeNodeAttrFounderInfo, getAaMutations, getNucMutations } from 'src/helpers/relativeMuts'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { currentRefNodeNameAtom } from 'src/state/results.state'
 import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -21,9 +22,10 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     analysisResult
   const id = getSafeId('mutations-label', { index, seqName })
 
-  const nodeSearchName = useRecoilValue(currentRefNodeNameAtom)
-  const nucMuts = getNucMutations(analysisResult, nodeSearchName)
-  const aaMuts = getAaMutations(analysisResult, nodeSearchName)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const nodeSearchName = useRecoilValue(currentRefNodeNameAtom({ datasetName }))
+  const nucMuts = getNucMutations(analysisResult, nodeSearchName ?? REF_NODE_ROOT)
+  const aaMuts = getAaMutations(analysisResult, nodeSearchName ?? REF_NODE_ROOT)
 
   const { searchNameFriendly, nodeName } = useMemo(() => {
     if (nodeSearchName === REF_NODE_ROOT) {
@@ -35,7 +37,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     if (nodeSearchName === REF_NODE_CLADE_FOUNDER) {
       return { searchNameFriendly: t('clade founder'), nodeName: cladeFounderInfo?.nodeName }
     }
-    const cladeNodeAttr = findCladeNodeAttrFounderInfo(cladeNodeAttrFounderInfo, nodeSearchName)
+    const cladeNodeAttr = findCladeNodeAttrFounderInfo(cladeNodeAttrFounderInfo, nodeSearchName ?? REF_NODE_ROOT)
     if (cladeNodeAttr) {
       return {
         searchNameFriendly: t('Founder of {{ attr }}', { attr: cladeNodeAttr.key }),

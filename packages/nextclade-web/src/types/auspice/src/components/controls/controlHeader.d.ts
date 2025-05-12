@@ -3,7 +3,7 @@ declare module 'auspice/src/components/controls/controlHeader' {
 
   export interface ControlHeaderProps {
     title: ReactNode
-    tooltip: ReactElement
+    tooltip?: ReactElement
   }
 
   export const ControlHeader: FC<ControlHeaderProps>
