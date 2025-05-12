@@ -18,7 +18,7 @@ export function ExcelDownloadLink() {
     if (isDone) {
       return <SuccessIcon size="15px" color="#1d6f42" />
     }
-    return <RiFileExcel2Fill fill={isRunning ? '#aaaaaa' : '#1d6f42'} />
+    return <RiFileExcel2Fill fill="#1d6f42" />
   }, [isDone, isRunning])
 
   return (
