@@ -2,6 +2,7 @@ import { isEmpty, isNil } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import { Badge } from 'reactstrap'
 import { rgba } from 'polished'
+import { hasSeqsWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
 import styled from 'styled-components'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import Select, { OptionProps, StylesConfig } from 'react-select'
@@ -24,6 +25,7 @@ interface Option {
 export function ViewedDatasetSelector() {
   const { t } = useTranslationSafe()
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
+  const hasSeqsWithoutDatasetSuggestions = useRecoilValue(hasSeqsWithoutDatasetSuggestionsAtom)
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
   const allTrees = useRecoilValue(allTreesAtom)
 
@@ -37,10 +39,12 @@ export function ViewedDatasetSelector() {
         hasTree,
       }
     })
-    options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unclassified') })
+    if (hasSeqsWithoutDatasetSuggestions) {
+      options.push({ value: UNKNOWN_DATASET_NAME, label: t('Unclassified') })
+    }
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
-  }, [allTrees, datasets, t, viewedDatasetName])
+  }, [allTrees, datasets, hasSeqsWithoutDatasetSuggestions, t, viewedDatasetName])
 
   const handleChange = useCallback(
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {

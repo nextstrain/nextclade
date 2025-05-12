@@ -1,4 +1,4 @@
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 import { invertMap } from 'src/helpers/map'
 import { notUndefinedOrNull, pairValueNotUndefinedOrNull } from 'src/helpers/notUndefined'
@@ -221,6 +221,13 @@ export const resultsWithoutDatasetSuggestionsAtom = selector<MinimizerSearchReco
     return seqIndicesWithoutDatasetSuggestions
       .map((index) => autodetectResults?.find((result) => result.fastaRecord.index === index))
       .filter(notUndefinedOrNull)
+  },
+})
+
+export const hasSeqsWithoutDatasetSuggestionsAtom = selector<boolean>({
+  key: 'hasSeqsWithoutDatasetSuggestionsAtom',
+  get: ({ get }) => {
+    return !isEmpty(get(seqIndicesWithoutDatasetSuggestionsAtom))
   },
 })
 

@@ -308,7 +308,7 @@ impl NextcladeWasm {
         .wrap_err("When serializing results into Excel: When parsing Excel column config JSON internally"),
     )?;
 
-    let dataset_name_to_seq_indices_str: BTreeMap<String, Vec<usize>> =
+    let dataset_name_to_seq_indices: BTreeMap<String, Vec<usize>> =
       jserr(json_parse(dataset_name_to_seq_indices_str).wrap_err(
         "When serializing results into Excel: When parsing `dataset_name_to_seq_indices_str` JSON internally",
       ))?;
@@ -322,7 +322,7 @@ impl NextcladeWasm {
       all_initial_data
         .iter()
         .map(|(dataset_name, initial_data)| -> Result<_, Report> {
-          let seq_indices = dataset_name_to_seq_indices_str
+          let seq_indices = dataset_name_to_seq_indices
             .get(dataset_name)
             .cloned()
             .unwrap_or_default();
@@ -352,7 +352,7 @@ impl NextcladeWasm {
     }
 
     // Add a sheet for "unclassified" sequences
-    {
+    if !seq_indices_without_dataset_suggestions.is_empty() {
       let mut sheet = Worksheet::new();
       sheet.set_name("unclassified")?;
       sheet.write_string(0, 0, "index")?;
