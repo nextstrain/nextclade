@@ -7,6 +7,8 @@ Nextclade Web now allows to run analysis for multiple datasets at once.
 
 You could provide sequences belonging to multiple organisms or for the dame organism, but based on different reference sequences. On "Multiple datasets" tab, Nextclade will try to deduce datasets that are best matching your sequences. You can then proceed to running analysis for each dataset. If multiple datasets have been detected, you will see a "Dataset" dropdown on "Results", "Tree" and "Export" page, which allows you to switch between results for different datasets.
 
+In multi-dataset mode, the "Export" page now also contains an "Export all to Excel" button, which allows to download .xlsx file containing all analysis results in tabular format, one dataset per sheet. This is the same data as in CSV/TSV files, but aggregated into a single file.
+
 This is a convenience feature, i.e. the analysis runs for each dataset are still independent, just like in single-dataset mode, except you don't need to run multiple analyses for each dataset manually now.
 
 This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
