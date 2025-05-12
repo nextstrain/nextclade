@@ -4,6 +4,7 @@ import { useRecoilValue } from 'recoil'
 import { Provider as ReactReduxProvider, useSelector } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { Store } from 'redux'
+import { ButtonSvg } from 'src/components/Tree/ButtonSvg'
 import styled, { ThemeProvider } from 'styled-components'
 import type { AuspiceState } from 'auspice'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -131,6 +132,7 @@ export default function TreePageContent() {
                   <FiltersSummary />
                 </FiltersSummaryWrapper>
                 <GisaidLogoWidget />
+                <ButtonSvg />
               </TreeTopPanel>
               <Tree />
             </TreeContainer>
