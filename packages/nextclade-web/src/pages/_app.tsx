@@ -3,7 +3,7 @@ import 'core-js'
 import 'css.escape'
 
 import { isEmpty, isNil } from 'lodash'
-import React, { useEffect, Suspense, useMemo } from 'react'
+import React, { useEffect, Suspense, useMemo, useRef } from 'react'
 import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
@@ -65,14 +65,21 @@ function RecoilStateInitializer() {
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
+  const isInitializingRef = useRef(false)
+
   const run = useRunAnalysis({ isSingle: true })
 
   const error = useRecoilValue(globalErrorAtom)
 
+  // prettier-ignore
   const initialize = useRecoilCallback(({ set, snapshot }) => () => {
-    if (initialized) {
+    if (initialized || isInitializingRef.current) {
+      // Abort if already initialized or initializing
       return
     }
+
+    // Acquire lock to only run one initialization at a time
+    isInitializingRef.current = true
 
     const snapShotRelease = snapshot.retain()
     const { getPromise } = snapshot
@@ -153,15 +160,20 @@ function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
       })
       .finally(() => {
+        isInitializingRef.current = false
         snapShotRelease()
       })
-  })
+    },
+    [initialized, run, setInitialized, urlQuery],
+  )
 
   useEffect(() => {
-    initialize()
-  })
+    if (!initialized) {
+      initialize()
+    }
+  }, [initialized, initialize])
 
-  if (!initialized && !isNil(error)) {
+  if (!initialized && !isNil(error) && !isInitializingRef.current) {
     throw error
   }
 
