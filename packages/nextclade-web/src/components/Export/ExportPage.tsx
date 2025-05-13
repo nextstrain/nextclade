@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Row, Col } from 'reactstrap'
 import { ExportPageUnknownDataset } from 'src/components/Export/ExportPageUnknownDataset'
+import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { formatDatasetInfo } from 'src/components/Main/DatasetInfo'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import styled from 'styled-components'
@@ -33,7 +34,7 @@ export function ExportPage() {
         {hasMultipleDatasetsForAnalysis && (
           <Sidebar>
             <div className="mt-2 pb-1">
-              <span className="mr-1">{t('For all datasets')}</span>
+              <span className="mr-1">{t('All datasets')}</span>
               <span className="mr-1">
                 <ExcelExportHelp />
               </span>
@@ -46,7 +47,10 @@ export function ExportPage() {
             <div className="mt-2 pb-1 pt-2 border-top" />
 
             <div className="d-flex my-auto pb-1">
-              <span className="mr-1">{t('For individual datasets')}</span>
+              <span className="mr-1">{t('Individual datasets')}</span>
+              <span className="mr-1">
+                <DatasetCountBadge />
+              </span>
               <span className="mr-1">
                 <ViewedDatasetExportHelp />
               </span>

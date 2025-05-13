@@ -1,6 +1,7 @@
 import React, { Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import { ViewedDatasetResultsHelp } from 'src/components/Help/ViewedDatasetResultsHelp'
+import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { ResultsTableUnknownDataset } from 'src/components/Results/ResultsTableUnknownDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -113,6 +114,9 @@ function ViewedDatasetSelectorResultsPage() {
     <ViewedDatasetSelectorContainer>
       <span className="ml-2 d-flex my-auto">
         <span className="mr-1">{t('Dataset')}</span>
+        <span className="mr-1">
+          <DatasetCountBadge />
+        </span>
         <span className="mr-1">
           <ViewedDatasetResultsHelp />
         </span>
