@@ -1,6 +1,7 @@
 import React, { ReactNode, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import { HeaderTitle } from 'src/components/Common/CardHeaderWithToggle'
+import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
@@ -39,7 +40,14 @@ export function Sidebar({ hasTree }: { hasTree: boolean }) {
     if (hasMultipleDatasetsForAnalysis) {
       datasetSwitcherWidget = (
         <>
-          <ControlHeaderCloneWithoutRedux title={t('Dataset')} />
+          <span className="d-flex align-items-center">
+            <span className="mr-1">
+              <ControlHeaderCloneWithoutRedux title={t('Dataset')} />
+            </span>
+            <span className="mr-1">
+              <DatasetCountBadge />
+            </span>
+          </span>
           <ViewedDatasetSelector />
         </>
       )
