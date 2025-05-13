@@ -1,10 +1,8 @@
 import React from 'react'
-
 import styled from 'styled-components'
 import AutoSizer from 'react-virtualized-auto-sizer'
-
-import AuspiceTree from 'auspice/src/components/tree'
 import AuspiceEntropy from 'auspice/src/components/entropy'
+import AuspiceTree from 'auspice/src/components/tree'
 
 // HACK: For some reason, auspice tree requests space larger than the width and height passed into it.
 //  So we pretend the container is smaller, by multiplying by this numbers.
