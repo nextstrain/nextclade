@@ -2,13 +2,16 @@ import type { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
 import { isEmpty, isNil } from 'lodash'
 import { useRouter } from 'next/router'
-import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { useRecoilCallback } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { promiseAllObject } from 'src/helpers/promise'
-import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
+import {
+  seqIndexToTopDatasetNameAtom,
+  seqIndicesWithoutDatasetSuggestionsAtom,
+  topSuggestedDatasetsAtom,
+} from 'src/state/autodetect.state'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allViewedCdsAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import {
@@ -68,16 +71,12 @@ import { numThreadsAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
 import { axiosFetchRaw, axiosFetchRawMaybe } from 'src/io/axiosFetch'
 
-export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
+export function useRunAnalysis() {
   const router = useRouter()
-  const { seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions } = useDatasetSuggestionResults()
-  const topSuggestedDatasets = useRecoilValue(topSuggestedDatasetsAtom)
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
-      () => {
-        const { getPromise } = snapshot
-
+      ({ isSingle }: { isSingle: boolean }) => {
         set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.loadingData)
 
         reset(analysisResultsAtom)
@@ -96,21 +95,6 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
         reset(allTreesAtom)
         reset(allTreesNwkAtom)
         reset(allViewedCdsAtom)
-
-        const numThreads = getPromise(numThreadsAtom)
-
-        const qryInputs = getPromise(qrySeqInputsStorageAtom)
-        const csvColumnConfig = getPromise(csvColumnConfigAtom)
-
-        const datasetSingleCurrentPromise = getPromise(datasetSingleCurrentAtom)
-        const datasetJsonPromise = getPromise(datasetJsonAtom)
-
-        const overrides: DatasetFilesOverrides = {
-          reference: getPromise(refSeqInputAtom),
-          genomeAnnotation: getPromise(geneMapInputAtom),
-          treeJson: getPromise(refTreeInputAtom),
-          pathogenJson: getPromise(virusPropertiesInputAtom),
-        }
 
         const callbacks: LaunchAnalysisCallbacks = {
           onGlobalStatus(status) {
@@ -176,14 +160,29 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
           onComplete() {},
         }
 
+        const releaseSnapshot = snapshot.retain()
+        const { getPromise } = snapshot
+
         router
           .push('/results', '/results')
           .then(async () => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.initWorkers)
-            const qry = await qryInputs
-            const tree = await datasetJsonPromise
-            const numThreadsResolved = await numThreads
-            const datasetSingleCurrent = await datasetSingleCurrentPromise
+            const numThreadsResolved = await getPromise(numThreadsAtom)
+            const qry = await getPromise(qrySeqInputsStorageAtom)
+            const csvColumnConfig = await getPromise(csvColumnConfigAtom)
+            const datasetSingleCurrent = await getPromise(datasetSingleCurrentAtom)
+            const tree = await getPromise(datasetJsonAtom)
+
+            const overrides: DatasetFilesOverrides = {
+              reference: getPromise(refSeqInputAtom),
+              genomeAnnotation: getPromise(geneMapInputAtom),
+              treeJson: getPromise(refTreeInputAtom),
+              pathogenJson: getPromise(virusPropertiesInputAtom),
+            }
+
+            const topSuggestedDatasets = await getPromise(topSuggestedDatasetsAtom)
+            const seqIndexToTopDatasetName = await getPromise(seqIndexToTopDatasetNameAtom)
+            const seqIndicesWithoutDatasetSuggestions = await getPromise(seqIndicesWithoutDatasetSuggestionsAtom)
 
             const datasets = findDatasets(isSingle, datasetSingleCurrent, topSuggestedDatasets)
             const datasetNames = datasets.map((dataset) => dataset.path)
@@ -203,12 +202,15 @@ export function useRunAnalysis({ isSingle }: { isSingle: boolean }) {
               csvColumnConfig,
             )
           })
+          .finally(() => {
+            releaseSnapshot()
+          })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [isSingle, router, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, topSuggestedDatasets],
+    [router],
   )
 }
 

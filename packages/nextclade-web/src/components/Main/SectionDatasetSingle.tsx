@@ -10,13 +10,11 @@ import { ButtonChangeDataset, DatasetNoneSection } from 'src/components/Main/But
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { SuggestionAlertMainPage } from 'src/components/Main/SuggestionAlertMainPage'
 import { SuggestionPanel } from 'src/components/Main/SuggestionPanel'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { autodetectShouldSetCurrentDatasetAtom, firstTopSuggestedDatasetAtom } from 'src/state/autodetect.state'
 
 export function SectionDatasetSingle() {
   const { push } = useRouter()
 
-  const run = useRunAnalysis({ isSingle: true })
   const [datasetCurrent, setDatasetCurrent] = useRecoilState(datasetSingleCurrentAtom)
   const autodetectShouldSetCurrentDataset = useRecoilValue(autodetectShouldSetCurrentDatasetAtom)
   const firstTopSuggestedDataset = useRecoilValue(firstTopSuggestedDatasetAtom)
@@ -46,12 +44,12 @@ export function SectionDatasetSingle() {
         <Row noGutters className="my-1">
           <Col className="d-flex w-100">
             <ButtonChangeDataset className="mr-auto" onClick={toDatasetSelection} />
-            <ButtonRun className="ml-auto" onClick={run} singleDatasetMode />
+            <ButtonRun className="ml-auto" singleDatasetMode />
           </Col>
         </Row>
       </>
     )
-  }, [datasetCurrent, run, toDatasetSelection])
+  }, [datasetCurrent, toDatasetSelection])
 
   return (
     <Container>

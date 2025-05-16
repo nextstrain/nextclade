@@ -1,7 +1,6 @@
 use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::warn;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::csv::{CsvVecWriter, VecWriter};
 use nextclade::io::fasta::{read_one_fasta_from_str, FastaReader, FastaRecord};
@@ -381,8 +380,6 @@ impl NextcladeWasm {
     seq_indices_without_dataset_suggestions_str: &str,
     delimiter: char,
   ) -> Result<String, JsError> {
-    warn!("{}", &delimiter);
-
     let errors: Vec<NextcladeErrorOutputs> = jserr(
       json_parse(errors_json_str).wrap_err("When serializing results into Excel: When parsing errors JSON internally"),
     )?;

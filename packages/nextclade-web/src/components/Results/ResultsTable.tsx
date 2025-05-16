@@ -7,7 +7,7 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
-import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
+import { datasetNameToSeqIndicesAtom } from 'src/state/autodetect.state'
 import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
@@ -72,7 +72,8 @@ export function ResultsTable() {
   const seqIndicesImmediate = useRecoilValue(seqIndicesFilteredAtom)
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
-  const { datasetNameToSeqIndices } = useDatasetSuggestionResults()
+  const datasetNameToSeqIndices = useRecoilValue(datasetNameToSeqIndicesAtom)
+
   const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)

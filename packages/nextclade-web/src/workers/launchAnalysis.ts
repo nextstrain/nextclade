@@ -36,14 +36,12 @@ export async function launchAnalysis(
   params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
   numThreads: number,
-  csvColumnConfigPromise: Promise<CsvColumnConfig | undefined>,
+  csvColumnConfig: CsvColumnConfig | undefined,
 ) {
   const { onGlobalStatus, onInitialData, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(qryFastaInputs)
-
-  const csvColumnConfig = await csvColumnConfigPromise
 
   const launcherWorker = await spawn<LauncherThread>(
     new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
