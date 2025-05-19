@@ -329,7 +329,7 @@ async function resolveOverrideOrDatasetFile(
     return axiosFetchRaw(datasetFileUrl)
   }
 
-  throw new Error('Unable to resolve dataset file')
+  return undefined
 }
 
 async function resolveOverride(override: Promise<AlgorithmInput | undefined>) {
