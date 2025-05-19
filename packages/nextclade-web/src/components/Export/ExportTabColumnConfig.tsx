@@ -1,7 +1,8 @@
 import { get, mapValues } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 import { MdCheck, MdFileDownload } from 'react-icons/md'
-import { useRecoilState, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import copy from 'fast-copy'
 import { rgba } from 'polished'
@@ -16,11 +17,13 @@ import { CheckboxIndeterminate, CheckboxState } from 'src/components/Common/Chec
 
 export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: string): void }) {
   const { t } = useTranslationSafe()
+
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const [csvColumnConfig, setCsvColumnConfig] = useRecoilState(csvColumnConfigAtom)
 
   const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
-  const { isDone: isDoneCsv, isRunning: isRunningCsv, fn: exportCsv_ } = useExportCsv()
-  const { isDone: isDoneTsv, isRunning: isRunningTsv, fn: exportTsv_ } = useExportTsv()
+  const { isDone: isDoneCsv, isRunning: isRunningCsv, fn: exportCsv_ } = useExportCsv({ datasetName })
+  const { isDone: isDoneTsv, isRunning: isRunningTsv, fn: exportTsv_ } = useExportTsv({ datasetName })
   const exportCsv = useCallback(() => exportCsv_(exportParams.filenameCsv), [exportCsv_, exportParams.filenameCsv])
   const exportTsv = useCallback(() => exportTsv_(exportParams.filenameTsv), [exportParams.filenameTsv, exportTsv_])
 

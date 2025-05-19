@@ -51,6 +51,7 @@ pub struct NextcladeOutputs {
   pub len_aligned: usize,
   pub len_stripped: usize,
   pub ref_name: String,
+  pub dataset_name: String,
   pub substitutions: Vec<NucSub>,
   pub total_substitutions: usize,
   pub deletions: Vec<NucDelRange>,
@@ -107,7 +108,7 @@ pub struct NextcladeOutputs {
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
 
-  #[serde(skip_serializing_if = "GeneMap::is_empty")]
+  #[serde(default, skip_serializing_if = "GeneMap::is_empty")]
   pub annotation: GeneMap,
 }
 

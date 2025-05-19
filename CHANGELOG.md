@@ -1,3 +1,45 @@
+## Unreleased
+
+
+### Nextclade Web: multi-dataset mode
+
+Nextclade Web now allows to run analysis for multiple datasets at once.
+
+You could provide sequences belonging to multiple organisms or for the dame organism, but based on different reference sequences. On "Multiple datasets" tab, Nextclade will try to deduce datasets that are best matching your sequences. You can then proceed to running analysis for each dataset. If multiple datasets have been detected, you will see a "Dataset" dropdown on "Results", "Tree" and "Export" page, which allows you to switch between results for different datasets.
+
+In multi-dataset mode, the "Export" page now also contains an "Export all to Excel" button, which allows to download .xlsx file containing all analysis results in tabular format, one dataset per sheet. This is the same data as in CSV/TSV files, but aggregated into a single file.
+
+This is a convenience feature, i.e. the analysis runs for each dataset are still independent, just like in single-dataset mode, except you don't need to run multiple analyses for each dataset manually now.
+
+This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
+
+
+### Fix crash when exporting annotations for sequences with missing genes
+
+Nextclade Web and CLI would crash when attempting to output GFF and TBL files where entire genes are unsequenced or otherwise missing. This has been fixed.
+
+
+
+## 3.13.2
+
+### Speed up Nextclade web, fix crash when using files >45MB on Chromium v136 browsers
+
+In recently released version 136, Chromium-based browsers (e.g. Chrome, Edge) [reduced the maximum allowed fixed array size], causing Nextclade web to crash when files bigger than 46,505,915 bytes are used.
+
+It turns out that avoiding the need for a large array gets rid of most of the delay between clicking "Run" and the start of the analysis. For files of ~60MB the time saved is on the order of 5 seconds. A small but noticeable performance win! See [issue #1605] and [PR #1606] for more details.
+
+[reduced the maximum allowed fixed array size]: https://issues.chromium.org/issues/415572399
+[issue #1605]: https://github.com/nextstrain/nextclade/issues/1605
+[PR #1606]: https://github.com/nextstrain/nextclade/pull/1606
+
+## 3.13.1
+
+### Fix crash on empty query annotations
+
+For certain samples which end up with an empty output genome annotation Nextclade Web could crash. This is now resolved.
+See [#1601](https://github.com/nextstrain/nextclade/issues/1601),[#1602](https://github.com/nextstrain/nextclade/issues/1602). Thanks @theosanderson for reporting.
+
+
 ## 3.13.0
 
 ### Output genome annotations
@@ -38,7 +80,7 @@ We could not find meaning for the gaps in reference sequences in the context of 
 
 Starting from this version, Nextclade will now stop with an explicit error if it detects gaps in reference sequence. To resolve, please use a reference sequence without gaps, if possible, or notify dataset authors about the problem.
 
-If you think that Nextclade needs to support reference sequences with gaps please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
+If you think that Nextclade needs to support reference sequences with gaps, please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
 
 
 ## 3.11.0
@@ -296,7 +338,7 @@ In dataset selector, sometimes there were extra scrollbars displayed to the righ
 
 #### Select suggested dataset automatically when suggestion is triggered manually
 
-When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will now automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
+When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
 
 ### Nextclade CLI
 

@@ -20,6 +20,7 @@ crate-type = ["lib"]
 [dependencies]
 assert2 = { workspace = true }
 auto_ops = { workspace = true }
+base64 = { workspace = true }
 bio = { workspace = true }
 bio-types = { workspace = true }
 chrono = { workspace = true }
@@ -53,6 +54,7 @@ owo-colors = { workspace = true }
 pretty_assertions = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
+rust_xlsxwriter = { workspace = true }
 schemars = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }

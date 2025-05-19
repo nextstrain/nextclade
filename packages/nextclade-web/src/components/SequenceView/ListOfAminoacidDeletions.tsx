@@ -8,7 +8,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
-import { cdsOrderPreferenceAtom } from 'src/state/dataset.state'
+import { cdsOrderPreferenceAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { sortByCdsName } from './sortByCdsName'
 
 export interface ListOfAminoacidDeletionsProps {
@@ -18,7 +18,8 @@ export interface ListOfAminoacidDeletionsProps {
 export function ListOfAminoacidDeletions({ aminoacidDeletions }: ListOfAminoacidDeletionsProps) {
   const { t } = useTranslationSafe()
 
-  const geneOrderPreference = useRecoilValue(cdsOrderPreferenceAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const geneOrderPreference = useRecoilValue(cdsOrderPreferenceAtom({ datasetName })) ?? []
 
   const totalDeletions = aminoacidDeletions.length
   const maxRows = 6

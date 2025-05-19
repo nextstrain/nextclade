@@ -3,12 +3,11 @@ import { UncontrolledAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
+import { AutodetectRunState, autodetectRunStateAtom, numberTopSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 
 export function SuggestionAlertDatasetPage({ ...restProps }) {
   const { t } = useTranslationSafe()
-  const { numSuggestions } = useDatasetSuggestionResults()
+  const numSuggestions = useRecoilValue(numberTopSuggestedDatasetsAtom)
   const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
   const alert = useMemo(() => {
@@ -18,7 +17,7 @@ export function SuggestionAlertDatasetPage({ ...restProps }) {
           <Alert closeClassName="d-none" fade={false} color="danger">
             <p className="small">
               {t(
-                'No datasets match your data. Select a dataset manually. If there is no suitable dataset, consider creating one and contributing it to Nextclade community dataset collection.',
+                'No datasets match your data. Select a dataset manually. If there is no suitable dataset, consider creating one and contributing it to the Nextclade community dataset collection.',
               )}
             </p>
           </Alert>

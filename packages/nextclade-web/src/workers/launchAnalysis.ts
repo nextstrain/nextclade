@@ -2,7 +2,6 @@ import { concurrent } from 'fasy'
 import { isEmpty, merge } from 'lodash'
 import type {
   AlgorithmInput,
-  FastaRecordId,
   NextcladeResult,
   CsvColumnConfig,
   NextcladeParamsRaw,
@@ -13,58 +12,63 @@ import { AlgorithmGlobalStatus } from 'src/types'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
 
-export interface LaunchAnalysisInputs {
-  refSeq: Promise<AlgorithmInput | undefined>
-  geneMap: Promise<AlgorithmInput | undefined>
-  tree: Promise<AlgorithmInput | undefined>
-  virusProperties: Promise<AlgorithmInput | undefined>
+export interface DatasetFilesOverrides {
+  reference: Promise<AlgorithmInput | undefined>
+  genomeAnnotation: Promise<AlgorithmInput | undefined>
+  treeJson: Promise<AlgorithmInput | undefined>
+  pathogenJson: Promise<AlgorithmInput | undefined>
 }
 
 export interface LaunchAnalysisCallbacks {
   onGlobalStatus: (record: AlgorithmGlobalStatus) => void
-  onInitialData: (data: AnalysisInitialData) => void
-  onParsedFasta: (record: FastaRecordId) => void
+  onInitialData: (datasetName: string, data: AnalysisInitialData) => void
   onAnalysisResult: (record: NextcladeResult) => void
-  onTree: (trees: OutputTrees) => void
+  onTree: (trees: Record<string, OutputTrees | undefined | null>) => void
   onError: (error: Error) => void
   onComplete: () => void
 }
 
 export async function launchAnalysis(
-  qryFastaInputs: Promise<AlgorithmInput[]>,
+  datasetNames: string[],
+  seqIndexToTopDatasetName: Map<number, string> | undefined,
+  seqIndicesWithoutDatasetSuggestions: number[] | undefined,
+  qryFastaInputs: AlgorithmInput[],
   params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
-  numThreads: Promise<number>,
-  csvColumnConfigPromise: Promise<CsvColumnConfig | undefined>,
+  numThreads: number,
+  csvColumnConfig: CsvColumnConfig | undefined,
 ) {
-  const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
+  const { onGlobalStatus, onInitialData, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
-  const qryFastaStr = await getQueryFasta(await qryFastaInputs)
-
-  const csvColumnConfig = await csvColumnConfigPromise
+  const qryFastaStr = await getQueryFasta(qryFastaInputs)
 
   const launcherWorker = await spawn<LauncherThread>(
     new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
   )
 
   try {
-    await launcherWorker.init(await numThreads, params)
+    await launcherWorker.init(
+      numThreads,
+      datasetNames,
+      seqIndexToTopDatasetName,
+      seqIndicesWithoutDatasetSuggestions,
+      params,
+    )
 
     // Subscribe to launcher worker events
     const subscriptions = [
       launcherWorker.getAnalysisGlobalStatusObservable().subscribe(onGlobalStatus, onError),
-      launcherWorker.getParsedFastaObservable().subscribe(onParsedFasta, onError),
       launcherWorker.getAnalysisResultsObservable().subscribe(onAnalysisResult, onError, onComplete),
       launcherWorker.getTreeObservable().subscribe(onTree, onError),
     ]
 
     try {
-      const initialData = await launcherWorker.getInitialData()
-
-      initialData.csvColumnConfigDefault = merge(initialData.csvColumnConfigDefault, csvColumnConfig)
-
-      onInitialData(initialData)
+      await concurrent.forEach(async (datasetName) => {
+        const initialData = await launcherWorker.getInitialData(datasetName)
+        initialData.csvColumnConfigDefault = merge(initialData.csvColumnConfigDefault, csvColumnConfig)
+        onInitialData(datasetName, initialData)
+      }, datasetNames)
 
       // Run the launcher worker
       await launcherWorker.launch(qryFastaStr)

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { isInNucleotideViewAtom, switchToNucleotideViewAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 import { rgba } from 'polished'
@@ -40,10 +41,11 @@ export const GeneMapBackButton = styled(ButtonTransparent)`
 export function GeneMapTable() {
   const { t } = useTranslationSafe()
 
-  const isInNucleotideView = useRecoilValue(isInNucleotideViewAtom)
-  const switchToNucleotideView = useSetRecoilState(switchToNucleotideViewAtom)
-  const geneMapNameWidthPx = useRecoilValue(geneMapNameColumnWidthPxAtom)
-  const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const isInNucleotideView = useRecoilValue(isInNucleotideViewAtom({ datasetName }))
+  const switchToNucleotideView = useSetRecoilState(switchToNucleotideViewAtom({ datasetName }))
+  const geneMapNameWidthPx = useRecoilValue(geneMapNameColumnWidthPxAtom({ datasetName }))
+  const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom({ datasetName }))
 
   const returnButton = useMemo(() => {
     if (!isInNucleotideView) {

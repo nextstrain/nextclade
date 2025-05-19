@@ -4,7 +4,7 @@ use crate::features::feature_tree::flatten_feature_tree;
 use crate::features::feature_type::style_for_feature_type;
 use crate::features::sequence_region::SequenceRegion;
 use crate::gene::gene_map_display::format_codon_length;
-use crate::utils::string::truncate_with_ellipsis;
+use crate::utils::string::truncate_right;
 use eyre::Report;
 use itertools::Itertools;
 use num_traits::clamp;
@@ -68,7 +68,7 @@ fn format_sequence_region_feature<W: Write>(
   let SequenceRegion { range, .. } = seq_region;
 
   let indent_left = " ".repeat(INDENT);
-  let name = truncate_with_ellipsis(seq_region.name_and_type(), max_name_len - INDENT);
+  let name = truncate_right(&seq_region.name_and_type(), max_name_len - INDENT, "...");
   let indent_right = max_name_len - INDENT;
   let start = range.begin;
   let end = range.end;
@@ -131,7 +131,7 @@ fn format_feature_group<W: Write>(
     }
     features => {
       let indent = "  ".repeat(depth);
-      let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
+      let name = truncate_right(&feature.name_and_type(), max_name_len, "...");
       let exceptions = exceptions.iter().chain(notes.iter()).unique().join(", ");
 
       let formatted = format!(
@@ -165,7 +165,7 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
   } = feature;
 
   let indent = "  ".repeat(depth);
-  let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
+  let name = truncate_right(&feature.name_and_type(), max_name_len, "...");
   let start = range.begin;
   let end = range.end;
   let nuc_len = range.len();

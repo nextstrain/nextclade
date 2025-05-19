@@ -1,7 +1,10 @@
 import { isEmpty, isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { invertMap } from 'src/helpers/map'
+import { notUndefinedOrNull, pairValueNotUndefinedOrNull } from 'src/helpers/notUndefined'
+import { datasetsAtom } from 'src/state/dataset.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
-import type { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import type { Dataset, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 
 export const minimizerIndexAtom = atom<MinimizerIndexJson>({
   key: 'minimizerIndexAtom',
@@ -42,29 +45,6 @@ export const autodetectResultByIndexAtom = selectorFamily<MinimizerSearchRecord,
           return prev
         })
       }
-    },
-})
-
-// Dataset ID to use for when dataset is not autodetected
-export const DATASET_ID_UNDETECTED = 'undetected'
-
-// Select autodetect results by dataset name
-export const autodetectResultsByDatasetAtom = selectorFamily<MinimizerSearchRecord[] | undefined, string>({
-  key: 'autodetectResultByDatasetAtom',
-
-  get:
-    (datasetId: string) =>
-    ({ get }): MinimizerSearchRecord[] | undefined => {
-      const records = get(autodetectResultsAtom)
-      if (isNil(records)) {
-        return undefined
-      }
-
-      if (datasetId === DATASET_ID_UNDETECTED) {
-        return records.filter((record) => isEmpty(record.result.datasets))
-      }
-
-      return records.filter((record) => record.result.datasets.some((dataset) => dataset.name === datasetId))
     },
 })
 
@@ -130,4 +110,142 @@ export const isAutodetectRunningAtom = selector({
 export const autodetectShouldSetCurrentDatasetAtom = atom<boolean>({
   key: 'autodetectShouldSetCurrentDatasetAtom',
   default: false,
+})
+
+export const allDatasetSuggestionResultsAtom = atom<FindBestDatasetsResult>({
+  key: 'suggestionResultsAtom',
+  default: { suggestions: [], results: {} },
+})
+
+export const bestDatasetNameForSequenceAtom = selectorFamily<string | undefined, number>({
+  key: 'bestDatasetSuggestionForSequenceAtom',
+  get:
+    (qryIndex: number) =>
+    ({ get }) => {
+      const { suggestions, results } = get(allDatasetSuggestionResultsAtom)
+      const bestDataset = suggestions.find((suggestion) => suggestion.qryIndices.includes(qryIndex))
+      if (bestDataset) {
+        const result = results[qryIndex.toString()]
+        return result.datasets.find((dataset) => dataset.name === bestDataset?.name)?.name
+      }
+      return undefined
+    },
+})
+
+export const bestDatasetForSequenceAtom = selectorFamily<Dataset | undefined, number>({
+  key: 'bestDatasetForSequenceAtom',
+  get:
+    (qryIndex: number) =>
+    ({ get }) => {
+      const datasetName = get(bestDatasetNameForSequenceAtom(qryIndex))
+      const datasets = get(datasetsAtom)
+      return datasets.find((dataset) => dataset.path === datasetName)
+    },
+})
+
+export const topSuggestedDatasetNamesAtom = selector<string[]>({
+  key: 'topSuggestedDatasetNamesAtom',
+  get: ({ get }) => get(allDatasetSuggestionResultsAtom).suggestions.map((result) => result.name),
+})
+
+export const topSuggestedDatasetsAtom = selector<Dataset[]>({
+  key: 'topSuggestedDatasetsAtom',
+  get: ({ get }) => {
+    const suggestedDatasetNames = get(topSuggestedDatasetNamesAtom)
+    const datasets = get(datasetsAtom)
+    return suggestedDatasetNames
+      .map((datasetName) => datasets.find((dataset) => dataset.path === datasetName))
+      .filter(notUndefinedOrNull)
+  },
+})
+
+export const firstTopSuggestedDatasetNameAtom = selector<string | undefined>({
+  key: 'firstTopSuggestedDatasetNameAtom',
+  get: ({ get }) => {
+    return get(topSuggestedDatasetNamesAtom)[0]
+  },
+})
+
+export const firstTopSuggestedDatasetAtom = selector<Dataset | undefined>({
+  key: 'firstTopSuggestedDatasetAtom',
+  get: ({ get }) => {
+    return get(topSuggestedDatasetsAtom)[0]
+  },
+})
+
+export const numberTopSuggestedDatasetsAtom = selector<number>({
+  key: 'numberTopSuggestedDatasetsAtom',
+  get: ({ get }) => {
+    return get(topSuggestedDatasetsAtom).length
+  },
+})
+
+export const hasTopSuggestedDatasetsAtom = selector<boolean>({
+  key: 'hasTopSuggestedDatasetsAtom',
+  get: ({ get }) => {
+    return get(numberTopSuggestedDatasetsAtom) > 0
+  },
+})
+
+/** Map of sequence indices to their top suggested dataset's name. Sequences without suggestions are omitted */
+export const seqIndexToTopDatasetNameAtom = selector<Map<number, string>>({
+  key: 'seqIndexToTopDatasetNameAtom',
+  get: ({ get }) => {
+    const seqIndices = get(autodetectResultIndicesAtom)
+
+    const entries: [number, string][] = seqIndices
+      .map((seqIndex) => {
+        const datasetName = get(bestDatasetNameForSequenceAtom(seqIndex))
+        return [seqIndex, datasetName] as [number, string | undefined]
+      })
+      .filter(pairValueNotUndefinedOrNull)
+
+    return new Map(entries)
+  },
+})
+
+/** List of sequence indices for which there is no suggested dataset */
+export const seqIndicesWithoutDatasetSuggestionsAtom = selector<number[]>({
+  key: 'seqIndicesWithoutDatasetSuggestionsAtom',
+  get: ({ get }) => {
+    return get(autodetectResultIndicesAtom).filter((seqIndex) => isNil(get(bestDatasetNameForSequenceAtom(seqIndex))))
+  },
+})
+
+/** List of suggestions for which we did not detect a dataset */
+export const resultsWithoutDatasetSuggestionsAtom = selector<MinimizerSearchRecord[]>({
+  key: 'resultsWithoutDatasetSuggestionsAtom',
+  get: ({ get }) => {
+    const seqIndicesWithoutDatasetSuggestions = get(seqIndicesWithoutDatasetSuggestionsAtom)
+    const autodetectResults = get(autodetectResultsAtom)
+    return seqIndicesWithoutDatasetSuggestions
+      .map((index) => autodetectResults?.find((result) => result.fastaRecord.index === index))
+      .filter(notUndefinedOrNull)
+  },
+})
+
+export const hasSeqsWithoutDatasetSuggestionsAtom = selector<boolean>({
+  key: 'hasSeqsWithoutDatasetSuggestionsAtom',
+  get: ({ get }) => {
+    return !isEmpty(get(seqIndicesWithoutDatasetSuggestionsAtom))
+  },
+})
+
+/** Map of dataset name to the indices of sequences for which this dataset is the best suggestion */
+export const datasetNameToSeqIndicesAtom = selector<Map<string, number[]>>({
+  key: 'datasetNameToSeqIndicesAtom',
+  get: ({ get }) => {
+    const seqIndexToTopDatasetName = get(seqIndexToTopDatasetNameAtom)
+    return invertMap(seqIndexToTopDatasetName)
+  },
+})
+
+export const seqIndicesForDataset = selectorFamily<number[], string>({
+  key: 'seqIndicesForDataset',
+  get:
+    (datasetName: string) =>
+    ({ get }) => {
+      const datasetNameToSeqIndices = get(datasetNameToSeqIndicesAtom)
+      return datasetNameToSeqIndices.get(datasetName) ?? []
+    },
 })

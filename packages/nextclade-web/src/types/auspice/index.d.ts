@@ -144,6 +144,7 @@ declare module 'auspice' {
     treeToo?: AuspiceTreeState
     general?: { language?: string }
     query?: any
+    measurements?: AuspiceMeasurementsState
   }
 
   export declare interface AuspiceTreeNodeAttrs {
@@ -202,7 +203,7 @@ declare module 'auspice' {
   export interface CladeNodeAttrDesc {
     name: string
     displayName: string
-    description: string
+    description?: string
     hideInWeb?: boolean
     skipAsReference?: boolean
   }

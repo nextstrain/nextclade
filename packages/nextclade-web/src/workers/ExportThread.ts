@@ -1,5 +1,12 @@
 import { CladeNodeAttrDesc } from 'auspice'
-import type { AaMotifsDesc, AnalysisError, AnalysisResult, AuspiceRefNodesDesc, PhenotypeAttrDesc } from 'src/types'
+import type {
+  AaMotifsDesc,
+  AnalysisError,
+  AnalysisInitialData,
+  AnalysisResult,
+  AuspiceRefNodesDesc,
+  PhenotypeAttrDesc,
+} from 'src/types'
 import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 import { CsvColumnConfig } from 'src/types'
@@ -64,6 +71,24 @@ export class ExportWorker {
     )
   }
 
+  public async serializeResultsExcel(
+    results: AnalysisResult[],
+    errors: AnalysisError[],
+    allInitialData: Map<string, AnalysisInitialData>,
+    csvColumnConfig: CsvColumnConfig,
+    datasetNameToSeqIndices: Map<string, number[]>,
+    seqIndicesWithoutDatasetSuggestions: number[],
+  ) {
+    return this.thread.serializeResultsExcel(
+      results,
+      errors,
+      allInitialData,
+      csvColumnConfig,
+      datasetNameToSeqIndices,
+      seqIndicesWithoutDatasetSuggestions,
+    )
+  }
+
   public async serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {
     return this.thread.serializeResultsNdjson(results, errors)
   }
@@ -74,6 +99,14 @@ export class ExportWorker {
 
   public async serializeResultsTbl(results: AnalysisResult[]) {
     return this.thread.serializeResultsTbl(results)
+  }
+
+  public async serializeUnknownCsv(
+    errors: AnalysisError[],
+    seqIndicesWithoutDatasetSuggestions: number[],
+    delimiter: string,
+  ) {
+    return this.thread.serializeUnknownCsv(errors, seqIndicesWithoutDatasetSuggestions, delimiter)
   }
 
   private async destroy() {

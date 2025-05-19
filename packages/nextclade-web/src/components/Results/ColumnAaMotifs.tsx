@@ -1,13 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { get } from 'lodash'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled, { useTheme } from 'styled-components'
 import { useRecoilValue } from 'recoil'
 import { Col, Row } from 'reactstrap'
-import type { AaMotif, AaMotifChanges, AaMotifMutation, AaMotifsDesc, AnalysisResult } from 'src/types'
+import type { AaMotifChanges, AaMotifMutation, AaMotifsDesc, AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { useTranslationSafe, useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
-import { TableSlim, TableSlimWithBorders } from 'src/components/Common/TableSlim'
+import { TableSlimWithBorders } from 'src/components/Common/TableSlim'
 import { InsertedFragmentTruncated } from 'src/components/Results/ListOfInsertions'
 import { cdsesAtom } from 'src/state/results.state'
 
@@ -160,70 +161,6 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
   )
 }
 
-export interface ListOfAaMotifsProps {
-  motifs: AaMotif[]
-}
-
-export function ListOfAaMotifs({ motifs }: ListOfAaMotifsProps) {
-  const { t } = useTranslation()
-  const theme = useTheme()
-  const cdses = useRecoilValue(cdsesAtom)
-
-  const { thead, tbody } = useMemo(() => {
-    const thead = (
-      <Tr>
-        <ThNormal className="text-center">{t('Gene')}</ThNormal>
-        <ThNormal className="text-center">{t('Ref pos.')}</ThNormal>
-        <ThFragment className="text-center">{t('Motif')}</ThFragment>
-      </Tr>
-    )
-
-    const aaMotifsTruncated = motifs.slice(0, 20)
-
-    const tbody = aaMotifsTruncated.map(({ name, position, seq }) => {
-      const cdsObj = cdses.find((cds) => cds.name === name)
-      const bg = cdsObj?.color ?? theme.gray400
-      const fg = theme.gray200
-      return (
-        <Tr key={`${name}-${position}`}>
-          <TdNormal>
-            <GeneText $background={bg} $color={fg}>
-              {name}
-            </GeneText>
-          </TdNormal>
-          <TdNormal className="text-center">{position + 1}</TdNormal>
-          <TdFragment className="text-left">
-            <InsertedFragmentTruncated insertion={seq} isAminoacid />
-          </TdFragment>
-        </Tr>
-      )
-    })
-
-    if (aaMotifsTruncated.length < motifs.length) {
-      tbody.push(
-        <Tr key="trunc">
-          <td colSpan={3} className="text-center">
-            {'...truncated'}
-          </td>
-        </Tr>,
-      )
-    }
-
-    return { thead, tbody }
-  }, [cdses, motifs, t, theme.gray200, theme.gray400])
-
-  if (motifs.length === 0) {
-    return null
-  }
-
-  return (
-    <AaMotifsTable>
-      <thead>{thead}</thead>
-      <tbody>{tbody}</tbody>
-    </AaMotifsTable>
-  )
-}
-
 export interface ListOfAaMotifMutationsProps {
   motifs: AaMotifMutation[]
 }
@@ -231,7 +168,8 @@ export interface ListOfAaMotifMutationsProps {
 export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) {
   const { t } = useTranslation()
   const theme = useTheme()
-  const cdses = useRecoilValue(cdsesAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cdses = useRecoilValue(cdsesAtom({ datasetName }))
 
   const { thead, tbody } = useMemo(() => {
     const thead = (
@@ -245,7 +183,7 @@ export function ListOfAaMotifMutations({ motifs }: ListOfAaMotifMutationsProps) 
     const aaMotifsTruncated = motifs.slice(0, 20)
 
     const tbody = aaMotifsTruncated.map(({ cds, position, refSeq, qrySeq }) => {
-      const cdsObj = cdses.find((cds1) => cds1.name === cds)
+      const cdsObj = cdses?.find((cds1) => cds1.name === cds)
       const bg = cdsObj?.color ?? theme.gray400
       const fg = theme.gray200
       return (
@@ -372,12 +310,4 @@ export const ColoredH6 = styled.h6<{ $background?: string; $color?: string }>`
   color: ${(props) => props.$color};
   border-radius: 3px;
   font-weight: bold;
-`
-
-export const TableFragmentComparison = styled(TableSlim)`
-  & td {
-    border: none;
-  }
-
-  margin: 0;
 `

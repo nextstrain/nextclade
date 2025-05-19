@@ -1,4 +1,5 @@
 import { saveAs } from 'file-saver'
+import { toByteArray } from 'base64-js'
 import JSZip from 'jszip'
 
 export class ExportErrorBlobApiNotSupported extends Error {
@@ -26,6 +27,15 @@ export function saveFile(content: string, filename: string, type: string) {
 
 export function saveBlobFile(content: Blob, filename: string) {
   saveAs(content, filename)
+}
+
+export function saveBase64File(content: string, filename: string, mimeType = 'application/octet-stream') {
+  saveBlobFile(base64ToBlob(content, mimeType), filename)
+}
+
+export function base64ToBlob(base64: string, mimeType = 'application/octet-stream'): Blob {
+  const byteArray = toByteArray(base64)
+  return new Blob([byteArray], { type: mimeType })
 }
 
 export interface ZipFileDescription {

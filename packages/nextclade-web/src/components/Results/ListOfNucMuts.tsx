@@ -1,8 +1,9 @@
 import { isEmpty, isNil } from 'lodash'
 import React, { ReactNode } from 'react'
 import { useRecoilValue } from 'recoil'
-import { REF_NODE_PARENT } from 'src/constants'
+import { REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { getNucMutations } from 'src/helpers/relativeMuts'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { currentRefNodeNameAtom } from 'src/state/results.state'
 import { type AnalysisResult, NucSub, NucSubLabeled } from 'src/types'
 import { LiInvisible, UlInvisible } from 'src/components/Common/List'
@@ -18,8 +19,9 @@ export interface ListOfPrivateNucMutationsProps {
 export function ListOfNucMuts({ analysisResult }: ListOfPrivateNucMutationsProps) {
   const { t } = useTranslationSafe()
 
-  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
-  const muts = getNucMutations(analysisResult, refNodeName)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName }))
+  const muts = getNucMutations(analysisResult, refNodeName ?? REF_NODE_ROOT)
   if (!muts) {
     return null
   }

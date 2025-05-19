@@ -15,7 +15,7 @@ import { Link } from 'src/components/Link/Link'
 import { LinkSmart } from 'src/components/Link/LinkSmart'
 import { ResultsStatus } from 'src/components/Results/ResultsStatus'
 import { PROJECT_NAME } from 'src/constants'
-import { canDownloadAtom, hasRanAtom, hasTreeAtom } from 'src/state/results.state'
+import { canDownloadAtom, hasRanAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import BrandLogoBase from 'src/assets/img/nextclade_logo.svg'
 import { CitationButton } from 'src/components/Citation/CitationButton'
@@ -148,7 +148,6 @@ export function NavigationBar() {
   const { t } = useTranslationSafe()
   const { pathname } = useRouter()
 
-  const hasTree = useRecoilValue(hasTreeAtom)
   const hasRan = useRecoilValue(hasRanAtom)
   const canDownload = useRecoilValue(canDownloadAtom)
 
@@ -162,9 +161,9 @@ export function NavigationBar() {
         title: hasRan ? t('Show analysis results table') : t('Please run the analysis first'),
       },
       {
-        url: hasTree ? '/tree' : undefined,
+        url: '/tree',
         content: t('Tree'),
-        title: hasTree ? t('Show phylogenetic tree') : t('Please run the analysis on a dataset with reference tree'),
+        title: t('Show phylogenetic tree'),
       },
       {
         url: canDownload ? '/export' : undefined,
@@ -179,7 +178,7 @@ export function NavigationBar() {
       const arrow = <BreadcrumbArrow key={`arrow-${desc.url ?? desc.title}`} disabled={!desc.url} />
       return [arrow, link]
     })
-  }, [canDownload, hasRan, hasTree, pathname, t])
+  }, [canDownload, hasRan, pathname, t])
 
   const linksRight = useMemo(() => {
     return [

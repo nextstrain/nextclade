@@ -1,18 +1,12 @@
 import React, { useMemo } from 'react'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
-import { ButtonProps } from 'reactstrap'
+import { Col, Row } from 'reactstrap'
 import styled from 'styled-components'
 import { MdClear as IconClearBase } from 'react-icons/md'
 import { Link } from 'src/components/Link/Link'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { datasetFilesResetAtom, inputCustomizationCounterAtom } from 'src/state/inputs.state'
-
-export interface ButtonCustomizeProps extends ButtonProps {
-  isOpen: boolean
-
-  onClick(): void
-}
 
 export function DatasetCustomizationIndicator({ ...restProps }) {
   const { t } = useTranslationSafe()
@@ -58,17 +52,27 @@ export function DatasetCustomizationsIndicatorLink() {
   }
 
   return (
-    <div className="d-flex">
-      <CustomizationLink href="/dataset#customize" title={text}>
-        <span className="text-danger">{t('Customizations')}</span>
-        <DatasetCustomizationIndicator />
-      </CustomizationLink>
-      <ButtonClear onClick={resetCustomizations} title={t('Reset customizations')}>
-        <IconClear size={15} />
-      </ButtonClear>
-    </div>
+    <Row noGutters className="d-flex">
+      <Col className="d-flex mr-auto mt-2">
+        <DatasetCustomizationWrapper>
+          <div className="d-flex">
+            <CustomizationLink href="/dataset#customize" title={text}>
+              <span className="text-danger">{t('Customizations')}</span>
+              <DatasetCustomizationIndicator />
+            </CustomizationLink>
+            <ButtonClear onClick={resetCustomizations} title={t('Reset customizations')}>
+              <IconClear size={15} />
+            </ButtonClear>
+          </div>
+        </DatasetCustomizationWrapper>
+      </Col>
+    </Row>
   )
 }
+
+const DatasetCustomizationWrapper = styled.div`
+  margin-left: 90px;
+`
 
 const CustomizationLink = styled(Link)`
   &:hover {

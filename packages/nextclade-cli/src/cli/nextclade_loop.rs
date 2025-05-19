@@ -8,7 +8,7 @@ use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::Graph;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
 use nextclade::io::json::{json_write, JsonPretty};
-use nextclade::io::nextclade_csv::CsvColumnConfig;
+use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::run::nextclade_wasm::{AnalysisInitialData, AnalysisOutput, Nextclade};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
@@ -133,10 +133,10 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
 
       let mut output_writer = NextcladeOrderedWriter::new(
         &nextclade.gene_map,
-        clade_node_attr_key_descs,
-        phenotype_attr_descs,
-        ref_nodes,
-        aa_motif_keys,
+        &clade_node_attr_key_descs,
+        &phenotype_attr_descs,
+        &ref_nodes,
+        &aa_motif_keys,
         &csv_column_config,
         &run_args.outputs,
         &nextclade.params,
