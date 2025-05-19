@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s globstar nullglob
+
+: "${GH_TOKEN:?}"
+: "${GITHUB_REPOSITORY:?}"
+: "${GITHUB_RUN_ID:?}"
+: "${PREVIEW_URL:?}"
+: "${PR_NUM:?}"
+
+BODY=$(cat <<EOF
+<!-- preview-link -->
+
+Preview: [${PREVIEW_URL}](${PREVIEW_URL})
+
+([ci](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}))
+
+EOF
+)
+
+COMMENT_ID=$(
+  gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUM}/comments" \
+    --jq '.[] | select(.body | startswith("<!-- preview-link -->")) | .id'
+)
+
+if [[ -n "${COMMENT_ID}" ]]; then
+  jq -n --arg body "$BODY" '{ body: $body }' | gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" --input -
+else
+  echo "${BODY}" | gh pr comment "${PR_NUM}" --repo "${GITHUB_REPOSITORY}" --body-file -
+fi
