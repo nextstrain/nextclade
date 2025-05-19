@@ -1,3 +1,10 @@
+## 3.13.3
+
+### Fix crash when exporting annotations for sequences with missing genes
+
+Nextclade Web and CLI would crash when attempting to output GFF and TBL files where entire genes are unsequenced or otherwise missing. This has been fixed.
+
+
 ## 3.13.2
 
 ### Speed up Nextclade web, fix crash when using files >45MB on Chromium v136 browsers
