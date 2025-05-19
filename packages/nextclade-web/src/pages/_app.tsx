@@ -10,7 +10,9 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { useRunSeqAutodetectAsync } from 'src/hooks/useRunSeqAutodetect'
 import i18nAuspice, { changeAuspiceLocale } from 'src/i18n/i18n.auspice'
+import { isQueryParamTruthy } from 'src/io/getQueryParamMaybe'
 import { loadInputs } from 'src/io/loadInputs'
 import { mdxComponents } from 'src/mdx-components'
 import LoadingPage from 'src/pages/loading'
@@ -65,7 +67,8 @@ function RecoilStateInitializer() {
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
-  const run = useRunAnalysis({ isSingle: true })
+  const run = useRunAnalysis()
+  const suggest = useRunSeqAutodetectAsync()
 
   const error = useRecoilValue(globalErrorAtom)
 
@@ -128,8 +131,9 @@ function RecoilStateInitializer() {
         return dataset
       })
       .then(async (dataset) => {
-        const { inputFastas, refSeq, geneMap, refTree, virusProperties } = await loadInputs(urlQuery, dataset)
+        const isMultiDataset = isQueryParamTruthy(urlQuery, 'multi-dataset')
 
+        const { inputFastas, refSeq, geneMap, refTree, virusProperties } = await loadInputs(urlQuery, dataset)
         set(refSeqInputAtom, refSeq)
         set(geneMapInputAtom, geneMap)
         set(refTreeInputAtom, refTree)
@@ -137,8 +141,11 @@ function RecoilStateInitializer() {
 
         if (!isEmpty(inputFastas)) {
           set(qrySeqInputsStorageAtom, inputFastas)
-          if (!isEmpty(dataset)) {
-            run()
+          if (isMultiDataset) {
+            await suggest()
+            run({ isSingle: false })
+          } else if (!isEmpty(dataset)) {
+            run({ isSingle: true })
           }
         }
 
