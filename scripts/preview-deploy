@@ -1,0 +1,244 @@
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s globstar nullglob
+
+export AWS_PAGER=""
+
+export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export DIST_DIR="$(realpath "$SCRIPT_DIR/../out")"
+export TMP_DIR="$(realpath -m "$SCRIPT_DIR/../tmp/deploy")"
+
+: "${AWS_ACCESS_KEY_ID:?}"
+: "${AWS_SECRET_ACCESS_KEY:?}"
+: "${AWS_DEFAULT_REGION:?}"
+: "${AWS_CLOUDFRONT_DISTRIBUTION_ID:?}"
+: "${AWS_S3_BUCKET:?}"
+: "${PREVIEWS_DOMAIN:?}"
+
+
+sanitize_subdomain() {
+  local input="$1"
+  echo "$input" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9-]/-/g; s/^-+//; s/-+$//' \
+    | cut -c1-63
+}
+
+export names=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --name)
+      sanitized=$(sanitize_subdomain "$2")
+      if [[ -z "$sanitized" || ! "$sanitized" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+        echo "Invalid subdomain after sanitization: '$2' (sanitized: '$sanitized')" >&2
+        exit 1
+      fi
+      names+=("$sanitized")
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+export names_joined="${names[*]}"
+
+normalize_mime() {
+  local raw="$1"
+  local path="$2"
+  local ext="${path##*.}"
+  ext="${ext,,}"
+
+  case "$raw" in
+    application/x-javascript|text/javascript|text/js)
+      echo application/javascript
+      return
+      ;;
+  esac
+
+  case "$ext" in
+    css)        echo text/css ;;
+    csv)        echo text/csv ;;
+    eot)        echo application/vnd.ms-fontobject ;;
+    gif)        echo image/gif ;;
+    html)       echo text/html ;;
+    ico)        echo image/vnd.microsoft.icon ;;
+    jpg|jpeg)   echo image/jpeg ;;
+    js)         echo application/javascript ;;
+    json)       echo application/json ;;
+    md)         echo text/markdown ;;
+    mp4)        echo video/mp4 ;;
+    otf)        echo font/otf ;;
+    pdf)        echo application/pdf ;;
+    png)        echo image/png ;;
+    svg)        echo image/svg+xml ;;
+    tar)        echo application/x-tar ;;
+    tsv)        echo text/tab-separated-values ;;
+    ttf)        echo font/ttf ;;
+    txt)        echo text/plain ;;
+    wasm)       echo application/wasm ;;
+    webm)       echo video/webm ;;
+    webp)       echo image/webp ;;
+    woff)       echo font/woff ;;
+    woff2)      echo font/woff2 ;;
+    xml)        echo application/xml ;;
+    zip)        echo application/zip ;;
+    *)          echo "$raw" ;;
+  esac
+}
+export -f normalize_mime
+
+is_compressible_mime() {
+  local mime="$1"
+  local compressible_mimes=(
+    application/dash+xml application/eot application/font application/font-sfnt
+    application/javascript application/json application/opentype application/otf
+    application/pdf application/pkcs7-mime application/protobuf application/rss+xml
+    application/truetype application/ttf application/vnd.apple.mpegurl
+    application/vnd.mapbox-vector-tile application/vnd.ms-fontobject application/wasm
+    application/xhtml+xml application/xml application/x-font-opentype
+    application/x-font-truetype application/x-font-ttf application/x-httpd-cgi
+    application/x-javascript application/x-mpegurl application/x-opentype
+    application/x-otf application/x-perl application/x-ttf font/eot font/opentype
+    font/otf font/ttf image/svg+xml text/css text/csv text/html text/javascript
+    text/js text/plain text/richtext text/tab-separated-values text/xml
+    text/x-component text/x-java-source text/x-script vnd.apple.mpegurl
+  )
+  for m in "${compressible_mimes[@]}"; do
+    [[ "$m" == "$mime" ]] && return 0
+  done
+  return 1
+}
+export -f is_compressible_mime
+
+get_cache_control() {
+  local path="$1"
+  case "$path" in
+    */index.html|*.html)
+      echo "no-cache"
+      ;;
+    .well-known/*|**/favicon.*|**/apple-touch-icon*|favicons/*)
+      echo "no-cache"
+      ;;
+    _next/static/*|_nuxt/*|static/*|assets/*|build/assets/*)
+      echo "public,max-age=31536000,immutable"
+      ;;
+    _next/data/*|*/__data.json)
+      echo "no-cache"
+      ;;
+    *manifest.json|*.webmanifest)
+      echo "no-cache"
+      ;;
+    */robots.txt|*/sitemap.xml|*/security.txt)
+      echo "no-cache"
+      ;;
+    *service-worker.js|*sw.js|*/sw-*.js)
+      echo "no-store"
+      ;;
+    *.map)
+      echo "public,max-age=0,must-revalidate"
+      ;;
+    *)
+      echo "no-cache"
+      ;;
+  esac
+}
+export -f get_cache_control
+
+prepare_file() {
+  local src="$1"
+  local rel="${src#$DIST_DIR/}"
+  local out="$TMP_DIR/$rel"
+  local mime
+  mime="$(normalize_mime "$(file --brief --mime-type "$src")" "$src")"
+
+  mkdir -p "$(dirname "$out")"
+
+  local size
+  size=$(stat -c %s "$src")
+  if is_compressible_mime "$mime" && (( size >= 1024 && size <= 10485760 )); then
+    cp "$src" "$out"
+    upload_file "$rel" "$mime" ""
+  else
+    gzip -c "$src" > "$out"
+    upload_file "$rel" "$mime" "gzip"
+  fi
+}
+export -f prepare_file
+
+get_size_kb() {
+  local file size
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    size=$(stat -f %z "$1")
+  else
+    size=$(stat -c %s "$1")
+  fi
+  echo $(( (size + 1023) / 1024 ))
+}
+export -f get_size_kb
+
+upload_file() {
+  local path="$1"
+  local mime="$2"
+  local encoding="$3"
+  local full_path="$TMP_DIR/$path"
+  local cache_control="$(get_cache_control "$path")"
+
+  local s3_path="$path"
+  [[ "$s3_path" == *.html ]] && s3_path="${s3_path%.html}"
+
+  local orig_path="$DIST_DIR/$path"
+  local size_orig size_compressed
+  size_orig=$(get_size_kb "$orig_path")
+  size_compressed=$(get_size_kb "$full_path")
+  printf "%-60s\t%-30s\t%-20s\t%-15s\t%-15s\t%s\n" \
+    "$s3_path" "$mime" "$encoding" "${size_orig}KB" "${size_compressed}KB" "$cache_control"
+
+  for name in $names_joined; do
+   local s3_key="${name}/${s3_path}"
+    args=(--bucket "$AWS_S3_BUCKET" --key "$s3_key" --body "$full_path" --content-type "$mime" --cache-control "$cache_control")
+    [[ -n "$encoding" ]] && args+=(--content-encoding "$encoding")
+
+    aws s3api put-object "${args[@]}" >/dev/null
+  done
+}
+
+export -f upload_file
+
+upload_all() {
+  mkdir -p "$TMP_DIR"
+  find "$DIST_DIR" -type f |
+  awk '{ print gsub("/", "/") "\t" $0 }' |
+  sort -k1,1n -k2 |
+  cut -f2- |
+  parallel --jobs 20 --keep-order --halt soon,fail=1 prepare_file
+}
+export -f upload_all
+
+invalidate_cloudfront() {
+  aws cloudfront create-invalidation \
+    --distribution-id "$AWS_CLOUDFRONT_DISTRIBUTION_ID" \
+    --paths "/*" > /dev/null
+}
+export -f invalidate_cloudfront
+
+write_gha_summary() {
+  {
+    echo "## Deployed to"
+    for name in "${names[@]}"; do
+      link="https://${name}.${PREVIEWS_DOMAIN}"
+      echo "- [$link]($link)"
+    done
+  } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+
+main() {
+  rm -rf "$TMP_DIR"
+  upload_all
+  invalidate_cloudfront
+  write_gha_summary
+}
+main
