@@ -13,10 +13,11 @@ use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use nextclade::io::console::CliColorMode;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::sort::params::NextcladeSeqSortParams;
-use nextclade::utils::global_init::setup_logger;
+use nextclade::utils::global_init::{global_init, GlobalInitConfig};
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
 use std::io;
@@ -1152,7 +1153,10 @@ pub fn nextclade_check_column_config_args(run_args: &NextcladeRunArgs) -> Result
 pub fn nextclade_parse_cli_args() -> Result<(), Report> {
   let args = NextcladeArgs::parse();
 
-  setup_logger(args.verbosity.get_filter_level());
+  global_init(&GlobalInitConfig {
+    colors: CliColorMode::resolve(args.verbosity.color, args.verbosity.no_color),
+    log_level: args.verbosity.get_filter_level(),
+  });
 
   match args.command {
     NextcladeCommands::Completions { shell } => {

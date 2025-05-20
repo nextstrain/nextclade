@@ -1,7 +1,7 @@
 use crate::io::console::color_from_hex;
+use console::Style;
 use eyre::Report;
 use lazy_static::lazy_static;
-use owo_colors::Style;
 use std::collections::HashMap;
 
 pub fn shorten_feature_type(feature_type: &str) -> &str {
@@ -35,6 +35,6 @@ pub fn style_for_feature_type(feature_type: &str) -> Result<Style, Report> {
     "protein segment" => color_from_hex("#6e5e47"),
     "mrna" => color_from_hex("#3f919e"),
     "transcript" => color_from_hex("#518a6a"),
-    _ => Ok(Style::default().dimmed()),
+    _ => Ok(Style::new().dim()),
   }
 }
