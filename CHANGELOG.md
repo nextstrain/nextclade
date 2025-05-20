@@ -14,6 +14,11 @@ This is a convenience feature, i.e. the analysis runs for each dataset are still
 This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
 
 
+### Nextclade Web: add "Download SVG" button to "Tree" page
+
+Top-right corner of the "Tree" page, there is now a "Download SVG" button. It allows to download the tree visualization and other contents of the page, including applied filters and zoom, to an SVG file. This functionality is similar to that is offered by Auspice.
+
+
 ## 3.13.3
 
 ### Fix crash when exporting annotations for sequences with missing genes
