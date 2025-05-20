@@ -2,6 +2,7 @@ import type { Subscription } from 'observable-fns'
 import { useCallback } from 'react'
 import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import { axiosFetch } from 'src/io/axiosFetch'
 import { fetchDatasetsIndex } from 'src/io/fetchDatasetsIndex'
 import {
@@ -83,11 +84,12 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
 
             return runAutodetect(fasta, index, minimizerIndex, { onResult, onError, onComplete, onBestResults })
           })
+          .catch((error: unknown) => {
+            onError(sanitizeError(error))
+            throw error
+          })
           .finally(() => {
             snapshotRelease()
-          })
-          .catch((error) => {
-            throw error
           })
       },
     [params?.shouldSetCurrentDataset],
