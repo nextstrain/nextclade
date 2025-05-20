@@ -14,10 +14,11 @@ This is a convenience feature, i.e. the analysis runs for each dataset are still
 This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
 
 
+## 3.13.3
+
 ### Fix crash when exporting annotations for sequences with missing genes
 
 Nextclade Web and CLI would crash when attempting to output GFF and TBL files where entire genes are unsequenced or otherwise missing. This has been fixed.
-
 
 
 ## 3.13.2
