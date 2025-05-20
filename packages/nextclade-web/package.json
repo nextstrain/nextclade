@@ -50,7 +50,7 @@
     "lint:watch": "nodemon --config config/nodemon/lint.json",
     "lint:fix:watch": "nodemon --config config/nodemon/lint.fix.json",
     "lint:ci": "run-s -c eslint:ci tsc",
-    "eslint": "eslint --format codeframe \"**/*.{js,jsx,ts,tsx}\"",
+    "eslint": "eslint --format codeframe \"{src,config,infra,lib,tools}/**/*.{js,jsx,ts,tsx}\" \"*.{js,ts,d.ts}\"",
     "eslint:i18n": "eslint --config .eslintrc.i18next.js --format codeframe \"src/{components,pages}/**/*.{js,jsx,ts,tsx}\"",
     "eslint:fix": "yarn eslint --fix",
     "eslint:watch": "nodemon --config config/nodemon/eslint.json",

@@ -28,5 +28,17 @@
     "tsBuildInfoFile": ".cache/.tsbuildinfo"
   },
   "exclude": ["node_modules/"],
-  "include": ["src/", "src/types/", "config/", "lib/", "tools/", "next-env.d.ts", ".eslintrc.js"]
+  "include": [
+    ".eslintrc.js",
+    "babel-node.config.js",
+    "config/",
+    "infra/",
+    "lib/",
+    "next-env.d.ts",
+    "next.config.js",
+    "postcss.config.js",
+    "src/",
+    "stylelint.config.js",
+    "tools/"
+  ]
 }
