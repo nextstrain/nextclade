@@ -1,5 +1,4 @@
 use crate::io::fasta::FastaRecord;
-use crate::make_internal_report;
 use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
 use crate::sort::params::NextcladeSeqSortParams;
 use crate::utils::indexmap::reorder_indexmap;
@@ -141,50 +140,50 @@ pub fn find_best_datasets(
     let hit_by_dataset = reorder_indexmap(hit_by_dataset, dataset_order);
     let top_hit_by_dataset = reorder_indexmap(top_hit_by_dataset, dataset_order);
 
-    let mut best_dataset = *key_of_max_value(&hit_by_dataset)
-      .ok_or_else(|| make_internal_report!("partition_sequences: no matching best dataset found"))?;
+    if let Some(best_dataset) = key_of_max_value(&hit_by_dataset) {
+      let mut best_dataset = *best_dataset;
 
-    if hit_by_dataset[best_dataset] == 0 {
-      debug!("partition_sequences: no more hits");
-      break;
-    }
+      if hit_by_dataset[&best_dataset] == 0 {
+        debug!("partition_sequences: no more hits");
+        break;
+      }
 
-    let best_top_dataset = *key_of_max_value(&top_hit_by_dataset)
-      .ok_or_else(|| make_internal_report!("partition_sequences: no matching best top dataset found"))?;
+      if let Some(&best_top_dataset) = key_of_max_value(&top_hit_by_dataset) {
+        if hit_by_dataset[best_top_dataset] == hit_by_dataset[best_dataset] {
+          best_dataset = best_top_dataset;
+        };
 
-    if hit_by_dataset[best_top_dataset] == hit_by_dataset[best_dataset] {
-      best_dataset = best_top_dataset;
-    };
+        let matched: BTreeSet<_> = results
+          .iter()
+          .filter(|(_, res)| res.datasets.iter().any(|dataset| &dataset.name == best_dataset))
+          .map(|(i, _)| i)
+          .copied()
+          .collect();
 
-    let matched: BTreeSet<_> = results
-      .iter()
-      .filter(|(_, res)| res.datasets.iter().any(|dataset| &dataset.name == best_dataset))
-      .map(|(i, _)| i)
-      .copied()
-      .collect();
+        unmatched = unmatched.difference(&matched).copied().collect();
 
-    unmatched = unmatched.difference(&matched).copied().collect();
+        top_hit_matches += top_hit_by_dataset[best_top_dataset];
+        total_matches += hit_by_dataset[best_dataset];
 
-    top_hit_matches += top_hit_by_dataset[best_top_dataset];
-    total_matches += hit_by_dataset[best_dataset];
+        debug!("Global search: iteration {}", i);
+        debug!(
+          "Global search: added dataset '{}' ({} hits, {} top hits)",
+          best_dataset, hit_by_dataset[best_dataset], top_hit_by_dataset[best_top_dataset]
+        );
+        debug!("Global search: hit matches {}", total_matches);
+        debug!("Global search: top hit matches {}", top_hit_matches);
+        debug!("Global search: unmatched remaining {}", unmatched.len());
 
-    debug!("Global search: iteration {}", i);
-    debug!(
-      "Global search: added dataset '{}' ({} hits, {} top hits)",
-      best_dataset, hit_by_dataset[best_dataset], top_hit_by_dataset[best_top_dataset]
-    );
-    debug!("Global search: hit matches {}", total_matches);
-    debug!("Global search: top hit matches {}", top_hit_matches);
-    debug!("Global search: unmatched remaining {}", unmatched.len());
+        suggestions.push(DatasetSuggestionStats {
+          name: best_dataset.to_owned(),
+          n_hits: hit_by_dataset[best_top_dataset],
+          qry_indices: matched.iter().copied().collect(),
+        });
 
-    suggestions.push(DatasetSuggestionStats {
-      name: best_dataset.to_owned(),
-      n_hits: hit_by_dataset[best_top_dataset],
-      qry_indices: matched.iter().copied().collect(),
-    });
-
-    if unmatched.is_empty() {
-      break;
+        if unmatched.is_empty() {
+          break;
+        }
+      }
     }
   }
 

@@ -13,9 +13,9 @@ import {
   autodetectRunStateAtom,
   autodetectShouldSetCurrentDatasetAtom,
   minimizerIndexAtom,
+  autodetectErrorAtom,
 } from 'src/state/autodetect.state'
 import { datasetServerUrlAtom, minimizerIndexVersionAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { globalErrorAtom } from 'src/state/error.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import { DatasetsIndexJson, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
@@ -43,6 +43,7 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
         reset(autodetectRunStateAtom)
+        reset(autodetectErrorAtom)
         reset(autodetectShouldSetCurrentDatasetAtom)
         reset(allDatasetSuggestionResultsAtom)
         reset(viewedDatasetNameAtom)
@@ -55,11 +56,12 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
 
         function onError(error: Error) {
           set(autodetectRunStateAtom, AutodetectRunState.Failed)
-          set(globalErrorAtom, error)
+          set(autodetectErrorAtom, error)
         }
 
         function onComplete() {
           set(autodetectRunStateAtom, AutodetectRunState.Done)
+          reset(autodetectErrorAtom)
           set(autodetectShouldSetCurrentDatasetAtom, params?.shouldSetCurrentDataset ?? false)
         }
 
