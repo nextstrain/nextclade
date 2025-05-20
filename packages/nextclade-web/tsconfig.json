@@ -12,8 +12,6 @@
     "moduleResolution": "node",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "declarationMap": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
@@ -23,14 +21,12 @@
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
-    "preserveConstEnums": true,
-    "removeComments": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "tsBuildInfoFile": ".cache/.tsbuildinfo"
   },
-  "exclude": ["node_modules"],
-  "include": ["next-env.d.ts", ".eslintrc.js", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+  "exclude": ["node_modules/"],
+  "include": ["src/", "src/types/", "config/", "lib/", "tools/", "next-env.d.ts", ".eslintrc.js"]
 }

@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-anonymous-default-export
+export default {}
 // import React, { useCallback, useMemo } from 'react'
 // import styled from 'styled-components'
 // import { Button, Form as FormBase, FormGroup as FormGroupBase, FormGroupProps } from 'reactstrap'
