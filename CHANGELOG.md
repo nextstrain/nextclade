@@ -1,6 +1,5 @@
 ## Unreleased
 
-
 ### Nextclade Web: multi-dataset mode
 
 Nextclade Web now allows to run analysis for multiple datasets at once.
@@ -8,6 +7,10 @@ Nextclade Web now allows to run analysis for multiple datasets at once.
 You could provide sequences belonging to multiple organisms or for the dame organism, but based on different reference sequences. On "Multiple datasets" tab, Nextclade will try to deduce datasets that are best matching your sequences. You can then proceed to running analysis for each dataset. If multiple datasets have been detected, you will see a "Dataset" dropdown on "Results", "Tree" and "Export" page, which allows you to switch between results for different datasets.
 
 In multi-dataset mode, the "Export" page now also contains an "Export all to Excel" button, which allows to download .xlsx file containing all analysis results in tabular format, one dataset per sheet. This is the same data as in CSV/TSV files, but aggregated into a single file.
+
+When starting Nextclade analysis using URL parameters, you can add `?multi-dataset` to run in multi-dataset mode. 
+
+Nextclade is now using new global search algorithm to find the suggested datasets for your sequences. It tries to minimize the number of datasets, while optimizing their relevance.
 
 This is a convenience feature, i.e. the analysis runs for each dataset are still independent, just like in single-dataset mode, except you don't need to run multiple analyses for each dataset manually now.
 
@@ -17,6 +20,13 @@ This could be useful if you analyze one or multiple a FASTA files containing a m
 ### Nextclade Web: add "Download SVG" button to "Tree" page
 
 Top-right corner of the "Tree" page, there is now a "Download SVG" button. It allows to download the tree visualization and other contents of the page, including applied filters and zoom, to an SVG file. This functionality is similar to that is offered by Auspice.
+
+
+### Nextclade CLI: `sort` command
+
+You can now add `--global` to `sort` command to enable global search algorithm to find the minimal set of suggested datasets for your sequences. Note that this mode disables streaming of results, because the optimization step requires knowing datasets for all sequences in advance. This may lead to increased memory consumption for large inputs.
+
+This is an experimental feature. Use with caution.
 
 
 ## 3.13.3

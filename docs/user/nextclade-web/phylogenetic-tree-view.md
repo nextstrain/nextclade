@@ -10,3 +10,9 @@ Nextclade runs a greedy parsimony tree builder on user provided sequences. This 
 ![Nextclade tree builder](../assets/web_tree-builder.png)
 
 For a more accurate tree including your sequences, you can use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace), which works out of the box with SARS-CoV-2, hMPXV, RSV-A, and RSV-B (as of January 2024).
+
+### Multi-dataset mode
+
+In multi-dataset mode, you can switch between datasets through the dataset selector on the top left.
+
+![Switching between datasets](../assets/web_switch-tree-dataset.png)
