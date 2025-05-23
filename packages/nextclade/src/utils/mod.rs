@@ -4,6 +4,7 @@ pub mod collections;
 pub mod datetime;
 pub mod encode;
 pub mod error;
+pub mod eyre;
 pub mod fs;
 pub mod getenv;
 pub mod global_init;

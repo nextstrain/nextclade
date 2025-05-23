@@ -1,6 +1,7 @@
 use crate::io::console::{use_color, use_color_for_backtrace, CliColorMode};
 use crate::io::fs::filename_maybe;
 use crate::utils::datetime::{date_format_precise, date_now};
+use crate::utils::eyre::eyre_init;
 use console::style;
 use env_logger::Env;
 use log::{Level, LevelFilter, Record};
@@ -50,15 +51,7 @@ pub fn setup_logger(log_level: LevelFilter) {
 pub fn global_init(config: &GlobalInitConfig) {
   owo_colors::set_override(use_color(config.colors));
   console::set_colors_enabled(use_color(config.colors));
-
-  if use_color(config.colors) || use_color_for_backtrace(config.colors) {
-    color_eyre::config::HookBuilder::default()
-  } else {
-    color_eyre::config::HookBuilder::default().theme(color_eyre::config::Theme::new())
-  }
-  .install()
-  .expect("Failed to install color_eyre");
-
+  eyre_init(use_color(config.colors) || use_color_for_backtrace(config.colors));
   setup_logger(config.log_level);
 }
 
