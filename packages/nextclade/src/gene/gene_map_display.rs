@@ -9,9 +9,9 @@ use crate::utils::string::truncate_right;
 use eyre::Report;
 use itertools::{max as iter_max, Itertools};
 use num_traits::clamp;
-use owo_colors::OwoColorize;
 use std::cmp::{max, min};
 use std::io::Write;
+use console::style;
 
 const INDENT: &str = " ";
 const INDENT_WIDTH: usize = 2;
@@ -118,7 +118,7 @@ fn write_gene<W: Write>(w: &mut W, max_name_len: usize, gene: &Gene) -> Result<(
   writeln!(
     w,
     "{indent}{:max_name_len$} │   │   │   │     │         │         │         │             │ {exceptions}",
-    name.style(style_for_feature_type("gene")?)
+    style_for_feature_type("gene")?.apply_to(name)
   )?;
 
   Ok(())
@@ -135,7 +135,7 @@ fn write_cds<W: Write>(w: &mut W, max_name_len: usize, cds: &Cds) -> Result<(), 
   writeln!(
     w,
     "{indent}{:max_name_len$} │   │   │   │     │         │         │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-    name.style(style_for_feature_type("cds")?)
+    style_for_feature_type("cds")?.apply_to(name)
   )?;
 
   Ok(())
@@ -155,8 +155,8 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   let indent = INDENT.repeat(indent_width);
   let max_name_len = max_name_len.saturating_sub(indent_width);
   let name = truncate_right(&cds_segment.name_and_type(), max_name_len, "...");
-  let start = range.begin.green();
-  let end = range.end.red();
+  let start = style(range.begin).green();
+  let end = style(range.end).red();
   let nuc_len = cds_segment.len();
   let codon_len = format_codon_length(nuc_len);
   let exceptions = exceptions.join(", ");
@@ -169,7 +169,7 @@ fn write_cds_segment<W: Write>(w: &mut W, max_name_len: usize, cds_segment: &Cds
   writeln!(
     w,
     "{indent}{:max_name_len$} │ {strand:} │ {frame:} | {phase:} | {wrap:} │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-    name.style(style_for_feature_type("cds segment")?)
+    style_for_feature_type("cds segment")?.apply_to(name)
   )?;
 
   Ok(())
@@ -183,7 +183,7 @@ fn write_protein<W: Write>(w: &mut W, max_name_len: usize, protein: &Protein) ->
   writeln!(
     w,
     "{indent}{:max_name_len$} │   │   │   │     │         │         │         │             │",
-    name.style(style_for_feature_type("protein")?)
+    style_for_feature_type("protein")?.apply_to(name)
   )?;
 
   Ok(())
@@ -208,7 +208,7 @@ fn write_protein_segment<W: Write>(
   writeln!(
     w,
     "{indent}{:max_name_len$} │   │   │   │     │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}",
-    name.style(style_for_feature_type("protein segment")?)
+    style_for_feature_type("protein segment")?.apply_to(name)
   )?;
 
   Ok(())

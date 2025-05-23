@@ -17,11 +17,11 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-  use crate::utils::global_init::global_init;
+  use crate::utils::global_init::{global_init, GlobalInitConfig};
   use ctor::ctor;
 
   #[ctor]
   fn init() {
-    global_init();
+    global_init(&GlobalInitConfig::default());
   }
 }
