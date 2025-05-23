@@ -102,6 +102,11 @@ export const autodetectRunStateAtom = atom<AutodetectRunState>({
   default: AutodetectRunState.Idle,
 })
 
+export const autodetectErrorAtom = atom<Error | undefined>({
+  key: 'autodetectError',
+  default: undefined,
+})
+
 export const isAutodetectRunningAtom = selector({
   key: 'isAutodetectRunningAtom',
   get: ({ get }) => get(autodetectRunStateAtom) === AutodetectRunState.Started,
