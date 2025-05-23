@@ -8,11 +8,12 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 import ColorBy, { ColorByInfo } from 'auspice/src/components/controls/color-by'
 import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch-labelling'
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
+import ToggleFocus from 'auspice/src/components/controls/toggle-focus'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
 import { ControlsContainer, HeaderContainer, TitleAndIconContainer } from 'auspice/src/components/controls/styles'
 import FilterData, { FilterInfo } from 'auspice/src/components/controls/filter'
-import { TreeInfo } from 'auspice/src/components/controls/miscInfoText'
+import { ToggleFocusInfo, TreeInfo } from 'auspice/src/components/controls/miscInfoText'
 import { ControlHeader } from 'auspice/src/components/controls/controlHeader'
 import { AnnotatedTitle } from 'auspice/src/components/controls/annotatedTitle'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
@@ -114,6 +115,8 @@ function TreePanel() {
 
       <div className="d-flex flex-column">
         <ChooseLayout />
+        <ToggleFocus tooltip={ToggleFocusInfo} />
+        <Spacer sizePx={10} />
         <ChooseMetric />
         <ChooseBranchLabelling />
         <Spacer sizePx={25} />
