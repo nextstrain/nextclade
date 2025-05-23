@@ -16,17 +16,39 @@ This is a convenience feature, i.e. the analysis runs for each dataset are still
 
 This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
 
-
 ### Nextclade Web: add "Download SVG" button to "Tree" page
 
 Top-right corner of the "Tree" page, there is now a "Download SVG" button. It allows to download the tree visualization and other contents of the page, including applied filters and zoom, to an SVG file. This functionality is similar to that is offered by Auspice.
 
+### Nextclade Web: add "Focus on selected" toggle on "Tree" page
 
-### Nextclade CLI: `sort` command
+Adds a sidebar toggle on "Tree" page that emphasizes visible nodes by expanding them to occupy more vertical space, improving focus on filtered or zoomed subsets. Designed to enhance visibility in large phylogenetic trees. This is an Auspice feature which was introduced in [Auspice 2.59.0](https://github.com/nextstrain/auspice/releases/tag/v2.59.0) and now also available in Nextclade.
+
+### Nextclade CLI: global dataset search mode for `sort` command
 
 You can now add `--global` to `sort` command to enable global search algorithm to find the minimal set of suggested datasets for your sequences. Note that this mode disables streaming of results, because the optimization step requires knowing datasets for all sequences in advance. This may lead to increased memory consumption for large inputs.
 
 This is an experimental feature. Use with caution.
+
+### Nextclade CLI: fix panics
+
+Some of the expected errors (e.g. invalid input files) in Nextclade CLI would previously cause panics (crashes). Now these errors are handled more gracefully and the visual output of these errors to the console is now cleaner and more concise.
+
+### Nextclade CLI: fix console color mode handling
+
+Nextclade CLI previously output colored messages (with ANSI sequences) even if output is not a TTY (e.g. redirected to a file). This has now been fixed. 
+
+For additional configuration, the CLI arguments have been added, as well as proper handling of environment variables typically used to control console coloring.
+
+The following priority rules apply:
+ 
+ * Nextclade detects output target (TTY or not) and outputs appropriately for the target by default
+
+ * If any of  the environment variables: `COLOR` (`auto|always|never`), `NO_COLOR` (set), `CLICOLOR_FORCE=1` are found, then they override the default
+
+ * If arguments `--color=auto|always|never` or `--no-color` (shortcut for `--color=never`) are found, they override the defaults and environment variables. If multiple `--color` or `--no-color` arguments present, then only the argument that comes last is taken into account.
+
+Known issue: `--help` coloring is not affected by `--color` and `--no-color` arguments: [#1629](https://github.com/nextstrain/nextclade/issues/1629))
 
 
 ## 3.13.3
