@@ -4,6 +4,7 @@ import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import type { CladeNodeAttrDesc } from 'auspice'
 import { getNucMutations } from 'src/helpers/relativeMuts'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { AaMotifsDesc, PhenotypeAttrDesc, QcStatus } from 'src/types'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
@@ -27,7 +28,7 @@ import {
 } from 'src/components/Results/ResultsTableStyle'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { CDS_OPTION_NUC_SEQUENCE, REF_NODE_ROOT } from 'src/constants'
 import { analysisResultAtom, currentRefNodeNameAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
@@ -96,7 +97,9 @@ export function ResultsTableRowResult({
   ...restProps
 }: ResultsTableRowResultProps) {
   const { seqName, result } = useRecoilValue(analysisResultAtom(seqIndex))
-  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
+
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName }))
 
   const data = useMemo(() => {
     if (!result) {
@@ -115,7 +118,7 @@ export function ResultsTableRowResult({
 
   const { analysisResult, qc, warnings } = data
 
-  const nucMuts = getNucMutations(analysisResult, refNodeName)
+  const nucMuts = getNucMutations(analysisResult, refNodeName ?? REF_NODE_ROOT)
   const muted = isNil(nucMuts)
 
   return (
@@ -197,7 +200,7 @@ export function ResultsTableRowResult({
           {viewedGene === CDS_OPTION_NUC_SEQUENCE ? (
             <SequenceView key={seqName} sequence={analysisResult} />
           ) : (
-            <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
+            <PeptideView key={seqName} sequence={analysisResult} cdsName={viewedGene} warnings={warnings} />
           )}
         </Suspense>
       </TableCell>

@@ -1,3 +1,5 @@
+import { safeDiv } from 'src/helpers/number'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import type { AnalysisResult } from 'src/types'
 import React from 'react'
 import { useRecoilValue } from 'recoil'
@@ -35,9 +37,9 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
 
-  const genomeSize = useRecoilValue(genomeSizeAtom)
-
-  const pixelsPerBase = width / genomeSize
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
+  const pixelsPerBase = safeDiv(width, genomeSize)
 
   const mutationViews = substitutions.map((substitution) => {
     return (

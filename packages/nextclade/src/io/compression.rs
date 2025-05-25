@@ -5,7 +5,7 @@ use eyre::{Report, WrapErr};
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression as GzCompressionLevel;
-use log::debug;
+use log::trace;
 use std::env;
 use std::io::{ErrorKind, Read, Write};
 use std::path::Path;
@@ -65,7 +65,7 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (Compressi
         _ => CompressionType::None,
       };
 
-      debug!(
+      trace!(
         "When processing '{filepath:#?}': detected file extension '{ext}'. \
         It will be using algorithm: '{compression_type}'"
       );

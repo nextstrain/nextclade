@@ -5,7 +5,7 @@ use crate::io::compression::Decompressor;
 use crate::io::concat::Concat;
 use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};
 use crate::translate::translate_genes::CdsTranslation;
-use crate::utils::string::truncate_with_ellipsis;
+use crate::utils::string::truncate_right;
 use crate::{make_error, make_internal_error};
 use color_eyre::{Section, SectionExt};
 use eyre::{Report, WrapErr};
@@ -169,7 +169,7 @@ pub fn read_one_fasta_from_str(contents: impl AsRef<str>) -> Result<FastaRecord,
   let reader = FastaReader::from_str(&contents)?;
   read_one_fasta_from_fasta_reader(reader)
     .wrap_err("When reading FASTA string")
-    .with_section(|| truncate_with_ellipsis(contents, 100).header("FASTA string was:"))
+    .with_section(|| truncate_right(contents, 100, "...").header("FASTA string was:"))
 }
 
 pub fn read_one_fasta_from_reader(reader: impl BufRead) -> Result<FastaRecord, Report> {

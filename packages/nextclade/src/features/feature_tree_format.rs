@@ -4,11 +4,10 @@ use crate::features::feature_tree::flatten_feature_tree;
 use crate::features::feature_type::style_for_feature_type;
 use crate::features::sequence_region::SequenceRegion;
 use crate::gene::gene_map_display::format_codon_length;
-use crate::utils::string::truncate_with_ellipsis;
+use crate::utils::string::truncate_right;
 use eyre::Report;
 use itertools::Itertools;
 use num_traits::clamp;
-use owo_colors::OwoColorize;
 use std::cmp::max;
 use std::io::Write;
 
@@ -68,7 +67,7 @@ fn format_sequence_region_feature<W: Write>(
   let SequenceRegion { range, .. } = seq_region;
 
   let indent_left = " ".repeat(INDENT);
-  let name = truncate_with_ellipsis(seq_region.name_and_type(), max_name_len - INDENT);
+  let name = truncate_right(&seq_region.name_and_type(), max_name_len - INDENT, "...");
   let indent_right = max_name_len - INDENT;
   let start = range.begin;
   let end = range.end;
@@ -131,16 +130,14 @@ fn format_feature_group<W: Write>(
     }
     features => {
       let indent = "  ".repeat(depth);
-      let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
+      let name = truncate_right(&feature.name_and_type(), max_name_len, "...");
       let exceptions = exceptions.iter().chain(notes.iter()).unique().join(", ");
 
       let formatted = format!(
         "{indent}{name:max_name_len$} │   │   │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
         "", "", "", ""
-      )
-      .style(style_for_feature_type(feature_type)?)
-      .to_string();
-      writeln!(w, "{formatted}")?;
+      );
+      writeln!(w, "{}", style_for_feature_type(feature_type)?.apply_to(formatted))?;
       for feature in features {
         format_feature(w, feature, max_name_len - INDENT, depth + 1)?;
       }
@@ -154,10 +151,7 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
   let Feature {
     feature_type,
     range,
-    landmark: _landmark,
     strand,
-    parent_ids: _parent_ids,
-    seqid: _seqid,
     exceptions,
     notes,
     is_circular,
@@ -165,7 +159,7 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
   } = feature;
 
   let indent = "  ".repeat(depth);
-  let name = truncate_with_ellipsis(feature.name_and_type(), max_name_len);
+  let name = truncate_right(&feature.name_and_type(), max_name_len, "...");
   let start = range.begin;
   let end = range.end;
   let nuc_len = range.len();
@@ -175,8 +169,8 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
 
   let formatted = format!(
     "{indent}{name:max_name_len$} │ {strand:} │   │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"
-  ).style(style_for_feature_type(feature_type)?).to_string();
+  );
 
-  writeln!(w, "{formatted}")?;
+  writeln!(w, "{}", style_for_feature_type(feature_type)?.apply_to(formatted))?;
   Ok(())
 }

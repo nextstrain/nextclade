@@ -1,10 +1,9 @@
-import { isNil } from 'lodash'
 import React, { useMemo } from 'react'
 import { Button, ButtonProps } from 'reactstrap'
+import { hasSingleCurrentDatasetAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 
 export interface DatasetNoneSectionProps {
   toDatasetSelection(): void
@@ -37,17 +36,16 @@ export interface ChangeDatasetButtonProps extends ButtonProps {
 
 export function ButtonChangeDataset({ onClick, ...restProps }: ChangeDatasetButtonProps) {
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
+  const hasDataset = useRecoilValue(hasSingleCurrentDatasetAtom)
 
   const { color, text, tooltip } = useMemo(() => {
-    const hasDataset = !isNil(dataset)
     const text = hasDataset ? t('Change reference dataset') : t('Select reference dataset')
     return {
       color: hasDataset ? 'secondary' : 'primary',
       text,
       tooltip: text,
     }
-  }, [dataset, t])
+  }, [hasDataset, t])
 
   return (
     <ButtonChangeDatasetStyled className="m-auto" color={color} title={tooltip} onClick={onClick} {...restProps}>

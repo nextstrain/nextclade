@@ -54,6 +54,39 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--silent` — Disable all console output. Same as `--verbosity=off`
 * `-v`, `--verbose` — Make console output more verbose. Add multiple occurrences to increase verbosity further
 * `-q`, `--quiet` — Make console output more quiet. Add multiple occurrences to make output even more quiet
+* `--color <COLOR>` — Control when to use colored output [env: COLOR, NO_COLOR, CLICOLOR_FORCE]
+
+   Color output control follows this precedence (highest to lowest):
+
+   1. Command-line flags:
+
+   - `--color`
+
+   - `--no-color`
+
+   2. Environment variables:
+
+   - `CLICOLOR_FORCE=1` - force color
+
+   - `NO_COLOR` (set) - disable color
+
+   - `COLOR=always|auto|never`
+
+   If both `--color` and `--no-color` are provided, the one specified last takes effect.
+
+  Possible values:
+  - `auto`:
+    Automatically enable colors if output is a TTY (default)
+  - `always`:
+    Always enable colors
+  - `never`:
+    Never enable colors
+
+* `--no-color` — Disable colored output (shorthand for --color=never)
+
+   This overrides all related color environment variables (`CLICOLOR_FORCE`, `NO_COLOR`, `COLOR`)
+
+   If both `--color` and `--no-color` are provided, the one specified last takes effect.
 
 
 
@@ -556,15 +589,25 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
   Default value: `0.1`
 * `--min-hits <MIN_HITS>` — Minimum number of the index hits required for a detection
 
-  Default value: `5`
+  Default value: `10`
 * `--max-score-gap <MAX_SCORE_GAP>` — Maximum score difference between two adjacent dataset matches, after which the less fitting datasets are not considered.
 
    This argument will truncate the list of datasets considered for a detection, such that if there is a large enough difference in score ("gap") in the list, all datasets that are worse than the dataset before the gap are removed from consideration. This allows, in situation when there's 2 or more groups of similar datasets, to filter-out the groups that are worse than the best group.
 
   Default value: `0.2`
+* `--max-iter <MAX_ITER>` — Maximum number of iteration when partitioning sequences into matching datasets
+
+  Default value: `1000`
 * `--all-matches` — Whether to consider all datasets
 
    By default, only the top matching dataset is considered. When this flag is provided, all datasets reaching the matching criteria are considered.
+
+  Default value: `false`
+* `--global` — Whether to perform global search
+
+   By default, each input sequence is processed independently, yielding the dataset pick based on itself only ("local" search). With this flag enabled, a "global" optimization is performed, taking into account possible dataset matches for all input sequences.
+
+   This mode may produce better results, however it requires knowing all inputs sequences in advance, meaning the usual input fasta streaming is disabled in this mode and that it can be much slower and may consume a lot of memory.
 
   Default value: `false`
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used

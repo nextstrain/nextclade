@@ -1,12 +1,74 @@
-## __NEXT__
+## Unreleased
 
-## Deprecate support for Ubuntu 12.04
+### Nextclade Web: multi-dataset mode
 
-Nextclade CLI compiled for the "gnu" flavor of Linux no longer supports Ubuntu 12.04. Use the "musl" flavor of Nextclade CLI instead though it might be slower.  The list or Linux distributions we tested the new version of Nextclade on is [here](https://github.com/nextstrain/nextclade/blob/9f2b9a620a7bc9a068909634a4fc3f29757c059f/tests/test-linux-distros#L18-L62). Users of Nextclade CLI on macOS and Windows and users of Nextclade Web are not affected.
+Nextclade Web now allows to run analysis for multiple datasets at once.
 
-## Internal changes
+You could provide sequences belonging to multiple organisms or for the dame organism, but based on different reference sequences. On "Multiple datasets" tab, Nextclade will try to deduce datasets that are best matching your sequences. You can then proceed to running analysis for each dataset. If multiple datasets have been detected, you will see a "Dataset" dropdown on "Results", "Tree" and "Export" page, which allows you to switch between results for different datasets.
 
-- upgrade Rust to 1.80.0 (previously 1.76.0)
+In multi-dataset mode, the "Export" page now also contains an "Export all to Excel" button, which allows to download .xlsx file containing all analysis results in tabular format, one dataset per sheet. This is the same data as in CSV/TSV files, but aggregated into a single file.
+
+When starting Nextclade analysis using URL parameters, you can add `?multi-dataset` to run in multi-dataset mode. 
+
+Nextclade is now using new global search algorithm to find the suggested datasets for your sequences. It tries to minimize the number of datasets, while optimizing their relevance.
+
+This is a convenience feature, i.e. the analysis runs for each dataset are still independent, just like in single-dataset mode, except you don't need to run multiple analyses for each dataset manually now.
+
+This could be useful if you analyze one or multiple a FASTA files containing a mixture of sequences obtained from different organisms, strains or genome segments.
+
+### Nextclade Web: add "Download SVG" button to "Tree" page
+
+Top-right corner of the "Tree" page, there is now a "Download SVG" button. It allows to download the tree visualization and other contents of the page, including applied filters and zoom, to an SVG file. This functionality is similar to that is offered by Auspice.
+
+### Nextclade Web: add "Focus on selected" toggle on "Tree" page
+
+Adds a sidebar toggle on "Tree" page that emphasizes visible nodes by expanding them to occupy more vertical space, improving focus on filtered or zoomed subsets. Designed to enhance visibility in large phylogenetic trees. This is an Auspice feature which was introduced in [Auspice 2.59.0](https://github.com/nextstrain/auspice/releases/tag/v2.59.0) and now also available in Nextclade.
+
+### Nextclade CLI: global dataset search mode for `sort` command
+
+You can now add `--global` to `sort` command to enable global search algorithm to find the minimal set of suggested datasets for your sequences. Note that this mode disables streaming of results, because the optimization step requires knowing datasets for all sequences in advance. This may lead to increased memory consumption for large inputs.
+
+This is an experimental feature. Use with caution.
+
+### Nextclade CLI: fix panics
+
+Some of the expected errors (e.g. invalid input files) in Nextclade CLI would previously cause panics (crashes). Now these errors are handled more gracefully and the visual output of these errors to the console is now cleaner and more concise.
+
+### Nextclade CLI: fix console color mode handling
+
+Nextclade CLI previously output colored messages (with ANSI sequences) even if output is not a TTY (e.g. redirected to a file). This has now been fixed. 
+
+For additional configuration, the CLI arguments have been added, as well as proper handling of environment variables typically used to control console coloring.
+
+The following priority rules apply:
+ 
+ * Nextclade detects output target (TTY or not) and outputs appropriately for the target by default
+
+ * If any of  the environment variables: `COLOR` (`auto|always|never`), `NO_COLOR` (set), `CLICOLOR_FORCE=1` are found, then they override the default
+
+ * If arguments `--color=auto|always|never` or `--no-color` (shortcut for `--color=never`) are found, they override the defaults and environment variables. If multiple `--color` or `--no-color` arguments present, then only the argument that comes last is taken into account.
+
+Known issue: `--help` coloring is not affected by `--color` and `--no-color` arguments: [#1629](https://github.com/nextstrain/nextclade/issues/1629))
+
+
+## 3.13.3
+
+### Fix crash when exporting annotations for sequences with missing genes
+
+Nextclade Web and CLI would crash when attempting to output GFF and TBL files where entire genes are unsequenced or otherwise missing. This has been fixed.
+
+
+## 3.13.2
+
+### Speed up Nextclade web, fix crash when using files >45MB on Chromium v136 browsers
+
+In recently released version 136, Chromium-based browsers (e.g. Chrome, Edge) [reduced the maximum allowed fixed array size], causing Nextclade web to crash when files bigger than 46,505,915 bytes are used.
+
+It turns out that avoiding the need for a large array gets rid of most of the delay between clicking "Run" and the start of the analysis. For files of ~60MB the time saved is on the order of 5 seconds. A small but noticeable performance win! See [issue #1605] and [PR #1606] for more details.
+
+[reduced the maximum allowed fixed array size]: https://issues.chromium.org/issues/415572399
+[issue #1605]: https://github.com/nextstrain/nextclade/issues/1605
+[PR #1606]: https://github.com/nextstrain/nextclade/pull/1606
 
 ## 3.13.1
 
@@ -56,7 +118,7 @@ We could not find meaning for the gaps in reference sequences in the context of 
 
 Starting from this version, Nextclade will now stop with an explicit error if it detects gaps in reference sequence. To resolve, please use a reference sequence without gaps, if possible, or notify dataset authors about the problem.
 
-If you think that Nextclade needs to support reference sequences with gaps please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
+If you think that Nextclade needs to support reference sequences with gaps, please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
 
 
 ## 3.11.0
@@ -314,7 +376,7 @@ In dataset selector, sometimes there were extra scrollbars displayed to the righ
 
 #### Select suggested dataset automatically when suggestion is triggered manually
 
-When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will now automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
+When suggestion is triggered manually, using "Suggest" button on main page, Nextclade will automatically select the best dataset as the current dataset. Previously this could only be done by clearing the current dataset first and then clicking "Suggest". When suggestion algorithm is triggered automatically, the behavior is unchanged - the dataset will not be selected.
 
 ### Nextclade CLI
 

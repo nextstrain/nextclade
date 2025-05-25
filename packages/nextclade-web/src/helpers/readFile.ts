@@ -50,7 +50,6 @@ export function readFile(file: File): Promise<string> {
         return reject(new FileReaderError(file, 'Result is not an array buffer'))
       }
 
-      // const bytes = new Uint8Array(buf.slice(0, AUTO_ENCODING_GUESS_MAX_BYTES))
       const bytes = new Uint8Array(buf)
 
       // https://github.com/microsoft/vscode/blob/1.99.3/src/vs/workbench/services/textfile/common/encoding.ts#L325-L326

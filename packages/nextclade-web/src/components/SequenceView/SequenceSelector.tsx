@@ -8,6 +8,7 @@ import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/S
 import type { Theme } from 'react-select/dist/declarations/src/types'
 import { Badge as BadgeBase } from 'reactstrap'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -28,11 +29,13 @@ export interface Option {
 }
 
 export function SequenceSelector() {
-  const genes = useRecoilValue(genesAtom)
-  const [viewedGene, setViewedGene] = useRecoilState(viewedCdsAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+
+  const genes = useRecoilValue(genesAtom({ datasetName }))
+  const [viewedGene, setViewedGene] = useRecoilState(viewedCdsAtom({ datasetName }))
 
   const { options, defaultOption } = useMemo(() => {
-    return prepareOptions(genes)
+    return prepareOptions(genes ?? [])
   }, [genes])
 
   const option = useMemo((): Option => {

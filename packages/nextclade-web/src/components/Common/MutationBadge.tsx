@@ -1,6 +1,7 @@
 import React from 'react'
 import { useRecoilValue } from 'recoil'
 import { isNil } from 'lodash'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled, { useTheme } from 'styled-components'
 import { shade } from 'polished'
 import type { AaSub, NucSub } from 'src/types'
@@ -52,12 +53,6 @@ export const PositionText = styled.span`
   color: ${(props) => props.theme.gray800};
 `
 
-export const VersionText = styled.span`
-  padding: 1px 2px;
-  background-color: ${(props) => props.theme.gray400};
-  color: ${(props) => props.theme.gray800};
-`
-
 export interface NucleotideMutationBadgeProps {
   mutation: NucSub
 }
@@ -99,7 +94,8 @@ export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps
   const theme = useTheme()
 
   const { cdsName, refAa, qryAa, pos } = mutation
-  const cds = useRecoilValue(cdsAtom(cdsName))
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cds = useRecoilValue(cdsAtom({ datasetName, cdsName }))
 
   const geneBg = cds?.color ?? '#999'
   const refBg = getAminoacidColor(refAa)

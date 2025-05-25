@@ -269,3 +269,52 @@ jobs:
 
           git tag "web-${version}"
           git push origin "web-${version}"
+
+  deploy-preview:
+    name: "Deploy preview"
+    runs-on: ubuntu-24.04
+    needs: [ build-web ]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: out
+          path: out
+
+      - name: 'deploy'
+        run: |
+          args=(
+            --name "${PREFIX}--commit-${COMMIT::7}"
+            --name "${PREFIX}--branch-${BRANCH}"
+          )
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            args+=(--name "${PREFIX}--pr-${PR_NUM}")
+          fi
+
+          ./scripts/preview-deploy "${args[@]}"
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            export PREVIEW_URL="https://${PREFIX}--pr-${PR_NUM}.${PREVIEWS_DOMAIN}"
+            ./scripts/preview-post-pr-comment
+          fi
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          PREFIX: ${{ github.repository_owner }}--${{ github.event.repository.name }}
+          COMMIT: ${{ github.sha }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+
+          AWS_ACCESS_KEY_ID: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_DEFAULT_REGION }}
+          AWS_S3_BUCKET: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_S3_BUCKET }}
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+
+          PREVIEWS_DOMAIN: ${{ vars.PREVIEWS_NEHERLAB_CLICK_DOMAIN }}

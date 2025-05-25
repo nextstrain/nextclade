@@ -3,6 +3,7 @@
 use clap::builder::{PossibleValuesParser, TypedValueParser};
 use clap::{ArgAction, Args};
 use log::LevelFilter;
+use nextclade::io::console::CliColorMode;
 
 #[derive(Args, Debug, Clone)]
 pub struct Verbosity {
@@ -31,6 +32,38 @@ pub struct Verbosity {
   #[clap(conflicts_with = "verbose", conflicts_with = "verbosity")]
   #[clap(display_order = 903)]
   pub quiet: u8,
+
+  /// Control when to use colored output [env: COLOR, NO_COLOR, CLICOLOR_FORCE]
+  ///
+  /// Color output control follows this precedence (highest to lowest):
+  ///
+  ///   1. Command-line flags:
+  ///
+  ///      - `--color`
+  ///
+  ///      - `--no-color`
+  ///
+  ///   2. Environment variables:
+  ///
+  ///      - `CLICOLOR_FORCE=1` - force color
+  ///
+  ///      - `NO_COLOR` (set) - disable color
+  ///
+  ///      - `COLOR=always|auto|never`
+  ///
+  /// If both `--color` and `--no-color` are provided, the one specified last takes effect.
+  #[clap(long, global = true, overrides_with = "no_color")]
+  #[clap(display_order = 904)]
+  pub color: Option<CliColorMode>,
+
+  /// Disable colored output (shorthand for --color=never)
+  ///
+  /// This overrides all related color environment variables (`CLICOLOR_FORCE`, `NO_COLOR`, `COLOR`)
+  ///
+  /// If both `--color` and `--no-color` are provided, the one specified last takes effect.
+  #[clap(long, global = true, overrides_with = "color")]
+  #[clap(display_order = 905)]
+  pub no_color: bool,
 }
 
 impl Verbosity {

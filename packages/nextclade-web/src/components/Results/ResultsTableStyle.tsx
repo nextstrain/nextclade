@@ -1,5 +1,5 @@
+import { mapValues } from 'lodash'
 import styled from 'styled-components'
-import { rgba } from 'polished'
 
 import { ButtonHelp } from 'src/components/Results/ButtonHelp'
 
@@ -29,6 +29,14 @@ export const COLUMN_WIDTHS = {
   stopCodons: 50,
   sequenceView: 550,
 } as const
+
+export const COLUMN_WIDTHS_PX = getColumnWidthsPx(COLUMN_WIDTHS)
+
+export function getColumnWidthsPx(
+  columnWidths: Record<keyof typeof COLUMN_WIDTHS, number>,
+): Record<keyof typeof COLUMN_WIDTHS, string> {
+  return mapValues(columnWidths, (width) => `${width}px`)
+}
 
 export const Table = styled.div<{ rounded?: boolean }>`
   font-size: 0.8rem;
@@ -73,7 +81,6 @@ export const TableRow = styled.div<{ backgroundColor?: string; opacity?: number 
   align-items: stretch;
   background-color: ${(props) => props.backgroundColor};
   opacity: ${(props) => props.opacity};
-  box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
 `
 
 export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
@@ -85,6 +92,7 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   align-items: center;
   text-align: center;
   border-left: 1px solid #b3b3b3;
+  border-bottom: 1px solid #b3b3b3;
 `
 
 export const TableCellRowIndex = styled.div<{ basis?: string; grow?: number; shrink?: number }>`

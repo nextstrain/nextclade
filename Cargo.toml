@@ -11,7 +11,7 @@ exclude = [
 
 
 [workspace.package]
-version = "3.13.1"
+version = "3.13.3"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
@@ -26,6 +26,7 @@ authors = ["Nextstrain team"]
 assert2 = "=0.3.11"
 atty = "=0.2.14"
 auto_ops = "=0.3.0"
+base64 = "=0.22.1"
 bio = "=1.3.1"
 bio-types = "=1.0.0"
 bzip2 = { version = "=0.4.4", features = ["static"] }
@@ -36,6 +37,7 @@ clap_complete = "=4.4.1"
 clap_complete_fig = "=4.4.0"
 color-eyre = "=0.6.2"
 comfy-table = "=7.0.1"
+console = "=0.15.11"
 console_error_panic_hook = "=0.1.7"
 criterion = { version = "=0.5.1", features = ["html_reports"] }
 crossbeam = "=0.8.2"
@@ -65,13 +67,14 @@ num-traits = "=0.2.15"
 num_cpus = "=1.16.0"
 optfield = "=0.3.0"
 ordered-float = { version = "=3.9.1", features = ["rand", "serde", "schemars"] }
-owo-colors = "=3.5.0"
+owo-colors = { version = "=3.5.0", features = ["supports-colors"] }
 pretty_assertions = "=1.3.0"
 rayon = "=1.7.0"
 regex = "=1.8.4"
 reqwest = { version = "=0.12.8", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 rstest = "=0.17.0"
 rstest_reuse = "=0.5.0"
+rust_xlsxwriter = { version = "=0.66.0", features = ["wasm"] }
 schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap"] }
 semver = { version = "=1.0.17", features = ["serde"] }
 serde = { version = "=1.0.164", features = ["derive"] }
