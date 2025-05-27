@@ -1,4 +1,3 @@
-/* eslint-disable no-plusplus,no-loops/no-loops */
 import { sortBy } from 'lodash'
 
 function getBigrams(s: string) {

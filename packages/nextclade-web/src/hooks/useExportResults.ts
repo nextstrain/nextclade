@@ -1,4 +1,3 @@
-/* eslint-disable no-void,no-loops/no-loops,sonarjs/no-identical-functions */
 import { isEmpty, isNil } from 'lodash'
 import { useState } from 'react'
 import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'

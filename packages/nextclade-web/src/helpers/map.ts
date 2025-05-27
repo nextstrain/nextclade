@@ -1,4 +1,3 @@
-/* eslint-disable no-loops/no-loops, no-continue */
 import { isNil } from 'lodash'
 
 export function invertMap<K, V>(map: Map<K, V | undefined | null>): Map<V, K[]> {

@@ -6,7 +6,6 @@ export function splitToRows<T>(arr: T[], { rowLength, maxRows }: { rowLength?: n
 
   const rowSize = rowLength ?? Math.ceil(maxRows ? n / maxRows : 1)
   const rows: T[][] = []
-  // eslint-disable-next-line no-loops/no-loops
   for (let i = 0; ; i += rowSize) {
     const row = arr.slice(i, i + rowSize)
     rows.push(row)

@@ -28,7 +28,6 @@ export function splitToColumns(obj: { [key: string]: string }, colSize: number) 
   const n = Object.keys(obj).length
 
   const cols: { [key: string]: string }[] = []
-  // eslint-disable-next-line no-loops/no-loops
   for (let i = 0; ; i += colSize) {
     const col = Object.fromEntries(Object.entries(obj).slice(i, i + colSize))
     cols.push(col)

@@ -1,4 +1,3 @@
-/* eslint-disable no-loops/no-loops */
 import chardet from 'jschardet'
 import { isArrayBuffer, sortBy } from 'lodash'
 import { sanitizeError } from 'src/helpers/sanitizeError'

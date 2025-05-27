@@ -32,8 +32,10 @@ export default function (results) {
     }, [])
     .join('\n')
 
-  output += '\n'
-  output += formatSummary(rules, errors, warnings, fixableErrors, fixableWarnings)
+  if (resultsWithMessages.length > 0) {
+    output += '\n'
+    output += formatSummary(rules, errors, warnings, fixableErrors, fixableWarnings)
+  }
 
   return errors + warnings > 0 ? output : ''
 }

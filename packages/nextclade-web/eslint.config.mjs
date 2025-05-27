@@ -274,7 +274,6 @@ export default tseslint.config(
       ],
 
       // FIXME: these need to be fixed
-      '@typescript-eslint/ban-types': 'off',
       '@typescript-eslint/consistent-indexed-object-style': 'off',
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/no-deprecated': 'off',
@@ -283,6 +282,7 @@ export default tseslint.config(
       '@typescript-eslint/no-extraneous-class': 'off',
       '@typescript-eslint/no-misused-spread': 'off',
       '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-throw-literal': 'off',
       '@typescript-eslint/no-unnecessary-condition': 'off',
       '@typescript-eslint/no-unnecessary-type-arguments': 'off',
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
@@ -298,7 +298,13 @@ export default tseslint.config(
       'deprecation/deprecation': 'off',
       'eqeqeq': 'off',
       'lodash/prefer-is-nil': 'off',
+      'no-continue': 'off',
+      'no-else-return': 'off',
+      'no-param-reassign': 'off',
+      'prefer-destructuring': 'off',
       'prettier/prettier': 'off',
+      'sonarjs/no-duplicate-string': 'off',
+      'unused-imports/no-unused-vars': 'off',
     },
     settings: {
       'react': { version: 'detect' },

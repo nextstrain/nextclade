@@ -467,7 +467,6 @@ function enableCategory(config: CsvColumnConfig, category: string, enable: boole
 function enableAllCategories(config_: CsvColumnConfig, enable: boolean): CsvColumnConfig {
   let config = copy(config_)
   const categories = Object.keys(config?.categories ?? {})
-  // eslint-disable-next-line no-loops/no-loops
   for (const category of categories) {
     config = enableCategory(config, category, enable)
   }

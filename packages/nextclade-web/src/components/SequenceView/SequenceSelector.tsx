@@ -226,7 +226,6 @@ function prepareOptions(genes: Gene[]) {
     cds: defaultCds,
   }
 
-  // eslint-disable-next-line no-loops/no-loops
   for (const gene of genes) {
     if (gene.cdses.length === 1) {
       options.push({
@@ -241,8 +240,7 @@ function prepareOptions(genes: Gene[]) {
         isDisabled: true,
       })
 
-      // eslint-disable-next-line no-loops/no-loops
-      for (const cds of gene.cdses) {
+          for (const cds of gene.cdses) {
         const option: Option = {
           value: `cds-${cds.name}`,
           cds,
@@ -250,8 +248,7 @@ function prepareOptions(genes: Gene[]) {
         defaultOption = option
         options.push(option)
 
-        // eslint-disable-next-line no-loops/no-loops
-        for (const protein of cds.proteins) {
+              for (const protein of cds.proteins) {
           options.push({
             value: `protein-${protein.name}`,
             protein,
