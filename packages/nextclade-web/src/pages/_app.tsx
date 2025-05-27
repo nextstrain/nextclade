@@ -69,7 +69,7 @@ function RecoilStateInitializer() {
 
   const isInitializingRef = useRef(false)
 
-  const run = useRunAnalysis({ isSingle: true })
+  const run = useRunAnalysis()
 
   const suggest = useRunSeqAutodetectAsync()
 
