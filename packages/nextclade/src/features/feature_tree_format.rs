@@ -8,7 +8,6 @@ use crate::utils::string::truncate_right;
 use eyre::Report;
 use itertools::Itertools;
 use num_traits::clamp;
-use owo_colors::OwoColorize;
 use std::cmp::max;
 use std::io::Write;
 
@@ -137,10 +136,8 @@ fn format_feature_group<W: Write>(
       let formatted = format!(
         "{indent}{name:max_name_len$} │   │   │ {:>7} │ {:>7} │ {:>7} │ {:>11} │ {exceptions}",
         "", "", "", ""
-      )
-      .style(style_for_feature_type(feature_type)?)
-      .to_string();
-      writeln!(w, "{formatted}")?;
+      );
+      writeln!(w, "{}", style_for_feature_type(feature_type)?.apply_to(formatted))?;
       for feature in features {
         format_feature(w, feature, max_name_len - INDENT, depth + 1)?;
       }
@@ -154,10 +151,7 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
   let Feature {
     feature_type,
     range,
-    landmark: _landmark,
     strand,
-    parent_ids: _parent_ids,
-    seqid: _seqid,
     exceptions,
     notes,
     is_circular,
@@ -175,8 +169,8 @@ fn format_feature<W: Write>(w: &mut W, feature: &Feature, max_name_len: usize, d
 
   let formatted = format!(
     "{indent}{name:max_name_len$} │ {strand:} │   │ {start:>7} │ {end:>7} │ {nuc_len:>7} │ {codon_len:>11} │ {exceptions}"
-  ).style(style_for_feature_type(feature_type)?).to_string();
+  );
 
-  writeln!(w, "{formatted}")?;
+  writeln!(w, "{}", style_for_feature_type(feature_type)?.apply_to(formatted))?;
   Ok(())
 }

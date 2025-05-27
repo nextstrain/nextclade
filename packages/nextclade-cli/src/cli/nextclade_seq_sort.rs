@@ -1,6 +1,7 @@
 use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
+use console::style;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{trace, LevelFilter};
@@ -17,7 +18,6 @@ use nextclade::sort::minimizer_search::{
 use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
-use owo_colors::OwoColorize;
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::collections::btree_map::Entry::{Occupied, Vacant};
@@ -364,7 +364,7 @@ impl StatsPrinter {
     print!("{:<40}", truncate(seq_name, 40));
 
     if datasets.is_empty() {
-      println!(" │ {:40} │ {:>10.3} │ {:>10} │", "undetected".red(), "", "");
+      println!(" │ {:40} │ {:>10.3} │ {:>10} │", style("undetected").red(), "", "");
       self.n_undetected += 1;
     }
 
@@ -416,18 +416,22 @@ impl StatsPrinter {
       println!("{}┤", "─".repeat(67));
       println!(
         "{:<40} │ {:>10} │ {:>10} │",
-        "undetected".red(),
-        self.n_undetected.red(),
-        format!("{:>9.3}%", 100.0 * (self.n_undetected as f64 / total_seq as f64)).red()
+        style("undetected").red(),
+        style(self.n_undetected).red(),
+        style(format!(
+          "{:>9.3}%",
+          100.0 * (self.n_undetected as f64 / total_seq as f64)
+        ))
+        .red()
       );
     }
 
     println!("{}┤", "─".repeat(67));
     println!(
       "{:>40} │ {:>10} │ {:>10} │",
-      "total".bold(),
-      total_seq.bold(),
-      format!("{:>9.3}%", 100.0).bold()
+      style("total").bold(),
+      style(total_seq).bold(),
+      style(format!("{:>9.3}%", 100.0)).bold()
     );
     println!("{}┘", "─".repeat(67));
   }

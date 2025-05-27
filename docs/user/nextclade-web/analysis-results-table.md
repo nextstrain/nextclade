@@ -70,6 +70,12 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 
 ![Alignment tooltip](../assets/web_alignment-tip.png)
 
+### Multi-dataset mode
+
+In multi-dataset mode, you can switch between datasets through the dataset selector on the top left. For each selected dataset, you will see only the sequences that were analyzed with that dataset.
+
+![Switching datasets](../assets/web_switch-dataset.png)
+
 ### Next steps
 
 After the analysis is complete, you can view the phylogenetic tree with your sequences placed on it: See [Phylogenetic tree view](phylogenetic-tree-view.md) for details.

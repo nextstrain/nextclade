@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-anonymous-default-export
+export default {}
 // import classNames from 'classnames'
 // import { sortBy } from 'lodash'
 // import { mix, transparentize } from 'polished'

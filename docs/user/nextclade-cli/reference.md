@@ -54,6 +54,39 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--silent` — Disable all console output. Same as `--verbosity=off`
 * `-v`, `--verbose` — Make console output more verbose. Add multiple occurrences to increase verbosity further
 * `-q`, `--quiet` — Make console output more quiet. Add multiple occurrences to make output even more quiet
+* `--color <COLOR>` — Control when to use colored output [env: COLOR, NO_COLOR, CLICOLOR_FORCE]
+
+   Color output control follows this precedence (highest to lowest):
+
+   1. Command-line flags:
+
+   - `--color`
+
+   - `--no-color`
+
+   2. Environment variables:
+
+   - `CLICOLOR_FORCE=1` - force color
+
+   - `NO_COLOR` (set) - disable color
+
+   - `COLOR=always|auto|never`
+
+   If both `--color` and `--no-color` are provided, the one specified last takes effect.
+
+  Possible values:
+  - `auto`:
+    Automatically enable colors if output is a TTY (default)
+  - `always`:
+    Always enable colors
+  - `never`:
+    Never enable colors
+
+* `--no-color` — Disable colored output (shorthand for --color=never)
+
+   This overrides all related color environment variables (`CLICOLOR_FORCE`, `NO_COLOR`, `COLOR`)
+
+   If both `--color` and `--no-color` are provided, the one specified last takes effect.
 
 
 

@@ -20,6 +20,7 @@ All URL parameters are optional. If all parameters are omitted, Nextclade Web be
 | dataset-server      | URL to the custom dataset server (to the path where `index.json` file is, without filename).                                                                                                                                                                       |
 | dataset-url         | URL to a single dataset directory (to the path where `pathogen.json` and other files are, without filenames).                                                                                                                                                      |
 | dataset-json-url    | URL to an Auspice JSON file, which serves as a full Nextclade dataset. This is currently an experimental feature, mostly for internal use. Documentation hasn't been written yet, but you can check [PR #1455](https://github.com/nextstrain/nextclade/pull/1455). |
+| multi-dataset       | If preset, Nextclade will run the analysis in multi-dataset mode                                                                                                                                                                                                   |
 
 If an `input-fasta` URL parameter is provided, Nextclade Web automatically starts the analysis after all input and dataset files are downloaded.
 

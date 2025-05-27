@@ -4,7 +4,6 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { DatasetInfoCompact } from 'src/components/Main/DatasetInfoCompact'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -55,7 +54,6 @@ export function DatasetCurrent() {
 
   const { t } = useTranslationSafe()
   const dataset = useRecoilValue(datasetSingleCurrentAtom)
-  const run = useRunAnalysis({ isSingle: true })
 
   if (!dataset) {
     return null
@@ -65,7 +63,7 @@ export function DatasetCurrent() {
     <CurrentDatasetInfoContainer>
       <CurrentDatasetInfoHeader>
         <DatasetInfoH4>{t('Selected dataset')}</DatasetInfoH4>
-        <ButtonRun onClick={run} singleDatasetMode />
+        <ButtonRun singleDatasetMode />
       </CurrentDatasetInfoHeader>
       <Container>
         <Header>

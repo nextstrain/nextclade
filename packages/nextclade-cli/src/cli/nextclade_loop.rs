@@ -14,6 +14,7 @@ use nextclade::run::nextclade_wasm::{AnalysisInitialData, AnalysisOutput, Nextcl
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::option::OptionMapRefFallible;
+use std::sync::{Arc, Mutex};
 
 pub struct NextcladeRecord {
   pub index: usize,
@@ -60,6 +61,8 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Parameters (final):\n{:#?}", &nextclade.params);
   info!("Genome annotation:\n{}", gene_map_to_table_string(&nextclade.gene_map)?);
 
+  let thread_errors: Arc<Mutex<Vec<Report>>> = Arc::new(Mutex::new(Vec::new()));
+
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
@@ -69,18 +72,22 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     let outputs = &mut outputs;
     let run_args = &run_args;
 
-    s.spawn(|| {
-      let mut reader = FastaReader::from_paths(&run_args.inputs.input_fastas).unwrap();
-      loop {
-        let mut record = FastaRecord::default();
-        reader.read(&mut record).unwrap();
-        if record.is_empty() {
-          break;
+    let thread_errors_cloned = Arc::clone(&thread_errors);
+    s.spawn(move || {
+      let result = (|| {
+        let mut reader = FastaReader::from_paths(&run_args.inputs.input_fastas)?;
+        loop {
+          let mut record = FastaRecord::default();
+          reader.read(&mut record)?;
+          if record.is_empty() {
+            break;
+          }
+          fasta_sender.send(record).wrap_err("When sending a FastaRecord")?;
         }
-        fasta_sender
-          .send(record)
-          .wrap_err("When sending a FastaRecord")
-          .unwrap();
+        Ok::<_, Report>(())
+      })();
+      if let Err(e) = result {
+        thread_errors_cloned.lock().unwrap().push(e);
       }
       drop(fasta_sender);
     });
@@ -88,84 +95,95 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     for _ in 0..run_args.other_params.jobs {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
+      let thread_errors = Arc::clone(&thread_errors);
 
       s.spawn(move || {
-        let result_sender = result_sender.clone();
+        let result = (|| {
+          for fasta_record in &fasta_receiver {
+            info!("Processing sequence '{}'", fasta_record.seq_name);
 
-        for fasta_record in &fasta_receiver {
-          info!("Processing sequence '{}'", fasta_record.seq_name);
+            let outputs_or_err = nextclade.run(&fasta_record).wrap_err_with(|| {
+              format!(
+                "When processing sequence #{} '{}'",
+                fasta_record.index, fasta_record.seq_name
+              )
+            });
 
-          let outputs_or_err = nextclade.run(&fasta_record).wrap_err_with(|| {
-            format!(
-              "When processing sequence #{} '{}'",
-              fasta_record.index, fasta_record.seq_name
-            )
-          });
+            // Important: **all** records should be sent into this channel, without skipping.
+            // In in-order mode, writer that receives from this channel expects a contiguous stream of indices. Gaps in
+            // the indices will cause writer to stall waiting for the missing index and the buffering queue to grow. Any
+            // filtering of records should be done in the writer, instead of here.
+            result_sender
+              .send(NextcladeRecord {
+                index: fasta_record.index,
+                seq_name: fasta_record.seq_name,
+                outputs_or_err,
+              })
+              .wrap_err("When sending NextcladeRecord")?;
+          }
+          Ok::<_, Report>(())
+        })();
 
-          // Important: **all** records should be sent into this channel, without skipping.
-          // In in-order mode, writer that receives from this channel expects a contiguous stream of indices. Gaps in
-          // the indices will cause writer to stall waiting for the missing index and the buffering queue to grow. Any
-          // filtering of records should be done in the writer, instead of here.
-          result_sender
-            .send(NextcladeRecord {
-              index: fasta_record.index,
-              seq_name: fasta_record.seq_name,
-              outputs_or_err,
-            })
-            .wrap_err("When sending NextcladeRecord")
-            .unwrap();
+        if let Err(e) = result {
+          thread_errors.lock().unwrap().push(e);
         }
-
         drop(result_sender);
       });
     }
 
+    let thread_errors_cloned = Arc::clone(&thread_errors);
     s.spawn(move || {
-      let nextclade = &nextclade;
+      let result = (|| {
+        let AnalysisInitialData {
+          clade_node_attr_key_descs,
+          phenotype_attr_descs,
+          aa_motif_keys,
+          ref_nodes,
+          ..
+        } = nextclade.get_initial_data();
 
-      let AnalysisInitialData {
-        clade_node_attr_key_descs,
-        phenotype_attr_descs,
-        aa_motif_keys,
-        ref_nodes,
-        ..
-      } = nextclade.get_initial_data();
+        let mut output_writer = NextcladeOrderedWriter::new(
+          &nextclade.gene_map,
+          &clade_node_attr_key_descs,
+          &phenotype_attr_descs,
+          &ref_nodes,
+          &aa_motif_keys,
+          &csv_column_config,
+          &run_args.outputs,
+          &nextclade.params,
+        )
+        .wrap_err("When creating output writer")?;
 
-      let mut output_writer = NextcladeOrderedWriter::new(
-        &nextclade.gene_map,
-        &clade_node_attr_key_descs,
-        &phenotype_attr_descs,
-        &ref_nodes,
-        &aa_motif_keys,
-        &csv_column_config,
-        &run_args.outputs,
-        &nextclade.params,
-      )
-      .wrap_err("When creating output writer")
-      .unwrap();
-
-      if nextclade.params.general.include_reference {
-        output_writer
-          .write_ref(&nextclade.ref_record, &nextclade.ref_translation)
-          .wrap_err("When writing output record for ref sequence")
-          .unwrap();
-      }
-
-      for record in result_receiver {
-        if should_write_tree {
-          // Save analysis results if they will be needed later
-          if let Ok(AnalysisOutput { analysis_result, .. }) = &record.outputs_or_err {
-            outputs.push(analysis_result.clone());
-          }
+        if nextclade.params.general.include_reference {
+          output_writer
+            .write_ref(&nextclade.ref_record, &nextclade.ref_translation)
+            .wrap_err("When writing output record for ref sequence")?;
         }
 
-        output_writer
-          .write_record(record)
-          .wrap_err("When writing output record")
-          .unwrap();
+        for record in result_receiver {
+          if should_write_tree {
+            if let Ok(AnalysisOutput { analysis_result, .. }) = &record.outputs_or_err {
+              outputs.push(analysis_result.clone());
+            }
+          }
+          output_writer
+            .write_record(record)
+            .wrap_err("When writing output record")?;
+        }
+
+        Ok::<_, Report>(())
+      })();
+
+      if let Err(e) = result {
+        thread_errors_cloned.lock().unwrap().push(e);
       }
     });
   });
+
+  let mut errors = Arc::try_unwrap(thread_errors).unwrap_or_default().into_inner()?;
+  if !errors.is_empty() {
+    return Err(errors.remove(0));
+  }
 
   if should_write_tree {
     let Nextclade {

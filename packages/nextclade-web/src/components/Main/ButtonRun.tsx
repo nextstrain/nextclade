@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Button, ButtonProps } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { hasSingleCurrentDatasetAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -10,11 +11,13 @@ import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { isAnalysisRunningAtom } from 'src/state/results.state'
 
 export interface ButtonRunProps extends ButtonProps {
-  onClick(): void
   singleDatasetMode: boolean
 }
 
-export function ButtonRun({ onClick, singleDatasetMode, ...restProps }: ButtonRunProps) {
+export function ButtonRun({ singleDatasetMode, ...restProps }: ButtonRunProps) {
+  const run = useRunAnalysis()
+  const onClick = useCallback(() => run({ isSingle: singleDatasetMode }), [run, singleDatasetMode])
+
   const isAnalysisRunning = useRecoilValue(isAnalysisRunningAtom)
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)

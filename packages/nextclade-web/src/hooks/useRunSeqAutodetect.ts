@@ -1,6 +1,8 @@
 import type { Subscription } from 'observable-fns'
-import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { useCallback } from 'react'
+import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import { axiosFetch } from 'src/io/axiosFetch'
 import { fetchDatasetsIndex } from 'src/io/fetchDatasetsIndex'
 import {
@@ -11,12 +13,9 @@ import {
   autodetectRunStateAtom,
   autodetectShouldSetCurrentDatasetAtom,
   minimizerIndexAtom,
-  datasetNameToSeqIndicesAtom,
-  seqIndexToTopDatasetNameAtom,
-  seqIndicesWithoutDatasetSuggestionsAtom,
+  autodetectErrorAtom,
 } from 'src/state/autodetect.state'
 import { datasetServerUrlAtom, minimizerIndexVersionAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { globalErrorAtom } from 'src/state/error.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
 import { DatasetsIndexJson, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
@@ -28,15 +27,23 @@ export interface AutosuggestionParams {
 }
 
 export function useRunSeqAutodetect(params?: AutosuggestionParams) {
+  const suggestAsync = useRunSeqAutodetectAsync(params)
+  return useCallback(() => {
+    void suggestAsync() // eslint-disable-line no-void
+  }, [suggestAsync])
+}
+
+export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
-      () => {
+      async () => {
         const snapshotRelease = snapshot.retain()
         const { getPromise } = snapshot
 
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
         reset(autodetectRunStateAtom)
+        reset(autodetectErrorAtom)
         reset(autodetectShouldSetCurrentDatasetAtom)
         reset(allDatasetSuggestionResultsAtom)
         reset(viewedDatasetNameAtom)
@@ -49,11 +56,12 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 
         function onError(error: Error) {
           set(autodetectRunStateAtom, AutodetectRunState.Failed)
-          set(globalErrorAtom, error)
+          set(autodetectErrorAtom, error)
         }
 
         function onComplete() {
           set(autodetectRunStateAtom, AutodetectRunState.Done)
+          reset(autodetectErrorAtom)
           set(autodetectShouldSetCurrentDatasetAtom, params?.shouldSetCurrentDataset ?? false)
         }
 
@@ -64,7 +72,7 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 
         set(autodetectRunStateAtom, AutodetectRunState.Started)
 
-        Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
+        return Promise.all([getPromise(qrySeqInputsStorageAtom), getPromise(minimizerIndexVersionAtom)])
           .then(async ([qrySeqInputs, minimizerIndexVersion]) => {
             if (!minimizerIndexVersion) {
               throw new ErrorInternal('Tried to run minimizer search without minimizer index available')
@@ -78,11 +86,12 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 
             return runAutodetect(fasta, index, minimizerIndex, { onResult, onError, onComplete, onBestResults })
           })
+          .catch((error: unknown) => {
+            onError(sanitizeError(error))
+            throw error
+          })
           .finally(() => {
             snapshotRelease()
-          })
-          .catch((error) => {
-            throw error
           })
       },
     [params?.shouldSetCurrentDataset],
@@ -221,55 +230,55 @@ export class SeqAutodetectWasmWorker {
 //   return new Map(Array.from(seqToDatasets, ([seqIndex, datasets]) => [seqIndex, datasets[0]]))
 // }
 
-export interface SuggestionResultsGrouped {
-  // datasetsActive: Dataset[]
-  // datasetsInactive: Dataset[]
-  // topSuggestion?: Dataset
-  // showSuggestions: boolean
-  // numSuggestions: number
-  // autodetectResults: MinimizerSearchRecord[] | undefined
-  // suggestionResults: DatasetSuggestionResult[] | undefined
-  // datasetToSeqs: Record<string, MinimizerSearchRecordGroup>
-  datasetNameToSeqIndices: Map<string, number[]>
-  // seqToDatasets: Map<number, DatasetScored[]>
-  // seqToTopDataset: Map<number, DatasetScored | undefined>
-  seqIndexToTopDatasetName: Map<number, string>
-  seqIndicesWithoutDatasetSuggestions: number[]
-  // topDatasets: Dataset[]
-  // topDatasetNames: string[]
-}
+// export interface SuggestionResultsGrouped {
+//   // datasetsActive: Dataset[]
+//   // datasetsInactive: Dataset[]
+//   // topSuggestion?: Dataset
+//   // showSuggestions: boolean
+//   // numSuggestions: number
+//   // autodetectResults: MinimizerSearchRecord[] | undefined
+//   // suggestionResults: DatasetSuggestionResult[] | undefined
+//   // datasetToSeqs: Record<string, MinimizerSearchRecordGroup>
+//   datasetNameToSeqIndices: Map<string, number[]>
+//   // seqToDatasets: Map<number, DatasetScored[]>
+//   // seqToTopDataset: Map<number, DatasetScored | undefined>
+//   seqIndexToTopDatasetName: Map<number, string>
+//   seqIndicesWithoutDatasetSuggestions: number[]
+//   // topDatasets: Dataset[]
+//   // topDatasetNames: string[]
+// }
 
-export function useDatasetSuggestionResults(): SuggestionResultsGrouped {
-  // const datasets = useRecoilValue(datasetsAtom)
-  // const bestDatasets = useRecoilValue(allDatasetSuggestionResultsAtom)
-
-  // const bestDatasetNameForSequence = useRecoilValue(bestDatasetNameForSequenceAtom)
-  // const bestDatasetForSequence = useRecoilValue(bestDatasetForSequenceAtom)
-  // const topDatasetNames = useRecoilValue(topSuggestedDatasetNamesAtom)
-  // const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
-  const seqIndexToTopDatasetName = useRecoilValue(seqIndexToTopDatasetNameAtom)
-  const seqIndicesWithoutDatasetSuggestions = useRecoilValue(seqIndicesWithoutDatasetSuggestionsAtom)
-  const datasetNameToSeqIndices = useRecoilValue(datasetNameToSeqIndicesAtom)
-
-  // return useMemo(() => processSuggestionResults(datasets, autodetectResults), [autodetectResults, datasets])
-  return {
-    // datasetsActive,
-    // datasetsInactive,
-    // topSuggestion,
-    // showSuggestions,
-    // numSuggestions,
-    // autodetectResults,
-    // suggestionResults,
-    // datasetToSeqs,
-    datasetNameToSeqIndices,
-    // seqToDatasets,
-    // seqToTopDataset,
-    seqIndexToTopDatasetName,
-    seqIndicesWithoutDatasetSuggestions,
-    // topDatasets,
-    // topDatasetNames,
-  }
-}
+// export function useDatasetSuggestionResults(): SuggestionResultsGrouped {
+//   // const datasets = useRecoilValue(datasetsAtom)
+//   // const bestDatasets = useRecoilValue(allDatasetSuggestionResultsAtom)
+//
+//   // const bestDatasetNameForSequence = useRecoilValue(bestDatasetNameForSequenceAtom)
+//   // const bestDatasetForSequence = useRecoilValue(bestDatasetForSequenceAtom)
+//   // const topDatasetNames = useRecoilValue(topSuggestedDatasetNamesAtom)
+//   // const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
+//   const seqIndexToTopDatasetName = useRecoilValue(seqIndexToTopDatasetNameAtom)
+//   const seqIndicesWithoutDatasetSuggestions = useRecoilValue(seqIndicesWithoutDatasetSuggestionsAtom)
+//   const datasetNameToSeqIndices = useRecoilValue(datasetNameToSeqIndicesAtom)
+//
+//   // return useMemo(() => processSuggestionResults(datasets, autodetectResults), [autodetectResults, datasets])
+//   return {
+//     // datasetsActive,
+//     // datasetsInactive,
+//     // topSuggestion,
+//     // showSuggestions,
+//     // numSuggestions,
+//     // autodetectResults,
+//     // suggestionResults,
+//     // datasetToSeqs,
+//     datasetNameToSeqIndices,
+//     // seqToDatasets,
+//     // seqToTopDataset,
+//     seqIndexToTopDatasetName,
+//     seqIndicesWithoutDatasetSuggestions,
+//     // topDatasets,
+//     // topDatasetNames,
+//   }
+// }
 
 // export function processSuggestionResults(
 //   datasets: Dataset[],

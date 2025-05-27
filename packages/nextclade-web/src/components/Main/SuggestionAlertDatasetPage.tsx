@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { UncontrolledAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { SuggestionError } from 'src/components/Main/SuggestionError'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AutodetectRunState, autodetectRunStateAtom, numberTopSuggestedDatasetsAtom } from 'src/state/autodetect.state'
@@ -36,11 +37,7 @@ export function SuggestionAlertDatasetPage({ ...restProps }) {
       }
     }
     if (autodetectRunState === AutodetectRunState.Failed) {
-      return (
-        <Alert closeClassName="d-none" fade={false} color="danger">
-          <p className="small">{t('Suggestion algorithm failed. Please report this to developers.')}</p>
-        </Alert>
-      )
+      return <SuggestionError />
     }
 
     return null

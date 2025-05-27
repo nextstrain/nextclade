@@ -7,12 +7,10 @@ import { DatasetMultiList } from 'src/components/Main/DatasetMultiList'
 import { ButtonRun } from 'src/components/Main/ButtonRun'
 import { ButtonSuggest, SuggestionPanel } from 'src/components/Main/SuggestionPanel'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { isAutodetectRunningAtom, topSuggestedDatasetsAtom } from 'src/state/autodetect.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 
 export function SectionDatasetMulti() {
-  const run = useRunAnalysis({ isSingle: false })
   const topDatasets = useRecoilValue(topSuggestedDatasetsAtom)
 
   const content = useMemo(() => {
@@ -30,12 +28,12 @@ export function SectionDatasetMulti() {
 
         <Row noGutters className="my-1">
           <Col className="d-flex w-100">
-            <ButtonRun className="ml-auto" onClick={run} singleDatasetMode={false} />
+            <ButtonRun className="ml-auto" singleDatasetMode={false} />
           </Col>
         </Row>
       </>
     )
-  }, [run, topDatasets])
+  }, [topDatasets])
 
   return (
     <Container>
