@@ -23,7 +23,7 @@ export function getErrorStackText(error?: Error) {
 }
 
 export function getComponentStackText(errorInfo?: ErrorInfo) {
-  return errorInfo?.componentStack.replace(/webpack-internal:\/{3}\.\//g, '')?.replace(/https?:\/\/(.+):\d+\//g, '')
+  return errorInfo?.componentStack?.replace(/webpack-internal:\/{3}\.\//g, '')?.replace(/https?:\/\/(.+):\d+\//g, '')
 }
 
 export function getErrorReportText(error: Error, errorInfo?: ErrorInfo) {

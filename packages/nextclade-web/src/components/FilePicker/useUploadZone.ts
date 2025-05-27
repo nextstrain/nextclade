@@ -1,7 +1,6 @@
-import { TFunction } from 'i18next'
 import { useState } from 'react'
 import { FileRejection, useDropzone } from 'react-dropzone'
-import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
+import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { theme } from 'src/theme'
 import { DefaultTheme } from 'styled-components'
@@ -19,7 +18,7 @@ export interface UseUploadZoneParams {
 }
 
 export function useUploadZone({ onUpload, multiple = false }: UseUploadZoneParams) {
-  const { t } = useTranslation()
+  const { t } = useTranslationSafe()
   const [errors, setErrors] = useState<string[]>([])
   const hasErrors = errors.length > 0
 
@@ -36,7 +35,7 @@ export function useUploadZone({ onUpload, multiple = false }: UseUploadZoneParam
 }
 
 export interface MakeOnDropParams {
-  t: TFunction
+  t: TFunc
   onUpload(files: File[]): void
   setErrors(updateErrors: string[] | ((prevErrors: string[]) => string[])): void
   multiple: boolean

@@ -30,8 +30,8 @@ import { isInitializedAtom } from 'src/state/settings.state'
 import { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
-import { QueryClient, QueryClientConfig, QueryClientProvider } from 'react-query'
-import { ReactQueryDevtools } from 'react-query/devtools'
+import { QueryClient, QueryClientConfig, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
@@ -176,7 +176,7 @@ function RecoilStateInitializer() {
 }
 
 const REACT_QUERY_OPTIONS: QueryClientConfig = {
-  defaultOptions: { queries: { suspense: true, retry: 1 } },
+  defaultOptions: { queries: { retry: 1 } },
 }
 
 export function MyApp({ Component, pageProps, router }: AppProps) {

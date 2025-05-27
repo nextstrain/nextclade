@@ -5,7 +5,7 @@ import { intersection } from 'src/helpers/setOperations'
 
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
-import AutoSizerBase from 'react-virtualized-auto-sizer'
+import AutoSizerBase, { Size } from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { datasetNameToSeqIndicesAtom } from 'src/state/autodetect.state'
 import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
@@ -425,7 +425,7 @@ export function ResultsTable() {
       </TableHeaderRow>
 
       <AutoSizer>
-        {({ width, height }) => {
+        {({ width, height }: Size) => {
           return (
             <FixedSizeList
               overscanCount={10}

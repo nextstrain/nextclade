@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { ReactElement } from 'react'
 
-export function truncateList(list: JSX.Element[], maxLength: number, text: string) {
+export function truncateList(list: ReactElement[], maxLength: number, text: string) {
   let result = list
   if (list.length > maxLength) {
     result = result.slice(0, maxLength)

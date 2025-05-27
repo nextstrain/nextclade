@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios'
+import { AxiosError, AxiosHeaders } from 'axios'
 import { get, head, isNil, mapValues, sortBy, sortedUniq } from 'lodash'
 import semver from 'semver'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
@@ -69,7 +69,7 @@ export async function fetchDatasetsIndex(datasetServerUrl: string) {
         new AxiosError(
           `When attempted to fetch dataset index: The current dataset server at '${datasetServerUrl}' contains 'index_v2.json' file used in Nextclade v2, but does not contain 'index.json' file required for Nextclade v3.`,
           get(error, 'status'),
-          { url },
+          { url, headers: new AxiosHeaders() },
         ),
       )
     } else {
@@ -77,7 +77,7 @@ export async function fetchDatasetsIndex(datasetServerUrl: string) {
         new AxiosError(
           `When attempted to fetch dataset index: The current dataset server '${datasetServerUrl}' does not contain 'index.json' file required for Nextclade v3 to operate or the server is not reachable. Please make sure that 'dataset-server' URL parameter contains valid dataset server URL or remove the parameter.`,
           get(error, 'status'),
-          { url },
+          { url, headers: new AxiosHeaders() },
         ),
       )
     }

@@ -7,23 +7,23 @@
  *
  */
 import { serial } from 'fasy'
-import fs from 'fs-extra'
+import { readFile, readJson, rm, writeFile, writeJson } from 'fs-extra'
 import glob from 'glob'
 import { promisify } from 'util'
 
 export async function replace(filename: string, searchValue: string | RegExp, replaceValue = '') {
-  const content = await fs.readFile(filename, 'utf8')
+  const content = await readFile(filename, 'utf8')
   const newContent = content.replace(searchValue, replaceValue)
-  await fs.writeFile(filename, newContent, { encoding: 'utf8' })
+  await writeFile(filename, newContent, { encoding: 'utf8' })
 }
 
 /** Strips timerStart() and timerEnd() calls from Auspice */
 export async function removeAuspiceTimers() {
-  await fs.rm('node_modules/auspice/src/util/perf.js', { force: true })
+  await rm('node_modules/auspice/src/util/perf.js', { force: true })
 
   const files = await promisify(glob)('node_modules/auspice/src/**/*.js')
 
-  await serial.forEach(async (file) => {
+  await serial.forEach(async (file: string) => {
     await replace(file, /.*(timerStart|timerEnd)\(".+"\);.*\n/g, '')
     await replace(file, /.*import { timerStart, timerEnd }.*\n/g, '')
   }, files)
@@ -93,15 +93,15 @@ export async function main() {
       ],
     ),
 
-    // Fast refresh messages in browser console
-    replace(
-      'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
-      "console.log('[Fast Refresh] rebuilding');",
-    ),
-    replace(
-      'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
-      'console.log(`[Fast Refresh] done in ${latency}ms`);',
-    ),
+    // // Fast refresh messages in browser console
+    // replace(
+    //   'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
+    //   "console.log('[Fast Refresh] rebuilding');",
+    // ),
+    // replace(
+    //   'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
+    //   'console.log(`[Fast Refresh] done in ${latency}ms`);',
+    // ),
 
     replace(
       'node_modules/next/dist/server/base-server.js',
@@ -141,11 +141,11 @@ export async function main() {
     'Log.event(`compiled${partialMessage} successfully${timeMessage}${modulesMessage}`);',
   )
 
-  // From fork-ts-checker-webpack-plugin
-  await replace(
-    'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tapDoneToAsyncGetIssues.js',
-    "configuration.logger.issues.log(chalk_1.default.cyan('Issues checking in progress...'));",
-  )
+  // // From fork-ts-checker-webpack-plugin
+  // await replace(
+  //   'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tapDoneToAsyncGetIssues.js',
+  //   "configuration.logger.issues.log(chalk_1.default.cyan('Issues checking in progress...'));",
+  // )
 
   // Auspice: Remove requires for '@extensions' modules from `extensions.js`
   // Reason: We don't use extensions and don't want to setup webpack aliases for that.
@@ -153,6 +153,58 @@ export async function main() {
     'node_modules/auspice/src/util/extensions.ts',
     'extensions[key] = require(`@extensions/${extensions[key]}`).default;',
   )
+
+  // await patchThreadsJs()
 }
+
+// async function patchThreadsJs() {
+//   const pkgPath = 'node_modules/threads/package.json'
+//   const pkg = await readJson(pkgPath)
+//   pkg.exports = {
+//     ...pkg.exports,
+//     '.': {
+//       require: './dist/index.js',
+//       import: './dist-esm/index.js',
+//       types: './dist/index.d.ts',
+//     },
+//     './observable': {
+//       require: './observable.js',
+//       import: './dist-esm/observable.mjs',
+//       default: './observable.mjs',
+//       types: './observable.d.ts',
+//     },
+//     './register': {
+//       require: './register.js',
+//       import: './register.mjs',
+//       types: './dist/register.d.ts',
+//     },
+//     './worker': {
+//       require: './dist/worker/index.js',
+//       import: './dist-esm/worker/index.js',
+//       types: './dist/worker/index.d.ts',
+//     },
+//     './master/pool': {
+//       require: './dist/master/pool.js',
+//       import: './dist-esm/master/pool.js',
+//       types: './dist/master/pool.d.ts',
+//     },
+//     './master/pool-types': {
+//       require: './dist/master/pool-types.js',
+//       import: './dist-esm/master/pool-types.js',
+//       types: './dist/master/pool-types.d.ts',
+//     },
+//     './pool': {
+//       require: './dist/master/pool.js',
+//       import: './dist-esm/master/pool.js',
+//       types: './dist/master/pool.d.ts',
+//     },
+//     './pool-types': {
+//       require: './dist/master/pool-types.js',
+//       import: './dist-esm/master/pool-types.js',
+//       types: './dist/master/pool-types.d.ts',
+//     },
+//   }
+//   await writeJson(pkgPath, pkg, { spaces: 2 })
+// }
 
 main().catch(console.error)

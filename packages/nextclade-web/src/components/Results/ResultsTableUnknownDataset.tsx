@@ -1,7 +1,7 @@
 import React, { CSSProperties, useMemo } from 'react'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import AutoSizerBase from 'react-virtualized-auto-sizer'
+import AutoSizerBase, { Size } from 'react-virtualized-auto-sizer'
 import { seqIndicesWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
@@ -96,7 +96,7 @@ export function ResultsTableUnknownDataset() {
       </TableHeaderRow>
 
       <AutoSizer>
-        {({ width, height }) => {
+        {({ width, height }: Size) => {
           return (
             <FixedSizeList
               overscanCount={10}

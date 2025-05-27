@@ -1,0 +1,11 @@
+{
+  "name": "eslint-formatter-friendly",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@babel/code-frame": "^7.24.7",
+    "chalk": "^5.3.0"
+  }
+}

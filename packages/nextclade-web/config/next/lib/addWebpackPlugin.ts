@@ -1,21 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { NextConfig, WebpackConfigContext } from 'next'
-import type { Compiler, Configuration, WebpackPluginFunction, WebpackPluginInstance } from 'webpack'
-
+import type { NextConfig } from 'next'
+import type { WebpackConfigContext } from 'next/dist/server/config-shared'
+import { Configuration, WebpackPluginInstance } from 'webpack'
 import { addWebpackConfig } from './addWebpackConfig'
 
-export function addWebpackPlugin(
-  nextConfig: NextConfig,
-  plugin: WebpackPluginInstance | WebpackPluginFunction | ((this: Compiler, compiler: Compiler) => void) | any,
-) {
+export function addWebpackPlugin(nextConfig: NextConfig, plugin: unknown) {
   return addWebpackConfig(
     nextConfig,
-    (nextConfig: NextConfig, webpackConfig: Configuration, { isServer }: WebpackConfigContext) => {
+    (_: NextConfig, webpackConfig: Configuration, { isServer }: WebpackConfigContext) => {
       if (!isServer) {
-        if (webpackConfig?.plugins) {
-          webpackConfig.plugins.push(plugin)
+        if (webpackConfig.plugins) {
+          webpackConfig.plugins.push(plugin as WebpackPluginInstance)
         } else {
-          return { plugins: [plugin] }
+          return { plugins: [plugin as WebpackPluginInstance] }
         }
       }
       return webpackConfig

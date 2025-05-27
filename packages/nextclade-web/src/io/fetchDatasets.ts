@@ -19,7 +19,7 @@ import {
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { datasetsAtom, datasetServerUrlAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
 import { URL_GITHUB_DATA_RAW } from 'src/constants'
@@ -132,23 +132,20 @@ export function useUpdatedDatasetIndex() {
   const setDatasetsState = useSetRecoilState(datasetsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
-  useQuery(
-    'refetchDatasetIndex',
-    async () => {
+  useQuery({
+    queryKey: ['refetchDatasetIndex'],
+    queryFn: async () => {
       const { minimizerIndexVersion, datasets } = await initializeDatasets(datasetServerUrl)
       setDatasetsState(datasets)
       setMinimizerIndexVersion(minimizerIndexVersion)
     },
-    {
-      suspense: false,
-      staleTime: 0,
-      refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
-      refetchIntervalInBackground: true,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      refetchOnWindowFocus: true,
-    },
-  )
+    staleTime: 0,
+    refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
+    refetchIntervalInBackground: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
+  })
 }
 
 /**

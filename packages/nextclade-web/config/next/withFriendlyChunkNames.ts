@@ -1,5 +1,4 @@
 import { unset } from 'lodash'
-
 import type { NextConfig } from 'next'
 import { addWebpackConfig } from './lib/addWebpackConfig'
 

@@ -137,9 +137,9 @@ jobs:
             packages/nextclade-web/.build/production/tmp/cache
             packages/nextclade-web/.cache
             packages/nextclade-web/node_modules
-          key: cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
+          key: cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
-            cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/yarn.lock') }}
+            cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/bun.lock') }}
             cache-v1-web-${{ runner.os }}-wasm32-unknown-unknown-
             cache-v1-web-${{ runner.os }}-
 
@@ -162,7 +162,7 @@ jobs:
 
       - name: "Install Node.js packages"
         run: |
-          ./docker/dev web yarn install
+          ./docker/dev web bun install
 
       - name: "Build WebAssembly module"
         run: |
@@ -174,7 +174,7 @@ jobs:
 
       - name: "Lint web app code"
         run: |
-          ./docker/dev web yarn lint:ci
+          ./docker/dev web bun lint:ci
 
       - name: "Lint Rust code"
         run: |

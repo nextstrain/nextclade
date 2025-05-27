@@ -38,7 +38,7 @@ export function devError() {
   // prettier-ignore
   return `Developer error: environment variable "FULL_DOMAIN" was set to "autodetect", but automatic domain detection failed.
 
-  If you build on your local computer, make sure you are running \`yarn dev\` or \`yarn prod:watch\` from an interactive terminal session. In this case the domain will be set to localhost.
+  If you build on your local computer, make sure you are running \`bun dev\` or \`bun prod:watch\` from an interactive terminal session. In this case the domain will be set to localhost.
 
   If this is a CI build, here is the list of the environment variables where domain name is being looked for (in this order) along with their current values: ${listEnvVars(ENV_VARS)}
 
