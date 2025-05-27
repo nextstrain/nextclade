@@ -1,4 +1,4 @@
-## Unreleased
+## 3.14.0
 
 ### Nextclade Web: multi-dataset mode
 
