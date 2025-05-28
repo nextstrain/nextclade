@@ -303,12 +303,15 @@ ENV CXX_x86_64-unknown-linux-gnu=g++
 # Cross-compilation for Linux x86_64 with libmusl
 FROM base as cross-x86_64-unknown-linux-musl
 
+ARG MUSL_CC_X86_64_URL
+ENV MUSL_CC_X86_64_URL="${MUSL_CC_X86_64_URL}"
+
 USER 0
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
+&& curl -fsSL "${MUSL_CC_X86_64_URL}" | tar -C "/usr" -xz --strip-components=1
 
 USER ${UID}
 
@@ -363,12 +366,15 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 # Cross-compilation for Linux ARM64 with libmusl
 FROM base as cross-aarch64-unknown-linux-musl
 
+ARG MUSL_CC_AARCH64_URL
+ENV MUSL_CC_AARCH64_URL=${MUSL_CC_AARCH64_URL}
+
 USER 0
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
+&& curl -fsSL "${MUSL_CC_AARCH64_URL}" | tar -C "/usr" -xz --strip-components=1
 
 USER ${UID}
 
