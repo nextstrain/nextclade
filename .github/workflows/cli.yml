@@ -158,6 +158,8 @@ jobs:
 
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_AARCH64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz|MUSL_CC_AARCH64_URL=${{ secrets.MUSL_CC_AARCH64_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_X86_64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz|MUSL_CC_X86_64_URL=${{ secrets.MUSL_CC_X86_64_URL }}|g" .env
           sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
       - name: "Login to Docker Hub"
@@ -226,6 +228,8 @@ jobs:
         run: |
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_AARCH64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz|MUSL_CC_AARCH64_URL=${{ secrets.MUSL_CC_AARCH64_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_X86_64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz|MUSL_CC_X86_64_URL=${{ secrets.MUSL_CC_X86_64_URL }}|g" .env
 
       - name: "Run unit tests"
         run: |
@@ -275,6 +279,8 @@ jobs:
         run: |
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_AARCH64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz|MUSL_CC_AARCH64_URL=${{ secrets.MUSL_CC_AARCH64_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_X86_64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz|MUSL_CC_X86_64_URL=${{ secrets.MUSL_CC_X86_64_URL }}|g" .env
 
       - name: "Run lints"
         run: |
