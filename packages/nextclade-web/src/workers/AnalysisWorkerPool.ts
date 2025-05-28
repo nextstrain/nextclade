@@ -1,6 +1,6 @@
 import { concurrent } from 'fasy'
 import type { AnalysisInitialData, AnalysisResult, FastaRecord, NextcladeParamsRaw, OutputTrees } from 'src/types'
-import type { NextcladeWasmThread, NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
+import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
 import { PoolExtended } from 'src/workers/ThreadPoolExtended'
 
 export class AnalysisWorkerPool {
@@ -31,11 +31,11 @@ export class AnalysisWorkerPool {
   }
 
   public async getInitialData(datasetName: string): Promise<AnalysisInitialData> {
-    return this.pool.queue((worker: NextcladeWasmWorker) => worker.getInitialData(datasetName))
+    return this.pool.queue((worker) => worker.getInitialData(datasetName))
   }
 
   public async analyze(datasetName: string, record: FastaRecord) {
-    const result = await this.pool.queue((worker: NextcladeWasmWorker) => worker.analyze(datasetName, record))
+    const result = await this.pool.queue((worker) => worker.analyze(datasetName, record))
 
     if (result.result) {
       this.results.push(result.result.analysisResult)
@@ -45,15 +45,14 @@ export class AnalysisWorkerPool {
   }
 
   public async getOutputTrees(datasetNames: string[]): Promise<Record<string, OutputTrees | undefined | null>> {
-    return Object.fromEntries(
-      await concurrent.map(async (datasetName) => {
-        const resultsForDataset = this.results.filter((r) => r.datasetName === datasetName)
-        const tree = await this.pool.queue((worker: NextcladeWasmWorker) =>
-          worker.getOutputTrees(datasetName, JSON.stringify(resultsForDataset)),
-        )
-        return [datasetName, tree]
-      }, datasetNames),
-    )
+    const entries = await concurrent.map(async (datasetName) => {
+      const resultsForDataset = this.results.filter((r) => r.datasetName === datasetName)
+      const tree = await this.pool.queue<OutputTrees | undefined | null>((worker: NextcladeWasmThread) =>
+        worker.getOutputTrees(datasetName, JSON.stringify(resultsForDataset)),
+      )
+      return [datasetName, tree]
+    }, datasetNames)
+    return Object.fromEntries(entries)
   }
 
   public async destroy() {

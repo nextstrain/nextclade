@@ -45,7 +45,7 @@ export class PoolExtended<ThreadType extends Thread> {
     return this.pool.events()
   }
 
-  public async queue<Return>(task: TaskRunFunction<ThreadType, Return>) {
+  public async queue<Return>(task: TaskRunFunction<ThreadType, Return>): Promise<Return> {
     return this.pool.queue(task)
   }
 
