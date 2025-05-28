@@ -172,7 +172,7 @@ function RecoilStateInitializer() {
         snapShotRelease()
       })
     },
-    [initialized, run, setInitialized, urlQuery],
+    [initialized, run, setInitialized, suggest, urlQuery],
   )
 
   useEffect(() => {
