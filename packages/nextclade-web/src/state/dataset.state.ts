@@ -7,8 +7,9 @@ import { persistAtom } from 'src/state/persist/localStorage'
 
 export const UNKNOWN_DATASET_NAME = '__UNKNOWN__' as const
 
-export const datasetServerUrlAtom = atom<string>({
+export const datasetServerUrlAtom = atom<string | undefined>({
   key: 'datasetServerUrlAtom',
+  default: undefined,
 })
 
 export const datasetsAtom = atom<Dataset[]>({

@@ -99,6 +99,7 @@ function RecoilStateInitializer() {
 
         const datasetInfo = await fetchSingleDataset(urlQuery)
         if (!isNil(datasetInfo)) {
+          set(datasetServerUrlAtom, undefined)
           const { datasets, currentDataset, auspiceJson } = datasetInfo
           return { datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
         }
