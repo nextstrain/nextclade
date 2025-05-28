@@ -1,3 +1,10 @@
+## 3.14.1
+
+### Nextclade Web: crash with custom datasets
+
+When a custom dataset is provided through `?dataset-url`, Nextclade Web could crash under certain conditions. This has been fixed.
+
+
 ## 3.14.0
 
 ### Nextclade Web: multi-dataset mode
