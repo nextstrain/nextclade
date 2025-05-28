@@ -35,6 +35,8 @@ const env = {
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
   DATA_TRY_GITHUB_BRANCH,
+  PACKAGE_NAME: pkg.name,
+  PACKAGE_VERSION: pkg.version,
 }
 
 const appJson = {
@@ -78,7 +80,7 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   poweredByHeader: false,
-  transpilePackages: ['auspice'],
+  transpilePackages: ['auspice', 'semver'],
   env,
 }
 

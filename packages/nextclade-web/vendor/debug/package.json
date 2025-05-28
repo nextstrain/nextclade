@@ -1,0 +1,8 @@
+{
+  "name": "debug",
+  "description": "Empty module to replace 'debug' package with a no-op",
+  "main": "index.js",
+  "type": "commonjs",
+  "private": true,
+  "version": "0.0.0"
+}

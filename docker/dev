@@ -516,7 +516,7 @@ elif [ "${WEB}" == "1" ]; then
 #    PORTS="-p ${WEB_PORT_PROD}:${WEB_PORT_PROD}"
 #  fi
   COMMAND=${COMMAND:=bun install && bun ${RELEASE}}
-  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
+  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && mkdir -p .cache && ${COMMAND}\""
 elif [ "${TEST}" == "1" ]; then
     COMMAND="cargo -q nextest run --cargo-quiet --no-fail-fast --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} -- ${*:-} ${SUCCESS_OR_FAILURE}"
 elif [ "${BENCH}" == "1" ]; then

@@ -8,8 +8,7 @@
  */
 import { serial } from 'fasy'
 import { readFile, readJson, rm, writeFile, writeJson } from 'fs-extra'
-import glob from 'glob'
-import { promisify } from 'util'
+import { globby } from 'globby'
 
 export async function replace(filename: string, searchValue: string | RegExp, replaceValue = '') {
   const content = await readFile(filename, 'utf8')
@@ -21,7 +20,7 @@ export async function replace(filename: string, searchValue: string | RegExp, re
 export async function removeAuspiceTimers() {
   await rm('node_modules/auspice/src/util/perf.js', { force: true })
 
-  const files = await promisify(glob)('node_modules/auspice/src/**/*.js')
+  const files = await globby('node_modules/auspice/src/**/*.js')
 
   await serial.forEach(async (file: string) => {
     await replace(file, /.*(timerStart|timerEnd)\(".+"\);.*\n/g, '')

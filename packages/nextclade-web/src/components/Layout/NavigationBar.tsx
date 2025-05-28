@@ -236,7 +236,7 @@ export function NavigationBar() {
   return (
     <Navbar light role="navigation">
       <Nav>
-        <NavbarBrand tag={Link} href="/">
+        <NavbarBrand legacyBehavior tag={Link} href="/">
           <BrandLogo />
           <BrandText className="d-none d-md-block" />
         </NavbarBrand>
