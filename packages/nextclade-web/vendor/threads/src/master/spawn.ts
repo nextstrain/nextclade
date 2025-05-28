@@ -1,4 +1,3 @@
-import DebugLogger from "debug"
 import { Observable } from "observable-fns"
 import { deserialize } from "../common"
 import { createPromiseWithResolver } from "../promise"
@@ -31,7 +30,7 @@ export type ExposedToThreadType<Exposed extends WorkerFunction | WorkerModule<an
   ? ModuleThread<Exposed>
   : never
 
-
+const DebugLogger = (..._args: unknown[]) => (..._args2: unknown[]) => {};
 const debugMessages = DebugLogger("threads:master:messages")
 const debugSpawn = DebugLogger("threads:master:spawn")
 const debugThreadUtils = DebugLogger("threads:master:thread-utils")

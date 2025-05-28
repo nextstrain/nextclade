@@ -1,4 +1,3 @@
-import DebugLogger from "debug"
 import { multicast, Observable, Subject } from "observable-fns"
 import { allSettled } from "../ponyfills"
 import { defaultPoolSize } from "./implementation"
@@ -10,6 +9,8 @@ import {
   WorkerDescriptor
 } from "./pool-types"
 import { Thread } from "./thread"
+
+const DebugLogger = (..._args: unknown[]) => (..._args2: unknown[]) => {};
 
 export { PoolEvent, PoolEventType, QueuedTask, Thread }
 
@@ -114,7 +115,7 @@ export interface PoolOptions {
 class WorkerPool<ThreadType extends Thread> implements Pool<ThreadType> {
   public static EventType = PoolEventType
 
-  private readonly debug: DebugLogger.Debugger
+  private readonly debug: (...args: any[]) => void;
   private readonly eventObservable: Observable<PoolEvent<ThreadType>>
   private readonly options: PoolOptions
   private readonly workers: Array<WorkerDescriptor<ThreadType>>

@@ -5,7 +5,6 @@
  * Keep in mind that this code can make or break the program's performance! Need to optimize more…
  */
 
-import DebugLogger from "debug"
 import { multicast, Observable } from "observable-fns"
 import { deserialize, serialize } from "../common"
 import { ObservablePromise } from "../observable-promise"
@@ -26,6 +25,7 @@ import {
   WorkerMessageType
 } from "../types/messages"
 
+const DebugLogger = (..._args: unknown[]) => (..._args2: unknown[]) => {};
 const debugMessages = DebugLogger("threads:master:messages")
 
 let nextJobUID = 1
