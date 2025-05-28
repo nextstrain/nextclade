@@ -1,6 +1,7 @@
+import { isNil } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useCallback } from 'react'
-import { useRecoilCallback } from 'recoil'
+import { useRecoilCallback, useRecoilValue } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { axiosFetch } from 'src/io/axiosFetch'
@@ -34,9 +35,15 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 }
 
 export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
+  const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
+
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
       async () => {
+        if (isNil(datasetServerUrl)) {
+          return undefined
+        }
+
         const snapshotRelease = snapshot.retain()
         const { getPromise } = snapshot
 
@@ -81,7 +88,6 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
             const minimizerIndex: MinimizerIndexJson = await axiosFetch(minimizerIndexVersion.path)
             set(minimizerIndexAtom, minimizerIndex)
 
-            const datasetServerUrl = await getPromise(datasetServerUrlAtom)
             const index = await fetchDatasetsIndex(datasetServerUrl)
 
             return runAutodetect(fasta, index, minimizerIndex, { onResult, onError, onComplete, onBestResults })
@@ -94,7 +100,7 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
             snapshotRelease()
           })
       },
-    [params?.shouldSetCurrentDataset],
+    [datasetServerUrl, params?.shouldSetCurrentDataset],
   )
 }
 
