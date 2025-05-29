@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
-import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+import { useResizeDetector, Dimensions } from 'react-resize-detector'
+import type { StrictOmit } from 'ts-essentials'
 import { useRecoilValue } from 'recoil'
 import { REF_NODE_ROOT } from 'src/constants'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
@@ -9,11 +10,11 @@ import { SequenceViewAbsolute } from './SequenceViewAbsolute'
 import { SequenceViewRelative } from './SequenceViewRelative'
 import { SequenceViewWrapper } from './SequenceViewStyles'
 
-export interface SequenceViewProps extends ReactResizeDetectorDimensions {
+export interface SequenceViewProps extends Dimensions {
   sequence: AnalysisResult
 }
 
-export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
+function SequenceViewUnsized({ sequence, width }: { sequence: AnalysisResult; width?: number }) {
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName })) ?? REF_NODE_ROOT
 
@@ -30,6 +31,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   return <SequenceViewWrapper>{view}</SequenceViewWrapper>
 }
 
-export const SequenceViewUnmemoed = withResizeDetector(SequenceViewUnsized)
-
-export const SequenceView = React.memo(SequenceViewUnmemoed)
+export function SequenceView({ sequence }: StrictOmit<SequenceViewProps, 'width' | 'height'>) {
+  const { width } = useResizeDetector({ handleWidth: true })
+  return <SequenceViewUnsized sequence={sequence} width={width} />
+}

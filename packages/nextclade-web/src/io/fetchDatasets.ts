@@ -138,6 +138,7 @@ export function useUpdatedDatasetIndex() {
       const { minimizerIndexVersion, datasets } = await initializeDatasets(datasetServerUrl)
       setDatasetsState(datasets)
       setMinimizerIndexVersion(minimizerIndexVersion)
+      return { minimizerIndexVersion, datasets }
     },
     staleTime: 0,
     refetchInterval: 2 * 60 * 60 * 1000, // 2 hours

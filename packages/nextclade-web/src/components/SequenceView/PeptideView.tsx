@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+import { useResizeDetector, Dimensions } from 'react-resize-detector'
+import type { StrictOmit } from 'ts-essentials'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
@@ -57,13 +58,13 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
   )
 }
 
-export interface PeptideViewProps extends ReactResizeDetectorDimensions {
+export interface PeptideViewProps extends Dimensions {
   sequence: AnalysisResult
   warnings?: PeptideWarning[]
   cdsName: string
 }
 
-export function PeptideViewUnsized({ width, sequence, warnings, cdsName }: PeptideViewProps) {
+export function PeptideViewUnsized({ width, sequence, warnings = [], cdsName }: PeptideViewProps) {
   const { t } = useTranslationSafe()
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName })) ?? REF_NODE_ROOT
@@ -76,7 +77,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, cdsName }: Pepti
     if (!cds) {
       return <>{t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: cdsName })}</>
     }
-    const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === cdsName)
+    const warningsForThisGene = warnings.filter((warn) => warn.cdsName === cdsName)
     if (warningsForThisGene.length > 0) {
       return <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
     }
@@ -89,6 +90,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, cdsName }: Pepti
   return <SequenceViewWrapper>{view}</SequenceViewWrapper>
 }
 
-export const PeptideViewUnmemoed = withResizeDetector(PeptideViewUnsized)
-
-export const PeptideView = React.memo(PeptideViewUnmemoed)
+export function PeptideView(props: StrictOmit<PeptideViewProps, 'width' | 'height'>) {
+  const { width } = useResizeDetector({ handleWidth: true })
+  return <PeptideViewUnsized {...props} width={width} />
+}
