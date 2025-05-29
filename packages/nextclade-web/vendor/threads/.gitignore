@@ -3,8 +3,8 @@
 bundle/
 docs/_site
 docs/vendor
-dist/*
-dist-*/*
+!dist/*
+!dist-*/*
 node_modules/
 test-tooling/rollup/dist/
 test-tooling/webpack/dist/
