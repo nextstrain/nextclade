@@ -236,7 +236,10 @@ async function resolveParams(
   datasets: Dataset[] | undefined,
 ): Promise<NextcladeParamsRaw> {
   if (tree) {
-    return resolveInputsForAuspiceDataset(tree, overrides)
+    if (!datasets?.[0]) {
+      throw new ErrorInternal('Attempted to start analysis with Auspice JSON, but without dataset info resolved')
+    }
+    return resolveInputsForAuspiceDataset(tree, overrides, datasets[0].path)
   }
   return resolveInputsForNextcladeDataset(overrides, datasets)
 }
@@ -244,6 +247,7 @@ async function resolveParams(
 async function resolveInputsForAuspiceDataset(
   tree: AuspiceTree | undefined,
   overrides: DatasetFilesOverrides,
+  datasetName: string,
 ): Promise<NextcladeParamsRaw> {
   const resolvedOverrides = await pProps({
     genomeAnnotation: resolveOverride(overrides.genomeAnnotation),
@@ -256,7 +260,7 @@ async function resolveInputsForAuspiceDataset(
     Auspice: {
       auspiceJson: JSON.stringify(tree),
       ...filteredOverrides,
-      datasetName: 'Auspice JSON',
+      datasetName,
     },
   }
 }
