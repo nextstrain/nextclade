@@ -14,7 +14,10 @@ export function pairValueNotUndefinedOrNull<K, V>(pair: [K, V | undefined | null
   return notUndefinedOrNull(pair[1])
 }
 
-/** If value is not undefined, map it according to a fn, otherwise return unmodified (i.e. undefined) */
-export function mapMaybe<T, U>(value: T | undefined, fn: (v: T) => U): U | undefined {
-  return !isNil(value) ? fn(value) : value
+/** If value is not undefined or null, map it according to a fn, otherwise return undefined */
+export function mapMaybe<T, U>(value: T | undefined | null, fn: (v: NonNullable<T>) => U): U | undefined {
+  if (isNil(value)) {
+    return undefined
+  }
+  return fn(value as NonNullable<T>)
 }
