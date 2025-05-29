@@ -1,4 +1,5 @@
-import React from 'react'
+import type { ReactNode } from 'react'
+import type { MDXComponents } from 'mdx/types'
 import styled from 'styled-components'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -150,6 +151,10 @@ export const Details = styled.details`
   }
 `
 
+function MdxWrapper({ children }: { children: ReactNode }) {
+  return <section className="prose">{children}</section>
+}
+
 export const mdxComponents = {
   h1: H1,
   h2: H2,
@@ -165,4 +170,12 @@ export const mdxComponents = {
   code: Code,
   table: Table,
   details: Details,
+  wrapper: MdxWrapper,
+}
+
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    ...components,
+    ...mdxComponents,
+  }
 }
