@@ -1,11 +1,11 @@
 import type { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
-import { isEmpty, isNil } from 'lodash'
+import { isEmpty, isNil, omitBy } from 'lodash'
+import pProps from 'p-props'
 import { useRouter } from 'next/router'
 import { useRecoilCallback } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { promiseAllObject } from 'src/helpers/promise'
 import {
   seqIndexToTopDatasetNameAtom,
@@ -242,14 +242,17 @@ async function resolveParams(
   return resolveInputsForNextcladeDataset(overrides, datasets)
 }
 
-async function resolveInputsForAuspiceDataset(tree: AuspiceTree | undefined, overrides: DatasetFilesOverrides) {
-  const resolvedOverrides = await promiseAllObject({
-    genomeAnnotation: async () => resolveOverride(overrides.genomeAnnotation),
-    reference: async () => resolveOverride(overrides.reference),
-    treeJson: async () => resolveOverride(overrides.treeJson),
-    pathogenJson: async () => resolveOverride(overrides.pathogenJson),
+async function resolveInputsForAuspiceDataset(
+  tree: AuspiceTree | undefined,
+  overrides: DatasetFilesOverrides,
+): Promise<NextcladeParamsRaw> {
+  const resolvedOverrides = await pProps({
+    genomeAnnotation: resolveOverride(overrides.genomeAnnotation),
+    reference: resolveOverride(overrides.reference),
+    treeJson: resolveOverride(overrides.treeJson),
+    pathogenJson: resolveOverride(overrides.pathogenJson),
   })
-  const filteredOverrides = filterValuesNotUndefinedOrNull(resolvedOverrides)
+  const filteredOverrides = omitBy(resolvedOverrides, isNil)
   return {
     Auspice: {
       auspiceJson: JSON.stringify(tree),
