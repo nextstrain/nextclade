@@ -6,7 +6,6 @@ import { useRouter } from 'next/router'
 import { useRecoilCallback } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { promiseAllObject } from 'src/helpers/promise'
 import {
   seqIndexToTopDatasetNameAtom,
   seqIndicesWithoutDatasetSuggestionsAtom,
@@ -284,13 +283,13 @@ async function getDatasetsFiles(
 /** Resolves all dataset files into strings */
 async function getDatasetFiles(datasets: Dataset[]): Promise<NextcladeParamsRawDir[]> {
   return concurrent.map(async (dataset) => {
-    return promiseAllObject({
+    return {
       datasetName: dataset.path,
       genomeAnnotation: await axiosFetchRawMaybe(dataset.files?.genomeAnnotation),
       reference: await axiosFetchRaw(dataset.files?.reference),
       treeJson: await axiosFetchRawMaybe(dataset.files?.treeJson),
       pathogenJson: await axiosFetchRaw(dataset.files?.pathogenJson),
-    })
+    }
   }, datasets)
 }
 
@@ -299,13 +298,13 @@ async function getDatasetFilesWithOverrides(
   overrides: DatasetFilesOverrides,
   dataset: Dataset,
 ): Promise<NextcladeParamsRawDir> {
-  return promiseAllObject({
+  return {
     datasetName: dataset.path,
-    genomeAnnotation: resolveOverrideOrDatasetFile(overrides.genomeAnnotation, dataset.files?.genomeAnnotation),
-    reference: resolveOverrideOrDatasetFileRequired(overrides.reference, dataset.files?.reference),
-    treeJson: resolveOverrideOrDatasetFile(overrides.treeJson, dataset.files?.treeJson),
-    pathogenJson: resolveOverrideOrDatasetFileRequired(overrides.pathogenJson, dataset.files?.pathogenJson),
-  })
+    genomeAnnotation: await resolveOverrideOrDatasetFile(overrides.genomeAnnotation, dataset.files?.genomeAnnotation),
+    reference: await resolveOverrideOrDatasetFileRequired(overrides.reference, dataset.files?.reference),
+    treeJson: await resolveOverrideOrDatasetFile(overrides.treeJson, dataset.files?.treeJson),
+    pathogenJson: await resolveOverrideOrDatasetFileRequired(overrides.pathogenJson, dataset.files?.pathogenJson),
+  }
 }
 
 async function resolveOverrideOrDatasetFileRequired(
