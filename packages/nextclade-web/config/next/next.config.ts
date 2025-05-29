@@ -130,15 +130,18 @@ const withEslint = getWithEslint({
   eslint: true,
 })
 
+// This generated files need to be copied to dist dir after build:
+// "next:prod:postbuild": "cp -avr .next/static/{app.json,robots.txt} .build/production/web/",
+// TODO: after transition to App Router, use route handlers to generate files
+// https://nextjs.org/docs/app/guides/static-exports#route-handlers
 const withAppJson = getWithEmitFile({
-  path: PRODUCTION ? '.' : 'static/',
+  path: 'static/',
   filename: 'app.json',
   content: JSON.stringify(appJson, null, 2),
   hash: false,
 })
-
 const withRobotsTxt = getWithEmitFile({
-  path: PRODUCTION ? '.' : 'static/',
+  path: 'static/',
   filename: 'robots.txt',
   content: `User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`,
   hash: false,
