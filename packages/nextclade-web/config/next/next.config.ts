@@ -1,5 +1,9 @@
 import { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
+import remarkBreaks from 'remark-breaks'
+import remarkImages from 'remark-images'
+import remarkMath from 'remark-math'
+import remarkToc from 'remark-toc'
 import getWithEslint from './withEslint'
 import getWithExternals from './withExternals'
 import getWithExtraWatch from './withExtraWatch'
@@ -28,7 +32,12 @@ const PRODUCTION = process.env.NODE_ENV === 'production'
 const DOMAIN = getDomain()
 const DOMAIN_STRIPPED = DOMAIN.replace('https://', '').replace('http://', '')
 const DATA_FULL_DOMAIN = getenv('DATA_FULL_DOMAIN')
-const DATA_TRY_GITHUB_BRANCH = getenv('DATA_TRY_GITHUB_BRANCH')
+const DATA_TRY_GITHUB_BRANCH = getenv('DATA_TRY_GITHUB_BRANCH') ?? undefined
+const BRANCH_NAME = getGitBranch() ?? undefined
+const COMMIT_HASH = getGitCommitHash() ?? undefined
+const BUILD_NUMBER = getBuildNumber() ?? undefined
+const BUILD_URL = getBuildUrl() ?? undefined
+const BLOCK_SEARCH_INDEXING = DOMAIN === RELEASE_URL ? '0' : '1'
 
 const env = {
   DOMAIN,
@@ -37,19 +46,24 @@ const env = {
   DATA_TRY_GITHUB_BRANCH,
   PACKAGE_NAME: pkg.name,
   PACKAGE_VERSION: pkg.version,
+  BRANCH_NAME,
+  COMMIT_HASH,
+  BUILD_NUMBER,
+  BUILD_URL,
+  BLOCK_SEARCH_INDEXING,
 }
 
 const appJson = {
   name: pkg.name,
   version: pkg.version,
-  branchName: getGitBranch(),
-  commitHash: getGitCommitHash(),
-  buildNumber: getBuildNumber(),
-  buildUrl: getBuildUrl(),
+  branchName: BRANCH_NAME,
+  commitHash: COMMIT_HASH,
+  buildNumber: BUILD_NUMBER,
+  buildUrl: BUILD_URL,
   domain: DOMAIN,
   domainStripped: DOMAIN_STRIPPED,
   dataFullDomain: DATA_FULL_DOMAIN,
-  blockSearchIndexing: DOMAIN === RELEASE_URL ? '0' : '1',
+  blockSearchIndexing: BLOCK_SEARCH_INDEXING,
 } satisfies AppJson
 
 const nextConfig: NextConfig = {
@@ -63,7 +77,7 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   experimental: {
-    mdxRs: true,
+    mdxRs: false,
     scrollRestoration: true,
     swcPlugins: [],
   },
@@ -88,7 +102,10 @@ const withExternals = getWithExternals({ externals: ['canvas'] })
 
 const withMDX = getWithMDX({
   extension: /\.mdx?$/,
-  options: {},
+  options: {
+    remarkPlugins: [remarkBreaks, remarkImages, remarkMath, [remarkToc, { tight: true }]],
+    rehypePlugins: [],
+  },
 })
 
 const withFriendlyConsole = getWithFriendlyConsole({
@@ -120,6 +137,13 @@ const withAppJson = getWithEmitFile({
   hash: false,
 })
 
+const withRobotsTxt = getWithEmitFile({
+  path: PRODUCTION ? '.' : 'static/',
+  filename: 'robots.txt',
+  content: `User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`,
+  hash: false,
+})
+
 const plugins = [
   withIgnore,
   withExternals,
@@ -134,6 +158,7 @@ const plugins = [
   withResolve,
   withWasm,
   withAppJson,
+  withRobotsTxt,
 ].filter(Boolean)
 
 export default () => plugins.reduce((acc, next) => next(acc), nextConfig)
