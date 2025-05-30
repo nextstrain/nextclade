@@ -1,3 +1,10 @@
+## Unreleased
+
+### Nextclade Web: crash with custom Auspice JSON dataset
+
+When an Auspice JSON dataset is provided as whole-dataset input through `?dataset-json-url`, Nextclade Web could crash under certain conditions. This has been fixed.
+
+
 ## 3.14.1
 
 ### Nextclade Web: crash with custom datasets
