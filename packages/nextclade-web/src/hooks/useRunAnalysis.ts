@@ -1,12 +1,11 @@
 import type { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
-import { isEmpty, isNil } from 'lodash'
+import { isEmpty, isNil, omitBy } from 'lodash'
+import pProps from 'p-props'
 import { useRouter } from 'next/router'
 import { useRecoilCallback } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { filterValuesNotUndefinedOrNull } from 'src/helpers/notUndefined'
-import { promiseAllObject } from 'src/helpers/promise'
 import {
   seqIndexToTopDatasetNameAtom,
   seqIndicesWithoutDatasetSuggestionsAtom,
@@ -237,24 +236,31 @@ async function resolveParams(
   datasets: Dataset[] | undefined,
 ): Promise<NextcladeParamsRaw> {
   if (tree) {
-    return resolveInputsForAuspiceDataset(tree, overrides)
+    if (!datasets?.[0]) {
+      throw new ErrorInternal('Attempted to start analysis with Auspice JSON, but without dataset info resolved')
+    }
+    return resolveInputsForAuspiceDataset(tree, overrides, datasets[0].path)
   }
   return resolveInputsForNextcladeDataset(overrides, datasets)
 }
 
-async function resolveInputsForAuspiceDataset(tree: AuspiceTree | undefined, overrides: DatasetFilesOverrides) {
-  const resolvedOverrides = await promiseAllObject({
-    genomeAnnotation: async () => resolveOverride(overrides.genomeAnnotation),
-    reference: async () => resolveOverride(overrides.reference),
-    treeJson: async () => resolveOverride(overrides.treeJson),
-    pathogenJson: async () => resolveOverride(overrides.pathogenJson),
+async function resolveInputsForAuspiceDataset(
+  tree: AuspiceTree | undefined,
+  overrides: DatasetFilesOverrides,
+  datasetName: string,
+): Promise<NextcladeParamsRaw> {
+  const resolvedOverrides = await pProps({
+    genomeAnnotation: resolveOverride(overrides.genomeAnnotation),
+    reference: resolveOverride(overrides.reference),
+    treeJson: resolveOverride(overrides.treeJson),
+    pathogenJson: resolveOverride(overrides.pathogenJson),
   })
-  const filteredOverrides = filterValuesNotUndefinedOrNull(resolvedOverrides)
+  const filteredOverrides = omitBy(resolvedOverrides, isNil)
   return {
     Auspice: {
       auspiceJson: JSON.stringify(tree),
       ...filteredOverrides,
-      datasetName: 'Auspice JSON',
+      datasetName,
     },
   }
 }
@@ -281,13 +287,13 @@ async function getDatasetsFiles(
 /** Resolves all dataset files into strings */
 async function getDatasetFiles(datasets: Dataset[]): Promise<NextcladeParamsRawDir[]> {
   return concurrent.map(async (dataset) => {
-    return promiseAllObject({
+    return {
       datasetName: dataset.path,
       genomeAnnotation: await axiosFetchRawMaybe(dataset.files?.genomeAnnotation),
       reference: await axiosFetchRaw(dataset.files?.reference),
       treeJson: await axiosFetchRawMaybe(dataset.files?.treeJson),
       pathogenJson: await axiosFetchRaw(dataset.files?.pathogenJson),
-    })
+    }
   }, datasets)
 }
 
@@ -296,13 +302,13 @@ async function getDatasetFilesWithOverrides(
   overrides: DatasetFilesOverrides,
   dataset: Dataset,
 ): Promise<NextcladeParamsRawDir> {
-  return promiseAllObject({
+  return {
     datasetName: dataset.path,
-    genomeAnnotation: resolveOverrideOrDatasetFile(overrides.genomeAnnotation, dataset.files?.genomeAnnotation),
-    reference: resolveOverrideOrDatasetFileRequired(overrides.reference, dataset.files?.reference),
-    treeJson: resolveOverrideOrDatasetFile(overrides.treeJson, dataset.files?.treeJson),
-    pathogenJson: resolveOverrideOrDatasetFileRequired(overrides.pathogenJson, dataset.files?.pathogenJson),
-  })
+    genomeAnnotation: await resolveOverrideOrDatasetFile(overrides.genomeAnnotation, dataset.files?.genomeAnnotation),
+    reference: await resolveOverrideOrDatasetFileRequired(overrides.reference, dataset.files?.reference),
+    treeJson: await resolveOverrideOrDatasetFile(overrides.treeJson, dataset.files?.treeJson),
+    pathogenJson: await resolveOverrideOrDatasetFileRequired(overrides.pathogenJson, dataset.files?.pathogenJson),
+  }
 }
 
 async function resolveOverrideOrDatasetFileRequired(
