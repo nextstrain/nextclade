@@ -1,4 +1,4 @@
-## Unreleased
+## 3.14.2
 
 ### Nextclade Web: crash with custom Auspice JSON dataset
 
