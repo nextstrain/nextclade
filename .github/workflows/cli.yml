@@ -3,7 +3,7 @@ name: cli
 
 on:
   push:
-    branches: [ 'master', 'staging-cli', 'release-cli' ]
+    branches: [ 'master', 'staging', 'release' ]
 
   pull_request:
 
@@ -95,17 +95,17 @@ jobs:
           lsblk -o MOUNTPOINT,FSTYPE,FSSIZE,FSAVAIL,FSUSE%,TYPE,NAME,ROTA,SIZE,MODEL,UUID
 
       - name: "Setup environment (release)"
-        if: endsWith(github.ref, '/release-cli')
+        if: endsWith(github.ref, '/release')
         run: |
           echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
-        if: endsWith(github.ref, '/staging-cli')
+        if: endsWith(github.ref, '/staging')
         run: |
           echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
-        if: ${{ !endsWith(github.ref, '/staging-cli') && !endsWith(github.ref, '/release-cli') }}
+        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
         run: |
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
@@ -412,7 +412,7 @@ jobs:
   publish-to-github-releases:
     name: "Publish to GitHub Releases"
     needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test, check-cli-docs ]
-    if: endsWith(github.ref, '/release-cli')
+    if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 
     steps:
@@ -449,7 +449,7 @@ jobs:
   publish-to-docker-hub:
     name: "Publish to Docker Hub"
     needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test, check-cli-docs ]
-    if: endsWith(github.ref, '/release-cli')
+    if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 
     steps:

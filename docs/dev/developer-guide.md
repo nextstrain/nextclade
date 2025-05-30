@@ -448,15 +448,15 @@ Nextclade build and deployment process is automated using GitHub Actions:
 The workflows run on every pull request on GitHub and every push to a major branch.
 
 > Hint if the bioconda release job fails due to push permissions:
-> 
+>
 > You need to update the `nextstrain/bioconda` fork manually in order to be
-> 
+>
 > Clone the fork https://github.com/nextstrain/bioconda-recipes as described in the readme. Follow the instructions precisely, don't invent anything new. Then push the latest updates from the upstream to the fork with this command:
-> 
+>
 > ```
 > cd biooconda-recipes && git push nextstrain bioconda/master:master
 > ```
-> 
+>
 > Then go to the failing job and restart it.
 
 ### Deployment environments
@@ -597,24 +597,26 @@ Nextclade project tries hard to adhere to [Semantic Versioning 2.0.0](https://se
 >
 > Note that due to 3-tier branch system, development is never blocked by the unreleased changes.
 
-##### Releasing new CLI version
+##### Releasing new version
 
-- Checkout the branch and commit you want to release. Theoretically, you can release any commit, but be nice and stick to releases from master.
-- If you are making a stable release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
+###### Good to know:
+
+- Nextclade Web and Nextclade CLI are always released simultaneously and with the same version number, even if there are no changes in one or another (but there better be at least some changes!).
+- There are 3 Nextclade Web deployments exist: for `master`, `staging` and `release` environments. They map to 3 major git branches: `master`, `staging` and `release`, and they fetch datasets from the corresponding deployments of dataset server, which, in turn correspond branch in [nextclade_data](https://github.com/nextstrain/nextclade_data) repo.
+- Similarly, there's `master`, `staging` and `release` versions of CLI, which draw data from the corresponding data server.
+- See the table in [Deployment environments](./developer-guide.md#deployment-environments)
+- Typically you aggregate the latest features on `master`, the occasionally push them to `staging` and finally to the `release`. So it's a pipeline. You almost never want your `release` or `staging` branch to be out-of sync with `master`, by e.g. having random things on `release`, but not on `master`.
+
+###### Release procedure
+
+- Checkout `master` branch.
+- Make sure to fill the `CHANGELOG.md` and commit changes locally. It should start with a section named exactly `## Unreleased`, under which you list all the changes in this release.
 - Make sure there are no uncommitted changes.
-- Follow comments in the script `./scripts/releases` on how to install dependencies for this script.
-- Run `./scripts/releases cli <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. Note that `rc`, `beta` and `alpha` will make a prerelease, that is - marked as "prerelease" on GitHub Releases and not overwriting "latest" tags on DockerHub.
+- Follow comments in the script `./scripts/release` on how to install dependencies for this script.
+- Run `./scripts/release <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. Note that `rc`, `beta` and `alpha` will make a prerelease, that is - marked as "prerelease" on GitHub Releases and not overwriting "latest" tags on DockerHub.
 - Verify the changes the script applied:
-  - versions are bumped as you expect in all Cargo.toml and Cargo.lock files.
-  - a local commit created on branch `release-cli` with a message containing the version number that you expect
-- The script will ask if you want to push the changes. This is the last step. If you agree, then the changes will be pushed to GitHub and CI will start a build. You can track it [here](https://app.circleci.com/pipelines/github/nextstrain/nextclade). If you refuse this step, you can still push later.
-
-##### Releasing new Web version
-
-- There are 3 websites exist, for master, staging and release environments. They map to master, staging and release git branches. Pick an environment you want to deploy the new version to and checkout the corresponding branch.
-- If you are deploying to release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
-- Make sure there are no uncommitted changes.
-- Follow comments in the script `./scripts/releases` on how to install dependencies for this script.
-- Run `./scripts/releases web <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. It is advised against releasing `rc`, `beta`, `alpha` to release environment.
-
-If you want to deploy the same version to multiple environments, then release to one environment (on one branch) and then promote it to other environments: manually fast-forward other branch(es) to this commit and push.
+  - versions are bumped in all `Cargo.toml` files (one at the root adn one for each package) and the root`Cargo.lock` file.
+  - version is bumped in `package.json` file.
+  - a local commit created on branch `master` with a message containing the version number that you expect
+- The script will provide instructions on how to push the changes. You can push to `master`, or fast-forward either `staging` or `release` to `master` and then push to `staging` or `release`. A push to any of these branches will trigger CI deployment to the corresponding environment. Most often you push the release commit to all 3 major branches.
+- The script is not fool-proof and will break easily if you try. Don't!

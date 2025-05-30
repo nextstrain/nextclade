@@ -22,9 +22,9 @@ branch="${1}"
 
 DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org"
 if ! [[ "${prerel}" =~ ^(rc|beta|alpha) ]]; then
-  if [ "${branch}" == "release-cli" ]; then
+  if [ "${branch}" == "release" ]; then
     DATA_FULL_DOMAIN="https://data.clades.nextstrain.org"
-  elif [ "${branch}" == "staging-cli" ]; then
+  elif [ "${branch}" == "staging" ]; then
     DATA_FULL_DOMAIN="https://data.staging.clades.nextstrain.org"
   fi
 fi
