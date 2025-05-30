@@ -1,31 +1,9 @@
 #!/usr/bin/env bash
 
-#
-# Prepares a release of a new version of CLI or Web app
-#
-# Dependencies for CLI releases:
-#
-#  1. Rust toolchain (see developer guide in docs/dev/developer-guide.md)
-#  2. dasel:
-#    mkdir -p "${HOME}/bin"
-#    export PATH="${HOME}/bin:${PATH}"
-#    curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
-#  3. cargo-edit for cargo set-version
-#    cargo install cargo-edit
-#
-# Dependencies for Web releases:
-#  1. Node.js
-#  2. npm
-#
-#  Usage examples:
-#    ./scripts/release cli alpha
-#    ./scripts/release cli minor
-#    ./scripts/release web patch
-
 set -euo pipefail
 
-: "${1:?Release target is required. Specify one of: cli, web.}"
-: "${2:?Release target and type are required.\nFor target, specify one of: cli, web.\nFor type, one of: major, minor, release, rc, beta, alpha.}"
+# Usage: ./scripts/release <bump-type>
+# <bump-type>: major, minor, patch, rc, beta, alpha, or explicit version
 
 function ask_confirmation_or_exit() {
   choice=
@@ -46,95 +24,132 @@ function ask_confirmation_or_exit() {
   done
 }
 
-if ! [[ "$1" =~ ^(cli|web)$ ]]; then
-  echo "Unknown release target: '$1'. Specify one of: cli, web." >/dev/stderr
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 <bump-type>" >&2
   exit 1
 fi
 
-if ! [[ "$2" =~ ^(major|minor|patch|rc|beta|alpha)$ ]]; then
-  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, rc, beta, alpha." >/dev/stderr
+BUMP_TYPE="${1}"
+
+printf "Pre-check: valid release type... "
+if ! [[ "${BUMP_TYPE}" =~ ^(major|minor|patch|rc|beta|alpha|[0-9]+\.[0-9]+\.[0-9]+.*)$ ]]; then
+  printf "\nUnknown release type: %s. Specify one of: major, minor, patch, rc, beta, alpha, or explicit version.\n" "${BUMP_TYPE}" >&2
   exit 1
 fi
+printf "✅\n"
 
+printf "Pre-check: working directory is not dirty... "
 if [ -n "$(git status -s)" ]; then
-  echo "Uncommitted changes detected. Refusing to proceed." >/dev/stderr
-  echo "Stash or commit the changes and retry."  >/dev/stderr
+  printf "\nWorking directory is dirty.\nUncommitted changes detected. Refusing to proceed.\nStash or commit the changes and retry.\n" >&2
   exit 1
 fi
+printf "✅\n"
 
-if [ "$1" == "cli" ]; then
-  src_branch=$(git rev-parse --abbrev-ref HEAD)
-  dst_branch="release-cli"
-
-  if [ "${src_branch}" != "master" ]; then
-    ask_confirmation_or_exit "You are trying to make a CLI release from branch '${src_branch}'. Releases from non-'master' branches are discouraged. Consider discussing with the team first. Do you want to proceed anyway?"
-    echo "Proceeding to releasing from non-master branch '${src_branch}'."
-  fi
-
-  echo "Running \`cargo build\` to simulate CI build."
-  cargo build --quiet --locked >/dev/null
-  if [ -n "$(git status -s)" ]; then
-    echo "After running \`cargo build\`, your local 'Cargo.lock' is not identical to the committed 'Cargo.lock.'"  >/dev/stderr
-    echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."  >/dev/stderr
-    echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."  >/dev/stderr
-    exit 1
-  fi
-
-  echo "Bumping package versions in 'Cargo.toml' files"
-  cargo set-version --workspace --bump="${2:-}" >/dev/null
-  version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
-
-  echo "Running \`cargo build\` to update 'Cargo.lock' file"
-  cargo build --quiet >/dev/null
-
-  printf "\n\nThe following changes were made. Please check them thoroughly:\n-----------------------------------\n\n"
-  git --no-pager diff --unified=0 --no-prefix --no-commit-id
-  printf "\n\n-----------------------------------\n\n"
-
-  echo "Committing changes locally"
-  git add -A >/dev/null
-  git commit -q -m "chore: release cli ${version}" >/dev/null
-  git checkout -q -B "${dst_branch}" >/dev/null
-  git checkout -q "${src_branch}" >/dev/null
-  echo "CLI release ($2) created successfully. The changes listed above are now committed to your local branches '${src_branch}', '${dst_branch}'."
-
-  ask_confirmation_or_exit "Do you want to push these changes to GitHub (branches '${src_branch}', '${dst_branch}')? The push will trigger CI build and publishing of the new CLI release."
-
-  echo "Pushing new CLI release to GitHub, branches '${src_branch}', '${dst_branch}'"
-  git push -q origin "${dst_branch}"
-  git push -q origin "${src_branch}"
-
-elif [ "$1" == "web" ]; then
-  dst_branch=$(git rev-parse --abbrev-ref HEAD)
-
-  if ! [[ "${dst_branch}" =~ ^(master|staging|release)$ ]]; then
-    echo "You are on branch '${dst_branch}', which is not one of the major branches suitable for Web release." >/dev/stderr
-    echo "There are 3 web environments corresponding to master, staging, and release branches. Checkout one of these branches, depending on where you want to deploy the new release. Refusing to proceed." >/dev/stderr
-    exit 1
-  fi
-
-  pushd "packages/nextclade-web" >/dev/null
-
-  if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
-    version=$(npm version "$2")
-  elif [[ "$2" =~ ^(rc|beta|alpha)$ ]]; then
-    version=$(npm version prerelease --preid="$2")
-  fi
-
-  printf "\n\nThe following changes were made. Please check them thoroughly:\n-----------------------------------\n\n"
-  git --no-pager diff --unified=0 --no-prefix --no-commit-id
-  printf "\n\n-----------------------------------\n\n"
-
-  echo "Committing changes locally"
-  git add -A >/dev/null
-  git commit -q -m "chore: release ${1} ${version}" >/dev/null
-
-  ask_confirmation_or_exit "Do you want to push this to GitHub? The push will trigger CI build and publishing."
-  echo "Pushing new Web release to GitHub, branch '${dst_branch}'"
-  git push -q origin "${dst_branch}"
-
-  popd
-
+printf "Pre-check: on main branch... "
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "${BRANCH}" != "master" ]; then
+  ask_confirmation_or_exit "You are trying to make a release from branch '${BRANCH}'. Releases from non-'master' branches are discouraged. Do you want to proceed anyway?"
+  printf "⚠️  Proceeding to releasing from non-master branch \"%s\".\n" "${BRANCH}"
 else
-  echo "Invalid release target ${1}"
+  printf "✅\n"
 fi
+
+printf "Pre-check: Cargo.lock is in sync with Cargo.toml... "
+cargo metadata --quiet >/dev/null
+if [ -n "$(git status --porcelain Cargo.lock)" ]; then
+  printf "\nERROR: Cargo.lock is out of sync with Cargo.toml. Run 'cargo metadata' or 'cargo build' and commit the result before releasing.\n" >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Pre-check: Cargo.toml is in sync with package.json... "
+CARGO_VERSION=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
+PKG_VERSION=$(jq -r ".version" packages/nextclade-web/package.json)
+if [ "${CARGO_VERSION}" != "${PKG_VERSION}" ]; then
+  printf "\nERROR: Version mismatch: Cargo.toml (%s) != package.json (%s)\n" "${CARGO_VERSION}" "${PKG_VERSION}" >&2
+  printf "This could mean the previous release might have been faulty.\nPlease go check that previous live releases are fine, then make sure both files have the same version before releasing.\n" >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Pre-check: yarn.lock is in sync with package.json... "
+pushd packages/nextclade-web >/dev/null 2>&1
+{
+  yarn install --immutable --dry-run >/dev/null 2>&1
+}
+popd >/dev/null 2>&1
+if [ -n "$(git status --porcelain packages/nextclade-web/yarn.lock)" ]; then
+  printf "\nERROR: yarn.lock is out of sync with package.json. Run 'yarn install' and commit the result before releasing.\n" >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Pre-check: changelog contains \`## Unreleased\` section... "
+if ! grep -q "^## Unreleased" CHANGELOG.md 2>/dev/null; then
+  printf "\nERROR: CHANGELOG.md does not contain \`## Unreleased\` section. Create a new section for the upcoming release, commit it and retry.\n" >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Bump Cargo.toml version..."
+cargo set-version --workspace --bump="${BUMP_TYPE}" 2>&1 | awk '!/^\s*Upgrading / && !/^\s*$/'
+VERSION=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
+if [ "${VERSION}" == "${CARGO_VERSION}" ]; then
+  echo "ERROR: Version did not change after cargo set-version." >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Releasing %s (up from %s) ✅\n" "$VERSION" "$CARGO_VERSION"
+
+printf "Check if the version was set correctly... "
+if [ "$VERSION" == "$CARGO_VERSION" ]; then
+  echo "ERROR: Failed to set version in Cargo.toml." >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Bump package.json version to %s... " "$VERSION"
+jq --arg v "$VERSION" '.version = $v' "packages/nextclade-web/package.json" >"packages/nextclade-web/package.json.tmp"
+mv "packages/nextclade-web/package.json.tmp" "packages/nextclade-web/package.json"
+if [ $? -ne 0 ]; then
+  echo "ERROR: Failed to update package.json version." >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "Updating CHANGELOG.md... "
+if ! grep -q '^## Unreleased' CHANGELOG.md 2>/dev/null; then
+  echo "ERROR: '## Unreleased' not found in CHANGELOG.md. No replacement occurred." >&2
+  exit 1
+fi
+if ! sed -i'' "s/^## Unreleased/## ${VERSION}/" CHANGELOG.md 2>/dev/null; then
+  echo "ERROR: sed failed to run." >&2
+  exit 1
+fi
+if ! grep -q "^## ${VERSION}" CHANGELOG.md 2>/dev/null; then
+  echo "ERROR: Replacement failed: '## ${VERSION}' not found in CHANGELOG.md after sed." >&2
+  exit 1
+fi
+printf "✅\n"
+
+printf "\nThe following changes have been made:\n"
+printf "%s\n" "--- BEGIN ---"
+git --no-pager diff --unified=0 --no-prefix --no-commit-id
+printf "%s\n\n" "--- END ---"
+
+printf "Committing changes... "
+git add -A >/dev/null
+git commit -m "chore: release ${VERSION}" >/dev/null
+printf "✅\n"
+
+printf "\n\nRelease %s is now on the local branch (%s) and is ready to be pushed:\n" "${VERSION}" "${BRANCH}"
+printf "\n  git push origin <branch>\n"
+printf "\n\nIf you want to release to production, assuming the changes are on the master branch, usually you fast-forward the release branch to the master branch, then push:\n"
+printf "\n  git checkout release\n"
+printf "  git merge --ff-only master\n"
+printf "\n  git push origin release\n"
+printf "\n\n"
+printf "Same procedure with the staging branch."
+printf "\n\n"
+printf "As always, before pushing anything, it is advisable to use your favorite GUI git client to review the changes and view the branch tree to make sure you are doing what you mean to do.\n"
