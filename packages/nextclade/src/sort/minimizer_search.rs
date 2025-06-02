@@ -42,7 +42,6 @@ pub fn run_minimizer_search(
   index: &MinimizerIndexJson,
   search_params: &NextcladeSeqSortParams,
 ) -> Result<MinimizerSearchResult, Report> {
-  let normalization = &index.normalization;
   let n_refs = index.references.len();
 
   let minimizers = get_ref_search_minimizers(fasta_record, &index.params);
@@ -60,7 +59,14 @@ pub fn run_minimizer_search(
   // we expect hits to be proportional to the length of the sequence and the number of minimizers per reference
   let mut scores: Vec<f64> = vec![0.0; hit_counts.len()];
   for i in 0..n_refs {
-    scores[i] = hit_counts[i] as f64 * normalization[i] / fasta_record.seq.len() as f64;
+    let reff = &index.references[0];
+
+    let ref_hits = hit_counts[i] as f64;
+    let qry_hits = reff.n_minimizers as f64;
+    let ref_len = reff.length as f64;
+    let qry_len = fasta_record.seq.len() as f64;
+
+    scores[i] = (ref_hits / qry_hits) * (ref_len / qry_len).max(1.0);
   }
 
   let max_score = scores.iter().copied().fold(0.0, f64::max);
