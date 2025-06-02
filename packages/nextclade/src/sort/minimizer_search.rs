@@ -59,13 +59,12 @@ pub fn run_minimizer_search(
   // we expect hits to be proportional to the length of the sequence and the number of minimizers per reference
   let mut scores: Vec<f64> = vec![0.0; hit_counts.len()];
   for i in 0..n_refs {
-    let reff = &index.references[0];
+    let reff = &index.references[i];
 
     let ref_hits = hit_counts[i] as f64;
     let qry_hits = reff.n_minimizers as f64;
     let ref_len = reff.length as f64;
     let qry_len = fasta_record.seq.len() as f64;
-
     scores[i] = (ref_hits / qry_hits) * (ref_len / qry_len).max(1.0);
   }
 
