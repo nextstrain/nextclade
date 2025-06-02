@@ -61,11 +61,11 @@ pub fn run_minimizer_search(
   for i in 0..n_refs {
     let reff = &index.references[i];
 
-    let ref_hits = hit_counts[i] as f64;
-    let qry_hits = reff.n_minimizers as f64;
+    let qry_hits = hit_counts[i] as f64;
+    let ref_minimizers = reff.n_minimizers as f64;
     let ref_len = reff.length as f64;
     let qry_len = fasta_record.seq.len() as f64;
-    scores[i] = (ref_hits / qry_hits) * (ref_len / qry_len).max(1.0);
+    scores[i] = (qry_hits / ref_minimizers) * (ref_len / qry_len).max(1.0);
   }
 
   let max_score = scores.iter().copied().fold(0.0, f64::max);
