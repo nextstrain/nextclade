@@ -1,3 +1,11 @@
+## Unreleased
+
+### Fix dataset suggestions and sorting for short references
+
+Update minimizer-based scoring to better handle cases where the reference sequence is much shorter than the query sequence. The previous approach assumed full-genome references and could underestimate scores for partial references such as single genes. The revised method adjusts the normalization to avoid penalizing such cases, improving robustness without requiring changes to the index format. This resolves issues observed in datasets like yellow fever.
+
+This improves dataset suggestions in Nextclade Web and dataset detection in `nextclade sort` CLI command. This also changes the scale of values of column `score` in the TSV output of `nextclade sort` command.
+
 ## 3.14.2
 
 ### Nextclade Web: crash with custom Auspice JSON dataset
