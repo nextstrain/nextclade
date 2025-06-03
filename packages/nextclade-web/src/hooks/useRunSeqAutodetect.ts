@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useCallback } from 'react'
-import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { axiosFetch } from 'src/io/axiosFetch'
@@ -35,17 +35,17 @@ export function useRunSeqAutodetect(params?: AutosuggestionParams) {
 }
 
 export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
-  const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
-
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
       async () => {
-        if (isNil(datasetServerUrl)) {
-          return undefined
-        }
-
         const snapshotRelease = snapshot.retain()
         const { getPromise } = snapshot
+
+        const datasetServerUrl = await getPromise(datasetServerUrlAtom)
+        if (isNil(datasetServerUrl)) {
+          snapshotRelease()
+          return undefined
+        }
 
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
@@ -90,7 +90,12 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
 
             const index = await fetchDatasetsIndex(datasetServerUrl)
 
-            return runAutodetect(fasta, index, minimizerIndex, { onResult, onError, onComplete, onBestResults })
+            return runAutodetect(fasta, index, minimizerIndex, {
+              onResult,
+              onError,
+              onComplete,
+              onBestResults,
+            })
           })
           .catch((error: unknown) => {
             onError(sanitizeError(error))
@@ -100,7 +105,7 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
             snapshotRelease()
           })
       },
-    [datasetServerUrl, params?.shouldSetCurrentDataset],
+    [params?.shouldSetCurrentDataset],
   )
 }
 
@@ -116,10 +121,11 @@ async function runAutodetect(
   index: DatasetsIndexJson,
   minimizerIndex: MinimizerIndexJson,
   callbacks: Callbacks,
-) {
+): Promise<FindBestDatasetsResult> {
   const worker = await SeqAutodetectWasmWorker.create(index, minimizerIndex)
-  await worker.autodetect(fasta, callbacks)
+  const bestResults = await worker.autodetect(fasta, callbacks)
   await worker.destroy()
+  return bestResults
 }
 
 export class SeqAutodetectWasmWorker {
@@ -144,10 +150,15 @@ export class SeqAutodetectWasmWorker {
     await this.thread.create(index, minimizerIndex)
   }
 
-  async autodetect(fastaStr: string, { onResult, onError, onComplete, onBestResults }: Callbacks) {
+  async autodetect(
+    fastaStr: string,
+    { onResult, onError, onComplete, onBestResults }: Callbacks,
+  ): Promise<FindBestDatasetsResult> {
     this.subscription = this.thread.values().subscribe(onResult, onError, onComplete)
     await this.thread.autodetect(fastaStr)
-    await this.thread.findBestDatasets().then((result) => onBestResults?.(result))
+    const result = await this.thread.findBestDatasets()
+    onBestResults?.(result)
+    return result
   }
 
   async destroy() {

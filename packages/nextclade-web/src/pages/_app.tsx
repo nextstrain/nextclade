@@ -143,8 +143,10 @@ function RecoilStateInitializer() {
         if (!isEmpty(inputFastas)) {
           set(qrySeqInputsStorageAtom, inputFastas)
           if (isMultiDataset) {
-            await suggest()
-            run({ isSingle: false })
+            const suggestionResults = await suggest()
+            if (suggestionResults && !isEmpty(suggestionResults.suggestions)) {
+              run({ isSingle: false })
+            }
           } else if (!isEmpty(dataset)) {
             run({ isSingle: true })
           }
