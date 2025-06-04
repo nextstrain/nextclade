@@ -1,3 +1,9 @@
+## Unreleased
+
+### Nextclade Web: disable "Relative to" dropdown when dataset has no reference tree
+
+When using a dataset without reference tree for analysis, the "Relative to" dropdown has no meaning - the target for comparisons is always reference sequence node, because there is no information about any other nodes. We now disable this dropdown for datasets without trees.
+
 ## 3.14.4
 
 ### Fix seed coverage calculation for short references
