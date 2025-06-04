@@ -296,6 +296,11 @@ jobs:
             args+=(--name "${PREFIX}--pr-${PR_NUM}")
           fi
 
+          if [[ "${{ github.ref }}" == "refs/heads/release" ]]; then
+            VERSION=$(jq -r '.version' packages/nextclade-web/package.json)
+            args+=(--name "${PREFIX}--v${VERSION}")
+          fi
+
           ./scripts/preview-deploy "${args[@]}"
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
