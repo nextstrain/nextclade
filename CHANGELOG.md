@@ -8,6 +8,10 @@ During alignment, seed coverage is now computed as the total seed length divided
 
 When used `?multi-dataset` URL parameter, Nextclade Web could crash under certain conditions. This has been fixed.
 
+### Nextclade Web: workaround double run
+
+When using URL parameters, Nextclade could sometimes spawn multiple copies of the analysis run. This could result in duplicated sequences being reported in the results table erroneously as well as in other unwanted effects. We added a workaround to mitigate this problem. Please report bugs by submitting a [GitHub issue](https://github.com/nextstrain/nextclade/issues).
+
 ## 3.14.3
 
 ### Fix dataset suggestions and sorting for short references
