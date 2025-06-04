@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fix seed coverage calculation for short references
+
+During alignment, seed coverage is now computed as the total seed length divided by the shorter of the query or reference. This ensures correct behavior when references are shorter than queries, without requiring artificially low `min_seed_cover` values.
+
 ## 3.14.3
 
 ### Fix dataset suggestions and sorting for short references
