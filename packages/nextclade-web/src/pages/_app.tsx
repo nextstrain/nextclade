@@ -169,7 +169,12 @@ function RecoilStateInitializer() {
 
   useEffect(() => {
     initialize()
-  })
+
+    // HACK: empty deps array means that this effect will run only once. This is to mitigate the issue with
+    // double (triple, ..., N-tuple) initialization of the app and associated redundant multiple data
+    // fetches, automatic worker launches and data races.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!initialized && !isNil(error)) {
     throw error
