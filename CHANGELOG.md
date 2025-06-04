@@ -1,4 +1,4 @@
-## Unreleased
+## 3.14.4
 
 ### Fix seed coverage calculation for short references
 
