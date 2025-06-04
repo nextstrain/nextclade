@@ -20,7 +20,11 @@ interface Option {
   description?: string
 }
 
-export function RefNodeSelector() {
+export interface RefNodeSelectorProps {
+  disabled?: boolean
+}
+
+export function RefNodeSelector({ disabled }: RefNodeSelectorProps) {
   const { t } = useTranslationSafe()
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
@@ -120,6 +124,7 @@ export function RefNodeSelector() {
         menuPortalTarget={document.body}
         styles={reactSelectStyles}
         theme={reactSelectTheme}
+        isDisabled={disabled}
         maxMenuHeight={400}
       />
     </div>
