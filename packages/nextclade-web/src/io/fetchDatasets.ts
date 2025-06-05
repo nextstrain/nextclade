@@ -1,5 +1,6 @@
 /* eslint-disable prefer-destructuring */
 import type { ParsedUrlQuery } from 'querystring'
+import { useEffect } from 'react'
 import { findSimilarStrings } from 'src/helpers/string'
 import { axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import {
@@ -126,22 +127,19 @@ export async function initializeDatasets(datasetServerUrl: string, urlQuery: Par
   return { datasets, currentDataset, minimizerIndexVersion }
 }
 
-/** Refetch dataset index periodically and update the local copy of if */
+/** Refetch dataset index periodically and update the local copy of it */
 export function useUpdatedDatasetIndex() {
   const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
-  useQuery({
-    queryKey: ['refetchDatasetIndex'],
+  const { data } = useQuery({
+    queryKey: ['refetchDatasetIndex', datasetServerUrl],
     queryFn: async () => {
       if (isNil(datasetServerUrl)) {
-        return
+        return undefined
       }
-      const { minimizerIndexVersion, datasets } = await initializeDatasets(datasetServerUrl)
-      setDatasetsState(datasets)
-      setMinimizerIndexVersion(minimizerIndexVersion)
-      return { minimizerIndexVersion, datasets }
+      return initializeDatasets(datasetServerUrl)
     },
     staleTime: 0,
     refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
@@ -149,8 +147,14 @@ export function useUpdatedDatasetIndex() {
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
-  enabled: !isNil(datasetServerUrl),
-    })
+    enabled: !isNil(datasetServerUrl),
+  })
+
+  useEffect(() => {
+    if (!data) return
+    setDatasetsState(data.datasets)
+    setMinimizerIndexVersion(data.minimizerIndexVersion)
+  }, [data, setDatasetsState, setMinimizerIndexVersion])
 }
 
 /**
