@@ -18,6 +18,7 @@ use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use crate::utils::num::is_int;
 use eyre::Report;
 use itertools::Itertools;
+use std::collections::BTreeMap;
 use std::fmt::Display;
 
 pub const ARRAY_ITEM_DELIMITER: &str = ",";
@@ -68,6 +69,7 @@ impl NextcladeResultsCsvRow {
       missing_cdses,
       // divergence,
       coverage,
+      cds_coverage,
       phenotype_values,
       qc,
       custom_node_attributes,
@@ -253,6 +255,7 @@ impl NextcladeResultsCsvRow {
     self.add_entry("alignmentStart", &(alignment_range.begin + 1).to_string())?;
     self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
+    self.add_entry("cdsCoverage", &format_cds_coverage(cds_coverage, ARRAY_ITEM_DELIMITER))?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -608,6 +611,14 @@ pub fn format_stop_codons(stop_codons: &[StopCodonLocation], delimiter: &str) ->
   stop_codons
     .iter()
     .map(|StopCodonLocation { cds_name, codon }| format!("{cds_name}:{codon}"))
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_cds_coverage(cds_coverage: &BTreeMap<String, f64>, delimiter: &str) -> String {
+  cds_coverage
+    .iter()
+    .map(|(cds, coverage)| format!("{cds}:{coverage}"))
     .join(delimiter)
 }
 
