@@ -3,7 +3,7 @@ name: cli
 
 on:
   push:
-    branches: [ 'master', 'staging-cli', 'release-cli' ]
+    branches: [ 'master', 'staging', 'release' ]
 
   pull_request:
 
@@ -57,55 +57,18 @@ jobs:
       - name: "Set up Docker Buildx"
         uses: docker/setup-buildx-action@v3
 
-      - name: "Free disk space"
-        run: |
-          sudo swapoff -a || true
-          sudo rm -f /swapfile || true
-
-          sudo apt-get remove --yes --purge --verbose-versions '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri || true
-          sudo apt-get autoremove --purge --verbose-versions --yes
-          sudo apt-get clean
-          sudo apt-get update
-
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/local/graalvm
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/local/lib/node_modules
-          sudo rm -rf /usr/local/share/chromium
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /usr/share/dotnet
-
-          docker container stop $(docker ps -q) || true
-          docker rmi $(docker image ls -aq) || true
-          yes | docker system prune -af --volumes || true
-          yes | docker network prune -f || true
-          yes | docker image prune -af || true
-          yes | docker builder prune -af || true
-          yes | docker buildx prune -af || true
-
-      - name: "Check disk space"
-        run: |
-          echo ""
-
-          df -Th | awk 'NR == 1; NR > 1 {print $0 | "sort -n"}'
-
-          echo ""
-
-          lsblk -o MOUNTPOINT,FSTYPE,FSSIZE,FSAVAIL,FSUSE%,TYPE,NAME,ROTA,SIZE,MODEL,UUID
-
       - name: "Setup environment (release)"
-        if: endsWith(github.ref, '/release-cli')
+        if: endsWith(github.ref, '/release')
         run: |
           echo "DATA_FULL_DOMAIN=https://data.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Setup environment (staging)"
-        if: endsWith(github.ref, '/staging-cli')
+        if: endsWith(github.ref, '/staging')
         run: |
           echo "DATA_FULL_DOMAIN=https://data.staging.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Setup environment (master)"
-        if: ${{ !endsWith(github.ref, '/staging-cli') && !endsWith(github.ref, '/release-cli') }}
+        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
         run: |
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
@@ -158,6 +121,8 @@ jobs:
 
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_AARCH64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz|MUSL_CC_AARCH64_URL=${{ secrets.MUSL_CC_AARCH64_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_X86_64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz|MUSL_CC_X86_64_URL=${{ secrets.MUSL_CC_X86_64_URL }}|g" .env
           sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
       - name: "Login to Docker Hub"
@@ -226,6 +191,8 @@ jobs:
         run: |
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_AARCH64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz|MUSL_CC_AARCH64_URL=${{ secrets.MUSL_CC_AARCH64_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_X86_64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz|MUSL_CC_X86_64_URL=${{ secrets.MUSL_CC_X86_64_URL }}|g" .env
 
       - name: "Run unit tests"
         run: |
@@ -275,6 +242,8 @@ jobs:
         run: |
           cp .env.example .env
           sed -i -e "s|OSXCROSS_URL=http://example.com/osxcross/osxcross.tar.xz|OSXCROSS_URL=${{ secrets.OSXCROSS_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_AARCH64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz|MUSL_CC_AARCH64_URL=${{ secrets.MUSL_CC_AARCH64_URL }}|g" .env
+          sed -i -e "s|MUSL_CC_X86_64_URL=http://example.com/musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz|MUSL_CC_X86_64_URL=${{ secrets.MUSL_CC_X86_64_URL }}|g" .env
 
       - name: "Run lints"
         run: |
@@ -406,7 +375,7 @@ jobs:
   publish-to-github-releases:
     name: "Publish to GitHub Releases"
     needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test, check-cli-docs ]
-    if: endsWith(github.ref, '/release-cli')
+    if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 
     steps:
@@ -443,7 +412,7 @@ jobs:
   publish-to-docker-hub:
     name: "Publish to Docker Hub"
     needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test, check-cli-docs ]
-    if: endsWith(github.ref, '/release-cli')
+    if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 
     steps:

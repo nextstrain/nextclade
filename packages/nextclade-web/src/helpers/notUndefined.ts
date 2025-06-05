@@ -8,15 +8,14 @@ export function notUndefinedOrNull<T>(x: T | undefined | null): x is NonNullable
   return x !== undefined && x !== null
 }
 
-export function filterValuesNotUndefinedOrNull<T extends object>(obj: T): T {
-  return Object.fromEntries(Object.entries(obj).filter(([_, value]) => notUndefinedOrNull(value))) as T
-}
-
 export function pairValueNotUndefinedOrNull<K, V>(pair: [K, V | undefined | null]): pair is [K, V] {
   return notUndefinedOrNull(pair[1])
 }
 
-/** If value is not undefined, map it according to a fn, otherwise return unmodified (i.e. undefined) */
-export function mapMaybe<T, U>(value: T | undefined, fn: (v: T) => U): U | undefined {
-  return !isUndefined(value) ? fn(value) : value
+/** If value is not undefined or null, map it according to a fn, otherwise return undefined */
+export function mapMaybe<T, U>(value: T | undefined | null, fn: (v: NonNullable<T>) => U): U | undefined {
+  if (isNil(value)) {
+    return undefined
+  }
+  return fn(value as NonNullable<T>)
 }

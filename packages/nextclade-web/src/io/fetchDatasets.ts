@@ -135,6 +135,9 @@ export function useUpdatedDatasetIndex() {
   useQuery({
     queryKey: ['refetchDatasetIndex'],
     queryFn: async () => {
+      if (isNil(datasetServerUrl)) {
+        return
+      }
       const { minimizerIndexVersion, datasets } = await initializeDatasets(datasetServerUrl)
       setDatasetsState(datasets)
       setMinimizerIndexVersion(minimizerIndexVersion)
@@ -146,7 +149,8 @@ export function useUpdatedDatasetIndex() {
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
-  })
+  enabled: !isNil(datasetServerUrl),
+    })
 }
 
 /**

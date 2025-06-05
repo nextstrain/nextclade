@@ -133,6 +133,7 @@ lazy_static! {
       o!("alignmentStart") => true,
       o!("alignmentEnd") => true,
       o!("coverage") => true,
+      o!("cdsCoverage") => true,
       o!("isReverseComplement") => true,
     },
     CsvColumnCategory::RefMuts => indexmap! {

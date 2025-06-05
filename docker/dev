@@ -405,6 +405,16 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
+  if [[ "${DOCKER_TARGET}" == *aarch64-unknown-linux-musl* ]]; then
+    # shellcheck disable=SC2089
+    ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg MUSL_CC_AARCH64_URL=${MUSL_CC_AARCH64_URL}"
+  fi
+
+  if [[ "${DOCKER_TARGET}" == *x86_64-unknown-linux-musl* ]]; then
+    # shellcheck disable=SC2089
+    ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg MUSL_CC_X86_64_URL=${MUSL_CC_X86_64_URL}"
+  fi
+
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --push"
   else

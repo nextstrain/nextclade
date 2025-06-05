@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import type { Subscription } from 'observable-fns'
 import { useCallback } from 'react'
 import { useRecoilCallback } from 'recoil'
@@ -40,6 +41,12 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
         const snapshotRelease = snapshot.retain()
         const { getPromise } = snapshot
 
+        const datasetServerUrl = await getPromise(datasetServerUrlAtom)
+        if (isNil(datasetServerUrl)) {
+          snapshotRelease()
+          return undefined
+        }
+
         reset(minimizerIndexAtom)
         reset(autodetectResultsAtom)
         reset(autodetectRunStateAtom)
@@ -81,10 +88,14 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
             const minimizerIndex: MinimizerIndexJson = await axiosFetch(minimizerIndexVersion.path)
             set(minimizerIndexAtom, minimizerIndex)
 
-            const datasetServerUrl = await getPromise(datasetServerUrlAtom)
             const index = await fetchDatasetsIndex(datasetServerUrl)
 
-            return runAutodetect(fasta, index, minimizerIndex, { onResult, onError, onComplete, onBestResults })
+            return runAutodetect(fasta, index, minimizerIndex, {
+              onResult,
+              onError,
+              onComplete,
+              onBestResults,
+            })
           })
           .catch((error: unknown) => {
             onError(sanitizeError(error))
@@ -110,10 +121,11 @@ async function runAutodetect(
   index: DatasetsIndexJson,
   minimizerIndex: MinimizerIndexJson,
   callbacks: Callbacks,
-) {
+): Promise<FindBestDatasetsResult> {
   const worker = await SeqAutodetectWasmWorker.create(index, minimizerIndex)
-  await worker.autodetect(fasta, callbacks)
+  const bestResults = await worker.autodetect(fasta, callbacks)
   await worker.destroy()
+  return bestResults
 }
 
 export class SeqAutodetectWasmWorker {
@@ -138,10 +150,15 @@ export class SeqAutodetectWasmWorker {
     await this.thread.create(index, minimizerIndex)
   }
 
-  async autodetect(fastaStr: string, { onResult, onError, onComplete, onBestResults }: Callbacks) {
+  async autodetect(
+    fastaStr: string,
+    { onResult, onError, onComplete, onBestResults }: Callbacks,
+  ): Promise<FindBestDatasetsResult> {
     this.subscription = this.thread.values().subscribe(onResult, onError, onComplete)
     await this.thread.autodetect(fastaStr)
-    await this.thread.findBestDatasets().then((result) => onBestResults?.(result))
+    const result = await this.thread.findBestDatasets()
+    onBestResults?.(result)
+    return result
   }
 
   async destroy() {

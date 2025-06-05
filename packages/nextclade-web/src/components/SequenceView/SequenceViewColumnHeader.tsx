@@ -1,15 +1,21 @@
 import React from 'react'
+import { useRecoilValue } from 'recoil'
+import styled from 'styled-components'
 import { SelectGeneHelp } from 'src/components/Help/SelectGeneHelp'
 import { SelectRefNodeHelp } from 'src/components/Help/SelectRefNodeHelp'
+import { ButtonFilter } from 'src/components/Results/ButtonFilter'
 import { RefNodeSelector } from 'src/components/Results/RefNodeSelector'
 import { ButtonHelpStyled } from 'src/components/Results/ResultsTableStyle'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import styled from 'styled-components'
-import { ButtonFilter } from 'src/components/Results/ButtonFilter'
 import { SequenceSelector } from 'src/components/SequenceView/SequenceSelector'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
+import { hasTreeAtom } from 'src/state/results.state'
 
 export function SequenceViewColumnHeader() {
   const { t } = useTranslationSafe()
+
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const hasTree = useRecoilValue(hasTreeAtom({ datasetName }))
 
   return (
     <FlexOuter>
@@ -35,7 +41,7 @@ export function SequenceViewColumnHeader() {
                 <SelectRefNodeHelp />
               </span>
             </span>
-            <RefNodeSelector />
+            <RefNodeSelector disabled={!hasTree} />
           </DropdownWrapper>
         </FlexOuter>
       </FlexLarge>

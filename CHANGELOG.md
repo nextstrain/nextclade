@@ -1,4 +1,46 @@
-## Unreleased
+## 3.14.5
+
+### Nextclade Web: disable "Relative to" dropdown when dataset has no reference tree
+
+When using a dataset without reference tree for analysis, the "Relative to" dropdown has no meaning - the target for comparisons is always reference sequence node, because there is no information about any other nodes. We now disable this dropdown for datasets without trees.
+
+## 3.14.4
+
+### Fix seed coverage calculation for short references
+
+During alignment, seed coverage is now computed as the total seed length divided by the shorter of the query or reference. This ensures correct behavior when references are shorter than queries, without requiring artificially low `min_seed_cover` values.
+
+### Nextclade Web: fix crash when using `?multi-dataset` URL parameter
+
+When used `?multi-dataset` URL parameter, Nextclade Web could crash under certain conditions. This has been fixed.
+
+### Nextclade Web: workaround double run
+
+When using URL parameters, Nextclade could sometimes spawn multiple copies of the analysis run. This could result in duplicated sequences being reported in the results table erroneously as well as in other unwanted effects. We added a workaround to mitigate this problem. Please report bugs by submitting a [GitHub issue](https://github.com/nextstrain/nextclade/issues).
+
+## 3.14.3
+
+### Fix dataset suggestions and sorting for short references
+
+Update minimizer-based scoring to better handle cases where the reference sequence is much shorter than the query sequence. The previous approach assumed full-genome references and could underestimate scores for partial references such as single genes. The revised method adjusts the normalization to avoid penalizing such cases, improving robustness without requiring changes to the index format. This resolves issues observed in datasets like yellow fever.
+
+This improves dataset suggestions in Nextclade Web and dataset detection in `nextclade sort` CLI command. This also changes the scale of values of column `score` in the TSV output of `nextclade sort` command.
+
+## 3.14.2
+
+### Nextclade Web: crash with custom Auspice JSON dataset
+
+When an Auspice JSON dataset is provided as whole-dataset input through `?dataset-json-url`, Nextclade Web could crash under certain conditions. This has been fixed.
+
+
+## 3.14.1
+
+### Nextclade Web: crash with custom datasets
+
+When a custom dataset is provided through `?dataset-url`, Nextclade Web could crash under certain conditions. This has been fixed.
+
+
+## 3.14.0
 
 ### Nextclade Web: multi-dataset mode
 
@@ -8,7 +50,7 @@ You could provide sequences belonging to multiple organisms or for the dame orga
 
 In multi-dataset mode, the "Export" page now also contains an "Export all to Excel" button, which allows to download .xlsx file containing all analysis results in tabular format, one dataset per sheet. This is the same data as in CSV/TSV files, but aggregated into a single file.
 
-When starting Nextclade analysis using URL parameters, you can add `?multi-dataset` to run in multi-dataset mode. 
+When starting Nextclade analysis using URL parameters, you can add `?multi-dataset` to run in multi-dataset mode.
 
 Nextclade is now using new global search algorithm to find the suggested datasets for your sequences. It tries to minimize the number of datasets, while optimizing their relevance.
 
@@ -36,7 +78,7 @@ Some of the expected errors (e.g. invalid input files) in Nextclade CLI would pr
 
 ### Nextclade CLI: fix console color mode handling
 
-Nextclade CLI previously output colored messages (with ANSI sequences) even if output is not a TTY (e.g. redirected to a file). This has now been fixed. 
+Nextclade CLI previously output colored messages (with ANSI sequences) even if output is not a TTY (e.g. redirected to a file). This has now been fixed.
 
 For additional configuration, the CLI arguments have been added, as well as proper handling of environment variables typically used to control console coloring.
 
@@ -88,7 +130,7 @@ These annotations are derived from reference annotation (coming from a dataset o
 
 These annotations can serve as a starting point for submissions to genetic databases. They also allow to extract nucleotide sequences of genes and CDSes from unaligned sequences, if you need this. Note that the extraction from aligned sequences (as being output by Nextclade) can still be done using reference annotation.
 
-Nextclade supports 2 formats for output annotations: 
+Nextclade supports 2 formats for output annotations:
 
 - Genbank’s 5-column tab-delimited feature table (TBL) format ([spec](https://www.ncbi.nlm.nih.gov/genbank/feature_table/))
 

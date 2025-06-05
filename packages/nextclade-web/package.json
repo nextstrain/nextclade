@@ -1,6 +1,6 @@
 {
   "name": "@nextstrain/nextclade-web",
-  "version": "3.13.3",
+  "version": "3.14.5",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -100,6 +100,7 @@
     "numbro": "2.5.0",
     "observable-fns": "0.6.1",
     "p-memoize": "7.1.1",
+    "p-props": "4.0.0",
     "polished": "4.3.1",
     "pretty-bytes": "7.0.0",
     "react": "18.1.0",
