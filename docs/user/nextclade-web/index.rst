@@ -11,7 +11,7 @@ Nextclade is built for quick feedback. The entire analysis, depending on the num
 Despite being made in the form of a website, Nextclade runs its processing entirely offline, on your own computer. The algorithms are executed within your browser and the data never leaves your computer (i.e. no data upload is happening). Nextclade however still needs internet access to download its own modules and dataset files.
 
 
-  💡 Nextclade Web is suitable for analyzing of small batches of sequences, at most a few hundreds at a time. For large-scale analysis and for integration into bioinformatics pipelines try `Nextclade CLI <nextclade-cli>`_.
+  💡 Nextclade Web is suitable for analyzing of small batches of sequences, at most a few hundreds at a time. For large-scale analysis and for integration into bioinformatics pipelines try `Nextclade CLI <../nextclade-cli>`_.
 
 
 ..  toctree::

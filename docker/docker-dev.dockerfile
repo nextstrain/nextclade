@@ -66,6 +66,7 @@ RUN set -euxo pipefail >/dev/null \
   build-essential \
   ca-certificates \
   curl \
+  genometools \
   git \
   gnupg \
   libssl-dev \
@@ -167,7 +168,7 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install jq, a tool to query JSON files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL -o "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" \
+&& curl -fsSL -o "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" \
 && chmod +x "/usr/bin/jq" \
 && jq --version
 
@@ -207,7 +208,7 @@ USER ${UID}
 COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
 && curl --proto '=https' -sSf https://sh.rustup.rs > rustup-init \
 && chmod +x rustup-init \
 && ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}" \
@@ -216,14 +217,14 @@ RUN set -euxo pipefail >/dev/null \
 # Install toolchain from rust-toolchain.toml and make it default
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
 && rustup toolchain install "${RUST_TOOLCHAIN}" \
 && rustup default "${RUST_TOOLCHAIN}"
 
 # Install remaining toolchain components from rust-toolchain.toml
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
 && rustup show \
 && rustup default "${RUST_TOOLCHAIN}"
 
@@ -243,7 +244,7 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_BINDGEN_CLI_VERSION="0.2.87" \
+&& export WASM_BINDGEN_CLI_VERSION="0.2.93" \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
@@ -266,6 +267,11 @@ RUN set -euxo pipefail >/dev/null \
 && export CARGO_NEXTEST_VERSION="0.9.67" \
 && curl -sSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
 && chmod +x "${CARGO_HOME}/bin/cargo-nextest"
+
+
+RUN set -euxo pipefail >/dev/null \
+&& curl -fsSL "https://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/table2asn/linux64.table2asn.gz" | gzip -d > "${CARGO_HOME}/bin/table2asn" && chmod +x "${CARGO_HOME}/bin/table2asn"
+
 
 # Setup bash
 RUN set -euxo pipefail >/dev/null \
@@ -297,12 +303,15 @@ ENV CXX_x86_64-unknown-linux-gnu=g++
 # Cross-compilation for Linux x86_64 with libmusl
 FROM base as cross-x86_64-unknown-linux-musl
 
+ARG MUSL_CC_X86_64_URL
+ENV MUSL_CC_X86_64_URL="${MUSL_CC_X86_64_URL}"
+
 USER 0
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
+&& curl -fsSL "${MUSL_CC_X86_64_URL}" | tar -C "/usr" -xz --strip-components=1
 
 USER ${UID}
 
@@ -357,12 +366,15 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 # Cross-compilation for Linux ARM64 with libmusl
 FROM base as cross-aarch64-unknown-linux-musl
 
+ARG MUSL_CC_AARCH64_URL
+ENV MUSL_CC_AARCH64_URL=${MUSL_CC_AARCH64_URL}
+
 USER 0
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://more.musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz" | tar -C "/usr" -xz --strip-components=1
+&& curl -fsSL "${MUSL_CC_AARCH64_URL}" | tar -C "/usr" -xz --strip-components=1
 
 USER ${UID}
 

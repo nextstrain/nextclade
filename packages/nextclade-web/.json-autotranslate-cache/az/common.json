@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade qurucusu” - sorğu nümunəsinə təyin edilmiş kladın qurucusuna nisbətən mutasiyaları göstərir. Qeyd edək ki, müxtəlif klaslardan gələn sorğular bu vəziyyətdə fərqli hədəflərlə müqayisə ediləcəkdir.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Valideyn” - xüsusi mutasiyaları, yəni filogenetik yerləşdirmə zamanı sorğu nümunəsinin əlavə edildiyi istinad ağacının ana (ən yaxın) düyününə nisbətən mutasiyaları göstərir.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“İstinad” - istinad ardıcıllığına nisbətən mutasiyaları göstərir (verilənlər bazasında müəyyən edildiyi kimi).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" qurucusu",
   "(truncated)": "(kəsilmiş)",
   "* Current value. This amount can change depending on load": "* Cari dəyər. Bu məbləğ yükdən asılı olaraq dəyişə bilər",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} hər mövzu üçün ən azı {{memoryRequired}} yaddaş tələb edir",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} ən son versiyalarında ən yaxşı işləyir ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Tərtibatçılar üçün əlavə məlumat (genişləndirmək üçün klikləyin)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} səhv yerləşdirilmiş dayanma kodonu (lər) aşkar edildi. Təsirə məruz qalan gen (lər): {{geneList}}. QC hesabı: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" qurucusu"
+  "Load example sequence data (for demonstration)": "Misal ardıcıllığı məlumatlarını yükləyin (nümayiş üçün)",
+  "Open reference tree for this dataset on nextstrain.org": "Nextstrain.org saytında bu verilənlər bazası üçün istinad ağacını açın",
+  "Open tree": "Açıq ağac",
+  "There is no example data in this dataset": "Bu verilənlər bazasında nümunə məlumat yoxdur",
+  "There is no reference tree in this dataset": "Bu verilənlər bazasında istinad ağacı yoxdur"
 }

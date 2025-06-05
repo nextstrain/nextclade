@@ -1,15 +1,13 @@
 import React from 'react'
-import { Col, Row, Container as ContainerBase } from 'reactstrap'
+import { Container as ContainerBase } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-import { ButtonRun } from 'src/components/Main/ButtonRun'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
+import { DatasetInfoCompact } from 'src/components/Main/DatasetInfoCompact'
+import { ButtonRun } from 'src/components/Main/ButtonRun'
+import { datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { useUpdatedDataset } from 'src/io/fetchDatasets'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 import { DatasetContentSection } from 'src/components/Main/DatasetContentSection'
-import { DatasetCurrentUpdateNotification } from 'src/components/Main/DatasetCurrentUpdateNotification'
 
 const CurrentDatasetInfoContainer = styled(ContainerBase)`
   display: flex;
@@ -28,14 +26,6 @@ const DatasetInfoH4 = styled.h4`
   flex: 1;
   margin: auto 0;
   margin-top: 12px;
-`
-
-const CurrentDatasetInfoBody = styled.section`
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  border: 1px #ccc9 solid;
-  border-radius: 5px;
 `
 
 const Container = styled.div`
@@ -60,12 +50,10 @@ const Main = styled.div`
 `
 
 export function DatasetCurrent() {
-  // Periodically checks if there's local update for the current dataset
   useUpdatedDataset()
 
   const { t } = useTranslationSafe()
-  const dataset = useRecoilValue(datasetCurrentAtom)
-  const run = useRunAnalysis()
+  const dataset = useRecoilValue(datasetSingleCurrentAtom)
 
   if (!dataset) {
     return null
@@ -74,24 +62,15 @@ export function DatasetCurrent() {
   return (
     <CurrentDatasetInfoContainer>
       <CurrentDatasetInfoHeader>
-        <DatasetInfoH4>{t('Selected pathogen')}</DatasetInfoH4>
-        <ButtonRun onClick={run} />
+        <DatasetInfoH4>{t('Selected dataset')}</DatasetInfoH4>
+        <ButtonRun singleDatasetMode />
       </CurrentDatasetInfoHeader>
       <Container>
         <Header>
-          <CurrentDatasetInfoBody>
-            <DatasetCurrentUpdateNotification />
-
-            <Row noGutters className="w-100">
-              <Col className="d-flex">
-                <DatasetInfo dataset={dataset} />
-              </Col>
-            </Row>
-          </CurrentDatasetInfoBody>
+          <DatasetInfoCompact dataset={dataset} />
         </Header>
-
         <Main>
-          <DatasetContentSection />
+          <DatasetContentSection dataset={dataset} />
         </Main>
       </Container>
     </CurrentDatasetInfoContainer>

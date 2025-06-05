@@ -1,14 +1,14 @@
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::gene::GeneStrand;
+use crate::io::gff3_writer::gff_record_to_string;
 use crate::utils::collections::get_first_of;
 use crate::utils::string::surround_with_quotes;
-use bio::io::gff::{GffType, Record as GffRecord, Writer as GffWriter};
+use bio::io::gff::Record as GffRecord;
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report};
+use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 /// Possible keys for name attribute (in order of preference!)
@@ -82,8 +82,11 @@ pub struct GffCommonInfo {
   pub exceptions: Vec<String>,
   pub notes: Vec<String>,
   pub is_circular: bool,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   pub gff_record_str: String,
+  pub gff_seqid: Option<String>,
+  pub gff_source: Option<String>,
+  pub gff_feature_type: Option<String>,
 }
 
 impl GffCommonInfo {
@@ -139,12 +142,16 @@ impl GffCommonInfo {
     let is_circular =
       get_attribute_optional(record, "Is_circular").map_or(false, |is_circular| is_circular.to_lowercase() == "true");
 
-    // Convert MultiMap to HashMap of Vec
-    let attributes: HashMap<String, Vec<String>> = record
+    // Convert MultiMap to IndexMap of Vec
+    let attributes: IndexMap<String, Vec<String>> = record
       .attributes()
       .iter_all()
       .map(|(key, values)| (key.clone(), values.clone()))
       .collect();
+
+    let gff_seqid = get_gff_value_maybe(record.seqname());
+    let gff_source = get_gff_value_maybe(record.source());
+    let gff_feature_type = get_gff_value_maybe(record.feature_type());
 
     Ok(GffCommonInfo {
       id,
@@ -156,8 +163,16 @@ impl GffCommonInfo {
       is_circular,
       attributes,
       gff_record_str,
+      gff_seqid,
+      gff_source,
+      gff_feature_type,
     })
   }
+}
+
+fn get_gff_value_maybe(val: impl AsRef<str>) -> Option<String> {
+  let val = val.as_ref().trim();
+  (!val.is_empty() && val != ".").then(|| val.to_owned())
 }
 
 #[inline]
@@ -213,16 +228,6 @@ pub fn get_all_attributes(record: &GffRecord, attr_names: &[&str]) -> Result<Vec
     .unique()
     .map(|val| Ok(urlencoding::decode(&val)?.to_string()))
     .collect::<Result<Vec<String>, Report>>()
-}
-
-/// Prints GFF record as it is in the input file
-pub fn gff_record_to_string(record: &GffRecord) -> Result<String, Report> {
-  let mut buf = Vec::<u8>::new();
-  {
-    let mut writer = GffWriter::new(&mut buf, GffType::GFF3);
-    writer.write(record)?;
-  };
-  Ok(String::from_utf8(buf)?)
 }
 
 #[cfg(test)]

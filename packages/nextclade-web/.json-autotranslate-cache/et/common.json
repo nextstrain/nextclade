@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade asutaja” - näitab mutatsioone päringuväidile määratud klaadi asutaja suhtes. Pange tähele, et erinevate klaadide päringuid võrreldakse sel juhul erinevate sihtmärkidega.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Vanem” - näitab privaatseid mutatsioone, st mutatsioone võrdluspuu vanema (lähima) sõlme suhtes, millele päringuproov on fülogeneetilise paigutamise ajal kinnitatud.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Viide” - näitab mutatsioone võrdlusjärjestuse suhtes (nagu on määratletud andmekogumis).",
+  "\"{{ attr }}\" founder": "„ {{ attr }} \" asutaja",
   "(truncated)": "(kärbitud)",
   "* Current value. This amount can change depending on load": "* Praegune väärtus. See summa võib sõltuvalt koormusest muutuda",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} nõuab lõime kohta vähemalt {{memoryRequired}} mälu",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} töötab kõige paremini uusimates versioonides ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Lisainfo arendajatele (klõpsake laiendamiseks)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} tuvastati valesti paigutatud stoppkoodon (id). Mõjutatud geen (id): {{geneList}}. QC skoor: {{score}}",
-  "\"{{ attr }}\" founder": "„{{ attr }}\" asutaja"
+  "Load example sequence data (for demonstration)": "Laadige näidisjärjestuse andmed (demonstreerimiseks)",
+  "Open reference tree for this dataset on nextstrain.org": "Avage selle andmekogumi võrdluspuu saidil nextstrain.org",
+  "Open tree": "Avatud puu",
+  "There is no example data in this dataset": "Selles andmekogumis puuduvad näidisandmed",
+  "There is no reference tree in this dataset": "Selles andmekogumis pole võrdluspuud"
 }

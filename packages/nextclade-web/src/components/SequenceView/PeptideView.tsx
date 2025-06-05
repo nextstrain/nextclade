@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { REF_NODE_ROOT } from 'src/constants'
 import { PeptideViewRelative } from 'src/components/SequenceView/PeptideViewRelative'
@@ -59,22 +60,23 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
   warnings?: PeptideWarning[]
-  viewedGene: string
+  cdsName: string
 }
 
-export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: PeptideViewProps) {
+export function PeptideViewUnsized({ width, sequence, warnings, cdsName }: PeptideViewProps) {
   const { t } = useTranslationSafe()
-  const refNodeName = useRecoilValue(currentRefNodeNameAtom)
-  const cds = useRecoilValue(cdsAtom(viewedGene))
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName })) ?? REF_NODE_ROOT
+  const cds = useRecoilValue(cdsAtom({ datasetName, cdsName }))
 
   const view = useMemo(() => {
     if (!width) {
       return null
     }
     if (!cds) {
-      return <>{t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: viewedGene })}</>
+      return <>{t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: cdsName })}</>
     }
-    const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === viewedGene)
+    const warningsForThisGene = (warnings ?? []).filter((warn) => warn.cdsName === cdsName)
     if (warningsForThisGene.length > 0) {
       return <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
     }
@@ -82,7 +84,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
       return <PeptideViewAbsolute width={width} cds={cds} sequence={sequence} />
     }
     return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
-  }, [cds, refNodeName, sequence, t, viewedGene, warnings, width])
+  }, [cds, refNodeName, sequence, t, cdsName, warnings, width])
 
   return <SequenceViewWrapper>{view}</SequenceViewWrapper>
 }

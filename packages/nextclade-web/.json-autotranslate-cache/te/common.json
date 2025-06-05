@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“క్లేడ్ వ్యవస్థాపకుడు” - ప్రశ్న నమూనాకు కేటాయించిన చేయబడిన క్లేడ్ వ్యవస్థాపకుడికి సంబంధించి ఉత్పరివర్తనలను చూపిస్తుంది. వివిధ క్లాడ్ల నుండి ప్రశ్నలు ఈ సందర్భంలో వేర్వేరు లక్ష్యాలతో పోల్చబడతాయని గమనించండి.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“పేరెంట్” - ప్రైవేట్ ఉత్పరివర్తనలను చూపిస్తుంది, అనగా ఫైలోజెనెటిక్ ప్లేస్మెంట్ సమయంలో ప్రశ్న నమూనాను జతచేయబడిన సూచన చెట్టు యొక్క మాతృ (సమీప) నోడ్కు సంబంధించి ఉత్పరివర్తనలు.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“రిఫరెన్స్” - రిఫరెన్స్ సీక్వెన్స్కు సంబంధించి ఉత్పరివర్తనలను చూపుతుంది (డేటాసెట్లో నిర్వచించిన విధంగా).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" వ్యవస్థాపకుడు",
   "(truncated)": "(కత్తిరించబడింది)",
   "* Current value. This amount can change depending on load": "* ప్రస్తుత విలువ. లోడ్ను బట్టి ఈ మొత్తం మారవచ్చు",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} కు థ్రెడ్కు కనీసం {{memoryRequired}} మెమరీ అవసరం",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} యొక్క తాజా వెర్షన్లలో ఉత్తమంగా పనిచేస్తుంది ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} డెవలపర్ల కోసం అదనపు సమాచారం (విస్తరించడానికి క్లిక్ చేయండి)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} తప్పుగా ఉంచబడిన స్టాప్ కోడాన్ (లు) కనుగొనబడింది. ప్రభావిత జన్యువు (లు): {{geneList}}. క్యూసి స్కోర్: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" వ్యవస్థాపకుడు"
+  "Load example sequence data (for demonstration)": "ఉదాహరణ సీక్వెన్స్ డేటాను లోడ్ చేయండి (ప్రదర్శన కోసం)",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.org లో ఈ డేటాసెట్ కోసం రిఫరెన్స్ చెట్టును తెరవండి",
+  "Open tree": "తెరిచి చెట్టు",
+  "There is no example data in this dataset": "ఈ డేటాసెట్లో ఉదాహరణ డేటా లేదు",
+  "There is no reference tree in this dataset": "ఈ డేటాసెట్లో సూచన చెట్టు లేదు"
 }

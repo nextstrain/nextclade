@@ -1,22 +1,18 @@
-import { Dataset } from '_SchemaRoot'
-import { isEmpty } from 'lodash'
-import React, { useCallback } from 'react'
+import React, { ComponentPropsWithoutRef, useCallback, useMemo } from 'react'
 import { Button } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import styled from 'styled-components'
+import type { Dataset } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
-import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { hasInputErrorsAtom } from 'src/state/error.state'
 import { useQuerySeqInputs } from 'src/state/inputs.state'
-import { shouldRunAutomaticallyAtom, shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
+import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
 
 export function useSetExampleSequences() {
   const { addQryInputs } = useQuerySeqInputs()
-  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
   const shouldSuggestDatasets = useRecoilValue(shouldSuggestDatasetsOnDatasetPageAtom)
-  const runAnalysis = useRunAnalysis()
   const runAutodetect = useRunSeqAutodetect()
 
   return useCallback(
@@ -26,32 +22,58 @@ export function useSetExampleSequences() {
         if (shouldSuggestDatasets) {
           runAutodetect()
         }
-        if (shouldRunAutomatically) {
-          runAnalysis()
-        }
       }
     },
-    [addQryInputs, runAnalysis, runAutodetect, shouldRunAutomatically, shouldSuggestDatasets],
+    [addQryInputs, runAutodetect, shouldSuggestDatasets],
   )
 }
 
-export function ButtonLoadExample({ ...rest }) {
+export interface ButtonLoadExampleProps extends ComponentPropsWithoutRef<typeof ButtonStyled> {
+  dataset?: Dataset
+}
+
+export function ButtonLoadExample({ dataset, ...rest }: ButtonLoadExampleProps) {
   const { t } = useTranslationSafe()
 
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
-  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
   const setExampleSequences = useSetExampleSequences()
   const onClick = useCallback(() => {
-    setExampleSequences(datasetCurrent)
-  }, [datasetCurrent, setExampleSequences])
+    setExampleSequences(dataset)
+  }, [dataset, setExampleSequences])
 
-  if (isEmpty(datasetCurrent?.files?.examples)) {
-    return null
-  }
+  const title = useMemo(
+    () =>
+      dataset?.files?.examples
+        ? t('Load example sequence data (for demonstration)')
+        : t('There is no example data in this dataset'),
+    [dataset?.files?.examples, t],
+  )
 
   return (
-    <Button {...rest} color="link" onClick={onClick} disabled={hasInputErrors || !datasetCurrent}>
+    <ButtonStyled
+      {...rest}
+      color="link"
+      onClick={onClick}
+      title={title}
+      disabled={!dataset?.files?.examples || hasInputErrors || !dataset}
+    >
       {t('Load example')}
-    </Button>
+    </ButtonStyled>
   )
 }
+
+const ButtonStyled = styled(Button)`
+  max-width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  &:disabled {
+    text-decoration: none !important;
+    pointer-events: all !important;
+    cursor: not-allowed !important;
+    transition: none !important;
+  }
+
+  transition: none !important;
+`

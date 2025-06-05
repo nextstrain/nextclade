@@ -1,14 +1,20 @@
 use crate::wasm::jserr::{jserr, jserr2};
 use chrono::Duration;
 use eyre::WrapErr;
+use itertools::Itertools;
+use maplit::btreemap;
+use nextclade::io::dataset::DatasetsIndexJson;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
-use nextclade::io::json::json_parse;
+use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
 use nextclade::sort::minimizer_index::MinimizerIndexJson;
-use nextclade::sort::minimizer_search::{run_minimizer_search, MinimizerSearchRecord};
+use nextclade::sort::minimizer_search::{
+  find_best_datasets, run_minimizer_search, MinimizerSearchRecord, MinimizerSearchResult,
+};
 use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::datetime::date_now;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -30,24 +36,37 @@ impl Default for NextcladeSeqAutodetectWasmParams {
 
 #[wasm_bindgen]
 pub struct NextcladeSeqAutodetectWasm {
+  index: DatasetsIndexJson,
   minimizer_index: MinimizerIndexJson,
   run_params: NextcladeSeqAutodetectWasmParams,
+  search_params: NextcladeSeqSortParams,
+  results: BTreeMap<usize, MinimizerSearchResult>,
 }
 
 #[wasm_bindgen]
 impl NextcladeSeqAutodetectWasm {
-  pub fn new(minimizer_index_json_str: &str, params: &str) -> Result<NextcladeSeqAutodetectWasm, JsError> {
+  pub fn new(
+    index_json_str: &str,
+    minimizer_index_json_str: &str,
+    params: &str,
+  ) -> Result<NextcladeSeqAutodetectWasm, JsError> {
+    let index = jserr(DatasetsIndexJson::from_str(index_json_str))?;
+
     let minimizer_index = jserr(MinimizerIndexJson::from_str(minimizer_index_json_str))?;
+
+    let search_params = NextcladeSeqSortParams::default();
+
     Ok(Self {
+      index,
       minimizer_index,
       run_params: jserr(json_parse(params))?,
+      search_params,
+      results: btreemap! {},
     })
   }
 
-  pub fn autodetect(&self, qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
+  pub fn autodetect(&mut self, qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
     let mut reader = jserr(FastaReader::from_str(&qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
-
-    let search_params = NextcladeSeqSortParams::default();
 
     let mut batch = vec![];
     let mut last_flush = date_now();
@@ -60,7 +79,7 @@ impl NextcladeSeqAutodetectWasm {
       }
 
       let result = jserr(
-        run_minimizer_search(&fasta_record, &self.minimizer_index, &search_params).wrap_err_with(|| {
+        run_minimizer_search(&fasta_record, &self.minimizer_index, &self.search_params).wrap_err_with(|| {
           format!(
             "When processing sequence #{} '{}'",
             fasta_record.index, fasta_record.seq_name
@@ -68,6 +87,7 @@ impl NextcladeSeqAutodetectWasm {
         }),
       )?;
 
+      self.results.insert(fasta_record.index, result.clone());
       batch.push(MinimizerSearchRecord { fasta_record, result });
 
       if date_now() - last_flush >= Duration::milliseconds(self.run_params.batch_interval_ms)
@@ -91,5 +111,19 @@ impl NextcladeSeqAutodetectWasm {
     jserr2(callback.call1(&JsValue::null(), &result_js))?;
     batch.clear();
     Ok(())
+  }
+
+  pub fn find_best_datasets(&self) -> Result<String, JsError> {
+    let dataset_order = self
+      .index
+      .collections
+      .iter()
+      .flat_map(|collection| collection.datasets.iter().map(|dataset| dataset.path.clone()))
+      .collect_vec();
+
+    let best_datasets = jserr(
+      find_best_datasets(&self.results, &dataset_order, &self.search_params).wrap_err("When finding best datasets"),
+    )?;
+    jserr(json_stringify(&best_datasets, JsonPretty(false)))
   }
 }

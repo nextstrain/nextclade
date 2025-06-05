@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Pengasas Clade” - menunjukkan mutasi berbanding dengan pengasas clade yang telah diberikan kepada sampel pertanyaan. Perhatikan bahawa pertanyaan dari klad yang berbeza akan dibandingkan dengan sasaran yang berbeza dalam kes ini.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ibu bapa” - menunjukkan mutasi peribadi, iaitu mutasi relatif kepada nod induk (terdekat) pokok rujukan yang mana sampel pertanyaan telah dilampirkan semasa penempatan filogenetik.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Rujukan” - menunjukkan mutasi relatif kepada urutan rujukan (seperti yang ditakrifkan dalam set data).",
+  "\"{{ attr }}\" founder": "Pengasas “ {{ attr }} \"",
   "(truncated)": "(dipotong)",
   "* Current value. This amount can change depending on load": "* Nilai semasa. Jumlah ini boleh berubah bergantung pada beban",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} memerlukan sekurang-kurangnya {{memoryRequired}} memori setiap thread",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} berfungsi paling baik dalam versi terkini ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Maklumat tambahan untuk pemaju (klik untuk mengembangkan)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} kodon berhenti yang salah dikesan. Gen yang terjejas: {{geneList}}. Skor QC: {{score}}",
-  "\"{{ attr }}\" founder": "Pengasas “{{ attr }}\""
+  "Load example sequence data (for demonstration)": "Muatkan data urutan contoh (untuk demonstrasi)",
+  "Open reference tree for this dataset on nextstrain.org": "Buka pokok rujukan untuk set data ini di nextstrain.org",
+  "Open tree": "Pokok terbuka",
+  "There is no example data in this dataset": "Tiada data contoh dalam set data ini",
+  "There is no reference tree in this dataset": "Tiada pokok rujukan dalam set data ini"
 }

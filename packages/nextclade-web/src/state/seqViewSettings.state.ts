@@ -1,8 +1,9 @@
-import { atom, selector } from 'recoil'
+import { atom, selectorFamily } from 'recoil'
 import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 
 import { persistAtom } from 'src/state/persist/localStorage'
+import { multiAtom } from 'src/state/utils/multiAtom'
 
 export enum SeqMarkerHeightState {
   Off = 'Off',
@@ -116,18 +117,23 @@ export const maxNucMarkersAtom = atom<number>({
   effects: [persistAtom],
 })
 
-export const viewedCdsAtom = atom<string>({
+export const [viewedCdsAtom, allViewedCdsAtom] = multiAtom<string, { datasetName: string }>({
   key: 'viewedCdsAtom',
-  default: CDS_OPTION_NUC_SEQUENCE,
 })
 
-export const isInNucleotideViewAtom = selector<boolean>({
+export const isInNucleotideViewAtom = selectorFamily<boolean, { datasetName: string }>({
   key: 'isInNucleotideView',
-  get: ({ get }) => get(viewedCdsAtom) === CDS_OPTION_NUC_SEQUENCE,
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      get(viewedCdsAtom({ datasetName })) === CDS_OPTION_NUC_SEQUENCE,
 })
 
-export const switchToNucleotideViewAtom = selector({
+export const switchToNucleotideViewAtom = selectorFamily<unknown, { datasetName: string }>({
   key: 'switchToNucleotideView',
-  get: () => undefined,
-  set: ({ set }) => set(viewedCdsAtom, CDS_OPTION_NUC_SEQUENCE),
+  get: () => () => undefined,
+  set:
+    ({ datasetName }) =>
+    ({ set }) =>
+      set(viewedCdsAtom({ datasetName }), CDS_OPTION_NUC_SEQUENCE),
 })

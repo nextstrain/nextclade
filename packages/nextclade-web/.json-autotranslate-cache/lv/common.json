@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade dibinātājs” - parāda mutācijas attiecībā pret klādes dibinātāju, kas piešķirts vaicājuma paraugam. Ņemiet vērā, ka šajā gadījumā dažādu klažu vaicājumi tiks salīdzināti ar dažādiem mērķiem.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Vecāks” - parāda privātas mutācijas, t.i., mutācijas attiecībā pret atsauces koka vecāku (tuvāko) mezglu, kuram filoģenētiskās izvietošanas laikā ir pievienots vaicājuma paraugs.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Atsauce” - parāda mutācijas attiecībā pret atsauces secību (kā definēts datu kopā).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" dibinātājs",
   "(truncated)": "(saīsināts)",
   "* Current value. This amount can change depending on load": "* Pašreizējā vērtība. Šī summa var mainīties atkarībā no slodzes",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} vienā pavedienā ir nepieciešama vismaz {{memoryRequired}} atmiņa",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} vislabāk darbojas jaunākajās versijās ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Papildu informācija izstrādātājiem (noklikšķiniet, lai izvērstu)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} atklāts nepareizi novietots stopkodons (-i). Ietekmētais gēns (-i): {{geneList}}. QC rezultāts: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" dibinātājs"
+  "Load example sequence data (for demonstration)": "Ielādējiet secības datu piemēru (demonstrēšanai)",
+  "Open reference tree for this dataset on nextstrain.org": "Atveriet šīs datu kopas atsauces koku vietnē nextstrain.org",
+  "Open tree": "Atvērt koku",
+  "There is no example data in this dataset": "Šajā datu kopā nav datu piemēru",
+  "There is no reference tree in this dataset": "Šajā datu kopā nav atsauces koka"
 }

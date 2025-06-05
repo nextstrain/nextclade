@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade fundador” - mostra mutacions relatives al fundador del clade que s'ha assignat a la mostra de consulta. Tingueu en compte que les consultes de diferents clades es compararan amb diferents objectius en aquest cas.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Parent” - mostra mutacions privades, és a dir, mutacions relatives al node pare (més proper) de l'arbre de referència al qual s'ha unit la mostra de consulta durant la col·locació filogenètica.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referència” - mostra mutacions relatives a la seqüència de referència (tal com es defineix en el conjunt de dades).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" fundador",
   "(truncated)": "(truncat)",
   "* Current value. This amount can change depending on load": "* Valor actual. Aquesta quantitat pot canviar depenent de la càrrega",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} requereix almenys {{memoryRequired}} de memòria per fil",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} funciona millor en les últimes versions de ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Informació addicional per a desenvolupadors (feu clic per ampliar)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} detectat codó (s) stop (s) mal col·locats. Gen (s) afectat/s: {{geneList}}. Puntuació QC: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" fundador"
+  "Load example sequence data (for demonstration)": "Carregar dades de seqüència d'exemple (per a la demostració)",
+  "Open reference tree for this dataset on nextstrain.org": "Obrir l'arbre de referència d'aquest conjunt de dades a nextstrain.org",
+  "Open tree": "Obrir arbre",
+  "There is no example data in this dataset": "No hi ha dades d'exemple en aquest conjunt de dades",
+  "There is no reference tree in this dataset": "No hi ha cap arbre de referència en aquest conjunt de dades"
 }

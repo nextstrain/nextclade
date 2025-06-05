@@ -1,5 +1,4 @@
 import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { lighten } from 'polished'
 import { ListGroup } from 'reactstrap'
 import styled from 'styled-components'
 import { areDatasetsEqual, attrStrMaybe, Dataset } from 'src/types'
@@ -13,7 +12,6 @@ export interface DatasetSelectorListProps {
   datasetHighlighted?: Dataset
   onDatasetHighlighted?(dataset?: Dataset): void
   searchTerm: string
-  showSuggestions?: boolean
 }
 
 export function DatasetSelectorList({
@@ -22,7 +20,6 @@ export function DatasetSelectorList({
   datasetHighlighted,
   onDatasetHighlighted,
   searchTerm,
-  showSuggestions,
 }: DatasetSelectorListProps) {
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
 
@@ -54,7 +51,6 @@ export function DatasetSelectorList({
             dataset={dataset}
             onClick={onItemClick(dataset)}
             isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
-            showSuggestions={showSuggestions}
           />
         ))}
 
@@ -65,13 +61,12 @@ export function DatasetSelectorList({
             dataset={dataset}
             onClick={onItemClick(dataset)}
             isCurrent={areDatasetsEqual(dataset, datasetHighlighted)}
-            showSuggestions={showSuggestions}
             isDimmed
           />
         ))}
       </Ul>
     ),
-    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick, showSuggestions],
+    [datasetHighlighted, itemsInclude, itemsNotInclude, itemsStartWith, listItemsRef, onItemClick],
   )
 }
 
@@ -113,6 +108,8 @@ export const Ul = styled(ListGroup)`
 `
 
 export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
+  display: flex;
+
   cursor: pointer;
   opacity: ${(props) => props.$isDimmed && 0.4};
   background-color: transparent;
@@ -125,26 +122,25 @@ export const Li = styled.li<{ $active?: boolean; $isDimmed?: boolean }>`
     props.$active &&
     `
     color: ${props.theme.white};
-    background-color: ${lighten(0.033)(props.theme.primary)};
+    background-color: ${props.theme.primary};
     color: ${props.theme.gray100};
     box-shadow: -3px 3px 12px 3px #0005;
     opacity: ${props.$isDimmed && 0.66};
-   `};
+    `};
 `
 
 interface DatasetSelectorListItemProps {
   dataset: Dataset
   isCurrent?: boolean
   isDimmed?: boolean
-  showSuggestions?: boolean
   onClick?: () => void
 }
 
 const DatasetSelectorListItem = forwardRef<HTMLLIElement, DatasetSelectorListItemProps>(
-  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick, showSuggestions }, ref) {
+  function DatasetSelectorListItemWithRef({ dataset, isCurrent, isDimmed, onClick }, ref) {
     return (
       <Li ref={ref} $isDimmed={isDimmed} aria-current={isCurrent} $active={isCurrent} onClick={onClick}>
-        <DatasetListEntry dataset={dataset} showSuggestions={showSuggestions} />
+        <DatasetListEntry dataset={dataset} />
       </Li>
     )
   },

@@ -6,6 +6,7 @@ use schemars::schema::Schema;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter};
 
+#[must_use]
 #[repr(i8)]
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
 pub enum Phase {
@@ -24,6 +25,20 @@ impl Phase {
         make_internal_error!("Unexpected value for the phase of genetic feature: {val}. Expected values are: 0, 1, 2")
       }
     }
+  }
+
+  pub const fn to_usize(self) -> usize {
+    match self {
+      Phase::_0 => 0,
+      Phase::_1 => 1,
+      Phase::_2 => 2,
+    }
+  }
+
+  pub fn shifted_by(self, amount: usize) -> Result<Phase, Report> {
+    let original_phase = self.to_usize();
+    let begin = NucRefLocalPosition::from(original_phase + amount);
+    Phase::from_begin(begin)
   }
 }
 

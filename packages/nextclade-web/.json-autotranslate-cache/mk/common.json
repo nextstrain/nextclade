@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Основач на Клад” - покажува мутации во однос на основачот на клада што е доделен на примерокот за пребарување. Имајте на ум дека барањата од различни клади ќе се споредат со различни цели во овој случај.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Родител” - покажува приватни мутации, т.е. мутации во однос на родителскиот (најблискиот) јазол на референтното дрво на кое е прикачен примерокот за пребарување за време на филогенетското поставување.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Референца” - покажува мутации во однос на референтната секвенца (како што е дефинирано во базата на податоци).",
+  "\"{{ attr }}\" founder": "Основач на “ {{ attr }} ”",
   "(truncated)": "(скратено)",
   "* Current value. This amount can change depending on load": "* Тековна вредност. Оваа сума може да се промени во зависност од оптоварувањето",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} бара најмалку {{memoryRequired}} меморија по нишка",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} најдобро функционира во најновите верзии на ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Дополнителни информации за програмери (кликнете за да се прошири)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} откриен погрешно поставен стоп кодон (и). Погоден ген (и): {{geneList}}. КК резултат: {{score}}",
-  "\"{{ attr }}\" founder": "Основач на “{{ attr }}”"
+  "Load example sequence data (for demonstration)": "Вчитајте податоци за пример за секвенца (за демонстрација)",
+  "Open reference tree for this dataset on nextstrain.org": "Отворете референтно дрво за оваа база на податоци на nextstrain.org",
+  "Open tree": "Отворено дрво",
+  "There is no example data in this dataset": "Нема примерни податоци во оваа база на податоци",
+  "There is no reference tree in this dataset": "Во оваа база на податоци нема референтно дрво"
 }

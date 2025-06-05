@@ -1,14 +1,15 @@
-import { mapValues, sum } from 'lodash'
-import { atom, selector } from 'recoil'
+import { sum } from 'lodash'
+import { atom, atomFamily, selectorFamily } from 'recoil'
 import {
   COLUMN_WIDTHS,
   DYNAMIC_AA_MOTIFS_COLUMN_WIDTH,
   DYNAMIC_CLADE_COLUMN_WIDTH,
   DYNAMIC_PHENOTYPE_COLUMN_WIDTH,
+  getColumnWidthsPx,
 } from 'src/components/Results/ResultsTableStyle'
 import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { aaMotifsDescsAtom, cladeNodeAttrDescsAtom, phenotypeAttrKeysAtom } from 'src/state/results.state'
+import { aaMotifsDescsAtom, cladeNodeAttrDescsAtom, phenotypeAttrDescsAtom } from 'src/state/results.state'
 
 export const isInitializedAtom = atom<boolean>({
   key: 'isInitialized',
@@ -26,21 +27,10 @@ export const isResultsFilterPanelCollapsedAtom = atom<boolean>({
   default: true,
 })
 
-export const shouldRunAutomaticallyAtom = atom<boolean>({
-  key: 'shouldRunAutomatically',
-  default: false,
-  effects: [persistAtom],
-})
-
 export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
   key: 'shouldSuggestDatasetsOnDatasetPageAtom',
   default: true,
   effects: [persistAtom],
-})
-
-export const changelogIsShownAtom = atom<boolean>({
-  key: 'changelogIsShown',
-  default: false,
 })
 
 export const lastNotifiedAppVersionAtom = atom<string | undefined>({
@@ -49,79 +39,98 @@ export const lastNotifiedAppVersionAtom = atom<string | undefined>({
   effects: [persistAtom],
 })
 
-export const showNewRunPopupAtom = atom({
-  key: 'showNewRunPopup',
-  default: false,
-})
-
-export const resultsTableColumnWidthsAtom = atom<Record<keyof typeof COLUMN_WIDTHS, number>>({
+export const resultsTableColumnWidthsAtom = atomFamily<
+  Record<keyof typeof COLUMN_WIDTHS, number>,
+  { datasetName: string }
+>({
   key: 'columnWidths',
   default: COLUMN_WIDTHS,
 })
 
-export const resultsTableColumnWidthsPxAtom = selector<Record<keyof typeof COLUMN_WIDTHS, string>>({
+export const resultsTableColumnWidthsPxAtom = selectorFamily<
+  Record<keyof typeof COLUMN_WIDTHS, string>,
+  { datasetName: string }
+>({
   key: 'columnWidthsPx',
-  get: ({ get }) => mapValues(get(resultsTableColumnWidthsAtom), (width) => `${width}px`),
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      getColumnWidthsPx(get(resultsTableColumnWidthsAtom({ datasetName }))),
 })
 
-export const resultsTableDynamicCladeColumnWidthAtom = atom<number>({
+export const resultsTableDynamicCladeColumnWidthAtom = atomFamily<number, { datasetName: string }>({
   key: 'dynamicCladeColumnWidth',
   default: DYNAMIC_CLADE_COLUMN_WIDTH,
 })
 
-export const resultsTableDynamicCladeColumnWidthPxAtom = selector<string>({
+export const resultsTableDynamicCladeColumnWidthPxAtom = selectorFamily<string, { datasetName: string }>({
   key: 'dynamicCladeColumnWidthPx',
-  get: ({ get }) => `${get(resultsTableDynamicCladeColumnWidthAtom)}px`,
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      `${get(resultsTableDynamicCladeColumnWidthAtom({ datasetName }))}px`,
 })
 
-export const resultsTableDynamicPhenotypeColumnWidthAtom = atom<number>({
+export const resultsTableDynamicPhenotypeColumnWidthAtom = atomFamily<number, { datasetName: string }>({
   key: 'dynamicPhenotypeColumnWidth',
   default: DYNAMIC_PHENOTYPE_COLUMN_WIDTH,
 })
 
-export const resultsTableDynamicPhenotypeColumnWidthPxAtom = selector<string>({
+export const resultsTableDynamicPhenotypeColumnWidthPxAtom = selectorFamily<string, { datasetName: string }>({
   key: 'dynamicPhenotypeColumnWidthPx',
-  get: ({ get }) => `${get(resultsTableDynamicPhenotypeColumnWidthAtom)}px`,
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      `${get(resultsTableDynamicPhenotypeColumnWidthAtom({ datasetName }))}px`,
 })
 
-export const resultsTableDynamicAaMotifsColumnWidthAtom = atom<number>({
+export const resultsTableDynamicAaMotifsColumnWidthAtom = atomFamily<number, { datasetName: string }>({
   key: 'resultsTableDynamicAaMotifsColumnWidthAtom',
   default: DYNAMIC_AA_MOTIFS_COLUMN_WIDTH,
 })
 
-export const resultsTableDynamicAaMotifsColumnWidthAtomPxAtom = selector<string>({
+export const resultsTableDynamicAaMotifsColumnWidthAtomPxAtom = selectorFamily<string, { datasetName: string }>({
   key: 'resultsTableDynamicAaMotifsColumnWidthAtomPxAtom',
-  get: ({ get }) => `${get(resultsTableDynamicAaMotifsColumnWidthAtom)}px`,
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      `${get(resultsTableDynamicAaMotifsColumnWidthAtom({ datasetName }))}px`,
 })
 
-export const resultsTableTotalWidthAtom = selector<number>({
+export const resultsTableTotalWidthAtom = selectorFamily<number, { datasetName: string }>({
   key: 'resultsTableTotalWidth',
-  get({ get }) {
-    const dynamicCladeColumnsWidthTotal =
-      get(cladeNodeAttrDescsAtom).filter((desc) => !desc.hideInWeb).length *
-      get(resultsTableDynamicCladeColumnWidthAtom)
+  get:
+    ({ datasetName }) =>
+    ({ get }) => {
+      const dynamicCladeColumnsWidthTotal =
+        (get(cladeNodeAttrDescsAtom({ datasetName }))?.filter((desc) => !desc.hideInWeb).length ?? 0) *
+        get(resultsTableDynamicCladeColumnWidthAtom({ datasetName }))
 
-    const dynamicPhenotypeColumnsWidthTotal =
-      get(phenotypeAttrKeysAtom).length * get(resultsTableDynamicPhenotypeColumnWidthAtom)
+      const dynamicPhenotypeColumnsWidthTotal =
+        (get(phenotypeAttrDescsAtom({ datasetName }))?.length ?? 0) *
+        get(resultsTableDynamicPhenotypeColumnWidthAtom({ datasetName }))
 
-    const dynamicAaMotifsColumnsWidthTotal =
-      get(aaMotifsDescsAtom).length * get(resultsTableDynamicAaMotifsColumnWidthAtom)
+      const dynamicAaMotifsColumnsWidthTotal =
+        (get(aaMotifsDescsAtom({ datasetName }))?.length ?? 0) *
+        get(resultsTableDynamicAaMotifsColumnWidthAtom({ datasetName }))
 
-    return (
-      sum(Object.values(COLUMN_WIDTHS)) +
-      dynamicCladeColumnsWidthTotal +
-      dynamicPhenotypeColumnsWidthTotal +
-      dynamicAaMotifsColumnsWidthTotal
-    )
-  },
+      return (
+        sum(Object.values(COLUMN_WIDTHS)) +
+        dynamicCladeColumnsWidthTotal +
+        dynamicPhenotypeColumnsWidthTotal +
+        dynamicAaMotifsColumnsWidthTotal
+      )
+    },
 })
 
-export const geneMapNameColumnWidthPxAtom = selector<string>({
+export const geneMapNameColumnWidthPxAtom = selectorFamily<string, { datasetName: string }>({
   key: 'geneMapNameColumnWidth',
-  get({ get }) {
-    const totalWidth = get(resultsTableTotalWidthAtom)
-    const sequenceViewColumnWidth = get(resultsTableColumnWidthsAtom).sequenceView
-    const geneMapNameColumnWidth = totalWidth - sequenceViewColumnWidth
-    return `${geneMapNameColumnWidth}px`
-  },
+  get:
+    ({ datasetName }) =>
+    ({ get }) => {
+      const totalWidth = get(resultsTableTotalWidthAtom({ datasetName }))
+      const sequenceViewColumnWidth = get(resultsTableColumnWidthsAtom({ datasetName })).sequenceView
+      const geneMapNameColumnWidth = totalWidth - sequenceViewColumnWidth
+      return `${geneMapNameColumnWidth}px`
+    },
 })

@@ -8,7 +8,7 @@
 #  - dasel
 #     mkdir -p "${HOME}/bin"
 #     export PATH="${HOME}/bin:${PATH}"
-#     curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#     curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
 set -euo pipefail
 trap "exit" INT
@@ -41,7 +41,7 @@ declare -a BASE_IMAGES=(
   "debian"
 )
 
-version=$(dasel select -p toml -s ".workspace.package.version" -f "Cargo.toml")
+version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
 version_major=$("${THIS_DIR}/semver" get major "${version}")
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 release_type=${release_type:=latest}

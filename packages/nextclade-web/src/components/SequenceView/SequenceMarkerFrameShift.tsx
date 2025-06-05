@@ -1,6 +1,7 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import type { FrameShift, Range } from 'src/types'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -43,7 +44,7 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
             key={id}
             identifier={id}
             index={index}
-            geneName={cdsName}
+            cdsName={cdsName}
             codon={codon}
             nucAbs={nucAbs}
             gapsTrailing={gapsTrailing}
@@ -62,7 +63,7 @@ function SequenceMarkerFrameShiftUnmemoed({ index, seqName, frameShift, pixelsPe
 export interface FrameShiftMarkerSegmentProps extends SVGProps<SVGRectElement> {
   identifier: string
   index: number
-  geneName: string
+  cdsName: string
   codon: Range
   nucAbs: Range
   gapsTrailing: Range
@@ -72,7 +73,7 @@ export interface FrameShiftMarkerSegmentProps extends SVGProps<SVGRectElement> {
 
 function SequenceMarkerFrameShiftSegment({
   identifier,
-  geneName,
+  cdsName,
   codon,
   nucAbs,
   gapsTrailing,
@@ -85,7 +86,8 @@ function SequenceMarkerFrameShiftSegment({
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const seqMarkerFrameShiftState = useRecoilValue(seqMarkerFrameShiftStateAtom)
-  const cds = useRecoilValue(cdsAtom(geneName))
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cds = useRecoilValue(cdsAtom({ datasetName, cdsName }))
   if (!cds || seqMarkerFrameShiftState === SeqMarkerState.Off) {
     return null
   }
@@ -140,7 +142,7 @@ function SequenceMarkerFrameShiftSegment({
 
               <tr>
                 <td>{t('Gene')}</td>
-                <td>{geneName}</td>
+                <td>{cdsName}</td>
               </tr>
 
               <tr>

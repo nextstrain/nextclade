@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade kurucusu” - sorgu örneğine atanan klanın kurucusuna göre mutasyonları gösterir. Bu durumda farklı sınıflardan gelen sorguların farklı hedeflerle karşılaştırılacağını unutmayın.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Ebeveyn” - özel mutasyonları, yani filogenetik yerleştirme sırasında sorgu örneğinin eklendiği referans ağacının ana (en yakın) düğümüne göre mutasyonları gösterir.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Referans” - referans dizisine göre mutasyonları gösterir (veri kümesinde tanımlandığı gibi).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" kurucusu",
   "(truncated)": "(kesilmiş)",
   "* Current value. This amount can change depending on load": "* Mevcut değer. Bu miktar yüke bağlı olarak değişebilir",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} iş parçacığı başına en az {{memoryRequired}} bellek gerektirir",
@@ -148,7 +149,7 @@
   "Enter reference sequence in {{formatName}} format": "Referans sırasını {{formatName}} biçiminde girin",
   "Enter reference tree in {{formatName}} format": "Referans ağacını {{formatName}} biçiminde girin",
   "Enter sequence data in FASTA format": "Dizi verilerini FASTA formatında girin",
-  "Entries of format \"'<attribute>' founder\" show mutations relative to the founder node of a particular clade-like attribute  (if any are defined in the dataset). Dataset authors may choose to exclude certain attributes.": "“'<attribute>' kurucu” biçimindeki girişler, belirli bir sınıf benzeri özelliğin (veri kümesinde tanımlanmışsa) kurucu düğümüne göre mutasyonlar gösterir. Veri kümesi yazarları belirli özellikleri hariç tutmayı seçebilir.",
+  "Entries of format \"'<attribute>' founder\" show mutations relative to the founder node of a particular clade-like attribute  (if any are defined in the dataset). Dataset authors may choose to exclude certain attributes.": "“'<attribute>' kurucu” biçimindeki girişler, belirli bir sınıf benzeri özelliğin (veri kümesinde tanımlanmışsa) kurucu düğümüne göre mutasyonlar gösterir. Veri kümesi yazarları belirli nitelikleri hariç tutmayı seçebilir.",
   "Error": "Hata",
   "Errors & warnings": "Hatalar ve uyarılar",
   "Example": "Örnek",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} en son sürümlerinde en iyi şekilde çalışır ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Geliştiriciler için ek bilgiler (genişletmek için tıklayın)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} yanlış yerleştirilmiş durdurma kodonları tespit edildi. Etkilenen gen (ler): {{geneList}}. QC puanı: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" kurucusu"
+  "Load example sequence data (for demonstration)": "Örnek sıra verilerini yükle (gösteri için)",
+  "Open reference tree for this dataset on nextstrain.org": "Bu veri kümesi için nextstrain.org adresindeki referans ağacını açın",
+  "Open tree": "Ağaç aç",
+  "There is no example data in this dataset": "Bu veri kümesinde örnek veri yok",
+  "There is no reference tree in this dataset": "Bu veri kümesinde referans ağacı yok"
 }

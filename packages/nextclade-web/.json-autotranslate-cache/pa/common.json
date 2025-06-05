@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“ਕਲੇਡ ਸੰਸਥਾਪਕ” - ਕਲੇਡ ਦੇ ਸੰਸਥਾਪਕ ਦੇ ਸੰਬੰਧ ਵਿੱਚ ਪਰਿਵਰਤਨ ਦਰਸਾਉਂਦਾ ਹੈ ਜੋ ਪੁੱਛਗਿੱਛ ਦੇ ਨਮੂਨੇ ਨੂੰ ਸੌਂਪਿਆ ਗਿਆ ਹੈ। ਨੋਟ ਕਰੋ ਕਿ ਇਸ ਕੇਸ ਵਿੱਚ ਵੱਖ-ਵੱਖ ਕਲੇਡਾਂ ਦੇ ਪ੍ਰਸ਼ਨਾਂ ਦੀ ਤੁਲਨਾ ਵੱਖ-ਵੱਖ ਟੀਚਿਆਂ ਨਾਲ ਕੀਤੀ ਜਾਵੇਗੀ।",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“ਪੇਰੈਂਟ” - ਪ੍ਰਾਈਵੇਟ ਪਰਿਵਰਤਨ ਦਰਸਾਉਂਦਾ ਹੈ, ਅਰਥਾਤ ਸੰਦਰਭ ਰੁੱਖ ਦੇ ਮੂਲ (ਨਜ਼ਦੀਕੀ) ਨੋਡ ਦੇ ਸੰਬੰਧ ਵਿੱਚ ਪਰਿਵਰਤਨ ਜਿਸ ਨਾਲ ਫਾਈਲੋਜੈਨੇਟਿਕ ਪਲੇਸਮੈਂਟ ਦੇ ਦੌਰਾਨ ਪੁੱਛਗਿੱਛ ਨਮੂਨਾ ਨਾਲ ਜੁੜਿਆ ਹੋਇਆ ਹੈ।",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“ਹਵਾਲਾ” - ਸੰਦਰਭ ਕ੍ਰਮ ਦੇ ਸੰਬੰਧ ਵਿੱਚ ਪਰਿਵਰਤਨ ਦਿਖਾਉਂਦਾ ਹੈ (ਜਿਵੇਂ ਕਿ ਡੇਟਾਸੈਟ ਵਿੱਚ ਪਰਿਭਾਸ਼ਿਤ ਕੀਤਾ ਗਿਆ ਹੈ)।",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" ਸੰਸਥਾਪਕ",
   "(truncated)": "(ਕੱਟਿਆ ਹੋਇਆ)",
   "* Current value. This amount can change depending on load": "* ਮੌਜੂਦਾ ਮੁੱਲ. ਇਹ ਰਕਮ ਲੋਡ ਦੇ ਅਧਾਰ ਤੇ ਬਦਲ ਸਕਦੀ ਹੈ",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} ਲਈ ਪ੍ਰਤੀ ਥ੍ਰੈਡ ਦੀ ਘੱਟੋ ਘੱਟ {{memoryRequired}} ਮੈਮੋਰੀ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} ਦੇ ਨਵੀਨਤਮ ਸੰਸਕਰਣਾਂ ਵਿੱਚ ਵਧੀਆ ਕੰਮ ਕਰਦਾ ਹੈ ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} ਡਿਵੈਲਪਰਾਂ ਲਈ ਵਾਧੂ ਜਾਣਕਾਰੀ (ਵਿਸਤਾਰ ਕਰਨ ਲਈ ਕਲਿੱਕ ਕਰੋ)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} ਗਲਤ ਸਟਾਪ ਕੋਡਨ ਦਾ ਪਤਾ ਲਗਾਇਆ ਗਿਆ। ਪ੍ਰਭਾਵਿਤ ਜੀਨ (ਜ਼): {{geneList}}. QC ਸਕੋਰ: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" ਸੰਸਥਾਪਕ"
+  "Load example sequence data (for demonstration)": "ਉਦਾਹਰਣ ਕ੍ਰਮ ਡੇਟਾ ਲੋਡ ਕਰੋ (ਪ੍ਰਦਰਸ਼ਨ ਲਈ)",
+  "Open reference tree for this dataset on nextstrain.org": "nextstrain.org 'ਤੇ ਇਸ ਡੇਟਾਸੈਟ ਲਈ ਸੰਦਰਭ ਟ੍ਰੀ ਖੋਲ੍ਹੋ",
+  "Open tree": "ਖੁੱਲ੍ਹਾ ਰੁੱਖ",
+  "There is no example data in this dataset": "ਇਸ ਡੇਟਾਸੈਟ ਵਿੱਚ ਕੋਈ ਉਦਾਹਰਣ ਡੇਟਾ ਨਹੀਂ ਹੈ",
+  "There is no reference tree in this dataset": "ਇਸ ਡੇਟਾਸੈਟ ਵਿੱਚ ਕੋਈ ਸੰਦਰਭ ਰੁੱਖ ਨਹੀਂ ਹੈ"
 }

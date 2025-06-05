@@ -1,20 +1,34 @@
-import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
-import { changeColorBy } from 'auspice/src/actions/colors'
+import type { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
-import { isNil } from 'lodash'
+import { isEmpty, isNil, omitBy } from 'lodash'
+import pProps from 'p-props'
 import { useRouter } from 'next/router'
-import { useDispatch } from 'react-redux'
 import { useRecoilCallback } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { notUndefinedOrNull } from 'src/helpers/notUndefined'
+import {
+  seqIndexToTopDatasetNameAtom,
+  seqIndicesWithoutDatasetSuggestionsAtom,
+  topSuggestedDatasetsAtom,
+} from 'src/state/autodetect.state'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
-import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
-import { AlgorithmGlobalStatus, AlgorithmInput, Dataset, NextcladeParamsRaw, NextcladeParamsRawDir } from 'src/types'
+import { allViewedCdsAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
+import {
+  AlgorithmGlobalStatus,
+  AlgorithmInput,
+  AuspiceTree,
+  Dataset,
+  NextcladeParamsRaw,
+  NextcladeParamsRawDir,
+} from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { datasetCurrentAtom, cdsOrderPreferenceAtom } from 'src/state/dataset.state'
+import {
+  cdsOrderPreferenceAtom,
+  allCdsOrderPreferenceAtom,
+  datasetNamesForAnalysisAtom,
+  datasetSingleCurrentAtom,
+  viewedDatasetNameAtom,
+} from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
   datasetJsonAtom,
@@ -26,6 +40,15 @@ import {
 } from 'src/state/inputs.state'
 import {
   aaMotifsDescsAtom,
+  allGenomeSizesAtom,
+  allGenesAtom,
+  allCdsesAtom,
+  allTreesAtom,
+  allTreesNwkAtom,
+  allCladeNodeAttrDescsAtom,
+  allPhenotypeAttrDescsAtom,
+  allRefNodesAtom,
+  allAaMotifsDescsAtom,
   analysisResultAtom,
   analysisResultsAtom,
   analysisStatusGlobalAtom,
@@ -39,81 +62,76 @@ import {
   refNodesAtom,
   treeAtom,
   treeNwkAtom,
+  allCurrentRefNodeNameAtom,
+  initialDataAtom,
+  allInitialDataAtom,
 } from 'src/state/results.state'
-import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
-import { launchAnalysis, LaunchAnalysisCallbacks, LaunchAnalysisInputs } from 'src/workers/launchAnalysis'
-import { axiosFetchRaw } from 'src/io/axiosFetch'
+import { numThreadsAtom } from 'src/state/settings.state'
+import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
+import { axiosFetchRaw, axiosFetchRawMaybe } from 'src/io/axiosFetch'
 
 export function useRunAnalysis() {
   const router = useRouter()
-  const dispatch = useDispatch()
 
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
-      () => {
-        const { getPromise } = snapshot
-
+      ({ isSingle }: { isSingle: boolean }) => {
         set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.loadingData)
-        set(showNewRunPopupAtom, false)
 
         reset(analysisResultsAtom)
         reset(clearAllFiltersAtom)
-        reset(treeAtom)
-        reset(viewedCdsAtom)
-        reset(refNodesAtom)
-        reset(currentRefNodeNameAtom)
-        reset(cdsOrderPreferenceAtom)
 
-        const numThreads = getPromise(numThreadsAtom)
-        const datasetCurrent = getPromise(datasetCurrentAtom)
-
-        const qryInputs = getPromise(qrySeqInputsStorageAtom)
-        const csvColumnConfig = getPromise(csvColumnConfigAtom)
-
-        const datasetJsonPromise = getPromise(datasetJsonAtom)
-
-        const inputs: LaunchAnalysisInputs = {
-          refSeq: getPromise(refSeqInputAtom),
-          geneMap: getPromise(geneMapInputAtom),
-          tree: getPromise(refTreeInputAtom),
-          virusProperties: getPromise(virusPropertiesInputAtom),
-        }
+        reset(allAaMotifsDescsAtom)
+        reset(allCdsOrderPreferenceAtom)
+        reset(allCdsesAtom)
+        reset(allCladeNodeAttrDescsAtom)
+        reset(allCurrentRefNodeNameAtom)
+        reset(allGenesAtom)
+        reset(allGenomeSizesAtom)
+        reset(allInitialDataAtom)
+        reset(allPhenotypeAttrDescsAtom)
+        reset(allRefNodesAtom)
+        reset(allTreesAtom)
+        reset(allTreesNwkAtom)
+        reset(allViewedCdsAtom)
 
         const callbacks: LaunchAnalysisCallbacks = {
           onGlobalStatus(status) {
             set(analysisStatusGlobalAtom, status)
           },
-          onInitialData({
-            geneMap,
-            genomeSize,
-            defaultCds,
-            cdsOrderPreference,
-            cladeNodeAttrKeyDescs,
-            phenotypeAttrDescs,
-            refNodes,
-            aaMotifsDescs,
-            csvColumnConfigDefault,
-          }) {
+          onInitialData(datasetName, initialData) {
+            set(initialDataAtom(datasetName), initialData)
+
+            const {
+              geneMap,
+              genomeSize,
+              defaultCds,
+              cdsOrderPreference,
+              cladeNodeAttrKeyDescs,
+              phenotypeAttrDescs,
+              refNodes,
+              aaMotifsDescs,
+              csvColumnConfigDefault,
+            } = initialData
+
             const genes = Object.values(geneMap.genes)
-            set(genesAtom, genes)
+            set(genesAtom({ datasetName }), genes)
 
             const cdses = Object.values(geneMap.genes).flatMap((gene) => gene.cdses)
-            set(cdsesAtom, cdses)
-            set(genomeSizeAtom, genomeSize)
+            set(cdsesAtom({ datasetName }), cdses)
+            set(genomeSizeAtom({ datasetName }), genomeSize)
 
             if (defaultCds) {
-              set(viewedCdsAtom, defaultCds)
+              set(viewedCdsAtom({ datasetName }), defaultCds)
             }
 
             if (cdsOrderPreference) {
-              set(cdsOrderPreferenceAtom, cdsOrderPreference)
+              set(cdsOrderPreferenceAtom({ datasetName }), cdsOrderPreference)
             }
 
-            // FIXME: This type is duplicated. One comes from handwritten Auspice typings,
-            //  another from JSON-schema generated types
-            set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs as unknown as CladeNodeAttrDesc[])
-            set(phenotypeAttrDescsAtom, phenotypeAttrDescs)
-            set(refNodesAtom, refNodes)
+            set(cladeNodeAttrDescsAtom({ datasetName }), cladeNodeAttrKeyDescs)
+            set(phenotypeAttrDescsAtom({ datasetName }), phenotypeAttrDescs)
+            set(refNodesAtom({ datasetName }), refNodes)
 
             const searchNames = (refNodes.search ?? []).map((s) => s.name)
             const defaultSearchName =
@@ -121,15 +139,10 @@ export function useRunAnalysis() {
               [...searchNames, REF_NODE_ROOT, REF_NODE_PARENT, REF_NODE_CLADE_FOUNDER].includes(refNodes.default)
                 ? refNodes.default
                 : REF_NODE_ROOT
-            set(currentRefNodeNameAtom, defaultSearchName)
+            set(currentRefNodeNameAtom({ datasetName }), defaultSearchName)
 
-            set(aaMotifsDescsAtom, aaMotifsDescs)
+            set(aaMotifsDescsAtom({ datasetName }), aaMotifsDescs)
             set(csvColumnConfigAtom, csvColumnConfigDefault)
-          },
-          onParsedFasta(/* record */) {
-            // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.
-            // Figure out how to make them both work.
-            // set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
           },
           onAnalysisResult(result) {
             set(analysisResultAtom(result.index), result)
@@ -137,82 +150,186 @@ export function useRunAnalysis() {
           onError(error) {
             set(globalErrorAtom, error)
           },
-          onTree({ auspice, nwk }) {
-            const auspiceState = createAuspiceState(auspice as unknown as AuspiceJsonV2, dispatch)
-            dispatch(auspiceStartClean(auspiceState))
-            dispatch(changeColorBy())
-            dispatch(treeFilterByNodeType(['New']))
-
-            set(treeAtom, auspice as unknown as AuspiceJsonV2)
-            set(treeNwkAtom, nwk)
+          onTree(trees) {
+            Object.entries(trees).forEach(([datasetName, trees]) => {
+              set(treeAtom(datasetName), (trees?.auspice as unknown as AuspiceJsonV2) ?? undefined)
+              set(treeNwkAtom({ datasetName }), trees?.nwk ?? undefined)
+            })
           },
           onComplete() {},
         }
+
+        const releaseSnapshot = snapshot.retain()
+        const { getPromise } = snapshot
 
         router
           .push('/results', '/results')
           .then(async () => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.initWorkers)
+            const numThreadsResolved = await getPromise(numThreadsAtom)
+            const qry = await getPromise(qrySeqInputsStorageAtom)
+            const csvColumnConfig = await getPromise(csvColumnConfigAtom)
+            const datasetSingleCurrent = await getPromise(datasetSingleCurrentAtom)
+            const tree = await getPromise(datasetJsonAtom)
 
-            const tree = await datasetJsonPromise
-
-            let params: NextcladeParamsRaw
-            if (tree) {
-              const overridesEntries = [
-                { key: 'geneMap', input: inputs.geneMap },
-                { key: 'refSeq', input: inputs.refSeq },
-                { key: 'tree', input: inputs.tree },
-                { key: 'virusProperties', input: inputs.virusProperties },
-              ]
-              const overrides = await concurrent.map(async ({ key, input }) => {
-                const awaitedInput = await input
-                if (isNil(awaitedInput)) {
-                  return undefined
-                }
-                return [key, await awaitedInput.getContent()]
-              }, overridesEntries)
-              const overridesPresent = overrides.filter(notUndefinedOrNull)
-              params = { Auspice: { auspiceJson: JSON.stringify(tree), ...Object.fromEntries(overridesPresent) } }
-            } else {
-              const dataset = await datasetCurrent
-              if (!dataset) {
-                throw new ErrorInternal('Dataset is required but not found')
-              }
-              const data = await getParams(inputs, dataset)
-              params = { Dir: data }
+            const overrides: DatasetFilesOverrides = {
+              reference: getPromise(refSeqInputAtom),
+              genomeAnnotation: getPromise(geneMapInputAtom),
+              treeJson: getPromise(refTreeInputAtom),
+              pathogenJson: getPromise(virusPropertiesInputAtom),
             }
 
-            return launchAnalysis(qryInputs, params, callbacks, numThreads, csvColumnConfig)
+            const topSuggestedDatasets = await getPromise(topSuggestedDatasetsAtom)
+            const seqIndexToTopDatasetName = await getPromise(seqIndexToTopDatasetNameAtom)
+            const seqIndicesWithoutDatasetSuggestions = await getPromise(seqIndicesWithoutDatasetSuggestionsAtom)
+
+            const datasets = findDatasets(isSingle, datasetSingleCurrent, topSuggestedDatasets)
+            const datasetNames = datasets.map((dataset) => dataset.path)
+            set(datasetNamesForAnalysisAtom, datasetNames)
+            if (!isNil(datasetNames[0])) {
+              set(viewedDatasetNameAtom, datasetNames[0])
+            }
+            const params: NextcladeParamsRaw = await resolveParams(tree, overrides, datasets)
+            return launchAnalysis(
+              datasetNames,
+              !isSingle ? seqIndexToTopDatasetName : undefined,
+              !isSingle ? seqIndicesWithoutDatasetSuggestions : undefined,
+              qry,
+              params,
+              callbacks,
+              numThreadsResolved,
+              csvColumnConfig,
+            )
+          })
+          .finally(() => {
+            releaseSnapshot()
           })
           .catch((error) => {
             set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router, dispatch],
+    [router],
   )
 }
 
-/** Resolves all param inputs into strings */
-async function getParams(paramInputs: LaunchAnalysisInputs, dataset: Dataset): Promise<NextcladeParamsRawDir> {
-  const entries = [
-    { key: 'geneMap', input: paramInputs.geneMap, datasetFileUrl: dataset?.files?.genomeAnnotation },
-    { key: 'refSeq', input: paramInputs.refSeq, datasetFileUrl: dataset?.files?.reference },
-    { key: 'tree', input: paramInputs.tree, datasetFileUrl: dataset?.files?.treeJson },
-    { key: 'virusProperties', input: paramInputs.virusProperties, datasetFileUrl: dataset?.files?.pathogenJson },
-  ]
-
-  return Object.fromEntries(
-    await concurrent.map(async ({ key, input, datasetFileUrl }) => {
-      return [key, await resolveInput(await input, datasetFileUrl)]
-    }, entries),
-  ) as unknown as NextcladeParamsRawDir
+function findDatasets(
+  isSingleDatasetMode: boolean,
+  datasetSingleCurrent: Dataset | undefined,
+  topSuggestedDatasets: Dataset[] | undefined,
+) {
+  if (isSingleDatasetMode) {
+    if (isNil(datasetSingleCurrent)) {
+      throw new ErrorInternal(`Attempted to start analysis without a dataset selected (single dataset mode)`)
+    }
+    return [datasetSingleCurrent]
+  }
+  if (isNil(topSuggestedDatasets) || isEmpty(topSuggestedDatasets)) {
+    throw new ErrorInternal(`Attempted to start analysis without datasets selected (multi-dataset mode)`)
+  }
+  return topSuggestedDatasets
 }
 
-async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: string | undefined) {
-  // If data is provided explicitly, load it
-  if (input) {
-    return input.getContent()
+async function resolveParams(
+  tree: AuspiceTree | undefined,
+  overrides: DatasetFilesOverrides,
+  datasets: Dataset[] | undefined,
+): Promise<NextcladeParamsRaw> {
+  if (tree) {
+    if (!datasets?.[0]) {
+      throw new ErrorInternal('Attempted to start analysis with Auspice JSON, but without dataset info resolved')
+    }
+    return resolveInputsForAuspiceDataset(tree, overrides, datasets[0].path)
+  }
+  return resolveInputsForNextcladeDataset(overrides, datasets)
+}
+
+async function resolveInputsForAuspiceDataset(
+  tree: AuspiceTree | undefined,
+  overrides: DatasetFilesOverrides,
+  datasetName: string,
+): Promise<NextcladeParamsRaw> {
+  const resolvedOverrides = await pProps({
+    genomeAnnotation: resolveOverride(overrides.genomeAnnotation),
+    reference: resolveOverride(overrides.reference),
+    treeJson: resolveOverride(overrides.treeJson),
+    pathogenJson: resolveOverride(overrides.pathogenJson),
+  })
+  const filteredOverrides = omitBy(resolvedOverrides, isNil)
+  return {
+    Auspice: {
+      auspiceJson: JSON.stringify(tree),
+      ...filteredOverrides,
+      datasetName,
+    },
+  }
+}
+
+async function resolveInputsForNextcladeDataset(overrides: DatasetFilesOverrides, datasets: Dataset[] | undefined) {
+  if (isNil(datasets) || isEmpty(datasets)) {
+    throw new ErrorInternal('Dataset is required but not found')
+  }
+  const datasetsFiles = await getDatasetsFiles(overrides, datasets)
+  return { Dir: datasetsFiles }
+}
+
+async function getDatasetsFiles(
+  overrides: DatasetFilesOverrides,
+  datasets: Dataset[],
+): Promise<NextcladeParamsRawDir[]> {
+  // TODO: We can override files only if there's 1 dataset. Consider implementing multi-dataset overrides
+  if (datasets?.length === 1) {
+    return [await getDatasetFilesWithOverrides(overrides, datasets[0])]
+  }
+  return getDatasetFiles(datasets)
+}
+
+/** Resolves all dataset files into strings */
+async function getDatasetFiles(datasets: Dataset[]): Promise<NextcladeParamsRawDir[]> {
+  return concurrent.map(async (dataset) => {
+    return {
+      datasetName: dataset.path,
+      genomeAnnotation: await axiosFetchRawMaybe(dataset.files?.genomeAnnotation),
+      reference: await axiosFetchRaw(dataset.files?.reference),
+      treeJson: await axiosFetchRawMaybe(dataset.files?.treeJson),
+      pathogenJson: await axiosFetchRaw(dataset.files?.pathogenJson),
+    }
+  }, datasets)
+}
+
+/** Resolves all dataset files overrides into strings, substitutes missing files from dataset files */
+async function getDatasetFilesWithOverrides(
+  overrides: DatasetFilesOverrides,
+  dataset: Dataset,
+): Promise<NextcladeParamsRawDir> {
+  return {
+    datasetName: dataset.path,
+    genomeAnnotation: await resolveOverrideOrDatasetFile(overrides.genomeAnnotation, dataset.files?.genomeAnnotation),
+    reference: await resolveOverrideOrDatasetFileRequired(overrides.reference, dataset.files?.reference),
+    treeJson: await resolveOverrideOrDatasetFile(overrides.treeJson, dataset.files?.treeJson),
+    pathogenJson: await resolveOverrideOrDatasetFileRequired(overrides.pathogenJson, dataset.files?.pathogenJson),
+  }
+}
+
+async function resolveOverrideOrDatasetFileRequired(
+  override: Promise<AlgorithmInput | undefined>,
+  datasetFileUrl: string | undefined,
+): Promise<string> {
+  const data = await resolveOverrideOrDatasetFile(override, datasetFileUrl)
+  if (!data) {
+    throw new Error('Unable to resolve dataset file')
+  }
+  return data
+}
+
+async function resolveOverrideOrDatasetFile(
+  override: Promise<AlgorithmInput | undefined>,
+  datasetFileUrl: string | undefined,
+): Promise<string | undefined> {
+  // If override is provided load it
+  const overrideResolved = await resolveOverride(override)
+  if (overrideResolved) {
+    return overrideResolved
   }
 
   // Otherwise fetch corresponding file from the dataset
@@ -221,4 +338,9 @@ async function resolveInput(input: AlgorithmInput | undefined, datasetFileUrl: s
   }
 
   return undefined
+}
+
+async function resolveOverride(override: Promise<AlgorithmInput | undefined>) {
+  const awaitedInput = await override
+  return awaitedInput?.getContent()
 }

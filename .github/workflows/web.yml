@@ -35,43 +35,6 @@ jobs:
       - name: "Set up Docker Buildx"
         uses: docker/setup-buildx-action@v3
 
-      - name: "Free disk space"
-        run: |
-          sudo swapoff -a || true
-          sudo rm -f /swapfile || true
-
-          sudo apt-get remove --yes --purge --verbose-versions '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri || true
-          sudo apt-get autoremove --purge --verbose-versions --yes
-          sudo apt-get clean
-          sudo apt-get update
-
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/local/graalvm
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/local/lib/node_modules
-          sudo rm -rf /usr/local/share/chromium
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /usr/share/dotnet
-
-          docker container stop $(docker ps -q) || true
-          docker rmi $(docker image ls -aq) || true
-          yes | docker system prune -af --volumes || true
-          yes | docker network prune -f || true
-          yes | docker image prune -af || true
-          yes | docker builder prune -af || true
-          yes | docker buildx prune -af || true
-
-      - name: "Check disk space"
-        run: |
-          echo ""
-
-          df -Th | awk 'NR == 1; NR > 1 {print $0 | "sort -n"}'
-
-          echo ""
-
-          lsblk -o MOUNTPOINT,FSTYPE,FSSIZE,FSAVAIL,FSUSE%,TYPE,NAME,ROTA,SIZE,MODEL,UUID
-
       - name: "Setup environment (release)"
         if: endsWith(github.ref, '/release')
         run: |
@@ -269,3 +232,57 @@ jobs:
 
           git tag "web-${version}"
           git push origin "web-${version}"
+
+  deploy-preview:
+    name: "Deploy preview"
+    runs-on: ubuntu-24.04
+    needs: [ build-web ]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: out
+          path: out
+
+      - name: 'deploy'
+        run: |
+          args=(
+            --name "${PREFIX}--commit-${COMMIT::7}"
+            --name "${PREFIX}--branch-${BRANCH}"
+          )
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            args+=(--name "${PREFIX}--pr-${PR_NUM}")
+          fi
+
+          if [[ "${{ github.ref }}" == "refs/heads/release" ]]; then
+            VERSION=$(jq -r '.version' packages/nextclade-web/package.json)
+            args+=(--name "${PREFIX}--v${VERSION}")
+          fi
+
+          ./scripts/preview-deploy "${args[@]}"
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            export PREVIEW_URL="https://${PREFIX}--pr-${PR_NUM}.${PREVIEWS_DOMAIN}"
+            ./scripts/preview-post-pr-comment
+          fi
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          PREFIX: ${{ github.repository_owner }}--${{ github.event.repository.name }}
+          COMMIT: ${{ github.sha }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+
+          AWS_ACCESS_KEY_ID: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_DEFAULT_REGION }}
+          AWS_S3_BUCKET: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_S3_BUCKET }}
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PREVIEWS_NEHERLAB_CLICK_AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+
+          PREVIEWS_DOMAIN: ${{ vars.PREVIEWS_NEHERLAB_CLICK_DOMAIN }}

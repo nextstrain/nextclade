@@ -1,54 +1,114 @@
-import { isNil } from 'lodash'
-import { atom, DefaultValue, selector } from 'recoil'
-import { autodetectResultsAtom } from 'src/state/autodetect.state'
+import { isEmpty } from 'lodash'
+import { atom, atomFamily, selector } from 'recoil'
+import { mapMaybe, notUndefinedOrNull } from 'src/helpers/notUndefined'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
+import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
-import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 
-export interface Datasets {
-  datasets: Dataset[]
-}
+export const UNKNOWN_DATASET_NAME = '__UNKNOWN__' as const
 
-export const datasetServerUrlAtom = atom<string>({
+export const datasetServerUrlAtom = atom<string | undefined>({
   key: 'datasetServerUrlAtom',
+  default: undefined,
 })
 
-export const datasetsAtom = atom<Datasets>({
+export const datasetsAtom = atom<Dataset[]>({
   key: 'datasets',
+  default: [],
 })
 
-const datasetCurrentStorageAtom = atom<Dataset | undefined>({
-  key: 'datasetCurrentStorage',
+export const datasetSingleCurrentAtom = atom<Dataset | undefined>({
+  key: 'datasetSingleCurrentAtom',
   default: undefined,
   effects: [persistAtom],
 })
 
-export const datasetCurrentAtom = selector<Dataset | undefined>({
-  key: 'datasetCurrent',
+export const hasSingleCurrentDatasetAtom = selector<boolean>({
+  key: 'hasSingleCurrentDatasetAtom',
   get({ get }) {
-    return get(datasetCurrentStorageAtom)
-  },
-  set({ set, reset }, dataset: Dataset | undefined | DefaultValue) {
-    if (isDefaultValue(dataset) || isNil(dataset)) {
-      reset(autodetectResultsAtom)
-      reset(datasetCurrentStorageAtom)
-    } else {
-      set(datasetCurrentStorageAtom, dataset)
-    }
+    return !isEmpty(get(datasetSingleCurrentAtom))
   },
 })
 
-export const datasetUpdatedAtom = atom<Dataset | undefined>({
+// const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({
+//   key: 'datasetsCurrentStorage',
+//   default: undefined,
+//   effects: [persistAtom],
+// })
+//
+// export const datasetsCurrentAtom = selector<Dataset[] | undefined>({
+//   key: 'datasetsCurrent',
+//   get({ get }) {
+//     return get(datasetsCurrentStorageAtom)
+//   },
+//   set({ set, reset }, datasets: Dataset[] | undefined | DefaultValue) {
+//     if (isDefaultValue(datasets) || isNil(datasets)) {
+//       reset(autodetectResultsAtom)
+//       reset(datasetsCurrentStorageAtom)
+//     } else {
+//       set(datasetsCurrentStorageAtom, datasets)
+//     }
+//   },
+// })
+
+export const datasetNamesForAnalysisAtom = atom<string[] | undefined>({
+  key: 'datasetNamesForAnalysisAtom',
+  default: undefined,
+})
+
+export const datasetsForAnalysisAtom = selector<Dataset[] | undefined>({
+  key: 'datasetsForAnalysisAtom',
+  get({ get }) {
+    const datasetNamesForAnalysis = get(datasetNamesForAnalysisAtom)
+    const datasets = get(datasetsAtom)
+    return datasetNamesForAnalysis
+      ?.map((datasetName) => datasets.find((dataset) => datasetName === dataset.path))
+      .filter(notUndefinedOrNull)
+  },
+})
+
+export const numDatasetsForAnalysisAtom = selector<number | undefined>({
+  key: 'numDatasetsForAnalysisAtom',
+  get({ get }) {
+    return get(datasetsForAnalysisAtom)?.length
+  },
+})
+
+export const hasMultipleDatasetsForAnalysisAtom = selector<boolean | undefined>({
+  key: 'hasMultipleDatasetsForAnalysisAtom',
+  get({ get }) {
+    return mapMaybe(get(numDatasetsForAnalysisAtom), (n) => n > 1)
+  },
+})
+
+export const viewedDatasetNameAtom = atom<string>({
+  key: 'viewedDatasetNameAtom',
+  default: undefined,
+})
+
+export const isViewedDatasetUnknownAtom = selector<boolean>({
+  key: 'viewedDatasetIsUnknownAtom',
+  get({ get }) {
+    return get(viewedDatasetNameAtom) === UNKNOWN_DATASET_NAME
+  },
+})
+
+export const datasetUpdatedAtom = atomFamily<Dataset | undefined, { datasetName: string }>({
   key: 'datasetUpdated',
   default: undefined,
 })
 
-export const cdsOrderPreferenceAtom = atom<string[]>({
+export const [cdsOrderPreferenceAtom, allCdsOrderPreferenceAtom] = multiAtom<string[], { datasetName: string }>({
   key: 'cdsOrderPreferenceAtom',
-  default: [],
 })
 
 export const minimizerIndexVersionAtom = atom<MinimizerIndexVersion | undefined>({
   key: 'minimizerIndexVersionAtom',
   default: undefined,
+})
+
+export const isSingleDatasetTabActiveAtom = atom({
+  key: 'isSingleDatasetTabActiveAtom',
+  default: true,
+  effects: [persistAtom],
 })

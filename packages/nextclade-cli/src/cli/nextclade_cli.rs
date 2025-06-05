@@ -13,10 +13,11 @@ use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use nextclade::io::console::CliColorMode;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
 use nextclade::sort::params::NextcladeSeqSortParams;
-use nextclade::utils::global_init::setup_logger;
+use nextclade::utils::global_init::{global_init, GlobalInitConfig};
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
 use std::io;
@@ -283,6 +284,8 @@ pub enum NextcladeOutputSelection {
   Tree,
   TreeNwk,
   Translations,
+  Gff,
+  Tbl,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -452,7 +455,7 @@ pub struct NextcladeRunOutputArgs {
   #[clap(hide_long_help = true, hide_short_help = true)]
   pub output_dir: Option<PathBuf>,
 
-  /// Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of output files into the same directory and don't care about their filenames.
+  /// Produce all of the output files into this directory, using default basename and predefined suffixes and extensions. This is equivalent to specifying each of the individual `--output-*` flags. Convenient when you want to receive all or most of the output files into the same directory and don't care about their filenames.
   ///
   /// Output files can be optionally included or excluded using `--output-selection` flag.
   /// The base filename can be set using `--output-basename` flag.
@@ -468,7 +471,7 @@ pub struct NextcladeRunOutputArgs {
 
   /// Set the base filename to use for output files.
   ///
-  /// By default the base filename is extracted from the input sequences file (provided with `--input-fasta`).
+  /// By default, the base filename is extracted from the input sequences file (provided with `--input-fasta`).
   ///
   /// Only valid together with `--output-all` flag.
   #[clap(long, short = 'n')]
@@ -636,6 +639,40 @@ pub struct NextcladeRunOutputArgs {
   #[clap(long)]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree_nwk: Option<PathBuf>,
+
+  /// Path to output annotation for query sequences in GFF3 format (EXPERIMENTAL)
+  ///
+  /// This output contains annotation of genetic features (genes and CDSes) for each query sequence.
+  /// This can be helpful when extracting genetic features from sequences as well as when uploading to genetic databases.
+  ///
+  /// Learn more about Generic Feature Format Version 3 (GFF3):
+  /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+  ///
+  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::AnyPath)]
+  pub output_annotation_gff: Option<PathBuf>,
+
+  /// Path to output annotation for query sequences in Genbank TBL format (EXPERIMENTAL)
+  ///
+  /// This output contains annotation of genetic features (genes and CDSes) for each query sequence.
+  /// This can be helpful when extracting genetic features from sequences as well as when uploading to genetic databases.
+  ///
+  /// Learn more about Genbank's 5-column tab-delimited feature table (TBL) format:
+  /// https://www.ncbi.nlm.nih.gov/genbank/feature_table/
+  ///
+  /// Takes precedence over paths configured with `--output-all`, `--output-basename` and `--output-selection`.
+  ///
+  /// If the provided file path ends with one of the supported extensions: "gz", "bz2", "xz", "zst", then the file will be written compressed. Use "-" to write the uncompressed to standard output (stdout).
+  ///
+  /// If the required directory tree does not exist, it will be created.
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::AnyPath)]
+  pub output_annotation_tbl: Option<PathBuf>,
 
   /// REMOVED. The argument `--output-insertions` have been removed in favor of `--output-csv` and `--output-tsv`.
   #[clap(long, short = 'I')]
@@ -811,6 +848,8 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
         output_tsv,
         output_tree,
         output_tree_nwk,
+        output_annotation_gff,
+        output_annotation_tbl,
         ..
       },
     ..
@@ -871,6 +910,14 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
     if output_selection.contains(&NextcladeOutputSelection::TreeNwk) {
       output_tree_nwk.get_or_insert(add_extension(&default_output_file_path, "nwk"));
+    }
+
+    if output_selection.contains(&NextcladeOutputSelection::Gff) {
+      output_annotation_gff.get_or_insert(add_extension(&default_output_file_path, "gff"));
+    }
+
+    if output_selection.contains(&NextcladeOutputSelection::Tbl) {
+      output_annotation_tbl.get_or_insert(add_extension(&default_output_file_path, "tbl"));
     }
   }
 
@@ -1106,7 +1153,10 @@ pub fn nextclade_check_column_config_args(run_args: &NextcladeRunArgs) -> Result
 pub fn nextclade_parse_cli_args() -> Result<(), Report> {
   let args = NextcladeArgs::parse();
 
-  setup_logger(args.verbosity.get_filter_level());
+  global_init(&GlobalInitConfig {
+    colors: CliColorMode::resolve(args.verbosity.color, args.verbosity.no_color),
+    log_level: args.verbosity.get_filter_level(),
+  });
 
   match args.command {
     NextcladeCommands::Completions { shell } => {

@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Zakladateľ kladu“ - zobrazuje mutácie vzhľadom na zakladateľa kladu, ktorý bol priradený k vzorke dotazu. Upozorňujeme, že dotazy z rôznych kladov sa v tomto prípade porovnávajú s rôznymi cieľmi.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Rodič“ - zobrazuje súkromné mutácie, t.j. mutácie vzhľadom na rodičovský (najbližší) uzol referenčného stromu, ku ktorému bola vzorka dotazu pripojená počas fylogenetického umiestnenia.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referencia“ - zobrazuje mutácie vzhľadom na referenčnú sekvenciu (ako je definované v súbore údajov).",
+  "\"{{ attr }}\" founder": "Zakladateľ „ {{ attr }} “",
   "(truncated)": "(skrátené)",
   "* Current value. This amount can change depending on load": "* Aktuálna hodnota. Táto suma sa môže meniť v závislosti od zaťaženia",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} vyžaduje aspoň {{memoryRequired}} pamäte na vlákno",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} funguje najlepšie v najnovších verziách ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Ďalšie informácie pre vývojárov (kliknite pre rozbaľovanie)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "Zistili sa nesprávne umiestnené zastavovacie kodóny {{totalStopCodons}}. Ovplyvnený gén (y): {{geneList}}. Skóre QC: {{score}}",
-  "\"{{ attr }}\" founder": "Zakladateľ „{{ attr }}“"
+  "Load example sequence data (for demonstration)": "Načítajte príklady sekvenčných údajov (na demonštráciu)",
+  "Open reference tree for this dataset on nextstrain.org": "Otvorte referenčný strom pre tento súbor údajov na nextstrain.org",
+  "Open tree": "Otvorený strom",
+  "There is no example data in this dataset": "V tomto súbore údajov nie sú žiadne príklady údajov",
+  "There is no reference tree in this dataset": "V tomto súbore údajov nie je žiadny referenčný strom"
 }

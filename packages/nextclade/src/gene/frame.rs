@@ -25,6 +25,14 @@ impl Frame {
       }
     }
   }
+
+  pub const fn to_usize(self) -> usize {
+    match self {
+      Frame::_0 => 0,
+      Frame::_1 => 1,
+      Frame::_2 => 2,
+    }
+  }
 }
 
 impl Display for Frame {

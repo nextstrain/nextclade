@@ -405,6 +405,16 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
+  if [[ "${DOCKER_TARGET}" == *aarch64-unknown-linux-musl* ]]; then
+    # shellcheck disable=SC2089
+    ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg MUSL_CC_AARCH64_URL=${MUSL_CC_AARCH64_URL}"
+  fi
+
+  if [[ "${DOCKER_TARGET}" == *x86_64-unknown-linux-musl* ]]; then
+    # shellcheck disable=SC2089
+    ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg MUSL_CC_X86_64_URL=${MUSL_CC_X86_64_URL}"
+  fi
+
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     ADDITIONAL_DOCKER_BUILD_ARGS="${ADDITIONAL_DOCKER_BUILD_ARGS} --push"
   else
@@ -430,7 +440,18 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   export -f docker_image_maybe_pull
   parallel docker_image_maybe_pull ::: "${images[@]}"
 
+  BUILDX_BUILDER=nextclade-builder
+
+  if ! docker buildx inspect "${BUILDX_BUILDER}" &>/dev/null; then
+      # Using a persistent builder allows for faster local development.
+      # However, if this is changed and it was previously run on your machine,
+      # you may need to remove the builder manually before running the script:
+      #     docker buildx rm "nextclade-builder"
+      docker buildx create --name "${BUILDX_BUILDER}" --driver docker-container --driver-opt network=host
+  fi
+
   ${NICE} docker buildx build \
+    --builder="${BUILDX_BUILDER}" \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \

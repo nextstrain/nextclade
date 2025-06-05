@@ -2,6 +2,8 @@ import React, { useMemo } from 'react'
 import { range } from 'lodash'
 import { XAxis, ComposedChart, ResponsiveContainer } from 'recharts'
 import { useRecoilValue } from 'recoil'
+import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { cdsesAtom, genomeSizeAtom } from 'src/state/results.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { getAxisLength } from './getAxisLength'
@@ -24,12 +26,13 @@ export function getTickSize(axisLength: number) {
 }
 
 export function GeneMapAxis() {
-  const genomeSize = useRecoilValue(genomeSizeAtom)
-  const cdses = useRecoilValue(cdsesAtom)
-  const viewedGene = useRecoilValue(viewedCdsAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
+  const cdses = useRecoilValue(cdsesAtom({ datasetName }))
+  const viewedGene = useRecoilValue(viewedCdsAtom({ datasetName })) ?? CDS_OPTION_NUC_SEQUENCE
 
   const { ticks, domain } = useMemo(() => {
-    const length = getAxisLength(genomeSize, viewedGene, cdses)
+    const length = getAxisLength(genomeSize, viewedGene, cdses ?? [])
     const tickSize = getTickSize(length)
     const domain: [number, number] = [0, length]
     const ticks = range(0, length, tickSize)

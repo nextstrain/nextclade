@@ -71,11 +71,11 @@ async function destroy() {
   nextcladeWasm = undefined
 }
 
-async function getInitialData(): Promise<AnalysisInitialData> {
+async function getInitialData(datasetName: string): Promise<AnalysisInitialData> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getInitialData')
   }
-  const initialDataStr = nextcladeWasm.get_initial_data()
+  const initialDataStr = nextcladeWasm.get_initial_data(datasetName)
   const initialData = JSON.parse(initialDataStr) as AnalysisInitialData
   return {
     ...initialData,
@@ -84,12 +84,12 @@ async function getInitialData(): Promise<AnalysisInitialData> {
 }
 
 /** Runs the underlying WebAssembly module. */
-async function analyze(record: FastaRecord): Promise<NextcladeResult> {
+async function analyze(datasetName: string, record: FastaRecord): Promise<NextcladeResult> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('analyze')
   }
   const input = JSON.stringify(record)
-  const output = JSON.parse(nextcladeWasm.analyze(input)) as NextcladeResult
+  const output = JSON.parse(nextcladeWasm.analyze(datasetName, input)) as NextcladeResult
   if (!output.result && !output.error) {
     throw new ErrorBothResultsAndErrorAreNull()
   }
@@ -97,11 +97,14 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 }
 
 /** Retrieves the output tree from the WebAssembly module. */
-export async function getOutputTrees(analysisResultsJsonStr: string): Promise<OutputTrees> {
+export async function getOutputTrees(
+  datasetName: string,
+  analysisResultsJsonStr: string,
+): Promise<OutputTrees | undefined | null> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getOutputTrees')
   }
-  return JSON.parse(nextcladeWasm.get_output_trees(analysisResultsJsonStr))
+  return JSON.parse(nextcladeWasm.get_output_trees(datasetName, analysisResultsJsonStr))
 }
 
 export async function parseSequencesStreaming(fastaStr: string) {
@@ -163,6 +166,44 @@ export async function serializeResultsCsv(
   )
 }
 
+export async function serializeResultsExcel(
+  results: AnalysisResult[],
+  errors: AnalysisError[],
+  allInitialData: Map<string, AnalysisInitialData>,
+  csvColumnConfig: CsvColumnConfig,
+  datasetNameToSeqIndices: Map<string, number[]>,
+  seqIndicesWithoutDatasetSuggestions: number[],
+) {
+  return NextcladeWasm.serialize_results_excel(
+    JSON.stringify(results),
+    JSON.stringify(errors),
+    JSON.stringify(Object.fromEntries(allInitialData)),
+    JSON.stringify(csvColumnConfig),
+    JSON.stringify(Object.fromEntries(datasetNameToSeqIndices)),
+    JSON.stringify(seqIndicesWithoutDatasetSuggestions),
+  )
+}
+
+export async function serializeUnknownCsv(
+  errors: AnalysisError[],
+  seqIndicesWithoutDatasetSuggestions: number[],
+  delimiter: string,
+) {
+  return NextcladeWasm.serialize_unknown_csv(
+    JSON.stringify(errors),
+    JSON.stringify(seqIndicesWithoutDatasetSuggestions),
+    delimiter,
+  )
+}
+
+export async function serializeResultsGff(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_results_gff(JSON.stringify(results))
+}
+
+export async function serializeResultsTbl(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_results_tbl(JSON.stringify(results))
+}
+
 const worker = {
   create,
   destroy,
@@ -173,7 +214,11 @@ const worker = {
   parseRefSequence,
   serializeResultsJson,
   serializeResultsCsv,
+  serializeResultsExcel,
   serializeResultsNdjson,
+  serializeResultsGff,
+  serializeResultsTbl,
+  serializeUnknownCsv,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },

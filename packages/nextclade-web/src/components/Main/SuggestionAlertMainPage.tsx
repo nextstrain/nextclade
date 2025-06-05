@@ -1,41 +1,43 @@
 import React, { useMemo } from 'react'
 import { Col, Row, UncontrolledAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { SuggestionError } from 'src/components/Main/SuggestionError'
+import { datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useDatasetSuggestionResults } from 'src/hooks/useRunSeqAutodetect'
-import { AutodetectRunState, autodetectRunStateAtom } from 'src/state/autodetect.state'
+import {
+  AutodetectRunState,
+  autodetectRunStateAtom,
+  numberTopSuggestedDatasetsAtom,
+  topSuggestedDatasetsAtom,
+} from 'src/state/autodetect.state'
 
 export function SuggestionAlertMainPage({ ...restProps }) {
   const { t } = useTranslationSafe()
-  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const { numSuggestions, datasetsActive: datasetSuggestions } = useDatasetSuggestionResults()
+  const datasetSingleCurrent = useRecoilValue(datasetSingleCurrentAtom)
+  const topSuggestedDatasets = useRecoilValue(topSuggestedDatasetsAtom)
+  const numberTopSuggestedDatasets = useRecoilValue(numberTopSuggestedDatasetsAtom)
   const autodetectRunState = useRecoilValue(autodetectRunStateAtom)
 
   const alert = useMemo(() => {
-    const hasMatch = datasetCurrent && datasetSuggestions.some((suggestion) => suggestion.path === datasetCurrent.path)
+    const hasMatch =
+      datasetSingleCurrent && topSuggestedDatasets.some((suggestion) => suggestion.path === datasetSingleCurrent.path)
 
     if (autodetectRunState === AutodetectRunState.Failed) {
-      return (
-        <Alert closeClassName="d-none" fade={false} color="danger">
-          <h6 className="font-weight-bold">{t('Suggestion algorithm failed.')}</h6>
-          <p className="small">{t('Please report this to developers.')}</p>
-        </Alert>
-      )
+      return <SuggestionError />
     }
 
     if (autodetectRunState === AutodetectRunState.Done) {
-      if (datasetCurrent) {
+      if (datasetSingleCurrent) {
         // There is more than one suggestion and selected dataset is NOT among them
-        if (!hasMatch && numSuggestions > 0) {
+        if (!hasMatch && numberTopSuggestedDatasets > 0) {
           let text = t(
             'Currently selected dataset does not seem to match your sequences, ' +
               'but there are {{ n }} other datasets which might. Click "Change reference dataset" to see the list.',
-            { n: numSuggestions },
+            { n: numberTopSuggestedDatasets },
           )
 
-          if (numSuggestions === 1) {
+          if (numberTopSuggestedDatasets === 1) {
             text = t(
               'Currently selected dataset does not seem to match your sequences, ' +
                 'but there is 1 dataset which might. Click "Change reference dataset" to see the list.',
@@ -51,15 +53,15 @@ export function SuggestionAlertMainPage({ ...restProps }) {
         }
 
         // There is more than one suggestion and selected dataset is among them
-        if (numSuggestions > 1) {
+        if (numberTopSuggestedDatasets > 1) {
           return (
             <Alert closeClassName="d-none" fade={false} color="primary">
               <h6 className="font-weight-bold">{t('Multiple matching datasets.')}</h6>
               <p className="small">
                 {t(
-                  '{{ n }} datasets appear to match your sequences. Click "Change reference dataset" to see the list.',
+                  '{{ n }} datasets appear to match your sequences. Click "Change reference dataset" to see the list or use the "Multiple dataset" mode to analyze your data.',
                   {
-                    n: numSuggestions,
+                    n: numberTopSuggestedDatasets,
                   },
                 )}
               </p>
@@ -68,15 +70,15 @@ export function SuggestionAlertMainPage({ ...restProps }) {
         }
       }
 
-      // There is no suggestions
-      if (numSuggestions === 0) {
-        if (datasetCurrent) {
+      // There are no suggestions
+      if (numberTopSuggestedDatasets === 0) {
+        if (datasetSingleCurrent) {
           return (
             <Alert closeClassName="d-none" fade={false} color="danger">
               <h6 className="font-weight-bold">{t('Possible dataset mismatch detected.')}</h6>
               <p className="small">
                 {t(
-                  'Currently selected dataset does not seem to match your sequences and suggestion algorithm was unable to find any alternatives. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.',
+                  'Currently selected dataset does not seem to match your sequences, and the suggestion algorithm was unable to find any alternatives. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to the Nextclade community dataset collection.',
                 )}
               </p>
             </Alert>
@@ -87,7 +89,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
             <h6 className="font-weight-bold">{t('No matching datasets.')}</h6>
             <p className="small">
               {t(
-                'Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to Nextclade community dataset collection.',
+                'Suggestion algorithm was unable to find a dataset suitable for your sequences. Select a dataset manually. If there is no suitable dataset, consider creating and contributing one to the Nextclade community dataset collection.',
               )}
             </p>
           </Alert>
@@ -96,7 +98,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
     }
 
     return null
-  }, [autodetectRunState, datasetCurrent, datasetSuggestions, numSuggestions, t])
+  }, [autodetectRunState, datasetSingleCurrent, topSuggestedDatasets, numberTopSuggestedDatasets, t])
 
   if (!alert) {
     return null

@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Người sáng lập Clade” - hiển thị các đột biến liên quan đến người sáng lập nhánh đã được gán cho mẫu truy vấn. Lưu ý rằng các truy vấn từ các nhóm khác nhau sẽ được so sánh với các mục tiêu khác nhau trong trường hợp này.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Parent” - hiển thị các đột biến riêng tư, tức là đột biến liên quan đến nút mẹ (gần nhất) của cây tham chiếu mà mẫu truy vấn đã được gắn vào trong quá trình đặt phát sinh loài.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Tham chiếu” - hiển thị các đột biến liên quan đến trình tự tham chiếu (như được định nghĩa trong tập dữ liệu).",
+  "\"{{ attr }}\" founder": "Người sáng lập “ {{ attr }} ”",
   "(truncated)": "(cắt ngắn)",
   "* Current value. This amount can change depending on load": "* Giá trị hiện tại. Số tiền này có thể thay đổi tùy thuộc vào tải",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} yêu cầu ít nhất {{memoryRequired}} bộ nhớ cho mỗi luồng",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} hoạt động tốt nhất trong các phiên bản mới nhất của ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Thông tin bổ sung cho các nhà phát triển (bấm để mở rộng)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} phát hiện (các) codon dừng ở vị trí sai. (Các) gen bị ảnh hưởng: {{geneList}}. Điểm QC: {{score}}",
-  "\"{{ attr }}\" founder": "Người sáng lập “{{ attr }}”"
+  "Load example sequence data (for demonstration)": "Tải dữ liệu trình tự ví dụ (để trình diễn)",
+  "Open reference tree for this dataset on nextstrain.org": "Mở cây tham chiếu cho tập dữ liệu này trên nextstrain.org",
+  "Open tree": "Cây mở",
+  "There is no example data in this dataset": "Không có dữ liệu ví dụ trong tập dữ liệu này",
+  "There is no reference tree in this dataset": "Không có cây tham chiếu trong tập dữ liệu này"
 }

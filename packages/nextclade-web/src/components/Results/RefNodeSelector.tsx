@@ -3,6 +3,7 @@ import { rgba } from 'polished'
 import React, { useCallback, useMemo } from 'react'
 import { getCladeNodeAttrFounderSearchId } from 'src/helpers/relativeMuts'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -19,32 +20,38 @@ interface Option {
   description?: string
 }
 
-export function RefNodeSelector() {
+export interface RefNodeSelectorProps {
+  disabled?: boolean
+}
+
+export function RefNodeSelector({ disabled }: RefNodeSelectorProps) {
   const { t } = useTranslationSafe()
 
-  const refNodes = useRecoilValue(refNodesAtom)
-  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
-  const [currentRefNodeName, setCurrentRefNodeName] = useRecoilState(currentRefNodeNameAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
+  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
+  const [currentRefNodeName, setCurrentRefNodeName] = useRecoilState(currentRefNodeNameAtom({ datasetName }))
 
   const { options, currentOption } = useMemo(() => {
-    const refs = (refNodes.search ?? []).map((search) => ({
+    const refs = (refNodes?.search ?? []).map((search) => ({
       value: search.name,
       label: search.displayName ?? search.name,
       description: search.description,
     }))
 
-    const cladeNodeAttrFounders = cladeNodeAttrDescs
-      .filter((desc) => !desc.skipAsReference)
-      .map((desc) => {
-        const searchId = getCladeNodeAttrFounderSearchId(desc.name)
-        return {
-          value: searchId,
-          label: t('"{{ attr }}" founder', { attr: desc.displayName }),
-          description: t("Earliest ancestor node having the same value of attribute '{{ attr }}'", {
-            attr: desc.displayName,
-          }),
-        }
-      })
+    const cladeNodeAttrFounders =
+      cladeNodeAttrDescs
+        ?.filter((desc) => !desc.skipAsReference)
+        .map((desc) => {
+          const searchId = getCladeNodeAttrFounderSearchId(desc.name)
+          return {
+            value: searchId,
+            label: t('"{{ attr }}" founder', { attr: desc.displayName }),
+            description: t("Earliest ancestor node having the same value of attribute '{{ attr }}'", {
+              attr: desc.displayName,
+            }),
+          }
+        }) ?? []
 
     const builtinRefs: Option[] = [
       {
@@ -68,7 +75,7 @@ export function RefNodeSelector() {
     const currentOption = options.find((o) => o.value === currentRefNodeName)
 
     return { options, currentOption }
-  }, [cladeNodeAttrDescs, currentRefNodeName, refNodes.search, t])
+  }, [cladeNodeAttrDescs, currentRefNodeName, refNodes?.search, t])
 
   const handleChange = useCallback(
     (option: OnChangeValue<DropdownOption<string>, IsMultiValue>, _actionMeta: ActionMeta<DropdownOption<string>>) => {
@@ -117,6 +124,7 @@ export function RefNodeSelector() {
         menuPortalTarget={document.body}
         styles={reactSelectStyles}
         theme={reactSelectTheme}
+        isDisabled={disabled}
         maxMenuHeight={400}
       />
     </div>

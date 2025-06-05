@@ -16,15 +16,15 @@ THIS_DIR="$(
 
 : "${1:?Branch name is required as the first argument.}"
 
-version=$(dasel select -p toml -s ".workspace.package.version" -f "Cargo.toml")
+version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
 prerel=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 branch="${1}"
 
 DATA_FULL_DOMAIN="https://data.master.clades.nextstrain.org"
 if ! [[ "${prerel}" =~ ^(rc|beta|alpha) ]]; then
-  if [ "${branch}" == "release-cli" ]; then
+  if [ "${branch}" == "release" ]; then
     DATA_FULL_DOMAIN="https://data.clades.nextstrain.org"
-  elif [ "${branch}" == "staging-cli" ]; then
+  elif [ "${branch}" == "staging" ]; then
     DATA_FULL_DOMAIN="https://data.staging.clades.nextstrain.org"
   fi
 fi

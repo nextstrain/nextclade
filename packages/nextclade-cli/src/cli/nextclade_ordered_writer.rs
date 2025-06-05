@@ -7,8 +7,11 @@ use nextclade::alphabet::nuc::from_nuc_seq;
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
+use nextclade::io::genbank_tbl::GenbankTblFileWriter;
+use nextclade::io::gff3_writer::Gff3FileWriter;
 use nextclade::io::ndjson::NdjsonFileWriter;
-use nextclade::io::nextclade_csv::{CsvColumnConfig, NextcladeResultsCsvFileWriter};
+use nextclade::io::nextclade_csv::NextcladeResultsCsvFileWriter;
+use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::results_json::ResultsJsonWriter;
 use nextclade::run::nextclade_wasm::AnalysisOutput;
 use nextclade::run::params::NextcladeInputParams;
@@ -27,6 +30,8 @@ pub struct NextcladeOrderedWriter {
   output_ndjson_writer: Option<NdjsonFileWriter>,
   output_csv_writer: Option<NextcladeResultsCsvFileWriter>,
   output_tsv_writer: Option<NextcladeResultsCsvFileWriter>,
+  output_gff_writer: Option<Gff3FileWriter>,
+  output_tbl_writer: Option<GenbankTblFileWriter>,
   expected_index: usize,
   queue: HashMap<usize, NextcladeRecord>,
   in_order: bool,
@@ -84,6 +89,14 @@ impl NextcladeOrderedWriter {
       )
     })?;
 
+    let output_gff_writer = output_params
+      .output_annotation_gff
+      .map_ref_fallible(Gff3FileWriter::new)?;
+
+    let output_tbl_writer = output_params
+      .output_annotation_tbl
+      .map_ref_fallible(GenbankTblFileWriter::new)?;
+
     Ok(Self {
       fasta_writer,
       fasta_peptide_writer,
@@ -91,6 +104,8 @@ impl NextcladeOrderedWriter {
       output_ndjson_writer,
       output_csv_writer,
       output_tsv_writer,
+      output_tbl_writer,
+      output_gff_writer,
       expected_index: 0,
       queue: HashMap::<usize, NextcladeRecord>::new(),
       in_order: params.general.in_order,
@@ -161,7 +176,20 @@ impl NextcladeOrderedWriter {
         }
 
         if let Some(output_json_writer) = &mut self.output_json_writer {
-          output_json_writer.write(analysis_result);
+          output_json_writer.write(&analysis_result);
+        }
+
+        if let Some(output_gff_writer) = &mut self.output_gff_writer {
+          output_gff_writer.write_genemap(
+            &analysis_result.annotation,
+            analysis_result.index,
+            &analysis_result.seq_id,
+            analysis_result.len_unaligned,
+          )?;
+        }
+
+        if let Some(output_tbl_writer) = &mut self.output_tbl_writer {
+          output_tbl_writer.write_genemap(&analysis_result.annotation)?;
         }
       }
       Err(report) => {

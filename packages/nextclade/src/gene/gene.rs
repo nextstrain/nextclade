@@ -1,20 +1,32 @@
+use crate::coord::position::NucRefGlobalPosition;
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_group::FeatureGroup;
 use crate::gene::cds::Cds;
 use crate::utils::collections::take_exactly_one;
+use crate::utils::iter::{single_unique_value, try_single_unique_value};
 use eyre::{eyre, Report, WrapErr};
+use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
-use maplit::hashmap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 
+#[must_use]
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema)]
 pub enum GeneStrand {
   #[serde(rename = "+")]
   Forward,
   #[serde(rename = "-")]
   Reverse,
+}
+
+impl GeneStrand {
+  pub const fn inverted(self) -> Self {
+    match self {
+      Self::Forward => Self::Reverse,
+      Self::Reverse => Self::Forward,
+    }
+  }
 }
 
 impl Default for GeneStrand {
@@ -45,13 +57,17 @@ pub struct Gene {
   pub index: usize,
   pub id: String,
   pub name: String,
+  pub range: NucRefGlobalRange,
   pub cdses: Vec<Cds>,
   pub exceptions: Vec<String>,
-  pub attributes: HashMap<String, Vec<String>>,
+  pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
   pub color: Option<String>,
+  pub gff_seqid: Option<String>,
+  pub gff_source: Option<String>,
+  pub gff_feature_type: Option<String>,
 }
 
 impl Gene {
@@ -74,16 +90,30 @@ impl Gene {
       cdses.push(Cds::from_gene(feature)?);
     }
 
+    // Try to take gene's range from the source file directly
+    let mut range = feature_group.range();
+    if range.is_empty() {
+      // If gene range is empty in the source (it is often unset, and out parser defaults to an empty range),
+      // then calculate range based on max extent of child CDSes.
+      let start = cdses.iter().map(Cds::start).min().unwrap_or_default();
+      let end = cdses.iter().map(Cds::end).max().unwrap_or_default();
+      range = NucRefGlobalRange::new(start, end);
+    }
+
     Ok(Self {
       index: feature.index,
       id: feature.id.clone(),
       name: feature.name.clone(),
+      range,
       cdses,
       exceptions: feature.exceptions.clone(),
       attributes: feature.attributes.clone(),
       source_record: feature.source_record.clone(),
       compat_is_cds: false,
       color: None,
+      gff_seqid: feature.gff_seqid.clone(),
+      gff_source: feature.gff_source.clone(),
+      gff_feature_type: feature.gff_feature_type.clone(),
     })
   }
 
@@ -100,27 +130,43 @@ impl Gene {
       .cloned()
       .collect_vec();
 
+    let gff_seqid = single_unique_value(&cds.segments, |s| &s.gff_seqid)?.clone();
+    let gff_source = single_unique_value(&cds.segments, |s| &s.gff_source)?.clone();
+    let gff_feature_type = single_unique_value(&cds.segments, |s| &s.gff_feature_type)?.clone();
+
     Ok(Self {
       index,
       id,
       name,
+      range: cds.range(),
       cdses: vec![cds.clone()],
       exceptions,
-      attributes: hashmap!(),
+      attributes: indexmap!(),
       source_record: None,
       compat_is_cds: true,
       color: None,
+      gff_seqid,
+      gff_source,
+      gff_feature_type,
     })
+  }
+
+  pub const fn start(&self) -> NucRefGlobalPosition {
+    self.range.begin
+  }
+
+  pub const fn end(&self) -> NucRefGlobalPosition {
+    self.range.end
   }
 
   #[inline]
   pub fn len(&self) -> usize {
-    self.cdses.iter().map(Cds::len).sum()
+    self.range.len()
   }
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    self.len() == 0
+    self.range.is_empty()
   }
 
   #[inline]
@@ -130,6 +176,13 @@ impl Gene {
 
   pub fn name_and_type(&self) -> String {
     format!("Gene '{}'", self.name)
+  }
+
+  pub fn strand(&self) -> Result<GeneStrand, Report> {
+    if self.cdses.is_empty() {
+      return Ok(GeneStrand::Forward);
+    }
+    try_single_unique_value(&self.cdses, Cds::strand)
   }
 }
 

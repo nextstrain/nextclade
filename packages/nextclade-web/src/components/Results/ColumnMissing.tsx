@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import type { DeepReadonly } from 'ts-essentials'
 import type { AnalysisResult, NucleotideMissing, Range } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -78,7 +79,8 @@ export interface AlignmentRangeTableProps {
 
 export function AlignmentRangeTable({ alignmentRange }: AlignmentRangeTableProps) {
   const { t } = useTranslationSafe()
-  const genomeSize = useRecoilValue(genomeSizeAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
 
   const totalBegin = alignmentRange.begin
   const totalEnd = genomeSize - alignmentRange.end

@@ -4,6 +4,7 @@ import { useRecoilValue } from 'recoil'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { cdsesAtom } from 'src/state/results.state'
 
 import type { AnalysisResult } from 'src/types'
@@ -72,7 +73,8 @@ export function ColumnCoverage({ analysisResult }: ColumnCoverageProps) {
 }
 
 function CdsCoverageRow({ cds, coverage }: { cds: string; coverage: number }) {
-  const cdses = useRecoilValue(cdsesAtom)
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cdses = useRecoilValue(cdsesAtom({ datasetName })) ?? []
   const color = cdses.find((c) => c.name === cds)?.color ?? '#aaa'
   return (
     <tr key={cds}>

@@ -2,6 +2,7 @@ import React, { SVGProps, useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import type { FrameShift } from 'src/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -37,7 +38,8 @@ function PeptideMarkerFrameShiftUnmemoed({
   const { cdsName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
   const id = getSafeId('frame-shift-aa-marker', { index, seqName, ...frameShift })
 
-  const cds = useRecoilValue(cdsAtom(cdsName))
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const cds = useRecoilValue(cdsAtom({ datasetName, cdsName }))
   if (!cds) {
     return null
   }

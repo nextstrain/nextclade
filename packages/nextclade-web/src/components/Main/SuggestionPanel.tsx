@@ -5,10 +5,16 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { Toggle } from 'src/components/Common/Toggle'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useResetSuggestions } from 'src/hooks/useResetSuggestions'
+import { useResetSuggestionsAndDatasets } from 'src/hooks/useResetSuggestions'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
-import { AutodetectRunState, autodetectRunStateAtom, hasAutodetectResultsAtom } from 'src/state/autodetect.state'
+import {
+  AutodetectRunState,
+  autodetectRunStateAtom,
+  hasAutodetectResultsAtom,
+  hasTopSuggestedDatasetsAtom,
+  isAutodetectRunningAtom,
+} from 'src/state/autodetect.state'
 import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
 import { shouldSuggestDatasetsOnDatasetPageAtom } from 'src/state/settings.state'
@@ -77,11 +83,15 @@ export function ButtonSuggest() {
 
 export function ButtonSuggestionsReset() {
   const { t } = useTranslationSafe()
-  const resetAutodetectResults = useResetSuggestions()
+  const resetAutodetectResults = useResetSuggestionsAndDatasets()
   const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
+  const hasTopSuggestedDatasets = useRecoilValue(hasTopSuggestedDatasetsAtom)
+  const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)
+
+  const disabled = isAutodetectRunning || !(hasAutodetectResults && hasTopSuggestedDatasets)
 
   return (
-    <ButtonResetStyled color="link" onClick={resetAutodetectResults} disabled={!hasAutodetectResults}>
+    <ButtonResetStyled color="link" onClick={resetAutodetectResults} disabled={disabled}>
       {t('Reset')}
     </ButtonResetStyled>
   )

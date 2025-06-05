@@ -1,5 +1,7 @@
+import { safeDiv } from 'src/helpers/number'
 import { getNucMutations } from 'src/helpers/relativeMuts'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
 import { AnalysisResult } from 'src/types'
 import React from 'react'
@@ -26,8 +28,9 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
 
-  const genomeSize = useRecoilValue(genomeSizeAtom)
-  const pixelsPerBase = width / genomeSize
+  const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
+  const pixelsPerBase = safeDiv(width, genomeSize)
 
   const muts = getNucMutations(sequence, refNodeName)
   if (!muts) {

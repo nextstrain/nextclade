@@ -2,7 +2,7 @@ import 'regenerator-runtime'
 
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import { MinimizerIndexJson, MinimizerSearchRecord, FindBestDatasetsResult, DatasetsIndexJson } from 'src/types'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
@@ -22,8 +22,9 @@ function onResultParsed(res: MinimizerSearchRecord[]) {
 let nextcladeAutodetect: NextcladeSeqAutodetectWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
-async function create(minimizerIndexJsonStr: MinimizerIndexJson) {
+async function create(indexJson: DatasetsIndexJson, minimizerIndexJsonStr: MinimizerIndexJson) {
   nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(
+    JSON.stringify(indexJson),
     JSON.stringify(minimizerIndexJsonStr),
     JSON.stringify({ batchIntervalMs: 250, maxBatchSize: 1000 }),
   )
@@ -53,10 +54,18 @@ async function autodetect(fasta: string): Promise<void> {
   gSubject.complete()
 }
 
+async function findBestDatasets(): Promise<FindBestDatasetsResult> {
+  if (!nextcladeAutodetect) {
+    throw new ErrorModuleNotInitialized('find_best_datasets')
+  }
+  return JSON.parse(nextcladeAutodetect.find_best_datasets()) as unknown as FindBestDatasetsResult
+}
+
 const worker = {
   create,
   destroy,
   autodetect,
+  findBestDatasets,
   values(): ThreadsObservable<MinimizerSearchRecord[]> {
     return ThreadsObservable.from(gSubject)
   },

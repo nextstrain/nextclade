@@ -1,12 +1,11 @@
 import 'regenerator-runtime'
 
-import { AlgorithmGlobalStatus, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { omit } from 'lodash'
-
-import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/types'
+import { AlgorithmGlobalStatus } from 'src/types'
+import type { FastaRecord, FastaRecordId, NextcladeResult, NextcladeParamsRaw, OutputTrees } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
 import { FastaParserWorker } from 'src/workers/FastaParserThread'
@@ -31,27 +30,48 @@ class LauncherWorkerImpl {
   analysisResultsObservable = new Subject<NextcladeResult>()
 
   // Relays tree result from webworker to the main thread
-  treeObservable = new Subject<OutputTrees>()
+  treeObservable = new Subject<Record<string, OutputTrees | undefined | null>>()
 
   fastaParser!: FastaParserWorker
 
   pool!: AnalysisWorkerPool
 
+  datasetNames!: string[]
+
+  seqIndexToTopDatasetName?: Map<number, string>
+
+  seqIndicesWithoutDatasetSuggestions?: number[]
+
   private constructor() {}
 
-  public static async create(numThreads: number, params: NextcladeParamsRaw) {
+  public static async create(
+    numThreads: number,
+    datasetNames: string[],
+    seqIndexToTopDatasetName: Map<number, string> | undefined,
+    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
+    params: NextcladeParamsRaw,
+  ) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, params)
+    await self.init(numThreads, datasetNames, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, params)
     return self
   }
 
-  private async init(numThreads: number, params: NextcladeParamsRaw) {
+  private async init(
+    numThreads: number,
+    datasetNames: string[],
+    seqIndexToTopDatasetName: Map<number, string> | undefined,
+    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
+    params: NextcladeParamsRaw,
+  ) {
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
+    this.seqIndexToTopDatasetName = seqIndexToTopDatasetName
+    this.seqIndicesWithoutDatasetSuggestions = seqIndicesWithoutDatasetSuggestions
+    this.datasetNames = datasetNames
   }
 
-  async getInitialData() {
-    return this.pool.getInitialData()
+  async getInitialData(datasetName: string) {
+    return this.pool.getInitialData(datasetName)
   }
 
   async launch(qryFastaStr: string) {
@@ -67,7 +87,8 @@ class LauncherWorkerImpl {
       )
       await this.pool.completed()
 
-      const trees = await this.pool.getOutputTrees()
+      const trees = await this.pool.getOutputTrees(this.datasetNames)
+
       this.treeObservable.next(trees)
 
       this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.done)
@@ -85,11 +106,24 @@ class LauncherWorkerImpl {
 
   private onSequence(record: FastaRecord) {
     this.parsedFastaObservable.next(omit(record, 'seq'))
-    this.onSequenceImpl(record).catch(this.onError)
+    this.onSequenceImpl(record).catch((error) => this.onError(error))
   }
 
   private async onSequenceImpl(record: FastaRecord) {
-    const result = await this.pool.analyze(record)
+    if (this.seqIndicesWithoutDatasetSuggestions?.includes(record.index)) {
+      this.analysisResultsObservable.next({
+        index: record.index,
+        seqName: record.seqName,
+        error: 'Unable to detect reference dataset',
+      })
+      return
+    }
+
+    const datasetName = this.seqIndexToTopDatasetName?.get(record.index) ?? this.datasetNames[0]
+    if (!datasetName) {
+      throw new ErrorInternal(`Unable to find selected dataset for sequence #${record.index} '${record.seqName}'`)
+    }
+    const result = await this.pool.analyze(datasetName, record)
     this.analysisResultsObservable.next(result)
   }
 
@@ -104,14 +138,26 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(numThreads: number, params: NextcladeParamsRaw) {
-    launcher = await LauncherWorkerImpl.create(numThreads, params)
+  async init(
+    numThreads: number,
+    datasetNames: string[],
+    seqIndexToTopDatasetName: Map<number, string> | undefined,
+    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
+    params: NextcladeParamsRaw,
+  ) {
+    launcher = await LauncherWorkerImpl.create(
+      numThreads,
+      datasetNames,
+      seqIndexToTopDatasetName,
+      seqIndicesWithoutDatasetSuggestions,
+      params,
+    )
   },
-  async getInitialData() {
+  async getInitialData(datasetName: string) {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getInitialData')
     }
-    return launcher.getInitialData()
+    return launcher.getInitialData(datasetName)
   },
   async launch(qryFastaStr: string) {
     if (!launcher) {
@@ -132,19 +178,13 @@ const worker = {
     }
     return ThreadsObservable.from(launcher.analysisGlobalStatusObservable)
   },
-  getParsedFastaObservable(): ThreadsObservable<FastaRecordId> {
-    if (!launcher) {
-      throw new ErrorLauncherModuleNotInitialized('getParsedFastaObservable')
-    }
-    return ThreadsObservable.from(launcher.parsedFastaObservable)
-  },
   getAnalysisResultsObservable(): ThreadsObservable<NextcladeResult> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getAnalysisResultsObservable')
     }
     return ThreadsObservable.from(launcher.analysisResultsObservable)
   },
-  getTreeObservable(): ThreadsObservable<OutputTrees> {
+  getTreeObservable(): ThreadsObservable<Record<string, OutputTrees | undefined | null>> {
     if (!launcher) {
       throw new ErrorLauncherModuleNotInitialized('getTreeObservable')
     }

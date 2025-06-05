@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "„Clade-oprichter” - toont mutaties ten opzichte van de oprichter van de clade die is toegewezen aan de steekproef van de zoekopdracht. Houd er rekening mee dat vragen van verschillende clades in dit geval worden vergeleken met verschillende doelen.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "„Ouder” - toont privémutaties, d.w.z. mutaties ten opzichte van het (dichtstbijzijnde) ouderknooppunt van de referentieboom waaraan het zoekmonster is gekoppeld tijdens de fylogenetische plaatsing.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "„Referentie” - toont mutaties ten opzichte van de referentiesequentie (zoals gedefinieerd in de dataset).",
+  "\"{{ attr }}\" founder": "„ {{ attr }} \" oprichter",
   "(truncated)": "(afgekapt)",
   "* Current value. This amount can change depending on load": "* Huidige waarde. Dit bedrag kan veranderen afhankelijk van de belasting",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} vereist minstens {{memoryRequired}} geheugen per thread",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} werkt het beste in de nieuwste versies van ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Aanvullende informatie voor ontwikkelaars (klik om uit te vouwen)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} misplaatste stopcodon (en) gedetecteerd. Getroffen gen (en): {{geneList}}. QC-score: {{score}}",
-  "\"{{ attr }}\" founder": "„{{ attr }}\" oprichter"
+  "Load example sequence data (for demonstration)": "Laad voorbeeldreeksgegevens (voor demonstratie)",
+  "Open reference tree for this dataset on nextstrain.org": "Open de referentieboom voor deze dataset op nextstrain.org",
+  "Open tree": "Boom openen",
+  "There is no example data in this dataset": "Er zijn geen voorbeeldgegevens in deze dataset",
+  "There is no reference tree in this dataset": "Er is geen referentieboom in deze dataset"
 }

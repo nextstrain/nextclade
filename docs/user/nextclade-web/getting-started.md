@@ -42,7 +42,13 @@ Besides input sequences, Nextclade needs to know which dataset to use to perform
 
 Most users don't need to worry about the dataset files, because Nextclade provides datasets for a variety of viruses out of the box. The only thing you need to do is to choose an appropriate dataset for your sequences.
 
-Nextclade can automatically suggest compatible datasets by processing the input sequences and comparing them against all available datasets. To do so, click the "Suggest" button after providing some query sequence data (see previous section). If "Suggest automatically" toggle is turned on (this is the default), adding sequences triggers an automatic suggestion run.
+If all your sequences can be aligned against a single reference, it's easiest to use the "Single dataset mode" described directly below. If your sequences are more diverse, for example because they comprise different segments (e.g. influenza) or subtypes (e.g. RSV A and RSV B) you can use Nextclade's "Multi-dataset mode" to analyze each sequence with an appropriate dataset. How to use this mode is documented further below.
+
+#### Single dataset mode
+
+Single dataset mode is best when you want to analyze your sequences with a single dataset, i.e. align against the same reference. This mode also allows advanced customisation of dataset files.
+
+Nextclade can automatically suggest compatible datasets by processing the input sequences and comparing them against all available datasets. To do so, click the "Suggest" button after providing some query sequence data (see previous section). If the "Suggest automatically" toggle is turned on (this is the default), adding sequences triggers an automatic suggestion run.
 ![Auto-suggest datasets](../assets/web_trigger-suggest.png)
 
 Once the suggestion engine has finished, if no dataset is currently selected, Nextclade will auto-select the best matching dataset: in this case, the SARS-CoV-2 dataset with XBB reference:
@@ -55,9 +61,27 @@ On the dataset page you can see the list of all existing datasets. The subset of
 
 ![Select dataset](../assets/web_select-dataset.png)
 
-On that page You can also find some information about dataset in the "Summary" tab. As well as a history of changes in the "History" tab.
+On that page, you can also find some information about dataset in the "Summary" tab, as well as a history of changes in the "History" tab.
 
 Advanced users may override dataset files on the "Customize" tab. This requires good understanding of [Input files](../input-files/index.rst) and of the [Nextclade algorithms](../algorithm/index.rst).
+
+#### Multi-dataset mode
+
+> *Introduced in Nextclade version 3.14*
+
+With multi-dataset mode, in a single Nextclade run, each of your sequences will be analyzed with an appropriate dataset. This is useful when you want to analyse a diverse set of sequences that require different datasets for different sequences, e.g. RSV A and RSV B. You no longer need to run Nextclade multiple times, once for each dataset.
+
+You can select multi-dataset mode by clicking on the "Multiple datasets" tab in the dataset box on the right of Nextclade's start screen.
+
+If you click on the "Suggesting" button, Nextclade will analyse each sequence to determine appropriate datasets. When multiple datasets can be used with a given sequence, Nextclade will preferentially choose a dataset that is already selected for another sequence to minimize the number of datasets used, overall.
+
+![Multi-dataset mode](../assets/web_multi-dataset-select.png)
+
+In multi-dataset mode, Nextclade automatically tries to deduce the most appropriate dataset for each sequence, which results in a list of suggested datasets. When running analysis in multi-dataset mode, you will receive separate results (table, tree and exports) for each dataset.
+
+![Multi-dataset mode](../assets/web_multi-dataset-suggest.png)
+
+Currently, the analysis results obtained for different datasets in multi-dataset mode are still entirely separate. After Nextclade has finished running, you can switch between datasets. There is no difference between performing a multi-dataset run and performing multiple runs in single-dataset mode one after another except the convenience of being able to switch and not requiring multiple tabs.
 
 ### 3. Run the analysis
 

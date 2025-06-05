@@ -10,6 +10,7 @@
   "\"Clade founder\" - shows mutations relative to the founder of the clade that has been assigned to the query sample. Note that queries from different clades will be compared with different targets in this case.": "“Clade wanda ya kafa” - yana nuna canji dangane da wanda ya kafa clade wanda aka sanya shi ga samfurin tambaya. Lura cewa tambayoyi daga ƙungiyoyi daban-daban za a kwatanta su tare da manufa daban-daban a wannan yanayin.",
   "\"Parent\" - shows private mutations, i.e. mutations relative to the parent (nearest) node of the reference tree to which the query sample has been attached to during phylogenetic placement.": "“Iyaye” - yana nuna sauye-sauye masu zaman kansu, watau canje-canje dangane da iyaye (mafi kusa) na itacen tunani wanda aka haɗa samfurin tambayoyin yayin sanya filogenetic.",
   "\"Reference\" - shows mutations relative to the reference sequence (as defined in the dataset).": "“Tunani” - yana nuna canji dangane da jerin tunani (kamar yadda aka bayyana a cikin bayanan bayanai).",
+  "\"{{ attr }}\" founder": "“ {{ attr }} \" wanda ya kafa",
   "(truncated)": "(yanke)",
   "* Current value. This amount can change depending on load": "* Darajar yanzu. Wannan adadin na iya canzawa dangane da nauyi",
   "** {{appName}} requires at least {{memoryRequired}} of memory per thread": "** {{appName}} yana buƙatar aƙalla {{memoryRequired}} na ƙwaƙwalwar ajiya a kowane zaren",
@@ -484,5 +485,9 @@
   "{{project}} works best in the latest versions of ": "{{project}} yana aiki mafi kyau a cikin sabbin nau'ikan ",
   "{{symbol}} Additional information for developers (click to expand)": "{{symbol}} Ƙarin bayani ga masu haɓakawa (danna don fadada)",
   "{{totalStopCodons}} misplaced stop codon(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}": "{{totalStopCodons}} da aka gano codon (s) na tsayawa mara kyau. Abubuwan da aka shafa (s): {{geneList}}. Sakamakon QC: {{score}}",
-  "\"{{ attr }}\" founder": "“{{ attr }}\" wanda ya kafa"
+  "Load example sequence data (for demonstration)": "Load bayanan jerin misali (don zanga-zanga)",
+  "Open reference tree for this dataset on nextstrain.org": "Buɗe itacen tunani don wannan bayanan akan nextstrain.org",
+  "Open tree": "Buɗe itace",
+  "There is no example data in this dataset": "Babu misalin bayanan a cikin wannan bayanan",
+  "There is no reference tree in this dataset": "Babu itacen tunani a cikin wannan bayanan"
 }

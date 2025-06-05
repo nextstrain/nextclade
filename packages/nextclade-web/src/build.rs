@@ -9,14 +9,14 @@ use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::ensure_dir;
 use nextclade::io::json::{json_write_impl, JsonPretty};
-use nextclade::io::nextclade_csv::CsvColumnConfig;
+use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::QcResult;
 use nextclade::run::nextclade_wasm::{
   AnalysisInitialData, AnalysisInput, NextcladeParams, NextcladeParamsRaw, NextcladeResult, OutputTrees,
 };
 use nextclade::sort::minimizer_index::MinimizerIndexJson;
-use nextclade::sort::minimizer_search::{MinimizerSearchRecord, MinimizerSearchResult};
+use nextclade::sort::minimizer_search::{FindBestDatasetsResult, MinimizerSearchRecord, MinimizerSearchResult};
 use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
@@ -27,6 +27,8 @@ use std::path::Path;
 const OUTPUT_JSON_SCHEMA: &str = "src/gen/_SchemaRoot.json";
 
 fn main() -> Result<(), Report> {
+  println!("cargo:rerun-if-changed={OUTPUT_JSON_SCHEMA}");
+
   ensure_dir(OUTPUT_JSON_SCHEMA)?;
   write_jsonschema::<_SchemaRoot>(OUTPUT_JSON_SCHEMA)?;
   Ok(())
@@ -48,7 +50,7 @@ fn write_jsonschema<T: JsonSchema>(output_file: impl AsRef<Path>) -> Result<(), 
 /// it. Instead, See the actual types in the `definitions` property of JSON schema.
 #[derive(Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-struct _SchemaRoot<'a> {
+struct _SchemaRoot {
   _1: GeneMap,
   _2: Translation,
   _3: AuspiceTree,
@@ -62,7 +64,7 @@ struct _SchemaRoot<'a> {
   _13: CladeNodeAttrKeyDesc,
   _14: PhenotypeAttrDesc,
   _15: FastaRecord,
-  _17: AnalysisInitialData<'a>,
+  _17: AnalysisInitialData,
   _18: AnalysisInput,
   _19: NextcladeResult,
   _20: NextcladeParams,
@@ -77,4 +79,5 @@ struct _SchemaRoot<'a> {
   _30: MinimizerIndexJson,
   _31: MinimizerSearchResult,
   _32: MinimizerSearchRecord,
+  _33: FindBestDatasetsResult,
 }
