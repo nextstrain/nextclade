@@ -1,4 +1,4 @@
-import { isUndefined } from 'lodash'
+import { isNil } from 'lodash'
 
 export function notUndefined<T>(x: T | undefined): x is NonNullable<T> {
   return x !== undefined
