@@ -245,8 +245,8 @@ fn pair(key: &str, val: &str) -> [String; 2] {
   [key.to_owned(), val.to_owned()]
 }
 
-pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
-  let new_colorings: Vec<AuspiceColoring> = vec![
+pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta, has_pcr_primers: bool) {
+  let mut new_colorings: Vec<AuspiceColoring> = vec![
     AuspiceColoring {
       key: "Node type".to_owned(),
       title: "Node type".to_owned(),
@@ -265,14 +265,17 @@ pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
       ],
       other: serde_json::Value::default(),
     },
-    AuspiceColoring {
+  ];
+
+  if has_pcr_primers {
+    new_colorings.push(AuspiceColoring {
       key: "Has PCR primer changes".to_owned(),
       title: "Has PCR primer changes".to_owned(),
       type_: "categorical".to_owned(),
       scale: vec![pair("Yes", "#6961ff"), pair("No", "#999999")],
       other: serde_json::Value::default(),
-    },
-  ];
+    });
+  }
 
   meta.colorings = concat_to_vec(&new_colorings, &meta.colorings);
 
@@ -292,12 +295,13 @@ pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
 
   meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
 
-  let new_filters = vec![
+  let mut new_filters = vec![
     "clade_membership".to_owned(),
     "Node type".to_owned(),
     "QC Status".to_owned(),
-    "Has PCR primer changes".to_owned(),
   ];
+
+  new_filters.push("Has PCR primer changes".to_owned());
 
   meta.filters = concat_to_vec(&new_filters, &meta.filters);
 

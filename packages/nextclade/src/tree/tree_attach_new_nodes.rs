@@ -25,7 +25,7 @@ pub fn create_new_auspice_node(
     result.alignment_range.begin, result.alignment_range.end, result.alignment_score
   );
 
-  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
+  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes == 0 {
     (Some(TreeNodeAttr::new("No")), None)
   } else {
     (
