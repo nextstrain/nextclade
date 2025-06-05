@@ -15,16 +15,12 @@ use eyre::{eyre, Report, WrapErr};
 use log::warn;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::json;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
-use serde_json::json;
 use traversal::{Bft, DftPost, DftPre};
 use validator::Validate;
-
-// HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
-// https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
-pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
 
 #[derive(Clone, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceGraphEdgePayload; // Edge payload is empty. Branch attributes are currently stored on nodes.
