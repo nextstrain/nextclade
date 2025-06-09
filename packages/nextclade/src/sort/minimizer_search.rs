@@ -47,7 +47,6 @@ pub fn run_minimizer_search(
 
   let hit_counts = calculate_minimizer_hits(fasta_record, index, n_refs);
 
-
   // we expect hits to be proportional to the length of the sequence and the number of minimizers per reference
   let mut scores: Vec<f64> = vec![0.0; hit_counts.len()];
   for i in 0..n_refs {
@@ -234,29 +233,32 @@ const fn invertible_hash(x: u32) -> u32 {
   x
 }
 
-const NUCLEOTIDE_LOOKUP: [(bool, u8); 256] = {
-  let mut table = [(false, 0); 256]; // Non-ACGT
-  table[b'A' as usize] = (true, 0b11); // A=11=3
-  table[b'T' as usize] = (true, 0b10); // T=10=2
-  table[b'G' as usize] = (true, 0b00); // G=00=0
-  table[b'C' as usize] = (true, 0b01); // C=01=1
+const INVALID_NUCLEOTIDE_VALUE: u8 = 4; // Sentinel value for invalid nucleotides
+
+const NUCLEOTIDE_LOOKUP: [u8; 256] = {
+  let mut table = [INVALID_NUCLEOTIDE_VALUE; 256]; // Use sentinel value 4 for invalid nucleotides
+  table[b'A' as usize] = 0b11; // A=11=3
+  table[b'a' as usize] = 0b11; // a=11=3
+  table[b'T' as usize] = 0b10; // T=10=2
+  table[b't' as usize] = 0b10; // t=10=2
+  table[b'G' as usize] = 0b00; // G=00=0
+  table[b'g' as usize] = 0b00; // g=00=0
+  table[b'C' as usize] = 0b01; // C=01=1
+  table[b'c' as usize] = 0b01; // c=01=1
   table
 };
 
-/// Expects kmer to be all uppercase letters
+// Expects bit-encoded kmer where each nucleotide is represented by 2 bits
+// A=11, C=10, G=00, T=01 and invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
 fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u32 {
   let cutoff = params.cutoff as u32;
 
   let mut x: u32 = 0;
   let mut j: u8 = 0;
 
-  // Create a bit-packed representation of the kmer
-  // where each nucleotide is represented by 2 bits:
-  // A=11, C=10, G=00, T=01
   // Skip every third nucleotide to pick up conserved patterns
-  for &nuc in kmer.iter().skip_every(3) {
-    let (is_valid, bits) = NUCLEOTIDE_LOOKUP[nuc as usize];
-    if !is_valid {
+  for &bits in kmer.iter().skip_every(3) {
+    if bits == INVALID_NUCLEOTIDE_VALUE {
       return cutoff + 1; // invalid nucleotide
     }
 
@@ -278,8 +280,7 @@ pub fn calculate_minimizer_hits(
 
     let seq_str = preprocess_seq(&fasta_record.seq);
 
-    seq_str.as_bytes()
-        .windows(k)
+    seq_str.windows(k)
         .map(|kmer| get_hash(kmer, params))
         .filter(|&mhash| mhash < cutoff)
         .unique()
@@ -295,6 +296,19 @@ pub fn calculate_minimizer_hits(
         })
 }
 
-fn preprocess_seq(seq: impl AsRef<str>) -> String {
-  seq.as_ref().to_uppercase().replace('-', "")
+// Create a bit-packed representation of the kmer
+// where each nucleotide is represented by 2 bits:
+// A=11, C=10, G=00, T=01
+// Invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
+fn preprocess_seq(seq: impl AsRef<str>) -> Vec<u8>{
+  seq.as_ref()
+    .bytes()
+    .filter_map(|b| {
+      if b == b'-' {
+        None // skip gaps
+      } else {
+        Some(NUCLEOTIDE_LOOKUP[b as usize])
+      }
+    })
+    .collect()
 }
