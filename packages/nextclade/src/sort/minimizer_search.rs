@@ -264,7 +264,7 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
   // where each nucleotide is represented by 2 bits:
   // A=11, C=10, G=00, T=01
   // Skip every third nucleotide to pick up conserved patterns
-  for (i, &nuc) in kmer.iter().skip_every(3).enumerate() {
+  for &nuc in kmer.iter().skip_every(3) {
     let (is_valid, bits) = NUCLEOTIDE_LOOKUP[nuc as usize];
     if !is_valid {
       return cutoff + 1; // invalid nucleotide
