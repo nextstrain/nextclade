@@ -232,15 +232,14 @@ pub struct DatasetSuggestionStats {
   pub qry_indices: Vec<usize>,
 }
 
-const fn invertible_hash(x: u64) -> u64 {
-  let m: u64 = (1 << 32) - 1;
-  let mut x: u64 = (!x).wrapping_add(x << 21) & m;
+const fn invertible_hash(x: u32) -> u32 {
+  let mut x = (!x).wrapping_add(x << 21);
   x = x ^ (x >> 24);
-  x = (x + (x << 3) + (x << 8)) & m;
+  x = x.wrapping_add(x << 3).wrapping_add(x << 8);
   x = x ^ (x >> 14);
-  x = (x + (x << 2) + (x << 4)) & m;
+  x = x.wrapping_add(x << 2).wrapping_add(x << 4);
   x = x ^ (x >> 28);
-  x = (x + (x << 31)) & m;
+  x = x.wrapping_add(x << 31);
   x
 }
 
@@ -254,11 +253,11 @@ const NUCLEOTIDE_LOOKUP: [(bool, u8); 256] = {
 };
 
 /// Expects kmer to be all uppercase letters
-fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
-  let cutoff = params.cutoff as u64;
+fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u32 {
+  let cutoff = params.cutoff as u32;
 
-  let mut x = 0;
-  let mut j = 0;
+  let mut x: u32 = 0;
+  let mut j: u8 = 0;
 
   // Create a bit-packed representation of the kmer
   // where each nucleotide is represented by 2 bits:
@@ -270,22 +269,22 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
       return cutoff + 1; // invalid nucleotide
     }
 
-    x |= (bits as u64) << j;
+    x |= (bits as u32) << j;
     j += 2;
   }
 
   invertible_hash(x)
 }
 
-pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParams) -> Vec<u64> {
+pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParams) -> Vec<u32> {
   let k = params.k as usize;
-  let cutoff = params.cutoff as u64;
+  let cutoff = params.cutoff as u32;
 
   let seq_str = preprocess_seq(&seq.seq);
   let n = seq_str.len().saturating_sub(k);
   // We keep only every cutoff/2^32-th minimizer
-  let expected_n_minimizers=n * (2<<32) / (cutoff as usize);
-  let mut minimizers = Vec::with_capacity(2*expected_n_minimizers);
+  let expected_n_minimizers = n * (1 << 32) / (cutoff as usize);
+  let mut minimizers = Vec::with_capacity(2 * expected_n_minimizers);
   for i in 0..n {
     let kmer = &seq_str.as_bytes()[i..i + k];
     let mhash = get_hash(kmer, params);
