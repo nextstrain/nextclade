@@ -250,9 +250,7 @@ const NUCLEOTIDE_LOOKUP: [u8; 256] = {
 
 // Expects bit-encoded kmer where each nucleotide is represented by 2 bits
 // A=11, C=10, G=00, T=01 and invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
-fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> Option<u32> {
-  let cutoff = params.cutoff as u32;
-
+fn get_hash(kmer: &[u8]) -> Option<u32> {
   let mut x: u32 = 0;
   let mut j: u8 = 0;
 
@@ -274,14 +272,10 @@ pub fn calculate_minimizer_hits(
     index: &MinimizerIndexJson,
     n_refs: usize,
 ) -> Vec<u64> {
-    let params = &index.params;
-    let k = params.k as usize;
-    let cutoff = params.cutoff as u32;
+    let seq_str = preprocess_seq(&fasta_record.seq);
 
-    let seq_str = preprocess_seq(fasta_record.seq);
-
-    seq_str.windows(k)
-        .filter_map(|kmer| get_hash(kmer, params))
+    seq_str.windows(index.params.k as usize)
+        .filter_map(|kmer| get_hash(kmer))
         .unique()
         .fold(vec![0; n_refs], |mut acc, m| {
             if let Some(locations) = index.minimizers.get(&m) {
@@ -299,7 +293,7 @@ pub fn calculate_minimizer_hits(
 // where each nucleotide is represented by 2 bits:
 // A=11, C=10, G=00, T=01
 // Invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
-fn preprocess_seq(seq: String) -> Vec<u8>{
+fn preprocess_seq(seq: &str) -> Vec<u8> {
   seq.as_bytes()
     .iter()
     .filter_map(|&b| {
