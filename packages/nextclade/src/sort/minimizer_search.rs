@@ -244,7 +244,7 @@ const fn invertible_hash(x: u64) -> u64 {
 }
 
 const NUCLEOTIDE_LOOKUP: [(bool, u8); 256] = {
-  let mut table = [(false, 0); 256];
+  let mut table = [(false, 0); 256]; // Non-ACGT
   table[b'A' as usize] = (true, 0b11); // A=11=3
   table[b'C' as usize] = (true, 0b10); // C=10=2
   table[b'G' as usize] = (true, 0b00); // G=00=0
@@ -261,10 +261,10 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
   // Create a bit-packed representation of the kmer
   // where each nucleotide is represented by 2 bits:
   // A=11, C=10, G=00, T=01
-  // We skip every third nucleotide to pick up conserved patterns
+  // Skip every third nucleotide to pick up conserved patterns
   for (i, &nuc) in kmer.iter().enumerate() {
     if i % 3 == 2 {
-      continue; // skip every third nucleotide to pick up conserved patterns
+      continue;
     }
 
     let (is_valid, bits) = NUCLEOTIDE_LOOKUP[nuc as usize];
