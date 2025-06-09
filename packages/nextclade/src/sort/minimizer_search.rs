@@ -300,15 +300,14 @@ pub fn calculate_minimizer_hits(
 // where each nucleotide is represented by 2 bits:
 // A=11, C=10, G=00, T=01
 // Invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
-fn preprocess_seq(seq: impl AsRef<str>) -> Vec<u8>{
-  seq.as_ref()
-    .bytes()
-    .filter_map(|b| {
-      if b == b'-' {
-        None // skip gaps
-      } else {
-        Some(NUCLEOTIDE_LOOKUP[b as usize])
-      }
-    })
-    .collect()
+fn preprocess_seq(seq: &str) -> Vec<u8>{
+  let mut result = Vec::with_capacity(seq.len());
+  result.extend(seq.bytes().filter_map(|b| {
+    if b == b'-' {
+      None
+    } else {
+      Some(NUCLEOTIDE_LOOKUP[b as usize])
+    }
+  }));
+  result
 }
