@@ -246,16 +246,13 @@ const fn invertible_hash(x: u64) -> u64 {
 const NUCLEOTIDE_LOOKUP: [(bool, u8); 256] = {
   let mut table = [(false, 0); 256]; // Non-ACGT
   table[b'A' as usize] = (true, 0b11); // A=11=3
-  table[b'a' as usize] = (true, 0b11);
   table[b'T' as usize] = (true, 0b10); // T=10=2
-  table[b't' as usize] = (true, 0b10);
   table[b'G' as usize] = (true, 0b00); // G=00=0
-  table[b'g' as usize] = (true, 0b00);
   table[b'C' as usize] = (true, 0b01); // C=01=1
-  table[b'c' as usize] = (true, 0b01);
   table
 };
 
+/// Expects kmer to be all uppercase letters
 fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
   let cutoff = params.cutoff as u64;
 
@@ -271,7 +268,7 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
       continue;
     }
 
-    let (is_valid, bits) = NUCLEOTIDE_LOOKUP[nuc as u8];
+    let (is_valid, bits) = NUCLEOTIDE_LOOKUP[nuc as usize];
     if !is_valid {
       return cutoff + 1; // invalid nucleotide
     }
