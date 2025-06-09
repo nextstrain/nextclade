@@ -283,7 +283,9 @@ pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParam
 
   let seq_str = preprocess_seq(&seq.seq);
   let n = seq_str.len().saturating_sub(k);
-  let mut minimizers = Vec::with_capacity(n);
+  // We keep only every cutoff/2^32-th minimizer
+  let expected_n_minimizers=n * (2<<32) / (cutoff as usize);
+  let mut minimizers = Vec::with_capacity(2*expected_n_minimizers);
   for i in 0..n {
     let kmer = &seq_str.as_bytes()[i..i + k];
     let mhash = get_hash(kmer, params);
@@ -292,7 +294,9 @@ pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParam
       minimizers.push(mhash);
     }
   }
-  minimizers.into_iter().unique().collect_vec()
+  let mut result = Vec::with_capacity(minimizers.len());
+  result.extend(minimizers.into_iter().unique());
+  result
 }
 
 fn preprocess_seq(seq: impl AsRef<str>) -> String {
