@@ -250,7 +250,7 @@ const NUCLEOTIDE_LOOKUP: [u8; 256] = {
 
 // Expects bit-encoded kmer where each nucleotide is represented by 2 bits
 // A=11, C=10, G=00, T=01 and invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
-fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> Option<u32> {
+fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u32 {
   let cutoff = params.cutoff as u32;
 
   let mut x: u32 = 0;
@@ -259,14 +259,14 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> Option<u32> {
   // Skip every third nucleotide to pick up conserved patterns
   for &bits in kmer.iter().skip_every(3) {
     if bits == INVALID_NUCLEOTIDE_VALUE {
-      return None;
+      return cutoff + 1; // invalid nucleotide
     }
 
     x |= (bits as u32) << j;
     j += 2;
   }
 
-  Some(invertible_hash(x))
+  invertible_hash(x)
 }
 
 pub fn calculate_minimizer_hits(
@@ -278,10 +278,11 @@ pub fn calculate_minimizer_hits(
     let k = params.k as usize;
     let cutoff = params.cutoff as u32;
 
-    let seq_str = preprocess_seq(fasta_record.seq);
+    let seq_str = preprocess_seq(&fasta_record.seq);
 
     seq_str.windows(k)
-        .filter_map(|kmer| get_hash(kmer, params))
+        .map(|kmer| get_hash(kmer, params))
+        .filter(|&mhash| mhash < cutoff)
         .unique()
         .fold(vec![0; n_refs], |mut acc, m| {
             if let Some(locations) = index.minimizers.get(&m) {
@@ -299,12 +300,12 @@ pub fn calculate_minimizer_hits(
 // where each nucleotide is represented by 2 bits:
 // A=11, C=10, G=00, T=01
 // Invalid nucleotides are represented by INVALID_NUCLEOTIDE_VALUE
-fn preprocess_seq(seq: String) -> Vec<u8>{
-  seq.as_bytes()
-    .iter()
-    .filter_map(|&b| {
+fn preprocess_seq(seq: impl AsRef<str>) -> Vec<u8>{
+  seq.as_ref()
+    .bytes()
+    .filter_map(|b| {
       if b == b'-' {
-        None
+        None // skip gaps
       } else {
         Some(NUCLEOTIDE_LOOKUP[b as usize])
       }
