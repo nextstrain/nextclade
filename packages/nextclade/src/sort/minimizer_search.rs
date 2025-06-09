@@ -246,9 +246,13 @@ const fn invertible_hash(x: u64) -> u64 {
 const NUCLEOTIDE_LOOKUP: [(bool, u8); 256] = {
   let mut table = [(false, 0); 256]; // Non-ACGT
   table[b'A' as usize] = (true, 0b11); // A=11=3
+  table[b'a' as usize] = (true, 0b11); // a=11=3
   table[b'C' as usize] = (true, 0b10); // C=10=2
+  table[b'c' as usize] = (true, 0b10); // c=10=2
   table[b'G' as usize] = (true, 0b00); // G=00=0
+  table[b'g' as usize] = (true, 0b00); // g=00=0
   table[b'T' as usize] = (true, 0b01); // T=01=1
+  table[b't' as usize] = (true, 0b01); // t=01=1
   table
 };
 
