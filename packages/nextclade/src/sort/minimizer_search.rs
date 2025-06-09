@@ -1,3 +1,4 @@
+use crate::align::seed_match::IteratorSkipEveryExt;
 use crate::io::fasta::FastaRecord;
 use crate::sort::minimizer_index::{MinimizerIndexJson, MinimizerIndexParams};
 use crate::sort::params::NextcladeSeqSortParams;
@@ -263,11 +264,7 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
   // where each nucleotide is represented by 2 bits:
   // A=11, C=10, G=00, T=01
   // Skip every third nucleotide to pick up conserved patterns
-  for (i, &nuc) in kmer.iter().enumerate() {
-    if i % 3 == 2 {
-      continue;
-    }
-
+  for (i, &nuc) in kmer.iter().skip_every(3).enumerate() {
     let (is_valid, bits) = NUCLEOTIDE_LOOKUP[nuc as usize];
     if !is_valid {
       return cutoff + 1; // invalid nucleotide

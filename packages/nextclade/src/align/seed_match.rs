@@ -16,7 +16,7 @@ use std::cmp::{max, min};
 use std::collections::{BTreeMap, VecDeque};
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
-struct SkipEvery<I> {
+pub struct SkipEvery<I> {
   inner: I,
   every: usize,
   index: usize,
@@ -44,7 +44,7 @@ impl<I: Iterator> Iterator for SkipEvery<I> {
   }
 }
 
-trait IteratorSkipEveryExt: Iterator + Sized {
+pub trait IteratorSkipEveryExt: Iterator + Sized {
   fn skip_every(self, every: usize) -> SkipEvery<Self> {
     SkipEvery::new(self, every)
   }
