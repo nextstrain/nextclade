@@ -45,17 +45,8 @@ pub fn run_minimizer_search(
 ) -> Result<MinimizerSearchResult, Report> {
   let n_refs = index.references.len();
 
-  let minimizers = get_ref_search_minimizers(fasta_record, &index.params);
-  let mut hit_counts = vec![0; n_refs];
-  for m in minimizers {
-    if let Some(mz) = index.minimizers.get(&m) {
-      for (ri, hit_count) in hit_counts.iter_mut().enumerate() {
-        if mz.contains(&ri) {
-          *hit_count += 1;
-        }
-      }
-    }
-  }
+  let hit_counts = calculate_minimizer_hits(fasta_record, index, n_refs);
+
 
   // we expect hits to be proportional to the length of the sequence and the number of minimizers per reference
   let mut scores: Vec<f64> = vec![0.0; hit_counts.len()];
@@ -276,32 +267,32 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u32 {
   invertible_hash(x)
 }
 
-pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParams) -> Vec<u32> {
+pub fn calculate_minimizer_hits(
+    fasta_record: &FastaRecord,
+    index: &MinimizerIndexJson,
+    n_refs: usize,
+) -> Vec<u64> {
+    let params = &index.params;
     let k = params.k as usize;
     let cutoff = params.cutoff as u32;
 
-    let seq_str = preprocess_seq(&seq.seq);
-    let n_kmers = seq_str.len().saturating_sub(k);
+    let seq_str = preprocess_seq(&fasta_record.seq);
 
-    // 1. Estimate the number of items that will pass the filter.
-    // The probability of a random u32 hash being < cutoff is (cutoff / u32::MAX).
-    // We use floating-point math for a more accurate calculation.
-    let expected_count = (n_kmers as f64 * (cutoff as f64 / u32::MAX as f64)) as usize;
-
-    // 2. Pre-allocate a Vec with the estimated capacity.
-    let mut minimizers = Vec::with_capacity(expected_count);
-
-    // 3. Define the iterator chain.
-    let minimizer_iter = seq_str.as_bytes()
+    seq_str.as_bytes()
         .windows(k)
         .map(|kmer| get_hash(kmer, params))
         .filter(|&mhash| mhash < cutoff)
-        .unique();
-
-    // 4. Extend the vector, which consumes the iterator and fills the Vec.
-    minimizers.extend(minimizer_iter);
-
-    minimizers
+        .unique()
+        .fold(vec![0; n_refs], |mut acc, m| {
+            if let Some(locations) = index.minimizers.get(&m) {
+                for &ref_idx in locations {
+                    if let Some(count) = acc.get_mut(ref_idx) {
+                        *count += 1;
+                    }
+                }
+            }
+            acc
+        })
 }
 
 fn preprocess_seq(seq: impl AsRef<str>) -> String {
