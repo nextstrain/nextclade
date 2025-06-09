@@ -277,25 +277,31 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u32 {
 }
 
 pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParams) -> Vec<u32> {
-  let k = params.k as usize;
-  let cutoff = params.cutoff as u32;
+    let k = params.k as usize;
+    let cutoff = params.cutoff as u32;
 
-  let seq_str = preprocess_seq(&seq.seq);
-  let n = seq_str.len().saturating_sub(k);
-  // We keep only every cutoff/2^32-th minimizer
-  let expected_n_minimizers = n * (1 << 32) / (cutoff as usize);
-  let mut minimizers = Vec::with_capacity(2 * expected_n_minimizers);
-  for i in 0..n {
-    let kmer = &seq_str.as_bytes()[i..i + k];
-    let mhash = get_hash(kmer, params);
-    // accept only hashes below cutoff --> reduces the size of the index and the number of lookups
-    if mhash < cutoff {
-      minimizers.push(mhash);
-    }
-  }
-  let mut result = Vec::with_capacity(minimizers.len());
-  result.extend(minimizers.into_iter().unique());
-  result
+    let seq_str = preprocess_seq(&seq.seq);
+    let n_kmers = seq_str.len().saturating_sub(k);
+
+    // 1. Estimate the number of items that will pass the filter.
+    // The probability of a random u32 hash being < cutoff is (cutoff / u32::MAX).
+    // We use floating-point math for a more accurate calculation.
+    let expected_count = (n_kmers as f64 * (cutoff as f64 / u32::MAX as f64)) as usize;
+
+    // 2. Pre-allocate a Vec with the estimated capacity.
+    let mut minimizers = Vec::with_capacity(expected_count);
+
+    // 3. Define the iterator chain.
+    let minimizer_iter = seq_str.as_bytes()
+        .windows(k)
+        .map(|kmer| get_hash(kmer, params))
+        .filter(|&mhash| mhash < cutoff)
+        .unique();
+
+    // 4. Extend the vector, which consumes the iterator and fills the Vec.
+    minimizers.extend(minimizer_iter);
+
+    minimizers
 }
 
 fn preprocess_seq(seq: impl AsRef<str>) -> String {
