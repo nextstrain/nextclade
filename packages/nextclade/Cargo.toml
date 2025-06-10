@@ -39,7 +39,6 @@ eyre = { workspace = true }
 flate2 = { workspace = true }
 gcollections = { workspace = true }
 getrandom = { workspace = true }
-gxhash = { workspace = true }
 indexmap = { workspace = true }
 intervallum = { workspace = true }
 itertools = { workspace = true }
