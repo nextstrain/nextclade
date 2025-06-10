@@ -55,6 +55,7 @@ eyre = "=0.6.8"
 flate2 = "=1.0.26"
 gcollections = "=1.5.0"
 getrandom = { version = "=0.2.10", features = ["js"] }
+gxhash = "=3.5.0"
 indexmap = { version = "=1.9.3", features = ["serde"] }
 intervallum = "=1.4.0"
 itertools = "=0.11.0"

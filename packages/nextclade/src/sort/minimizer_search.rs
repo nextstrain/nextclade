@@ -12,6 +12,7 @@ use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use gxhash::{HashSet, HashSetExt};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -277,6 +278,9 @@ pub fn calculate_minimizer_hits(
     let params = &index.params;
     let k = params.k as usize;
     let cutoff = params.cutoff as u32;
+
+    // let expected_n_minimizers = fasta_record.seq.len() as f64 * cutoff as f64 / (1_u64 << 32) as f64;
+    // let mut seen: HashSet<_> = HashSet::with_capacity(expected_n_minimizers as usize);
 
     let seq_str = preprocess_seq(&fasta_record.seq);
 
