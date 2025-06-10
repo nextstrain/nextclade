@@ -285,7 +285,7 @@ pub fn calculate_minimizer_hits(
 
     seq_str.windows(k)
         .map(|kmer| get_hash(kmer, params))
-        .filter(|&mhash| mhash < cutoff && seen.insert(mhash))
+        .filter(|&mhash| mhash < cutoff && seen.insert(mhash)) // Faster than .unique()
         .fold(vec![0; n_refs], |mut acc, m| {
             if let Some(locations) = index.minimizers.get(&m) {
                 for &ref_idx in locations {
