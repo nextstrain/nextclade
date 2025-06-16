@@ -43,7 +43,8 @@ pub fn graph_attach_new_nodes_in_place(
 
   graph.ladderize().wrap_err("When ladderizing the resulting tree")?;
 
-  add_auspice_metadata_in_place(&mut graph.data.meta);
+  let has_pcr_primers = results.iter().any(|result| !result.pcr_primer_changes.is_empty());
+  add_auspice_metadata_in_place(&mut graph.data.meta, has_pcr_primers);
 
   Ok(())
 }

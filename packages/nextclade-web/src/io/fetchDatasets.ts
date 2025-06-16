@@ -141,12 +141,12 @@ export function useUpdatedDatasetIndex() {
       }
       return initializeDatasets(datasetServerUrl)
     },
-    staleTime: 0,
+    staleTime: 2 * 60 * 60 * 1000, // 2 hours
     refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
-    refetchIntervalInBackground: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
     enabled: !isNil(datasetServerUrl),
   })
 

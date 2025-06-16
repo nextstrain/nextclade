@@ -9,9 +9,7 @@ use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
-use crate::tree::tree::{
-  AuspiceColoring, AuspiceGraph, AuspiceGraphNodePayload, AuspiceTreeMeta, AUSPICE_UNKNOWN_VALUE,
-};
+use crate::tree::tree::{AuspiceColoring, AuspiceGraph, AuspiceGraphNodePayload, AuspiceTreeMeta};
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -245,8 +243,8 @@ fn pair(key: &str, val: &str) -> [String; 2] {
   [key.to_owned(), val.to_owned()]
 }
 
-pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
-  let new_colorings: Vec<AuspiceColoring> = vec![
+pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta, has_pcr_primers: bool) {
+  let mut new_colorings: Vec<AuspiceColoring> = vec![
     AuspiceColoring {
       key: "Node type".to_owned(),
       title: "Node type".to_owned(),
@@ -265,26 +263,19 @@ pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
       ],
       other: serde_json::Value::default(),
     },
-    AuspiceColoring {
+  ];
+
+  if has_pcr_primers {
+    new_colorings.push(AuspiceColoring {
       key: "Has PCR primer changes".to_owned(),
       title: "Has PCR primer changes".to_owned(),
       type_: "categorical".to_owned(),
       scale: vec![pair("Yes", "#6961ff"), pair("No", "#999999")],
       other: serde_json::Value::default(),
-    },
-  ];
+    });
+  }
 
   meta.colorings = concat_to_vec(&new_colorings, &meta.colorings);
-
-  meta.colorings.iter_mut().for_each(|coloring| {
-    let key: &str = &coloring.key;
-    match key {
-      "region" | "country" | "division" => {
-        coloring.scale = concat_to_vec(&[pair(AUSPICE_UNKNOWN_VALUE, "#999999")], &coloring.scale);
-      }
-      _ => {}
-    }
-  });
 
   meta.display_defaults.branch_label = Some("clade".to_owned());
   meta.display_defaults.color_by = Some("clade_membership".to_owned());
@@ -292,12 +283,13 @@ pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta) {
 
   meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
 
-  let new_filters = vec![
+  let mut new_filters = vec![
     "clade_membership".to_owned(),
     "Node type".to_owned(),
     "QC Status".to_owned(),
-    "Has PCR primer changes".to_owned(),
   ];
+
+  new_filters.push("Has PCR primer changes".to_owned());
 
   meta.filters = concat_to_vec(&new_filters, &meta.filters);
 

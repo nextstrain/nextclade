@@ -94,7 +94,6 @@ function RecoilStateInitializer() {
       })
       .then(async () => {
         const datasetServerUrl = await getDatasetServerUrl(urlQuery)
-        set(datasetServerUrlAtom, datasetServerUrl)
         const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
 
         const datasetInfo = await fetchSingleDataset(urlQuery)
@@ -103,6 +102,8 @@ function RecoilStateInitializer() {
           const { datasets, currentDataset, auspiceJson } = datasetInfo
           return { datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
         }
+
+        set(datasetServerUrlAtom, datasetServerUrl)
         return { datasets, currentDataset, minimizerIndexVersion, auspiceJson: undefined }
       })
       .catch((error) => {

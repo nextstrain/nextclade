@@ -4,7 +4,6 @@ use crate::io::nextclade_csv_row::{
 };
 use crate::tree::tree::{
   AuspiceGraphNodePayload, TreeBranchAttrs, TreeBranchAttrsLabels, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData,
-  AUSPICE_UNKNOWN_VALUE,
 };
 use crate::tree::tree_builder::{
   convert_private_mutations_to_node_branch_attrs, convert_private_mutations_to_node_branch_attrs_aa_labels,
@@ -25,7 +24,7 @@ pub fn create_new_auspice_node(
     result.alignment_range.begin, result.alignment_range.end, result.alignment_score
   );
 
-  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
+  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes == 0 {
     (Some(TreeNodeAttr::new("No")), None)
   } else {
     (
@@ -70,9 +69,9 @@ pub fn create_new_auspice_node(
       div: Some(new_divergence),
       clade_membership: result.clade.as_ref().map(|clade| TreeNodeAttr::new(clade)),
       node_type: Some(TreeNodeAttr::new("New")),
-      region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+      region: None,
+      country: None,
+      division: None,
       placement_prior: None,
       alignment: Some(TreeNodeAttr::new(&alignment)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),

@@ -1,3 +1,16 @@
+## 3.15.0
+
+### Nextclade Web: fix country colorings in output tree json [#1646](https://github.com/nextstrain/nextclade/pull/1646)
+
+Colors for "country", "region" and "division" are now correctly displayed in tree view
+
+### CDS coverage [#1514](https://github.com/nextstrain/nextclade/pull/1514)
+
+Nextclade now calculates amino acid coverage of each CDS. You can find this information:
+
+* in output files: in the column or field `cdsCoverage`
+* in Nextclade Web: in the tooltip of the "Cov." column on "Results" page
+
 ## 3.14.5
 
 ### Nextclade Web: disable "Relative to" dropdown when dataset has no reference tree
