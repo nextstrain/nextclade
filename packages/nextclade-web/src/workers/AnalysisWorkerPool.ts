@@ -18,7 +18,10 @@ export class AnalysisWorkerPool {
 
   private async init(numThreads: number, params: NextcladeParamsRaw) {
     this.pool = await PoolExtended.create<NextcladeWasmThread>(
-      () => new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), { name: 'nextcladeWebWorker' }),
+      () =>
+        new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), {
+          name: 'src/workers/nextcladeWasm.worker.ts',
+        }),
       {
         size: numThreads,
         concurrency: 1,

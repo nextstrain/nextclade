@@ -18,7 +18,9 @@ export class FastaParserWorker {
 
   async init() {
     this.thread = await spawn<NextcladeWasmWorker>(
-      new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url)),
+      new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), {
+        name: 'src/workers/nextcladeWasm.worker.ts',
+      }),
     )
   }
 

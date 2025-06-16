@@ -143,7 +143,7 @@ export class SeqAutodetectWasmWorker {
   async init(index: DatasetsIndexJson, minimizerIndex: MinimizerIndexJson) {
     this.thread = await spawn<NextcladeSeqAutodetectWasmWorker>(
       new Worker(new URL('src/workers/nextcladeAutodetect.worker.ts', import.meta.url), {
-        name: 'nextcladeAutodetectWorker',
+        name: 'src/workers/nextcladeAutodetect.worker.ts',
       }),
     )
 
