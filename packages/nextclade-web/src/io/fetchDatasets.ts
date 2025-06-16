@@ -133,7 +133,7 @@ export function useUpdatedDatasetIndex() {
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
   useQuery(
-    'refetchDatasetIndex',
+    ['refetchDatasetIndex'],
     async () => {
       if (isNil(datasetServerUrl)) {
         return
@@ -144,12 +144,12 @@ export function useUpdatedDatasetIndex() {
     },
     {
       suspense: false,
-      staleTime: 0,
+      staleTime: 2 * 60 * 60 * 1000, // 2 hours
       refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
-      refetchIntervalInBackground: true,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      refetchOnWindowFocus: true,
+      refetchIntervalInBackground: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
       enabled: !isNil(datasetServerUrl),
     },
   )
