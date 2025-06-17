@@ -8,11 +8,8 @@ export interface LinkProps extends PropsWithChildren<NextLinkProps & HTMLAttribu
 
 export function Link({ className, children, href, title, ...restProps }: LinkProps) {
   return (
-    <NextLink {...restProps} href={href} passHref={false}>
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a className={className} title={title}>
-        {children}
-      </a>
+    <NextLink {...restProps} className={className} title={title} href={href} passHref={false}>
+      {children}
     </NextLink>
   )
 }
