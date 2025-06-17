@@ -7,7 +7,7 @@ export default function withIgnore(nextConfig: NextConfig) {
     nextConfig,
     new webpack.IgnorePlugin({
       checkResource: (resource: string) => {
-        return resource.includes('core-js/library') || resource.includes('debug')
+        return resource.includes('core-js/library')
       },
     }),
   )

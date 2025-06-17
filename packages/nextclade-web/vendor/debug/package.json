@@ -1,8 +1,23 @@
 {
   "name": "debug",
   "description": "Empty module to replace 'debug' package with a no-op",
-  "main": "index.js",
-  "type": "commonjs",
+  "version": "0.0.0",
   "private": true,
-  "version": "0.0.0"
+  "type": "commonjs",
+  "main": "./index.js",
+  "module": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "require": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.d.ts"
+  ]
 }

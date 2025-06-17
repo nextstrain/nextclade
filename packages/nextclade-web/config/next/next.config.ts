@@ -94,7 +94,7 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   poweredByHeader: false,
-  transpilePackages: ['auspice', 'semver'],
+  transpilePackages: ['auspice', 'debug', 'semver'],
   env,
 }
 
