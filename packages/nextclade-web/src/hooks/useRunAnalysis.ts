@@ -4,6 +4,8 @@ import { isEmpty, isNil, omitBy } from 'lodash'
 import pProps from 'p-props'
 import { useRouter } from 'next/router'
 import { useRecoilCallback } from 'recoil'
+import { useSetAtom } from 'jotai'
+import { useRef } from 'react'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import {
@@ -20,6 +22,7 @@ import {
   Dataset,
   NextcladeParamsRaw,
   NextcladeParamsRawDir,
+  NextcladeResult,
 } from 'src/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import {
@@ -49,7 +52,6 @@ import {
   allPhenotypeAttrDescsAtom,
   allRefNodesAtom,
   allAaMotifsDescsAtom,
-  analysisResultAtom,
   analysisResultsAtom,
   analysisStatusGlobalAtom,
   cdsesAtom,
@@ -73,13 +75,21 @@ import { axiosFetchRaw, axiosFetchRawMaybe } from 'src/io/axiosFetch'
 export function useRunAnalysis() {
   const router = useRouter()
 
+  const setAnalysisStatusGlobal = useSetAtom(analysisStatusGlobalAtom)
+  const setAnalysisResults = useSetAtom(analysisResultsAtom)
+  const setClearAllFilters = useSetAtom(clearAllFiltersAtom)
+
+  // Store results temporarily to batch update them
+  const resultsRef = useRef<NextcladeResult[]>([])
+
   return useRecoilCallback(
     ({ set, reset, snapshot }) =>
       ({ isSingle }: { isSingle: boolean }) => {
-        set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.loadingData)
+        setAnalysisStatusGlobal(AlgorithmGlobalStatus.loadingData)
 
-        reset(analysisResultsAtom)
-        reset(clearAllFiltersAtom)
+        setAnalysisResults([])
+        setClearAllFilters()
+        resultsRef.current = []
 
         reset(allAaMotifsDescsAtom)
         reset(allCdsOrderPreferenceAtom)
@@ -97,7 +107,7 @@ export function useRunAnalysis() {
 
         const callbacks: LaunchAnalysisCallbacks = {
           onGlobalStatus(status) {
-            set(analysisStatusGlobalAtom, status)
+            setAnalysisStatusGlobal(status)
           },
           onInitialData(datasetName, initialData) {
             set(initialDataAtom(datasetName), initialData)
@@ -145,7 +155,9 @@ export function useRunAnalysis() {
             set(csvColumnConfigAtom, csvColumnConfigDefault)
           },
           onAnalysisResult(result) {
-            set(analysisResultAtom(result.index), result)
+            // Store the result in the ref and update Jotai atom
+            resultsRef.current.push(result)
+            setAnalysisResults([...resultsRef.current])
           },
           onError(error) {
             set(globalErrorAtom, error)
@@ -165,7 +177,7 @@ export function useRunAnalysis() {
         router
           .push('/results', '/results')
           .then(async () => {
-            set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.initWorkers)
+            setAnalysisStatusGlobal(AlgorithmGlobalStatus.initWorkers)
             const numThreadsResolved = await getPromise(numThreadsAtom)
             const qry = await getPromise(qrySeqInputsStorageAtom)
             const csvColumnConfig = await getPromise(csvColumnConfigAtom)
@@ -205,11 +217,11 @@ export function useRunAnalysis() {
             releaseSnapshot()
           })
           .catch((error) => {
-            set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.failed)
+            setAnalysisStatusGlobal(AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
           })
       },
-    [router],
+    [router, setAnalysisResults, setAnalysisStatusGlobal, setClearAllFilters],
   )
 }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 
 import { ColumnName } from 'src/components/Results/ColumnName'
 import {
@@ -17,7 +17,7 @@ export interface ResultsTableRowErrorProps {
 }
 
 export function ResultsTableRowError({ index, columnWidthsPx, ...restProps }: ResultsTableRowErrorProps) {
-  const { seqName, error } = useRecoilValue(analysisResultAtom(index))
+  const { seqName, error } = useAtomValue(analysisResultAtom(index))
 
   return (
     <TableRowError {...restProps}>

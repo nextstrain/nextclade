@@ -1,5 +1,6 @@
 import React, { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import { FaCheckSquare as CheckIcon } from 'react-icons/fa'
 import { IoWarning as WarnIcon } from 'react-icons/io5'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -52,8 +53,8 @@ export function ResultsStatus({ ...restProps }) {
   const theme = useTheme()
 
   const numThreads = useRecoilValue(numThreadsAtom)
-  const statusGlobal = useRecoilValue(analysisStatusGlobalAtom)
-  const analysisResultStatuses = useRecoilValue(analysisResultStatusesAtom)
+  const statusGlobal = useAtomValue(analysisStatusGlobalAtom)
+  const analysisResultStatuses = useAtomValue(analysisResultStatusesAtom)
 
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])

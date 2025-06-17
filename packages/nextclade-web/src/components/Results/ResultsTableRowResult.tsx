@@ -2,6 +2,7 @@ import { isNil } from 'lodash'
 import { mix } from 'polished'
 import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import type { CladeNodeAttrDesc } from 'auspice'
 import { getNucMutations } from 'src/helpers/relativeMuts'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
@@ -96,7 +97,7 @@ export function ResultsTableRowResult({
   dynamicAaMotifsColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
-  const { seqName, result } = useRecoilValue(analysisResultAtom(seqIndex))
+  const { seqName, result } = useAtomValue(analysisResultAtom(seqIndex))
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const refNodeName = useRecoilValue(currentRefNodeNameAtom({ datasetName }))

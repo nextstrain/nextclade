@@ -1,5 +1,6 @@
 import React, { CSSProperties, useMemo } from 'react'
-import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { useRecoilValue } from 'recoil'
+import { useSetAtom } from 'jotai'
 import styled from 'styled-components'
 import AutoSizerBase, { Size } from 'react-virtualized-auto-sizer'
 import { seqIndicesWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
@@ -49,18 +50,10 @@ export function ResultsTableUnknownDataset() {
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
-  const sortByIndexAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByIndexDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByNameAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByNameDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
+  const sortByIndexAsc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc }))
+  const sortByIndexDesc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc }))
+  const sortByNameAsc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc }))
+  const sortByNameDesc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc }))
 
   return (
     <Table rounded={false}>

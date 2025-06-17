@@ -2,7 +2,7 @@ import { isEmpty, isNil } from 'lodash'
 import React, { useMemo } from 'react'
 import { IoDuplicateSharp } from 'react-icons/io5'
 import { Alert as ReactstrapAlert } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import styled from 'styled-components'
 
 import { analysisResultAtom, seqNameDuplicatesAtom } from 'src/state/results.state'
@@ -36,7 +36,7 @@ export interface ColumnNameTooltipProps {
 
 export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
   const { t } = useTranslationSafe()
-  const { result, error } = useRecoilValue(analysisResultAtom(index))
+  const { result, error } = useAtomValue(analysisResultAtom(index))
 
   const { StatusIcon, statusText } = useMemo(
     () =>
@@ -48,7 +48,7 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
     [error, result?.analysisResult.warnings, t],
   )
 
-  const duplicateIndices = useRecoilValue(seqNameDuplicatesAtom(result?.analysisResult.seqName ?? ''))
+  const duplicateIndices = useAtomValue(seqNameDuplicatesAtom(result?.analysisResult.seqName ?? ''))
   const duplicatedNamesRow = useMemo(() => {
     const hasDuplicates = duplicateIndices.length > 1
     if (hasDuplicates) {

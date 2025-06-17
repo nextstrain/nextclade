@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react'
 import { areEqual, ListChildComponentProps } from 'react-window'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import {
   COLUMN_WIDTHS,
   TableCell,
@@ -47,7 +47,7 @@ export function ResultsTableUnknownDatasetRowResult({
   columnWidthsPx,
   ...restProps
 }: ResultsTableUnknownDatasetRowResultProps) {
-  const { seqName } = useRecoilValue(analysisResultAtom(seqIndex))
+  const { seqName } = useAtomValue(analysisResultAtom(seqIndex))
 
   return (
     <TableRowColored {...restProps} index={rowIndex} overallStatus={'good'} muted={false}>

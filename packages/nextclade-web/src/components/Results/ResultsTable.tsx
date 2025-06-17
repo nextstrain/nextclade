@@ -6,7 +6,8 @@ import { intersection } from 'src/helpers/setOperations'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase, { Size } from 'react-virtualized-auto-sizer'
-import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { useRecoilValue } from 'recoil'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { datasetNameToSeqIndicesAtom } from 'src/state/autodetect.state'
 import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
@@ -66,10 +67,107 @@ export const FixedSizeList = styled(FixedSizeListBase)<FixedSizeListProps>`
   overflow-x: hidden !important;
 `
 
+interface DynamicCladeColumnProps {
+  attrKey: string
+  displayName: string
+  description: string | undefined
+  dynamicCladeColumnWidthPx: string
+}
+
+function DynamicCladeColumn({ attrKey, displayName, description, dynamicCladeColumnWidthPx }: DynamicCladeColumnProps) {
+  const sortAsc = useSetAtom(
+    sortAnalysisResultsByCustomNodeAttributesAtom({
+      key: attrKey,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortDesc = useSetAtom(
+    sortAnalysisResultsByCustomNodeAttributesAtom({
+      key: attrKey,
+      direction: SortDirection.desc,
+    }),
+  )
+
+  return (
+    <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
+      <TableHeaderCellContent>
+        <TableCellText>{displayName}</TableCellText>
+        <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+      </TableHeaderCellContent>
+      <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
+        <h5>{`Column: ${displayName}`}</h5>
+        <p>{description ?? 'No description available'}</p>
+      </ButtonHelpStyled>
+    </TableHeaderCell>
+  )
+}
+
+interface DynamicPhenotypeColumnProps {
+  name: string
+  nameFriendly: string
+  description: string
+  dynamicPhenotypeColumnWidthPx: string
+}
+
+function DynamicPhenotypeColumn({
+  name,
+  nameFriendly,
+  description,
+  dynamicPhenotypeColumnWidthPx,
+}: DynamicPhenotypeColumnProps) {
+  const sortAsc = useSetAtom(sortAnalysisResultsByPhenotypeValuesAtom({ key: name, direction: SortDirection.asc }))
+  const sortDesc = useSetAtom(sortAnalysisResultsByPhenotypeValuesAtom({ key: name, direction: SortDirection.desc }))
+
+  return (
+    <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
+      <TableHeaderCellContent>
+        <TableCellText>{nameFriendly}</TableCellText>
+        <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+      </TableHeaderCellContent>
+      <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
+        <h5>{`Column: ${nameFriendly}`}</h5>
+        <FormattedText text={description} />
+      </ButtonHelpStyled>
+    </TableHeaderCell>
+  )
+}
+
+interface DynamicAaMotifsColumnProps {
+  name: string
+  nameFriendly: string
+  nameShort: string
+  description: string
+  dynamicAaMotifsColumnWidthPx: string
+}
+
+function DynamicAaMotifsColumn({
+  name,
+  nameFriendly,
+  nameShort,
+  description,
+  dynamicAaMotifsColumnWidthPx,
+}: DynamicAaMotifsColumnProps) {
+  const sortAsc = useSetAtom(sortAnalysisResultsByMotifsAtom({ key: name, direction: SortDirection.asc }))
+  const sortDesc = useSetAtom(sortAnalysisResultsByMotifsAtom({ key: name, direction: SortDirection.desc }))
+
+  return (
+    <TableHeaderCell key={name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
+      <TableHeaderCellContent>
+        <TableCellText>{nameShort}</TableCellText>
+        <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+      </TableHeaderCellContent>
+      <ButtonHelpStyled identifier={`btn-help-col-aa-motifs-${name}`} tooltipWidth="600px">
+        <h5>{`Column: ${nameFriendly}`}</h5>
+        <FormattedText text={description} />
+      </ButtonHelpStyled>
+    </TableHeaderCell>
+  )
+}
+
 export function ResultsTable() {
   const { t } = useTranslation()
 
-  const seqIndicesImmediate = useRecoilValue(seqIndicesFilteredAtom)
+  const seqIndicesImmediate = useAtomValue(seqIndicesFilteredAtom)
   const seqIndices = useDeferredValue(seqIndicesImmediate)
 
   const datasetNameToSeqIndices = useRecoilValue(datasetNameToSeqIndicesAtom)
@@ -129,157 +227,195 @@ export function ResultsTable() {
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
-  const sortByIndexAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByIndexDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByNameAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByNameDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByQcIssuesAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByQcIssuesDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByCladeAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByCladeDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByCoverageAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.coverage, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByCoverageDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.coverage, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalMutationsAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalMutationsDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalNonAcgtnAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalNonAcgtnDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalNsAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalNsDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalGapsAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalGapsDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalInsertionsAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalInsertionsDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalFrameShiftsAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalFrameShiftsDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalStopCodonsAsc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.asc }), undefined)
-  }, []) // prettier-ignore
-  const sortByTotalStopCodonsDesc = useRecoilCallback(({ set }) => () => {
-    set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.desc }), undefined)
-  }, []) // prettier-ignore
-  const sortByCustomNodeAttributes = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
-    set(sortAnalysisResultsByCustomNodeAttributesAtom({ key, direction }), undefined)
-  }, []) // prettier-ignore
-  const sortByPhenotypeValues = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
-    set(sortAnalysisResultsByPhenotypeValuesAtom({ key, direction }), undefined)
-  }, []) // prettier-ignore
-  const sortByMotifs = useRecoilCallback(
-    ({ set }) =>
-      (key: string, direction: SortDirection) =>
-        () => {
-          set(sortAnalysisResultsByMotifsAtom({ key, direction }), undefined)
-        },
-    [],
-  ) // prettier-ignore
+  const sortByIndexAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.index,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByIndexDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.index,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByNameAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.seqName,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByNameDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.seqName,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByQcIssuesAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.qcIssues,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByQcIssuesDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.qcIssues,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByCladeAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.clade,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByCladeDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.clade,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByCoverageAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.coverage,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByCoverageDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.coverage,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalMutationsAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalMutations,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalMutationsDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalMutations,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalNonAcgtnAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalNonACGTNs,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalNonAcgtnDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalNonACGTNs,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalNsAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalMissing,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalNsDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalMissing,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalGapsAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalGaps,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalGapsDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalGaps,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalInsertionsAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalInsertions,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalInsertionsDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalInsertions,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalFrameShiftsAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalFrameShifts,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalFrameShiftsDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalFrameShifts,
+      direction: SortDirection.desc,
+    }),
+  )
+  const sortByTotalStopCodonsAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalStopCodons,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByTotalStopCodonsDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalStopCodons,
+      direction: SortDirection.desc,
+    }),
+  )
 
   const dynamicCladeColumns = useMemo(() => {
     return (
       cladeNodeAttrDescs
         ?.filter((attr) => !attr.hideInWeb)
-        .map(({ name: attrKey, displayName, description }) => {
-          const sortAsc = sortByCustomNodeAttributes(attrKey, SortDirection.asc)
-          const sortDesc = sortByCustomNodeAttributes(attrKey, SortDirection.desc)
-          return (
-            <TableHeaderCell key={attrKey} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
-              <TableHeaderCellContent>
-                <TableCellText>{displayName}</TableCellText>
-                <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-              </TableHeaderCellContent>
-              <ButtonHelpStyled identifier={`btn-help-col-clade-${attrKey}`} tooltipWidth="600px">
-                <h5>{`Column: ${displayName}`}</h5>
-                <p>{description}</p>
-              </ButtonHelpStyled>
-            </TableHeaderCell>
-          )
-        }) ?? []
+        .map(({ name: attrKey, displayName, description }) => (
+          <DynamicCladeColumn
+            key={attrKey}
+            attrKey={attrKey}
+            displayName={displayName}
+            description={description}
+            dynamicCladeColumnWidthPx={dynamicCladeColumnWidthPx}
+          />
+        )) ?? []
     )
-  }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx, sortByCustomNodeAttributes])
+  }, [cladeNodeAttrDescs, dynamicCladeColumnWidthPx])
 
   const dynamicPhenotypeColumns = useMemo(() => {
     return (
-      phenotypeAttrDescs?.map(({ name, nameFriendly, description }) => {
-        const sortAsc = sortByPhenotypeValues(name, SortDirection.asc)
-        const sortDesc = sortByPhenotypeValues(name, SortDirection.desc)
-        return (
-          <TableHeaderCell key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>
-            <TableHeaderCellContent>
-              <TableCellText>{nameFriendly}</TableCellText>
-              <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-            </TableHeaderCellContent>
-            <ButtonHelpStyled identifier={`btn-help-col-phenotype-${name}`} tooltipWidth="600px">
-              <h5>{`Column: ${nameFriendly}`}</h5>
-              <FormattedText text={description} />
-            </ButtonHelpStyled>
-          </TableHeaderCell>
-        )
-      }) ?? []
+      phenotypeAttrDescs?.map(({ name, nameFriendly, description }) => (
+        <DynamicPhenotypeColumn
+          key={name}
+          name={name}
+          nameFriendly={nameFriendly}
+          description={description}
+          dynamicPhenotypeColumnWidthPx={dynamicPhenotypeColumnWidthPx}
+        />
+      )) ?? []
     )
-  }, [phenotypeAttrDescs, sortByPhenotypeValues, dynamicPhenotypeColumnWidthPx])
+  }, [phenotypeAttrDescs, dynamicPhenotypeColumnWidthPx])
 
   const dynamicAaMotifsColumns = useMemo(() => {
     return (
-      aaMotifsDescs?.map(({ name, nameFriendly, nameShort, description }) => {
-        const sortAsc = sortByMotifs(name, SortDirection.asc)
-        const sortDesc = sortByMotifs(name, SortDirection.desc)
-        return (
-          <TableHeaderCell key={name} basis={dynamicAaMotifsColumnWidthPx} grow={0} shrink={0}>
-            <TableHeaderCellContent>
-              <TableCellText>{nameShort}</TableCellText>
-              <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-            </TableHeaderCellContent>
-            <ButtonHelpStyled identifier={`btn-help-col-aa-motifs-${name}`} tooltipWidth="600px">
-              <h5>{`Column: ${nameFriendly}`}</h5>
-              <FormattedText text={description} />
-            </ButtonHelpStyled>
-          </TableHeaderCell>
-        )
-      }) ?? []
+      aaMotifsDescs?.map(({ name, nameFriendly, nameShort, description }) => (
+        <DynamicAaMotifsColumn
+          key={name}
+          name={name}
+          nameFriendly={nameFriendly}
+          nameShort={nameShort}
+          description={description}
+          dynamicAaMotifsColumnWidthPx={dynamicAaMotifsColumnWidthPx}
+        />
+      )) ?? []
     )
-  }, [aaMotifsDescs, sortByMotifs, dynamicAaMotifsColumnWidthPx])
+  }, [aaMotifsDescs, dynamicAaMotifsColumnWidthPx])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>

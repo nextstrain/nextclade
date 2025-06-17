@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import { isEmpty, isNil } from 'lodash'
 import styled from 'styled-components'
 
@@ -22,13 +22,13 @@ export interface ColumnNameProps {
 
 export function ColumnName({ index, seqName }: ColumnNameProps) {
   const { t } = useTranslationSafe()
-  const { result, error } = useRecoilValue(analysisResultAtom(index))
+  const { result, error } = useAtomValue(analysisResultAtom(index))
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const id = useMemo(() => getSafeId('sequence-label', { index }), [index])
 
-  const duplicateIndices = useRecoilValue(seqNameDuplicatesAtom(seqName))
+  const duplicateIndices = useAtomValue(seqNameDuplicatesAtom(seqName))
   const duplicateIcon = useMemo(() => {
     const hasDuplicates = duplicateIndices.length > 1
     if (hasDuplicates) {

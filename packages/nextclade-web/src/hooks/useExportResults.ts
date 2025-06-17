@@ -1,8 +1,19 @@
 import { isEmpty, isNil } from 'lodash'
-import { useState } from 'react'
-import { Snapshot, useRecoilCallback, useRecoilValue } from 'recoil'
+import { useState, useCallback } from 'react'
+import { useAtomValue } from 'jotai'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { datasetNameToSeqIndicesAtom, seqIndicesWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
-import type { AnalysisError, AnalysisOutput } from 'src/types'
+import type {
+  AnalysisError,
+  AnalysisOutput,
+  AnalysisResult,
+  NextcladeResult,
+  AaMotifsDesc,
+  AuspiceRefNodesDesc,
+  CsvColumnConfig,
+  PhenotypeAttrDesc,
+} from 'src/types'
+import type { CladeNodeAttrDesc } from 'auspice'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { saveBase64File, saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
@@ -57,36 +68,37 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameUnknownTsv: 'nextclade.unclassified.tsv',
 }
 
-function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worker: ExportWorker) => Promise<void>) {
+type ExportFunction = (filename: string, worker: ExportWorker) => Promise<void>
+
+function useResultsExport(exportFn: ExportFunction) {
   const [isRunning, setIsRunning] = useState(false)
   const [isDone, setIsDone] = useState(false)
-  const fn = useRecoilCallback(
-    ({ set, snapshot }) => {
-      const snapshotRelease = snapshot.retain()
-      return (filename: string) => {
-        setIsRunning(true)
-        void ExportWorker.get()
-          .then(async (worker) => {
-            const result = await exportFn(filename, snapshot, worker)
-            setIsDone(true)
-            return result
-          })
-          .catch((error) => {
-            set(globalErrorAtom, error)
-          })
-          .finally(() => {
-            snapshotRelease()
-            setIsRunning(false)
-          })
-      }
+  const setGlobalError = useSetRecoilState(globalErrorAtom)
+
+  const fn = useCallback(
+    (filename: string) => {
+      setIsRunning(true)
+      setIsDone(false)
+
+      ExportWorker.get()
+        .then(async (worker) => {
+          await exportFn(filename, worker)
+          setIsDone(true)
+        })
+        .catch((error) => {
+          setGlobalError(error)
+        })
+        .finally(() => {
+          setIsRunning(false)
+        })
     },
-    [exportFn, setIsRunning],
+    [exportFn, setGlobalError]
   )
+
   return { isRunning, isDone, fn }
 }
 
-async function mapAllGoodResults<T>(snapshot: Snapshot, mapFn: (result: AnalysisOutput) => T) {
-  const results = await snapshot.getPromise(analysisResultsAtom)
+function mapAllGoodResults<T>(results: NextcladeResult[], mapFn: (result: AnalysisOutput) => T): T[] {
   return results
     .filter((result) => notUndefinedOrNull(result.result))
     .map((result) => {
@@ -97,9 +109,7 @@ async function mapAllGoodResults<T>(snapshot: Snapshot, mapFn: (result: Analysis
     })
 }
 
-async function mapAllErrors<T>(snapshot: Snapshot, mapFn: (result: AnalysisError) => T) {
-  const results = await snapshot.getPromise(analysisResultsAtom)
-
+function mapAllErrors<T>(results: NextcladeResult[], mapFn: (result: AnalysisError) => T): T[] {
   return results
     .filter((result) => notUndefinedOrNull(result.error))
     .map(({ error, seqName, index }) => {
@@ -110,12 +120,12 @@ async function mapAllErrors<T>(snapshot: Snapshot, mapFn: (result: AnalysisError
     })
 }
 
-async function mapGoodResults<T>(snapshot: Snapshot, datasetName: string, mapFn: (result: AnalysisOutput) => T) {
-  const results = (await snapshot.getPromise(analysisResultsAtom)).filter(
-    (result) => result.result?.analysisResult.datasetName === datasetName,
+function mapGoodResults<T>(results: NextcladeResult[], datasetName: string, mapFn: (result: AnalysisOutput) => T): T[] {
+  const filteredResults = results.filter(
+    (result) => result.result?.analysisResult.datasetName === datasetName
   )
 
-  return results
+  return filteredResults
     .filter((result) => notUndefinedOrNull(result.result))
     .map((result) => {
       if (!result.result) {
@@ -125,12 +135,12 @@ async function mapGoodResults<T>(snapshot: Snapshot, datasetName: string, mapFn:
     })
 }
 
-async function mapErrors<T>(snapshot: Snapshot, datasetName: string, mapFn: (result: AnalysisError) => T) {
-  const results = (await snapshot.getPromise(analysisResultsAtom)).filter(
-    (result) => result.result?.analysisResult.datasetName === datasetName,
+function mapErrors<T>(results: NextcladeResult[], datasetName: string, mapFn: (result: AnalysisError) => T): T[] {
+  const filteredResults = results.filter(
+    (result) => result.result?.analysisResult.datasetName === datasetName
   )
 
-  return results
+  return filteredResults
     .filter((result) => notUndefinedOrNull(result.error))
     .map(({ error, seqName, index }) => {
       if (!error) {
@@ -140,34 +150,17 @@ async function mapErrors<T>(snapshot: Snapshot, datasetName: string, mapFn: (res
     })
 }
 
-async function prepareOutputFasta(snapshot: Snapshot, datasetName: string) {
-  let fastaStr = (
-    await mapGoodResults(snapshot, datasetName, (result) => `>${result.analysisResult.seqName}\n${result.query}`)
-  ).join('\n')
-  fastaStr += '\n'
-  return fastaStr
-}
-
-export function useExportFasta({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot) => {
-    const fastaStr = await prepareOutputFasta(snapshot, datasetName)
-    saveFile(fastaStr, filename, 'application/x-fasta;charset=utf-8')
-  })
-}
-
-async function prepareResultsCsv(snapshot: Snapshot, datasetName: string, worker: ExportWorker, delimiter: string) {
-  const results = await mapGoodResults(snapshot, datasetName, (result) => result.analysisResult)
-  const errors = await mapErrors(snapshot, datasetName, (err) => err)
-
-  const cladeNodeAttrDescs = await snapshot.getPromise(cladeNodeAttrDescsAtom({ datasetName }))
-  const phenotypeAttrDescs = await snapshot.getPromise(phenotypeAttrDescsAtom({ datasetName }))
-  const refNodes = await snapshot.getPromise(refNodesAtom({ datasetName }))
-  const aaMotifsDescs = await snapshot.getPromise(aaMotifsDescsAtom({ datasetName }))
-  const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
-  if (!csvColumnConfig) {
-    throw new ErrorInternal('CSV column config is not initialized, but it should be')
-  }
-
+async function prepareCsvData(
+  results: AnalysisResult[],
+  errors: AnalysisError[],
+  cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
+  phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
+  refNodes: AuspiceRefNodesDesc | undefined,
+  aaMotifsDescs: AaMotifsDesc[] | undefined,
+  csvColumnConfig: CsvColumnConfig,
+  delimiter: string,
+  worker: ExportWorker
+): Promise<string> {
   return worker.serializeResultsCsv(
     results,
     errors,
@@ -176,245 +169,418 @@ async function prepareResultsCsv(snapshot: Snapshot, datasetName: string, worker
     refNodes ?? {},
     aaMotifsDescs ?? [],
     delimiter,
-    csvColumnConfig,
+    csvColumnConfig
   )
 }
 
-export function useExportCsv({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareResultsCsv(snapshot, datasetName, worker, ';')
-    saveFile(csvStr, filename, 'text/csv;charset=utf-8')
-  })
-}
-
-export function useExportTsv({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const tsvStr = await prepareResultsCsv(snapshot, datasetName, worker, '\t')
-    saveFile(tsvStr, filename, 'text/tab-separated-values;charset=utf-8')
-  })
-}
-
-async function prepareResultsExcel(snapshot: Snapshot, worker: ExportWorker) {
-  const results = await mapAllGoodResults(snapshot, (result) => result.analysisResult)
-  const errors = await mapAllErrors(snapshot, (err) => err)
-
-  const allInitialData = await snapshot.getPromise(allInitialDataAtom)
-  const csvColumnConfig = await snapshot.getPromise(csvColumnConfigAtom)
-  const datasetNameToSeqIndices = await snapshot.getPromise(datasetNameToSeqIndicesAtom)
-  const seqIndicesWithoutDatasetSuggestions = await snapshot.getPromise(seqIndicesWithoutDatasetSuggestionsAtom)
-  if (!csvColumnConfig) {
-    throw new ErrorInternal('CSV column config is not initialized, but it should be')
-  }
-
-  return worker.serializeResultsExcel(
+async function prepareJsonData(
+  results: AnalysisResult[],
+  errors: AnalysisError[],
+  cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
+  phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
+  refNodes: AuspiceRefNodesDesc | undefined,
+  worker: ExportWorker
+): Promise<string> {
+  return worker.serializeResultsJson(
     results,
     errors,
-    allInitialData,
-    csvColumnConfig,
-    datasetNameToSeqIndices,
-    seqIndicesWithoutDatasetSuggestions,
+    cladeNodeAttrDescs ?? [],
+    phenotypeAttrDescs ?? [],
+    refNodes ?? {},
+    PACKAGE_VERSION
   )
 }
 
-export function useExportExcel() {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareResultsExcel(snapshot, worker)
-    saveBase64File(csvStr, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-  })
+function prepareFastaData(analysisResults: NextcladeResult[], datasetName: string): string {
+  const fastaEntries = mapGoodResults(
+    analysisResults,
+    datasetName,
+    (result) => `>${result.analysisResult.seqName}\n${result.query}`
+  )
+  return `${fastaEntries.join('\n')}\n`
 }
 
-async function prepareResultsJson(snapshot: Snapshot, datasetName: string, worker: ExportWorker) {
-  const results = await mapGoodResults(snapshot, datasetName, (result) => result.analysisResult)
-  const errors = await mapErrors(snapshot, datasetName, (err) => err)
-
-  const cladeNodeAttrDescs = (await snapshot.getPromise(cladeNodeAttrDescsAtom({ datasetName }))) ?? []
-  const phenotypeAttrDescs = (await snapshot.getPromise(phenotypeAttrDescsAtom({ datasetName }))) ?? []
-  const refNodes = (await snapshot.getPromise(refNodesAtom({ datasetName }))) ?? {}
-
-  return worker.serializeResultsJson(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, PACKAGE_VERSION)
-}
-
-export function useExportJson({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const jsonStr = await prepareResultsJson(snapshot, datasetName, worker)
-    saveFile(jsonStr, filename, 'application/json;charset=utf-8')
-  })
-}
-
-async function prepareResultsNdjson(snapshot: Snapshot, datasetName: string, worker: ExportWorker) {
-  const results = await mapGoodResults(snapshot, datasetName, (result) => result.analysisResult)
-  const errors = await mapErrors(snapshot, datasetName, (err) => err)
-  return worker.serializeResultsNdjson(results, errors)
-}
-
-export function useExportNdjson({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const ndjsonStr = await prepareResultsNdjson(snapshot, datasetName, worker)
-    saveFile(ndjsonStr, filename, 'application/x-ndjson;charset=utf-8')
-  })
-}
-
-async function prepareOutputTree(snapshot: Snapshot, datasetName: string) {
-  const tree = await snapshot.getPromise(treeAtom(datasetName))
-  if (!tree) {
-    return undefined
-  }
-  return JSON.stringify(tree, null, 2)
-}
-
-export function useExportTree({ datasetName }: { datasetName: string }) {
-  const tree = useRecoilValue(treeAtom(datasetName))
-  const res = useResultsExport(async (filename, snapshot) => {
-    const jsonStr = await prepareOutputTree(snapshot, datasetName)
-    if (isNil(jsonStr)) {
-      return
-    }
-    saveFile(jsonStr, filename, 'application/json;charset=utf-8')
-  })
-  if (isNil(tree)) {
-    return undefined
-  }
-  return res
-}
-
-export async function prepareOutputTreeNwk(snapshot: Snapshot, datasetName: string) {
-  return snapshot.getPromise(treeNwkAtom({ datasetName }))
-}
-
-export function useExportTreeNwk({ datasetName }: { datasetName: string }) {
-  const tree = useRecoilValue(treeNwkAtom({ datasetName }))
-
-  const res = useResultsExport(async (filename, snapshot, _) => {
-    const nwk = await prepareOutputTreeNwk(snapshot, datasetName)
-    if (isNil(nwk)) {
-      return
-    }
-    saveFile(nwk, filename, 'text/x-nh;charset=utf-8')
-  })
-
-  if (isNil(tree)) {
-    return undefined
-  }
-  return res
-}
-
-async function preparePeptideFiles(snapshot: Snapshot, datasetName: string) {
-  const peptides = await mapGoodResults(snapshot, datasetName, ({ translation, analysisResult: { seqName } }) => ({
+function preparePeptideFiles(analysisResults: NextcladeResult[], datasetName: string): ZipFileDescription[] {
+  const peptides = mapGoodResults(analysisResults, datasetName, ({ translation, analysisResult: { seqName } }) => ({
     seqName,
     translation,
   }))
 
-  const filesMap = new Map<string, ZipFileDescription>()
-
+  const peptideFilesMap = new Map<string, ZipFileDescription>()
   for (const { seqName, translation } of peptides) {
     for (const [_, { cdses }] of Object.entries(translation.genes)) {
       for (const [_, { name, seq }] of Object.entries(cdses)) {
-        const file = filesMap.get(name)
+        const file = peptideFilesMap.get(name)
         const fastaEntry = `>${seqName}\n${seq}\n`
         if (file) {
           file.data = `${file.data}${fastaEntry}`
         } else {
-          let filename = DEFAULT_EXPORT_PARAMS.filenamePeptidesTemplate
-          filename = filename.replace('{{cds}}', name)
-          filesMap.set(name, { filename, data: fastaEntry })
+          let peptidesFilename = DEFAULT_EXPORT_PARAMS.filenamePeptidesTemplate
+          peptidesFilename = peptidesFilename.replace('{{cds}}', name)
+          peptideFilesMap.set(name, { filename: peptidesFilename, data: fastaEntry })
         }
       }
     }
   }
+  return Array.from(peptideFilesMap.values())
+}
 
-  return Array.from(filesMap.values())
+export const useExportFasta = createSimpleExportHook(
+  prepareFastaData,
+  'application/x-fasta;charset=utf-8'
+)
+
+export const useExportCsv = createCsvExportHook(';', 'text/csv;charset=utf-8')
+
+export const useExportTsv = createCsvExportHook('\t', 'text/tab-separated-values;charset=utf-8')
+
+export function useExportExcel() {
+  const analysisResults = useAtomValue(analysisResultsAtom)
+  const allInitialData = useRecoilValue(allInitialDataAtom)
+  const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
+  const datasetNameToSeqIndices = useRecoilValue(datasetNameToSeqIndicesAtom)
+  const seqIndicesWithoutDatasetSuggestions = useRecoilValue(seqIndicesWithoutDatasetSuggestionsAtom)
+
+  const exportFn = useCallback(
+    async (filename: string, worker: ExportWorker) => {
+      const results = mapAllGoodResults(analysisResults, (result) => result.analysisResult)
+      const errors = mapAllErrors(analysisResults, (err) => err)
+
+      if (!csvColumnConfig) {
+        throw new ErrorInternal('CSV column config is not initialized, but it should be')
+      }
+
+      const excelData = await worker.serializeResultsExcel(
+        results,
+        errors,
+        allInitialData,
+        csvColumnConfig,
+        datasetNameToSeqIndices,
+        seqIndicesWithoutDatasetSuggestions
+      )
+      saveBase64File(excelData, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    },
+    [analysisResults, allInitialData, csvColumnConfig, datasetNameToSeqIndices, seqIndicesWithoutDatasetSuggestions]
+  )
+
+  return useResultsExport(exportFn)
+}
+
+export function useExportJson({ datasetName }: { datasetName: string }) {
+  const analysisResults = useAtomValue(analysisResultsAtom)
+  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
+  const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
+  const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
+
+  const exportFn = useCallback(
+    async (filename: string, worker: ExportWorker) => {
+      const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
+      const errors = mapErrors(analysisResults, datasetName, (err) => err)
+
+      const jsonStr = await prepareJsonData(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, worker)
+      saveFile(jsonStr, filename, 'application/json;charset=utf-8')
+    },
+    [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes]
+  )
+
+  return useResultsExport(exportFn)
+}
+
+export const useExportNdjson = createResultErrorExportHook(
+  (worker, results, errors) => worker.serializeResultsNdjson(results, errors),
+  'application/x-ndjson;charset=utf-8'
+)
+
+export function useExportTree({ datasetName }: { datasetName: string }) {
+  const tree = useRecoilValue(treeAtom(datasetName))
+
+  const exportFn = useCallback(
+    async (filename: string) => {
+      if (!tree) {
+        return
+      }
+      const jsonStr = JSON.stringify(tree, null, 2)
+      saveFile(jsonStr, filename, 'application/json;charset=utf-8')
+    },
+    [tree]
+  )
+
+  if (isNil(tree)) {
+    return undefined
+  }
+
+  return useResultsExport(exportFn)
+}
+
+export function useExportTreeNwk({ datasetName }: { datasetName: string }) {
+  const treeNwk = useRecoilValue(treeNwkAtom({ datasetName }))
+
+  const exportFn = useCallback(
+    async (filename: string) => {
+      if (isNil(treeNwk)) {
+        return
+      }
+      saveFile(treeNwk, filename, 'text/x-nh;charset=utf-8')
+    },
+    [treeNwk]
+  )
+
+  if (isNil(treeNwk)) {
+    return undefined
+  }
+
+  return useResultsExport(exportFn)
 }
 
 export function useExportPeptides({ datasetName }: { datasetName: string }) {
+  const analysisResults = useAtomValue(analysisResultsAtom)
   const cdses = useRecoilValue(cdsesAtom({ datasetName }))
 
-  const res = useResultsExport(async (filename, snapshot) => {
-    const files = await preparePeptideFiles(snapshot, datasetName)
-    await saveZip({ files, filename })
-  })
+  const exportFn = useCallback(
+    async (filename: string) => {
+      const peptides = preparePeptideFiles(analysisResults, datasetName)
+
+      const files = Array.from(peptides)
+      await saveZip({ files, filename })
+    },
+    [analysisResults, datasetName]
+  )
 
   if (isEmpty(cdses)) {
     return undefined
   }
 
-  return res
+  return useResultsExport(exportFn)
 }
 
-async function prepareResultsGff(snapshot: Snapshot, datasetName: string, worker: ExportWorker) {
-  const results = await mapGoodResults(snapshot, datasetName, (result) => result.analysisResult)
-  return worker.serializeResultsGff(results)
-}
+export const useExportGff = createSimpleResultExportHook(
+  (worker, results) => worker.serializeResultsGff(results),
+  'text/x-gff3;charset=utf-8'
+)
 
-export function useExportGff({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareResultsGff(snapshot, datasetName, worker)
-    saveFile(csvStr, filename, 'text/x-gff3;charset=utf-8')
-  })
-}
+export const useExportTbl = createSimpleResultExportHook(
+  (worker, results) => worker.serializeResultsTbl(results),
+  'text/x-tbl;charset=utf-8'
+)
 
-async function prepareResultsTbl(snapshot: Snapshot, datasetName: string, worker: ExportWorker) {
-  const results = await mapGoodResults(snapshot, datasetName, (result) => result.analysisResult)
-  return worker.serializeResultsTbl(results)
-}
+async function prepareAllExportData(
+  analysisResults: NextcladeResult[],
+  datasetName: string,
+  cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
+  phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
+  refNodes: AuspiceRefNodesDesc | undefined,
+  aaMotifsDescs: AaMotifsDesc[] | undefined,
+  csvColumnConfig: CsvColumnConfig | undefined,
+  worker: ExportWorker
+) {
+  const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
+  const errors = mapErrors(analysisResults, datasetName, (err) => err)
 
-export function useExportTbl({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareResultsTbl(snapshot, datasetName, worker)
-    saveFile(csvStr, filename, 'text/x-tbl;charset=utf-8')
-  })
+  if (!csvColumnConfig) {
+    throw new ErrorInternal('CSV column config is not initialized, but it should be')
+  }
+
+  const [csvStr, tsvStr, jsonStr, ndjsonStr, gffStr, tblStr] = await Promise.all([
+    prepareCsvData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, aaMotifsDescs ?? [], csvColumnConfig, ';', worker),
+    prepareCsvData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, aaMotifsDescs ?? [], csvColumnConfig, '\t', worker),
+    prepareJsonData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, worker),
+    worker.serializeResultsNdjson(results, errors),
+    worker.serializeResultsGff(results),
+    worker.serializeResultsTbl(results),
+  ])
+
+  const fastaStr = prepareFastaData(analysisResults, datasetName)
+  const peptides = preparePeptideFiles(analysisResults, datasetName)
+
+  return {
+    csvStr,
+    tsvStr,
+    jsonStr,
+    ndjsonStr,
+    fastaStr,
+    peptides,
+    gffStr,
+    tblStr,
+  }
 }
 
 export function useExportZip({ datasetName }: { datasetName: string }) {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const csvStr = await prepareResultsCsv(snapshot, datasetName, worker, ';')
-    const tsvStr = await prepareResultsCsv(snapshot, datasetName, worker, '\t')
-    const jsonStr = await prepareResultsJson(snapshot, datasetName, worker)
-    const ndjsonStr = await prepareResultsNdjson(snapshot, datasetName, worker)
-    const treeJsonStr = await prepareOutputTree(snapshot, datasetName)
-    const treeNwkStr = await prepareOutputTreeNwk(snapshot, datasetName)
-    const fastaStr = await prepareOutputFasta(snapshot, datasetName)
-    const peptideFiles = await preparePeptideFiles(snapshot, datasetName)
-    const gffStr = await prepareResultsGff(snapshot, datasetName, worker)
-    const tblStr = await prepareResultsTbl(snapshot, datasetName, worker)
+  const analysisResults = useAtomValue(analysisResultsAtom)
+  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
+  const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
+  const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
+  const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
+  const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
+  const tree = useRecoilValue(treeAtom(datasetName))
+  const treeNwk = useRecoilValue(treeNwkAtom({ datasetName }))
 
-    const files: ZipFileDescription[] = [
-      ...peptideFiles,
-      { filename: DEFAULT_EXPORT_PARAMS.filenameCsv, data: csvStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameTsv, data: tsvStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameJson, data: jsonStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameNdjson, data: ndjsonStr },
-      { filename: DEFAULT_EXPORT_PARAMS.filenameFasta, data: fastaStr },
+  const exportFn = useCallback(
+    async (filename: string, worker: ExportWorker) => {
+      const exportData = await prepareAllExportData(
+        analysisResults,
+        datasetName,
+        cladeNodeAttrDescs,
+        phenotypeAttrDescs,
+        refNodes,
+        aaMotifsDescs,
+        csvColumnConfig,
+        worker
+      )
+
+      const files: ZipFileDescription[] = [
+        ...exportData.peptides,
+        { filename: DEFAULT_EXPORT_PARAMS.filenameCsv, data: exportData.csvStr },
+        { filename: DEFAULT_EXPORT_PARAMS.filenameTsv, data: exportData.tsvStr },
+        { filename: DEFAULT_EXPORT_PARAMS.filenameJson, data: exportData.jsonStr },
+        { filename: DEFAULT_EXPORT_PARAMS.filenameNdjson, data: exportData.ndjsonStr },
+        { filename: DEFAULT_EXPORT_PARAMS.filenameFasta, data: exportData.fastaStr },
+      ]
+
+      if (tree) {
+        const treeJsonStr = JSON.stringify(tree, null, 2)
+        files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeJsonStr })
+      }
+
+      if (treeNwk) {
+        files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTreeNwk, data: treeNwk })
+      }
+
+      if (exportData.gffStr) {
+        files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameGff, data: exportData.gffStr })
+      }
+
+      if (exportData.tblStr) {
+        files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTbl, data: exportData.tblStr })
+      }
+
+      await saveZip({ filename, files })
+    },
+    [
+      analysisResults,
+      datasetName,
+      cladeNodeAttrDescs,
+      phenotypeAttrDescs,
+      refNodes,
+      aaMotifsDescs,
+      csvColumnConfig,
+      tree,
+      treeNwk,
     ]
+  )
 
-    if (treeJsonStr) {
-      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTree, data: treeJsonStr })
-    }
-
-    if (treeNwkStr) {
-      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTreeNwk, data: treeNwkStr })
-    }
-
-    if (gffStr) {
-      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameGff, data: gffStr })
-    }
-
-    if (tblStr) {
-      files.push({ filename: DEFAULT_EXPORT_PARAMS.filenameTbl, data: tblStr })
-    }
-
-    await saveZip({ filename, files })
-  })
-}
-
-async function prepareUnknownCsv(snapshot: Snapshot, worker: ExportWorker, delimiter: string) {
-  const errors = await mapAllErrors(snapshot, (err) => err)
-  const seqIndicesWithoutDatasetSuggestions = await snapshot.getPromise(seqIndicesWithoutDatasetSuggestionsAtom)
-  return worker.serializeUnknownCsv(errors, seqIndicesWithoutDatasetSuggestions, delimiter)
+  return useResultsExport(exportFn)
 }
 
 export function useExportUnknownSeqTsv() {
-  return useResultsExport(async (filename, snapshot, worker) => {
-    const tsvStr = await prepareUnknownCsv(snapshot, worker, '\t')
-    saveFile(tsvStr, filename, 'text/tab-separated-values;charset=utf-8')
-  })
+  const analysisResults = useAtomValue(analysisResultsAtom)
+  const seqIndicesWithoutDatasetSuggestions = useRecoilValue(seqIndicesWithoutDatasetSuggestionsAtom)
+
+  const exportFn = useCallback(
+    async (filename: string, worker: ExportWorker) => {
+      const errors = mapAllErrors(analysisResults, (err) => err)
+      const tsvStr = await worker.serializeUnknownCsv(errors, seqIndicesWithoutDatasetSuggestions, '\t')
+      saveFile(tsvStr, filename, 'text/tab-separated-values;charset=utf-8')
+    },
+    [analysisResults, seqIndicesWithoutDatasetSuggestions]
+  )
+
+  return useResultsExport(exportFn)
+}
+
+function createCsvExportHook(delimiter: string, mimeType: string) {
+  return function csvExportHook({ datasetName }: { datasetName: string }) {
+    const analysisResults = useAtomValue(analysisResultsAtom)
+    const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
+    const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
+    const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
+    const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
+    const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
+
+    const exportFn = useCallback(
+      async (filename: string, worker: ExportWorker) => {
+        const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
+        const errors = mapErrors(analysisResults, datasetName, (err) => err)
+
+        if (!csvColumnConfig) {
+          throw new ErrorInternal('CSV column config is not initialized, but it should be')
+        }
+
+        const csvStr = await prepareCsvData(
+          results,
+          errors,
+          cladeNodeAttrDescs,
+          phenotypeAttrDescs,
+          refNodes,
+          aaMotifsDescs,
+          csvColumnConfig,
+          delimiter,
+          worker
+        )
+        saveFile(csvStr, filename, mimeType)
+      },
+      [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, aaMotifsDescs, csvColumnConfig]
+    )
+
+    return useResultsExport(exportFn)
+  }
+}
+
+function createSimpleResultExportHook(
+  workerMethod: (worker: ExportWorker, results: AnalysisResult[]) => Promise<string>,
+  mimeType: string
+) {
+  return function simpleResultExportHook({ datasetName }: { datasetName: string }) {
+    const analysisResults = useAtomValue(analysisResultsAtom)
+
+    const exportFn = useCallback(
+      async (filename: string, worker: ExportWorker) => {
+        const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
+        const data = await workerMethod(worker, results)
+        saveFile(data, filename, mimeType)
+      },
+      [analysisResults, datasetName]
+    )
+
+    return useResultsExport(exportFn)
+  }
+}
+
+function createResultErrorExportHook(
+  workerMethod: (worker: ExportWorker, results: AnalysisResult[], errors: AnalysisError[]) => Promise<string>,
+  mimeType: string
+) {
+  return function resultErrorExportHook({ datasetName }: { datasetName: string }) {
+    const analysisResults = useAtomValue(analysisResultsAtom)
+
+    const exportFn = useCallback(
+      async (filename: string, worker: ExportWorker) => {
+        const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
+        const errors = mapErrors(analysisResults, datasetName, (err) => err)
+        const data = await workerMethod(worker, results, errors)
+        saveFile(data, filename, mimeType)
+      },
+      [analysisResults, datasetName]
+    )
+
+    return useResultsExport(exportFn)
+  }
+}
+
+function createSimpleExportHook(
+  prepareData: (analysisResults: NextcladeResult[], datasetName: string) => string,
+  mimeType: string
+) {
+  return function simpleExportHook({ datasetName }: { datasetName: string }) {
+    const analysisResults = useAtomValue(analysisResultsAtom)
+
+    const exportFn = useCallback(
+      async (filename: string) => {
+        const data = prepareData(analysisResults, datasetName)
+        saveFile(data, filename, mimeType)
+      },
+      [analysisResults, datasetName]
+    )
+
+    return useResultsExport(exportFn)
+  }
 }
