@@ -6,7 +6,8 @@
  * Do not use this to fix bugs or introduce features. Consider contributing to the upstream project instead.
  *
  */
-import { serial } from 'fasy'
+import { uniq } from 'lodash'
+import { concurrent, serial } from 'fasy'
 import { readFile, readJson, rm, writeFile, writeJson } from 'fs-extra'
 import { globby } from 'globby'
 
@@ -36,6 +37,29 @@ export async function removeJotaiDevtoolsWarnings() {
   }, files)
 }
 
+async function removeConsoleHmrMessages() {
+  const filesToPatch = await globby(
+    [
+      'node_modules/next/dist/**/*.js',
+      'node_modules/webpack-hot-middleware/*.js',
+      'node_modules/webpack/hot/*.js',
+      'node_modules/webpack/lib/hmr/*.js',
+    ],
+    {
+      onlyFiles: true,
+      ignore: ['**/*.map', '**/*.d.ts'],
+    },
+  )
+  await concurrent.forEach(async (file: string) => {
+    await replace(
+      file,
+      /(window\.)?console\.(log|warn|error)\((.*?)(\[HMR\]|\[Fast Refresh\]|Refreshing page data)(.*?)\);/g,
+      '',
+    )
+    // await replace(file, /(\[HMR\]|\[Fast Refresh\]|Refreshing page data)/g, '')
+  }, uniq(filesToPatch))
+}
+
 export async function main() {
   await Promise.all([
     // Removes warning "<title> should not be used in _document.js".
@@ -43,26 +67,6 @@ export async function main() {
     replace(
       'node_modules/next/dist/pages/_document.js',
       `console.warn("Warning: <title> should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-title");`,
-    ),
-
-    // Removes warning about babel codegen skipping optimizations. We only use babel in form of babel-node, to transpile
-    // dev scripts on the fly, so this is not at all worth any attention.
-    // Reason: too noisy
-    serial.forEach(
-      async (file) => {
-        await replace(
-          file,
-          'console.error("[BABEL] Note: The code generator has deoptimised the styling of " + `${opts.filename} as it exceeds the max of ${"500KB"}.`);',
-        )
-        await replace(
-          file,
-          'console.error(\n' +
-            '        "[BABEL] Note: The code generator has deoptimised the styling of " +\n' +
-            '          `${opts.filename} as it exceeds the max of ${"500KB"}.`,\n' +
-            '      );',
-        )
-      },
-      ['node_modules/@babel/generator/lib/index.js', 'node_modules/next/dist/compiled/babel/bundle.js'],
     ),
 
     replace(
@@ -74,47 +78,18 @@ export async function main() {
     // Removes reminder about upgrading caniuse database. Nice, but not that important. Will be handled along with
     // routine package updates.
     // Reason: too noisy
-    serial.forEach(
-      async (file) =>
-        replace(
-          file,
-          `      console.warn(
-        'Browserslist: caniuse-lite is outdated. Please run:\\n' +
-          '  npx browserslist@latest --update-db\\n' +
-          '  Why you should do it regularly: ' +
-          'https://github.com/browserslist/browserslist#browsers-data-updating'
-      )`,
-        ),
-      ['node_modules/browserslist/node.js'],
+    replace(
+      'node_modules/next/dist/compiled/browserslist/index.js',
+      'console.warn("Browserslist: caniuse-lite is outdated. Please run:\\n"+"  npx update-browserslist-db@latest\\n"+"  Why you should do it regularly: "+"https://github.com/browserslist/update-db#readme")',
+      '',
     ),
-
-    serial.forEach(
-      async (file) =>
-        replace(
-          file,
-          `console.warn("Browserslist: caniuse-lite is outdated. Please run:\\n"+"  npx browserslist@latest --update-db\\n"+"  Why you should do it regularly: "+"https://github.com/browserslist/browserslist#browsers-data-updating")`,
-        ),
-      [
-        'node_modules/next/dist/compiled/browserslist/index.js',
-        'node_modules/next/dist/compiled/cssnano-simple/index.js',
-      ],
-    ),
-
-    // // Fast refresh messages in browser console
-    // replace(
-    //   'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
-    //   "console.log('[Fast Refresh] rebuilding');",
-    // )
-    // replace(
-    //   'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
-    //   'console.log(`[Fast Refresh] done in ${latency}ms`);',
-    // )
 
     replace(
       'node_modules/next/dist/server/base-server.js',
       'Log.warn(`You have added a custom /_error page without a custom /404 page. This prevents the 404 page from being auto statically optimized.\\nSee here for info: https://nextjs.org/docs/messages/custom-error-no-custom-404`);',
     ),
 
+    removeConsoleHmrMessages(),
     removeAuspiceTimers(),
     removeJotaiDevtoolsWarnings(),
   ])
@@ -149,11 +124,11 @@ export async function main() {
     'Log.event(`compiled${partialMessage} successfully${timeMessage}${modulesMessage}`);',
   )
 
-  // // From fork-ts-checker-webpack-plugin
-  // await replace(
-  //   'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tapDoneToAsyncGetIssues.js',
-  //   "configuration.logger.issues.log(chalk_1.default.cyan('Issues checking in progress...'));",
-  // )
+  // From fork-ts-checker-webpack-plugin
+  await replace(
+    'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tap-done-to-async-get-issues.js',
+    "config.logger.log(chalk_1.default.cyan('Type-checking in progress...'));",
+  )
 
   // Auspice: Remove requires for '@extensions' modules from `extensions.js`
   // Reason: We don't use extensions and don't want to setup webpack aliases for that.
@@ -161,58 +136,6 @@ export async function main() {
     'node_modules/auspice/src/util/extensions.ts',
     'extensions[key] = require(`@extensions/${extensions[key]}`).default;',
   )
-
-  // await patchThreadsJs()
 }
-
-// async function patchThreadsJs() {
-//   const pkgPath = 'node_modules/threads/package.json'
-//   const pkg = await readJson(pkgPath)
-//   pkg.exports = {
-//     ...pkg.exports,
-//     '.': {
-//       require: './dist/index.js',
-//       import: './dist-esm/index.js',
-//       types: './dist/index.d.ts',
-//     },
-//     './observable': {
-//       require: './observable.js',
-//       import: './dist-esm/observable.mjs',
-//       default: './observable.mjs',
-//       types: './observable.d.ts',
-//     },
-//     './register': {
-//       require: './register.js',
-//       import: './register.mjs',
-//       types: './dist/register.d.ts',
-//     },
-//     './worker': {
-//       require: './dist/worker/index.js',
-//       import: './dist-esm/worker/index.js',
-//       types: './dist/worker/index.d.ts',
-//     },
-//     './master/pool': {
-//       require: './dist/master/pool.js',
-//       import: './dist-esm/master/pool.js',
-//       types: './dist/master/pool.d.ts',
-//     },
-//     './master/pool-types': {
-//       require: './dist/master/pool-types.js',
-//       import: './dist-esm/master/pool-types.js',
-//       types: './dist/master/pool-types.d.ts',
-//     },
-//     './pool': {
-//       require: './dist/master/pool.js',
-//       import: './dist-esm/master/pool.js',
-//       types: './dist/master/pool.d.ts',
-//     },
-//     './pool-types': {
-//       require: './dist/master/pool-types.js',
-//       import: './dist-esm/master/pool-types.js',
-//       types: './dist/master/pool-types.d.ts',
-//     },
-//   }
-//   await writeJson(pkgPath, pkg, { spaces: 2 })
-// }
 
 main().catch(console.error)
