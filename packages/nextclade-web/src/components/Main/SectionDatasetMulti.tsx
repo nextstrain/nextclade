@@ -20,13 +20,13 @@ export function SectionDatasetMulti() {
 
     return (
       <>
-        <Row noGutters className="my-1">
+        <Row className="my-1">
           <Col>
             <DatasetMultiList />
           </Col>
         </Row>
 
-        <Row noGutters className="my-1">
+        <Row className="my-1">
           <Col className="d-flex w-100">
             <ButtonRun className="ml-auto" singleDatasetMode={false} />
           </Col>
@@ -37,7 +37,7 @@ export function SectionDatasetMulti() {
 
   return (
     <Container>
-      <Row noGutters className="mb-1">
+      <Row className="mb-1">
         <Col>
           <SuggestionPanel />
         </Col>

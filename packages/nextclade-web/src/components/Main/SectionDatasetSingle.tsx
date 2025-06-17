@@ -41,7 +41,7 @@ export function SectionDatasetSingle() {
       <>
         {!isNil(datasetCurrent) && <DatasetSingleCurrent dataset={datasetCurrent} />}
 
-        <Row noGutters className="my-1">
+        <Row className="my-1">
           <Col className="d-flex w-100">
             <ButtonChangeDataset className="mr-auto" onClick={toDatasetSelection} />
             <ButtonRun className="ml-auto" singleDatasetMode />
@@ -53,7 +53,7 @@ export function SectionDatasetSingle() {
 
   return (
     <Container>
-      <Row noGutters className="mb-1">
+      <Row className="mb-1">
         <Col>
           <SuggestionPanel />
         </Col>

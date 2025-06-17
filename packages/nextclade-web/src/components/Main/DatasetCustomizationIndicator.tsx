@@ -52,7 +52,7 @@ export function DatasetCustomizationsIndicatorLink() {
   }
 
   return (
-    <Row noGutters className="d-flex">
+    <Row className="d-flex">
       <Col className="d-flex mr-auto mt-2">
         <DatasetCustomizationWrapper>
           <div className="d-flex">

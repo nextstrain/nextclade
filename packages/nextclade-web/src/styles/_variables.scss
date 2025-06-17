@@ -119,3 +119,122 @@ $progress-border-radius: 0;
 
 $close-font-size: 2.125rem;
 $close-font-weight: 300;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Some of the things are borrowed from bootswatch Materia theme
+// https://github.com/thomaspark/bootswatch
+
+/* stylelint-disable primer/no-unused-vars */
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 2000px,
+);
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1950px,
+);
+
+$width-xs: map.get($grid-breakpoints, 'xs');
+$width-sm: map.get($grid-breakpoints, 'sm');
+$width-md: map.get($grid-breakpoints, 'md');
+$width-lg: map.get($grid-breakpoints, 'lg');
+$width-xl: map.get($grid-breakpoints, 'xl');
+$width-xxl: map.get($grid-breakpoints, 'xxl');
+
+$font-family-sans-serif: 'Lato', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial',
+'system-ui', 'system-sans', 'sans-serif';
+$font-family-monospace: 'Roboto Mono', 'system-mono';
+$font-family-default: $font-family-sans-serif;
+$font-family-base: $font-family-default;
+$font-size-base: 1rem;
+
+$line-height-base: 1.25;
+$headings-line-height: 1;
+
+
+// https://github.com/thomaspark/bootswatch/blob/2eab64cad0b9fe2f683f37e273b5624e6762fbb6/dist/materia/_variables.scss
+// Materia 5.3.6
+// Bootswatch
+
+
+$min-contrast-ratio: 2.15 !default;
+
+$enable-gradients: true !default;
+
+
+// Tables
+
+$table-color: initial !default;
+
+// Buttons
+
+$input-btn-padding-y: .8rem !default;
+$input-btn-padding-x: 1rem !default;
+
+// Forms
+
+$input-padding-y: 1rem !default;
+$input-padding-x: 0 !default;
+$input-padding-y-sm: 0 !default;
+$input-padding-x-sm: 0 !default;
+$input-padding-y-lg: ($font-size-base * 1.25) !default;
+$input-padding-x-lg: 0 !default;
+$input-bg: transparent !default;
+$input-disabled-bg: transparent !default;
+$input-color: $gray-600 !default;
+$input-border-color: transparent !default;
+$input-border-width: 0 !default;
+$input-border-radius: 0 !default;
+$input-border-radius-lg: 0 !default;
+$input-border-radius-sm: 0 !default;
+$input-placeholder-color: rgba(0, 0, 0, .4) !default;
+$input-group-addon-bg: transparent !default;
+
+$input-height: calc($line-height-base * 1em + $input-padding-y * 2) !default;
+$input-height-sm: $line-height-base * 1em !default;
+$input-height-lg: calc($line-height-base * 1em + $input-padding-y-lg * 2) !default;
+
+$form-floating-height: 3.5rem !default;
+
+
+
+// Navbar
+
+$navbar-padding-y: 1rem !default;
+$navbar-dark-color: rgba($white, .75) !default;
+$navbar-dark-hover-color: $white !default;
+
+// Cards
+
+$card-border-width: 0 !default;
+$card-border-color: transparent !default;
+
+// Tooltips
+
+$tooltip-bg: $gray-700 !default;
+
+// Modals
+
+$modal-content-border-color: transparent !default;
+
+// Progress bars
+
+$progress-height: .375rem !default;
+$progress-border-radius: 0 !default;
+
+// Close
+
+$btn-close-color: $white !default;
+$btn-close-opacity: .6 !default;
+$btn-close-hover-opacity: 1 !default;

@@ -52,7 +52,7 @@ function PeptideMarkerMutationGroupUnmemoed({
 
   const footerNote = useMemo(
     () => (
-      <Row noGutters>
+      <Row>
         <Col>
           <p className="small">
             {t('Note that for reverse strands Nextclade chooses to display amino acid context')}
@@ -164,13 +164,13 @@ function PeptideMarkerMutationGroupUnmemoed({
 
                 <tr>
                   <td colSpan={2}>
-                    <Row noGutters className="mt-3">
+                    <Row className="mt-3">
                       <Col>
                         <h6>{contextTitle}</h6>
                       </Col>
                     </Row>
 
-                    <Row noGutters>
+                    <Row>
                       <Col>
                         <PeptideContext group={group} />
                       </Col>

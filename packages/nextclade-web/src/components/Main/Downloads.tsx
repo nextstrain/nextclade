@@ -73,15 +73,15 @@ export function Downloads() {
   const { t } = useTranslation()
 
   return (
-    <Row noGutters className="mt-5">
+    <Row className="mt-5">
       <Col>
-        <Row noGutters>
+        <Row>
           <Col>
             <h3 className="text-center mx-2">{t('For more advanced use-cases:')}</h3>
           </Col>
         </Row>
 
-        <Row noGutters>
+        <Row>
           <Col lg={4}>
             <Card>
               <CardHeader>

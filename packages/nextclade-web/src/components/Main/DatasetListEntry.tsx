@@ -13,7 +13,7 @@ export interface DatasetListEntryProps {
 export function DatasetListEntry({ dataset }: DatasetListEntryProps) {
   return (
     <Container>
-      <Row noGutters>
+      <Row>
         <Col>
           <FlexContainer>
             <FlexLeft>

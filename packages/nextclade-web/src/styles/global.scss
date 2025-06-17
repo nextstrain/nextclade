@@ -1,5 +1,3 @@
-@use 'sass:map';
-
 @import '~typeface-lato/index.css';
 @import './font-family-system';
 
@@ -38,7 +36,6 @@ body {
   display: flex;
   min-height: 80px;
   padding: 5px 10px;
-  background-color: $blockquote-bg-color;
 
   > p {
     margin: auto;

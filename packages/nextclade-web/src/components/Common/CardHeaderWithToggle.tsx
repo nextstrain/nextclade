@@ -2,7 +2,7 @@ import React from 'react'
 
 import styled from 'styled-components'
 import type { StrictOmit } from 'ts-essentials'
-import { CustomInputProps, Label as ReactstrapLabel } from 'reactstrap'
+import { InputProps, Label as ReactstrapLabel } from 'reactstrap'
 
 import { Toggle } from 'src/components/Common/Toggle'
 
@@ -16,7 +16,7 @@ export const HeaderSwitch = styled.div`
   flex: 0;
 `
 
-export interface CardHeaderWithToggleProps extends StrictOmit<CustomInputProps, 'type'> {
+export interface CardHeaderWithToggleProps extends StrictOmit<InputProps, 'type'> {
   identifier: string
   text: string
   checked: boolean

@@ -24,7 +24,7 @@ export function Citation() {
 
   return (
     <Container>
-      <Row noGutters>
+      <Row>
         <Col>
           <p className="mb-1">
             {t('If you use results obtained with Nextclade in a publication, please add citation to our paper:')}

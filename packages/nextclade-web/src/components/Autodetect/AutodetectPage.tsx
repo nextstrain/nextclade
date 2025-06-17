@@ -83,7 +83,7 @@ export default {}
 //   return (
 //     <Layout>
 //       <Container>
-//         <Row noGutters>
+//         <Row>
 //           <Col>
 //             <TableWrapper>
 //               <Table>

@@ -105,7 +105,7 @@ export function SuggestionAlertMainPage({ ...restProps }) {
   }
 
   return (
-    <Row noGutters className="my-1">
+    <Row className="my-1">
       <Col>
         <AlertWrapper {...restProps}>{alert}</AlertWrapper>
       </Col>

@@ -78,7 +78,7 @@ export function Footer() {
 
   return (
     <Container>
-      <Row noGutters>
+      <Row>
         <Col className="d-flex">
           <CopyrightText className="mr-auto my-auto">
             {t('{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}', {

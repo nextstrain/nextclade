@@ -62,7 +62,7 @@ export function ExportPage() {
           </Sidebar>
         )}
 
-        <Row noGutters className="d-flex w-100 h-100 overflow-hidden">
+        <Row className="d-flex w-100 h-100 overflow-hidden">
           <Col className="mx-auto h-100 overflow-hidden">
             <MainContent key={viewedDatasetName} />
           </Col>

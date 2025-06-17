@@ -82,7 +82,7 @@ export function UpdateNotification() {
           </div>
         </ToastHeader>
         <ToastBody>
-          <Row noGutters>
+          <Row>
             <Col>
               <p className="my-1 ">{t('A new version of Nextclade Web is available:')}</p>
               <p className="my-1 font-weight-bold">
@@ -103,7 +103,7 @@ export function UpdateNotification() {
             </Col>
           </Row>
 
-          <Row noGutters className="w-100 d-flex">
+          <Row className="w-100 d-flex">
             <Col className="w-100 d-flex">
               <div className="ml-auto">
                 <Button className="mx-1" color="link" onClick={dismiss} title={dismissText}>

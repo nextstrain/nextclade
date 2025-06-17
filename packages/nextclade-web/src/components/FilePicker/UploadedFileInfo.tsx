@@ -122,7 +122,7 @@ export function UploadedFileInfo({ description, error, onRemove }: UploadedFileI
     <Container>
       <InfoWrapper>
         <InfoWrapperInternal>
-          <Row noGutters className="my-auto">
+          <Row className="my-auto">
             <Col>
               <IconsContainer>
                 <FileStatusIcon hasErrors={hasErrors} />
@@ -130,7 +130,7 @@ export function UploadedFileInfo({ description, error, onRemove }: UploadedFileI
             </Col>
           </Row>
 
-          <Row noGutters className="my-auto">
+          <Row className="my-auto">
             <Col>
               <TextContainer>
                 <Description>{description}</Description>
@@ -138,7 +138,7 @@ export function UploadedFileInfo({ description, error, onRemove }: UploadedFileI
             </Col>
           </Row>
 
-          <Row noGutters className="my-auto">
+          <Row className="my-auto">
             <Col>
               <ButtonContainer>
                 <RemoveButton color="secondary" onClick={onRemove}>

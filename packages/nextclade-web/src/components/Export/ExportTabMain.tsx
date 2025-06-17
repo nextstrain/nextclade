@@ -45,7 +45,7 @@ export function ExportTabMain({ setActiveTabId }: { setActiveTabId(id: string): 
 
   const ColumnConfigLink = useMemo(
     () => (
-      <Row noGutters>
+      <Row>
         <Col>
           <ConfigButton color="link" onClick={onClick}>
             {t('Configure columns')}

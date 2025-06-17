@@ -15,14 +15,14 @@ export function DatasetSingleCurrent({ dataset }: { dataset: Dataset }) {
   useUpdatedDataset()
 
   return (
-    <Row noGutters className="my-1">
+    <Row className="my-1">
       <Col>
         <Container>
           <DatasetCurrentUpdateNotification dataset={dataset} />
 
-          <Row noGutters>
+          <Row>
             <Col>
-              <Row noGutters>
+              <Row>
                 <Col>
                   <FlexContainer>
                     <FlexLeft>
@@ -37,7 +37,7 @@ export function DatasetSingleCurrent({ dataset }: { dataset: Dataset }) {
 
               <DatasetCustomizationsIndicatorLink />
 
-              <Row noGutters className="d-flex w-100">
+              <Row className="d-flex w-100">
                 <Col className="d-flex">
                   <div className="d-flex ml-auto">
                     <LinkOpenTree className="ml-1" dataset={dataset} />

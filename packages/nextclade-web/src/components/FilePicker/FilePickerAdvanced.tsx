@@ -34,7 +34,7 @@ export function FilePickerAdvanced() {
   const iconJson = useMemo(() => <FileIconJson size={30} />, [])
 
   return (
-    <Row noGutters>
+    <Row>
       <Col>
         <FilePicker
           className="mb-2"

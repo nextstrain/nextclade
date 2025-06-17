@@ -30,14 +30,14 @@ export function ColumnInsertions({ analysisResult }: ColumnInsertionsProps) {
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {totalInsertions}
       <Tooltip id={id} isOpen={showTooltip} target={id} wide fullWidth>
-        <Row noGutters>
+        <Row>
           <Col>
             <h6>{nucTitle}</h6>
             <ListOfInsertionsNuc insertions={insertions} totalInsertions={totalInsertions} />
           </Col>
         </Row>
 
-        <Row noGutters>
+        <Row>
           <Col>
             <h6>{aaTitle}</h6>
             <ListOfInsertionsAa insertions={aaInsertions} totalInsertions={totalAminoacidInsertions} isAminoacid />

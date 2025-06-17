@@ -142,7 +142,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
     <div id={id} className="w-100 text-center" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {columnValue}
       <Tooltip id={id} isOpen={showTooltip} target={id} wide fullWidth>
-        <Row noGutters>
+        <Row>
           <Col className="mb-0">
             <h5 className="my-0 font-weight-bold">{motifDesc.nameFriendly}</h5>
             <p>

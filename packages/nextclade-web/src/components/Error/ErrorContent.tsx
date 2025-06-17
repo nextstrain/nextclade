@@ -65,9 +65,9 @@ export function ErrorContent(props: { error?: unknown; errorInfo?: ErrorInfo; de
   }
 
   return (
-    <Row noGutters>
+    <Row>
       <Col>
-        <Row noGutters>
+        <Row>
           <Col>
             <ErrorContentMessage error={error} />
           </Col>
@@ -75,13 +75,13 @@ export function ErrorContent(props: { error?: unknown; errorInfo?: ErrorInfo; de
 
         {props.detailed && (
           <>
-            <Row noGutters>
+            <Row>
               <Col>
                 <ErrorContentExplanation error={error} />
               </Col>
             </Row>
 
-            <Row noGutters className="my-4">
+            <Row className="my-4">
               <Col>
                 <Details>
                   <Summary className="d-flex">

@@ -136,9 +136,9 @@ export function UploadedFileInfoCompact({ children, description, error, onRemove
   // NOTE: This currently uses the Tab layout, even there's no tabs (1 invisible tab).
   // This is in order to match the style of the main component's state, with tabs.
   return (
-    <Row noGutters>
+    <Row>
       <Col>
-        <Row noGutters>
+        <Row>
           <Col>
             <Wrapper>
               <Left>{children}</Left>

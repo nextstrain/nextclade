@@ -15,9 +15,9 @@ export interface DatasetInfoProps {
 export function DatasetInfoCompact({ dataset, ...restProps }: DatasetInfoProps) {
   return (
     <Container {...restProps}>
-      <Row noGutters>
+      <Row>
         <Col>
-          <Row noGutters>
+          <Row>
             <Col>
               <FlexContainer>
                 <FlexLeft>
@@ -30,7 +30,7 @@ export function DatasetInfoCompact({ dataset, ...restProps }: DatasetInfoProps) 
             </Col>
           </Row>
 
-          <Row noGutters className="d-flex w-100">
+          <Row className="d-flex w-100">
             <Col className="d-flex">
               <div className="d-flex ml-auto">
                 <LinkOpenTree className="ml-1" dataset={dataset} />

@@ -47,7 +47,7 @@ export function TabPanelPaste({ onConfirm, instructions, inputRef }: TabPanelPas
 
   return (
     <Form>
-      <Row noGutters className="w-100 h-100">
+      <Row className="w-100 h-100">
         <Col className="w-100 h-100 d-flex flex-column">
           <Label className="w-100 h-100 d-flex flex-column flex-1">
             <span className="w-100 flex-grow-0">{instructions}</span>

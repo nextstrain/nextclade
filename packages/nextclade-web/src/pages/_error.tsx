@@ -63,7 +63,7 @@ function ErrorPage({ statusCode, title, error, errorInfo }: ErrorPageProps) {
     }
 
     return (
-      <Row noGutters>
+      <Row>
         <Col>
           <ErrorContent error={error} errorInfo={errorInfo} detailed />
         </Col>
@@ -76,7 +76,7 @@ function ErrorPage({ statusCode, title, error, errorInfo }: ErrorPageProps) {
       <MainContent>
         <MainSectionTitle />
 
-        <Row noGutters>
+        <Row>
           <Col className="text-center text-danger">
             <h2>{titleText}</h2>
           </Col>
@@ -84,7 +84,7 @@ function ErrorPage({ statusCode, title, error, errorInfo }: ErrorPageProps) {
 
         {errorContent}
 
-        <Row noGutters>
+        <Row>
           <Col className="w-100 d-flex">
             <RestartButton />
           </Col>

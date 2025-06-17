@@ -47,7 +47,7 @@ function DatasetSelection() {
 
   return (
     <Wrapper>
-      <Row noGutters className="flex-column flex-lg-row h-100">
+      <Row className="flex-column flex-lg-row h-100">
         <Col lg={6}>
           <Container>
             <MainFixed>

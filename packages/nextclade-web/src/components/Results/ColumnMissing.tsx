@@ -31,13 +31,13 @@ export function ColumnMissing({ analysisResult }: ColumnMissingProps) {
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {totalMissing}
       <Tooltip isOpen={showTooltip} target={id} wide>
-        <Row noGutters>
+        <Row>
           <Col>
             <ListOfMissing missing={missing} totalMissing={totalMissing} />
           </Col>
         </Row>
 
-        <Row noGutters>
+        <Row>
           <Col>
             <AlignmentRangeTable alignmentRange={alignmentRange} />
           </Col>

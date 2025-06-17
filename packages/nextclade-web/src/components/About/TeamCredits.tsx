@@ -90,9 +90,9 @@ export function TeamCredits() {
   )
 
   return (
-    <Row noGutters>
+    <Row>
       <Col>
-        <Row noGutters>
+        <Row>
           <Col className="d-flex text-center">
             <TeamCreditsH1>
               {`${PROJECT_NAME} is a part of `}
@@ -105,11 +105,11 @@ export function TeamCredits() {
           </Col>
         </Row>
 
-        <Row noGutters>
+        <Row>
           <FlexCol>{maintainerComponents}</FlexCol>
         </Row>
 
-        <Row noGutters>
+        <Row>
           <Col>
             <TeamCreditsH1 className="text-center">{'We are thankful to our contributors: '}</TeamCreditsH1>
             <FlexContributors>{contributorComponents}</FlexContributors>

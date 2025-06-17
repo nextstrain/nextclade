@@ -37,7 +37,7 @@ export function DatasetCurrentUpdateNotification({ dataset }: { dataset: Dataset
   }
 
   return (
-    <Row noGutters>
+    <Row>
       <Col>
         <UncontrolledAlert closeClassName="d-none" fade={false} color="info" className="mx-1 py-2 px-2 d-flex w-100">
           <AlertTextWrapper>

@@ -128,7 +128,7 @@ export function CitationButton() {
 
         <ModalFooter>
           <Container fluid>
-            <Row noGutters className="my-2">
+            <Row className="my-2">
               <Col className="d-flex w-100">
                 <ButtonOk className="ml-auto" type="button" color="success" onClick={close} title={closeText}>
                   {t('OK')}
