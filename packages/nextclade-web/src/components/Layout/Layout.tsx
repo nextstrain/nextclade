@@ -51,17 +51,21 @@ export interface LayoutProps extends PropsWithChildren<HTMLProps<HTMLDivElement>
 }
 
 export function Layout({ children, noProviders = false }: LayoutProps) {
+  if (noProviders) {
+    return null
+  }
+
   return (
     <Container>
-      {noProviders ? null : <PreviewWarning />}
-      {noProviders ? null : <BrowserWarning />}
+      <PreviewWarning />
+      <BrowserWarning />
 
       <HeaderWrapper>
         <NavigationBar />
       </HeaderWrapper>
 
       <MainOuter>
-        {noProviders ? null : <UpdateNotification />}
+        <UpdateNotification />
         <MainInner>{children}</MainInner>
       </MainOuter>
 
