@@ -28,6 +28,14 @@ export async function removeAuspiceTimers() {
   }, files)
 }
 
+export async function removeJotaiDevtoolsWarnings() {
+  const files = await globby('node_modules/jotai-devtools/dist/**/*.js')
+
+  await serial.forEach(async (file: string) => {
+    await replace(file, /console\.warn\(.*?\);/gs, '')
+  }, files)
+}
+
 export async function main() {
   await Promise.all([
     // Removes warning "<title> should not be used in _document.js".
@@ -96,11 +104,11 @@ export async function main() {
     // replace(
     //   'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
     //   "console.log('[Fast Refresh] rebuilding');",
-    // ),
+    // )
     // replace(
     //   'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
     //   'console.log(`[Fast Refresh] done in ${latency}ms`);',
-    // ),
+    // )
 
     replace(
       'node_modules/next/dist/server/base-server.js',
@@ -108,6 +116,7 @@ export async function main() {
     ),
 
     removeAuspiceTimers(),
+    removeJotaiDevtoolsWarnings(),
   ])
 
   // More useless messages from Next.js

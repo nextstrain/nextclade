@@ -79,7 +79,10 @@ const nextConfig: NextConfig = {
   experimental: {
     mdxRs: false,
     scrollRestoration: true,
-    swcPlugins: [],
+    swcPlugins: [
+      // ['@swc-jotai/debug-label', { atomNames: ['customAtom'] }],
+      // ['@swc-jotai/react-refresh', { atomNames: ['customAtom'] }],
+    ],
   },
   productionBrowserSourceMaps: true,
   excludeDefaultMomentLocales: true,
@@ -94,7 +97,7 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   poweredByHeader: false,
-  transpilePackages: ['auspice', 'debug', 'semver'],
+  transpilePackages: ['auspice', 'debug', 'jotai-devtools', 'semver'],
   env,
 }
 
