@@ -1,4 +1,4 @@
-## Unreleased
+## 3.15.1
 
 ### Nextclade Web: fix empty results table
 
