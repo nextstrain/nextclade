@@ -1,3 +1,9 @@
+## Unreleased
+
+### Nextclade Web: fix empty results table
+
+Results table could sometimes be empty when starting Nextclade analysis from URL paramteres. This have been fixed.
+
 ## 3.15.0
 
 ### Nextclade Web: fix country colorings in output tree json [#1646](https://github.com/nextstrain/nextclade/pull/1646)
