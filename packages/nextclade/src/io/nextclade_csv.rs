@@ -1,5 +1,5 @@
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
-use crate::io::nextclade_csv_column_config::CsvColumnConfig;
+use crate::io::nextclade_csv_column_config::{CsvColumnConfig, CSV_POSSIBLE_COLUMNS};
 use crate::io::nextclade_csv_row::NextcladeResultsCsvRow;
 use crate::o;
 use crate::tree::tree::{AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
@@ -33,6 +33,8 @@ pub fn prepare_headers(
       .map(String::from)
       .collect_vec()
   };
+
+  headers = sort_headers_by_canonical_order(headers);
 
   if column_config.include_dynamic {
     // Insert dynamic columns after this column index
@@ -103,6 +105,18 @@ pub fn prepare_headers(
   }
 
   headers
+}
+
+fn sort_headers_by_canonical_order(headers: Vec<String>) -> Vec<String> {
+  headers
+    .into_iter()
+    .sorted_by_key(|header| {
+      CSV_POSSIBLE_COLUMNS
+        .iter()
+        .position(|col| col == header)
+        .unwrap_or(usize::MAX)
+    })
+    .collect()
 }
 
 fn clade_founder_cols(name: impl AsRef<str>) -> [String; 5] {
@@ -241,4 +255,73 @@ pub fn results_to_csv_string(
   }
 
   Ok(String::from_utf8(buf)?)
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::io::nextclade_csv_column_config::CsvColumnCategory;
+  use indexmap::indexmap;
+
+  #[test]
+  fn test_prepare_headers_canonical_order() {
+    // Create test configuration with headers in non-canonical order
+    let column_config = CsvColumnConfig {
+      categories: indexmap! {
+        CsvColumnCategory::General => indexmap! {
+          o!("totalSubstitutions") => true,
+          o!("seqName") => true,
+          o!("index") => true,
+          o!("clade") => true,
+        },
+        CsvColumnCategory::Qc => indexmap! {
+          o!("missing") => true,
+          o!("qc.overallScore") => true,
+        },
+      },
+      individual: vec![],
+      include_dynamic: false,
+      include_rel_muts: false,
+      include_clade_founder_muts: false,
+    };
+
+    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &column_config);
+
+    // Verify headers are in canonical order as defined in CSV_COLUMN_CONFIG_MAP_DEFAULT
+    let expected_order = vec![
+      "index",
+      "seqName",
+      "clade",
+      "qc.overallScore",
+      "totalSubstitutions",
+      "missing",
+    ];
+
+    assert_eq!(headers, expected_order);
+  }
+
+  #[test]
+  fn test_sort_headers_by_canonical_order() {
+    let headers = vec![
+      "totalSubstitutions".to_owned(),
+      "seqName".to_owned(),
+      "index".to_owned(),
+      "clade".to_owned(),
+      "missing".to_owned(),
+      "qc.overallScore".to_owned(),
+    ];
+
+    let sorted = sort_headers_by_canonical_order(headers);
+
+    let expected_order = vec![
+      "index",
+      "seqName",
+      "clade",
+      "qc.overallScore",
+      "totalSubstitutions",
+      "missing",
+    ];
+
+    assert_eq!(sorted, expected_order);
+  }
 }
