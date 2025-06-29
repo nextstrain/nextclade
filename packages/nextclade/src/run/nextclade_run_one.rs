@@ -51,9 +51,10 @@ use crate::translate::translate_genes::{translate_genes, Translation};
 use crate::tree::tree_find_ancestors_of_interest::{graph_find_ancestors_of_interest, AncestralSearchResult};
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
+use crate::utils::num::float_collapse_zero;
 use eyre::Report;
 use indexmap::indexmap;
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 use std::collections::{BTreeMap, HashSet};
 
 #[derive(Default)]
@@ -76,6 +77,7 @@ struct NextcladeResultWithAa {
   aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
   aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
   cds_coverage: BTreeMap<String, f64>,
+  phenotype_values: Option<Vec<PhenotypeValue>>,
 }
 
 #[derive(Default)]
@@ -83,7 +85,6 @@ struct NextcladeResultWithGraph {
   clade: Option<String>,
   private_nuc_mutations: PrivateNucMutations,
   private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
-  phenotype_values: Option<Vec<PhenotypeValue>>,
   divergence: f64,
   custom_node_attributes: BTreeMap<String, String>,
   nearest_node_id: GraphNodeKey,
@@ -185,6 +186,7 @@ pub fn nextclade_run_one(
     aa_alignment_ranges,
     aa_unsequenced_ranges,
     cds_coverage,
+    mut phenotype_values,
   } = if !gene_map.is_empty() {
     let translation = translate_genes(
       &alignment.qry_seq,
@@ -270,6 +272,21 @@ pub fn nextclade_run_one(
       })
       .collect::<Result<BTreeMap<String, f64>, Report>>()?;
 
+    let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
+      phenotype_data
+        .iter()
+        .map(|phenotype_data| {
+          let PhenotypeData { name, cds, .. } = phenotype_data;
+          let phenotype = calculate_phenotype(phenotype_data, &aa_substitutions);
+          PhenotypeValue {
+            name: name.clone(),
+            cds: cds.clone(),
+            value: float_collapse_zero(phenotype),
+          }
+        })
+        .collect_vec()
+    });
+
     NextcladeResultWithAa {
       translation,
       aa_changes_groups,
@@ -289,6 +306,7 @@ pub fn nextclade_run_one(
       aa_alignment_ranges,
       aa_unsequenced_ranges,
       cds_coverage,
+      phenotype_values,
     }
   } else {
     NextcladeResultWithAa::default()
@@ -303,7 +321,6 @@ pub fn nextclade_run_one(
     ref_node_search_results,
     relative_nuc_mutations,
     relative_aa_mutations,
-    phenotype_values,
     divergence,
     custom_node_attributes,
     nearest_node_id,
@@ -379,25 +396,14 @@ pub fn nextclade_run_one(
 
     let relative_aa_mutations = find_relative_aa_mutations(&ref_node_search_results, &aa_params)?;
 
-    let phenotype_values = virus_properties.phenotype_data.as_ref().map(|phenotype_data| {
-      phenotype_data
-        .iter()
-        .filter_map(|phenotype_data| {
-          let PhenotypeData { name, cds, ignore, .. } = phenotype_data;
-          if let Some(clade) = &clade {
-            if ignore.clades.contains(clade) {
-              return None;
-            }
-          }
-          let phenotype = calculate_phenotype(phenotype_data, &aa_substitutions);
-          Some(PhenotypeValue {
-            name: name.clone(),
-            cds: cds.clone(),
-            value: phenotype,
-          })
-        })
-        .collect_vec()
-    });
+    if let (Some(values), Some(data), Some(clade)) = (&phenotype_values, &virus_properties.phenotype_data, &clade) {
+      phenotype_values = Some(
+        izip!(values, data)
+          .filter(|(_, data)| !data.ignore.clades.contains(clade))
+          .map(|(ph, _)| ph.clone())
+          .collect_vec(),
+      );
+    }
 
     NextcladeResultWithGraph {
       clade,
@@ -408,7 +414,6 @@ pub fn nextclade_run_one(
       ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
-      phenotype_values,
       divergence,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,

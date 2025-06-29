@@ -53,7 +53,7 @@ impl CsvColumnConfig {
       });
 
     individual.iter().try_for_each(|header| {
-      if !CSV_POSSIBLE_COLUMNS.contains(header) && !CSV_POSSIBLE_CATEGORIES.contains(header) {
+      if !CSV_POSSIBLE_COLUMNS.contains(header) {
         let categories = CSV_POSSIBLE_CATEGORIES.join(", ");
         let individual = CSV_POSSIBLE_COLUMNS.join(", ");
 
