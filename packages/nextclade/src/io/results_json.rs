@@ -18,19 +18,24 @@ pub struct ResultsJson {
 
   pub nextclade_algo_version: String,
 
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub nextclade_web_version: Option<String>,
 
   pub created_at: String,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub phenotype_attr_keys: Vec<PhenotypeAttrDesc>,
 
+  #[serde(default, skip_serializing_if = "AuspiceRefNodesDesc::is_empty")]
   pub ref_nodes: AuspiceRefNodesDesc,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub results: Vec<NextcladeOutputs>,
 
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub errors: Vec<NextcladeErrorOutputs>,
 }
 

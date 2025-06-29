@@ -60,6 +60,7 @@ mod tests {
   use itertools::Itertools;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
+  use serde_json::Value;
 
   fn create_test_genome_annotation(cdses: &[&[(isize, isize, GeneStrand)]]) -> Result<GeneMap, Report> {
     let genes = cdses
@@ -95,6 +96,7 @@ mod tests {
               gff_seqid: None,
               gff_source: None,
               gff_feature_type: None,
+              other: Value::Null,
             }
           })
           .collect_vec();
@@ -109,6 +111,7 @@ mod tests {
           attributes: indexmap! {},
           compat_is_gene: false,
           color: None,
+          other: Value::Null,
         })
       })
       .collect::<Result<Vec<Gene>, Report>>()?;

@@ -5,6 +5,7 @@ use eyre::Report;
 use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -12,8 +13,12 @@ pub struct Protein {
   pub id: String,
   pub name: String,
   pub product: String,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub segments: Vec<ProteinSegment>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub color: Option<String>,
+  #[serde(flatten)]
+  pub other: Value,
 }
 
 impl Protein {
@@ -40,6 +45,7 @@ impl Protein {
           gff_seqid: feature.gff_seqid.clone(),
           gff_source: feature.gff_source.clone(),
           gff_feature_type: feature.gff_feature_type.clone(),
+          other: Value::Null,
         })
       })
       .collect::<Result<Vec<ProteinSegment>, Report>>()?;
@@ -54,6 +60,7 @@ impl Protein {
       product: feature_group.product.clone(),
       segments,
       color: None,
+      other: Value::Null,
     })
   }
 
@@ -68,16 +75,25 @@ pub struct ProteinSegment {
   pub id: String,
   pub name: String,
   pub range: NucRefGlobalRange,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub exceptions: Vec<String>,
+  #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
   pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
   pub compat_is_gene: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub color: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_seqid: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_source: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_feature_type: Option<String>,
+
+  #[serde(flatten)]
+  pub other: Value,
 }
 
 impl ProteinSegment {

@@ -205,7 +205,7 @@ export function CdsSegmentView({
               <td>{frame + 1}</td>
             </tr>
 
-            {cds.exceptions.length > 0 && (
+            {!isEmpty(cds.exceptions) && (
               <tr>
                 <td>{t('Notes')}</td>
                 <td>{cds.exceptions}</td>

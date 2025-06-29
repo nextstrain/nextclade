@@ -123,7 +123,7 @@ export function ColumnNameTooltip({ index }: ColumnNameTooltipProps) {
           </td>
         </tr>
 
-        {pcrPrimerChanges.length > 0 && (
+        {!isNil(pcrPrimerChanges) && !isEmpty(pcrPrimerChanges) && (
           <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
         )}
 

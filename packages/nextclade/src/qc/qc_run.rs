@@ -48,11 +48,17 @@ impl QcStatus {
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResult {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub missing_data: Option<QcResultMissingData>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub mixed_sites: Option<QcResultMixedSites>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub private_mutations: Option<QcResultPrivateMutations>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub snp_clusters: Option<QcResultSnpClusters>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub frame_shifts: Option<QcResultFrameShifts>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub stop_codons: Option<QcResultStopCodons>,
   pub overall_score: f64,
   pub overall_status: QcStatus,

@@ -20,7 +20,7 @@ export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
   substitution: NucSub
-  nucToAaMuts: Record<string, AaSub[]>
+  nucToAaMuts?: Record<string, AaSub[]>
   pixelsPerBase: number
 }
 

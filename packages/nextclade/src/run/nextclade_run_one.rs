@@ -55,6 +55,7 @@ use crate::utils::num::float_collapse_zero;
 use eyre::Report;
 use indexmap::indexmap;
 use itertools::{izip, Itertools};
+use serde_json::Value;
 use std::collections::{BTreeMap, HashSet};
 
 #[derive(Default)]
@@ -523,6 +524,7 @@ pub fn nextclade_run_one(
       nearest_nodes,
       is_reverse_complement,
       annotation,
+      other: Value::Null,
     },
   })
 }

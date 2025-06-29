@@ -149,7 +149,7 @@ export function ColumnAaMotifs({ analysisResult, motifDesc }: ColumnAaMotifsProp
               <small>{t('Note that motifs are detected after insertions are stripped.')}</small>
             </p>
 
-            <h6 className="font-weight-bold">{t('Total: {{total}}', { total: motifs.total })}</h6>
+            <h6 className="font-weight-bold">{t('Total: {{total}}', { total: motifs?.total ?? 0 })}</h6>
             {gained}
             {lost}
             {ambiguous}

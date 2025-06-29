@@ -10,6 +10,7 @@ use crate::tree::tree::{AuspiceGenomeAnnotationCds, AuspiceGenomeAnnotations, Se
 use crate::utils::iter::single_unique_value;
 use eyre::Report;
 use indexmap::{indexmap, IndexMap};
+use serde_json::Value;
 
 pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> Result<Vec<Gene>, Report> {
   let landmark = Landmark {
@@ -43,6 +44,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
         attributes: IndexMap::default(),
         compat_is_gene: true,
         color: ann.color.clone(),
+        other: Value::Null,
       };
 
       let gff_seqid = single_unique_value(&cds.segments, |s| &s.gff_seqid)?.clone();
@@ -63,6 +65,7 @@ pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> 
         gff_seqid,
         gff_source,
         gff_feature_type,
+        other: Value::Null,
       })
     })
     .collect()
@@ -105,6 +108,7 @@ fn convert_cds_segments(
       gff_seqid: None,
       gff_source: None,
       gff_feature_type: None,
+      other: Value::Null,
     });
 
     begin += range.len();

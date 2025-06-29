@@ -1,3 +1,4 @@
+import { isEmpty, isNil } from 'lodash'
 import React from 'react'
 
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
@@ -8,12 +9,16 @@ import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { formatMutation } from 'src/helpers/formatMutation'
 
 export interface ListOfPcrPrimerChangesProps {
-  pcrPrimerChanges: PcrPrimerChange[]
+  pcrPrimerChanges?: PcrPrimerChange[]
   totalPcrPrimerChanges: number
 }
 
 export function ListOfPcrPrimerChanges({ pcrPrimerChanges, totalPcrPrimerChanges }: ListOfPcrPrimerChangesProps) {
   const { t } = useTranslation()
+
+  if (isNil(pcrPrimerChanges) || isEmpty(pcrPrimerChanges)) {
+    return null
+  }
 
   const items = pcrPrimerChanges.map(({ primer, substitutions }) => {
     const { name } = primer

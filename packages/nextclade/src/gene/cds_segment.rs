@@ -7,6 +7,7 @@ use crate::gene::phase::Phase;
 use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 /// Marks the parts of circular, wrapping segments
 ///
@@ -43,21 +44,30 @@ pub struct CdsSegment {
   pub name: String,
   pub range: NucRefGlobalRange,
   pub range_local: NucRefLocalRange,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub landmark: Option<Landmark>,
   pub wrapping_part: WrappingPart,
   pub strand: GeneStrand,
   pub frame: Frame,
   pub phase: Phase,
   pub truncation: Truncation,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub exceptions: Vec<String>,
   pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_gene: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub color: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_seqid: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_source: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_feature_type: Option<String>,
+
+  #[serde(flatten)]
+  pub other: Value,
 }
 
 impl CdsSegment {

@@ -23,6 +23,7 @@ use crate::tree::tree::AuspiceRefNodesDesc;
 use crate::tree::tree_find_ancestors_of_interest::AncestralSearchResult;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
@@ -75,42 +76,82 @@ pub struct NextcladeOutputs {
   pub total_aminoacid_insertions: usize,
   pub unknown_aa_ranges: Vec<CdsAaRange>,
   pub total_unknown_aa: usize,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_changes_groups: Vec<AaChangesGroup>,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub nuc_to_aa_muts: BTreeMap<String, Vec<AaSub>>,
+
   pub alignment_range: NucRefGlobalRange,
   pub alignment_score: i32,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub aa_alignment_ranges: BTreeMap<String, Vec<AaRefRange>>,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub aa_unsequenced_ranges: BTreeMap<String, Vec<AaRefRange>>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
-  #[serde(skip_serializing_if = "Option::is_none")]
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub clade: Option<String>,
+
+  #[serde(default, skip_serializing_if = "PrivateNucMutations::is_empty")]
   pub private_nuc_mutations: PrivateNucMutations,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub clade_founder_info: Option<CladeNodeAttrFounderInfo>,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub clade_node_attr_founder_info: BTreeMap<String, CladeNodeAttrFounderInfo>,
+
+  #[serde(default, skip_serializing_if = "AuspiceRefNodesDesc::is_empty")]
   pub ref_nodes: AuspiceRefNodesDesc,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ref_node_search_results: Vec<AncestralSearchResult>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub relative_nuc_mutations: Vec<RelativeNucMutations>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub relative_aa_mutations: Vec<RelativeAaMutations>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub warnings: Vec<PeptideWarning>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub missing_cdses: Vec<String>,
   pub divergence: f64,
   pub coverage: f64,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub cds_coverage: BTreeMap<String, f64>,
   pub qc: QcResult,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub custom_node_attributes: BTreeMap<String, String>,
   pub nearest_node_id: GraphNodeKey,
   pub nearest_node_name: String,
-  #[serde(skip_serializing_if = "Option::is_none")]
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub nearest_nodes: Option<Vec<String>>,
   pub is_reverse_complement: bool,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub phenotype_values: Option<Vec<PhenotypeValue>>,
+
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub aa_motifs: AaMotifsMap,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub aa_motifs_changes: AaMotifsChangesMap,
 
   #[serde(default, skip_serializing_if = "GeneMap::is_empty")]
   pub annotation: GeneMap,
+
+  #[serde(flatten)]
+  pub other: Value,
 }
 
 impl NextcladeOutputs {

@@ -20,7 +20,9 @@ pub struct CladeNodeAttrFounderInfo {
   pub value: String,
   pub node_key: GraphNodeKey,
   pub node_name: String,
+  #[serde(default, skip_serializing_if = "PrivateNucMutations::is_empty")]
   pub nuc_mutations: PrivateNucMutations,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub aa_mutations: BTreeMap<String, PrivateAaMutations>,
 }
 

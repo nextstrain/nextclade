@@ -9,6 +9,7 @@ use indexmap::{indexmap, IndexMap};
 use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fmt::{Display, Formatter};
 
 #[must_use]
@@ -59,15 +60,24 @@ pub struct Gene {
   pub name: String,
   pub range: NucRefGlobalRange,
   pub cdses: Vec<Cds>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub exceptions: Vec<String>,
+  #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
   pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
   pub compat_is_cds: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub color: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_seqid: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_source: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub gff_feature_type: Option<String>,
+
+  #[serde(flatten)]
+  pub other: Value,
 }
 
 impl Gene {
@@ -114,6 +124,7 @@ impl Gene {
       gff_seqid: feature.gff_seqid.clone(),
       gff_source: feature.gff_source.clone(),
       gff_feature_type: feature.gff_feature_type.clone(),
+      other: Value::Null,
     })
   }
 
@@ -148,6 +159,7 @@ impl Gene {
       gff_seqid,
       gff_source,
       gff_feature_type,
+      other: Value::Null,
     })
   }
 

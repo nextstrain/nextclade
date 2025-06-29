@@ -37,7 +37,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     if (nodeSearchName === REF_NODE_CLADE_FOUNDER) {
       return { searchNameFriendly: t('clade founder'), nodeName: cladeFounderInfo?.nodeName }
     }
-    const cladeNodeAttr = findCladeNodeAttrFounderInfo(cladeNodeAttrFounderInfo, nodeSearchName ?? REF_NODE_ROOT)
+    const cladeNodeAttr = findCladeNodeAttrFounderInfo(cladeNodeAttrFounderInfo ?? {}, nodeSearchName ?? REF_NODE_ROOT)
     if (cladeNodeAttr) {
       return {
         searchNameFriendly: t('Founder of {{ attr }}', { attr: cladeNodeAttr.key }),
@@ -45,9 +45,9 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
       }
     }
     const nodeName =
-      refNodeSearchResults.find((r) => r.search.name === nodeSearchName)?.result?.match?.nodeName ?? t('unknown')
+      refNodeSearchResults?.find((r) => r.search.name === nodeSearchName)?.result?.match?.nodeName ?? t('unknown')
     const searchNameFriendly =
-      refNodeSearchResults.find((r) => r.search.name === nodeSearchName)?.search.displayName ?? t('unknown')
+      refNodeSearchResults?.find((r) => r.search.name === nodeSearchName)?.search.displayName ?? t('unknown')
     return { searchNameFriendly, nodeName }
   }, [
     nodeSearchName,

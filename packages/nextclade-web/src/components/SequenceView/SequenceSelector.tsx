@@ -253,7 +253,7 @@ function prepareOptions(genes: Gene[]) {
         options.push(option)
 
         // eslint-disable-next-line no-loops/no-loops
-        for (const protein of cds.proteins) {
+        for (const protein of cds.proteins ?? []) {
           options.push({
             value: `protein-${protein.name}`,
             protein,
@@ -280,8 +280,8 @@ const checkSearchCandidateEntry = (candidate: FilterOptionOption<Option>, search
       cds?.name,
       protein?.name,
       ...(gene?.cdses.flatMap((cds) => cds.name) ?? []),
-      ...(cds?.proteins.flatMap((protein) => protein.name) ?? []),
-      ...(gene?.cdses.flatMap((cds) => cds.proteins.map((protein) => protein?.name)) ?? []),
+      ...((cds?.proteins ?? []).flatMap((protein) => protein.name) ?? []),
+      ...(gene?.cdses.flatMap((cds) => (cds?.proteins ?? []).map((protein) => protein?.name)) ?? []),
     ]
       .filter(notUndefinedOrNull)
       .some((s) => checkSearchCandidateString(s, searchTerm))

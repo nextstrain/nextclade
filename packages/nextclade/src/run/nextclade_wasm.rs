@@ -246,14 +246,23 @@ pub struct AnalysisInitialData {
   pub default_cds: Option<String>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub cds_order_preference: Vec<String>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub clade_node_attr_key_descs: Vec<CladeNodeAttrKeyDesc>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub clade_node_attr_keys: Vec<String>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub phenotype_attr_keys: Vec<String>,
   pub ref_nodes: AuspiceRefNodesDesc,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motif_keys: Vec<String>,
   pub csv_column_config_default: CsvColumnConfig,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
@@ -438,6 +447,7 @@ impl Nextclade {
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       aa_motif_keys: self.aa_motifs_keys.clone(),
       csv_column_config_default: CsvColumnConfig::default(),
+      other: serde_json::Value::Null,
     }
   }
 

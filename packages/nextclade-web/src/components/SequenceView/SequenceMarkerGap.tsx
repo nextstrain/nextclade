@@ -18,7 +18,7 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
   deletion: NucDelRange
-  nucToAaMuts: Record<string, AaSub[]>
+  nucToAaMuts?: Record<string, AaSub[]>
   pixelsPerBase: number
 }
 

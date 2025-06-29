@@ -20,10 +20,10 @@ export function PeptideViewAbsoluteUnmemoed({ width, cds, sequence }: PeptideVie
   const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaUnsequencedRanges } = sequence
   const cdsLength = cdsCodonLength(cds)
   const pixelsPerAa = width / Math.round(cdsLength)
-  const groups = aaChangesGroups.filter((group) => group.name === cds.name)
+  const groups = aaChangesGroups?.filter((group) => group.name === cds.name) ?? []
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.cdsName === cds.name)
-  const unsequencedRanges = aaUnsequencedRanges[cds.name] ?? []
+  const unsequencedRanges = aaUnsequencedRanges?.[cds.name] ?? []
 
   const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.cdsName === cds.name)

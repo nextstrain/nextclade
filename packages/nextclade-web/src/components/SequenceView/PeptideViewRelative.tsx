@@ -27,7 +27,7 @@ export function PeptideViewRelativeUnmemoed({ width, cds, sequence, refNodeName 
   const pixelsPerAa = width / Math.round(cdsLength)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.cdsName === cds.name)
-  const unsequencedRanges = aaUnsequencedRanges[cds.name] ?? []
+  const unsequencedRanges = aaUnsequencedRanges?.[cds.name] ?? []
 
   const allMuts = getAaMutations(sequence, refNodeName)
   if (!allMuts) {

@@ -8,10 +8,10 @@ export function getCladeNodeAttrFounderSearchId(attrKey: string): string {
 }
 
 export function findCladeNodeAttrFounderInfo(
-  cladeNodeAttrFounderInfo: Record<string, CladeNodeAttrFounderInfo>,
+  cladeNodeAttrFounderInfo: Record<string, CladeNodeAttrFounderInfo> | undefined,
   searchId: string,
 ): CladeNodeAttrFounderInfo | undefined {
-  return Object.entries(cladeNodeAttrFounderInfo).find(
+  return Object.entries(cladeNodeAttrFounderInfo ?? {}).find(
     ([attr, _]) => searchId === getCladeNodeAttrFounderSearchId(attr),
   )?.[1]
 }
@@ -33,7 +33,7 @@ export function getNucMutations(
   // Parent node
   if (refNodeName === REF_NODE_PARENT) {
     return {
-      subs: analysisResult.privateNucMutations.privateSubstitutions,
+      subs: analysisResult.privateNucMutations?.privateSubstitutions ?? [],
       relMuts: analysisResult.privateNucMutations,
     }
   }
@@ -67,7 +67,7 @@ export function getNucMutations(
   }
 
   // Custom node
-  const relMuts = analysisResult.relativeNucMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
+  const relMuts = analysisResult.relativeNucMutations?.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!relMuts) {
     return undefined
   }
@@ -93,7 +93,7 @@ export function getAaMutations(
 
   // Parent node
   if (refNodeName === REF_NODE_PARENT) {
-    const relAaMuts = Object.values(analysisResult.privateAaMutations).flat()
+    const relAaMuts = Object.values(analysisResult.privateAaMutations ?? {}).flat()
     const aaSubs = relAaMuts.flatMap((m) => m.privateSubstitutions)
     return { aaSubs, relAaMuts }
   }
@@ -125,7 +125,7 @@ export function getAaMutations(
   }
 
   // Custom node
-  const muts = analysisResult.relativeAaMutations.find((m) => m.search.search.name === refNodeName)?.result?.muts
+  const muts = analysisResult.relativeAaMutations?.find((m) => m.search.search.name === refNodeName)?.result?.muts
   if (!muts) {
     return undefined
   }

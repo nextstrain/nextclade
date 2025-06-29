@@ -30,7 +30,7 @@ export function ColumnCoverage({ analysisResult }: ColumnCoverageProps) {
   const coveragePercentage = useMemo(() => formatCoveragePercentage(coverage), [coverage])
 
   const { rows, isTruncated } = useMemo(() => {
-    const cdsCoverageSorted = sortBy(Object.entries(cdsCoverage), ([_, coverage]) => coverage)
+    const cdsCoverageSorted = sortBy(Object.entries(cdsCoverage ?? {}), ([_, coverage]) => coverage)
     const { head, tail } = truncateMiddle(cdsCoverageSorted, MAX_ROWS * 2)
     let rows = head.map(([cds, coverage]) => <CdsCoverageRow key={cds} cds={cds} coverage={coverage} />)
     if (tail) {

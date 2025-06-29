@@ -15,6 +15,7 @@ use itertools::Itertools;
 use num_traits::clamp_max;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -23,11 +24,18 @@ pub struct Cds {
   pub name: String,
   pub product: String,
   pub segments: Vec<CdsSegment>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub proteins: Vec<Protein>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub exceptions: Vec<String>,
+  #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
   pub attributes: IndexMap<String, Vec<String>>,
   pub compat_is_gene: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub color: Option<String>,
+
+  #[serde(flatten)]
+  pub other: Value,
 }
 
 impl Cds {
@@ -68,6 +76,7 @@ impl Cds {
               gff_seqid: feature.gff_seqid.clone(),
               gff_source: feature.gff_source.clone(),
               gff_feature_type: feature.gff_feature_type.clone(),
+              other: Value::Null,
             };
 
             begin += feature.range.len();
@@ -119,6 +128,7 @@ impl Cds {
       attributes,
       compat_is_gene: false,
       color: None,
+      other: Value::Null,
     })
   }
 
@@ -139,6 +149,7 @@ impl Cds {
       gff_seqid: feature.gff_seqid.clone(),
       gff_source: feature.gff_source.clone(),
       gff_feature_type: feature.gff_feature_type.clone(),
+      other: Value::Null,
     };
 
     let protein = Protein {
@@ -147,6 +158,7 @@ impl Cds {
       product: feature.product.clone(),
       segments: vec![protein_segment],
       color: None,
+      other: Value::Null,
     };
 
     let range_local = Range::from_usize(0, feature.range.len());
@@ -173,6 +185,7 @@ impl Cds {
       gff_seqid: feature.gff_seqid.clone(),
       gff_source: feature.gff_source.clone(),
       gff_feature_type: feature.gff_feature_type.clone(),
+      other: Value::Null,
     };
 
     let segments = vec![cds_segment];
@@ -188,6 +201,7 @@ impl Cds {
       attributes: feature.attributes.clone(),
       compat_is_gene: true,
       color: None,
+      other: Value::Null,
     })
   }
 

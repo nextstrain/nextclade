@@ -83,6 +83,7 @@ mod coord_map_tests {
   use indexmap::indexmap;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+  use serde_json::Value;
 
   fn create_fake_cds(segment_ranges: &[(isize, isize, GeneStrand)]) -> Cds {
     Cds {
@@ -118,6 +119,7 @@ mod coord_map_tests {
               gff_seqid: None,
               gff_source: None,
               gff_feature_type: None,
+              other: Value::Null,
             };
             segment_start = segment_start + end - begin;
             segment
@@ -129,6 +131,7 @@ mod coord_map_tests {
       attributes: indexmap! {},
       compat_is_gene: false,
       color: None,
+      other: Value::Null,
     }
   }
 

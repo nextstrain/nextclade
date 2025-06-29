@@ -74,8 +74,8 @@ mod coord_map_tests {
   use crate::alphabet::nuc::to_nuc_seq;
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
-  
-use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
+
+  use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use eyre::Report;
@@ -83,6 +83,7 @@ use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use itertools::Itertools;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+  use serde_json::Value;
 
   fn create_fake_cds(segment_ranges: &[(isize, isize)]) -> Cds {
     Cds {
@@ -118,6 +119,7 @@ use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
               gff_seqid: None,
               gff_source: None,
               gff_feature_type: None,
+              other: Value::Null,
             };
             segment_start = segment_start + end - begin;
             segment
@@ -129,6 +131,7 @@ use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
       attributes: indexmap! {},
       compat_is_gene: false,
       color: None,
+      other: Value::Null,
     }
   }
 

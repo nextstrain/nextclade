@@ -35,7 +35,7 @@ impl BranchMutations {
   }
 }
 
-#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateNucMutations {
   /// All private substitution mutations
@@ -61,6 +61,12 @@ pub struct PrivateNucMutations {
   pub total_reversion_substitutions: usize,
   pub total_labeled_substitutions: usize,
   pub total_unlabeled_substitutions: usize,
+}
+
+impl PrivateNucMutations {
+  pub fn is_empty(&self) -> bool {
+    self == &Self::default()
+  }
 }
 
 pub struct FindPrivateNucMutationsParams<'a> {
