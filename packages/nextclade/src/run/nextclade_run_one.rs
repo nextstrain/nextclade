@@ -94,7 +94,6 @@ struct NextcladeResultWithGraph {
   relative_aa_mutations: Vec<RelativeAaMutations>,
   clade_founder_info: Option<CladeNodeAttrFounderInfo>,
   clade_node_attr_founder_info: BTreeMap<String, CladeNodeAttrFounderInfo>,
-  phenotype_values: Option<Vec<PhenotypeValue>>,
 }
 
 pub fn nextclade_run_one(
@@ -186,7 +185,7 @@ pub fn nextclade_run_one(
     aa_alignment_ranges,
     aa_unsequenced_ranges,
     cds_coverage,
-    phenotype_values,
+    mut phenotype_values,
   } = if !gene_map.is_empty() {
     let translation = translate_genes(
       &alignment.qry_seq,
@@ -326,7 +325,6 @@ pub fn nextclade_run_one(
     nearest_node_id,
     nearest_node_name,
     nearest_nodes,
-    phenotype_values,
   } = if let Some(graph) = graph {
     let nearest_node_candidates = graph_find_nearest_nodes(graph, &substitutions, &missing, &alignment_range)?;
     let nearest_node_id = nearest_node_candidates[0].node_key;
@@ -396,17 +394,14 @@ pub fn nextclade_run_one(
 
     let relative_aa_mutations = find_relative_aa_mutations(&ref_node_search_results, &aa_params)?;
 
-    let phenotype_values =
-      if let (Some(values), Some(data), Some(clade)) = (&phenotype_values, &virus_properties.phenotype_data, &clade) {
-        Some(
-          izip!(values, data)
-            .filter(|(_, data)| !data.ignore.clades.contains(clade))
-            .map(|(ph, _)| ph.clone())
-            .collect_vec(),
-        )
-      } else {
-        phenotype_values
-      };
+    if let (Some(values), Some(data), Some(clade)) = (&phenotype_values, &virus_properties.phenotype_data, &clade) {
+      phenotype_values = Some(
+        izip!(values, data)
+          .filter(|(_, data)| !data.ignore.clades.contains(clade))
+          .map(|(ph, _)| ph.clone())
+          .collect_vec(),
+      );
+    }
 
     NextcladeResultWithGraph {
       clade,
@@ -417,7 +412,6 @@ pub fn nextclade_run_one(
       ref_node_search_results,
       relative_nuc_mutations,
       relative_aa_mutations,
-      phenotype_values,
       divergence,
       custom_node_attributes: clade_node_attrs,
       nearest_node_id,
