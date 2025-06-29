@@ -51,6 +51,7 @@ use crate::translate::translate_genes::{translate_genes, Translation};
 use crate::tree::tree_find_ancestors_of_interest::{graph_find_ancestors_of_interest, AncestralSearchResult};
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
+use crate::utils::num::float_collapse_zero;
 use eyre::Report;
 use indexmap::indexmap;
 use itertools::{izip, Itertools};
@@ -280,7 +281,7 @@ pub fn nextclade_run_one(
           PhenotypeValue {
             name: name.clone(),
             cds: cds.clone(),
-            value: phenotype,
+            value: float_collapse_zero(phenotype),
           }
         })
         .collect_vec()
