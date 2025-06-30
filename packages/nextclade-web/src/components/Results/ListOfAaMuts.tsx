@@ -31,7 +31,6 @@ export function ListOfAaMuts({ analysisResult }: ListOfPrivateAaMutationsProps) 
   // Flatten all the private mutations from all genes
   const allReversionSubstitutions = relAaMuts?.flatMap((m) => m.reversionSubstitutions) ?? []
   const allLabeledSubstitutions = relAaMuts?.flatMap((m) => m.labeledSubstitutions) ?? []
-  const allUnlabeledSubstitutions = relAaMuts?.flatMap((m) => m.unlabeledSubstitutions) ?? []
 
   return (
     <div className="d-flex">
