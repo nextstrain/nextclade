@@ -61,7 +61,11 @@ export function ListOfAaMuts({ analysisResult }: ListOfPrivateAaMutationsProps) 
           )}
 
           {refNodeName !== REF_NODE_PARENT && (
-            <small>{t('To see private mutations, switch to "Parent" in "Relative to" dropdown.')}</small>
+            <small>
+              {t(
+                'To see private mutations (and labeled mutations if applicable), switch to "Parent" in the "Relative to" dropdown',
+              )}
+            </small>
           )}
         </UlInvisible>
       </div>
