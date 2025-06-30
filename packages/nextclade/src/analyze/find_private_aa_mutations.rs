@@ -382,10 +382,14 @@ fn label_private_aa_mutations(
   for substitution in non_reversion_substitutions {
     // If there's a match in the label map, add mutation to the labelled list, and attach the corresponding labels.
     // If not, add it to the unlabelled list.
-    match aa_substitution_label_map.get(&substitution.genotype()) {
-      Some(labels) => labeled_substitutions.push(AaSubLabeled {
+
+    match aa_substitution_label_map
+      .iter()
+      .find(|(genotype, _)| genotype.matches(&substitution.genotype()))
+    {
+      Some((_, labels)) => labeled_substitutions.push(AaSubLabeled {
         substitution: substitution.clone(),
-        labels: labels.clone(),
+        labels: labels.to_owned(),
       }),
       None => {
         unlabeled_substitutions.push(substitution.clone());

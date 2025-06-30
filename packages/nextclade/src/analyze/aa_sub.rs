@@ -18,7 +18,18 @@ use std::str::FromStr;
 pub struct AaGenotype {
   pub cds_name: String,
   pub pos: AaRefPosition,
-  pub qry: Aa,
+  pub qry: Option<Aa>,
+}
+
+impl AaGenotype {
+  /// Matches two genotypes.
+  ///
+  /// NOTE: if the query amino acid is not specified in either genotype, it is considered a match.
+  pub fn matches(&self, other: &Self) -> bool {
+    self.cds_name == other.cds_name
+      && self.pos == other.pos
+      && (self.qry.is_none() || other.qry.is_none() || self.qry == other.qry)
+  }
 }
 
 impl<'de> Deserialize<'de> for AaGenotype {
@@ -39,7 +50,11 @@ impl Serialize for AaGenotype {
 
 impl Display for AaGenotype {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}:{}{}", self.cds_name, self.pos + 1, self.qry)
+    write!(f, "{}:{}", self.cds_name, self.pos + 1)?;
+    if let Some(qry) = self.qry {
+      write!(f, "{qry}")?;
+    }
+    Ok(())
   }
 }
 
@@ -48,17 +63,17 @@ impl FromStr for AaGenotype {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     lazy_static! {
-      static ref RE: Regex = Regex::new(r"((?P<cds>.*?):(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))")
+      static ref RE: Regex = Regex::new(r"((?P<cds>.*?):(?P<pos>\d{1,10})(?P<qry>[A-Z-*])?)")
         .wrap_err_with(|| "When compiling AA genotype regex")
         .unwrap();
     }
 
     if let Some(captures) = RE.captures(s) {
-      return match (captures.name("cds"), captures.name("pos"), captures.name("qry")) {
-        (Some(cds), Some(pos), Some(qry)) => {
+      return match (captures.name("cds"), captures.name("pos")) {
+        (Some(cds), Some(pos)) => {
           let cds_name = cds.as_str().to_owned();
           let pos = parse_pos(pos.as_str())?.into();
-          let qry = Aa::from_string(qry.as_str())?;
+          let qry = captures.name("qry").map(|q| Aa::from_string(q.as_str())).transpose()?;
           Ok(Self { cds_name, pos, qry })
         }
         _ => make_error!("Unable to parse AA genotype: '{s}'"),
@@ -130,7 +145,7 @@ impl AaSub {
     AaGenotype {
       cds_name: self.cds_name.clone(),
       pos: self.pos,
-      qry: self.qry_aa,
+      qry: Some(self.qry_aa),
     }
   }
 
