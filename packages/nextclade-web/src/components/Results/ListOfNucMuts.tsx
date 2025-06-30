@@ -47,13 +47,6 @@ export function ListOfNucMuts({ analysisResult }: ListOfPrivateNucMutationsProps
               subs={relMuts?.labeledSubstitutions}
             />
           )}
-
-          {refNodeName === REF_NODE_PARENT && (
-            <ListOfNucMutationsOneType
-              heading={t('Unlabeled substitutions ({{ n }})', { n: relMuts?.unlabeledSubstitutions.length })}
-              subs={relMuts?.unlabeledSubstitutions}
-            />
-          )}
         </UlInvisible>
       </div>
     </div>

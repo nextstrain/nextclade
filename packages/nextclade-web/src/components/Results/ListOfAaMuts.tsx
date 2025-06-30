@@ -53,13 +53,6 @@ export function ListOfAaMuts({ analysisResult }: ListOfPrivateAaMutationsProps) 
             />
           )}
 
-          {refNodeName === REF_NODE_PARENT && (
-            <ListOfAaMutationsOneType
-              heading={t('Unlabeled substitutions ({{ n }})', { n: allUnlabeledSubstitutions.length })}
-              subs={allUnlabeledSubstitutions}
-            />
-          )}
-
           {refNodeName !== REF_NODE_PARENT && (
             <small>
               {t(
