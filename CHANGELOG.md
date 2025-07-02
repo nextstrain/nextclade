@@ -1,3 +1,21 @@
+## Unreleased
+
+### fix: calculate phenotypes even if there's no tree
+
+Nextclade now calculates and displays phenotype data even for datasets which have no reference tree. The clade ignoring feature does not apply for such datasets (because no clade assignment is possible without a tree).
+
+### fix: collapse -0.0 to 0.0 in phenotype values
+
+Nextclade will no longer display or output negative zeroes in phenotype data.
+
+### fix: ensure CSV column and category selection is additive
+
+Nextclade now correctly adds all entries together, when mixing individual columns and column categories in CSV and TSV output columns selection configuration (e.g. in `--output-columns-selection` CLI argument). Previously one would incorrectly overwrite the other.
+
+### fix: ensure canonical order of CSV columns
+
+Order of columns in CSV and TSV is now always enforced to be the same, regardless of presence or absence of certain columns.
+
 ## 3.15.1
 
 ### Nextclade Web: fix empty results table
