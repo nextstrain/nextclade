@@ -1,4 +1,4 @@
-## Unreleased
+## 3.15.2
 
 ### fix: calculate phenotypes even if there's no tree
 
