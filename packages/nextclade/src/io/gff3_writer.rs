@@ -8,7 +8,9 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::map::map_to_multimap;
 use bio::io::gff::{GffType as BioGffType, Record as BioGffRecord, Writer as BioGffWriter};
 use eyre::{Report, WrapErr};
-use indexmap::indexmap;
+use indexmap::{indexmap, IndexMap};
+use itertools::Itertools;
+use multimap::MultiMap;
 use std::io::Write;
 use std::path::Path;
 
@@ -86,7 +88,7 @@ fn gene_to_bio_gff_record(gene: &Gene) -> Result<BioGffRecord, Report> {
   *record.score_mut() = o!(".");
   *record.strand_mut() = gene.strand()?.to_string();
   *record.frame_mut() = o!(".");
-  *record.attributes_mut() = map_to_multimap(&gene.attributes);
+  *record.attributes_mut() = gff_write_convert_all_attributes(&gene.attributes)?;
 
   Ok(record)
 }
@@ -101,7 +103,7 @@ fn cds_to_bio_gff_record(seg: &CdsSegment) -> Result<BioGffRecord, Report> {
   *record.score_mut() = o!(".");
   *record.strand_mut() = seg.strand.to_string();
   *record.frame_mut() = seg.phase.to_usize().to_string();
-  *record.attributes_mut() = map_to_multimap(&seg.attributes);
+  *record.attributes_mut() = gff_write_convert_all_attributes(&seg.attributes)?;
   Ok(record)
 }
 
@@ -115,12 +117,35 @@ fn create_bio_gff_region_record(seq_index: usize, seqid: &str, seq_len: usize) -
   *record.score_mut() = o!(".");
   *record.strand_mut() = o!(".");
   *record.frame_mut() = o!(".");
-  *record.attributes_mut() = map_to_multimap(&indexmap! {
+  *record.attributes_mut() = gff_write_convert_all_attributes(&indexmap! {
     o!("seq_index") => vec![seq_index.to_string()],
     o!("ID") => vec![seqid.to_owned()],
     o!("Name") => vec![seqid.to_owned()],
-  });
+  })?;
   Ok(record)
+}
+
+fn gff_write_convert_all_attributes(
+  attributes: &IndexMap<String, Vec<String>>,
+) -> Result<MultiMap<String, String>, Report> {
+  let attributes: IndexMap<String, Vec<String>> = attributes
+    .iter()
+    .map(|(k, vs)| gff_write_convert_attributes(k, vs))
+    .try_collect()?;
+
+  Ok(map_to_multimap(&attributes))
+}
+
+fn gff_write_convert_attributes(key: impl AsRef<str>, values: &[String]) -> Result<(String, Vec<String>), Report> {
+  let values: Vec<String> = values
+    .iter()
+    .map(|v| gff_write_convert_attribute_value(v))
+    .try_collect()?;
+  Ok((key.as_ref().to_owned(), values))
+}
+
+fn gff_write_convert_attribute_value(value: &str) -> Result<String, Report> {
+  Ok(urlencoding::encode(value).into_owned())
 }
 
 pub struct Gff3FileWriter {

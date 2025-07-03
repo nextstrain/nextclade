@@ -6,6 +6,7 @@ use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;
 use indexmap::IndexMap;
+use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -51,6 +52,9 @@ impl Feature {
       gff_feature_type,
     } = GffCommonInfo::from_gff_record(record)?;
 
+    let attributes: IndexMap<String, Vec<String>> =
+      attributes.into_iter().map(gff_read_convert_attributes).try_collect()?;
+
     let name = name.unwrap_or_else(|| format!("Feature #{index}"));
     let id = id.unwrap_or_else(|| {
       attributes
@@ -92,6 +96,18 @@ impl Feature {
   pub fn name_and_type(&self) -> String {
     format!("{} '{}'", shorten_feature_type(&self.feature_type), self.name)
   }
+}
+
+fn gff_read_convert_attributes((key, values): (String, Vec<String>)) -> Result<(String, Vec<String>), Report> {
+  let values: Vec<String> = values
+    .into_iter()
+    .map(|v| gff_read_convert_attribute_value(&v))
+    .try_collect()?;
+  Ok((key, values))
+}
+
+fn gff_read_convert_attribute_value(value: &str) -> Result<String, Report> {
+  Ok(urlencoding::decode(value)?.into_owned())
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]

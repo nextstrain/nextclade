@@ -119,10 +119,7 @@ impl GffCommonInfo {
       exception_attr_keys
     };
 
-    let exceptions = get_all_attributes(record, &exception_attr_keys)?
-      .into_iter()
-      .unique()
-      .collect();
+    let exceptions = get_all_attributes(record, &exception_attr_keys);
 
     let notes_attr_keys = {
       let mut notes_attr_keys = attr_keys
@@ -134,10 +131,7 @@ impl GffCommonInfo {
       notes_attr_keys
     };
 
-    let notes = get_all_attributes(record, &notes_attr_keys)?
-      .into_iter()
-      .unique()
-      .collect();
+    let notes = get_all_attributes(record, &notes_attr_keys);
 
     let is_circular =
       get_attribute_optional(record, "Is_circular").map_or(false, |is_circular| is_circular.to_lowercase() == "true");
@@ -220,14 +214,13 @@ pub fn get_one_of_attributes_required(record: &GffRecord, attr_names: &[&str]) -
 }
 
 /// Retrieve attribute values for all given keys
-pub fn get_all_attributes(record: &GffRecord, attr_names: &[&str]) -> Result<Vec<String>, Report> {
+pub fn get_all_attributes(record: &GffRecord, attr_names: &[&str]) -> Vec<String> {
   attr_names
     .iter()
     .flat_map(|attr| record.attributes().get_vec(*attr).cloned().unwrap_or_default())
     .sorted()
     .unique()
-    .map(|val| Ok(urlencoding::decode(&val)?.to_string()))
-    .collect::<Result<Vec<String>, Report>>()
+    .collect_vec()
 }
 
 #[cfg(test)]
