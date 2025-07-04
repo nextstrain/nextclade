@@ -69,6 +69,7 @@ num_cpus = "=1.16.0"
 optfield = "=0.3.0"
 ordered-float = { version = "=3.9.1", features = ["rand", "serde", "schemars"] }
 owo-colors = { version = "=3.5.0", features = ["supports-colors"] }
+percent-encoding = "=2.3.1"
 pretty_assertions = "=1.3.0"
 rayon = "=1.7.0"
 regex = "=1.8.4"
