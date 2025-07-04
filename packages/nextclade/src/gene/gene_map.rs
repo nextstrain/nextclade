@@ -169,7 +169,7 @@ impl GeneMap {
 
   pub fn validate(&self) -> Result<(), Report> {
     self.iter_cdses().try_for_each(|cds| {
-      cds.len().is_multiple_of(&3).then_some(()).ok_or_else(|| {
+      cds.len().is_multiple_of(3).then_some(()).ok_or_else(|| {
         let segment_lengths = cds.segments.iter().map(CdsSegment::len).join("+");
         let n_segments = cds.segments.len();
         eyre!(
