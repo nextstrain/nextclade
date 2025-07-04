@@ -3,6 +3,7 @@ use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::io::file::create_file_or_stdout;
+use crate::io::gff3_encoding::gff_encode_attribute;
 use crate::o;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::map::map_to_multimap;
@@ -137,15 +138,10 @@ fn gff_write_convert_all_attributes(
 }
 
 fn gff_write_convert_attributes(key: impl AsRef<str>, values: &[String]) -> Result<(String, Vec<String>), Report> {
-  let values: Vec<String> = values
-    .iter()
-    .map(|v| gff_write_convert_attribute_value(v))
-    .try_collect()?;
-  Ok((key.as_ref().to_owned(), values))
-}
-
-fn gff_write_convert_attribute_value(value: &str) -> Result<String, Report> {
-  Ok(urlencoding::encode(value).into_owned())
+  let key = key.as_ref();
+  let key = gff_encode_attribute(key);
+  let values: Vec<String> = values.iter().map(gff_encode_attribute).collect();
+  Ok((key, values))
 }
 
 pub struct Gff3FileWriter {

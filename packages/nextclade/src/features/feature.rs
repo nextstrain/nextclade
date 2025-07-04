@@ -1,10 +1,11 @@
 use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
+use crate::io::gff3_encoding::gff_decode_attribute;
 use crate::io::gff3_reader::{get_one_of_attributes_optional, GffCommonInfo};
 use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
-use eyre::Report;
+use eyre::{Context, Report};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use schemars::JsonSchema;
@@ -99,15 +100,14 @@ impl Feature {
 }
 
 fn gff_read_convert_attributes((key, values): (String, Vec<String>)) -> Result<(String, Vec<String>), Report> {
+  let key = gff_decode_attribute(&key).wrap_err_with(|| format!("Failed to decode GFF attribute key: {key:?}"))?;
   let values: Vec<String> = values
     .into_iter()
-    .map(|v| gff_read_convert_attribute_value(&v))
+    .map(|v| {
+      gff_decode_attribute(&v).wrap_err_with(|| format!("Failed to decode GFF attribute value: {v:?} for key: {key:?}"))
+    })
     .try_collect()?;
   Ok((key, values))
-}
-
-fn gff_read_convert_attribute_value(value: &str) -> Result<String, Report> {
-  Ok(urlencoding::decode(value)?.into_owned())
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
