@@ -1,6 +1,7 @@
 use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
+use crate::io::gff3_encoding::gff_decode_non_attribute;
 use crate::io::gff3_reader::{get_one_of_attributes_optional, GffCommonInfo};
 use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
@@ -61,9 +62,10 @@ impl Feature {
     });
     let feature_type = record.feature_type().to_owned();
     let parent_ids = attributes.get("Parent").cloned().unwrap_or_default();
-    let product = get_one_of_attributes_optional(record, &["Product", "product", "Protein", "protein", "protein_id"])
-      .unwrap_or_else(|| name.clone());
-    let seqid = record.seqname().to_owned();
+    let product =
+      get_one_of_attributes_optional(&attributes, &["Product", "product", "Protein", "protein", "protein_id"])
+        .unwrap_or_else(|| name.clone());
+    let seqid = gff_decode_non_attribute(record.seqname())?;
 
     Ok(Self {
       index,
