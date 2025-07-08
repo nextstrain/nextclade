@@ -1,3 +1,9 @@
+## 3.15.3
+
+### fix: ensure GFF3 fields are correctly percent-encoded and decoded
+
+[GFF3 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/fe73505276dd324bf6a55773f3413fe2bed47af4/gff3.md#description-of-the-format) requires certain characters in values and in attributes to be encoded using percent-encoding. Nextclade previously did not comply with this requirement, which could lead to incorrectly formatted annotation-related outputs (such as `annotation` field in JSON output or values in GFF3 output annotation). This has been fixed.
+
 ## 3.15.2
 
 ### fix: calculate phenotypes even if there's no tree
