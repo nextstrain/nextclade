@@ -11,7 +11,7 @@ exclude = [
 
 
 [workspace.package]
-version = "3.15.0"
+version = "3.15.3"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
 repository = "https://github.com/nextstrain/nextclade"
 documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
@@ -68,6 +68,7 @@ num_cpus = "=1.16.0"
 optfield = "=0.3.0"
 ordered-float = { version = "=3.9.1", features = ["rand", "serde", "schemars"] }
 owo-colors = { version = "=3.5.0", features = ["supports-colors"] }
+percent-encoding = "=2.3.1"
 pretty_assertions = "=1.3.0"
 rayon = "=1.7.0"
 regex = "=1.8.4"

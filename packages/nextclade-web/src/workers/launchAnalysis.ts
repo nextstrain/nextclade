@@ -44,7 +44,7 @@ export async function launchAnalysis(
   const qryFastaStr = await getQueryFasta(qryFastaInputs)
 
   const launcherWorker = await spawn<LauncherThread>(
-    new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
+    new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'src/workers/launcher.worker.ts' }),
   )
 
   try {

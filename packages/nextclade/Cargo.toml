@@ -57,6 +57,7 @@ num_cpus = { workspace = true }
 optfield = { workspace = true }
 ordered-float = { workspace = true }
 owo-colors = { workspace = true }
+percent-encoding = { workspace = true }
 pretty_assertions = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
