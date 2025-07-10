@@ -16,6 +16,7 @@ use lazy_static::lazy_static;
 use nextclade::io::console::CliColorMode;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
+use nextclade::schema::schema::{cli_handle_schema, NextcladeSchemaArgs};
 use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::global_init::{global_init, GlobalInitConfig};
 use nextclade::{getenv, make_error};
@@ -100,6 +101,11 @@ pub enum NextcladeCommands {
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
   ReadAnnotation(Box<NextcladeReadAnnotationArgs>),
+
+  /// Write JSON schema definitions for Nextclade file formats
+  ///
+  /// See: https://json-schema.org
+  Schema(NextcladeSchemaArgs),
 
   /// Print command-line reference documentation in Markdown format
   HelpMarkdown,
@@ -1181,5 +1187,6 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     },
     NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
     NextcladeCommands::ReadAnnotation(read_annotation_args) => nextclade_read_annotation(&read_annotation_args),
+    NextcladeCommands::Schema(args) => cli_handle_schema(&args),
   }
 }

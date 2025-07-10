@@ -9,6 +9,8 @@ use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::json::{json_stringify, JsonPretty};
 use nextclade::utils::info::this_package_version;
 
+pub type DatasetListJson = Vec<Dataset>;
+
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
     name,
@@ -47,7 +49,7 @@ pub fn nextclade_dataset_list(
     compatible
   };
 
-  let filtered = requested
+  let filtered: DatasetListJson = requested
     .into_iter()
     .filter(|dataset| -> bool {
       if let Some(tag) = tag.as_ref() {
@@ -81,7 +83,7 @@ pub fn nextclade_dataset_list(
     let content = if only_names {
       json_stringify(&names, JsonPretty(true))
     } else {
-      json_stringify(&filtered, JsonPretty(true))
+      json_stringify::<DatasetListJson>(&filtered, JsonPretty(true))
     }?;
     println!("{content}");
   } else {

@@ -1,0 +1,56 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: MinimizerIndexJson
+description: Contains external configuration and data specific for a particular pathogen
+type: object
+required:
+- params
+- schemaVersion
+- version
+properties:
+  schemaVersion:
+    type: string
+  version:
+    type: string
+  params:
+    $ref: '#/definitions/MinimizerIndexParams'
+  minimizers:
+    type: object
+    additionalProperties:
+      type: string
+  references:
+    type: array
+    items:
+      $ref: '#/definitions/MinimizerIndexRefInfo'
+  normalization:
+    type: array
+    items:
+      type: number
+      format: double
+definitions:
+  MinimizerIndexParams:
+    type: object
+    required:
+    - cutoff
+    - k
+    properties:
+      k:
+        type: integer
+        format: int64
+      cutoff:
+        type: integer
+        format: int64
+  MinimizerIndexRefInfo:
+    type: object
+    required:
+    - length
+    - nMinimizers
+    - name
+    properties:
+      length:
+        type: integer
+        format: int64
+      name:
+        type: string
+      nMinimizers:
+        type: integer
+        format: int64

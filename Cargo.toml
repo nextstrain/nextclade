@@ -7,6 +7,7 @@ members = [
 
 exclude = [
   "packages/3rdparty",
+  "packages/nextclade-schemas",
 ]
 
 
@@ -77,7 +78,7 @@ reqwest = { version = "=0.12.8", default-features = false, features = ["blocking
 rstest = "=0.17.0"
 rstest_reuse = "=0.5.0"
 rust_xlsxwriter = { version = "=0.66.0", features = ["wasm"] }
-schemars = { version = "=0.8.12", features = ["chrono", "either", "enumset", "indexmap"] }
+schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap", "raw_value", "preserve_order"] }
 semver = { version = "=1.0.17", features = ["serde"] }
 serde = { version = "=1.0.164", features = ["derive"] }
 serde-wasm-bindgen = { version = "=0.5.0" }
@@ -86,8 +87,8 @@ serde_repr = "=0.1.12"
 serde_stacker = { version = "=0.1.8" }
 serde_yaml = "=0.9.22"
 strsim = "=0.10.0"
-strum = "=0.25.0"
-strum_macros = "=0.25.0"
+strum = "=0.27.1"
+strum_macros = "=0.27.1"
 tinytemplate = "=1.2.1"
 traversal = "=0.1.2"
 url = { version = "=2.4.0", features = ["serde"] }
