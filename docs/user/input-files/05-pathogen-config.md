@@ -159,7 +159,7 @@ Optional `dict`. Parameters for the alignment algorithm. These are identical to 
 
 #### `treeBuilderParams`
 
-Optional `dict`. Parameters for the tree building algorithm. These are identical to the corresponding CLI arguments (though here _camelCase_ needs to be used. If not provided, default values are used.
+Optional `dict`. Parameters for the tree building algorithm. These are identical to the corresponding CLI arguments (though here _camelCase_ needs to be used). If not provided, default values are used.
 
 - `withoutGreedyTreeBuilder`: If you don't want to use the greedy tree builder, set this to `true`. Default: `false`.
 - `maskedMutsWeight`: Parsimony weight for masked mutations. Default: `0.05`.
@@ -168,13 +168,56 @@ Optional `dict`. Parameters for the tree building algorithm. These are identical
 
 TODO
 
-#### `phenotypeData`
+#### Calculate phenotypic scores from mutations (`phenotypeData`)
 
-TODO
+Nextclade can calculate numerical scores derived from mutations in a query sequence relative to the reference sequence.
+Such scores could for example be used to calculate predicted ACE2 binding for SARS-CoV-2, immune escape estimates, or potential drug resistance. To specify such numerical scores, the field `phenotypeData` needs to be added to the `pathogen.json`.
 
-#### `aaMotifs`
+Each such score is based on exactly one CDS and each amino acid mutation can be assigned a specific contribution to the score.
+In addition, a "default" value can be specified for amino acid mutations that are not explicitly listed.
+```json
+{
+  "phenotypeData": [
+    {
+      "aaRange": {
+        "begin": 330,
+        "end": 531
+      },
+      "description": "Estimated ACE2 binding",
+      "cds": "S",
+      "ignore": {
+        "clades": ["outgroup"]
+      },
+      "name": "ace2_binding",
+      "nameFriendly": "ACE2 binding",
+      "data": [
+        {
+          "name": "binding",
+          "weight": 1.0,
+          "locations": {
+            "330": {
+              "default": 0.1,
+              "A": -0.08339,
+              "C": -0.61624,
+              "D": -0.1467,
+              "E": -0.14146,
+              ...
+            },
+            "331": {}
+            ...
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Amino acid motif detection (`aaMotifs`)
 
 Nextclade can detect and report specific motifs in translated amino acid sequences. This feature is currently being used to highlight changes in glycosylation or cleavage sites, but the feature itself is generic.
+To use this feature, you need to add a `aaMotifs` field to the `pathogen.json`.
+
 Amino acid motifs can be specified using regular expressions and the parts of the genome in which Nextclade searches for the motifs is specified by listing the CDS and (optional) ranges within these CDSs (e.g.~to restrict to the exposed part of a protein).
 An example of a full configuration (for glycosylation in influenza HA) is shown below.
 ```json
