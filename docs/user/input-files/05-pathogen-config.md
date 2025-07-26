@@ -63,7 +63,6 @@ Example configuration for SARS-CoV-2:
 ```json
 {
   "qc": {
-    "schemaVersion": "1.2.0",
     "privateMutations": {
       "enabled": true,
       "typical": 8,
@@ -131,8 +130,10 @@ Example:
 
 ```json
 {
-  "cli": "3.0.0",
-  "web": "3.0.0"
+  "compatibility": {
+    "cli": "3.0.0",
+    "web": "3.0.0"
+  }
 }
 ```
 
@@ -142,7 +143,7 @@ Optional `str`. The default gene/CDS to be shown in Nextclade web. If not provid
 
 #### `cdsOrderPreference`
 
-Optional `array[str]`. Order in which genes are shown in Nextclade web dropdown. Example value ["S", "ORF1a", "N", "E"]
+Optional `array[str]`. Order in which genes are shown in Nextclade web dropdown. Example value `["S", "ORF1a", "N", "E"]`
 
 #### `generalParams`
 
