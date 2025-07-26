@@ -212,6 +212,7 @@ In addition, a "default" value can be specified for amino acid mutations that ar
   ]
 }
 ```
+If the score is only relevant for specific clades, you can specify which clades are to be ignored.
 
 #### Amino acid motif detection (`aaMotifs`)
 
