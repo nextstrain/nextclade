@@ -174,7 +174,34 @@ TODO
 
 #### `aaMotifs`
 
-TODO
+Nextclade can detect and report specific motifs in translated amino acid sequences. This feature is currently being used to highlight changes in glycosylation or cleavage sites, but the feature itself is generic.
+Amino acid motifs can be specified using regular expressions and the parts of the genome in which Nextclade searches for the motifs is specified by listing the CDS and (optional) ranges within these CDSs (e.g.~to restrict to the exposed part of a protein).
+An example of a full configuration (for glycosylation in influenza HA) is shown below.
+```json
+  "aaMotifs": [
+    {
+      "name": "glycosylation",
+      "nameShort": "Glyc.",
+      "nameFriendly": "Glycosylation",
+      "description": "N-linked glycosylation motifs (N-X-S/T with X any amino acid other than P)",
+      "includeCdses": [
+        {
+          "cds":"HA1",
+          "ranges":[]
+        },
+        {
+          "cds":"HA2",
+          "ranges":[{"begin":0, "end":186}]
+        }
+      ],
+      "motifs": [
+        "N[^P][ST]"
+      ]
+    }
+  ]
+```
+In the web interface, motifs are reported as shown in the screenshot below:
+![aaMotifs](../assets/web_aaMotifs.png)
 
 #### `mutLabels`
 
