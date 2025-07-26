@@ -247,10 +247,11 @@ An example of a full configuration (for glycosylation in influenza HA) is shown 
 In the web interface, motifs are reported as shown in the screenshot below:
 ![aaMotifs](../assets/web_aaMotifs.png)
 
-#### `mutLabels`
+#### Labelling mutations of interest (`mutLabels`)
 
 Nextclade can highlight specific mutations to the user, for example mutations that are indicative of contamination, drug resistance, or otherwise of particular interest.
 To do so, you can specify mutations as "labeled" using the `mutLabels` field in the `pathogenJson`.
+Labeled mutations are only searched among the "private" mutations, i.e. mutations in query sequences that are not found in the part of the reference tree the query sequence attaches to.
 
 The json specification looks as follows
 ```json
@@ -264,6 +265,10 @@ The json specification looks as follows
   }
 }
 ```
+Labeled "private" mutations are shown in the tool-tip of the mutation column when mutations "relative to parent" are shown (private mutations) and exported into the tabular output.
+
+TODO: add amino acid mutations once released.
+
 > ⚠️ Note that the specification of these mutations breaks with the convention of zero-indexing. Instead, these labeled mutations are one-indexed and directly correspond to the mutations displayed in the UI or in the tables.
 
 
