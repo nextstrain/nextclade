@@ -164,9 +164,6 @@ Optional `dict`. Parameters for the tree building algorithm. These are identical
 - `withoutGreedyTreeBuilder`: If you don't want to use the greedy tree builder, set this to `true`. Default: `false`.
 - `maskedMutsWeight`: Parsimony weight for masked mutations. Default: `0.05`.
 
-#### `primers`
-
-TODO
 
 #### Calculate phenotypic scores from mutations (`phenotypeData`)
 
