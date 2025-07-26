@@ -249,6 +249,22 @@ In the web interface, motifs are reported as shown in the screenshot below:
 
 #### `mutLabels`
 
-TODO
+Nextclade can highlight specific mutations to the user, for example mutations that are indicative of contamination, drug resistance, or otherwise of particular interest.
+To do so, you can specify mutations as "labeled" using the `mutLabels` field in the `pathogenJson`.
+
+The json specification looks as follows
+```json
+{
+  "mutLabels": {
+    "nucMutLabelMap": {
+      "174T": ["20H", ...],
+      "204T": ["20E"],
+      ...
+    }
+  }
+}
+```
+> ⚠️ Note that the specification of these mutations breaks with the convention of zero-indexing. Instead, these labeled mutations are one-indexed and directly correspond to the mutations displayed in the UI or in the tables.
+
 
 > 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression.md) for more details.
