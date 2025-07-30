@@ -285,34 +285,42 @@
   },
   "definitions": {
     "AnyType": {
+      "description": "Any type that can be represented in JSON",
       "anyOf": [
         {
+          "title": "string",
           "type": "string"
         },
         {
+          "title": "int",
           "type": "integer",
           "format": "int"
         },
         {
+          "title": "float",
           "type": "number",
           "format": "double"
         },
         {
+          "title": "bool",
           "type": "boolean"
         },
         {
+          "title": "array",
           "type": "array",
           "items": {
             "$ref": "#/definitions/AnyType"
           }
         },
         {
+          "title": "object",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/AnyType"
           }
         },
         {
+          "title": "null",
           "type": "null"
         }
       ]

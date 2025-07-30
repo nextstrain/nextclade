@@ -9,16 +9,24 @@ use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+/// Any type that can be represented in JSON
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum AnyType {
+  #[schemars(title = "string")]
   String(String),
+  #[schemars(title = "int")]
   Int(isize),
+  #[schemars(title = "float")]
   Float(OrderedFloat<f64>),
+  #[schemars(title = "bool")]
   Bool(bool),
+  #[schemars(title = "array")]
   Array(Vec<AnyType>),
+  #[schemars(title = "object")]
   Object(BTreeMap<String, AnyType>),
+  #[schemars(title = "null")]
   Null,
 }
 

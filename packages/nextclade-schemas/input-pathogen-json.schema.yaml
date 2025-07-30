@@ -169,20 +169,28 @@ properties:
     - type: 'null'
 definitions:
   AnyType:
+    description: Any type that can be represented in JSON
     anyOf:
-    - type: string
-    - type: integer
+    - title: string
+      type: string
+    - title: int
+      type: integer
       format: int
-    - type: number
+    - title: float
+      type: number
       format: double
-    - type: boolean
-    - type: array
+    - title: bool
+      type: boolean
+    - title: array
+      type: array
       items:
         $ref: '#/definitions/AnyType'
-    - type: object
+    - title: object
+      type: object
       additionalProperties:
         $ref: '#/definitions/AnyType'
-    - type: 'null'
+    - title: 'null'
+      type: 'null'
   DatasetMeta:
     type: object
     properties:
