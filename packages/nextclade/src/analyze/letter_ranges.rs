@@ -36,7 +36,10 @@ impl<L: Letter<L>, P: PositionLike> LetterRange<L, P> {
   }
 }
 
+/// Range of nucleotide positions
 pub type NucRange = LetterRange<Nuc, NucRefGlobalPosition>;
+
+/// Range of amino acid positions
 pub type AaRange = LetterRange<Aa, AaRefPosition>;
 
 // Finds contiguous ranges (segments) in the sequence, such that for every character inside every range,
@@ -97,6 +100,7 @@ pub fn find_letter_ranges<L: Letter<L>, P: PositionLike>(qry_aln: &[L], letter: 
   find_letter_ranges_by(qry_aln, |candidate| candidate == letter)
 }
 
+/// A set of ranges of amino acid positions in a translated CDS
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CdsAaRange {

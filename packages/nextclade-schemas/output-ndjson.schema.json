@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "NextcladeOutputs",
+  "title": "ResultJson",
+  "description": "Single element in `.results` array in nextclade.json file, produced by `nextclade run --output-json`. This corresponds to a single sequence in the inputs.",
   "type": "object",
   "required": [
     "aaAlignmentRanges",
@@ -397,11 +398,17 @@
       }
     },
     "annotation": {
-      "$ref": "#/definitions/GeneMap"
+      "description": "Genome annotation in query sequence coordinates",
+      "allOf": [
+        {
+          "$ref": "#/definitions/GeneMap"
+        }
+      ]
     }
   },
   "definitions": {
     "NucSub": {
+      "description": "A nucleotide substitution",
       "type": "object",
       "required": [
         "pos",
@@ -425,6 +432,7 @@
       "format": "int"
     },
     "Nuc": {
+      "description": "A nucleotide",
       "type": "string",
       "enum": [
         "T",
@@ -446,6 +454,7 @@
       ]
     },
     "NucDelRange": {
+      "description": "A nucleotide deletion range",
       "type": "object",
       "required": [
         "range"
@@ -473,6 +482,7 @@
       }
     },
     "Insertion_for_Nuc": {
+      "description": "An insertion",
       "type": "object",
       "required": [
         "ins",
@@ -504,6 +514,7 @@
       }
     },
     "FrameShift": {
+      "description": "A frame shift",
       "type": "object",
       "required": [
         "cdsName",
@@ -595,6 +606,7 @@
       ]
     },
     "AaDel": {
+      "description": "An aminoacid deletion",
       "type": "object",
       "required": [
         "cdsName",
@@ -614,6 +626,7 @@
       }
     },
     "AaIns": {
+      "description": "An amino acid insertion",
       "type": "object",
       "required": [
         "cds",
@@ -634,6 +647,7 @@
       }
     },
     "CdsAaRange": {
+      "description": "A set of ranges of amino acid positions in a translated CDS",
       "type": "object",
       "required": [
         "cdsName",
@@ -677,6 +691,7 @@
       }
     },
     "AaChangesGroup": {
+      "description": "Represents a group of adjacent amino acid changes along with nucleotide changes nearby.",
       "type": "object",
       "required": [
         "changes",
@@ -777,6 +792,7 @@
       }
     },
     "PcrPrimerChange": {
+      "description": "A change in a PCR primer due to mutations",
       "type": "object",
       "required": [
         "primer",
@@ -849,6 +865,7 @@
       }
     },
     "PrivateNucMutations": {
+      "description": "A collection of private nucleotide mutations",
       "type": "object",
       "required": [
         "labeledSubstitutions",
@@ -952,6 +969,7 @@
       }
     },
     "PrivateAaMutations": {
+      "description": "A collection of private amino acid mutations for a CDS",
       "type": "object",
       "required": [
         "aaChangesGroups",
@@ -1027,6 +1045,7 @@
       }
     },
     "CladeNodeAttrFounderInfo": {
+      "description": "Information about a clade-like node attribute founder",
       "type": "object",
       "required": [
         "aaMutations",
@@ -1066,6 +1085,7 @@
       "minimum": 0.0
     },
     "AuspiceRefNodesDesc": {
+      "description": "Describes search criteria in the reference tree nodes. This is used for \"Relative to\" feature where you can switch mutation calling source node between \"reference\", \"parent\", \"clade founder\" and custom nodes described using this format.",
       "type": "object",
       "properties": {
         "default": {
@@ -1083,6 +1103,7 @@
       }
     },
     "AuspiceRefNodeSearchDesc": {
+      "description": "Describes a criteria for selecting a reference node for \"Relative to\" feature",
       "type": "object",
       "required": [
         "name"
@@ -1197,6 +1218,7 @@
       ]
     },
     "AncestralSearchResult": {
+      "description": "Represents the result of searching for ancestral nodes of interest in the graph",
       "type": "object",
       "required": [
         "search"
@@ -1218,6 +1240,7 @@
       }
     },
     "AncestralSearchResultForCriteria": {
+      "description": "Represents the result of searching for ancestral nodes of interest in the graph",
       "type": "object",
       "required": [
         "criterion"
@@ -1239,6 +1262,7 @@
       }
     },
     "AncestralSearchMatch": {
+      "description": "Represents a match found in the ancestral search",
       "type": "object",
       "required": [
         "nodeKey",
@@ -1290,6 +1314,7 @@
       }
     },
     "RelativeNucMutations": {
+      "description": "Result for a single sequence in the inputs, containing relative nucleotide mutations",
       "type": "object",
       "required": [
         "search"
@@ -1311,6 +1336,7 @@
       }
     },
     "RelativeNucMutationsResult": {
+      "description": "Result for a single criterion in the search, containing relative nucleotide mutations",
       "type": "object",
       "required": [
         "criterion",
@@ -1373,6 +1399,7 @@
       }
     },
     "PeptideWarning": {
+      "description": "A warning about a peptide sequence",
       "type": "object",
       "required": [
         "cdsName",
@@ -1744,6 +1771,7 @@
       }
     },
     "PhenotypeValue": {
+      "description": "Result for a single phenotype value",
       "type": "object",
       "required": [
         "cds",
@@ -1764,6 +1792,7 @@
       }
     },
     "AaMotif": {
+      "description": "Result of amino acid motif search in a translated CDS",
       "type": "object",
       "required": [
         "cds",
@@ -1855,6 +1884,7 @@
       }
     },
     "GeneMap": {
+      "description": "Genome annotation",
       "type": "object",
       "required": [
         "genes"

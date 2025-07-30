@@ -20,6 +20,7 @@ pub struct AttrPair {
   pub value: String,
 }
 
+/// Represents the result of searching for ancestral nodes of interest in the graph
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AncestralSearchResult {
@@ -28,6 +29,7 @@ pub struct AncestralSearchResult {
   pub result: Option<AncestralSearchResultForCriteria>,
 }
 
+/// Represents the result of searching for ancestral nodes of interest in the graph
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AncestralSearchResultForCriteria {
@@ -39,6 +41,7 @@ pub struct AncestralSearchResultForCriteria {
   pub r#match: Option<AncestralSearchMatch>,
 }
 
+/// Represents a match found in the ancestral search
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AncestralSearchMatch {

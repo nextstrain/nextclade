@@ -226,7 +226,7 @@ impl PhenotypeData {
   }
 }
 
-/// Describes a single attribute of a phenotype
+/// Description of a phenotype attribute
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeAttrDesc {

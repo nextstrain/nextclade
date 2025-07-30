@@ -22,6 +22,7 @@ use std::path::Path;
 
 type GeneMapParserFn = Box<dyn Fn(&str) -> Result<GeneMap, Report>>;
 
+/// Genome annotation
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[must_use]
 pub struct GeneMap {

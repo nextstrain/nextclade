@@ -346,6 +346,7 @@ impl AuspiceTreeNode {
   }
 }
 
+/// Description of a clade-like node attribute
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CladeNodeAttrKeyDesc {
@@ -421,6 +422,7 @@ pub struct AuspiceRefNodeSearchCriteria {
   pub other: serde_json::Value,
 }
 
+/// Describes a criteria for selecting a reference node for "Relative to" feature
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeSearchDesc {
@@ -445,6 +447,7 @@ impl AuspiceRefNodeSearchDesc {
   }
 }
 
+/// Describes search criteria in the reference tree nodes. This is used for "Relative to" feature where you can switch mutation calling source node between "reference", "parent", "clade founder" and custom nodes described using this format.
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodesDesc {
@@ -464,6 +467,8 @@ impl AuspiceRefNodesDesc {
   }
 }
 
+/// Nextclade extensions to Auspice JSON format
+/// See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -488,6 +493,8 @@ impl AuspiceMetaExtensionsNextclade {
   }
 }
 
+/// Nextclade extensions to Auspice JSON format
+/// See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
   #[serde(default, skip_serializing_if = "AuspiceMetaExtensionsNextclade::is_empty")]
