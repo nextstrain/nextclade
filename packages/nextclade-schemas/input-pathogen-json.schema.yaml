@@ -1,6 +1,100 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: VirusProperties
-description: Contains external configuration and data specific for a particular pathogen
+title: PathogenJson
+description: pathogen.json dataset file. Contains external configuration and data specific for a particular pathogen.
+examples:
+- schemaVersion: 3.0.0
+  attributes:
+    name: Influenza A H3N2 HA
+    reference accession: CY163680
+    reference name: A/Wisconsin/67/2005-egg
+    segment: ha
+  shortcuts:
+  - flu_h3n2_ha_broad
+  - nextstrain/flu/h3n2/ha/wisconsin-67-2005
+  defaultCds: HA1
+  cdsOrderPreference:
+  - HA1
+  - HA2
+  mutLabels:
+    nucMutLabelMap:
+      159A:
+      - T160K
+      460T:
+      - N155H
+  qc:
+    missingData:
+      enabled: true
+      missingDataThreshold: 100.0
+      scoreBias: 10.0
+    mixedSites:
+      enabled: true
+      mixedSitesThreshold: 4
+    privateMutations:
+      enabled: true
+      weightReversionSubstitutions: 1.0
+      weightReversionDeletions: 1.0
+      weightLabeledSubstitutions: 2.0
+      weightLabeledDeletions: 1.0
+      weightUnlabeledSubstitutions: 1.0
+      weightUnlabeledDeletions: 1.0
+      typical: 5.0
+      cutoff: 15.0
+    snpClusters:
+      enabled: true
+      windowSize: 100
+      clusterCutOff: 5
+      scoreWeight: 50.0
+    frameShifts:
+      enabled: true
+      ignoredFrameShifts:
+      - cdsName: ORF1a
+        codonRange:
+          begin: 3675
+          end: 3675
+      scoreWeight: 75.0
+    stopCodons:
+      enabled: true
+      ignoredStopCodons:
+      - cdsName: N
+        codon: 417
+      - cdsName: ORF3a
+        codon: 238
+      scoreWeight: 75.0
+  phenotypeData:
+  - name: receptor_binding
+    nameFriendly: Receptor Binding
+    description: Predicts receptor binding specificity and affinity
+    cds: HA1
+    aaRange:
+      begin: 120
+      end: 260
+    ignore:
+      clades:
+      - 3C.2A
+      - 3C.3A
+    data:
+    - name: receptor_binding
+      weight: 1.0
+      locations:
+        '145': 0.4
+        '155':
+          H: 1.2
+          N: 0.8
+          default: 0.0
+        '226': 0.6
+  aaMotifs:
+  - name: glycosylation
+    nameShort: Glyc.
+    nameFriendly: Glycosylation
+    description: N-linked glycosylation motifs (N-X-S/T with X any amino acid other than P)
+    motifs:
+    - N[^P][ST]
+    includeCdses:
+    - cds: HA1
+    - cds: HA2
+      ranges:
+      - begin: 0
+        end: 186
 type: object
 required:
 - schemaVersion
@@ -136,6 +230,13 @@ definitions:
         - string
         - 'null'
   LabelledMutationsConfig:
+    description: Information about  mutations and their labels
+    examples:
+    - nucMutLabelMap:
+        159A:
+        - T160K
+        460T:
+        - N155H
     type: object
     properties:
       nucMutLabelMap:
@@ -145,11 +246,48 @@ definitions:
           items:
             type: string
   QcConfig:
+    description: Configuration for QC rules
+    examples:
+    - missingData:
+        enabled: true
+        missingDataThreshold: 100.0
+        scoreBias: 10.0
+      mixedSites:
+        enabled: true
+        mixedSitesThreshold: 4
+      privateMutations:
+        enabled: true
+        weightReversionSubstitutions: 1.0
+        weightReversionDeletions: 1.0
+        weightLabeledSubstitutions: 2.0
+        weightLabeledDeletions: 1.0
+        weightUnlabeledSubstitutions: 1.0
+        weightUnlabeledDeletions: 1.0
+        typical: 5.0
+        cutoff: 15.0
+      snpClusters:
+        enabled: true
+        windowSize: 100
+        clusterCutOff: 5
+        scoreWeight: 50.0
+      frameShifts:
+        enabled: true
+        ignoredFrameShifts:
+        - cdsName: ORF1a
+          codonRange:
+            begin: 3675
+            end: 3675
+        scoreWeight: 75.0
+      stopCodons:
+        enabled: true
+        ignoredStopCodons:
+        - cdsName: N
+          codon: 417
+        - cdsName: ORF3a
+          codon: 238
+        scoreWeight: 75.0
     type: object
     properties:
-      schemaVersion:
-        default: ''
-        type: string
       missingData:
         default:
           enabled: false
@@ -186,17 +324,22 @@ definitions:
         - $ref: '#/definitions/QcRulesConfigSnpClusters'
       frameShifts:
         default:
-          enabled: false
+          enabled: true
           scoreWeight: 75.0
         allOf:
         - $ref: '#/definitions/QcRulesConfigFrameShifts'
       stopCodons:
         default:
-          enabled: false
+          enabled: true
           scoreWeight: 75.0
         allOf:
         - $ref: '#/definitions/QcRulesConfigStopCodons'
   QcRulesConfigMissingData:
+    description: Configuration for QC rule "missing data"
+    examples:
+    - enabled: true
+      missingDataThreshold: 100.0
+      scoreBias: 10.0
     type: object
     properties:
       enabled:
@@ -211,6 +354,9 @@ definitions:
         type: number
         format: double
   QcRulesConfigMixedSites:
+    examples:
+    - enabled: true
+      mixedSitesThreshold: 4
     type: object
     properties:
       enabled:
@@ -222,6 +368,17 @@ definitions:
         format: uint
         minimum: 0.0
   QcRulesConfigPrivateMutations:
+    description: Configuration for QC rule "private mutations"
+    examples:
+    - enabled: true
+      weightReversionSubstitutions: 1.0
+      weightReversionDeletions: 1.0
+      weightLabeledSubstitutions: 2.0
+      weightLabeledDeletions: 1.0
+      weightUnlabeledSubstitutions: 1.0
+      weightUnlabeledDeletions: 1.0
+      typical: 5.0
+      cutoff: 15.0
     type: object
     properties:
       enabled:
@@ -260,6 +417,12 @@ definitions:
         type: number
         format: double
   QcRulesConfigSnpClusters:
+    description: Configuration for QC rule "SNP clusters"
+    examples:
+    - enabled: true
+      windowSize: 100
+      clusterCutOff: 5
+      scoreWeight: 50.0
     type: object
     properties:
       enabled:
@@ -280,10 +443,19 @@ definitions:
         type: number
         format: double
   QcRulesConfigFrameShifts:
+    description: Configuration for QC rule "frame shifts"
+    examples:
+    - enabled: true
+      ignoredFrameShifts:
+      - cdsName: ORF1a
+        codonRange:
+          begin: 3675
+          end: 3675
+      scoreWeight: 75.0
     type: object
     properties:
       enabled:
-        default: false
+        default: true
         type: boolean
       ignoredFrameShifts:
         type: array
@@ -294,6 +466,12 @@ definitions:
         type: number
         format: double
   FrameShiftLocation:
+    description: Location of a frame shift in a CDS
+    examples:
+    - cdsName: ORF1a
+      codonRange:
+        begin: 3675
+        end: 3675
     type: object
     properties:
       cdsName:
@@ -323,10 +501,19 @@ definitions:
     type: integer
     format: int
   QcRulesConfigStopCodons:
+    description: Configuration for QC rule "stop codons"
+    examples:
+    - enabled: true
+      ignoredStopCodons:
+      - cdsName: N
+        codon: 417
+      - cdsName: ORF3a
+        codon: 238
+      scoreWeight: 75.0
     type: object
     properties:
       enabled:
-        default: false
+        default: true
         type: boolean
       ignoredStopCodons:
         type: array
@@ -337,6 +524,10 @@ definitions:
         type: number
         format: double
   StopCodonLocation:
+    description: Location of a stop codon in a CDS
+    examples:
+    - cdsName: N
+      codon: 417
     type: object
     required:
     - cdsName
@@ -597,6 +788,29 @@ definitions:
         format: uint
         minimum: 0.0
   PhenotypeData:
+    description: Describes a phenotype, such as receptor binding, immune escape, etc.
+    examples:
+    - name: receptor_binding
+      nameFriendly: Receptor Binding
+      description: Predicts receptor binding specificity and affinity
+      cds: HA1
+      aaRange:
+        begin: 120
+        end: 260
+      ignore:
+        clades:
+        - 3C.2A
+        - 3C.3A
+      data:
+      - name: receptor_binding
+        weight: 1.0
+        locations:
+          '145': 0.4
+          '155':
+            H: 1.2
+            N: 0.8
+            default: 0.0
+          '226': 0.6
     type: object
     required:
     - aaRange
@@ -634,6 +848,17 @@ definitions:
         items:
           type: string
   PhenotypeDataEntry:
+    description: A single entry in the phenotype data
+    examples:
+    - name: receptor_binding
+      weight: 1.0
+      locations:
+        '145': 0.4
+        '155':
+          H: 1.2
+          N: 0.8
+          default: 0.0
+        '226': 0.6
     type: object
     required:
     - locations
@@ -650,6 +875,7 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/PhenotypeCoeff'
   PhenotypeCoeff:
+    description: Coefficient for a phenotype data entry. Can be a single value for all amino acids at a position, or a mapping from amino acids to their specific values.
     anyOf:
     - type: number
       format: double
@@ -659,6 +885,20 @@ definitions:
         format: double
     - true
   AaMotifsDesc:
+    description: Describes motifs in amino acid sequences, such as glycosylation sites, disulfide bonds, etc.
+    examples:
+    - name: glycosylation
+      nameShort: Glyc.
+      nameFriendly: Glycosylation
+      description: N-linked glycosylation motifs (N-X-S/T with X any amino acid other than P)
+      motifs:
+      - N[^P][ST]
+      includeCdses:
+      - cds: HA1
+      - cds: HA2
+        ranges:
+        - begin: 0
+          end: 186
     type: object
     required:
     - description
@@ -684,6 +924,7 @@ definitions:
         items:
           $ref: '#/definitions/CountAaMotifsCdsDesc'
   CountAaMotifsCdsDesc:
+    description: Describes a range of amino acids in a CDS for counting motifs
     type: object
     required:
     - cds

@@ -1209,6 +1209,10 @@ definitions:
         format: uint
         minimum: 0.0
   StopCodonLocation:
+    description: Location of a stop codon in a CDS
+    examples:
+    - cdsName: N
+      codon: 417
     type: object
     required:
     - cdsName

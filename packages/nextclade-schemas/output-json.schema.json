@@ -87,6 +87,7 @@
       }
     },
     "PhenotypeAttrDesc": {
+      "description": "Describes a single attribute of a phenotype",
       "type": "object",
       "required": [
         "description",
@@ -1825,6 +1826,13 @@
       }
     },
     "StopCodonLocation": {
+      "description": "Location of a stop codon in a CDS",
+      "examples": [
+        {
+          "cdsName": "N",
+          "codon": 417
+        }
+      ],
       "type": "object",
       "required": [
         "cdsName",
