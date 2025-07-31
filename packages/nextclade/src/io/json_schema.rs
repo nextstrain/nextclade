@@ -16,13 +16,7 @@ pub fn jsonschema_write_file<T: JsonSchema>(
   let gen = settings.into_generator();
   let schema = gen.into_root_schema_for::<T>();
 
-  let title = schema
-    .schema
-    .metadata
-    .clone()
-    .unwrap_or_default()
-    .title
-    .unwrap_or_default();
+  let title = T::schema_name().into_owned();
 
   let output_file = output_file.as_ref().map_or_else(|| Path::new("-"), AsRef::as_ref);
 

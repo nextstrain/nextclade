@@ -249,7 +249,7 @@ dependencies = [
  "newtype_derive",
  "num-integer",
  "num-traits",
- "ordered-float",
+ "ordered-float 3.9.1",
  "petgraph",
  "rand",
  "regex",
@@ -838,40 +838,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef8ae57c4978a2acd8b869ce6b9ca1dfe817bff704c220209fdef2c0b75a01b9"
 
 [[package]]
-name = "darling"
-version = "0.20.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0558d22a7b463ed0241e993f76f09f30b126687447751a8638587b864e4b3944"
-dependencies = [
- "darling_core",
- "darling_macro",
-]
-
-[[package]]
-name = "darling_core"
-version = "0.20.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab8bfa2e259f8ee1ce5e97824a3c55ec4404a0d772ca7fa96bf19f0752a046eb"
-dependencies = [
- "fnv",
- "ident_case",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
-]
-
-[[package]]
-name = "darling_macro"
-version = "0.20.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29a358ff9f12ec09c3e61fef9b5a9902623a695a46a917b07f269bff1445611a"
-dependencies = [
- "darling_core",
- "quote",
- "syn 2.0.104",
-]
-
-[[package]]
 name = "derive-new"
 version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -943,9 +909,9 @@ dependencies = [
 
 [[package]]
 name = "dyn-clone"
-version = "1.0.11"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68b0cf012f1230e43cd00ebb729c6bb58707ecfa8ad08b52ef3a4ccd2697fc30"
+checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "edit-distance"
@@ -989,27 +955,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "enumset"
-version = "1.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e875f1719c16de097dee81ed675e2d9bb63096823ed3f0ca827b7dea3028bbbb"
-dependencies = [
- "enumset_derive",
-]
-
-[[package]]
-name = "enumset_derive"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e08b6c6ab82d70f08844964ba10c7babb716de2ecaeab9be5717918a5177d3af"
-dependencies = [
- "darling",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
 ]
 
 [[package]]
@@ -1270,9 +1215,9 @@ checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
-version = "0.14.0"
+version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+checksum = "5971ac85611da7067dbfcabef3c70ebb5606018acd9e2a3903a0da507521e0d5"
 
 [[package]]
 name = "heck"
@@ -1437,12 +1382,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ident_case"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
-
-[[package]]
 name = "idna"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1472,17 +1411,17 @@ checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
 dependencies = [
  "autocfg",
  "hashbrown 0.12.3",
- "serde",
 ]
 
 [[package]]
 name = "indexmap"
-version = "2.0.0"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5477fe2230a79769d8dc68e0eabf5437907c0457a5614a9e8dddb67f65eb65d"
+checksum = "fe4cd85333e22411419a0bcae1297d25e58c9443848b11dc6a86fefe8c78a661"
 dependencies = [
  "equivalent",
- "hashbrown 0.14.0",
+ "hashbrown 0.15.4",
+ "serde",
 ]
 
 [[package]]
@@ -1778,7 +1717,7 @@ dependencies = [
  "flate2",
  "gcollections",
  "getrandom",
- "indexmap 1.9.3",
+ "indexmap 2.10.0",
  "intervallum",
  "itertools 0.11.0",
  "lazy_static",
@@ -1789,7 +1728,7 @@ dependencies = [
  "num-traits",
  "num_cpus",
  "optfield",
- "ordered-float",
+ "ordered-float 5.0.0",
  "owo-colors",
  "percent-encoding",
  "pretty_assertions",
@@ -1836,14 +1775,14 @@ dependencies = [
  "dotenv",
  "dotenv_codegen",
  "eyre",
- "indexmap 1.9.3",
+ "indexmap 2.10.0",
  "itertools 0.11.0",
  "lazy_static",
  "log",
  "maplit",
  "nextclade",
  "num_cpus",
- "ordered-float",
+ "ordered-float 5.0.0",
  "owo-colors",
  "pretty_assertions",
  "rayon",
@@ -2016,8 +1955,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a54938017eacd63036332b4ae5c8a49fc8c0c1d6d629893057e4f13609edd06"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "ordered-float"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
+dependencies = [
+ "num-traits",
  "rand",
- "schemars",
  "serde",
 ]
 
@@ -2356,6 +2303,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ref-cast"
+version = "1.0.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a0ae411dbe946a674d89546582cea4ba2bb8defac896622d6496f14c23ba5cf"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1165225c21bff1f3bbce98f5a1f889949bc902d3575308cc7b0de30b4f6d27c7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
+]
+
+[[package]]
 name = "regex"
 version = "1.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2610,15 +2577,14 @@ dependencies = [
 
 [[package]]
 name = "schemars"
-version = "0.8.22"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fbf2ae1b8bc8e02df939598064d22402220cd5bbcca1c76f7d6a310974d5615"
+checksum = "82d20c4491bc164fa2f6c5d44565947a52ad80b9505d8e36f8d54c27c739fcd0"
 dependencies = [
- "chrono",
  "dyn-clone",
  "either",
- "enumset",
- "indexmap 1.9.3",
+ "indexmap 2.10.0",
+ "ref-cast",
  "schemars_derive",
  "serde",
  "serde_json",
@@ -2626,9 +2592,9 @@ dependencies = [
 
 [[package]]
 name = "schemars_derive"
-version = "0.8.22"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32e265784ad618884abaea0600a9adf15393368d840e0222d101a072f3f7534d"
+checksum = "33d020396d1d138dc19f1165df7545479dcd58d93810dc5d646a16e55abefa80"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2682,9 +2648,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.164"
+version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e8c8cf938e98f769bc164923b06dce91cea1751522f46f8466461af04c9027d"
+checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
 dependencies = [
  "serde_derive",
 ]
@@ -2702,9 +2668,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.164"
+version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9735b638ccc51c28bf6914d90a2e9725b377144fc612c49a611fddd1b631d68"
+checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2724,21 +2690,22 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.99"
+version = "1.0.141"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46266871c240a00b8f503b877622fe33430b3c7d963bdc0f2adc511e54a1eae3"
+checksum = "30b9eff21ebe718216c6ec64e1d9ac57087aad11efc64e32002bce4a0d4c03d3"
 dependencies = [
- "indexmap 2.0.0",
+ "indexmap 2.10.0",
  "itoa",
+ "memchr",
  "ryu",
  "serde",
 ]
 
 [[package]]
 name = "serde_repr"
-version = "0.1.12"
+version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcec881020c684085e55a25f7fd888954d56609ef363479dc5a1305eb0d40cab"
+checksum = "175ee3e80ae9982737ca543e96133087cbd9a485eecc3bc4de9c1a37b47ea59c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2747,9 +2714,9 @@ dependencies = [
 
 [[package]]
 name = "serde_stacker"
-version = "0.1.8"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f5557f4c1103cecd0e639a17ab22d670b89912d8a506589ee627bf738a15a5d"
+checksum = "69c8defe6c780725cce4ec6ad3bd91e321baf6fa4e255df1f31e345d507ef01a"
 dependencies = [
  "serde",
  "stacker",
@@ -2769,11 +2736,11 @@ dependencies = [
 
 [[package]]
 name = "serde_yaml"
-version = "0.9.22"
+version = "0.9.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "452e67b9c20c37fa79df53201dc03839651086ed9bbe92b3ca585ca9fdaa7d85"
+checksum = "a0623d197252096520c6f2a5e1171ee436e5af99a5d7caa2891e55e61950e6d9"
 dependencies = [
- "indexmap 2.0.0",
+ "indexmap 2.10.0",
  "itoa",
  "ryu",
  "serde",
@@ -3291,9 +3258,9 @@ checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 
 [[package]]
 name = "unsafe-libyaml"
-version = "0.2.8"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1865806a559042e51ab5414598446a5871b561d21b6764f2eabb0dd481d880a6"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
 name = "untrusted"

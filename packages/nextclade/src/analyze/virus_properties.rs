@@ -32,7 +32,7 @@ const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 /// pathogen.json dataset file. Contains external configuration and data specific for a particular pathogen.
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[schemars(title = "PathogenJson", example = "VirusProperties::example")]
+#[schemars(title = "PathogenJson", example = "VirusProperties::example()")]
 pub struct VirusProperties {
   pub schema_version: String,
 
@@ -102,7 +102,7 @@ pub type AaLabelMap = BTreeMap<AaGenotype, Vec<String>>;
 /// Information about  mutations and their labels
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
-#[schemars(example = "LabelledMutationsConfig::example")]
+#[schemars(example = "LabelledMutationsConfig::example()")]
 pub struct LabelledMutationsConfig {
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub nuc_mut_label_map: BTreeMap<Genotype<Nuc>, Vec<String>>,
@@ -176,7 +176,7 @@ impl PhenotypeCoeff {
 /// A single entry in the phenotype data
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[schemars(example = "PhenotypeDataEntry::example")]
+#[schemars(example = "PhenotypeDataEntry::example()")]
 pub struct PhenotypeDataEntry {
   pub name: String,
   pub weight: OrderedFloat<f64>,
@@ -208,7 +208,7 @@ impl PhenotypeDataEntry {
 /// Describes a phenotype, such as receptor binding, immune escape, etc.
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[schemars(example = "PhenotypeData::example")]
+#[schemars(example = "PhenotypeData::example()")]
 pub struct PhenotypeData {
   pub name: String,
   pub name_friendly: String,
@@ -248,7 +248,7 @@ pub struct PhenotypeAttrDesc {
 /// Describes motifs in amino acid sequences, such as glycosylation sites, disulfide bonds, etc.
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[schemars(example = "AaMotifsDesc::example")]
+#[schemars(example = "AaMotifsDesc::example()")]
 pub struct AaMotifsDesc {
   pub name: String,
   pub name_short: String,

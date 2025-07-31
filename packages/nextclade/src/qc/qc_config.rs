@@ -14,7 +14,7 @@ use validator::Validate;
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcRulesConfigMissingData::example")]
+#[schemars(example = "QcRulesConfigMissingData::example()")]
 pub struct QcRulesConfigMissingData {
   pub enabled: bool,
   pub missing_data_threshold: OrderedFloat<f64>,
@@ -35,7 +35,7 @@ impl QcRulesConfigMissingData {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcRulesConfigMixedSites::example")]
+#[schemars(example = "QcRulesConfigMixedSites::example()")]
 pub struct QcRulesConfigMixedSites {
   pub enabled: bool,
   pub mixed_sites_threshold: usize,
@@ -54,7 +54,7 @@ impl QcRulesConfigMixedSites {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcRulesConfigPrivateMutations::example")]
+#[schemars(example = "QcRulesConfigPrivateMutations::example()")]
 pub struct QcRulesConfigPrivateMutations {
   pub enabled: bool,
 
@@ -104,7 +104,7 @@ const fn one() -> OrderedFloat<f64> {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcRulesConfigSnpClusters::example")]
+#[schemars(example = "QcRulesConfigSnpClusters::example()")]
 pub struct QcRulesConfigSnpClusters {
   pub enabled: bool,
   pub window_size: usize,
@@ -127,7 +127,7 @@ impl QcRulesConfigSnpClusters {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "FrameShiftLocation::example")]
+#[schemars(example = "FrameShiftLocation::example()")]
 pub struct FrameShiftLocation {
   pub cds_name: String,
   pub codon_range: AaRefRange,
@@ -146,7 +146,7 @@ impl FrameShiftLocation {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcRulesConfigFrameShifts::example")]
+#[schemars(example = "QcRulesConfigFrameShifts::example()")]
 pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -177,7 +177,7 @@ impl QcRulesConfigFrameShifts {
 /// Location of a stop codon in a CDS
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
-#[schemars(example = "StopCodonLocation::example")]
+#[schemars(example = "StopCodonLocation::example()")]
 pub struct StopCodonLocation {
   pub cds_name: String,
   pub codon: usize,
@@ -196,7 +196,7 @@ impl StopCodonLocation {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcRulesConfigStopCodons::example")]
+#[schemars(example = "QcRulesConfigStopCodons::example()")]
 pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -237,7 +237,7 @@ impl QcRulesConfigStopCodons {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-#[schemars(example = "QcConfig::example")]
+#[schemars(example = "QcConfig::example()")]
 pub struct QcConfig {
   pub missing_data: QcRulesConfigMissingData,
   pub mixed_sites: QcRulesConfigMixedSites,

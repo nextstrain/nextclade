@@ -2,11 +2,11 @@ use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use derive_more::Display as DeriveDisplay;
 use num::Integer;
 use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive};
-use schemars::gen::SchemaGenerator;
-use schemars::schema::Schema;
+use schemars::{JsonSchema, schema_for};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display, Formatter};
+use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 
@@ -270,12 +270,12 @@ where
   S: SpaceMarker,
   L: SeqTypeMarker,
 {
-  fn schema_name() -> String {
-    "Position".to_owned()
+  fn schema_name() -> Cow<'static, str> {
+    "Position".into()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<isize>()
+  fn json_schema(_gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schema_for!(isize)
   }
 }
 

@@ -1,9 +1,9 @@
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::make_internal_error;
 use eyre::Report;
-use schemars::gen::SchemaGenerator;
-use schemars::schema::Schema;
+use schemars::{JsonSchema, schema_for};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 
 #[repr(i8)]
@@ -42,11 +42,11 @@ impl Display for Frame {
 }
 
 impl schemars::JsonSchema for Frame {
-  fn schema_name() -> String {
-    "Frame".to_owned()
+  fn schema_name() -> Cow<'static, str> {
+    "Frame".into()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<i8>()
+  fn json_schema(_gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schema_for!(i8)
   }
 }

@@ -3,10 +3,9 @@ use crate::io::json::is_json_value_null;
 use core::fmt::Debug;
 use core::fmt::{Display, Formatter};
 use derive_more::Display;
-use schemars::gen::SchemaGenerator;
-use schemars::schema::Schema;
-use schemars::JsonSchema;
+use schemars::{JsonSchema, schema_for};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::borrow::Cow;
 
 pub trait GraphEdge: Clone + Debug {}
 
@@ -44,12 +43,12 @@ impl Serialize for GraphEdgeKey {
 }
 
 impl JsonSchema for GraphEdgeKey {
-  fn schema_name() -> String {
-    "GraphEdgeKey".to_owned()
+  fn schema_name() -> Cow<'static, str> {
+    "GraphEdgeKey".into()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<usize>()
+  fn json_schema(_gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schema_for!(usize)
   }
 }
 
