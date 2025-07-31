@@ -1,5 +1,5 @@
 use crate::analyze::virus_properties::VirusProperties;
-use crate::io::dataset::DatasetsIndexJson;
+use crate::io::dataset::{DatasetListJson, DatasetsIndexJson};
 use crate::io::fs::add_extension;
 use crate::io::json_schema::{jsonschema_write_file, JsonSchemaOutputFormat};
 use crate::io::results_json::ResultsJson;
@@ -137,7 +137,7 @@ pub fn generate_schema(
     NextcladeFileFormat::OutputNdjson => jsonschema_write_file::<NextcladeOutputs>(output, as_format)?,
     NextcladeFileFormat::InternalIndexJson => jsonschema_write_file::<DatasetsIndexJson>(output, as_format)?,
     NextcladeFileFormat::InternalMinimizerIndexJson => jsonschema_write_file::<MinimizerIndexJson>(output, as_format)?,
-    NextcladeFileFormat::OutputDatasetListJson => jsonschema_write_file::<DatasetsIndexJson>(output, as_format)?,
+    NextcladeFileFormat::OutputDatasetListJson => jsonschema_write_file::<DatasetListJson>(output, as_format)?,
   }
   Ok(())
 }

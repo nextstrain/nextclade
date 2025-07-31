@@ -5,11 +5,9 @@ use crate::io::http_client::HttpClient;
 use eyre::Report;
 use itertools::{chain, Itertools};
 use log::{warn, LevelFilter};
-use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
+use nextclade::io::dataset::{Dataset, DatasetListJson, DatasetsIndexJson};
 use nextclade::io::json::{json_stringify, JsonPretty};
 use nextclade::utils::info::this_package_version;
-
-pub type DatasetListJson = Vec<Dataset>;
 
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
@@ -75,7 +73,7 @@ pub fn nextclade_dataset_list(
         true
       }
     })
-    .collect_vec();
+    .collect();
 
   let names = filtered.iter().map(|dataset| &dataset.path).collect_vec();
 

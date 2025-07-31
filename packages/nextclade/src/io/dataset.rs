@@ -9,6 +9,7 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
+use std::ops::{Deref, DerefMut};
 
 const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
 const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
@@ -50,6 +51,36 @@ pub struct DatasetCollection {
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[schemars(title = "DatasetList")]
+pub struct DatasetListJson(pub Vec<Dataset>);
+
+impl Deref for DatasetListJson {
+  type Target = Vec<Dataset>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl DerefMut for DatasetListJson {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0
+  }
+}
+
+impl From<Vec<Dataset>> for DatasetListJson {
+  fn from(datasets: Vec<Dataset>) -> Self {
+    Self(datasets)
+  }
+}
+
+impl FromIterator<Dataset> for DatasetListJson {
+  fn from_iter<T: IntoIterator<Item = Dataset>>(iter: T) -> Self {
+    Self(iter.into_iter().collect())
+  }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

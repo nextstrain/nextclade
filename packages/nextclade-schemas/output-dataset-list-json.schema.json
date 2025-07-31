@@ -1,97 +1,11 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "DatasetsIndexJson",
-  "type": "object",
-  "required": [
-    "collections",
-    "schemaVersion"
-  ],
-  "properties": {
-    "collections": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/DatasetCollection"
-      }
-    },
-    "schemaVersion": {
-      "type": "string"
-    },
-    "minimizerIndex": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/MinimizerIndexVersion"
-      }
-    }
+  "title": "DatasetList",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/Dataset"
   },
   "definitions": {
-    "DatasetCollection": {
-      "type": "object",
-      "required": [
-        "datasets",
-        "meta"
-      ],
-      "properties": {
-        "meta": {
-          "$ref": "#/definitions/DatasetCollectionMeta"
-        },
-        "datasets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Dataset"
-          }
-        }
-      }
-    },
-    "DatasetCollectionMeta": {
-      "type": "object",
-      "required": [
-        "id"
-      ],
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "title": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "description": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "maintainers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DatasetCollectionUrl"
-          }
-        },
-        "urls": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DatasetCollectionUrl"
-          }
-        }
-      }
-    },
-    "DatasetCollectionUrl": {
-      "type": "object",
-      "required": [
-        "name",
-        "url"
-      ],
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        }
-      }
-    },
     "Dataset": {
       "type": "object",
       "required": [
@@ -295,21 +209,6 @@
         "auspiceJson",
         "other"
       ]
-    },
-    "MinimizerIndexVersion": {
-      "type": "object",
-      "required": [
-        "path",
-        "version"
-      ],
-      "properties": {
-        "version": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        }
-      }
     }
   }
 }
