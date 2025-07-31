@@ -3,7 +3,7 @@ use crate::io::yaml::yaml_write;
 use clap::ValueEnum;
 use eyre::Report;
 use log::info;
-use schemars::{schema_for, JsonSchema};
+use schemars::{gen::SchemaSettings, JsonSchema};
 use std::path::Path;
 use strum_macros::EnumIter;
 
@@ -12,7 +12,9 @@ pub fn jsonschema_write_file<T: JsonSchema>(
   output_file: &Option<impl AsRef<Path>>,
   format: &JsonSchemaOutputFormat,
 ) -> Result<(), Report> {
-  let schema = schema_for!(T);
+  let settings = SchemaSettings::draft07();
+  let gen = settings.into_generator();
+  let schema = gen.into_root_schema_for::<T>();
 
   let title = schema
     .schema
