@@ -1,7 +1,6 @@
-use crate::io::json::{json_stringify, JsonPretty};
+#![allow(non_snake_case, clippy::missing_const_for_fn)]
 use crate::make_error;
 use eyre::{eyre, Report};
-use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -11,68 +10,62 @@ use std::str::FromStr;
 
 /// Any type that can be represented in JSON
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-#[serde(untagged)]
-pub enum AnyType {
-  #[schemars(title = "string")]
-  String(String),
-  #[schemars(title = "int")]
-  Int(isize),
-  #[schemars(title = "float")]
-  Float(OrderedFloat<f64>),
-  #[schemars(title = "bool")]
-  Bool(bool),
-  #[schemars(title = "array")]
-  Array(Vec<AnyType>),
-  #[schemars(title = "object")]
-  Object(BTreeMap<String, AnyType>),
-  #[schemars(title = "null")]
-  Null,
-}
+#[serde(transparent)]
+pub struct AnyType(pub Value);
 
 #[allow(clippy::map_err_ignore)]
 impl Display for AnyType {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let s = match self {
-      AnyType::String(x) => x.clone(),
-      AnyType::Int(x) => x.to_string(),
-      AnyType::Float(x) => x.to_string(),
-      AnyType::Bool(x) => x.to_string(),
-      AnyType::Array(x) => json_stringify(&x, JsonPretty(false)).map_err(|_| std::fmt::Error)?,
-      AnyType::Object(x) => json_stringify(&x, JsonPretty(false)).map_err(|_| std::fmt::Error)?,
-      AnyType::Null => "null".to_owned(),
-    };
-    write!(f, "{s}")
+    write!(f, "{}", self.0)
   }
 }
 
 impl AnyType {
+  pub fn String(s: String) -> Self {
+    AnyType(Value::String(s))
+  }
+
+  pub fn Int(i: isize) -> Self {
+    AnyType(Value::Number((i as i64).into()))
+  }
+
+  pub fn Float(f: f64) -> Self {
+    AnyType(Value::Number(
+      serde_json::Number::from_f64(f).unwrap_or_else(|| 0.into()),
+    ))
+  }
+
+  pub fn Bool(b: bool) -> Self {
+    AnyType(Value::Bool(b))
+  }
+
+  pub fn Array(arr: Vec<AnyType>) -> Self {
+    AnyType(Value::Array(arr.into_iter().map(|a| a.0).collect()))
+  }
+
+  pub fn Object(obj: BTreeMap<String, AnyType>) -> Self {
+    AnyType(Value::Object(obj.into_iter().map(|(k, v)| (k, v.0)).collect()))
+  }
+
+  pub const fn Null() -> Self {
+    AnyType(Value::Null)
+  }
+
+  // Existing methods
   pub fn as_str_maybe(&self) -> Option<&str> {
-    match &self {
-      AnyType::String(x) => Some(x),
-      _ => None,
-    }
+    self.0.as_str()
   }
 
-  pub const fn as_int_maybe(&self) -> Option<isize> {
-    match &self {
-      AnyType::Int(x) => Some(*x),
-      _ => None,
-    }
+  pub fn as_int_maybe(&self) -> Option<isize> {
+    self.0.as_i64().map(|x| x as isize)
   }
 
-  pub const fn as_float_maybe(&self) -> Option<f64> {
-    match &self {
-      AnyType::Float(x) => Some(x.0),
-      _ => None,
-    }
+  pub fn as_float_maybe(&self) -> Option<f64> {
+    self.0.as_f64()
   }
 
-  pub const fn as_bool_maybe(&self) -> Option<bool> {
-    match &self {
-      AnyType::Bool(x) => Some(*x),
-      _ => None,
-    }
+  pub fn as_bool_maybe(&self) -> Option<bool> {
+    self.0.as_bool()
   }
 
   pub fn as_str(&self) -> Result<&str, Report> {
@@ -101,31 +94,6 @@ impl FromStr for AnyType {
       Err(err) => return make_error!("Failed to parse JSON: {err}"),
     };
 
-    match value {
-      Value::String(s) => Ok(AnyType::String(s)),
-      Value::Number(n) => {
-        if let Some(int_val) = n.as_i64() {
-          Ok(AnyType::Int(int_val as isize))
-        } else {
-          Ok(AnyType::Float(OrderedFloat(n.as_f64().unwrap())))
-        }
-      }
-      Value::Bool(b) => Ok(AnyType::Bool(b)),
-      Value::Array(arr) => {
-        let mut parsed_array = Vec::new();
-        for val in arr {
-          parsed_array.push(AnyType::from_str(&val.to_string())?);
-        }
-        Ok(AnyType::Array(parsed_array))
-      }
-      Value::Object(obj) => {
-        let mut parsed_object = BTreeMap::new();
-        for (key, val) in obj {
-          parsed_object.insert(key, AnyType::from_str(&val.to_string())?);
-        }
-        Ok(AnyType::Object(parsed_object))
-      }
-      Value::Null => Ok(AnyType::Null),
-    }
+    Ok(AnyType(value))
   }
 }

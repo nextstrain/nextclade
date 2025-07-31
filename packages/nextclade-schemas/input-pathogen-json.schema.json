@@ -155,9 +155,7 @@
     },
     "attributes": {
       "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/AnyType"
-      }
+      "additionalProperties": true
     },
     "shortcuts": {
       "type": "array",
@@ -284,47 +282,6 @@
     }
   },
   "definitions": {
-    "AnyType": {
-      "description": "Any type that can be represented in JSON",
-      "anyOf": [
-        {
-          "title": "string",
-          "type": "string"
-        },
-        {
-          "title": "int",
-          "type": "integer",
-          "format": "int"
-        },
-        {
-          "title": "float",
-          "type": "number",
-          "format": "double"
-        },
-        {
-          "title": "bool",
-          "type": "boolean"
-        },
-        {
-          "title": "array",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/AnyType"
-          }
-        },
-        {
-          "title": "object",
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/AnyType"
-          }
-        },
-        {
-          "title": "null",
-          "type": "null"
-        }
-      ]
-    },
     "DatasetMeta": {
       "type": "object",
       "properties": {
@@ -1083,70 +1040,22 @@
           "minimum": 0.0
         },
         "maxIndel": {
-          "description": "REMOVED",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/AnyType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "REMOVED"
         },
         "seedLength": {
-          "description": "REMOVED",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/AnyType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "REMOVED"
         },
         "mismatchesAllowed": {
-          "description": "REMOVED",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/AnyType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "REMOVED"
         },
         "minSeeds": {
-          "description": "REMOVED",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/AnyType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "REMOVED"
         },
         "minMatchRate": {
-          "description": "REMOVED",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/AnyType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "REMOVED"
         },
         "seedSpacing": {
-          "description": "REMOVED",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/AnyType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "REMOVED"
         }
       }
     },
@@ -1347,8 +1256,7 @@
             "type": "number",
             "format": "double"
           }
-        },
-        true
+        }
       ]
     },
     "AaMotifsDesc": {

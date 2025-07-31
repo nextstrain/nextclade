@@ -145,6 +145,8 @@ pub struct PhenotypeDataIgnore {
 pub enum PhenotypeCoeff {
   ByPosition(OrderedFloat<f64>),
   ByPositionAndAa(BTreeMap<String, OrderedFloat<f64>>),
+  #[serde(skip)]
+  #[schemars(skip)]
   Other(serde_json::Value),
 }
 

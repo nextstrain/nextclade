@@ -1,14 +1,12 @@
 """
-Example demonstrating how to read  JSON using Python classes generated from JSON schema.
+Example demonstrating how to read Nextclade output JSON using Python classes generated from JSON schema.
 See README.md in the parent directory for instructions.
-```
-
 """
 
 import sys
 import json
 from dacite import from_dict
-from nextclade_output_json import ResultsJson
+from lib.nextclade_output_json import ResultsJson
 
 
 def read_nextclade_output_json(filepath: str | None = None) -> ResultsJson:

@@ -103,8 +103,7 @@ properties:
     type: string
   attributes:
     type: object
-    additionalProperties:
-      $ref: '#/definitions/AnyType'
+    additionalProperties: true
   shortcuts:
     type: array
     items:
@@ -168,29 +167,6 @@ properties:
     - $ref: '#/definitions/DatasetCompatibility'
     - type: 'null'
 definitions:
-  AnyType:
-    description: Any type that can be represented in JSON
-    anyOf:
-    - title: string
-      type: string
-    - title: int
-      type: integer
-      format: int
-    - title: float
-      type: number
-      format: double
-    - title: bool
-      type: boolean
-    - title: array
-      type: array
-      items:
-        $ref: '#/definitions/AnyType'
-    - title: object
-      type: object
-      additionalProperties:
-        $ref: '#/definitions/AnyType'
-    - title: 'null'
-      type: 'null'
   DatasetMeta:
     type: object
     properties:
@@ -728,34 +704,16 @@ definitions:
         minimum: 0.0
       maxIndel:
         description: REMOVED
-        anyOf:
-        - $ref: '#/definitions/AnyType'
-        - type: 'null'
       seedLength:
         description: REMOVED
-        anyOf:
-        - $ref: '#/definitions/AnyType'
-        - type: 'null'
       mismatchesAllowed:
         description: REMOVED
-        anyOf:
-        - $ref: '#/definitions/AnyType'
-        - type: 'null'
       minSeeds:
         description: REMOVED
-        anyOf:
-        - $ref: '#/definitions/AnyType'
-        - type: 'null'
       minMatchRate:
         description: REMOVED
-        anyOf:
-        - $ref: '#/definitions/AnyType'
-        - type: 'null'
       seedSpacing:
         description: REMOVED
-        anyOf:
-        - $ref: '#/definitions/AnyType'
-        - type: 'null'
   AlignmentPreset:
     type: string
     enum:
@@ -891,7 +849,6 @@ definitions:
       additionalProperties:
         type: number
         format: double
-    - true
   AaMotifsDesc:
     description: Describes motifs in amino acid sequences, such as glycosylation sites, disulfide bonds, etc.
     examples:

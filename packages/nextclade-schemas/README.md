@@ -41,6 +41,8 @@ Both use-cases can be handy in downstream applications, because, as stated above
 
 ## Example: Python
 
+This is a simple example which demonstrates how to use Nextclade JSON schemas to generate Python dataclasses and how to use them to read Nextclade JSON files in a type-safe way. Note that Python language is duck typed, so it's probably not the best choice if you want to build something type-safe. We demonstrate with Python here only because its omnipresence in bioinformatics.
+
 First you need to obtain JSON schema definitions. Depending on your needs and tools you use you could:
 
 - run `nextclade schemas write -o nextclade-schemas/`
@@ -56,17 +58,25 @@ cd nextclade-schemas/
 
 pip3 install dacite datamodel-code-generator pydantic
 
+mkdir -p examples/python/lib/
+
 # Generate Python classes
-datamodel-codegen --input-file-type "jsonschema" --output-model-type "dataclasses.dataclass" --enum-field-as-literal=all --input "output-json.schema.yaml" --output "examples/python/nextclade_output_json.py"
+datamodel-codegen --input-file-type "jsonschema" --output-model-type "dataclasses.dataclass" --enum-field-as-literal=all --input "output-json.schema.yaml" --output "examples/python/lib/nextclade_output_json.py"
+
+datamodel-codegen --input-file-type "jsonschema" --output-model-type "dataclasses.dataclass" --enum-field-as-literal=all --input "input-pathogen-json.schema.yaml" --output "examples/python/lib/nextclade_input_pathogen_json.py"
 
 cd examples python/
 
-# Run the example which is using the generated Python classes
-# See packages/nextclade-schemas/examples/python/example.py
-python3 examples/python/example.py path/to/your/nextclade.json
+# Run the output JSON example which is using the generated Python classes.
+# See packages/nextclade-schemas/examples/python/example_output_json.py
+python3 examples/python/example_output_json.py $path_to_your_output_nextclade_json
+
+# Run the input pathogen JSON example which is using the generated Python classes.
+# See packages/nextclade-schemas/examples/python/example_pathogen_json.py
+python3 examples/python/example_pathogen_json.py $path_to_your_pathogen_json
 ```
 
-In this example the generated file `nextclade_output_json.py` will contain the Python dataclasses derived from `output-json.schema.yaml`. The example program in `examples/python/example.py` reads the Nextclade output JSON file (produced separately with `nextclade run --output-json ...`) and casts the resulting dict to the generated dataclasses (recursively) types using `dacite` library. You can then access to the data in a convenient and type-safe manner, and most text editors should also provide code completions. This is especially true for type-safe, compiled languages.
+In this example the generated file `nextclade_output_json.py` will contain the Python dataclasses derived from `output-json.schema.yaml`. The example program in `examples/python/example.py` reads the Nextclade output JSON file (produced separately with `nextclade run --output-json ...`) and casts the resulting dict to the generated dataclasses (recursively) types using `dacite` library. You can then access to the data in a convenient and type-safe manner, and most text editors should also provide code completions. This approach with dataclasses can be somewhat slow for big inputs, because it requires converting Python dicts into dataclasses. You might find another, better solution which fits your use-case better - there are many tools which can understand JSON schema.
 
 ## Other languages and tools
 

@@ -1652,18 +1652,18 @@ definitions:
       - none
     - type: object
       required:
-      - five-prime
+      - fivePrime
       properties:
-        five-prime:
+        fivePrime:
           type: integer
           format: uint
           minimum: 0.0
       additionalProperties: false
     - type: object
       required:
-      - three-prime
+      - threePrime
       properties:
-        three-prime:
+        threePrime:
           type: integer
           format: uint
           minimum: 0.0

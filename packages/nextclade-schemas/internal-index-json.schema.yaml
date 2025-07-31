@@ -74,8 +74,7 @@ definitions:
           type: string
       attributes:
         type: object
-        additionalProperties:
-          $ref: '#/definitions/AnyType'
+        additionalProperties: true
       meta:
         $ref: '#/definitions/DatasetMeta'
       files:
@@ -92,29 +91,6 @@ definitions:
         anyOf:
         - $ref: '#/definitions/DatasetType'
         - type: 'null'
-  AnyType:
-    description: Any type that can be represented in JSON
-    anyOf:
-    - title: string
-      type: string
-    - title: int
-      type: integer
-      format: int
-    - title: float
-      type: number
-      format: double
-    - title: bool
-      type: boolean
-    - title: array
-      type: array
-      items:
-        $ref: '#/definitions/AnyType'
-    - title: object
-      type: object
-      additionalProperties:
-        $ref: '#/definitions/AnyType'
-    - title: 'null'
-      type: 'null'
   DatasetMeta:
     type: object
     properties:
