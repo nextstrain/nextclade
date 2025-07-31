@@ -27,7 +27,7 @@ pub struct MinimizerIndexJson {
 
   pub params: MinimizerIndexParams,
 
-  #[schemars(with = "BTreeMap<String, String>")]
+  #[schemars(with = "BTreeMap<String, Vec<usize>>")]
   #[serde(serialize_with = "serde_serialize_minimizers")]
   #[serde(deserialize_with = "serde_deserialize_minimizers")]
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

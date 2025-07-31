@@ -16,7 +16,11 @@ properties:
   minimizers:
     type: object
     additionalProperties:
-      type: string
+      type: array
+      items:
+        type: integer
+        format: uint
+        minimum: 0.0
   references:
     type: array
     items:
