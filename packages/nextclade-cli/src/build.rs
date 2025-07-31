@@ -13,6 +13,10 @@ fn init() {
 }
 
 fn main() -> Result<(), Report> {
+  // Tell Cargo to re-run this build script when any source file in the nextclade library changes
+  // This ensures schemas are never stale when types are modified. Could be slow.
+  println!("cargo:rerun-if-changed=../nextclade/src");
+
   generate_schema(
     &NextcladeFileFormat::All,
     &JsonSchemaOutputFormat::Json,
