@@ -1,18 +1,18 @@
 import { get, isBoolean, isFinite, isNil, isNumber, isString, range, sumBy } from 'lodash'
 import type {
   Aa,
-  AnyType,
   Cds,
   CdsSegment,
   Dataset,
   DatasetsIndexJson,
+  PathogenJson,
   FastaRecord,
   InsertionFor_Nuc, // eslint-disable-line camelcase
   LetterRangeFor_AaAnd_Position, // eslint-disable-line camelcase
   LetterRangeFor_NucAnd_Position, // eslint-disable-line camelcase
-  NextcladeErrorOutputs,
-  NextcladeOutputs,
   NextcladeResult,
+  ResultJson,
+  ResultJsonError,
   Nuc,
   NucDel,
   NucSub,
@@ -28,16 +28,18 @@ export function rangeLen(range: Range) {
   return range.end - range.begin
 }
 
+export type AnyType = unknown
 export type Nucleotide = Nuc
 export type Aminoacid = Aa
 export type NucleotideRange = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
 export type AminoacidRange = LetterRangeFor_AaAnd_Position // eslint-disable-line camelcase
 export type NucleotideInsertion = InsertionFor_Nuc // eslint-disable-line camelcase
 export type NucleotideMissing = LetterRangeFor_NucAnd_Position // eslint-disable-line camelcase
-export type AnalysisResult = NextcladeOutputs
-export type AnalysisError = NextcladeErrorOutputs
+export type AnalysisResult = ResultJson
+export type AnalysisError = ResultJsonError
 export type FastaRecordId = StrictOmit<FastaRecord, 'seq'>
 export type DatasetsIndexV2Json = DatasetsIndexJson
+export type VirusProperties = PathogenJson
 
 export function cdsNucLength(cds: Cds) {
   return sumBy(cds.segments, cdsSegmentNucLength)
@@ -120,27 +122,27 @@ export function areDatasetsEqual(left?: Dataset, right?: Dataset): boolean {
   return !isNil(left?.path) && !isNil(right?.path) && left?.path === right?.path
 }
 
-export function anyAsStrMaybe(x: AnyType | undefined): string | undefined {
+export function anyAsStrMaybe(x: unknown | undefined): string | undefined {
   return isString(x) ? x : undefined
 }
 
-export function anyAsNumberMaybe(x: AnyType | undefined): number | undefined {
+export function anyAsNumberMaybe(x: unknown | undefined): number | undefined {
   return isNumber(x) && isFinite(x) ? x : undefined
 }
 
-export function anyAsBoolMaybe(x: AnyType | undefined): boolean | undefined {
+export function anyAsBoolMaybe(x: unknown | undefined): boolean | undefined {
   return isBoolean(x) ? x : undefined
 }
 
-export function attrStrMaybe(attributes: Record<string, AnyType> | undefined, name: string): string | undefined {
+export function attrStrMaybe(attributes: Record<string, unknown> | undefined, name: string): string | undefined {
   return anyAsStrMaybe(get(attributes, name))
 }
 
-export function attrNumberMaybe(attributes: Record<string, AnyType> | undefined, name: string): number | undefined {
+export function attrNumberMaybe(attributes: Record<string, unknown> | undefined, name: string): number | undefined {
   return anyAsNumberMaybe(get(attributes, name))
 }
 
-export function attrBoolMaybe(attributes: Record<string, AnyType> | undefined, name: string): boolean | undefined {
+export function attrBoolMaybe(attributes: Record<string, unknown> | undefined, name: string): boolean | undefined {
   return anyAsBoolMaybe(get(attributes, name))
 }
 
