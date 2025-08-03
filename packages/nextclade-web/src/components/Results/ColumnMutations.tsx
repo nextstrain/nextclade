@@ -9,7 +9,7 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfNucMuts } from 'src/components/Results/ListOfNucMuts'
-import { ListOfAaSubs } from 'src/components/SequenceView/ListOfAaSubs'
+import { ListOfAaMuts } from 'src/components/Results/ListOfAaMuts'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
@@ -100,7 +100,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
             </tr>
             <tr>
               <td>
-                <ListOfAaSubs analysisResult={analysisResult} />
+                <ListOfAaMuts analysisResult={analysisResult} />
               </td>
             </tr>
           </tbody>

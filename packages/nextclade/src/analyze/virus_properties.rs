@@ -2,6 +2,7 @@ use crate::align::params::AlignPairwiseParamsOptional;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes_find_for_cds::AaChangesParamsOptional;
+use crate::analyze::aa_sub::AaGenotype;
 use crate::coord::position::AaRefPosition;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::AaRefRange;
@@ -18,6 +19,7 @@ use crate::{o, vec_of_owned};
 use eyre::{Report, WrapErr};
 use maplit::btreemap;
 use ordered_float::OrderedFloat;
+use schemars;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -94,6 +96,9 @@ pub type LabelMap<L> = BTreeMap<Genotype<L>, Vec<String>>;
 /// Associates a genotype (pos, nuc) to a list of labels
 pub type NucLabelMap = LabelMap<Nuc>;
 
+/// Associates an AA genotype (cds, pos, aa) to a list of labels
+pub type AaLabelMap = BTreeMap<AaGenotype, Vec<String>>;
+
 /// Information about  mutations and their labels
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -101,6 +106,8 @@ pub type NucLabelMap = LabelMap<Nuc>;
 pub struct LabelledMutationsConfig {
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub nuc_mut_label_map: BTreeMap<Genotype<Nuc>, Vec<String>>,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub aa_mut_label_map: AaLabelMap,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -126,6 +133,7 @@ impl LabelledMutationsConfig {
 
     Self {
       nuc_mut_label_map,
+      aa_mut_label_map: BTreeMap::new(),
       other: serde_json::Value::Null,
     }
   }

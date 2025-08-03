@@ -1216,13 +1216,17 @@
       "required": [
         "aaChangesGroups",
         "cdsName",
+        "labeledSubstitutions",
         "privateDeletionRanges",
         "privateDeletions",
         "privateSubstitutions",
         "reversionSubstitutions",
+        "totalLabeledSubstitutions",
         "totalPrivateDeletions",
         "totalPrivateSubstitutions",
-        "totalReversionSubstitutions"
+        "totalReversionSubstitutions",
+        "totalUnlabeledSubstitutions",
+        "unlabeledSubstitutions"
       ],
       "properties": {
         "cdsName": {
@@ -1252,6 +1256,18 @@
             "$ref": "#/definitions/AaSub"
           }
         },
+        "labeledSubstitutions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AaSubLabeled"
+          }
+        },
+        "unlabeledSubstitutions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AaSub"
+          }
+        },
         "totalPrivateSubstitutions": {
           "type": "integer",
           "format": "uint",
@@ -1263,6 +1279,16 @@
           "minimum": 0.0
         },
         "totalReversionSubstitutions": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalLabeledSubstitutions": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalUnlabeledSubstitutions": {
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
@@ -1283,6 +1309,25 @@
       "properties": {
         "range": {
           "$ref": "#/definitions/Range_for_Position"
+        }
+      }
+    },
+    "AaSubLabeled": {
+      "description": "Labeled aminoacid substitution",
+      "type": "object",
+      "required": [
+        "labels",
+        "substitution"
+      ],
+      "properties": {
+        "substitution": {
+          "$ref": "#/definitions/AaSub"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

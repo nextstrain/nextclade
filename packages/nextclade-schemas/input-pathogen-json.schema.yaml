@@ -229,6 +229,12 @@ definitions:
           type: array
           items:
             type: string
+      aaMutLabelMap:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
   QcConfig:
     description: Configuration for QC rules
     examples:

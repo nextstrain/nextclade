@@ -882,13 +882,17 @@ definitions:
     required:
     - aaChangesGroups
     - cdsName
+    - labeledSubstitutions
     - privateDeletionRanges
     - privateDeletions
     - privateSubstitutions
     - reversionSubstitutions
+    - totalLabeledSubstitutions
     - totalPrivateDeletions
     - totalPrivateSubstitutions
     - totalReversionSubstitutions
+    - totalUnlabeledSubstitutions
+    - unlabeledSubstitutions
     properties:
       cdsName:
         type: string
@@ -908,6 +912,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/AaSub'
+      labeledSubstitutions:
+        type: array
+        items:
+          $ref: '#/definitions/AaSubLabeled'
+      unlabeledSubstitutions:
+        type: array
+        items:
+          $ref: '#/definitions/AaSub'
       totalPrivateSubstitutions:
         type: integer
         format: uint
@@ -917,6 +929,14 @@ definitions:
         format: uint
         minimum: 0.0
       totalReversionSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalLabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalUnlabeledSubstitutions:
         type: integer
         format: uint
         minimum: 0.0
@@ -931,6 +951,19 @@ definitions:
     properties:
       range:
         $ref: '#/definitions/Range_for_Position'
+  AaSubLabeled:
+    description: Labeled aminoacid substitution
+    type: object
+    required:
+    - labels
+    - substitution
+    properties:
+      substitution:
+        $ref: '#/definitions/AaSub'
+      labels:
+        type: array
+        items:
+          type: string
   CladeNodeAttrFounderInfo:
     description: Information about a clade-like node attribute founder
     type: object
