@@ -89,6 +89,23 @@ nextclade dataset get --help
   - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it and in Auspice v2 JSON format
   - `nextclade.tree.nwk` - same as input tree, but with the input sequences placed onto it and in Newick format
 
+## JSON Schemas
+
+Nextclade can generate [JSON Schema](https://json-schema.org) definitions for its JSON-based file formats to help with validation, code generation, and integration in downstream applications.
+
+```bash
+# Generate schemas for all formats
+nextclade schema write --output schemas/
+
+# Generate schema for specific format
+nextclade schema write --for output-json --output schemas/output-json.schema.json
+
+# Read help for more options
+nextclade schema write --help
+```
+
+For comprehensive documentation, usage examples, and integration guides, see the [JSON Schema documentation](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas).
+
 ## What's next?
 
 Congratulations, You have learned how to use Nextclade CLI!
