@@ -368,6 +368,7 @@ pub fn nextclade_run_one(
       gene_map,
       aln: &aln,
       params: &params.aa_changes,
+      virus_properties,
     };
 
     let private_nuc_mutations = find_private_nuc_mutations(nearest_node, &nuc_params);

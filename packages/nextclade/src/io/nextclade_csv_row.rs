@@ -2,7 +2,7 @@ use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::alphabet::aa::from_aa_seq;
 use crate::alphabet::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::analyze::aa_del::AaDel;
-use crate::analyze::aa_sub::AaSub;
+use crate::analyze::aa_sub::{AaSub, AaSubLabeled};
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::find_clade_founder::CladeNodeAttrFounderInfo;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
@@ -65,7 +65,7 @@ impl NextcladeResultsCsvRow {
       total_pcr_primer_changes,
       clade,
       private_nuc_mutations,
-      // private_aa_mutations,
+      private_aa_mutations,
       missing_cdses,
       // divergence,
       coverage,
@@ -231,6 +231,67 @@ impl NextcladeResultsCsvRow {
       "privateNucMutations.totalPrivateSubstitutions",
       &private_nuc_mutations.total_private_substitutions.to_string(),
     )?;
+
+    // Add private AA mutations entries (merged across all genes)
+    let all_reversion_substitutions = private_aa_mutations
+      .values()
+      .flat_map(|private_aa_muts| &private_aa_muts.reversion_substitutions)
+      .join(ARRAY_ITEM_DELIMITER);
+
+    let all_labeled_substitutions = private_aa_mutations
+      .values()
+      .flat_map(|private_aa_muts| &private_aa_muts.labeled_substitutions)
+      .map(|sub| format!("{}|{}", sub.substitution, sub.labels.join("&")))
+      .join(ARRAY_ITEM_DELIMITER);
+
+    let all_unlabeled_substitutions = private_aa_mutations
+      .values()
+      .flat_map(|private_aa_muts| &private_aa_muts.unlabeled_substitutions)
+      .join(ARRAY_ITEM_DELIMITER);
+
+    let total_reversion_substitutions: usize = private_aa_mutations
+      .values()
+      .map(|m| m.total_reversion_substitutions)
+      .sum();
+    let total_labeled_substitutions: usize = private_aa_mutations
+      .values()
+      .map(|m| m.total_labeled_substitutions)
+      .sum();
+    let total_unlabeled_substitutions: usize = private_aa_mutations
+      .values()
+      .map(|m| m.total_unlabeled_substitutions)
+      .sum();
+    let total_private_substitutions: usize = private_aa_mutations
+      .values()
+      .map(|m| m.total_private_substitutions)
+      .sum();
+
+    self.add_entry(
+      "privateAaMutations.reversionSubstitutions",
+      &all_reversion_substitutions,
+    )?;
+    self.add_entry("privateAaMutations.labeledSubstitutions", &all_labeled_substitutions)?;
+    self.add_entry(
+      "privateAaMutations.unlabeledSubstitutions",
+      &all_unlabeled_substitutions,
+    )?;
+    self.add_entry(
+      "privateAaMutations.totalReversionSubstitutions",
+      &total_reversion_substitutions.to_string(),
+    )?;
+    self.add_entry(
+      "privateAaMutations.totalLabeledSubstitutions",
+      &total_labeled_substitutions.to_string(),
+    )?;
+    self.add_entry(
+      "privateAaMutations.totalUnlabeledSubstitutions",
+      &total_unlabeled_substitutions.to_string(),
+    )?;
+    self.add_entry(
+      "privateAaMutations.totalPrivateSubstitutions",
+      &total_private_substitutions.to_string(),
+    )?;
+
     self.add_entry("frameShifts", &format_frame_shifts(frame_shifts, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
       "aaSubstitutions",
@@ -550,6 +611,23 @@ pub fn format_pcr_primer_changes(pcr_primer_changes: &[PcrPrimerChange], delimit
 #[inline]
 pub fn format_aa_substitutions(aa_subs: &[AaSub], delimiter: &str) -> String {
   aa_subs.iter().map(ToString::to_string).join(delimiter)
+}
+
+#[inline]
+pub fn format_aa_substitutions_minimal(aa_subs: &[AaSub], delimiter: &str) -> String {
+  aa_subs.iter().map(AaSub::to_string).join(delimiter)
+}
+
+#[inline]
+pub fn format_aa_substitutions_labeled(aa_subs: &[AaSubLabeled], delimiter: &str) -> String {
+  aa_subs
+    .iter()
+    .map(|sub| {
+      let labels = sub.labels.join("&");
+      let sub = sub.substitution.to_string();
+      format!("{sub}|{labels}")
+    })
+    .join(delimiter)
 }
 
 #[inline]

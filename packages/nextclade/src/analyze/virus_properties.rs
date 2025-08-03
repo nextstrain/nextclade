@@ -2,6 +2,7 @@ use crate::align::params::AlignPairwiseParamsOptional;
 use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes_find_for_cds::AaChangesParamsOptional;
+use crate::analyze::aa_sub::AaGenotype;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::genotype::Genotype;
@@ -88,11 +89,16 @@ pub struct VirusProperties {
 pub type LabelMap<L> = BTreeMap<Genotype<L>, Vec<String>>;
 pub type NucLabelMap = LabelMap<Nuc>;
 
+/// Associates an AA genotype (cds, pos, aa) to a list of labels
+pub type AaLabelMap = BTreeMap<AaGenotype, Vec<String>>;
+
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelledMutationsConfig {
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub nuc_mut_label_map: BTreeMap<Genotype<Nuc>, Vec<String>>,
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub aa_mut_label_map: AaLabelMap,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
