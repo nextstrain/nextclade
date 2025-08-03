@@ -16,6 +16,8 @@ If you have Nextclade CLI installed, you can type `nextclade --help` to read the
 * [`nextclade dataset get`↴](#nextclade-dataset-get)
 * [`nextclade sort`↴](#nextclade-sort)
 * [`nextclade read-annotation`↴](#nextclade-read-annotation)
+* [`nextclade schema`↴](#nextclade-schema)
+* [`nextclade schema write`↴](#nextclade-schema-write)
 * [`nextclade help-markdown`↴](#nextclade-help-markdown)
 
 ## `nextclade`
@@ -41,6 +43,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `dataset` — List and download available Nextclade datasets (pathogens)
 * `sort` — Sort sequences according to the inferred Nextclade dataset (pathogen)
 * `read-annotation` — Read genome annotation and present it in Nextclade's internal formats. This is mostly only useful for Nextclade maintainers and the most curious users. Note that these internal formats have no stability guarantees and can be changed at any time without notice
+* `schema` — Write JSON schema definitions for Nextclade file formats
 * `help-markdown` — Print command-line reference documentation in Markdown format
 
 ###### **Options:**
@@ -648,6 +651,68 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
    The format is chosen based on file extension: ".json" or ".yaml".
 * `--feature-tree` — Present features in "feature tree" format. This format is a precursor of genome annotation format - it contains all genetic features, even the ones that Nextclade does not use, but also less information about each feature
 * `--json` — Print console output in JSON format, rather than human-readable table
+
+
+
+## `nextclade schema`
+
+Write JSON schema definitions for Nextclade file formats
+
+See: https://json-schema.org
+
+**Usage:** `nextclade schema <COMMAND>`
+
+###### **Subcommands:**
+
+* `write` — Write JSON schema definitions for Nextclade formats
+
+
+
+## `nextclade schema write`
+
+Write JSON schema definitions for Nextclade formats
+
+See: https://json-schema.org
+
+**Usage:** `nextclade schema write [OPTIONS]`
+
+###### **Options:**
+
+* `-o`, `--output <OUTPUT>` — Write JSON schema definitions to this file (--for=<format>) or directory (--for=all).
+
+   Can produce schema file in JSON or YAML format, depending on the file extension provided. Use "-" to write the data in JSON format to standard output.
+
+   Use --as=json or --as=yaml to force a particular output schema format.
+* `-f`, `--for <FOR_FORMAT>` — Write JSON schema definitions for this file format
+
+   Use 'all' to output schemas for all formats to a given directory
+
+  Default value: `all`
+
+  Possible values:
+  - `all`:
+    All formats
+  - `input-pathogen-json`:
+    "Input pathogen JSON" format (`nextclade run --input-pathogen-json`)
+  - `output-json`:
+    "Nextclade output JSON" format (`nextclade run --output-json`)
+  - `output-ndjson`:
+    A single entry in "Nextclade output NDJSON" format (`nextclade run --output-ndjson`). Same format as for the entries in "Nextclade output JSON" `.results` array
+  - `output-dataset-list-json`:
+    A list of datasets produced with `nextclade dataset list --json`
+  - `internal-index-json`:
+    Index JSON format. This format is used to store a list of known datasets and their properties. This is how Nextclade knows which datasets are available for a given pathogen (e.g. to display them in the web UI or with `nextclade dataset list` command). This is an internal format, not meant to be used directly. Hosted at: http://data.clades.nextstrain.org/v3/index.json Produced at: https://github.com/nextstrain/nextclade_data
+  - `internal-minimizer-index-json`:
+    Minimizer index JSON format. This format is used to store minimizer data which is used for dataset detection from sequences (dataset suggestions in Nextclade Web and `nextclade sort`  command). This is an internal format, not meant to be used directly. Hosted at: http://data.clades.nextstrain.org/v3/minimizer_index.json Produced at: https://github.com/nextstrain/nextclade_data
+
+* `-a`, `--as <AS_FORMAT>` — Force output format of the produced schema file(s)
+
+   With the default value 'auto', the format will be deduced based on output file extension
+
+  Default value: `auto`
+
+  Possible values: `auto`, `json`, `yaml`
+
 
 
 

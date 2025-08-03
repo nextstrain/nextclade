@@ -1,0 +1,1711 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: ResultJson
+description: Single element in `.results` array in nextclade.json file, produced by `nextclade run --output-json`. This corresponds to a single sequence in the inputs.
+type: object
+required:
+- aaAlignmentRanges
+- aaChangesGroups
+- aaDeletions
+- aaInsertions
+- aaMotifs
+- aaMotifsChanges
+- aaSubstitutions
+- aaUnsequencedRanges
+- alignmentRange
+- alignmentScore
+- cdsCoverage
+- cladeNodeAttrFounderInfo
+- coverage
+- customNodeAttributes
+- datasetName
+- deletions
+- divergence
+- frameShifts
+- index
+- insertions
+- isReverseComplement
+- lenAligned
+- lenStripped
+- lenUnaligned
+- missing
+- missingCdses
+- nearestNodeId
+- nearestNodeName
+- nonACGTNs
+- nucToAaMuts
+- nucleotideComposition
+- pcrPrimerChanges
+- privateAaMutations
+- privateNucMutations
+- qc
+- refName
+- refNodeSearchResults
+- refNodes
+- relativeAaMutations
+- relativeNucMutations
+- seqDesc
+- seqId
+- seqName
+- substitutions
+- totalAminoacidDeletions
+- totalAminoacidInsertions
+- totalAminoacidSubstitutions
+- totalDeletions
+- totalFrameShifts
+- totalInsertions
+- totalMissing
+- totalNonACGTNs
+- totalPcrPrimerChanges
+- totalSubstitutions
+- totalUnknownAa
+- unknownAaRanges
+- warnings
+properties:
+  index:
+    type: integer
+    format: uint
+    minimum: 0.0
+  seqName:
+    type: string
+  seqId:
+    type: string
+  seqDesc:
+    type: string
+  lenUnaligned:
+    type: integer
+    format: uint
+    minimum: 0.0
+  lenAligned:
+    type: integer
+    format: uint
+    minimum: 0.0
+  lenStripped:
+    type: integer
+    format: uint
+    minimum: 0.0
+  refName:
+    type: string
+  datasetName:
+    type: string
+  substitutions:
+    type: array
+    items:
+      $ref: '#/definitions/NucSub'
+  totalSubstitutions:
+    type: integer
+    format: uint
+    minimum: 0.0
+  deletions:
+    type: array
+    items:
+      $ref: '#/definitions/NucDelRange'
+  totalDeletions:
+    type: integer
+    format: uint
+    minimum: 0.0
+  insertions:
+    type: array
+    items:
+      $ref: '#/definitions/Insertion_for_Nuc'
+  totalInsertions:
+    type: integer
+    format: uint
+    minimum: 0.0
+  missing:
+    type: array
+    items:
+      $ref: '#/definitions/LetterRange_for_Nuc_and_Position'
+  totalMissing:
+    type: integer
+    format: uint
+    minimum: 0.0
+  nonACGTNs:
+    type: array
+    items:
+      $ref: '#/definitions/LetterRange_for_Nuc_and_Position'
+  totalNonACGTNs:
+    type: integer
+    format: uint
+    minimum: 0.0
+  nucleotideComposition:
+    type: object
+    additionalProperties:
+      type: integer
+      format: uint
+      minimum: 0.0
+  frameShifts:
+    type: array
+    items:
+      $ref: '#/definitions/FrameShift'
+  totalFrameShifts:
+    type: integer
+    format: uint
+    minimum: 0.0
+  aaSubstitutions:
+    type: array
+    items:
+      $ref: '#/definitions/AaSub'
+  totalAminoacidSubstitutions:
+    type: integer
+    format: uint
+    minimum: 0.0
+  aaDeletions:
+    type: array
+    items:
+      $ref: '#/definitions/AaDel'
+  totalAminoacidDeletions:
+    type: integer
+    format: uint
+    minimum: 0.0
+  aaInsertions:
+    type: array
+    items:
+      $ref: '#/definitions/AaIns'
+  totalAminoacidInsertions:
+    type: integer
+    format: uint
+    minimum: 0.0
+  unknownAaRanges:
+    type: array
+    items:
+      $ref: '#/definitions/CdsAaRange'
+  totalUnknownAa:
+    type: integer
+    format: uint
+    minimum: 0.0
+  aaChangesGroups:
+    type: array
+    items:
+      $ref: '#/definitions/AaChangesGroup'
+  nucToAaMuts:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: '#/definitions/AaSub'
+  alignmentRange:
+    $ref: '#/definitions/Range_for_Position'
+  alignmentScore:
+    type: integer
+    format: int32
+  aaAlignmentRanges:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: '#/definitions/Range_for_Position'
+  aaUnsequencedRanges:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: '#/definitions/Range_for_Position'
+  pcrPrimerChanges:
+    type: array
+    items:
+      $ref: '#/definitions/PcrPrimerChange'
+  totalPcrPrimerChanges:
+    type: integer
+    format: uint
+    minimum: 0.0
+  clade:
+    type:
+    - string
+    - 'null'
+  privateNucMutations:
+    $ref: '#/definitions/PrivateNucMutations'
+  privateAaMutations:
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/PrivateAaMutations'
+  cladeFounderInfo:
+    anyOf:
+    - $ref: '#/definitions/CladeNodeAttrFounderInfo'
+    - type: 'null'
+  cladeNodeAttrFounderInfo:
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/CladeNodeAttrFounderInfo'
+  refNodes:
+    $ref: '#/definitions/AuspiceRefNodesDesc'
+  refNodeSearchResults:
+    type: array
+    items:
+      $ref: '#/definitions/AncestralSearchResult'
+  relativeNucMutations:
+    type: array
+    items:
+      $ref: '#/definitions/RelativeNucMutations'
+  relativeAaMutations:
+    type: array
+    items:
+      $ref: '#/definitions/RelativeAaMutations'
+  warnings:
+    type: array
+    items:
+      $ref: '#/definitions/PeptideWarning'
+  missingCdses:
+    type: array
+    items:
+      type: string
+  divergence:
+    type: number
+    format: double
+  coverage:
+    type: number
+    format: double
+  cdsCoverage:
+    type: object
+    additionalProperties:
+      type: number
+      format: double
+  qc:
+    $ref: '#/definitions/QcResult'
+  customNodeAttributes:
+    type: object
+    additionalProperties:
+      type: string
+  nearestNodeId:
+    $ref: '#/definitions/GraphNodeKey'
+  nearestNodeName:
+    type: string
+  nearestNodes:
+    type:
+    - array
+    - 'null'
+    items:
+      type: string
+  isReverseComplement:
+    type: boolean
+  phenotypeValues:
+    type:
+    - array
+    - 'null'
+    items:
+      $ref: '#/definitions/PhenotypeValue'
+  aaMotifs:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: '#/definitions/AaMotif'
+  aaMotifsChanges:
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/AaMotifChanges'
+  annotation:
+    description: Genome annotation in query sequence coordinates
+    allOf:
+    - $ref: '#/definitions/GeneMap'
+definitions:
+  NucSub:
+    description: A nucleotide substitution
+    type: object
+    required:
+    - pos
+    - qryNuc
+    - refNuc
+    properties:
+      pos:
+        $ref: '#/definitions/Position'
+      refNuc:
+        $ref: '#/definitions/Nuc'
+      qryNuc:
+        $ref: '#/definitions/Nuc'
+  Position:
+    type: integer
+    format: int
+  Nuc:
+    description: A nucleotide
+    type: string
+    enum:
+    - T
+    - A
+    - W
+    - C
+    - Y
+    - M
+    - H
+    - G
+    - K
+    - R
+    - D
+    - S
+    - B
+    - V
+    - N
+    - '-'
+  NucDelRange:
+    description: A nucleotide deletion range
+    type: object
+    required:
+    - range
+    properties:
+      range:
+        $ref: '#/definitions/Range_for_Position'
+  Range_for_Position:
+    description: |-
+      Range of positions in a given 1-dimensional coordinate space.
+
+      The coordinate space type parameter ensures that positions and ranges in different coordinate spaces have different Rust types and they cannot be used interchangeably.
+    type: object
+    required:
+    - begin
+    - end
+    properties:
+      begin:
+        $ref: '#/definitions/Position'
+      end:
+        $ref: '#/definitions/Position'
+  Insertion_for_Nuc:
+    description: An insertion
+    type: object
+    required:
+    - ins
+    - pos
+    properties:
+      pos:
+        type: integer
+        format: int32
+      ins:
+        type: string
+  LetterRange_for_Nuc_and_Position:
+    type: object
+    required:
+    - character
+    - range
+    properties:
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      character:
+        $ref: '#/definitions/Nuc'
+  FrameShift:
+    description: A frame shift
+    type: object
+    required:
+    - cdsName
+    - codon
+    - gapsLeading
+    - gapsTrailing
+    - nucAbs
+    - nucRel
+    properties:
+      cdsName:
+        type: string
+      nucRel:
+        $ref: '#/definitions/Range_for_Position'
+      nucAbs:
+        type: array
+        items:
+          $ref: '#/definitions/Range_for_Position'
+      codon:
+        $ref: '#/definitions/Range_for_Position'
+      gapsLeading:
+        $ref: '#/definitions/Range_for_Position'
+      gapsTrailing:
+        $ref: '#/definitions/Range_for_Position'
+  AaSub:
+    description: Represents aminoacid substitution
+    type: object
+    required:
+    - cdsName
+    - pos
+    - qryAa
+    - refAa
+    properties:
+      cdsName:
+        type: string
+      pos:
+        $ref: '#/definitions/Position'
+      refAa:
+        $ref: '#/definitions/Aa'
+      qryAa:
+        $ref: '#/definitions/Aa'
+  Aa:
+    type: string
+    enum:
+    - A
+    - B
+    - C
+    - D
+    - E
+    - F
+    - G
+    - H
+    - I
+    - J
+    - K
+    - L
+    - M
+    - N
+    - O
+    - P
+    - Q
+    - R
+    - S
+    - T
+    - U
+    - V
+    - W
+    - Y
+    - Z
+    - X
+    - '*'
+    - '-'
+  AaDel:
+    description: An aminoacid deletion
+    type: object
+    required:
+    - cdsName
+    - pos
+    - refAa
+    properties:
+      cdsName:
+        type: string
+      pos:
+        $ref: '#/definitions/Position'
+      refAa:
+        $ref: '#/definitions/Aa'
+  AaIns:
+    description: An amino acid insertion
+    type: object
+    required:
+    - cds
+    - ins
+    - pos
+    properties:
+      cds:
+        type: string
+      pos:
+        type: integer
+        format: int32
+      ins:
+        type: string
+  CdsAaRange:
+    description: A set of ranges of amino acid positions in a translated CDS
+    type: object
+    required:
+    - cdsName
+    - character
+    - length
+    - ranges
+    properties:
+      cdsName:
+        type: string
+      character:
+        $ref: '#/definitions/Aa'
+      ranges:
+        type: array
+        items:
+          $ref: '#/definitions/LetterRange_for_Aa_and_Position'
+      length:
+        type: integer
+        format: uint
+        minimum: 0.0
+  LetterRange_for_Aa_and_Position:
+    type: object
+    required:
+    - character
+    - range
+    properties:
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      character:
+        $ref: '#/definitions/Aa'
+  AaChangesGroup:
+    description: Represents a group of adjacent amino acid changes along with nucleotide changes nearby.
+    type: object
+    required:
+    - changes
+    - name
+    - nucDelRanges
+    - nucDels
+    - nucSubs
+    - range
+    properties:
+      name:
+        type: string
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      changes:
+        type: array
+        items:
+          $ref: '#/definitions/AaChangeWithContext'
+      nucSubs:
+        type: array
+        items:
+          $ref: '#/definitions/NucSub'
+      nucDels:
+        type: array
+        items:
+          $ref: '#/definitions/NucDel'
+      nucDelRanges:
+        type: array
+        items:
+          $ref: '#/definitions/NucDelRange'
+  AaChangeWithContext:
+    type: object
+    required:
+    - cdsName
+    - nucPos
+    - nucRanges
+    - pos
+    - qryAa
+    - qryTriplet
+    - refAa
+    - refTriplet
+    properties:
+      cdsName:
+        type: string
+      pos:
+        $ref: '#/definitions/Position'
+      refAa:
+        $ref: '#/definitions/Aa'
+      qryAa:
+        $ref: '#/definitions/Aa'
+      nucPos:
+        $ref: '#/definitions/Position'
+      refTriplet:
+        type: string
+      qryTriplet:
+        type: string
+      nucRanges:
+        type: array
+        items:
+          $ref: '#/definitions/Range_for_Position'
+  NucDel:
+    type: object
+    required:
+    - pos
+    - refNuc
+    properties:
+      pos:
+        $ref: '#/definitions/Position'
+      refNuc:
+        $ref: '#/definitions/Nuc'
+  PcrPrimerChange:
+    description: A change in a PCR primer due to mutations
+    type: object
+    required:
+    - primer
+    - substitutions
+    properties:
+      primer:
+        $ref: '#/definitions/PcrPrimer'
+      substitutions:
+        type: array
+        items:
+          $ref: '#/definitions/NucSub'
+  PcrPrimer:
+    type: object
+    required:
+    - name
+    - nonACGTs
+    - primerOligonuc
+    - range
+    - rootOligonuc
+    - source
+    - target
+    properties:
+      source:
+        type: string
+      target:
+        type: string
+      name:
+        type: string
+      rootOligonuc:
+        type: string
+      primerOligonuc:
+        type: string
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      nonACGTs:
+        type: array
+        items:
+          $ref: '#/definitions/Genotype_for_Nuc'
+  Genotype_for_Nuc:
+    description: Represents a mutation without reference character known
+    type: object
+    required:
+    - pos
+    - qry
+    properties:
+      pos:
+        $ref: '#/definitions/Position'
+      qry:
+        $ref: '#/definitions/Nuc'
+  PrivateNucMutations:
+    description: A collection of private nucleotide mutations
+    type: object
+    required:
+    - labeledSubstitutions
+    - privateDeletionRanges
+    - privateDeletions
+    - privateSubstitutions
+    - reversionSubstitutions
+    - totalLabeledSubstitutions
+    - totalPrivateDeletions
+    - totalPrivateSubstitutions
+    - totalReversionSubstitutions
+    - totalUnlabeledSubstitutions
+    - unlabeledSubstitutions
+    properties:
+      privateSubstitutions:
+        description: All private substitution mutations
+        type: array
+        items:
+          $ref: '#/definitions/NucSub'
+      privateDeletions:
+        description: All private deletion mutations
+        type: array
+        items:
+          $ref: '#/definitions/NucDel'
+      privateDeletionRanges:
+        description: All private deletion mutations in form of ranges
+        type: array
+        items:
+          $ref: '#/definitions/NucDelRange'
+      reversionSubstitutions:
+        description: A subset of `private_substitutions` which are reversions
+        type: array
+        items:
+          $ref: '#/definitions/NucSub'
+      labeledSubstitutions:
+        description: A subset of `private_substitutions` which has a label assigned
+        type: array
+        items:
+          $ref: '#/definitions/NucSubLabeled'
+      unlabeledSubstitutions:
+        description: A subset of `private_substitutions` which has no label
+        type: array
+        items:
+          $ref: '#/definitions/NucSub'
+      totalPrivateSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalPrivateDeletions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalReversionSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalLabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalUnlabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+  NucSubLabeled:
+    type: object
+    required:
+    - labels
+    - substitution
+    properties:
+      substitution:
+        $ref: '#/definitions/NucSub'
+      labels:
+        type: array
+        items:
+          type: string
+  PrivateAaMutations:
+    description: A collection of private amino acid mutations for a CDS
+    type: object
+    required:
+    - aaChangesGroups
+    - cdsName
+    - labeledSubstitutions
+    - privateDeletionRanges
+    - privateDeletions
+    - privateSubstitutions
+    - reversionSubstitutions
+    - totalLabeledSubstitutions
+    - totalPrivateDeletions
+    - totalPrivateSubstitutions
+    - totalReversionSubstitutions
+    - totalUnlabeledSubstitutions
+    - unlabeledSubstitutions
+    properties:
+      cdsName:
+        type: string
+      privateSubstitutions:
+        type: array
+        items:
+          $ref: '#/definitions/AaSub'
+      privateDeletions:
+        type: array
+        items:
+          $ref: '#/definitions/AaDel'
+      privateDeletionRanges:
+        type: array
+        items:
+          $ref: '#/definitions/AaDelRange'
+      reversionSubstitutions:
+        type: array
+        items:
+          $ref: '#/definitions/AaSub'
+      labeledSubstitutions:
+        type: array
+        items:
+          $ref: '#/definitions/AaSubLabeled'
+      unlabeledSubstitutions:
+        type: array
+        items:
+          $ref: '#/definitions/AaSub'
+      totalPrivateSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalPrivateDeletions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalReversionSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalLabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalUnlabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      aaChangesGroups:
+        type: array
+        items:
+          $ref: '#/definitions/AaChangesGroup'
+  AaDelRange:
+    type: object
+    required:
+    - range
+    properties:
+      range:
+        $ref: '#/definitions/Range_for_Position'
+  AaSubLabeled:
+    description: Labeled aminoacid substitution
+    type: object
+    required:
+    - labels
+    - substitution
+    properties:
+      substitution:
+        $ref: '#/definitions/AaSub'
+      labels:
+        type: array
+        items:
+          type: string
+  CladeNodeAttrFounderInfo:
+    description: Information about a clade-like node attribute founder
+    type: object
+    required:
+    - aaMutations
+    - key
+    - nodeKey
+    - nodeName
+    - nucMutations
+    - value
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+      nodeKey:
+        $ref: '#/definitions/GraphNodeKey'
+      nodeName:
+        type: string
+      nucMutations:
+        $ref: '#/definitions/PrivateNucMutations'
+      aaMutations:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/PrivateAaMutations'
+  GraphNodeKey:
+    type: integer
+    format: uint
+    minimum: 0.0
+  AuspiceRefNodesDesc:
+    description: Describes search criteria in the reference tree nodes. This is used for "Relative to" feature where you can switch mutation calling source node between "reference", "parent", "clade founder" and custom nodes described using this format.
+    type: object
+    properties:
+      default:
+        type:
+        - string
+        - 'null'
+      search:
+        type: array
+        items:
+          $ref: '#/definitions/AuspiceRefNodeSearchDesc'
+  AuspiceRefNodeSearchDesc:
+    description: Describes a criteria for selecting a reference node for "Relative to" feature
+    type: object
+    required:
+    - name
+    properties:
+      name:
+        type: string
+      displayName:
+        type:
+        - string
+        - 'null'
+      description:
+        type:
+        - string
+        - 'null'
+      criteria:
+        type: array
+        items:
+          $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
+  AuspiceRefNodeSearchCriteria:
+    type: object
+    properties:
+      qry:
+        type: array
+        items:
+          $ref: '#/definitions/AuspiceNodeCriterion'
+      node:
+        type: array
+        items:
+          $ref: '#/definitions/AuspiceRefNodeCriterion'
+  AuspiceNodeCriterion:
+    type: object
+    properties:
+      name:
+        type: array
+        items:
+          type: string
+      clade:
+        type: array
+        items:
+          type: string
+      cladeNodeAttrs:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+  AuspiceRefNodeCriterion:
+    type: object
+    properties:
+      searchAlgo:
+        default: full
+        allOf:
+        - $ref: '#/definitions/AuspiceNodeSearchAlgo'
+      name:
+        type: array
+        items:
+          type: string
+      clade:
+        type: array
+        items:
+          type: string
+      cladeNodeAttrs:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+  AuspiceNodeSearchAlgo:
+    type: string
+    enum:
+    - ancestor-nearest
+    - ancestor-earliest
+    - full
+  AncestralSearchResult:
+    description: Represents the result of searching for ancestral nodes of interest in the graph
+    type: object
+    required:
+    - search
+    properties:
+      search:
+        $ref: '#/definitions/AuspiceRefNodeSearchDesc'
+      result:
+        anyOf:
+        - $ref: '#/definitions/AncestralSearchResultForCriteria'
+        - type: 'null'
+  AncestralSearchResultForCriteria:
+    description: Represents the result of searching for ancestral nodes of interest in the graph
+    type: object
+    required:
+    - criterion
+    properties:
+      criterion:
+        $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
+      match:
+        anyOf:
+        - $ref: '#/definitions/AncestralSearchMatch'
+        - type: 'null'
+  AncestralSearchMatch:
+    description: Represents a match found in the ancestral search
+    type: object
+    required:
+    - nodeKey
+    - nodeName
+    properties:
+      nodeKey:
+        $ref: '#/definitions/GraphNodeKey'
+      nodeName:
+        type: string
+      name:
+        type:
+        - string
+        - 'null'
+      clade:
+        type:
+        - string
+        - 'null'
+      cladeLikeAttrs:
+        type:
+        - array
+        - 'null'
+        items:
+          $ref: '#/definitions/AttrPair'
+  AttrPair:
+    type: object
+    required:
+    - key
+    - value
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+  RelativeNucMutations:
+    description: Result for a single sequence in the inputs, containing relative nucleotide mutations
+    type: object
+    required:
+    - search
+    properties:
+      search:
+        $ref: '#/definitions/AncestralSearchResult'
+      result:
+        anyOf:
+        - $ref: '#/definitions/RelativeNucMutationsResult'
+        - type: 'null'
+  RelativeNucMutationsResult:
+    description: Result for a single criterion in the search, containing relative nucleotide mutations
+    type: object
+    required:
+    - criterion
+    - match
+    - muts
+    properties:
+      criterion:
+        $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
+      match:
+        $ref: '#/definitions/AncestralSearchMatch'
+      muts:
+        $ref: '#/definitions/PrivateNucMutations'
+  RelativeAaMutations:
+    type: object
+    required:
+    - search
+    properties:
+      search:
+        $ref: '#/definitions/AncestralSearchResult'
+      result:
+        anyOf:
+        - $ref: '#/definitions/RelativeAaMutationsResult'
+        - type: 'null'
+  RelativeAaMutationsResult:
+    type: object
+    required:
+    - criterion
+    - match
+    - muts
+    properties:
+      criterion:
+        $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
+      match:
+        $ref: '#/definitions/AncestralSearchMatch'
+      muts:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/PrivateAaMutations'
+  PeptideWarning:
+    description: A warning about a peptide sequence
+    type: object
+    required:
+    - cdsName
+    - warning
+    properties:
+      cdsName:
+        type: string
+      warning:
+        type: string
+  QcResult:
+    type: object
+    required:
+    - overallScore
+    - overallStatus
+    properties:
+      missingData:
+        anyOf:
+        - $ref: '#/definitions/QcResultMissingData'
+        - type: 'null'
+      mixedSites:
+        anyOf:
+        - $ref: '#/definitions/QcResultMixedSites'
+        - type: 'null'
+      privateMutations:
+        anyOf:
+        - $ref: '#/definitions/QcResultPrivateMutations'
+        - type: 'null'
+      snpClusters:
+        anyOf:
+        - $ref: '#/definitions/QcResultSnpClusters'
+        - type: 'null'
+      frameShifts:
+        anyOf:
+        - $ref: '#/definitions/QcResultFrameShifts'
+        - type: 'null'
+      stopCodons:
+        anyOf:
+        - $ref: '#/definitions/QcResultStopCodons'
+        - type: 'null'
+      overallScore:
+        type: number
+        format: double
+      overallStatus:
+        $ref: '#/definitions/QcStatus'
+  QcResultMissingData:
+    type: object
+    required:
+    - missingDataThreshold
+    - score
+    - status
+    - totalMissing
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      totalMissing:
+        type: integer
+        format: uint
+        minimum: 0.0
+      missingDataThreshold:
+        type: number
+        format: double
+  QcStatus:
+    type: string
+    enum:
+    - good
+    - mediocre
+    - bad
+  QcResultMixedSites:
+    type: object
+    required:
+    - mixedSitesThreshold
+    - score
+    - status
+    - totalMixedSites
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      totalMixedSites:
+        type: integer
+        format: uint
+        minimum: 0.0
+      mixedSitesThreshold:
+        type: integer
+        format: uint
+        minimum: 0.0
+  QcResultPrivateMutations:
+    type: object
+    required:
+    - cutoff
+    - excess
+    - numLabeledSubstitutions
+    - numReversionSubstitutions
+    - numUnlabeledSubstitutions
+    - score
+    - status
+    - totalDeletionRanges
+    - weightedTotal
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      numReversionSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      numLabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      numUnlabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalDeletionRanges:
+        type: integer
+        format: uint
+        minimum: 0.0
+      weightedTotal:
+        type: number
+        format: double
+      excess:
+        type: number
+        format: double
+      cutoff:
+        type: number
+        format: double
+  QcResultSnpClusters:
+    type: object
+    required:
+    - clusteredSNPs
+    - score
+    - status
+    - totalSNPs
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      totalSNPs:
+        type: integer
+        format: uint
+        minimum: 0.0
+      clusteredSNPs:
+        type: array
+        items:
+          $ref: '#/definitions/ClusteredSnp'
+  ClusteredSnp:
+    type: object
+    required:
+    - end
+    - numberOfSnps
+    - start
+    properties:
+      start:
+        type: integer
+        format: uint
+        minimum: 0.0
+      end:
+        type: integer
+        format: uint
+        minimum: 0.0
+      numberOfSnps:
+        type: integer
+        format: uint
+        minimum: 0.0
+  QcResultFrameShifts:
+    type: object
+    required:
+    - frameShifts
+    - frameShiftsIgnored
+    - score
+    - status
+    - totalFrameShifts
+    - totalFrameShiftsIgnored
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      frameShifts:
+        type: array
+        items:
+          $ref: '#/definitions/FrameShift'
+      totalFrameShifts:
+        type: integer
+        format: uint
+        minimum: 0.0
+      frameShiftsIgnored:
+        type: array
+        items:
+          $ref: '#/definitions/FrameShift'
+      totalFrameShiftsIgnored:
+        type: integer
+        format: uint
+        minimum: 0.0
+  QcResultStopCodons:
+    type: object
+    required:
+    - score
+    - status
+    - stopCodons
+    - stopCodonsIgnored
+    - totalStopCodons
+    - totalStopCodonsIgnored
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      stopCodons:
+        type: array
+        items:
+          $ref: '#/definitions/StopCodonLocation'
+      totalStopCodons:
+        type: integer
+        format: uint
+        minimum: 0.0
+      stopCodonsIgnored:
+        type: array
+        items:
+          $ref: '#/definitions/StopCodonLocation'
+      totalStopCodonsIgnored:
+        type: integer
+        format: uint
+        minimum: 0.0
+  StopCodonLocation:
+    description: Location of a stop codon in a CDS
+    examples:
+    - cdsName: N
+      codon: 417
+    type: object
+    required:
+    - cdsName
+    - codon
+    properties:
+      cdsName:
+        type: string
+      codon:
+        type: integer
+        format: uint
+        minimum: 0.0
+  PhenotypeValue:
+    description: Result for a single phenotype value
+    type: object
+    required:
+    - cds
+    - name
+    - value
+    properties:
+      name:
+        type: string
+      cds:
+        type: string
+      value:
+        type: number
+        format: double
+  AaMotif:
+    description: Result of amino acid motif search in a translated CDS
+    type: object
+    required:
+    - cds
+    - name
+    - position
+    - seq
+    properties:
+      name:
+        type: string
+      cds:
+        type: string
+      position:
+        $ref: '#/definitions/Position'
+      seq:
+        type: string
+  AaMotifChanges:
+    type: object
+    required:
+    - ambiguous
+    - gained
+    - lost
+    - preserved
+    - total
+    properties:
+      preserved:
+        type: array
+        items:
+          $ref: '#/definitions/AaMotifMutation'
+      gained:
+        type: array
+        items:
+          $ref: '#/definitions/AaMotifMutation'
+      lost:
+        type: array
+        items:
+          $ref: '#/definitions/AaMotifMutation'
+      ambiguous:
+        type: array
+        items:
+          $ref: '#/definitions/AaMotifMutation'
+      total:
+        type: integer
+        format: uint
+        minimum: 0.0
+  AaMotifMutation:
+    type: object
+    required:
+    - cds
+    - name
+    - position
+    - qrySeq
+    - refSeq
+    properties:
+      name:
+        type: string
+      cds:
+        type: string
+      position:
+        $ref: '#/definitions/Position'
+      refSeq:
+        type: string
+      qrySeq:
+        type: string
+  GeneMap:
+    description: Genome annotation
+    type: object
+    required:
+    - genes
+    properties:
+      genes:
+        type: array
+        items:
+          $ref: '#/definitions/Gene'
+  Gene:
+    type: object
+    required:
+    - attributes
+    - cdses
+    - compatIsCds
+    - exceptions
+    - id
+    - index
+    - name
+    - range
+    properties:
+      index:
+        type: integer
+        format: uint
+        minimum: 0.0
+      id:
+        type: string
+      name:
+        type: string
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      cdses:
+        type: array
+        items:
+          $ref: '#/definitions/Cds'
+      exceptions:
+        type: array
+        items:
+          type: string
+      attributes:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+      compatIsCds:
+        type: boolean
+      color:
+        type:
+        - string
+        - 'null'
+      gffSeqid:
+        type:
+        - string
+        - 'null'
+      gffSource:
+        type:
+        - string
+        - 'null'
+      gffFeatureType:
+        type:
+        - string
+        - 'null'
+  Cds:
+    type: object
+    required:
+    - attributes
+    - compatIsGene
+    - exceptions
+    - id
+    - name
+    - product
+    - proteins
+    - segments
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      product:
+        type: string
+      segments:
+        type: array
+        items:
+          $ref: '#/definitions/CdsSegment'
+      proteins:
+        type: array
+        items:
+          $ref: '#/definitions/Protein'
+      exceptions:
+        type: array
+        items:
+          type: string
+      attributes:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+      compatIsGene:
+        type: boolean
+      color:
+        type:
+        - string
+        - 'null'
+  CdsSegment:
+    type: object
+    required:
+    - attributes
+    - compatIsGene
+    - exceptions
+    - frame
+    - id
+    - index
+    - name
+    - phase
+    - range
+    - rangeLocal
+    - strand
+    - truncation
+    - wrappingPart
+    properties:
+      index:
+        type: integer
+        format: uint
+        minimum: 0.0
+      id:
+        type: string
+      name:
+        type: string
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      rangeLocal:
+        $ref: '#/definitions/Range_for_Position'
+      landmark:
+        anyOf:
+        - $ref: '#/definitions/Landmark'
+        - type: 'null'
+      wrappingPart:
+        $ref: '#/definitions/WrappingPart'
+      strand:
+        $ref: '#/definitions/GeneStrand'
+      frame:
+        $ref: '#/definitions/Frame'
+      phase:
+        $ref: '#/definitions/Phase'
+      truncation:
+        $ref: '#/definitions/Truncation'
+      exceptions:
+        type: array
+        items:
+          type: string
+      attributes:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+      compatIsGene:
+        type: boolean
+      color:
+        type:
+        - string
+        - 'null'
+      gffSeqid:
+        type:
+        - string
+        - 'null'
+      gffSource:
+        type:
+        - string
+        - 'null'
+      gffFeatureType:
+        type:
+        - string
+        - 'null'
+  Landmark:
+    type: object
+    required:
+    - id
+    - index
+    - isCircular
+    - name
+    - range
+    - strand
+    properties:
+      index:
+        type: integer
+        format: uint
+        minimum: 0.0
+      id:
+        type: string
+      name:
+        type: string
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      strand:
+        $ref: '#/definitions/GeneStrand'
+      isCircular:
+        type: boolean
+  GeneStrand:
+    type: string
+    enum:
+    - +
+    - '-'
+  WrappingPart:
+    description: |-
+      Marks the parts of circular, wrapping segments
+
+      Example: WrappingStart      : |....<-----| WrappingCentral(1) : |----------| WrappingCentral(2) : |----------| WrappingEnd(3)     : |---->     |
+    oneOf:
+    - type: string
+      enum:
+      - non-wrapping
+      - wrapping-start
+    - type: object
+      required:
+      - wrapping-central
+      properties:
+        wrapping-central:
+          type: integer
+          format: uint
+          minimum: 0.0
+      additionalProperties: false
+    - type: object
+      required:
+      - wrapping-end
+      properties:
+        wrapping-end:
+          type: integer
+          format: uint
+          minimum: 0.0
+      additionalProperties: false
+  Frame:
+    type: integer
+    format: int8
+  Phase:
+    type: integer
+    format: int8
+  Truncation:
+    oneOf:
+    - type: string
+      enum:
+      - none
+    - type: object
+      required:
+      - fivePrime
+      properties:
+        fivePrime:
+          type: integer
+          format: uint
+          minimum: 0.0
+      additionalProperties: false
+    - type: object
+      required:
+      - threePrime
+      properties:
+        threePrime:
+          type: integer
+          format: uint
+          minimum: 0.0
+      additionalProperties: false
+    - type: object
+      required:
+      - both
+      properties:
+        both:
+          type: array
+          items:
+          - type: integer
+            format: uint
+            minimum: 0.0
+          - type: integer
+            format: uint
+            minimum: 0.0
+          maxItems: 2
+          minItems: 2
+      additionalProperties: false
+  Protein:
+    type: object
+    required:
+    - id
+    - name
+    - product
+    - segments
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      product:
+        type: string
+      segments:
+        type: array
+        items:
+          $ref: '#/definitions/ProteinSegment'
+      color:
+        type:
+        - string
+        - 'null'
+  ProteinSegment:
+    type: object
+    required:
+    - attributes
+    - compatIsCds
+    - compatIsGene
+    - exceptions
+    - id
+    - name
+    - range
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      exceptions:
+        type: array
+        items:
+          type: string
+      attributes:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+      compatIsCds:
+        type: boolean
+      compatIsGene:
+        type: boolean
+      color:
+        type:
+        - string
+        - 'null'
+      gffSeqid:
+        type:
+        - string
+        - 'null'
+      gffSource:
+        type:
+        - string
+        - 'null'
+      gffFeatureType:
+        type:
+        - string
+        - 'null'

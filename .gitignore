@@ -1,5 +1,6 @@
 *.bak
 *.log
+*.pyc
 /build/
 /data_dev*/
 /data_local*

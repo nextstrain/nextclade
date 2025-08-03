@@ -11,6 +11,7 @@ use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+/// The `nextclade.json` file produced using `nextclade run --output-json`
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ResultsJson {

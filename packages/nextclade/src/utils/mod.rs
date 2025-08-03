@@ -16,6 +16,7 @@ pub mod num;
 pub mod option;
 pub mod stats;
 pub mod string;
+pub mod vec;
 pub mod vec2d;
 pub mod wraparound;
 pub mod zip_map;

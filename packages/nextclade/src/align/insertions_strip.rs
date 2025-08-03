@@ -3,13 +3,12 @@ use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq, Letter
 use crate::alphabet::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
 
-
 use itertools::Itertools;
 
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
-
+/// An insertion
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
@@ -30,6 +29,7 @@ impl<T: Letter<T>> Insertion<T> {
   }
 }
 
+/// A nucleotide insertion
 pub type NucIns = Insertion<Nuc>;
 
 /// Order nuc insertions by position, then length
@@ -102,6 +102,7 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
   }
 }
 
+/// An amino acid insertion
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaIns {

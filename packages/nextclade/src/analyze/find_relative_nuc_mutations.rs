@@ -8,6 +8,7 @@ use crate::tree::tree_find_ancestors_of_interest::{
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 
+/// Result for a single sequence in the inputs, containing relative nucleotide mutations
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeNucMutations {
@@ -16,6 +17,7 @@ pub struct RelativeNucMutations {
   pub result: Option<RelativeNucMutationsResult>,
 }
 
+/// Result for a single criterion in the search, containing relative nucleotide mutations
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeNucMutationsResult {

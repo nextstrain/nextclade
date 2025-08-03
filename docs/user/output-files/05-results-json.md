@@ -14,6 +14,8 @@ NDJSON file (newline-delimited JSON) combines only `results` and `errors` arrays
 
 > ⚠️ JSON and NDJSON formats are unstable and can be changed without notice.
 
+> 💡 **JSON Schemas Available**: To help with validation and code generation in downstream applications, Nextclade can generate [JSON Schema](https://json-schema.org) definitions for its file formats. Use `nextclade schema write` to generate schemas. See the [JSON Schema documentation](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas) for details.
+
 > ⚠️ For CLI users: Note that due to technical limitations of the JSON format, it cannot be streamed entry-by entry, i.e. before writing the output to the file, all entries need to be accumulated in memory. If the JSON output is requested (through `--output-json` or `--output-all` arguments), for large input data, it can cause very high memory consumption, disk swapping, decreased performance and crashes. Consider removing this output for large input data, running on a machine with more RAM, or processing data in smaller chunks.
 
 > ⚠️ Beware that JSON results reflect the internal state of Nextclade, and use 0-indexed nucleotide and codon positions, whereas CSV and TSV files use 1-indexed positions (widely used in bioinformatics). The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.

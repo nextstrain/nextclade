@@ -1,5 +1,6 @@
 [package]
 name = "nextclade-cli"
+build = "src/build.rs"
 
 authors.workspace = true
 description.workspace = true
@@ -57,3 +58,9 @@ zip = { workspace = true }
 assert2 = { workspace = true }
 criterion = { workspace = true }
 rstest = { workspace = true }
+
+[build-dependencies]
+nextclade = { path = "../nextclade" }
+ctor = { workspace = true }
+eyre = { workspace = true }
+schemars = { workspace = true }

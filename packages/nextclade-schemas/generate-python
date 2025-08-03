@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap "exit" INT
+
+mkdir -p examples/python/lib/
+
+declare -A schemas=(
+  ["input-pathogen-json.schema.json"]="nextclade_input_pathogen_json.py"
+  ["internal-index-json.schema.json"]="nextclade_internal_index_json.py"
+  ["internal-minimizer-index-json.schema.json"]="nextclade_internal_minimizer_index_json.py"
+  ["output-dataset-list-json.schema.json"]="nextclade_output_dataset_list_json.py"
+  ["output-json.schema.json"]="nextclade_output_json.py"
+  ["output-ndjson.schema.json"]="nextclade_output_ndjson.py"
+)
+
+for schema_file in "${!schemas[@]}"; do
+  output_file="examples/python/lib/${schemas[${schema_file}]}"
+
+  echo "Generating: ${schema_file} -> ${output_file}"
+
+  datamodel-codegen \
+    --input-file-type "jsonschema" \
+    --output-model-type "dataclasses.dataclass" \
+    --enum-field-as-literal=all \
+    --input "${schema_file}" \
+    --output "${output_file}"
+
+done

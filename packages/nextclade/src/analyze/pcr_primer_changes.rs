@@ -5,6 +5,7 @@ use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// A change in a PCR primer due to mutations
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PcrPrimerChange {

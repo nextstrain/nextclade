@@ -35,6 +35,7 @@ impl BranchMutations {
   }
 }
 
+/// A collection of private nucleotide mutations
 #[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateNucMutations {

@@ -11,6 +11,7 @@ pub mod gff3_encoding;
 pub mod gff3_reader;
 pub mod gff3_writer;
 pub mod json;
+pub mod json_schema;
 pub mod ndjson;
 pub mod nextclade_csv;
 pub mod nextclade_csv_column_config;

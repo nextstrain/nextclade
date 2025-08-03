@@ -6,6 +6,8 @@ Nextclade CLI: `--input-pathogen-json`/`-R`
 
 General Nextclade dataset configuration can be passed in the JSON config file `pathogen.json`. Top level keys and their values are explained in detail below.
 
+> 💡 **JSON Schema Available**: For validation and code generation, use `nextclade schema write --for input-pathogen-json` to generate a JSON Schema for this format. See the [JSON Schema documentation](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas) for details.
+
 ### Required
 
 #### `schemaVersion`

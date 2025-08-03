@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 
+/// Result of amino acid motif search in a translated CDS
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotif {

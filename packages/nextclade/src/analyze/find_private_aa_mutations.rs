@@ -24,6 +24,7 @@ use maplit::btreemap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// A collection of private amino acid mutations for a CDS
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateAaMutations {
