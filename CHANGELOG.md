@@ -1,3 +1,15 @@
+## 3.16.0
+
+### Introduce JSON Schema definitions
+
+We now provide [JSON Schema](https://json-schema.org/) definitions for some of the JSON-based Nextclade file formats. You can find the latest definitions and documentation [here](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas). You can also generate schemas for your current version of Nextclade CLI using the newly added `nextclade schema write` command.
+
+These schemas enable validation and parser code generation (among other things) to help in development and maintenance of projects using JSON-based Nextclade formats. We would like to emphasize that currently all JSON-based Nextclade formats are unstable and can change even in minor and patch releases. Addition of schemas don't change these stability guarantees, but could help in reducing and fixing breakage after breaking changes.
+
+### Implement amino acid mutation labels
+
+We added functionality to detect labeled amino acid mutations if dataset authors choose to define labels for them. This is similar to the existing labeled nucleotide mutations functionality, but for amino acid sequences. This could be useful to mark particular mutations of interest. Once datasets start adopting this functionality (by adding configuration to the `mutLabels.aaMutLabelMap` in `pathogen.json` of a dataset), you can find the results in the `privateAaMutations.labeledSubstitutions` column/field of Nextclade output files.
+
 ## 3.15.3
 
 ### fix: ensure GFF3 fields are correctly percent-encoded and decoded
