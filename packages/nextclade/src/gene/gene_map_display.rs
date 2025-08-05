@@ -6,12 +6,12 @@ use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::utils::string::truncate_right;
+use console::style;
 use eyre::Report;
 use itertools::{max as iter_max, Itertools};
 use num_traits::clamp;
 use std::cmp::{max, min};
 use std::io::Write;
-use console::style;
 
 const INDENT: &str = " ";
 const INDENT_WIDTH: usize = 2;

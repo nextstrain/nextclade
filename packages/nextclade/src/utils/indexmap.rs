@@ -7,7 +7,7 @@ pub fn reorder_indexmap<K, V, I>(map: IndexMap<K, V>, canonical: I) -> IndexMap<
 where
   K: Eq + Hash + Clone + Ord,
   V: Clone,
-  I: IntoIterator<Item=K>,
+  I: IntoIterator<Item = K>,
 {
   let order_map: HashMap<K, usize> = canonical.into_iter().enumerate().map(|(i, k)| (k, i)).collect();
   map

@@ -1,11 +1,11 @@
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature::Feature;
 use crate::features::feature_type::shorten_feature_type;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use crate::coord::range::NucRefGlobalRange;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

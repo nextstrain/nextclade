@@ -74,8 +74,8 @@ mod coord_map_tests {
   use crate::alphabet::nuc::to_nuc_seq;
   use crate::coord::position::Position;
   use crate::coord::range::{NucRefGlobalRange, Range};
-  
-use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
+
+  use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
   use crate::gene::frame::Frame;
   use crate::gene::phase::Phase;
   use eyre::Report;

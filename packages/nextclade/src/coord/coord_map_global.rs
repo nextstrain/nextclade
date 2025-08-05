@@ -83,8 +83,6 @@ impl CoordMapGlobal {
       self.ref_to_qry_position(ref_range.end - 1) + 1,
     )
   }
-
-
 }
 
 #[cfg(test)]
