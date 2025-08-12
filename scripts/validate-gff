@@ -39,6 +39,12 @@ IGNORED_PATH_PREFIXES=(
   "tmp/smoke-tests/result/nextstrain/yellow-fever/prM-E/with_ref_and_annotation_and_tree/nextclade.gff"
 )
 
+IGNORED_SEQUENCE_REGEXES=(
+  # nextstrain/measles/genome/WHO-2012
+  "SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE\\|PP620722"
+  "SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE\\|KU684406"
+)
+
 function log() {
   GREP_COLORS='mt=01;31' grep --line-buffered --color=always -iE "\b(err|error|fail|can not|cannot|can't|unable|critical|fatal|reject|deny|denied|terminat|abort|panic|fault|invalid|undefined symbol|not found|)\b" |
   GREP_COLORS='mt=01;33' grep --line-buffered --color=always -iE "\b(warn|warning|caution|alert|notice|)\b" |
@@ -55,6 +61,23 @@ function should_ignore {
   return 1
 }
 
+function filter_gff_content {
+  local grep_pattern=""
+  for regex in "${IGNORED_SEQUENCE_REGEXES[@]}"; do
+    if [[ -z "$grep_pattern" ]]; then
+      grep_pattern="^${regex}[[:space:]]"
+    else
+      grep_pattern="${grep_pattern}|^${regex}[[:space:]]"
+    fi
+  done
+
+  if [[ -n "$grep_pattern" ]]; then
+    grep -vE "$grep_pattern"
+  else
+    cat
+  fi
+}
+
 status_accumulator=0
 
 function process_file() {
@@ -68,7 +91,8 @@ function process_file() {
     return
   fi
 
-  output=$(gt gff3validator "$file" 2>&1) || status=$?
+  output=$(filter_gff_content < "$file" | gt gff3validator /dev/stdin 2>&1) || status=$?
+
   if [[ $status -ne 0 ]]; then
     status_accumulator=1
   fi
