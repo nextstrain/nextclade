@@ -888,7 +888,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
       let output_translations_template = output_translations_path
         .to_str()
-        .wrap_err_with(|| format!("When converting path to string: '{output_translations_path:?}'"))?
+        .wrap_err_with(|| format!("When converting path to string: {output_translations_path:?}"))?
         .to_owned();
 
       output_translations.get_or_insert(output_translations_template);
