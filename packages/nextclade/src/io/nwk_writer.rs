@@ -17,6 +17,16 @@ where
   nwk_write_to_writer(file, graph).wrap_err_with(|| format!("When writing graph to Newick file: {filepath:#?}"))
 }
 
+pub fn nwk_write_to_string<N, E, D>(graph: &Graph<N, E, D>) -> Result<String, Report>
+where
+  N: GraphNode + HasDivergence + HasName,
+  E: GraphEdge,
+{
+  let mut buffer = Vec::new();
+  nwk_write_to_writer(&mut buffer, graph)?;
+  Ok(String::from_utf8(buffer)?)
+}
+
 pub fn nwk_write_to_writer<W, N, E, D>(mut writer: W, graph: &Graph<N, E, D>) -> Result<(), Report>
 where
   W: Write,
@@ -26,7 +36,7 @@ where
   Ok(writeln!(writer, "{};", convert_graph_to_nwk_string(graph)?)?)
 }
 
-pub fn convert_graph_to_nwk_string<N, E, D>(graph: &Graph<N, E, D>) -> Result<String, Report>
+fn convert_graph_to_nwk_string<N, E, D>(graph: &Graph<N, E, D>) -> Result<String, Report>
 where
   N: GraphNode + HasDivergence + HasName,
   E: GraphEdge,
