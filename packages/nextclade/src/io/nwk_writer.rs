@@ -23,7 +23,7 @@ where
   N: GraphNode + HasDivergence + HasName,
   E: GraphEdge,
 {
-  Ok(writeln!(writer, "{}", convert_graph_to_nwk_string(graph)?)?)
+  Ok(writeln!(writer, "{};", convert_graph_to_nwk_string(graph)?)?)
 }
 
 pub fn convert_graph_to_nwk_string<N, E, D>(graph: &Graph<N, E, D>) -> Result<String, Report>
