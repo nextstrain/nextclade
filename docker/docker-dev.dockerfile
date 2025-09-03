@@ -234,16 +234,6 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_BINSTALL_VERSION="1.0.0" \
-&& curl -sSL "https://github.com/cargo-bins/cargo-binstall/releases/download/v${CARGO_BINSTALL_VERSION}/cargo-binstall-x86_64-unknown-linux-gnu.tgz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-binstall" \
-&& chmod +x "${CARGO_HOME}/bin/cargo-binstall"
-
-RUN set -euxo pipefail >/dev/null \
-&& export CARGO_QUICKINSTALL_VERSION="0.2.9" \
-&& curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall" \
-&& chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
-
-RUN set -euxo pipefail >/dev/null \
 && export WASM_BINDGEN_CLI_VERSION="0.2.93" \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
@@ -418,7 +408,6 @@ USER 0
 
 ARG OSXCROSS_URL
 
-# Install cargo-quickinstall
 RUN set -euxo pipefail >/dev/null \
 && mkdir -p "/opt/osxcross" \
 && curl -fsSL "${OSXCROSS_URL}" | tar -C "/opt/osxcross" -xJ
