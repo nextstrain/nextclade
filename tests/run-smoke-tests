@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-set -euo pipefail -o errtrace
-trap "exit 0" INT
+set -euo pipefail
+trap "exit" INT
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Runs smoke tests - basic use-case checks with default data
 # https://en.wikipedia.org/wiki/Smoke_testing_(software)
@@ -8,7 +9,7 @@ trap "exit 0" INT
 # Dependencies:
 #   sudo apt-get install -y bash curl parallel
 #
-#   curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+#   curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o "${HOME}/bin/jq" && chmod +x "${HOME}/bin/jq"
 #
 #   curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v2.5.0/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
 #
@@ -18,31 +19,26 @@ trap "exit 0" INT
 #
 #     ./tests/run-smoke-tests 'target/release/nextclade'
 #
+# The downloaded datasets will be in "${DATASETS_DIR}" and Nextclade output files will be in "${RESULTS_DIR}" (see below)
+#
+#
 # 2. Run tests with a given nextclade executable and a directory containing datasets. Dataset directories are
-#    identified as directories containing a `pathogen.json` file.
+#    identified as directories containing a 'pathogen.json' file.
 #
 #     ./tests/run-smoke-tests 'target/release/nextclade' '.../nextclade_data/data_output'
-#
-# The downloaded datasets will be in $DATASETS_DIR and Nextclade output files will be in $RESULTS_DIR (see below)
 
 export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade> [path_to_dataset_collection_dir]"}"
 export INPUT_DATASETS_DIR="${2:-}"
 
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")";  pwd)
-export THIS_DIR
-
 export DATASETS_DIR="${THIS_DIR}/../tmp/smoke-tests/dataset"
 export RESULTS_DIR="${THIS_DIR}/../tmp/smoke-tests/result"
 
-
 function run_with_name() {
-  set -o errtrace
+  local name="${1}"
+  local sequences="${2}"
+  local out_dir="${RESULTS_DIR}/${name}/with_name"
 
-  name="${1}"
-  sequences="${2}"
-  out_dir="${RESULTS_DIR}/${name}/with_name"
-
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --dataset-name="${name}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -50,16 +46,13 @@ function run_with_name() {
 }
 export -f run_with_name
 
-
 function run_with_dataset_dir() {
-  set -o errtrace
+  local name="${1}"
+  local dataset_dir="${2}"
+  local sequences="${3}"
+  local out_dir="${RESULTS_DIR}/${name}/with_dataset"
 
-  name="${1}"
-  dataset_dir="${2}"
-  sequences="${3}"
-  out_dir="${RESULTS_DIR}/${name}/with_dataset"
-
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-dataset="${dataset_dir}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -67,14 +60,13 @@ function run_with_dataset_dir() {
 }
 export -f run_with_dataset_dir
 
-
 function run_with_dataset_zip() {
-  name="${1}"
-  zip_path="${2}"
-  sequences="${3}"
-  out_dir="${RESULTS_DIR}/${name}/with_dataset_zip"
+  local name="${1}"
+  local zip_path="${2}"
+  local sequences="${3}"
+  local out_dir="${RESULTS_DIR}/${name}/with_dataset_zip"
 
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-dataset="${zip_path}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -82,16 +74,15 @@ function run_with_dataset_zip() {
 }
 export -f run_with_dataset_zip
 
-
 function run_with_ref_only() {
-  name="${1}"
-  dataset_dir="${2}"
-  sequences="${3}"
-  out_dir="${RESULTS_DIR}/${name}/with_ref_only"
+  local name="${1}"
+  local dataset_dir="${2}"
+  local sequences="${3}"
+  local out_dir="${RESULTS_DIR}/${name}/with_ref_only"
 
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -99,17 +90,16 @@ function run_with_ref_only() {
 }
 export -f run_with_ref_only
 
-
 function run_with_ref_and_annotation() {
-  name="${1}"
-  dataset_dir="${2}"
-  sequences="${3}"
-  out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation"
+  local name="${1}"
+  local dataset_dir="${2}"
+  local sequences="${3}"
+  local out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation"
 
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -118,17 +108,16 @@ function run_with_ref_and_annotation() {
 }
 export -f run_with_ref_and_annotation
 
-
 function run_with_ref_and_tree() {
-  name="${1}"
-  dataset_dir="${2}"
-  sequences="${3}"
-  out_dir="${RESULTS_DIR}/${name}/with_ref_and_tree"
+  local name="${1}"
+  local dataset_dir="${2}"
+  local sequences="${3}"
+  local out_dir="${RESULTS_DIR}/${name}/with_ref_and_tree"
 
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-tree="${dataset_dir}/tree.json" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -137,17 +126,16 @@ function run_with_ref_and_tree() {
 }
 export -f run_with_ref_and_tree
 
-
 function run_with_ref_and_annotation_and_tree() {
-  name="${1}"
-  dataset_dir="${2}"
-  sequences="${3}"
-  out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation_and_tree"
+  local name="${1}"
+  local dataset_dir="${2}"
+  local sequences="${3}"
+  local out_dir="${RESULTS_DIR}/${name}/with_ref_and_annotation_and_tree"
 
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
-  ${NEXTCLADE_BIN} run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --input-tree="${dataset_dir}/tree.json" \
@@ -157,45 +145,149 @@ function run_with_ref_and_annotation_and_tree() {
 }
 export -f run_with_ref_and_annotation_and_tree
 
+function get_sequence_file() {
+  local dataset_dir="${1}"
+  local target_dir="${2}"
 
-function download_and_run_single_dataset() {
-  set -o errtrace
-
-  name=$1
-  dataset_dir="${DATASETS_DIR}/dir/${name}"
-  zip_path="${DATASETS_DIR}/zip/${name}/dataset.zip"
-
-  ${NEXTCLADE_BIN} dataset get --name="${name}" --output-dir="$dataset_dir"
-
-  ${NEXTCLADE_BIN} dataset get --name="${name}" --output-zip="$zip_path"
-
-  sequences=$(jq -re ".files.examples | select(length > 0)" "$dataset_dir/pathogen.json")
-  sequences="$dataset_dir/$sequences"
-  msg_no_sequences=""
-  if [ -z "${sequences}" ] || [ ! -f "$sequences" ]; then
-    sequences="$dataset_dir/reference.fasta"
-    msg_no_sequences="\n\e[93mWarning: dataset '${name}' contains no example sequences. Will use reference sequence as query input.\e[0m"
+  local sequences
+  sequences="$(jq -re ".files.examples | select(length > 0)" "${dataset_dir}/pathogen.json" 2>/dev/null || printf "")"
+  local msg_no_sequences=""
+  if [ -n "${sequences}" ] && [ -f "${dataset_dir}/${sequences}" ]; then
+    if [ "${target_dir}" != "${dataset_dir}" ]; then
+      cp "${dataset_dir}/${sequences}" "${target_dir}/"
+    fi
+    sequences="${target_dir}/${sequences}"
+  else
+    if [ "${target_dir}" != "${dataset_dir}" ]; then
+      cp "${dataset_dir}/reference.fasta" "${target_dir}/"
+    fi
+    sequences="${target_dir}/reference.fasta"
+    msg_no_sequences="1"
   fi
+
+  printf "%s|%s" "${sequences}" "${msg_no_sequences}"
+}
+export -f get_sequence_file
+
+function add_reverse_complement() {
+  local sequences="${1}"
 
   if command -v seqkit &>/dev/null; then
-    sequences_orig="${sequences%.fasta}.orig.fasta"
-    sequences_rev_comp="${sequences%.fasta}.rev.fasta"
+    local sequences_orig="${sequences%.fasta}.orig.fasta"
+    local sequences_rev_comp="${sequences%.fasta}.rev.fasta"
     cp "${sequences}" "${sequences_orig}"
-    seqkit seq --quiet -t DNA -p -r "${sequences_orig}" | seqkit replace -p '(.*)' -r 'SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE|$1' > "${sequences_rev_comp}"
-    (cat "${sequences_orig}"; echo; cat "${sequences_rev_comp}") > "${sequences}"
+    seqkit seq --quiet -t DNA -p -r "${sequences_orig}" | seqkit replace -p '(.*)' -r 'SMOKE_TEST_REVERSE_COMPLEMENTED_SEQUENCE|$1' >"${sequences_rev_comp}"
+    (
+      cat "${sequences_orig}"
+      printf "\n"
+      cat "${sequences_rev_comp}"
+    ) >"${sequences}"
+  fi
+}
+export -f add_reverse_complement
+
+function download_and_run_dataset() {
+  local name="${1}"
+  local dataset_dir="${DATASETS_DIR}/dir/${name}"
+  local zip_path="${DATASETS_DIR}/zip/${name}/dataset.zip"
+
+  "${NEXTCLADE_BIN}" dataset get --name="${name}" --output-dir="${dataset_dir}"
+  "${NEXTCLADE_BIN}" dataset get --name="${name}" --output-zip="${zip_path}"
+
+  local result
+  result=$(get_sequence_file "${dataset_dir}" "${dataset_dir}")
+  local sequences="${result%|*}"
+  local has_warning="${result#*|}"
+
+  add_reverse_complement "${sequences}"
+
+  if [ "${has_warning}" = "1" ]; then
+    printf "\nRunning '%s' for '%s'\n\e[93mWarning: dataset '%s' contains no example sequences. Will use reference sequence as query input.\e[0m\n" "${NEXTCLADE_BIN}" "${name}" "${name}"
+  else
+    printf "\nRunning '%s' for '%s'\n" "${NEXTCLADE_BIN}" "${name}"
   fi
 
-  echo -e "\nRunning '${NEXTCLADE_BIN}' for '${name}'$msg_no_sequences"
+  # Run with dataset name (only for downloaded datasets)
+  run_with_name "${name}" "${sequences}"
 
-  run_with_name                           "${name}" "${sequences}"
-  run_with_dataset_dir                    "${name}" "${dataset_dir}" "${sequences}"
-  run_with_dataset_zip                    "${name}" "${zip_path}"    "${sequences}"
-  run_with_ref_only                       "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_and_annotation             "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_and_tree                   "${name}" "${dataset_dir}" "${sequences}"
-  run_with_ref_and_annotation_and_tree    "${name}" "${dataset_dir}" "${sequences}"
+  # Run directory-based tests
+  run_with_dataset_dir "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_only "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_tree "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation_and_tree "${name}" "${dataset_dir}" "${sequences}"
+
+  # If dataset.zip exists, also run zip-based test
+  if [ -f "${dataset_dir}/dataset.zip" ]; then
+    run_with_dataset_zip "${name}" "${dataset_dir}/dataset.zip" "${sequences}"
+  fi
 }
-export -f download_and_run_single_dataset
+export -f download_and_run_dataset
 
-all_datasets=$(${NEXTCLADE_BIN} dataset list --include-deprecated --only-names)
-parallel --keep-order --jobs=+0 download_and_run_single_dataset ::: "${all_datasets}"
+function run_local_dataset() {
+  local dataset_dir="${1}"
+
+  # Extract dataset name as path relative to INPUT_DATASETS_DIR
+  local abs_input_dir
+  abs_input_dir="$(cd "${INPUT_DATASETS_DIR}" && pwd)"
+  local abs_dataset_dir
+  abs_dataset_dir="$(cd "${dataset_dir}" && pwd)"
+  local name
+  name="$(printf "%s" "${abs_dataset_dir}" | sed "s|^${abs_input_dir}/||")"
+
+  # Create organized directory for this dataset's sequences
+  local work_dataset_dir="${DATASETS_DIR}/local/${name}"
+  mkdir -p "${work_dataset_dir}"
+
+  local result
+  result=$(get_sequence_file "${dataset_dir}" "${work_dataset_dir}")
+  local sequences="${result%|*}"
+  local has_warning="${result#*|}"
+
+  add_reverse_complement "${sequences}"
+
+  if [ "${has_warning}" = "1" ]; then
+    printf "\nRunning '%s' for '%s'\n\e[93mWarning: dataset '%s' contains no example sequences. Will use reference sequence as query input.\e[0m\n" "${NEXTCLADE_BIN}" "${name}" "${name}"
+  else
+    printf "\nRunning '%s' for '%s'\n" "${NEXTCLADE_BIN}" "${name}"
+  fi
+
+  # Run directory-based tests
+  run_with_dataset_dir "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_only "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_tree "${name}" "${dataset_dir}" "${sequences}"
+  run_with_ref_and_annotation_and_tree "${name}" "${dataset_dir}" "${sequences}"
+
+  # If dataset.zip exists, also run zip-based test
+  if [ -f "${dataset_dir}/dataset.zip" ]; then
+    run_with_dataset_zip "${name}" "${dataset_dir}/dataset.zip" "${sequences}"
+  fi
+}
+export -f run_local_dataset
+
+if [ -n "${INPUT_DATASETS_DIR}" ]; then
+  printf "Running smoke tests with datasets from: %s\n" "${INPUT_DATASETS_DIR}"
+
+  if [ ! -d "${INPUT_DATASETS_DIR}" ]; then
+    printf "Error: Dataset directory '%s' does not exist\n" "${INPUT_DATASETS_DIR}"
+    exit 1
+  fi
+
+  # Find all directories containing pathogen.json files
+  mapfile -t -d '' dataset_dirs < <(find "${INPUT_DATASETS_DIR}" -name "pathogen.json" -type f -printf '%h\0' | sort -zu)
+
+  if ((${#dataset_dirs[@]} == 0)); then
+    printf "Error: No datasets found (directories containing pathogen.json files) in '%s'\n" "${INPUT_DATASETS_DIR}"
+    exit 1
+  fi
+
+  printf "Found %d datasets\n" "${#dataset_dirs[@]}"
+
+  parallel --jobs=+0 run_local_dataset ::: "${dataset_dirs[@]}"
+else
+  printf "Downloading datasets and running smoke tests\n"
+  all_datasets="$("${NEXTCLADE_BIN}" dataset list --include-deprecated --only-names)"
+  printf "Will download %d datasets\n" "$(printf "%s" "${all_datasets}" | wc -l)"
+  parallel --jobs=+0 download_and_run_dataset ::: "${all_datasets}"
+fi
