@@ -17,6 +17,10 @@ const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetsIndexJson {
+  #[serde(rename = "$schema", default = "DatasetsIndexJson::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub collections: Vec<DatasetCollection>,
 
   pub schema_version: String,
@@ -29,6 +33,10 @@ pub struct DatasetsIndexJson {
 }
 
 impl DatasetsIndexJson {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-index-json.schema.json".to_owned()
+  }
+
   pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
     SchemaVersion::check_warn(
       &s,
