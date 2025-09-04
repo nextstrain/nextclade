@@ -562,7 +562,7 @@ mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
 
 ADDITIONAL_DOCKER_RUN_ARGS=""
-if [ -t 1 ]; then
+if [ -t 0 ] && [ -t 1 ] && [ "$(is_ci)" == "0" ]; then
   ADDITIONAL_DOCKER_RUN_ARGS="${ADDITIONAL_DOCKER_RUN_ARGS} -it"
 fi
 
