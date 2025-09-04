@@ -1,5 +1,5 @@
 use crate::analyze::virus_properties::VirusProperties;
-use crate::io::dataset::{DatasetListJson, DatasetsIndexJson};
+use crate::io::dataset::{Dataset, DatasetCollection, DatasetListJson, DatasetsIndexJson};
 use crate::io::fs::add_extension;
 use crate::io::json_schema::{jsonschema_write_file, JsonSchemaOutputFormat};
 use crate::io::results_json::ResultsJson;
@@ -75,6 +75,14 @@ pub enum NextcladeFileFormat {
   /// Produced at: https://github.com/nextstrain/nextclade_data
   InternalIndexJson,
 
+  /// Internal dataset collection JSON format. This format is used to store dataset collections in dataset index file.
+  /// This is an internal format, not meant to be used directly.
+  InternalDatasetCollectionJson,
+
+  /// Internal dataset JSON format. This format is used to store properties of concrete datasets in dataset index file.
+  /// This is an internal format, not meant to be used directly.
+  InternalDatasetJson,
+
   /// Minimizer index JSON format. This format is used to store minimizer data which is used for dataset detection from sequences (dataset suggestions in Nextclade Web and `nextclade sort`  command).
   /// This is an internal format, not meant to be used directly.
   /// Hosted at: http://data.clades.nextstrain.org/v3/minimizer_index.json
@@ -91,6 +99,8 @@ impl NextcladeFileFormat {
       NextcladeFileFormat::OutputNdjson => Some("output-ndjson.schema"),
       NextcladeFileFormat::OutputDatasetListJson => Some("output-dataset-list-json.schema"),
       NextcladeFileFormat::InternalIndexJson => Some("internal-index-json.schema"),
+      NextcladeFileFormat::InternalDatasetCollectionJson => Some("internal-dataset-collection-json.schema"),
+      NextcladeFileFormat::InternalDatasetJson => Some("internal-dataset-json.schema"),
       NextcladeFileFormat::InternalMinimizerIndexJson => Some("internal-minimizer-index-json.schema"),
     }
   }
@@ -136,6 +146,8 @@ pub fn generate_schema(
     NextcladeFileFormat::OutputJson => jsonschema_write_file::<ResultsJson>(output, as_format)?,
     NextcladeFileFormat::OutputNdjson => jsonschema_write_file::<NextcladeOutputs>(output, as_format)?,
     NextcladeFileFormat::InternalIndexJson => jsonschema_write_file::<DatasetsIndexJson>(output, as_format)?,
+    NextcladeFileFormat::InternalDatasetCollectionJson => jsonschema_write_file::<DatasetCollection>(output, as_format)?,
+    NextcladeFileFormat::InternalDatasetJson => jsonschema_write_file::<Dataset>(output, as_format)?,
     NextcladeFileFormat::InternalMinimizerIndexJson => jsonschema_write_file::<MinimizerIndexJson>(output, as_format)?,
     NextcladeFileFormat::OutputDatasetListJson => jsonschema_write_file::<DatasetListJson>(output, as_format)?,
   }

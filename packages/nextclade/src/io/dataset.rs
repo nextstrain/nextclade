@@ -17,6 +17,10 @@ const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetsIndexJson {
+  #[serde(rename = "$schema", default = "DatasetsIndexJson::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub collections: Vec<DatasetCollection>,
 
   pub schema_version: String,
@@ -29,6 +33,10 @@ pub struct DatasetsIndexJson {
 }
 
 impl DatasetsIndexJson {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-index-json.schema.json".to_owned()
+  }
+
   pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
     SchemaVersion::check_warn(
       &s,
@@ -45,12 +53,22 @@ impl DatasetsIndexJson {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCollection {
+  #[serde(rename = "$schema", default = "DatasetCollection::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub meta: DatasetCollectionMeta,
 
   pub datasets: Vec<Dataset>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl DatasetCollection {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-dataset-collection-json.schema.json".to_owned()
+  }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -86,6 +104,10 @@ impl FromIterator<Dataset> for DatasetListJson {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Dataset {
+  #[serde(rename = "$schema", default = "Dataset::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub path: String,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -117,6 +139,10 @@ pub struct Dataset {
 }
 
 impl Dataset {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-dataset-json.schema.json".to_owned()
+  }
+
   pub fn name(&self) -> Option<&str> {
     self.attributes.get("name").and_then(AnyType::as_str_maybe)
   }

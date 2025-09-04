@@ -702,6 +702,10 @@ See: https://json-schema.org
     A list of datasets produced with `nextclade dataset list --json`
   - `internal-index-json`:
     Index JSON format. This format is used to store a list of known datasets and their properties. This is how Nextclade knows which datasets are available for a given pathogen (e.g. to display them in the web UI or with `nextclade dataset list` command). This is an internal format, not meant to be used directly. Hosted at: http://data.clades.nextstrain.org/v3/index.json Produced at: https://github.com/nextstrain/nextclade_data
+  - `internal-dataset-collection-json`:
+    Internal dataset collection JSON format. This format is used to store dataset collections in dataset index file. This is an internal format, not meant to be used directly
+  - `internal-dataset-json`:
+    Internal dataset JSON format. This format is used to store properties of concrete datasets in dataset index file. This is an internal format, not meant to be used directly
   - `internal-minimizer-index-json`:
     Minimizer index JSON format. This format is used to store minimizer data which is used for dataset detection from sequences (dataset suggestions in Nextclade Web and `nextclade sort`  command). This is an internal format, not meant to be used directly. Hosted at: http://data.clades.nextstrain.org/v3/minimizer_index.json Produced at: https://github.com/nextstrain/nextclade_data
 
