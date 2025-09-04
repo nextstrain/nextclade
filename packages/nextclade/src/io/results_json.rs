@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ResultsJson {
-  #[serde(rename = "$schema")]
+  #[serde(rename = "$schema", default = "ResultsJson::default_schema")]
   #[schemars(skip)]
   pub schema: String,
 
@@ -40,13 +40,17 @@ pub struct ResultsJson {
 }
 
 impl ResultsJson {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/output-json.schema.json".to_owned()
+  }
+
   pub fn new(
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
   ) -> Self {
     Self {
-      schema: "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/output-json.schema.json".to_owned(),
+      schema: Self::default_schema(),
       schema_version: "3.0.0".to_owned(),
       nextclade_algo_version: this_package_version_str().to_owned(),
       nextclade_web_version: None,
