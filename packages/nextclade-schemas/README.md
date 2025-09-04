@@ -43,7 +43,13 @@ Once schemas are obtained, typically you can use them for:
 
 All these use-cases can be handy in downstream applications, because, as stated above, the described formats are unstable. For example, after formats undergo breaking changes, if your programming language is typed, the automatically generated classes, structs or interfaces will change upon next code generation and your compiler will tell you how to fix your code.
 
-## Example: Python
+## Example: autocompletion and documentation in text editors
+
+If a JSON file contains `$schema` property pointing to a schema file, many text editors (e.g., VSCode) will be able to provide autocompletion and inline documentation based on the schema. See video example illustrating editing `pathogen.json` in VSCode:
+
+https://github.com/user-attachments/assets/3a72424f-08db-427b-8275-b2fffb2c039b
+
+## Example: Python code generation
 
 This is a simple example which demonstrates how to use Nextclade JSON schemas to generate Python dataclasses and how to use them to read Nextclade JSON files in a type-safe way. Note that Python language is duck typed, so it's probably not the best choice if you want to build something type-safe. We demonstrate with Python here only because its omnipresence in bioinformatics.
 
