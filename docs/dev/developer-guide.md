@@ -173,9 +173,18 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
     nvm install
     nvm use
     node --version
+    yarn --version
     ```
 
-   > ⚠️ Nextclade team doesn't have bandwidth to support Node.js installations from Linux package repositories, Homebrew, Conda, as well as versions of Node.js which are not the same as currently declared in the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc), and everything else deviating from the recommended setup. If you decide to go that route - things may or may not work - you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
+    Yarn often ships with Node.js distributions, but if you don't have it, you can install it with:
+
+    ```bash
+    npm install --global yarn@1
+    ```
+
+    Only yarn v1 is supported.
+
+   > ⚠️ Nextclade team doesn't have bandwidth to support Node.js installations from Linux package repositories, Homebrew, Conda, as well as versions of Node.js which are not the same as the one currently declared in the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc), and everything else deviating from the recommended setup. If you decide to go that route - things may or may not work - you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
 
 3. Install Rust if not already (once) ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)):
 
