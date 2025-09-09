@@ -1,3 +1,22 @@
+## 3.17.0
+
+### Add trailing semicolon to Newick format output
+
+Newick format output now includes a trailing semicolon for better compatibility with parsers.
+
+## Remove extra quotation marks around filepaths
+
+Nextclade would erroneously add double quotation marks when printing paths. This has been fixed.
+
+## Add more JSON schema definitions
+
+We have added JSON schema definitions for `Dataset` and `DatasetCollection` types, both are parts of the `DatasetIndexJson`. You can find the latest definitions and documentation [here](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas)
+
+## Add `$schema` field to JSON outputs
+
+We have added an optional `$schema` field to JSON input and output files. This is a convention used to indicate which JSON schema definition the output conforms to. This can be useful for validation and for tooling that supports JSON schema (e.g. autocomplete and documentation in VSCode when editing `pathogen.json` file).
+
+
 ## 3.16.0
 
 ### Introduce JSON Schema definitions
