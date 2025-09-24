@@ -53,21 +53,24 @@ export function RefNodeSelector({ disabled }: RefNodeSelectorProps) {
           }
         }) ?? []
 
+    const builtins = refNodes?.builtins
     const builtinRefs: Option[] = [
       {
         value: REF_NODE_ROOT,
-        label: t('Reference'),
-        description: t('Reference sequence'),
+        label: builtins?.[REF_NODE_ROOT]?.displayName ?? t('Reference'),
+        description: builtins?.[REF_NODE_ROOT]?.description ?? t('Reference sequence'),
       },
       {
         value: REF_NODE_PARENT,
-        label: t('Parent'),
-        description: t('Nearest node on reference tree'),
+        label: builtins?.[REF_NODE_PARENT]?.displayName ?? t('Parent'),
+        description: builtins?.[REF_NODE_PARENT]?.description ?? t('Nearest node on reference tree'),
       },
       {
         value: REF_NODE_CLADE_FOUNDER,
-        label: t('Clade founder'),
-        description: t('Earliest ancestor node with the same clade on reference tree'),
+        label: builtins?.[REF_NODE_CLADE_FOUNDER]?.displayName ?? t('Clade founder'),
+        description:
+          builtins?.[REF_NODE_CLADE_FOUNDER]?.description ??
+          t('Earliest ancestor node with the same clade on reference tree'),
       },
     ]
 
@@ -75,7 +78,7 @@ export function RefNodeSelector({ disabled }: RefNodeSelectorProps) {
     const currentOption = options.find((o) => o.value === currentRefNodeName)
 
     return { options, currentOption }
-  }, [cladeNodeAttrDescs, currentRefNodeName, refNodes?.search, t])
+  }, [cladeNodeAttrDescs, currentRefNodeName, refNodes?.search, refNodes?.builtins, t])
 
   const handleChange = useCallback(
     (option: OnChangeValue<DropdownOption<string>, IsMultiValue>, _actionMeta: ActionMeta<DropdownOption<string>>) => {

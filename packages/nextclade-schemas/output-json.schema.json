@@ -123,6 +123,16 @@
           "items": {
             "$ref": "#/definitions/AuspiceRefNodeSearchDesc"
           }
+        },
+        "builtins": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AuspiceRefNodeBuiltinsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -240,6 +250,60 @@
         "ancestor-earliest",
         "full"
       ]
+    },
+    "AuspiceRefNodeBuiltinsConfig": {
+      "description": "Configuration for all built-in reference node types",
+      "type": "object",
+      "properties": {
+        "__root__": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AuspiceRefNodeBuiltinConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "__parent__": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AuspiceRefNodeBuiltinConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "__clade_founder__": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AuspiceRefNodeBuiltinConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "AuspiceRefNodeBuiltinConfig": {
+      "description": "Configuration for built-in reference node types display names and descriptions",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "NextcladeOutputs": {
       "title": "ResultJson",

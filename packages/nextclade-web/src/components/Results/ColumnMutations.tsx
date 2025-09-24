@@ -3,7 +3,7 @@ import { useRecoilValue } from 'recoil'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { findCladeNodeAttrFounderInfo, getAaMutations, getNucMutations } from 'src/helpers/relativeMuts'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { currentRefNodeNameAtom } from 'src/state/results.state'
+import { currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
 import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { TableSlim } from 'src/components/Common/TableSlim'
@@ -23,19 +23,30 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const id = getSafeId('mutations-label', { index, seqName })
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
+  const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
   const nodeSearchName = useRecoilValue(currentRefNodeNameAtom({ datasetName }))
   const nucMuts = getNucMutations(analysisResult, nodeSearchName ?? REF_NODE_ROOT)
   const aaMuts = getAaMutations(analysisResult, nodeSearchName ?? REF_NODE_ROOT)
 
   const { searchNameFriendly, nodeName } = useMemo(() => {
+    const builtins = refNodes?.builtins
     if (nodeSearchName === REF_NODE_ROOT) {
-      return { searchNameFriendly: t('reference'), nodeName: refName }
+      return {
+        searchNameFriendly: builtins?.[REF_NODE_ROOT]?.displayName ?? t('reference'),
+        nodeName: refName,
+      }
     }
     if (nodeSearchName === REF_NODE_PARENT) {
-      return { searchNameFriendly: t('parent'), nodeName: nearestNodeName }
+      return {
+        searchNameFriendly: builtins?.[REF_NODE_PARENT]?.displayName ?? t('parent'),
+        nodeName: nearestNodeName,
+      }
     }
     if (nodeSearchName === REF_NODE_CLADE_FOUNDER) {
-      return { searchNameFriendly: t('clade founder'), nodeName: cladeFounderInfo?.nodeName }
+      return {
+        searchNameFriendly: builtins?.[REF_NODE_CLADE_FOUNDER]?.displayName ?? t('clade founder'),
+        nodeName: cladeFounderInfo?.nodeName,
+      }
     }
     const cladeNodeAttr = findCladeNodeAttrFounderInfo(cladeNodeAttrFounderInfo, nodeSearchName ?? REF_NODE_ROOT)
     if (cladeNodeAttr) {
@@ -53,6 +64,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
     nodeSearchName,
     cladeNodeAttrFounderInfo,
     refNodeSearchResults,
+    refNodes?.builtins,
     t,
     refName,
     nearestNodeName,
