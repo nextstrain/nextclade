@@ -13,12 +13,12 @@ import { Dataset } from 'src/types'
 import {
   fetchDatasetsIndex,
   findDataset,
+  getCompatibleEnabledDatasets,
   getCompatibleMinimizerIndexVersion,
-  getLatestCompatibleEnabledDatasets,
 } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { datasetsAtom, datasetServerUrlAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import { datasetsAtom, allDatasetsAtom, datasetServerUrlAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { useQuery } from 'react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
@@ -35,6 +35,14 @@ export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets
   const tag = getQueryParamMaybe(urlQuery, 'dataset-tag')
 
   const dataset = findDataset(datasets, name, tag)
+
+  // If specific tag not found but name exists, try to find with just the name (latest tag)
+  if (!dataset && tag) {
+    const nameOnlyDataset = findDataset(datasets, name, undefined) // Find without tag
+    if (nameOnlyDataset) {
+      return nameOnlyDataset
+    }
+  }
 
   if (!dataset) {
     const names = datasets.map((dataset) => dataset.path)
@@ -116,20 +124,30 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
 export async function initializeDatasets(datasetServerUrl: string, urlQuery: ParsedUrlQuery = {}) {
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
-  const datasets = getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
+  // Get all datasets for tag-based lookup
+  const allDatasets = getCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson, { latestOnly: false })
+
+  // Get only latest datasets for UI display and autodetection
+  const latestDatasets = getCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson, { latestOnly: true })
 
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
-  // Check if URL params specify dataset params and try to find the corresponding dataset
-  const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
+  // Check if URL params specify dataset params and try to find from ALL datasets (including non-latest tags)
+  const currentDataset = await getDatasetFromUrlParams(urlQuery, allDatasets)
 
-  return { datasets, currentDataset, minimizerIndexVersion }
+  return {
+    datasets: latestDatasets, // For UI display and autodetection
+    allDatasets, // For tag-based lookup
+    currentDataset,
+    minimizerIndexVersion,
+  }
 }
 
 /** Refetch dataset index periodically and update the local copy of if */
 export function useUpdatedDatasetIndex() {
   const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
+  const setAllDatasetsState = useSetRecoilState(allDatasetsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
   useQuery(
@@ -138,8 +156,9 @@ export function useUpdatedDatasetIndex() {
       if (isNil(datasetServerUrl)) {
         return
       }
-      const { minimizerIndexVersion, datasets } = await initializeDatasets(datasetServerUrl)
+      const { datasets, allDatasets, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl)
       setDatasetsState(datasets)
+      setAllDatasetsState(allDatasets)
       setMinimizerIndexVersion(minimizerIndexVersion)
     },
     {

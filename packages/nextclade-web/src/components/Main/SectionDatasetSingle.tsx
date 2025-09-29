@@ -34,12 +34,12 @@ export function SectionDatasetSingle() {
   }, [push])
 
   const content = useMemo(() => {
-    if (isNil(datasetCurrent) || isEmpty(datasetCurrent) || isNil(datasetCurrent)) {
+    if (isNil(datasetCurrent) || isEmpty(datasetCurrent)) {
       return <DatasetNoneSection toDatasetSelection={toDatasetSelection} />
     }
     return (
       <>
-        {!isNil(datasetCurrent) && <DatasetSingleCurrent dataset={datasetCurrent} />}
+        <DatasetSingleCurrent dataset={datasetCurrent} />
 
         <Row noGutters className="my-1">
           <Col className="d-flex w-100">
