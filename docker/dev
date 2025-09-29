@@ -407,6 +407,11 @@ fi
 DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04}"
 CLANG_VERSION="${CLANG_VERSION:=13}"
 DOCKER_TARGET="${DOCKER_TARGET:-dev}"
+
+if [ "${E2E_TEST}" == "1" ]; then
+  DOCKER_TARGET="e2e"
+fi
+
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   if [[ "${CROSS}" == *linux-gnu ]]; then
