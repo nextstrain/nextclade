@@ -519,8 +519,7 @@ elif [ "${WASM}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${WEB}" == "1" ]; then
   if [[ "${RELEASE}" == *"dev"* ]]; then
-    WEB_PORT_DEV=${WEB_PORT_DEV:-3000}
-    PORTS="-p ${WEB_PORT_DEV}:${WEB_PORT_DEV}"
+    PORTS="--network=host"
   else
     WEB_PORT_PROD=${WEB_PORT_PROD:-8080}
     PORTS="-p ${WEB_PORT_PROD}:${WEB_PORT_PROD}"
