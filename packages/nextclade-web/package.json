@@ -70,6 +70,10 @@
     "test:lint:nowatch": "WITH_ESLINT=1 yarn test:nowatch",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --config=config/jest/jest.config.js --runInBand --watch",
     "test:coverage": "yarn test:nowatch --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
     "i18n": "babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\" node_modules/.bin/i18next -c config/i18next/i18next.config.js",
     "i18n:fix": "babel-node --config-file \"./babel-node.config.js\" --extensions \".ts\" tools/fixLocales.ts",
     "i18n:translate": "json-autotranslate --config=json-autotranslate.json --input=src/i18n/resources --service=amazon-translate --matcher=i18next --fix-inconsistencies --delete-unused-strings",
@@ -177,6 +181,7 @@
     "yargs": "17.4.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.45.1",
     "@babel/core": "7.17.9",
     "@babel/node": "7.16.8",
     "@babel/plugin-proposal-decorators": "7.17.9",
@@ -215,6 +220,7 @@
     "@types/lodash-webpack-plugin": "0.11.6",
     "@types/luxon": "2.3.1",
     "@types/mdx-js__react": "1.5.5",
+    "@types/node": "18.16.3",
     "@types/papaparse": "5.3.2",
     "@types/react": "18.0.8",
     "@types/react-copy-to-clipboard": "5.0.4",

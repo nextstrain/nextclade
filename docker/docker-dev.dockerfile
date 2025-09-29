@@ -82,6 +82,29 @@ RUN set -euxo pipefail >/dev/null \
   sudo \
   time \
   xz-utils \
+  # Playwright browser dependencies \
+  libnss3 \
+  libatk-bridge2.0-0 \
+  libdrm2 \
+  libxkbcommon0 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxrandr2 \
+  libgbm1 \
+  libxss1 \
+  libasound2 \
+  fonts-noto-color-emoji \
+  fonts-liberation \
+  libgtk-3-0 \
+  libgconf-2-4 \
+  libxfixes3 \
+  libxinerama1 \
+  libxcursor1 \
+  libxi6 \
+  libxrender1 \
+  libxtst6 \
+  libatspi2.0-0 \
+  libgail-common \
 >/dev/null \
 && echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
 && curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
@@ -281,6 +304,16 @@ FROM base as dev
 
 ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
+
+# Install Playwright browsers in dev container for E2E testing
+USER 0
+RUN set -euxo pipefail >/dev/null \
+&& export PLAYWRIGHT_VERSION="1.45.1" \
+&& npm install -g @playwright/test@${PLAYWRIGHT_VERSION} >/dev/null \
+&& npx playwright install chromium >/dev/null \
+&& npx playwright install-deps chromium >/dev/null
+
+USER ${UID}
 
 # Cross-compilation for Linux x86_64 with gnu-libc.
 # Same as native, but convenient to have for mass cross-compilation.

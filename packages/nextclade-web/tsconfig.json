@@ -36,9 +36,11 @@
     "lib/",
     "next-env.d.ts",
     "next.config.js",
+    "playwright.config.ts",
     "postcss.config.js",
     "src/",
     "stylelint.config.js",
+    "tests/",
     "tools/"
   ]
 }
