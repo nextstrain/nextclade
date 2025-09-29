@@ -5,6 +5,7 @@ use crate::io::json_schema::{jsonschema_write_file, JsonSchemaOutputFormat};
 use crate::io::results_json::ResultsJson;
 use crate::make_error;
 use crate::sort::minimizer_index::MinimizerIndexJson;
+use crate::tree::tree::AuspiceMetaExtensionsNextclade;
 use crate::types::outputs::NextcladeOutputs;
 use clap::{Parser, Subcommand, ValueEnum, ValueHint};
 use eyre::Report;
@@ -88,6 +89,10 @@ pub enum NextcladeFileFormat {
   /// Hosted at: http://data.clades.nextstrain.org/v3/minimizer_index.json
   /// Produced at: https://github.com/nextstrain/nextclade_data
   InternalMinimizerIndexJson,
+
+  /// Nextclade extensions for Auspice JSON format. This format describes the additional fields that Nextclade adds to the standard Auspice JSON format under `.meta.extensions.nextclade`.
+  /// This is the schema for the extensions only, not for the complete Auspice JSON file.
+  NextcladeAuspiceExtensions,
 }
 
 impl NextcladeFileFormat {
@@ -102,6 +107,7 @@ impl NextcladeFileFormat {
       NextcladeFileFormat::InternalDatasetCollectionJson => Some("internal-dataset-collection-json.schema"),
       NextcladeFileFormat::InternalDatasetJson => Some("internal-dataset-json.schema"),
       NextcladeFileFormat::InternalMinimizerIndexJson => Some("internal-minimizer-index-json.schema"),
+      NextcladeFileFormat::NextcladeAuspiceExtensions => Some("nextclade-auspice-extensions.schema"),
     }
   }
 }
@@ -150,6 +156,7 @@ pub fn generate_schema(
     NextcladeFileFormat::InternalDatasetJson => jsonschema_write_file::<Dataset>(output, as_format)?,
     NextcladeFileFormat::InternalMinimizerIndexJson => jsonschema_write_file::<MinimizerIndexJson>(output, as_format)?,
     NextcladeFileFormat::OutputDatasetListJson => jsonschema_write_file::<DatasetListJson>(output, as_format)?,
+    NextcladeFileFormat::NextcladeAuspiceExtensions => jsonschema_write_file::<AuspiceMetaExtensionsNextclade>(output, as_format)?,
   }
   Ok(())
 }
