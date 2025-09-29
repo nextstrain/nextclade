@@ -708,6 +708,8 @@ See: https://json-schema.org
     Internal dataset JSON format. This format is used to store properties of concrete datasets in dataset index file. This is an internal format, not meant to be used directly
   - `internal-minimizer-index-json`:
     Minimizer index JSON format. This format is used to store minimizer data which is used for dataset detection from sequences (dataset suggestions in Nextclade Web and `nextclade sort`  command). This is an internal format, not meant to be used directly. Hosted at: http://data.clades.nextstrain.org/v3/minimizer_index.json Produced at: https://github.com/nextstrain/nextclade_data
+  - `nextclade-auspice-extensions`:
+    Nextclade extensions for Auspice JSON format. This format describes the additional fields that Nextclade adds to the standard Auspice JSON format under `.meta.extensions.nextclade`. This is the schema for the extensions only, not for the complete Auspice JSON file
 
 * `-a`, `--as <AS_FORMAT>` — Force output format of the produced schema file(s)
 
