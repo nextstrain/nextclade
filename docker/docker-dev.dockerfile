@@ -282,6 +282,47 @@ FROM base as dev
 ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
 
+FROM dev as e2e
+
+# Install Playwright browser dependencies and browsers for E2E testing
+USER 0
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  fonts-liberation \
+  fonts-noto-color-emoji \
+  libasound2 \
+  libatk-bridge2.0-0 \
+  libatspi2.0-0 \
+  libdrm2 \
+  libgail-common \
+  libgbm1 \
+  libgconf-2-4 \
+  libgtk-3-0 \
+  libnss3 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxfixes3 \
+  libxi6 \
+  libxinerama1 \
+  libxkbcommon0 \
+  libxrandr2 \
+  libxrender1 \
+  libxss1 \
+  libxtst6 \
+>/dev/null \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& export PLAYWRIGHT_VERSION="1.45.1" \
+&& npm install -g @playwright/test@${PLAYWRIGHT_VERSION} >/dev/null \
+&& npx playwright install chromium >/dev/null \
+&& npx playwright install-deps chromium >/dev/null
+
+USER ${UID}
+
 # Cross-compilation for Linux x86_64 with gnu-libc.
 # Same as native, but convenient to have for mass cross-compilation.
 FROM dev as cross-x86_64-unknown-linux-gnu
