@@ -137,12 +137,17 @@ function RecoilStateInitializer() {
         // Otherwise, try to resolve from the new persisted selection
         else {
           const currentSelection = await getPromise(datasetSelectionAtom)
-          const currentServerUrl = await getPromise(datasetServerUrlAtom)
 
-          if (currentSelection && currentSelection.serverUrl === currentServerUrl && allDatasets) {
-            resolvedDataset = allDatasets.find(
-              (dataset) => dataset.path === currentSelection.path && dataset.version?.tag === currentSelection.tag,
-            )
+          // If persisted selection is from default server (no serverUrl or matches default), restore it
+          if (currentSelection && allDatasets) {
+            const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+            const isFromDefaultServer = !currentSelection.serverUrl || currentSelection.serverUrl === defaultServerUrl
+
+            if (isFromDefaultServer) {
+              resolvedDataset = allDatasets.find(
+                (dataset) => dataset.path === currentSelection.path && dataset.version?.tag === currentSelection.tag,
+              )
+            }
           }
         }
 
