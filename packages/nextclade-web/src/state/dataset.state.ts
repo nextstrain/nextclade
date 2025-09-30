@@ -23,8 +23,9 @@ export const allDatasetsAtom = atom<Dataset[]>({
 })
 
 // Dataset selection interface and state
+// serverUrl is optional - undefined means default server (from env var)
 export interface DatasetSelection {
-  serverUrl: string
+  serverUrl?: string
   path: string
   tag: string
 }
@@ -43,12 +44,17 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
     const currentServerUrl = get(datasetServerUrlAtom)
     const allDatasets = get(allDatasetsAtom)
 
-    if (!selection || !currentServerUrl || allDatasets.length === 0) {
+    if (!selection || allDatasets.length === 0) {
       return undefined
     }
 
-    // If the server URL changed, the selection is no longer valid
-    if (selection.serverUrl !== currentServerUrl) {
+    // Determine effective server URLs for comparison
+    // undefined in selection means default server
+    const selectionServerUrl = selection.serverUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+    const effectiveCurrentServerUrl = currentServerUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+
+    // If the server URLs don't match, the selection is no longer valid
+    if (selectionServerUrl !== effectiveCurrentServerUrl) {
       return undefined
     }
 
@@ -61,16 +67,19 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
       return
     }
 
-    const currentServerUrl = get(datasetServerUrlAtom)
-
-    if (!newValue || !currentServerUrl) {
+    if (!newValue) {
       set(datasetSelectionAtom, undefined)
       return
     }
 
     if (newValue.path && newValue.version?.tag) {
+      const currentServerUrl = get(datasetServerUrlAtom)
+      const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+      const effectiveCurrentServerUrl = currentServerUrl ?? defaultServerUrl
+
       const selection: DatasetSelection = {
-        serverUrl: currentServerUrl,
+        // Only set serverUrl if it's not the default (for persistence)
+        serverUrl: effectiveCurrentServerUrl === defaultServerUrl ? undefined : effectiveCurrentServerUrl,
         path: newValue.path,
         tag: newValue.version.tag,
       }
@@ -92,12 +101,15 @@ export const currentDatasetAtom = datasetSingleCurrentAtom
 export const resolvedDatasetAtom = datasetSingleCurrentAtom
 
 export function createDatasetSelection(dataset: Dataset, serverUrl: string): DatasetSelection | undefined {
-  if (!dataset.path || !dataset.version?.tag || !serverUrl) {
+  if (!dataset.path || !dataset.version?.tag) {
     return undefined
   }
 
+  const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+
   return {
-    serverUrl,
+    // Only set serverUrl if it's not the default (for persistence)
+    serverUrl: serverUrl === defaultServerUrl ? undefined : serverUrl,
     path: dataset.path,
     tag: dataset.version.tag,
   }
