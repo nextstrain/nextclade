@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { get, head, isNil, mapValues, sortBy, sortedUniq } from 'lodash'
+import { get, groupBy, head, isNil, mapValues, orderBy, sortBy } from 'lodash'
 import semver from 'semver'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import { axiosFetch, axiosHeadOrUndefined, HttpRequestError } from 'src/io/axiosFetch'
@@ -16,11 +16,6 @@ export function isCompatible(dataset: Dataset): boolean {
   return semver.gte(PACKAGE_VERSION, minVersion)
 }
 
-export function isLatest(dataset: Dataset): boolean {
-  // Dataset is latest if dataset's version is the last entry in the array of all versions
-  return head(sortedUniq(dataset.versions ?? []).map((v) => v.updatedAt)) === dataset.version?.updatedAt
-}
-
 export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): Dataset {
   const restFilesAbs = mapValues(dataset.files, (file) =>
     file ? urljoin(datasetServerUrl, dataset.path, dataset.version?.tag ?? '', file) : undefined,
@@ -31,10 +26,47 @@ export function fileUrlsToAbsolute(datasetServerUrl: string, dataset: Dataset): 
   return { ...dataset, files }
 }
 
-export function getLatestCompatibleEnabledDatasets(datasetServerUrl: string, datasetsIndexJson: DatasetsIndexV2Json) {
-  return datasetsIndexJson.collections
-    .flatMap((collection) => collection.datasets.filter(isCompatible).filter(isLatest))
+export interface GetDatasetsOptions {
+  latestOnly?: boolean
+}
+
+export function getCompatibleEnabledDatasets(
+  datasetServerUrl: string,
+  datasetsIndexJson: DatasetsIndexV2Json,
+  options: GetDatasetsOptions = {},
+): Dataset[] {
+  const { latestOnly = false } = options
+
+  // Get all compatible datasets and expand each dataset to include all its versions
+  const allDatasets = datasetsIndexJson.collections
+    .flatMap((collection) => collection.datasets.filter(isCompatible))
+    .flatMap((dataset) => {
+      // If dataset has versions array, create a separate Dataset object for each version
+      if (dataset.versions && dataset.versions.length > 0) {
+        return dataset.versions.map((version) => ({
+          ...dataset,
+          version, // Use this specific version instead of the default version
+        }))
+      }
+      // If no versions array, use the dataset as-is
+      return [dataset]
+    })
     .map((dataset) => fileUrlsToAbsolute(datasetServerUrl, dataset))
+
+  if (!latestOnly) {
+    return allDatasets
+  }
+
+  // Group datasets by path and find the latest version for each path
+  const datasetsByPath = groupBy(allDatasets, (dataset) => dataset.path)
+
+  // For each path, find the dataset with the latest updatedAt
+  return Object.values(datasetsByPath)
+    .map((datasets) => {
+      const sortedByUpdatedAt = orderBy(datasets, (dataset: Dataset) => dataset.version?.updatedAt ?? '', 'desc')
+      return head(sortedByUpdatedAt)
+    })
+    .filter((dataset): dataset is Dataset => dataset !== undefined)
 }
 
 /** Find the latest dataset, optionally by name, ref and tag */
