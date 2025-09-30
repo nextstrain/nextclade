@@ -36,15 +36,25 @@ export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets
 
   const dataset = findDataset(datasets, name, tag)
 
-  // If specific tag not found but name exists, try to find with just the name (latest tag)
-  if (!dataset && tag) {
-    const nameOnlyDataset = findDataset(datasets, name, undefined) // Find without tag
-    if (nameOnlyDataset) {
-      return nameOnlyDataset
-    }
-  }
-
   if (!dataset) {
+    // Check if the name exists but the tag is wrong
+    if (tag) {
+      const nameOnlyDataset = findDataset(datasets, name, undefined)
+      if (nameOnlyDataset) {
+        // Name exists but tag is wrong
+        const availableTags = datasets
+          .filter((d) => d.path === name || !!d.shortcuts?.includes(name))
+          .map((d) => d.version?.tag)
+          .filter((t) => t !== undefined)
+          .map((t) => `'${t}'`)
+          .join(', ')
+        throw new Error(
+          `Incorrect URL parameters: dataset with name='${name}' exists, but tag='${tag}' was not found. Available tags: ${availableTags}`,
+        )
+      }
+    }
+
+    // Name doesn't exist at all, suggest similar names
     const names = datasets.map((dataset) => dataset.path)
     const suggestions = findSimilarStrings(names, name)
       .slice(0, 10)

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { URLParameterTester, TEST_DATASETS, CURRENT_DATASET_TAGS } from './helpers/url-parameters'
+import { URLParameterTester, TEST_DATASETS } from './helpers/url-parameters'
 
 test.describe('Dataset URL Parameters', () => {
   let tester: URLParameterTester
@@ -83,6 +83,64 @@ test.describe('Dataset URL Parameters', () => {
     // App should load without crashing - check that navigation bar is visible
     const navElement = await tester.page.locator('[role="navigation"]').isVisible()
     expect(navElement).toBe(true)
+  })
+
+  test('should handle valid dataset name but invalid tag gracefully', async () => {
+    await tester.navigateWithParams({
+      'dataset-name': TEST_DATASETS.SARS_COV_2.name,
+      'dataset-tag': 'invalid-tag-that-does-not-exist',
+    })
+
+    // Wait for the page to load
+    await tester.waitForAppLoaded()
+
+    // App should load without crashing - check that navigation bar is visible
+    const navElement = await tester.page.locator('[role="navigation"]').isVisible()
+    expect(navElement).toBe(true)
+  })
+
+  test('should show appropriate error message for invalid dataset name', async () => {
+    await tester.navigateWithParams({
+      'dataset-name': 'totally-invalid-dataset-name',
+    })
+
+    await tester.waitForAppLoaded()
+
+    // Check for error message that suggests similar dataset names
+    const errorMessage = await tester.page.textContent('body')
+    expect(errorMessage).toContain("unable to find the dataset with name='totally-invalid-dataset-name'")
+    expect(errorMessage).toContain('Did you mean one of:')
+  })
+
+  test('should show appropriate error message for valid name but invalid tag', async () => {
+    await tester.navigateWithParams({
+      'dataset-name': TEST_DATASETS.SARS_COV_2.name,
+      'dataset-tag': 'invalid-tag-123',
+    })
+
+    await tester.waitForAppLoaded()
+
+    // Check for error message that shows available tags for the correct dataset name
+    const errorMessage = await tester.page.textContent('body')
+    expect(errorMessage).toContain(`dataset with name='${TEST_DATASETS.SARS_COV_2.name}' exists`)
+    expect(errorMessage).toContain("tag='invalid-tag-123' was not found")
+    expect(errorMessage).toContain('Available tags:')
+  })
+
+  test('should show appropriate error message for both invalid name and tag', async () => {
+    await tester.navigateWithParams({
+      'dataset-name': 'totally-invalid-name',
+      'dataset-tag': 'totally-invalid-tag',
+    })
+
+    await tester.waitForAppLoaded()
+
+    // Check for error message that suggests similar dataset names (ignores invalid tag)
+    const errorMessage = await tester.page.textContent('body')
+    expect(errorMessage).toContain(
+      "unable to find the dataset with name='totally-invalid-name' and tag 'totally-invalid-tag",
+    )
+    expect(errorMessage).toContain('Did you mean one of:')
   })
 
   test('should preserve URL parameters after navigation', async () => {
