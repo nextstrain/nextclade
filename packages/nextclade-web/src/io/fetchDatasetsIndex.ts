@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios'
-import { get, groupBy, head, isNil, last, mapValues, orderBy, sortBy } from 'lodash'
+import { get, groupBy, isNil, mapValues, sortBy } from 'lodash'
 import semver from 'semver'
+import { findLatestDataset } from 'src/helpers/sortDatasetVersions'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import { axiosFetch, axiosHeadOrUndefined, HttpRequestError } from 'src/io/axiosFetch'
 
@@ -60,19 +61,16 @@ export function getCompatibleEnabledDatasets(
   // Group datasets by path and find the latest version for each path
   const datasetsByPath = groupBy(allDatasets, (dataset) => dataset.path)
 
-  // For each path, find the dataset with the latest updatedAt
+  // For each path, find the dataset with the latest version
   return Object.values(datasetsByPath)
-    .map((datasets) => {
-      const sortedByUpdatedAt = orderBy(datasets, (dataset: Dataset) => dataset.version?.updatedAt ?? '', 'desc')
-      return head(sortedByUpdatedAt)
-    })
+    .map((datasets) => findLatestDataset(datasets))
     .filter((dataset): dataset is Dataset => dataset !== undefined)
 }
 
 /** Find the latest dataset, optionally by name, ref and tag */
 export function findDataset(datasets: Dataset[], name?: string, tag?: string) {
   const datasetsFound = filterDatasets(datasets, name, tag)
-  return last(sortBy(datasetsFound, (dataset) => dataset.version?.tag ?? ''))
+  return findLatestDataset(datasetsFound)
 }
 
 /** Find the datasets given name, ref and tag */
