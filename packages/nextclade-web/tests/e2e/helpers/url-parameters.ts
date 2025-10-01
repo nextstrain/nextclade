@@ -134,7 +134,8 @@ export const TEST_INPUT_FILES = {
 } as const
 
 // Current valid dataset tags from the index
+// NOTE: These should be NON-LATEST tags for tests that verify tag persistence
 export const CURRENT_DATASET_TAGS = {
-  SARS_COV_2: '2025-09-19--14-53-06Z',
+  SARS_COV_2: '2025-09-09--12-13-13Z',
   RSV_A: '2025-09-09--12-13-13Z',
 } as const

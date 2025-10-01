@@ -44,10 +44,14 @@ test.describe('Dataset Tag Selector UI', () => {
     await page.goto('/')
     await tester.waitForDatasetLoaded()
 
-    // eslint-disable-next-line security/detect-non-literal-regexp, unicorn/better-regex
-    const tagPattern = new RegExp(CURRENT_DATASET_TAGS.SARS_COV_2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    const updatedAtLine = page.locator('span').filter({ hasText: tagPattern })
-    await expect(updatedAtLine.first()).toBeVisible()
+    const updatedAtLabel = page.locator('span').filter({ hasText: 'Updated at:' }).first()
+    await expect(updatedAtLabel).toBeVisible()
+
+    const updatedAtDate = page
+      .locator('span')
+      .filter({ hasText: /2025-09-09/ })
+      .first()
+    await expect(updatedAtDate).toBeVisible()
   })
 
   test('should NOT persist latest tag selection', async () => {
@@ -69,15 +73,15 @@ test.describe('Dataset Tag Selector UI', () => {
 
   test('should override persisted tag with URL parameter', async () => {
     const { page } = tester
-    await page.evaluate(() => {
+    await page.evaluate((tag) => {
       const storage = {
         datasetSelection: {
           path: 'nextstrain/sars-cov-2/wuhan-hu-1/orfs',
-          tag: CURRENT_DATASET_TAGS.SARS_COV_2,
+          tag,
         },
       }
       localStorage.setItem('Nextclade-storage-v6', JSON.stringify(storage))
-    })
+    }, CURRENT_DATASET_TAGS.SARS_COV_2)
 
     await tester.navigateWithParams({
       'dataset-name': 'nextstrain/sars-cov-2/wuhan-hu-1/orfs',
@@ -97,10 +101,7 @@ test.describe('Dataset Tag Selector UI', () => {
     await tester.waitForAppLoaded()
 
     await page.getByText('SARS-CoV-2').first().click()
-    await page.waitForTimeout(500)
-
-    await page.getByRole('button', { name: /Use/ }).click()
-    await tester.waitForDatasetLoaded()
+    await page.waitForTimeout(1000)
 
     const updatedAtLine = page
       .locator('span')
@@ -123,9 +124,13 @@ test.describe('Dataset Tag Selector UI', () => {
     await page.getByRole('link', { name: 'Start' }).click()
     await tester.waitForDatasetLoaded()
 
-    // eslint-disable-next-line security/detect-non-literal-regexp, unicorn/better-regex
-    const tagPattern = new RegExp(CURRENT_DATASET_TAGS.SARS_COV_2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    const updatedAtLine = page.locator('span').filter({ hasText: tagPattern })
-    await expect(updatedAtLine.first()).toBeVisible()
+    const updatedAtLabel = page.locator('span').filter({ hasText: 'Updated at:' }).first()
+    await expect(updatedAtLabel).toBeVisible()
+
+    const updatedAtDate = page
+      .locator('span')
+      .filter({ hasText: /2025-09-09/ })
+      .first()
+    await expect(updatedAtDate).toBeVisible()
   })
 })
