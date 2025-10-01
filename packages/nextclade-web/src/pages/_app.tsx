@@ -151,6 +151,9 @@ function RecoilStateInitializer() {
                     (dataset) =>
                       dataset.path === currentSelection.path && dataset.version?.tag === currentSelection.tag,
                   )
+            } else {
+              // Clear non-default server selections from localStorage
+              set(datasetSelectionAtom, undefined)
             }
           }
         }
