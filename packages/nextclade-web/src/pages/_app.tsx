@@ -127,7 +127,7 @@ function RecoilStateInitializer() {
         if (currentDataset) {
           const currentServerUrl = await getPromise(datasetServerUrlAtom)
           if (currentServerUrl) {
-            const selection = createDatasetSelection(currentDataset, currentServerUrl)
+            const selection = createDatasetSelection(currentDataset, currentServerUrl, allDatasets)
             if (selection) {
               set(datasetSelectionAtom, selection)
             }
@@ -144,9 +144,16 @@ function RecoilStateInitializer() {
             const isFromDefaultServer = !currentSelection.serverUrl || currentSelection.serverUrl === defaultServerUrl
 
             if (isFromDefaultServer) {
-              resolvedDataset = allDatasets.find(
-                (dataset) => dataset.path === currentSelection.path && dataset.version?.tag === currentSelection.tag,
-              )
+              // If no tag is stored (undefined), use the latest version
+              resolvedDataset = !currentSelection.tag
+                ? datasets.find((dataset) => dataset.path === currentSelection.path)
+                : allDatasets.find(
+                    (dataset) =>
+                      dataset.path === currentSelection.path && dataset.version?.tag === currentSelection.tag,
+                  )
+            } else {
+              // Clear non-default server selections from localStorage
+              set(datasetSelectionAtom, undefined)
             }
           }
         }

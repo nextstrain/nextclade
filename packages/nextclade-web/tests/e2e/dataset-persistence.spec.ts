@@ -6,7 +6,6 @@ test.describe('Dataset LocalStorage Persistence', () => {
 
   test.beforeEach(async ({ page }) => {
     tester = new URLParameterTester(page)
-    // Navigate to app first, then clear localStorage for clean state
     await page.goto('/')
     await page.evaluate(() => localStorage.clear())
   })
@@ -70,14 +69,12 @@ test.describe('Dataset LocalStorage Persistence', () => {
       })
       await tester.waitForDatasetLoaded()
 
-      // Check localStorage includes the tag
       const selection = await tester.page.evaluate(() => {
         const storage = localStorage.getItem('Nextclade-storage-v6')
         return storage ? JSON.parse(storage)?.datasetSelection : null
       })
       expect(selection.tag).toBe('2024-01-16--20-31-02Z')
 
-      // Navigate to clean URL and verify persistence
       await tester.page.goto('/')
       await tester.waitForAppLoaded()
 
