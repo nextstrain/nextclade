@@ -89,14 +89,6 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
       const latestDataset = latestDatasets.find((dataset) => dataset.path === newValue.path)
       const isLatestTag = latestDataset?.version?.tag === newValue.version.tag
 
-      console.log('[datasetSingleCurrentAtom.set] Checking if latest:', {
-        path: newValue.path,
-        currentTag: newValue.version.tag,
-        latestTag: latestDataset?.version?.tag,
-        isLatestTag,
-        numLatestDatasets: latestDatasets.length,
-      })
-
       const selection: DatasetSelection = {
         // Only set serverUrl if it's not the default (for persistence)
         serverUrl: effectiveCurrentServerUrl === defaultServerUrl ? undefined : effectiveCurrentServerUrl,
