@@ -24,10 +24,11 @@ export const allDatasetsAtom = atom<Dataset[]>({
 
 // Dataset selection interface and state
 // serverUrl is optional - undefined means default server (from env var)
+// tag is optional - undefined means use latest version
 export interface DatasetSelection {
   serverUrl?: string
   path: string
-  tag: string
+  tag?: string
 }
 
 export const datasetSelectionAtom = atom<DatasetSelection | undefined>({
@@ -43,6 +44,7 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
     const selection = get(datasetSelectionAtom)
     const currentServerUrl = get(datasetServerUrlAtom)
     const allDatasets = get(allDatasetsAtom)
+    const latestDatasets = get(datasetsAtom)
 
     if (!selection || allDatasets.length === 0) {
       return undefined
@@ -56,6 +58,11 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
     // If the server URLs don't match, the selection is no longer valid
     if (selectionServerUrl !== effectiveCurrentServerUrl) {
       return undefined
+    }
+
+    // If tag is undefined, use the latest version for this path
+    if (!selection.tag) {
+      return latestDatasets.find((dataset) => dataset.path === selection.path)
     }
 
     // Find the dataset that matches both path and tag from ALL datasets (including historical)
@@ -76,12 +83,26 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
       const currentServerUrl = get(datasetServerUrlAtom)
       const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
       const effectiveCurrentServerUrl = currentServerUrl ?? defaultServerUrl
+      const latestDatasets = get(datasetsAtom)
+
+      // Check if this is the latest version for this path
+      const latestDataset = latestDatasets.find((dataset) => dataset.path === newValue.path)
+      const isLatestTag = latestDataset?.version?.tag === newValue.version.tag
+
+      console.log('[datasetSingleCurrentAtom.set] Checking if latest:', {
+        path: newValue.path,
+        currentTag: newValue.version.tag,
+        latestTag: latestDataset?.version?.tag,
+        isLatestTag,
+        numLatestDatasets: latestDatasets.length,
+      })
 
       const selection: DatasetSelection = {
         // Only set serverUrl if it's not the default (for persistence)
         serverUrl: effectiveCurrentServerUrl === defaultServerUrl ? undefined : effectiveCurrentServerUrl,
         path: newValue.path,
-        tag: newValue.version.tag,
+        // Only persist tag if it's NOT the latest (for non-latest tags only)
+        tag: isLatestTag ? undefined : newValue.version.tag,
       }
       set(datasetSelectionAtom, selection)
     }
@@ -100,18 +121,27 @@ export const hasSingleCurrentDatasetAtom = selector<boolean>({
 export const currentDatasetAtom = datasetSingleCurrentAtom
 export const resolvedDatasetAtom = datasetSingleCurrentAtom
 
-export function createDatasetSelection(dataset: Dataset, serverUrl: string): DatasetSelection | undefined {
+export function createDatasetSelection(
+  dataset: Dataset,
+  serverUrl: string,
+  latestDatasets: Dataset[],
+): DatasetSelection | undefined {
   if (!dataset.path || !dataset.version?.tag) {
     return undefined
   }
 
   const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
 
+  // Check if this is the latest version for this path
+  const latestDataset = latestDatasets.find((d) => d.path === dataset.path)
+  const isLatestTag = latestDataset?.version?.tag === dataset.version.tag
+
   return {
     // Only set serverUrl if it's not the default (for persistence)
     serverUrl: serverUrl === defaultServerUrl ? undefined : serverUrl,
     path: dataset.path,
-    tag: dataset.version.tag,
+    // Only persist tag if it's NOT the latest (for non-latest tags only)
+    tag: isLatestTag ? undefined : dataset.version.tag,
   }
 }
 

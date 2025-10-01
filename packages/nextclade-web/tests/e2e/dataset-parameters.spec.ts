@@ -106,6 +106,9 @@ test.describe('Dataset URL Parameters', () => {
 
     await tester.waitForAppLoaded()
 
+    // Wait for error boundary to render the error message
+    await tester.page.waitForSelector('h2:has-text("An unexpected error has occurred")', { timeout: 5000 })
+
     // Check for error message that suggests similar dataset names
     const errorMessage = await tester.page.textContent('body')
     expect(errorMessage).toContain("unable to find the dataset with name='totally-invalid-dataset-name'")
@@ -119,6 +122,9 @@ test.describe('Dataset URL Parameters', () => {
     })
 
     await tester.waitForAppLoaded()
+
+    // Wait for error boundary to render the error message
+    await tester.page.waitForSelector('h2:has-text("An unexpected error has occurred")', { timeout: 5000 })
 
     // Check for error message that shows available tags for the correct dataset name
     const errorMessage = await tester.page.textContent('body')
@@ -134,6 +140,9 @@ test.describe('Dataset URL Parameters', () => {
     })
 
     await tester.waitForAppLoaded()
+
+    // Wait for error boundary to render the error message
+    await tester.page.waitForSelector('h2:has-text("An unexpected error has occurred")', { timeout: 5000 })
 
     // Check for error message that suggests similar dataset names (ignores invalid tag)
     const errorMessage = await tester.page.textContent('body')

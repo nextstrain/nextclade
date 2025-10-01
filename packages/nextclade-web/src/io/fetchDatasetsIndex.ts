@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { get, groupBy, head, isNil, mapValues, orderBy, sortBy } from 'lodash'
+import { get, groupBy, head, isNil, last, mapValues, orderBy, sortBy } from 'lodash'
 import semver from 'semver'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import { axiosFetch, axiosHeadOrUndefined, HttpRequestError } from 'src/io/axiosFetch'
@@ -72,7 +72,7 @@ export function getCompatibleEnabledDatasets(
 /** Find the latest dataset, optionally by name, ref and tag */
 export function findDataset(datasets: Dataset[], name?: string, tag?: string) {
   const datasetsFound = filterDatasets(datasets, name, tag)
-  return head(sortBy(datasetsFound, (dataset) => dataset.version?.tag ?? ''))
+  return last(sortBy(datasetsFound, (dataset) => dataset.version?.tag ?? ''))
 }
 
 /** Find the datasets given name, ref and tag */
