@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { orderBy } from 'lodash'
 import { Badge } from 'reactstrap'
 import styled from 'styled-components'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -44,6 +45,32 @@ export interface DatasetInfoProps {
   showTagSelector?: boolean
 }
 
+export interface DatasetUpdatedAtLineProps {
+  dataset: Dataset
+  datasetUpdatedAt: string
+}
+
+function DatasetUpdatedAtLine({ dataset, datasetUpdatedAt }: DatasetUpdatedAtLineProps) {
+  const { t } = useTranslationSafe()
+
+  const isLatest = useMemo(() => {
+    if (!dataset.versions || dataset.versions.length <= 1) {
+      return true
+    }
+
+    const sortedVersions = orderBy(dataset.versions, (version) => version.updatedAt ?? '', 'desc')
+
+    return sortedVersions[0]?.tag === dataset.version?.tag
+  }, [dataset])
+
+  return (
+    <DatasetUpdatedAtContainer title={datasetUpdatedAt}>
+      <span>{datasetUpdatedAt}</span>
+      <VersionBadge color={isLatest ? 'success' : 'warning'}>{isLatest ? t('latest') : t('outdated')}</VersionBadge>
+    </DatasetUpdatedAtContainer>
+  )
+}
+
 export function DatasetInfo({ dataset, showTagSelector = false, ...restProps }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
 
@@ -65,7 +92,7 @@ export function DatasetInfo({ dataset, showTagSelector = false, ...restProps }: 
           <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
         </DatasetTagSelector>
       ) : (
-        <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
+        <DatasetUpdatedAtLine dataset={dataset} datasetUpdatedAt={datasetUpdatedAt} />
       )}
       <DatasetInfoLine title={datasetPath}>{datasetPath}</DatasetInfoLine>
     </div>
@@ -129,4 +156,17 @@ const DatasetInfoBadge = styled(Badge)`
   font-size: 0.7rem;
   padding: 0.11rem 0.2rem;
   border-radius: 3px;
+`
+
+const DatasetUpdatedAtContainer = styled(DatasetInfoLine)`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`
+
+const VersionBadge = styled(Badge)`
+  font-size: 0.65rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  flex-shrink: 0;
 `

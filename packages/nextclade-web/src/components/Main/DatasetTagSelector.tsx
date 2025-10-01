@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
+import { Badge } from 'reactstrap'
 import Select from 'react-select'
 import type { ActionMeta, OnChangeValue } from 'react-select'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
@@ -16,6 +17,7 @@ export interface DatasetTagSelectorProps {
 interface TagOption {
   value: string
   label: string
+  isLatest: boolean
 }
 
 function formatTagLabel(version: DatasetVersion, t: TFunc): string {
@@ -59,7 +61,12 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
   const availableVersions = useMemo(() => getAvailableVersions(dataset, allDatasets), [dataset, allDatasets])
 
   const options: TagOption[] = useMemo(
-    () => availableVersions.map((version) => ({ value: version.tag, label: formatTagLabel(version, t) })),
+    () =>
+      availableVersions.map((version, index) => ({
+        value: version.tag,
+        label: formatTagLabel(version, t),
+        isLatest: index === 0,
+      })),
     [availableVersions, t],
   )
 
@@ -68,8 +75,9 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
     if (!currentTag) {
       return undefined
     }
-    const version = availableVersions.find((v) => v.tag === currentTag)
-    return version ? { value: currentTag, label: formatTagLabel(version, t) } : undefined
+    const versionIndex = availableVersions.findIndex((v) => v.tag === currentTag)
+    const version = availableVersions[versionIndex]
+    return version ? { value: currentTag, label: formatTagLabel(version, t), isLatest: versionIndex === 0 } : undefined
   }, [dataset.version?.tag, availableVersions, t])
 
   const handleChange = useCallback(
@@ -85,6 +93,18 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
       }
     },
     [allDatasets, dataset.path, setDatasetCurrent],
+  )
+
+  const formatOptionLabel = useCallback(
+    (option: TagOption) => (
+      <OptionLabelContainer>
+        <span>{option.label}</span>
+        <VersionBadge color={option.isLatest ? 'success' : 'warning'}>
+          {option.isLatest ? t('latest') : t('outdated')}
+        </VersionBadge>
+      </OptionLabelContainer>
+    ),
+    [t],
   )
 
   const selectStyles = useMemo(
@@ -177,6 +197,7 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
         options={options}
         value={selectedValue}
         onChange={handleChange}
+        formatOptionLabel={formatOptionLabel}
         isSearchable={false}
         isClearable={false}
         menuPlacement="auto"
@@ -214,3 +235,18 @@ const StyledSelect = styled(Select)`
   flex: 1;
   min-width: 0;
 ` as typeof Select
+
+const OptionLabelContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: space-between;
+  width: 100%;
+`
+
+const VersionBadge = styled(Badge)`
+  font-size: 0.65rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+`
