@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { sortBy } from 'lodash'
 import styled from 'styled-components'
-import { Badge } from 'reactstrap'
 import Select from 'react-select'
 import type { ActionMeta, OnChangeValue } from 'react-select'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { formatUpdatedAt } from 'src/components/Main/datasetInfoHelpers'
+import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { Dataset, DatasetVersion } from 'src/types'
 
@@ -18,6 +19,7 @@ interface TagOption {
   value: string
   label: string
   isLatest: boolean
+  isUnreleased: boolean
 }
 
 function formatTagLabel(version: DatasetVersion, t: TFunc): string {
@@ -46,11 +48,10 @@ function getAvailableVersions(dataset: Dataset, allDatasets: Dataset[]): Dataset
     })
   }
 
-  return Array.from(versions.values()).sort((a, b) => {
-    const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0
-    const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0
-    return dateB - dateA
-  })
+  return sortBy(Array.from(versions.values()), [
+    (v) => v.tag !== 'unreleased',
+    (v) => -(v.updatedAt ? new Date(v.updatedAt).getTime() : 0),
+  ])
 }
 
 export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProps): JSX.Element {
@@ -65,7 +66,8 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
       availableVersions.map((version, index) => ({
         value: version.tag,
         label: formatTagLabel(version, t),
-        isLatest: index === 0,
+        isLatest: version.tag !== 'unreleased' && index === 0,
+        isUnreleased: version.tag === 'unreleased',
       })),
     [availableVersions, t],
   )
@@ -77,7 +79,14 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
     }
     const versionIndex = availableVersions.findIndex((v) => v.tag === currentTag)
     const version = availableVersions[versionIndex]
-    return version ? { value: currentTag, label: formatTagLabel(version, t), isLatest: versionIndex === 0 } : undefined
+    return version
+      ? {
+          value: currentTag,
+          label: formatTagLabel(version, t),
+          isLatest: currentTag !== 'unreleased' && versionIndex === 0,
+          isUnreleased: currentTag === 'unreleased',
+        }
+      : undefined
   }, [dataset.version?.tag, availableVersions, t])
 
   const handleChange = useCallback(
@@ -99,12 +108,10 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
     (option: TagOption) => (
       <OptionLabelContainer>
         <span>{option.label}</span>
-        <VersionBadge color={option.isLatest ? 'success' : 'warning'}>
-          {option.isLatest ? t('latest') : t('outdated')}
-        </VersionBadge>
+        <DatasetTagBadge tag={option.value} versions={availableVersions} t={t} />
       </OptionLabelContainer>
     ),
-    [t],
+    [availableVersions, t],
   )
 
   const selectStyles = useMemo(
@@ -242,11 +249,4 @@ const OptionLabelContainer = styled.div`
   gap: 6px;
   justify-content: space-between;
   width: 100%;
-`
-
-const VersionBadge = styled(Badge)`
-  font-size: 0.65rem;
-  padding: 0.1rem 0.25rem;
-  border-radius: 3px;
-  flex-shrink: 0;
 `

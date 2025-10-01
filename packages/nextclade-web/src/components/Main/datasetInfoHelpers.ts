@@ -1,8 +1,38 @@
+import { orderBy } from 'lodash'
 import { darken } from 'polished'
 import { colorHash } from 'src/helpers/colorHash'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { TFunc } from 'src/helpers/useTranslationSafe'
 import { AnyType, attrStrMaybe, Dataset, DatasetVersion } from 'src/types'
+
+export interface VersionStatus {
+  color: 'success' | 'warning' | 'danger'
+  label: string
+  isUnreleased: boolean
+}
+
+export function getVersionStatus(
+  currentTag: string | undefined,
+  versions: DatasetVersion[] | undefined,
+  t: (key: string) => string,
+): VersionStatus {
+  if (currentTag === 'unreleased') {
+    return { color: 'danger', label: t('unreleased'), isUnreleased: true }
+  }
+
+  if (!versions || versions.length <= 1) {
+    return { color: 'success', label: t('latest'), isUnreleased: false }
+  }
+
+  const sortedVersions = orderBy(versions, (version) => version.updatedAt ?? '', 'desc')
+  const isLatest = sortedVersions[0]?.tag === currentTag
+
+  if (isLatest) {
+    return { color: 'success', label: t('latest'), isUnreleased: false }
+  }
+
+  return { color: 'warning', label: t('outdated'), isUnreleased: false }
+}
 
 export function datasetColor(datasetName: string) {
   return darken(0.1)(colorHash(datasetName, { lightness: [0.35, 0.5], saturation: [0.35, 0.5] }))
