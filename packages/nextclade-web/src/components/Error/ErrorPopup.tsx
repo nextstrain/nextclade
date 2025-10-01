@@ -29,7 +29,7 @@ export function ErrorPopup() {
   }
 
   return (
-    <Modal centered isOpen backdrop="static" toggle={dismissError} fade={false} size="xl">
+    <Modal centered isOpen backdrop="static" toggle={dismissError} fade={false} size="xl" data-testid="error-popup">
       <ModalHeader toggle={dismissError} tag="div">
         <h3 className="text-center text-danger">{t('Error')}</h3>
       </ModalHeader>
