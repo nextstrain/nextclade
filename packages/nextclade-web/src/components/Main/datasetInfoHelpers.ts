@@ -1,7 +1,7 @@
-import { orderBy } from 'lodash'
 import { darken } from 'polished'
 import { colorHash } from 'src/helpers/colorHash'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
+import { sortDatasetVersions } from 'src/helpers/sortDatasetVersions'
 import { TFunc } from 'src/helpers/useTranslationSafe'
 import { AnyType, attrStrMaybe, Dataset, DatasetVersion } from 'src/types'
 
@@ -24,7 +24,7 @@ export function getVersionStatus(
     return { color: 'success', label: t('latest'), isUnreleased: false }
   }
 
-  const sortedVersions = orderBy(versions, (version) => version.updatedAt ?? '', 'desc')
+  const sortedVersions = sortDatasetVersions(versions)
   const isLatest = sortedVersions[0]?.tag === currentTag
 
   if (isLatest) {
