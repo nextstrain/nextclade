@@ -24,7 +24,7 @@ export function DatasetInfoCompact({ dataset, ...restProps }: DatasetInfoProps) 
                   <DatasetInfoAutodetectProgressCircle dataset={dataset} showSuggestions />
                 </FlexLeft>
                 <FlexRight>
-                  <DatasetInfo dataset={dataset} />
+                  <DatasetInfo dataset={dataset} showTagSelector />
                 </FlexRight>
               </FlexContainer>
             </Col>
