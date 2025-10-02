@@ -1,4 +1,8 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices, PlaywrightTestConfig } from '@playwright/test'
+
+const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${process.env.WEB_PORT_DEV ?? '3000'}`
+
+const OUT_DIR = process.env.PLAYWRIGHT_OUTPUT_DIR ?? './.cache/e2e'
 
 const CHROME_ARGS = [
   '--disable-gpu',
@@ -17,22 +21,16 @@ const CHROME_ARGS = [
   '--disable-renderer-backgrounding',
 ]
 
-const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${process.env.WEB_PORT_DEV ?? '3000'}`
-
-/**
- * @see https://playwright.dev/docs/test-configuration
- */
-export default defineConfig({
+const config: PlaywrightTestConfig = {
+  name: BASE_URL,
   testDir: './tests/e2e',
-  timeout: 60_000,
-  expect: { timeout: 15_000 },
-  fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  workers: process.env.CI ? 2 : '50%',
+  workers: process.env.CI ? 2 : '75%',
   retries: process.env.CI ? 1 : 0,
-  reporter: [['list'], ['html', { open: 'never' }], ['junit', { outputFile: 'test-results/e2e-results.xml' }]],
+  expect: { timeout: 60_000 },
   use: {
     baseURL: BASE_URL,
+    locale: 'en-US',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',
@@ -41,6 +39,9 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
   },
 
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: undefined,
+
   projects: [
     {
       name: 'chromium',
@@ -48,14 +49,13 @@ export default defineConfig({
     },
   ],
 
-  // Global setup and teardown
-  globalSetup: './tests/e2e/global-setup.ts',
-  globalTeardown: undefined,
+  outputDir: `${OUT_DIR}/test-results`,
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: `${OUT_DIR}/report`, open: 'never' }],
+    ['junit', { outputFile: `${OUT_DIR}/results.junit.xml` }],
+    ['json', { outputFile: `${OUT_DIR}/results.playwright.json` }],
+  ],
+}
 
-  // Web server (can be used to start the dev server automatically)
-  // webServer: {
-  //   command: './docker/dev a',
-  //   port: 3000,
-  //   reuseExistingServer: !process.env.CI,
-  // },
-})
+export default defineConfig(config)
