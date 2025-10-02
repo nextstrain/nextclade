@@ -45,8 +45,11 @@
 # * Format Rust code:
 #   ./docker/dev f
 #
-# * Run Playwright end-to-end tests:
+# * Run Playwright end-to-end tests (dev mode, port 3000):
 #   ./docker/dev te
+#
+# * Run Playwright end-to-end tests (release mode, port 8080):
+#   ./docker/dev ter
 #
 # * Run Playwright tests with UI mode:
 #   ./docker/dev teu
@@ -183,6 +186,7 @@ BENCH=0
 EXAMPLE=0
 E2E_TEST=0
 E2E_TEST_MODE=
+E2E_TEST_PROD=0
 LINT=0
 FORMAT=0
 FIX=
@@ -335,6 +339,12 @@ case "${1:-}" in
   shift
   E2E_TEST=1
   E2E_TEST_MODE="test:e2e"
+  ;;
+"test-e2e-release" | "ter")
+  shift
+  E2E_TEST=1
+  E2E_TEST_MODE="test:e2e"
+  E2E_TEST_PROD=1
   ;;
 "test-e2e-ui" | "teu")
   shift
@@ -569,7 +579,12 @@ elif [ "${TEST}" == "1" ]; then
     COMMAND="cargo -q nextest run --cargo-quiet --no-fail-fast --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} -- ${*:-} ${SUCCESS_OR_FAILURE}"
 elif [ "${E2E_TEST}" == "1" ]; then
   PORTS="--network=host"
-  COMMAND="yarn install && yarn ${E2E_TEST_MODE} ${*:-}"
+  WEB_PORT="${WEB_PORT_DEV}"
+  if [ "${E2E_TEST_PROD}" == "1" ]; then
+    WEB_PORT="${WEB_PORT_PROD}"
+  fi
+  E2E_BASE_URL="http://localhost:${WEB_PORT}"
+  COMMAND="export E2E_BASE_URL='${E2E_BASE_URL}' && yarn install && yarn ${E2E_TEST_MODE} ${*:-}"
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"

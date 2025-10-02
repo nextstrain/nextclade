@@ -1,5 +1,24 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const CHROME_ARGS = [
+  '--disable-gpu',
+  '--disable-dev-shm-usage',
+  '--disable-setuid-sandbox',
+  '--no-sandbox',
+  '--disable-extensions',
+  '--disable-background-networking',
+  '--disable-default-apps',
+  '--disable-sync',
+  '--metrics-recording-only',
+  '--mute-audio',
+  '--no-first-run',
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+]
+
+const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${process.env.WEB_PORT_DEV ?? '3000'}`
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -13,7 +32,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }], ['junit', { outputFile: 'test-results/e2e-results.xml' }]],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',
@@ -25,27 +44,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          args: [
-            '--disable-gpu',
-            '--disable-dev-shm-usage',
-            '--disable-setuid-sandbox',
-            '--no-sandbox',
-            '--disable-extensions',
-            '--disable-background-networking',
-            '--disable-default-apps',
-            '--disable-sync',
-            '--metrics-recording-only',
-            '--mute-audio',
-            '--no-first-run',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-          ],
-        },
-      },
+      use: { ...devices['Desktop Chrome'], launchOptions: { args: CHROME_ARGS } },
     },
   ],
 
