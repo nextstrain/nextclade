@@ -99,7 +99,14 @@ function RecoilStateInitializer() {
         if (!isNil(datasetInfo)) {
           set(datasetServerUrlAtom, undefined)
           const { datasets, currentDataset, auspiceJson } = datasetInfo
-          return { datasets, allDatasets: datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
+          return {
+            datasets,
+            allDatasets: datasets,
+            currentDataset,
+            minimizerIndexVersion: undefined,
+            auspiceJson,
+            datasetServerUrl: undefined,
+          }
         }
 
         const datasetServerUrl = await getDatasetServerUrl(urlQuery)
@@ -110,7 +117,14 @@ function RecoilStateInitializer() {
         )
 
         set(datasetServerUrlAtom, datasetServerUrl)
-        return { datasets, allDatasets, currentDataset, minimizerIndexVersion, auspiceJson: undefined }
+        return {
+          datasets,
+          allDatasets,
+          currentDataset,
+          minimizerIndexVersion,
+          auspiceJson: undefined,
+          datasetServerUrl,
+        }
       })
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary
@@ -118,7 +132,7 @@ function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(async ({ datasets, allDatasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
+      .then(async ({ datasets, allDatasets, currentDataset, minimizerIndexVersion, auspiceJson, datasetServerUrl }) => {
         set(datasetsAtom, datasets)
         set(allDatasetsAtom, allDatasets)
 
@@ -127,8 +141,6 @@ function RecoilStateInitializer() {
 
         // If there's a current dataset from URL params, save it to the new selection system
         if (currentDataset) {
-          const currentServerUrl = await getPromise(datasetServerUrlAtom)
-
           // For datasets loaded from dataset-url (custom datasets), they don't have version/tag
           // In this case, we need to manually create a selection with the path
           if (!currentDataset.version?.tag) {
@@ -140,13 +152,13 @@ function RecoilStateInitializer() {
             }
             set(datasetSelectionAtom, selection)
             resolvedDataset = currentDataset
-          } else if (currentServerUrl) {
-            const selection = createDatasetSelection(currentDataset, currentServerUrl, allDatasets)
+          } else {
+            // For datasets with tags (from dataset servers)
+            const serverUrl = datasetServerUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+            const selection = createDatasetSelection(currentDataset, serverUrl, allDatasets)
             if (selection) {
               set(datasetSelectionAtom, selection)
             }
-            resolvedDataset = currentDataset
-          } else {
             resolvedDataset = currentDataset
           }
         }
