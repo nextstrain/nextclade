@@ -45,10 +45,10 @@ import {
   datasetsAtom,
   allDatasetsAtom,
   datasetServerUrlAtom,
-  datasetSingleCurrentAtom,
   minimizerIndexVersionAtom,
   datasetSelectionAtom,
   createDatasetSelection,
+  type DatasetSelection,
 } from 'src/state/dataset.state'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
@@ -94,18 +94,20 @@ function RecoilStateInitializer() {
         set(localeAtom, locale.key)
       })
       .then(async () => {
-        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
-        const { datasets, allDatasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(
-          datasetServerUrl,
-          urlQuery,
-        )
-
         const datasetInfo = await fetchSingleDataset(urlQuery)
+
         if (!isNil(datasetInfo)) {
           set(datasetServerUrlAtom, undefined)
           const { datasets, currentDataset, auspiceJson } = datasetInfo
           return { datasets, allDatasets: datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
         }
+
+        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
+
+        const { datasets, allDatasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(
+          datasetServerUrl,
+          urlQuery,
+        )
 
         set(datasetServerUrlAtom, datasetServerUrl)
         return { datasets, allDatasets, currentDataset, minimizerIndexVersion, auspiceJson: undefined }
@@ -126,13 +128,27 @@ function RecoilStateInitializer() {
         // If there's a current dataset from URL params, save it to the new selection system
         if (currentDataset) {
           const currentServerUrl = await getPromise(datasetServerUrlAtom)
-          if (currentServerUrl) {
+
+          // For datasets loaded from dataset-url (custom datasets), they don't have version/tag
+          // In this case, we need to manually create a selection with the path
+          if (!currentDataset.version?.tag) {
+            // For custom datasets, use the path as a unique identifier
+            // We don't persist these to localStorage (serverUrl undefined means they won't persist)
+            const selection: DatasetSelection = {
+              path: currentDataset.path,
+              tag: undefined, // No tag for custom datasets
+            }
+            set(datasetSelectionAtom, selection)
+            resolvedDataset = currentDataset
+          } else if (currentServerUrl) {
             const selection = createDatasetSelection(currentDataset, currentServerUrl, allDatasets)
             if (selection) {
               set(datasetSelectionAtom, selection)
             }
+            resolvedDataset = currentDataset
+          } else {
+            resolvedDataset = currentDataset
           }
-          resolvedDataset = currentDataset
         }
         // Otherwise, try to resolve from the new persisted selection
         else {
@@ -158,8 +174,6 @@ function RecoilStateInitializer() {
           }
         }
 
-        // Set both old and new atoms for compatibility
-        set(datasetSingleCurrentAtom, resolvedDataset)
         set(minimizerIndexVersionAtom, minimizerIndexVersion)
 
         if (resolvedDataset?.type === 'auspiceJson' && !isNil(auspiceJson)) {
