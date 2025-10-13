@@ -50,6 +50,7 @@ import {
   createDatasetSelection,
   type DatasetSelection,
 } from 'src/state/dataset.state'
+import { findDatasetByPath, findDatasetByPathAndTag } from 'src/helpers/sortDatasetVersions'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
@@ -174,11 +175,8 @@ function RecoilStateInitializer() {
             if (isFromDefaultServer) {
               // If no tag is stored (undefined), use the latest version
               resolvedDataset = !currentSelection.tag
-                ? datasets.find((dataset) => dataset.path === currentSelection.path)
-                : allDatasets.find(
-                    (dataset) =>
-                      dataset.path === currentSelection.path && dataset.version?.tag === currentSelection.tag,
-                  )
+                ? findDatasetByPath(datasets, currentSelection.path)
+                : findDatasetByPathAndTag(allDatasets, currentSelection.path, currentSelection.tag)
             } else {
               // Clear non-default server selections from localStorage
               set(datasetSelectionAtom, undefined)

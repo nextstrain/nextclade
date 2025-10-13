@@ -6,7 +6,7 @@ import type { ActionMeta, OnChangeValue } from 'react-select'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { formatUpdatedAt } from 'src/components/Main/datasetInfoHelpers'
 import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
-import { sortDatasetVersions } from 'src/helpers/sortDatasetVersions'
+import { sortDatasetVersions, isLatestReleasedVersion, findDatasetByPathAndTag } from 'src/helpers/sortDatasetVersions'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { Dataset, DatasetVersion } from 'src/types'
 
@@ -24,6 +24,15 @@ interface TagOption {
 
 function formatTagLabel(version: DatasetVersion, t: TFunc): string {
   return formatUpdatedAt(version, t)
+}
+
+function createTagOption(version: DatasetVersion, availableVersions: DatasetVersion[], t: TFunc): TagOption {
+  return {
+    value: version.tag,
+    label: formatTagLabel(version, t),
+    isLatest: isLatestReleasedVersion(version.tag, availableVersions),
+    isUnreleased: version.tag === 'unreleased',
+  }
 }
 
 function getAvailableVersions(dataset: Dataset, allDatasets: Dataset[]): DatasetVersion[] {
@@ -59,13 +68,7 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
   const availableVersions = useMemo(() => getAvailableVersions(dataset, allDatasets), [dataset, allDatasets])
 
   const options: TagOption[] = useMemo(
-    () =>
-      availableVersions.map((version, index) => ({
-        value: version.tag,
-        label: formatTagLabel(version, t),
-        isLatest: version.tag !== 'unreleased' && index === 0,
-        isUnreleased: version.tag === 'unreleased',
-      })),
+    () => availableVersions.map((version) => createTagOption(version, availableVersions, t)),
     [availableVersions, t],
   )
 
@@ -74,16 +77,9 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
     if (!currentTag) {
       return undefined
     }
-    const versionIndex = availableVersions.findIndex((v) => v.tag === currentTag)
-    const version = availableVersions[versionIndex]
-    return version
-      ? {
-          value: currentTag,
-          label: formatTagLabel(version, t),
-          isLatest: currentTag !== 'unreleased' && versionIndex === 0,
-          isUnreleased: currentTag === 'unreleased',
-        }
-      : undefined
+    const version = availableVersions.find((v) => v.tag === currentTag)
+
+    return version ? createTagOption(version, availableVersions, t) : undefined
   }, [dataset.version?.tag, availableVersions, t])
 
   const handleChange = useCallback(
@@ -92,7 +88,7 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
         return
       }
 
-      const selectedDataset = allDatasets.find((d) => d.path === dataset.path && d.version?.tag === newValue.value)
+      const selectedDataset = findDatasetByPathAndTag(allDatasets, dataset.path, newValue.value)
 
       if (selectedDataset) {
         setDatasetCurrent(selectedDataset)
