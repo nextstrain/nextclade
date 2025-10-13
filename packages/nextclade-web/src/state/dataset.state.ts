@@ -1,6 +1,6 @@
 import { atom, atomFamily, selector, DefaultValue } from 'recoil'
 import { mapMaybe, notUndefinedOrNull } from 'src/helpers/notUndefined'
-import type { Dataset, MinimizerIndexVersion } from 'src/types'
+import type { Dataset, DatasetCollectionMeta, MinimizerIndexVersion } from 'src/types'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { findDatasetByPath, findDatasetByPathAndTag, isLatestDatasetVersion } from 'src/helpers/sortDatasetVersions'
@@ -21,6 +21,12 @@ export const datasetsAtom = atom<Dataset[]>({
 export const allDatasetsAtom = atom<Dataset[]>({
   key: 'allDatasets',
   default: [],
+})
+
+// Collections metadata indexed by collection ID
+export const collectionsAtom = atom<Record<string, DatasetCollectionMeta>>({
+  key: 'collections',
+  default: {},
 })
 
 // Dataset selection interface and state

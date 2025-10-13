@@ -40,7 +40,9 @@ export function getCompatibleEnabledDatasets(
 
   // Get all compatible datasets and expand each dataset to include all its versions
   const allDatasets = datasetsIndexJson.collections
-    .flatMap((collection) => collection.datasets.filter(isCompatible))
+    .flatMap((collection) =>
+      collection.datasets.filter(isCompatible).map((dataset) => ({ ...dataset, collectionId: collection.meta.id })),
+    )
     .flatMap((dataset) => {
       // If dataset has versions array, create a separate Dataset object for each version
       if (dataset.versions && dataset.versions.length > 0) {

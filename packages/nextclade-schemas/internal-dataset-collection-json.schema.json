@@ -39,6 +39,18 @@
             "null"
           ]
         },
+        "color": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "icon": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "maintainers": {
           "type": "array",
           "items": {

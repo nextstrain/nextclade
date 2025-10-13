@@ -7,6 +7,7 @@ import type { Dataset } from 'src/types'
 import { formatDatasetInfo } from 'src/components/Main/datasetInfoHelpers'
 import { DatasetTagSelector } from 'src/components/Main/DatasetTagSelector'
 import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
+import { DatasetCollectionBadge } from 'src/components/Main/DatasetCollectionBadge'
 
 export const DatasetNameHeading = styled.h4`
   display: flex;
@@ -93,31 +94,12 @@ export function DatasetInfo({ dataset, showTagSelector = false, showBadge = fals
   )
 }
 
-export function DatasetInfoBadges({ dataset: { path, attributes } }: { dataset: Dataset }) {
+export function DatasetInfoBadges({ dataset: { attributes, collectionId } }: { dataset: Dataset }) {
   const { t } = useTranslationSafe()
 
   return (
     <span className="d-flex ml-auto">
-      {path.startsWith('nextstrain') ? (
-        <DatasetInfoBadge
-          className="mr-1 my-0"
-          color="success"
-          title={t('This dataset is provided by {{proj}} developers.', { proj: 'Nextclade' })}
-        >
-          {t('official')}
-        </DatasetInfoBadge>
-      ) : (
-        <DatasetInfoBadge
-          className="mr-1 my-0"
-          color="info"
-          title={t(
-            'This dataset is provided by the community members. {{proj}} developers cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions.',
-            { proj: 'Nextclade' },
-          )}
-        >
-          {t('community')}
-        </DatasetInfoBadge>
-      )}
+      {collectionId && <DatasetCollectionBadge collectionId={collectionId} />}
 
       {attrBoolMaybe(attributes, 'experimental') && (
         <DatasetInfoBadge
@@ -148,8 +130,6 @@ export function DatasetInfoBadges({ dataset: { path, attributes } }: { dataset: 
 
 const DatasetInfoBadge = styled(Badge)`
   font-size: 0.7rem;
-  padding: 0.11rem 0.2rem;
-  border-radius: 3px;
 `
 
 const DatasetUpdatedAtContainer = styled(DatasetInfoLine)`
