@@ -1,5 +1,5 @@
 import { isEmpty } from 'lodash'
-import { attrStrMaybe, AuspiceTree, Dataset } from 'src/types'
+import { attrStrMaybe, AuspiceTree, DatasetRaw } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosFetchOrUndefined } from 'src/io/axiosFetch'
 
@@ -39,7 +39,7 @@ export async function fetchSingleDatasetAuspice(datasetJsonUrl_: string) {
     }
   }
 
-  const currentDataset: Dataset = {
+  const currentDataset: DatasetRaw = {
     path: datasetJsonUrl,
     capabilities: {
       primers: false,

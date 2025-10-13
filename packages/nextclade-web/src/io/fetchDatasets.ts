@@ -18,7 +18,13 @@ import {
 } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { datasetsAtom, allDatasetsAtom, datasetServerUrlAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import {
+  datasetsAtom,
+  allDatasetsAtom,
+  datasetServerUrlAtom,
+  minimizerIndexVersionAtom,
+  collectionsAtom,
+} from 'src/state/dataset.state'
 import { useQuery } from 'react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
@@ -142,12 +148,18 @@ export async function initializeDatasets(datasetServerUrl: string, urlQuery: Par
 
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
+  // Extract collections metadata and index by collection ID
+  const collections = Object.fromEntries(
+    datasetsIndexJson.collections.map((collection) => [collection.meta.id, collection.meta]),
+  )
+
   // Check if URL params specify dataset params and try to find from ALL datasets (including non-latest tags)
   const currentDataset = await getDatasetFromUrlParams(urlQuery, allDatasets)
 
   return {
     datasets: latestDatasets, // For UI display and autodetection
     allDatasets, // For tag-based lookup
+    collections, // Collections metadata indexed by ID
     currentDataset,
     minimizerIndexVersion,
   }
@@ -158,6 +170,7 @@ export function useUpdatedDatasetIndex() {
   const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
   const setAllDatasetsState = useSetRecoilState(allDatasetsAtom)
+  const setCollectionsState = useSetRecoilState(collectionsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
   useQuery(
@@ -166,9 +179,10 @@ export function useUpdatedDatasetIndex() {
       if (isNil(datasetServerUrl)) {
         return
       }
-      const { datasets, allDatasets, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl)
+      const { datasets, allDatasets, collections, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl)
       setDatasetsState(datasets)
       setAllDatasetsState(allDatasets)
+      setCollectionsState(collections)
       setMinimizerIndexVersion(minimizerIndexVersion)
     },
     {

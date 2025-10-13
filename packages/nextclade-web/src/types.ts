@@ -3,7 +3,7 @@ import type {
   Aa,
   Cds,
   CdsSegment,
-  Dataset,
+  Dataset as DatasetRaw,
   DatasetsIndexJson,
   PathogenJson,
   FastaRecord,
@@ -21,6 +21,14 @@ import type {
 import { StrictOmit } from 'ts-essentials'
 
 export * from 'src/gen/_SchemaRoot'
+
+// Re-export the raw Dataset type for internal use
+export type { Dataset as DatasetRaw } from 'src/gen/_SchemaRoot'
+
+// Dataset type with collection information - extends the raw type
+export interface Dataset extends DatasetRaw {
+  collectionId?: string
+}
 
 export type Range = RangeFor_Position // eslint-disable-line camelcase
 

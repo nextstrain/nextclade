@@ -5,7 +5,8 @@ import { datasetColor } from 'src/components/Main/datasetInfoHelpers'
 import styled from 'styled-components'
 import { firstLetter } from 'src/helpers/string'
 import { numberAutodetectResultsAtom, seqIndicesForDataset } from 'src/state/autodetect.state'
-import { attrStrMaybe, type Dataset } from 'src/types'
+import { attrStrMaybe } from 'src/types'
+import type { Dataset } from 'src/types'
 
 export function DatasetInfoAutodetectProgressCircle({
   dataset,
