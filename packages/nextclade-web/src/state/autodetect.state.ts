@@ -2,6 +2,7 @@ import { isEmpty, isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 import { invertMap } from 'src/helpers/map'
 import { notUndefinedOrNull, pairValueNotUndefinedOrNull } from 'src/helpers/notUndefined'
+import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
 import { datasetsAtom } from 'src/state/dataset.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import type { Dataset, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
@@ -144,7 +145,7 @@ export const bestDatasetForSequenceAtom = selectorFamily<Dataset | undefined, nu
     ({ get }) => {
       const datasetName = get(bestDatasetNameForSequenceAtom(qryIndex))
       const datasets = get(datasetsAtom)
-      return datasets.find((dataset) => dataset.path === datasetName)
+      return datasetName ? findDatasetByPath(datasets, datasetName) : undefined
     },
 })
 
@@ -159,7 +160,7 @@ export const topSuggestedDatasetsAtom = selector<Dataset[]>({
     const suggestedDatasetNames = get(topSuggestedDatasetNamesAtom)
     const datasets = get(datasetsAtom)
     return suggestedDatasetNames
-      .map((datasetName) => datasets.find((dataset) => dataset.path === datasetName))
+      .map((datasetName) => findDatasetByPath(datasets, datasetName))
       .filter(notUndefinedOrNull)
   },
 })

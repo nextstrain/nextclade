@@ -6,7 +6,7 @@ import type { ActionMeta, OnChangeValue } from 'react-select'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { formatUpdatedAt } from 'src/components/Main/datasetInfoHelpers'
 import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
-import { sortDatasetVersions, isLatestReleasedVersion } from 'src/helpers/sortDatasetVersions'
+import { sortDatasetVersions, isLatestReleasedVersion, findDatasetByPathAndTag } from 'src/helpers/sortDatasetVersions'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { Dataset, DatasetVersion } from 'src/types'
 
@@ -88,7 +88,7 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
         return
       }
 
-      const selectedDataset = allDatasets.find((d) => d.path === dataset.path && d.version?.tag === newValue.value)
+      const selectedDataset = findDatasetByPathAndTag(allDatasets, dataset.path, newValue.value)
 
       if (selectedDataset) {
         setDatasetCurrent(selectedDataset)

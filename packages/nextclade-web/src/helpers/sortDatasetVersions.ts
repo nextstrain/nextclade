@@ -61,3 +61,26 @@ export function isLatestReleasedVersion(tag: string, versions: DatasetVersion[])
   const latestReleased = findLatestReleasedVersion(versions)
   return latestReleased?.tag === tag
 }
+
+/**
+ * Find a dataset by path from a collection of datasets.
+ */
+export function findDatasetByPath(datasets: Dataset[], path: string): Dataset | undefined {
+  return datasets.find((dataset) => dataset.path === path)
+}
+
+/**
+ * Find a dataset by path and tag from a collection of datasets.
+ */
+export function findDatasetByPathAndTag(datasets: Dataset[], path: string, tag: string): Dataset | undefined {
+  return datasets.find((dataset) => dataset.path === path && dataset.version?.tag === tag)
+}
+
+/**
+ * Check if a dataset version tag is the latest for a given dataset path.
+ * This compares against the latest datasets collection (which should contain only latest versions).
+ */
+export function isLatestDatasetVersion(dataset: Dataset, latestDatasets: Dataset[]): boolean {
+  const latestDataset = findDatasetByPath(latestDatasets, dataset.path)
+  return latestDataset?.version?.tag === dataset.version?.tag
+}

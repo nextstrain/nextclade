@@ -3,6 +3,7 @@ import { mapMaybe, notUndefinedOrNull } from 'src/helpers/notUndefined'
 import type { Dataset, MinimizerIndexVersion } from 'src/types'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
+import { findDatasetByPath, findDatasetByPathAndTag, isLatestDatasetVersion } from 'src/helpers/sortDatasetVersions'
 
 export const UNKNOWN_DATASET_NAME = '__UNKNOWN__' as const
 
@@ -62,11 +63,11 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
 
     // If tag is undefined, use the latest version for this path
     if (!selection.tag) {
-      return latestDatasets.find((dataset) => dataset.path === selection.path)
+      return findDatasetByPath(latestDatasets, selection.path)
     }
 
     // Find the dataset that matches both path and tag from ALL datasets (including historical)
-    return allDatasets.find((dataset) => dataset.path === selection.path && dataset.version?.tag === selection.tag)
+    return findDatasetByPathAndTag(allDatasets, selection.path, selection.tag)
   },
   set: ({ set, get }, newValue) => {
     if (newValue instanceof DefaultValue) {
@@ -86,8 +87,7 @@ export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
       const latestDatasets = get(datasetsAtom)
 
       // Check if this is the latest version for this path
-      const latestDataset = latestDatasets.find((dataset) => dataset.path === newValue.path)
-      const isLatestTag = latestDataset?.version?.tag === newValue.version.tag
+      const isLatestTag = isLatestDatasetVersion(newValue, latestDatasets)
 
       const selection: DatasetSelection = {
         // Only set serverUrl if it's not the default (for persistence)
@@ -125,8 +125,7 @@ export function createDatasetSelection(
   const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
 
   // Check if this is the latest version for this path
-  const latestDataset = latestDatasets.find((d) => d.path === dataset.path)
-  const isLatestTag = latestDataset?.version?.tag === dataset.version.tag
+  const isLatestTag = isLatestDatasetVersion(dataset, latestDatasets)
 
   return {
     // Only set serverUrl if it's not the default (for persistence)
@@ -169,7 +168,7 @@ export const datasetsForAnalysisAtom = selector<Dataset[] | undefined>({
     const datasetNamesForAnalysis = get(datasetNamesForAnalysisAtom)
     const datasets = get(datasetsAtom)
     return datasetNamesForAnalysis
-      ?.map((datasetName) => datasets.find((dataset) => datasetName === dataset.path))
+      ?.map((datasetName) => findDatasetByPath(datasets, datasetName))
       .filter(notUndefinedOrNull)
   },
 })
