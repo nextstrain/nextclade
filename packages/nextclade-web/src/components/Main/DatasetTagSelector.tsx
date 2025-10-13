@@ -6,7 +6,7 @@ import type { ActionMeta, OnChangeValue } from 'react-select'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { formatUpdatedAt } from 'src/components/Main/datasetInfoHelpers'
 import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
-import { sortDatasetVersions } from 'src/helpers/sortDatasetVersions'
+import { sortDatasetVersions, findLatestReleasedVersion } from 'src/helpers/sortDatasetVersions'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { Dataset, DatasetVersion } from 'src/types'
 
@@ -58,20 +58,17 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
 
   const availableVersions = useMemo(() => getAvailableVersions(dataset, allDatasets), [dataset, allDatasets])
 
-  const options: TagOption[] = useMemo(
-    () => {
-      // Find the latest released version (first non-unreleased version)
-      const latestReleasedIndex = availableVersions.findIndex((v) => v.tag !== 'unreleased')
-      
-      return availableVersions.map((version, index) => ({
-        value: version.tag,
-        label: formatTagLabel(version, t),
-        isLatest: version.tag !== 'unreleased' && index === latestReleasedIndex,
-        isUnreleased: version.tag === 'unreleased',
-      }))
-    },
-    [availableVersions, t],
-  )
+  const options: TagOption[] = useMemo(() => {
+    // Find the latest released version for badge marking
+    const latestReleasedVersion = findLatestReleasedVersion(availableVersions)
+
+    return availableVersions.map((version) => ({
+      value: version.tag,
+      label: formatTagLabel(version, t),
+      isLatest: version.tag !== 'unreleased' && version.tag === latestReleasedVersion?.tag,
+      isUnreleased: version.tag === 'unreleased',
+    }))
+  }, [availableVersions, t])
 
   const selectedValue = useMemo(() => {
     const currentTag = dataset.version?.tag
@@ -80,15 +77,15 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
     }
     const versionIndex = availableVersions.findIndex((v) => v.tag === currentTag)
     const version = availableVersions[versionIndex]
-    
-    // Find the latest released version (first non-unreleased version)
-    const latestReleasedIndex = availableVersions.findIndex((v) => v.tag !== 'unreleased')
-    
+
+    // Find the latest released version for badge marking
+    const latestReleasedVersion = findLatestReleasedVersion(availableVersions)
+
     return version
       ? {
           value: currentTag,
           label: formatTagLabel(version, t),
-          isLatest: currentTag !== 'unreleased' && versionIndex === latestReleasedIndex,
+          isLatest: currentTag !== 'unreleased' && currentTag === latestReleasedVersion?.tag,
           isUnreleased: currentTag === 'unreleased',
         }
       : undefined
