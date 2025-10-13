@@ -6,7 +6,7 @@ import type { ActionMeta, OnChangeValue } from 'react-select'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { formatUpdatedAt } from 'src/components/Main/datasetInfoHelpers'
 import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
-import { sortDatasetVersions, findLatestReleasedVersion } from 'src/helpers/sortDatasetVersions'
+import { sortDatasetVersions, isLatestReleasedVersion } from 'src/helpers/sortDatasetVersions'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { Dataset, DatasetVersion } from 'src/types'
 
@@ -24,6 +24,15 @@ interface TagOption {
 
 function formatTagLabel(version: DatasetVersion, t: TFunc): string {
   return formatUpdatedAt(version, t)
+}
+
+function createTagOption(version: DatasetVersion, availableVersions: DatasetVersion[], t: TFunc): TagOption {
+  return {
+    value: version.tag,
+    label: formatTagLabel(version, t),
+    isLatest: isLatestReleasedVersion(version.tag, availableVersions),
+    isUnreleased: version.tag === 'unreleased',
+  }
 }
 
 function getAvailableVersions(dataset: Dataset, allDatasets: Dataset[]): DatasetVersion[] {
@@ -58,37 +67,19 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
 
   const availableVersions = useMemo(() => getAvailableVersions(dataset, allDatasets), [dataset, allDatasets])
 
-  const options: TagOption[] = useMemo(() => {
-    // Find the latest released version for badge marking
-    const latestReleasedVersion = findLatestReleasedVersion(availableVersions)
-
-    return availableVersions.map((version) => ({
-      value: version.tag,
-      label: formatTagLabel(version, t),
-      isLatest: version.tag !== 'unreleased' && version.tag === latestReleasedVersion?.tag,
-      isUnreleased: version.tag === 'unreleased',
-    }))
-  }, [availableVersions, t])
+  const options: TagOption[] = useMemo(
+    () => availableVersions.map((version) => createTagOption(version, availableVersions, t)),
+    [availableVersions, t],
+  )
 
   const selectedValue = useMemo(() => {
     const currentTag = dataset.version?.tag
     if (!currentTag) {
       return undefined
     }
-    const versionIndex = availableVersions.findIndex((v) => v.tag === currentTag)
-    const version = availableVersions[versionIndex]
+    const version = availableVersions.find((v) => v.tag === currentTag)
 
-    // Find the latest released version for badge marking
-    const latestReleasedVersion = findLatestReleasedVersion(availableVersions)
-
-    return version
-      ? {
-          value: currentTag,
-          label: formatTagLabel(version, t),
-          isLatest: currentTag !== 'unreleased' && currentTag === latestReleasedVersion?.tag,
-          isUnreleased: currentTag === 'unreleased',
-        }
-      : undefined
+    return version ? createTagOption(version, availableVersions, t) : undefined
   }, [dataset.version?.tag, availableVersions, t])
 
   const handleChange = useCallback(
