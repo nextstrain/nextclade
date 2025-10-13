@@ -25,7 +25,10 @@ export function getVersionStatus(
   }
 
   const sortedVersions = sortDatasetVersions(versions)
-  const isLatest = sortedVersions[0]?.tag === currentTag
+  
+  // Find the latest released version (first non-unreleased version)
+  const latestReleasedVersion = sortedVersions.find((v) => v.tag !== 'unreleased')
+  const isLatest = latestReleasedVersion?.tag === currentTag
 
   if (isLatest) {
     return { color: 'success', label: t('latest'), isUnreleased: false }

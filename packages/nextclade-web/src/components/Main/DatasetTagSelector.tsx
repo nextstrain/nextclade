@@ -59,13 +59,17 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
   const availableVersions = useMemo(() => getAvailableVersions(dataset, allDatasets), [dataset, allDatasets])
 
   const options: TagOption[] = useMemo(
-    () =>
-      availableVersions.map((version, index) => ({
+    () => {
+      // Find the latest released version (first non-unreleased version)
+      const latestReleasedIndex = availableVersions.findIndex((v) => v.tag !== 'unreleased')
+      
+      return availableVersions.map((version, index) => ({
         value: version.tag,
         label: formatTagLabel(version, t),
-        isLatest: version.tag !== 'unreleased' && index === 0,
+        isLatest: version.tag !== 'unreleased' && index === latestReleasedIndex,
         isUnreleased: version.tag === 'unreleased',
-      })),
+      }))
+    },
     [availableVersions, t],
   )
 
@@ -76,11 +80,15 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
     }
     const versionIndex = availableVersions.findIndex((v) => v.tag === currentTag)
     const version = availableVersions[versionIndex]
+    
+    // Find the latest released version (first non-unreleased version)
+    const latestReleasedIndex = availableVersions.findIndex((v) => v.tag !== 'unreleased')
+    
     return version
       ? {
           value: currentTag,
           label: formatTagLabel(version, t),
-          isLatest: currentTag !== 'unreleased' && versionIndex === 0,
+          isLatest: currentTag !== 'unreleased' && versionIndex === latestReleasedIndex,
           isUnreleased: currentTag === 'unreleased',
         }
       : undefined
