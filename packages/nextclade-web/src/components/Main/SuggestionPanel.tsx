@@ -5,7 +5,7 @@ import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { Toggle } from 'src/components/Common/Toggle'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { useResetSuggestionsAndDatasets } from 'src/hooks/useResetSuggestions'
+import { useResetSuggestionsAndCurrentDataset } from 'src/hooks/useResetSuggestions'
 import { useRunSeqAutodetect } from 'src/hooks/useRunSeqAutodetect'
 import { useRecoilToggle } from 'src/hooks/useToggle'
 import {
@@ -83,7 +83,7 @@ export function ButtonSuggest() {
 
 export function ButtonSuggestionsReset() {
   const { t } = useTranslationSafe()
-  const resetAutodetectResults = useResetSuggestionsAndDatasets()
+  const resetAutodetectResults = useResetSuggestionsAndCurrentDataset()
   const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
   const hasTopSuggestedDatasets = useRecoilValue(hasTopSuggestedDatasetsAtom)
   const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)
