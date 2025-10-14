@@ -26,7 +26,7 @@ function generatePermissionsPolicyHeader(permissionsPolicyObject) {
 
 const NEW_HEADERS = {
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self' 'unsafe-eval' plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: *.githubusercontent.com; connect-src *",
+    "default-src 'self'; script-src 'self' 'unsafe-eval' plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: *; connect-src *",
   'Referrer-Policy': 'no-referrer',
   'Strict-Transport-Security': 'max-age=15768000; includeSubDomains; preload',
   'X-Content-Type-Options': 'nosniff',
