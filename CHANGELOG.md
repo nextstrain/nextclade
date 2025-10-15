@@ -1,3 +1,48 @@
+## Unreleased
+
+### Dataset version selector
+
+Nextclade Web now includes a dataset version (tag) selector in single-dataset mode. This allows you to select a specific version of a dataset instead of always using the latest version. This is useful when you want to reproduce results using an older dataset version or when testing unreleased dataset updates.
+
+### Dataset collection badges
+
+Dataset collection names are now displayed as colored badges in the dataset info section in Nextclade Web. These badges show which collection each dataset belongs to (e.g., "nextstrain" or "community" collections) and include optional icons for better visual distinction.
+
+### Customizable "Relative to" dropdown
+
+Dataset authors can now customize the display names and descriptions for built-in entries in the "Relative to" dropdown (reference, parent, and clade founder nodes) in Nextclade Web. This allows datasets to provide more context-specific terminology for phylogenetic comparison targets. See [#1683](https://github.com/nextstrain/nextclade/issues/1683) for details.
+
+### Fix "Reset" button behavior
+
+The "Reset" button in the "Select dataset" section on the main page of Nextclade Web now correctly clears the currently selected dataset(s) in both single-dataset and multi-dataset modes.
+
+### Fix dataset loading and persistence issues
+
+Numerous fixes have been made to improve dataset loading and persistence in Nextclade Web:
+
+- Fixed dataset persistence after page reload
+- Fixed loading single datasets from localhost servers using `?dataset-url` parameter
+- Fixed handling of `?dataset-server` URL parameter during initialization
+- Fixed handling of `?dataset-tag` URL parameter: non-latest tags no longer cause "dataset not found" errors
+- Fixed automatic updating of datasets when using the latest tag: Nextclade now picks up new versions automatically unless you explicitly select an older version
+- Improved detection of non-default dataset servers to ensure correct dataset persistence behavior
+
+### Fix "updated at" date-time formatting
+
+Fixed "updated at" date-time formatting in Nextclade Web to display seconds consistently across all dataset tags
+
+### Improve error messages when invalid dataset tags are specified
+
+When an invalid dataset tag is provided via `?dataset-tag` URL parameter or selected in the dataset version dropdown, Nextclade Web now displays a clearer error message indicating that the specified tag was not found.
+
+### Fix dataset clearing when switching dataset servers
+
+Dataset selection is now properly cleared when switching to a non-default dataset server
+
+### JSON schema additions
+
+Added JSON schema definitions for Auspice Nextclade extensions (`.meta.extensions.nextclade`), enabling better validation and tooling support for dataset authors.
+
 ## 3.17.0
 
 ### Add trailing semicolon to Newick format output
@@ -15,7 +60,6 @@ We have added JSON schema definitions for `Dataset` and `DatasetCollection` type
 ### Add `$schema` field to JSON outputs
 
 We have added an optional `$schema` field to JSON input and output files. This is a convention used to indicate which JSON schema definition the output conforms to. This can be useful for validation and for tooling that supports JSON schema (e.g. autocomplete and documentation in VSCode when editing `pathogen.json` file).
-
 
 ## 3.16.0
 
