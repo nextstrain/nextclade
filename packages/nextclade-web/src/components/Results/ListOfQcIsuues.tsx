@@ -12,6 +12,7 @@ import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
 import { formatQCFrameShifts } from 'src/helpers/formatQCFrameShifts'
 import { formatQCStopCodons } from 'src/helpers/formatQCStopCodons'
+import { formatQCRecombinants } from 'src/helpers/formatQCRecombinants'
 import { Circle, CircleProps } from 'src/components/Results/Circle'
 
 export const QcList = styled.ul`
@@ -52,6 +53,7 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
     missingData,
     frameShifts,
     stopCodons,
+    recombinants,
   } = qc
 
   const rules = [
@@ -61,6 +63,7 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
     { name: t('Mutation Clusters'), shortName: 'C', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
     { name: t('Frame shifts'), shortName: 'F', value: frameShifts, message: formatQCFrameShifts(t, frameShifts) }, // prettier-ignore
     { name: t('Stop codons'), shortName: 'S', value: stopCodons, message: formatQCStopCodons(t, stopCodons) }, // prettier-ignore
+    { name: t('Recombinants'), shortName: 'R', value: recombinants, message: formatQCRecombinants(t, recombinants) }, // prettier-ignore
   ].filter((value) => notUndefined(value))
 
   const issues = rules.map(({ name, shortName, value, message }) => {

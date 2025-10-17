@@ -233,6 +233,27 @@ impl QcRulesConfigStopCodons {
   }
 }
 
+/// Configuration for QC rule "recombinants"
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRulesConfigRecombinants::example")]
+pub struct QcRulesConfigRecombinants {
+  pub enabled: bool,
+  pub mutations_threshold: usize,
+  pub score_weight: OrderedFloat<f64>,
+}
+
+impl QcRulesConfigRecombinants {
+  pub const fn example() -> Self {
+    Self {
+      enabled: true,
+      mutations_threshold: 20,
+      score_weight: OrderedFloat(100.0),
+    }
+  }
+}
+
 /// Configuration for QC rules
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -245,6 +266,7 @@ pub struct QcConfig {
   pub snp_clusters: QcRulesConfigSnpClusters,
   pub frame_shifts: QcRulesConfigFrameShifts,
   pub stop_codons: QcRulesConfigStopCodons,
+  pub recombinants: QcRulesConfigRecombinants,
 }
 
 impl FromStr for QcConfig {
@@ -264,6 +286,7 @@ impl QcConfig {
       snp_clusters: QcRulesConfigSnpClusters::example(),
       frame_shifts: QcRulesConfigFrameShifts::example(),
       stop_codons: QcRulesConfigStopCodons::example(),
+      recombinants: QcRulesConfigRecombinants::example(),
     }
   }
 

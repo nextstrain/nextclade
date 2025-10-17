@@ -5,6 +5,7 @@ use crate::qc::qc_rule_frame_shifts::{rule_frame_shifts, QcResultFrameShifts};
 use crate::qc::qc_rule_missing_data::{rule_missing_data, QcResultMissingData};
 use crate::qc::qc_rule_mixed_sites::{rule_mixed_sites, QcResultMixedSites};
 use crate::qc::qc_rule_private_mutations::{rule_private_mutations, QcResultPrivateMutations};
+use crate::qc::qc_rule_recombinants::{rule_recombinants, QcResultRecombinants};
 use crate::qc::qc_rule_snp_clusters::{rule_snp_clusters, QcResultSnpClusters};
 use crate::qc::qc_rule_stop_codons::{rule_stop_codons, QcResultStopCodons};
 use crate::translate::frame_shifts_translate::FrameShift;
@@ -54,6 +55,7 @@ pub struct QcResult {
   pub snp_clusters: Option<QcResultSnpClusters>,
   pub frame_shifts: Option<QcResultFrameShifts>,
   pub stop_codons: Option<QcResultStopCodons>,
+  pub recombinants: Option<QcResultRecombinants>,
   pub overall_score: f64,
   pub overall_status: QcStatus,
 }
@@ -77,6 +79,7 @@ pub fn qc_run(
     snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
     stop_codons: rule_stop_codons(translation, &config.stop_codons),
+    recombinants: rule_recombinants(private_nuc_mutations, &config.recombinants),
     overall_score: 0.0,
     overall_status: QcStatus::Good,
   };
@@ -87,6 +90,7 @@ pub fn qc_run(
   result.overall_score += add_score(&result.snp_clusters);
   result.overall_score += add_score(&result.frame_shifts);
   result.overall_score += add_score(&result.stop_codons);
+  result.overall_score += add_score(&result.recombinants);
 
   result.overall_status = QcStatus::from_score(result.overall_score);
 
