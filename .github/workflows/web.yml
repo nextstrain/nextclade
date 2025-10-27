@@ -235,7 +235,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: "out"
           path: "packages/nextclade-web/.build/production/web"
@@ -288,7 +288,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: out
           path: out
