@@ -953,6 +953,9 @@ Example for bash shell:
     output_csv,
     output_tsv,
     output_tree,
+    output_tree_nwk,
+    output_annotation_gff,
+    output_annotation_tbl,
   ]
   .iter()
   .all(|o| o.is_none())
@@ -970,7 +973,10 @@ At least one of the following flags is required:
   --output-csv
   --output-tsv
   --output-tree
-  --output-translations"#
+  --output-tree-nwk
+  --output-translations
+  --output-annotation-gff
+  --output-annotation-tbl"#
     );
   }
 
