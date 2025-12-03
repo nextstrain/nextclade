@@ -1,3 +1,9 @@
+## 3.18.1
+
+### Fix: allow `--output-annotation-gff` and `--output-annotation-tbl` as sole output arguments
+
+Nextclade CLI now correctly allows `--output-annotation-gff` and `--output-annotation-tbl` to be used as standalone output arguments without requiring other output files like `--output-tsv` or `--output-all`. Previously, using only these annotation output arguments would incorrectly trigger an error requiring at least one other output file argument to be specified. See [#1707](https://github.com/nextstrain/nextclade/issues/1707) for details. Thanks @ammaraziz for bug report.
+
 ## 3.18.0
 
 ### Dataset version selector
