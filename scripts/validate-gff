@@ -37,6 +37,19 @@ IGNORED_PATH_PREFIXES=(
   # (these 2 run modes ignore pathogen.json). This results in empty annotation files.
   "tmp/smoke-tests/result/nextstrain/yellow-fever/prM-E/with_ref_and_annotation/nextclade.gff"
   "tmp/smoke-tests/result/nextstrain/yellow-fever/prM-E/with_ref_and_annotation_and_tree/nextclade.gff"
+
+  # error: the sequence region "PQ496830.1" has already been defined
+  # If multiple sequences have the same fasta seqid (if they have different fasta description they are not
+  # considered duplicates), we emit multiple sequence-region pragmas with the same seqid (spaces are not allowed there).
+  # This makes it invalid GFF3.
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/whole-genome/with_name/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/whole-genome/with_ref_and_annotation/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/whole-genome/with_ref_and_annotation_and_tree/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/whole-genome/with_dataset/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/vp1-2b-junction/with_name/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/vp1-2b-junction/with_ref_and_annotation/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/vp1-2b-junction/with_ref_and_annotation_and_tree/nextclade.gff"
+  "tmp/smoke-tests/result/community/masphl-bioinformatics/hav/vp1-2b-junction/with_dataset/nextclade.gff"
 )
 
 IGNORED_SEQUENCE_REGEXES=(
