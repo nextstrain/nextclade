@@ -293,6 +293,43 @@ pub enum NextcladeOutputSelection {
   Tbl,
 }
 
+impl NextcladeOutputSelection {
+  #[rustfmt::skip]
+  pub const fn flag_name(self) -> &'static str {
+    match self {
+      Self::All          => "--output-all",
+      Self::Fasta        => "--output-fasta",
+      Self::Json         => "--output-json",
+      Self::Ndjson       => "--output-ndjson",
+      Self::Csv          => "--output-csv",
+      Self::Tsv          => "--output-tsv",
+      Self::Tree         => "--output-tree",
+      Self::TreeNwk      => "--output-tree-nwk",
+      Self::Translations => "--output-translations",
+      Self::Gff          => "--output-annotation-gff",
+      Self::Tbl          => "--output-annotation-tbl",
+    }
+  }
+
+  #[rustfmt::skip]
+  #[allow(clippy::missing_const_for_fn)]
+  pub fn is_output_set(self, args: &NextcladeRunOutputArgs) -> bool {
+    match self {
+      Self::All          => args.output_all.is_some(),
+      Self::Fasta        => args.output_fasta.is_some(),
+      Self::Json         => args.output_json.is_some(),
+      Self::Ndjson       => args.output_ndjson.is_some(),
+      Self::Csv          => args.output_csv.is_some(),
+      Self::Tsv          => args.output_tsv.is_some(),
+      Self::Tree         => args.output_tree.is_some(),
+      Self::TreeNwk      => args.output_tree_nwk.is_some(),
+      Self::Translations => args.output_translations.is_some(),
+      Self::Gff          => args.output_annotation_gff.is_some(),
+      Self::Tbl          => args.output_annotation_tbl.is_some(),
+    }
+  }
+}
+
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunInputArgs {
   /// Path to one or multiple FASTA files with input sequences
@@ -944,39 +981,13 @@ Example for bash shell:
     );
   }
 
-  let all_outputs_are_missing = [
-    output_all,
-    output_fasta,
-    output_ndjson,
-    output_json,
-    output_csv,
-    output_tsv,
-    output_tree,
-    output_tree_nwk,
-    output_annotation_gff,
-    output_annotation_tbl,
-  ]
-  .iter()
-  .all(|o| o.is_none())
-    && output_translations.is_none();
+  let all_outputs_are_missing = !NextcladeOutputSelection::iter().any(|sel| sel.is_output_set(&run_args.outputs));
 
   if all_outputs_are_missing {
-    return make_error!(
-      r#"No output flags provided.
-
-At least one of the following flags is required:
-  --output-all
-  --output-fasta
-  --output-ndjson
-  --output-json
-  --output-csv
-  --output-tsv
-  --output-tree
-  --output-tree-nwk
-  --output-translations
-  --output-annotation-gff
-  --output-annotation-tbl"#
-    );
+    let flag_list = NextcladeOutputSelection::iter()
+      .map(|sel| format!("  {}", sel.flag_name()))
+      .join("\n");
+    return make_error!("No output flags provided.\n\nAt least one of the following flags is required:\n{flag_list}");
   }
 
   Ok(())
