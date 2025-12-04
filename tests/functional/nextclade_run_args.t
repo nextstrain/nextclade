@@ -14,8 +14,8 @@ Nextclade run: no output args
         At least one of the following flags is required:
           --output-all
           --output-fasta
-          --output-ndjson
           --output-json
+          --output-ndjson
           --output-csv
           --output-tsv
           --output-tree
@@ -82,4 +82,3 @@ Nextclade run: invalid value for --jobs
 
   For more information try --help
   [2]
-
