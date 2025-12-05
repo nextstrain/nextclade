@@ -1177,6 +1177,10 @@ definitions:
         anyOf:
         - $ref: '#/definitions/QcResultStopCodons'
         - type: 'null'
+      recombinants:
+        anyOf:
+        - $ref: '#/definitions/QcResultRecombinants'
+        - type: 'null'
       overallScore:
         type: number
         format: double
@@ -1387,6 +1391,37 @@ definitions:
       cdsName:
         type: string
       codon:
+        type: integer
+        format: uint
+        minimum: 0.0
+  QcResultRecombinants:
+    type: object
+    required:
+    - excessMutations
+    - mutationsThreshold
+    - score
+    - status
+    - totalPrivateMutations
+    - totalReversionSubstitutions
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      totalPrivateMutations:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalReversionSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      mutationsThreshold:
+        type: integer
+        format: uint
+        minimum: 0.0
+      excessMutations:
         type: integer
         format: uint
         minimum: 0.0
