@@ -45,10 +45,15 @@ import i18n, { changeLocale, getLocaleWithKey } from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import {
   datasetsAtom,
+  allDatasetsAtom,
   datasetServerUrlAtom,
-  datasetSingleCurrentAtom,
   minimizerIndexVersionAtom,
+  datasetSelectionAtom,
+  createDatasetSelection,
+  collectionsAtom,
+  type DatasetSelection,
 } from 'src/state/dataset.state'
+import { findDatasetByPath, findDatasetByPathAndTag } from 'src/helpers/sortDatasetVersions'
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
@@ -82,8 +87,6 @@ function RecoilStateInitializer() {
     const snapShotRelease = snapshot.retain()
     const { getPromise } = snapshot
 
-    const datasetSingleCurrent = getPromise(datasetSingleCurrentAtom)
-
     // eslint-disable-next-line no-void
     void Promise.resolve()
       // eslint-disable-next-line promise/always-return
@@ -95,18 +98,38 @@ function RecoilStateInitializer() {
         set(localeAtom, locale.key)
       })
       .then(async () => {
-        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
-        const { datasets, currentDataset, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl, urlQuery)
-
         const datasetInfo = await fetchSingleDataset(urlQuery)
+
         if (!isNil(datasetInfo)) {
           set(datasetServerUrlAtom, undefined)
           const { datasets, currentDataset, auspiceJson } = datasetInfo
-          return { datasets, currentDataset, minimizerIndexVersion: undefined, auspiceJson }
+          return {
+            datasets,
+            allDatasets: datasets,
+            currentDataset,
+            minimizerIndexVersion: undefined,
+            auspiceJson,
+            datasetServerUrl: undefined,
+          }
         }
 
+        const datasetServerUrl = await getDatasetServerUrl(urlQuery)
+
+        const { datasets, allDatasets, currentDataset, minimizerIndexVersion, collections } = await initializeDatasets(
+          datasetServerUrl,
+          urlQuery,
+        )
+
         set(datasetServerUrlAtom, datasetServerUrl)
-        return { datasets, currentDataset, minimizerIndexVersion, auspiceJson: undefined }
+        return {
+          datasets,
+          allDatasets,
+          currentDataset,
+          minimizerIndexVersion,
+          collections,
+          auspiceJson: undefined,
+          datasetServerUrl,
+        }
       })
       .catch((error) => {
         // Dataset error is fatal and we want error to be handled in the ErrorBoundary
@@ -114,26 +137,77 @@ function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
-      .then(async ({ datasets, currentDataset, minimizerIndexVersion, auspiceJson }) => {
-        set(datasetsAtom, datasets)
-        let previousDataset = await datasetSingleCurrent
-        if (previousDataset?.type === 'auspiceJson') {
-          // Disregard previously saved dataset if it's Auspice dataset, because the data is no longer available.
-          // We might re-fetch instead, but need to persist URL for that somehow.
-          previousDataset = undefined
-        }
+      .then(
+        async ({
+          datasets,
+          allDatasets,
+          currentDataset,
+          minimizerIndexVersion,
+          collections,
+          auspiceJson,
+          datasetServerUrl,
+        }) => {
+          set(datasetsAtom, datasets)
+          set(allDatasetsAtom, allDatasets)
+          set(collectionsAtom, collections ?? {})
 
-        const dataset = currentDataset ?? previousDataset
-        set(datasetSingleCurrentAtom, dataset)
-        set(minimizerIndexVersionAtom, minimizerIndexVersion)
+          // Handle dataset selection with new architecture
+          let resolvedDataset = currentDataset
 
-        if (dataset?.type === 'auspiceJson' && !isNil(auspiceJson)) {
-          set(datasetJsonAtom, auspiceJson)
-        } else {
-          set(datasetJsonAtom, undefined)
-        }
-        return dataset
-      })
+          // If there's a current dataset from URL params, save it to the new selection system
+          if (currentDataset) {
+            // For datasets loaded from dataset-url (custom datasets), they don't have version/tag
+            // In this case, we need to manually create a selection with the path
+            if (!currentDataset.version?.tag) {
+              // For custom datasets, use the path as a unique identifier
+              // We don't persist these to localStorage (serverUrl undefined means they won't persist)
+              const selection: DatasetSelection = {
+                path: currentDataset.path,
+                tag: undefined, // No tag for custom datasets
+              }
+              set(datasetSelectionAtom, selection)
+              resolvedDataset = currentDataset
+            } else {
+              // For datasets with tags (from dataset servers)
+              const serverUrl = datasetServerUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+              const selection = createDatasetSelection(currentDataset, serverUrl, allDatasets)
+              if (selection) {
+                set(datasetSelectionAtom, selection)
+              }
+              resolvedDataset = currentDataset
+            }
+          }
+          // Otherwise, try to resolve from the new persisted selection
+          else {
+            const currentSelection = await getPromise(datasetSelectionAtom)
+
+            // If persisted selection is from default server (no serverUrl or matches default), restore it
+            if (currentSelection && allDatasets) {
+              const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+              const isFromDefaultServer = !currentSelection.serverUrl || currentSelection.serverUrl === defaultServerUrl
+
+              if (isFromDefaultServer) {
+                // If no tag is stored (undefined), use the latest version
+                resolvedDataset = !currentSelection.tag
+                  ? findDatasetByPath(datasets, currentSelection.path)
+                  : findDatasetByPathAndTag(allDatasets, currentSelection.path, currentSelection.tag)
+              } else {
+                // Clear non-default server selections from localStorage
+                set(datasetSelectionAtom, undefined)
+              }
+            }
+          }
+
+          set(minimizerIndexVersionAtom, minimizerIndexVersion)
+
+          if (resolvedDataset?.type === 'auspiceJson' && !isNil(auspiceJson)) {
+            set(datasetJsonAtom, auspiceJson)
+          } else {
+            set(datasetJsonAtom, undefined)
+          }
+          return resolvedDataset
+        },
+      )
       .then(async (dataset) => {
         const isMultiDataset = isQueryParamTruthy(urlQuery, 'multi-dataset')
 

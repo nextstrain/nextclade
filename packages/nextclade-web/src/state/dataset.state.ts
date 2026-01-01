@@ -1,9 +1,9 @@
-import { isEmpty } from 'lodash'
-import { atom, atomFamily, selector } from 'recoil'
+import { atom, atomFamily, selector, DefaultValue } from 'recoil'
 import { mapMaybe, notUndefinedOrNull } from 'src/helpers/notUndefined'
-import type { Dataset, MinimizerIndexVersion } from 'src/types'
+import type { Dataset, DatasetCollectionMeta, MinimizerIndexVersion } from 'src/types'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
+import { findDatasetByPath, findDatasetByPathAndTag, isLatestDatasetVersion } from 'src/helpers/sortDatasetVersions'
 
 export const UNKNOWN_DATASET_NAME = '__UNKNOWN__' as const
 
@@ -17,18 +17,130 @@ export const datasetsAtom = atom<Dataset[]>({
   default: [],
 })
 
-export const datasetSingleCurrentAtom = atom<Dataset | undefined>({
-  key: 'datasetSingleCurrentAtom',
+// All datasets including historical versions for tag-based lookup
+export const allDatasetsAtom = atom<Dataset[]>({
+  key: 'allDatasets',
+  default: [],
+})
+
+// Collections metadata indexed by collection ID
+export const collectionsAtom = atom<Record<string, DatasetCollectionMeta>>({
+  key: 'collections',
+  default: {},
+})
+
+// Dataset selection interface and state
+// serverUrl is optional - undefined means default server (from env var)
+// tag is optional - undefined means use latest version
+export interface DatasetSelection {
+  serverUrl?: string
+  path: string
+  tag?: string
+}
+
+export const datasetSelectionAtom = atom<DatasetSelection | undefined>({
+  key: 'datasetSelection',
   default: undefined,
   effects: [persistAtom],
+})
+
+// Current dataset derived from selection
+export const datasetSingleCurrentAtom = selector<Dataset | undefined>({
+  key: 'datasetSingleCurrentAtom',
+  get: ({ get }) => {
+    const selection = get(datasetSelectionAtom)
+    const currentServerUrl = get(datasetServerUrlAtom)
+    const allDatasets = get(allDatasetsAtom)
+    const latestDatasets = get(datasetsAtom)
+
+    if (!selection || allDatasets.length === 0) {
+      return undefined
+    }
+
+    // Determine effective server URLs for comparison
+    // undefined in selection means default server
+    const selectionServerUrl = selection.serverUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+    const effectiveCurrentServerUrl = currentServerUrl ?? process.env.DATA_FULL_DOMAIN ?? '/'
+
+    // If the server URLs don't match, the selection is no longer valid
+    if (selectionServerUrl !== effectiveCurrentServerUrl) {
+      return undefined
+    }
+
+    // If tag is undefined, use the latest version for this path
+    if (!selection.tag) {
+      return findDatasetByPath(latestDatasets, selection.path)
+    }
+
+    // Find the dataset that matches both path and tag from ALL datasets (including historical)
+    return findDatasetByPathAndTag(allDatasets, selection.path, selection.tag)
+  },
+  set: ({ set, get }, newValue) => {
+    if (newValue instanceof DefaultValue) {
+      set(datasetSelectionAtom, undefined)
+      return
+    }
+
+    if (!newValue) {
+      set(datasetSelectionAtom, undefined)
+      return
+    }
+
+    if (newValue.path && newValue.version?.tag) {
+      const currentServerUrl = get(datasetServerUrlAtom)
+      const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+      const effectiveCurrentServerUrl = currentServerUrl ?? defaultServerUrl
+      const latestDatasets = get(datasetsAtom)
+
+      // Check if this is the latest version for this path
+      const isLatestTag = isLatestDatasetVersion(newValue, latestDatasets)
+
+      const selection: DatasetSelection = {
+        // Only set serverUrl if it's not the default (for persistence)
+        serverUrl: effectiveCurrentServerUrl === defaultServerUrl ? undefined : effectiveCurrentServerUrl,
+        path: newValue.path,
+        // Only persist tag if it's NOT the latest (for non-latest tags only)
+        tag: isLatestTag ? undefined : newValue.version.tag,
+      }
+      set(datasetSelectionAtom, selection)
+    }
+  },
 })
 
 export const hasSingleCurrentDatasetAtom = selector<boolean>({
   key: 'hasSingleCurrentDatasetAtom',
   get({ get }) {
-    return !isEmpty(get(datasetSingleCurrentAtom))
+    const datasetSingleCurrent = get(datasetSingleCurrentAtom)
+    return datasetSingleCurrent != null && Object.keys(datasetSingleCurrent).length > 0
   },
 })
+
+// Legacy aliases for backward compatibility
+export const currentDatasetAtom = datasetSingleCurrentAtom
+export const resolvedDatasetAtom = datasetSingleCurrentAtom
+
+export function createDatasetSelection(
+  dataset: Dataset,
+  serverUrl: string,
+  latestDatasets: Dataset[],
+): DatasetSelection | undefined {
+  if (!dataset.path || !dataset.version?.tag) {
+    return undefined
+  }
+
+  const defaultServerUrl = process.env.DATA_FULL_DOMAIN ?? '/'
+
+  // Check if this is the latest version for this path
+  const isLatestTag = isLatestDatasetVersion(dataset, latestDatasets)
+
+  return {
+    // Only set serverUrl if it's not the default (for persistence)
+    serverUrl: serverUrl === defaultServerUrl ? undefined : serverUrl,
+    path: dataset.path,
+    // Only persist tag if it's NOT the latest (for non-latest tags only)
+    tag: isLatestTag ? undefined : dataset.version.tag,
+  }
+}
 
 // const datasetsCurrentStorageAtom = atom<Dataset[] | undefined>({
 //   key: 'datasetsCurrentStorage',
@@ -62,7 +174,7 @@ export const datasetsForAnalysisAtom = selector<Dataset[] | undefined>({
     const datasetNamesForAnalysis = get(datasetNamesForAnalysisAtom)
     const datasets = get(datasetsAtom)
     return datasetNamesForAnalysis
-      ?.map((datasetName) => datasets.find((dataset) => datasetName === dataset.path))
+      ?.map((datasetName) => findDatasetByPath(datasets, datasetName))
       .filter(notUndefinedOrNull)
   },
 })

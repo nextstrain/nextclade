@@ -1,3 +1,84 @@
+## 3.18.1
+
+### Fix: allow `--output-annotation-gff` and `--output-annotation-tbl` as sole output arguments
+
+Nextclade CLI now correctly allows `--output-annotation-gff` and `--output-annotation-tbl` to be used as standalone output arguments without requiring other output files like `--output-tsv` or `--output-all`. Previously, using only these annotation output arguments would incorrectly trigger an error requiring at least one other output file argument to be specified. See [#1707](https://github.com/nextstrain/nextclade/issues/1707) for details. Thanks @ammaraziz for bug report.
+
+## 3.18.0
+
+### Dataset version selector
+
+Nextclade Web now includes a dataset version (tag) selector in single-dataset mode. This allows you to select a specific version of a dataset instead of always using the latest version. This is useful when you want to reproduce results using an older dataset version or when testing unreleased dataset updates.
+
+### Dataset collection badges
+
+Dataset collection names are now displayed as colored badges in the dataset info section in Nextclade Web. These badges show which collection each dataset belongs to (e.g., "nextstrain" or "community" collections) and include optional icons for better visual distinction.
+
+### Customizable "Relative to" dropdown
+
+Dataset authors can now customize the display names and descriptions for built-in entries in the "Relative to" dropdown (reference, parent, and clade founder nodes) in Nextclade Web. This allows datasets to provide more context-specific terminology for phylogenetic comparison targets. See [#1683](https://github.com/nextstrain/nextclade/issues/1683) for details.
+
+### Fix "Reset" button behavior
+
+The "Reset" button in the "Select dataset" section on the main page of Nextclade Web now correctly clears the currently selected dataset(s) in both single-dataset and multi-dataset modes.
+
+### Fix dataset loading and persistence issues
+
+Numerous fixes have been made to improve dataset loading and persistence in Nextclade Web:
+
+- Fixed dataset persistence after page reload
+- Fixed loading single datasets from localhost servers using `?dataset-url` parameter
+- Fixed handling of `?dataset-server` URL parameter during initialization
+- Fixed handling of `?dataset-tag` URL parameter: non-latest tags no longer cause "dataset not found" errors
+- Fixed automatic updating of datasets when using the latest tag: Nextclade now picks up new versions automatically unless you explicitly select an older version
+- Improved detection of non-default dataset servers to ensure correct dataset persistence behavior
+
+### Fix "updated at" date-time formatting
+
+Fixed "updated at" date-time formatting in Nextclade Web to display seconds consistently across all dataset tags
+
+### Improve error messages when invalid dataset tags are specified
+
+When an invalid dataset tag is provided via `?dataset-tag` URL parameter or selected in the dataset version dropdown, Nextclade Web now displays a clearer error message indicating that the specified tag was not found.
+
+### Fix dataset clearing when switching dataset servers
+
+Dataset selection is now properly cleared when switching to a non-default dataset server
+
+### JSON schema additions
+
+Added JSON schema definitions for Auspice Nextclade extensions (`.meta.extensions.nextclade`), enabling better validation and tooling support for dataset authors.
+
+## 3.17.0
+
+### Add trailing semicolon to Newick format output
+
+Newick format output now includes a trailing semicolon for better compatibility with parsers.
+
+### Remove extra quotation marks around filepaths
+
+Nextclade would erroneously add double quotation marks when printing paths. This has been fixed.
+
+### Add more JSON schema definitions
+
+We have added JSON schema definitions for `Dataset` and `DatasetCollection` types, both are parts of the `DatasetIndexJson`. You can find the latest definitions and documentation [here](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas)
+
+### Add `$schema` field to JSON outputs
+
+We have added an optional `$schema` field to JSON input and output files. This is a convention used to indicate which JSON schema definition the output conforms to. This can be useful for validation and for tooling that supports JSON schema (e.g. autocomplete and documentation in VSCode when editing `pathogen.json` file).
+
+## 3.16.0
+
+### Introduce JSON Schema definitions
+
+We now provide [JSON Schema](https://json-schema.org/) definitions for some of the JSON-based Nextclade file formats. You can find the latest definitions and documentation [here](https://github.com/nextstrain/nextclade/tree/release/packages/nextclade-schemas). You can also generate schemas for your current version of Nextclade CLI using the newly added `nextclade schema write` command.
+
+These schemas enable validation and parser code generation (among other things) to help in development and maintenance of projects using JSON-based Nextclade formats. We would like to emphasize that currently all JSON-based Nextclade formats are unstable and can change even in minor and patch releases. Addition of schemas don't change these stability guarantees, but could help in reducing and fixing breakage after breaking changes.
+
+### Implement amino acid mutation labels
+
+We added functionality to detect labeled amino acid mutations if dataset authors choose to define labels for them. This is similar to the existing labeled nucleotide mutations functionality, but for amino acid sequences. This could be useful to mark particular mutations of interest. Once datasets start adopting this functionality (by adding configuration to the `mutLabels.aaMutLabelMap` in `pathogen.json` of a dataset), you can find the results in the `privateAaMutations.labeledSubstitutions` column/field of Nextclade output files.
+
 ## 3.15.3
 
 ### fix: ensure GFF3 fields are correctly percent-encoded and decoded
@@ -38,8 +119,8 @@ Colors for "country", "region" and "division" are now correctly displayed in tre
 
 Nextclade now calculates amino acid coverage of each CDS. You can find this information:
 
-* in output files: in the column or field `cdsCoverage`
-* in Nextclade Web: in the tooltip of the "Cov." column on "Results" page
+- in output files: in the column or field `cdsCoverage`
+- in Nextclade Web: in the tooltip of the "Cov." column on "Results" page
 
 ## 3.14.5
 
@@ -75,13 +156,11 @@ This improves dataset suggestions in Nextclade Web and dataset detection in `nex
 
 When an Auspice JSON dataset is provided as whole-dataset input through `?dataset-json-url`, Nextclade Web could crash under certain conditions. This has been fixed.
 
-
 ## 3.14.1
 
 ### Nextclade Web: crash with custom datasets
 
 When a custom dataset is provided through `?dataset-url`, Nextclade Web could crash under certain conditions. This has been fixed.
-
 
 ## 3.14.0
 
@@ -126,22 +205,20 @@ Nextclade CLI previously output colored messages (with ANSI sequences) even if o
 For additional configuration, the CLI arguments have been added, as well as proper handling of environment variables typically used to control console coloring.
 
 The following priority rules apply:
- 
- * Nextclade detects output target (TTY or not) and outputs appropriately for the target by default
 
- * If any of  the environment variables: `COLOR` (`auto|always|never`), `NO_COLOR` (set), `CLICOLOR_FORCE=1` are found, then they override the default
+- Nextclade detects output target (TTY or not) and outputs appropriately for the target by default
 
- * If arguments `--color=auto|always|never` or `--no-color` (shortcut for `--color=never`) are found, they override the defaults and environment variables. If multiple `--color` or `--no-color` arguments present, then only the argument that comes last is taken into account.
+- If any of the environment variables: `COLOR` (`auto|always|never`), `NO_COLOR` (set), `CLICOLOR_FORCE=1` are found, then they override the default
+
+- If arguments `--color=auto|always|never` or `--no-color` (shortcut for `--color=never`) are found, they override the defaults and environment variables. If multiple `--color` or `--no-color` arguments present, then only the argument that comes last is taken into account.
 
 Known issue: `--help` coloring is not affected by `--color` and `--no-color` arguments: [#1629](https://github.com/nextstrain/nextclade/issues/1629))
-
 
 ## 3.13.3
 
 ### Fix crash when exporting annotations for sequences with missing genes
 
 Nextclade Web and CLI would crash when attempting to output GFF and TBL files where entire genes are unsequenced or otherwise missing. This has been fixed.
-
 
 ## 3.13.2
 
@@ -161,7 +238,6 @@ It turns out that avoiding the need for a large array gets rid of most of the de
 
 For certain samples which end up with an empty output genome annotation Nextclade Web could crash. This is now resolved.
 See [#1601](https://github.com/nextstrain/nextclade/issues/1601),[#1602](https://github.com/nextstrain/nextclade/issues/1602). Thanks @theosanderson for reporting.
-
 
 ## 3.13.0
 
@@ -190,7 +266,6 @@ Please note that the annotations can only be output if there's a reference annot
 
 This feature is still in an experimental phase. Please report bugs by submitting a [GitHub issue](https://github.com/nextstrain/nextclade/issues).
 
-
 ## 3.12.0
 
 ### Forbid reference sequences with gaps
@@ -205,23 +280,21 @@ Starting from this version, Nextclade will now stop with an explicit error if it
 
 If you think that Nextclade needs to support reference sequences with gaps, please submit a new issue and explain your use-case and motivation on GitHub: https://github.com/nextstrain/nextclade/issues
 
-
 ## 3.11.0
 
 ### Alignment presets
 
 Nextclade CLI now supports `--alignment-preset` argument, which switches between pre-defined sets of alignment parameters. Currently available values are:
-  - `default`: Suitable for aligning very similar sequences (this is the default)
-  - `high-diversity`: Suitable for more diverse viruses
-  - `short-sequences`: Suitable for short and partial sequences
+
+- `default`: Suitable for aligning very similar sequences (this is the default)
+- `high-diversity`: Suitable for more diverse viruses
+- `short-sequences`: Suitable for short and partial sequences
 
 This is an experimental feature. Presets are subject to change.
-
 
 ### Fix crash with empty reference sequence
 
 Nextclade crashed when an empty reference sequence file is provided. Now Nextclade checks for this condition and reports a useful error message instead.
-
 
 ## 3.10.2
 
@@ -233,13 +306,11 @@ Nextclade sometimes reported an error in GFF3 files containing comments. This ha
 
 The Nextclade CLI arguments `-v` and `-q` were having no effect after a recent update. This has been fixed now.
 
-
 ## 3.10.1
 
 ### [web] Fetch custom inputs from URLs using correct "Accept" HTTP header
 
 Fixes Nextclade Web adding header `Accept: application/json, text/plain, */*` when making `GET` HTTP requests when fetching input files from use-provided URLs. This caused problems when fetching files from sources which allow to choose between different file formats using `Accept` header. The response would come in JSON format and this is not what we want. Now we add `Accept: text/plain, */*`, preferentially fetching all inputs as plaintext, as intended.
-
 
 ## Nextclade 3.10.0
 
@@ -247,11 +318,9 @@ Fixes Nextclade Web adding header `Accept: application/json, text/plain, */*` wh
 
 You can now click on "Open tree" link in the dataset info box to open reference tree of this dataset on [nextstrain.org](https://nextstrain.org/). This allows to browse the current trees for each dataset without running Nextclade analysis. If a dataset does not provide a reference tree, the link will be disabled.
 
-
 ### [web] Correctly disable "Load example" links
 
 The "Load example" links are now correctly disabled, not hidden, for the datasets which do not provide example sequence data.
-
 
 ## Nextclade 3.9.1
 
@@ -261,10 +330,9 @@ This version addresses an issue when sometimes clade (or clade-like attribute, s
 
 The query node placement is adjusted during the [greedy tree building](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/03-phylogenetic-placement.html#tree-building), and sometimes the branch needs to be split and a new auxiliary internal node to be inserted to accommodate the new node. Previously, Nextclade would copy the clade of this internal node from the attachment target node. However, this is not always correct and can lead to mismatch between clade of the query node and of the new internal node.
 
-In this version we added a voting mechanism, which calculates a [mode](https://en.wikipedia.org/wiki/Mode_(statistics)) of the clades involved: of the parent, target and query nodes. The same procedure is repeated for each clade-like attribute. After that, in some cases, branch labels also need to adjust their positions.
+In this version we added a voting mechanism, which calculates a [mode](<https://en.wikipedia.org/wiki/Mode_(statistics)>) of the clades involved: of the parent, target and query nodes. The same procedure is repeated for each clade-like attribute. After that, in some cases, branch labels also need to adjust their positions.
 
 This should not change the clade assignment for query samples, but only the clades of the inserted auxiliary internal nodes, to make sure that the tree is consistent.
-
 
 ## Nextclade 3.9.0
 
@@ -276,11 +344,9 @@ Starting with this version, Nextclade CLI respects the OS-level trust store conf
 
 We introduced a `NEXTCLADE_EXTRA_CA_CERTS` environment variable and `--extra-ca-certs` option which allow adding additional CA certificates to the trust store specifically for Nextclade, for when modifying the system's trust store isn't desirable/possible. See [#1536](https://github.com/nextstrain/nextclade/pull/1536) for more details.
 
-
 ### Update Auspice tree visualization to 2.58.0
 
 Auspice tree visualization package has been updated from 2.56.0 to 2.58.0. See Auspice changelog [here](https://github.com/nextstrain/auspice/releases).
-
 
 ## Nextclade 3.8.2
 
@@ -342,7 +408,7 @@ In this version we pick unique names for the auxiliary nodes during placement, s
 
 ### [fix] Ensure dataset "updated at" date is displayed in Nextclade Web
 
-Since 3.7.0 Nextclade Web is not showing  "updated at" date for any datasets. This has been fixed.
+Since 3.7.0 Nextclade Web is not showing "updated at" date for any datasets. This has been fixed.
 
 ### [fix] Ensure frame shift and insertion markers in sequence views can also be toggled
 
@@ -509,9 +575,9 @@ See changelog [here](https://github.com/nextstrain/auspice/blob/master/CHANGELOG
 
 ### Nextclade CLI
 
-#### Fix "Dataset not found" error when using `nextclade dataset get` with  `--tag` argument.
+#### Fix "Dataset not found" error when using `nextclade dataset get` with `--tag` argument.
 
-This fixes a bug in the dataset filtering logic causing "Dataset not found" error when even correct name and tag were requested using `nextclade dataset get` with  `--tag` argument.
+This fixes a bug in the dataset filtering logic causing "Dataset not found" error when even correct name and tag were requested using `nextclade dataset get` with `--tag` argument.
 
 ## Nextclade 3.2.0
 

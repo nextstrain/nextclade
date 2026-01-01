@@ -44,7 +44,7 @@ pub fn nextclade_get_inputs(
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
-        Expected a directory path, a zip file path or json file path, but got: '{input_dataset:#?}'"
+        Expected a directory path, a zip file path or json file path, but got: {input_dataset:#?}"
       )
     }
   } else {

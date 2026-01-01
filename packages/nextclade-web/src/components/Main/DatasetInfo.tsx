@@ -1,12 +1,13 @@
-import { darken } from 'polished'
 import React, { useMemo } from 'react'
 import { Badge } from 'reactstrap'
 import styled from 'styled-components'
-import { colorHash } from 'src/helpers/colorHash'
-import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
-import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { AnyType, attrBoolMaybe, attrStrMaybe, DatasetVersion } from 'src/types'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { attrBoolMaybe } from 'src/types'
 import type { Dataset } from 'src/types'
+import { formatDatasetInfo } from 'src/components/Main/datasetInfoHelpers'
+import { DatasetTagSelector } from 'src/components/Main/DatasetTagSelector'
+import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
+import { DatasetCollectionBadge } from 'src/components/Main/DatasetCollectionBadge'
 
 export const DatasetNameHeading = styled.h4`
   display: flex;
@@ -42,9 +43,30 @@ export const DatasetInfoLine = styled.span`
 export interface DatasetInfoProps {
   dataset: Dataset
   showSuggestions?: boolean
+  showTagSelector?: boolean
+  showBadge?: boolean
 }
 
-export function DatasetInfo({ dataset, ...restProps }: DatasetInfoProps) {
+export interface DatasetUpdatedAtLineProps {
+  dataset: Dataset
+  datasetUpdatedAt: string
+  showBadge: boolean
+}
+
+function DatasetUpdatedAtLine({ dataset, datasetUpdatedAt, showBadge }: DatasetUpdatedAtLineProps) {
+  const { t } = useTranslationSafe()
+  const tag = dataset.version?.tag ?? ''
+  const versions = dataset.versions ?? []
+
+  return (
+    <DatasetUpdatedAtContainer title={datasetUpdatedAt}>
+      <span>{datasetUpdatedAt}</span>
+      {showBadge && <DatasetTagBadge tag={tag} versions={versions} t={t} />}
+    </DatasetUpdatedAtContainer>
+  )
+}
+
+export function DatasetInfo({ dataset, showTagSelector = false, showBadge = false, ...restProps }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
 
   const { datasetName, datasetRef, datasetUpdatedAt, datasetPath } = useMemo(
@@ -60,68 +82,24 @@ export function DatasetInfo({ dataset, ...restProps }: DatasetInfoProps) {
       </DatasetNameHeading>
 
       <DatasetInfoLine title={datasetRef}>{datasetRef}</DatasetInfoLine>
-      <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
+      {showTagSelector ? (
+        <DatasetTagSelector dataset={dataset}>
+          <DatasetInfoLine title={datasetUpdatedAt}>{datasetUpdatedAt}</DatasetInfoLine>
+        </DatasetTagSelector>
+      ) : (
+        <DatasetUpdatedAtLine dataset={dataset} datasetUpdatedAt={datasetUpdatedAt} showBadge={showBadge} />
+      )}
       <DatasetInfoLine title={datasetPath}>{datasetPath}</DatasetInfoLine>
     </div>
   )
 }
 
-export function formatDatasetInfo(dataset: Dataset, t: TFunc) {
-  const { attributes, path, version } = dataset
-  const datasetName = attrStrMaybe(attributes, 'name') ?? path
-  const datasetRef = t('Reference: {{ ref }}', { ref: formatReference(attributes) })
-  const datasetUpdatedAt = t('Updated at: {{updated}}', { updated: formatUpdatedAt(version, t) })
-  const datasetPath = t('Dataset name: {{name}}', { name: path })
-  const color = datasetColor(path)
-  return { attributes, path, datasetName, datasetRef, datasetUpdatedAt, datasetPath, color }
-}
-
-export function datasetColor(datasetName: string) {
-  return darken(0.1)(colorHash(datasetName, { lightness: [0.35, 0.5], saturation: [0.35, 0.5] }))
-}
-
-export function formatReference(attributes: Record<string, AnyType> | undefined) {
-  const name = attrStrMaybe(attributes, 'reference name') ?? 'unknown'
-  const accession = attrStrMaybe(attributes, 'reference accession')
-  if (accession) {
-    return `${name} (${accession})`
-  }
-  return name
-}
-
-export function formatUpdatedAt(version: DatasetVersion | undefined, t: TFunc) {
-  let updatedAt = version?.updatedAt ? formatDateIsoUtcSimple(version?.updatedAt) : t('unknown')
-  if (version?.tag === 'unreleased') {
-    updatedAt = `${updatedAt} (${t('unreleased')})`
-  }
-  return updatedAt ?? t('unknown')
-}
-
-export function DatasetInfoBadges({ dataset: { path, attributes } }: { dataset: Dataset }) {
+export function DatasetInfoBadges({ dataset: { attributes, collectionId } }: { dataset: Dataset }) {
   const { t } = useTranslationSafe()
 
   return (
     <span className="d-flex ml-auto">
-      {path.startsWith('nextstrain') ? (
-        <DatasetInfoBadge
-          className="mr-1 my-0"
-          color="success"
-          title={t('This dataset is provided by {{proj}} developers.', { proj: 'Nextclade' })}
-        >
-          {t('official')}
-        </DatasetInfoBadge>
-      ) : (
-        <DatasetInfoBadge
-          className="mr-1 my-0"
-          color="info"
-          title={t(
-            'This dataset is provided by the community members. {{proj}} developers cannot verify correctness of community datasets or provide support for them. Use at own risk. Please contact dataset authors for all questions.',
-            { proj: 'Nextclade' },
-          )}
-        >
-          {t('community')}
-        </DatasetInfoBadge>
-      )}
+      {collectionId && <DatasetCollectionBadge collectionId={collectionId} />}
 
       {attrBoolMaybe(attributes, 'experimental') && (
         <DatasetInfoBadge
@@ -152,6 +130,10 @@ export function DatasetInfoBadges({ dataset: { path, attributes } }: { dataset: 
 
 const DatasetInfoBadge = styled(Badge)`
   font-size: 0.7rem;
-  padding: 0.11rem 0.2rem;
-  border-radius: 3px;
+`
+
+const DatasetUpdatedAtContainer = styled(DatasetInfoLine)`
+  display: flex;
+  align-items: center;
+  gap: 6px;
 `

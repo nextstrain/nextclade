@@ -26,9 +26,9 @@ pub fn ensure_dir(filepath: impl AsRef<Path>) -> Result<(), Report> {
 
     let parent_path = absolute_path(parent_dir)?;
 
-    fs::create_dir_all(&parent_path).wrap_err_with(|| format!("When creating directory '{parent_path:#?}'"))
+    fs::create_dir_all(&parent_path).wrap_err_with(|| format!("When creating directory {parent_path:#?}"))
   }
-  .wrap_err_with(|| format!("When ensuring parent directory for '{filepath:#?}'"))
+  .wrap_err_with(|| format!("When ensuring parent directory for {filepath:#?}"))
 }
 
 pub fn filename_maybe(filepath: impl AsRef<Path>) -> Option<String> {

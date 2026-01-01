@@ -1,0 +1,133 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Dataset
+type: object
+required:
+- path
+properties:
+  path:
+    type: string
+  shortcuts:
+    type: array
+    items:
+      type: string
+  attributes:
+    type: object
+    additionalProperties: true
+  meta:
+    $ref: '#/definitions/DatasetMeta'
+  files:
+    $ref: '#/definitions/DatasetFiles'
+  capabilities:
+    $ref: '#/definitions/DatasetCapabilities'
+  versions:
+    type: array
+    items:
+      $ref: '#/definitions/DatasetVersion'
+  version:
+    $ref: '#/definitions/DatasetVersion'
+  type:
+    anyOf:
+    - $ref: '#/definitions/DatasetType'
+    - type: 'null'
+definitions:
+  DatasetMeta:
+    type: object
+    properties:
+      source code:
+        type:
+        - string
+        - 'null'
+      bugs:
+        type:
+        - string
+        - 'null'
+      authors:
+        type: array
+        items:
+          type: string
+  DatasetFiles:
+    type: object
+    properties:
+      reference:
+        type:
+        - string
+        - 'null'
+      pathogenJson:
+        type:
+        - string
+        - 'null'
+      genomeAnnotation:
+        type:
+        - string
+        - 'null'
+      treeJson:
+        type:
+        - string
+        - 'null'
+      examples:
+        type:
+        - string
+        - 'null'
+      readme:
+        type:
+        - string
+        - 'null'
+      changelog:
+        type:
+        - string
+        - 'null'
+  DatasetCapabilities:
+    type: object
+    properties:
+      clades:
+        type:
+        - integer
+        - 'null'
+        format: uint
+        minimum: 0.0
+      customClades:
+        type: object
+        additionalProperties:
+          type: integer
+          format: uint
+          minimum: 0.0
+      qc:
+        type: array
+        items:
+          type: string
+      primers:
+        type:
+        - boolean
+        - 'null'
+      other:
+        type: array
+        items:
+          type: string
+  DatasetVersion:
+    type: object
+    required:
+    - tag
+    properties:
+      tag:
+        type: string
+      updatedAt:
+        type:
+        - string
+        - 'null'
+      compatibility:
+        anyOf:
+        - $ref: '#/definitions/DatasetCompatibility'
+        - type: 'null'
+  DatasetCompatibility:
+    type: object
+    properties:
+      cli:
+        type: string
+      web:
+        type: string
+  DatasetType:
+    type: string
+    enum:
+    - directory
+    - auspiceJson
+    - other

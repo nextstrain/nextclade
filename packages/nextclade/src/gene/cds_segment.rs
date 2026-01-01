@@ -26,7 +26,7 @@ pub enum WrappingPart {
 
 // Shows whether the CDS is incomplete and by how much
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub enum Truncation {
   #[default]
   None,

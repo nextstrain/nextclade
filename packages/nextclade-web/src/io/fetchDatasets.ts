@@ -14,12 +14,18 @@ import { Dataset } from 'src/types'
 import {
   fetchDatasetsIndex,
   findDataset,
+  getCompatibleEnabledDatasets,
   getCompatibleMinimizerIndexVersion,
-  getLatestCompatibleEnabledDatasets,
 } from 'src/io/fetchDatasetsIndex'
 import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { datasetsAtom, datasetServerUrlAtom, minimizerIndexVersionAtom } from 'src/state/dataset.state'
+import {
+  datasetsAtom,
+  allDatasetsAtom,
+  datasetServerUrlAtom,
+  minimizerIndexVersionAtom,
+  collectionsAtom,
+} from 'src/state/dataset.state'
 import { useQuery } from '@tanstack/react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
@@ -38,6 +44,24 @@ export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets
   const dataset = findDataset(datasets, name, tag)
 
   if (!dataset) {
+    // Check if the name exists but the tag is wrong
+    if (tag) {
+      const nameOnlyDataset = findDataset(datasets, name, undefined)
+      if (nameOnlyDataset) {
+        // Name exists but tag is wrong
+        const availableTags = datasets
+          .filter((d) => d.path === name || !!d.shortcuts?.includes(name))
+          .map((d) => d.version?.tag)
+          .filter((t) => t !== undefined)
+          .map((t) => `'${t}'`)
+          .join(', ')
+        throw new Error(
+          `Incorrect URL parameters: dataset with name='${name}' exists, but tag='${tag}' was not found. Available tags: ${availableTags}`,
+        )
+      }
+    }
+
+    // Name doesn't exist at all, suggest similar names
     const names = datasets.map((dataset) => dataset.path)
     const suggestions = findSimilarStrings(names, name)
       .slice(0, 10)
@@ -117,20 +141,37 @@ export async function getDatasetServerUrl(urlQuery: ParsedUrlQuery) {
 export async function initializeDatasets(datasetServerUrl: string, urlQuery: ParsedUrlQuery = {}) {
   const datasetsIndexJson = await fetchDatasetsIndex(datasetServerUrl)
 
-  const datasets = getLatestCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson)
+  // Get all datasets for tag-based lookup
+  const allDatasets = getCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson, { latestOnly: false })
+
+  // Get only latest datasets for UI display and autodetection
+  const latestDatasets = getCompatibleEnabledDatasets(datasetServerUrl, datasetsIndexJson, { latestOnly: true })
 
   const minimizerIndexVersion = await getCompatibleMinimizerIndexVersion(datasetServerUrl, datasetsIndexJson)
 
-  // Check if URL params specify dataset params and try to find the corresponding dataset
-  const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
+  // Extract collections metadata and index by collection ID
+  const collections = Object.fromEntries(
+    datasetsIndexJson.collections.map((collection) => [collection.meta.id, collection.meta]),
+  )
 
-  return { datasets, currentDataset, minimizerIndexVersion }
+  // Check if URL params specify dataset params and try to find from ALL datasets (including non-latest tags)
+  const currentDataset = await getDatasetFromUrlParams(urlQuery, allDatasets)
+
+  return {
+    datasets: latestDatasets, // For UI display and autodetection
+    allDatasets, // For tag-based lookup
+    collections, // Collections metadata indexed by ID
+    currentDataset,
+    minimizerIndexVersion,
+  }
 }
 
 /** Refetch dataset index periodically and update the local copy of it */
 export function useUpdatedDatasetIndex() {
   const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
+  const setAllDatasetsState = useSetRecoilState(allDatasetsAtom)
+  const setCollectionsState = useSetRecoilState(collectionsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
   const { data } = useQuery({
@@ -139,7 +180,11 @@ export function useUpdatedDatasetIndex() {
       if (isNil(datasetServerUrl)) {
         return undefined
       }
-      return initializeDatasets(datasetServerUrl)
+      const { datasets, allDatasets, collections, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl)
+      setDatasetsState(datasets)
+      setAllDatasetsState(allDatasets)
+      setCollectionsState(collections)
+      setMinimizerIndexVersion(minimizerIndexVersion)
     },
     staleTime: 2 * 60 * 60 * 1000, // 2 hours
     refetchInterval: 2 * 60 * 60 * 1000, // 2 hours

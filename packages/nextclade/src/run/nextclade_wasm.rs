@@ -11,7 +11,7 @@ use crate::gene::gene_map::{filter_gene_map, GeneMap};
 use crate::graph::graph::Graph;
 use crate::io::fasta::{read_one_fasta_from_str, FastaRecord};
 use crate::io::nextclade_csv_column_config::CsvColumnConfig;
-use crate::io::nwk_writer::convert_graph_to_nwk_string;
+use crate::io::nwk_writer::nwk_write_to_string;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::run::validate_ref_seq::validate_ref_seq;
@@ -454,7 +454,7 @@ impl Nextclade {
     if let Some(graph) = &mut self.graph {
       graph_attach_new_nodes_in_place(graph, results, self.ref_seq.len(), &self.params.tree_builder)?;
       let auspice = Graph::to_auspice_tree(graph)?;
-      let nwk = convert_graph_to_nwk_string(graph)?;
+      let nwk = nwk_write_to_string(graph)?;
       Ok(Some(OutputTrees { auspice, nwk }))
     } else {
       Ok(None)

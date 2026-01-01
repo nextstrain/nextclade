@@ -5,6 +5,7 @@ use eyre::{eyre, Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
+/// A nucleotide
 #[repr(u8)]
 #[derive(
   Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema, Hash, Default,

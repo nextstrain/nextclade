@@ -57,6 +57,49 @@ jobs:
       - name: "Set up Docker Buildx"
         uses: docker/setup-buildx-action@v3
 
+      - name: "Free disk space"
+        run: |
+          set -euo pipefail
+
+          sudo swapoff -a || true
+          sudo rm -f /swapfile || true
+
+          mapfile -t purge_list < <(dpkg -l | awk '
+            /^ii/ {
+              p=$2
+              if (p ~ /^(dotnet-.*|llvm-.*|php.*|mongodb-.*|mysql-.*)$/) print p
+            }')
+          sudo apt-get purge -y "${purge_list[@]:-}" azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri || true
+          sudo apt-get autoremove -y --purge
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+          sudo rm -rf \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup \
+            /usr/local/graalvm \
+            /usr/local/lib/android \
+            /usr/local/share/chromium \
+            /usr/local/share/powershell \
+            /usr/share/dotnet \
+            ~/.cache/*
+
+          docker ps -q | xargs -r docker stop || true
+          docker system prune -af --volumes || true
+          docker builder prune -af || true
+          docker buildx prune -af || true
+
+      - name: "Check disk space"
+        run: |
+          echo ""
+
+          df -Th | awk 'NR == 1; NR > 1 {print $0 | "sort -n"}'
+
+          echo ""
+
+          lsblk -o MOUNTPOINT,FSTYPE,FSSIZE,FSAVAIL,FSUSE%,TYPE,NAME,ROTA,SIZE,MODEL,UUID
+
       - name: "Setup environment (release)"
         if: endsWith(github.ref, '/release')
         run: |
@@ -73,7 +116,7 @@ jobs:
           echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3" >> $GITHUB_ENV
 
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -141,7 +184,7 @@ jobs:
           CROSS="${{ matrix.arch }}" ./docker/dev build-release
 
       - name: "Upload build artifacts (${{ matrix.arch }})"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: out-${{ matrix.arch }}
           path: ./.out/*
@@ -158,7 +201,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -209,7 +252,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -260,7 +303,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -275,7 +318,7 @@ jobs:
           curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v2.5.0/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: out-*
           merge-multiple: true
@@ -299,13 +342,13 @@ jobs:
   #
   #    steps:
   #      - name: "Checkout code"
-  #        uses: actions/checkout@v4
+  #        uses: actions/checkout@v5
   #        with:
   #          fetch-depth: 1
   #          submodules: true
   #
   #      - name: "Download build artifacts"
-  #        uses: actions/download-artifact@v4
+  #        uses: actions/download-artifact@v6
   #        with:
   #          name: "out"
   #          path: ".out"
@@ -326,13 +369,13 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: out-*
           merge-multiple: true
@@ -351,13 +394,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: out-*
           merge-multiple: true
@@ -380,13 +423,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: out-*
           merge-multiple: true
@@ -417,13 +460,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: out-*
           merge-multiple: true

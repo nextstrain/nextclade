@@ -1,6 +1,6 @@
 {
   "name": "@nextstrain/nextclade-web",
-  "version": "3.15.3",
+  "version": "3.18.1",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -65,7 +65,11 @@
     "wasm-prod": "bun ser wasm-prod:generate types:generate",
     "wasm-prod:generate": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm -- --package=nextclade-web --locked && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
     "types:clear": "rimraf src/gen/_SchemaRoot.d.ts",
-    "types:generate": "bun run tools/generateTypes.ts -i src/gen/_SchemaRoot.json -o src/gen/_SchemaRoot.d.ts"
+    "types:generate": "bun run tools/generateTypes.ts -i src/gen/_SchemaRoot.json -o src/gen/_SchemaRoot.d.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
     "@floating-ui/react": "0.27.9",
@@ -153,6 +157,7 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.45.1",
     "@babel/code-frame": "7.27.1",
     "@eslint/compat": "1.2.9",
     "@eslint/config-inspector": "1.0.2",
@@ -179,6 +184,7 @@
     "@types/lodash": "4.17.17",
     "@types/lodash-es": "4.17.12",
     "@types/luxon": "3.6.2",
+    "@types/node": "18.16.3",
     "@types/node": "22.15.21",
     "@types/react": "18.3.23",
     "@types/react-copy-to-clipboard": "5.0.7",

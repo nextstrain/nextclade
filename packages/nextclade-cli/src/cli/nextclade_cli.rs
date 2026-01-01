@@ -16,6 +16,7 @@ use lazy_static::lazy_static;
 use nextclade::io::console::CliColorMode;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
+use nextclade::schema::schema::{cli_handle_schema, NextcladeSchemaArgs};
 use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::global_init::{global_init, GlobalInitConfig};
 use nextclade::{getenv, make_error};
@@ -100,6 +101,11 @@ pub enum NextcladeCommands {
   ///
   /// For short help type: `nextclade -h`, for extended help type: `nextclade --help`. Each subcommand has its own help, for example: `nextclade sort --help`.
   ReadAnnotation(Box<NextcladeReadAnnotationArgs>),
+
+  /// Write JSON schema definitions for Nextclade file formats
+  ///
+  /// See: https://json-schema.org
+  Schema(NextcladeSchemaArgs),
 
   /// Print command-line reference documentation in Markdown format
   HelpMarkdown,
@@ -882,7 +888,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
       let output_translations_template = output_translations_path
         .to_str()
-        .wrap_err_with(|| format!("When converting path to string: '{output_translations_path:?}'"))?
+        .wrap_err_with(|| format!("When converting path to string: {output_translations_path:?}"))?
         .to_owned();
 
       output_translations.get_or_insert(output_translations_template);
@@ -947,6 +953,9 @@ Example for bash shell:
     output_csv,
     output_tsv,
     output_tree,
+    output_tree_nwk,
+    output_annotation_gff,
+    output_annotation_tbl,
   ]
   .iter()
   .all(|o| o.is_none())
@@ -964,7 +973,10 @@ At least one of the following flags is required:
   --output-csv
   --output-tsv
   --output-tree
-  --output-translations"#
+  --output-tree-nwk
+  --output-translations
+  --output-annotation-gff
+  --output-annotation-tbl"#
     );
   }
 
@@ -1181,5 +1193,6 @@ pub fn nextclade_parse_cli_args() -> Result<(), Report> {
     },
     NextcladeCommands::Sort(seq_sort_args) => nextclade_seq_sort(&seq_sort_args),
     NextcladeCommands::ReadAnnotation(read_annotation_args) => nextclade_read_annotation(&read_annotation_args),
+    NextcladeCommands::Schema(args) => cli_handle_schema(&args),
   }
 }

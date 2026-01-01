@@ -5,6 +5,7 @@ use crate::coord::range::AaRefRange;
 use itertools::{Itertools, MinMaxResult};
 use serde::{Deserialize, Serialize};
 
+/// Represents a group of adjacent amino acid changes along with nucleotide changes nearby.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaChangesGroup {

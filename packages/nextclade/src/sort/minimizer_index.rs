@@ -20,6 +20,10 @@ pub type MinimizerMap = BTreeMap<u64, Vec<usize>>;
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MinimizerIndexJson {
+  #[serde(rename = "$schema", default = "MinimizerIndexJson::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   #[serde(rename = "schemaVersion")]
   pub schema_version: String,
 
@@ -27,7 +31,7 @@ pub struct MinimizerIndexJson {
 
   pub params: MinimizerIndexParams,
 
-  #[schemars(with = "BTreeMap<String, String>")]
+  #[schemars(with = "BTreeMap<String, Vec<usize>>")]
   #[serde(serialize_with = "serde_serialize_minimizers")]
   #[serde(deserialize_with = "serde_deserialize_minimizers")]
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -95,6 +99,10 @@ pub struct VersionCheck {
 }
 
 impl MinimizerIndexJson {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-minimizer-index-json.schema.json".to_owned()
+  }
+
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let data =

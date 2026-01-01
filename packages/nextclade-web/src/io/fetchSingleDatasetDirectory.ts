@@ -2,7 +2,7 @@ import axios from 'axios'
 import urljoin from 'url-join'
 import { mapValues } from 'lodash'
 import { concurrent } from 'fasy'
-import { attrStrMaybe, Dataset, VirusProperties } from 'src/types'
+import { attrStrMaybe, DatasetRaw, VirusProperties } from 'src/types'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch, axiosHead, axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -17,7 +17,7 @@ export async function fetchSingleDatasetDirectory(
 
   const files = mapValues(pathogen.files, (file) => (file ? urljoin(datasetRootUrl, file) : file))
 
-  const currentDataset: Dataset = {
+  const currentDataset: DatasetRaw = {
     path: datasetRootUrl,
     capabilities: {
       primers: false,

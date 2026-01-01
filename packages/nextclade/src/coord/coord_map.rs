@@ -7,7 +7,6 @@ use crate::coord::range::{AaRefRange, NucRefLocalRange};
 
 use num::integer::div_floor;
 
-
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
 /// Given a position of a letter in the aligned sequence, the "alignment to reference" coordinate map allows to
 /// lookup the position of the corresponding letter in the reference sequence.

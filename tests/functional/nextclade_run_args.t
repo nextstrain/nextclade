@@ -19,9 +19,10 @@ Nextclade run: no output args
           --output-csv
           --output-tsv
           --output-tree
+          --output-tree-nwk
           --output-translations
-          --output-insertions
-          --output-errors\x1b[0m (esc)
+          --output-annotation-gff
+          --output-annotation-tbl\x1b[0m (esc)
 
   Location:
      \x1b[35mpackages/nextclade-cli/src/cli/nextclade_cli.rs\x1b[0m:\x1b[35m710\x1b[0m (esc)

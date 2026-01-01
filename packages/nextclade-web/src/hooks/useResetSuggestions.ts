@@ -6,6 +6,7 @@ import {
   autodetectResultsAtom,
   autodetectRunStateAtom,
 } from 'src/state/autodetect.state'
+import { datasetSelectionAtom } from 'src/state/dataset.state'
 
 export function useResetSuggestions() {
   const resetAutodetectResultsAtom = useResetRecoilState(autodetectResultsAtom)
@@ -26,4 +27,16 @@ export function useResetSuggestionsAndDatasets() {
     resetSuggestions()
     resetAllDatasetSuggestionResultsAtom()
   }, [resetAllDatasetSuggestionResultsAtom, resetSuggestions])
+}
+
+export function useResetSuggestionsAndCurrentDataset() {
+  const resetSuggestions = useResetSuggestions()
+  const resetAllDatasetSuggestionResultsAtom = useResetRecoilState(allDatasetSuggestionResultsAtom)
+  const resetDatasetSelection = useResetRecoilState(datasetSelectionAtom)
+
+  return useCallback(() => {
+    resetSuggestions()
+    resetAllDatasetSuggestionResultsAtom()
+    resetDatasetSelection()
+  }, [resetAllDatasetSuggestionResultsAtom, resetSuggestions, resetDatasetSelection])
 }

@@ -57,6 +57,7 @@ pub fn find_codon_mask_range(
   coord_map_local.local_to_codon_ref_range(&mask_nuc_rel_aln)
 }
 
+/// A frame shift
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FrameShift {

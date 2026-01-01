@@ -45,6 +45,21 @@
 # * Format Rust code:
 #   ./docker/dev f
 #
+# * Run Playwright end-to-end tests (dev mode, port 3000):
+#   ./docker/dev te
+#
+# * Run Playwright end-to-end tests (release mode, port 8080):
+#   ./docker/dev ter
+#
+# * Run Playwright tests with UI mode:
+#   ./docker/dev teu
+#
+# * Run Playwright tests in headed mode:
+#   ./docker/dev teh
+#
+# * Run Playwright tests in debug mode:
+#   ./docker/dev ted
+#
 # * Shell into the container:
 #   ./docker/dev bash
 #
@@ -169,6 +184,9 @@ TEST_FLAGS=
 SMOKE_TEST=0
 BENCH=0
 EXAMPLE=0
+E2E_TEST=0
+E2E_TEST_MODE=
+E2E_TEST_PROD=0
 LINT=0
 FORMAT=0
 FIX=
@@ -317,6 +335,32 @@ case "${1:-}" in
   EXAMPLE=1
   RELEASE="--release"
   ;;
+"test-e2e" | "te")
+  shift
+  E2E_TEST=1
+  E2E_TEST_MODE="test:e2e"
+  ;;
+"test-e2e-release" | "ter")
+  shift
+  E2E_TEST=1
+  E2E_TEST_MODE="test:e2e"
+  E2E_TEST_PROD=1
+  ;;
+"test-e2e-ui" | "teu")
+  shift
+  E2E_TEST=1
+  E2E_TEST_MODE="test:e2e:ui"
+  ;;
+"test-e2e-headed" | "teh")
+  shift
+  E2E_TEST=1
+  E2E_TEST_MODE="test:e2e:headed"
+  ;;
+"test-e2e-debug" | "ted")
+  shift
+  E2E_TEST=1
+  E2E_TEST_MODE="test:e2e:debug"
+  ;;
 "lint" | "l")
   shift
   LINT=1
@@ -373,6 +417,11 @@ fi
 DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04}"
 CLANG_VERSION="${CLANG_VERSION:=13}"
 DOCKER_TARGET="${DOCKER_TARGET:-dev}"
+
+if [ "${E2E_TEST}" == "1" ]; then
+  DOCKER_TARGET="e2e"
+fi
+
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   if [[ "${CROSS}" == *linux-gnu ]]; then
@@ -529,6 +578,15 @@ elif [ "${WEB}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && mkdir -p .cache && ${COMMAND}\""
 elif [ "${TEST}" == "1" ]; then
     COMMAND="cargo -q nextest run --cargo-quiet --no-fail-fast --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} -- ${*:-} ${SUCCESS_OR_FAILURE}"
+elif [ "${E2E_TEST}" == "1" ]; then
+  PORTS="--network=host"
+  WEB_PORT="${WEB_PORT_DEV}"
+  if [ "${E2E_TEST_PROD}" == "1" ]; then
+    WEB_PORT="${WEB_PORT_PROD}"
+  fi
+  E2E_BASE_URL="http://localhost:${WEB_PORT}"
+  COMMAND="export E2E_BASE_URL='${E2E_BASE_URL}' && yarn install && yarn ${E2E_TEST_MODE} ${*:-}"
+  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"
   COMMAND="cargo -q bench --workspace --benches --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
@@ -562,7 +620,7 @@ mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
 
 ADDITIONAL_DOCKER_RUN_ARGS=""
-if [ -t 1 ]; then
+if [ -t 0 ] && [ -t 1 ] && [ "$(is_ci)" == "0" ]; then
   ADDITIONAL_DOCKER_RUN_ARGS="${ADDITIONAL_DOCKER_RUN_ARGS} -it"
 fi
 

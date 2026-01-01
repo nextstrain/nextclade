@@ -4,12 +4,13 @@ use crate::analyze::aa_alignment::{AaAlignment, AaAlignmentAbstract, AaAlignment
 use crate::analyze::aa_changes_find_for_cds::{aa_changes_group, AaChangesParams};
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::{AaDel, AaDelRange};
-use crate::analyze::aa_sub::AaSub;
+use crate::analyze::aa_sub::{AaGenotype, AaSub, AaSubLabeled};
 use crate::analyze::abstract_mutation::AbstractMutation;
 use crate::analyze::group_adjacent_deletions::group_adjacent;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::CdsAaRange;
 use crate::analyze::nuc_alignment::{NucAlignment, NucAlignmentAbstract, NucAlignmentWithOverlay};
+use crate::analyze::virus_properties::VirusProperties;
 use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::gene::cds::Cds;
@@ -23,6 +24,7 @@ use maplit::btreemap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// A collection of private amino acid mutations for a CDS
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateAaMutations {
@@ -31,9 +33,13 @@ pub struct PrivateAaMutations {
   pub private_deletions: Vec<AaDel>,
   pub private_deletion_ranges: Vec<AaDelRange>,
   pub reversion_substitutions: Vec<AaSub>,
+  pub labeled_substitutions: Vec<AaSubLabeled>,
+  pub unlabeled_substitutions: Vec<AaSub>,
   pub total_private_substitutions: usize,
   pub total_private_deletions: usize,
   pub total_reversion_substitutions: usize,
+  pub total_labeled_substitutions: usize,
+  pub total_unlabeled_substitutions: usize,
   pub aa_changes_groups: Vec<AaChangesGroup>,
 }
 
@@ -48,6 +54,7 @@ pub struct FindPrivateAaMutationsParams<'a> {
   pub gene_map: &'a GeneMap,
   pub aln: &'a NucAlignment<'a, 'a, 'a>,
   pub params: &'a AaChangesParams,
+  pub virus_properties: &'a VirusProperties,
 }
 
 /// Finds private aminoacid mutations.
@@ -67,6 +74,7 @@ pub fn find_private_aa_mutations(
     gene_map,
     aln,
     params,
+    virus_properties,
     ..
   } = params;
 
@@ -118,6 +126,7 @@ pub fn find_private_aa_mutations(
         aa_unsequenced_ranges,
         &aln,
         params,
+        virus_properties,
       );
 
       Ok((cds.name.clone(), private_aa_mutations))
@@ -135,6 +144,7 @@ pub fn find_private_aa_mutations_for_one_gene(
   aa_unsequenced_ranges: &[AaRefRange],
   aln: &impl NucAlignmentAbstract,
   params: &AaChangesParams,
+  virus_properties: &VirusProperties,
 ) -> PrivateAaMutations {
   let cds = ref_tr.cds();
 
@@ -162,6 +172,12 @@ pub fn find_private_aa_mutations_for_one_gene(
     &seq_positions_mutated_or_deleted,
   );
 
+  // Split non-reversion substitutions into labeled and unlabeled
+  let (labeled_substitutions, unlabeled_substitutions) = label_private_aa_mutations(
+    &non_reversion_substitutions,
+    &virus_properties.mut_labels.aa_mut_label_map,
+  );
+
   let mut private_substitutions = concat_to_vec(&reversion_substitutions, &non_reversion_substitutions);
   private_substitutions.sort();
   private_substitutions.dedup();
@@ -173,6 +189,8 @@ pub fn find_private_aa_mutations_for_one_gene(
   let total_private_substitutions = private_substitutions.len();
   let total_private_deletions = private_deletions.len();
   let total_reversion_substitutions = reversion_substitutions.len();
+  let total_labeled_substitutions = labeled_substitutions.len();
+  let total_unlabeled_substitutions = unlabeled_substitutions.len();
 
   #[allow(trivial_casts)]
   let all_private_mutations = chain!(
@@ -198,10 +216,14 @@ pub fn find_private_aa_mutations_for_one_gene(
     private_deletions,
     private_deletion_ranges,
     reversion_substitutions,
+    labeled_substitutions,
+    unlabeled_substitutions,
     aa_changes_groups: grouped.aa_changes_groups,
     total_private_substitutions,
     total_private_deletions,
     total_reversion_substitutions,
+    total_labeled_substitutions,
+    total_unlabeled_substitutions,
   }
 }
 
@@ -348,4 +370,36 @@ fn find_reversions(
   reversion_substitutions.dedup();
 
   reversion_substitutions
+}
+
+/// Subdivides private AA mutations into labeled and unlabeled, according to label map.
+fn label_private_aa_mutations(
+  non_reversion_substitutions: &[AaSub],
+  aa_substitution_label_map: &BTreeMap<AaGenotype, Vec<String>>,
+) -> (Vec<AaSubLabeled>, Vec<AaSub>) {
+  let mut labeled_substitutions = Vec::<AaSubLabeled>::new();
+  let mut unlabeled_substitutions = Vec::<AaSub>::new();
+
+  for substitution in non_reversion_substitutions {
+    // If there's a match in the label map, add mutation to the labelled list, and attach the corresponding labels.
+    // If not, add it to the unlabelled list.
+
+    match aa_substitution_label_map
+      .iter()
+      .find(|(genotype, _)| genotype.matches(&substitution.genotype()))
+    {
+      Some((_, labels)) => labeled_substitutions.push(AaSubLabeled {
+        substitution: substitution.clone(),
+        labels: labels.to_owned(),
+      }),
+      None => {
+        unlabeled_substitutions.push(substitution.clone());
+      }
+    }
+  }
+
+  labeled_substitutions.sort();
+  unlabeled_substitutions.dedup();
+
+  (labeled_substitutions, unlabeled_substitutions)
 }

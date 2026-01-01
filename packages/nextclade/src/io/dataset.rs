@@ -9,6 +9,7 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
+use std::ops::{Deref, DerefMut};
 
 const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
 const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
@@ -16,6 +17,10 @@ const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetsIndexJson {
+  #[serde(rename = "$schema", default = "DatasetsIndexJson::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub collections: Vec<DatasetCollection>,
 
   pub schema_version: String,
@@ -28,6 +33,10 @@ pub struct DatasetsIndexJson {
 }
 
 impl DatasetsIndexJson {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-index-json.schema.json".to_owned()
+  }
+
   pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
     SchemaVersion::check_warn(
       &s,
@@ -44,6 +53,10 @@ impl DatasetsIndexJson {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCollection {
+  #[serde(rename = "$schema", default = "DatasetCollection::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub meta: DatasetCollectionMeta,
 
   pub datasets: Vec<Dataset>,
@@ -52,9 +65,49 @@ pub struct DatasetCollection {
   pub other: serde_json::Value,
 }
 
+impl DatasetCollection {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-dataset-collection-json.schema.json".to_owned()
+  }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[schemars(title = "DatasetList")]
+pub struct DatasetListJson(pub Vec<Dataset>);
+
+impl Deref for DatasetListJson {
+  type Target = Vec<Dataset>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl DerefMut for DatasetListJson {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0
+  }
+}
+
+impl From<Vec<Dataset>> for DatasetListJson {
+  fn from(datasets: Vec<Dataset>) -> Self {
+    Self(datasets)
+  }
+}
+
+impl FromIterator<Dataset> for DatasetListJson {
+  fn from_iter<T: IntoIterator<Item = Dataset>>(iter: T) -> Self {
+    Self(iter.into_iter().collect())
+  }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Dataset {
+  #[serde(rename = "$schema", default = "Dataset::default_schema")]
+  #[schemars(skip)]
+  pub schema: String,
+
   pub path: String,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -86,6 +139,10 @@ pub struct Dataset {
 }
 
 impl Dataset {
+  fn default_schema() -> String {
+    "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-dataset-json.schema.json".to_owned()
+  }
+
   pub fn name(&self) -> Option<&str> {
     self.attributes.get("name").and_then(AnyType::as_str_maybe)
   }
@@ -277,6 +334,12 @@ pub struct DatasetCollectionMeta {
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub color: Option<String>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub icon: Option<String>,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub maintainers: Vec<DatasetCollectionUrl>,

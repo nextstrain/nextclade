@@ -13,7 +13,6 @@ export function formatDateIsoUtcSimple(dateTimeStr: string) {
 
   const time = utc.toISOTime({
     suppressMilliseconds: true,
-    suppressSeconds: true,
     includeOffset: false,
   })
 

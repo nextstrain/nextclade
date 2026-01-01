@@ -39,8 +39,6 @@
   "include": [
     ".build/development/web/types/**/*.ts",
     ".next/types/**/*.ts",
-    "next-env.d.ts",
-    "next.config.ts",
     "config/**/*.cjs",
     "config/**/*.cts",
     "config/**/*.js",
@@ -49,6 +47,9 @@
     "config/**/*.mts",
     "config/**/*.ts",
     "config/**/*.tsx",
+    "next-env.d.ts",
+    "next.config.ts",
+    "playwright.config.ts",
     "src/**/*.cjs",
     "src/**/*.cts",
     "src/**/*.js",

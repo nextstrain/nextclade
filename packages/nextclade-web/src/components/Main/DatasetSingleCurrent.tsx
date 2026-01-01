@@ -29,7 +29,7 @@ export function DatasetSingleCurrent({ dataset }: { dataset: Dataset }) {
                       <DatasetInfoAutodetectProgressCircle dataset={dataset} showSuggestions />
                     </FlexLeft>
                     <FlexRight>
-                      <DatasetInfo dataset={dataset} />
+                      <DatasetInfo dataset={dataset} showTagSelector showBadge />
                     </FlexRight>
                   </FlexContainer>
                 </Col>

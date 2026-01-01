@@ -346,6 +346,7 @@ impl AuspiceTreeNode {
   }
 }
 
+/// Description of a clade-like node attribute
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CladeNodeAttrKeyDesc {
@@ -421,6 +422,7 @@ pub struct AuspiceRefNodeSearchCriteria {
   pub other: serde_json::Value,
 }
 
+/// Describes a criteria for selecting a reference node for "Relative to" feature
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeSearchDesc {
@@ -439,12 +441,43 @@ pub struct AuspiceRefNodeSearchDesc {
   pub other: serde_json::Value,
 }
 
+/// Configuration for built-in reference node types display names and descriptions
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuspiceRefNodeBuiltinConfig {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub display_name: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+}
+
+/// Configuration for all built-in reference node types
+#[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
+pub struct AuspiceRefNodeBuiltinsConfig {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(rename = "__root__")]
+  pub root: Option<AuspiceRefNodeBuiltinConfig>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(rename = "__parent__")]
+  pub parent: Option<AuspiceRefNodeBuiltinConfig>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(rename = "__clade_founder__")]
+  pub clade_founder: Option<AuspiceRefNodeBuiltinConfig>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
 impl AuspiceRefNodeSearchDesc {
   pub fn display_name_or_name(&self) -> &str {
     self.display_name.as_ref().unwrap_or(&self.name)
   }
 }
 
+/// Describes search criteria in the reference tree nodes. This is used for "Relative to" feature where you can switch mutation calling source node between "reference", "parent", "clade founder" and custom nodes described using this format.
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodesDesc {
@@ -453,6 +486,9 @@ pub struct AuspiceRefNodesDesc {
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub search: Vec<AuspiceRefNodeSearchDesc>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub builtins: Option<AuspiceRefNodeBuiltinsConfig>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -464,6 +500,8 @@ impl AuspiceRefNodesDesc {
   }
 }
 
+/// Nextclade extensions to Auspice JSON format
+/// See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -488,6 +526,8 @@ impl AuspiceMetaExtensionsNextclade {
   }
 }
 
+/// Nextclade extensions to Auspice JSON format
+/// See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
   #[serde(default, skip_serializing_if = "AuspiceMetaExtensionsNextclade::is_empty")]

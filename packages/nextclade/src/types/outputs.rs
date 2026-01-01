@@ -25,6 +25,7 @@ use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// A warning about a peptide sequence
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PeptideWarning {
@@ -32,6 +33,7 @@ pub struct PeptideWarning {
   pub warning: String,
 }
 
+/// Result for a single phenotype value
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeValue {
@@ -40,8 +42,10 @@ pub struct PhenotypeValue {
   pub value: f64,
 }
 
+/// Single element in `.results` array in nextclade.json file, produced by `nextclade run --output-json`. This corresponds to a single sequence in the inputs.
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[schemars(title = "ResultJson")]
 pub struct NextcladeOutputs {
   pub index: usize,
   pub seq_name: String,
@@ -109,6 +113,7 @@ pub struct NextcladeOutputs {
   pub aa_motifs: AaMotifsMap,
   pub aa_motifs_changes: AaMotifsChangesMap,
 
+  /// Genome annotation in query sequence coordinates
   #[serde(default, skip_serializing_if = "GeneMap::is_empty")]
   pub annotation: GeneMap,
 }
@@ -125,6 +130,7 @@ impl NextcladeOutputs {
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[schemars(title = "ResultJsonError")]
 pub struct NextcladeErrorOutputs {
   pub index: usize,
   pub seq_name: String,

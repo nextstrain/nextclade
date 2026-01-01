@@ -4,8 +4,9 @@ import { useRecoilValue } from 'recoil'
 import { Row, Col } from 'reactstrap'
 import { ExportPageUnknownDataset } from 'src/components/Export/ExportPageUnknownDataset'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
-import { formatDatasetInfo } from 'src/components/Main/DatasetInfo'
+import { formatDatasetInfo } from 'src/components/Main/datasetInfoHelpers'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
 import styled from 'styled-components'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
@@ -95,7 +96,7 @@ function MainContent() {
     )
   }
 
-  const dataset = datasets.find((dataset) => dataset.path === datasetPath)
+  const dataset = findDatasetByPath(datasets, datasetPath)
   if (!dataset) {
     throw new ErrorInternal(`Dataset not found: '${datasetPath}'`)
   }

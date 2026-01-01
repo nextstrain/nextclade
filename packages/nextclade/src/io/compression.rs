@@ -66,7 +66,7 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (Compressi
       };
 
       trace!(
-        "When processing '{filepath:#?}': detected file extension '{ext}'. \
+        "When processing {filepath:#?}: detected file extension '{ext}'. \
         It will be using algorithm: '{compression_type}'"
       );
 

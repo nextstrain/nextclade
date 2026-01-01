@@ -14,7 +14,8 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { SearchBox } from 'src/components/Common/SearchBox'
 
 export function DatasetAutosuggestionResultsList() {
-  const [datasetSingleCurrent, setDatasetSingleCurrent] = useRecoilState(datasetSingleCurrentAtom)
+  const [, setCurrentDataset] = useRecoilState(datasetSingleCurrentAtom)
+  const currentDataset = useRecoilValue(datasetSingleCurrentAtom)
   const topSuggestedDatasets = useRecoilValue(topSuggestedDatasetsAtom)
   const datasets = useRecoilValue(datasetsAtom)
 
@@ -28,16 +29,16 @@ export function DatasetAutosuggestionResultsList() {
 
   const onDatasetHighlighted = useCallback(
     (dataset?: Dataset) => {
-      setDatasetSingleCurrent(dataset)
+      setCurrentDataset(dataset)
     },
-    [setDatasetSingleCurrent],
+    [setCurrentDataset],
   )
 
   return (
     <DatasetSelectorImpl
       datasetsActive={datasetsActive}
       datasetsInactive={datasetsInactive}
-      datasetHighlighted={datasetSingleCurrent}
+      datasetHighlighted={currentDataset}
       onDatasetHighlighted={onDatasetHighlighted}
     />
   )

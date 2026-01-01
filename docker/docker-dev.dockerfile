@@ -227,16 +227,6 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_BINSTALL_VERSION="1.0.0" \
-&& curl -sSL "https://github.com/cargo-bins/cargo-binstall/releases/download/v${CARGO_BINSTALL_VERSION}/cargo-binstall-x86_64-unknown-linux-gnu.tgz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-binstall" \
-&& chmod +x "${CARGO_HOME}/bin/cargo-binstall"
-
-RUN set -euxo pipefail >/dev/null \
-&& export CARGO_QUICKINSTALL_VERSION="0.2.9" \
-&& curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall" \
-&& chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
-
-RUN set -euxo pipefail >/dev/null \
 && export WASM_BINDGEN_CLI_VERSION="0.2.93" \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
@@ -284,6 +274,47 @@ FROM base as dev
 
 ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
+
+FROM dev as e2e
+
+# Install Playwright browser dependencies and browsers for E2E testing
+USER 0
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  fonts-liberation \
+  fonts-noto-color-emoji \
+  libasound2 \
+  libatk-bridge2.0-0 \
+  libatspi2.0-0 \
+  libdrm2 \
+  libgail-common \
+  libgbm1 \
+  libgconf-2-4 \
+  libgtk-3-0 \
+  libnss3 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxfixes3 \
+  libxi6 \
+  libxinerama1 \
+  libxkbcommon0 \
+  libxrandr2 \
+  libxrender1 \
+  libxss1 \
+  libxtst6 \
+>/dev/null \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& export PLAYWRIGHT_VERSION="1.45.1" \
+&& npm install -g @playwright/test@${PLAYWRIGHT_VERSION} >/dev/null \
+&& npx playwright install chromium >/dev/null \
+&& npx playwright install-deps chromium >/dev/null
+
+USER ${UID}
 
 # Cross-compilation for Linux x86_64 with gnu-libc.
 # Same as native, but convenient to have for mass cross-compilation.
@@ -411,7 +442,6 @@ USER 0
 
 ARG OSXCROSS_URL
 
-# Install cargo-quickinstall
 RUN set -euxo pipefail >/dev/null \
 && mkdir -p "/opt/osxcross" \
 && curl -fsSL "${OSXCROSS_URL}" | tar -C "/opt/osxcross" -xJ

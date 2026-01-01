@@ -13,6 +13,84 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AaGenotype {
+  pub cds_name: String,
+  pub pos: AaRefPosition,
+  pub qry: Option<Aa>,
+}
+
+impl AaGenotype {
+  /// Matches two genotypes.
+  ///
+  /// NOTE: if the query amino acid is not specified in either genotype, it is considered a match.
+  pub fn matches(&self, other: &Self) -> bool {
+    self.cds_name == other.cds_name
+      && self.pos == other.pos
+      && (self.qry.is_none() || other.qry.is_none() || self.qry == other.qry)
+  }
+}
+
+impl<'de> Deserialize<'de> for AaGenotype {
+  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let s = String::deserialize(deserializer)?;
+    AaGenotype::from_str(&s).map_err(serde::de::Error::custom)
+  }
+}
+
+impl Serialize for AaGenotype {
+  fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
+  where
+    Ser: serde::Serializer,
+  {
+    serializer.serialize_str(&self.to_string())
+  }
+}
+
+impl Display for AaGenotype {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}:{}", self.cds_name, self.pos + 1)?;
+    if let Some(qry) = self.qry {
+      write!(f, "{qry}")?;
+    }
+    Ok(())
+  }
+}
+
+impl FromStr for AaGenotype {
+  type Err = Report;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    lazy_static! {
+      static ref RE: Regex = Regex::new(r"((?P<cds>.*?):(?P<pos>\d{1,10})(?P<qry>[A-Z-*])?)")
+        .wrap_err_with(|| "When compiling AA genotype regex")
+        .unwrap();
+    }
+
+    if let Some(captures) = RE.captures(s) {
+      return match (captures.name("cds"), captures.name("pos")) {
+        (Some(cds), Some(pos)) => {
+          let cds_name = cds.as_str().to_owned();
+          let pos = parse_pos(pos.as_str())?.into();
+          let qry = captures.name("qry").map(|q| Aa::from_string(q.as_str())).transpose()?;
+          Ok(Self { cds_name, pos, qry })
+        }
+        _ => make_error!("Unable to parse AA genotype: '{s}'"),
+      };
+    }
+    make_error!("Unable to parse AA genotype: '{s}'")
+  }
+}
+
+/// Labeled aminoacid substitution
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AaSubLabeled {
+  pub substitution: AaSub,
+  pub labels: Vec<String>,
+}
+
 /// Represents aminoacid substitution
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -61,6 +139,14 @@ impl AaSub {
   pub fn to_string_without_gene(&self) -> String {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     format!("{}{}{}", from_aa(self.ref_aa), self.pos + 1, from_aa(self.qry_aa))
+  }
+
+  pub fn genotype(&self) -> AaGenotype {
+    AaGenotype {
+      cds_name: self.cds_name.clone(),
+      pos: self.pos,
+      qry: Some(self.qry_aa),
+    }
   }
 
   #[must_use]

@@ -1,0 +1,1390 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PathogenJson",
+  "description": "pathogen.json dataset file. Contains external configuration and data specific for a particular pathogen.",
+  "examples": [
+    {
+      "schemaVersion": "3.0.0",
+      "attributes": {
+        "name": "Influenza A H3N2 HA",
+        "reference accession": "CY163680",
+        "reference name": "A/Wisconsin/67/2005-egg",
+        "segment": "ha"
+      },
+      "shortcuts": [
+        "flu_h3n2_ha_broad",
+        "nextstrain/flu/h3n2/ha/wisconsin-67-2005"
+      ],
+      "defaultCds": "HA1",
+      "cdsOrderPreference": [
+        "HA1",
+        "HA2"
+      ],
+      "mutLabels": {
+        "nucMutLabelMap": {
+          "159A": [
+            "T160K"
+          ],
+          "460T": [
+            "N155H"
+          ]
+        }
+      },
+      "qc": {
+        "missingData": {
+          "enabled": true,
+          "missingDataThreshold": 100.0,
+          "scoreBias": 10.0
+        },
+        "mixedSites": {
+          "enabled": true,
+          "mixedSitesThreshold": 4
+        },
+        "privateMutations": {
+          "enabled": true,
+          "weightReversionSubstitutions": 1.0,
+          "weightReversionDeletions": 1.0,
+          "weightLabeledSubstitutions": 2.0,
+          "weightLabeledDeletions": 1.0,
+          "weightUnlabeledSubstitutions": 1.0,
+          "weightUnlabeledDeletions": 1.0,
+          "typical": 5.0,
+          "cutoff": 15.0
+        },
+        "snpClusters": {
+          "enabled": true,
+          "windowSize": 100,
+          "clusterCutOff": 5,
+          "scoreWeight": 50.0
+        },
+        "frameShifts": {
+          "enabled": true,
+          "ignoredFrameShifts": [
+            {
+              "cdsName": "ORF1a",
+              "codonRange": {
+                "begin": 3675,
+                "end": 3675
+              }
+            }
+          ],
+          "scoreWeight": 75.0
+        },
+        "stopCodons": {
+          "enabled": true,
+          "ignoredStopCodons": [
+            {
+              "cdsName": "N",
+              "codon": 417
+            },
+            {
+              "cdsName": "ORF3a",
+              "codon": 238
+            }
+          ],
+          "scoreWeight": 75.0
+        }
+      },
+      "phenotypeData": [
+        {
+          "name": "receptor_binding",
+          "nameFriendly": "Receptor Binding",
+          "description": "Predicts receptor binding specificity and affinity",
+          "cds": "HA1",
+          "aaRange": {
+            "begin": 120,
+            "end": 260
+          },
+          "ignore": {
+            "clades": [
+              "3C.2A",
+              "3C.3A"
+            ]
+          },
+          "data": [
+            {
+              "name": "receptor_binding",
+              "weight": 1.0,
+              "locations": {
+                "145": 0.4,
+                "155": {
+                  "H": 1.2,
+                  "N": 0.8,
+                  "default": 0.0
+                },
+                "226": 0.6
+              }
+            }
+          ]
+        }
+      ],
+      "aaMotifs": [
+        {
+          "name": "glycosylation",
+          "nameShort": "Glyc.",
+          "nameFriendly": "Glycosylation",
+          "description": "N-linked glycosylation motifs (N-X-S/T with X any amino acid other than P)",
+          "motifs": [
+            "N[^P][ST]"
+          ],
+          "includeCdses": [
+            {
+              "cds": "HA1"
+            },
+            {
+              "cds": "HA2",
+              "ranges": [
+                {
+                  "begin": 0,
+                  "end": 186
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "type": "object",
+  "required": [
+    "schemaVersion"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "attributes": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "shortcuts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "meta": {
+      "$ref": "#/definitions/DatasetMeta"
+    },
+    "files": {
+      "$ref": "#/definitions/DatasetFiles"
+    },
+    "defaultCds": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cdsOrderPreference": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mutLabels": {
+      "default": {},
+      "allOf": [
+        {
+          "$ref": "#/definitions/LabelledMutationsConfig"
+        }
+      ]
+    },
+    "qc": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/QcConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "generalParams": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/NextcladeGeneralParamsOptional"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "alignmentParams": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/AlignPairwiseParamsOptional"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "treeBuilderParams": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/TreeBuilderParamsOptional"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "aaChangesParams": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/AaChangesParamsOptional"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "phenotypeData": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/PhenotypeData"
+      }
+    },
+    "aaMotifs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AaMotifsDesc"
+      }
+    },
+    "versions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DatasetVersion"
+      }
+    },
+    "version": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/DatasetVersion"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "compatibility": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/DatasetCompatibility"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "DatasetMeta": {
+      "type": "object",
+      "properties": {
+        "source code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bugs": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "DatasetFiles": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pathogenJson": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "genomeAnnotation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "treeJson": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "examples": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "readme": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "changelog": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "LabelledMutationsConfig": {
+      "description": "Information about  mutations and their labels",
+      "examples": [
+        {
+          "nucMutLabelMap": {
+            "159A": [
+              "T160K"
+            ],
+            "460T": [
+              "N155H"
+            ]
+          }
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "nucMutLabelMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "aaMutLabelMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "QcConfig": {
+      "description": "Configuration for QC rules",
+      "examples": [
+        {
+          "missingData": {
+            "enabled": true,
+            "missingDataThreshold": 100.0,
+            "scoreBias": 10.0
+          },
+          "mixedSites": {
+            "enabled": true,
+            "mixedSitesThreshold": 4
+          },
+          "privateMutations": {
+            "enabled": true,
+            "weightReversionSubstitutions": 1.0,
+            "weightReversionDeletions": 1.0,
+            "weightLabeledSubstitutions": 2.0,
+            "weightLabeledDeletions": 1.0,
+            "weightUnlabeledSubstitutions": 1.0,
+            "weightUnlabeledDeletions": 1.0,
+            "typical": 5.0,
+            "cutoff": 15.0
+          },
+          "snpClusters": {
+            "enabled": true,
+            "windowSize": 100,
+            "clusterCutOff": 5,
+            "scoreWeight": 50.0
+          },
+          "frameShifts": {
+            "enabled": true,
+            "ignoredFrameShifts": [
+              {
+                "cdsName": "ORF1a",
+                "codonRange": {
+                  "begin": 3675,
+                  "end": 3675
+                }
+              }
+            ],
+            "scoreWeight": 75.0
+          },
+          "stopCodons": {
+            "enabled": true,
+            "ignoredStopCodons": [
+              {
+                "cdsName": "N",
+                "codon": 417
+              },
+              {
+                "cdsName": "ORF3a",
+                "codon": 238
+              }
+            ],
+            "scoreWeight": 75.0
+          }
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "missingData": {
+          "default": {
+            "enabled": false,
+            "missingDataThreshold": 0.0,
+            "scoreBias": 0.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigMissingData"
+            }
+          ]
+        },
+        "mixedSites": {
+          "default": {
+            "enabled": false,
+            "mixedSitesThreshold": 0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigMixedSites"
+            }
+          ]
+        },
+        "privateMutations": {
+          "default": {
+            "enabled": false,
+            "weightReversionSubstitutions": 0.0,
+            "weightReversionDeletions": 0.0,
+            "weightLabeledSubstitutions": 0.0,
+            "weightLabeledDeletions": 0.0,
+            "weightUnlabeledSubstitutions": 0.0,
+            "weightUnlabeledDeletions": 0.0,
+            "typical": 0.0,
+            "cutoff": 0.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigPrivateMutations"
+            }
+          ]
+        },
+        "snpClusters": {
+          "default": {
+            "enabled": false,
+            "windowSize": 0,
+            "clusterCutOff": 0,
+            "scoreWeight": 0.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigSnpClusters"
+            }
+          ]
+        },
+        "frameShifts": {
+          "default": {
+            "enabled": true,
+            "scoreWeight": 75.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigFrameShifts"
+            }
+          ]
+        },
+        "stopCodons": {
+          "default": {
+            "enabled": true,
+            "scoreWeight": 75.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigStopCodons"
+            }
+          ]
+        }
+      }
+    },
+    "QcRulesConfigMissingData": {
+      "description": "Configuration for QC rule \"missing data\"",
+      "examples": [
+        {
+          "enabled": true,
+          "missingDataThreshold": 100.0,
+          "scoreBias": 10.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "missingDataThreshold": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "scoreBias": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "QcRulesConfigMixedSites": {
+      "examples": [
+        {
+          "enabled": true,
+          "mixedSitesThreshold": 4
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "mixedSitesThreshold": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "QcRulesConfigPrivateMutations": {
+      "description": "Configuration for QC rule \"private mutations\"",
+      "examples": [
+        {
+          "enabled": true,
+          "weightReversionSubstitutions": 1.0,
+          "weightReversionDeletions": 1.0,
+          "weightLabeledSubstitutions": 2.0,
+          "weightLabeledDeletions": 1.0,
+          "weightUnlabeledSubstitutions": 1.0,
+          "weightUnlabeledDeletions": 1.0,
+          "typical": 5.0,
+          "cutoff": 15.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "weightReversionSubstitutions": {
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightReversionDeletions": {
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightLabeledSubstitutions": {
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightLabeledDeletions": {
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightUnlabeledSubstitutions": {
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightUnlabeledDeletions": {
+          "default": 1.0,
+          "type": "number",
+          "format": "double"
+        },
+        "typical": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "cutoff": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "QcRulesConfigSnpClusters": {
+      "description": "Configuration for QC rule \"SNP clusters\"",
+      "examples": [
+        {
+          "enabled": true,
+          "windowSize": 100,
+          "clusterCutOff": 5,
+          "scoreWeight": 50.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "windowSize": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "clusterCutOff": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "scoreWeight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "QcRulesConfigFrameShifts": {
+      "description": "Configuration for QC rule \"frame shifts\"",
+      "examples": [
+        {
+          "enabled": true,
+          "ignoredFrameShifts": [
+            {
+              "cdsName": "ORF1a",
+              "codonRange": {
+                "begin": 3675,
+                "end": 3675
+              }
+            }
+          ],
+          "scoreWeight": 75.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "type": "boolean"
+        },
+        "ignoredFrameShifts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FrameShiftLocation"
+          }
+        },
+        "scoreWeight": {
+          "default": 75.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "FrameShiftLocation": {
+      "description": "Location of a frame shift in a CDS",
+      "examples": [
+        {
+          "cdsName": "ORF1a",
+          "codonRange": {
+            "begin": 3675,
+            "end": 3675
+          }
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "cdsName": {
+          "default": "",
+          "type": "string"
+        },
+        "codonRange": {
+          "default": {
+            "begin": 0,
+            "end": 0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/Range_for_Position"
+            }
+          ]
+        }
+      }
+    },
+    "Range_for_Position": {
+      "description": "Range of positions in a given 1-dimensional coordinate space.\n\nThe coordinate space type parameter ensures that positions and ranges in different coordinate spaces have different Rust types and they cannot be used interchangeably.",
+      "type": "object",
+      "required": [
+        "begin",
+        "end"
+      ],
+      "properties": {
+        "begin": {
+          "$ref": "#/definitions/Position"
+        },
+        "end": {
+          "$ref": "#/definitions/Position"
+        }
+      }
+    },
+    "Position": {
+      "type": "integer",
+      "format": "int"
+    },
+    "QcRulesConfigStopCodons": {
+      "description": "Configuration for QC rule \"stop codons\"",
+      "examples": [
+        {
+          "enabled": true,
+          "ignoredStopCodons": [
+            {
+              "cdsName": "N",
+              "codon": 417
+            },
+            {
+              "cdsName": "ORF3a",
+              "codon": 238
+            }
+          ],
+          "scoreWeight": 75.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "type": "boolean"
+        },
+        "ignoredStopCodons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StopCodonLocation"
+          }
+        },
+        "scoreWeight": {
+          "default": 75.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "StopCodonLocation": {
+      "description": "Location of a stop codon in a CDS",
+      "examples": [
+        {
+          "cdsName": "N",
+          "codon": 417
+        }
+      ],
+      "type": "object",
+      "required": [
+        "cdsName",
+        "codon"
+      ],
+      "properties": {
+        "cdsName": {
+          "type": "string"
+        },
+        "codon": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "NextcladeGeneralParamsOptional": {
+      "type": "object",
+      "properties": {
+        "includeReference": {
+          "description": "Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "includeNearestNodeInfo": {
+          "description": "Whether to include the list of nearest nodes to the outputs",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "inOrder": {
+          "description": "Emit output sequences in-order.\n\nWith this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences.\n\nThis option is only relevant when `--jobs` is greater than 1 or is omitted.\n\nNote: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "replaceUnknown": {
+          "description": "Replace unknown nucleotide characters with 'N'\n\nBy default, the sequences containing unknown nucleotide characters are skipped with a warning - they are not analyzed and not included into results. If this flag is provided, then before the alignment, all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences.\n\nThe following characters are considered known:  '-', 'A', 'B', 'C', 'D', 'G', 'H', 'K', 'M', 'N', 'R', 'S', 'T', 'V', 'W', 'Y'",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "AlignPairwiseParamsOptional": {
+      "type": "object",
+      "properties": {
+        "alignmentPreset": {
+          "description": "Alignment parameter presets. EXPERIMENTAL feature subject to adjustments.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AlignmentPreset"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minLength": {
+          "description": "Minimum length of nucleotide sequence to consider for alignment.\n\nIf a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "penaltyGapExtend": {
+          "description": "Penalty for extending a gap in alignment. If zero, all gaps regardless of length incur the same penalty.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "penaltyGapOpen": {
+          "description": "Penalty for opening of a gap in alignment. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame` to avoid gaps in genes.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "penaltyGapOpenInFrame": {
+          "description": "As `--penalty-gap-open`, but for opening gaps at the beginning of a codon. Should be greater than `--penalty-gap-open` and less than `--penalty-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "penaltyGapOpenOutOfFrame": {
+          "description": "As `--penalty-gap-open`, but for opening gaps in the body of a codon. Should be greater than `--penalty-gap-open-in-frame` to favor gaps that align with codons.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "penaltyMismatch": {
+          "description": "Penalty for aligned nucleotides or amino acids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "scoreMatch": {
+          "description": "Score for matching states in nucleotide or amino acid alignments.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "maxBandArea": {
+          "description": "Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "retryReverseComplement": {
+          "description": "Retry seed matching step with a reverse complement if the first attempt failed",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "noTranslatePastStop": {
+          "description": "If this flag is present, the amino acid sequences will be truncated at the first stop codon, if mutations or sequencing errors cause premature stop codons to be present. No amino acid mutations in the truncated region will be recorded.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "leftTerminalGapsFree": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "rightTerminalGapsFree": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "excessBandwidth": {
+          "description": "Excess bandwidth for internal stripes.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "terminalBandwidth": {
+          "description": "Excess bandwidth for terminal stripes.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "gapAlignmentSide": {
+          "description": "Whether to align gaps on the left or right side if equally parsimonious. Default: left",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/GapAlignmentSide"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kmerLength": {
+          "description": "Length of exactly matching k-mers used in the seed alignment of the query to the reference.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "kmerDistance": {
+          "description": "Interval of successive k-mers on the query sequence. Should be small compared to the query length.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "allowedMismatches": {
+          "description": "Exactly matching k-mers are extended to the left and right until more than `allowed_mismatches` are observed in a sliding window (`window_size`).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "windowSize": {
+          "description": "Size of the window within which mismatches are accumulated during seed extension",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "minMatchLength": {
+          "description": "Minimum length of extended k-mers",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "minSeedCover": {
+          "description": "Fraction of the query sequence that has to be covered by extended seeds to proceed with the banded alignment.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "maxAlignmentAttempts": {
+          "description": "Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "maxIndel": {
+          "description": "REMOVED"
+        },
+        "seedLength": {
+          "description": "REMOVED"
+        },
+        "mismatchesAllowed": {
+          "description": "REMOVED"
+        },
+        "minSeeds": {
+          "description": "REMOVED"
+        },
+        "minMatchRate": {
+          "description": "REMOVED"
+        },
+        "seedSpacing": {
+          "description": "REMOVED"
+        }
+      }
+    },
+    "AlignmentPreset": {
+      "type": "string",
+      "enum": [
+        "default",
+        "high-diversity",
+        "short-sequences"
+      ]
+    },
+    "GapAlignmentSide": {
+      "type": "string",
+      "enum": [
+        "left",
+        "right"
+      ]
+    },
+    "TreeBuilderParamsOptional": {
+      "type": "object",
+      "properties": {
+        "withoutGreedyTreeBuilder": {
+          "description": "Disable greedy tree builder algorithm",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "maskedMutsWeight": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      }
+    },
+    "AaChangesParamsOptional": {
+      "type": "object",
+      "properties": {
+        "aa_group_spacing": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "aa_group_padding": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "PhenotypeData": {
+      "description": "Describes a phenotype, such as receptor binding, immune escape, etc.",
+      "examples": [
+        {
+          "name": "receptor_binding",
+          "nameFriendly": "Receptor Binding",
+          "description": "Predicts receptor binding specificity and affinity",
+          "cds": "HA1",
+          "aaRange": {
+            "begin": 120,
+            "end": 260
+          },
+          "ignore": {
+            "clades": [
+              "3C.2A",
+              "3C.3A"
+            ]
+          },
+          "data": [
+            {
+              "name": "receptor_binding",
+              "weight": 1.0,
+              "locations": {
+                "145": 0.4,
+                "155": {
+                  "H": 1.2,
+                  "N": 0.8,
+                  "default": 0.0
+                },
+                "226": 0.6
+              }
+            }
+          ]
+        }
+      ],
+      "type": "object",
+      "required": [
+        "aaRange",
+        "cds",
+        "data",
+        "description",
+        "name",
+        "nameFriendly"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "nameFriendly": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "cds": {
+          "type": "string"
+        },
+        "aaRange": {
+          "$ref": "#/definitions/Range_for_Position"
+        },
+        "ignore": {
+          "default": {
+            "clades": []
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/PhenotypeDataIgnore"
+            }
+          ]
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PhenotypeDataEntry"
+          }
+        }
+      }
+    },
+    "PhenotypeDataIgnore": {
+      "type": "object",
+      "properties": {
+        "clades": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PhenotypeDataEntry": {
+      "description": "A single entry in the phenotype data",
+      "examples": [
+        {
+          "name": "receptor_binding",
+          "weight": 1.0,
+          "locations": {
+            "145": 0.4,
+            "155": {
+              "H": 1.2,
+              "N": 0.8,
+              "default": 0.0
+            },
+            "226": 0.6
+          }
+        }
+      ],
+      "type": "object",
+      "required": [
+        "locations",
+        "name",
+        "weight"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number",
+          "format": "double"
+        },
+        "locations": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PhenotypeCoeff"
+          }
+        }
+      }
+    },
+    "PhenotypeCoeff": {
+      "description": "Coefficient for a phenotype data entry. Can be a single value for all amino acids at a position, or a mapping from amino acids to their specific values.",
+      "anyOf": [
+        {
+          "type": "number",
+          "format": "double"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      ]
+    },
+    "AaMotifsDesc": {
+      "description": "Describes motifs in amino acid sequences, such as glycosylation sites, disulfide bonds, etc.",
+      "examples": [
+        {
+          "name": "glycosylation",
+          "nameShort": "Glyc.",
+          "nameFriendly": "Glycosylation",
+          "description": "N-linked glycosylation motifs (N-X-S/T with X any amino acid other than P)",
+          "motifs": [
+            "N[^P][ST]"
+          ],
+          "includeCdses": [
+            {
+              "cds": "HA1"
+            },
+            {
+              "cds": "HA2",
+              "ranges": [
+                {
+                  "begin": 0,
+                  "end": 186
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "object",
+      "required": [
+        "description",
+        "motifs",
+        "name",
+        "nameFriendly",
+        "nameShort"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "nameShort": {
+          "type": "string"
+        },
+        "nameFriendly": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "motifs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeCdses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CountAaMotifsCdsDesc"
+          }
+        }
+      }
+    },
+    "CountAaMotifsCdsDesc": {
+      "description": "Describes a range of amino acids in a CDS for counting motifs",
+      "type": "object",
+      "required": [
+        "cds"
+      ],
+      "properties": {
+        "cds": {
+          "type": "string"
+        },
+        "ranges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Range_for_Position"
+          }
+        }
+      }
+    },
+    "DatasetVersion": {
+      "type": "object",
+      "required": [
+        "tag"
+      ],
+      "properties": {
+        "tag": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "compatibility": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DatasetCompatibility"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "DatasetCompatibility": {
+      "type": "object",
+      "properties": {
+        "cli": {
+          "type": "string"
+        },
+        "web": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

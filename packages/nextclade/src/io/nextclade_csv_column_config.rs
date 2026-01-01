@@ -8,11 +8,11 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::str::FromStr;
 use strum::VariantNames;
-use strum_macros::{Display, EnumString, EnumVariantNames};
+use strum_macros::{Display, EnumString, VariantNames};
 
 // List of categories of CSV columns
 #[derive(
-  Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, EnumVariantNames,
+  Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash, EnumString, VariantNames,
 )]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
@@ -21,6 +21,7 @@ pub enum CsvColumnCategory {
   General,
   RefMuts,
   PrivMuts,
+  PrivAaMuts,
   CladeFounderMuts,
   RelMuts,
   ErrsWarns,
@@ -153,6 +154,15 @@ lazy_static! {
       o!("privateNucMutations.totalLabeledSubstitutions") => true,
       o!("privateNucMutations.totalUnlabeledSubstitutions") => true,
       o!("privateNucMutations.totalPrivateSubstitutions") => true,
+    },
+    CsvColumnCategory::PrivAaMuts => indexmap! {
+      o!("privateAaMutations.reversionSubstitutions") => true,
+      o!("privateAaMutations.labeledSubstitutions") => true,
+      o!("privateAaMutations.unlabeledSubstitutions") => true,
+      o!("privateAaMutations.totalReversionSubstitutions") => true,
+      o!("privateAaMutations.totalLabeledSubstitutions") => true,
+      o!("privateAaMutations.totalUnlabeledSubstitutions") => true,
+      o!("privateAaMutations.totalPrivateSubstitutions") => true,
     },
     CsvColumnCategory::Qc => indexmap! {
       o!("missing") => true,
