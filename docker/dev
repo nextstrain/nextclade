@@ -585,7 +585,7 @@ elif [ "${E2E_TEST}" == "1" ]; then
     WEB_PORT="${WEB_PORT_PROD}"
   fi
   E2E_BASE_URL="http://localhost:${WEB_PORT}"
-  COMMAND="export E2E_BASE_URL='${E2E_BASE_URL}' && yarn install && yarn ${E2E_TEST_MODE} ${*:-}"
+  COMMAND="export E2E_BASE_URL='${E2E_BASE_URL}' && bun install && bun ${E2E_TEST_MODE} ${*:-}"
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"

@@ -72,14 +72,14 @@ if [ "${CARGO_VERSION}" != "${PKG_VERSION}" ]; then
 fi
 printf "✅\n"
 
-printf "Pre-check: yarn.lock is in sync with package.json... "
+printf "Pre-check: bun.lock is in sync with package.json... "
 pushd packages/nextclade-web >/dev/null 2>&1
 {
-  yarn install --immutable --dry-run >/dev/null 2>&1
+  bun install --frozen-lockfile --dry-run >/dev/null 2>&1
 }
 popd >/dev/null 2>&1
-if [ -n "$(git status --porcelain packages/nextclade-web/yarn.lock)" ]; then
-  printf "\nERROR: yarn.lock is out of sync with package.json. Run 'yarn install' and commit the result before releasing.\n" >&2
+if [ -n "$(git status --porcelain packages/nextclade-web/bun.lock)" ]; then
+  printf "\nERROR: bun.lock is out of sync with package.json. Run 'bun install' and commit the result before releasing.\n" >&2
   exit 1
 fi
 printf "✅\n"

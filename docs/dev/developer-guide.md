@@ -173,16 +173,14 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
     nvm install
     nvm use
     node --version
-    yarn --version
+    bun --version
     ```
 
-    Yarn often ships with Node.js distributions, but if you don't have it, you can install it with:
+    Install Bun if you don't have it ([https://bun.sh](https://bun.sh)):
 
     ```bash
-    npm install --global yarn@1
+    curl -fsSL https://bun.sh/install | bash
     ```
-
-    Only yarn v1 is supported.
 
    > ⚠️ Nextclade team doesn't have bandwidth to support Node.js installations from Linux package repositories, Homebrew, Conda, as well as versions of Node.js which are not the same as the one currently declared in the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc), and everything else deviating from the recommended setup. If you decide to go that route - things may or may not work - you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
 
@@ -234,7 +232,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
    > brew install llvm
    > ```
    >
-   > Furthermore, you will need to set the following environment variables before invoking `yarn wasm-prod`:
+   > Furthermore, you will need to set the following environment variables before invoking `bun wasm-prod`:
    >
    > ```bash
    > export CC=/opt/homebrew/opt/llvm/bin/clang
@@ -243,7 +241,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
     </details>
 
-    You might also have to install a particular version of `wasm-bindgen-cli` (if you get an error during `yarn wasm-prod`):
+    You might also have to install a particular version of `wasm-bindgen-cli` (if you get an error during `bun wasm-prod`):
 
     ```bash
     cargo install wasm-bindgen-cli@0.2.93 --locked
@@ -253,16 +251,16 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
     ```bash
     cd packages/nextclade-web
-    yarn install
+    bun install
     ```
 
-   > ⚠️ Nextclade uses `yarn` to manage NPM dependencies. While you could try `npm` or other tools instead, we don't support this.
+   > ⚠️ Nextclade uses `bun` to manage NPM dependencies. While you could try `npm` or other tools instead, we don't support this.
 
 7. Build the WebAssembly module
 
     ```bash
     cd packages/nextclade-web
-    yarn wasm-prod
+    bun wasm-prod
     ```
 
    This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into  `packages/nextclade-web/src/gen/`. The web application should be able to find it there.
@@ -277,7 +275,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
     ```bash
     cd packages/nextclade-web
-    yarn dev
+    bun dev
     ```
 
    This runs Next.js dev server (continuously). Open `http://localhost:3000/` in the browser. Typescript code changes should trigger automatic rebuild and fast refresh of the app in the browser - no dev server restart is typically necessary.
@@ -289,8 +287,8 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
    Alternatively, the optimized ("production") version of the web app can be built and (optionally) served with
 
     ```bash
-    yarn prod:build
-    yarn prod:serve
+    bun prod:build
+    bun prod:serve
     ```
 
    Open `http://localhost:8080/` in the browser.
@@ -299,7 +297,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    The production build does not have automatic rebuild and reload. You need to do full rebuild on every code change - both the WebAssembly module and then the web app.
 
-   The `yarn prod:serve` command runs Express underneath and it is just an example of a simple (also slow and insecure) local file web server. But the produced files can be served using any static file web server (Apache, Nginx, Caddy, Express, etc.), static file hosting services, or cloud services (AWS S3, Vercel, GitHub Pages, etc.). The official deployment uses AWS S3 + Cloudfront.
+   The `bun prod:serve` command runs a simple static file web server. But the produced files can be served using any static file web server (Apache, Nginx, Caddy, Express, etc.), static file hosting services, or cloud services (AWS S3, Vercel, GitHub Pages, etc.). The official deployment uses AWS S3 + Cloudfront.
 
 ### Internationalization (translation)
 
@@ -317,10 +315,10 @@ Use this script to extract strings apply machine translations:
 ```bash
 # Extract English strings from the code of Nextclade Web.
 # The result will be in `packages/nextclade-web/src/i18n/resources/en/`.
-yarn i18n
+bun i18n
 
 # Deduplicate, correct, sort and otherwise 'massage' the extracted strings.
-yarn i18n:fix
+bun i18n:fix
 
 # Translate strings from English to all languages using json-autotranslate.
 # Cached strings will be copied as is from cache. If a string is not present in cache,
@@ -329,7 +327,7 @@ yarn i18n:fix
 i18n:translate
 
 # 'Massage' the newly translated strings again.
-yarn i18n:fix
+bun i18n:fix
 ```
 
 #### Apply manual corrections
@@ -338,7 +336,7 @@ If you want to override machine translation, then edit the cached strings in [`p
 
 ```bash
 # Deduplicate, correct, sort and otherwise 'massage' the extracted strings.
-yarn i18n:fix
+bun i18n:fix
 
 # Translate strings from English to all languages using json-autotranslate.
 # Cached strings will be copied as is from cache. If a string is not present in cache,
@@ -347,7 +345,7 @@ yarn i18n:fix
 i18n:translate
 
 # 'Massage' the newly translated strings again.
-yarn i18n:fix
+bun i18n:fix
 ```
 
 Note that dev team does not necessarily understand all supported languages, so it cannot verify quality of either machine or human translations for most languages, except a few.
@@ -420,12 +418,12 @@ The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc]
 
 ```bash
 cd packages/nextclade-web
-yarn lint
+bun lint
 ```
 
-The `eslint` configuration is in `.eslintrc.js`. `tsc` configuration is in `tsconfig.json`.
+The `eslint` configuration is in `eslint.config.mjs`. `tsc` configuration is in `tsconfig.json`.
 
-Modern text editors should be able to display ESLint warnings out of the box as soon as you install NPM dependencies (the `yarn install` command in the build steps). Refer to the documentation of you text editor if it does not.
+Modern text editors should be able to display ESLint warnings out of the box as soon as you install NPM dependencies (the `bun install` command in the build steps). Refer to the documentation of your text editor if it does not.
 
 ### Formatting (code style)
 
@@ -445,7 +443,7 @@ We use `prettier` to format TS and JS code. It is installed during initial setup
 
 ```bash
 cd packages/nextclade-web
-yarn format:fix
+bun format:fix
 ```
 
 Make sure your text editor is [configured](https://prettier.io/docs/en/editors.html) to use `prettier` and to honor [editorconfig](https://editorconfig.org/) settings.
