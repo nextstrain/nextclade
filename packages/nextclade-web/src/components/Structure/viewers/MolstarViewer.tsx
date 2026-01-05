@@ -7,6 +7,8 @@ import type { ResidueSelection, StructureViewerHandle } from './types'
 // Use PluginUIContext instead of the full Viewer app to avoid Node.js dependencies
 type PluginUIContext = import('molstar/lib/mol-plugin-ui/context').PluginUIContext
 
+const MUTATION_HIGHLIGHT_REF = 'mutation-highlight'
+
 const REPRESENTATION_MAP: Record<RepresentationType, string> = {
   'cartoon': 'cartoon',
   'surface': 'gaussian-surface',
@@ -139,7 +141,7 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
 
         if (format === 'pdb') {
           // PDB format: decode to string, then parse
-          const decoder = new TextDecoder('utf-8')
+          const decoder = new TextDecoder('utf8')
           const pdbString = decoder.decode(data)
           tree = state
             .build()
@@ -201,18 +203,45 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
 
     const molstarType = REPRESENTATION_MAP[representationType]
 
-    // Update representation for each structure's components
-    // Note: Full representation type switching requires complex state manipulation
-    // For now, we update the color theme. The molstarType variable is prepared for future use.
-    void molstarType
-    structures.forEach((structureRef) => {
-      const { components } = structureRef
-      if (components.length > 0) {
-        void plugin.managers.structure.component.updateRepresentationsTheme(components, {
-          color: 'chain-id',
+    // Update representation for each component
+    void (async () => {
+      try {
+        const { StateTransforms } = await import('molstar/lib/mol-plugin-state/transforms')
+        const structureRef = structures[0]
+        const { components } = structureRef
+
+        // Filter out mutation highlight components
+        const componentsToUpdate = components.filter((comp) => {
+          const ref = comp.cell.transform.ref
+          return ref !== MUTATION_HIGHLIGHT_REF && !ref.includes(MUTATION_HIGHLIGHT_REF)
         })
+
+        if (componentsToUpdate.length === 0) return
+
+        // Collect all representation refs from components
+        const representationRefs: string[] = []
+        componentsToUpdate.forEach((comp) => {
+          comp.representations.forEach((repr) => {
+            representationRefs.push(repr.cell.transform.ref)
+          })
+        })
+
+        if (representationRefs.length === 0) return
+
+        // Build update for all representations
+        const state = plugin.state.data
+        const update = state.build()
+        representationRefs.forEach((ref) => {
+          update.to(ref).update(StateTransforms.Representation.StructureRepresentation3D, (old) => ({
+            ...old,
+            type: { name: molstarType, params: {} },
+          }))
+        })
+        await plugin.runTask(state.updateTree(update))
+      } catch (error) {
+        console.warn('Failed to update representation:', error)
       }
-    })
+    })()
   }, [isStructureReady, representationType])
 
   // Apply highlights when structure is ready or highlights change
@@ -240,9 +269,9 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
         const structure = structureRef.cell.obj?.data
         if (!structure) return
 
-        // Remove existing mutation highlight components (tagged with 'mutation-highlight')
+        // Remove existing mutation highlight components
         const state = plugin.state.data
-        const existingHighlights = state.selectQ((q) => q.byRef('mutation-highlight'))
+        const existingHighlights = state.selectQ((q) => q.byRef(MUTATION_HIGHLIGHT_REF))
         if (existingHighlights.length > 0) {
           const deleteUpdate = state.build()
           existingHighlights.forEach((node) => deleteUpdate.delete(node.transform.ref))
@@ -288,7 +317,7 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
           .apply(
             StateTransforms.Model.StructureSelectionFromExpression,
             { expression: mutationExpression, label: 'Mutations' },
-            { ref: 'mutation-highlight' },
+            { ref: MUTATION_HIGHLIGHT_REF },
           )
           .apply(StateTransforms.Representation.StructureRepresentation3D, {
             type: {
