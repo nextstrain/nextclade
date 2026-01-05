@@ -55,6 +55,7 @@ import { findDatasetByPath, findDatasetByPathAndTag } from 'src/helpers/sortData
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
+import 'molstar/lib/mol-plugin-ui/skin/light.scss'
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false
 
@@ -267,10 +268,6 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
   const fallback = useMemo(() => <LoadingPage />, [])
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'development' && !['/', '/loading'].includes(router.pathname)) {
-      void router.replace('/') // eslint-disable-line no-void
-    }
-
     void router.prefetch('/') // eslint-disable-line no-void
     void router.prefetch('/results') // eslint-disable-line no-void
   }, [router])

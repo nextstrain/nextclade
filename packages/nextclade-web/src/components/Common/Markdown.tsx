@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
@@ -7,17 +7,16 @@ import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
 import { LOADING } from 'src/components/Loading/Loading'
 import { mdxComponents } from 'src/mdx-components'
 
-const REMARK_PLUGINS = [remarkGfm]
-
-const REHYPE_PLUGINS = [rehypeRaw, rehypeSanitize]
-
 export interface MarkdownProps {
   content: string
 }
 
 export function Markdown({ content }: MarkdownProps) {
+  const remarkPlugins = useMemo(() => [remarkGfm], [])
+  const rehypePlugins = useMemo(() => [rehypeRaw, rehypeSanitize], [])
   return (
-    <ReactMarkdown rehypePlugins={REHYPE_PLUGINS} remarkPlugins={REMARK_PLUGINS} components={mdxComponents}>
+    // @ts-expect-error -- type mismatch between react-markdown and plugins
+    <ReactMarkdown rehypePlugins={rehypePlugins} remarkPlugins={remarkPlugins} components={mdxComponents}>
       {content}
     </ReactMarkdown>
   )

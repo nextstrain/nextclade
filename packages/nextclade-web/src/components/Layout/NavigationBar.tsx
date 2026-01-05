@@ -166,6 +166,11 @@ export function NavigationBar() {
         title: t('Show phylogenetic tree'),
       },
       {
+        url: '/structure',
+        content: t('Structure'),
+        title: t('Show protein structure'),
+      },
+      {
         url: canDownload ? '/export' : undefined,
         content: t('Export'),
         title: canDownload ? t('Export results') : t('Please run the analysis first.'),

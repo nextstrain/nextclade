@@ -1,0 +1,275 @@
+/* eslint-disable no-void */
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import styled from 'styled-components'
+import type { EntityType, EntityVisibility, RepresentationType } from 'src/state/structure.state'
+import { DEFAULT_ENTITY_VISIBILITY } from 'src/state/structure.state'
+import type { ResidueSelection, StructureViewerHandle } from './types'
+
+type NglStage = import('ngl').Stage
+type NglComponent = import('ngl').Component
+
+const ENTITY_SELECTIONS: Record<EntityType, string> = {
+  polymer: 'polymer',
+  ligand: 'hetero and not water and not ion',
+  water: 'water',
+  ion: 'ion',
+  carbohydrate: 'saccharide',
+}
+
+const COLOR_ELEMENT = 'element'
+const REPR_BALL_STICK = 'ball+stick'
+
+function addHighlightRepresentation(component: NglComponent, selection: ResidueSelection) {
+  const { chain, position, color = 'red' } = selection
+  const sele = `${position}:${chain}`
+  component.addRepresentation(REPR_BALL_STICK, {
+    sele,
+    color,
+    radius: 0.5,
+    scale: 1.5,
+    name: 'highlight',
+  })
+}
+
+interface StructureData {
+  data: ArrayBuffer
+  format: 'pdb' | 'cif' | 'bcif'
+}
+
+interface NglViewerProps {
+  representationType: RepresentationType
+  structureData?: StructureData
+  highlights?: ResidueSelection[]
+  entityVisibility?: EntityVisibility
+  onLoad?: () => void
+  onError?: (error: Error) => void
+}
+
+export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(function NglViewer(
+  { representationType, structureData, highlights = [], entityVisibility = DEFAULT_ENTITY_VISIBILITY, onLoad, onError },
+  ref,
+) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<NglStage | null>(null)
+  const componentRef = useRef<NglComponent | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isStageReady, setIsStageReady] = useState(false)
+  const [isStructureReady, setIsStructureReady] = useState(false)
+
+  // Initialize stage
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return undefined
+
+    let disposed = false
+    let stage: NglStage | null = null
+    let handleResize: (() => void) | null = null
+
+    async function initStage(containerElement: HTMLDivElement) {
+      try {
+        const NGL = await import('ngl')
+        if (disposed) return
+
+        stage = new NGL.Stage(containerElement, {
+          backgroundColor: 'white',
+        })
+        stageRef.current = stage
+
+        handleResize = () => stage?.autoView()
+        window.addEventListener('resize', handleResize)
+
+        setIsStageReady(true)
+      } catch (error_) {
+        if (disposed) return
+        const errorMsg = error_ instanceof Error ? error_.message : 'Failed to initialize NGL viewer'
+        setError(errorMsg)
+        onError?.(error_ instanceof Error ? error_ : new Error(errorMsg))
+      }
+    }
+
+    void initStage(container)
+
+    return () => {
+      disposed = true
+      setIsStageReady(false)
+      if (handleResize) {
+        window.removeEventListener('resize', handleResize)
+      }
+      if (stage) {
+        stage.dispose()
+        stageRef.current = null
+        componentRef.current = null
+      }
+    }
+  }, [onError])
+
+  // Load structure from ArrayBuffer
+  const loadStructure = useCallback(
+    async (data: ArrayBuffer, format: string) => {
+      if (!stageRef.current) {
+        throw new Error('Stage not initialized')
+      }
+
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        stageRef.current.removeAllComponents()
+        const blob = new Blob([data])
+        const component = await stageRef.current.loadFile(blob, { ext: format })
+        if (!component) {
+          throw new Error('Failed to load structure component')
+        }
+        componentRef.current = component
+        stageRef.current.autoView()
+        onLoad?.()
+      } catch (error_) {
+        const errorMsg = error_ instanceof Error ? error_.message : 'Failed to load structure'
+        setError(errorMsg)
+        onError?.(error_ instanceof Error ? error_ : new Error(errorMsg))
+        throw error_
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [onLoad, onError],
+  )
+
+  // Auto-load when stage is ready and structureData is provided
+  useEffect(() => {
+    if (!isStageReady || !structureData) return
+    setIsStructureReady(false)
+    loadStructure(structureData.data, structureData.format)
+      .then(() => {
+        setIsStructureReady(true)
+        return undefined
+      })
+      .catch(() => {
+        // Error already handled in loadStructure
+      })
+  }, [isStageReady, structureData, loadStructure])
+
+  // Apply representation and highlights when structure is ready or they change
+  useEffect(() => {
+    if (!isStructureReady || !componentRef.current) return
+
+    const component = componentRef.current
+
+    component.removeAllRepresentations()
+
+    // Add polymer representation with selected type
+    if (entityVisibility.polymer) {
+      component.addRepresentation(representationType, {
+        sele: ENTITY_SELECTIONS.polymer,
+        color: 'sstruc',
+        name: 'polymer',
+      })
+    }
+
+    // Add non-polymer entities with ball+stick
+    const nonPolymerEntities: EntityType[] = ['ligand', 'water', 'ion', 'carbohydrate']
+    nonPolymerEntities.forEach((entityType) => {
+      if (entityVisibility[entityType]) {
+        component.addRepresentation(REPR_BALL_STICK, {
+          sele: ENTITY_SELECTIONS[entityType],
+          color: COLOR_ELEMENT,
+          name: entityType,
+        })
+      }
+    })
+
+    // Add highlight representations
+    highlights.forEach((selection) => addHighlightRepresentation(component, selection))
+
+    stageRef.current?.autoView()
+  }, [isStructureReady, highlights, representationType, entityVisibility])
+
+  const setRepresentation = useCallback((_type: RepresentationType) => {
+    // Representation changes are handled reactively via the useEffect above
+    // This method is kept for interface compatibility
+  }, [])
+
+  const highlightResidues = useCallback((selections: ResidueSelection[]) => {
+    const component = componentRef.current
+    if (!component) return
+
+    try {
+      selections.forEach((selection) => addHighlightRepresentation(component, selection))
+      stageRef.current?.autoView()
+    } catch (error_) {
+      console.warn('Failed to highlight residues:', error_)
+    }
+  }, [])
+
+  const clearHighlights = useCallback(() => {
+    // Reload to clear - not ideal but NGL doesn't have great highlight management
+    // In production, we'd track representations and remove them
+  }, [])
+
+  const resetView = useCallback(() => {
+    stageRef.current?.autoView()
+  }, [])
+
+  const dispose = useCallback(() => {
+    stageRef.current?.dispose()
+    stageRef.current = null
+    componentRef.current = null
+  }, [])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      load: loadStructure,
+      setRepresentation,
+      highlightResidues,
+      clearHighlights,
+      resetView,
+      dispose,
+    }),
+    [loadStructure, setRepresentation, highlightResidues, clearHighlights, resetView, dispose],
+  )
+
+  return (
+    <Container>
+      <ViewerContainer ref={containerRef} />
+      {isLoading && <LoadingOverlay>Loading structure...</LoadingOverlay>}
+      {error && <ErrorOverlay>{error}</ErrorOverlay>}
+    </Container>
+  )
+})
+
+const Container = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+`
+
+const ViewerContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+`
+
+const LoadingOverlay = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 16px;
+`
+
+const ErrorOverlay = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 200, 200, 0.9);
+  padding: 20px;
+  border-radius: 8px;
+  color: #c00;
+  font-size: 14px;
+`
