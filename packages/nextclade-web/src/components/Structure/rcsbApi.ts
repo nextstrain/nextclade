@@ -14,9 +14,7 @@ export interface StructureCitation {
 export function formatShortCitation(citation: StructureCitation): string {
   const firstAuthorFull = citation.authors[0] ?? 'Unknown'
   // Extract last name: either "LastName, First" format or "First Last" format
-  const lastNameMatch = firstAuthorFull.includes(',')
-    ? firstAuthorFull.split(',')[0]
-    : firstAuthorFull.split(' ').pop()
+  const lastNameMatch = firstAuthorFull.includes(',') ? firstAuthorFull.split(',')[0] : firstAuthorFull.split(' ').pop()
   const firstAuthor = lastNameMatch ?? 'Unknown'
   const etAl = citation.authors.length > 1 ? ' et al.' : ''
   return `${firstAuthor}${etAl} (${citation.year})`
@@ -78,7 +76,16 @@ export async function fetchStructureCitation(pdbId: string): Promise<StructureCi
 }
 
 export const RCSB_CITATION: StructureCitation = {
-  authors: ['Helen M. Berman', 'John Westbrook', 'Zukang Feng', 'Gary Gilliland', 'T. N. Bhat', 'Helge Weissig', 'Ilya N. Shindyalov', 'Philip E. Bourne'],
+  authors: [
+    'Helen M. Berman',
+    'John Westbrook',
+    'Zukang Feng',
+    'Gary Gilliland',
+    'T. N. Bhat',
+    'Helge Weissig',
+    'Ilya N. Shindyalov',
+    'Philip E. Bourne',
+  ],
   year: 2000,
   title: 'The Protein Data Bank',
   journal: 'Nucleic Acids Research',

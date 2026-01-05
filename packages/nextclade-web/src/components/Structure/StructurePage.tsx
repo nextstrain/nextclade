@@ -50,7 +50,11 @@ function CitationsSection({ structureCitation, databaseCitation }: CitationsSect
             {structureCitation.doi && (
               <>
                 {' '}
-                <CitationLink href={`https://doi.org/${structureCitation.doi}`} target="_blank" rel="noopener noreferrer">
+                <CitationLink
+                  href={`https://doi.org/${structureCitation.doi}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   doi
                 </CitationLink>
               </>
