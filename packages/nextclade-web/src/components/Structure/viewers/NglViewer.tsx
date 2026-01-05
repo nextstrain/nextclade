@@ -1,16 +1,28 @@
 /* eslint-disable no-void */
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import styled from 'styled-components'
-import type { RepresentationType } from 'src/state/structure.state'
+import type { EntityType, EntityVisibility, RepresentationType } from 'src/state/structure.state'
+import { DEFAULT_ENTITY_VISIBILITY } from 'src/state/structure.state'
 import type { ResidueSelection, StructureViewerHandle } from './types'
 
 type NglStage = import('ngl').Stage
 type NglComponent = import('ngl').Component
 
+const ENTITY_SELECTIONS: Record<EntityType, string> = {
+  polymer: 'polymer',
+  ligand: 'hetero and not water and not ion',
+  water: 'water',
+  ion: 'ion',
+  carbohydrate: 'saccharide',
+}
+
+const COLOR_ELEMENT = 'element'
+const REPR_BALL_STICK = 'ball+stick'
+
 function addHighlightRepresentation(component: NglComponent, selection: ResidueSelection) {
   const { chain, position, color = 'red' } = selection
   const sele = `${position}:${chain}`
-  component.addRepresentation('ball+stick', {
+  component.addRepresentation(REPR_BALL_STICK, {
     sele,
     color,
     radius: 0.5,
@@ -28,12 +40,13 @@ interface NglViewerProps {
   representationType: RepresentationType
   structureData?: StructureData
   highlights?: ResidueSelection[]
+  entityVisibility?: EntityVisibility
   onLoad?: () => void
   onError?: (error: Error) => void
 }
 
 export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(function NglViewer(
-  { representationType, structureData, highlights = [], onLoad, onError },
+  { representationType, structureData, highlights = [], entityVisibility = DEFAULT_ENTITY_VISIBILITY, onLoad, onError },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -144,24 +157,37 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
     const component = componentRef.current
 
     component.removeAllRepresentations()
-    component.addRepresentation(representationType, {
-      color: 'sstruc',
-      name: 'main',
+
+    // Add polymer representation with selected type
+    if (entityVisibility.polymer) {
+      component.addRepresentation(representationType, {
+        sele: ENTITY_SELECTIONS.polymer,
+        color: 'sstruc',
+        name: 'polymer',
+      })
+    }
+
+    // Add non-polymer entities with ball+stick
+    const nonPolymerEntities: EntityType[] = ['ligand', 'water', 'ion', 'carbohydrate']
+    nonPolymerEntities.forEach((entityType) => {
+      if (entityVisibility[entityType]) {
+        component.addRepresentation(REPR_BALL_STICK, {
+          sele: ENTITY_SELECTIONS[entityType],
+          color: COLOR_ELEMENT,
+          name: entityType,
+        })
+      }
     })
 
+    // Add highlight representations
     highlights.forEach((selection) => addHighlightRepresentation(component, selection))
 
     stageRef.current?.autoView()
-  }, [isStructureReady, highlights, representationType])
+  }, [isStructureReady, highlights, representationType, entityVisibility])
 
-  const setRepresentation = useCallback((type: RepresentationType) => {
-    if (!componentRef.current) return
-
-    componentRef.current.removeAllRepresentations()
-    componentRef.current.addRepresentation(type, {
-      color: 'sstruc',
-      name: 'main',
-    })
+  const setRepresentation = useCallback((_type: RepresentationType) => {
+    // Representation changes are handled reactively via the useEffect above
+    // This method is kept for interface compatibility
   }, [])
 
   const highlightResidues = useCallback((selections: ResidueSelection[]) => {

@@ -9,6 +9,7 @@ import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { analysisResultsAtom } from 'src/state/results.state'
 import type { NextcladeResult } from 'src/types'
 import {
+  entityVisibilityAtom,
   representationTypeAtom,
   selectedPdbIdAtom,
   selectedSequenceIndexAtom,
@@ -16,6 +17,7 @@ import {
   type RepresentationType,
   type ViewerLibrary,
 } from 'src/state/structure.state'
+import { Toggle } from 'src/components/Common/Toggle'
 import { getStructureConfigFromOption, getStructureOption, STRUCTURE_OPTIONS } from './structureConfig'
 import {
   fetchStructureCitation,
@@ -175,6 +177,7 @@ function StructurePageContent() {
   const [representationType, setRepresentationType] = useRecoilState(representationTypeAtom)
   const [viewerLibrary, setViewerLibrary] = useRecoilState(viewerLibraryAtom)
   const [selectedPdbId, setSelectedPdbId] = useRecoilState(selectedPdbIdAtom)
+  const [entityVisibility, setEntityVisibility] = useRecoilState(entityVisibilityAtom)
 
   const viewerRef = useRef<StructureViewerHandle>(null)
 
@@ -277,6 +280,31 @@ function StructurePageContent() {
     viewerRef.current?.resetView()
   }, [])
 
+  const handlePolymerVisibilityChange = useCallback(
+    (visible: boolean) => setEntityVisibility((prev) => ({ ...prev, polymer: visible })),
+    [setEntityVisibility],
+  )
+
+  const handleLigandVisibilityChange = useCallback(
+    (visible: boolean) => setEntityVisibility((prev) => ({ ...prev, ligand: visible })),
+    [setEntityVisibility],
+  )
+
+  const handleWaterVisibilityChange = useCallback(
+    (visible: boolean) => setEntityVisibility((prev) => ({ ...prev, water: visible })),
+    [setEntityVisibility],
+  )
+
+  const handleIonVisibilityChange = useCallback(
+    (visible: boolean) => setEntityVisibility((prev) => ({ ...prev, ion: visible })),
+    [setEntityVisibility],
+  )
+
+  const handleCarbohydrateVisibilityChange = useCallback(
+    (visible: boolean) => setEntityVisibility((prev) => ({ ...prev, carbohydrate: visible })),
+    [setEntityVisibility],
+  )
+
   if (!structureConfig) {
     return (
       <NoDataMessage>
@@ -347,6 +375,51 @@ function StructurePageContent() {
         </ControlGroup>
 
         <ControlGroup>
+          <Label>Show Entities:</Label>
+          <EntityToggleRow>
+            <Toggle
+              identifier="entity-polymer"
+              checked={entityVisibility.polymer}
+              onCheckedChanged={handlePolymerVisibilityChange}
+            >
+              Polymer
+            </Toggle>
+          </EntityToggleRow>
+          <EntityToggleRow>
+            <Toggle
+              identifier="entity-ligand"
+              checked={entityVisibility.ligand}
+              onCheckedChanged={handleLigandVisibilityChange}
+            >
+              Ligand
+            </Toggle>
+          </EntityToggleRow>
+          <EntityToggleRow>
+            <Toggle
+              identifier="entity-water"
+              checked={entityVisibility.water}
+              onCheckedChanged={handleWaterVisibilityChange}
+            >
+              Water
+            </Toggle>
+          </EntityToggleRow>
+          <EntityToggleRow>
+            <Toggle identifier="entity-ion" checked={entityVisibility.ion} onCheckedChanged={handleIonVisibilityChange}>
+              Ion
+            </Toggle>
+          </EntityToggleRow>
+          <EntityToggleRow>
+            <Toggle
+              identifier="entity-carbohydrate"
+              checked={entityVisibility.carbohydrate}
+              onCheckedChanged={handleCarbohydrateVisibilityChange}
+            >
+              Carbohydrate
+            </Toggle>
+          </EntityToggleRow>
+        </ControlGroup>
+
+        <ControlGroup>
           <Button type="button" onClick={handleResetView}>
             Reset View
           </Button>
@@ -402,6 +475,7 @@ function StructurePageContent() {
             structureData={structureData}
             representationType={representationType}
             highlights={mutationSelections}
+            entityVisibility={entityVisibility}
           />
         ) : (
           <MolstarViewer
@@ -410,6 +484,7 @@ function StructurePageContent() {
             structureData={structureData}
             representationType={representationType}
             highlights={mutationSelections}
+            entityVisibility={entityVisibility}
           />
         )}
       </ViewerPanel>
@@ -461,6 +536,13 @@ const ControlGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
+`
+
+const EntityToggleRow = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  margin-top: 4px;
 `
 
 const Label = styled.label`

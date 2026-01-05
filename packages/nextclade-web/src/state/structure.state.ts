@@ -4,6 +4,23 @@ import { DEFAULT_PDB_ID } from 'src/components/Structure/structureConfig'
 
 export type ViewerLibrary = 'ngl' | 'molstar'
 export type RepresentationType = 'cartoon' | 'surface' | 'ball+stick' | 'spacefill' | 'licorice'
+export type EntityType = 'polymer' | 'ligand' | 'water' | 'ion' | 'carbohydrate'
+
+export interface EntityVisibility {
+  polymer: boolean
+  ligand: boolean
+  water: boolean
+  ion: boolean
+  carbohydrate: boolean
+}
+
+export const DEFAULT_ENTITY_VISIBILITY: EntityVisibility = {
+  polymer: true,
+  ligand: true,
+  water: false,
+  ion: true,
+  carbohydrate: true,
+}
 
 export const selectedSequenceIndexAtom = atom<number>({
   key: 'selectedSequenceIndex',
@@ -25,5 +42,11 @@ export const viewerLibraryAtom = atom<ViewerLibrary>({
 export const representationTypeAtom = atom<RepresentationType>({
   key: 'representationType',
   default: 'cartoon',
+  effects: [persistAtom],
+})
+
+export const entityVisibilityAtom = atom<EntityVisibility>({
+  key: 'entityVisibility',
+  default: DEFAULT_ENTITY_VISIBILITY,
   effects: [persistAtom],
 })

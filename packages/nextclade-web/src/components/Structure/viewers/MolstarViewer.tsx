@@ -1,20 +1,23 @@
 /* eslint-disable no-void */
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import styled from 'styled-components'
-import type { RepresentationType } from 'src/state/structure.state'
+import type { EntityType, EntityVisibility, RepresentationType } from 'src/state/structure.state'
+import { DEFAULT_ENTITY_VISIBILITY } from 'src/state/structure.state'
 import type { ResidueSelection, StructureViewerHandle } from './types'
 
 // Use PluginUIContext instead of the full Viewer app to avoid Node.js dependencies
 type PluginUIContext = import('molstar/lib/mol-plugin-ui/context').PluginUIContext
 
 const MUTATION_HIGHLIGHT_REF = 'mutation-highlight'
+const ENTITY_COMPONENT_PREFIX = 'entity-'
+const REPR_BALL_AND_STICK = 'ball-and-stick'
 
 const REPRESENTATION_MAP: Record<RepresentationType, string> = {
   'cartoon': 'cartoon',
   'surface': 'gaussian-surface',
-  'ball+stick': 'ball-and-stick',
+  'ball+stick': REPR_BALL_AND_STICK,
   'spacefill': 'spacefill',
-  'licorice': 'ball-and-stick',
+  'licorice': REPR_BALL_AND_STICK,
 }
 
 interface StructureData {
@@ -26,12 +29,13 @@ interface MolstarViewerProps {
   representationType: RepresentationType
   structureData?: StructureData
   highlights?: ResidueSelection[]
+  entityVisibility?: EntityVisibility
   onLoad?: () => void
   onError?: (error: Error) => void
 }
 
 export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProps>(function MolstarViewer(
-  { representationType, structureData, highlights = [], onLoad, onError },
+  { representationType, structureData, highlights = [], entityVisibility = DEFAULT_ENTITY_VISIBILITY, onLoad, onError },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -160,7 +164,7 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
 
         await plugin.runTask(state.updateTree(tree))
 
-        // Apply default preset to the trajectory
+        // Create model and structure from trajectory using default preset
         const { trajectories } = plugin.managers.structure.hierarchy.current
         if (trajectories.length > 0) {
           await plugin.builders.structure.hierarchy.applyPreset(trajectories[0].cell, 'default')
@@ -193,7 +197,7 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
       })
   }, [isViewerReady, structureData, loadStructure])
 
-  // Apply representation when structure is ready or representation changes
+  // Apply entity visibility and representation when structure is ready or they change
   useEffect(() => {
     if (!isStructureReady || !pluginRef.current) return
 
@@ -201,48 +205,74 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
     const { structures } = plugin.managers.structure.hierarchy.current
     if (structures.length === 0) return
 
-    const molstarType = REPRESENTATION_MAP[representationType]
+    const molstarPolymerType = REPRESENTATION_MAP[representationType]
 
-    // Update representation for each component
     void (async () => {
       try {
-        const { StateTransforms } = await import('molstar/lib/mol-plugin-state/transforms')
         const structureRef = structures[0]
         const { components } = structureRef
 
-        // Filter out mutation highlight components
-        const componentsToUpdate = components.filter((comp) => {
-          const ref = comp.cell.transform.ref
-          return ref !== MUTATION_HIGHLIGHT_REF && !ref.includes(MUTATION_HIGHLIGHT_REF)
-        })
+        // Map component keys to our entity types
+        // Keys are prefixed with 'structure-component-static-' by Mol*
+        const componentKeyToEntityType: Record<string, EntityType> = {
+          'structure-component-static-polymer': 'polymer',
+          'structure-component-static-ligand': 'ligand',
+          'structure-component-static-water': 'water',
+          'structure-component-static-ion': 'ion',
+          'structure-component-static-branched': 'carbohydrate',
+          'structure-component-static-non-standard': 'ligand', // Group with ligands
+        }
 
-        if (componentsToUpdate.length === 0) return
+        // Toggle visibility based on entity type
+        components.forEach((component) => {
+          const key = component.key
+          if (!key) return
 
-        // Collect all representation refs from components
-        const representationRefs: string[] = []
-        componentsToUpdate.forEach((comp) => {
-          comp.representations.forEach((repr) => {
-            representationRefs.push(repr.cell.transform.ref)
+          const entityType = componentKeyToEntityType[key] as EntityType | undefined
+          if (!entityType) return
+
+          const shouldBeVisible = entityVisibility[entityType]
+
+          // Check if any representation is currently hidden
+          const representations = component.representations ?? []
+          if (representations.length === 0) return
+
+          const isCurrentlyHidden = representations.some((repr) => repr.cell.state.isHidden)
+
+          // Toggle visibility by setting state on representations
+          representations.forEach((repr) => {
+            if (shouldBeVisible && isCurrentlyHidden) {
+              plugin.state.data.updateCellState(repr.cell.transform.ref, { isHidden: false })
+            } else if (!shouldBeVisible && !isCurrentlyHidden) {
+              plugin.state.data.updateCellState(repr.cell.transform.ref, { isHidden: true })
+            }
           })
         })
 
-        if (representationRefs.length === 0) return
+        // Update polymer representation type
+        const polymerComponents = components.filter((c) => c.key === 'structure-component-static-polymer')
+        if (polymerComponents.length > 0 && entityVisibility.polymer) {
+          const { StateTransforms } = await import('molstar/lib/mol-plugin-state/transforms')
+          const state = plugin.state.data
 
-        // Build update for all representations
-        const state = plugin.state.data
-        const update = state.build()
-        representationRefs.forEach((ref) => {
-          update.to(ref).update(StateTransforms.Representation.StructureRepresentation3D, (old) => ({
-            ...old,
-            type: { name: molstarType, params: {} },
-          }))
-        })
-        await plugin.runTask(state.updateTree(update))
+          polymerComponents.forEach((polymerComponent) => {
+            const representations = polymerComponent.representations ?? []
+            representations.forEach((repr) => {
+              const reprRef = repr.cell.transform.ref
+              const update = state.build()
+              update.to(reprRef).update(StateTransforms.Representation.StructureRepresentation3D, (old) => ({
+                ...old,
+                type: { name: molstarPolymerType, params: old.type?.params ?? {} },
+              }))
+              void plugin.runTask(state.updateTree(update))
+            })
+          })
+        }
       } catch (error) {
-        console.warn('Failed to update representation:', error)
+        console.warn('Failed to update entity visibility:', error)
       }
     })()
-  }, [isStructureReady, representationType])
+  }, [isStructureReady, representationType, entityVisibility])
 
   // Apply highlights when structure is ready or highlights change
   useEffect(() => {
