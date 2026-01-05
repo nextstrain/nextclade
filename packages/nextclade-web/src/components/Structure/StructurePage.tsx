@@ -1,11 +1,11 @@
 import React, { Suspense, lazy, useCallback, useMemo, useRef } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { useAtomValue } from 'jotai'
 import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 import { LOADING } from 'src/components/Loading/Loading'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { analysisResultsAtom } from 'src/state/results.state'
+import type { NextcladeResult } from 'src/types'
 import {
   representationTypeAtom,
   selectedSequenceIndexAtom,
@@ -19,7 +19,12 @@ import type { ResidueSelection, StructureViewerHandle } from './viewers/types'
 const NglViewer = lazy(() => import('./viewers/NglViewer').then((m) => ({ default: m.NglViewer })))
 const MolstarViewer = lazy(() => import('./viewers/MolstarViewer').then((m) => ({ default: m.MolstarViewer })))
 
-const REPRESENTATION_OPTIONS: { value: RepresentationType; label: string }[] = [
+interface SelectOption<T extends string> {
+  value: T
+  label: string
+}
+
+const REPRESENTATION_OPTIONS: SelectOption<RepresentationType>[] = [
   { value: 'cartoon', label: 'Cartoon' },
   { value: 'surface', label: 'Surface' },
   { value: 'ball+stick', label: 'Ball and Stick' },
@@ -27,10 +32,18 @@ const REPRESENTATION_OPTIONS: { value: RepresentationType; label: string }[] = [
   { value: 'licorice', label: 'Licorice' },
 ]
 
-const VIEWER_OPTIONS: { value: ViewerLibrary; label: string }[] = [
+const VIEWER_OPTIONS: SelectOption<ViewerLibrary>[] = [
   { value: 'ngl', label: 'NGL' },
   { value: 'molstar', label: 'Mol*' },
 ]
+
+function renderSelectOptions<T extends string>(options: SelectOption<T>[]) {
+  return options.map(({ value, label }) => (
+    <option key={value} value={value}>
+      {label}
+    </option>
+  ))
+}
 
 // Mock data for testing - remove in production
 const MOCK_RESULTS = [
@@ -80,8 +93,8 @@ export function StructurePage() {
 
 function StructurePageContent() {
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const realResults = useAtomValue(analysisResultsAtom)
-  const results = USE_MOCK_DATA ? MOCK_RESULTS : realResults
+  const realResults = useRecoilValue(analysisResultsAtom)
+  const results: NextcladeResult[] = USE_MOCK_DATA ? (MOCK_RESULTS as NextcladeResult[]) : realResults
   const [selectedIndex, setSelectedIndex] = useRecoilState(selectedSequenceIndexAtom)
   const [representationType, setRepresentationType] = useRecoilState(representationTypeAtom)
   const [viewerLibrary, setViewerLibrary] = useRecoilState(viewerLibraryAtom)
@@ -105,21 +118,18 @@ function StructurePageContent() {
 
     const aaSubs = analysisResult.aaSubstitutions ?? []
 
-    const selections: ResidueSelection[] = []
-    for (const sub of aaSubs) {
+    return aaSubs.flatMap((sub): ResidueSelection[] => {
       const chain = structureConfig.chainMapping[sub.cdsName]
-      if (chain) {
-        selections.push({
+      if (!chain) return []
+      return [
+        {
           chain,
-          position: sub.pos + 1 + structureConfig.offset, // Convert 0-based to 1-based
+          position: sub.pos + 1 + structureConfig.offset,
           color: 'red',
-        })
-      }
-    }
-    return selections
+        },
+      ]
+    })
   }, [structureConfig, results, selectedIndex])
-
-
 
   const handleSequenceChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -166,9 +176,9 @@ function StructurePageContent() {
         <ControlGroup>
           <Label htmlFor="sequence-select">Sequence:</Label>
           <Select id="sequence-select" value={selectedIndex} onChange={handleSequenceChange}>
-            {results.map((result, idx) => (
-              <option key={idx} value={idx}>
-                {result.seqName ?? `Sequence ${idx}`}
+            {results.map((result) => (
+              <option key={result.index} value={result.index}>
+                {result.seqName ?? `Sequence ${result.index}`}
               </option>
             ))}
           </Select>
@@ -177,22 +187,14 @@ function StructurePageContent() {
         <ControlGroup>
           <Label htmlFor="representation-select">Representation:</Label>
           <Select id="representation-select" value={representationType} onChange={handleRepresentationChange}>
-            {REPRESENTATION_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {renderSelectOptions(REPRESENTATION_OPTIONS)}
           </Select>
         </ControlGroup>
 
         <ControlGroup>
           <Label htmlFor="viewer-select">Viewer:</Label>
           <Select id="viewer-select" value={viewerLibrary} onChange={handleViewerChange}>
-            {VIEWER_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {renderSelectOptions(VIEWER_OPTIONS)}
           </Select>
         </ControlGroup>
 

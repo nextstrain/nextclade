@@ -45,11 +45,8 @@ export function getStructureConfig(datasetPath: string | undefined): StructureCo
   }
 
   // Try partial match (dataset path may be longer)
-  for (const [key, config] of Object.entries(STRUCTURE_CONFIGS)) {
-    if (datasetPath.includes(key) || key.includes(datasetPath)) {
-      return config
-    }
-  }
-
-  return undefined
+  const partialMatch = Object.entries(STRUCTURE_CONFIGS).find(
+    ([key]) => datasetPath.includes(key) || key.includes(datasetPath),
+  )
+  return partialMatch?.[1]
 }

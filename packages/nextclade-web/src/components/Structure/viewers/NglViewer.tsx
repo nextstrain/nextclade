@@ -1,11 +1,23 @@
+/* eslint-disable no-void */
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import styled from 'styled-components'
 import type { RepresentationType } from 'src/state/structure.state'
 import type { ResidueSelection, StructureViewerHandle } from './types'
 
-// NGL types - using types from the ngl package
 type NglStage = import('ngl').Stage
 type NglComponent = import('ngl').Component
+
+function addHighlightRepresentation(component: NglComponent, selection: ResidueSelection) {
+  const { chain, position, color = 'red' } = selection
+  const sele = `${position}:${chain}`
+  component.addRepresentation('ball+stick', {
+    sele,
+    color,
+    radius: 0.5,
+    scale: 1.5,
+    name: 'highlight',
+  })
+}
 
 interface NglViewerProps {
   representationType: RepresentationType
@@ -36,12 +48,12 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
     let stage: NglStage | null = null
     let handleResize: (() => void) | null = null
 
-    const initStage = async () => {
+    async function initStage(containerElement: HTMLDivElement) {
       try {
         const NGL = await import('ngl')
         if (disposed) return
 
-        stage = new NGL.Stage(container, {
+        stage = new NGL.Stage(containerElement, {
           backgroundColor: 'white',
         })
         stageRef.current = stage
@@ -50,15 +62,15 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
         window.addEventListener('resize', handleResize)
 
         setIsStageReady(true)
-      } catch (err) {
+      } catch (error_) {
         if (disposed) return
-        const errorMsg = err instanceof Error ? err.message : 'Failed to initialize NGL viewer'
+        const errorMsg = error_ instanceof Error ? error_.message : 'Failed to initialize NGL viewer'
         setError(errorMsg)
-        onError?.(err instanceof Error ? err : new Error(errorMsg))
+        onError?.(error_ instanceof Error ? error_ : new Error(errorMsg))
       }
     }
 
-    void initStage()
+    void initStage(container)
 
     return () => {
       disposed = true
@@ -74,7 +86,7 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
     }
   }, [onError])
 
-  // Load structure function
+  // Load structure function - does NOT depend on representationType
   const loadStructure = useCallback(
     async (id: string) => {
       if (!stageRef.current) {
@@ -91,60 +103,47 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
           throw new Error('Failed to load structure component')
         }
         componentRef.current = component
-
-        // Apply representation
-        component.addRepresentation(representationType, {
-          color: 'sstruc',
-          name: 'main',
-        })
-
         stageRef.current.autoView()
         onLoad?.()
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to load structure'
+      } catch (error_) {
+        const errorMsg = error_ instanceof Error ? error_.message : 'Failed to load structure'
         setError(errorMsg)
-        onError?.(err instanceof Error ? err : new Error(errorMsg))
-        throw err
+        onError?.(error_ instanceof Error ? error_ : new Error(errorMsg))
+        throw error_
       } finally {
         setIsLoading(false)
       }
     },
-    [representationType, onLoad, onError],
+    [onLoad, onError],
   )
 
   // Auto-load when stage is ready and pdbId is provided
   useEffect(() => {
     if (!isStageReady || !pdbId) return
     setIsStructureReady(false)
-    void loadStructure(pdbId).then(() => {
-      setIsStructureReady(true)
-    })
+    loadStructure(pdbId)
+      .then(() => {
+        setIsStructureReady(true)
+        return undefined
+      })
+      .catch(() => {
+        // Error already handled in loadStructure
+      })
   }, [isStageReady, pdbId, loadStructure])
 
-  // Apply highlights when structure is ready and highlights change
+  // Apply representation and highlights when structure is ready or they change
   useEffect(() => {
     if (!isStructureReady || !componentRef.current) return
 
     const component = componentRef.current
 
-    // Remove existing highlights by rebuilding main representation
     component.removeAllRepresentations()
     component.addRepresentation(representationType, {
       color: 'sstruc',
       name: 'main',
     })
 
-    // Add highlights
-    for (const { chain, position, color = 'red' } of highlights) {
-      const sele = `${position}:${chain}`
-      component.addRepresentation('ball+stick', {
-        sele,
-        color,
-        radius: 0.5,
-        scale: 1.5,
-        name: 'highlight',
-      })
-    }
+    highlights.forEach((selection) => addHighlightRepresentation(component, selection))
 
     stageRef.current?.autoView()
   }, [isStructureReady, highlights, representationType])
@@ -164,20 +163,10 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
     if (!component) return
 
     try {
-      selections.forEach(({ chain, position, color = 'red' }) => {
-        const sele = `${position}:${chain}`
-        component.addRepresentation('ball+stick', {
-          sele,
-          color,
-          radius: 0.5,
-          scale: 1.5,
-          name: 'highlight',
-        })
-      })
+      selections.forEach((selection) => addHighlightRepresentation(component, selection))
       stageRef.current?.autoView()
-    } catch (err) {
-      // Structure may not be fully ready yet - ignore
-      console.warn('Failed to highlight residues:', err)
+    } catch (error_) {
+      console.warn('Failed to highlight residues:', error_)
     }
   }, [])
 
