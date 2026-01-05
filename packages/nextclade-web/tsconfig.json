@@ -57,7 +57,8 @@
     "src/**/*.mjs",
     "src/**/*.mts",
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    "tests/**/*.ts"
   ],
   "exclude": [
     "**/.build/",
