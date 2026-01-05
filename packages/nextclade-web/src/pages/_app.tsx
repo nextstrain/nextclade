@@ -55,6 +55,7 @@ import { findDatasetByPath, findDatasetByPathAndTag } from 'src/helpers/sortData
 import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
+import 'molstar/lib/mol-plugin-ui/skin/light.scss'
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false
 

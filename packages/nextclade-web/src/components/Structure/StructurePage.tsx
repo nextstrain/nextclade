@@ -354,7 +354,12 @@ function StructurePageContent() {
             highlights={mutationSelections}
           />
         ) : (
-          <MolstarViewer ref={viewerRef} representationType={representationType} />
+          <MolstarViewer
+            ref={viewerRef}
+            structureData={structureData}
+            representationType={representationType}
+            highlights={mutationSelections}
+          />
         )}
       </ViewerPanel>
     </ContentWrapper>

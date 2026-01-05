@@ -125,6 +125,7 @@
     "luxon": "2.3.2",
     "marked": "4.0.14",
     "memoize-one": "6.0.0",
+    "molstar": "4.6.0",
     "nanoid": "3.3.6",
     "next": "12.1.6",
     "next-compose-plugins": "2.2.1",
