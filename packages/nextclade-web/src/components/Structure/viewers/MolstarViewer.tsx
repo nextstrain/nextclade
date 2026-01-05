@@ -159,7 +159,7 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
         await plugin.runTask(state.updateTree(tree))
 
         // Apply default preset to the trajectory
-        const trajectories = plugin.managers.structure.hierarchy.current.trajectories
+        const { trajectories } = plugin.managers.structure.hierarchy.current
         if (trajectories.length > 0) {
           await plugin.builders.structure.hierarchy.applyPreset(trajectories[0].cell, 'default')
         }
@@ -221,13 +221,14 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
 
     const plugin = pluginRef.current
 
-    // Highlight mutation residues with red overpaint + focus representation
+    // Highlight mutation residues with prominent red spacefill spheres (like NGL's red balls)
     void (async () => {
       try {
         const { Script } = await import('molstar/lib/mol-script/script')
-        const { StructureSelection, StructureElement } = await import('molstar/lib/mol-model/structure')
+        const { StructureSelection } = await import('molstar/lib/mol-model/structure')
         const { Color } = await import('molstar/lib/mol-util/color')
         const { StateTransforms } = await import('molstar/lib/mol-plugin-state/transforms')
+        const { MolScriptBuilder } = await import('molstar/lib/mol-script/language/builder')
 
         // Clear previous focus
         plugin.managers.structure.focus.clear()
@@ -239,64 +240,68 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
         const structure = structureRef.cell.obj?.data
         if (!structure) return
 
-        // Clear existing overpaint by updating with empty layers
-        for (const component of structureRef.components) {
-          for (const repr of component.representations) {
-            const state = plugin.state.data
-            const overpaintNode = state.select(repr.cell.transform.ref).find(
-              (n) => n.transform.transformer === StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle,
-            )
-            if (overpaintNode) {
-              const update = state.build().to(overpaintNode).update({ layers: [] })
-              await plugin.runTask(state.updateTree(update))
-            }
-          }
+        // Remove existing mutation highlight components (tagged with 'mutation-highlight')
+        const state = plugin.state.data
+        const existingHighlights = state.selectQ((q) => q.byRef('mutation-highlight'))
+        if (existingHighlights.length > 0) {
+          const deleteUpdate = state.build()
+          existingHighlights.forEach((node) => deleteUpdate.delete(node.transform.ref))
+          await plugin.runTask(state.updateTree(deleteUpdate))
         }
 
         if (highlights.length === 0) return
 
-        // Build selection for all mutation residues
-        const sel = Script.getStructureSelection(
-          (Q) => {
-            const tests = highlights.map(({ chain, position }) =>
-              Q.core.logic.and([
-                Q.core.rel.eq([Q.struct.atomProperty.macromolecular.auth_asym_id(), chain]),
-                Q.core.rel.eq([Q.struct.atomProperty.macromolecular.auth_seq_id(), position]),
-              ]),
-            )
-            return Q.struct.generator.atomGroups({
-              'residue-test': tests.length === 1 ? tests[0] : Q.core.logic.or(tests),
-            })
-          },
-          structure,
-        )
+        // Build selection for camera focus
+        const sel = Script.getStructureSelection((Q) => {
+          const tests = highlights.map(({ chain, position }) =>
+            Q.core.logic.and([
+              Q.core.rel.eq([Q.struct.atomProperty.macromolecular.auth_asym_id(), chain]),
+              Q.core.rel.eq([Q.struct.atomProperty.macromolecular.auth_seq_id(), position]),
+            ]),
+          )
+          return Q.struct.generator.atomGroups({
+            'residue-test': tests.length === 1 ? tests[0] : Q.core.logic.or(tests),
+          })
+        }, structure)
 
         if (StructureSelection.isEmpty(sel)) return
 
         const loci = StructureSelection.toLociWithSourceUnits(sel)
 
-        // Create overpaint layer with red color for mutations
-        const bundle = StructureElement.Bundle.fromLoci(loci)
-        const layer = {
-          bundle,
-          color: Color(0xff0000), // Red
-          clear: false,
-        }
+        // Build MolScript expression for the mutation selection
+        const MS = MolScriptBuilder
+        const mutationTests = highlights.map(({ chain, position }) =>
+          MS.core.logic.and([
+            MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_asym_id(), chain]),
+            MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_seq_id(), position]),
+          ]),
+        )
+        const mutationExpression = MS.struct.generator.atomGroups({
+          'residue-test': mutationTests.length === 1 ? mutationTests[0] : MS.core.logic.or(mutationTests),
+        })
 
-        // Apply overpaint to all representations
-        for (const component of structureRef.components) {
-          for (const repr of component.representations) {
-            const state = plugin.state.data
-            const update = state
-              .build()
-              .to(repr.cell.transform.ref)
-              .apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: [layer] })
-            await plugin.runTask(state.updateTree(update))
-          }
-        }
+        // Add prominent spacefill representation for mutations (large red spheres like NGL)
+        const structureCell = structureRef.cell
+        const update = state
+          .build()
+          .to(structureCell.transform.ref)
+          .apply(
+            StateTransforms.Model.StructureSelectionFromExpression,
+            { expression: mutationExpression, label: 'Mutations' },
+            { ref: 'mutation-highlight' },
+          )
+          .apply(StateTransforms.Representation.StructureRepresentation3D, {
+            type: {
+              name: 'spacefill',
+              params: { sizeFactor: 1.2 },
+            },
+            colorTheme: {
+              name: 'uniform',
+              params: { value: Color(0xff_00_00) },
+            },
+          })
 
-        // Also show focus representation (ball-and-stick) for the mutations
-        plugin.managers.structure.focus.setFromLoci(loci)
+        await plugin.runTask(state.updateTree(update))
 
         // Center camera on mutations
         plugin.managers.camera.focusLoci(loci)
