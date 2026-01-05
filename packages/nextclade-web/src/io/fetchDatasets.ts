@@ -180,11 +180,7 @@ export function useUpdatedDatasetIndex() {
       if (isNil(datasetServerUrl)) {
         return undefined
       }
-      const { datasets, allDatasets, collections, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl)
-      setDatasetsState(datasets)
-      setAllDatasetsState(allDatasets)
-      setCollectionsState(collections)
-      setMinimizerIndexVersion(minimizerIndexVersion)
+      return initializeDatasets(datasetServerUrl)
     },
     staleTime: 2 * 60 * 60 * 1000, // 2 hours
     refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
@@ -198,8 +194,10 @@ export function useUpdatedDatasetIndex() {
   useEffect(() => {
     if (!data) return
     setDatasetsState(data.datasets)
+    setAllDatasetsState(data.allDatasets)
+    setCollectionsState(data.collections)
     setMinimizerIndexVersion(data.minimizerIndexVersion)
-  }, [data, setDatasetsState, setMinimizerIndexVersion])
+  }, [data, setDatasetsState, setAllDatasetsState, setCollectionsState, setMinimizerIndexVersion])
 }
 
 /**

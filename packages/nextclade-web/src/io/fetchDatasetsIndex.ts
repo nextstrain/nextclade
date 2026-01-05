@@ -1,5 +1,5 @@
 import { AxiosError, AxiosHeaders } from 'axios'
-import { get, groupBy, head, isNil, mapValues, sortBy, sortedUniq } from 'lodash'
+import { get, groupBy, isNil, mapValues, sortBy } from 'lodash'
 import semver from 'semver'
 import { findLatestDataset } from 'src/helpers/sortDatasetVersions'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'

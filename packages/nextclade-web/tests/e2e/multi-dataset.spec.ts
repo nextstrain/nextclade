@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { URLParameterTester, TEST_DATASETS } from './helpers/url-parameters'
+import { URLParameterTester } from './helpers/url-parameters'
 
 test.describe('Multi-Dataset Mode URL Parameters', () => {
   let tester: URLParameterTester
