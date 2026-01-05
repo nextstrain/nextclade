@@ -166,9 +166,9 @@ export function NavigationBar() {
         title: t('Show phylogenetic tree'),
       },
       {
-        url: hasRan ? '/structure' : undefined,
+        url: '/structure',
         content: t('Structure'),
-        title: hasRan ? t('Show protein structure with mutations') : t('Please run the analysis first'),
+        title: t('Show protein structure'),
       },
       {
         url: canDownload ? '/export' : undefined,
