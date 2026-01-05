@@ -10,12 +10,13 @@ import { analysisResultsAtom } from 'src/state/results.state'
 import type { NextcladeResult } from 'src/types'
 import {
   representationTypeAtom,
+  selectedPdbIdAtom,
   selectedSequenceIndexAtom,
   viewerLibraryAtom,
   type RepresentationType,
   type ViewerLibrary,
 } from 'src/state/structure.state'
-import { DEFAULT_STRUCTURE_CONFIG, getStructureConfig } from './structureConfig'
+import { getStructureConfigFromOption, getStructureOption, STRUCTURE_OPTIONS } from './structureConfig'
 import {
   fetchStructureCitation,
   fetchStructureFile,
@@ -168,21 +169,23 @@ export function StructurePage() {
 }
 
 function StructurePageContent() {
-  const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const realResults = useRecoilValue(analysisResultsAtom)
   const results: NextcladeResult[] = USE_MOCK_DATA ? (MOCK_RESULTS as NextcladeResult[]) : realResults
   const [selectedIndex, setSelectedIndex] = useRecoilState(selectedSequenceIndexAtom)
   const [representationType, setRepresentationType] = useRecoilState(representationTypeAtom)
   const [viewerLibrary, setViewerLibrary] = useRecoilState(viewerLibraryAtom)
+  const [selectedPdbId, setSelectedPdbId] = useRecoilState(selectedPdbIdAtom)
 
   const viewerRef = useRef<StructureViewerHandle>(null)
 
+  const structureOption = useMemo(() => getStructureOption(selectedPdbId), [selectedPdbId])
+
   const structureConfig = useMemo(() => {
-    if (USE_MOCK_DATA) {
-      return DEFAULT_STRUCTURE_CONFIG
+    if (!structureOption) {
+      return undefined
     }
-    return getStructureConfig(datasetName)
-  }, [datasetName])
+    return getStructureConfigFromOption(structureOption)
+  }, [structureOption])
 
   const pdbId = structureConfig?.pdbId
 
@@ -263,6 +266,13 @@ function StructurePageContent() {
     [setViewerLibrary],
   )
 
+  const handleStructureChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedPdbId(e.target.value)
+    },
+    [setSelectedPdbId],
+  )
+
   const handleResetView = useCallback(() => {
     viewerRef.current?.resetView()
   }, [])
@@ -271,8 +281,8 @@ function StructurePageContent() {
     return (
       <NoDataMessage>
         <h2>No structure available</h2>
-        <p>No protein structure is configured for this dataset ({datasetName}).</p>
-        <p>Structure visualization is currently available for H3N2 HA datasets.</p>
+        <p>No protein structure is configured.</p>
+        <p>Please select a structure from the dropdown.</p>
       </NoDataMessage>
     )
   }
@@ -284,6 +294,33 @@ function StructurePageContent() {
   return (
     <ContentWrapper>
       <ControlsPanel>
+        <ControlGroup>
+          <Label htmlFor="structure-select">Structure:</Label>
+          <Select id="structure-select" value={selectedPdbId} onChange={handleStructureChange}>
+            <optgroup label="H1 Structures">
+              {STRUCTURE_OPTIONS.filter((opt) => opt.group === 'H1').map((opt) => (
+                <option key={opt.pdbId} value={opt.pdbId}>
+                  {opt.pdbId} - {opt.description}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="H3 Structures">
+              {STRUCTURE_OPTIONS.filter((opt) => opt.group === 'H3').map((opt) => (
+                <option key={opt.pdbId} value={opt.pdbId}>
+                  {opt.pdbId} - {opt.description}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="H5 Structures">
+              {STRUCTURE_OPTIONS.filter((opt) => opt.group === 'H5').map((opt) => (
+                <option key={opt.pdbId} value={opt.pdbId}>
+                  {opt.pdbId} - {opt.description}
+                </option>
+              ))}
+            </optgroup>
+          </Select>
+        </ControlGroup>
+
         <ControlGroup>
           <Label htmlFor="sequence-select">Sequence:</Label>
           <Select id="sequence-select" value={selectedIndex} onChange={handleSequenceChange}>
@@ -328,6 +365,18 @@ function StructurePageContent() {
               </PdbLink>
             </InfoValue>
           </InfoRow>
+          {structureOption && (
+            <>
+              <InfoRow>
+                <InfoLabel>Resolution:</InfoLabel>
+                <InfoValue>{structureOption.resolution} A</InfoValue>
+              </InfoRow>
+              <InfoRow>
+                <InfoLabel>Reference:</InfoLabel>
+                <InfoValue>{structureOption.reference}</InfoValue>
+              </InfoRow>
+            </>
+          )}
           <InfoRow>
             <InfoLabel>Sequence:</InfoLabel>
             <InfoValue>{seqName}</InfoValue>
@@ -348,6 +397,7 @@ function StructurePageContent() {
           <LoadingMessage>Fetching structure...</LoadingMessage>
         ) : viewerLibrary === 'ngl' ? (
           <NglViewer
+            key={`ngl-${pdbId}`}
             ref={viewerRef}
             structureData={structureData}
             representationType={representationType}
@@ -355,6 +405,7 @@ function StructurePageContent() {
           />
         ) : (
           <MolstarViewer
+            key={`molstar-${pdbId}`}
             ref={viewerRef}
             structureData={structureData}
             representationType={representationType}
