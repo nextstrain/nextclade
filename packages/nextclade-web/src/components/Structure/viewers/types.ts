@@ -7,7 +7,7 @@ export interface ResidueSelection {
 }
 
 export interface StructureViewerHandle {
-  load(pdbId: string): Promise<void>
+  load(data: ArrayBuffer, format: string): Promise<void>
   setRepresentation(type: RepresentationType): void
   highlightResidues(selections: ResidueSelection[]): void
   clearHighlights(): void

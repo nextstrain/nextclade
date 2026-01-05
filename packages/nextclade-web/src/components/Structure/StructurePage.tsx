@@ -1,8 +1,10 @@
-import React, { Suspense, lazy, useCallback, useMemo, useRef } from 'react'
+import React, { Suspense, lazy, useCallback, useMemo, useRef, useState } from 'react'
+import { useQuery } from 'react-query'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 import { LOADING } from 'src/components/Loading/Loading'
+import { Tooltip } from 'src/components/Results/Tooltip'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { analysisResultsAtom } from 'src/state/results.state'
 import type { NextcladeResult } from 'src/types'
@@ -14,10 +16,80 @@ import {
   type ViewerLibrary,
 } from 'src/state/structure.state'
 import { DEFAULT_STRUCTURE_CONFIG, getStructureConfig } from './structureConfig'
+import {
+  fetchStructureCitation,
+  fetchStructureFile,
+  formatFullCitation,
+  formatShortCitation,
+  RCSB_CITATION,
+  type StructureCitation,
+} from './rcsbApi'
 import type { ResidueSelection, StructureViewerHandle } from './viewers/types'
 
 const NglViewer = lazy(() => import('./viewers/NglViewer').then((m) => ({ default: m.NglViewer })))
 const MolstarViewer = lazy(() => import('./viewers/MolstarViewer').then((m) => ({ default: m.MolstarViewer })))
+
+interface CitationsSectionProps {
+  structureCitation: StructureCitation | undefined
+  databaseCitation: StructureCitation
+}
+
+function CitationsSection({ structureCitation, databaseCitation }: CitationsSectionProps) {
+  const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+
+  return (
+    <CitationSectionContainer id="citations-section" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+      <CitationHeader>Citations</CitationHeader>
+      {structureCitation && (
+        <CitationRow>
+          <CitationLabel>Structure:</CitationLabel>
+          <CitationValue>
+            {formatShortCitation(structureCitation)}
+            {structureCitation.doi && (
+              <>
+                {' '}
+                <CitationLink href={`https://doi.org/${structureCitation.doi}`} target="_blank" rel="noopener noreferrer">
+                  doi
+                </CitationLink>
+              </>
+            )}
+          </CitationValue>
+        </CitationRow>
+      )}
+      <CitationRow>
+        <CitationLabel>Database:</CitationLabel>
+        <CitationValue>
+          {formatShortCitation(databaseCitation)}
+          {databaseCitation.doi && (
+            <>
+              {' '}
+              <CitationLink href={`https://doi.org/${databaseCitation.doi}`} target="_blank" rel="noopener noreferrer">
+                doi
+              </CitationLink>
+            </>
+          )}
+        </CitationValue>
+      </CitationRow>
+      <Tooltip target="citations-section" isOpen={showTooltip} placement="bottom-start" tooltipWidth="450px">
+        <TooltipContent>
+          <TooltipHeader>Citations</TooltipHeader>
+          {structureCitation && (
+            <TooltipRow>
+              <TooltipLabel>Structure:</TooltipLabel>
+              <TooltipValue>{formatFullCitation(structureCitation)}</TooltipValue>
+            </TooltipRow>
+          )}
+          <TooltipRow>
+            <TooltipLabel>Database:</TooltipLabel>
+            <TooltipValue>{formatFullCitation(databaseCitation)}</TooltipValue>
+          </TooltipRow>
+        </TooltipContent>
+      </Tooltip>
+    </CitationSectionContainer>
+  )
+}
 
 interface SelectOption<T extends string> {
   value: T
@@ -107,6 +179,41 @@ function StructurePageContent() {
     }
     return getStructureConfig(datasetName)
   }, [datasetName])
+
+  const pdbId = structureConfig?.pdbId
+
+  const {
+    data: structureData,
+    isLoading: isLoadingStructure,
+    error: structureError,
+  } = useQuery(
+    ['structure-file', pdbId],
+    async () => {
+      if (!pdbId) throw new Error('No PDB ID')
+      return fetchStructureFile(pdbId)
+    },
+    {
+      enabled: Boolean(pdbId),
+      staleTime: Number.POSITIVE_INFINITY,
+      refetchOnWindowFocus: false,
+    },
+  )
+
+  const { data: citation } = useQuery(
+    ['structure-citation', pdbId],
+    async () => {
+      if (!pdbId) return undefined
+      return fetchStructureCitation(pdbId)
+    },
+    {
+      enabled: Boolean(pdbId),
+      staleTime: Number.POSITIVE_INFINITY,
+      refetchOnWindowFocus: false,
+    },
+  )
+
+  const isFetching = isLoadingStructure
+  const fetchError = structureError instanceof Error ? structureError.message : undefined
 
   // Get mutation selections for current sequence
   const mutationSelections = useMemo((): ResidueSelection[] => {
@@ -207,7 +314,15 @@ function StructurePageContent() {
         <InfoPanel>
           <InfoRow>
             <InfoLabel>Structure:</InfoLabel>
-            <InfoValue>PDB {structureConfig.pdbId}</InfoValue>
+            <InfoValue>
+              <PdbLink
+                href={`https://www.rcsb.org/structure/${structureConfig.pdbId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                PDB {structureConfig.pdbId}
+              </PdbLink>
+            </InfoValue>
           </InfoRow>
           <InfoRow>
             <InfoLabel>Sequence:</InfoLabel>
@@ -218,13 +333,19 @@ function StructurePageContent() {
             <InfoValue>{mutationCount} highlighted</InfoValue>
           </InfoRow>
         </InfoPanel>
+
+        <CitationsSection structureCitation={citation} databaseCitation={RCSB_CITATION} />
       </ControlsPanel>
 
       <ViewerPanel>
-        {viewerLibrary === 'ngl' ? (
+        {fetchError ? (
+          <ErrorMessage>{fetchError}</ErrorMessage>
+        ) : isFetching ? (
+          <LoadingMessage>Fetching structure...</LoadingMessage>
+        ) : viewerLibrary === 'ngl' ? (
           <NglViewer
             ref={viewerRef}
-            pdbId={structureConfig.pdbId}
+            structureData={structureData}
             representationType={representationType}
             highlights={mutationSelections}
           />
@@ -370,5 +491,107 @@ const NoDataMessage = styled.div`
   p {
     margin: 0 0 4px;
     max-width: 400px;
+  }
+`
+
+const ErrorMessage = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #c00;
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
+`
+
+const LoadingMessage = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6c757d;
+  font-size: 14px;
+`
+
+const CitationSectionContainer = styled.div`
+  padding-top: 12px;
+  border-top: 1px solid #dee2e6;
+  font-size: 11px;
+  cursor: help;
+`
+
+const CitationHeader = styled.div`
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+`
+
+const CitationRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+  line-height: 1.4;
+`
+
+const CitationLabel = styled.span`
+  color: #6c757d;
+  flex-shrink: 0;
+`
+
+const CitationValue = styled.span`
+  color: #495057;
+`
+
+const CitationLink = styled.a`
+  color: #007bff;
+  text-decoration: none;
+  font-size: 10px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`
+
+const TooltipContent = styled.div`
+  font-size: 12px;
+  line-height: 1.5;
+`
+
+const TooltipHeader = styled.div`
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-size: 11px;
+`
+
+const TooltipRow = styled.div`
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
+
+const TooltipLabel = styled.div`
+  color: #6c757d;
+  font-size: 11px;
+  margin-bottom: 2px;
+`
+
+const TooltipValue = styled.div`
+  color: #212529;
+`
+
+const PdbLink = styled.a`
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
   }
 `

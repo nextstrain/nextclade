@@ -19,16 +19,21 @@ function addHighlightRepresentation(component: NglComponent, selection: ResidueS
   })
 }
 
+interface StructureData {
+  data: ArrayBuffer
+  format: 'pdb' | 'cif' | 'bcif'
+}
+
 interface NglViewerProps {
   representationType: RepresentationType
-  pdbId?: string
+  structureData?: StructureData
   highlights?: ResidueSelection[]
   onLoad?: () => void
   onError?: (error: Error) => void
 }
 
 export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(function NglViewer(
-  { representationType, pdbId, highlights = [], onLoad, onError },
+  { representationType, structureData, highlights = [], onLoad, onError },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -86,9 +91,9 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
     }
   }, [onError])
 
-  // Load structure function - does NOT depend on representationType
+  // Load structure from ArrayBuffer
   const loadStructure = useCallback(
-    async (id: string) => {
+    async (data: ArrayBuffer, format: string) => {
       if (!stageRef.current) {
         throw new Error('Stage not initialized')
       }
@@ -98,7 +103,8 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
 
       try {
         stageRef.current.removeAllComponents()
-        const component = await stageRef.current.loadFile(`rcsb://${id}`)
+        const blob = new Blob([data])
+        const component = await stageRef.current.loadFile(blob, { ext: format })
         if (!component) {
           throw new Error('Failed to load structure component')
         }
@@ -117,11 +123,11 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
     [onLoad, onError],
   )
 
-  // Auto-load when stage is ready and pdbId is provided
+  // Auto-load when stage is ready and structureData is provided
   useEffect(() => {
-    if (!isStageReady || !pdbId) return
+    if (!isStageReady || !structureData) return
     setIsStructureReady(false)
-    loadStructure(pdbId)
+    loadStructure(structureData.data, structureData.format)
       .then(() => {
         setIsStructureReady(true)
         return undefined
@@ -129,7 +135,7 @@ export const NglViewer = forwardRef<StructureViewerHandle, NglViewerProps>(funct
       .catch(() => {
         // Error already handled in loadStructure
       })
-  }, [isStageReady, pdbId, loadStructure])
+  }, [isStageReady, structureData, loadStructure])
 
   // Apply representation and highlights when structure is ready or they change
   useEffect(() => {
