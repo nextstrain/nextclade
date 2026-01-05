@@ -124,6 +124,19 @@ function renderSelectOptions<T extends string>(options: SelectOption<T>[]) {
   ))
 }
 
+function renderStructureOptionGroup(group: string, label: string) {
+  const filteredOptions = STRUCTURE_OPTIONS.filter((opt) => opt.group === group)
+  return (
+    <optgroup key={group} label={label}>
+      {filteredOptions.map((opt) => (
+        <option key={opt.pdbId} value={opt.pdbId}>
+          {opt.pdbId} - {opt.description}
+        </option>
+      ))}
+    </optgroup>
+  )
+}
+
 // Mock data for testing - remove in production
 const MOCK_RESULTS = [
   {
@@ -325,27 +338,9 @@ function StructurePageContent() {
         <ControlGroup>
           <Label htmlFor="structure-select">Structure:</Label>
           <Select id="structure-select" value={selectedPdbId} onChange={handleStructureChange}>
-            <optgroup label="H1 Structures">
-              {STRUCTURE_OPTIONS.filter((opt) => opt.group === 'H1').map((opt) => (
-                <option key={opt.pdbId} value={opt.pdbId}>
-                  {opt.pdbId} - {opt.description}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="H3 Structures">
-              {STRUCTURE_OPTIONS.filter((opt) => opt.group === 'H3').map((opt) => (
-                <option key={opt.pdbId} value={opt.pdbId}>
-                  {opt.pdbId} - {opt.description}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="H5 Structures">
-              {STRUCTURE_OPTIONS.filter((opt) => opt.group === 'H5').map((opt) => (
-                <option key={opt.pdbId} value={opt.pdbId}>
-                  {opt.pdbId} - {opt.description}
-                </option>
-              ))}
-            </optgroup>
+            {renderStructureOptionGroup('H1', 'H1 Structures')}
+            {renderStructureOptionGroup('H3', 'H3 Structures')}
+            {renderStructureOptionGroup('H5', 'H5 Structures')}
           </Select>
         </ControlGroup>
 

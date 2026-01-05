@@ -9,7 +9,6 @@ import type { ResidueSelection, StructureViewerHandle } from './types'
 type PluginUIContext = import('molstar/lib/mol-plugin-ui/context').PluginUIContext
 
 const MUTATION_HIGHLIGHT_REF = 'mutation-highlight'
-const ENTITY_COMPONENT_PREFIX = 'entity-'
 const REPR_BALL_AND_STICK = 'ball-and-stick'
 
 const REPRESENTATION_MAP: Record<RepresentationType, string> = {
@@ -225,7 +224,7 @@ export const MolstarViewer = forwardRef<StructureViewerHandle, MolstarViewerProp
 
         // Toggle visibility based on entity type
         components.forEach((component) => {
-          const key = component.key
+          const { key } = component
           if (!key) return
 
           const entityType = componentKeyToEntityType[key] as EntityType | undefined

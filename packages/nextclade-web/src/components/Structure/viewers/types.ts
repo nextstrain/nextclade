@@ -1,6 +1,6 @@
-import type { EntityVisibility, RepresentationType } from 'src/state/structure.state'
+import type { RepresentationType } from 'src/state/structure.state'
 
-export type { EntityVisibility }
+export type { EntityVisibility } from 'src/state/structure.state'
 
 export interface ResidueSelection {
   chain: string
