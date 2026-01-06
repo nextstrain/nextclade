@@ -32,7 +32,6 @@ dotenv_codegen = { workspace = true }
 eyre = { workspace = true }
 indexmap = { workspace = true }
 itertools = { workspace = true }
-lazy_static = { workspace = true }
 log = { workspace = true }
 maplit = { workspace = true }
 nextclade = { path = "../nextclade" }

@@ -47,7 +47,6 @@ getrandom = { workspace = true }
 indexmap = { workspace = true }
 intervallum = { workspace = true }
 itertools = { workspace = true }
-lazy_static = { workspace = true }
 log = { workspace = true }
 maplit = { workspace = true }
 multimap = { workspace = true }

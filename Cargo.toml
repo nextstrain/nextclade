@@ -58,7 +58,6 @@ indexmap = { version = "=1.9.3", features = ["serde"] }
 intervallum = "=1.4.4"
 itertools = "=0.14.0"
 js-sys = { version = "=0.3.83", features = [] }
-lazy_static = "=1.5.0"
 log = "=0.4.29"
 maplit = "=1.0.2"
 multimap = "=0.8.3"
