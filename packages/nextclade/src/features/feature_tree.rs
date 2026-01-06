@@ -224,7 +224,7 @@ fn build_hierarchy_of_features(features: &[Feature]) -> Result<Vec<FeatureGroup>
   // Group children according to their `ID` (Features with the same `ID` are considered the same feature, just split into multiple segments).
   let all_features = features
     .iter()
-    .group_by(|feature| feature.id.clone())
+    .chunk_by(|feature| feature.id.clone())
     .into_iter()
     .map(|(_, features)| FeatureGroup::new(&features.cloned().collect_vec()))
     .collect_vec();

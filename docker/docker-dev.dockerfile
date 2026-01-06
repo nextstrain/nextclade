@@ -227,17 +227,17 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_BINDGEN_CLI_VERSION="0.2.93" \
+&& export WASM_BINDGEN_CLI_VERSION="0.2.106" \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
 RUN set -euxo pipefail >/dev/null \
-&& export BINARYEN_VERSION="114" \
+&& export BINARYEN_VERSION="125" \
 && curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*' \
 && chmod +x ${CARGO_HOME}/bin/wasm*
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_PACK_VERSION="0.12.1" \
+&& export WASM_PACK_VERSION="0.13.1" \
 && curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack" \
 && chmod +x "${CARGO_HOME}/bin/wasm-pack"
 

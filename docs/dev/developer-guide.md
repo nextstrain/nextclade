@@ -244,7 +244,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
     You might also have to install a particular version of `wasm-bindgen-cli` (if you get an error during `bun wasm-prod`):
 
     ```bash
-    cargo install wasm-bindgen-cli@0.2.93 --locked
+    cargo install wasm-bindgen-cli@0.2.106 --locked
     ```
 
 6. Install NPM dependencies (once)

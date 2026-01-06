@@ -39,7 +39,7 @@ pub fn find_aa_motifs(aa_motifs_desc: &[AaMotifsDesc], translation: &Translation
   // Group motifs by name
   let motifs = motifs
     .into_iter()
-    .group_by(|motif| motif.name.clone())
+    .chunk_by(|motif| motif.name.clone())
     .into_iter()
     .map(|(name, motifs)| (name, motifs.collect_vec()))
     .collect();

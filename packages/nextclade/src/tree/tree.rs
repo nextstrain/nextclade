@@ -22,7 +22,7 @@ use std::slice::Iter;
 use traversal::{Bft, DftPost, DftPre};
 use validator::Validate;
 
-#[derive(Clone, schemars::JsonSchema, Validate, Debug)]
+#[derive(Clone, schemars::JsonSchema, Debug)]
 pub struct AuspiceGraphEdgePayload; // Edge payload is empty. Branch attributes are currently stored on nodes.
 
 impl AuspiceGraphEdgePayload {
