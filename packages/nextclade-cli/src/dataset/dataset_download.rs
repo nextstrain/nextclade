@@ -44,7 +44,8 @@ pub fn nextclade_get_inputs(
     } else {
       make_error!(
         "--input-dataset: path is invalid. \
-        Expected a directory path, a zip file path or json file path, but got: {}", input_dataset.display()
+        Expected a directory path, a zip file path or json file path, but got: {}",
+        input_dataset.display()
       )
     }
   } else {
@@ -71,14 +72,17 @@ pub fn dataset_zip_download(
   tag: Option<&String>,
   output_file_path: &Path,
 ) -> Result<(), Report> {
-  let mut file =
-    create_file_or_stdout(output_file_path).wrap_err_with(|| format!("When opening file {}", output_file_path.display()))?;
+  let mut file = create_file_or_stdout(output_file_path)
+    .wrap_err_with(|| format!("When opening file {}", output_file_path.display()))?;
 
   let content = dataset_zip_fetch(http, dataset, tag)?;
 
-  file
-    .write_all(&content)
-    .wrap_err_with(|| format!("When writing downloaded dataset zip file to {}", output_file_path.display()))
+  file.write_all(&content).wrap_err_with(|| {
+    format!(
+      "When writing downloaded dataset zip file to {}",
+      output_file_path.display()
+    )
+  })
 }
 
 pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: impl AsRef<str>) -> Result<String, Report> {
@@ -117,15 +121,23 @@ pub fn dataset_zip_load(
   let buf_file = BufReader::new(file);
   let mut zip = ZipArchive::new(buf_file)?;
 
-  let virus_properties = read_from_path_or_zip(run_args.inputs.input_pathogen_json.as_ref(), &mut zip, Some(&"pathogen.json"))?
-    .map_ref_fallible(VirusProperties::from_str)
-    .wrap_err("When reading pathogen JSON from dataset")?
-    .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
+  let virus_properties = read_from_path_or_zip(
+    run_args.inputs.input_pathogen_json.as_ref(),
+    &mut zip,
+    Some(&"pathogen.json"),
+  )?
+  .map_ref_fallible(VirusProperties::from_str)
+  .wrap_err("When reading pathogen JSON from dataset")?
+  .ok_or_else(|| eyre!("Pathogen JSON must always be present in the dataset but not found."))?;
 
-  let ref_record = read_from_path_or_zip(run_args.inputs.input_ref.as_ref(), &mut zip, virus_properties.files.reference.as_ref())?
-    .map_ref_fallible(read_one_fasta_from_str)
-    .wrap_err("When reading reference sequence from dataset")?
-    .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
+  let ref_record = read_from_path_or_zip(
+    run_args.inputs.input_ref.as_ref(),
+    &mut zip,
+    virus_properties.files.reference.as_ref(),
+  )?
+  .map_ref_fallible(read_one_fasta_from_str)
+  .wrap_err("When reading reference sequence from dataset")?
+  .ok_or_else(|| eyre!("Reference sequence must always be present in the dataset but not found."))?;
 
   let gene_map = read_from_path_or_zip(
     run_args.inputs.input_annotation.as_ref(),
@@ -137,9 +149,13 @@ pub fn dataset_zip_load(
   .map(|gene_map| filter_gene_map(gene_map, cdses.as_ref()))
   .unwrap_or_default();
 
-  let tree = read_from_path_or_zip(run_args.inputs.input_tree.as_ref(), &mut zip, virus_properties.files.tree_json.as_ref())?
-    .map_ref_fallible(AuspiceTree::from_str)
-    .wrap_err("When reading reference tree JSON from dataset")?;
+  let tree = read_from_path_or_zip(
+    run_args.inputs.input_tree.as_ref(),
+    &mut zip,
+    virus_properties.files.tree_json.as_ref(),
+  )?
+  .map_ref_fallible(AuspiceTree::from_str)
+  .wrap_err("When reading reference tree JSON from dataset")?;
 
   verify_dataset_files(&virus_properties, zip.file_names());
 

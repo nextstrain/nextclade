@@ -10,7 +10,7 @@ pub fn this_package_version() -> &'static Version {
   static VERSION: LazyLock<Version> = LazyLock::new(|| {
     Version::parse(env!("CARGO_PKG_VERSION")).expect(
       "Unable to parse env var `CARGO_PKG_VERSION` in semantic version format. \
-        In most cases it comes from `version` field in `Cargo.toml` file."
+        In most cases it comes from `version` field in `Cargo.toml` file.",
     )
   });
   &VERSION

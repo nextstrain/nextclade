@@ -3,7 +3,6 @@ use crate::coord::position::NucRefGlobalPosition;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
-use std::sync::LazyLock;
 use regex::Regex;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -11,6 +10,7 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::str;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 

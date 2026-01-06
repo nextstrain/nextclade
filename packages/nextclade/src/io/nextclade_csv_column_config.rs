@@ -3,10 +3,10 @@ use edit_distance::edit_distance;
 use eyre::Report;
 use indexmap::{indexmap, IndexMap};
 use itertools::{Either, Itertools};
-use std::sync::LazyLock;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use strum::VariantNames;
 use strum_macros::{Display, EnumString, VariantNames};
 
@@ -211,7 +211,8 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
 });
 
 pub static CSV_POSSIBLE_CATEGORIES: LazyLock<Vec<String>> = LazyLock::new(|| {
-  CsvColumnCategory::VARIANTS.iter()
+  CsvColumnCategory::VARIANTS
+    .iter()
     .copied()
     .map(String::from)
     .collect_vec()

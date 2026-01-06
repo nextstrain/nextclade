@@ -9,11 +9,11 @@ use crate::utils::error::to_eyre_error;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use eyre::{eyre, Report, WrapErr};
 use itertools::{chain, Itertools};
-use std::sync::LazyLock;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::path::Path;
+use std::sync::LazyLock;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
