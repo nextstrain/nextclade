@@ -73,7 +73,6 @@ rayon = "=1.11.0"
 regex = "=1.12.2"
 reqwest = { version = "=0.13.1", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls", "rustls-native-certs", "webpki-roots"] }
 rstest = "=0.26.1"
-rstest_reuse = "=0.7.0"
 rust_xlsxwriter = { version = "=0.92.2", features = ["wasm"] }
 schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap", "raw_value", "preserve_order"] }
 semver = { version = "=1.0.27", features = ["serde"] }
