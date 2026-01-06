@@ -67,8 +67,8 @@ pub fn is_path_stdout(filepath: impl AsRef<Path>) -> bool {
 
 #[cfg(not(target_arch = "wasm32"))]
 mod non_wasm {
-  use atty::{is as is_tty, Stream};
   use log::warn;
+  use std::io::IsTerminal;
 
   #[cfg(not(target_arch = "wasm32"))]
   const TTY_WARNING: &str = r#"Reading from standard input which is a TTY (e.g. an interactive terminal). This is likely not what you meant. Instead:
@@ -83,7 +83,7 @@ mod non_wasm {
 "#;
 
   pub(super) fn warn_if_tty() {
-    if is_tty(Stream::Stdin) {
+    if std::io::stdin().is_terminal() {
       warn!("{TTY_WARNING}");
     }
   }

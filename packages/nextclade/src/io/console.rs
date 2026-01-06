@@ -3,6 +3,8 @@ use clap::ValueEnum;
 use console::{Color, Style};
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_arch = "wasm32"))]
+use std::io::IsTerminal;
 
 #[derive(Copy, Clone, Default, Debug, Serialize, Deserialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
@@ -53,7 +55,7 @@ impl CliColorMode {
 pub fn is_tty() -> bool {
   #[cfg(not(target_arch = "wasm32"))]
   {
-    atty::is(atty::Stream::Stderr)
+    std::io::stderr().is_terminal()
   }
 
   #[cfg(target_arch = "wasm32")]
