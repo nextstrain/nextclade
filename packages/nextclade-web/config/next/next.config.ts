@@ -25,8 +25,12 @@ import { getDomain } from '../../lib/getDomain'
 import { getGitBranch } from '../../lib/getGitBranch'
 import { getGitCommitHash } from '../../lib/getGitCommitHash'
 import { getenv } from '../../lib/getenv'
+import { getBrowserSupport } from './getBrowserSupport'
 
 const { pkg, moduleRoot } = findModuleRoot()
+
+const browserSupport = getBrowserSupport(pkg.browserslist.production)
+const wasmFeatures: string[] = pkg.wasmFeatures ?? []
 
 const PRODUCTION = process.env.NODE_ENV === 'production'
 const DOMAIN = getDomain()
@@ -51,6 +55,8 @@ const env = {
   BUILD_NUMBER,
   BUILD_URL,
   BLOCK_SEARCH_INDEXING,
+  BROWSER_SUPPORT: JSON.stringify(browserSupport),
+  WASM_FEATURES: JSON.stringify(wasmFeatures),
 }
 
 const appJson = {
