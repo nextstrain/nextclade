@@ -2,7 +2,7 @@
 frequency = 'always'
 
 [profile.dev]
-codegen-units = 4096
+codegen-units = 256
 incremental = true
 lto = "off"
 
