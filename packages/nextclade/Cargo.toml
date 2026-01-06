@@ -37,6 +37,7 @@ console = { workspace = true }
 csv = { workspace = true }
 ctor = { workspace = true }
 derive_more = { workspace = true }
+dotenvy_macro = { workspace = true }
 edit-distance = { workspace = true }
 either = { workspace = true }
 env_logger = { workspace = true }

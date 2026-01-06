@@ -27,8 +27,7 @@ console = { workspace = true }
 crossbeam = { workspace = true }
 crossbeam-channel = { workspace = true }
 ctor = { workspace = true }
-dotenv = { workspace = true }
-dotenv_codegen = { workspace = true }
+dotenvy_macro = { workspace = true }
 eyre = { workspace = true }
 indexmap = { workspace = true }
 itertools = { workspace = true }
