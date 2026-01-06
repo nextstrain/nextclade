@@ -5,7 +5,7 @@ use itertools::Itertools;
 pub fn calculate_phenotype(phenotype_data: &PhenotypeData, aa_substitutions: &[AaSub]) -> f64 {
   let aa_substitutions = aa_substitutions
     .iter()
-    .filter(|sub| (sub.cds_name == phenotype_data.cds && phenotype_data.aa_range.contains(sub.pos)))
+    .filter(|sub| sub.cds_name == phenotype_data.cds && phenotype_data.aa_range.contains(sub.pos))
     .collect_vec();
 
   let phenotype: f64 = phenotype_data

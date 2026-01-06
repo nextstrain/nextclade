@@ -7,7 +7,7 @@ use flate2::write::GzEncoder;
 use flate2::Compression as GzCompressionLevel;
 use log::trace;
 use std::env;
-use std::io::{ErrorKind, Read, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 use std::str::FromStr;
 
@@ -129,7 +129,7 @@ impl Read for Decompressor<'_> {
           .header("Filename")
       })
       .with_section(|| self.compression_type.clone().header("Decompressor"))
-      .map_err(|report| std::io::Error::new(ErrorKind::Other, report_to_string(&report)))
+      .map_err(|report| std::io::Error::other(report_to_string(&report)))
   }
 }
 
@@ -188,7 +188,7 @@ impl Write for Compressor<'_> {
           .header("Filename")
       })
       .with_section(|| self.compression_type.clone().header("Compressor"))
-      .map_err(|report| std::io::Error::new(ErrorKind::Other, report_to_string(&report)))
+      .map_err(|report| std::io::Error::other(report_to_string(&report)))
   }
 
   fn flush(&mut self) -> std::io::Result<()> {
@@ -204,7 +204,7 @@ impl Write for Compressor<'_> {
           .header("Filename")
       })
       .with_section(|| self.compression_type.clone().header("Compressor"))
-      .map_err(|report| std::io::Error::new(ErrorKind::Other, report_to_string(&report)))
+      .map_err(|report| std::io::Error::other(report_to_string(&report)))
   }
 }
 

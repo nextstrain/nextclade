@@ -271,12 +271,12 @@ impl AuspiceGraphNodePayload {
 
   /// Extracts clade-like node attribute, given its name
   pub fn get_clade_node_attr(&self, key: impl AsRef<str>) -> Option<&str> {
-    self
+    let val = self
       .node_attrs
       .other
       .get(key.as_ref())
-      .and_then(|val| val.get("value"))
-      .and_then(|val| val.as_str())
+      .and_then(|val| val.get("value"))?;
+    val.as_str()
   }
 
   /// Sets clade-like node attribute
@@ -706,13 +706,13 @@ impl AuspiceTreeMeta {
   }
 
   /// Extract placement masks
-  pub fn placement_mask_ranges(&self) -> &[NucRefGlobalRange] {
+  pub const fn placement_mask_ranges(&self) -> &[NucRefGlobalRange] {
     self.extensions_nextclade().placement_mask_ranges.as_slice()
   }
 
   /// Extract a list of descriptions of clade-like node attributes.
   /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
-  pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
+  pub const fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
     self.extensions_nextclade().clade_node_attrs.as_slice()
   }
 
@@ -777,8 +777,8 @@ impl AuspiceTree {
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let data =
-      read_file_to_string(filepath).wrap_err_with(|| format!("When reading Auspice Tree JSON file {filepath:#?}"))?;
-    Self::from_str(data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {filepath:#?}"))
+      read_file_to_string(filepath).wrap_err_with(|| format!("When reading Auspice Tree JSON file {}", filepath.display()))?;
+    Self::from_str(data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {}", filepath.display()))
   }
 
   pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {

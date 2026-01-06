@@ -107,7 +107,7 @@ where
 
   #[inline]
   #[must_use]
-  pub fn payload_mut(&mut self) -> &mut N {
+  pub const fn payload_mut(&mut self) -> &mut N {
     &mut self.data
   }
 
@@ -121,45 +121,45 @@ where
   /// Get node degree i.e. number of outbound edges.
   #[inline]
   #[must_use]
-  pub fn degree(&self) -> usize {
+  pub const fn degree(&self) -> usize {
     self.outbound().len()
   }
 
   /// Check if node is a leaf node, i.e. has no outbound edges.
   #[inline]
   #[must_use]
-  pub fn is_leaf(&self) -> bool {
+  pub const fn is_leaf(&self) -> bool {
     self.outbound().is_empty()
   }
 
   /// Check if node is a root node, i.e. has no inbound edges.
   #[inline]
   #[must_use]
-  pub fn is_root(&self) -> bool {
+  pub const fn is_root(&self) -> bool {
     self.inbound().is_empty()
   }
 
   #[inline]
   #[must_use]
-  pub fn outbound(&self) -> &[GraphEdgeKey] {
+  pub const fn outbound(&self) -> &[GraphEdgeKey] {
     self.outbound_edges.as_slice()
   }
 
   #[inline]
   #[must_use]
-  pub fn outbound_mut(&mut self) -> &mut Vec<GraphEdgeKey> {
+  pub const fn outbound_mut(&mut self) -> &mut Vec<GraphEdgeKey> {
     &mut self.outbound_edges
   }
 
   #[inline]
   #[must_use]
-  pub fn inbound(&self) -> &[GraphEdgeKey] {
+  pub const fn inbound(&self) -> &[GraphEdgeKey] {
     self.inbound_edges.as_slice()
   }
 
   #[inline]
   #[must_use]
-  pub fn inbound_mut(&mut self) -> &mut Vec<GraphEdgeKey> {
+  pub const fn inbound_mut(&mut self) -> &mut Vec<GraphEdgeKey> {
     &mut self.inbound_edges
   }
 }

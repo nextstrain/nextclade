@@ -1,12 +1,12 @@
 use crate::io::console::color_from_hex;
 use console::Style;
 use eyre::Report;
-use lazy_static::lazy_static;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 pub fn shorten_feature_type(feature_type: &str) -> &str {
-  lazy_static! {
-    pub static ref FEATURE_TYPES_ABBREV: HashMap<&'static str, &'static str> = [
+  static FEATURE_TYPES_ABBREV: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
+    [
       ("mature_protein_region_of_CDS", "mature protein"),
       ("signal_peptide_region_of_CDS", "signal peptide"),
       ("five_prime_UTR", "5' UTR"),
@@ -14,9 +14,9 @@ pub fn shorten_feature_type(feature_type: &str) -> &str {
     ]
     .iter()
     .copied()
-    .collect();
-  }
-  (*FEATURE_TYPES_ABBREV).get(feature_type).unwrap_or(&feature_type)
+    .collect()
+  });
+  FEATURE_TYPES_ABBREV.get(feature_type).unwrap_or(&feature_type)
 }
 
 pub fn style_for_feature_type(feature_type: &str) -> Result<Style, Report> {

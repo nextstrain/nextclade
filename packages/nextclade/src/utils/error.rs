@@ -17,10 +17,7 @@ pub fn from_eyre_error<T, E: FromStr>(val_or_err: Result<T, Report>) -> Result<T
 
 /// Preserves only the Result::Ok values in a given collection
 pub fn keep_ok<T, E>(results: &[Result<T, E>]) -> impl Iterator<Item = &T> {
-  results.iter().filter_map(|res| match res {
-    Ok(val) => Some(val),
-    Err(_) => None,
-  })
+  results.iter().filter_map(|res| res.as_ref().ok())
 }
 
 #[macro_export(local_inner_macros)]

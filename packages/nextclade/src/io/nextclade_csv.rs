@@ -250,7 +250,7 @@ pub fn results_to_csv_string(
         NextcladeOutputOrError::Error(error) => {
           writer.write_nuc_error(error.index, &error.seq_name, &error.errors.join(";"))?;
         }
-      };
+      }
     }
   }
 

@@ -148,7 +148,7 @@ impl GffCommonInfo {
     let notes = get_all_attributes(&attributes, &notes_attr_keys);
 
     let is_circular = get_attribute_optional(&attributes, "Is_circular")
-      .map_or(false, |is_circular| is_circular.to_lowercase() == "true");
+      .is_some_and(|is_circular| is_circular.to_lowercase() == "true");
 
     let gff_seqid = get_gff_value_maybe(record.seqname());
     let gff_source = get_gff_value_maybe(record.source());
@@ -235,7 +235,10 @@ pub fn get_one_of_attributes_optional(
 ) -> Option<String> {
   attr_names
     .iter()
-    .find_map(|&name| attributes.get(name).and_then(|val| val.first()))
+    .find_map(|&name| {
+      let val = attributes.get(name)?;
+      val.first()
+    })
     .cloned()
 }
 

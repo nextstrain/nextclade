@@ -4,7 +4,7 @@ use eyre::{Report, WrapErr};
 use log::info;
 use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub const DEFAULT_FILE_BUF_SIZE: usize = 256 * 1024;
 
@@ -19,14 +19,14 @@ pub fn open_stdin() -> Result<Box<dyn BufRead>, Report> {
 }
 
 /// Open file for reading given a filepath. If the filepath is None, then read from stdin.
-pub fn open_file_or_stdin<P: AsRef<Path>>(filepath: &Option<P>) -> Result<Box<dyn BufRead>, Report> {
+pub fn open_file_or_stdin<P: AsRef<Path>>(filepath: Option<&P>) -> Result<Box<dyn BufRead>, Report> {
   match filepath {
     Some(filepath) => {
       let filepath = filepath.as_ref();
       if is_path_stdin(filepath) {
         open_stdin()
       } else {
-        let file = File::open(filepath).wrap_err_with(|| format!("When opening file {filepath:?}"))?;
+        let file = File::open(filepath).wrap_err_with(|| format!("When opening file {}", filepath.display()))?;
         let buf_file = BufReader::with_capacity(DEFAULT_FILE_BUF_SIZE, file);
         let decompressor = Decompressor::from_path(buf_file, filepath)?;
         let buf_decompressor = BufReader::with_capacity(DEFAULT_FILE_BUF_SIZE, decompressor);
@@ -46,7 +46,7 @@ pub fn create_file_or_stdout(filepath: impl AsRef<Path>) -> Result<Box<dyn Write
     Box::new(BufWriter::with_capacity(DEFAULT_FILE_BUF_SIZE, stdout()))
   } else {
     ensure_dir(filepath)?;
-    Box::new(File::create(filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?)
+    Box::new(File::create(filepath).wrap_err_with(|| format!("When creating file: {}", filepath.display()))?)
   };
 
   let buf_file = BufWriter::with_capacity(DEFAULT_FILE_BUF_SIZE, file);
@@ -57,12 +57,12 @@ pub fn create_file_or_stdout(filepath: impl AsRef<Path>) -> Result<Box<dyn Write
 
 pub fn is_path_stdin(filepath: impl AsRef<Path>) -> bool {
   let filepath = filepath.as_ref();
-  filepath == PathBuf::from("-") || filepath == PathBuf::from("/dev/stdin")
+  filepath == "-" || filepath == "/dev/stdin"
 }
 
 pub fn is_path_stdout(filepath: impl AsRef<Path>) -> bool {
   let filepath = filepath.as_ref();
-  filepath == PathBuf::from("-") || filepath == PathBuf::from("/dev/stdout")
+  filepath == "-" || filepath == "/dev/stdout"
 }
 
 #[cfg(not(target_arch = "wasm32"))]

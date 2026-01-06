@@ -12,8 +12,8 @@ pub fn graph_find_clade_founder(
   let clade = clade.as_ref();
   // Search the earliest ancestor with the same clade
   graph_find_backwards_last(graph, nearest_node_key, |anc_node| {
-    let anc_clade = anc_node.payload().clade();
-    anc_clade.and_then(|anc_clade| (anc_clade == clade).then_some(anc_node.key()))
+    let anc_clade = anc_node.payload().clade()?;
+    (anc_clade == clade).then_some(anc_node.key())
   })
   .transpose()
   // If no ancestor found, then the node itself is clade founder
@@ -29,8 +29,8 @@ pub fn graph_find_node_attr_founder(
 ) -> Result<GraphNodeKey, Report> {
   // Search the earliest ancestor with the same clade
   graph_find_backwards_last(graph, nearest_node_key, |anc_node| {
-    let anc_val = anc_node.payload().get_clade_node_attr(attr_key.as_ref());
-    anc_val.and_then(|anc_val| (anc_val == attr_val.as_ref()).then_some(anc_node.key()))
+    let anc_val = anc_node.payload().get_clade_node_attr(attr_key.as_ref())?;
+    (anc_val == attr_val.as_ref()).then_some(anc_node.key())
   })
   .transpose()
   // If no ancestor found, then the node itself is attribute founder

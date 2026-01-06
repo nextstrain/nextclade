@@ -50,13 +50,13 @@ impl NdjsonFileWriter {
     self
       .ndjson_writer
       .write(entry)
-      .wrap_err_with(|| format!("When writing ndjson output entry to file {:#?}", &self.filepath))
+      .wrap_err_with(|| format!("When writing ndjson output entry to file {}", &self.filepath.display()))
   }
 
   pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) -> Result<(), Report> {
     self
       .ndjson_writer
       .write_nuc_error(index, seq_name, errors)
-      .wrap_err_with(|| format!("When writing ndjson error entry to file {:#?}", &self.filepath))
+      .wrap_err_with(|| format!("When writing ndjson error entry to file {}", &self.filepath.display()))
   }
 }

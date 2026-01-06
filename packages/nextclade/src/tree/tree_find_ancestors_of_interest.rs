@@ -172,7 +172,7 @@ fn is_qry_match(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCrit
   let node = node.payload();
 
   let res = [
-    find_matching_clade(&node.clade(), &criteria.clade).is_some(),
+    find_matching_clade(node.clade().as_ref(), &criteria.clade).is_some(),
     find_matching_clade_like_attrs(node, &criteria.clade_node_attrs).is_some(),
   ]
   .iter()
@@ -192,7 +192,7 @@ fn node_matches(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCrit
   let name = criteria.name.iter().find(|&name| name == &node_name).cloned();
 
   // 2. Candidate clade matches at least ONE OF the clades in the criteria
-  let clade = find_matching_clade(&node.clade(), &criteria.clade);
+  let clade = find_matching_clade(node.clade().as_ref(), &criteria.clade);
 
   // 3. ALL clade-like attribute keys in the criteria are also defined in the candidate node,
   //    AND
@@ -214,13 +214,12 @@ fn node_matches(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCrit
   }
 }
 
-fn find_matching_clade(qry_clade: &Option<String>, anc_clades: &[String]) -> Option<String> {
+fn find_matching_clade(qry_clade: Option<&String>, anc_clades: &[String]) -> Option<String> {
   if anc_clades.is_empty() {
     return None;
   }
 
   qry_clade
-    .as_ref()
     .and_then(|clade| anc_clades.iter().find(|anc_clade| *anc_clade == clade))
     .map(String::to_owned)
 }

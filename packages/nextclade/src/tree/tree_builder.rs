@@ -398,7 +398,7 @@ pub fn knit_into_graph(
           new_internal_node
             .branch_attrs
             .labels
-            .get_or_insert(TreeBranchAttrsLabels::default())
+            .get_or_insert_with(TreeBranchAttrsLabels::default)
             .clade = clade;
         }
       }

@@ -52,7 +52,7 @@ impl NextcladeParams {
   pub fn from_auspice(
     auspice_json: &AuspiceTree,
     overrides: &NextcladeParamsOptional,
-    cdses: &Option<Vec<String>>,
+    cdses: Option<&Vec<String>>,
   ) -> Result<Vec<Self>, Report> {
     let virus_properties = find_some(&[
       &overrides.virus_properties,
@@ -62,28 +62,27 @@ impl NextcladeParams {
     .unwrap_or_default();
 
     let ref_record = {
-      match &overrides.ref_record {
-        Some(ref_record) => ref_record.clone(),
-        None => {
-          let ref_name = virus_properties
-            .attributes
-            .get("reference name")
-            .cloned()
-            .unwrap_or_else(|| AnyType::String("reference".to_owned()))
-            .as_str()
-            .wrap_err(
-              "When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`",
-            )?
-            .to_owned();
+      if let Some(ref_record) = &overrides.ref_record {
+        ref_record.clone()
+      } else {
+        let ref_name = virus_properties
+          .attributes
+          .get("reference name")
+          .cloned()
+          .unwrap_or_else(|| AnyType::String("reference".to_owned()))
+          .as_str()
+          .wrap_err(
+            "When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`",
+          )?
+          .to_owned();
 
-          let ref_seq = auspice_json.root_sequence.as_ref().and_then(|root_sequence| root_sequence.get("nuc"))
-            .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc) and a reference sequence is not provided any other way."))?.to_owned();
+        let ref_seq = auspice_json.root_sequence.as_ref().and_then(|root_sequence| root_sequence.get("nuc"))
+          .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc) and a reference sequence is not provided any other way."))?.to_owned();
 
-          FastaRecord {
-            index: 0,
-            seq_name: ref_name,
-            seq: ref_seq,
-          }
+        FastaRecord {
+          index: 0,
+          seq_name: ref_name,
+          seq: ref_seq,
         }
       }
     };
@@ -159,7 +158,7 @@ impl NextcladeParams {
           }
         };
 
-        Self::from_auspice(&auspice_json, &overrides, &None)
+        Self::from_auspice(&auspice_json, &overrides, None)
       }
       NextcladeParamsRaw::Dir(raw) => raw
         .into_iter()
@@ -442,12 +441,12 @@ impl Nextclade {
   }
 
   pub fn run(&self, input: &FastaRecord) -> Result<AnalysisOutput, Report> {
-    if self.params.general.replace_unknown {
+    let qry_seq = if self.params.general.replace_unknown {
       Ok(to_nuc_seq_replacing(&input.seq))
     } else {
       to_nuc_seq(&input.seq)
-    }
-    .and_then(|qry_seq| nextclade_run_one(input.index, &input.seq_name, &qry_seq, self))
+    }?;
+    nextclade_run_one(input.index, &input.seq_name, &qry_seq, self)
   }
 
   pub fn get_output_trees(&mut self, results: Vec<NextcladeOutputs>) -> Result<Option<OutputTrees>, Report> {

@@ -97,7 +97,7 @@ impl<E: GraphEdge> Edge<E> {
   }
 
   #[inline]
-  pub fn payload_mut(&mut self) -> &mut E {
+  pub const fn payload_mut(&mut self) -> &mut E {
     &mut self.data
   }
 }

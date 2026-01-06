@@ -110,6 +110,9 @@ nonstandard_style = { level = "warn", priority = -1 }
 rust_2018_idioms = { level = "warn", priority = -1 }
 rust_2021_compatibility = { level = "warn", priority = -1 }
 
+# Silence cfg warnings from dependency proc macros (wasm-bindgen, ctor)
+unexpected_cfgs = "allow"
+
 # Disable some of the lints enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html
 elided_lifetimes_in_paths = "allow"
@@ -156,6 +159,8 @@ nursery = { level = "warn", priority = -1 }
 # Disable some of the Clippy lints
 absolute_paths = "allow"
 allow_attributes = "allow"
+allow_attributes_without_reason = "allow"
+arbitrary_source_item_ordering = "allow"
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 assign_op_pattern = "allow"
@@ -217,6 +222,7 @@ print_stdout = "allow"
 pub_use = "allow"
 pub_with_shorthand = "allow"
 question_mark_used = "allow"
+redundant_test_prefix = "allow"
 self_named_module_files = "allow"
 semicolon_inside_block = "allow"
 semicolon_outside_block = "allow"
@@ -232,6 +238,7 @@ std_instead_of_alloc = "allow"
 std_instead_of_core = "allow"
 struct_field_names = "allow"
 suboptimal_flops = "allow"
+too_long_first_doc_paragraph = "allow"
 too_many_arguments = "allow"
 too_many_lines = "allow"
 type_repetition_in_bounds = "allow"
@@ -240,6 +247,7 @@ unreachable = "allow"
 unreadable_literal = "allow"
 unsafe_derive_deserialize = "allow"
 unused_self = "allow"
+unused_trait_names = "allow"
 unused_unit = "allow"
 unwrap_in_result = "allow"
 unwrap_used = "allow"

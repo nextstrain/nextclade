@@ -112,7 +112,7 @@ where
   }
 
   #[inline]
-  pub fn data_len(&self) -> usize {
+  pub const fn data_len(&self) -> usize {
     self.data.len()
   }
 

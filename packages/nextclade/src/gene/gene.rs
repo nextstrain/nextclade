@@ -12,9 +12,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 #[must_use]
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema, Default)]
 pub enum GeneStrand {
   #[serde(rename = "+")]
+  #[default]
   Forward,
   #[serde(rename = "-")]
   Reverse,
@@ -26,12 +27,6 @@ impl GeneStrand {
       Self::Forward => Self::Reverse,
       Self::Reverse => Self::Forward,
     }
-  }
-}
-
-impl Default for GeneStrand {
-  fn default() -> Self {
-    Self::Forward
   }
 }
 

@@ -7,7 +7,7 @@ use crate::gene::genotype::Genotype;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -90,11 +90,11 @@ impl FromStr for NucSub {
 
   /// Parses nucleotide substitution from string. Expects IUPAC notation commonly used in bioinformatics.
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    lazy_static! {
-      static ref RE: Regex = Regex::new(NUC_MUT_REGEX)
+    static RE: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(NUC_MUT_REGEX)
         .wrap_err_with(|| format!("When compiling regular expression '{NUC_MUT_REGEX}'"))
-        .unwrap();
-    }
+        .unwrap()
+    });
 
     if let Some(captures) = RE.captures(s) {
       return match (captures.name("ref"), captures.name("pos"), captures.name("qry")) {

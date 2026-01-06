@@ -24,13 +24,13 @@ pub enum QcStatus {
 }
 
 impl std::fmt::Display for QcStatus {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            QcStatus::Good => write!(f, "good"),
-            QcStatus::Mediocre => write!(f, "mediocre"),
-            QcStatus::Bad => write!(f, "bad"),
-        }
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      QcStatus::Good => write!(f, "good"),
+      QcStatus::Mediocre => write!(f, "mediocre"),
+      QcStatus::Bad => write!(f, "bad"),
     }
+  }
 }
 
 impl QcStatus {
@@ -81,19 +81,19 @@ pub fn qc_run(
     overall_status: QcStatus::Good,
   };
 
-  result.overall_score += add_score(&result.missing_data);
-  result.overall_score += add_score(&result.mixed_sites);
-  result.overall_score += add_score(&result.private_mutations);
-  result.overall_score += add_score(&result.snp_clusters);
-  result.overall_score += add_score(&result.frame_shifts);
-  result.overall_score += add_score(&result.stop_codons);
+  result.overall_score += add_score(result.missing_data.as_ref());
+  result.overall_score += add_score(result.mixed_sites.as_ref());
+  result.overall_score += add_score(result.private_mutations.as_ref());
+  result.overall_score += add_score(result.snp_clusters.as_ref());
+  result.overall_score += add_score(result.frame_shifts.as_ref());
+  result.overall_score += add_score(result.stop_codons.as_ref());
 
   result.overall_status = QcStatus::from_score(result.overall_score);
 
   result
 }
 
-fn add_score<R: QcRule>(rule_result: &Option<R>) -> f64 {
+fn add_score<R: QcRule>(rule_result: Option<&R>) -> f64 {
   if let Some(rule_result) = rule_result {
     rule_result.score().pow(2.0) * 0.01
   } else {

@@ -48,8 +48,8 @@ fn should_report_primer_mutation(sub: &NucSub, primer: &PcrPrimer) -> bool {
   }
 
   // Don't report mutation if primer contains matching ambiguous nucleotide at this position
-  return !primer
+  !primer
     .non_acgts
     .iter()
-    .any(|non_acgt| non_acgt.pos == sub.pos && is_nuc_match(non_acgt.qry, sub.qry_nuc));
+    .any(|non_acgt| non_acgt.pos == sub.pos && is_nuc_match(non_acgt.qry, sub.qry_nuc))
 }
