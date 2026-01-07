@@ -45,7 +45,7 @@ as well as to the `--help` text for each tool.
 
    > 💡 We accept pull requests on GitHub. If you want to submit a new feature or a bug fix, then create a GitHub account, [make a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of the [origin repository `nextstrain/nextclade`](https://github.com/nextstrain/nextclade) and clone your forked repository instead. Refer to [GitHub documentation "Contributing to projects"](https://docs.github.com/en/get-started/quickstart/contributing-to-projects) for more details.
 
-   > 💡 Make sure you [keep your local code up to date](https://github.com/git-guides/git-pull) with the origin repo,  [especially if it's forked](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork).
+   > 💡 Make sure you [keep your local code up to date](https://github.com/git-guides/git-pull) with the origin repo, [especially if it's forked](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork).
 
    > 💡 If you are a member of Nextstrain team, then you don't need a fork and you can contribute directly to the origin repository. Still, in most cases, please submit pull requests for review, rather than pushing changes to major branches directly.
 
@@ -76,18 +76,18 @@ as well as to the `--help` text for each tool.
 
    The only supported Rust version is the one declared in [`rust-toolchain.toml`](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml) (currently **1.92.0**).
 
-    ```bash
-    # Install Rustup, the Rust version manager
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```bash
+   # Install Rustup, the Rust version manager
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-    # Add Rust tools to the $PATH
-    export PATH="$PATH:$HOME/.cargo/bin"
+   # Add Rust tools to the $PATH
+   export PATH="$PATH:$HOME/.cargo/bin"
 
-    # Check your installed versions
-    rustc -V
-    cargo -V
-    rustup -V
-    ```
+   # Check your installed versions
+   rustc -V
+   cargo -V
+   rustup -V
+   ```
 
    > ⚠️ Nextclade team doesn't have bandwidth to support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html) and Rust versions different from what is declared in [rust-toolchain.toml](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml). If you install Rust from Linux package repositories, Homebrew, Conda etc., things may or may not work, or they may work but produce wrong results. Nextclade team doesn't have bandwidth to try every platform and config, so if you decide to go unofficial route, then you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
 
@@ -95,37 +95,37 @@ as well as to the `--help` text for each tool.
 
 4. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
 
-    ```bash
-    cp .env.example .env
-    ```
+   ```bash
+   cp .env.example .env
+   ```
 
 5. Build and run Nextclade CLI in debug mode (convenient for development - faster to build, slow to run, has more debug info in the executable, error messages are more elaborate):
 
-    ```bash
-    # (Re-)build Nextclade in debug mode.
-    # By default, the resulting executable will be in `target/debug/nextclade`.
-    cargo build --bin=nextclade
+   ```bash
+   # (Re-)build Nextclade in debug mode.
+   # By default, the resulting executable will be in `target/debug/nextclade`.
+   cargo build --bin=nextclade
 
-    # (Re-)build Nextclade in debug mode and run `nextclade --help` to print 
-    # Nextclade CLI main help screen. The arguments after the `--` are passed 
-    # to nextclade executable, as if you'd run it directly.
-    # Refer to Nextclade user documentation for explanation of arguments.
-    cargo run --bin=nextclade -- --help
+   # (Re-)build Nextclade in debug mode and run `nextclade --help` to print
+   # Nextclade CLI main help screen. The arguments after the `--` are passed
+   # to nextclade executable, as if you'd run it directly.
+   # Refer to Nextclade user documentation for explanation of arguments.
+   cargo run --bin=nextclade -- --help
 
-    # (Re-)build Nextclade in debug mode and use it to download a dataset to 
-    # `data_dev/` directory.
-    cargo run --bin=nextclade -- dataset get \
-      --name='sars-cov-2' \
-      --output-dir='data_dev/sars-cov-2'
+   # (Re-)build Nextclade in debug mode and use it to download a dataset to
+   # `data_dev/` directory.
+   cargo run --bin=nextclade -- dataset get \
+     --name='sars-cov-2' \
+     --output-dir='data_dev/sars-cov-2'
 
-    # (Re-)build Nextclade in debug mode and run the analysis using the 
-    # dataset we just downloaded (to `data_dev/`) and output results to 
-    # the `out/` directory.
-    cargo run --bin=nextclade -- run \
-      'data_dev/sars-cov-2/sequences.fasta' \
-      --input-dataset='data_dev/sars-cov-2/' \
-      --output-all='out/'
-    ```
+   # (Re-)build Nextclade in debug mode and run the analysis using the
+   # dataset we just downloaded (to `data_dev/`) and output results to
+   # the `out/` directory.
+   cargo run --bin=nextclade -- run \
+     'data_dev/sars-cov-2/sequences.fasta' \
+     --input-dataset='data_dev/sars-cov-2/' \
+     --output-all='out/'
+   ```
 
    The `cargo run` command automatically performs the `cargo build` command if there are code changes.
 
@@ -135,18 +135,18 @@ as well as to the `--help` text for each tool.
 
 6. Build and run Nextclade CLI in release mode (slow to build, fast to run, very little debug info):
 
-    ```bash
-    # Build Nextclade in release mode.
-    # By default, the resulting executable will be in `target/release/nextclade`.
-    cargo build --bin=nextclade --release
-    
-    # Run Nextclade release binary
-    ./target/release/nextclade run \
-      'data_dev/sars-cov-2/sequences.fasta' \
-      --input-dataset='data_dev/sars-cov-2/' \
-      --output-all='out/'
-    
-    ```
+   ```bash
+   # Build Nextclade in release mode.
+   # By default, the resulting executable will be in `target/release/nextclade`.
+   cargo build --bin=nextclade --release
+
+   # Run Nextclade release binary
+   ./target/release/nextclade run \
+     'data_dev/sars-cov-2/sequences.fasta' \
+     --input-dataset='data_dev/sars-cov-2/' \
+     --output-all='out/'
+
+   ```
 
    > 💡 Debug builds are incremental, i.e. only the files that have changed since the last build are compiled, which is much faster that full build. But release builds are always full builds, with additional optimization passes, so they take much more time. If you need to quickly iterate on features, then use debug builds. If you are measuring performance, or building binaries for the actual daily usage, always use release builds.
 
@@ -167,14 +167,14 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    Clone Nextclade git repository:
 
-    ```bash
-    git clone https://github.com/nextstrain/nextclade
-    cd nextclade
-    ```
+   ```bash
+   git clone https://github.com/nextstrain/nextclade
+   cd nextclade
+   ```
 
    > 💡 We accept pull requests on GitHub. If you want to submit a with new feature or a bug fixe, then make a GitHub account, [make a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of the [origin Nextclade repository](https://github.com/nextstrain/nextclade) and clone your forked repository instead. Refer to [GitHub documentation "Contributing to projects"](https://docs.github.com/en/get-started/quickstart/contributing-to-projects) for more details.
 
-   > 💡 Make sure you [keep your local code up to date](https://github.com/git-guides/git-pull) with the origin repo,  [especially if it's forked](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork).
+   > 💡 Make sure you [keep your local code up to date](https://github.com/git-guides/git-pull) with the origin repo, [especially if it's forked](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork).
 
    > 💡 If you are a member of Nextstrain team, then you don't need a fork and you can contribute directly to the origin repository. Still, in most cases, please submit pull requests for review, rather than pushing changes to branches directly.
 
@@ -184,19 +184,19 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    Install Node.js from [nodejs.org](https://nodejs.org), or using [nvm](https://github.com/nvm-sh/nvm):
 
-    ```bash
-    cd nextclade/
-    nvm install
-    nvm use
-    node --version
-    ```
+   ```bash
+   cd nextclade/
+   nvm install
+   nvm use
+   node --version
+   ```
 
    Install Bun (version **1.2.14** recommended) from [bun.sh](https://bun.sh):
 
-    ```bash
-    curl -fsSL https://bun.sh/install | bash
-    bun --version
-    ```
+   ```bash
+   curl -fsSL https://bun.sh/install | bash
+   bun --version
+   ```
 
    > ⚠️ Nextclade team doesn't have bandwidth to support Node.js installations from Linux package repositories, Homebrew, Conda, as well as versions of Node.js which are not the same as the one currently declared in the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc), and everything else deviating from the recommended setup. If you decide to go that route - things may or may not work - you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
 
@@ -241,30 +241,30 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
 5. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
 
-    ```bash
-    cp .env.example .env
-    ```
+   ```bash
+   cp .env.example .env
+   ```
 
 6. Install WebAssembly toolchain (once)
 
    The following versions are pinned for build reproducibility:
 
-   | Tool | Version |
-   |------|---------|
-   | wasm-pack | 0.13.1 |
+   | Tool             | Version |
+   | ---------------- | ------- |
+   | wasm-pack        | 0.13.1  |
    | wasm-bindgen-cli | 0.2.106 |
-   | binaryen | 125 |
+   | binaryen         | 125     |
 
-    ```bash
-    # Install wasm-pack
-    cargo install wasm-pack@0.13.1 --locked
+   ```bash
+   # Install wasm-pack
+   cargo install wasm-pack@0.13.1 --locked
 
-    # Install wasm-bindgen-cli (must match the version in Cargo.toml)
-    cargo install wasm-bindgen-cli@0.2.106 --locked
+   # Install wasm-bindgen-cli (must match the version in Cargo.toml)
+   cargo install wasm-bindgen-cli@0.2.106 --locked
 
-    # Add WebAssembly compilation target
-    rustup target add wasm32-unknown-unknown
-    ```
+   # Add WebAssembly compilation target
+   rustup target add wasm32-unknown-unknown
+   ```
 
    <details>
    <summary>🐧 Install binaryen on Linux</summary>
@@ -291,21 +291,21 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
 7. Install NPM dependencies (once)
 
-    ```bash
-    cd packages/nextclade-web
-    bun install
-    ```
+   ```bash
+   cd packages/nextclade-web
+   bun install
+   ```
 
    > ⚠️ Nextclade uses `bun` to manage NPM dependencies. While you could try `npm` or other tools instead, we don't support this.
 
 8. Build the WebAssembly module
 
-    ```bash
-    cd packages/nextclade-web
-    bun wasm-prod
-    ```
+   ```bash
+   cd packages/nextclade-web
+   bun wasm-prod
+   ```
 
-   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into  `packages/nextclade-web/src/gen/`. The web application should be able to find it there.
+   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into `packages/nextclade-web/src/gen/`. The web application should be able to find it there.
 
    Repeat this step every time you are changing Rust code.
 
@@ -315,10 +315,10 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    The development version can be built using:
 
-    ```bash
-    cd packages/nextclade-web
-    bun dev
-    ```
+   ```bash
+   cd packages/nextclade-web
+   bun dev
+   ```
 
    This runs Next.js dev server (continuously). Open `http://localhost:3000/` in the browser. Typescript code changes should trigger automatic rebuild and fast refresh of the app in the browser - no dev server restart is typically necessary.
 
@@ -326,20 +326,20 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
 10. Build and serve the production version of the web app locally
 
-   Alternatively, the optimized ("production") version of the web app can be built and (optionally) served with
+Alternatively, the optimized ("production") version of the web app can be built and (optionally) served with
 
     ```bash
     bun prod:build
     bun prod:serve
     ```
 
-   Open `http://localhost:8080/` in the browser.
+Open `http://localhost:8080/` in the browser.
 
-   The resulting HTML, CSS, JS and WASM files should be available under `packages/nextclade-web/.build/production/web/`. This is the "web root" of the application. All files required to deploy and serve Nextclade Web are there.
+The resulting HTML, CSS, JS and WASM files should be available under `packages/nextclade-web/.build/production/web/`. This is the "web root" of the application. All files required to deploy and serve Nextclade Web are there.
 
-   The production build does not have automatic rebuild and reload. You need to do full rebuild on every code change - both the WebAssembly module and then the web app.
+The production build does not have automatic rebuild and reload. You need to do full rebuild on every code change - both the WebAssembly module and then the web app.
 
-   The `bun prod:serve` command runs a simple static file web server. But the produced files can be served using any static file web server (Apache, Nginx, Caddy, Express, etc.), static file hosting services, or cloud services (AWS S3, Vercel, GitHub Pages, etc.). The official deployment uses AWS S3 + Cloudfront.
+The `bun prod:serve` command runs a simple static file web server. But the produced files can be served using any static file web server (Apache, Nginx, Caddy, Express, etc.), static file hosting services, or cloud services (AWS S3, Vercel, GitHub Pages, etc.). The official deployment uses AWS S3 + Cloudfront.
 
 ### Internationalization (translation)
 
@@ -441,7 +441,6 @@ For routine development, it is recommended to configure your text editor to see 
 
 (these instructions can go out of date with time, so make sure you check Jetbrains docs for what's latest and greatest)
 
-
 > Install [Intellij Rust plugin](https://intellij-rust.github.io/).
 >
 > In main menu, "File | Settings | Languages & Frameworks | Rust | External Linters", set "External tool" to "Clippy" and check the checkbox "Run external linter to analyze code on the fly".
@@ -523,7 +522,7 @@ Other branches are built in the context of GitHub pull requests. If you submit a
 Here is a list of environments:
 
 | Nextclade repo branch | Nextclade Web domain name  | Dataset server                                                                                   | Meaning                                                                                                                   |
-|-----------------------|----------------------------|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| --------------------- | -------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
 | release               | clades.nextstrain.org      | data.clades.nextstrain.org                                                                       | Final release, targeting all end users                                                                                    |
 | staging               | staging.nextstrain.org     | data.staging.nextstrain.org                                                                      | Staging release, for last-minute testing and fixes before a final release is made, to not block progress on master branch |
 | master                | master.nextstrain.org      | data.master.nextstrain.org                                                                       | Main development branch - accumulates features and bug fixes from pull requests                                           |
@@ -566,6 +565,7 @@ In all cases you need to have a dataset server directory ready (contained datase
 - Build a fresh dataset server directory as described in the [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data) repo. At the time of writing it simply means to run `./scripts/rebuild` and to observe the `data_output/` directory created, containing the dataset files and associated index files
 
 - Serve the output directory locally using any static file server. [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) should be enabled on the server. For example, using `serve` package from NPM:
+
   ```bash
   npx serve@latest --cors --listen=tcp://0.0.0.0:3001 data_output/
   ```
@@ -575,6 +575,7 @@ In all cases you need to have a dataset server directory ready (contained datase
   ```bash
   curl http://localhost:3001/index.json
   ```
+
   and to see some JSON when navigating to `http://localhost:3001/index.json` in a web browser.
 
 ### Temporarily use custom dataset server with Nextclade CLI
