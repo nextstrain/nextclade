@@ -1,6 +1,6 @@
 import { AuspiceState } from 'auspice'
 import { applyMiddleware, createStore, Store } from 'redux'
-import { thunk, ThunkMiddleware } from 'redux-thunk'
+import thunk, { ThunkMiddleware } from 'redux-thunk'
 import createRootReducer from './reducer'
 
 let globalStore: Store<AuspiceState | undefined> | undefined

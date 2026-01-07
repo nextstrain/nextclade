@@ -1,4 +1,5 @@
 import Bowser from 'bowser'
+import { concurrent } from 'fasy'
 import React, { useEffect, useState } from 'react'
 import { atom } from 'recoil'
 import { Button, Modal, ModalBody, ModalFooter } from 'reactstrap'
@@ -42,12 +43,12 @@ interface BrowserCheckResult {
 }
 
 async function detectAllWasmFeatures(features: string[]): Promise<Record<string, boolean>> {
-  const results: Record<string, boolean> = {}
-  for (const feature of features) {
+  const detections = await concurrent.map(async (feature) => {
     const detector = wasmFeatureDetect[feature as keyof typeof wasmFeatureDetect]
-    results[feature] = detector ? await detector() : false
-  }
-  return results
+    const supported = detector ? await detector() : false
+    return [feature, supported] as const
+  }, features)
+  return Object.fromEntries(detections)
 }
 
 function checkBrowserVersion(): { name: string | undefined; version: string | undefined; isSupported: boolean } {
@@ -106,7 +107,7 @@ export function BrowserWarning() {
         },
       })
     }
-    check()
+    void check()
   }, [])
 
   if (!checkResult || checkResult.isSupported || dismissed) {
