@@ -26,7 +26,7 @@ pub fn jsonschema_write_file<T: JsonSchema>(
 
   let output_file = output_file.map_or_else(|| Path::new("-"), AsRef::as_ref);
 
-  info!("Writing JSON schema for '{:?}' to {:?}", title, output_file);
+  info!("Writing JSON schema for '{title:?}' to {output_file:?}");
 
   match &format {
     JsonSchemaOutputFormat::Auto => json_or_yaml_write(output_file, &schema),

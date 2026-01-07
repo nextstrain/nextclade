@@ -16,7 +16,7 @@ pub fn date_to_iso(datetime: &DateTime<Utc>) -> String {
   datetime.to_rfc3339()
 }
 
-pub fn date_to_timestamp(datetime: &DateTime<Utc>) -> i64 {
+pub const fn date_to_timestamp(datetime: &DateTime<Utc>) -> i64 {
   datetime.timestamp() * 1000
 }
 

@@ -124,9 +124,7 @@ pub fn find_primer_in_ref_seq(primer_oligonuc: &[Nuc], ref_seq_str: &str) -> Opt
   match Regex::new(&primer_oligonuc_sanitized) {
     Err(report) => {
       warn!(
-        "When compiling regular expression for PCR primer search: '{}': {}",
-        primer_oligonuc_sanitized,
-        report.to_string()
+        "When compiling regular expression for PCR primer search: '{primer_oligonuc_sanitized}': {report}"
       );
       None
     }
